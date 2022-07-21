@@ -4,8 +4,9 @@ namespace Minds\Core\Captcha\FriendlyCaptcha;
 use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Exceptions\UserErrorException;
-use Zend\Diactoros\ServerRequest;
+use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
+use Zend\Diactoros\ServerRequest;
 
 /**
  * Controller for FriendlyCaptcha.
@@ -27,12 +28,14 @@ class Controller
 
     /**
      * Generate a puzzle and return it for consumption by widget.
-     * @throws MisconfigurationException - if server misconfigured.
+     * @param ServerRequestInterface $request
      * @return JsonResponse - response for consumption by widget object.
+     * @throws Exceptions\MisconfigurationException
      */
-    public function generatePuzzle(): JsonResponse
+    public function generatePuzzle(ServerRequestInterface $request): JsonResponse
     {
-        $puzzle = $this->manager->generatePuzzle();
+        $puzzleOrigin = $request->getQueryParams()['origin'] ?? "";
+        $puzzle = $this->manager->generatePuzzle($puzzleOrigin);
 
         return new JsonResponse([
             'status' => 'success',
