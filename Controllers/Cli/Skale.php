@@ -7,6 +7,8 @@ use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Core\Blockchain\Skale\Keys as SkaleKeys;
 use Minds\Core\Blockchain\Skale\Tools as SkaleTools;
+use Minds\Core\Blockchain\Wallets\OffChain\Balance;
+use Minds\Core\Blockchain\Skale\BalanceSynchronizer\BalanceSynchronizer;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Nostr\PocSync;
@@ -22,6 +24,8 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
      * @param PocSync|null $nostrPocSync - used to generate keys.
      * @param SkaleKeys|null $skaleKeys - used to get keys.
      * @param SkaleTools|null $skaleTools - used to get balances and send transactions.
+     * @param Balance|null $offchainBalance - used to get a users offchain balance.
+     * @param BalanceSynchronizer|null $balanceSynchronizer - used to sync users balance with offchain.
      * @param Config|null $config - config values.
      */
     public function __construct(
@@ -29,12 +33,16 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
         private ?PocSync $nostrPocSync = null,
         private ?SkaleKeys $skaleKeys = null,
         private ?SkaleTools $skaleTools = null,
+        private ?Balance $offchainBalance = null,
+        private ?BalanceSynchronizer $balanceSynchronizer = null,
         private ?Config $config = null
     ) {
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->nostrPocSync ??= Di::_()->get('Nostr\PocSync');
         $this->skaleKeys ??= Di::_()->get('Blockchain\Skale\Keys');
         $this->skaleTools ??= Di::_()->get('Blockchain\Skale\Tools');
+        $this->offchainBalance ??= Di::_()->get('Blockchain\Wallets\OffChain\Balance');
+        $this->balanceSynchronizer ??= Di::_()->get('Blockchain\Skale\BalanceSynchronizer');
         $this->config ??= Di::_()->get('Config');
     }
 
@@ -120,14 +128,22 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
             $user = $this->entitiesBuilder->getByUserByIndex($username) ?? null;
         }
 
-        $balance = $this->skaleTools->getTokenBalance(
+        $skaleMindsBalanceWei = $this->skaleTools->getTokenBalance(
             address: $address ?? null,
             user: $user ?? null,
             useCache: false
         );
-    
-        $this->out("address:\t" . ($address ? $address : $this->skaleTools->getCustodialWalletAddress($user)));
-        $this->out("balance:\t" . $balance . " wei");
+
+        $this->out("Ethereum address:\t" . ($address ? $address : $this->skaleTools->getCustodialWalletAddress($user)));
+
+        if (!$address && $user) {
+            $offchainBalanceWei = $this->offchainBalance
+                ->setUser($user)
+                ->get();
+            $this->out("Offchain balance:\t".$offchainBalanceWei." wei");
+        }
+
+        $this->out("SKALE MINDS balance:\t" . $skaleMindsBalanceWei . " wei");
     }
 
     /**
@@ -252,5 +268,54 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
         );
 
         $this->out('Sent with tx hash '. $txHash);
+    }
+
+    /**
+     * Sync SKALE MINDS token balance of a user with their offchain balance,
+     * by sending SKALE MINDS to or from their custodial wallet.
+     * @example
+     * - php cli.php Skale syncBalance --username=userA
+     * - php cli.php Skale syncBalance --username=userA --dryRun
+     * - php cli.php Skale syncBalance --username=userA --verbose
+     * @return void
+     */
+    public function syncBalance(): void
+    {
+        $username = $this->getOpt('username') ?? null;
+        $dryRun = $this->getOpt('dryRun') ?? false;
+        $verbose = $this->getOpt('verbose') ?? false;
+
+        if (!$username) {
+            $this->out('You must set a user to sync the balance of');
+            return;
+        }
+
+        $user = $this->entitiesBuilder->getByUserByIndex($username);
+
+        if (!$user) {
+            $this->out("User $username not found");
+        }
+
+        $balanceSynchronizer = $this->balanceSynchronizer->withUser($user);
+
+        if ($verbose || $dryRun) {
+            /** @var BalanceCalculator */
+            $differenceCalculator = $balanceSynchronizer->buildDifferenceCalculator();
+            $balanceDifferenceWei = $differenceCalculator->calculateSkaleDiff();
+            $offchainBalanceWei = $differenceCalculator->getOffchainBalance();
+            $skaleTokenBalanceWei = $differenceCalculator->getSkaleTokenBalance();
+
+            $this->out("Offchain balance for $username:\t$offchainBalanceWei wei");
+            $this->out("SK Token balance for $username:\t$skaleTokenBalanceWei wei");
+            $this->out("SKALE discrepancy for $username:\t$balanceDifferenceWei wei");
+        }
+
+        if (!$dryRun) {
+            $adjustmentResult = $balanceSynchronizer->sync();
+
+            if ($adjustmentResult) {
+                $this->out($adjustmentResult);
+            }
+        }
     }
 }

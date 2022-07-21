@@ -145,5 +145,13 @@ class BlockchainProvider extends Provider
         $this->di->bind('Blockchain\Skale\Keys', function () {
             return new Skale\Keys();
         });
+
+        $this->di->bind('Blockchain\Skale\BalanceSynchronizer', function () {
+            return new Skale\BalanceSynchronizer\BalanceSynchronizer();
+        });
+
+        $this->di->bind('Blockchain\Skale\DifferenceCalculator', function () {
+            return new Skale\BalanceSynchronizer\DifferenceCalculator();
+        });
     }
 }

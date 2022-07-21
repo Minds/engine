@@ -448,6 +448,7 @@ $CONFIG->set('blockchain', [
         'gas_price_wei' => 100000,
         'default_sfuel_distributor_guid' => '1285556080390180877',
         'default_sfuel_distribution_amount_wei' => 220000000000,
+        'balance_sync_user_guid' => '1285556080390180877',
         'sfuel_low_threshold' => 8801000000,
         'transfer_gas_limit' => 51280,
         'confirmation_timeout_seconds' => 60,
