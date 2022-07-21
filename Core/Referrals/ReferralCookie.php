@@ -51,34 +51,30 @@ class ReferralCookie
 
         $cookies = $this->request->getCookieParams();
         $params = $this->request->getQueryParams();
+        $referrer = null; // guid or username
 
-        if (isset($cookies['referrer'])) {
-            return; // Do not override previosuly set cookie
-        }
-
-        $referrerGuid = null;
-
-        if (isset($params['referrer'])) { // Is a referrer param set in the request?
-            $referrerGuid = $params['referrer'];
-        } elseif ($this->entity) { // Was an entity set?
+        // always prefer the referrer in the param to the cookie we already have
+        if (isset($params['referrer'])) {
+            $referrer = $params['referrer'];
+        } elseif (!isset($cookies['referrer']) && $this->entity) {
             switch (get_class($this->entity)) {
                 case User::class:
-                    $referrerGuid = $this->entity->getGuid();
+                    $referrer = $this->entity->getGuid();
                     break;
                 default:
-                    $referrerGuid = $this->entity->getOwnerGuid();
+                    $referrer = $this->entity->getOwnerGuid();
             }
         }
 
-        if ($referrerGuid) {
+        if ($referrer) {
             $cookie = new Cookie();
             $cookie
                 ->setName('referrer')
-                ->setValue($referrerGuid)
+                ->setValue($referrer)
                 ->setExpire(time() + (60 * 60 * 24)) //valid for 24 hours
                 ->setPath('/')
                 ->create();
-            $_COOKIE['referrer'] = $referrerGuid; // TODO: replace with Response object later
+            $_COOKIE['referrer'] = $referrer; // TODO: replace with Response object later
         }
     }
 }
