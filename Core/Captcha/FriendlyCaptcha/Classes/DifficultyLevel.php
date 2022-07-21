@@ -30,7 +30,7 @@ class DifficultyLevel
      * Amount of attempts made already - used to init the difficulty.
      * @param ?integer $attempts - attempts made already.
      * @param string $puzzleOrigin
-     * @param DifficultyScalingConfig|null $config
+     * @param DifficultyScalingConfig|null $difficultyScalingConfig
      * @throws MisconfigurationException
      */
     public function __construct(
