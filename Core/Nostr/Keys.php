@@ -36,15 +36,7 @@ class Keys
      */
     public function getSecp256k1PrivateKey(): string
     {
-        $didKeypair = $this->didKeypairsManager->getKeypair($this->user);
-
-        if (!$didKeypair) {
-            $didKeypair = $this->didKeypairsManager->createKeypair($this->user);
-            $this->didKeypairsManager->add($didKeypair);
-        }
-
-        $privateKey = pack("H*", hash('sha256', $this->didKeypairsManager->getPrivateKey($didKeypair)));
-        return $privateKey;
+        return $this->didKeypairsManager->getSecp256k1PrivateKey($this->user);
     }
 
     /**
