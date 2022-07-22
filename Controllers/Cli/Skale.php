@@ -383,6 +383,58 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
     }
 
     /**
+     * Reset all balances for all offchain users - will only work in SKALE development_mode.
+     * @example
+     * - php cli.php Skale resetAllBalances --verbose
+     * - php cli.php Skale resetAllBalances
+     * @return void
+     */
+    public function resetAllBalances()
+    {
+        $verbose = $this->getOpt('verbose') ?? false;
+
+        $this->out('Beginning to iterate over all distinct offchain users - this may take a while...');
+
+        foreach ($this->scrollRepository->getDistinctOffchainUserGuids() as $userGuid) {
+            try {
+                $userGuid = $userGuid['user_guid']->value();
+
+                // Turn off error reporting temporarily to avoid log spam with weird entities.
+                error_reporting(0);
+                $user = $this->entitiesBuilder->single($userGuid);
+                error_reporting(E_ALL);
+
+                if (!$user || !$user instanceof User) {
+                    if ($verbose) {
+                        $this->out("Not a valid user: $userGuid");
+                    }
+                    continue;
+                }
+
+                $username = $user->getUsername();
+
+                if ($verbose) {
+                    $this->out("Checking $username ($userGuid)");
+                }
+
+                $txHash = $this->balanceSynchronizer->withUser($user)
+                    ->resetBalance();
+
+                if ($txHash) {
+                    $this->out("Reset $username ($userGuid) balance with: $txHash");
+                }
+            } catch (SyncExcludedUserException $e) {
+                if ($verbose) {
+                    $this->out($e->getMessage());
+                }
+            } catch (\Exception $e) {
+                $this->out($e);
+            }
+        }
+        $this->out('Finished!');
+    }
+
+    /**
      * Dumps info from BalanceSynchronizer instance.
      * @param BalanceSynchronizer $balanceSynchronizer - instance to dump info from.
      * @param boolean $onlyDiscrepancies - if output should only be made when there is a discrepancy.

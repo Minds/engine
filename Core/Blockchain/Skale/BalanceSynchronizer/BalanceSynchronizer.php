@@ -115,6 +115,40 @@ class BalanceSynchronizer
     }
 
     /**
+     * Reset balance of a users custodial wallet to 0.
+     * Only available in development mode.
+     * @throws ServerErrorException - if development_mode isn't on.
+     * @throws SyncExcludedUser - if user is excluded from sync operations.
+     * @return string|null
+     */
+    public function resetBalance(): ?string
+    {
+        if (!($this->config->get('blockchain')['skale']['development_mode'] ?? false)) {
+            throw new ServerErrorException('Balances can only be reset in SKALE development_mode');
+        }
+
+        if (in_array($this->user->getGuid(), $this->getExcludedUserGuids(), true)) {
+            throw new SyncExcludedUserException('Attempted to sync balance of excluded user: '.$this->user->getUsername());
+        }
+
+        $receiver = $this->getBalanceSyncUser();
+    
+        $amountWei = $this->getSkaleTokenBalance();
+
+        if ($amountWei === "0") {
+            return '';
+        }
+
+        return $this->skaleTools->sendTokens(
+            sender: $this->user,
+            receiver: $receiver,
+            amountWei: $amountWei ?? null,
+            checkSFuel: true,
+            waitForConfirmation: false,
+        );
+    }
+
+    /**
      * Builds a new instance of the balance calculator with the instance users balances.
      * @return DifferenceCalculator - difference calculator.
      */
@@ -154,7 +188,7 @@ class BalanceSynchronizer
      * @throws ServerErrorException - if no user is found.
      * @return User user responsible for sending and receiving tokens in relation to balance updates.
      */
-    private function getBalanceSyncUser(): User
+    public function getBalanceSyncUser(): User
     {
         $balanceSyncUserGuid = $this->config->get('blockchain')['skale']['balance_sync_user_guid'] ?? '100000000000000519';
         $user = $this->entitiesBuilder->single($balanceSyncUserGuid);

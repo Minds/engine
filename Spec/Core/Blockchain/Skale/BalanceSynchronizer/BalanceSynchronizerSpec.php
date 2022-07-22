@@ -10,7 +10,9 @@ use Minds\Core\Blockchain\Wallets\OffChain\Balance as OffchainBalance;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 use PhpSpec\ObjectBehavior;
+use Prophecy\Argument;
 
 class BalanceSynchronizerSpec extends ObjectBehavior
 {
@@ -304,6 +306,146 @@ class BalanceSynchronizerSpec extends ObjectBehavior
             ->willReturn($txHash);
 
         $this->sync()->shouldBe(null);
+    }
+
+    public function it_should_reset_a_users_balance(
+        User $user,
+        User $balanceSyncUser
+    ) {
+        $skaleBalance = '100';
+        $txHash = '0x123';
+   
+        $userGuid = '123';
+        $user->getGuid()->shouldBeCalled()->willReturn($userGuid);
+        $this->user = $user;
+
+        $balanceSyncUserGuid = '321';
+
+        $this->config->get('blockchain')
+            ->shouldBeCalledTimes(3)
+            ->willReturn([
+                'skale' => [
+                    'development_mode' => true,
+                    'sync_excluded_users' => [],
+                    'balance_sync_user_guid' => $balanceSyncUserGuid
+                ]
+            ]);
+        
+        $this->entitiesBuilder->single($balanceSyncUserGuid)
+            ->shouldBeCalled()
+            ->willReturn($balanceSyncUser);
+
+        $this->skaleTools->getTokenBalance(
+            user: $user,
+            address: null,
+            useCache: false
+        )
+            ->shouldBeCalled()
+            ->willReturn($skaleBalance);
+        
+        $this->skaleTools->sendTokens(
+            sender: Argument::any(),
+            receiver: Argument::any(),
+            receiverAddress: Argument::any(),
+            amountWei: Argument::any(),
+            checkSFuel: Argument::any(),
+            waitForConfirmation: Argument::any()
+        )
+            ->shouldBeCalled()
+            ->willReturn($txHash);
+        
+        $this->resetBalance()->shouldBe($txHash);
+    }
+
+    public function it_should_NOT_reset_a_sync_excluded_users_balance(User $user)
+    {
+        $username = 'testuser';
+        $userGuid = '123';
+        $user->getGuid()->shouldBeCalled()->willReturn($userGuid);
+        $user->getUsername()->shouldBeCalled()->willReturn($username);
+        $this->user = $user;
+
+        $balanceSyncUserGuid = '321';
+
+        $this->config->get('blockchain')
+            ->shouldBeCalledTimes(2)
+            ->willReturn([
+                'skale' => [
+                    'development_mode' => true,
+                    'sync_excluded_users' => [$userGuid],
+                    'balance_sync_user_guid' => $balanceSyncUserGuid
+                ]
+            ]);
+        
+        $this->entitiesBuilder->single($balanceSyncUserGuid)
+            ->shouldNotBeCalled();
+        
+        $this->shouldThrow(SyncExcludedUserException::class)
+            ->duringResetBalance();
+    }
+
+    public function it_should_NOT_reset_a_users_balance_outside_of_development_mode(User $user)
+    {
+        $this->config->get('blockchain')
+            ->shouldBeCalledTimes(1)
+            ->willReturn([
+                'skale' => [
+                    'development_mode' => false
+                ]
+            ]);
+
+        $this->entitiesBuilder->single(Argument::any())
+            ->shouldNotBeCalled();
+        
+        $this->shouldThrow(ServerErrorException::class)
+            ->duringResetBalance();
+    }
+
+    public function it_should_NOT_reset_a_users_balance_if_balance_is_zero(
+        User $user,
+        User $balanceSyncUser
+    ) {
+        $skaleBalance = '0';
+   
+        $userGuid = '123';
+        $user->getGuid()->shouldBeCalled()->willReturn($userGuid);
+        $this->user = $user;
+
+        $balanceSyncUserGuid = '321';
+
+        $this->config->get('blockchain')
+            ->shouldBeCalledTimes(3)
+            ->willReturn([
+                'skale' => [
+                    'development_mode' => true,
+                    'sync_excluded_users' => [],
+                    'balance_sync_user_guid' => $balanceSyncUserGuid
+                ]
+            ]);
+        
+        $this->entitiesBuilder->single($balanceSyncUserGuid)
+            ->shouldBeCalled()
+            ->willReturn($balanceSyncUser);
+
+        $this->skaleTools->getTokenBalance(
+            user: $user,
+            address: null,
+            useCache: false
+        )
+            ->shouldBeCalled()
+            ->willReturn($skaleBalance);
+        
+        $this->skaleTools->sendTokens(
+            sender: Argument::any(),
+            receiver: Argument::any(),
+            receiverAddress: Argument::any(),
+            amountWei: Argument::any(),
+            checkSFuel: Argument::any(),
+            waitForConfirmation: Argument::any()
+        )
+            ->shouldNotBeCalled();
+        
+        $this->resetBalance()->shouldBe('');
     }
 
     public function it_should_exclude_an_excluded_user_from_sync(
