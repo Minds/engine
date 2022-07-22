@@ -248,7 +248,7 @@ class ToolsSpec extends ObjectBehavior
                 'blockHash' => '0xblockhash'
             ]);
 
-        $this->sendTokens($sender, null, $receiverAddress, $amountWei)
+        $this->sendTokens($amountWei, $sender, null, $receiverAddress)
             ->shouldBe($resultHash);
     }
 
@@ -315,7 +315,7 @@ class ToolsSpec extends ObjectBehavior
                 'blockHash' => '0xblockhash'
             ]);
 
-        $this->sendTokens($sender, $receiver, null, $amountWei)
+        $this->sendTokens($amountWei, $sender, $receiver, null)
             ->shouldBe($resultHash);
     }
 
@@ -409,7 +409,7 @@ class ToolsSpec extends ObjectBehavior
                 'blockHash' => '0xblockhash'
             ]);
 
-        $this->sendTokens($sender, $receiver, null, $amountWei)
+        $this->sendTokens($amountWei, $sender, $receiver)
             ->shouldBe($resultHash);
     }
 
@@ -450,7 +450,7 @@ class ToolsSpec extends ObjectBehavior
                 'blockHash' => '0xblockhash'
             ]);
 
-        $this->sendSFuel($sender, $receiver, null, null)
+        $this->sendSFuel($sender, $receiver)
             ->shouldBe($sfuelResultHash);
     }
 }

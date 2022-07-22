@@ -4,12 +4,12 @@ namespace Spec\Minds\Core\Blockchain\Skale\BalanceSynchronizer;
 
 use Minds\Core\Blockchain\Skale\BalanceSynchronizer\BalanceSynchronizer;
 use Minds\Core\Blockchain\Skale\BalanceSynchronizer\DifferenceCalculator;
+use Minds\Core\Blockchain\Skale\BalanceSynchronizer\SyncExcludedUserException;
 use Minds\Core\Blockchain\Skale\Tools as SkaleTools;
 use Minds\Core\Blockchain\Wallets\OffChain\Balance as OffchainBalance;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
-use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
 
 class BalanceSynchronizerSpec extends ObjectBehavior
@@ -109,6 +109,7 @@ class BalanceSynchronizerSpec extends ObjectBehavior
         $txHash = '0x11';
         $username = 'testuser';
         $userGuid = '321';
+
         $user->getUsername()
             ->shouldBeCalled()
             ->willReturn($username);
@@ -159,10 +160,11 @@ class BalanceSynchronizerSpec extends ObjectBehavior
             ->willReturn($balanceSyncUser);
 
         $this->skaleTools->sendTokens(
+            amountWei: '900',
             sender: $user,
             receiver: $balanceSyncUser,
             receiverAddress: null,
-            amountWei: '900'
+            waitForConfirmation: false
         )
             ->shouldBeCalled()
             ->willReturn($txHash);
@@ -234,10 +236,11 @@ class BalanceSynchronizerSpec extends ObjectBehavior
             ->willReturn($balanceSyncUser);
 
         $this->skaleTools->sendTokens(
+            amountWei: '900',
             sender: $balanceSyncUser,
             receiver: $user,
             receiverAddress: null,
-            amountWei: '900'
+            waitForConfirmation: false
         )
             ->shouldBeCalled()
             ->willReturn($txHash);
@@ -333,7 +336,7 @@ class BalanceSynchronizerSpec extends ObjectBehavior
             useCache: false
         )->shouldNotBeCalled();
 
-        $this->shouldThrow(UserErrorException::class)
+        $this->shouldThrow(SyncExcludedUserException::class)
             ->duringSync();
     }
 }
