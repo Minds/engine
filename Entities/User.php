@@ -68,6 +68,7 @@ use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
  * @property string $surge_token
  * @property int $disable_autoplay_videos
  * @property string $twofactor
+ * @property string $briefdescription
  */
 class User extends \ElggUser
 {
@@ -160,6 +161,28 @@ class User extends \ElggUser
     public function getName(): string
     {
         return $this->name ?: '';
+    }
+
+    /**
+     * Set the name
+     * @param string $name
+     * @return self
+     */
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+        return $this;
+    }
+
+    /**
+     * Set the briefdescription
+     * @param string $briefdescription
+     * @return self
+     */
+    public function setBriefDescription(string $briefdescription): self
+    {
+        $this->briefdescription = $briefdescription;
+        return $this;
     }
 
     /**
