@@ -413,11 +413,120 @@ class ToolsSpec extends ObjectBehavior
             ->shouldBe($resultHash);
     }
 
+    public function it_should_not_wait_for_tx_if_skipped(User $sender, User $receiver)
+    {
+        $receiverAddress = '0x123';
+        $resultHash = '0x000001';
+
+        $amountWei = '123';
+        $defaultDistibutorGuid = '100000000000000000';
+
+        // check low balance threshold
+
+        $this->config->get('blockchain')
+            ->shouldBeCalled()
+            ->willReturn([
+                'skale' => [
+                    'default_sfuel_distributor_guid' => $defaultDistibutorGuid,
+                    'sfuel_low_threshold' => '1'
+                ]
+            ]);
+
+        $this->keys->withUser($sender)
+            ->shouldBeCalled()
+            ->willReturn($this->keys);
+
+        $this->keys->getWalletAddress()
+            ->shouldBeCalled()
+            ->willReturn($receiverAddress);
+        
+        $this->balance->getSFuelBalance(
+            address: $receiverAddress,
+            useCache: true
+        )
+            ->shouldBeCalled()
+            ->willReturn('99');
+
+        // send
+
+        $this->transactionManager->withUsers(
+            $sender,
+            $receiver,
+            null
+        )
+            ->shouldBeCalled()
+            ->willReturn($this->transactionManager);
+    
+        $this->transactionManager->sendTokens(
+            Argument::any()
+        )
+            ->shouldBeCalled()
+            ->willReturn($resultHash);
+        
+        // await confirmation
+
+        $this->skaleClient->request(
+            'eth_getTransactionReceipt',
+            [
+                $resultHash
+            ]
+        )
+            ->shouldNotBeCalled();
+
+        $this->sendTokens($amountWei, $sender, $receiver, false, false)
+            ->shouldBe($resultHash);
+    }
+
+    public function it_should_send_not_check_or_send_sfuel_to_a_user_if_explicitly_skipped_on_token_send(User $sender, User $receiver)
+    {
+        $receiverAddress = '0x123';
+        $resultHash = '0x000001';
+        $sfuelResultHash = '0x000002';
+        $amountWei = '123';
+        $defaultDistibutorGuid = '100000000000000000';
+
+        $this->balance->getSFuelBalance(
+            address: $receiverAddress,
+            useCache: true
+        )
+            ->shouldNotBeCalled();
+
+        $this->transactionManager->withUsers(
+            $sender,
+            $receiver,
+            null
+        )
+            ->shouldBeCalled()
+            ->willReturn($this->transactionManager);
+
+        $this->transactionManager->sendSFuel(null)
+            ->shouldNotBeCalled();
+
+        // send tokens
+
+        $this->transactionManager->withUsers(
+            $sender,
+            $receiver,
+            null
+        )
+            ->shouldBeCalled()
+            ->willReturn($this->transactionManager);
+    
+        $this->transactionManager->sendTokens(
+            Argument::any()
+        )
+            ->shouldBeCalled()
+            ->willReturn($resultHash);
+
+        $this->sendTokens($amountWei, $sender, $receiver, null, false, false)
+            ->shouldBe($resultHash);
+    }
+
     public function it_should_send_sfuel_to_user(User $sender, User $receiver)
     {
         $sfuelResultHash = '0x000001';
 
-        // check low balance threshold
+        // check low balance threshold.
         $this->config->get('blockchain')
         ->shouldBeCalled()
         ->willReturn([
@@ -426,7 +535,7 @@ class ToolsSpec extends ObjectBehavior
             ]
         ]);
 
-        // send sfuel
+        // send sfuel.
         $this->transactionManager->withUsers(
             sender: $sender,
             receiver: Argument::any()
@@ -438,7 +547,7 @@ class ToolsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($sfuelResultHash);
 
-        // await sfuel tx
+        // await sfuel tx.
         $this->skaleClient->request(
             'eth_getTransactionReceipt',
             [

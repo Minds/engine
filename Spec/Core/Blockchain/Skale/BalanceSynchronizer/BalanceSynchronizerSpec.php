@@ -164,7 +164,8 @@ class BalanceSynchronizerSpec extends ObjectBehavior
             sender: $user,
             receiver: $balanceSyncUser,
             receiverAddress: null,
-            waitForConfirmation: false
+            waitForConfirmation: false,
+            checkSFuel: true
         )
             ->shouldBeCalled()
             ->willReturn($txHash);
@@ -240,7 +241,8 @@ class BalanceSynchronizerSpec extends ObjectBehavior
             sender: $balanceSyncUser,
             receiver: $user,
             receiverAddress: null,
-            waitForConfirmation: false
+            waitForConfirmation: false,
+            checkSFuel: false
         )
             ->shouldBeCalled()
             ->willReturn($txHash);

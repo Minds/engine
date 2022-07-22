@@ -136,12 +136,13 @@ class Tools
 
     /**
      * Send tokens to a given user or address. Either user or address must be provided (but not both).
-     * Will wait for transaction confirmation before returning.
+     * Will wait for transaction confirmation before returning if waitForConfirmation is true.
      * @param string $amountWei - amount to send in wei.
      * @param User $sender - sending user.
      * @param User|null $receiver - receiving user.
      * @param string|null $receiverAddress - receiving address.
      * @param bool $waitForConfirmation - whether to wait for tx confirmation before returning.
+     * @param bool $checkSFuel - set to false to skip sFuel check and distribution.
      * @throws ServerErrorException|Exception - on error.
      * @return string|null - transaction hash.
      */
@@ -150,15 +151,18 @@ class Tools
         User $sender,
         ?User $receiver = null,
         ?string $receiverAddress = null,
-        bool $waitForConfirmation = true
+        bool $waitForConfirmation = true,
+        bool $checkSFuel = true
     ): ?string {
         if (!($receiver xor $receiverAddress)) {
             throw new ServerErrorException('Must provide receiver or receiver address, but not both');
         }
 
-        // If sender does not enough sfuel, send sfuel first.
-        // Will wait for confirmation before proceeding.
-        $this->checkSFuel($sender);
+        if ($checkSFuel) {
+            // If sender does not enough sfuel, send sfuel first.
+            // Will wait for confirmation before proceeding.
+            $this->checkSFuel($sender);
+        }
 
         $txHash = null;
         if ($receiverAddress) {

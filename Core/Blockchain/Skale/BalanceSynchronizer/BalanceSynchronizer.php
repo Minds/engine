@@ -93,7 +93,8 @@ class BalanceSynchronizer
                 sender: $this->getBalanceSyncUser(),
                 receiver: $this->user,
                 amountWei: $balanceDifference->neg()->toString(),
-                waitForConfirmation: false
+                waitForConfirmation: false,
+                checkSFuel: false
             );
         }
 
@@ -102,7 +103,8 @@ class BalanceSynchronizer
                 sender: $this->user,
                 receiver: $this->getBalanceSyncUser(),
                 amountWei: $balanceDifference->toString(),
-                waitForConfirmation: false
+                waitForConfirmation: false,
+                checkSFuel: true
             );
         }
 
