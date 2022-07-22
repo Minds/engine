@@ -13,7 +13,7 @@ class Provider extends DiProvider
     {
         $this->di->bind('Experiments\Manager', function ($di) {
             return new Manager;
-        }, ['useFactory' => true]);
+        }, ['useFactory' => false]);
 
         $this->di->bind('Experiments\Controller', function ($di) {
             return new Controller;
