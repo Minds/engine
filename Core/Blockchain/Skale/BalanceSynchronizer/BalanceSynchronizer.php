@@ -19,7 +19,10 @@ use Minds\Exceptions\ServerErrorException;
  */
 class BalanceSynchronizer
 {
-    /** @var User|null $user - instance user */
+    /**
+     * @var User|null $user - instance user - set via withUsers,
+     * not directly - public encapsulation only for testability.
+     */
     public ?User $user = null;
 
     /**
@@ -57,11 +60,25 @@ class BalanceSynchronizer
     }
 
     /**
+     * Get instance user.
+     * @return User|null $user - instance user.
+     */
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    /**
      * Sync instance users SKALE MINDS token balance to match their offchain balance.
+     * @throws SyncExcludedUserException - if user is excluded from sync.
      * @return AdjustmentResult|null - Object containing result of adjustment or null, if no adjustment made.
      */
     public function sync(): ?AdjustmentResult
     {
+        if (in_array($this->user->getGuid(), $this->getExcludedUserGuids(), true)) {
+            throw new SyncExcludedUserException('Attempted to sync balance of excluded user: '.$this->user->getUsername());
+        }
+
         $differenceCalculator = $this->buildDifferenceCalculator();
         $balanceDifference = $differenceCalculator->calculateSkaleDiff();
 
@@ -75,7 +92,8 @@ class BalanceSynchronizer
             $txHash = $this->skaleTools->sendTokens(
                 sender: $this->getBalanceSyncUser(),
                 receiver: $this->user,
-                amountWei: $balanceDifference->neg()->toString()
+                amountWei: $balanceDifference->neg()->toString(),
+                waitForConfirmation: false
             );
         }
 
@@ -83,7 +101,8 @@ class BalanceSynchronizer
             $txHash = $this->skaleTools->sendTokens(
                 sender: $this->user,
                 receiver: $this->getBalanceSyncUser(),
-                amountWei: $balanceDifference->toString()
+                amountWei: $balanceDifference->toString(),
+                waitForConfirmation: false
             );
         }
 
@@ -141,5 +160,17 @@ class BalanceSynchronizer
             throw new ServerErrorException('Unable to find main balance sync user');
         }
         return $user;
+    }
+
+    /**
+     * Gets sync excluded user GUIDs from config. Users should be excluded when
+     * there is allowed to be an offchain / skale balance discrepancy - useful
+     * for example for wallets when testing, else a distribution wallet will try to send
+     * tokens to its self when it realises it doesn't have a matching offchain balance.
+     * @return array array of user guids excluded from sync.
+     */
+    public function getExcludedUserGuids(): array
+    {
+        return $this->config->get('blockchain')['skale']['sync_excluded_users'] ?? [];
     }
 }

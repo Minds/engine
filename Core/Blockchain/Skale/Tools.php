@@ -137,18 +137,20 @@ class Tools
     /**
      * Send tokens to a given user or address. Either user or address must be provided (but not both).
      * Will wait for transaction confirmation before returning.
+     * @param string $amountWei - amount to send in wei.
      * @param User $sender - sending user.
      * @param User|null $receiver - receiving user.
      * @param string|null $receiverAddress - receiving address.
-     * @param string $amountWei - amount to send in wei.
+     * @param bool $waitForConfirmation - whether to wait for tx confirmation before returning.
      * @throws ServerErrorException|Exception - on error.
      * @return string|null - transaction hash.
      */
     public function sendTokens(
+        string $amountWei,
         User $sender,
         ?User $receiver = null,
         ?string $receiverAddress = null,
-        string $amountWei
+        bool $waitForConfirmation = true
     ): ?string {
         if (!($receiver xor $receiverAddress)) {
             throw new ServerErrorException('Must provide receiver or receiver address, but not both');
@@ -171,7 +173,9 @@ class Tools
             )->sendTokens($amountWei);
         }
 
-        $this->waitForConfirmation($txHash);
+        if ($waitForConfirmation) {
+            $this->waitForConfirmation($txHash);
+        }
 
         return $txHash;
     }

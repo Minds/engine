@@ -9,6 +9,7 @@ use Minds\Core\Blockchain\Wallets\OffChain\Balance as OffchainBalance;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
+use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
 
 class BalanceSynchronizerSpec extends ObjectBehavior
@@ -60,6 +61,12 @@ class BalanceSynchronizerSpec extends ObjectBehavior
         $this->withUser($user)->shouldHaveType(BalanceSynchronizer::class);
     }
 
+    public function it_should_get_instance_user(User $user)
+    {
+        $this->user = $user;
+        $this->getUser()->shouldBe($user);
+    }
+
     public function it_should_build_balance_calculator_with_balances(User $user)
     {
         $skaleBalance = '1000';
@@ -101,10 +108,14 @@ class BalanceSynchronizerSpec extends ObjectBehavior
         $balanceSyncUserGuid = '123';
         $txHash = '0x11';
         $username = 'testuser';
-
+        $userGuid = '321';
         $user->getUsername()
             ->shouldBeCalled()
             ->willReturn($username);
+
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
 
         $this->user = $user;
 
@@ -171,10 +182,15 @@ class BalanceSynchronizerSpec extends ObjectBehavior
         $balanceSyncUserGuid = '123';
         $txHash = '0x11';
         $username = 'testuser';
+        $userGuid = '321';
 
         $user->getUsername()
             ->shouldBeCalled()
             ->willReturn($username);
+
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
 
         $this->user = $user;
 
@@ -283,5 +299,41 @@ class BalanceSynchronizerSpec extends ObjectBehavior
             ->willReturn($txHash);
 
         $this->sync()->shouldBe(null);
+    }
+
+    public function it_should_exclude_an_excluded_user_from_sync(
+        User $user
+    ) {
+        $username = 'testuser';
+        $userGuid = '321';
+
+        $user->getUsername()
+            ->shouldBeCalled()
+            ->willReturn($username);
+
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $this->user = $user;
+
+        $this->config->get('blockchain')
+            ->shouldBeCalled()
+            ->willReturn([
+                'skale' => [
+                    'sync_excluded_users' => [
+                        '321'
+                    ]
+                ]
+            ]);
+
+        $this->skaleTools->getTokenBalance(
+            user: $user,
+            address: null,
+            useCache: false
+        )->shouldNotBeCalled();
+
+        $this->shouldThrow(UserErrorException::class)
+            ->duringSync();
     }
 }

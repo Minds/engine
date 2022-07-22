@@ -11,14 +11,14 @@ class AdjustmentResult
 {
     use MagicAttributes;
 
-    /** @var string|null - the transaction hash of the adjustment */
-    private ?string $txHash = null;
+    /** @var string - the transaction hash of the adjustment */
+    private string $txHash;
 
-    /** @var string|null - the difference corrected in wei */
-    private ?string $differenceWei = null;
+    /** @var string - the difference corrected in wei */
+    private string $differenceWei;
 
-    /** @var string|null - username of the user the adjustment was made for */
-    private ?string $username = null;
+    /** @var string - username of the user the adjustment was made for */
+    private string $username;
 
     /**
      * Overrides toString function of class, so it can be output in logs as a readable string.

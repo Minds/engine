@@ -42,6 +42,10 @@ class BlockchainProvider extends Provider
             return new Transactions\Repository();
         });
 
+        $this->di->bind('Blockchain\Transactions\ScrollRepository', function ($di) {
+            return new Transactions\ScrollRepository();
+        });
+
         $this->di->bind('Blockchain\Preregistrations', function ($di) {
             return new Preregistrations();
         });
