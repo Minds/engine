@@ -334,6 +334,7 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
 
         foreach ($this->scrollRepository->getDistinctOffchainUserGuids() as $userGuid) {
             try {
+                $timeStart = microtime(true);
                 $userGuid = $userGuid['user_guid']->value();
 
                 // Turn off error reporting temporarily to avoid log spam with weird entities.
@@ -371,6 +372,10 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
                     $this->out($adjustmentResult);
                     $this->out('------------------');
                 }
+
+                if ($verbose) {
+                    $this->out(microtime(true) - $timeStart . ' seconds elapsed');
+                }
             } catch (SyncExcludedUserException $e) {
                 if ($verbose) {
                     $this->out($e->getMessage());
@@ -394,9 +399,12 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
         $verbose = $this->getOpt('verbose') ?? false;
 
         $this->out('Beginning to iterate over all distinct offchain users - this may take a while...');
+        $timeStart = microtime(true);
 
         foreach ($this->scrollRepository->getDistinctOffchainUserGuids() as $userGuid) {
             try {
+                $timeStart = microtime(true);
+
                 $userGuid = $userGuid['user_guid']->value();
 
                 // Turn off error reporting temporarily to avoid log spam with weird entities.
@@ -422,6 +430,10 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
 
                 if ($txHash) {
                     $this->out("Reset $username ($userGuid) balance with: $txHash");
+                }
+
+                if ($verbose) {
+                    $this->out(microtime(true) - $timeStart . ' seconds elapsed');
                 }
             } catch (SyncExcludedUserException $e) {
                 if ($verbose) {
