@@ -1024,7 +1024,8 @@ function register_user(
     $email,
     $allow_multiple_emails = false,
     $friend_guid = 0,
-    $invitecode = ''
+    $invitecode = '',
+    $validatePassword = true
 ) {
 
     // no need to trim password.
@@ -1048,7 +1049,7 @@ function register_user(
         throw new RegistrationException("Invalid email");
     }
 
-    if (!validate_password($password)) {
+    if ($validatePassword && !validate_password($password)) {
         throw new RegistrationException("Invalid password");
     }
 

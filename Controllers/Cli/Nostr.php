@@ -8,11 +8,6 @@ use Minds\Interfaces;
 
 class Nostr extends Cli\Controller implements Interfaces\CliControllerInterface
 {
-    public function __construct()
-    {
-        define('__MINDS_INSTALLING__', true);
-    }
-
     public function help($command = null)
     {
         $this->out('TBD');
@@ -23,6 +18,19 @@ class Nostr extends Cli\Controller implements Interfaces\CliControllerInterface
         $username = $this->getOpt('username');
 
         Di::_()->get('Nostr\PocSync')->syncChannel($username);
+    }
+
+    public function whitelist()
+    {
+        $pubKey = $this->getOpt('pubkey');
+
+        $manager = Di::_()->get('Nostr\Manager');
+        
+        if ($manager->addToWhitelist($pubKey)) {
+            $this->out('Success');
+        } else {
+            $this->out('There was an error');
+        }
     }
 
     
