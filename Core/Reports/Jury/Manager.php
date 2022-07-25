@@ -4,20 +4,15 @@
  */
 namespace Minds\Core\Reports\Jury;
 
-use Minds\Core;
-use Minds\Core\Di\Di;
-use Minds\Core\Data;
-use Minds\Core\Data\Cassandra\Prepared;
-use Minds\Entities;
-use Minds\Entities\DenormalizedEntity;
-use Minds\Entities\NormalizedEntity;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
+use Minds\Core;
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
-use Minds\Core\Reports\Summons\SummonsNotFoundException;
 use Minds\Core\Reports\Summons\Summons as SummonsEntity;
+use Minds\Core\Reports\Summons\SummonsNotFoundException;
 use Minds\Core\Security\ACL;
-use Minds\Core\Session;
 
 class Manager
 {
@@ -47,13 +42,15 @@ class Manager
         $entitiesResolver = null,
         $verdictManager = null,
         $summonsManager = null,
-        $acl = null
+        $acl = null,
+        private ?Config $config = null
     ) {
         $this->repository = $repository ?: new Repository;
         $this->entitiesResolver = $entitiesResolver  ?: new EntitiesResolver;
         $this->verdictManager = $verdictManager ?: Di::_()->get('Moderation\Verdict\Manager');
         $this->summonsManager = $summonsManager ?: Di::_()->get('Moderation\Summons\Manager');
         $this->acl = $acl ?: new ACL;
+        $this->config ??= Di::_()->get("Config");
     }
 
     /**
@@ -200,6 +197,10 @@ class Manager
      */
     private function hasSummons(Decision $decision)
     {
+        if ($this->config->get('jury')['development_mode'] ?? false) {
+            return true;
+        }
+
         $summons = new SummonsEntity();
         $summons->setReportUrn($decision->getReport()->getUrn())
             ->setJurorGuid($decision->getJurorGuid())

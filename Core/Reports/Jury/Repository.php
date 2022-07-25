@@ -1,24 +1,18 @@
 <?php
 namespace Minds\Core\Reports\Jury;
 
-use Cassandra;
-use Cassandra\Type;
+use Cassandra\Bigint;
+use Cassandra\Decimal;
 use Cassandra\Map;
 use Cassandra\Set;
-use Cassandra\Bigint;
-use Cassandra\Tinyint;
-use Cassandra\Decimal;
 use Cassandra\Timestamp;
-
-use Minds\Core;
-use Minds\Core\Di\Di;
+use Cassandra\Tinyint;
+use Cassandra\Type;
+use Minds\Common\Repository\Response;
 use Minds\Core\Data;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
-use Minds\Entities;
-use Minds\Entities\DenormalizedEntity;
-use Minds\Entities\NormalizedEntity;
+use Minds\Core\Di\Di;
 use Minds\Core\Reports\Report;
-use Minds\Common\Repository\Response;
 use Minds\Core\Reports\Repository as ReportsRepository;
 
 class Repository
@@ -137,7 +131,8 @@ class Repository
     {
         $statement = "UPDATE moderation_reports
             SET initial_jury += ?,
-            user_hashes += ?
+            user_hashes += ?,
+            admin_reason_override = ?
             WHERE entity_urn = ?
             AND reason_code = ?
             AND sub_reason_code = ?
@@ -146,7 +141,8 @@ class Repository
         if ($decision->isAppeal()) {
             $statement = "UPDATE moderation_reports
                 SET appeal_jury += ?,
-                user_hashes += ?
+                user_hashes += ?,
+                admin_reason_override = ?
                 WHERE entity_urn = ?
                 AND reason_code = ?
                 AND sub_reason_code = ?
@@ -161,9 +157,10 @@ class Repository
         $params = [
             $map,
             $set,
+            $decision->getReport()->getAdminReasonOverride(),
             $decision->getReport()->getEntityUrn(),
-            new Tinyint($decision->getReport()->getReasonCode()),
-            new Decimal($decision->getReport()->getSubReasonCode()),
+            new Tinyint($decision->getReport()->getInitialReasonCode()),
+            new Decimal($decision->getReport()->getInitialSubReasonCode()),
             new Timestamp($decision->getReport()->getTimestamp(), 0),
         ];
 
