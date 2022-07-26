@@ -26,7 +26,6 @@ class Minds extends base
         SSO\Module::class,
         Email\Module::class,
         Experiments\Module::class,
-        Helpdesk\Module::class,
         Onboarding\Module::class,
         Permissions\Module::class,
         Subscriptions\Module::class,

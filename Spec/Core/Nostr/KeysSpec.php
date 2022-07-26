@@ -23,18 +23,15 @@ class KeysSpec extends ObjectBehavior
         $this->shouldHaveType(Keys::class);
     }
 
-    public function it_should_return_a_private_key(User $user, DIDKeypair $DIDKeypair)
+    public function it_should_return_a_private_key(User $user)
     {
-        $this->didKeypairsManager->getKeypair($user)
-            ->willReturn($DIDKeypair);
+        $this->didKeypairsManager->getSecp256k1PrivateKey($user)
+            ->shouldBeCalled()
+            ->willReturn('~xpriv~');
 
-        $randomBytes = openssl_random_pseudo_bytes(256);
-
-        $this->didKeypairsManager->getPrivateKey($DIDKeypair)
-            ->willReturn($randomBytes);
-
-        $privKey = $this->withUser($user)->getSecp256k1PrivateKey();
-        $privKey->shouldBe(pack("H*", hash('sha256', $randomBytes)));
+        $this->withUser($user)
+            ->getSecp256k1PrivateKey($user)
+            ->shouldBe('~xpriv~');
     }
 
     public function it_should_return_a_public_key(User $user, DIDKeypair $DIDKeypair)
@@ -42,12 +39,13 @@ class KeysSpec extends ObjectBehavior
         $this->didKeypairsManager->getKeypair($user)
             ->willReturn($DIDKeypair);
 
-        $randomBytes = "74a4bd3ca4f38f94717ca83cb654b674f7a64fc24f5ae26661a131d0cd19d5e7";
+        $randomBytes = "74a4bd3ca4f38f94717ca83cb654b674";
 
-        $this->didKeypairsManager->getPrivateKey($DIDKeypair)
+        $this->didKeypairsManager->getSecp256k1PrivateKey($user)
+            ->shouldBeCalled()
             ->willReturn($randomBytes);
 
         $pubKey = $this->withUser($user)->getSecp256k1PublicKey();
-        $pubKey->shouldBe("4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715");
+        $pubKey->shouldBe("735992d3c6f5b2a58161277bf1d19b5ac954f943cc08c91165ffeaf4f1677c53");
     }
 }

@@ -2,11 +2,11 @@
 namespace Minds\Core\Analytics\Snowplow;
 
 use Minds\Common\PseudonymousIdentifier;
-use Minds\Entities\User;
 use Minds\Core\Di\Di;
-use Snowplow\Tracker\Tracker;
-use Snowplow\Tracker\Subject;
+use Minds\Entities\User;
 use Snowplow\Tracker\Emitters\CurlEmitter;
+use Snowplow\Tracker\Subject;
+use Snowplow\Tracker\Tracker;
 
 class Manager
 {
@@ -22,7 +22,7 @@ class Manager
     public function __construct($emitter = null, $config = null, protected ?PseudonymousIdentifier $pseudonymousIdentifier = null)
     {
         $config = $config ?? Di::_()->get('Config');
-        $this->emitter = $emitter ?? new CurlEmitter($config->get('snowplow')['collector_uri'], $config->get('snowplow')['proto'] ?? 'https', "POST", 2, false);
+        $this->emitter = $emitter ?? new CurlEmitter($config->get('snowplow')['collector_uri']?? '', $config->get('snowplow')['proto'] ?? 'https', "POST", 2, false);
     }
 
     /**

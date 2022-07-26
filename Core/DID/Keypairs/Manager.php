@@ -61,6 +61,23 @@ class Manager
     }
 
     /**
+     * A Secp256k1 compatible private key
+     * @return string
+     */
+    public function getSecp256k1PrivateKey(User $user): string
+    {
+        $didKeypair = $this->getKeypair($user);
+
+        if (!$didKeypair) {
+            $didKeypair = $this->createKeypair($user);
+            $this->add($didKeypair);
+        }
+
+        $privateKey = pack("H*", hash('sha256', $this->getPrivateKey($didKeypair)));
+        return $privateKey;
+    }
+
+    /**
      * Prefixes base64 encoded key with 'm', which is the index for base64
      * @param string $key
      * @return string

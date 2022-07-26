@@ -437,7 +437,23 @@ $CONFIG->set('blockchain', [
     'web3_service' => [
         'wallet_encryption_key' => '',
         'base_url' => 'http://192.168.0.16:3333/'
-    ]
+    ],
+
+    'skale' => [
+        'development_mode' => true,
+        'rpc_endpoints' => [
+            'https://testnet-proxy.skalenodes.com/v1/whispering-turais'
+        ],
+        'minds_token_address' => '0x4E8792878Bd0CC7a19d2a5Bb345Ab18a6624c866',
+        'gas_price_wei' => 100000,
+        'default_sfuel_distributor_guid' => '1285556080390180877',
+        'default_sfuel_distribution_amount_wei' => 220000000000,
+        'sfuel_low_threshold' => 8801000000,
+        'transfer_gas_limit' => 51280,
+        'confirmation_timeout_seconds' => 60,
+        'confirmation_polling_gap_seconds' => 5,
+        'balance_cache_ttl_seconds' => 60
+    ],
 ]);
 
 $CONFIG->set('blockchain_override', [
@@ -796,4 +812,11 @@ $CONFIG->set('seen-entities-weight', 0.01);
 
 $CONFIG->set('survey_links', [
     'post_signup' => '',
+]);
+
+$CONFIG->set('metascraper', [
+    'base_url' => 'metascraper:3334/',
+    'ttl_seconds' => 86400,
+    'request_timeout' => 30,
+    'bypass_cache' => true
 ]);

@@ -475,7 +475,7 @@ class User extends \ElggUser
      */
     public function getLanguage()
     {
-        return $this->language;
+        return $this->language ?? "en";
     }
 
     /**
