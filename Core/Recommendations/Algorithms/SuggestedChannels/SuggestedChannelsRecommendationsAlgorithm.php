@@ -42,7 +42,7 @@ class SuggestedChannelsRecommendationsAlgorithm extends AbstractRecommendationsA
             $suggestion->setEntity($user)
                 ->setEntityType('user');
             return $suggestion;
-        }, iterator_to_array($this->repository->getSubscriptionsOfSubscripitions(
+        }, iterator_to_array($this->repository->getSubscriptionsOfSubscriptions(
             userGuid: $this->user->getGuid(),
             limit: (int) $options['limit'],
             offset: (int) ($options['offset'] ?? $cachedOffset),

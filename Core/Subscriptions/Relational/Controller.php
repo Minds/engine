@@ -19,7 +19,7 @@ class Controller
     * @param ServerRequest $request
     * @return JsonResponse
     */
-    public function getSubscriptionsOfSubscripitions(ServerRequest $request): JsonResponse
+    public function getSubscriptionsOfSubscriptions(ServerRequest $request): JsonResponse
     {
         /** @var User */
         $loggedInUser = $request->getAttribute('_user');
@@ -30,7 +30,7 @@ class Controller
         /** @var int */
         $offset = $request->getQueryParams()['offset'] ?? 0;
 
-        $users = iterator_to_array($this->repository->getSubscriptionsOfSubscripitions(
+        $users = iterator_to_array($this->repository->getSubscriptionsOfSubscriptions(
             userGuid: $loggedInUser->getGuid(),
             limit: (int) $limit,
             offset: (int) $offset,

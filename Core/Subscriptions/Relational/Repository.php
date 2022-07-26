@@ -60,7 +60,7 @@ class Repository
      * @param int $offset
      * @return iterable<User>
      */
-    public function getSubscriptionsOfSubscripitions(
+    public function getSubscriptionsOfSubscriptions(
         string $userGuid,
         int $limit = 3,
         int $offset = 0
