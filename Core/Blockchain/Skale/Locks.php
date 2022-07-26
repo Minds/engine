@@ -8,9 +8,10 @@ use Minds\Core\Data\Locks\Redis as RedisLocks;
 /**
  * Lock a custodial wallets SKALE balance by user guid.
  */
-class Locks {
-    /** 
-     * @var string - base for key 
+class Locks
+{
+    /**
+     * @var string - base for key
      * - note lock class will prepend `lock:`
      */
     const LOCK_KEY_BASE = 'skale:balance:%s';
@@ -29,7 +30,8 @@ class Locks {
      * @param string $guid - guid to check lock for.
      * @return boolean - whether there is a lock applied.
      */
-    public function isLocked(string $guid): bool {
+    public function isLocked(string $guid): bool
+    {
         return $this->locks->setKey($this->getKey($guid))
             ->isLocked();
     }
@@ -53,7 +55,8 @@ class Locks {
      * @param string $guid - guid to remove lock for.
      * @return bool - true if success.
      */
-    public function unlock(string $guid): bool {
+    public function unlock(string $guid): bool
+    {
         return $this->locks->setKey($this->getKey($guid))
             ->unlock();
     }
