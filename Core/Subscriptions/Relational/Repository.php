@@ -64,8 +64,7 @@ class Repository
         string $userGuid,
         int $limit = 3,
         int $offset = 0
-    ): iterable
-    {
+    ): iterable {
         $statement = "
             SELECT 
                 a.friend_guid, 
@@ -94,27 +93,27 @@ class Repository
             AND 
                 a.friend_guid != :user_guid
             AND
-                a.timestamp >  DATE_SUB( CURDATE( ) ,INTERVAL 1 YEAR ) 
+                a.timestamp >  DATE_SUB( CURDATE(), INTERVAL 1 YEAR ) 
             GROUP BY 
                 a.friend_guid
             ORDER BY 
                 relevance DESC
             LIMIT $offset,$limit";
 
-            $prepared = $this->client->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
+        $prepared = $this->client->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
     
-            $prepared->execute([
+        $prepared->execute([
                 'user_guid' => $userGuid,
             ]);
     
-            foreach ($prepared as $row) {
-                $user = $this->entitiesBuilder->single($row['friend_guid']);
-                if (!$user instanceof User || !$user->isEnabled()) {
-                    // We may want to log this as you shouldn't be subscribed to a blocked or non-existant user
-                    continue;
-                }
-                yield $user;
+        foreach ($prepared as $row) {
+            $user = $this->entitiesBuilder->single($row['friend_guid']);
+            if (!$user instanceof User || !$user->isEnabled()) {
+                // We may want to log this as you shouldn't be subscribed to a blocked or non-existant user
+                continue;
             }
+            yield $user;
+        }
     }
 
     /**

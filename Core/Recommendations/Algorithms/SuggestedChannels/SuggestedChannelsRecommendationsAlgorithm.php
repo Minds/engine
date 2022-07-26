@@ -54,4 +54,3 @@ class SuggestedChannelsRecommendationsAlgorithm extends AbstractRecommendationsA
         return new Response($users);
     }
 }
-

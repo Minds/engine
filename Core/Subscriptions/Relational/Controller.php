@@ -14,11 +14,11 @@ class Controller
         $this->repository ??= new Repository();
     }
 
-     /**
-     * Returns subscriptions of subscriptions, ordered by most relevant
-     * @param ServerRequest $request
-     * @return JsonResponse
-     */
+    /**
+    * Returns subscriptions of subscriptions, ordered by most relevant
+    * @param ServerRequest $request
+    * @return JsonResponse
+    */
     public function getSubscriptionsOfSubscripitions(ServerRequest $request): JsonResponse
     {
         /** @var User */
