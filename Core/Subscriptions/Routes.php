@@ -25,6 +25,10 @@ class Routes extends ModuleRoutes
             ])
             ->do(function (Route $route) {
                 $route->get(
+                    'subscriptions-of-subscriptions',
+                    Ref::_('Subscriptions\Relational\Controller', 'getSubscriptionsOfSubscripitions')
+                );
+                $route->get(
                     'also-subscribe-to',
                     Ref::_('Subscriptions\Relational\Controller', 'getSubscriptionsThatSubscribeTo')
                 );
