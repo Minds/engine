@@ -10,8 +10,11 @@ namespace Minds\Core\Blockchain\Wallets\OffChain;
 
 use Minds\Core\Blockchain\Transactions\Repository;
 use Minds\Core\Blockchain\Transactions\Transaction;
+use Minds\Core\Blockchain\Skale\Locks as SkaleLocks;
+use Minds\Core\Blockchain\Skale\Tools as SkaleTools;
 use Minds\Core\Data\Locks;
 use Minds\Core\Data\Locks\LockFailedException;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Di\Di;
 use Minds\Core\GuidBuilder;
 use Minds\Core\Util\BigNumber;
@@ -46,12 +49,22 @@ class Transactions
     /** @var array|null $data */
     protected $data;
 
-    public function __construct($repository = null, $balance = null, $locks = null, $guid = null)
-    {
+    public function __construct(
+        $repository = null,
+        $balance = null,
+        $locks = null,
+        $guid = null,
+        private ?SkaleTools $skaleTools = null,
+        private ?SkaleLocks $skaleLocks = null,
+        private ?ExperimentsManager $experiments = null
+    ) {
         $this->repository = $repository ?: Di::_()->get('Blockchain\Transactions\Repository');
         $this->balance = $balance ?: Di::_()->get('Blockchain\Wallets\OffChain\Balance');
         $this->locks = $locks ?: Di::_()->get('Database\Locks');
         $this->guid = $guid ?: Di::_()->get('Guid');
+        $this->skaleTools ??= Di::_()->get('Blockchain\Skale\Tools');
+        $this->skaleLocks ??= Di::_()->get('Blockchain\Skale\Locks');
+        $this->experiments ??= Di::_()->get('Experiments\Manager');
     }
 
     public function setUser(User $user)
@@ -80,8 +93,14 @@ class Transactions
 
     public function create()
     {
+        $skaleMirrorEnabled = $this->isSkaleMirrorEnabled();
+
         $this->locks->setKey("balance:{$this->user->guid}");
-        if ($this->locks->isLocked()) {
+
+        if (
+            $this->locks->isLocked() ||
+            ($skaleMirrorEnabled && $this->skaleLocks->isLocked($this->user->guid))
+        ) {
             throw new LockFailedException();
         }
 
@@ -90,6 +109,10 @@ class Transactions
             $this->locks
                 ->setTTL(120)
                 ->lock();
+                
+            if ($skaleMirrorEnabled) {
+                $this->skaleLocks->lock($this->user->guid);
+            }
         } catch (\Exception $e) {
         }
 
@@ -115,6 +138,18 @@ class Transactions
 
             if ($this->data) {
                 $transaction->setData($this->data);
+            }
+
+            if ($skaleMirrorEnabled) {
+                // $this->skaleTools->sendTokens(
+                //     amountWei: $this->amount,
+                //     sender: $this->user,
+                //     receiver: $receiver,
+                //     waitForConfirmation: true,
+                //     checkSFuel: true
+                // );
+
+                $this->skaleLocks->unlock($this->user->guid);
             }
 
             $added = $this->repository->add($transaction);
@@ -164,7 +199,16 @@ class Transactions
             throw new LockFailedException();
         }
 
-        // Create a lock of the balance
+        $skaleMirrorEnabled = $this->isSkaleMirrorEnabled();
+
+        // TODO: Merge with above when deprecating feature flag.
+        if (
+            $skaleMirrorEnabled &&
+            $this->skaleLocks->isLocked($receiver->guid) ||
+            $this->skaleLocks->isLocked($sender->guid)
+        ) {
+            throw new LockFailedException();
+        }
 
         $balanceLockTtl = 120;
 
@@ -178,6 +222,11 @@ class Transactions
                 ->setKey($senderLockKey)
                 ->setTTL($balanceLockTtl)
                 ->lock();
+            
+            if ($skaleMirrorEnabled) {
+                $this->skaleLocks->lock($receiver->guid);
+                $this->skaleLocks->lock($sender->guid);
+            }
         } catch (\Exception $e) {
         }
 
@@ -233,6 +282,19 @@ class Transactions
                 ->setContract('offchain:' . $this->type)
                 ->setCompleted(true);
 
+            if ($skaleMirrorEnabled) {
+                $this->skaleTools->sendTokens(
+                    amountWei: $receiverAmount,
+                    sender: $sender,
+                    receiver: $receiver,
+                    waitForConfirmation: true,
+                    checkSFuel: true
+                );
+
+                $this->skaleLocks->unlock($sender->guid);
+                $this->skaleLocks->unlock($receiver->guid);
+            }
+
             if ($this->data) {
                 $senderTx->setData($this->data);
             }
@@ -274,5 +336,14 @@ class Transactions
     public function toWei($value)
     {
         return (string) BigNumber::toPlain($value, 18);
+    }
+
+    /**
+     * True if feature flag for SKALE mirror is enabled.
+     * @return boolean - whether SKALE mirror feat flag is enabled.
+     */
+    private function isSkaleMirrorEnabled(): bool
+    {
+        return $this->experiments->isOn('engine-2350-skale-mirror') ?? false;
     }
 }

@@ -12,15 +12,19 @@ use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
 use Minds\Core\Util\BigNumber;
+use Minds\Core\Blockchain\Transactions\Delegates\TransactionEventDelegate;
 
 class Repository
 {
     /** @var Client */
     private $db;
 
-    public function __construct($db = null)
-    {
+    public function __construct(
+        $db = null,
+        private ?TransactionEventDelegate $transactionEventDelegate = null
+    ) {
         $this->db = $db ? $db : Di::_()->get('Database\Cassandra\Cql');
+        $this->transactionEventDelegate ??= new TransactionEventDelegate();
     }
 
     public function add($transactions)
@@ -60,6 +64,8 @@ class Repository
         }
 
         $this->db->batchRequest($requests, Cassandra::BATCH_UNLOGGED);
+
+        $this->transactionEventDelegate->onAdd($transaction);
 
         return $this;
     }

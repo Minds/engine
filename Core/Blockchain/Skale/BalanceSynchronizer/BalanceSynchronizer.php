@@ -73,7 +73,7 @@ class BalanceSynchronizer
      * @throws SyncExcludedUserException - if user is excluded from sync.
      * @return AdjustmentResult|null - Object containing result of adjustment or null, if no adjustment made.
      */
-    public function sync(): ?AdjustmentResult
+    public function sync(bool $dryRun = false): ?AdjustmentResult
     {
         if (in_array($this->user->getGuid(), $this->getExcludedUserGuids(), true)) {
             throw new SyncExcludedUserException('Attempted to sync balance of excluded user: '.$this->user->getUsername());
@@ -86,26 +86,28 @@ class BalanceSynchronizer
             return null;
         }
 
-        $txHash = '';
+        if (!$dryRun) {
+            $txHash = '';
 
-        if ($balanceDifference->lt(0)) {
-            $txHash = $this->skaleTools->sendTokens(
-                sender: $this->getBalanceSyncUser(),
-                receiver: $this->user,
-                amountWei: $balanceDifference->neg()->toString(),
-                waitForConfirmation: false,
-                checkSFuel: false
-            );
-        }
+            if ($balanceDifference->lt(0)) {
+                $txHash = $this->skaleTools->sendTokens(
+                    sender: $this->getBalanceSyncUser(),
+                    receiver: $this->user,
+                    amountWei: $balanceDifference->neg()->toString(),
+                    waitForConfirmation: false,
+                    checkSFuel: false
+                );
+            }
 
-        if ($balanceDifference->gt(0)) {
-            $txHash = $this->skaleTools->sendTokens(
-                sender: $this->user,
-                receiver: $this->getBalanceSyncUser(),
-                amountWei: $balanceDifference->toString(),
-                waitForConfirmation: false,
-                checkSFuel: true
-            );
+            if ($balanceDifference->gt(0)) {
+                $txHash = $this->skaleTools->sendTokens(
+                    sender: $this->user,
+                    receiver: $this->getBalanceSyncUser(),
+                    amountWei: $balanceDifference->toString(),
+                    waitForConfirmation: false,
+                    checkSFuel: true
+                );
+            }
         }
 
         return (new AdjustmentResult())
