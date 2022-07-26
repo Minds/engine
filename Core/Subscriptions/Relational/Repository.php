@@ -114,6 +114,8 @@ class Repository
             }
             yield $user;
         }
+
+        return;
     }
 
     /**
