@@ -2,14 +2,14 @@
 
 namespace Spec\Minds\Core\Reports\Appeals;
 
-use Minds\Core\Reports\Appeals\Manager;
-use Minds\Core\Reports\Appeals\Repository;
+use Minds\Common\Repository\Response;
+use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\Reports\Appeals\Appeal;
 use Minds\Core\Reports\Appeals\Delegates;
+use Minds\Core\Reports\Appeals\Manager;
+use Minds\Core\Reports\Appeals\Repository;
 use Minds\Core\Reports\Report;
-use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Entities\Entity;
-use Minds\Common\Urn;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -45,14 +45,14 @@ class ManagerSpec extends ObjectBehavior
             'showAppealed' => false
         ])
             ->shouldBeCalled()
-            ->willReturn([
+            ->willReturn(new Response([
                 (new Appeal)
                     ->setReport((new Report)
                         ->setEntityUrn('urn:activity:123')),
                 (new Appeal)
                     ->setReport((new Report)
                         ->setEntityUrn('urn:activity:456')),
-            ]);
+            ]));
 
         $this->entitiesResolver->single(Argument::that(function ($urn) {
             return $urn->getNss() == 123;

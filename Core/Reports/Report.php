@@ -154,7 +154,10 @@ class Report
      */
     private function getCurrentReportReasonAndSubReasonCodes(): array
     {
-        [$reasonCode, $subReasonCode] = explode('.', $this->getAdminReasonOverride());
+        $reasonCode = $subReasonCode = null;
+        if ($this->getAdminReasonOverride()) {
+            [$reasonCode, $subReasonCode] = explode('.', $this->getAdminReasonOverride());
+        }
 
         return [
             "reasonCode" => empty($reasonCode) ? $this->reasonCode : (int) $reasonCode,
@@ -164,12 +167,12 @@ class Report
 
     public function getInitialReasonCode(): int
     {
-        return $this->reasonCode;
+        return (int) $this->reasonCode;
     }
 
     public function getInitialSubReasonCode(): int
     {
-        return $this->subReasonCode;
+        return (int) $this->subReasonCode;
     }
 
     /**

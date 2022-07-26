@@ -56,6 +56,7 @@ class ReportSpec extends ObjectBehavior
             'appeal_note' => "",
             'reason_code' => 2,
             'sub_reason_code' => 1,
+            'admin_reason_override' => null,
             'state' => 'reported',
             'upheld' => null,
         ]);
