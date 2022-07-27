@@ -56,7 +56,7 @@ class BlockchainTransactionEvent implements EventInterface
      * @param string $receiverGuid - guid of receiver.
      * @return self
      */
-    public function setReceiverGuid(string $receiverGuid): self
+    public function setReceiverGuid(?string $receiverGuid): self
     {
         $this->receiverGuid = $receiverGuid;
         return $this;

@@ -160,6 +160,10 @@ class BlockchainProvider extends Provider
 
         $this->di->bind('Blockchain\Skale\Locks', function () {
             return new Skale\Locks();
-        });
+        }, [ 'useFactory' => false ]);
+
+        $this->di->bind('Blockchain\Skale\Escrow\Manager', function () {
+            return new Skale\Escrow\Manager();
+        }, [ 'useFactory' => false ]);
     }
 }

@@ -12,6 +12,8 @@ use Minds\Core\Blockchain\Transactions\Repository;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Blockchain\Skale\Locks as SkaleLocks;
 use Minds\Core\Blockchain\Skale\Tools as SkaleTools;
+use Minds\Core\Blockchain\Skale\Escrow\Manager as SkaleEscrowManager;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\Locks;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
@@ -55,16 +57,20 @@ class Transactions
         $locks = null,
         $guid = null,
         private ?SkaleTools $skaleTools = null,
+        private ?SkaleEscrowManager $skaleEscrowManager = null,
         private ?SkaleLocks $skaleLocks = null,
-        private ?ExperimentsManager $experiments = null
+        private ?ExperimentsManager $experiments = null,
+        private ?Config $config = null
     ) {
         $this->repository = $repository ?: Di::_()->get('Blockchain\Transactions\Repository');
         $this->balance = $balance ?: Di::_()->get('Blockchain\Wallets\OffChain\Balance');
         $this->locks = $locks ?: Di::_()->get('Database\Locks');
         $this->guid = $guid ?: Di::_()->get('Guid');
         $this->skaleTools ??= Di::_()->get('Blockchain\Skale\Tools');
+        $this->skaleEscrowManager ??= Di::_()->get('Blockchain\Skale\Escrow\Manager');
         $this->skaleLocks ??= Di::_()->get('Blockchain\Skale\Locks');
         $this->experiments ??= Di::_()->get('Experiments\Manager');
+        $this->config ??= Di::_()->get('Config');
     }
 
     public function setUser(User $user)
@@ -129,6 +135,7 @@ class Transactions
 
             $transaction
                 ->setUserGuid($this->user->guid)
+                ->setSenderGuid($this->user->guid)
                 ->setWalletAddress('offchain')
                 ->setTimestamp(time())
                 ->setTx('oc:' . $guid)
@@ -136,20 +143,18 @@ class Transactions
                 ->setContract('offchain:' . $this->type)
                 ->setCompleted(true);
 
+            if ($skaleMirrorEnabled) {
+                $participants = $this->skaleEscrowManager->setUser($this->user)
+                    ->setContext($this->data['context'])
+                    ->setAmountWei($this->amount)
+                    ->send();
+
+                $this->data['receiver_guid'] = $participants->getReceiver()->getGuid();
+                $this->data['sender_guid'] = $participants->getSender()->getGuid();
+            }
+            
             if ($this->data) {
                 $transaction->setData($this->data);
-            }
-
-            if ($skaleMirrorEnabled) {
-                // $this->skaleTools->sendTokens(
-                //     amountWei: $this->amount,
-                //     sender: $this->user,
-                //     receiver: $receiver,
-                //     waitForConfirmation: true,
-                //     checkSFuel: true
-                // );
-
-                $this->skaleLocks->unlock($this->user->guid);
             }
 
             $added = $this->repository->add($transaction);
@@ -160,11 +165,13 @@ class Transactions
 
             // Release the lock
             $this->locks->unlock();
+            $this->skaleLocks->unlock($this->user->guid);
 
             return $transaction;
         } catch (\Exception $e) {
-            // Release the lock
+            // Release the locks
             $this->locks->unlock();
+            $this->skaleLocks->unlock($this->user->guid);
 
             // Rethrow
             throw $e;

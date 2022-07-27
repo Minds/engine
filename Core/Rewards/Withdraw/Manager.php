@@ -308,8 +308,7 @@ class Manager
             throw new Exception('The gas requested does not match the transaction');
         }
 
-        $user = new User;
-        $user->guid = (string) $request->getUserGuid();
+        $user = new User($request->getUserGuid());
 
         // Withhold user tokens
 
@@ -318,6 +317,7 @@ class Manager
                 ->setUser($user)
                 ->setType('withdraw')
                 ->setAmount((string) BigNumber::_($request->getAmount())->neg())
+                ->setData(['context' => 'withdraw_created'])
                 ->create();
         } catch (LockFailedException $e) {
             $this->txManager->add($transaction);
@@ -454,8 +454,7 @@ class Manager
             throw new Exception('Request is not pending approval');
         }
 
-        $user = new User;
-        $user->guid = (string) $request->getUserGuid();
+        $user = new User($request->getUserGuid());
 
         // Refund tokens
 
@@ -463,6 +462,7 @@ class Manager
             $this->offChainTransactions
                 ->setUser($user)
                 ->setType('withdraw_refund')
+                ->setData(['context' => 'withdraw_refund'])
                 ->setAmount((string) BigNumber::_($request->getAmount()))
                 ->create();
         } catch (LockFailedException $e) {

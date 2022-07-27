@@ -140,6 +140,8 @@ class Payment
                             $txData['receiver_guid'] = (string) $boost->getDestination()->guid;
                         }
 
+                        $txData['context'] = 'boost_created';
+
                         /** @var Core\Blockchain\Wallets\OffChain\Transactions $sendersTx */
                         $sendersTx = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
                         $tx = $sendersTx
@@ -326,6 +328,7 @@ class Payment
                                     'guid' => (string) $boost->getGuid(),
                                     'sender_guid' => (string) $boost->getOwner()->guid,
                                     'receiver_guid' => (string) $boost->getDestination()->guid,
+                                    'context' => 'boost_charge'
                                 ])
                                 ->create();
                         } else {
@@ -336,6 +339,7 @@ class Payment
                                     'guid' => (string) $boost->getGuid(),
                                     'sender_guid' => (string) $boost->getOwner()->guid,
                                     'receiver_guid' => (string) $this->getMindsBoostWalletUser()->guid,
+                                    'context' => 'boost_charge'
                                 ])
                                 ->create();
                         }
@@ -446,6 +450,8 @@ class Payment
                             $txData['sender_guid'] = (string) $boost->getOwner()->guid;
                             $txData['receiver_guid'] = (string) $boost->getDestination()->guid;
                         }
+
+                        $txData['context'] = 'boost_refund';
 
                         /** @var Core\Blockchain\Wallets\OffChain\Transactions $sendersTx */
                         $sendersTx = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');

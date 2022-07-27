@@ -24,8 +24,8 @@ class TransactionEventDelegate
     private function buildEvent(Transaction $transaction): BlockchainTransactionEvent
     {
         return (new BlockchainTransactionEvent())
-            ->setSenderGuid($transaction->getData()['sender_guid'])
-            ->setReceiverGuid($transaction->getData()['receiver_guid'])
+            ->setSenderGuid($transaction->getData()['sender_guid'] ?? $transaction->getUserGuid())
+            ->setReceiverGuid($transaction->getData()['receiver_guid'] ?? '')
             ->setTransactionId($transaction->getTx())
             ->setWalletAddress($transaction->getWalletAddress())
             ->setContract($transaction->getContract())
