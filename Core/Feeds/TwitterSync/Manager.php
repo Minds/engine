@@ -14,7 +14,6 @@ use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
-use Minds\Helpers\Text;
 
 class Manager
 {
@@ -23,6 +22,12 @@ class Manager
      * Matches twitter photo url - can be prefixed with a space, and must be at END of text.
      */
     const TWITTER_PHOTO_URL_REGEX = '/\s?https:\/\/twitter\.com\/[\w\d]+\/status\/\d+\/photo\/\d$/';
+
+    /**
+     * @var string
+     * Matches twitter video url - can be prefixed with a space, and must be at END of text.
+     */
+    const TWITTER_VIDEO_URL_REGEX = '/\s?https:\/\/twitter\.com\/[\w\d]+\/status\/\d+\/video\/\d$/';
 
     public function __construct(
         protected Client $client,
@@ -142,7 +147,9 @@ class Manager
             ]),
             'media.fields' => implode(',', [
                 'type',
-                'url'
+                'url',
+                'height',
+                'width'
             ])
         ];
 
@@ -176,7 +183,7 @@ class Manager
                 ->setText($tweetData['text']);
 
             if (isset($tweetData['entities']) && isset($tweetData['entities']['urls'])) {
-                $tweet->setImageUrls($this->extractImageUrls(
+                $tweet->setMediaData($this->extractMediaData(
                     $tweetData['attachments']['media_keys'] ?? [],
                     $json['includes']['media'] ?? []
                 ));
@@ -184,9 +191,14 @@ class Manager
                 foreach ($tweetData['entities']['urls'] as $url) {
                     $expandedUrlText = str_replace($url['url'], $url['expanded_url'], $tweet->getText());
                     
-                    // if we have extracted image urls, strip the photo url from the end of the post.
-                    if (count($tweet->getImageUrls())) {
+                    // if we have extracted media, strip the media url from the post.
+                    if (count($tweet->getMediaData())) {
+                        $originalExpandedUrlText = $expandedUrlText;
                         $expandedUrlText = $this->stripPhotoUrl($expandedUrlText);
+                        // if no photo url detected, try strip video URL.
+                        if ($expandedUrlText === $originalExpandedUrlText) {
+                            $expandedUrlText = $this->stripVideoUrl($expandedUrlText);
+                        }
                     }
 
                     $tweet->setText($expandedUrlText);
@@ -224,17 +236,20 @@ class Manager
                 $activity->container_guid = $owner->guid;
                 $activity->owner_guid = $owner->guid;
                 $activity->ownerObj = $owner->export();
-                //
                 $activity->setMessage($recentTweet->getText());
 
-                if (count($recentTweet->getImageUrls())) {
+                $photos = $recentTweet->getPhotosData();
+
+                if (count($photos)) {
+                    // Only extract for a first bit of attached media for now
+                    // in future we can add multi-image support.
                     $this->imageExtractor->extractAndUploadToActivity(
-                        $recentTweet->getImageUrls()[0],
+                        $photos[0],
                         $activity
                     );
                 }
 
-                if ($recentTweet->getUrls() && isset($recentTweet->getUrls()[0]) && !count($recentTweet->getImageUrls())) {
+                if ($recentTweet->getUrls() && isset($recentTweet->getUrls()[0]) && !count($photos)) {
                     $url = $recentTweet->getUrls()[0];
                     try {
                         $richEmbed = $this->richEmbedManager->getRichEmbed($url);
@@ -311,7 +326,7 @@ class Manager
     }
 
     /**
-     * Strips photo URL from end of tweet text - useful because for photo's, Twitter appends
+     * Strips photo URL from end of tweet text - useful because for photos and videos, Twitter appends
      * a link to the end of the text that is not visible on-site.
      * @param string $text - text to strip.
      * @return string - text without twitter photo link at end.
@@ -322,19 +337,30 @@ class Manager
     }
 
     /**
-     * Extracts image URLs from tweet.
+     * Strips video URL from end of tweet text - useful because for photos and videos, Twitter appends
+     * a link to the end of the text that is not visible on-site.
+     * @param string $text - text to strip.
+     * @return string - text without twitter video link at end.
+     */
+    protected function stripVideoUrl(string $text): string
+    {
+        return preg_replace(self::TWITTER_VIDEO_URL_REGEX, '', $text, 1);
+    }
+
+    /**
+     * Extracts media data such as photo URLs and dimensions from tweet.
      * @param array $mediaKeys - the media keys attached to the post.
      * @param array $includes - the extended media object returned from twitter API,
      * should contain matching media keys.
-     * @return array - array of extracted image URLs for a given post.
+     * @return array - MediaData[] array of MediaData items for a given post.
      */
-    protected function extractImageUrls(array $mediaKeys, array $includes): array
+    protected function extractMediaData(array $mediaKeys, array $includes): array
     {
         if (!count($mediaKeys) || !count($includes)) {
             return [];
         }
 
-        $urls = [];
+        $mediaDataArray = [];
 
         foreach ($mediaKeys as $mediaKey) {
             // get connected expanded media object.
@@ -353,15 +379,17 @@ class Manager
             $extendedMediaObject = $extendedMediaObjectArray[0];
 
             // if extended media object type is photo, get url and push to $urls array.
-            if ($extendedMediaObject['type'] === 'photo') {
-                $url = $extendedMediaObject['url'];
-
-                if ($url) {
-                    array_push($urls, $url);
-                }
+            if ($extendedMediaObject['type'] === 'photo' || $extendedMediaObject['type'] === 'video') {
+                // videos do not currently export a URL from the V2 API.
+                $mediaDataItem = (new MediaData())
+                    ->setType($extendedMediaObject['type'])
+                    ->setUrl($extendedMediaObject['url'] ?? null)
+                    ->setHeight($extendedMediaObject['height'] ?? null)
+                    ->setWidth($extendedMediaObject['width']  ?? null);
+                array_push($mediaDataArray, $mediaDataItem);
             }
         }
 
-        return $urls;
+        return $mediaDataArray;
     }
 }
