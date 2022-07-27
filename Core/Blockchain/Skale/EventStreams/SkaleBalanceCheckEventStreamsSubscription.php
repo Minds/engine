@@ -5,6 +5,7 @@ namespace Minds\Core\Blockchain\Skale\EventStreams;
 use Minds\Core\Blockchain\EventStreams\BlockchainTransactionEvent;
 use Minds\Core\Blockchain\EventStreams\BlockchainTransactionsTopic;
 use Minds\Core\Blockchain\Skale\BalanceSynchronizer\BalanceSynchronizer;
+use Minds\Core\Blockchain\Skale\BalanceSynchronizer\SyncExcludedUserException;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\EventInterface;
@@ -107,9 +108,15 @@ class SkaleBalanceCheckEventStreamsSubscription implements SubscriptionInterface
             return true;
         }
         
-        $adjustmentResult = $this->balanceSynchronizer
-            ->withUser($sender)
-            ->sync(dryRun: true);
+        try {
+            $adjustmentResult = $this->balanceSynchronizer
+                ->withUser($sender)
+                ->sync(dryRun: true);
+        } catch (SyncExcludedUserException $e) {
+            return true;
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+        }
 
         if ($adjustmentResult) {
             $this->logger->error($adjustmentResult);
