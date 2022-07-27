@@ -59,7 +59,7 @@ class TransactionEventDelegateSpec extends ObjectBehavior
 
         $this->blockchainTransactionsTopic->send(
             Argument::that(
-            function ($arg) use (
+                function ($arg) use (
                 $senderGuid,
                 $receiverGuid,
                 $txId,
@@ -74,7 +74,7 @@ class TransactionEventDelegateSpec extends ObjectBehavior
                     $arg->getContract() === $contract &&
                     $arg->getWalletAddress() === $walletAddress;
             }
-        )
+            )
         )
             ->shouldBeCalled();
 
