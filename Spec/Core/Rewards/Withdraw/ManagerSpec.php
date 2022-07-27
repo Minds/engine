@@ -526,6 +526,12 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->offChainTransactions);
 
+        
+        $this->offChainTransactions
+            ->setData(['context' => 'withdraw_created'])
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
+
         $this->offChainTransactions
             ->create()
             ->shouldBeCalled()
@@ -597,6 +603,11 @@ class ManagerSpec extends ObjectBehavior
 
         $this->offChainTransactions
             ->setAmount((string) BigNumber::toPlain(10, 18)->neg())
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
+
+        $this->offChainTransactions
+            ->setData(['context' => 'withdraw_created'])
             ->shouldBeCalled()
             ->willReturn($this->offChainTransactions);
 
@@ -1049,6 +1060,11 @@ class ManagerSpec extends ObjectBehavior
             ->setAmount((string) BigNumber::toPlain(10, 18))
             ->shouldBeCalled()
             ->willReturn($this->offChainTransactions);
+        
+        $this->offChainTransactions
+            ->setData(['context' => 'withdraw_refund'])
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
 
         $this->offChainTransactions
             ->create()
@@ -1100,6 +1116,11 @@ class ManagerSpec extends ObjectBehavior
 
         $this->offChainTransactions
             ->setAmount((string) BigNumber::toPlain(10, 18))
+            ->shouldBeCalled()
+            ->willReturn($this->offChainTransactions);
+
+        $this->offChainTransactions
+            ->setData(['context' => 'withdraw_refund'])
             ->shouldBeCalled()
             ->willReturn($this->offChainTransactions);
 
