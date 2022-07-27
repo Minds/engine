@@ -8,6 +8,7 @@ use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Blockchain\Skale\Locks as SkaleLocks;
 use Minds\Core\Blockchain\Skale\Tools as SkaleTools;
 use Minds\Core\Blockchain\Skale\Escrow\Manager as SkaleEscrowManager;
+use Minds\Core\Blockchain\Skale\Escrow\Participants;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\Locks\Redis as Locks;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
@@ -584,5 +585,184 @@ class TransactionsSpec extends ObjectBehavior
             ->setData(['test' => true])
             ->shouldThrow(new \Exception('Not enough sender funds'))
             ->duringTransferFrom($sender);
+    }
+
+    public function it_should_mirror_a_charge_to_skale(
+        Participants $participants,
+        User $receiver,
+        User $sender
+    ) {
+        $user = new User;
+        $user->guid = 123;
+        $this->setUser($user)
+            ->setAmount(5)
+            ->setType('spec');
+
+        $this->experiments->isOn('engine-2350-skale-mirror')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->locks->setKey(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($this->locks);
+        $this->locks->setTTL(120)
+            ->shouldBeCalled()
+            ->willReturn($this->locks);
+        $this->locks->isLocked()
+            ->shouldBeCalled()
+            ->willReturn(false);
+        $this->locks->lock()
+            ->shouldBeCalled()
+            ->willReturn(null);
+        $this->locks->unlock()
+            ->shouldBeCalled();
+
+        $this->skaleLocks->isLocked(123)
+            ->shouldBeCalled()
+            ->willReturn(false);
+        $this->skaleLocks->lock(123)
+            ->shouldBeCalled()
+            ->willReturn(false);
+        $this->skaleLocks->unlock(123)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->balance->setUser($user)->willReturn($this->balance);
+        $this->balance->get()->willReturn(10);
+
+        $this->guid->build()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+
+        $participants->getReceiver()
+            ->shouldBeCalled()
+            ->willReturn($receiver);
+        $participants->getSender()
+            ->shouldBeCalled()
+            ->willReturn($sender);
+        
+        $context = 'context';
+
+        $this->setData(['context' => $context])
+            ->setAmount(5);
+        
+        $this->skaleEscrowManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->skaleEscrowManager);
+    
+        $this->skaleEscrowManager->setContext($context)
+            ->shouldBeCalled()
+            ->willReturn($this->skaleEscrowManager);
+        
+        $this->skaleEscrowManager->setAmountWei(5)
+            ->shouldBeCalled()
+            ->willReturn($this->skaleEscrowManager);
+    
+        $this->skaleEscrowManager->send()
+            ->shouldBeCalled()
+            ->willReturn($participants);
+
+        $this->repo->add(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->create();
+    }
+
+    public function it_should_mirror_transfer_from_to_another_user_on_skale(
+        User $receiver,
+        User $sender
+    ) {
+        $receiver->get('guid')
+            ->shouldBeCalled()
+            ->willReturn(1000);
+
+        $sender->get('guid')
+            ->shouldBeCalled()
+            ->willReturn(1001);
+
+        $this->experiments->isOn('engine-2350-skale-mirror')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->locks->setKey('balance:1000')
+            ->shouldBeCalledTimes(3)
+            ->willReturn($this->locks);
+
+        $this->locks->setKey('balance:1001')
+            ->shouldBeCalledTimes(3)
+            ->willReturn($this->locks);
+
+        $this->locks->isLocked()
+            ->shouldBeCalledTimes(2)
+            ->willReturn(false);
+
+        $this->locks->setTTL(120)
+            ->shouldBeCalledTimes(2)
+            ->willReturn($this->locks);
+
+        $this->locks->lock()
+            ->shouldBeCalledTimes(2)
+            ->willReturn(true);
+
+        $this->skaleLocks->isLocked(1000)
+            ->shouldBeCalled()
+            ->willReturn(false);
+        $this->skaleLocks->lock(1000)
+            ->shouldBeCalled()
+            ->willReturn(false);
+        $this->skaleLocks->unlock(1000)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->skaleLocks->isLocked(1001)
+            ->shouldBeCalled()
+            ->willReturn(false);
+        $this->skaleLocks->lock(1001)
+            ->shouldBeCalled()
+            ->willReturn(false);
+        $this->skaleLocks->unlock(1001)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->balance->setUser($sender)
+            ->shouldBeCalled()
+            ->willReturn($this->balance);
+
+        $this->balance->get()
+            ->shouldBeCalled()
+            ->willReturn(10000);
+
+        $this->guid->build()
+            ->shouldBeCalledTimes(2)
+            ->willReturn(5000);
+
+        $this->skaleTools->sendTokens(
+            amountWei: 8765,
+            sender: $sender,
+            receiver: $receiver,
+            receiverAddress: null,
+            waitForConfirmation: true,
+            checkSFuel: true
+        )->shouldBeCalled();
+
+        $this->repo->add(Argument::that(function ($txs) {
+            return $txs[0]->getUserGuid() === 1001 &&
+                $txs[1]->getUserGuid() === 1000;
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->locks->unlock()
+            ->shouldBeCalledTimes(2)
+            ->willReturn(true);
+
+        $this
+            ->setType('test')
+            ->setUser($receiver)
+            ->setAmount(8765)
+            ->setData(['test' => true])
+            ->transferFrom($sender);
     }
 }
