@@ -9,7 +9,6 @@ use Minds\Core\Di\Di;
 use Minds\Entities\Entity;
 use Minds\Entities\Image;
 use Minds\Entities\Video;
-use Minds\Common\Regex;
 
 /**
  * Notification builder for top post notifications. Used to get a
