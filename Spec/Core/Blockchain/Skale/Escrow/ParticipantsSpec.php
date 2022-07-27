@@ -13,12 +13,14 @@ class ParticipantsSpec extends ObjectBehavior
         $this->shouldHaveType(Participants::class);
     }
 
-    public function it_should_set_and_get_sender(User $user) {
+    public function it_should_set_and_get_sender(User $user)
+    {
         $this->setSender($user);
         $this->getSender()->shouldBe($user);
     }
 
-    public function it_should_set_and_get_receiver(User $user) {
+    public function it_should_set_and_get_receiver(User $user)
+    {
         $this->setReceiver($user);
         $this->getReceiver()->shouldBe($user);
     }

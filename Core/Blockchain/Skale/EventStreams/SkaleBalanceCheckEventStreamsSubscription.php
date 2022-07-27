@@ -128,6 +128,18 @@ class SkaleBalanceCheckEventStreamsSubscription implements SubscriptionInterface
     }
 
     /**
+     * Set already checked - built initially for use in
+     * spec tests to reset the static private members value.
+     * @param array $value - value to set self::$alreadyChecked to.
+     * @return self
+     */
+    public function setAlreadyChecked(array $value): self
+    {
+        self::$alreadyChecked = $value;
+        return $this;
+    }
+
+    /**
      * Whether user has been checked already in defined timespan.
      * @param string $userGuid - user guid to check.
      * @return boolean - true if user has been checked already, else false.
