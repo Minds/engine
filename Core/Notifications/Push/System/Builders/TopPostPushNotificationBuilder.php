@@ -74,7 +74,7 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
 
         switch ($this->entity->getType()) {
             case 'activity':
-                if ($this->entity->getPermaUrl() === $this->entity->getMessage()) {
+                if ($this->isEntityALink()) {
                     return $nameString . ' posted a link';
                 }
                 break;
@@ -102,7 +102,7 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
         $body = '';
         switch ($this->entity->getType()) {
             case 'activity':
-                if ($this->entity->getPermaUrl() === $this->entity->getMessage()) {
+                if ($this->isEntityALink()) {
                     $body = $this->entity->getTitle() ?: $this->entity->getMessage();
                 } else {
                     $body = $this->entity->getMessage();
@@ -185,5 +185,17 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
         }
 
         return '@' . $username;
+    }
+
+    /**
+     * returns whether the entity is a link
+     * @return bool
+     */
+    private function isEntityALink(): bool
+    {
+        if ($this->entity->getType() !== 'activity') {
+            return false;
+        }
+        return ($this->entity->getPermaUrl() === $this->entity->getMessage()) || ($this->entity->getPermaUrl() && !$this->entity->getMessage());
     }
 }
