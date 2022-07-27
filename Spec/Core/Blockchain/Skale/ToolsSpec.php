@@ -481,9 +481,7 @@ class ToolsSpec extends ObjectBehavior
     {
         $receiverAddress = '0x123';
         $resultHash = '0x000001';
-        $sfuelResultHash = '0x000002';
         $amountWei = '123';
-        $defaultDistibutorGuid = '100000000000000000';
 
         $this->balance->getSFuelBalance(
             address: $receiverAddress,
@@ -561,5 +559,48 @@ class ToolsSpec extends ObjectBehavior
 
         $this->sendSFuel($sender, $receiver)
             ->shouldBe($sfuelResultHash);
+    }
+
+    public function it_should_send_tokens_to_an_address_without_checking_sfuel_if_specified(User $sender)
+    {
+        $receiverAddress = '0x123';
+        $resultHash = '0x000001';
+        $amountWei = '123';
+
+        // check low balance threshold
+
+        $this->config->get('blockchain')
+            ->shouldNotBeCalled();
+
+        $this->keys->withUser($sender)
+            ->shouldNotBeCalled();
+
+        $this->keys->getWalletAddress()
+            ->shouldNotBeCalled();
+        
+        $this->balance->getSFuelBalance(
+            address: $receiverAddress,
+            useCache: true
+        )
+            ->shouldNotBeCalled();
+
+        // send
+
+        $this->transactionManager->withUsers(
+            $sender,
+            null,
+            $receiverAddress
+        )
+            ->shouldBeCalled()
+            ->willReturn($this->transactionManager);
+    
+        $this->transactionManager->sendTokens(
+            Argument::any()
+        )
+            ->shouldBeCalled()
+            ->willReturn($resultHash);
+
+        $this->sendTokens($amountWei, $sender, null, $receiverAddress, false, false)
+            ->shouldBe($resultHash);
     }
 }
