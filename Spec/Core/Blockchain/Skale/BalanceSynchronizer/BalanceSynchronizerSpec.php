@@ -483,4 +483,60 @@ class BalanceSynchronizerSpec extends ObjectBehavior
         $this->shouldThrow(SyncExcludedUserException::class)
             ->duringSync();
     }
+
+    public function it_should_dry_run_sync(
+        User $user,
+        User $balanceSyncUser
+    ) {
+        $skaleBalance = '100';
+        $offchainBalance = '1000';
+        $balanceSyncUserGuid = '123';
+        $txHash = '0x11';
+        $username = 'testuser';
+        $userGuid = '321';
+
+        $user->getUsername()
+            ->shouldBeCalled()
+            ->willReturn($username);
+
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $this->user = $user;
+
+        $this->skaleTools->getTokenBalance(
+            user: $user,
+            address: null,
+            useCache: false
+        )
+            ->shouldBeCalled()
+            ->willReturn($skaleBalance);
+
+        $this->offchainBalance->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->offchainBalance);
+        
+        $this->offchainBalance->get()
+            ->shouldBeCalled()
+            ->willReturn($offchainBalance);
+
+        $this->differenceCalculator->withBalances(
+            offchainBalance: $offchainBalance,
+            skaleTokenBalance: $skaleBalance
+        )
+            ->shouldBeCalled()
+            ->willReturn(
+                (new DifferenceCalculator())
+                ->withBalances(
+                    offchainBalance: $offchainBalance,
+                    skaleTokenBalance: $skaleBalance
+                )
+            );
+
+        $adjustmentResult = $this->sync(dryRun: true);
+        $adjustmentResult->getTxHash()->shouldBe("");
+        $adjustmentResult->getDifferenceWei()->shouldBe('-900');
+        $adjustmentResult->getUsername()->shouldBe($username);
+    }
 }
