@@ -9,6 +9,7 @@ use Minds\Core\Di\Di;
 use Minds\Entities\Entity;
 use Minds\Entities\Image;
 use Minds\Entities\Video;
+use Minds\Common\Regex;
 
 /**
  * Notification builder for top post notifications. Used to get a
@@ -69,22 +70,27 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
      */
     protected function buildTitle(): string
     {
-        $usernameString = $this->getOwnerUsernameString();
+        $nameString = $this->getOwnerNameString();
 
         switch ($this->entity->getType()) {
+            case 'activity':
+                if ($this->isEntityMessageLink()) {
+                    return $nameString . ' posted a link';
+                }
+                break;
             case 'object':
                 switch ($this->entity->getSubtype()) {
                     case 'blog':
-                        return $usernameString . ' posted a blog';
+                        return $nameString . ' posted a blog';
                     case 'image':
-                        return $usernameString . ' posted an image';
+                        return $nameString . ' posted an image';
                     case 'video':
-                        return $usernameString . ' posted a video';
+                        return $nameString . ' posted a video';
                 }
                 break;
         }
 
-        return $usernameString . ' posted';
+        return $nameString . ' posted';
     }
 
     /**
@@ -96,7 +102,11 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
         $body = '';
         switch ($this->entity->getType()) {
             case 'activity':
-                $body = $this->entity->getMessage();
+                if ($this->isEntityMessageLink()) {
+                    $body = $this->entity->getTitle() ?: $this->entity->getMessage();
+                } else {
+                    $body = $this->entity->getMessage();
+                }
                 break;
             case 'object':
                 switch ($this->entity->getSubtype()) {
@@ -157,15 +167,35 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
     }
 
     /**
-     * Gets username string.
-     * @return string - username string (@username).
+     * Gets the owner's name or username
+     * @return string - name string
      */
-    protected function getOwnerUsernameString(): string
+    protected function getOwnerNameString(): string
     {
-        $username = $this->entity->getOwnerEntity()->getUsername();
+        $entityOwner = $this->entity->getOwnerEntity();
+        $name = $entityOwner->getName();
+        $username = $entityOwner->getUsername();
+
+        if ($name) {
+            return $name;
+        }
+
         if (mb_strlen($username) > 45) {
             return '@' . mb_substr($username, 0, 45).'...';
         }
+
         return '@' . $username;
+    }
+
+    /**
+     * Checks whether the message of the entity is just a link
+     * @return bool
+     */
+    private function isEntityMessageLink(): bool
+    {
+        $matches = [];
+        // check whether the entire message is just a URL
+        preg_match(Regex::URL, $this->entity->getMessage(), $matches);
+        return $matches[0];
     }
 }

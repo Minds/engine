@@ -19,6 +19,8 @@ class Regex
     // #tags | $tags
     const HASH_CASH_TAG = '/([^&]|\b|^)#([\wÀ-ÿ\x0E00\x0E7F\x2460-\x9FBB]+)|([^&]|\b|^)\$([A-Za-z]+)/uim';
 
+    // urls
+    const URL = '/^(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})$/';
     /**
      * Wrapper around preg_match_all for testing.
      */
