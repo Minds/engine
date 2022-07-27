@@ -165,14 +165,18 @@ class Transactions
 
             // Release the lock
             $this->locks->unlock();
-            $this->skaleLocks->unlock($this->user->guid);
 
+            if ($skaleMirrorEnabled) {
+                $this->skaleLocks->unlock($this->user->guid);
+            }
             return $transaction;
         } catch (\Exception $e) {
             // Release the locks
             $this->locks->unlock();
-            $this->skaleLocks->unlock($this->user->guid);
 
+            if ($skaleMirrorEnabled) {
+                $this->skaleLocks->unlock($this->user->guid);
+            }
             // Rethrow
             throw $e;
         }
@@ -209,11 +213,10 @@ class Transactions
         $skaleMirrorEnabled = $this->isSkaleMirrorEnabled();
 
         // TODO: Merge with above when deprecating feature flag.
-        if (
-            $skaleMirrorEnabled &&
+        if ($skaleMirrorEnabled && (
             $this->skaleLocks->isLocked($receiver->guid) ||
             $this->skaleLocks->isLocked($sender->guid)
-        ) {
+        )) {
             throw new LockFailedException();
         }
 

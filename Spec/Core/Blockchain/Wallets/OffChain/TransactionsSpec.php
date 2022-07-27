@@ -5,7 +5,12 @@ namespace Spec\Minds\Core\Blockchain\Wallets\OffChain;
 use Minds\Core\Blockchain\Transactions\Repository;
 use Minds\Core\Blockchain\Wallets\OffChain\Balance;
 use Minds\Core\Data\Locks\LockFailedException;
+use Minds\Core\Blockchain\Skale\Locks as SkaleLocks;
+use Minds\Core\Blockchain\Skale\Tools as SkaleTools;
+use Minds\Core\Blockchain\Skale\Escrow\Manager as SkaleEscrowManager;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\Locks\Redis as Locks;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\GuidBuilder;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -21,15 +26,49 @@ class TransactionsSpec extends ObjectBehavior
     private $locks;
     /** @var GuidBuilder */
     private $guid;
+    /** @var SkaleTools */
+    private $skaleTools;
+    /** @var SkaleEscrowManager */
+    private $skaleEscrowManager;
+    /** @var SkaleLocks */
+    private $skaleLocks;
+    /** @var ExperimentsManager */
+    private $experiments;
+    /** @var Config */
+    private $config;
 
-    public function let(Repository $repo, Balance $balance, Locks $locks, GuidBuilder $guid)
-    {
+    public function let(
+        Repository $repo,
+        Balance $balance,
+        Locks $locks,
+        GuidBuilder $guid,
+        SkaleTools $skaleTools,
+        SkaleEscrowManager $skaleEscrowManager,
+        SkaleLocks $skaleLocks,
+        ExperimentsManager $experiments,
+        Config $config
+    ) {
         $this->repo = $repo;
         $this->balance = $balance;
         $this->locks = $locks;
         $this->guid = $guid;
+        $this->skaleTools = $skaleTools;
+        $this->skaleEscrowManager = $skaleEscrowManager;
+        $this->skaleLocks = $skaleLocks;
+        $this->experiments = $experiments;
+        $this->config = $config;
 
-        $this->beConstructedWith($repo, $balance, $locks, $guid);
+        $this->beConstructedWith(
+            $repo,
+            $balance,
+            $locks,
+            $guid,
+            $skaleTools,
+            $skaleEscrowManager,
+            $skaleLocks,
+            $experiments,
+            $config
+        );
     }
 
     public function it_is_initializable()
@@ -44,6 +83,10 @@ class TransactionsSpec extends ObjectBehavior
         $this->setUser($user)
             ->setAmount(5)
             ->setType('spec');
+
+        $this->experiments->isOn('engine-2350-skale-mirror')
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $this->locks->setKey(Argument::any())
             ->shouldBeCalled()
@@ -90,6 +133,10 @@ class TransactionsSpec extends ObjectBehavior
             ->setAmount(5)
             ->setType('spec');
 
+        $this->experiments->isOn('engine-2350-skale-mirror')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $this->locks->setKey(Argument::any())
             ->shouldBeCalled()
             ->willReturn($this->locks);
@@ -135,6 +182,10 @@ class TransactionsSpec extends ObjectBehavior
             ->setAmount(5)
             ->setType('spec');
 
+        $this->experiments->isOn('engine-2350-skale-mirror')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $this->locks->setKey(Argument::any())
             ->shouldBeCalled()
             ->willReturn($this->locks);
@@ -164,6 +215,10 @@ class TransactionsSpec extends ObjectBehavior
         $this->setUser($user)
             ->setAmount(5)
             ->setType('spec');
+
+        $this->experiments->isOn('engine-2350-skale-mirror')
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $this->locks->setKey(Argument::that(function ($key) use ($user) {
             return $key === "balance:{$user->guid}";
@@ -209,6 +264,10 @@ class TransactionsSpec extends ObjectBehavior
             ->setAmount(5)
             ->setType('spec');
 
+        $this->experiments->isOn('engine-2350-skale-mirror')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $this->locks->setKey(Argument::that(function ($key) use ($user) {
             return $key === "balance:{$user->guid}";
         }))
@@ -240,6 +299,10 @@ class TransactionsSpec extends ObjectBehavior
         $sender->get('guid')
             ->shouldBeCalled()
             ->willReturn(1001);
+
+        $this->experiments->isOn('engine-2350-skale-mirror')
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $this->locks->setKey('balance:1000')
             ->shouldBeCalledTimes(3)
@@ -423,6 +486,10 @@ class TransactionsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(1001);
 
+        $this->experiments->isOn('engine-2350-skale-mirror')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $this->locks->setKey('balance:1000')
             ->shouldBeCalledTimes(3)
             ->willReturn($this->locks);
@@ -470,6 +537,10 @@ class TransactionsSpec extends ObjectBehavior
         $sender->get('guid')
             ->shouldBeCalled()
             ->willReturn(1001);
+
+        $this->experiments->isOn('engine-2350-skale-mirror')
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $this->locks->setKey('balance:1000')
             ->shouldBeCalledTimes(3)
