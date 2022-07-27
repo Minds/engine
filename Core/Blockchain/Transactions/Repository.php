@@ -61,11 +61,11 @@ class Repository
                     json_encode($transaction->getData()),
                 ]
             ];
+
+            $this->transactionEventDelegate->onAdd($transaction);
         }
 
         $this->db->batchRequest($requests, Cassandra::BATCH_UNLOGGED);
-
-        $this->transactionEventDelegate->onAdd($transaction);
 
         return $this;
     }

@@ -86,9 +86,9 @@ class BalanceSynchronizer
             return null;
         }
 
-        if (!$dryRun) {
-            $txHash = '';
+        $txHash = '';
 
+        if (!$dryRun) {
             if ($balanceDifference->lt(0)) {
                 $txHash = $this->skaleTools->sendTokens(
                     sender: $this->getBalanceSyncUser(),
