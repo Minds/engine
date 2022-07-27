@@ -450,14 +450,16 @@ $CONFIG->set('blockchain', [
         'default_sfuel_distribution_amount_wei' => 220000000000,
         'sfuel_low_threshold' => 8801000000,
         'balance_sync_user_guid' => '991441275603390467',
-        'sync_excluded_users' => [
-            '991441275603390467'
-        ],
         'transfer_gas_limit' => 51280,
         'confirmation_timeout_seconds' => 60,
         'confirmation_polling_gap_seconds' => 5,
         'balance_cache_ttl_seconds' => 60,
-        'balance_sync_check_frequency_seconds' => 21600
+        'balance_sync_check_frequency_seconds' => 21600,
+        'boost_escrow_user_guid' => '991441275603390467',
+        'withdrawal_escrow_user_guid' => '991441275603390467',
+        'sync_excluded_users' => [
+            '991441275603390467'
+        ]
     ],
 ]);
 
