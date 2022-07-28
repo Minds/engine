@@ -2,17 +2,17 @@
 
 namespace Spec\Minds\Core\Reports\Jury;
 
-use Minds\Core\Reports\Jury\Repository;
-use Minds\Core\Reports\Jury\Decision;
-use Minds\Core\Reports\Report;
-use Minds\Core\Data\Cassandra\Client;
-use Minds\Entities\User;
-use Cassandra\Type\Set;
-use Cassandra\Type\Map;
-use Cassandra\Type;
-use Cassandra\Float_;
 use Cassandra\Bigint;
+use Cassandra\Float_;
 use Cassandra\Timestamp;
+use Cassandra\Type;
+use Cassandra\Type\Map;
+use Cassandra\Type\Set;
+use Minds\Core\Data\Cassandra\Client;
+use Minds\Core\Reports\Jury\Decision;
+use Minds\Core\Reports\Jury\Repository;
+use Minds\Core\Reports\Report;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Spec\Minds\Mocks;
@@ -117,9 +117,10 @@ class RepositorySpec extends ObjectBehavior
             return strpos($statement, 'SET initial_jury') !== false
                 && $values[0]->values()[456]->value() == true
                 && $values[1]->values()[0]->value() === '0xqj1'
-                && $values[2] === 'urn:activity:123'
-                && $values[3]->value() == 2
-                && $values[4]->value() == 5;
+                && $values[2] === null
+                && $values[3] === 'urn:activity:123'
+                && $values[4]->value() == 2
+                && $values[5]->value() == 5;
         }))
             ->shouldBeCalled()
             ->willReturn(true);
@@ -160,9 +161,10 @@ class RepositorySpec extends ObjectBehavior
             return strpos($statement, 'SET appeal_jury') !== false
                 && $values[0]->values()[456]->value() == true
                 && $values[1]->values()[0]->value() === '0xqj1'
-                && $values[2] === 'urn:activity:123'
-                && $values[3]->value() == 2
-                && $values[4]->value() == 5;
+                && $values[2] === null
+                && $values[3] === 'urn:activity:123'
+                && $values[4]->value() == 2
+                && $values[5]->value() == 5;
         }))
             ->shouldBeCalled()
             ->willReturn(true);

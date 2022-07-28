@@ -11,6 +11,7 @@ use Minds\Core\Reports\UserReports\UserReport;
 use Minds\Core\Session;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Entities\Entity;
+use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
 /**
@@ -23,12 +24,12 @@ use Minds\Traits\MagicAttributes;
  * @method Decision[] getInitialJuryDecisions()
  * @method Decision[] getAppealJuryDecisions()
  * @method int getAppealTimestamp()
- * @method int getReasonCode()
- * @method int getSubReasonCode()
+ * @method null|string getAdminReasonOverride()
  * @method Report setState(string $string)
  * @method Report setTimestamp(int $timestamp)
  * @method Report setReasonCode(int $value)
  * @method Report setSubReasonCode(int $value)
+ * @method Report setAdminReasonOverride(string|null $adminReasonOverride)
  * @method int getTimestamp()
  * @method string getAppealNote()
  */
@@ -36,13 +37,13 @@ class Report
 {
     use MagicAttributes;
 
-    /** @var long $entityGuid  */
+    /** @var int $entityGuid  */
     private $entityGuid;
 
     /** @var string $entityUrn */
     private $entityUrn;
 
-    /** @var long $entityOwnerGuid */
+    /** @var int $entityOwnerGuid */
     private $entityOwnerGuid;
 
     /** @var Entity $entity  */
@@ -54,10 +55,10 @@ class Report
     /** @var array<UserReport> $reports - reporting users */
     private $reports = [];
 
-    /** @var array<Decisions> $initialJuryDecisions */
+    /** @var Decision[] $initialJuryDecisions */
     private $initialJuryDecisions = [];
 
-    /** @var array<Decisions> $appealJuryDecisions */
+    /** @var Decision[] $appealJuryDecisions */
     private $appealJuryDecisions = [];
 
     /** @var boolean $uphold */
@@ -87,6 +88,8 @@ class Report
     /** @var $state */
     private $state;
 
+    private ?string $adminReasonOverride = null;
+
     /**
      * Constructor.
      * @param ?EntitiesBuilder $entitiesBuilder - used to build entities.
@@ -113,7 +116,7 @@ class Report
      * Return if upheld
      * @return boolean | null
      */
-    public function isUpheld()
+    public function isUpheld(): ?bool
     {
         return $this->uphold;
     }
@@ -122,7 +125,7 @@ class Report
      * Return the URN of this case
      * @return string
      */
-    public function getUrn()
+    public function getUrn(): string
     {
         $parts = [
             "({$this->getEntityUrn()})",
@@ -133,10 +136,49 @@ class Report
         return "urn:report:" . implode('-', $parts);
     }
 
+    public function getReasonCode(): int
+    {
+        ["reasonCode" => $reasonCode] = $this->getCurrentReportReasonAndSubReasonCodes();
+        return (int) $reasonCode;
+    }
+
+    public function getSubReasonCode(): int
+    {
+        ["subReasonCode" => $subReasonCode] = $this->getCurrentReportReasonAndSubReasonCodes();
+        return (int) $subReasonCode;
+    }
+
+    /**
+     * Decides what the
+     * @return array
+     */
+    private function getCurrentReportReasonAndSubReasonCodes(): array
+    {
+        $reasonCode = $subReasonCode = null;
+        if ($this->getAdminReasonOverride()) {
+            [$reasonCode, $subReasonCode] = explode('.', $this->getAdminReasonOverride());
+        }
+
+        return [
+            "reasonCode" => empty($reasonCode) ? $this->reasonCode : (int) $reasonCode,
+            "subReasonCode" => empty($subReasonCode) ? $this->subReasonCode : (int) $subReasonCode
+        ];
+    }
+
+    public function getInitialReasonCode(): int
+    {
+        return (int) $this->reasonCode;
+    }
+
+    public function getInitialSubReasonCode(): int
+    {
+        return (int) $this->subReasonCode;
+    }
+
     /**
      * @return array
      */
-    public function export()
+    public function export(): array
     {
         if ($this->entity instanceof PaywallEntityInterface) {
             $this->entity->setPayWall(true);
@@ -149,41 +191,41 @@ class Report
             $reportingUsers = $this->getReportingUsers();
         }
 
-        $export = [
+        return [
             'urn' => $this->getUrn(),
             'entity_urn' => $this->entityUrn,
-            'entity' => $this->entity ? $this->entity->export() : null,
+            'entity' => $this->entity?->export(),
             'reporting_users' => $reportingUsers,
             'reporting_users_count' => count($this->reports),
             'is_appeal' => (bool) $this->isAppeal(),
             'appeal_note' => $this->getAppealNote(),
             'reason_code' => (int) $this->getReasonCode(),
             'sub_reason_code' => (int) $this->getSubReasonCode(),
+            'admin_reason_override' => $this->getAdminReasonOverride(),
             'state' => $this->getState(),
             'upheld' => $this->isUpheld(),
         ];
-
-        return $export;
     }
 
     /**
      * Gets a array of the reporting users for this report ('$this->reports').
-     * @return array<User> array of reporting users.
+     * @return User[] array of reporting users.
      */
     protected function getReportingUsers(int $maxAmount = 5): array
     {
         $hydratedReportingUsers = [];
 
         foreach (array_slice($this->reports, 0, $maxAmount) as $reportingUser) {
-            $reportingUser = $hydratedReportingUser = $this->entitiesBuilder->single(
+            $reportingUser = $this->entitiesBuilder->single(
                 $reportingUser->getReporterGuid()
             );
 
             if ($reportingUser) {
                 $hydratedReportingUser = $reportingUser->export();
-                
+
+                // INFO: This if check is superfluous. At this point in the function the variable checked will always be an array so the check is always true.
                 if ($hydratedReportingUser) {
-                    array_push($hydratedReportingUsers, $hydratedReportingUser);
+                    $hydratedReportingUsers[] = $hydratedReportingUser;
                 }
             }
         }
