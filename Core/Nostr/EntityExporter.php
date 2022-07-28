@@ -40,8 +40,10 @@ class EntityExporter
             'limit' => 12,
         ], $filters);
 
+        $nostrEventList = $this->manager->getNostrEvents($filters);
+
         // Query all nostr events based off filters
-        foreach ($this->manager->getNostrEvents($filters) as $nostrEvent) {
+        foreach ($nostrEventList as $nostrEvent) {
             yield $nostrEvent;
         }
 
