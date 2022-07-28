@@ -134,36 +134,25 @@ class BalanceSynchronizer
         }
 
         $differenceCalculator = $this->buildDifferenceCalculator();
-        $balanceDifference = $differenceCalculator->calculateOffchainDiff();
+        $balanceDifference = $differenceCalculator->calculateSkaleDiff();
 
         if ($balanceDifference->eq(0)) {
             return null;
         }
 
         if (!$dryRun) {
-            $amountWei = abs($balanceDifference->toString());
-
-            if ($balanceDifference->lt(0)) {
-                $sender = $this->getBalanceSyncUser();
-                $receiver = $this->user;
-            }
-
-            if ($balanceDifference->gt(0)) {
-                $sender = $this->user;
-                $receiver = $this->getBalanceSyncUser();
-            }
-
+            $amountWei = $balanceDifference->toString();
             $this->offchainTransactions
+                ->setType('test')
+                ->setUser($this->user)
                 ->setAmount($amountWei)
-                ->setType('wire')
-                ->setUser($receiver)
                 ->setBypassSkaleMirror(true)
                 ->setData([
-                    'amount' => (string) $amountWei,
-                    'sender_guid' => (string) $sender->getGuid(),
-                    'receiver_guid' => (string) $receiver->getGuid()
+                    'amount' => $amountWei,
+                    'receiver_guid' => $this->user->getGuid(),
+                    'context' => 'direct_credit'
                 ])
-                ->transferFrom($sender);
+                ->create();
         }
 
         return (new AdjustmentResult())
