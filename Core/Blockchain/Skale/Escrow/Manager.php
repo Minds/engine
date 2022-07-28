@@ -112,6 +112,13 @@ class Manager
                         $this->config->get('blockchain')['skale']['withdrawal_escrow_user_guid']
                     ));
                 break;
+            case 'direct_credit':
+                $participants
+                    ->setSender($this->entitiesBuilder->single(
+                        $this->config->get('blockchain')['skale']['balance_sync_user_guid']
+                    ))
+                    ->setReceiver($this->user);
+                break;
             default:
                 throw new ServerErrorException('Context not supported');
         }

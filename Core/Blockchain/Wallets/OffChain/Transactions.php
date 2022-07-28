@@ -51,6 +51,9 @@ class Transactions
     /** @var array|null $data */
     protected $data;
 
+    /** @var bool $bypassSkaleMirror */
+    protected $bypassSkaleMirror = false;
+
     public function __construct(
         $repository = null,
         $balance = null,
@@ -94,6 +97,17 @@ class Transactions
     public function setData($data)
     {
         $this->data = $data;
+        return $this;
+    }
+
+    /**
+     * Sets whether skale mirror should be bypassed regardless of feature flag.
+     * @param boolean $bypassSkaleMirror - whether SKALE mirror should be bypassed.
+     * @return self
+     */
+    public function setBypassSkaleMirror(bool $bypassSkaleMirror): self
+    {
+        $this->bypassSkaleMirror = $bypassSkaleMirror;
         return $this;
     }
 
@@ -349,11 +363,12 @@ class Transactions
     }
 
     /**
-     * True if feature flag for SKALE mirror is enabled.
-     * @return boolean - whether SKALE mirror feat flag is enabled.
+     * True if feature flag for SKALE mirror is enabled and skale mirror is not set to be bypassed.
+     * @return boolean - whether SKALE mirror feat flag is enabled and bypass is not turned on.
      */
     private function isSkaleMirrorEnabled(): bool
     {
-        return $this->experiments->isOn('engine-2350-skale-mirror') ?? false;
+        return !$this->bypassSkaleMirror &&
+            $this->experiments->isOn('engine-2350-skale-mirror');
     }
 }

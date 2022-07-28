@@ -16,6 +16,7 @@ use Minds\Interfaces;
 use Minds\Core\Rewards\Contributions\UsersIterator;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Rewards\RewardsQueryOpts;
+use Minds\Entities\User;
 
 class Rewards extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -57,18 +58,38 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
         $manager->issueTokens($opts, $dryRun);
     }
 
+    /**
+     * Issue tokens to a given username. Can bypass SKALE mirror to manually set offchain token balance.
+     * @return void
+     */
     public function issue()
     {
         $username = $this->getOpt('username');
-        $user = new Entities\User($username);
+        $bypassSkaleMirror = $this->getOpt('bypassSkaleMirror') ?? false;
         
+        $user = new Entities\User($username);
+
         $amount = BigNumber::toPlain($this->getOpt('amount'), 18);
+
+        $balanceSyncUserGuid = Di::_()->get('Config')->get('blockchain')['skale']['balance_sync_user_guid'] ?? '100000000000000519';
+        $balanceSyncUser = Di::_()->get('EntitiesBuilder')->single($balanceSyncUserGuid);
+        if (!$balanceSyncUser || !$balanceSyncUser instanceof User) {
+            $this->out('Unable to find main balance sync user');
+            return;
+        }
 
         $offChainTransactions = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
         $offChainTransactions
             ->setType('test')
             ->setUser($user)
             ->setAmount((string) $amount)
+            ->setBypassSkaleMirror($bypassSkaleMirror)
+            ->setData([
+                'amount' => (string) $amount,
+                'sender_guid' => (string) $balanceSyncUser->getGuid(),
+                'receiver_guid' => (string) $user->getGuid(),
+                'context' => 'direct_credit'
+            ])
             ->create();
 
         $this->out('Issued');

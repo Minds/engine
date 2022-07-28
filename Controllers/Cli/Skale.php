@@ -11,6 +11,7 @@ use Minds\Core\Blockchain\Wallets\OffChain\Balance;
 use Minds\Core\Blockchain\Skale\BalanceSynchronizer\BalanceSynchronizer;
 use Minds\Core\Blockchain\Skale\BalanceSynchronizer\SyncExcludedUserException;
 use Minds\Core\Blockchain\Transactions\ScrollRepository;
+use Minds\Core\Blockchain\Wallets\OffChain\Transactions as OffchainTransactions;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Nostr\PocSync;
@@ -39,6 +40,7 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
         private ?Balance $offchainBalance = null,
         private ?BalanceSynchronizer $balanceSynchronizer = null,
         private ?ScrollRepository $scrollRepository = null,
+        private ?OffchainTransactions $offchainTransactions = null,
         private ?Config $config = null
     ) {
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
@@ -48,6 +50,7 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->offchainBalance ??= Di::_()->get('Blockchain\Wallets\OffChain\Balance');
         $this->balanceSynchronizer ??= Di::_()->get('Blockchain\Skale\BalanceSynchronizer');
         $this->scrollRepository ??= Di::_()->get('Blockchain\Transactions\ScrollRepository');
+        $this->offchainTransactions ??= Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
         $this->config ??= Di::_()->get('Config');
     }
 
@@ -236,6 +239,7 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
      * Examples to send 0.01 tokens
      * - php cli.php Skale sendTokens --senderUsername=minds --receiverUsername=testuser --amountWei=10000000000000000
      * - php cli.php Skale sendTokens --senderUsername=testuser --receiverAddress=0x00000... --amountWei=10000000000000000
+     * - php cli.php Skale sendTokens --senderUsername=testuser --receiverUsername=testuser --amountWei=10000000000000000 --mirrorOffchain=false
      * @return void
      */
     public function sendTokens(): void
@@ -244,6 +248,7 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
         $receiverUsername = $this->getOpt('receiverUsername') ?? null;
         $receiverAddress = $this->getOpt('receiverAddress') ?? null;
         $amountWei = $this->getOpt('amountWei') ?? false;
+        $mirrorOffchain = $this->getOpt('mirrorOffchain') ?? true;
 
         // validate required opts were passed in.
         if (!$senderUsername || !$amountWei || !($receiverAddress xor $receiverUsername)) {
@@ -264,15 +269,35 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
             return;
         }
     
-        // prepare and send transaction.
-        $txHash = $this->skaleTools->sendTokens(
-            sender: $sender,
-            receiverAddress: $receiverAddress ?? null,
-            receiver: $receiver ?? null,
-            amountWei: $amountWei ?? null
-        );
+        if ($mirrorOffchain) {
+            if ($receiverAddress) {
+                $this->out('Cannot mirror offchain transactions when a receiver address is provided');
+                return;
+            }
+            
+            $this->offchainTransactions
+                ->setAmount($amountWei)
+                ->setType('wire')
+                ->setUser($receiver)
+                ->setData([
+                    'amount' => (string) $amountWei,
+                    'sender_guid' => (string) $sender->getGuid(),
+                    'receiver_guid' => (string) $receiver->getGuid()
+                ])
+                ->transferFrom($sender);
 
-        $this->out('Sent with tx hash '. $txHash);
+            $this->out('Sent offchain and SKALE to '. $sender->getGuid());
+        } else {
+            // prepare and send transaction.
+            $txHash = $this->skaleTools->sendTokens(
+                sender: $sender,
+                receiverAddress: $receiverAddress ?? null,
+                receiver: $receiver ?? null,
+                amountWei: $amountWei ?? null
+            );
+
+            $this->out('Sent with tx hash '. $txHash);
+        }
     }
 
     /**
