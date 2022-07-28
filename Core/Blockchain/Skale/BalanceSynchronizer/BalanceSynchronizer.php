@@ -3,6 +3,7 @@
 namespace Minds\Core\Blockchain\Skale\BalanceSynchronizer;
 
 use Minds\Core\Blockchain\Wallets\OffChain\Balance as OffchainBalance;
+use Minds\Core\Blockchain\Wallets\OffChain\Transactions as OffchainTransactions;
 use Minds\Core\Blockchain\Skale\Tools as SkaleTools;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
@@ -38,12 +39,14 @@ class BalanceSynchronizer
         private ?DifferenceCalculator $differenceCalculator = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?OffchainBalance $offchainBalance = null,
+        private ?OffchainTransactions $offchainTransactions = null,
         private ?Config $config = null
     ) {
         $this->skaleTools ??= Di::_()->get('Blockchain\Skale\Tools');
         $this->differenceCalculator ??= Di::_()->get('Blockchain\Skale\DifferenceCalculator');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->offchainBalance ??= Di::_()->get('Blockchain\Wallets\OffChain\Balance');
+        $this->offchainTransactions ??= Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
         $this->config ??= Di::_()->get('Config');
     }
 
@@ -70,10 +73,11 @@ class BalanceSynchronizer
 
     /**
      * Sync instance users SKALE MINDS token balance to match their offchain balance.
+     * @param bool $dryRun - whether only adjustment result should be returned without sending tx.
      * @throws SyncExcludedUserException - if user is excluded from sync.
      * @return AdjustmentResult|null - Object containing result of adjustment or null, if no adjustment made.
      */
-    public function sync(bool $dryRun = false): ?AdjustmentResult
+    public function syncSkale(bool $dryRun = false): ?AdjustmentResult
     {
         if (in_array($this->user->getGuid(), $this->getExcludedUserGuids(), true)) {
             throw new SyncExcludedUserException('Attempted to sync balance of excluded user: '.$this->user->getUsername());
@@ -112,6 +116,58 @@ class BalanceSynchronizer
 
         return (new AdjustmentResult())
             ->setTxHash($txHash)
+            ->setDifferenceWei($balanceDifference)
+            ->setUsername($this->user->getUsername());
+    }
+
+    /**
+     * Sync instance users offchain token balance to match their SKALE MINDS balance.
+     * @param bool $dryRun - whether only adjustment result should be returned without sending tx.
+     * @param bool $bypassUserExcludes - if true, excluded user list will NOT be checked.
+     * @throws SyncExcludedUserException - if user is excluded from sync.
+     * @return AdjustmentResult|null - Object containing result of adjustment or null, if no adjustment made.
+     */
+    public function syncOffchain(bool $dryRun = false, bool $bypassUserExcludes = false): ?AdjustmentResult
+    {
+        if (!$bypassUserExcludes && in_array($this->user->getGuid(), $this->getExcludedUserGuids(), true)) {
+            throw new SyncExcludedUserException('Attempted to sync balance of excluded user: '.$this->user->getUsername());
+        }
+
+        $differenceCalculator = $this->buildDifferenceCalculator();
+        $balanceDifference = $differenceCalculator->calculateOffchainDiff();
+
+        if ($balanceDifference->eq(0)) {
+            return null;
+        }
+
+        if (!$dryRun) {
+            $amountWei = abs($balanceDifference->toString());
+
+            if ($balanceDifference->lt(0)) {
+                $sender = $this->getBalanceSyncUser();
+                $receiver = $this->user;
+            }
+
+            if ($balanceDifference->gt(0)) {
+                $sender = $this->user;
+                $receiver = $this->getBalanceSyncUser();
+            }
+
+            $this->offchainTransactions
+                ->setAmount($amountWei)
+                ->setType('wire')
+                ->setUser($receiver)
+                ->setBypassSkaleMirror(true)
+                ->setData([
+                    'amount' => (string) $amountWei,
+                    'sender_guid' => (string) $sender->getGuid(),
+                    'receiver_guid' => (string) $receiver->getGuid()
+                ])
+                ->transferFrom($sender);
+        }
+
+        return (new AdjustmentResult())
+            ->setTxHash('')
             ->setDifferenceWei($balanceDifference)
             ->setUsername($this->user->getUsername());
     }

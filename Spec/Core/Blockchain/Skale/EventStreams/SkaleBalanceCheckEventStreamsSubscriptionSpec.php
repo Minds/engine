@@ -106,7 +106,7 @@ class SkaleBalanceCheckEventStreamsSubscriptionSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->balanceSynchronizer);
         
-        $this->balanceSynchronizer->sync(dryRun: true)
+        $this->balanceSynchronizer->syncSkale(dryRun: true)
             ->shouldBeCalled()
             ->willReturn(null);
 
@@ -151,7 +151,7 @@ class SkaleBalanceCheckEventStreamsSubscriptionSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($adjustmentResultStringified);
 
-        $this->balanceSynchronizer->sync(dryRun: true)
+        $this->balanceSynchronizer->syncSkale(dryRun: true)
             ->shouldBeCalled()
             ->willReturn($adjustmentResult);
             
@@ -233,7 +233,7 @@ class SkaleBalanceCheckEventStreamsSubscriptionSpec extends ObjectBehavior
             ->shouldBeCalledTimes(1) // not called second time.
             ->willReturn($this->balanceSynchronizer);
         
-        $this->balanceSynchronizer->sync(dryRun: true)
+        $this->balanceSynchronizer->syncSkale(dryRun: true)
             ->shouldBeCalledTimes(1) // not called second time.
             ->willReturn(null);
 
@@ -275,7 +275,7 @@ class SkaleBalanceCheckEventStreamsSubscriptionSpec extends ObjectBehavior
             ->shouldBeCalledTimes(1)
             ->willReturn($this->balanceSynchronizer);
         
-        $this->balanceSynchronizer->sync(dryRun: true)
+        $this->balanceSynchronizer->syncSkale(dryRun: true)
             ->shouldBeCalledTimes(1)
             ->willThrow(new SyncExcludedUserException());
 

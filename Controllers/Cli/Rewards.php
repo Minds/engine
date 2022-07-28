@@ -86,7 +86,6 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
             ->setBypassSkaleMirror($bypassSkaleMirror)
             ->setData([
                 'amount' => (string) $amount,
-                'sender_guid' => (string) $balanceSyncUser->getGuid(),
                 'receiver_guid' => (string) $user->getGuid(),
                 'context' => 'direct_credit'
             ])

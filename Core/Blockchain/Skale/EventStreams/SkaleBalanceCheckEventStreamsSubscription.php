@@ -111,7 +111,7 @@ class SkaleBalanceCheckEventStreamsSubscription implements SubscriptionInterface
         try {
             $adjustmentResult = $this->balanceSynchronizer
                 ->withUser($sender)
-                ->sync(dryRun: true);
+                ->syncSkale(dryRun: true);
         } catch (SyncExcludedUserException $e) {
             return true;
         } catch (\Exception $e) {

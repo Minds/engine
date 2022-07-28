@@ -233,13 +233,13 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
     }
 
     /**
-     * Send SKALE MINDS from a custodial wallet to either
-     * another custodial wallet, or an external Ethereum address.
+     * Send SKALE MINDS from a custodial wallet to either another custodial wallet, or an external Ethereum address.
+     * Can be used with `--bypassOffchainMirror` flag to NOT send a matching offchain transaction (knocking the wallet out of sync).
      * @example
      * Examples to send 0.01 tokens
      * - php cli.php Skale sendTokens --senderUsername=minds --receiverUsername=testuser --amountWei=10000000000000000
      * - php cli.php Skale sendTokens --senderUsername=testuser --receiverAddress=0x00000... --amountWei=10000000000000000
-     * - php cli.php Skale sendTokens --senderUsername=testuser --receiverUsername=testuser --amountWei=10000000000000000 --mirrorOffchain=false
+     * - php cli.php Skale sendTokens --senderUsername=testuser --receiverUsername=testuser --amountWei=10000000000000000 --bypassOffchainMirror
      * @return void
      */
     public function sendTokens(): void
@@ -248,7 +248,7 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
         $receiverUsername = $this->getOpt('receiverUsername') ?? null;
         $receiverAddress = $this->getOpt('receiverAddress') ?? null;
         $amountWei = $this->getOpt('amountWei') ?? false;
-        $mirrorOffchain = $this->getOpt('mirrorOffchain') ?? true;
+        $bypassOffchainMirror = (bool) $this->getOpt('bypassOffchainMirror') ?? false;
 
         // validate required opts were passed in.
         if (!$senderUsername || !$amountWei || !($receiverAddress xor $receiverUsername)) {
@@ -269,7 +269,7 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
             return;
         }
     
-        if ($mirrorOffchain) {
+        if (!$bypassOffchainMirror) {
             if ($receiverAddress) {
                 $this->out('Cannot mirror offchain transactions when a receiver address is provided');
                 return;
@@ -304,12 +304,12 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
      * Sync SKALE MINDS token balance of a user with their offchain balance,
      * by sending SKALE MINDS to or from their custodial wallet.
      * @example
-     * - php cli.php Skale syncBalance --username=userA
-     * - php cli.php Skale syncBalance --username=userA --dryRun
-     * - php cli.php Skale syncBalance --username=userA --verbose
+     * - php cli.php Skale syncSkaleBalance --username=userA
+     * - php cli.php Skale syncSkaleBalance --username=userA --dryRun
+     * - php cli.php Skale syncSkaleBalance --username=userA --verbose
      * @return void
      */
-    public function syncBalance(): void
+    public function syncSkaleBalance(): void
     {
         $username = $this->getOpt('username') ?? null;
         $dryRun = $this->getOpt('dryRun') ?? false;
@@ -333,7 +333,7 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
         }
 
         if (!$dryRun) {
-            $adjustmentResult = $balanceSynchronizer->sync();
+            $adjustmentResult = $balanceSynchronizer->syncSkale();
 
             if ($adjustmentResult) {
                 $this->out($adjustmentResult);
@@ -342,15 +342,56 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
     }
 
     /**
-     * Sync all users balances. Can be run with dryRun flag to see only the details
-     * on users balances that would be changed.
+     * Sync a users offchain token balance of a user with their SKALE MINDS token balance,
+     * by sending tokens to their offchain wallet.
      * @example
-     * - php cli.php Skale syncAll
-     * - php cli.php Skale syncAll --dryRun
-     * - php cli.php Skale syncAll --verbose
+     * - php cli.php Skale syncOffchainBalance --username=userA
+     * - php cli.php Skale syncOffchainBalance --username=userA --dryRun
+     * - php cli.php Skale syncOffchainBalance --username=userA --verbose
      * @return void
      */
-    public function syncAll()
+    public function syncOffchainBalance(): void
+    {
+        $username = $this->getOpt('username') ?? null;
+        $dryRun = $this->getOpt('dryRun') ?? false;
+        $verbose = $this->getOpt('verbose') ?? false;
+
+        if (!$username) {
+            $this->out('You must set a user to sync the balance of');
+            return;
+        }
+
+        $user = $this->entitiesBuilder->getByUserByIndex($username);
+
+        if (!$user) {
+            $this->out("User $username not found");
+        }
+
+        $balanceSynchronizer = $this->balanceSynchronizer->withUser($user);
+
+        if ($verbose || $dryRun) {
+            $this->dumpBalanceSynchronizerInfo($balanceSynchronizer);
+        }
+
+        if (!$dryRun) {
+            $adjustmentResult = $balanceSynchronizer->syncOffchain(bypassUserExcludes: true);
+
+            if ($adjustmentResult) {
+                $this->out($adjustmentResult);
+            }
+        }
+    }
+
+    /**
+     * Sync all users SKALE balances to match their offchain balances. Can be run with dryRun flag
+     * to see only the details on users balances that would be changed.
+     * @example
+     * - php cli.php Skale syncAllSkale
+     * - php cli.php Skale syncAllSkale --dryRun
+     * - php cli.php Skale syncAllSkale --verbose
+     * @return void
+     */
+    public function syncAllSkale()
     {
         $dryRun = $this->getOpt('dryRun') ?? false;
         $verbose = $this->getOpt('verbose') ?? false;
@@ -390,7 +431,7 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
                     }
                 }
 
-                $adjustmentResult = $balanceSynchronizer->sync();
+                $adjustmentResult = $balanceSynchronizer->syncSkale();
 
                 if ($adjustmentResult) {
                     $this->out('------------------');
