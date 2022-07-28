@@ -246,7 +246,7 @@ class Manager
                 'single_owner_threshold' => 0,
                 'access_id' => 2,
                 'as_activities' => true
-            ]);        
+            ]);
         }
 
         /**
