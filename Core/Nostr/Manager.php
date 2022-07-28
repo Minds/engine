@@ -227,23 +227,27 @@ class Manager
         /**
          * @var User $user
          */
-        foreach ($this->repository->getUserFromNostrPublicKeys($authors) as $user) {
+        foreach ($this->repository->getUserFromNostrPublicKeys($authors) as $user) {            
             if ($user && $user->getSource() !== 'nostr') {
                 $userGuids[] = $user->getGuid();
                 $events[] = $this->buildNostrEvent($user);
             }
         }
-        
-        $activities = $this->elasticSearchManager->getList([
-            'container_guid' => $userGuids,
-            'period' => 'all',
-            'algorithm' => 'latest',
-            'type' => 'activity',
-            'limit' => 12,
-            'single_owner_threshold' => 0,
-            'access_id' => 2,
-            'as_activities' => true
-        ]);
+
+        $activities = [];
+        // Only query ES if we have userGuids present that are not Nostr users.
+        if (count($userGuids) > 0) {
+            $activities = $this->elasticSearchManager->getList([
+                'container_guid' => $userGuids,
+                'period' => 'all',
+                'algorithm' => 'latest',
+                'type' => 'activity',
+                'limit' => 12,
+                'single_owner_threshold' => 0,
+                'access_id' => 2,
+                'as_activities' => true
+            ]);        
+        }
 
         /**
          * @var FeedSyncEntity $activity
