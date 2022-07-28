@@ -227,7 +227,7 @@ class Manager
         /**
          * @var User $user
          */
-        foreach ($this->repository->getUserFromNostrPublicKeys($authors) as $user) {            
+        foreach ($this->repository->getUserFromNostrPublicKeys($authors) as $user) {
             if ($user && $user->getSource() !== 'nostr') {
                 $userGuids[] = $user->getGuid();
                 $events[] = $this->buildNostrEvent($user);
