@@ -194,7 +194,7 @@ class Tools
     public function checkSFuel(User $sender): ?string
     {
         if (!$this->hasEnoughSFuel($sender)) {
-            $distributorGuid = $this->config->get('blockchain')['skale']['default_sfuel_distributor_guid'] ?? '100000000000000519';
+            $distributorGuid = $this->config->get('blockchain')['skale']['sfuel_distributor_user_guid'] ?? '100000000000000519';
             $distributor = $this->entitiesBuilder->single($distributorGuid);
 
             if (!$distributor || !$distributor instanceof User) {

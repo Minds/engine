@@ -199,7 +199,7 @@ class ToolsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([
                 'skale' => [
-                    'default_sfuel_distributor_guid' => $defaultDistibutorGuid,
+                    'sfuel_distributor_user_guid' => $defaultDistibutorGuid,
                     'sfuel_low_threshold' => '1'
                 ]
             ]);
@@ -266,7 +266,7 @@ class ToolsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([
                 'skale' => [
-                    'default_sfuel_distributor_guid' => $defaultDistibutorGuid,
+                    'sfuel_distributor_user_guid' => $defaultDistibutorGuid,
                     'sfuel_low_threshold' => '1'
                 ]
             ]);
@@ -332,7 +332,7 @@ class ToolsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([
                 'skale' => [
-                    'default_sfuel_distributor_guid' => $defaultDistibutorGuid,
+                    'sfuel_distributor_user_guid' => $defaultDistibutorGuid,
                     'sfuel_low_threshold' => '999'
                 ]
             ]);
@@ -427,7 +427,7 @@ class ToolsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([
                 'skale' => [
-                    'default_sfuel_distributor_guid' => $defaultDistibutorGuid,
+                    'sfuel_distributor_user_guid' => $defaultDistibutorGuid,
                     'sfuel_low_threshold' => '1'
                 ]
             ]);
@@ -529,7 +529,7 @@ class ToolsSpec extends ObjectBehavior
         ->shouldBeCalled()
         ->willReturn([
             'skale' => [
-                'default_sfuel_distributor_guid' => '00000000000001',
+                'sfuel_distributor_user_guid' => '00000000000001',
             ]
         ]);
 
