@@ -59,21 +59,31 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
     }
 
     /**
-     * Issue tokens to a given username. Can bypass SKALE mirror to manually set offchain token balance.
+     * MInt offchain tokens and send them to a given username.
+     * Can bypass SKALE mirror to manually set offchain token balance.
      * @return void
      */
-    public function issue()
+    public function mint()
     {
         $username = $this->getOpt('username');
         $bypassSkaleMirror = $this->getOpt('bypassSkaleMirror') ?? false;
         
-        $user = new Entities\User($username);
+        $config = Di::_()->get('Config');
+        $entitiesBuilder = Di::_()->get('EntitiesBuilder');
 
         $amount = BigNumber::toPlain($this->getOpt('amount'), 18);
 
-        $balanceSyncUserGuid = Di::_()->get('Config')->get('blockchain')['skale']['balance_sync_user_guid'] ?? '100000000000000519';
-        $balanceSyncUser = Di::_()->get('EntitiesBuilder')->single($balanceSyncUserGuid);
-        if (!$balanceSyncUser || !$balanceSyncUser instanceof User) {
+        $user = $entitiesBuilder->getByUserByIndex($username);
+
+        if (!$user || !($user instanceof User)) {
+            $this->out('Unable to construct user');
+            return;
+        }
+
+        $balanceSyncUserGuid = $config->get('blockchain')['skale']['balance_sync_user_guid'] ?? '100000000000000519';
+        $balanceSyncUser = $entitiesBuilder->single($balanceSyncUserGuid);
+
+        if (!$balanceSyncUser || !($balanceSyncUser instanceof User)) {
             $this->out('Unable to find main balance sync user');
             return;
         }
