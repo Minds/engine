@@ -78,17 +78,35 @@ class Repository
             pubkey,
             created_at,
             kind,
+            e_ref,
+            p_ref,
+            tags,
             content,
             sig
         )
-        VALUES (?,?,?,?,?,?)
+        VALUES (?,?,?,?,?,?,?,?,?)
         ON DUPLICATE KEY UPDATE id=id";
+
+        // Extract event and public key references if present
+        $eRef = null;
+        $pRef = null;
+        foreach ($nostrEvent->getTags() as $tag) {
+            if ($tag[0] == "e") {
+                $eRef = $tag[1];
+            }
+            if ($tag[0] == "p") {
+                $pRef = $tag[1];
+            }
+        }
 
         $values = [
             $nostrEvent->getId(),
             $nostrEvent->getPubKey(),
             date('c', $nostrEvent->getCreated_at()),
             $nostrEvent->getKind(),
+            $eRef,
+            $pRef,
+            $nostrEvent->getTags() ? json_encode($nostrEvent->getTags()) : null,
             $nostrEvent->getContent(),
             $nostrEvent->getSig(),
         ];
@@ -105,7 +123,7 @@ class Repository
     public function getEvents(array $filters = []): iterable
     {
         $prepared = $this->executeEventsPreparedQuery($filters);
-    
+
         foreach ($prepared->fetchAll() as $row) {
             $event = new NostrEvent();
             $event->setId($row['id'])
@@ -114,6 +132,11 @@ class Repository
                 ->setCreated_at(strtotime($row['created_at']))
                 ->setContent($row['content'])
                 ->setSig($row['sig']);
+
+            // Tags can be null
+            if (array_key_exists('tags', $row) && $row['tags'] != null) {
+                $event->setTags(json_decode($row['tags']));
+            }
 
             yield $event;
         }
@@ -160,6 +183,8 @@ class Repository
             'ids' => [],
             'authors' => [],
             'kinds' => [ 0, 1 ],
+            '#e' => null,
+            '#p' => null,
             'since' => null,
             'until' => null,
             'limit' => 12,
@@ -190,6 +215,16 @@ class Repository
         if ($filters['kinds']) {
             $where[] = "e.kind IN " . $this->inPad($filters['kinds']);
             array_push($values, ...$filters['kinds']);
+        }
+
+        if ($filters['#e']) {
+            $where[] = "e.e_ref IN " . $this->inPad($filters['#e']);
+            array_push($values, ...$filters['#e']);
+        }
+
+        if ($filters['#p']) {
+            $where[] = "e.p_ref IN " . $this->inPad($filters['#p']);
+            array_push($values, ...$filters['#p']);
         }
 
         if ($filters) {
