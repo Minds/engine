@@ -111,7 +111,6 @@ class Repository
             $nostrEvent->getSig(),
         ];
 
-        // First, persist event.
         $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
         return $prepared->execute($values);
     }
