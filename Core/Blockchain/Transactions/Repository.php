@@ -43,9 +43,10 @@ class Repository
             amount,
             completed,
             failed,
+            skale_tx,
             data
             ) 
-            VALUES (?,?,?,?,?,?,?,?,?)";
+            VALUES (?,?,?,?,?,?,?,?,?,?)";
         foreach ($transactions as $transaction) {
             $requests[] = [
                 'string' => $template,
@@ -58,6 +59,7 @@ class Repository
                     new Varint($transaction->getAmount()),
                     $transaction->isCompleted(),
                     $transaction->isFailed(),
+                    $transaction->getSkaleTx(),
                     json_encode($transaction->getData()),
                 ]
             ];

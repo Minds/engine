@@ -17,19 +17,19 @@ use Minds\Core\Di\Di;
 class Manager
 {
     /** @var string default amount of sFuel to be distributed. - configurable in constructor */
-    private string $defaultDistributionAmountWei = '220000000000';
+    protected string $defaultDistributionAmountWei = '220000000000';
 
     /** @var int gas limit of standard transfer. - configurable in constructor */
-    private int $transferGasLimit = 51280;
+    protected int $transferGasLimit = 51280;
 
     /** @var string|null address of MINDS token on SKALE network - configurable in constructor */
-    private ?string $tokenAddress = null;
+    protected ?string $tokenAddress = null;
     
     /** @var User|null sender of the transaction */
-    private ?User $sender = null;
+    protected ?User $sender = null;
 
     /** @var string|null address on the receiving end of transaction */
-    private ?string $receiverAddress = null;
+    protected ?string $receiverAddress = null;
 
     /**
      * Constructor.
@@ -178,7 +178,7 @@ class Manager
      * @param User $user - user to get custodial wallet for.
      * @return string|null - custodial wallet private key.
      */
-    private function getPrivateKey(User $user): ?string
+    protected function getPrivateKey(User $user): ?string
     {
         return $this->keys->withUser($user)->getSecp256k1PrivateKeyAsHex();
     }
@@ -188,7 +188,7 @@ class Manager
      * @param User $user - user to get custodial wallet for.
      * @return string|null - custodial wallet address.
      */
-    private function getWalletAddress(User $user): ?string
+    protected function getWalletAddress(User $user): ?string
     {
         return $this->keys->withUser($user)->getWalletAddress();
     }

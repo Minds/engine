@@ -77,43 +77,43 @@ class Manager
 
     /**
      * Send a transaction to or from the correct escrow user, depending on context.
-     * @return Participants - object containing sender and receiver.
+     * @return EscrowTransaction - object containing sender, receiver and tx hash.
      */
-    public function send(): Participants
+    public function send(): EscrowTransaction
     {
-        $participants = new Participants();
+        $escrowTransaction = new EscrowTransaction();
         switch ($this->context) {
             case 'boost_refund':
             case 'boost_charge':
-                $participants
+                $escrowTransaction
                     ->setSender($this->entitiesBuilder->single(
                         $this->config->get('blockchain')['skale']['boost_escrow_user_guid']
                     ))
                     ->setReceiver($this->user);
                 break;
             case 'boost_created':
-                $participants
+                $escrowTransaction
                     ->setSender($this->user)
                     ->setReceiver($this->entitiesBuilder->single(
                         $this->config->get('blockchain')['skale']['boost_escrow_user_guid']
                     ));
                 break;
             case 'withdraw_refund':
-                $participants
+                $escrowTransaction
                     ->setSender($this->entitiesBuilder->single(
                         $this->config->get('blockchain')['skale']['withdrawal_escrow_user_guid']
                     ))
                     ->setReceiver($this->user);
                 break;
             case 'withdraw_created':
-                $participants
+                $escrowTransaction
                     ->setSender($this->user)
                     ->setReceiver($this->entitiesBuilder->single(
                         $this->config->get('blockchain')['skale']['withdrawal_escrow_user_guid']
                     ));
                 break;
             case 'direct_credit':
-                $participants
+                $escrowTransaction
                     ->setSender($this->entitiesBuilder->single(
                         $this->config->get('blockchain')['skale']['balance_sync_user_guid']
                     ))
@@ -123,22 +123,22 @@ class Manager
                 throw new ServerErrorException('Context not supported');
         }
 
-        $this->sendSkaleTransaction($participants);
-
-        return $participants;
+        $txHash = $this->sendSkaleTransaction($escrowTransaction);
+        $escrowTransaction->setTxHash($txHash);
+        return $escrowTransaction;
     }
 
     /**
      * Sends transaction via SKALE.
-     * @param Participants $participants - object containing sender and receiver.
+     * @param EscrowTransaction $escrowTransaction - object containing sender and receiver.
      * @return string - txid of skale transaction.
      */
-    private function sendSkaleTransaction(Participants $participants): string
+    private function sendSkaleTransaction(EscrowTransaction $escrowTransaction): string
     {
         return $this->skaleTools->sendTokens(
             amountWei: (string) abs($this->amountWei),
-            sender: $participants->getSender(),
-            receiver: $participants->getReceiver(),
+            sender: $escrowTransaction->getSender(),
+            receiver: $escrowTransaction->getReceiver(),
             waitForConfirmation: true,
             checkSFuel: true
         );

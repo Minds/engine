@@ -553,6 +553,8 @@ CREATE TABLE minds.blockchain_transactions_mainnet (
     AND read_repair_chance = 0.0
     AND speculative_retry = '99PERCENTILE';
 
+ALTER TABLE minds.blockchain_transactions_mainnet ADD skale_tx text;
+
 CREATE MATERIALIZED VIEW minds.blockchain_transactions_mainnet_by_tx AS
     SELECT tx, user_guid, wallet_address, timestamp, amount, completed, contract, data
     FROM minds.blockchain_transactions_mainnet

@@ -12,6 +12,7 @@ use Minds\Core\Blockchain\Transactions\Repository as TxRepository;
 use Minds\Core\Blockchain\Wallets\OffChain\Transactions;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Blockchain\LiquidityPositions;
+use Minds\Core\Blockchain\Skale\Transaction\RewardsDispatcher as SkaleRewardsDispatcher;
 use Minds\Core\Blockchain\Services\BlockFinder;
 use Minds\Core\Blockchain\Token;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain;
@@ -24,6 +25,7 @@ use Minds\Core\Util\BigNumber;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Rewards\TokenomicsManifests\TokenomicsManifestInterface;
 use Minds\Core\Rewards\TokenomicsManifests\TokenomicsManifestV2;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Log\Logger;
 
 class Manager
@@ -104,7 +106,9 @@ class Manager
         $uniqueOnChainManager = null,
         $blockFinder = null,
         $token = null,
-        $logger = null
+        $logger = null,
+        private ?ExperimentsManager $experimentsManager = null,
+        private ?SkaleRewardsDispatcher $skaleRewards = null
     ) {
         $this->contributions = $contributions ?: new Contributions\Manager;
         $this->transactions = $transactions ?: Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
@@ -118,6 +122,8 @@ class Manager
         $this->blockFinder = $blockFinder ?? Di::_()->get('Blockchain\Services\BlockFinder');
         $this->token = $token ?? Di::_()->get('Blockchain\Token');
         $this->logger = $logger ?? Di::_()->get('Logger');
+        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
+        $this->skaleRewardsDispatcher ??= new SkaleRewardsDispatcher();
         $this->from = strtotime('-7 days') * 1000;
         $this->to = time() * 1000;
     }
@@ -392,6 +398,12 @@ class Manager
     {
         $opts = $opts ?? (new RewardsQueryOpts())
             ->setDateTs(strtotime('yesterday'));
+        
+        $skaleMirrorEnabled = $this->experimentsManager->isOn('engine-2350-skale-mirror');
+
+        if ($skaleMirrorEnabled) {
+            $this->skaleRewardsDispatcher->lockSender();
+        }
 
         foreach ($this->repository->getIterator($opts) as $i => $rewardEntry) {
             if ($rewardEntry->getTokenAmount()->toFloat() === (float) 0) {
@@ -414,6 +426,19 @@ class Manager
                 ->setCompleted(true);
 
             if (!$dryRun) {
+                if ($skaleMirrorEnabled) {
+                    try {
+                        $txHash = $this->skaleRewardsDispatcher
+                            ->setReceiverByGuid($rewardEntry->getUserGuid())
+                            ->send($tokenAmount);
+                        $transaction->setSkaleTx($txHash);
+                    } catch (\Exception $e) {
+                        // still distribute rewards if we get an exception,
+                        // but log the exception.
+                        $this->logger->error($e);
+                    }
+                }
+
                 $this->txRepository->add($transaction);
 
                 // Add in the TX to the database for auditing
@@ -426,6 +451,10 @@ class Manager
                 'reward_type' => $rewardEntry->getRewardType(),
                 'tx' => $transaction->getTx(),
             ]);
+        }
+        
+        if ($skaleMirrorEnabled) {
+            $this->skaleRewardsDispatcher->unlockSender();
         }
     }
 

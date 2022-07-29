@@ -158,13 +158,15 @@ class Transactions
                 ->setCompleted(true);
 
             if ($skaleMirrorEnabled) {
-                $participants = $this->skaleEscrowManager->setUser($this->user)
+                $skaleTransaction = $this->skaleEscrowManager->setUser($this->user)
                     ->setContext($this->data['context'])
                     ->setAmountWei($this->amount)
                     ->send();
 
-                $this->data['receiver_guid'] = $participants->getReceiver()->getGuid();
-                $this->data['sender_guid'] = $participants->getSender()->getGuid();
+                $transaction->setSkaleTx($skaleTransaction->getTxHash());
+
+                $this->data['receiver_guid'] = $skaleTransaction->getReceiver()->getGuid();
+                $this->data['sender_guid'] = $skaleTransaction->getSender()->getGuid();
             }
             
             if ($this->data) {
@@ -307,13 +309,16 @@ class Transactions
                 ->setCompleted(true);
 
             if ($skaleMirrorEnabled) {
-                $this->skaleTools->sendTokens(
+                $skaleTxHash = $this->skaleTools->sendTokens(
                     amountWei: $receiverAmount,
                     sender: $sender,
                     receiver: $receiver,
                     waitForConfirmation: true,
                     checkSFuel: true
                 );
+
+                $senderTx->setSkaleTx($skaleTxHash);
+                $receiverTx->setSkaleTx($skaleTxHash);
 
                 $this->skaleLocks->unlock($sender->guid);
                 $this->skaleLocks->unlock($receiver->guid);

@@ -29,6 +29,8 @@ use Minds\Helpers\Unknown;
  * @method Transaction setCompleted(bool $value)
  * @method bool getFailed()
  * @method Transaction setFailed(bool $value)
+ * @method array getSkaleTx()
+ * @method Transaction setSkaleTx(string $txHash)
  * @method array getData()
  * @method Transaction setData(array $value)
  */
@@ -60,6 +62,9 @@ class Transaction
     /** @var bool $failed */
     private $failed = false;
 
+    /** @var string $skaleTx - SKALE network transaction hash */
+    private $skaleTx;
+
     /** @var int $data */
     private $data;
 
@@ -73,6 +78,7 @@ class Transaction
             'user' => (new User($this->userGuid))->export(),
             'wallet_address' => $this->walletAddress,
             'tx' => $this->tx,
+            'skale_tx' => $this->skale_tx,
             'amount' => $this->amount,
             'failed' => $this->failed,
             'timestamp' => $this->timestamp,
