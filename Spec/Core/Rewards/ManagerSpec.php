@@ -20,6 +20,8 @@ use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain\UniqueOnChainAddress;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Rewards\Contributions\ContributionSummary;
 use Minds\Core\Rewards\Repository as RewardsRepository;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Blockchain\Skale\Transaction\RewardsDispatcher as SkaleRewardsDispatcher;
 use Minds\Core\Rewards\RewardEntry;
 use Minds\Entities\User;
 
@@ -52,6 +54,12 @@ class ManagerSpec extends ObjectBehavior
     /** @var Token */
     private $token;
 
+    /** @var ExperimentsManager */
+    private $experimentsManager;
+
+    /** @var SkaleRewardsDispatcher */
+    private $skaleRewardsDispatcher;
+
     public function let(
         ContributionsManager $contributions,
         Transactions $transactions,
@@ -61,7 +69,9 @@ class ManagerSpec extends ObjectBehavior
         LiquidityPositions\Manager $liquidityPositionManager,
         UniqueOnChain\Manager $uniqueOnChainManager,
         BlockFinder $blockFinder,
-        Token $token
+        Token $token,
+        ExperimentsManager $experimentsManager,
+        SkaleRewardsDispatcher $skaleRewardsDispatcher
     ) {
         $this->beConstructedWith(
             $contributions,
@@ -75,7 +85,9 @@ class ManagerSpec extends ObjectBehavior
             $uniqueOnChainManager, // $uniqueOnChainManager
             $blockFinder,
             $token, // $token
-            null // $logger
+            null, // $logger,
+            $experimentsManager,
+            $skaleRewardsDispatcher
         );
         $this->contributions = $contributions;
         $this->transactions = $transactions;
@@ -86,6 +98,8 @@ class ManagerSpec extends ObjectBehavior
         $this->uniqueOnChainManager = $uniqueOnChainManager;
         $this->blockFinder = $blockFinder;
         $this->token = $token;
+        $this->experimentsManager = $experimentsManager;
+        $this->skaleRewardsDispatcher = $skaleRewardsDispatcher;
     }
 
     public function it_is_initializable()
