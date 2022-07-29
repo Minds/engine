@@ -78,7 +78,7 @@ class Transaction
             'user' => (new User($this->userGuid))->export(),
             'wallet_address' => $this->walletAddress,
             'tx' => $this->tx,
-            'skale_tx' => $this->skale_tx,
+            'skale_tx' => $this->skaleTx,
             'amount' => $this->amount,
             'failed' => $this->failed,
             'timestamp' => $this->timestamp,

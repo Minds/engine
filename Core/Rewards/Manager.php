@@ -108,7 +108,7 @@ class Manager
         $token = null,
         $logger = null,
         private ?ExperimentsManager $experimentsManager = null,
-        private ?SkaleRewardsDispatcher $skaleRewards = null
+        private ?SkaleRewardsDispatcher $skaleRewardsDispatcher = null
     ) {
         $this->contributions = $contributions ?: new Contributions\Manager;
         $this->transactions = $transactions ?: Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
