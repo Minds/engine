@@ -1,21 +1,16 @@
 <?php
 namespace Minds\Core\Reports\Appeals;
 
-use Cassandra;
 use Cassandra\Bigint;
-use Cassandra\Tinyint;
 use Cassandra\Decimal;
-use Cassandra\Type;
 use Cassandra\Map;
 use Cassandra\Timestamp;
-use Minds\Core;
-use Minds\Core\Di\Di;
+use Cassandra\Tinyint;
+use Cassandra\Type;
+use Minds\Common\Repository\Response;
 use Minds\Core\Data;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
-use Minds\Entities;
-use Minds\Entities\DenormalizedEntity;
-use Minds\Entities\NormalizedEntity;
-use Minds\Common\Repository\Response;
+use Minds\Core\Di\Di;
 use Minds\Core\Reports\Repository as ReportsRepository;
 
 class Repository
@@ -35,9 +30,9 @@ class Repository
     /**
      * Return a list of appeals
      * @param array $options 'limit', 'offset', 'state'
-     * @return array
+     * @return Response
      */
-    public function getList(array $opts = [])
+    public function getList(array $opts = []): Response
     {
         $opts = array_merge([
             'limit' => 1200,
@@ -127,8 +122,8 @@ class Repository
             'appealed',
             $stateChanges,
             $appeal->getReport()->getEntityUrn(),
-            new Tinyint($appeal->getReport()->getReasonCode()),
-            new Decimal($appeal->getReport()->getSubReasonCode()),
+            new Tinyint($appeal->getReport()->getInitialReasonCode()),
+            new Decimal($appeal->getReport()->getInitialSubReasonCode()),
             new Timestamp($appeal->getReport()->getTimestamp(), 0),
         ];
 

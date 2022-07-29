@@ -828,3 +828,7 @@ $CONFIG->set('metascraper', [
     'request_timeout' => 30,
     'bypass_cache' => true
 ]);
+
+$CONFIG->set('jury', [
+    'development_mode' => false
+]);
