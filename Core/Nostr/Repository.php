@@ -103,8 +103,6 @@ class Repository
             $nostrEvent->getId(),
             $nostrEvent->getPubKey(),
             date('c', $nostrEvent->getCreated_at()),
-            // TODO rm this, having issues with local MySQL
-            // date('Y-m-d H:i:s', $nostrEvent->getCreated_at()),
             $nostrEvent->getKind(),
             $eRef,
             $pRef,
@@ -353,6 +351,37 @@ class Repository
 
         $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_REPLICA)->prepare($statement);
         $prepared->execute($values);
+
+        /** @var User[] */
+        $users = [];
+
+        foreach ($prepared->fetchAll() as $row) {
+            $userGuid = $row['user_guid'];
+            $user = $this->entitiesBuilder->single($userGuid);
+
+            if ($user instanceof User) {
+                $users[] = $user;
+            }
+        }
+
+        return $users;
+    }
+
+    /**
+     * Returns Minds Users where is_external == 0.
+     * @param int $limit
+     * @return User[]
+     */
+
+    public function getInternalUsers(int $limit = 12): array
+    {
+        $statement = "SELECT * FROM nostr_users WHERE is_external = 0 LIMIT ?";
+
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
+
+        $prepared->bindParam(1, $limit, PDO::PARAM_INT);
+
+        $prepared->execute();
 
         /** @var User[] */
         $users = [];
