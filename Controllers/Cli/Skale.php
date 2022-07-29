@@ -30,6 +30,8 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
      * @param SkaleTools|null $skaleTools - used to get balances and send transactions.
      * @param Balance|null $offchainBalance - used to get a users offchain balance.
      * @param BalanceSynchronizer|null $balanceSynchronizer - used to sync users balance with offchain.
+     * @param ScrollRepository|null $scrollRepository - used to get a generator of all offchain users.
+     * @param OffchainTransactions|null $offchainTransactions - used to send offchain transactions mirrored to SKALE.
      * @param Config|null $config - config values.
      */
     public function __construct(
