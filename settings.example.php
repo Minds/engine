@@ -457,6 +457,7 @@ $CONFIG->set('blockchain', [
         'sfuel_distributor_user_guid' => '991441275603390467',
         'boost_escrow_user_guid' => '991441275603390467',
         'withdrawal_escrow_user_guid' => '991441275603390467',
+        'rewards_distributor_user_guid' => '991441275603390467',
         'sync_excluded_users' => [
             '991441275603390467'
         ]
