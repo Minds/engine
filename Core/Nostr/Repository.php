@@ -137,7 +137,7 @@ class Repository
                 ->setSig($row['sig']);
 
             // Tags can be null
-            if (array_key_exists('tags', $row)) {
+            if (array_key_exists('tags', $row) && $row['tags'] != null) {
                 $event->setTags(json_decode($row['tags']));
             }
 
