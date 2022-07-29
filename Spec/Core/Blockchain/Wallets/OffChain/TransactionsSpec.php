@@ -8,7 +8,7 @@ use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Blockchain\Skale\Locks as SkaleLocks;
 use Minds\Core\Blockchain\Skale\Tools as SkaleTools;
 use Minds\Core\Blockchain\Skale\Escrow\Manager as SkaleEscrowManager;
-use Minds\Core\Blockchain\Skale\Escrow\Participants;
+use Minds\Core\Blockchain\Skale\Escrow\EscrowTransaction;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\Locks\Redis as Locks;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
@@ -588,7 +588,7 @@ class TransactionsSpec extends ObjectBehavior
     }
 
     public function it_should_mirror_a_charge_to_skale(
-        Participants $participants,
+        EscrowTransaction $escrowTransaction,
         User $receiver,
         User $sender
     ) {
@@ -635,12 +635,17 @@ class TransactionsSpec extends ObjectBehavior
             ->willReturn('123');
 
 
-        $participants->getReceiver()
+        $escrowTransaction->getReceiver()
             ->shouldBeCalled()
             ->willReturn($receiver);
-        $participants->getSender()
+
+        $escrowTransaction->getSender()
             ->shouldBeCalled()
             ->willReturn($sender);
+
+        $escrowTransaction->getTxHash()
+            ->shouldBeCalled()
+            ->willReturn('0x00');
         
         $context = 'context';
 
@@ -661,7 +666,7 @@ class TransactionsSpec extends ObjectBehavior
     
         $this->skaleEscrowManager->send()
             ->shouldBeCalled()
-            ->willReturn($participants);
+            ->willReturn($escrowTransaction);
 
         $this->repo->add(Argument::any())
             ->shouldBeCalled()
