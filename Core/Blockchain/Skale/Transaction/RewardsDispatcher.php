@@ -11,6 +11,7 @@ use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Core\Blockchain\Skale\Transaction\MultiTransaction\Manager as MultiTransactionManager;
 use Minds\Core\Data\Locks\LockFailedException;
+use Minds\Exceptions\UserErrorException;
 
 /**
  * Dispatch rewards through multi-transaction manager. All transactions will be sent
@@ -41,7 +42,7 @@ class RewardsDispatcher
 
         $rewardsDistributor = $this->entitiesBuilder->single(
             $this->config->get('blockchain')['skale']['rewards_distributor_user_guid'] ?? false
-        );
+        ) ?? false;
 
         if (!$rewardsDistributor) {
             throw new ServerErrorException('Incorrectly configured rewards distributor user');
@@ -60,9 +61,20 @@ class RewardsDispatcher
         $receiver = $this->entitiesBuilder->single($receiverGuid);
 
         if (!$receiver || !($receiver instanceof User)) {
-            throw new Exception('Attempted to dispatch SKALE rewards to an invalid receiver');
+            throw new UserErrorException('Attempted to dispatch SKALE rewards to an invalid receiver');
         }
 
+        $this->receiver = $receiver;
+        return $this;
+    }
+
+    /**
+     * Set receiver.
+     * @param User $receiver - receivers.
+     * @return self
+     */
+    public function setReceiver(User $receiver): self
+    {
         $this->receiver = $receiver;
         return $this;
     }
