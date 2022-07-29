@@ -15,16 +15,16 @@ use Minds\Exceptions\UserErrorException;
 
 class RewardsDispatcherSpec extends ObjectBehavior
 {
-    /** @var MultiTransactionManager */ 
+    /** @var MultiTransactionManager */
     private $multiTransactionManager;
 
-    /** @var Locks */ 
+    /** @var Locks */
     private $locks;
 
-    /** @var EntitiesBuilder */ 
+    /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
-    /** @var Config */ 
+    /** @var Config */
     private $config;
 
     /** @var string */
@@ -62,7 +62,7 @@ class RewardsDispatcherSpec extends ObjectBehavior
             $locks,
             $entitiesBuilder,
             $config
-        );    
+        );
     }
 
     public function it_is_initializable()
@@ -70,7 +70,8 @@ class RewardsDispatcherSpec extends ObjectBehavior
         $this->shouldHaveType(RewardsDispatcher::class);
     }
 
-    public function it_should_set_a_receiver_by_guid(User $receiver) {
+    public function it_should_set_a_receiver_by_guid(User $receiver)
+    {
         $receiverGuid = '1232139123123';
         
         $this->entitiesBuilder->single($receiverGuid)
@@ -80,7 +81,8 @@ class RewardsDispatcherSpec extends ObjectBehavior
         $this->setReceiverByGuid($receiverGuid);
     }
 
-    public function it_should_throw_if_setting_invalid_user_as_receiver_by_guid() {
+    public function it_should_throw_if_setting_invalid_user_as_receiver_by_guid()
+    {
         $receiverGuid = '1232139123123';
         
         $this->entitiesBuilder->single($receiverGuid)
@@ -90,7 +92,8 @@ class RewardsDispatcherSpec extends ObjectBehavior
         $this->shouldThrow(UserErrorException::class)->duringSetReceiverByGuid($receiverGuid);
     }
 
-    public function it_should_lock_sender(User $sender) {
+    public function it_should_lock_sender(User $sender)
+    {
         $userGuid = '1238912312837';
 
         $sender->getGuid()
@@ -101,13 +104,14 @@ class RewardsDispatcherSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($sender);
 
-        $this->locks->lock($userGuid) 
+        $this->locks->lock($userGuid)
             ->shouldBeCalled();
 
         $this->lockSender();
     }
 
-    public function it_should_unlock_sender(User $sender) {
+    public function it_should_unlock_sender(User $sender)
+    {
         $userGuid = '1238912312837';
 
         $sender->getGuid()
@@ -118,13 +122,14 @@ class RewardsDispatcherSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($sender);
 
-        $this->locks->unlock($userGuid) 
+        $this->locks->unlock($userGuid)
             ->shouldBeCalled();
 
         $this->unlockSender();
     }
 
-    public function it_should_send(User $receiver) {
+    public function it_should_send(User $receiver)
+    {
         $userGuid = '123i12903123123';
         $txHash = '0x000000000';
         $amountWei = '10000000000000';
@@ -150,13 +155,14 @@ class RewardsDispatcherSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($txHash);
 
-        $this->locks->unlock($userGuid) 
+        $this->locks->unlock($userGuid)
             ->shouldBeCalled();
     
         $this->send($amountWei)->shouldBe($txHash);
     }
 
-    public function it_should_throw_exception_if_lock_failed(User $receiver) {
+    public function it_should_throw_exception_if_lock_failed(User $receiver)
+    {
         $userGuid = '123i12903123123';
         $amountWei = '10000000000000';
 
@@ -173,13 +179,14 @@ class RewardsDispatcherSpec extends ObjectBehavior
         $this->multiTransactionManager->sendTokens($amountWei)
             ->shouldNotBeCalled();
 
-        $this->locks->unlock($userGuid) 
+        $this->locks->unlock($userGuid)
             ->shouldNotBeCalled();
     
         $this->shouldThrow(LockFailedException::class)->duringSend($amountWei);
     }
 
-    public function exception_in_multi_transaction_manager_should_still_unlock_wallet(User $receiver) {
+    public function exception_in_multi_transaction_manager_should_still_unlock_wallet(User $receiver)
+    {
         $userGuid = '123i12903123123';
         $amountWei = '10000000000000';
 
@@ -204,7 +211,7 @@ class RewardsDispatcherSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willThrow(new Exception('Exception'));
 
-        $this->locks->unlock($userGuid) 
+        $this->locks->unlock($userGuid)
             ->shouldBeCalled();
     
         $this->send($amountWei)->shouldBe(null);
