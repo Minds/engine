@@ -29,7 +29,7 @@ use Minds\Helpers\Unknown;
  * @method Transaction setCompleted(bool $value)
  * @method bool getFailed()
  * @method Transaction setFailed(bool $value)
- * @method array getSkaleTx()
+ * @method string getSkaleTx()
  * @method Transaction setSkaleTx(string $txHash)
  * @method array getData()
  * @method Transaction setData(array $value)

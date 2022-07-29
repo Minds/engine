@@ -64,6 +64,7 @@ class BlockchainTransactionsTopic extends AbstractTopic implements TopicInterfac
                 'sender_guid' => $event->getSenderGuid(),
                 'receiver_guid' => $event->getReceiverGuid(),
                 'transaction_id' => $event->getTransactionId(),
+                'skale_transaction_id' => $event->getSkaleTransactionId(),
                 'wallet_address' => $event->getWalletAddress(),
                 'contract' => $event->getContract(),
                 'amount_wei' => $event->getAmountWei()
@@ -110,6 +111,7 @@ class BlockchainTransactionsTopic extends AbstractTopic implements TopicInterfac
                 $event->setSenderGuid($data['sender_guid'])
                     ->setReceiverGuid($data['receiver_guid'])
                     ->setTransactionId($data['transaction_id'])
+                    ->setSkaleTransactionId($data['skale_transaction_id'])
                     ->setWalletAddress($data['wallet_address'])
                     ->setContract($data['contract'])
                     ->setAmountWei($data['amount_wei'])
@@ -168,6 +170,10 @@ class BlockchainTransactionsTopic extends AbstractTopic implements TopicInterfac
                 ],
                 [
                     'name' => 'transaction_id',
+                    'type' => 'string',
+                ],
+                [
+                    'name' => 'skale_transaction_id',
                     'type' => 'string',
                 ],
                 [

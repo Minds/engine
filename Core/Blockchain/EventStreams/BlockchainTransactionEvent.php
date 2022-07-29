@@ -22,6 +22,9 @@ class BlockchainTransactionEvent implements EventInterface
     /** @var string - id of the transaction */
     protected string $transactionId;
 
+    /** @var string - id of the SKALE transaction */
+    protected string $skaleTransactionId;
+
     /** @var string - amount transacted in wei */
     protected string $amountWei;
 
@@ -89,6 +92,26 @@ class BlockchainTransactionEvent implements EventInterface
     public function getTransactionId(): string
     {
         return $this->transactionId;
+    }
+
+    /**
+     * Sets SKALE transaction id.
+     * @param string $transactionId - SKALE txid / hash of transaction.
+     * @return self
+     */
+    public function setSkaleTransactionId(string $skaleTransactionId): self
+    {
+        $this->skaleTransactionId = $skaleTransactionId;
+        return $this;
+    }
+
+    /**
+     * Gets SKALE transaction id.
+     * @return string SKALE txid / hash of transaction.
+     */
+    public function getSkaleTransactionId(): string
+    {
+        return $this->skaleTransactionId;
     }
 
     /**

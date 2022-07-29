@@ -46,6 +46,7 @@ class TransactionEventDelegate
             ->setTransactionId($transaction->getTx())
             ->setWalletAddress($transaction->getWalletAddress())
             ->setContract($transaction->getContract())
-            ->setAmountWei($transaction->getAmount());
+            ->setAmountWei($transaction->getAmount())
+            ->setSkaleTransactionId($transaction->getSkaleTx());
     }
 }
