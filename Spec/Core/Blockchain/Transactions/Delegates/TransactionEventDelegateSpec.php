@@ -30,6 +30,7 @@ class TransactionEventDelegateSpec extends ObjectBehavior
         $senderGuid = '123';
         $receiverGuid = '321';
         $txId = '0x1234567890abcdef';
+        $skaleTxId = '0x00000';
         $walletAddress = '0xabcdef1234567890';
         $contract = 'offchain:wire';
         $amountWei = '10000000000000000';
@@ -44,6 +45,11 @@ class TransactionEventDelegateSpec extends ObjectBehavior
         $transaction->getTx()
             ->shouldBeCalled()
             ->willReturn($txId);
+
+                    
+        $transaction->getSkaleTx()
+            ->shouldBeCalled()
+            ->willReturn($skaleTxId);
 
         $transaction->getWalletAddress()
             ->shouldBeCalled()
@@ -63,6 +69,7 @@ class TransactionEventDelegateSpec extends ObjectBehavior
                     $senderGuid,
                     $receiverGuid,
                     $txId,
+                    $skaleTxId,
                     $walletAddress,
                     $contract,
                     $amountWei
@@ -70,6 +77,7 @@ class TransactionEventDelegateSpec extends ObjectBehavior
                     return $arg->getSenderGuid() === $senderGuid &&
                     $arg->getReceiverGuid() === $receiverGuid &&
                     $arg->getTransactionId() === $txId &&
+                    $arg->getSkaleTransactionId() === $skaleTxId &&
                     $arg->getAmountWei() === $amountWei &&
                     $arg->getContract() === $contract &&
                     $arg->getWalletAddress() === $walletAddress;

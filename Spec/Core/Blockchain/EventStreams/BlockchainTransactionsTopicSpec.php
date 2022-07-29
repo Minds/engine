@@ -18,6 +18,7 @@ class BlockchainTransactionsTopicSpec extends ObjectBehavior
         $senderGuid = '012345';
         $receiverGuid = '98765';
         $transactionId = '0x1111111';
+        $skaleTxHash = '0x0000000';
         $amountWei ='100000000000';
         $walletAddress = '0x2222222';
         $contract = 'offchain:wire';
@@ -26,6 +27,7 @@ class BlockchainTransactionsTopicSpec extends ObjectBehavior
         $event->setSenderGuid($senderGuid)
             ->setReceiverGuid($receiverGuid)
             ->setTransactionId($transactionId)
+            ->setSkaleTransactionId($skaleTxHash)
             ->setWalletAddress($walletAddress)
             ->setContract($contract)
             ->setAmountWei($amountWei);
