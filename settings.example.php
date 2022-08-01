@@ -459,6 +459,7 @@ $CONFIG->set('blockchain', [
         'transfer_gas_limit' => 51280,
         'confirmation_timeout_seconds' => 60,
         'confirmation_polling_gap_seconds' => 5,
+        'rewards_wallet_lock_ttl' => 43200,
         'balance_cache_ttl_seconds' => 60,
         'balance_sync_check_frequency_seconds' => 21600,
         'balance_sync_user_guid' => '991441275603390467',

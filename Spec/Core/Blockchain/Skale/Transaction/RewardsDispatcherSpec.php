@@ -46,7 +46,8 @@ class RewardsDispatcherSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([
                 'skale' => [
-                    'rewards_distributor_user_guid' => $this->rewardDistributorUserGuid
+                    'rewards_distributor_user_guid' => $this->rewardDistributorUserGuid,
+                    'rewards_wallet_lock_ttl' => 43200
                 ]
             ]);
             
@@ -104,7 +105,7 @@ class RewardsDispatcherSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($sender);
 
-        $this->locks->lock($userGuid)
+        $this->locks->lock($userGuid, 43200)
             ->shouldBeCalled();
 
         $this->lockSender();

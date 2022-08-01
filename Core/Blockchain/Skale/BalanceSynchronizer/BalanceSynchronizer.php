@@ -17,7 +17,7 @@ use Minds\Exceptions\ServerErrorException;
  * Then to make the balances equal, either:
  * - Sends more SKALE MINDS from the balance sync user to the instance users wallet.
  * - Sends SKALE MINDS balance FROM the instance users wallet to the balance sync users wallet.
- * Can also be used to sync a users offchain balance with their SKALE balance, mostly useful for 
+ * Can also be used to sync a users offchain balance with their SKALE balance, mostly useful for
  * bootstrapping an environment.
  */
 class BalanceSynchronizer

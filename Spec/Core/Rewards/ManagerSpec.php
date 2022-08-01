@@ -334,6 +334,10 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_not_payout_if_already_payout_tx()
     {
+        $this->experimentsManager->isOn('engine-2350-skale-mirror')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $this->repository->getIterator(Argument::any())
             ->willReturn([
                 (new RewardEntry())

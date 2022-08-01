@@ -26,6 +26,7 @@ class RewardsDispatcher
     /**
      * Constructor.
      * @param MultiTransactionManager|null $multiTransactionManager - used to send transactions.
+     * @param Locks|null $entitiesBuilder - used to lock wallet so other transactions cannot be made.
      * @param EntitiesBuilder|null $entitiesBuilder - build entities.
      * @param Config|null $config - config.
      */
@@ -83,11 +84,14 @@ class RewardsDispatcher
      * Lock the senders wallet - should be done before calling any
      * send operations to ensure you do not run into any nonce conflicts.
      * Make sure to call `unlockSender` when you are done.
+     *
+     * TTL can be configured via `rewards_wallet_lock_ttl`.
      * @return void
      */
     public function lockSender(): void
     {
-        $this->locks->lock($this->multiTransactionManager->getSender()->getGuid());
+        $ttl = $this->config->get('blockchain')['skale']['rewards_wallet_lock_ttl'] ?? 43200;  // 12 hours default.
+        $this->locks->lock($this->multiTransactionManager->getSender()->getGuid(), $ttl);
     }
 
     /**
