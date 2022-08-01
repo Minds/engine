@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Cache;
 
-use Cassandra\Rows;
 use Cassandra\Timestamp;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\Cassandra\Client;
