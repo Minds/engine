@@ -16,17 +16,14 @@ class Routes extends ModuleRoutes
     {
         $this->route
             ->withPrefix('api/v3/rich-embed')
+            ->withMiddleware([
+                AdminMiddleware::class
+            ])
             ->do(function (Route $route) {
-                $route
-                    ->withMiddleware([
-                        AdminMiddleware::class
-                    ])
-                    ->do(function (Route $route) {
-                        $route->delete(
-                            'purge',
-                            Ref::_('Metascraper\Controller', 'purge')
-                        );
-                    });
+                $route->delete(
+                    'purge',
+                    Ref::_('Metascraper\Controller', 'purge')
+                );
             });
     }
 }
