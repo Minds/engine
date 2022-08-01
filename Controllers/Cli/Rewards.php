@@ -67,24 +67,13 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
     {
         $username = $this->getOpt('username');
         $bypassSkaleMirror = $this->getOpt('bypassSkaleMirror') ?? false;
-        
-        $config = Di::_()->get('Config');
-        $entitiesBuilder = Di::_()->get('EntitiesBuilder');
 
         $amount = BigNumber::toPlain($this->getOpt('amount'), 18);
 
-        $user = $entitiesBuilder->getByUserByIndex($username);
+        $user = Di::_()->get('EntitiesBuilder')->getByUserByIndex($username);
 
         if (!$user || !($user instanceof User)) {
             $this->out('Unable to construct user');
-            return;
-        }
-
-        $balanceSyncUserGuid = $config->get('blockchain')['skale']['balance_sync_user_guid'] ?? '100000000000000519';
-        $balanceSyncUser = $entitiesBuilder->single($balanceSyncUserGuid);
-
-        if (!$balanceSyncUser || !($balanceSyncUser instanceof User)) {
-            $this->out('Unable to find main balance sync user');
             return;
         }
 
