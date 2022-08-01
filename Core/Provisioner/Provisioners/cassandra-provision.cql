@@ -1778,3 +1778,6 @@ CREATE TABLE minds.nostr_hashes_to_entities
     hash text PRIMARY KEY,
     entity_urn text
 );
+
+ALTER TABLE minds.moderation_reports
+    ADD admin_reason_override text;

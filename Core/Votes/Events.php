@@ -27,7 +27,6 @@ class Events
     public function __construct(
         private ?ExperimentsManager $experimentsManager = null
     ) {
-        $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
     }
 
     public function register()
@@ -92,9 +91,11 @@ class Events
         });
 
         // Analytics events
-        $request = $this->retrieveServerRequest();
-        $experimentsManager = $this->experimentsManager->setUser($request->getAttribute('_user'));
-        Dispatcher::register('vote', 'all', function (Event $event) use ($experimentsManager) {
+
+        Dispatcher::register('vote', 'all', function (Event $event) {
+            $request = $this->retrieveServerRequest();
+            $experimentsManager = $this->getExperimentsManager()->setUser($request->getAttribute('_user'));
+
             $params = $event->getParameters();
             $direction = $event->getNamespace();
 
@@ -250,6 +251,16 @@ class Events
 
             $event->setResponse($export);
         });
+    }
+
+    /**
+     * Do not call this inside of constructor or register functions as it will cause a race condition with config
+     * breaking snowplow events
+     * @return ExperimentsManager
+     */
+    private function getExperimentsManager(): ExperimentsManager
+    {
+        return $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
     }
 
     private function retrieveServerRequest(): ServerRequestInterface

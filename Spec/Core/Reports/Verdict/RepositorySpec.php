@@ -2,14 +2,13 @@
 
 namespace Spec\Minds\Core\Reports\Verdict;
 
-use Minds\Core\Reports\Verdict\Repository;
-use Minds\Core\Reports\Verdict\Verdict;
-use Minds\Core\Reports\Jury\Decision;
+use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Reports\Report;
 use Minds\Core\Reports\Repository as ReportsRepository;
+use Minds\Core\Reports\Verdict\Repository;
+use Minds\Core\Reports\Verdict\Verdict;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use Minds\Core\Data\Cassandra\Client;
 
 class RepositorySpec extends ObjectBehavior
 {
@@ -39,7 +38,10 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn(true);
 
         $report = new Report();
-        $report->setEntityUrn('urn:activity:123');
+        $report
+            ->setEntityUrn('urn:activity:123')
+            ->setReasonCode(8)
+            ->setSubReasonCode(0);
 
         $verdict->getReport()
             ->shouldBeCalled()
@@ -67,7 +69,10 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn(true);
 
         $report = new Report();
-        $report->setEntityGuid(123);
+        $report
+            ->setEntityGuid(123)
+            ->setReasonCode(8)
+            ->setSubReasonCode(0);
 
         $verdict->getReport()
             ->shouldBeCalled()
@@ -95,7 +100,10 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn(true);
 
         $report = new Report();
-        $report->setEntityGuid(123);
+        $report
+            ->setEntityGuid(123)
+            ->setReasonCode(8)
+            ->setSubReasonCode(0);
 
         $verdict->getReport()
             ->shouldBeCalled()
@@ -123,7 +131,9 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn(true);
 
         $report = new Report();
-        $report->setEntityGuid(123);
+        $report->setEntityGuid(123)
+            ->setReasonCode(8)
+            ->setSubReasonCode(0);
 
         $verdict->getReport()
             ->shouldBeCalled()

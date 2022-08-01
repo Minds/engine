@@ -202,6 +202,14 @@ $CONFIG->elasticsearch = [
     'cert' => '/var/secure/elasticsearch.crt',
 ];
 
+// Vitess (MySQL) configuration
+$CONFIG->mysql = [
+    'host' => 'vitess:15306',
+    'db' => 'minds',
+    'user' => 'user',
+    'ssl_skip_verify' => true,
+];
+
 /*
  * Memcache setup (optional)
  * This is where you may optionally set up memcache.
@@ -827,4 +835,8 @@ $CONFIG->set('metascraper', [
     'ttl_seconds' => 86400,
     'request_timeout' => 30,
     'bypass_cache' => true
+]);
+
+$CONFIG->set('jury', [
+    'development_mode' => false
 ]);
