@@ -40,6 +40,14 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('test');
 
+        $user->getName()
+            ->shouldBeCalled()
+            ->willReturn('Test');
+
+        $activity->getPermaURL()
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $activity->getOwnerEntity()
             ->shouldBeCalled()
             ->willReturn($user);
@@ -56,7 +64,7 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 
         $builtNotification = $this->build($activity);
 
-        $builtNotification->getTitle()->shouldBe('@test posted');
+        $builtNotification->getTitle()->shouldBe('Test posted');
         $builtNotification->getBody()->shouldBe('body');
         $builtNotification->getUri()->shouldBe('newsfeed/123');
         $builtNotification->getMedia()->shouldBe('');
@@ -78,6 +86,10 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('test');
 
+        $user->getName()
+            ->shouldBeCalled()
+            ->willReturn('Test');
+
         $blog->getOwnerEntity()
             ->shouldBeCalled()
             ->willReturn($user);
@@ -98,7 +110,7 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 
         $builtNotification = $this->build($blog);
 
-        $builtNotification->getTitle()->shouldBe('@test posted a blog');
+        $builtNotification->getTitle()->shouldBe('Test posted a blog');
         $builtNotification->getBody()->shouldBe('blog-title');
         $builtNotification->getUri()->shouldBe('blog-url');
         $builtNotification->getMedia()->shouldBe('icon-url');
@@ -120,6 +132,10 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('test');
 
+        $user->getName()
+            ->shouldBeCalled()
+            ->willReturn('Test');
+
         $image->getOwnerEntity()
             ->shouldBeCalled()
             ->willReturn($user);
@@ -140,7 +156,7 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 
         $builtNotification = $this->build($image);
 
-        $builtNotification->getTitle()->shouldBe('@test posted an image');
+        $builtNotification->getTitle()->shouldBe('Test posted an image');
         $builtNotification->getBody()->shouldBe('image-title');
         $builtNotification->getUri()->shouldBe('newsfeed/123');
         $builtNotification->getMedia()->shouldBe('image-url');
@@ -161,6 +177,10 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
         $user->getUsername()
             ->shouldBeCalled()
             ->willReturn('test');
+
+        $user->getName()
+            ->shouldBeCalled()
+            ->willReturn('Test');
 
         $image->getOwnerEntity()
             ->shouldBeCalled()
@@ -187,7 +207,7 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 
         $builtNotification = $this->build($image);
 
-        $builtNotification->getTitle()->shouldBe('@test posted an image');
+        $builtNotification->getTitle()->shouldBe('Test posted an image');
         $builtNotification->getBody()->shouldBe('image-description');
         $builtNotification->getUri()->shouldBe('newsfeed/123');
         $builtNotification->getMedia()->shouldBe('image-url');
@@ -208,6 +228,10 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
         $user->getUsername()
             ->shouldBeCalled()
             ->willReturn('test');
+        
+        $user->getName()
+            ->shouldBeCalled()
+            ->willReturn('Test');
 
         $image->getOwnerEntity()
             ->shouldBeCalled()
@@ -229,7 +253,7 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 
         $builtNotification = $this->build($image);
 
-        $builtNotification->getTitle()->shouldBe('@test posted an image');
+        $builtNotification->getTitle()->shouldBe('Test posted an image');
         $builtNotification->getBody()->shouldBe('title-text');
         $builtNotification->getUri()->shouldBe('newsfeed/123');
         $builtNotification->getMedia()->shouldBe('image-url');
@@ -250,6 +274,10 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
         $user->getUsername()
             ->shouldBeCalled()
             ->willReturn('test');
+        
+        $user->getName()
+            ->shouldBeCalled()
+            ->willReturn('Test');
 
         $image->getOwnerEntity()
             ->shouldBeCalled()
@@ -275,7 +303,7 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 
         $builtNotification = $this->build($image);
 
-        $builtNotification->getTitle()->shouldBe('@test posted an image');
+        $builtNotification->getTitle()->shouldBe('Test posted an image');
         $builtNotification->getBody()->shouldBe('');
         $builtNotification->getUri()->shouldBe('newsfeed/123');
         $builtNotification->getMedia()->shouldBe('image-url');
@@ -297,6 +325,10 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('test');
 
+        $user->getName()
+            ->shouldBeCalled()
+            ->willReturn('Test');
+
         $video->getOwnerEntity()
             ->shouldBeCalled()
             ->willReturn($user);
@@ -317,7 +349,7 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 
         $builtNotification = $this->build($video);
 
-        $builtNotification->getTitle()->shouldBe('@test posted a video');
+        $builtNotification->getTitle()->shouldBe('Test posted a video');
         $builtNotification->getBody()->shouldBe('video-title');
         $builtNotification->getUri()->shouldBe('newsfeed/123');
         $builtNotification->getMedia()->shouldBe('video-thumbnail-url');
@@ -339,6 +371,10 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
         $user->getUsername()
             ->shouldBeCalled()
             ->willReturn('test');
+
+        $user->getName()
+            ->shouldBeCalled()
+            ->willReturn('Test');
 
         $video->getOwnerEntity()
             ->shouldBeCalled()
@@ -364,7 +400,7 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 
         $builtNotification = $this->build($video);
 
-        $builtNotification->getTitle()->shouldBe('@test posted a video');
+        $builtNotification->getTitle()->shouldBe('Test posted a video');
         $builtNotification->getBody()->shouldBe('video-description');
         $builtNotification->getUri()->shouldBe('newsfeed/123');
         $builtNotification->getMedia()->shouldBe('video-thumbnail-url');
@@ -386,6 +422,10 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('test');
 
+        $user->getName()
+            ->shouldBeCalled()
+         ->willReturn('Test');
+
         $video->getOwnerEntity()
             ->shouldBeCalled()
             ->willReturn($user);
@@ -406,7 +446,7 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 
         $builtNotification = $this->build($video);
 
-        $builtNotification->getTitle()->shouldBe('@test posted a video');
+        $builtNotification->getTitle()->shouldBe('Test posted a video');
         $builtNotification->getBody()->shouldBe('title-text');
         $builtNotification->getUri()->shouldBe('newsfeed/123');
         $builtNotification->getMedia()->shouldBe('image-url');
@@ -427,6 +467,11 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
         $user->getUsername()
             ->shouldBeCalled()
             ->willReturn('test');
+
+
+        $user->getName()
+            ->shouldBeCalled()
+            ->willReturn('Test');
 
         $video->getOwnerEntity()
             ->shouldBeCalled()
@@ -452,7 +497,7 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 
         $builtNotification = $this->build($video);
 
-        $builtNotification->getTitle()->shouldBe('@test posted a video');
+        $builtNotification->getTitle()->shouldBe('Test posted a video');
         $builtNotification->getBody()->shouldBe('');
         $builtNotification->getUri()->shouldBe('newsfeed/123');
         $builtNotification->getMedia()->shouldBe('image-url');
@@ -473,6 +518,10 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
         $user->getUsername()
             ->shouldBeCalled()
             ->willReturn(str_repeat("a", 100));
+        
+        $user->getName()
+            ->shouldBeCalled()
+            ->willReturn(str_repeat("A", 100));
 
         $blog->getOwnerEntity()
             ->shouldBeCalled()
@@ -494,7 +543,7 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 
         $builtNotification = $this->build($blog);
 
-        $builtNotification->getTitle()->shouldBe('@'.str_repeat("a", 45).'... posted a blog');
+        $builtNotification->getTitle()->shouldBe(str_repeat("A", 45).'... posted a blog');
         $builtNotification->getBody()->shouldBe('blog-title');
         $builtNotification->getUri()->shouldBe('blog-url');
         $builtNotification->getMedia()->shouldBe('icon-url');
@@ -511,6 +560,14 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
         $user->getUsername()
             ->shouldBeCalled()
             ->willReturn('test');
+        
+        $user->getName()
+            ->shouldBeCalled()
+            ->willReturn('Test');
+
+        $activity->getPermaURL()
+            ->shouldBeCalled()
+            ->willReturn(null);
 
         $activity->getOwnerEntity()
             ->shouldBeCalled()
@@ -528,8 +585,100 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 
         $builtNotification = $this->build($activity);
 
-        $builtNotification->getTitle()->shouldBe('@test posted');
+        $builtNotification->getTitle()->shouldBe('Test posted');
         $builtNotification->getBody()->shouldBe(str_repeat("a", 170).'...');
+        $builtNotification->getUri()->shouldBe('newsfeed/123');
+        $builtNotification->getMedia()->shouldBe('');
+    }
+
+    public function it_should_use_rich_embed_title_if_it_was_a_link(
+        Activity $activity,
+        User $user
+    ) {
+        $activity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
+        $user->getUsername()
+            ->shouldBeCalled()
+            ->willReturn('test');
+        
+        $user->getName()
+            ->shouldBeCalled()
+            ->willReturn('Test');
+
+        $activity->getPermaURL()
+            ->shouldBeCalled()
+            ->willReturn('http://test.com/test');
+
+        $activity->getOwnerEntity()
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $activity->getTitle()
+            ->shouldBeCalled()
+            ->willReturn(str_repeat("T", 200));
+
+        $activity->getMessage()
+            ->shouldBeCalled()
+            ->willReturn('http://test.com/test');
+
+        $activity->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $this->entity = $activity;
+
+        $builtNotification = $this->build($activity);
+
+        $builtNotification->getTitle()->shouldBe('Test posted a link');
+        $builtNotification->getBody()->shouldBe(str_repeat("T", 170).'...');
+        $builtNotification->getUri()->shouldBe('newsfeed/123');
+        $builtNotification->getMedia()->shouldBe('');
+    }
+
+    public function it_should_use_username_if_name_wasnt_there(
+        Activity $activity,
+        User $user
+    ) {
+        $activity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
+        $user->getUsername()
+            ->shouldBeCalled()
+            ->willReturn('test');
+        
+        $user->getName()
+            ->shouldBeCalled()
+            ->willReturn('');
+
+        $activity->getPermaURL()
+            ->shouldBeCalled()
+            ->willReturn('http://test.com/test');
+
+        $activity->getOwnerEntity()
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $activity->getTitle()
+            ->shouldBeCalled()
+            ->willReturn(str_repeat("T", 200));
+
+        $activity->getMessage()
+            ->shouldBeCalled()
+            ->willReturn('http://test.com/test');
+
+        $activity->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $this->entity = $activity;
+
+        $builtNotification = $this->build($activity);
+
+        $builtNotification->getTitle()->shouldBe('@test posted a link');
+        $builtNotification->getBody()->shouldBe(str_repeat("T", 170).'...');
         $builtNotification->getUri()->shouldBe('newsfeed/123');
         $builtNotification->getMedia()->shouldBe('');
     }

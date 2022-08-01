@@ -172,18 +172,15 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
     protected function getOwnerNameString(): string
     {
         $entityOwner = $this->entity->getOwnerEntity();
-        $name = $entityOwner->getName();
-        $username = $entityOwner->getUsername();
+        $ownerName = $entityOwner->getName();
+        $ownerUsername = $entityOwner->getUsername();
+        $name = $ownerName ?: '@' . $ownerUsername;
 
-        if ($name) {
-            return $name;
+        if (mb_strlen($name) > 45) {
+            return mb_substr($name, 0, 45).'...';
         }
 
-        if (mb_strlen($username) > 45) {
-            return '@' . mb_substr($username, 0, 45).'...';
-        }
-
-        return '@' . $username;
+        return $name;
     }
 
     /**
