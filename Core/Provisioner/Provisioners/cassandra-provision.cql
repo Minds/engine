@@ -1776,3 +1776,13 @@ CREATE TABLE minds.nostr_hashes_to_entities
     hash text PRIMARY KEY,
     entity_urn text
 );
+
+ALTER TABLE minds.moderation_reports
+    ADD admin_reason_override text;
+
+CREATE TABLE minds.metascraper_cache (
+    url_md5_hash text,
+    data text,
+    last_scrape timestamp,
+    PRIMARY KEY (url_md5_hash)
+);

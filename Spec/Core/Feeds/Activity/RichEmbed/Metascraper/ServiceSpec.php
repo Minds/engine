@@ -6,7 +6,7 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Stream\StreamInterface;
 use Minds\Core\Config\Config;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service;
-use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Cache;
+use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Cache\Manager as CacheManager;
 use Minds\Core\Log\Logger;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -23,26 +23,26 @@ class ServiceSpec extends ObjectBehavior
     /** @var Config */
     protected $config;
 
-    /** @var Cache */
-    protected $cache;
+    /** @var CacheManager */
+    protected $cacheManager;
 
     public function let(
         ClientInterface $httpClient,
         Logger $logger,
         Config $config,
-        Cache $cache
+        CacheManager $cacheManager
     ) {
         $this->beConstructedWith(
             $httpClient,
             $logger,
             $config,
-            $cache
+            $cacheManager
         );
 
         $this->httpClient = $httpClient;
         $this->logger = $logger;
         $this->config = $config;
-        $this->cache = $cache;
+        $this->cacheManager = $cacheManager;
     }
 
     public function it_is_initializable()
@@ -63,7 +63,7 @@ class ServiceSpec extends ObjectBehavior
                 'bypass_cache' => false,
             ]);
 
-        $this->cache->getExported($url)
+        $this->cacheManager->getExported($url)
             ->shouldBeCalled()
             ->willReturn(null);
 
@@ -91,7 +91,7 @@ class ServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($response);
     
-        $this->cache->set($url, Argument::any())
+        $this->cacheManager->set($url, Argument::any())
             ->shouldBeCalled();
 
         $this->scrape($url);
@@ -110,7 +110,7 @@ class ServiceSpec extends ObjectBehavior
 
         $cachedData = ['cachedData' => 'cachedData'];
 
-        $this->cache->getExported($url)
+        $this->cacheManager->getExported($url)
             ->shouldBeCalled()
             ->willReturn($cachedData);
 
@@ -137,7 +137,7 @@ class ServiceSpec extends ObjectBehavior
                 'bypass_cache' => true
             ]);
 
-        $this->cache->getExported($url)
+        $this->cacheManager->getExported($url)
             ->shouldNotBeCalled();
 
         $streamInterface->getContents()
@@ -164,7 +164,7 @@ class ServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($response);
     
-        $this->cache->set($url, Argument::any())
+        $this->cacheManager->set($url, Argument::any())
             ->shouldBeCalled();
 
         $this->scrape($url);

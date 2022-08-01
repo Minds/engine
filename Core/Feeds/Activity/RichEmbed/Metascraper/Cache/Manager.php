@@ -1,33 +1,27 @@
 <?php
 
-namespace Minds\Core\Feeds\Activity\RichEmbed\Metascraper;
+namespace Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Cache;
 
 use Minds\Core\Config\Config;
-use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
+use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Metadata;
 
 /**
  * Cache to avoid duplicating requests for Metascraper Server.
  */
-class Cache
+class Manager
 {
-    // 1 day TTL default - overridable in config.
-    private $ttlSeconds = 86400;
-
     /**
      * Constructor.
-     * @param ?PsrWrapper $cache - PsrWrapper around cache.
+     * @param Repository|null $repository
+     * @param Config|null $config
      */
     public function __construct(
-        private ?PsrWrapper $cache = null,
+        private ?Repository $repository = null,
         private ?Config $config = null
     ) {
-        $this->cache ??= Di::_()->get('Cache\PsrWrapper');
+        $this->repository ??= new Repository();
         $this->config ??= Di::_()->get('Config');
-
-        if ($ttlSeconds = $this->config->get('metascraper')['ttl_seconds'] ?? false) {
-            $this->ttlSeconds = $ttlSeconds;
-        }
     }
 
     /**
@@ -37,8 +31,13 @@ class Cache
      */
     public function getExported(string $key): ?array
     {
-        $cachedMetadata = $this->cache->get($key);
-        return json_decode($cachedMetadata, true) ?? null;
+        $data = $this->repository->get($key);
+
+        if (!$data) {
+            return null;
+        }
+
+        return json_decode($data['data'], true) ?? null;
     }
 
     /**
@@ -49,7 +48,18 @@ class Cache
      */
     public function set(string $key, Metadata $metadata): self
     {
-        $this->cache->set($key, json_encode($metadata), $this->ttlSeconds);
+        $this->repository->upsert($key, $metadata);
+        return $this;
+    }
+
+    /**
+     * Delete an entry from the cache.
+     * @param string $key - url to delete by.
+     * @return self
+     */
+    public function delete(string $url): self
+    {
+        $this->repository->delete($url);
         return $this;
     }
 }
