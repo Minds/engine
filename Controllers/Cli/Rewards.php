@@ -59,7 +59,7 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
     }
 
     /**
-     * MInt offchain tokens and send them to a given username.
+     * Mint offchain tokens and send them to a given username.
      * Can bypass SKALE mirror to manually set offchain token balance.
      * @return void
      */
