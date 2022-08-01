@@ -36,6 +36,15 @@ class Routes extends ModuleRoutes
                     'events',
                     Ref::_('Nostr\Controller', 'getNostrEvents')
                 );
+                //
+                $route->get(
+                    'req',
+                    Ref::_('Nostr\Controller', 'getReq')
+                );
+                $route->put(
+                    'event',
+                    Ref::_('Nostr\Controller', 'putEvent')
+                );
             });
     }
 }

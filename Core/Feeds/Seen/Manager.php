@@ -8,17 +8,11 @@ use Minds\Core\Di\Di;
 
 class Manager
 {
-    /** @var string */
-    private const CACHE_KEY_PREFIX = "seen-entities";
-
-    /** @var int */
-    private const CACHE_TTL = 3600; // 1 hour
-
     public function __construct(
-        private ?Redis\Client $redisClient = null,
+        private ?Repository $repository = null,
         private ?SeenCacheKeyCookie $seenCacheKeyCookie = null,
     ) {
-        $this->redisClient = $this->redisClient ?? Di::_()->get("Redis");
+        $this->repository ??= new Repository();
         $this->seenCacheKeyCookie = $this->seenCacheKeyCookie ?? new SeenCacheKeyCookie();
     }
 
@@ -29,34 +23,47 @@ class Manager
      */
     public function seeEntities(array $entityGuids): void
     {
-        $this->redisClient?->sAdd(
-            $this->getCacheKey(),
-            ...$entityGuids
-        );
-        $this->redisClient?->expire($this->getCacheKey(), self::CACHE_TTL); // Expire the entire set
+        foreach ($entityGuids as $entityGuid) {
+            $seenEntity = new SeenEntity($this->getIdentifier(), $entityGuid, time());
+            $this->repository->add($seenEntity);
+        }
     }
 
     /**
      * Returns seen entities
+     * @param int $limit
      * @return string[]
      */
     public function listSeenEntities(int $limit = 100): array
     {
-        $cacheKey = $this->getCacheKey();
-        $cursor = null;
-        $data = $this->redisClient->sScan($cacheKey, $cursor, null, $limit);
-        return !$data ? [] : $data;
+        return array_map(function (SeenEntity $seenEntity) {
+            return $seenEntity->getEntityGuid();
+        }, [...$this->repository->getList(
+            pseudoId: $this->getIdentifier(),
+            limit: $limit,
+        )]);
     }
 
+    /**
+     * If, for some reason, there is no pseudo id found, then we use
+     * a generic cookie
+     * @return SeenCacheKeyCookie
+     */
     private function createSeenCacheKeyCookie(): SeenCacheKeyCookie
     {
         return $this->seenCacheKeyCookie->createCookie();
     }
 
-    private function getCacheKey(): string
+    /**
+     * Identifier. Will be pseudo if if found, if not we use a fallback cookie
+     * @return string
+     */
+    private function getIdentifier(): string
     {
-        $pseudoId = (new PseudonymousIdentifier())->getId();
-        $generatedCacheKey = $this->createSeenCacheKeyCookie()->getValue();
-        return self::CACHE_KEY_PREFIX . '::' . ($pseudoId ?? $generatedCacheKey);
+        $id = (new PseudonymousIdentifier())->getId();
+        if (!$id) {
+            $id = $this->createSeenCacheKeyCookie()->getValue();
+        }
+        return $id;
     }
 }

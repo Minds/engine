@@ -1,22 +1,16 @@
 <?php
 namespace Minds\Core\Reports;
 
-use Cassandra;
 use Cassandra\Decimal;
 use Cassandra\Timestamp;
 use Cassandra\Tinyint;
-
-use Minds\Core;
-use Minds\Core\Di\Di;
+use Minds\Common\Repository\Response;
+use Minds\Common\Urn;
 use Minds\Core\Data;
 use Minds\Core\Data\Cassandra\Prepared;
-use Minds\Entities;
-use Minds\Entities\DenormalizedEntity;
-use Minds\Entities\NormalizedEntity;
-use Minds\Common\Repository\Response;
-use Minds\Core\Reports\UserReports\UserReport;
+use Minds\Core\Di\Di;
 use Minds\Core\Reports\ReportedEntity;
-use Minds\Common\Urn;
+use Minds\Core\Reports\UserReports\UserReport;
 
 class Repository
 {
@@ -146,30 +140,51 @@ class Repository
         $parts = explode('-', $this->urn->setUrn($urn)->getNss());
 
         $entityUrn = substr($parts[0], 1, -1); // Remove the parenthases
-        $reasonCode = $parts[1];
-        $subReasonCode = $parts[2] ?? 0;
-        $timestamp = $parts[3];
+        $reasonCode = (int) $parts[1];
+        $subReasonCode = (int) $parts[2] ?? 0;
+        $timestamp = (int) $parts[3];
         
 
         $response = $this->getList([
             'entity_urn' => $entityUrn,
-            'reason_code' => $reasonCode,
-            'sub_reason_code' => $subReasonCode,
-            'timestamp' => $timestamp,
+            // 'reason_code' => $reasonCode,
+            // 'sub_reason_code' => $subReasonCode,
+            // 'timestamp' => $timestamp,
         ]);
+
+        $matchingReports = array_filter(
+            $response->toArray(),
+            function (Report $report) use ($timestamp, $reasonCode, $subReasonCode): bool {
+                if ($report->getTimestamp() !== $timestamp) {
+                    return false;
+                }
+                if ($report->getReasonCode() !== $reasonCode) {
+                    return false;
+                }
+
+                if ($report->getSubReasonCode() !== $subReasonCode) {
+                    return false;
+                }
+                return true;
+            },
+            ARRAY_FILTER_USE_BOTH
+        );
         
-        if (!$response[0]) {
+        if (!$matchingReports[0]) {
             return null;
         }
 
-        return $response[0];
+        return $matchingReports[0];
     }
 
     /**
-     * void
+     * TODO: implement method
+     * @param Report $report
+     * @return bool
      */
-    public function add(Report $report)
+    public function add(Report $report): bool
     {
+        return true;
     }
 
     private function buildReports($set)
@@ -229,6 +244,7 @@ class Repository
             ->setEntityOwnerGuid(isset($row['entity_owner_guid']) ? $row['entity_owner_guid']->value() : null)
             ->setReasonCode($row['reason_code']->value())
             ->setSubReasonCode($row['sub_reason_code']->value())
+            ->setAdminReasonOverride($row['admin_reason_override'] ?? null)
             ->setTimestamp($row['timestamp']->time())
             //->setState((string) $row['state'])
             ->setUphold(isset($row['uphold']) ? (bool) $row['uphold'] : null)

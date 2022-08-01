@@ -318,6 +318,25 @@ class ManagerSpec extends ObjectBehavior
         $multiplier->toFloat()->shouldBe((float) 3);
     }
 
+    public function it_should_not_payout_if_already_payout_tx()
+    {
+        $this->repository->getIterator(Argument::any())
+            ->willReturn([
+                (new RewardEntry())
+                        ->setUserGuid('123')
+                        ->setRewardType('engagement')
+                        ->setScore(BigDecimal::of(25))
+                        ->setSharePct(0.5)
+                        ->setTokenAmount(BigDecimal::of(1))
+                        ->setPayoutTx('oc:123')
+            ]);
+
+        $this->txRepository->add(Argument::any())
+            ->shouldNotBeCalled();
+
+        $this->issueTokens(null, false);
+    }
+
     ////
     // Legacy
     ////

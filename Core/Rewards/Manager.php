@@ -397,6 +397,11 @@ class Manager
             if ($rewardEntry->getTokenAmount()->toFloat() === (float) 0) {
                 continue;
             }
+            
+            // Do not payout again if we have already issued a payout
+            if ($rewardEntry->getPayoutTx()) {
+                continue;
+            }
 
             $tokenAmount = (string) BigNumber::toPlain($rewardEntry->getTokenAmount(), 18);
 

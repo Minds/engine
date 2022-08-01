@@ -1,23 +1,15 @@
 <?php
 namespace Minds\Core\Reports\Verdict;
 
-use Cassandra;
-use Cassandra\Type;
-use Cassandra\Map;
-use Cassandra\Set;
-use Cassandra\Bigint;
-use Cassandra\Tinyint;
 use Cassandra\Decimal;
+use Cassandra\Map;
 use Cassandra\Timestamp;
-
-use Minds\Core;
-use Minds\Core\Di\Di;
+use Cassandra\Tinyint;
+use Cassandra\Type;
+use Minds\Common\Repository\Response;
 use Minds\Core\Data;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
-use Minds\Entities;
-use Minds\Entities\DenormalizedEntity;
-use Minds\Entities\NormalizedEntity;
-use Minds\Common\Repository\Response;
+use Minds\Core\Di\Di;
 use Minds\Core\Reports\Jury\Decision;
 use Minds\Core\Reports\Repository as ReportsRepository;
 
@@ -64,7 +56,8 @@ class Repository
         $statement = "UPDATE moderation_reports
             SET state = ?,
               state_changes += ?,
-              uphold = ?
+              uphold = ?,
+              admin_reason_override = ?
             WHERE entity_urn = ?
             AND reason_code = ?
             AND sub_reason_code = ?
@@ -79,9 +72,10 @@ class Repository
             $state,
             $stateChangesMap,
             (bool) $verdict->isUpheld(),
+            $verdict->getReport()->getAdminReasonOverride(),
             $verdict->getReport()->getEntityUrn(),
-            new Tinyint($verdict->getReport()->getReasonCode()),
-            new Decimal($verdict->getReport()->getSubReasonCode()),
+            new Tinyint($verdict->getReport()->getInitialReasonCode()),
+            new Decimal($verdict->getReport()->getInitialSubReasonCode()),
             new Timestamp($verdict->getReport()->getTimestamp(), 0),
         ];
 
