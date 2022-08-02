@@ -3,7 +3,6 @@
 namespace Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Cache;
 
 use Cassandra\Timestamp;
-use Minds\Core\Config\Config;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\Cassandra\Prepared\Custom as CustomQuery;
@@ -14,24 +13,14 @@ use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Metadata;
  */
 class Repository
 {
-    // ttl for entries in the cache - defaults to 1 week.
-    private $ttlSeconds = 604800;
-
     /**
      * Constructor.
      * @param Client|null $db
-     * @param Config|null $config
      */
     public function __construct(
         private ?Client $db = null,
-        private ?Config $config = null
     ) {
         $this->db ??= Di::_()->get('Database\Cassandra\Cql');
-        $this->config ??= Di::_()->get('Config');
-
-        if ($ttlSeconds = $this->config->get('metascraper')['ttl_seconds'] ?? false) {
-            $this->ttlSeconds = $ttlSeconds;
-        }
     }
 
     /**
@@ -60,13 +49,12 @@ class Repository
             url_md5_hash,
             data,
             last_scrape
-        ) VALUES (?, ?, ?) USING TTL ?";
+        ) VALUES (?, ?, ?)";
 
         $values = [
             md5($url), // url
             json_encode($data), // data
-            new Timestamp(time(), 0), // last_scrape
-            $this->ttlSeconds // ttl
+            new Timestamp(time(), 0) // last_scrape
         ];
 
         $query = new CustomQuery();
