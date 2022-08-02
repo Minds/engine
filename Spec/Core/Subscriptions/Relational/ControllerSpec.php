@@ -23,6 +23,39 @@ class ControllerSpec extends ObjectBehavior
         $this->shouldHaveType(Controller::class);
     }
 
+    public function it_should_return_subscriptions_of_subscriptions(
+        ServerRequest $request,
+        User $user1Mock
+    ) {
+        $loggedInUserMock = new User();
+        $loggedInUserMock->guid = '123';
+
+        $request->getAttribute('_user')
+            ->willReturn($loggedInUserMock);
+
+        $request->getQueryParams()
+            ->willReturn([
+                'limit' => 3,
+            ]);
+
+        //
+
+        $this->repositoryMock->getSubscriptionsOfSubscriptions('123', 3, 0)
+            ->willYield([
+                $user1Mock->getWrappedObject(),
+            ]);
+
+        $user1Mock->export()
+            ->willReturn([]);
+    
+        $jsonResponse = $this->getSubscriptionsOfSubscriptions($request);
+        $jsonResponse->getBody()->getContents()->shouldBe(json_encode([
+            'users' => [
+                [],
+            ]
+        ]));
+    }
+
     public function it_should_return_users_who_i_am_subscribed_to_that_also_subscribe_to_x_user(
         ServerRequest $request,
         User $user1Mock
