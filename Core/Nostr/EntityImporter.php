@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\Nostr;
 
 use Minds\Common\Access;
@@ -94,6 +95,16 @@ class EntityImporter
         // Save the event to the database
         $this->manager->addEvent($nostrEvent);
 
+        // Save replies and mentions, if present
+        foreach ($nostrEvent->getTags() as $tag) {
+            if ($tag[0] == "e") {
+                $this->manager->addReply($nostrEvent->getId(), $tag);
+            }
+            if ($tag[0] == "p") {
+                $this->manager->addMention($nostrEvent->getId(), $tag);
+            }
+        }
+
         switch ($nostrEvent->getKind()) {
             case NostrEvent::EVENT_KIND_0: // set_metadata
 
@@ -132,11 +143,11 @@ class EntityImporter
 
                 // Add this activity to `nostr_kind_1_to_activity_guid`
                 $this->manager->addActivityToNostrId($activity, $nostrEvent->getId());
-            
+
                 break;
             case NostrEvent::EVENT_KIND_2: // recommend_server
             default:
-                // Not implemented
-        }
+            // Not implemented
+            }
     }
 }

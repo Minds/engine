@@ -270,6 +270,28 @@ class Manager
     }
 
     /**
+     * Adds reply for a given nostr event
+     * @param string $eventId
+     * @param array $tag
+     * @return bool
+     */
+    public function addReply(string $eventId, array $tag): bool
+    {
+        return $this->repository->addReply($eventId, $tag);
+    }
+
+    /**
+     * Adds mention for a given nostr event
+     * @param string $eventId
+     * @param array $tag
+     * @return bool
+     */
+    public function addMention(string $eventId, array $tag): bool
+    {
+        return $this->repository->addMention($eventId, $tag);
+    }
+
+    /**
      * Pair a Minds User with a Nostr public key
      * @param User $user
      * @param string $nostrPublicKey

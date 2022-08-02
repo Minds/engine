@@ -78,8 +78,8 @@ class Repository
             pubkey,
             created_at,
             kind,
-            e_ref,
-            p_ref,
+            e_ref, -- Legacy column
+            p_ref, -- Legacy column
             tags,
             content,
             sig
@@ -87,29 +87,67 @@ class Repository
         VALUES (?,?,?,?,?,?,?,?,?)
         ON DUPLICATE KEY UPDATE id=id";
 
-        // Extract event and public key references if present
-        $eRef = null;
-        $pRef = null;
-        foreach ($nostrEvent->getTags() as $tag) {
-            if ($tag[0] == "e") {
-                $eRef = $tag[1];
-            }
-            if ($tag[0] == "p") {
-                $pRef = $tag[1];
-            }
-        }
-
         $values = [
             $nostrEvent->getId(),
             $nostrEvent->getPubKey(),
             date('c', $nostrEvent->getCreated_at()),
+            // date('Y-m-d H:i:s', $nostrEvent->getCreated_at()),
             $nostrEvent->getKind(),
-            $eRef,
-            $pRef,
+            null,
+            null,
             $nostrEvent->getTags() ? json_encode($nostrEvent->getTags()) : null,
             $nostrEvent->getContent(),
             $nostrEvent->getSig(),
         ];
+
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
+        return $prepared->execute($values);
+    }
+
+    /**
+     * Adds reply for a given nostr event
+     * @param string $eventId
+     * @param array $tag
+     * @return bool
+     */
+    public function addReply(string $eventId, array $tag): bool
+    {
+        $statement = "INSERT nostr_replies 
+        (
+            id, -- Source event id
+            event_id, -- Event ID being referenced
+            relay_url, -- Recommended relay
+            marker -- root/reply
+        )
+        VALUES (?,?,?,?)
+        ON DUPLICATE KEY UPDATE id=id";
+
+        $values = [$eventId, $tag[1]];
+
+        $values[] = array_key_exists(2, $tag) ? $tag[2] : null;
+        $values[] = array_key_exists(3, $tag) ? $tag[3] : null;
+
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
+        return $prepared->execute($values);
+    }
+
+    /**
+     * Adds mention for a given nostr event
+     * @param string $eventId
+     * @param array $tag
+     * @return bool
+     */
+    public function addMention(string $eventId, array $tag): bool
+    {
+        $statement = "INSERT nostr_mentions 
+        (
+            id, -- Event ID
+            pubkey -- Author ref
+        )
+        VALUES (?,?)
+        ON DUPLICATE KEY UPDATE id=id";
+
+        $values = [$eventId, $tag[1]];
 
         $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
         return $prepared->execute($values);
@@ -153,7 +191,7 @@ class Repository
             'ids' => [ $nostrId ],
             'kinds' => [1],
         ], returnActivityGuids: true);
-    
+
         $rows = $prepared->fetchAll();
 
         if (isset($rows[0])) {
@@ -167,7 +205,7 @@ class Repository
                 return $activity;
             }
         }
-    
+
         return null;
     }
 
@@ -218,12 +256,14 @@ class Repository
         }
 
         if ($filters['#e']) {
-            $where[] = "e.e_ref IN " . $this->inPad($filters['#e']);
+            $statement = "SELECT e.* FROM nostr_replies r INNER JOIN nostr_events e ON r.id=e.id";
+            $where[] = "r.event_id IN " . $this->inPad($filters['#e']);
             array_push($values, ...$filters['#e']);
         }
 
         if ($filters['#p']) {
-            $where[] = "e.p_ref IN " . $this->inPad($filters['#p']);
+            $statement = "SELECT e.* FROM nostr_mentions m INNER JOIN nostr_events e ON m.id=e.id";
+            $where[] = "m.pubkey IN " . $this->inPad($filters['#p']);
             array_push($values, ...$filters['#p']);
         }
 
@@ -264,7 +304,7 @@ class Repository
 
         $ownerGuid = $activity->getOwnerGuid();
         $prepared->bindParam(3, $ownerGuid, PDO::PARAM_STR);
-        
+
         $isExternal = $activity->getSource() === 'nostr';
         $prepared->bindParam(4, $isExternal, PDO::PARAM_BOOL);
 
