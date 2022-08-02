@@ -86,6 +86,7 @@ class Repository
         string $userGuid,
         string $subscribedToGuid,
         int $limit = 12,
+        int $offset = 0,
         bool $randomize = true,
     ): iterable {
         $statement = "SELECT own.friend_guid " . $this->getSubscriptionsThatSubscribeToStatement();
@@ -94,7 +95,10 @@ class Repository
             $statement . " ORDER BY RAND()";
         }
 
-        $statement .= " LIMIT $limit";
+        $limit = (int) $limit;
+        $offset = (int) $offset;
+
+        $statement .= " LIMIT $offset,$limit";
 
         $prepared = $this->client->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
 

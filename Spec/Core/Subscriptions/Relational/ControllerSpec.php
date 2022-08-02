@@ -43,7 +43,7 @@ class ControllerSpec extends ObjectBehavior
         $this->repositoryMock->getSubscriptionsThatSubscribeToCount('123', '456')
             ->willReturn(10);
 
-        $this->repositoryMock->getSubscriptionsThatSubscribeTo('123', '456', 3)
+        $this->repositoryMock->getSubscriptionsThatSubscribeTo('123', '456', 3, 0)
             ->willYield([
                 $user1Mock->getWrappedObject(),
             ]);
