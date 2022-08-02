@@ -4,12 +4,15 @@ namespace Minds\Core\Feeds\ClusteredRecommendations;
 
 use Exception;
 use Generator;
+use Minds\Common\PseudonymousIdentifier;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Feeds\Seen\Manager as SeenManager;
+use Minds\Core\Feeds\Seen\SeenCacheKeyCookie;
 use Minds\Core\Recommendations\UserRecommendationsCluster;
 use Minds\Entities\User;
 
@@ -21,15 +24,33 @@ class Manager
     private User $user;
 
     public function __construct(
-        private ?Repository $repository = null,
+        private ?RepositoryInterface $repository = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?UserRecommendationsCluster $userRecommendationsCluster = null,
         private ?SeenManager $seenManager = null,
+        private ?RepositoryFactory $repositoryFactory = null,
+        private ?ExperimentsManager $experimentsManager = null,
+        private ?SeenCacheKeyCookie $seenCacheKeyCookie = null
     ) {
-        $this->repository ??= new Repository();
         $this->entitiesBuilder ??= new EntitiesBuilder();
         $this->userRecommendationsCluster ??= new UserRecommendationsCluster();
         $this->seenManager = $seenManager ?? Di::_()->get('Feeds\Seen\Manager');
+        $this->repositoryFactory ??= new RepositoryFactory();
+        $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
+        $this->repository ??= $this->getRepository();
+        $this->seenCacheKeyCookie ??=  new SeenCacheKeyCookie();
+    }
+
+    /**
+     * Get the correct repository based on the
+     * @return RepositoryInterface
+     */
+    private function getRepository(): RepositoryInterface
+    {
+        if ($this->experimentsManager->isOn("engine-2364-vitess-clustered-recs")) {
+            return $this->repositoryFactory->getInstance(MySQLRepository::class);
+        }
+        return $this->repositoryFactory->getInstance(ElasticSearchRepository::class);
     }
 
     /**
@@ -46,13 +67,20 @@ class Manager
     /**
      * Gets the list of entities based on the clustered recommendations ES index
      * @param int $limit
+     * @param bool $unseen
      * @return Response
      * @throws Exception
      */
     public function getList(int $limit, bool $unseen = false): Response
     {
         $clusterId = $this->userRecommendationsCluster->calculateUserRecommendationsClusterId($this->user);
-        $entries = $this->repository->getList($clusterId, $limit, $unseen ? $this->seenManager->listSeenEntities() : [], $unseen);
+        $seenEntitiesList = [];
+
+        if (!$this->experimentsManager->isOn("engine-2364-vitess-clustered-recs") && $unseen) {
+            $seenEntitiesList = $this->seenManager->listSeenEntities();
+        }
+
+        $entries = $this->repository->getList($clusterId, $limit, $seenEntitiesList, $unseen, $this->getIdentifier());
         $feedSyncEntities = $this->prepareFeedSyncEntities($entries);
         $preparedEntities = $this->prepareEntities($feedSyncEntities);
 
@@ -144,5 +172,28 @@ class Manager
                 INF
             ) - 1
         );
+    }
+
+    /**
+     * If, for some reason, there is no pseudo id found, then we use
+     * a generic cookie
+     * @return SeenCacheKeyCookie
+     */
+    private function createSeenCacheKeyCookie(): SeenCacheKeyCookie
+    {
+        return $this->seenCacheKeyCookie->createCookie();
+    }
+
+    /**
+     * Identifier. Will be pseudo if if found, if not we use a fallback cookie
+     * @return string
+     */
+    private function getIdentifier(): string
+    {
+        $id = (new PseudonymousIdentifier())->getId();
+        if (!$id) {
+            $id = $this->createSeenCacheKeyCookie()->getValue();
+        }
+        return $id;
     }
 }
