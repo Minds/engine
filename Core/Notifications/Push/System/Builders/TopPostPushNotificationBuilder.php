@@ -192,6 +192,8 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
         if ($this->entity->getType() !== 'activity') {
             return false;
         }
-        return ($this->entity->getPermaUrl() === $this->entity->getMessage()) || ($this->entity->getPermaUrl() && !$this->entity->getMessage());
+
+        $message = trim($this->entity->getMessage());
+        return ($this->entity->getPermaUrl() === $message) || ($this->entity->getPermaUrl() && !$message);
     }
 }

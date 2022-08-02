@@ -682,4 +682,50 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
         $builtNotification->getUri()->shouldBe('newsfeed/123');
         $builtNotification->getMedia()->shouldBe('');
     }
+
+    public function it_should_trim_the_message_body_when_detecting_links(
+        Activity $activity,
+        User $user
+    ) {
+        $activity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
+        $user->getUsername()
+            ->shouldBeCalled()
+            ->willReturn('test');
+        
+        $user->getName()
+            ->shouldBeCalled()
+            ->willReturn('');
+
+        $activity->getPermaURL()
+            ->shouldBeCalled()
+            ->willReturn('http://test.com/test');
+
+        $activity->getOwnerEntity()
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $activity->getTitle()
+            ->shouldBeCalled()
+            ->willReturn(str_repeat("T", 200));
+
+        $activity->getMessage()
+            ->shouldBeCalled()
+            ->willReturn(' ');
+
+        $activity->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $this->entity = $activity;
+
+        $builtNotification = $this->build($activity);
+
+        $builtNotification->getTitle()->shouldBe('@test posted a link');
+        $builtNotification->getBody()->shouldBe(str_repeat("T", 170).'...');
+        $builtNotification->getUri()->shouldBe('newsfeed/123');
+        $builtNotification->getMedia()->shouldBe('');
+    }
 }
