@@ -91,7 +91,6 @@ class Repository
             $nostrEvent->getId(),
             $nostrEvent->getPubKey(),
             date('c', $nostrEvent->getCreated_at()),
-            // date('Y-m-d H:i:s', $nostrEvent->getCreated_at()),
             $nostrEvent->getKind(),
             null,
             null,
@@ -228,8 +227,10 @@ class Repository
             'limit' => 12,
         ], $filters);
 
-
-        $statement = "SELECT e.* FROM nostr_events e";
+        // Adding DISTINCT since events can have multiple e/p refs
+        $statement = "SELECT DISTINCT e.* FROM nostr_events e
+                        LEFT OUTER JOIN nostr_replies r ON e.id=r.id
+                        LEFT OUTER JOIN nostr_mentions m ON e.id=m.id";
         $values = [];
 
         if ($returnActivityGuids) {
@@ -256,20 +257,33 @@ class Repository
         }
 
         if ($filters['#e']) {
-            $statement = "SELECT e.* FROM nostr_replies r INNER JOIN nostr_events e ON r.id=e.id";
             $where[] = "r.event_id IN " . $this->inPad($filters['#e']);
             array_push($values, ...$filters['#e']);
         }
 
         if ($filters['#p']) {
-            $statement = "SELECT e.* FROM nostr_mentions m INNER JOIN nostr_events e ON m.id=e.id";
             $where[] = "m.pubkey IN " . $this->inPad($filters['#p']);
             array_push($values, ...$filters['#p']);
+        }
+
+        if ($filters['since']) {
+            $where[] = "e.created_at >= ?";
+            array_push($values, date('c', $filters['since']));
+        }
+
+        if ($filters['until']) {
+            $where[] = "e.created_at <= ?";
+            array_push($values, date('c', $filters['until']));
         }
 
         if ($filters) {
             $statement .= " WHERE " . implode(' AND ', $where);
         }
+
+        // if ($filters['limit']) {
+        //     $statement .= " LIMIT ?";
+        //     array_push($values, $filters['limit']);
+        // }
 
         $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_REPLICA)->prepare($statement);
 
