@@ -2,7 +2,6 @@
 
 namespace Spec\Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Cache;
 
-use Minds\Core\Config\Config;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Metadata;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Cache\Repository;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Cache\Manager;
@@ -14,19 +13,11 @@ class ManagerSpec extends ObjectBehavior
     /** @var Repository */
     protected $repository;
 
-    /** @var Config */
-    protected $config;
-
     public function let(
         Repository $repository,
-        Config $config
     ) {
         $this->repository = $repository;
-        $this->config = $config;
-        $this->beConstructedWith(
-            $repository,
-            $config
-        );
+        $this->beConstructedWith($repository);
     }
 
     public function it_is_initializable()

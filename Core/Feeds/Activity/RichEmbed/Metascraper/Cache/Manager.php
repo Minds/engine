@@ -2,8 +2,6 @@
 
 namespace Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Cache;
 
-use Minds\Core\Config\Config;
-use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Metadata;
 
 /**
@@ -14,14 +12,11 @@ class Manager
     /**
      * Constructor.
      * @param Repository|null $repository
-     * @param Config|null $config
      */
     public function __construct(
         private ?Repository $repository = null,
-        private ?Config $config = null
     ) {
         $this->repository ??= new Repository();
-        $this->config ??= Di::_()->get('Config');
     }
 
     /**
