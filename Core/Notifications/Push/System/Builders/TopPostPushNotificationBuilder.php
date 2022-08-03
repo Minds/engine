@@ -69,22 +69,27 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
      */
     protected function buildTitle(): string
     {
-        $usernameString = $this->getOwnerUsernameString();
+        $nameString = $this->getOwnerNameString();
 
         switch ($this->entity->getType()) {
+            case 'activity':
+                if ($this->isEntityALink()) {
+                    return $nameString . ' posted a link';
+                }
+                break;
             case 'object':
                 switch ($this->entity->getSubtype()) {
                     case 'blog':
-                        return $usernameString . ' posted a blog';
+                        return $nameString . ' posted a blog';
                     case 'image':
-                        return $usernameString . ' posted an image';
+                        return $nameString . ' posted an image';
                     case 'video':
-                        return $usernameString . ' posted a video';
+                        return $nameString . ' posted a video';
                 }
                 break;
         }
 
-        return $usernameString . ' posted';
+        return $nameString . ' posted';
     }
 
     /**
@@ -96,7 +101,11 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
         $body = '';
         switch ($this->entity->getType()) {
             case 'activity':
-                $body = $this->entity->getMessage();
+                if ($this->isEntityALink()) {
+                    $body = $this->entity->getTitle() ?: $this->entity->getMessage();
+                } else {
+                    $body = $this->entity->getMessage();
+                }
                 break;
             case 'object':
                 switch ($this->entity->getSubtype()) {
@@ -157,15 +166,34 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
     }
 
     /**
-     * Gets username string.
-     * @return string - username string (@username).
+     * Gets the owner's name or username
+     * @return string - name string
      */
-    protected function getOwnerUsernameString(): string
+    protected function getOwnerNameString(): string
     {
-        $username = $this->entity->getOwnerEntity()->getUsername();
-        if (mb_strlen($username) > 45) {
-            return '@' . mb_substr($username, 0, 45).'...';
+        $entityOwner = $this->entity->getOwnerEntity();
+        $ownerName = $entityOwner->getName();
+        $ownerUsername = $entityOwner->getUsername();
+        $name = $ownerName ?: '@' . $ownerUsername;
+
+        if (mb_strlen($name) > 45) {
+            return mb_substr($name, 0, 45).'...';
         }
-        return '@' . $username;
+
+        return $name;
+    }
+
+    /**
+     * returns whether the entity is a link
+     * @return bool
+     */
+    private function isEntityALink(): bool
+    {
+        if ($this->entity->getType() !== 'activity') {
+            return false;
+        }
+
+        $message = trim($this->entity->getMessage());
+        return ($this->entity->getPermaUrl() === $message) || ($this->entity->getPermaUrl() && !$message);
     }
 }
