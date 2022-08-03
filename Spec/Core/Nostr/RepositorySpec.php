@@ -106,6 +106,64 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
+    public function it_should_add_reply(PDO $pdoMock, PDOStatement $pdoStatementMock)
+    {
+        $eventId = "8933788dafe23ed6ac5a0d20011fde4769e2096972bb777d728ca62c43fa04d0";
+        $tag = [
+            "e",
+            "50eaadde6fd5a67b9a35f947355e3f90d6043d888008c4dbdb36c06155cf31ea", // Reply event
+            "wss://relay.minds.io", // Recommended relay
+            "reply" // Marker
+        ];
+
+
+        $this->mysqlClientMock->getConnection(MySQL\Client::CONNECTION_MASTER)
+        ->willReturn($pdoMock);
+
+        $pdoMock->prepare(Argument::type('string'))
+            ->willReturn($pdoStatementMock);
+
+
+        $pdoStatementMock->execute([
+            "8933788dafe23ed6ac5a0d20011fde4769e2096972bb777d728ca62c43fa04d0",
+            "50eaadde6fd5a67b9a35f947355e3f90d6043d888008c4dbdb36c06155cf31ea",
+            "wss://relay.minds.io",
+            "reply"
+        ])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->addReply($eventId, $tag)
+            ->shouldBe(true);
+    }
+
+    public function it_should_add_mention(PDO $pdoMock, PDOStatement $pdoStatementMock)
+    {
+        $eventId = "8933788dafe23ed6ac5a0d20011fde4769e2096972bb777d728ca62c43fa04d0";
+        $tag = [
+            "p",
+            "c59bb3bb07b087ef9fbd82c9530cf7de9d28adfdeb5076a0ac39fa44b88a49ad"
+        ];
+
+
+        $this->mysqlClientMock->getConnection(MySQL\Client::CONNECTION_MASTER)
+        ->willReturn($pdoMock);
+
+        $pdoMock->prepare(Argument::type('string'))
+            ->willReturn($pdoStatementMock);
+
+
+        $pdoStatementMock->execute([
+            "8933788dafe23ed6ac5a0d20011fde4769e2096972bb777d728ca62c43fa04d0",
+            "c59bb3bb07b087ef9fbd82c9530cf7de9d28adfdeb5076a0ac39fa44b88a49ad"
+        ])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->addMention($eventId, $tag)
+            ->shouldBe(true);
+    }
+
     public function it_should_query_events(PDO $pdoMock, PDOStatement $pdoStatementMock)
     {
         $filters = [

@@ -80,6 +80,16 @@ class EntityImporterSpec extends ObjectBehavior
         $this->managerMock->verifyEvent(Argument::any())
             ->willReturn(true);
 
+        $this->managerMock->addMention(
+            "af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c",
+            Argument::any()
+        )->willReturn(true);
+
+        $this->managerMock->addReply(
+            "af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c",
+            Argument::any()
+        )->willReturn(true);
+
         $this->managerMock->addEvent($nostrEvent)
             ->shouldBeCalled();
 
@@ -132,12 +142,12 @@ class EntityImporterSpec extends ObjectBehavior
     "pubkey": "36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b",
     "created_at": 1658238691,
     "kind": 1,
-    "tags": [],
+    "tags": [["p", "c59bb3bb07b087ef9fbd82c9530cf7de9d28adfdeb5076a0ac39fa44b88a49ad"],["e", "50eaadde6fd5a67b9a35f947355e3f90d6043d888008c4dbdb36c06155cf31ea"]],
     "content": "Hello sandbox",
     "sig": "f6a68256a42f9fd84948e328300d0ca55160c9517cd57e549381ce9106e89946ee58c468b93e7ed419f2aec4844c1e995987d27119f9988e99ea2da8dfafffec"
 }
 END;
-        
+
         $rawNostrEventArray = json_decode($rawNostrEvent, true);
         return NostrEvent::buildFromArray($rawNostrEventArray);
     }
