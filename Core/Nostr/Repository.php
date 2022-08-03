@@ -280,15 +280,24 @@ class Repository
             $statement .= " WHERE " . implode(' AND ', $where);
         }
 
+        // Append LIMIT
+        $statement .= " LIMIT ?";
+        array_push($values, $filters['limit']);
+
+        // Prepare query
         $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_REPLICA)->prepare($statement);
 
-        // execute assumes params are strings, so using bindParam for LIMIT
-        if ($filters['limit']) {
-            $statement .= " LIMIT :limit";
-            $prepared->bindParam(":limit", $filters['limit'], PDO::PARAM_INT);
+        // Cap max limit
+        $limit = $filters['limit'] > 150 ? 150 : $filters['limit'];
+
+        // execute($params) assumes all params are strings, so using bindValue
+        foreach ($values as $i => $value) {
+            $test = PDO::PARAM_INT;
+            $type = gettype($value) == "integer" ? PDO::PARAM_INT : PDO::PARAM_STR;
+            $prepared->bindValue($i + 1, $value, $type);
         }
 
-        $prepared->execute($values);
+        $prepared->execute();
 
         return $prepared;
     }

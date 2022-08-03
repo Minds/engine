@@ -178,18 +178,16 @@ class RepositorySpec extends ObjectBehavior
         $pdoMock->prepare(Argument::type('string'))
             ->willReturn($pdoStatementMock);
 
-        // bindParam call for LIMIT
-        $pdoStatementMock->bindParam(":limit", 12, 1)->shouldBeCalled();
+        // Assert correct values are binded
+        $pdoStatementMock->bindValue(1, "af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c", PDO::PARAM_STR)->shouldBeCalled();
+        $pdoStatementMock->bindValue(2, "bf5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c", PDO::PARAM_STR)->shouldBeCalled();
+        $pdoStatementMock->bindValue(3, "36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b", PDO::PARAM_STR)->shouldBeCalled();
+        $pdoStatementMock->bindValue(4, "46cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b", PDO::PARAM_STR)->shouldBeCalled();
+        $pdoStatementMock->bindValue(5, 0, PDO::PARAM_INT)->shouldBeCalled();
+        $pdoStatementMock->bindValue(6, 1, PDO::PARAM_INT)->shouldBeCalled();
+        $pdoStatementMock->bindValue(7, 12, PDO::PARAM_INT)->shouldBeCalled();
 
-        $pdoStatementMock->execute([
-            'af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c',
-            'bf5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c',
-            '36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b',
-            '46cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b',
-            0,
-            1
-        ])
-            ->shouldBeCalled();
+        $pdoStatementMock->execute()->shouldBeCalled();
 
         $pdoStatementMock->fetchAll()
             ->willReturn(
@@ -220,14 +218,12 @@ class RepositorySpec extends ObjectBehavior
         $pdoMock->prepare(Argument::type('string'))
             ->willReturn($pdoStatementMock);
 
-        // bindParam call for LIMIT
-        $pdoStatementMock->bindParam(":limit", 12, 1)->shouldBeCalled();
+        // Assert correct values are binded
+        $pdoStatementMock->bindValue(1, "af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c", PDO::PARAM_STR)->shouldBeCalled();
+        $pdoStatementMock->bindValue(2, 1, PDO::PARAM_INT)->shouldBeCalled();
+        $pdoStatementMock->bindValue(3, 12, PDO::PARAM_INT)->shouldBeCalled();
 
-        $pdoStatementMock->execute([
-            'af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c',
-            1
-        ])
-            ->shouldBeCalled();
+        $pdoStatementMock->execute()->shouldBeCalled();
 
         $pdoStatementMock->fetchAll()
             ->willReturn(
