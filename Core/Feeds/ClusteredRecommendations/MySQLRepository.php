@@ -7,6 +7,7 @@ use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Elastic\ScoredGuid;
+use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOStatement;
 
@@ -16,13 +17,18 @@ class MySQLRepository implements RepositoryInterface
 
     private PDO $mysqlClient;
 
+    /**
+     * @param MySQLClient|null $mysqlHandler
+     * @param MindsConfig|null $mindsConfig
+     * @throws ServerErrorException
+     */
     public function __construct(
-        ?MySQLClient $mysqlClient = null,
+        private ?MySQLClient $mysqlHandler = null,
         private ?MindsConfig $mindsConfig = null
     ) {
-        $mysqlClient ??= Di::_()->get("Database\MySQL\Client");
+        $this->mysqlHandler ??= Di::_()->get("Database\MySQL\Client");
 
-        $this->mysqlClient = $mysqlClient?->getConnection(MySQLClient::CONNECTION_REPLICA);
+        $this->mysqlClient = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_REPLICA);
 
         $this->mindsConfig ??= Di::_()->get("Config");
     }
@@ -37,10 +43,10 @@ class MySQLRepository implements RepositoryInterface
      */
     public function getList(int $clusterId, int $limit, array $exclude = [], bool $demote = false, ?string $pseudoId = null): Generator
     {
-        ['preparedQuery' => $preparedQuery, 'values' => $values] = $this->buildQuery($clusterId, $limit, $pseudoId, $demote);
-        $preparedQuery->execute($values);
+        $statement = $this->buildQuery($clusterId, $limit, $pseudoId, $demote);
+        $statement->execute();
 
-        foreach ($preparedQuery as $row) {
+        foreach ($statement as $row) {
             yield (new ScoredGuid())
                 ->setGuid($row['entity_guid'])
                 ->setType('activity')
@@ -56,9 +62,9 @@ class MySQLRepository implements RepositoryInterface
      * @param int $limit
      * @param string $pseudoId
      * @param bool $demote
-     * @return array{"preparedQuery": PDOStatement|false, "values": array<string, string>}
+     * @return PDOStatement
      */
-    private function buildQuery(int $clusterId, int $limit, string $pseudoId, bool $demote): array
+    private function buildQuery(int $clusterId, int $limit, string $pseudoId, bool $demote): PDOStatement
     {
         $values = [];
 
@@ -88,14 +94,13 @@ class MySQLRepository implements RepositoryInterface
         ORDER BY
             adjusted_score DESC
         LIMIT
-            $limit";
+            :limit";
         $values['cluster_id'] = 1;
+        $values['limit'] = $limit;
 
-        return [
-            'preparedQuery' => $this->mysqlClient->prepare(
-                $query
-            ),
-            'values' => $values
-        ];
+        $statement = $this->mysqlClient->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        return $statement;
     }
 }

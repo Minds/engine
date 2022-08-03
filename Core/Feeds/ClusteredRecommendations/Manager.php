@@ -4,7 +4,6 @@ namespace Minds\Core\Feeds\ClusteredRecommendations;
 
 use Exception;
 use Generator;
-use Minds\Common\PseudonymousIdentifier;
 use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
 use Minds\Core\Di\Di;
@@ -12,7 +11,6 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Feeds\Seen\Manager as SeenManager;
-use Minds\Core\Feeds\Seen\SeenCacheKeyCookie;
 use Minds\Core\Recommendations\UserRecommendationsCluster;
 use Minds\Entities\User;
 
@@ -29,8 +27,7 @@ class Manager
         private ?UserRecommendationsCluster $userRecommendationsCluster = null,
         private ?SeenManager $seenManager = null,
         private ?RepositoryFactory $repositoryFactory = null,
-        private ?ExperimentsManager $experimentsManager = null,
-        private ?SeenCacheKeyCookie $seenCacheKeyCookie = null
+        private ?ExperimentsManager $experimentsManager = null
     ) {
         $this->entitiesBuilder ??= new EntitiesBuilder();
         $this->userRecommendationsCluster ??= new UserRecommendationsCluster();
@@ -38,7 +35,6 @@ class Manager
         $this->repositoryFactory ??= new RepositoryFactory();
         $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
         $this->repository ??= $this->getRepository();
-        $this->seenCacheKeyCookie ??=  new SeenCacheKeyCookie();
     }
 
     /**
@@ -80,7 +76,7 @@ class Manager
             $seenEntitiesList = $this->seenManager->listSeenEntities();
         }
 
-        $entries = $this->repository->getList($clusterId, $limit, $seenEntitiesList, $unseen, $this->getIdentifier());
+        $entries = $this->repository->getList($clusterId, $limit, $seenEntitiesList, $unseen, $this->seenManager->getIdentifier());
         $feedSyncEntities = $this->prepareFeedSyncEntities($entries);
         $preparedEntities = $this->prepareEntities($feedSyncEntities);
 
@@ -172,28 +168,5 @@ class Manager
                 INF
             ) - 1
         );
-    }
-
-    /**
-     * If, for some reason, there is no pseudo id found, then we use
-     * a generic cookie
-     * @return SeenCacheKeyCookie
-     */
-    private function createSeenCacheKeyCookie(): SeenCacheKeyCookie
-    {
-        return $this->seenCacheKeyCookie->createCookie();
-    }
-
-    /**
-     * Identifier. Will be pseudo if if found, if not we use a fallback cookie
-     * @return string
-     */
-    private function getIdentifier(): string
-    {
-        $id = (new PseudonymousIdentifier())->getId();
-        if (!$id) {
-            $id = $this->createSeenCacheKeyCookie()->getValue();
-        }
-        return $id;
     }
 }

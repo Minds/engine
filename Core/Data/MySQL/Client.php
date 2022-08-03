@@ -5,6 +5,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
+use PDOStatement;
 
 /**
  * Client that allows access to MySQL
@@ -21,7 +22,7 @@ class Client
     const CONNECTION_RDONLY = 'rdonly';
 
     /** @var PDO[] */
-    protected $connections = [];
+    protected array $connections = [];
 
     public function __construct(protected ?Config $config = null)
     {
@@ -65,5 +66,18 @@ class Client
             $this->connections[$connectionType] = new PDO($dsn, $user, $pass, $options);
         }
         return $this->connections[$connectionType];
+    }
+
+    public function bindValuesToPreparedStatement(PDOStatement $statement, array $values): void
+    {
+        foreach ($values as $key => $value) {
+            $statement->bindValue(
+                $key,
+                $value,
+                is_int($value)
+                    ? PDO::PARAM_INT
+                    : PDO::PARAM_STR
+            );
+        }
     }
 }
