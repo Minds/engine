@@ -95,7 +95,7 @@ class MySQLRepository implements RepositoryInterface
             adjusted_score DESC
         LIMIT
             :limit";
-        $values['cluster_id'] = 1;
+        $values['cluster_id'] = $clusterId;
         $values['limit'] = $limit;
 
         $statement = $this->mysqlClient->prepare($query);
