@@ -109,7 +109,7 @@ class Repository
      * @param array $tag
      * @return bool
      */
-    public function addReply(string $eventId, array $tag): bool
+    public function addReply(string $eventId, array $tags): bool
     {
         $statement = "INSERT nostr_replies 
         (
@@ -118,14 +118,19 @@ class Repository
             relay_url, -- Recommended relay
             marker -- root/reply
         )
-        VALUES (?,?,?,?)
-        ON DUPLICATE KEY UPDATE id=id";
+        VALUES ";
 
-        $values = [$eventId, $tag[1]];
+        $values = [];
+        foreach ($tags as $i => $tag) {
+            $rows[] = "(?,?,?,?)";
+            $values[] = $eventId;
+            $values[] = $tag[1];
+            $values[] = array_key_exists(2, $tag) ? $tag[2] : null;
+            $values[] = array_key_exists(3, $tag) ? $tag[3] : null;
+        }
 
-        $values[] = array_key_exists(2, $tag) ? $tag[2] : null;
-        $values[] = array_key_exists(3, $tag) ? $tag[3] : null;
-
+        $statement .= implode(",", $rows); // Batch rows
+        $statement .= " ON DUPLICATE KEY UPDATE id=id";
         $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
         return $prepared->execute($values);
     }
@@ -136,18 +141,25 @@ class Repository
      * @param array $tag
      * @return bool
      */
-    public function addMention(string $eventId, array $tag): bool
+    public function addMention(string $eventId, array $tags): bool
     {
         $statement = "INSERT nostr_mentions 
         (
             id, -- Event ID
             pubkey -- Author ref
         )
-        VALUES (?,?)
-        ON DUPLICATE KEY UPDATE id=id";
+        VALUES ";
 
-        $values = [$eventId, $tag[1]];
 
+        $values = [];
+        foreach ($tags as $i => $tag) {
+            $rows[] = "(?,?)";
+            $values[] = $eventId;
+            $values[] = $tag[1];
+        }
+
+        $statement .= implode(",", $rows); // Batch rows
+        $statement .= " ON DUPLICATE KEY UPDATE id=id";
         $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
         return $prepared->execute($values);
     }

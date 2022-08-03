@@ -95,14 +95,22 @@ class EntityImporter
         // Save the event to the database
         $this->manager->addEvent($nostrEvent);
 
-        // Save replies and mentions, if present
-        foreach ($nostrEvent->getTags() as $tag) {
-            if ($tag[0] == "e") {
-                $this->manager->addReply($nostrEvent->getId(), $tag);
-            }
-            if ($tag[0] == "p") {
-                $this->manager->addMention($nostrEvent->getId(), $tag);
-            }
+        // Save replies
+        $replies = array_filter($nostrEvent->getTags(), function ($tag) {
+            return $tag[0] == "e";
+        });
+
+        if (count($replies) > 0) {
+            $this->manager->addReply($nostrEvent->getId(), $replies);
+        }
+
+        // Save mentions
+        $mentions = array_filter($nostrEvent->getTags(), function ($tag) {
+            return $tag[0] == "p";
+        });
+
+        if (count($mentions) > 0) {
+            $this->manager->addMention($nostrEvent->getId(), $mentions);
         }
 
         switch ($nostrEvent->getKind()) {
