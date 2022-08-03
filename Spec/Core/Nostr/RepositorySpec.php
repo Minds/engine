@@ -120,6 +120,9 @@ class RepositorySpec extends ObjectBehavior
         $pdoMock->prepare(Argument::type('string'))
             ->willReturn($pdoStatementMock);
 
+        // bindParam call for LIMIT
+        $pdoStatementMock->bindParam(":limit", 12, 1)->shouldBeCalled();
+
         $pdoStatementMock->execute([
             'af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c',
             'bf5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c',
@@ -158,6 +161,9 @@ class RepositorySpec extends ObjectBehavior
 
         $pdoMock->prepare(Argument::type('string'))
             ->willReturn($pdoStatementMock);
+
+        // bindParam call for LIMIT
+        $pdoStatementMock->bindParam(":limit", 12, 1)->shouldBeCalled();
 
         $pdoStatementMock->execute([
             'af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c',
@@ -357,7 +363,7 @@ class RepositorySpec extends ObjectBehavior
     "sig": "f6a68256a42f9fd84948e328300d0ca55160c9517cd57e549381ce9106e89946ee58c468b93e7ed419f2aec4844c1e995987d27119f9988e99ea2da8dfafffec"
 }
 END;
-        
+
         $rawNostrEventArray = json_decode($rawNostrEvent, true);
         return NostrEvent::buildFromArray($rawNostrEventArray);
     }

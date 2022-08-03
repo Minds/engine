@@ -280,12 +280,13 @@ class Repository
             $statement .= " WHERE " . implode(' AND ', $where);
         }
 
-        // if ($filters['limit']) {
-        //     $statement .= " LIMIT ?";
-        //     array_push($values, $filters['limit']);
-        // }
-
         $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_REPLICA)->prepare($statement);
+
+        // execute assumes params are strings, so using bindParam for LIMIT
+        if ($filters['limit']) {
+            $statement .= " LIMIT :limit";
+            $prepared->bindParam(":limit", $filters['limit'], PDO::PARAM_INT);
+        }
 
         $prepared->execute($values);
 
