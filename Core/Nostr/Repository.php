@@ -44,6 +44,16 @@ class Repository
     }
 
     /**
+     * Roll back MySQL transactions
+     * @return bool
+     */
+    public function rollBack(): bool
+    {
+        $dbh = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER);
+        return $dbh->rollBack();
+    }
+
+    /**
      * Adds a public key to the whitelist
      * @param string $pubKey
      * @return bool

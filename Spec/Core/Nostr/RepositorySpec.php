@@ -90,7 +90,7 @@ class RepositorySpec extends ObjectBehavior
 
         $pdoStatementMock->execute([
             'af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c', // id
-            '36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b', // pubket
+            '36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b', // pubkey
             '2022-07-19T13:51:31+00:00', // created at
             1, // kind
             null, // eref

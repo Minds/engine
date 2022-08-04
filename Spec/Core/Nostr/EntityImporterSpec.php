@@ -10,6 +10,7 @@ use Minds\Core\Security\ACL;
 use Minds\Core\Feeds;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
+use PDOException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -65,6 +66,33 @@ class EntityImporterSpec extends ObjectBehavior
             ->willReturn(false);
 
         $this->shouldThrow(UserErrorException::class)->duringOnNostrEvent($nostrEvent);
+    }
+
+    public function it_should_rollback_on_error(User $owner)
+    {
+        $nostrEvent = $this->getNostrEventKind1Mock();
+
+        $this->managerMock->isOnWhitelist('36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b')
+            ->willReturn(true);
+
+        $this->managerMock->getUserByPublicKey('36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b')
+            ->wilLReturn($owner);
+
+        $this->managerMock->verifyEvent(Argument::any())
+            ->willReturn(true);
+
+        $this->managerMock->beginTransaction()->willReturn(true);
+
+        // Throw exec
+        $this->managerMock->addEvent($nostrEvent)->willThrow(new PDOException());
+
+        $this->managerMock->rollBack()
+            ->willReturn(true);
+        $this->managerMock->rollBack()
+            ->shouldBeCalled();
+
+        // We rethrow the execption after rollback
+        $this->shouldThrow(PDOException::class)->duringOnNostrEvent($nostrEvent);
     }
 
     public function it_should_import_activity_post(User $owner)

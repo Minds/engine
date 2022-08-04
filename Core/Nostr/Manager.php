@@ -56,6 +56,15 @@ class Manager
     }
 
     /**
+     * Roll back MySQL transactions
+     * @return bool
+     */
+    public function rollBack(): bool
+    {
+        return $this->repository->rollBack();
+    }
+
+    /**
      * Ask a Minds developer if you want to be added to this list.
      * @param string $pubKey
      * @return bool
