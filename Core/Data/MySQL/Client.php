@@ -35,6 +35,7 @@ class Client
      * To query replicas pass `connectionType: 'replicas'`
      * @param string $connectionType
      * @return PDO
+     * @throws ServerErrorException
      */
     public function getConnection(string $connectionType = 'master'): PDO
     {
@@ -68,16 +69,35 @@ class Client
         return $this->connections[$connectionType];
     }
 
+    /**
+     * Method to bind values from an array to a prepared statement with the correct type
+     * @param PDOStatement $statement
+     * @param array $values
+     * @return void
+     */
     public function bindValuesToPreparedStatement(PDOStatement $statement, array $values): void
     {
         foreach ($values as $key => $value) {
             $statement->bindValue(
                 $key,
                 $value,
-                is_int($value)
-                    ? PDO::PARAM_INT
-                    : PDO::PARAM_STR
+                $this->getParameterType($value)
             );
         }
+    }
+
+    /**
+     * Return the correct PDO parameter type for a given value
+     * @param int|bool|string|null $value
+     * @return int
+     */
+    private function getParameterType(int|bool|string|null $value): int
+    {
+        return match (gettype($value)) {
+            "boolean" => PDO::PARAM_BOOL,
+            "integer" => PDO::PARAM_INT,
+            "NULL" => PDO::PARAM_NULL,
+            default => PDO::PARAM_STR
+        };
     }
 }
