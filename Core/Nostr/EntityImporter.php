@@ -96,18 +96,14 @@ class EntityImporter
         $this->manager->addEvent($nostrEvent);
 
         // Save replies
-        $replies = array_filter($nostrEvent->getTags(), function ($tag) {
-            return $tag[0] == "e";
-        });
+        $replies =  array_filter($nostrEvent->getTags(), fn (array $tag): bool => $tag[0] == "e");
 
         if (count($replies) > 0) {
             $this->manager->addReply($nostrEvent->getId(), $replies);
         }
 
         // Save mentions
-        $mentions = array_filter($nostrEvent->getTags(), function ($tag) {
-            return $tag[0] == "p";
-        });
+        $mentions =  array_filter($nostrEvent->getTags(), fn (array $tag): bool => $tag[0] == "p");
 
         if (count($mentions) > 0) {
             $this->manager->addMention($nostrEvent->getId(), $mentions);
