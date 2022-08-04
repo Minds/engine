@@ -38,6 +38,24 @@ class Manager
     }
 
     /**
+     * Begins MySQL transaction
+     * @return bool
+     */
+    public function beginTransaction(): bool
+    {
+        return $this->repository->beginTransaction();
+    }
+
+    /**
+     * Commits MySQL transactions
+     * @return bool
+     */
+    public function commit(): bool
+    {
+        return $this->repository->commit();
+    }
+
+    /**
      * Ask a Minds developer if you want to be added to this list.
      * @param string $pubKey
      * @return bool

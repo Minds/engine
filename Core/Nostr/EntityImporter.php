@@ -92,6 +92,9 @@ class EntityImporter
             throw new UserErrorException("Invalid event. Signature verification failed.", 403);
         }
 
+        // Begin transaction
+        $this->manager->beginTransaction();
+
         // Save the event to the database
         $this->manager->addEvent($nostrEvent);
 
@@ -123,6 +126,9 @@ class EntityImporter
                 $this->saveAction->setEntity($user)->save();
                 $this->acl->setIgnore($ia); // Reset ACL state
 
+                // Commit
+                $this->manager->commit();
+
                 break;
             case NostrEvent::EVENT_KIND_1: // text_note
 
@@ -147,6 +153,9 @@ class EntityImporter
 
                 // Add this activity to `nostr_kind_1_to_activity_guid`
                 $this->manager->addActivityToNostrId($activity, $nostrEvent->getId());
+
+                // Commit
+                $this->manager->commit();
 
                 break;
             case NostrEvent::EVENT_KIND_2: // recommend_server

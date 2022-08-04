@@ -80,6 +80,8 @@ class EntityImporterSpec extends ObjectBehavior
         $this->managerMock->verifyEvent(Argument::any())
             ->willReturn(true);
 
+        $this->managerMock->beginTransaction()->willReturn(true);
+
         $this->managerMock->addMention(
             "af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c",
             Argument::any()
@@ -104,6 +106,8 @@ class EntityImporterSpec extends ObjectBehavior
         }), 'af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c')
             ->shouldBeCalled();
 
+        $this->managerMock->commit()->willReturn(true);
+
         $this->onNostrEvent($nostrEvent);
     }
 
@@ -120,6 +124,8 @@ class EntityImporterSpec extends ObjectBehavior
         $this->managerMock->verifyEvent(Argument::any())
             ->willReturn(true);
 
+        $this->managerMock->beginTransaction()->willReturn(true);
+
         $this->managerMock->addEvent($nostrEvent)
             ->shouldBeCalled();
 
@@ -130,6 +136,8 @@ class EntityImporterSpec extends ObjectBehavior
             ->willReturn($this->saveActionMock);
         $this->saveActionMock->save()
             ->shouldBeCalled();
+
+        $this->managerMock->commit()->willReturn(true);
 
         $this->onNostrEvent($nostrEvent);
     }

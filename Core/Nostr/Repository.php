@@ -24,6 +24,26 @@ class Repository
     }
 
     /**
+     * Begins MySQL transaction
+     * @return bool
+     */
+    public function beginTransaction(): bool
+    {
+        $dbh = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER);
+        return $dbh->beginTransaction();
+    }
+
+    /**
+     * Commits MySQL transactions
+     * @return bool
+     */
+    public function commit(): bool
+    {
+        $dbh = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER);
+        return $dbh->commit();
+    }
+
+    /**
      * Adds a public key to the whitelist
      * @param string $pubKey
      * @return bool
