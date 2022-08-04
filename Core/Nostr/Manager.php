@@ -329,18 +329,33 @@ class Manager
             }
         }
 
+        $opts = [
+            'container_guid' => $userGuids,
+            'period' => 'all',
+            'algorithm' => 'latest',
+            'type' => 'activity',
+            'limit' => $limit,
+            'single_owner_threshold' => 0,
+            'access_id' => 2,
+            'as_activities' => true
+        ];
+
+        // If we have since and not until
+        if ($filters['since'] && !$filters['until']) {
+            // from_timestamp == lower bound
+            $opts['from_timestamp'] = $filters['since'] * 1000;
+            $opts['reverse_sort'] = true;
+        } elseif (!$filters['since'] && $filters['until']) {
+            // from_timestamp == upper bound
+            $opts['from_timestamp'] = $filters['until'] * 1000;
+        } elseif ($filters['since'] && $filters['until']) {
+            // to_timestamp == lower bound && from_timstamp == upper bound
+            $opts['to_timestamp'] = $filters['since'] * 1000;
+            $opts['from_timestamp'] = $filters['until'] * 1000;
+        }
+
         if (in_array(1, $filters['kinds'])) {
-            $activities = $this->elasticSearchManager->getList([
-                'container_guid' => $filters['authors'],
-                'period' => 'all',
-                'algorithm' => 'latest',
-                'type' => 'activity',
-                'limit' => $limit,
-                'single_owner_threshold' => 0,
-                'access_id' => 2,
-                'as_activities' => true,
-                // 'from_timestamp' => $filters['since']
-            ]);
+            $activities = $this->elasticSearchManager->getList($opts);
 
             /**
              * @var FeedSyncEntity $activity

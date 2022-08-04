@@ -35,6 +35,9 @@ class EntityExporterSpec extends ObjectBehavior
                 $nostrEvent1,
             ]);
 
+        $this->managerMock->getElasticNostrEvents(Argument::any(), 11)
+            ->willReturn([]);
+
         $this->getNostrReq($filters)
             ->shouldYieldLike(new \ArrayIterator([
                 $nostrEvent1,
@@ -53,7 +56,7 @@ class EntityExporterSpec extends ObjectBehavior
             ->willReturn([
             ]);
 
-        $this->managerMock->getElasticNostrEventsForAuthors(['36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b'])
+        $this->managerMock->getElasticNostrEvents(Argument::any(), 12)
             ->willReturn([
                 $nostrEvent1
             ]);
