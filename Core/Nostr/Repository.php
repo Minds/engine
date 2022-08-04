@@ -329,9 +329,6 @@ class Repository
         // Prepare query
         $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_REPLICA)->prepare($statement);
 
-        // Cap max limit
-        $limit = $filters['limit'] > 150 ? 150 : $filters['limit'];
-
         // execute($params) assumes all params are strings, so using bindValue
         foreach ($values as $i => $value) {
             $test = PDO::PARAM_INT;
@@ -407,6 +404,25 @@ class Repository
         $prepared->bindParam(3, $isExternal, PDO::PARAM_BOOL);
 
         return $prepared->execute();
+    }
+
+    /**
+     * Returns internal public keys
+     * @return array
+     */
+    public function getInternalPublicKeys(int $limit): array
+    {
+        $statement = "SELECT u.pubkey FROM nostr_users u WHERE u.is_external = 0 LIMIT ?";
+
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_REPLICA)->prepare($statement);
+        $prepared->bindParam(1, $limit, PDO::PARAM_INT);
+        $prepared->execute();
+
+        $rows = $prepared->fetchAll();
+
+        $pubkeys = array_map(fn ($row): string => $row['pubkey'], $rows);
+
+        return $pubkeys;
     }
 
     /**

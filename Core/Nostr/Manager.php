@@ -287,6 +287,73 @@ class Manager
     }
 
     /**
+     * Returns events for Minds 'custodial' nostr accounts. ie. Minds channels, not source=nostr
+     * @param array $filters
+     * @return NostrEvent[]
+     * @throws NotFoundException
+     * @throws ServerErrorException
+     * @throws Exception
+     */
+    public function getElasticNostrEvents(array $filters, int $limit): array
+    {
+        // $filters = array_merge([
+        //     'ids' => [],
+        //     'authors' => [],
+        //     'kinds' => [ 0, 1 ],
+        //     'since' => null,
+        //     'until' => null,
+        //     'limit' => 12,
+        // ], $filters);
+
+        if (
+            in_array(0, $filters['kinds']) &&
+                count($filters['authors']) == 0
+        ) {
+            $filters['authors'] = $this->repository->getInternalPublicKeys($limit);
+        }
+
+        $userGuids = [];
+        $events = [];
+
+        /**
+         * @var User $user
+         */
+        if ($filters['authors']) {
+            foreach ($this->repository->getUserFromNostrPublicKeys($filters['authors']) as $user) {
+                if ($user && $user->getSource() !== 'nostr') {
+                    $userGuids[] = $user->getGuid();
+                    if (in_array(0, $filters['kinds'])) {
+                        $events[] = $this->buildNostrEvent($user);
+                    }
+                }
+            }
+        }
+
+        if (in_array(1, $filters['kinds'])) {
+            $activities = $this->elasticSearchManager->getList([
+                'container_guid' => $filters['authors'],
+                'period' => 'all',
+                'algorithm' => 'latest',
+                'type' => 'activity',
+                'limit' => $limit,
+                'single_owner_threshold' => 0,
+                'access_id' => 2,
+                'as_activities' => true,
+                // 'from_timestamp' => $filters['since']
+            ]);
+
+            /**
+             * @var FeedSyncEntity $activity
+             */
+            foreach ($activities as $activity) {
+                $events[] = $this->buildNostrEvent($activity->getEntity());
+            }
+        }
+
+        return $events;
+    }
+
+    /**
      * Add raw Nostr Events to our database
      * @param NostrEvent $nostrEvent
      * @return bool

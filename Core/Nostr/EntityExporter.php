@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\Nostr;
 
 use Minds\Common\Access;
@@ -40,16 +41,27 @@ class EntityExporter
             'limit' => 12,
         ], $filters);
 
+        // Cap max limit
+        $filters['limit'] = $filters['limit'] > 150 ? 150 : $filters['limit'];
+
+        // # of sent events
+        $count = 0;
+
         // Query all nostr events based off filters
         foreach ($this->manager->getNostrEvents($filters) as $nostrEvent) {
+            $count++;
             yield $nostrEvent;
         }
 
         // Are authors being requested? If so, is it a Kind:1? If so, get the users directly from `nostr_users` first
         // and then query all `source=nostr` from `nostr_events` and all others from elastic.
-        if ($filters['authors']) {
+        $esLimit = $filters['limit'] - $count;
+        if (
+            $esLimit > 0 && // If we have not yet reached the limit,
+                (in_array(0, $filters['kinds']) || in_array(1, $filters['kinds'])) // and we want kind 0 or 1, pull from Minds posts
+        ) {
             try {
-                foreach ($this->manager->getElasticNostrEventsForAuthors($filters['authors']) as $nostrEvent) {
+                foreach ($this->manager->getElasticNostrEvents($filters, $esLimit) as $nostrEvent) {
                     yield $nostrEvent;
                 }
             } catch (\Minds\Exceptions\NotFoundException) {
