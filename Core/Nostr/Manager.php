@@ -306,7 +306,7 @@ class Manager
         // ], $filters);
 
         if (
-            in_array(0, $filters['kinds']) &&
+            in_array(0, $filters['kinds'], true) &&
                 count($filters['authors']) == 0
         ) {
             $filters['authors'] = $this->repository->getInternalPublicKeys($limit);
@@ -322,7 +322,7 @@ class Manager
             foreach ($this->repository->getUserFromNostrPublicKeys($filters['authors']) as $user) {
                 if ($user && $user->getSource() !== 'nostr') {
                     $userGuids[] = $user->getGuid();
-                    if (in_array(0, $filters['kinds'])) {
+                    if (in_array(0, $filters['kinds'], true)) {
                         $events[] = $this->buildNostrEvent($user);
                     }
                 }
@@ -354,7 +354,7 @@ class Manager
             $opts['from_timestamp'] = $filters['until'] * 1000;
         }
 
-        if (in_array(1, $filters['kinds'])) {
+        if (in_array(1, $filters['kinds'], true)) {
             $activities = $this->elasticSearchManager->getList($opts);
 
             /**
