@@ -161,8 +161,11 @@ class EntityImporter
                     break;
                 case NostrEvent::EVENT_KIND_2: // recommend_server
                 default:
-                // Not implemented
-                }
+                    // Commit
+                    $this->manager->commit();
+
+                    break;
+            }
         } catch (\Exception $e) {
             // On error, roll back and rethrow exception
             $this->manager->rollBack();
