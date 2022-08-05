@@ -10,9 +10,9 @@ use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Elastic\ScoredGuid;
 
 /**
- * Repository class to fetch data from clustered recommendations index in ES
+ * ElasticSearchRepository class to fetch data from clustered recommendations index in ES
  */
-class Repository
+class ElasticSearchRepository implements RepositoryInterface
 {
     private string $index;
 
@@ -32,7 +32,7 @@ class Repository
      * @param int $limit
      * @return Generator
      */
-    public function getList(int $clusterId, int $limit, array $exclude = [], bool $demote = false): Generator
+    public function getList(int $clusterId, int $limit, array $exclude = [], bool $demote = false, ?string $pseudoId = null): Generator
     {
         $preparedSearch = $this->buildQuery($clusterId, $limit, $exclude, $demote);
         $results = $this->elasticSearchClient->request($preparedSearch);
