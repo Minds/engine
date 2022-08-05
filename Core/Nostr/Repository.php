@@ -24,6 +24,36 @@ class Repository
     }
 
     /**
+     * Begins MySQL transaction
+     * @return bool
+     */
+    public function beginTransaction(): bool
+    {
+        $dbh = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER);
+        return $dbh->beginTransaction();
+    }
+
+    /**
+     * Commits MySQL transactions
+     * @return bool
+     */
+    public function commit(): bool
+    {
+        $dbh = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER);
+        return $dbh->commit();
+    }
+
+    /**
+     * Roll back MySQL transactions
+     * @return bool
+     */
+    public function rollBack(): bool
+    {
+        $dbh = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER);
+        return $dbh->rollBack();
+    }
+
+    /**
      * Adds a public key to the whitelist
      * @param string $pubKey
      * @return bool
@@ -78,39 +108,84 @@ class Repository
             pubkey,
             created_at,
             kind,
-            e_ref,
-            p_ref,
             tags,
             content,
             sig
         )
-        VALUES (?,?,?,?,?,?,?,?,?)
+        VALUES (?,?,?,?,?,?,?)
         ON DUPLICATE KEY UPDATE id=id";
-
-        // Extract event and public key references if present
-        $eRef = null;
-        $pRef = null;
-        foreach ($nostrEvent->getTags() as $tag) {
-            if ($tag[0] == "e") {
-                $eRef = $tag[1];
-            }
-            if ($tag[0] == "p") {
-                $pRef = $tag[1];
-            }
-        }
 
         $values = [
             $nostrEvent->getId(),
             $nostrEvent->getPubKey(),
             date('c', $nostrEvent->getCreated_at()),
             $nostrEvent->getKind(),
-            $eRef,
-            $pRef,
             $nostrEvent->getTags() ? json_encode($nostrEvent->getTags()) : null,
             $nostrEvent->getContent(),
             $nostrEvent->getSig(),
         ];
 
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
+        return $prepared->execute($values);
+    }
+
+    /**
+     * Adds reply for a given nostr event
+     * @param string $eventId
+     * @param array $tag
+     * @return bool
+     */
+    public function addReply(string $eventId, array $tags): bool
+    {
+        $statement = "INSERT nostr_replies 
+        (
+            id, -- Source event id
+            event_id, -- Event ID being referenced
+            relay_url, -- Recommended relay
+            marker -- root/reply
+        )
+        VALUES ";
+
+        $values = [];
+        foreach ($tags as $i => $tag) {
+            $rows[] = "(?,?,?,?)";
+            $values[] = $eventId;
+            $values[] = $tag[1];
+            $values[] = array_key_exists(2, $tag) ? $tag[2] : null;
+            $values[] = array_key_exists(3, $tag) ? $tag[3] : null;
+        }
+
+        $statement .= implode(",", $rows); // Batch rows
+        $statement .= " ON DUPLICATE KEY UPDATE id=id";
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
+        return $prepared->execute($values);
+    }
+
+    /**
+     * Adds mention for a given nostr event
+     * @param string $eventId
+     * @param array $tag
+     * @return bool
+     */
+    public function addMention(string $eventId, array $tags): bool
+    {
+        $statement = "INSERT nostr_mentions 
+        (
+            id, -- Event ID
+            pubkey -- Author ref
+        )
+        VALUES ";
+
+
+        $values = [];
+        foreach ($tags as $i => $tag) {
+            $rows[] = "(?,?)";
+            $values[] = $eventId;
+            $values[] = $tag[1];
+        }
+
+        $statement .= implode(",", $rows); // Batch rows
+        $statement .= " ON DUPLICATE KEY UPDATE id=id";
         $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
         return $prepared->execute($values);
     }
@@ -153,7 +228,7 @@ class Repository
             'ids' => [ $nostrId ],
             'kinds' => [1],
         ], returnActivityGuids: true);
-    
+
         $rows = $prepared->fetchAll();
 
         if (isset($rows[0])) {
@@ -167,7 +242,7 @@ class Repository
                 return $activity;
             }
         }
-    
+
         return null;
     }
 
@@ -190,8 +265,10 @@ class Repository
             'limit' => 12,
         ], $filters);
 
-
-        $statement = "SELECT e.* FROM nostr_events e";
+        // Adding DISTINCT since events can have multiple e/p refs
+        $statement = "SELECT DISTINCT e.* FROM nostr_events e
+                        LEFT OUTER JOIN nostr_replies r ON e.id=r.id
+                        LEFT OUTER JOIN nostr_mentions m ON e.id=m.id";
         $values = [];
 
         if ($returnActivityGuids) {
@@ -218,22 +295,44 @@ class Repository
         }
 
         if ($filters['#e']) {
-            $where[] = "e.e_ref IN " . $this->inPad($filters['#e']);
+            $where[] = "r.event_id IN " . $this->inPad($filters['#e']);
             array_push($values, ...$filters['#e']);
         }
 
         if ($filters['#p']) {
-            $where[] = "e.p_ref IN " . $this->inPad($filters['#p']);
+            $where[] = "m.pubkey IN " . $this->inPad($filters['#p']);
             array_push($values, ...$filters['#p']);
+        }
+
+        if ($filters['since']) {
+            $where[] = "e.created_at >= ?";
+            array_push($values, date('c', $filters['since']));
+        }
+
+        if ($filters['until']) {
+            $where[] = "e.created_at <= ?";
+            array_push($values, date('c', $filters['until']));
         }
 
         if ($filters) {
             $statement .= " WHERE " . implode(' AND ', $where);
         }
 
+        // Append LIMIT
+        $statement .= " LIMIT ?";
+        array_push($values, $filters['limit']);
+
+        // Prepare query
         $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_REPLICA)->prepare($statement);
 
-        $prepared->execute($values);
+        // execute($params) assumes all params are strings, so using bindValue
+        foreach ($values as $i => $value) {
+            $test = PDO::PARAM_INT;
+            $type = gettype($value) == "integer" ? PDO::PARAM_INT : PDO::PARAM_STR;
+            $prepared->bindValue($i + 1, $value, $type);
+        }
+
+        $prepared->execute();
 
         return $prepared;
     }
@@ -264,7 +363,7 @@ class Repository
 
         $ownerGuid = $activity->getOwnerGuid();
         $prepared->bindParam(3, $ownerGuid, PDO::PARAM_STR);
-        
+
         $isExternal = $activity->getSource() === 'nostr';
         $prepared->bindParam(4, $isExternal, PDO::PARAM_BOOL);
 
@@ -301,6 +400,25 @@ class Repository
         $prepared->bindParam(3, $isExternal, PDO::PARAM_BOOL);
 
         return $prepared->execute();
+    }
+
+    /**
+     * Returns internal public keys
+     * @return array
+     */
+    public function getInternalPublicKeys(int $limit): array
+    {
+        $statement = "SELECT u.pubkey FROM nostr_users u WHERE u.is_external = 0 LIMIT ?";
+
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_REPLICA)->prepare($statement);
+        $prepared->bindParam(1, $limit, PDO::PARAM_INT);
+        $prepared->execute();
+
+        $rows = $prepared->fetchAll();
+
+        $pubkeys = array_map(fn ($row): string => $row['pubkey'], $rows);
+
+        return $pubkeys;
     }
 
     /**

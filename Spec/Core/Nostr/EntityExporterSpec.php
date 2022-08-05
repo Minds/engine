@@ -35,6 +35,9 @@ class EntityExporterSpec extends ObjectBehavior
                 $nostrEvent1,
             ]);
 
+        $this->managerMock->getElasticNostrEvents(Argument::any(), 11)
+            ->willReturn([]);
+
         $this->getNostrReq($filters)
             ->shouldYieldLike(new \ArrayIterator([
                 $nostrEvent1,
@@ -53,7 +56,7 @@ class EntityExporterSpec extends ObjectBehavior
             ->willReturn([
             ]);
 
-        $this->managerMock->getElasticNostrEventsForAuthors(['36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b'])
+        $this->managerMock->getElasticNostrEvents(Argument::any(), 12)
             ->willReturn([
                 $nostrEvent1
             ]);
@@ -62,5 +65,30 @@ class EntityExporterSpec extends ObjectBehavior
             ->shouldYieldLike(new \ArrayIterator([
                 $nostrEvent1,
             ]));
+    }
+
+    public function it_should_not_query_es_after_limit()
+    {
+        $filters = [
+            'authors' => [ '36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b' ],
+            'limit' => 2
+        ];
+
+        $nostrEvent1 = new NostrEvent();
+
+        $this->managerMock->getNostrEvents(Argument::any())
+            ->willReturn([
+                $nostrEvent1,
+                $nostrEvent1
+            ]);
+
+        $this->managerMock->getElasticNostrEvents(Argument::any(), Argument::any())
+            ->shouldNotBeCalled();
+
+        $this->getNostrReq($filters)
+        ->shouldYieldLike(new \ArrayIterator([
+            $nostrEvent1,
+            $nostrEvent1
+        ]));
     }
 }

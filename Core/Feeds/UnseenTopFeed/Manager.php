@@ -46,7 +46,8 @@ class Manager
             'period' => 'all', // legacy option
             'unseen' => true,
             'demoted' => true,
-            'from_timestamp' => $fromTimestamp,
+            'to_timestamp' => $fromTimestamp,
+            'from_timestamp' => $fromTimestamp ? time() * 1000 : null,
         ]);
 
         $response->setPagingToken(null); // This endpoint doesn't support pagination yet.
