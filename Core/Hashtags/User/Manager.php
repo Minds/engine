@@ -7,6 +7,7 @@ use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Di\Di;
 use Minds\Core\Hashtags\HashtagEntity;
 use Minds\Core\Hashtags\Trending\Repository as TrendingRepository;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Entities\User;
 
 class Manager
@@ -29,13 +30,20 @@ class Manager
     /** @var PseudoHashtags */
     private $pseudoHashtags;
 
-    public function __construct($repository = null, $trendingRepository = null, $cacher = null, $config = null, PseudoHashtags $pseudoHashtags = null)
-    {
+    public function __construct(
+        $repository = null,
+        $trendingRepository = null,
+        $cacher = null,
+        $config = null,
+        PseudoHashtags $pseudoHashtags = null,
+        private ?ExperimentsManager $experimentsManager = null
+    ) {
         $this->repository = $repository ?: new Repository;
         $this->trendingRepository = $trendingRepository ?: new TrendingRepository;
         $this->cacher = $cacher ?: Di::_()->get('Cache');
         $this->config = $config ?: Di::_()->get('Config');
         $this->pseudoHashtags = $pseudoHashtags ?? new PseudoHashtags();
+        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -115,8 +123,14 @@ class Manager
         }
 
         // Default hashtags
+        $defaults = [];
 
-        $defaults = $opts['defaults'] ? $this->config->get('tags') : [];
+        if ($opts['defaults']) {
+            $v2Tags = $this->config->get('tags_v2') ?? false;
+            $defaults = $this->isDefaultTagsV2ExperimentActive() && $v2Tags
+                ? $v2Tags
+                : $this->config->get('tags');
+        }
 
         // Merge and output
 
@@ -246,5 +260,16 @@ class Manager
         return $userHashtags &&
             count($userHashtags) > 0 &&
             $userHashtags[0]['selected'];
+    }
+    
+    /**
+     * Whether default tags v2 experiment is active.
+     * @return bool true if default tags v2 experiment is active.
+     */
+    private function isDefaultTagsV2ExperimentActive(): bool
+    {
+        return $this->experimentsManager
+            ->setUser($this->user)
+            ->isOn('minds-3216-default-tags-v2');
     }
 }
