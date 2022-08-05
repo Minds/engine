@@ -52,15 +52,16 @@ class InteractionCounters
      * @param Activity $activity
      * @return int
      */
-    public function get(Activity $activity): int
+    public function get(Activity $activity, bool $readFromCache = true): int
     {
         $cacheKey = $this->buildCacheKey($activity);
 
+        if ($readFromCache) {
+            $count = $this->cache->get($cacheKey);
 
-        $count = $this->cache->get($cacheKey);
-
-        if (is_numeric($count)) {
-            return $count;
+            if (is_numeric($count)) {
+                return $count;
+            }
         }
 
         switch ($this->counter) {
