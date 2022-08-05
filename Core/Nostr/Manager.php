@@ -357,10 +357,15 @@ class Manager
         if (in_array(1, $filters['kinds'], true)) {
             $activities = $this->elasticSearchManager->getList($opts);
 
+            $this->logger->warn('Test!');
+            $this->logger->warn(count($activities));
+
             /**
              * @var FeedSyncEntity $activity
              */
             foreach ($activities as $activity) {
+                $this->logger->warn(gettype($activity));
+                $this->logger->warn(gettype($activity->getEntity()));
                 $events[] = $this->buildNostrEvent($activity->getEntity());
             }
         }
