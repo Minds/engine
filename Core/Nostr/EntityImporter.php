@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\Nostr;
 
 use Minds\Common\Access;
@@ -91,52 +92,84 @@ class EntityImporter
             throw new UserErrorException("Invalid event. Signature verification failed.", 403);
         }
 
-        // Save the event to the database
-        $this->manager->addEvent($nostrEvent);
+        // Begin transaction
+        $this->manager->beginTransaction();
 
-        switch ($nostrEvent->getKind()) {
-            case NostrEvent::EVENT_KIND_0: // set_metadata
+        try {
+            // Save the event to the database
+            $this->manager->addEvent($nostrEvent);
 
-                $metadata = json_decode($nostrEvent->getContent(), true);
+            // Save replies
+            $replies =  array_filter($nostrEvent->getTags(), fn (array $tag): bool => $tag[0] == "e");
 
-                $user->setName($metadata['name'] ?? $nostrEvent->getPubKey());
-                $user->setBriefDescription($metadata['about'] ?? '');
+            if (count($replies) > 0) {
+                $this->manager->addReply($nostrEvent->getId(), $replies);
+            }
 
-                // Update avatar pic coming soon.
+            // Save mentions
+            $mentions =  array_filter($nostrEvent->getTags(), fn (array $tag): bool => $tag[0] == "p");
 
-                $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
-                $this->saveAction->setEntity($user)->save();
-                $this->acl->setIgnore($ia); // Reset ACL state
+            if (count($mentions) > 0) {
+                $this->manager->addMention($nostrEvent->getId(), $mentions);
+            }
 
-                break;
-            case NostrEvent::EVENT_KIND_1: // text_note
+            switch ($nostrEvent->getKind()) {
+                case NostrEvent::EVENT_KIND_0: // set_metadata
 
-                // First, check that we have not already imported this activity,
-                if ($this->manager->getActivityFromNostrId($nostrEvent->getId())) {
-                    break; // Already imported, so don't import again
-                }
+                    $metadata = json_decode($nostrEvent->getContent(), true);
 
-                $activity = new Activity();
-                // As per TwitterSync, this needs cleaning up
-                $activity->container_guid = $user->guid;
-                $activity->owner_guid = $user->guid;
-                $activity->ownerObj = $user->export();
-                //
-                $activity->setMessage($nostrEvent->getContent());
-                $activity->setAccessId(Access::PUBLIC);
-                $activity->setSource('nostr');
+                    $user->setName($metadata['name'] ?? $nostrEvent->getPubKey());
+                    $user->setBriefDescription($metadata['about'] ?? '');
 
-                $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
-                $this->activityManager->add($activity);
-                $this->acl->setIgnore($ia); // Reset ACL state
+                    // Update avatar pic coming soon.
 
-                // Add this activity to `nostr_kind_1_to_activity_guid`
-                $this->manager->addActivityToNostrId($activity, $nostrEvent->getId());
-            
-                break;
-            case NostrEvent::EVENT_KIND_2: // recommend_server
-            default:
-                // Not implemented
+                    $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
+                    $this->saveAction->setEntity($user)->save();
+                    $this->acl->setIgnore($ia); // Reset ACL state
+
+                    // Commit
+                    $this->manager->commit();
+
+                    break;
+                case NostrEvent::EVENT_KIND_1: // text_note
+
+                    // First, check that we have not already imported this activity,
+                    if ($this->manager->getActivityFromNostrId($nostrEvent->getId())) {
+                        break; // Already imported, so don't import again
+                    }
+
+                    $activity = new Activity();
+                    // As per TwitterSync, this needs cleaning up
+                    $activity->container_guid = $user->guid;
+                    $activity->owner_guid = $user->guid;
+                    $activity->ownerObj = $user->export();
+                    //
+                    $activity->setMessage($nostrEvent->getContent());
+                    $activity->setAccessId(Access::PUBLIC);
+                    $activity->setSource('nostr');
+
+                    $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
+                    $this->activityManager->add($activity);
+                    $this->acl->setIgnore($ia); // Reset ACL state
+
+                    // Add this activity to `nostr_kind_1_to_activity_guid`
+                    $this->manager->addActivityToNostrId($activity, $nostrEvent->getId());
+
+                    // Commit
+                    $this->manager->commit();
+
+                    break;
+                case NostrEvent::EVENT_KIND_2: // recommend_server
+                default:
+                    // Commit
+                    $this->manager->commit();
+
+                    break;
+            }
+        } catch (\Exception $e) {
+            // On error, roll back and rethrow exception
+            $this->manager->rollBack();
+            throw $e;
         }
     }
 }

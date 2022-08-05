@@ -240,16 +240,42 @@ class ManagerSpec extends ObjectBehavior
     {
         $this->repository->addEvent($nostrEvent)
             ->willReturn(true);
-    
+
         $this->addEvent($nostrEvent)
             ->shouldBe(true);
+    }
+
+    public function it_should_add_reply()
+    {
+        $this->repository->addReply(
+            "8933788dafe23ed6ac5a0d20011fde4769e2096972bb777d728ca62c43fa04d0",
+            ["e", "50eaadde6fd5a67b9a35f947355e3f90d6043d888008c4dbdb36c06155cf31ea"]
+        )->willReturn(true);
+
+        $this->addReply(
+            "8933788dafe23ed6ac5a0d20011fde4769e2096972bb777d728ca62c43fa04d0",
+            ["e", "50eaadde6fd5a67b9a35f947355e3f90d6043d888008c4dbdb36c06155cf31ea"]
+        )->shouldBe(true);
+    }
+
+    public function it_should_add_mention()
+    {
+        $this->repository->addMention(
+            "8933788dafe23ed6ac5a0d20011fde4769e2096972bb777d728ca62c43fa04d0",
+            ["p", "c59bb3bb07b087ef9fbd82c9530cf7de9d28adfdeb5076a0ac39fa44b88a49ad"]
+        )->willReturn(true);
+
+        $this->addMention(
+            "8933788dafe23ed6ac5a0d20011fde4769e2096972bb777d728ca62c43fa04d0",
+            ["p", "c59bb3bb07b087ef9fbd82c9530cf7de9d28adfdeb5076a0ac39fa44b88a49ad"]
+        )->shouldBe(true);
     }
 
     public function it_should_add_nostr_user_link(User $user)
     {
         $this->repository->addNostrUser($user, '4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715')
             ->willReturn(true);
-    
+
         $this->addNostrUser($user, '4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715')
             ->shouldBe(true);
     }
@@ -285,7 +311,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn([
                 $nostrEvent
             ]);
-     
+
         $this->getNostrEvents($filters)
             ->shouldYieldLike(new \ArrayIterator([
                 $nostrEvent
