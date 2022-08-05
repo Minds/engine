@@ -93,8 +93,6 @@ class RepositorySpec extends ObjectBehavior
             '36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b', // pubkey
             '2022-07-19T13:51:31+00:00', // created at
             1, // kind
-            null, // eref
-            null, // pref
             null, // tags
             "Hello sandbox", // content
             "f6a68256a42f9fd84948e328300d0ca55160c9517cd57e549381ce9106e89946ee58c468b93e7ed419f2aec4844c1e995987d27119f9988e99ea2da8dfafffec", // sandbox

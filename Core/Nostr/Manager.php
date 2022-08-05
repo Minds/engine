@@ -240,47 +240,81 @@ class Manager
 
     /**
      * Returns events for Minds 'custodial' nostr accounts. ie. Minds channels, not source=nostr
-     * @param array $authors
+     * @param array $filters
      * @return NostrEvent[]
      * @throws NotFoundException
      * @throws ServerErrorException
      * @throws Exception
      */
-    public function getElasticNostrEventsForAuthors(array $authors): array
+    public function getElasticNostrEvents(array $filters, int $limit): array
     {
+
+        // If we're requesting kind 0 without specifying "authors", then query for internal pubkeys
+        if (
+            in_array(0, $filters['kinds'], true) &&
+                count($filters['authors']) == 0
+        ) {
+            $filters['authors'] = $this->repository->getInternalPublicKeys($limit);
+        }
+
         $userGuids = [];
         $events = [];
 
-        /**
-         * @var User $user
-         */
-        foreach ($this->repository->getUserFromNostrPublicKeys($authors) as $user) {
-            if ($user && $user->getSource() !== 'nostr') {
-                $userGuids[] = $user->getGuid();
-                $events[] = $this->buildNostrEvent($user);
+        if ($filters['authors']) {
+            /**
+             * @var User $user
+             */
+            foreach ($this->repository->getUserFromNostrPublicKeys($filters['authors']) as $user) {
+                if ($user && $user->getSource() !== 'nostr') {
+                    $userGuids[] = $user->getGuid();
+                    if (in_array(0, $filters['kinds'], true)) {
+                        $events[] = $this->buildNostrEvent($user);
+                    }
+                }
+            }
+
+            // If we request authors and don't find any internal users for the pubkeys, return
+            if (count($userGuids) == 0) {
+                return $events;
             }
         }
 
-        $activities = [];
-        // Only query ES if we have userGuids present that are not Nostr users.
-        if (count($userGuids) > 0) {
-            $activities = $this->elasticSearchManager->getList([
-                'container_guid' => $userGuids,
-                'period' => 'all',
-                'algorithm' => 'latest',
-                'type' => 'activity',
-                'limit' => 12,
-                'single_owner_threshold' => 0,
-                'access_id' => 2,
-                'as_activities' => true
-            ]);
+        $opts = [
+            'container_guid' => $userGuids,
+            'period' => 'all',
+            'algorithm' => 'latest',
+            'type' => 'activity',
+            'limit' => $limit,
+            'single_owner_threshold' => 0,
+            'access_id' => 2,
+            'as_activities' => true
+        ];
+
+        // If we have since and not until
+        if ($filters['since'] && !$filters['until']) {
+            // from_timestamp == lower bound
+            $opts['from_timestamp'] = $filters['since'] * 1000;
+            $opts['reverse_sort'] = true;
+        } elseif (!$filters['since'] && $filters['until']) {
+            // from_timestamp == upper bound
+            $opts['from_timestamp'] = $filters['until'] * 1000;
+        } elseif ($filters['since'] && $filters['until']) {
+            // to_timestamp == lower bound && from_timstamp == upper bound
+            $opts['to_timestamp'] = $filters['since'] * 1000;
+            $opts['from_timestamp'] = $filters['until'] * 1000;
         }
 
-        /**
-         * @var FeedSyncEntity $activity
-         */
-        foreach ($activities as $activity) {
-            $events[] = $this->buildNostrEvent($activity->getEntity());
+        if (in_array(1, $filters['kinds'], true)) {
+            $activities = $this->elasticSearchManager->getList($opts);
+
+            /**
+             * @var FeedSyncEntity $activity
+             */
+            foreach ($activities as $activity) {
+                if ($activity->getEntity()) {
+                    $events[] = $this->buildNostrEvent($activity->getEntity());
+                }
+            }
         }
 
         return $events;
