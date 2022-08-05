@@ -272,6 +272,11 @@ class Manager
                     }
                 }
             }
+
+            // If we request authors and don't find any internal users for the pubkeys, return
+            if (count($userGuids) == 0) {
+                return $events;
+            }
         }
 
         $opts = [
