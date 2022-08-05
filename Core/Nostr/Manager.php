@@ -296,15 +296,8 @@ class Manager
      */
     public function getElasticNostrEvents(array $filters, int $limit): array
     {
-        // $filters = array_merge([
-        //     'ids' => [],
-        //     'authors' => [],
-        //     'kinds' => [ 0, 1 ],
-        //     'since' => null,
-        //     'until' => null,
-        //     'limit' => 12,
-        // ], $filters);
 
+        // If we're requesting kind 0 without specifying "authors", then query for internal pubkeys
         if (
             in_array(0, $filters['kinds'], true) &&
                 count($filters['authors']) == 0
@@ -315,10 +308,10 @@ class Manager
         $userGuids = [];
         $events = [];
 
-        /**
-         * @var User $user
-         */
         if ($filters['authors']) {
+            /**
+             * @var User $user
+             */
             foreach ($this->repository->getUserFromNostrPublicKeys($filters['authors']) as $user) {
                 if ($user && $user->getSource() !== 'nostr') {
                     $userGuids[] = $user->getGuid();
@@ -357,15 +350,10 @@ class Manager
         if (in_array(1, $filters['kinds'], true)) {
             $activities = $this->elasticSearchManager->getList($opts);
 
-            $this->logger->warn('Test!');
-            $this->logger->warn(count($activities));
-
             /**
              * @var FeedSyncEntity $activity
              */
             foreach ($activities as $activity) {
-                $this->logger->warn(gettype($activity));
-                $this->logger->warn(gettype($activity->getEntity()));
                 if ($activity->getEntity()) {
                     $events[] = $this->buildNostrEvent($activity->getEntity());
                 }
