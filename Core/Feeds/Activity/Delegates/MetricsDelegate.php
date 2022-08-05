@@ -54,9 +54,9 @@ class MetricsDelegate
             $event->push();
 
             // Purge counter cache
-            $this->interactionCounters
-                ->setCounter(InteractionCounters::COUNTER_QUOTES)
-                ->purgeCache($activity);
+            $quotesCounter = $this->interactionCounters->setCounter(InteractionCounters::COUNTER_QUOTES);
+            $quotesCounter->purgeCache($activity);
+            $quotesCounter->get($activity); // Rehydrate the cache
         }
 
         if ($activity->isRemind() && isset($remind)) {

@@ -12,7 +12,7 @@ class InteractionCounters
     const CACHE_PREFIX = 'interactions:count';
 
     /** @var int */
-    const CACHE_TTL = 86400; // 1 day
+    const CACHE_TTL = 86400 * 30; // 30 day
 
     /** @var string */
     const COUNTER_QUOTES = 'quotes';
@@ -56,7 +56,10 @@ class InteractionCounters
     {
         $cacheKey = $this->buildCacheKey($activity);
 
-        if ($count = $this->cache->get($cacheKey)) {
+
+        $count = $this->cache->get($cacheKey);
+
+        if (is_numeric($count)) {
             return $count;
         }
 
