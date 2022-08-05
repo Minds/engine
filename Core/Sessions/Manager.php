@@ -235,7 +235,7 @@ class Manager
     public function createSession()
     {
         $id = $this->generateId();
-        $expires = new DateTimeImmutable("+30 days");
+        $expires = new DateTimeImmutable("+365 days");
 
         $token = $this->getJwtConfig()->builder()
             //->issuedBy($this->config->get('site_url'))

@@ -224,7 +224,7 @@ class ManagerSpec extends ObjectBehavior
         $this->hashtagManager
             ->get([
                 'defaults' => true,
-                'limit' => 20
+                'limit' => 24
             ])
             ->willReturn([]);
 
