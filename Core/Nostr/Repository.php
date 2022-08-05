@@ -108,13 +108,11 @@ class Repository
             pubkey,
             created_at,
             kind,
-            e_ref, -- Legacy column
-            p_ref, -- Legacy column
             tags,
             content,
             sig
         )
-        VALUES (?,?,?,?,?,?,?,?,?)
+        VALUES (?,?,?,?,?,?,?)
         ON DUPLICATE KEY UPDATE id=id";
 
         $values = [
@@ -122,8 +120,6 @@ class Repository
             $nostrEvent->getPubKey(),
             date('c', $nostrEvent->getCreated_at()),
             $nostrEvent->getKind(),
-            null,
-            null,
             $nostrEvent->getTags() ? json_encode($nostrEvent->getTags()) : null,
             $nostrEvent->getContent(),
             $nostrEvent->getSig(),
