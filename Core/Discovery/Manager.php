@@ -699,7 +699,7 @@ class Manager
             ->setUser($this->user)
             ->get([
                 'defaults' => true,
-                'limit' => 20,
+                'limit' => 24,
             ]);
 
         return [

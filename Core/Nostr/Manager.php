@@ -38,6 +38,33 @@ class Manager
     }
 
     /**
+     * Begins MySQL transaction
+     * @return bool
+     */
+    public function beginTransaction(): bool
+    {
+        return $this->repository->beginTransaction();
+    }
+
+    /**
+     * Commits MySQL transactions
+     * @return bool
+     */
+    public function commit(): bool
+    {
+        return $this->repository->commit();
+    }
+
+    /**
+     * Roll back MySQL transactions
+     * @return bool
+     */
+    public function rollBack(): bool
+    {
+        return $this->repository->rollBack();
+    }
+
+    /**
      * Ask a Minds developer if you want to be added to this list.
      * @param string $pubKey
      * @return bool
@@ -267,6 +294,28 @@ class Manager
     public function addEvent(NostrEvent $nostrEvent): bool
     {
         return $this->repository->addEvent($nostrEvent);
+    }
+
+    /**
+     * Adds reply for a given nostr event
+     * @param string $eventId
+     * @param array $tag
+     * @return bool
+     */
+    public function addReply(string $eventId, array $tag): bool
+    {
+        return $this->repository->addReply($eventId, $tag);
+    }
+
+    /**
+     * Adds mention for a given nostr event
+     * @param string $eventId
+     * @param array $tag
+     * @return bool
+     */
+    public function addMention(string $eventId, array $tag): bool
+    {
+        return $this->repository->addMention($eventId, $tag);
     }
 
     /**
