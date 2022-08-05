@@ -366,7 +366,9 @@ class Manager
             foreach ($activities as $activity) {
                 $this->logger->warn(gettype($activity));
                 $this->logger->warn(gettype($activity->getEntity()));
-                $events[] = $this->buildNostrEvent($activity->getEntity());
+                if ($activity->getEntity()) {
+                    $events[] = $this->buildNostrEvent($activity->getEntity());
+                }
             }
         }
 
