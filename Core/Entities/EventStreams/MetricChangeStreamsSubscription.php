@@ -3,6 +3,7 @@
 namespace Minds\Core\Entities\EventStreams;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\Log\Logger;
@@ -18,10 +19,12 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
 {
     public function __construct(
         private ?Logger $logger = null,
-        private ?SocketEvents $socketEvents = null
+        private ?SocketEvents $socketEvents = null,
+        private ?GuidLinkResolver $guidLinkResolver = null
     ) {
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->socketEvents ??= new SocketEvents();
+        $this->guidLinkResolver ??= new GuidLinkResolver();
     }
 
     /**
@@ -63,23 +66,31 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
         }
 
         $entity = $event->getEntity();
-        $entityGuid = $entity->getGuid();
+        $guids = [(string) $entity->getGuid()];
+
+        if (method_exists($entity, 'getEntityGuid') && $entity->getEntityGuid()) {
+            $guids[] = (string) $entity->getEntityGuid();
+        } else {
+            $guids[] = $this->guidLinkResolver->resolve($guids[0]);
+        }
+
+        $guids = array_filter($guids);
 
         switch ($event->getAction()) {
             case 'vote_up_removed':
             case 'vote_up':
-                $count = Counters::get($entityGuid, 'thumbs:up');
+                $count = Counters::get($guids[0], 'thumbs:up');
                 $this->emitViaSockets(
-                    entityGuid: $entityGuid,
+                    guids: $guids,
                     key: 'thumbs:up:count',
                     value: $count
                 );
                 break;
             case 'vote_down_removed':
             case 'vote_down':
-                $count = Counters::get($entityGuid, 'thumbs:down');
+                $count = Counters::get($guids[0], 'thumbs:down');
                 $this->emitViaSockets(
-                    entityGuid: $entityGuid,
+                    guids: $guids,
                     key: 'thumbs:down:count',
                     value: $count
                 );
@@ -91,18 +102,20 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
 
     /**
      * Emits event via sockets.
-     * @param string $entityGuid - guid of entity we are emitting for.
+     * @param array $guids - guids we are emitting for.
      * @param string $key - metrics key e.g. `thumbs:count:count`.
      * @param integer $value - value we want to emit to sockets.
      * @return self
      */
-    private function emitViaSockets(string $entityGuid, string $key, int $value): self
+    private function emitViaSockets(array $guids, string $key, int $value): self
     {
-        $roomName = "entity:metrics:$entityGuid";
+        foreach ($guids as $guid) {
+            $roomName = "entity:metrics:$guid";
 
-        (new SocketEvents())
-            ->setRoom($roomName) // send it to this group.
-            ->emit($roomName, json_encode([$key => $value]));
+            (new SocketEvents())
+                ->setRoom($roomName) // send it to this group.
+                ->emit($roomName, json_encode([$key => $value]));
+        }
 
         return $this;
     }
