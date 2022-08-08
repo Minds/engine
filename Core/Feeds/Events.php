@@ -79,7 +79,7 @@ class Events
             $activity = $params['entity'];
             $export = $event->response() ?: [];
 
-            if ($this->getExperimentsManager()->isOn('front-5673-quote-counts') || true) {
+            if ($this->getExperimentsManager()->isOn('front-5673-quote-counts')) {
                 /** @var InteractionCounters */
                 $interactionCounters = Di::_()->get('Feeds\Activity\InteractionCounters');
             

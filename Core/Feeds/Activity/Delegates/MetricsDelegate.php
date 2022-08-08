@@ -53,10 +53,14 @@ class MetricsDelegate
 
             $event->push();
 
-            // Purge counter cache
-            $quotesCounter = $this->interactionCounters->setCounter(InteractionCounters::COUNTER_QUOTES);
-            $quotesCounter->purgeCache($activity);
-            $quotesCounter->get($activity, readFromCache: false); // Rehydrate the cache
+            if ($activity->isQuotedPost()) {
+                // Purge counter cache
+                $quotesCounter = $this->interactionCounters->setCounter(InteractionCounters::COUNTER_QUOTES);
+                $currentCount = (int) $quotesCounter->get($remind, readFromCache: false, saveToCache: false); // $redmind = quote post too.
+                // hacky solution, increment the cache. purging the cache will show incorrect results
+                // as it needs to wait for refresh_interval to clear on elasticsearch, post indexing
+                $quotesCounter->updateCache($remind, $currentCount + 1);
+            }
         }
 
         if ($activity->isRemind() && isset($remind)) {

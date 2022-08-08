@@ -33,11 +33,18 @@ class InteractionCountersSpec extends ObjectBehavior
     {
         $this->feedsManager->getCount(Argument::any())
             ->willReturn(12);
+
+        $this->cache->get('interactions:count:quotes:')
+            ->willReturn(false);
+
+        $this->cache->set('interactions:count:quotes:', 12, 2592000)
+            ->shouldBeCalled();
         
         $this->setCounter('quotes')
             ->get($activity)
             ->shouldBe(12);
     }
+
 
     public function it_should_get_quote_counter_from_cache(Activity $activity)
     {

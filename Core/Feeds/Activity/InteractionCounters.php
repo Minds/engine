@@ -49,10 +49,13 @@ class InteractionCounters
     }
 
     /**
+     * Will first check cache, then database, then will update cache
      * @param Activity $activity
+     * @param bool $readFromCache
+     * @param bool $saveToCache
      * @return int
      */
-    public function get(Activity $activity, bool $readFromCache = true): int
+    public function get(Activity $activity, bool $readFromCache = true, bool $saveToCache = true): int
     {
         $cacheKey = $this->buildCacheKey($activity);
 
@@ -77,7 +80,9 @@ class InteractionCounters
                 $count = 0;
         }
 
-        $this->cache->set($cacheKey, $count, self::CACHE_TTL);
+        if ($saveToCache) {
+            $this->updateCache($activity, $count);
+        }
 
         return $count;
     }
@@ -90,6 +95,18 @@ class InteractionCounters
     public function purgeCache(Activity $activity): void
     {
         $this->cache->delete($this->buildCacheKey($activity));
+    }
+
+    /**
+     * Updates the counter cache
+     * @param Activity $activity
+     * @param int $count
+     * @return bool
+     */
+    public function updateCache(Activity $activity, int $count): bool
+    {
+        $this->cache->set($this->buildCacheKey($activity), $count, self::CACHE_TTL);
+        return true;
     }
 
     /**
