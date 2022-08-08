@@ -2,15 +2,12 @@
 
 namespace Minds\Core\Entities\EventStreams;
 
-use Minds\Core\Di\Di;
-use Minds\Core\Entities\GuidLinkResolver;
+use Minds\Core\Counters;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\SubscriptionInterface;
-use Minds\Core\Log\Logger;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\Sockets\Events as SocketEvents;
-use Minds\Helpers\Counters;
 
 /**
  * Subscribes to metric change events.
@@ -18,13 +15,11 @@ use Minds\Helpers\Counters;
 class MetricChangeStreamsSubscription implements SubscriptionInterface
 {
     public function __construct(
-        private ?Logger $logger = null,
         private ?SocketEvents $socketEvents = null,
-        private ?GuidLinkResolver $guidLinkResolver = null
+        private ?Counters $counters = null
     ) {
-        $this->logger = $logger ?? Di::_()->get('Logger');
         $this->socketEvents ??= new SocketEvents();
-        $this->guidLinkResolver ??= new GuidLinkResolver();
+        $this->counters ??= new Counters();
     }
 
     /**
@@ -38,7 +33,7 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
     
     /**
      * Returns topic.
-     * @return ActionEvent - topic.
+     * @return ActionEventsTopic - topic.
      */
     public function getTopic(): ActionEventsTopic
     {
@@ -65,32 +60,23 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
             return false;
         }
 
-        $entity = $event->getEntity();
-        $guids = [(string) $entity->getGuid()];
-
-        if (method_exists($entity, 'getEntityGuid') && $entity->getEntityGuid()) {
-            $guids[] = (string) $entity->getEntityGuid();
-        } else {
-            $guids[] = $this->guidLinkResolver->resolve($guids[0]);
-        }
-
-        $guids = array_filter($guids);
+        $guid = $this->getGuid($event->getEntity());
 
         switch ($event->getAction()) {
             case 'vote_up_removed':
             case 'vote_up':
-                $count = Counters::get($guids[0], 'thumbs:up', false);
+                $count = $this->counters->get($guid, 'thumbs:up');
                 $this->emitViaSockets(
-                    guids: $guids,
+                    guid: $guid,
                     key: 'thumbs:up:count',
                     value: $count
                 );
                 break;
             case 'vote_down_removed':
             case 'vote_down':
-                $count = Counters::get($guids[0], 'thumbs:down', false);
+                $count = $this->counters->get($guid, 'thumbs:down');
                 $this->emitViaSockets(
-                    guids: $guids,
+                    guid: $guid,
                     key: 'thumbs:down:count',
                     value: $count
                 );
@@ -102,21 +88,33 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
 
     /**
      * Emits event via sockets.
-     * @param array $guids - guids we are emitting for.
+     * @param string $guid - guid to emitting for.
      * @param string $key - metrics key e.g. `thumbs:count:count`.
      * @param integer $value - value we want to emit to sockets.
      * @return self
      */
-    private function emitViaSockets(array $guids, string $key, int $value): self
+    private function emitViaSockets(string $guid, string $key, int $value): self
     {
-        foreach ($guids as $guid) {
-            $roomName = "entity:metrics:$guid";
+        $roomName = "entity:metrics:$guid";
 
-            (new SocketEvents())
-                ->setRoom($roomName) // send it to this group.
-                ->emit($roomName, json_encode([$key => $value]));
-        }
+        $this->socketEvents
+            ->setRoom($roomName) // send it to this group.
+            ->emit($roomName, json_encode([$key => $value]));
 
         return $this;
+    }
+
+    /**
+     * Get GUID to emit to for an entity.
+     * @param mixed $entity - entity to get GUID for.
+     * @return string guid.
+     */
+    private function getGuid(mixed $entity): string
+    {
+        if (method_exists($entity, 'getEntityGuid') && $entity->getEntityGuid()) {
+            return $entity->getEntityGuid();
+        }
+
+        return (string) $entity->getGuid();
     }
 }
