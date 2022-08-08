@@ -48,7 +48,7 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
      */
     public function getTopicRegex(): string
     {
-        return '(vote_up|vote_down)';
+        return '(vote_up|vote_down|vote_up_removed|vote_down_removed)';
     }
 
     /**
@@ -66,6 +66,7 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
         $entityGuid = $entity->getGuid();
 
         switch ($event->getAction()) {
+            case 'vote_up_removed':
             case 'vote_up':
                 $count = Counters::get($entityGuid, 'thumbs:up');
                 $this->emitViaSockets(
@@ -74,6 +75,7 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
                     value: $count
                 );
                 break;
+            case 'vote_down_removed':
             case 'vote_down':
                 $count = Counters::get($entityGuid, 'thumbs:down');
                 $this->emitViaSockets(
