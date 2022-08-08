@@ -35,7 +35,7 @@ class Manager
      * @return Response - response from request.
      * @throws UserErrorException
      */
-    public function getList(string $userGuid, int $limit = 12, int $fromTimestamp = null): Response
+    public function getList(string $userGuid, int $limit = 12, int $fromTimestamp = null, bool $excludeSelf = false): Response
     {
         $response = $this->elasticSearchManager->getList([
             'limit' => $limit,
@@ -45,9 +45,10 @@ class Manager
             'single_owner_threshold' => 6,
             'period' => 'all', // legacy option
             'unseen' => true,
-            'demoted' => true,
+            'demoted' => $excludeSelf ? false : true,
             'to_timestamp' => $fromTimestamp,
             'from_timestamp' => $fromTimestamp ? time() * 1000 : null,
+            'exclude' => $excludeSelf ? [ $userGuid ] : null,
         ]);
 
         $response->setPagingToken(null); // This endpoint doesn't support pagination yet.

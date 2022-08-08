@@ -50,7 +50,8 @@ class Manager
         $entityResponse = $this->unseenTopFeedManager->getList(
             userGuid: $deviceSubscription->getUserGuid(),
             limit: 1,
-            fromTimestamp: strtotime('24 hours ago') * 1000
+            fromTimestamp: strtotime('24 hours ago') * 1000,
+            excludeSelf: true,
         );
 
         if (!$entityResponse->first() || !$entityResponse->first()->getEntity()) {
