@@ -53,6 +53,7 @@ class ManagerSpec extends ObjectBehavior
             'demoted' => true,
             'to_timestamp' => null,
             'from_timestamp' => null,
+            'exclude' => null,
         ])
             ->shouldBeCalled()
             ->willReturn($response);
@@ -84,6 +85,7 @@ class ManagerSpec extends ObjectBehavior
             'demoted' => true,
             'to_timestamp' => null,
             'from_timestamp' => null,
+            'exclude' => null,
         ])
             ->shouldBeCalled()
             ->willReturn($response);
