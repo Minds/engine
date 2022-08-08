@@ -58,7 +58,8 @@ class EntityExporter
         $esLimit = $filters['limit'] - $count;
         if (
             $esLimit > 0 && // If we have not yet reached the limit,
-                (in_array(0, $filters['kinds'], true) || in_array(1, $filters['kinds'], true)) // and we want kind 0 or 1, pull from Minds posts
+                (in_array(0, $filters['kinds'], true) || in_array(1, $filters['kinds'], true)) && // and we want kind 0 or 1, pull from Minds posts
+                !(array_key_exists('#e', $filters) || array_key_exists('#p', $filters)) // and we do not filter by "#e" or "#p"
         ) {
             try {
                 foreach ($this->manager->getElasticNostrEvents($filters, $esLimit) as $nostrEvent) {
