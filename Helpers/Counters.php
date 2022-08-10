@@ -88,8 +88,8 @@ class Counters
         } else {
             $guid = $entity->guid;
         }
-        $cached = $cacher->get("counter:$guid:$metric");
-        if ($cached !== false && $cache) {
+        $cached = $cache ? $cacher->get("counter:$guid:$metric") : false;
+        if ($cached !== false) {
             return (int) $cached;
         }
 
