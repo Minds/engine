@@ -38,9 +38,9 @@ class Counters
             $client->request($query->update($guid, $metric, $value), true);
         } catch (\Exception $e) {
         }
-        //error_log("$guid:$metric:$value");
-        $cacher = Core\Data\cache\factory::build();
-        //$cacher->destroy("counter:$guid:$metric");
+
+        // Rebuild cache
+        self::get($entity, $metric, false, $client);
     }
 
     /**
@@ -66,8 +66,8 @@ class Counters
             $query = new Core\Data\Cassandra\Prepared\Counters();
             $client->request($query->update($guid, $metric, $value));
 
-            $cacher = Core\Data\cache\factory::build();
-            //$cacher->destroy("counter:$guid:$metric");
+            // Rebuild cache
+            self::get($entity, $metric, false, $client);
         } catch (\Exception $e) {
         }
     }
@@ -107,7 +107,7 @@ class Counters
         } catch (\Exception $e) {
             return 0;
         }
-        $cacher->set("counter:$guid:$metric", $count, 360); //cache for 10 minutes
+        $cacher->set("counter:$guid:$metric", $count, 259200); //cache for 3 days
         return (int) $count;
     }
 
