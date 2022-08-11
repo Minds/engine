@@ -27,9 +27,7 @@ class Api extends Module
      */
     public function setCaptchaBypass(): void
     {
-        $signing_secret = $_ENV['bypass_signing_key'] ?? "testing";
-
-        echo $signing_secret;
+        $signing_secret = $_ENV['BYPASS_SIGNING_KEY'] ?? "testing";
 
         $jwtConfig = Configuration::forSymmetricSigner(new Sha256(), InMemory::plainText($signing_secret));
 

@@ -2,8 +2,9 @@ namespace: Tests
 support_namespace: Support
 # suite config
 params:
+    - env
     - .env
-#    - env
+
 suites:
     Api:
         actor: ApiTester
