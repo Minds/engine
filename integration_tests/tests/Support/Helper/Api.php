@@ -29,7 +29,7 @@ class Api extends Module
     {
         $signing_secret = $_ENV['bypass_signing_key'] ?? "testing";
 
-        codecept_debug($signing_secret);
+        echo $signing_secret;
 
         $jwtConfig = Configuration::forSymmetricSigner(new Sha256(), InMemory::plainText($signing_secret));
 
