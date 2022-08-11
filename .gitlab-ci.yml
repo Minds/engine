@@ -172,7 +172,7 @@ review:stop:
       - feat/ci-k8s
 
 integration_testing:
-  needs: ["review:start"]
+  needs: ["review"]
   when: on_success
   stage: integration-testing
   image: minds/php:pdo
