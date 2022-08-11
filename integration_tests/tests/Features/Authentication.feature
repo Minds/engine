@@ -3,8 +3,8 @@ Feature: Authentication
 
   Scenario: Successful authentication
     Given my login details are
-      | username | password |
-      | minds    | Pa$$w0rd |
+      | username                          | password   |
+      | minds_engine_integration_tests    | Pa$$w0rd!@ |
     When I call the login endpoint
     Then I get a 200 response containing
       """json

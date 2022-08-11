@@ -1,6 +1,9 @@
 namespace: Tests
 support_namespace: Support
 # suite config
+params:
+    - .env
+    - env
 suites:
     Api:
         actor: ApiTester
@@ -8,7 +11,7 @@ suites:
         modules:
             enabled:
                 - REST:
-                    url: http://localhost:8080/api/
+                    url: '%MINDS_DOMAIN%/api/'
                     depends: PhpBrowser
                     part: Json
                 - Tests\Support\Helper\Api
@@ -18,6 +21,7 @@ suites:
 paths:
     tests: tests
     output: tests/_output
+    envs: tests/_envs
     data: tests/Support/Data
     support: tests/Support
     features: tests/Features
