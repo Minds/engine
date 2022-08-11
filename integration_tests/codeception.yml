@@ -1,0 +1,35 @@
+namespace: Tests
+support_namespace: Support
+# suite config
+suites:
+    Api:
+        actor: ApiTester
+        path: .
+        modules:
+            enabled:
+                - REST:
+                    url: http://localhost:8080/api/
+                    depends: PhpBrowser
+                    part: Json
+                - Tests\Support\Helper\Api
+        step_decorators:
+            - \Codeception\Step\AsJson
+
+paths:
+    tests: tests
+    output: tests/_output
+    data: tests/Support/Data
+    support: tests/Support
+    features: tests/Features
+    steps: tests/Support/Step
+
+settings:
+    shuffle: true
+    lint: false
+
+gherkin:
+    contexts:
+        path: tests/Support/Step
+        namespace_prefix: Tests\Support\Step
+        default:
+            - Tests\Support\ApiTester

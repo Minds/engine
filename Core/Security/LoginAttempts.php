@@ -3,12 +3,11 @@
 
 namespace Minds\Core\Security;
 
-use Minds\Common\IpAddress;
+use Minds\Core\Config;
+use Minds\Core\Data\Redis\Client as RedisServer;
 use Minds\Core\Di\Di;
 use Minds\Core\Security\Exceptions\UserNotSetupException;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
-use Minds\Core\Data\Redis\Client as RedisServer;
-use Minds\Core\Config;
 use Minds\Entities\User;
 
 class LoginAttempts
@@ -118,6 +117,7 @@ class LoginAttempts
                 }
 
                 $this->user->removePrivateSetting("login_failures");
+                $this->getRedis()->delete("login-failures:$user_guid");
 
                 return true;
             }

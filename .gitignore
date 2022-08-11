@@ -13,7 +13,7 @@ bin
 # ignore cassandra log
 cassandra.log
 # ignore IDE/hidden/OS cache files
-.*
+.**/**
 *~
 !/.gitignore
 /nbproject
@@ -34,3 +34,6 @@ settings.php-*.bak
 !/.gitattributes
 
 test_results.html
+
+**/.DS_Store
+**/.editorconfig

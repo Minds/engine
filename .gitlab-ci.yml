@@ -171,6 +171,20 @@ review:stop:
       - master
       - feat/ci-k8s
 
+integration_testing:
+  needs: ["review:start"]
+  when: on_success
+  stage: integration-testing
+  image: minds/php:pdo
+  script:
+    - apk add --no-cache git
+    - sh integration_tests/setup_and_run.sh
+#  artifacts:
+#    name: "$CI_COMMIT_REF_SLUG"
+#    paths:
+#      - vendor
+#      - bin
+
 # qa:manual:
 #   stage: qa
 #   script:
