@@ -111,6 +111,10 @@ class Redis extends abstractCacher
 
     public function destroy($key)
     {
+        if (isset($this->local[$key])) {
+            unset($this->local[$key]); // Remove from local, inmemory cache
+        }
+
         try {
             $redis = $this->getMaster();
             $redis->delete($key);
