@@ -180,9 +180,7 @@ integration_testing:
   image: minds/php:pdo
   script:
     - apk add --no-cache git
-    - sh integration_tests/setup_and_run.sh
-  environment:
-    MINDS_DOMAIN: https://$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
+    - export MINDS_DOMAIN=https://$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN && sh integration_tests/setup_and_run.sh
 #  artifacts:
 #    name: "$CI_COMMIT_REF_SLUG"
 #    paths:
