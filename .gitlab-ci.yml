@@ -8,6 +8,7 @@ stages:
   - prepare
   - scan
   - review
+  - integration_testing
   - deploy:staging
   - qa
   - deploy:canary
@@ -172,9 +173,9 @@ review:stop:
       - feat/ci-k8s
 
 integration_testing:
-  needs: ["review"]
+  needs: ["review:start"]
   when: on_success
-  stage: integration-testing
+  stage: integration_testing
   image: minds/php:pdo
   script:
     - apk add --no-cache git
