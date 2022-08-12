@@ -71,8 +71,8 @@ class ManagerSpec extends ObjectBehavior
             sender: $escrowUser,
             receiver: $user,
             receiverAddress: null,
-            waitForConfirmation: true,
-            checkSFuel: true
+            waitForConfirmation: false,
+            checkSFuel: false
         )
             ->shouldBeCalled()
             ->willReturn('0x123');
@@ -112,8 +112,8 @@ class ManagerSpec extends ObjectBehavior
             sender: $escrowUser,
             receiver: $user,
             receiverAddress: null,
-            waitForConfirmation: true,
-            checkSFuel: true
+            waitForConfirmation: false,
+            checkSFuel: false
         )
             ->shouldBeCalled()
             ->willReturn('0x123');
@@ -153,7 +153,7 @@ class ManagerSpec extends ObjectBehavior
             sender: $user,
             receiver: $escrowUser,
             receiverAddress: null,
-            waitForConfirmation: true,
+            waitForConfirmation: false,
             checkSFuel: true
         )
             ->shouldBeCalled()
@@ -194,8 +194,8 @@ class ManagerSpec extends ObjectBehavior
             sender: $escrowUser,
             receiver: $user,
             receiverAddress: null,
-            waitForConfirmation: true,
-            checkSFuel: true
+            waitForConfirmation: false,
+            checkSFuel: false
         )
             ->shouldBeCalled()
             ->willReturn('0x123');
@@ -235,7 +235,7 @@ class ManagerSpec extends ObjectBehavior
             sender: $user,
             receiver: $escrowUser,
             receiverAddress: null,
-            waitForConfirmation: true,
+            waitForConfirmation: false,
             checkSFuel: true
         )
             ->shouldBeCalled()
@@ -277,7 +277,7 @@ class ManagerSpec extends ObjectBehavior
             sender: $user,
             receiver: $escrowUser,
             receiverAddress: null,
-            waitForConfirmation: true,
+            waitForConfirmation: false,
             checkSFuel: true
         )
             ->shouldBeCalled()

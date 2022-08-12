@@ -82,6 +82,10 @@ class Manager
     public function send(): EscrowTransaction
     {
         $escrowTransaction = new EscrowTransaction();
+
+        // When transacting from admin owned wallets, we must pre-supply SFuel to speed up the process of admin queues.
+        $checkSFuel = true;
+
         switch ($this->context) {
             case 'boost_refund':
             case 'boost_charge':
@@ -90,6 +94,7 @@ class Manager
                         $this->config->get('blockchain')['skale']['boost_escrow_user_guid']
                     ))
                     ->setReceiver($this->user);
+                $checkSFuel = false;
                 break;
             case 'boost_created':
                 $escrowTransaction
@@ -104,6 +109,7 @@ class Manager
                         $this->config->get('blockchain')['skale']['withdrawal_escrow_user_guid']
                     ))
                     ->setReceiver($this->user);
+                $checkSFuel = false;
                 break;
             case 'withdraw_created':
                 $escrowTransaction
@@ -118,12 +124,13 @@ class Manager
                         $this->config->get('blockchain')['skale']['balance_sync_user_guid']
                     ))
                     ->setReceiver($this->user);
+                $checkSFuel = false;
                 break;
             default:
                 throw new ServerErrorException('Context not supported');
         }
 
-        $txHash = $this->sendSkaleTransaction($escrowTransaction);
+        $txHash = $this->sendSkaleTransaction($escrowTransaction, checkSFuel: $checkSFuel);
         $escrowTransaction->setTxHash($txHash);
         return $escrowTransaction;
     }
@@ -131,16 +138,17 @@ class Manager
     /**
      * Sends transaction via SKALE.
      * @param EscrowTransaction $escrowTransaction - object containing sender and receiver.
+     * @param bool $checkSFuel - whether SFuel should be checked.
      * @return string - txid of skale transaction.
      */
-    private function sendSkaleTransaction(EscrowTransaction $escrowTransaction): string
+    private function sendSkaleTransaction(EscrowTransaction $escrowTransaction, bool $checkSFuel): string
     {
         return $this->skaleTools->sendTokens(
             amountWei: (string) abs($this->amountWei),
             sender: $escrowTransaction->getSender(),
             receiver: $escrowTransaction->getReceiver(),
-            waitForConfirmation: true,
-            checkSFuel: true
+            waitForConfirmation: false,
+            checkSFuel: $checkSFuel
         );
     }
 }
