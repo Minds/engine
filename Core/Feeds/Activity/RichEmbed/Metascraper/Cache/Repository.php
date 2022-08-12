@@ -79,10 +79,11 @@ class Repository
 
     /**
      * Get key.
-     * @param string $url - url to get key for. 
+     * @param string $url - url to get key for.
      * @return string key.
      */
-    private function getKey(string $url): string {
+    private function getKey(string $url): string
+    {
         // trim any trailing slash.
         if (substr($url, -1) === '/') {
             $url = substr($url, 0, -1);
