@@ -172,22 +172,23 @@ review:stop:
       - master
       - feat/ci-k8s
 
+
 integration_testing:
-  needs:
-    - review:start
-  when: on_success
-  stage: integration_testing
+  stage: qa
   image: minds/php:pdo
   script:
     - apk add --no-cache git
-    - "export MINDS_DOMAIN=https://$CI_BUILD_REF_SLUG.minds.io && \
-       export BYPASS_SIGNING_KEY=$CYPRESS_bypass_key && \
-       sh integration_tests/setup_and_run.sh"
-#  artifacts:
-#    name: "$CI_COMMIT_REF_SLUG"
-#    paths:
-#      - vendor
-#      - bin
+    - >
+      if [ "$CI_BUILD_REF_NAME" == "master" ]; then
+        export MINDS_DOMAIN=https://www.minds.com
+      else
+        export MINDS_DOMAIN=https://$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
+      fi
+    - sh integration_tests/setup_and_run.sh"
+  except:
+    refs:
+      - master
+  allow_failure: true
 
 # qa:manual:
 #   stage: qa
