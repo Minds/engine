@@ -51,7 +51,9 @@ class ManagerSpec extends ObjectBehavior
             'period' => 'all', // legacy option
             'unseen' => true,
             'demoted' => true,
+            'to_timestamp' => null,
             'from_timestamp' => null,
+            'exclude' => null,
         ])
             ->shouldBeCalled()
             ->willReturn($response);
@@ -81,7 +83,9 @@ class ManagerSpec extends ObjectBehavior
             'period' => 'all', // legacy option
             'unseen' => true,
             'demoted' => true,
+            'to_timestamp' => null,
             'from_timestamp' => null,
+            'exclude' => null,
         ])
             ->shouldBeCalled()
             ->willReturn($response);

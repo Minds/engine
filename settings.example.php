@@ -563,6 +563,11 @@ $CONFIG->set('tags', [
     'art', 'music', 'journalism', 'blockchain', 'freespeech', 'news', 'gaming', 'myphoto', 'nature', 'photography', 'politics', 'top', 'bitcoin', 'technology', 'food', 'animals', 'health', 'science', 'philosophy', 'comedy', 'film', 'minds',
 ]);
 
+// served initially only when under minds-3216-default-tags-v2 - should eventually replace v1 tags.
+$CONFIG->set('tags_v2', [
+    'Animals', 'Anime', 'Art', 'Comedy', 'Crypto', 'Food', 'Freedom', 'Gaming', 'Literature', 'Memes', 'Movies', 'Music', 'Nature', 'NSFW', 'News', 'Outdoors', 'Photography', 'Politics', 'Religion', 'Sports', 'Technology', 'Travel'
+]);
+
 $CONFIG->set('steward_guid', '');
 $CONFIG->set('steward_autoconfirm', false);
 $CONFIG->set('development_mode', '{{development_mode}}');

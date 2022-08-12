@@ -15,6 +15,33 @@ class Controller
     }
 
     /**
+    * Returns subscriptions of subscriptions, ordered by most relevant
+    * @param ServerRequest $request
+    * @return JsonResponse
+    */
+    public function getSubscriptionsOfSubscriptions(ServerRequest $request): JsonResponse
+    {
+        /** @var User */
+        $loggedInUser = $request->getAttribute('_user');
+
+        /** @var int */
+        $limit = $request->getQueryParams()['limit'] ?? 3;
+
+        /** @var int */
+        $offset = $request->getQueryParams()['offset'] ?? 0;
+
+        $users = iterator_to_array($this->repository->getSubscriptionsOfSubscriptions(
+            userGuid: $loggedInUser->getGuid(),
+            limit: (int) $limit,
+            offset: (int) $offset,
+        ));
+
+        return new JsonResponse([
+            'users' => Exportable::_($users),
+        ]);
+    }
+
+    /**
      * Returns users who **I subscribe to** that also subscribe to this users
      * @param ServerRequest $request
      * @return JsonResponse
@@ -30,6 +57,9 @@ class Controller
         /** @var int */
         $limit = $request->getQueryParams()['limit'] ?? 3;
 
+        /** @var int */
+        $offset = $request->getQueryParams()['offset'] ?? 0;
+
         if (!$subscribedToGuid) {
             throw new UserErrorException("You must provide ?guid parameter");
         }
@@ -42,7 +72,8 @@ class Controller
         $users = iterator_to_array($this->repository->getSubscriptionsThatSubscribeTo(
             userGuid: $loggedInUser->getGuid(),
             subscribedToGuid: $subscribedToGuid,
-            limit: (int) $limit
+            limit: (int) $limit,
+            offset: (int) $offset,
         ));
 
         return new JsonResponse([

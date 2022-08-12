@@ -69,7 +69,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($feedSyncEntity);
 
-        $this->unseenTopFeedManager->getList($userGuid, 1, Argument::type('int'))
+        $this->unseenTopFeedManager->getList($userGuid, 1, Argument::type('int'), excludeSelf: true)
             ->shouldBeCalled()
             ->willReturn($response);
 
@@ -106,7 +106,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $this->unseenTopFeedManager->getList($userGuid, 1, Argument::type('int'))
+        $this->unseenTopFeedManager->getList($userGuid, 1, Argument::type('int'), excludeSelf: true)
             ->shouldBeCalled()
             ->willReturn($response);
 

@@ -995,7 +995,7 @@ class User extends \ElggUser
 
         $db = new Core\Data\Call('friendsof');
         $return = (int) $db->countRow($this->guid);
-        $cacher->set("$this->guid:friendsofcount", $return, 360);
+        $cacher->set("$this->guid:friendsofcount", $return, 259200); //cache for 3 days
 
         return (int) $return;
     }
@@ -1014,7 +1014,7 @@ class User extends \ElggUser
 
         $db = new Core\Data\Call('friends');
         $return = (int) $db->countRow($this->guid);
-        $cacher->set("$this->guid:friendscount", $return, 360);
+        $cacher->set("$this->guid:friendscount", $return, 259200); //cache for 3 days
 
         return (int) $return;
     }
