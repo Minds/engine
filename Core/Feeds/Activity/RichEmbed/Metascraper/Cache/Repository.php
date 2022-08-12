@@ -31,7 +31,7 @@ class Repository
     public function get(string $url): ?array
     {
         $statement = "SELECT * FROM metascraper_cache WHERE url_md5_hash = ?";
-        $values = [md5($url)];
+        $values = [$this->getKey($url)];
         $query = new CustomQuery();
         $query->query($statement, $values);
         return $this->db->request($query)->first();
@@ -52,7 +52,7 @@ class Repository
         ) VALUES (?, ?, ?)";
 
         $values = [
-            md5($url), // url
+            $this->getKey($url), // url
             json_encode($data), // data
             new Timestamp(time(), 0) // last_scrape
         ];
@@ -71,9 +71,23 @@ class Repository
     public function delete(string $url): bool
     {
         $statement = "DELETE FROM metascraper_cache WHERE url_md5_hash = ?";
-        $values = [md5($url)];
+        $values = [$this->getKey($url)];
         $query = new CustomQuery();
         $query->query($statement, $values);
         return (bool) $this->db->request($query);
+    }
+
+    /**
+     * Get key.
+     * @param string $url - url to get key for. 
+     * @return string key.
+     */
+    private function getKey(string $url): string {
+        // trim any trailing slash.
+        if (substr($url, -1) === '/') {
+            $url = substr($url, 0, -1);
+        }
+        // return md5 hash for key.
+        return md5($url);
     }
 }
