@@ -112,7 +112,6 @@ class User extends \ElggUser
         $this->attributes['btc_address'] = '';
         $this->attributes['phone_number'] = null;
         $this->attributes['phone_number_hash'] = null;
-        // $this->attributes['icontime'] = time();
         $this->attributes['icontime'] = 0;
         $this->attributes['briefdescription'] = '';
         $this->attributes['rating'] = 1;
