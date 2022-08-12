@@ -1,0 +1,40 @@
+namespace: Tests
+support_namespace: Support
+# suite config
+params:
+    - env
+    - .env
+
+suites:
+    Api:
+        actor: ApiTester
+        path: .
+        modules:
+            enabled:
+                - REST:
+                    url: '%MINDS_DOMAIN%/api/'
+                    depends: PhpBrowser
+                    part: Json
+                - Tests\Support\Helper\Api
+        step_decorators:
+            - \Codeception\Step\AsJson
+
+paths:
+    tests: tests
+    output: tests/_output
+    envs: tests/_envs
+    data: tests/Support/Data
+    support: tests/Support
+    features: tests/Features
+    steps: tests/Support/Step
+
+settings:
+    shuffle: true
+    lint: false
+
+gherkin:
+    contexts:
+        path: tests/Support/Step
+        namespace_prefix: Tests\Support\Step
+        default:
+            - Tests\Support\ApiTester
