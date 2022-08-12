@@ -3,8 +3,6 @@
 namespace Minds\Core\Feeds\Seen;
 
 use Minds\Common\PseudonymousIdentifier;
-use Minds\Core\Data\Redis;
-use Minds\Core\Di\Di;
 
 class Manager
 {
@@ -58,7 +56,7 @@ class Manager
      * Identifier. Will be pseudo if if found, if not we use a fallback cookie
      * @return string
      */
-    private function getIdentifier(): string
+    public function getIdentifier(): string
     {
         $id = (new PseudonymousIdentifier())->getId();
         if (!$id) {

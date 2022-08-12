@@ -9,6 +9,22 @@ CREATE TABLE IF NOT EXISTS nostr_events (
     PRIMARY KEY (id, pubkey)
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS nostr_replies (
+    id varchar(64),
+    event_id varchar(64),
+    relay_url text,
+    marker text,
+    FOREIGN KEY (id) REFERENCES nostr_events(id),
+    PRIMARY KEY (id, event_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS nostr_mentions (
+    id varchar(64),
+    pubkey varchar(64),
+    FOREIGN KEY (id) REFERENCES nostr_events(id),
+    PRIMARY KEY (id, pubkey)
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS nostr_users (
     pubkey varchar(64),
     user_guid bigint,

@@ -53,6 +53,72 @@ class Repository
     }
 
     /**
+     * Will return subscriptions of subscriptions, ordered by most relevant
+     * NOTE: Users with >1000 subscriptions will only take into account their most recent 1000 subscriptions
+     * @param string $userGuid
+     * @param int $limit
+     * @param int $offset
+     * @return iterable<User>
+     */
+    public function getSubscriptionsOfSubscriptions(
+        string $userGuid,
+        int $limit = 3,
+        int $offset = 0
+    ): iterable {
+        $statement = "
+            SELECT 
+                a.friend_guid, 
+                COUNT(*) as relevance
+            FROM 
+                friends a
+            JOIN 
+                (
+                    SELECT user_guid, friend_guid FROM friends
+                    WHERE user_guid=:user_guid
+                    ORDER BY timestamp DESC
+                    LIMIT 1000
+                ) as b
+                ON  (
+                        b.friend_guid = a.user_guid
+                    )
+            LEFT JOIN
+                friends c
+                ON
+                    (
+                        c.friend_guid = a.friend_guid 
+                        AND c.user_guid = b.user_guid
+                    )     
+            WHERE 
+                c.user_guid IS NULL
+            AND 
+                a.friend_guid != :user_guid
+            AND
+                a.timestamp >  DATE_SUB( CURDATE(), INTERVAL 1 YEAR ) 
+            GROUP BY 
+                a.friend_guid
+            ORDER BY 
+                relevance DESC
+            LIMIT $offset,$limit";
+
+        $prepared = $this->client->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
+    
+        $prepared->execute([
+                'user_guid' => $userGuid,
+            ]);
+    
+        foreach ($prepared as $row) {
+            $user = $this->entitiesBuilder->single($row['friend_guid']);
+            if (!$user instanceof User || !$user->isEnabled()) {
+                // We may want to log this as you shouldn't be subscribed to a blocked or non-existant user
+                continue;
+            }
+            yield $user;
+        }
+
+        return;
+    }
+
+    /**
      * Returns count of users who **I subscribe to** that also subscribe to this users
      * @param $userGuid - eg. yourself
      * @param $subscribedToGuid - eg. your friend
@@ -86,6 +152,7 @@ class Repository
         string $userGuid,
         string $subscribedToGuid,
         int $limit = 12,
+        int $offset = 0,
         bool $randomize = true,
     ): iterable {
         $statement = "SELECT own.friend_guid " . $this->getSubscriptionsThatSubscribeToStatement();
@@ -94,7 +161,10 @@ class Repository
             $statement . " ORDER BY RAND()";
         }
 
-        $statement .= " LIMIT $limit";
+        $limit = (int) $limit;
+        $offset = (int) $offset;
+
+        $statement .= " LIMIT $offset,$limit";
 
         $prepared = $this->client->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
 

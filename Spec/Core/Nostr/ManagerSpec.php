@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Nostr;
 use Minds\Common\Urn;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Feeds\Elastic\Manager as ElasticSearchManager;
 use Minds\Core\Nostr\Keys;
 use Minds\Core\Nostr\Manager;
 use Minds\Core\Nostr\NostrEvent;
@@ -20,6 +21,7 @@ class ManagerSpec extends ObjectBehavior
 {
     private $entitiesBuilder;
     private $entitiesResolver;
+    private $elasticSearchManager;
     private $repository;
     private $keys;
 
@@ -27,18 +29,21 @@ class ManagerSpec extends ObjectBehavior
         EntitiesBuilder $entitiesBuilder,
         Keys $keys,
         Repository $repository,
-        EntitiesResolver $entitiesResolver
+        EntitiesResolver $entitiesResolver,
+        ElasticSearchManager $elasticSearchManager
     ) {
         $this->beConstructedWith(
             null,
             $entitiesBuilder,
             $keys,
             $repository,
-            $entitiesResolver
+            $entitiesResolver,
+            $elasticSearchManager
         );
         $this->entitiesBuilder = $entitiesBuilder;
         $this->repository = $repository;
         $this->entitiesResolver = $entitiesResolver;
+        $this->elasticSearchManager = $elasticSearchManager;
         $this->keys = $keys;
     }
 
@@ -236,20 +241,180 @@ class ManagerSpec extends ObjectBehavior
 //        $response->shouldContainValueLike($nostrEventMock);
 //    }
 
+    public function it_should_accept_default_filters(NostrEvent $nostrEvent, Activity $activity, User $user)
+    {
+        $limit = 12;
+        $filters = [
+            'ids' => [],
+            'authors' => ['4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715'],
+            'kinds' => [ 0, 1 ],
+            'since' => null,
+            'until' => null,
+            'limit' => 12
+        ];
+
+        $this->repository->getUserFromNostrPublicKeys(Argument::any())
+            ->willReturn([]);
+
+        $this->elasticSearchManager->getList(Argument::any())->willReturn([$activity]);
+
+        $this->getElasticNostrEvents($filters, $limit)->shouldReturn([]);
+    }
+
+    public function it_should_get_internal_pubkeys_if_kind_0_lacks_authors(Activity $activity)
+    {
+        $limit = 12;
+        $filters = [
+            'ids' => [],
+            'authors' => [],
+            'kinds' => [ 0 ],
+            'since' => null,
+            'until' => null,
+            'limit' => 12
+        ];
+
+        $this->repository->getInternalPublicKeys($limit)
+            ->shouldBeCalled()
+            ->willReturn([]);
+
+        $this->elasticSearchManager->getList(Argument::any())->willReturn([$activity]);
+
+        $this->getElasticNostrEvents($filters, $limit)->shouldReturn([]);
+    }
+
+    public function it_should_set_opts_for_since_filter(Activity $activity)
+    {
+        $limit = 12;
+        $filters = [
+            'ids' => [],
+            'authors' => [],
+            'kinds' => [ 1 ],
+            'since' => null,
+            'until' => null,
+            'limit' => 12,
+            'since' => 123
+        ];
+
+        $opts = [
+            'container_guid' => [],
+            'period' => 'all',
+            'algorithm' => 'latest',
+            'type' => 'activity',
+            'limit' => 12,
+            'single_owner_threshold' => 0,
+            'access_id' => 2,
+            'as_activities' => true,
+            'from_timestamp' => 123000,
+            'reverse_sort' => true
+        ];
+
+        $this->elasticSearchManager->getList($opts)->shouldBeCalled()->willReturn([$activity]);
+
+        $this->getElasticNostrEvents($filters, $limit)->shouldReturn([]);
+    }
+
+    public function it_should_set_opts_for_until_filter(Activity $activity)
+    {
+        $limit = 12;
+        $filters = [
+            'ids' => [],
+            'authors' => [],
+            'kinds' => [ 1 ],
+            'since' => null,
+            'until' => null,
+            'limit' => 12,
+            'until' => 123
+        ];
+
+        $opts = [
+            'container_guid' => [],
+            'period' => 'all',
+            'algorithm' => 'latest',
+            'type' => 'activity',
+            'limit' => 12,
+            'single_owner_threshold' => 0,
+            'access_id' => 2,
+            'as_activities' => true,
+            'from_timestamp' => 123000
+        ];
+
+        $this->elasticSearchManager->getList($opts)->shouldBeCalled()->willReturn([$activity]);
+
+        $this->getElasticNostrEvents($filters, $limit)->shouldReturn([]);
+    }
+
+    public function it_should_set_opts_for_since_and_until_filters(Activity $activity)
+    {
+        $limit = 12;
+        $filters = [
+            'ids' => [],
+            'authors' => [],
+            'kinds' => [ 1 ],
+            'since' => null,
+            'until' => null,
+            'limit' => 12,
+            'since' => 123,
+            'until' => 456
+        ];
+
+        $opts = [
+            'container_guid' => [],
+            'period' => 'all',
+            'algorithm' => 'latest',
+            'type' => 'activity',
+            'limit' => 12,
+            'single_owner_threshold' => 0,
+            'access_id' => 2,
+            'as_activities' => true,
+            'to_timestamp' => 123000,
+            'from_timestamp' => 456000
+        ];
+
+        $this->elasticSearchManager->getList($opts)->shouldBeCalled()->willReturn([$activity]);
+
+        $this->getElasticNostrEvents($filters, $limit)->shouldReturn([]);
+    }
+
     public function it_should_add_event(NostrEvent $nostrEvent)
     {
         $this->repository->addEvent($nostrEvent)
             ->willReturn(true);
-    
+
         $this->addEvent($nostrEvent)
             ->shouldBe(true);
+    }
+
+    public function it_should_add_reply()
+    {
+        $this->repository->addReply(
+            "8933788dafe23ed6ac5a0d20011fde4769e2096972bb777d728ca62c43fa04d0",
+            ["e", "50eaadde6fd5a67b9a35f947355e3f90d6043d888008c4dbdb36c06155cf31ea"]
+        )->willReturn(true);
+
+        $this->addReply(
+            "8933788dafe23ed6ac5a0d20011fde4769e2096972bb777d728ca62c43fa04d0",
+            ["e", "50eaadde6fd5a67b9a35f947355e3f90d6043d888008c4dbdb36c06155cf31ea"]
+        )->shouldBe(true);
+    }
+
+    public function it_should_add_mention()
+    {
+        $this->repository->addMention(
+            "8933788dafe23ed6ac5a0d20011fde4769e2096972bb777d728ca62c43fa04d0",
+            ["p", "c59bb3bb07b087ef9fbd82c9530cf7de9d28adfdeb5076a0ac39fa44b88a49ad"]
+        )->willReturn(true);
+
+        $this->addMention(
+            "8933788dafe23ed6ac5a0d20011fde4769e2096972bb777d728ca62c43fa04d0",
+            ["p", "c59bb3bb07b087ef9fbd82c9530cf7de9d28adfdeb5076a0ac39fa44b88a49ad"]
+        )->shouldBe(true);
     }
 
     public function it_should_add_nostr_user_link(User $user)
     {
         $this->repository->addNostrUser($user, '4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715')
             ->willReturn(true);
-    
+
         $this->addNostrUser($user, '4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715')
             ->shouldBe(true);
     }
@@ -285,7 +450,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn([
                 $nostrEvent
             ]);
-     
+
         $this->getNostrEvents($filters)
             ->shouldYieldLike(new \ArrayIterator([
                 $nostrEvent
