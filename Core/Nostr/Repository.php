@@ -485,6 +485,21 @@ class Repository
     }
 
     /**
+     * Adds a Minds User and Nostr public key pairing
+     * @param User $user
+     * @param string $nostrPublicKey
+     * @return bool
+     */
+    public function deleteNostrEvents(array $ids = []): bool
+    {
+        $statement = "DELETE FROM nostr_events e WHERE e.id IN " . $this->inPad($ids);
+
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
+
+        return $prepared->execute($ids);
+    }
+
+    /**
      * Helper function to pad out IN (?,?,?)
      * @param array $arr
      * @return string

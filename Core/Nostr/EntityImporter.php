@@ -160,6 +160,17 @@ class EntityImporter
 
                     break;
                 case NostrEvent::EVENT_KIND_2: // recommend_server
+                case NostrEvent::EVENT_KIND_9: // delete
+                    // TODO validate pubkey
+
+                    // TODO delete from Vitess
+                    if (count($replies) > 0) {
+                        $this->manager->deleteNostrEvents($replies);
+                    }
+
+                    // TODO delete activity
+                    $this->manager->commit();
+                    break;
                 default:
                     // Commit
                     $this->manager->commit();

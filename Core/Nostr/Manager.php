@@ -393,4 +393,16 @@ class Manager
     {
         return $this->repository->getEvents($filters);
     }
+
+
+    /**
+     * Deletes referenced Nostr events
+     * @param array tags
+     * @return bool
+     */
+    public function deleteNostrEvents(array $tags = []): bool
+    {
+        $tags = array_map(fn ($tag): string => $tag[1], $tags);
+        return $this->repository->deleteNostrEvents($tags);
+    }
 }

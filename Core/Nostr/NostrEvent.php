@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\Nostr;
 
 use JsonSerializable;
@@ -16,13 +17,16 @@ class NostrEvent implements ExportableInterface, JsonSerializable
     use MagicAttributes;
 
     /** @var int */
-    const EVENT_KIND_0 = 0; // set_metadata
+    public const EVENT_KIND_0 = 0; // set_metadata
 
     /** @var int */
-    const EVENT_KIND_1 = 1; // text_note
+    public const EVENT_KIND_1 = 1; // text_note
 
     /** @var int */
-    const EVENT_KIND_2 = 2; // recommend_server
+    public const EVENT_KIND_2 = 2; // recommend_server
+
+    /** @var int */
+    public const EVENT_KIND_9 = 9; // delete
 
     protected string $id;
     protected string $pubKey;
