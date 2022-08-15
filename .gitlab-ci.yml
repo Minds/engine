@@ -8,6 +8,7 @@ stages:
   - prepare
   - scan
   - review
+  - integration_testing
   - deploy:staging
   - qa
   - deploy:canary
@@ -170,6 +171,21 @@ review:stop:
     refs:
       - master
       - feat/ci-k8s
+
+
+integration_testing:
+  stage: qa
+  image: minds/php:pdo
+  script:
+    - apk add --no-cache git
+    - >
+      if [ "$CI_BUILD_REF_NAME" == "master" ]; then
+        export MINDS_DOMAIN=https://www.minds.com
+      else
+        export MINDS_DOMAIN=https://$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
+      fi
+    - sh integration_tests/setup_and_run.sh"
+  allow_failure: true
 
 # qa:manual:
 #   stage: qa

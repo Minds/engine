@@ -1,0 +1,9 @@
+actor: ApiTester
+suite_namespace: Tests\Api
+modules:
+    # enable helpers as array
+    enabled:
+        - REST:
+              url: http://localhost:8080/api/
+              depends: PhpBrowser
+              part: Json

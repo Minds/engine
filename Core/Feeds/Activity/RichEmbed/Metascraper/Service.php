@@ -4,6 +4,7 @@ namespace Minds\Core\Feeds\Activity\RichEmbed\Metascraper;
 
 use GuzzleHttp;
 use GuzzleHttp\ClientInterface;
+use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Cache\Manager as CacheManager;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
@@ -22,18 +23,18 @@ class Service
      * @param ClientInterface|null $httpClient
      * @param Logger|null $logger
      * @param Config|null $config
-     * @param Cache|null $cache
+     * @param CacheManager|null $cache
      */
     public function __construct(
         public ?ClientInterface $httpClient = null,
         public ?Logger $logger = null,
         public ?Config $config = null,
-        public ?Cache $cache = null
+        public ?CacheManager $cacheManager = null
     ) {
         $this->httpClient ??= new GuzzleHttp\Client();
         $this->logger ??= Di::_()->get('Logger');
         $this->config ??= Di::_()->get('Config');
-        $this->cache ??= new Cache();
+        $this->cacheManager ??= new CacheManager();
 
         if ($requestTimeoutSeconds = $this->config->get('metascraper')['request_timeout'] ?? false) {
             $this->requestTimeoutSeconds = $requestTimeoutSeconds;
@@ -53,7 +54,7 @@ class Service
 
         if (!$this->shouldBypassCache()) {
             try {
-                $cachedMetadata = $this->cache->getExported($url);
+                $cachedMetadata = $this->cacheManager->getExported($url);
 
                 if ($cachedMetadata) {
                     return $cachedMetadata;
@@ -78,7 +79,7 @@ class Service
 
             if ($responseData['status'] === 200 && $responseData['data']) {
                 $metadata = (new Metadata())->fromMetascraperData($responseData['data']);
-                $this->cache->set($url, $metadata);
+                $this->cacheManager->set($url, $metadata);
                 return $metadata->export();
             }
         } catch (\Exception $e) {
