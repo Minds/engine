@@ -19,5 +19,9 @@ class ChannelsProvider extends Provider
         $this->di->bind('Channels\Ban', function ($di) {
             return new Ban();
         });
+
+        $this->di->bind('Channels\AvatarService', function ($di) {
+            return new AvatarService();
+        });
     }
 }
