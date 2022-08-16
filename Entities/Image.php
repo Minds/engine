@@ -641,9 +641,9 @@ class Image extends File
 
     /**
      * Gets `license`
-     * @return string
+     * @return string|null
      */
-    public function getLicense(): string
+    public function getLicense(): ?string
     {
         return $this->license;
     }

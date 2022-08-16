@@ -77,6 +77,7 @@ class PseudonymousIdentifier
             ->setPath('/')
             ->setHttpOnly(false) // app needs to be able to access
             ->setSecure(true)
+            ->setExpire(2147483647) // Do not expire
             ->create();
 
         // Make it aware in the current process

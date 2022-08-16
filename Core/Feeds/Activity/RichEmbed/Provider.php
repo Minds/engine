@@ -16,6 +16,10 @@ class Provider extends Di\Provider
             return new Iframely(new \GuzzleHttp\Client(), $di->get('Config'));
         });
 
+        $this->di->bind('Metascraper\Controller', function ($di) {
+            return new Metascraper\Controller();
+        });
+
         $this->di->bind('Metascraper\Service', function ($di) {
             return new Metascraper\Service();
         });

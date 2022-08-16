@@ -75,7 +75,7 @@ class User extends \ElggUser
     public $fullExport = true;
     public $exportCounts = false;
 
-    const PLUS_PRO_VALID_METHODS = [
+    public const PLUS_PRO_VALID_METHODS = [
         'tokens',
         'usd',
     ];
@@ -112,7 +112,7 @@ class User extends \ElggUser
         $this->attributes['btc_address'] = '';
         $this->attributes['phone_number'] = null;
         $this->attributes['phone_number_hash'] = null;
-        $this->attributes['icontime'] = time();
+        $this->attributes['icontime'] = 0;
         $this->attributes['briefdescription'] = '';
         $this->attributes['rating'] = 1;
         $this->attributes['p2p_media_enabled'] = 0;
@@ -995,7 +995,7 @@ class User extends \ElggUser
 
         $db = new Core\Data\Call('friendsof');
         $return = (int) $db->countRow($this->guid);
-        $cacher->set("$this->guid:friendsofcount", $return, 360);
+        $cacher->set("$this->guid:friendsofcount", $return, 259200); //cache for 3 days
 
         return (int) $return;
     }
@@ -1014,7 +1014,7 @@ class User extends \ElggUser
 
         $db = new Core\Data\Call('friends');
         $return = (int) $db->countRow($this->guid);
-        $cacher->set("$this->guid:friendscount", $return, 360);
+        $cacher->set("$this->guid:friendscount", $return, 259200); //cache for 3 days
 
         return (int) $return;
     }
@@ -1115,7 +1115,7 @@ class User extends \ElggUser
         $export['toaster_notifications'] = $this->getToasterNotifications();
         $export['mode'] = $this->getMode();
 
-        $export['briefdescription'] = (new BriefDescriptionLengthValidator)->validateMaxAndTrim($export['briefdescription']);
+        $export['briefdescription'] = (new BriefDescriptionLengthValidator())->validateMaxAndTrim($export['briefdescription']);
 
         if (is_string($export['social_profiles'])) {
             $export['social_profiles'] = json_decode($export['social_profiles']);

@@ -13,9 +13,9 @@ use Minds\Helpers\Text;
 class Repository
 {
     /* Change to true to output ES query in logs */
-    const DEBUG = false;
+    public const DEBUG = false;
 
-    const PERIODS = [
+    public const PERIODS = [
         '12h' => 43200,
         '24h' => 86400,
         '7d' => 604800,
@@ -509,7 +509,7 @@ class Repository
         // Time bounds
 
         $timestampUpperBounds = []; // LTE
-        $timestampLowerBounds = []; // GT
+        $timestampLowerBounds = []; // GTE
 
         if ($algorithm->isTimestampConstrain() && static::PERIODS[$opts['period']] > -1) {
             $timestampLowerBounds[] = (time() - static::PERIODS[$opts['period']]) * 1000;
@@ -550,7 +550,7 @@ class Repository
             }
 
             if ($timestampLowerBounds) {
-                $range['gt'] = max($timestampLowerBounds);
+                $range['gte'] = max($timestampLowerBounds);
             }
 
             $body['query']['function_score']['query']['bool']['must'][] = [
