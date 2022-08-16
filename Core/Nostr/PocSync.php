@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\Nostr;
 
 use Minds\Core\Di\Di;
@@ -21,6 +22,7 @@ class PocSync
     ) {
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->nostrManager ??= Di::_()->get('Nostr\Manager');
+        $this->nostrClient ??= Di::_()->get('Nostr\ThirdPartyRelays');
         $this->feedsManager = Di::_()->get('Feeds\Elastic\Manager');
         $this->logger ??= Di::_()->get('Logger');
     }
@@ -36,7 +38,7 @@ class PocSync
         //
 
         $nostrEvent = $this->nostrManager->buildNostrEvent($user);
-        $this->nostrManager->emitEvent($nostrEvent);
+        $this->nostrClient->emitEvent($nostrEvent);
 
         //
 
@@ -63,7 +65,7 @@ class PocSync
             }
 
             $nostrEvent = $this->nostrManager->buildNostrEvent($activity);
-            $this->nostrManager->emitEvent($nostrEvent);
+            $this->nostrClient->emitEvent($nostrEvent);
             $this->logger->info('Sync post: ' . $activity->getGuid() . ' ' . $nostrEvent->getId());
         };
     }
