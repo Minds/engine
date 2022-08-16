@@ -155,7 +155,14 @@ class EntityImporterSpec extends ObjectBehavior
             ->willReturn(true);
         $this->managerMock->addEvent($nostrEvent)->shouldBeCalled();
 
+        $this->managerMock->getNostrEvents(Argument::type('array'))->willReturn([$this->getNostrEventKind1Mock()]);
+
+        // stub for now
+        $this->managerMock->getActivityFromNostrId(Argument::type('string'))->willReturn(null);
+
         $this->managerMock->deleteNostrEvents(Argument::type('array'))->willReturn(true);
+        $this->managerMock->deleteActivityToNostrId(Argument::type('array'))->willReturn(true);
+
         $this->managerMock->commit()->willReturn(true);
 
         $this->onNostrEvent($nostrEvent);
@@ -212,7 +219,7 @@ END;
         $rawNostrEvent = <<<END
 {
     "id": "4216cd67def3f08df450eda61eee5bd535f2644fea3c74370f2a11d8adcbd4c4",
-    "pubkey": "dbee775ce4cc7a50e7712157df9080e6c78a96a5869ed70248b366958b604083",
+    "pubkey": "36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b",
     "created_at": 1660536153,
     "kind": 9,
     "tags": [

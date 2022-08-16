@@ -385,6 +385,17 @@ class Manager
     }
 
     /**
+     * Removes Nostr event -> activity mapping for the specified ids
+     * @param array $ids
+     * @return bool
+     */
+    public function deleteActivityToNostrId(array $tags = []): bool
+    {
+        $ids = array_map(fn ($tag): string => $tag[1], $tags);
+        return $this->repository->deleteActivityToNostrId($ids);
+    }
+
+    /**
      * Returns NostrEvents from filters
      * @param array $filters
      * @return iterable<NostrEvent>
