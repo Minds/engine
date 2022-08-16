@@ -3,11 +3,13 @@
 namespace Minds\Core\Entities\EventStreams;
 
 use Minds\Core\Counters;
+use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\Sockets\Events as SocketEvents;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 
 /**
  * Subscribes to metric change events.
@@ -16,10 +18,12 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
 {
     public function __construct(
         private ?SocketEvents $socketEvents = null,
-        private ?Counters $counters = null
+        private ?Counters $counters = null,
+        private ?ExperimentsManager $experiments = null
     ) {
         $this->socketEvents ??= new SocketEvents();
         $this->counters ??= new Counters();
+        $this->experiments ??= Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -56,7 +60,7 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
      */
     public function consume(EventInterface $event): bool
     {
-        if (!$event instanceof ActionEvent) {
+        if (!$this->experiments->isOn('engine-1218-metrics-sockets') || !$event instanceof ActionEvent) {
             return false;
         }
 
