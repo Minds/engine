@@ -88,7 +88,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_UP);
 
-        $this->counters->get('123', 'thumbs:up')
+        $this->counters->get('123', 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
        
@@ -126,7 +126,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN);
        
-        $this->counters->get('123', 'thumbs:down')
+        $this->counters->get('123', 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
 
@@ -164,7 +164,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_UP_REMOVED);
 
-        $this->counters->get('123', 'thumbs:up')
+        $this->counters->get('123', 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
 
@@ -202,7 +202,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN_REMOVED);
 
-        $this->counters->get('123', 'thumbs:down')
+        $this->counters->get('123', 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
 
@@ -237,7 +237,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_UP);
 
-        $this->counters->get($entityGuid, 'thumbs:up')
+        $this->counters->get($entityGuid, 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
         
@@ -270,7 +270,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN);
 
-        $this->counters->get($entityGuid, 'thumbs:down')
+        $this->counters->get($entityGuid, 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
         
@@ -303,7 +303,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_UP_REMOVED);
 
-        $this->counters->get($entityGuid, 'thumbs:up')
+        $this->counters->get($entityGuid, 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
 
@@ -336,7 +336,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN_REMOVED);
         
-        $this->counters->get('321', 'thumbs:down')
+        $this->counters->get('321', 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
        
@@ -371,7 +371,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_UP);
         
-        $this->counters->get($guid, 'thumbs:up')
+        $this->counters->get($guid, 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
        
@@ -404,7 +404,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN);
         
-        $this->counters->get($guid, 'thumbs:down')
+        $this->counters->get($guid, 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
        
@@ -437,7 +437,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_UP_REMOVED);
         
-        $this->counters->get($guid, 'thumbs:up')
+        $this->counters->get($guid, 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
        
@@ -470,7 +470,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN_REMOVED);
             
-        $this->counters->get($guid, 'thumbs:down')
+        $this->counters->get($guid, 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
        
@@ -504,7 +504,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_UP);
 
-        $this->counters->get($guid, 'thumbs:up')
+        $this->counters->get($guid, 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
         
@@ -537,7 +537,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN);
             
-        $this->counters->get($guid, 'thumbs:down')
+        $this->counters->get($guid, 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
        
@@ -570,7 +570,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_UP_REMOVED);
 
-        $this->counters->get($guid, 'thumbs:up')
+        $this->counters->get($guid, 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
         
@@ -603,7 +603,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN_REMOVED);
             
-        $this->counters->get($guid, 'thumbs:down')
+        $this->counters->get($guid, 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
        
@@ -638,7 +638,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_UP);
             
-        $this->counters->get($guid, 'thumbs:up')
+        $this->counters->get($guid, 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
         
@@ -671,7 +671,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN);
            
-        $this->counters->get($guid, 'thumbs:down')
+        $this->counters->get($guid, 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
         
@@ -704,7 +704,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_UP_REMOVED);
             
-        $this->counters->get($guid, 'thumbs:up')
+        $this->counters->get($guid, 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
         
@@ -737,7 +737,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN_REMOVED);
             
-        $this->counters->get($guid, 'thumbs:down')
+        $this->counters->get($guid, 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
         
