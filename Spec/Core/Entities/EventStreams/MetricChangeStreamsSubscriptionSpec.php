@@ -12,6 +12,7 @@ use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Entities\Image;
 use Minds\Entities\Video;
 use Minds\Core\Counters;
+use Minds\Core\Log\Logger;
 use Prophecy\Argument;
 
 class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
@@ -25,16 +26,21 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
     /** @var ExperimentsManager */
     private $experiments;
 
+    /** @var Logger */
+    private $logger;
+
     public function let(
         SocketEvents $socketEvents,
         Counters $counters,
-        ExperimentsManager $experiments
+        ExperimentsManager $experiments,
+        Logger $logger
     ) {
         $this->socketEvents = $socketEvents;
         $this->counters = $counters;
         $this->experiments = $experiments;
+        $this->logger = $logger;
 
-        $this->beConstructedWith($socketEvents, $counters, $experiments);
+        $this->beConstructedWith($socketEvents, $counters, $experiments, $logger);
     }
 
     public function it_is_initializable()

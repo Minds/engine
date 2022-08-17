@@ -10,6 +10,7 @@ use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Log\Logger;
 
 /**
  * Subscribes to metric change events.
@@ -19,11 +20,13 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
     public function __construct(
         private ?SocketEvents $socketEvents = null,
         private ?Counters $counters = null,
-        private ?ExperimentsManager $experiments = null
+        private ?ExperimentsManager $experiments = null,
+        private ?Logger $logger = null
     ) {
         $this->socketEvents ??= new SocketEvents();
         $this->counters ??= new Counters();
         $this->experiments ??= Di::_()->get('Experiments\Manager');
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -105,6 +108,7 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
             ->setRoom($roomName) // send it to this group.
             ->emit($roomName, json_encode([$key => $value]));
 
+        $this->logger->info("Emitting to $roomName: [$key => $value]");
         return $this;
     }
 
