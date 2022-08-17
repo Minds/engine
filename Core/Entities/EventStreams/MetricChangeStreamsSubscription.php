@@ -72,7 +72,7 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
         switch ($event->getAction()) {
             case 'vote_up_removed':
             case 'vote_up':
-                $count = $this->counters->get($guid, 'thumbs:up');
+                $count = $this->counters->get($guid, 'thumbs:up', false);
                 $this->emitViaSockets(
                     guid: $guid,
                     key: 'thumbs:up:count',
@@ -81,7 +81,7 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
                 break;
             case 'vote_down_removed':
             case 'vote_down':
-                $count = $this->counters->get($guid, 'thumbs:down');
+                $count = $this->counters->get($guid, 'thumbs:down', false);
                 $this->emitViaSockets(
                     guid: $guid,
                     key: 'thumbs:down:count',
