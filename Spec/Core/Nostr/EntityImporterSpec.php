@@ -157,8 +157,7 @@ class EntityImporterSpec extends ObjectBehavior
 
         $this->managerMock->getNostrEvents(Argument::type('array'))->willReturn([$this->getNostrEventKind1Mock()]);
 
-        // stub for now
-        $this->managerMock->getActivityFromNostrId(Argument::type('string'))->willReturn(null);
+        $this->managerMock->getActivitiesFromNostrId(Argument::type('array'))->willReturn([]);
 
         $this->managerMock->deleteNostrEvents(Argument::type('array'))->willReturn(true);
         $this->managerMock->deleteActivityToNostrId(Argument::type('array'))->willReturn(true);

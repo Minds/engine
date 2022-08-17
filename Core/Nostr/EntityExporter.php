@@ -41,7 +41,7 @@ class EntityExporter
             'limit' => 12,
         ], $filters);
 
-        // Cap max limit
+        // Cap limit
         $filters['limit'] = $filters['limit'] > 150 ? 150 : $filters['limit'];
 
         // # of sent events

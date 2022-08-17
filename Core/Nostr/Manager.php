@@ -374,6 +374,17 @@ class Manager
     }
 
     /**
+     * Return Activity entities from a NostrId
+     * @param array $nostrIds
+     * @return iterable<Activity>
+     */
+    public function getActivitiesFromNostrId(array $nostrIds = []): iterable
+    {
+        $stuff = $this->repository->getActivitiesFromNostrId($nostrIds);
+        return $stuff;
+    }
+
+    /**
      * Effectively indexes a Minds Activity posts to a Nostr ID
      * @param Activity $activity
      * @param string $nostrId
@@ -389,9 +400,8 @@ class Manager
      * @param array $ids
      * @return bool
      */
-    public function deleteActivityToNostrId(array $tags = []): bool
+    public function deleteActivityToNostrId(array $ids = []): bool
     {
-        $ids = array_map(fn ($tag): string => $tag[1], $tags);
         return $this->repository->deleteActivityToNostrId($ids);
     }
 
@@ -408,12 +418,11 @@ class Manager
 
     /**
      * Deletes referenced Nostr events
-     * @param array tags
+     * @param array ids
      * @return bool
      */
-    public function deleteNostrEvents(array $tags = []): bool
+    public function deleteNostrEvents(array $ids = []): bool
     {
-        $tags = array_map(fn ($tag): string => $tag[1], $tags);
-        return $this->repository->deleteNostrEvents($tags);
+        return $this->repository->deleteNostrEvents($ids);
     }
 }
