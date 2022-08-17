@@ -315,6 +315,7 @@ class Repository
         }
 
         if ($filters) {
+            $where[] = "(e.deleted = 0 OR e.deleted IS NULL)"; // Only return non-deleted events
             $statement .= " WHERE " . implode(' AND ', $where);
         }
 
@@ -505,7 +506,9 @@ class Repository
      */
     public function deleteNostrEvents(array $ids = []): bool
     {
-        $statement = "DELETE FROM nostr_events e WHERE e.id IN " . $this->inPad($ids);
+        // $statement = "DELETE FROM nostr_events e WHERE e.id IN " . $this->inPad($ids);
+
+        $statement = "UPDATE nostr_events e SET content = null, sig = null, deleted = true WHERE e.id IN " . $this->inPad($ids);
 
         $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
 

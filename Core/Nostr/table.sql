@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS nostr_events (
     tags text,
     content text,
     sig varchar(128),
+    deleted boolean,
     PRIMARY KEY (id, pubkey)
 ) ENGINE=InnoDB;
 
