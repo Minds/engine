@@ -54,6 +54,7 @@ class Client
             'headers' => [],
             'curl' => [],
             'limit' => 0,
+            'useHttpProxy' => true
         ], $options);
 
         $headers = [];
@@ -111,7 +112,7 @@ class Client
 
         $this->curl->setOpt(CURLOPT_HTTPHEADER, $headers);
         
-        if ($httpProxy = $this->config->get('http_proxy')) {
+        if ($httpProxy = $this->config->get('http_proxy') && $options['useHttpProxy'] === true) {
             $this->curl->setOpt(CURLOPT_PROXY, $httpProxy);
         }
 
