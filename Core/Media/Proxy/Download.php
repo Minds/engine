@@ -13,6 +13,9 @@ use Minds\Helpers\File;
 use Minds\Core\Http\Curl\Client;
 use Minds\Traits\MagicAttributes;
 
+/**
+ * @method self setSrc(string $src)
+ */
 class Download
 {
     use MagicAttributes;

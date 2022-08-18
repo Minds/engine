@@ -2,17 +2,19 @@
 
 namespace Minds\Core\Http\Curl;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Traits\MagicAttributes;
 
 class Client
 {
     use MagicAttributes;
 
-    private $curl;
 
-    public function __construct(CurlWrapper $curl = null)
+    public function __construct(private ?CurlWrapper $curl = null, protected ?Config $config = null)
     {
         $this->curl = $curl ?: new CurlWrapper();
+        $this->config ??= Di::_()->get('Config');
     }
 
     public function get($url, array $options = [])
@@ -52,6 +54,7 @@ class Client
             'headers' => [],
             'curl' => [],
             'limit' => 0,
+            'useHttpProxy' => true
         ], $options);
 
         $headers = [];
@@ -108,6 +111,10 @@ class Client
         }
 
         $this->curl->setOpt(CURLOPT_HTTPHEADER, $headers);
+        
+        if (($httpProxy = $this->config->get('http_proxy')) && $options['useHttpProxy'] === true) {
+            $this->curl->setOpt(CURLOPT_PROXY, $httpProxy);
+        }
 
         if ($options['curl']) {
             $this->curl->setOptArray($options['curl']);
