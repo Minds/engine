@@ -38,7 +38,7 @@ class Manager
     {
         try {
             $baseUrl = $this->buildUrl($this->config->get('arweave'));
-            $response = $this->http->get($baseUrl.'permaweb/'.$id);
+            $response = $this->http->get($baseUrl.'permaweb/'.$id, ['useHttpProxy' => false]);
             return (array) json_decode($response);
         } catch (\Exception $e) {
             $this->logger->error($e);
