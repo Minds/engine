@@ -228,4 +228,26 @@ END;
         $rawNostrEventArray = json_decode($rawNostrEvent, true);
         return NostrEvent::buildFromArray($rawNostrEventArray);
     }
+
+    protected function getNostrEventKind9Mock(): NostrEvent
+    {
+        $rawNostrEvent = <<<END
+{
+    "id": "4216cd67def3f08df450eda61eee5bd535f2644fea3c74370f2a11d8adcbd4c4",
+    "pubkey": "36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b",
+    "created_at": 1660536153,
+    "kind": 9,
+    "tags": [
+        [
+            "e",
+            "22e204d14ba279d565cf75dcc302e1ee24eff4b47d35415e3980931cec928669"
+        ]
+    ],
+    "content": "delete",
+    "sig": "16956a7927eb190098bef9670b5f6789d8825bd1fd34c0093c5561164cca96d412b29ba2c23ace8f7531dae062e873ebeb6aee9debee9461876f5bb76963d727"
+}
+END;
+        $rawNostrEventArray = json_decode($rawNostrEvent, true);
+        return NostrEvent::buildFromArray($rawNostrEventArray);
+    }
 }
