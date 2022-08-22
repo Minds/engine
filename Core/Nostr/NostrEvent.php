@@ -17,16 +17,16 @@ class NostrEvent implements ExportableInterface, JsonSerializable
     use MagicAttributes;
 
     /** @var int */
-    public const EVENT_KIND_0 = 0; // set_metadata
+    const EVENT_KIND_0 = 0; // set_metadata
 
     /** @var int */
-    public const EVENT_KIND_1 = 1; // text_note
+    const EVENT_KIND_1 = 1; // text_note
 
     /** @var int */
-    public const EVENT_KIND_2 = 2; // recommend_server
+    const EVENT_KIND_2 = 2; // recommend_server
 
     /** @var int */
-    public const EVENT_KIND_9 = 9; // delete
+    const EVENT_KIND_9 = 9; // delete
 
     protected string $id;
     protected string $pubKey;

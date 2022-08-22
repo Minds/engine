@@ -532,8 +532,6 @@ class Repository
      */
     public function deleteNostrEvents(array $ids = []): bool
     {
-        // $statement = "DELETE FROM nostr_events e WHERE e.id IN " . $this->inPad($ids);
-
         $statement = "UPDATE nostr_events e SET content = null, sig = null, deleted = true WHERE e.id IN " . $this->inPad($ids);
 
         $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
