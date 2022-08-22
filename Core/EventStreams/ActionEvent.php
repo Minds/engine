@@ -14,7 +14,13 @@ class ActionEvent implements EventInterface
     const ACTION_VOTE_UP = 'vote_up';
 
     /** @var string */
+    const ACTION_VOTE_UP_REMOVED = 'vote_up_removed';
+
+    /** @var string */
     const ACTION_VOTE_DOWN = 'vote_down';
+
+    /** @var string */
+    const ACTION_VOTE_DOWN_REMOVED = 'vote_down_removed';
 
     /** @var string */
     const ACTION_COMMENT = 'comment';
@@ -129,6 +135,8 @@ class ActionEvent implements EventInterface
         switch ($this->action) {
             case self::ACTION_CREATE:
                 break;
+            case self::ACTION_VOTE_UP_REMOVED:
+            case self::ACTION_VOTE_DOWN_REMOVED:
             case self::ACTION_VOTE_UP:
             case self::ACTION_VOTE_DOWN:
                 break;

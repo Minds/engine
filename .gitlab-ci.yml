@@ -184,7 +184,7 @@ integration_testing:
       else
         export MINDS_DOMAIN=https://$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
       fi
-    - sh integration_tests/setup_and_run.sh"
+    - sh integration_tests/setup_and_run.sh
   allow_failure: true
 
 # qa:manual:

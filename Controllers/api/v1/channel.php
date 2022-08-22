@@ -16,6 +16,7 @@ use Minds\Common\ChannelMode;
 use Minds\Core\Di\Di;
 use Minds\Core\Security\Block\BlockEntry;
 use ElggFile;
+use Minds\Core\Channels\AvatarService;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
 
 class channel implements Interfaces\Api
@@ -182,46 +183,19 @@ class channel implements Interfaces\Api
 
         switch ($pages[0]) {
             case "avatar":
-                $icon_sizes = Core\Config::_()->get('icon_sizes');
-                // get the images and save their file handlers into an array
-                // so we can do clean up if one fails.
-                $files = [];
-                foreach ($icon_sizes as $name => $size_info) {
-                    $manager->setImage($_FILES['file']['tmp_name'])
-                        ->autorotate()
-                        ->resize($size_info['w'], $size_info['h'], $size_info['upscale'], $size_info['square']);
-
-                    if ($blob = $manager->getJpeg()) {
-                        //@todo Make these actual entities.  See exts #348.
-                        $file = new ElggFile();
-                        $file->owner_guid = Core\Session::getLoggedinUser()->guid;
-                        $file->setFilename("profile/{$guid}{$name}.jpg");
-                        $file->open('write');
-                        $file->write($blob);
-                        $file->close();
-                        $files[] = $file;
-                    } else {
-                        // cleanup on fail
-                        foreach ($files as $file) {
-                            $file->delete();
-                        }
-
-                        return Factory::response([
-                          'status' => 'error',
-                          'message' => 'Could not resize'
+                /** @var AvatarService */
+                $avatarService = Di::_()->get('Channels\AvatarService');
+                
+                $success = $avatarService->withUser(Core\Session::getLoggedinUser())
+                    ->createFromFile($_FILES['file']['tmp_name']);
+               
+                    if (!$success) {
+                        Factory::response([
+                            'status' => 'error',
+                            'message' => "Avatar could not save",
                         ]);
+                        return;
                     }
-                }
-
-                $db = new Core\Data\Call('entities');
-                $db->insert($owner->guid, [
-                    'x1' => 0,
-                    'x2' => 0,
-                    'y1' => 0,
-                    'y2' => 0,
-                    'icontime' => time(),
-                    'last_avatar_upload' => time(),
-                ]);
 
                 break;
             case "banner":

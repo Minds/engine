@@ -4,6 +4,7 @@ namespace Minds\Core\Nostr;
 
 use Minds\Common\Access;
 use Minds\Common\Urn;
+use Minds\Core\Channels\AvatarService;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Security\ACL;
@@ -21,12 +22,14 @@ class EntityImporter
         protected ?Manager $manager = null,
         protected ?Save $saveAction = null,
         protected ?ACL $acl = null,
-        protected ?Feeds\Activity\Manager $activityManager = null
+        protected ?Feeds\Activity\Manager $activityManager = null,
+        protected ?AvatarService $avatarService = null
     ) {
         $this->manager ??= new Manager();
         $this->saveAction ??= new Save();
         $this->acl ??= Di::_()->get('Security\ACL');
         $this->activityManager ??= Di::_()->get('Feeds\Activity\Manager');
+        $this->avatarService ??= Di::_()->get('Channels\AvatarService');
     }
 
     /**
@@ -121,7 +124,15 @@ class EntityImporter
                     $user->setName($metadata['name'] ?? $nostrEvent->getPubKey());
                     $user->setBriefDescription($metadata['about'] ?? '');
 
-                    // Update avatar pic coming soon.
+                    if ($metadata['picture'] ?? null) {
+                        try {
+                            $this->avatarService
+                                ->withUser($user)
+                                ->createFromUrl($metadata['picture']);
+                        } catch (\Exception $e) {
+                            // Do not block just because image import failed
+                        }
+                    }
 
                     $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
                     $this->saveAction->setEntity($user)->save();

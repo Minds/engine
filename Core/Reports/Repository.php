@@ -144,7 +144,6 @@ class Repository
         $subReasonCode = (int) $parts[2] ?? 0;
         $timestamp = (int) $parts[3];
         
-
         $response = $this->getList([
             'entity_urn' => $entityUrn,
             // 'reason_code' => $reasonCode,
@@ -152,7 +151,7 @@ class Repository
             // 'timestamp' => $timestamp,
         ]);
 
-        $matchingReports = array_filter(
+        $matchingReports = array_values(array_filter(
             $response->toArray(),
             function (Report $report) use ($timestamp, $reasonCode, $subReasonCode): bool {
                 if ($report->getTimestamp() !== $timestamp) {
@@ -168,7 +167,7 @@ class Repository
                 return true;
             },
             ARRAY_FILTER_USE_BOTH
-        );
+        ));
         
         if (!$matchingReports[0]) {
             return null;

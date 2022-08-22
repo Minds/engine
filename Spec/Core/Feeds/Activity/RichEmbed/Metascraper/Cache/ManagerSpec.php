@@ -1,30 +1,28 @@
 <?php
 
-namespace Spec\Minds\Core\Feeds\Activity\RichEmbed\Metascraper;
+namespace Spec\Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Cache;
 
-use Minds\Core\Data\cache\PsrWrapper;
-use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Cache;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Metadata;
+use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Cache\Repository;
+use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Cache\Manager;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-class CacheSpec extends ObjectBehavior
+class ManagerSpec extends ObjectBehavior
 {
-    /** @var PsrWrapper */
-    protected $cache;
+    /** @var Repository */
+    protected $repository;
 
     public function let(
-        PsrWrapper $cache
+        Repository $repository,
     ) {
-        $this->beConstructedWith(
-            $cache
-        );
-        $this->cache = $cache;
+        $this->repository = $repository;
+        $this->beConstructedWith($repository);
     }
 
     public function it_is_initializable()
     {
-        $this->shouldHaveType(Cache::class);
+        $this->shouldHaveType(Manager::class);
     }
 
     public function it_should_get_pre_exported_data_from_cache()
@@ -34,9 +32,9 @@ class CacheSpec extends ObjectBehavior
             'var' => 1
         ];
 
-        $this->cache->get($key)
+        $this->repository->get($key)
             ->shouldBeCalled()
-            ->willReturn(json_encode($data));
+            ->willReturn(['data' => json_encode($data)]);
 
         $this->getExported($key)
             ->shouldBe($data);
@@ -46,7 +44,7 @@ class CacheSpec extends ObjectBehavior
     {
         $key = 'cache-key';
 
-        $this->cache->get($key)
+        $this->repository->get($key)
             ->shouldBeCalled()
             ->willReturn(null);
 
@@ -59,9 +57,19 @@ class CacheSpec extends ObjectBehavior
     ) {
         $key = 'cache-key';
 
-        $this->cache->set($key, Argument::any(), 86400)
+        $this->repository->upsert($key, Argument::any())
             ->shouldBeCalled();
 
         $this->set($key, $metadata);
+    }
+
+    public function it_should_delete_from_cache()
+    {
+        $key = 'cache-key';
+
+        $this->repository->delete($key)
+            ->shouldBeCalled();
+
+        $this->delete($key);
     }
 }

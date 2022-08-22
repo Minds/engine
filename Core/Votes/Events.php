@@ -209,6 +209,20 @@ class Events
             }
 
             $event->push();
+            
+            // action event.
+            $actionEvent = new ActionEvent();
+            $actionEvent
+                ->setAction(
+                    $direction === 'up' ?
+                        ActionEvent::ACTION_VOTE_UP_REMOVED :
+                        ActionEvent::ACTION_VOTE_DOWN_REMOVED
+                )
+                ->setEntity($entity)
+                ->setUser($actor);
+
+            $actionEventTopic = new ActionEventsTopic();
+            $actionEventTopic->send($actionEvent);
         });
 
         /**
