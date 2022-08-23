@@ -363,7 +363,7 @@ class newsfeed implements Interfaces\Api
 
         try {
             $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
-            $timeCreatedDelegate->onAdd($activity, $_POST['time_created'] ?? $now, $now);
+            $timeCreatedDelegate->beforeAdd($activity, $_POST['time_created'] ?? $now, $now);
         } catch (\Exception $e) {
             return Factory::response([
                 'status' => 'error',
@@ -429,7 +429,7 @@ class newsfeed implements Interfaces\Api
 
             $activity->setWireThreshold($_POST['wire_threshold']);
             $paywallDelegate = new Core\Feeds\Activity\Delegates\PaywallDelegate();
-            $paywallDelegate->onAdd($activity);
+            $paywallDelegate->beforeAdd($activity);
         }
 
         // Container
@@ -511,7 +511,7 @@ class newsfeed implements Interfaces\Api
             }
 
             // save entity
-            $success = $manager->add($activity);
+            $success = $manager->add($activity, fromV2Controller: true);
 
             // if posting to permaweb
             try {
