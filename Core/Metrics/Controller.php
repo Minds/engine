@@ -20,7 +20,7 @@ class Controller
      * @param ServerRequest $request
      * @return JsonResponse
      */
-    public function getMetrics(ServerRequest $request): string
+    public function getMetrics(ServerRequest $request): JsonResponse
     {
         $registry = new Prometheus\CollectorRegistry(new Prometheus\Storage\InMemory());
 
@@ -55,6 +55,6 @@ class Controller
         header('Content-type: ' . Prometheus\RenderTextFormat::MIME_TYPE);
         echo $result;
 
-        return $result;
+        return new JsonResponse([]);
     }
 }
