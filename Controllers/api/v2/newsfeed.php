@@ -358,6 +358,7 @@ class newsfeed implements Interfaces\Api
         $activity->setNsfw($_POST['nsfw'] ?? []);
 
         $user = Core\Session::getLoggedInUser();
+        $entityGuid = $_POST['entity_guid'] ?? $_POST['attachment_guid'] ?? null;
 
         $now = time();
 
@@ -411,7 +412,7 @@ class newsfeed implements Interfaces\Api
             $remindIntent = new RemindIntent();
             $remindIntent->setGuid($remind->getGuid())
                         ->setOwnerGuid($remind->getOwnerGuid())
-                        ->setQuotedPost(!!($_POST['message'] ?? false));
+                        ->setQuotedPost(!!($_POST['message'] ?? $entityGuid ?? false));
 
             $activity->setRemind($remindIntent);
         }
@@ -475,7 +476,6 @@ class newsfeed implements Interfaces\Api
 
         $activity->setLicense($_POST['license'] ?? $_POST['attachment_license'] ?? '');
 
-        $entityGuid = $_POST['entity_guid'] ?? $_POST['attachment_guid'] ?? null;
         $url = $_POST['url'] ?? null;
 
         try {
