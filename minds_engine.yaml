@@ -1,0 +1,66 @@
+openapi: 3.0.0
+info:
+  title: 'Minds engine API'
+  description: 'Core Minds Engine.'
+  version: 1.0.0
+paths:
+  '/api/v3/supermind/:guid':
+    delete:
+      operationId: 4440e16f81f129905c9a6fc61b3770aa
+      parameters:
+        -
+          name: guid
+          in: path
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ok
+        '400':
+          description: 'Bad Request'
+        '401':
+          description: Unauthorized
+        '404':
+          description: 'Not found'
+  '/api/v3/supermind/:guid/reject':
+    post:
+      operationId: 6f000969cd613e96d2cb39141e3e2316
+      parameters:
+        -
+          name: guid
+          in: path
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ok
+        '400':
+          description: 'Bad Request'
+        '401':
+          description: Unauthorized
+        '404':
+          description: 'Not found'
+  /api/v3/supermind/inbox:
+    get:
+      operationId: 5dc670273238b0bc8d13d61cd5df3f87
+      responses:
+        '200':
+          description: Ok
+        '400':
+          description: 'Bad Request'
+        '401':
+          description: Unauthorized
+        '404':
+          description: 'Not found'
+  /api/v3/supermind/outbox:
+    get:
+      operationId: f9e4c72426e3b2e13f13961d5b15e5db
+      responses:
+        '200':
+          description: Ok
+        '400':
+          description: 'Bad Request'
+        '401':
+          description: Unauthorized
+        '404':
+          description: 'Not found'

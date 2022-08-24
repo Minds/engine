@@ -7,18 +7,15 @@
 namespace Minds\Controllers\api\v2;
 
 use Minds\Api\Factory;
+use Minds\Common\EntityMutation;
 use Minds\Core;
+use Minds\Core\Di\Di;
+use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Security;
 use Minds\Entities;
 use Minds\Entities\Activity;
 use Minds\Helpers;
-use Minds\Helpers\Counters;
 use Minds\Interfaces;
-use Minds\Interfaces\Flaggable;
-use Minds\Core\Di\Di;
-use Minds\Core\Entities\Actions\Save;
-use Minds\Common\EntityMutation;
-use Minds\Core\Feeds\Activity\RemindIntent;
 
 // WIP: Modernize. Use PSR-7 router.
 class newsfeed implements Interfaces\Api
@@ -510,8 +507,14 @@ class newsfeed implements Interfaces\Api
                 $videoPosterDelegate->onAdd($activity);
             }
 
-            // save entity
-            $success = $manager->add($activity);
+            if (isset($_POST['supermind_request'])) {
+                $success = $manager->addSupermindRequest($_POST['supermind_request'], $activity);
+            } elseif (isset($_POST['supermind_reply_guid'])) {
+                $success = $manager->addSupermindReply($_POST['supermind_reply_guid'], $activity);
+            } else {
+                // save entity
+                $success = $manager->add($activity);
+            }
 
             // if posting to permaweb
             try {

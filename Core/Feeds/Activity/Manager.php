@@ -7,20 +7,20 @@
 
 namespace Minds\Core\Feeds\Activity;
 
-use Minds\Entities\Activity;
-use Minds\Entities\Image;
-use Minds\Entities\Video;
 use Minds\Common\EntityMutation;
-use Minds\Core\Entities\Actions\Save;
-use Minds\Core\Entities\Actions\Delete;
-use Minds\Core\Entities\PropagateProperties;
-use Minds\Core\Entities\GuidLinkResolver;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Di\Di;
-use Minds\Core\Session;
 use Minds\Common\Urn;
 use Minds\Core\Boost\Network\ElasticRepository as BoostElasticRepository;
+use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Delete;
+use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Entities\GuidLinkResolver;
+use Minds\Core\Entities\PropagateProperties;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Session;
+use Minds\Entities\Activity;
 use Minds\Entities\Entity;
+use Minds\Entities\Image;
+use Minds\Entities\Video;
 use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
 use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
@@ -129,6 +129,20 @@ class Manager
         }
 
         return $success;
+    }
+
+    public function addSupermindRequest(array $supermindDetails, Activity $activity): bool
+    {
+        // TODO: validate Supermind request
+
+        return $this->add($activity);
+    }
+
+    public function addSupermindReply(array $supermindDetails, Activity $activity): bool
+    {
+        // TODO: validate Supermind reply
+        
+        return $this->add($activity);
     }
 
     /**
