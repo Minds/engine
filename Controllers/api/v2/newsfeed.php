@@ -412,7 +412,7 @@ class newsfeed implements Interfaces\Api
             $remindIntent = new RemindIntent();
             $remindIntent->setGuid($remind->getGuid())
                         ->setOwnerGuid($remind->getOwnerGuid())
-                        ->setQuotedPost(!!($_POST['message'] ?? $entityGuid ?? false));
+                        ->setQuotedPost(!!($_POST['message'] ?: $entityGuid ?: false));
 
             $activity->setRemind($remindIntent);
         }
