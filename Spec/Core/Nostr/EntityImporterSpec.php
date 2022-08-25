@@ -75,16 +75,7 @@ class EntityImporterSpec extends ObjectBehavior
     {
         $nostrEvent = $this->getNostrEventKind1Mock();
 
-        $this->managerMock->isOnWhitelist('36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b')
-            ->willReturn(true);
-
-        $this->managerMock->getUserByPublicKey('36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b')
-            ->wilLReturn($owner);
-
-        $this->managerMock->verifyEvent(Argument::any())
-            ->willReturn(true);
-
-        $this->managerMock->beginTransaction()->willReturn(true);
+        $this->prepareValidEvent($owner);
 
         // Throw exec
         $this->managerMock->addEvent($nostrEvent)->willThrow(new PDOException());
@@ -102,16 +93,7 @@ class EntityImporterSpec extends ObjectBehavior
     {
         $nostrEvent = $this->getNostrEventKind1Mock();
 
-        $this->managerMock->isOnWhitelist('36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b')
-            ->willReturn(true);
-
-        $this->managerMock->getUserByPublicKey('36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b')
-            ->wilLReturn($owner);
-
-        $this->managerMock->verifyEvent(Argument::any())
-            ->willReturn(true);
-
-        $this->managerMock->beginTransaction()->willReturn(true);
+        $this->prepareValidEvent($owner);
 
         $this->managerMock->addMention(
             "af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c",
@@ -179,6 +161,39 @@ class EntityImporterSpec extends ObjectBehavior
         $this->onNostrEvent($nostrEvent);
     }
 
+    public function it_should_delete_event(User $owner)
+    {
+        $nostrEvent = $this->getNostrEventKind9Mock();
+
+        $this->prepareValidEvent($owner);
+
+        $this->managerMock->addReply(Argument::type('string'), Argument::type('array'))
+            ->willReturn(true);
+        $this->managerMock->addEvent($nostrEvent)->shouldBeCalled();
+
+        $this->managerMock->getNostrEvents(Argument::type('array'))->willReturn([$this->getNostrEventKind1Mock()]);
+
+        $this->managerMock->getActivitiesFromNostrId(Argument::type('array'))->willReturn([]);
+
+        $this->managerMock->deleteNostrEvents(Argument::type('array'))->willReturn(true);
+        $this->managerMock->deleteActivityToNostrId(Argument::type('array'))->willReturn(true);
+
+        $this->managerMock->commit()->willReturn(true);
+
+        $this->onNostrEvent($nostrEvent);
+    }
+
+    protected function prepareValidEvent(User $owner): void
+    {
+        $this->managerMock->isOnWhitelist(Argument::type('string'))->willReturn(true);
+
+        $this->managerMock->getUserByPublicKey(Argument::type('string'))->willReturn($owner);
+
+        $this->managerMock->verifyEvent(Argument::type('string'))->willReturn(true);
+
+        $this->managerMock->beginTransaction()->willReturn(true);
+    }
+
     protected function getNostrEventKind1Mock(): NostrEvent
     {
         $rawNostrEvent = <<<END
@@ -208,6 +223,28 @@ END;
     "content":"{\"name\":\"markharding_test1\",\"picture\":\"https://cdn.minds.com/icon/100000000000000063/master/1654594990\",\"about\":\"hello world\"}",
     "id":"55f920dcec572e37cc1cb1ef2cf10e7ec07bb7e4be9fd89be7a223774469870e",
     "sig":"9ba42699f4bf87503ae8a84b0c3699f3419a2bc0e2b960582b36a915000c6fdefd5632c034c10392ce537f5062cf5fc4ee6bdf4070843e78476693e491328aed"
+}
+END;
+        $rawNostrEventArray = json_decode($rawNostrEvent, true);
+        return NostrEvent::buildFromArray($rawNostrEventArray);
+    }
+
+    protected function getNostrEventKind9Mock(): NostrEvent
+    {
+        $rawNostrEvent = <<<END
+{
+    "id": "4216cd67def3f08df450eda61eee5bd535f2644fea3c74370f2a11d8adcbd4c4",
+    "pubkey": "36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b",
+    "created_at": 1660536153,
+    "kind": 9,
+    "tags": [
+        [
+            "e",
+            "22e204d14ba279d565cf75dcc302e1ee24eff4b47d35415e3980931cec928669"
+        ]
+    ],
+    "content": "delete",
+    "sig": "16956a7927eb190098bef9670b5f6789d8825bd1fd34c0093c5561164cca96d412b29ba2c23ace8f7531dae062e873ebeb6aee9debee9461876f5bb76963d727"
 }
 END;
         $rawNostrEventArray = json_decode($rawNostrEvent, true);

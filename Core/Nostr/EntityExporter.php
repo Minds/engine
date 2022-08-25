@@ -41,7 +41,7 @@ class EntityExporter
             'limit' => 12,
         ], $filters);
 
-        // Cap max limit
+        // Cap limit
         $filters['limit'] = $filters['limit'] > 150 ? 150 : $filters['limit'];
 
         // # of sent events
@@ -59,7 +59,8 @@ class EntityExporter
         if (
             $esLimit > 0 && // If we have not yet reached the limit,
                 (in_array(0, $filters['kinds'], true) || in_array(1, $filters['kinds'], true)) && // and we want kind 0 or 1, pull from Minds posts
-                !(array_key_exists('#e', $filters) || array_key_exists('#p', $filters)) // and we do not filter by "#e" or "#p"
+                !(array_key_exists('#e', $filters) || array_key_exists('#p', $filters)) && // and we do not filter by "#e" or "#p"
+                !(count($filters['ids']) > 0) // and we do not filter by "ids"
         ) {
             try {
                 foreach ($this->manager->getElasticNostrEvents($filters, $esLimit) as $nostrEvent) {
