@@ -6,6 +6,7 @@ use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use Minds\Core\Blockchain\BigQuery\HoldersQuery;
+use Minds\Core\Rewards\Restrictions\Blockchain\Manager as RestrictionsManager;
 
 class Manager
 {
@@ -21,11 +22,13 @@ class Manager
     public function __construct(
         Repository $repository = null,
         Ethereum $ethereum = null,
-        private ?HoldersQuery $holdersQuery = null
+        private ?HoldersQuery $holdersQuery = null,
+        private ?RestrictionsManager $restrictionsManager = null
     ) {
         $this->repository = $repository ?? new Repository();
         $this->ethereum = $ethereum ?? Di::_()->get('Blockchain\Services\Ethereum');
         $this->holdersQuery ??= Di::_()->get('Blockchain\BigQuery\HoldersQuery');
+        $this->restrictionsManager ??= Di::_()->get('Rewards\Restrictions\Blockchain\Manager');
     }
 
     /**
@@ -35,6 +38,8 @@ class Manager
      */
     public function add(UniqueOnChainAddress $address, User $user = null, bool $addAddress = false): bool
     {
+        $this->restrictionsManager->gatekeeper($address->getAddress(), $user);
+
         // Confirm the signature is correct
 
         $signedAddress =  $this->ethereum->verifyMessage($address->getPayload(), $address->getSignature());
