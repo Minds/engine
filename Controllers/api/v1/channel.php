@@ -18,6 +18,7 @@ use Minds\Core\Security\Block\BlockEntry;
 use ElggFile;
 use Minds\Core\Channels\AvatarService;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
+use Zend\Diactoros\ServerRequestFactory;
 
 class channel implements Interfaces\Api
 {
@@ -377,6 +378,12 @@ class channel implements Interfaces\Api
             return Factory::response(['status' => 'error', 'message' => 'not logged in']);
         }
 
+        $user = Core\Session::getLoggedinUser();
+
+        // Force two-factor confirmation.
+        $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
+        $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
+
         switch ($pages[0]) {
             case "carousel":
                 $db = new Core\Data\Call('entities_by_time');
@@ -385,7 +392,7 @@ class channel implements Interfaces\Api
                 $item->delete();
                 break;
             default:
-                $channel = Core\Session::getLoggedinUser();
+                $channel = $user;
                 $channel->enabled = 'no';
                 $channel->save();
 
