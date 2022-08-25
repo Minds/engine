@@ -374,6 +374,17 @@ class Manager
     }
 
     /**
+     * Return Activity entities from a NostrId
+     * @param array $nostrIds
+     * @return iterable<Activity>
+     */
+    public function getActivitiesFromNostrId(array $nostrIds = []): iterable
+    {
+        $stuff = $this->repository->getActivitiesFromNostrId($nostrIds);
+        return $stuff;
+    }
+
+    /**
      * Effectively indexes a Minds Activity posts to a Nostr ID
      * @param Activity $activity
      * @param string $nostrId
@@ -385,6 +396,16 @@ class Manager
     }
 
     /**
+     * Removes Nostr event -> activity mapping for the specified ids
+     * @param array $ids
+     * @return bool
+     */
+    public function deleteActivityToNostrId(array $ids = []): bool
+    {
+        return $this->repository->deleteActivityToNostrId($ids);
+    }
+
+    /**
      * Returns NostrEvents from filters
      * @param array $filters
      * @return iterable<NostrEvent>
@@ -392,5 +413,16 @@ class Manager
     public function getNostrEvents(array $filters = []): iterable
     {
         return $this->repository->getEvents($filters);
+    }
+
+
+    /**
+     * Deletes referenced Nostr events
+     * @param array ids
+     * @return bool
+     */
+    public function deleteNostrEvents(array $ids = []): bool
+    {
+        return $this->repository->deleteNostrEvents($ids);
     }
 }
