@@ -36,10 +36,11 @@ class RepositorySpec extends ObjectBehavior
         $reason2 = 'ofac';
         $network2 = 'ethereum';
 
-        $this->client->request(Argument::that(function($arg) {
+        $this->client->request(Argument::that(function ($arg) {
             return $arg->getTemplate() === 'SELECT * FROM blockchain_restricted_addresses';
         }))->shouldBeCalled()
-            ->willReturn(new Rows([
+            ->willReturn(
+                new Rows([
                 [
                     'address' => $address1,
                     'reason' => $reason1,
@@ -51,7 +52,7 @@ class RepositorySpec extends ObjectBehavior
                     'network' => $network2
                 ]
             ], null)
-        );
+            );
 
         $this->getAll()->shouldBeLike([
             (new Restriction)
@@ -65,22 +66,24 @@ class RepositorySpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_get_a_single_entry_for_a_single_address() {
+    public function it_should_get_a_single_entry_for_a_single_address()
+    {
         $address1 = '0x00';
         $reason1 = 'custom';
         $network1 = 'ethereum';
 
-        $this->client->request(Argument::that(function($arg) {
+        $this->client->request(Argument::that(function ($arg) {
             return $arg->getTemplate() === 'SELECT * FROM blockchain_restricted_addresses WHERE address = ?';
         }))->shouldBeCalled()
-            ->willReturn(new Rows([
+            ->willReturn(
+                new Rows([
                 [
                     'address' => $address1,
                     'reason' => $reason1,
                     'network' => $network1
                 ],
             ], null)
-        );
+            );
 
         $this->get($address1)->shouldBeLike([
             (new Restriction)
@@ -90,7 +93,8 @@ class RepositorySpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_get_a_multiple_entry_for_a_single_address() {
+    public function it_should_get_a_multiple_entry_for_a_single_address()
+    {
         $address1 = '0x00';
         $reason1 = 'custom';
         $network1 = 'ethereum';
@@ -99,10 +103,11 @@ class RepositorySpec extends ObjectBehavior
         $reason2 = 'ofac';
         $network2 = 'ethereum';
 
-        $this->client->request(Argument::that(function($arg) {
+        $this->client->request(Argument::that(function ($arg) {
             return $arg->getTemplate() === 'SELECT * FROM blockchain_restricted_addresses WHERE address = ?';
         }))->shouldBeCalled()
-            ->willReturn(new Rows([
+            ->willReturn(
+                new Rows([
                 [
                     'address' => $address1,
                     'reason' => $reason1,
@@ -114,7 +119,7 @@ class RepositorySpec extends ObjectBehavior
                     'network' => $network2
                 ]
             ], null)
-        );
+            );
 
         $this->get($address1)->shouldBeLike([
             (new Restriction)
@@ -128,7 +133,8 @@ class RepositorySpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_add_a_restriction(Restriction $restriction) {
+    public function it_should_add_a_restriction(Restriction $restriction)
+    {
         $address = '0x00';
         $reason = 'custom';
         $network = 'ethereum';
@@ -145,31 +151,34 @@ class RepositorySpec extends ObjectBehavior
                 ->shouldBeCalled()
                 ->willReturn($network);
 
-        $this->client->request(Argument::that(function($arg) {
+        $this->client->request(Argument::that(function ($arg) {
             return $arg->getTemplate() === 'INSERT INTO blockchain_restricted_addresses
             (address, reason, network)
             VALUES (?, ?, ?)';
         }))->shouldBeCalled()
-            ->willReturn(new Rows([
+            ->willReturn(
+                new Rows([
                 [
                     'address' => $address,
                     'reason' => $reason,
                     'network' => $network
                 ]
             ], null)
-        );
+            );
 
         $this->add($restriction)->shouldBe(true);
     }
 
-    public function it_should_delete_a_restriction() {
+    public function it_should_delete_a_restriction()
+    {
         $address = '0x00';
 
-        $this->client->request(Argument::that(function($arg) {
+        $this->client->request(Argument::that(function ($arg) {
             return $arg->getTemplate() === 'DELETE FROM blockchain_restricted_addresses WHERE address = ?';
         }))->shouldBeCalled()
-            ->willReturn(new Rows([[]], null)
-        );
+            ->willReturn(
+                new Rows([[]], null)
+            );
 
         $this->delete($address)->shouldBe(true);
     }

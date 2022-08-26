@@ -91,7 +91,8 @@ class ManagerSpec extends ObjectBehavior
         $this->isRestricted($address)->shouldBe(true);
     }
 
-    public function it_should_determine_if_a_user_is_NOT_restricted() {
+    public function it_should_determine_if_a_user_is_NOT_restricted()
+    {
         $address = '0x00';
         $restrictions = [];
 
@@ -102,7 +103,8 @@ class ManagerSpec extends ObjectBehavior
         $this->isRestricted($address)->shouldBe(false);
     }
 
-    public function it_should_check_if_user_is_restricted_and_ban(User $user) {
+    public function it_should_check_if_user_is_restricted_and_ban(User $user)
+    {
         $address = '0x00';
         $restrictions = [new Restriction()];
 
@@ -120,7 +122,8 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow(RestrictedException::class)->during('gatekeeper', [$address, $user]);
     }
 
-    public function it_should_check_if_user_is_NOT_restricted_and_ban(User $user) {
+    public function it_should_check_if_user_is_NOT_restricted_and_ban(User $user)
+    {
         $address = '0x00';
         $restrictions = [];
 
@@ -131,6 +134,6 @@ class ManagerSpec extends ObjectBehavior
         $this->banManager->ban(Argument::any())
             ->shouldNotBeCalled();
 
-        $this->gatekeeper($address, $user)->shouldBe(null);   
+        $this->gatekeeper($address, $user)->shouldBe(null);
     }
 }
