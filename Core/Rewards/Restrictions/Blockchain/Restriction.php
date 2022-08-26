@@ -24,6 +24,9 @@ class Restriction
     /** @var string $network - network of restriction */
     private string $network;
 
+    /** @var string $timeAdded - timestamp of when restriction was added */
+    private string $timeAdded;
+
     /**
      * Get address.
      * @return string address.
@@ -77,6 +80,26 @@ class Restriction
     }
 
     /**
+     * Set time added.
+     * @param string $timeAdded - time added.
+     * @return self
+     */
+    public function setTimeAdded(string $timeAdded): self
+    {
+        $this->timeAdded = $timeAdded;
+        return $this;
+    }
+
+    /**
+     * Get time added as string.
+     * @return string time added.
+     */
+    public function getTimeAdded(): string
+    {
+        return $this->timeAdded ?? 0;
+    }
+
+    /**
      * Set network.
      * @param string $network - network value to set.
      * @return self
@@ -96,6 +119,6 @@ class Restriction
      */
     public function __toString(): string
     {
-        return "Found: address: {$this->getAddress()},\tnetwork: {$this->getNetwork()},\treason: {$this->getReason()}";
+        return "Found: address: {$this->getAddress()},\tnetwork: {$this->getNetwork()},\treason: {$this->getReason()}\t time_added: {$this->getTimeAdded()}";
     }
 }

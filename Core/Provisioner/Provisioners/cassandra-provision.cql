@@ -1791,5 +1791,6 @@ CREATE TABLE minds.blockchain_restricted_addresses (
     address text,
     reason text,
     network text,
+    time_added timestamp,
     PRIMARY KEY (address)
 );

@@ -31,10 +31,12 @@ class RepositorySpec extends ObjectBehavior
         $address1 = '0x00';
         $reason1 = 'custom';
         $network1 = 'ethereum';
+        $timeAdded1 = '10000';
 
         $address2 = '0x01';
         $reason2 = 'ofac';
         $network2 = 'ethereum';
+        $timeAdded2 = '20000';
 
         $this->client->request(Argument::that(function ($arg) {
             return $arg->getTemplate() === 'SELECT * FROM blockchain_restricted_addresses';
@@ -44,12 +46,14 @@ class RepositorySpec extends ObjectBehavior
                 [
                     'address' => $address1,
                     'reason' => $reason1,
-                    'network' => $network1
+                    'network' => $network1,
+                    'time_added' => $timeAdded1
                 ],
                 [
                     'address' => $address2,
                     'reason' => $reason2,
-                    'network' => $network2
+                    'network' => $network2,
+                    'time_added' => $timeAdded2
                 ]
             ], null)
             );
@@ -58,11 +62,13 @@ class RepositorySpec extends ObjectBehavior
             (new Restriction)
                 ->setAddress($address1)
                 ->setReason($reason1)
-                ->setNetwork($network1),
+                ->setNetwork($network1)
+                ->setTimeAdded($timeAdded1),
             (new Restriction)
                 ->setAddress($address2)
                 ->setReason($reason2)
                 ->setNetwork($network2)
+                ->setTimeAdded($timeAdded2)
         ]);
     }
 
@@ -71,6 +77,7 @@ class RepositorySpec extends ObjectBehavior
         $address1 = '0x00';
         $reason1 = 'custom';
         $network1 = 'ethereum';
+        $timeAdded1 = '10000';
 
         $this->client->request(Argument::that(function ($arg) {
             return $arg->getTemplate() === 'SELECT * FROM blockchain_restricted_addresses WHERE address = ?';
@@ -80,7 +87,8 @@ class RepositorySpec extends ObjectBehavior
                 [
                     'address' => $address1,
                     'reason' => $reason1,
-                    'network' => $network1
+                    'network' => $network1,
+                    'time_added' => $timeAdded1
                 ],
             ], null)
             );
@@ -89,7 +97,8 @@ class RepositorySpec extends ObjectBehavior
             (new Restriction)
                 ->setAddress($address1)
                 ->setReason($reason1)
-                ->setNetwork($network1),
+                ->setNetwork($network1)
+                ->setTimeAdded($timeAdded1)
         ]);
     }
 
@@ -98,10 +107,12 @@ class RepositorySpec extends ObjectBehavior
         $address1 = '0x00';
         $reason1 = 'custom';
         $network1 = 'ethereum';
+        $timeAdded1 = '10000';
 
         $address2 = '0x01';
         $reason2 = 'ofac';
         $network2 = 'ethereum';
+        $timeAdded2 = '20000';
 
         $this->client->request(Argument::that(function ($arg) {
             return $arg->getTemplate() === 'SELECT * FROM blockchain_restricted_addresses WHERE address = ?';
@@ -111,12 +122,14 @@ class RepositorySpec extends ObjectBehavior
                 [
                     'address' => $address1,
                     'reason' => $reason1,
-                    'network' => $network1
+                    'network' => $network1,
+                    'time_added' => $timeAdded1
                 ],
                 [
                     'address' => $address2,
                     'reason' => $reason2,
-                    'network' => $network2
+                    'network' => $network2,
+                    'time_added' => $timeAdded2
                 ]
             ], null)
             );
@@ -125,11 +138,13 @@ class RepositorySpec extends ObjectBehavior
             (new Restriction)
                 ->setAddress($address1)
                 ->setReason($reason1)
-                ->setNetwork($network1),
+                ->setNetwork($network1)
+                ->setTimeAdded($timeAdded1),
             (new Restriction)
                 ->setAddress($address2)
                 ->setReason($reason2)
                 ->setNetwork($network2)
+                ->setTimeAdded($timeAdded2)
         ]);
     }
 
@@ -138,6 +153,7 @@ class RepositorySpec extends ObjectBehavior
         $address = '0x00';
         $reason = 'custom';
         $network = 'ethereum';
+        $timeAdded = '10000';
 
         $restriction->getAddress()
             ->shouldBeCalled()
@@ -153,15 +169,16 @@ class RepositorySpec extends ObjectBehavior
 
         $this->client->request(Argument::that(function ($arg) {
             return $arg->getTemplate() === 'INSERT INTO blockchain_restricted_addresses
-            (address, reason, network)
-            VALUES (?, ?, ?)';
+            (address, reason, network, time_added)
+            VALUES (?, ?, ?, ?)';
         }))->shouldBeCalled()
             ->willReturn(
                 new Rows([
                 [
                     'address' => $address,
                     'reason' => $reason,
-                    'network' => $network
+                    'network' => $network,
+                    'time_added' => $timeAdded
                 ]
             ], null)
             );

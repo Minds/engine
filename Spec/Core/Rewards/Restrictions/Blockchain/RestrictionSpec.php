@@ -46,16 +46,26 @@ class RestrictionSpec extends ObjectBehavior
         $this->shouldThrow(UserErrorException::class)->during('setNetwork', [$network]);
     }
 
+    public function it_should_get_and_set_time_added()
+    {
+        $timeAdded = '1000';
+        $this->setTimeAdded($timeAdded);
+        $this->getTimeAdded()->shouldBe($timeAdded);
+    }
+
+
     public function it_should_convert_class_to_string()
     {
         $address = '0x00';
         $reason = 'custom';
         $network = 'ethereum';
+        $timeAdded = '1000';
 
         $this->setAddress($address)
             ->setReason($reason)
-            ->setNetwork($network);
+            ->setNetwork($network)
+            ->setTimeAdded($timeAdded);
 
-        $this->__toString()->shouldBe("Found: address: $address,\tnetwork: $network,\treason: $reason");
+        $this->__toString()->shouldBe("Found: address: $address,\tnetwork: $network,\treason: $reason\t time_added: $timeAdded");
     }
 }

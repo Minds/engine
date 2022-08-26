@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Rewards\Restrictions\Blockchain;
 
+use Cassandra\Timestamp;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
@@ -34,7 +35,8 @@ class Repository
             $response[] = (new Restriction())
                 ->setAddress($row['address'])
                 ->setReason($row['reason'])
-                ->setNetwork($row['network']);
+                ->setNetwork($row['network'])
+                ->setTimeAdded($row['time_added']);
         }
 
         return $response ?? [];
@@ -59,7 +61,8 @@ class Repository
             $response[] = (new Restriction())
                 ->setAddress($row['address'])
                 ->setReason($row['reason'])
-                ->setNetwork($row['network']);
+                ->setNetwork($row['network'])
+                ->setTimeAdded($row['time_added']);
         }
 
         return $response ?? [];
@@ -73,12 +76,13 @@ class Repository
     public function add(Restriction $restriction): bool
     {
         $statement = "INSERT INTO blockchain_restricted_addresses
-            (address, reason, network)
-            VALUES (?, ?, ?)";
+            (address, reason, network, time_added)
+            VALUES (?, ?, ?, ?)";
         $values = [
             $restriction->getAddress(),
             $restriction->getReason(),
-            $restriction->getNetwork()
+            $restriction->getNetwork(),
+            new Timestamp(time(), 0)
         ];
 
         $query = new Custom();
