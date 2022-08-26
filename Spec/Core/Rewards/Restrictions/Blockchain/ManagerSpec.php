@@ -5,9 +5,11 @@ namespace Spec\Minds\Core\Rewards\Restrictions\Blockchain;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Rewards\Restrictions\Blockchain\Manager;
 use Minds\Core\Rewards\Restrictions\Blockchain\Repository;
-use Minds\Core\Channels\Ban;
 use Minds\Core\Rewards\Restrictions\Blockchain\RestrictedException;
 use Minds\Core\Rewards\Restrictions\Blockchain\Restriction;
+use Minds\Core\Reports\Verdict\Delegates\EmailDelegate;
+use Minds\Core\Reports\Report;
+use Minds\Core\Channels\Ban;
 use Minds\Entities\User;
 use Prophecy\Argument;
 
@@ -19,14 +21,19 @@ class ManagerSpec extends ObjectBehavior
     /** @var Ban */
     private $banManager;
 
+    /** @var EmailDelegate */
+    private $emailDelegate;
 
     public function let(
         Repository $repository,
-        Ban $banManager
+        Ban $banManager,
+        EmailDelegate $emailDelegate
     ) {
         $this->repository = $repository;
         $this->banManager = $banManager;
-        $this->beConstructedWith($repository, $banManager);
+        $this->emailDelegate = $emailDelegate;
+
+        $this->beConstructedWith($repository, $banManager, $emailDelegate);
     }
 
     public function it_is_initializable()
@@ -107,6 +114,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $address = '0x00';
         $restrictions = [new Restriction()];
+        $userUrn = 'entity:user:123';
 
         $this->repository->get($address)
             ->shouldBeCalled()
@@ -116,8 +124,19 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->banManager);
 
-        $this->banManager->ban(11)
+        $this->banManager->ban('1.4')
             ->shouldBeCalled();
+
+        $user->getUrn()
+            ->shouldBeCalled()
+            ->willReturn($userUrn);
+
+        $this->emailDelegate->onBan(
+            (new Report())
+            ->setEntityUrn($userUrn)
+            ->setReasonCode(1)
+            ->setSubReasonCode(4)
+        )->shouldBeCalled();
 
         $this->shouldThrow(RestrictedException::class)->during('gatekeeper', [$address, $user]);
     }

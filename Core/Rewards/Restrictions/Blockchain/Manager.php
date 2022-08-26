@@ -4,6 +4,8 @@ namespace Minds\Core\Rewards\Restrictions\Blockchain;
 
 use Minds\Core\Channels\Ban;
 use Minds\Core\Di\Di;
+use Minds\Core\Reports\Report;
+use Minds\Core\Reports\Verdict\Delegates\EmailDelegate;
 use Minds\Core\Rewards\Restrictions\Blockchain\RestrictedException;
 use Minds\Entities\User;
 
@@ -14,10 +16,12 @@ class Manager
 {
     public function __construct(
         private ?Repository $repository = null,
-        private ?Ban $banManager = null
+        private ?Ban $banManager = null,
+        private ?EmailDelegate $emailDelegate = null
     ) {
         $this->repository ??= Di::_()->get('Rewards\Restrictions\Blockchain\Repository');
         $this->banManager ??= Di::_()->get('Channels\Ban');
+        $this->emailDelegate ??= new EmailDelegate();
     }
 
     /**
@@ -81,7 +85,15 @@ class Manager
         if ($this->isRestricted($address)) {
             $this->banManager
                 ->setUser($user)
-                ->ban(11);
+                ->ban('1.4');
+
+            $this->emailDelegate->onBan(
+                (new Report())
+                    ->setEntityUrn($user->getUrn())
+                    ->setReasonCode(1)
+                    ->setSubReasonCode(4)
+            );
+        
             throw new RestrictedException();
         }
     }
