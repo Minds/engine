@@ -35,6 +35,8 @@ class BlockchainRestrictions extends Cli\Controller implements Interfaces\CliCon
 
     /**
      * Get all restrictions and output information.
+     * @example
+     * - php cli.php BlockchainRestrictions getAll
      * @return void
      */
     public function getAll(): void
@@ -47,7 +49,7 @@ class BlockchainRestrictions extends Cli\Controller implements Interfaces\CliCon
     }
 
     /**
-     * Get all restrictions and output information.
+     * Get single restriction by address and output information.
      * @example
      * - php cli.php BlockchainRestrictions get --address='0x000000000000000000000000000000000000dead'
      * @return void

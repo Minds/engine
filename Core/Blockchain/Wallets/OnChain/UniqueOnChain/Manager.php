@@ -38,7 +38,9 @@ class Manager
      */
     public function add(UniqueOnChainAddress $address, User $user = null, bool $addAddress = false): bool
     {
-        $this->restrictionsManager->gatekeeper($address->getAddress(), $user);
+        if($user) {
+            $this->restrictionsManager->gatekeeper($address->getAddress(), $user);
+        }
 
         // Confirm the signature is correct
 

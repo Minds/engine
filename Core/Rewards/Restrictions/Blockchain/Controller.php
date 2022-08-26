@@ -26,7 +26,7 @@ class Controller
     public function check(ServerRequest $request): JsonResponse
     {
         $user = $request->getAttribute('_user');
-        $address = $request->getAttribute('parameters')['address'] ?? false;
+        $address = $request->getAttribute('parameters')['address'];
 
         $this->restrictionsManager->gatekeeper($address, $user);
 
