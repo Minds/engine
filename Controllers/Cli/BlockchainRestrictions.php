@@ -71,7 +71,7 @@ class BlockchainRestrictions extends Cli\Controller implements Interfaces\CliCon
     }
 
     /**
-     * Get all restrictions and output information.
+     * Check is an address is restricted WITHOUT acting upon it.
      * @example
      * - php cli.php BlockchainRestrictions isRestricted --address='0x000000000000000000000000000000000000dead'
      * @return void
