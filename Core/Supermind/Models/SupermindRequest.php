@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Minds\Core\Supermind\Models;
 
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
@@ -9,8 +11,10 @@ use Minds\Entities\ExportableInterface;
 use Minds\Traits\MagicAttributes;
 
 /**
- * @method string getGuid()
- * @method self setGuid(string $guid)
+ * @method int getGuid()
+ * @method self setGuid(int $guid)
+ * @method string getActivityGuid()
+ * @method self setActivityGuid(string $guid)
  * @method int getSenderGuid()
  * @method self setSenderGuid(int $senderGuid)
  * @method int getReceiverGuid()
@@ -37,9 +41,10 @@ class SupermindRequest implements ExportableInterface
     use MagicAttributes;
 
     private string $guid;
+    private string $activityGuid;
     private string $senderGuid;
     private string $receiverGuid;
-    private int $status = SupermindRequestStatus::CREATED;
+    private int $status = SupermindRequestStatus::PENDING;
     private float $paymentAmount;
     private int $paymentMethod = SupermindRequestPaymentMethod::OFFCHAIN_TOKEN;
     private ?string $paymentTxID = null;
@@ -53,7 +58,11 @@ class SupermindRequest implements ExportableInterface
         $request = new SupermindRequest();
 
         if (isset($data['guid'])) {
-            $request->setGuid($data['guid']);
+            $request->setGuid((int) $data['guid']);
+        }
+
+        if (isset($data['activity_guid'])) {
+            $request->setActivityGuid($data['activity_guid']);
         }
 
         if (isset($data['sender_guid'])) {
@@ -107,6 +116,7 @@ class SupermindRequest implements ExportableInterface
     {
         return [
             "guid" => $this->guid,
+            "activity_guid" => $this->activityGuid,
             "sender_guid" => $this->senderGuid,
             "receiver_guid" => $this->receiverGuid,
             "status" => $this->status,

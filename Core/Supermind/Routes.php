@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Minds\Core\Supermind;
 
 use Minds\Core\Di\Ref;

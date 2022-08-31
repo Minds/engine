@@ -508,9 +508,9 @@ class newsfeed implements Interfaces\Api
             }
 
             if (isset($_POST['supermind_request'])) {
-                $success = $manager->addSupermindRequest($_POST['supermind_request'], $activity);
+                $success = $manager->addSupermindRequest($_POST, $activity);
             } elseif (isset($_POST['supermind_reply_guid'])) {
-                $success = $manager->addSupermindReply($_POST['supermind_reply_guid'], $activity);
+                $success = $manager->addSupermindReply($_POST, $activity);
             } else {
                 // save entity
                 $success = $manager->add($activity);

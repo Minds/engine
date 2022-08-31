@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Minds\Core\Payments\Stripe\Intents;
 
 use Exception;
-use Minds\Core\Config as MindsConfig;
+use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments\Stripe\Customers\Manager as StripeCustomersManager;
 use Minds\Exceptions\UserErrorException;

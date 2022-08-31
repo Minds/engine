@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Minds\Core\Supermind;
 
 use Iterator;
@@ -42,11 +44,13 @@ class Repository
 
     /**
      * @param string $receiverGuid
+     * @param int $offset
+     * @param int $limit
      * @return Iterator
      */
-    public function getReceivedRequests(string $receiverGuid): Iterator
+    public function getReceivedRequests(string $receiverGuid, int $offset, int $limit): Iterator
     {
-        $statement = $this->buildReceivedRequestsQuery($receiverGuid);
+        $statement = $this->buildReceivedRequestsQuery($receiverGuid, $offset, $limit);
         $statement->execute();
 
         foreach ($statement as $row) {
@@ -56,20 +60,27 @@ class Repository
 
     /**
      * @param string $receiverGuid
+     * @param int $offset
+     * @param int $limit
      * @return PDOStatement
      */
-    private function buildReceivedRequestsQuery(string $receiverGuid): PDOStatement
+    private function buildReceivedRequestsQuery(string $receiverGuid, int $offset, int $limit): PDOStatement
     {
         $query = "SELECT
                 *
             FROM
                 superminds
             WHERE
-                receiver_guid = :receiver_guid and status != ?
+                receiver_guid = :receiver_guid and status != :status
             ORDER BY
-                status, created_timestamp DESC";
+                status, created_timestamp DESC
+            LIMIT
+                :offset, :limit";
         $values = [
-            'receiver_guid' => $receiverGuid
+            'receiver_guid' => $receiverGuid,
+            'status' => SupermindRequestStatus::PENDING,
+            'offset' => $offset,
+            'limit' => $limit
         ];
 
         $statement = $this->mysqlClient->prepare($query);
@@ -98,9 +109,12 @@ class Repository
             FROM
                 superminds
             WHERE
-                sender_guid = :sender_guid";
+                sender_guid = :sender_guid and status != :status
+            LIMIT
+                :offset, :limit";
         $values = [
-            'sender_guid' => $senderGuid
+            'sender_guid' => $senderGuid,
+            'status' => SupermindRequestStatus::PENDING
         ];
 
         $statement = $this->mysqlClient->prepare($query);
@@ -128,14 +142,13 @@ class Repository
     private function buildNewSupermindRequestQuery(SupermindRequest $request): PDOStatement
     {
         $query = "INSERT INTO
-                superminds (guid, sender_guid, receiver_guid, status, payment_amount, payment_method, payment_txid, created_timestamp, twitter_required, reply_type)
+                superminds (sender_guid, receiver_guid, status, payment_amount, payment_method, payment_txid, created_timestamp, twitter_required, reply_type)
             VALUES
-                (:guid, :sender_guid, :receiver_guid, :status, :payment_amount, :payment_method, :payment_txid, :created_timestamp :twitter_required, :reply_type)";
+                (:sender_guid, :receiver_guid, :status, :payment_amount, :payment_method, :payment_txid, :created_timestamp :twitter_required, :reply_type)";
         $values = [
-            "guid" => $request->getGuid(),
             "sender_guid" => $request->getSenderGuid(),
             "receiver_guid" => $request->getReceiverGuid(),
-            "status" => SupermindRequestStatus::CREATED,
+            "status" => SupermindRequestStatus::PENDING,
             "payment_amount" => $request->getPaymentAmount(),
             "payment_method" => $request->getPaymentMethod(),
             "payment_txid" => $request->getPaymentTxID(),
@@ -151,10 +164,10 @@ class Repository
 
     /**
      * @param int $status
-     * @param string $supermindRequestId
+     * @param int $supermindRequestId
      * @return bool
      */
-    public function updateSupermindRequestStatus(int $status, string $supermindRequestId): bool
+    public function updateSupermindRequestStatus(int $status, int $supermindRequestId): bool
     {
         $statement = "UPDATE superminds SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid";
         $values = [
@@ -172,10 +185,10 @@ class Repository
     }
 
     /**
-     * @param string $supermindRequestId
+     * @param int $supermindRequestId
      * @return SupermindRequest|null
      */
-    public function getSupermindRequest(string $supermindRequestId): ?SupermindRequest
+    public function getSupermindRequest(int $supermindRequestId): ?SupermindRequest
     {
         $statement = "SELECT * FROM superminds WHERE guid = :guid";
         $values = [
@@ -194,5 +207,55 @@ class Repository
         return SupermindRequest::fromData(
             $statement->fetch(PDO::FETCH_ASSOC)
         );
+    }
+
+    /**
+     * @param int $supermindRequestId
+     * @param int $activityGuid
+     * @return bool
+     */
+    public function updateSupermindRequestActivityGuid(int $supermindRequestId, int $activityGuid): bool
+    {
+        $statement = "UPDATE superminds SET activity_guid = :activity_guid, status = :status, update_timestamp = :update_timestamp WHERE guid = :guid";
+        $values = [
+            'activity_guid' => $activityGuid,
+            'status' => SupermindRequestStatus::CREATED,
+            'update_timestamp' => time(),
+            'guid' => $supermindRequestId
+        ];
+
+        $statement = $this->mysqlClient->prepare($statement);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        $statement->execute();
+
+        if ($statement->rowCount() === 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param int $supermindRequestId
+     * @return bool
+     */
+    public function deleteSupermindRequest(int $supermindRequestId): bool
+    {
+        $statement = "DELETE FROM superminds WHERE guid = :guid";
+        $values = [
+            'guid' => $supermindRequestId
+        ];
+
+        $statement = $this->mysqlClient->prepare($statement);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        $statement->execute();
+
+        if ($statement->rowCount() === 0) {
+            return false;
+        }
+
+        return true;
     }
 }
