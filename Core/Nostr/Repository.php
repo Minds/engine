@@ -247,6 +247,32 @@ class Repository
     }
 
     /**
+     * Return Activity entities from a NostrId
+     * @param array $nostrIds
+     * @return iterable<Activity>
+     */
+    public function getActivitiesFromNostrId(array $nostrIds = []): iterable
+    {
+        $prepared = $this->executeEventsPreparedQuery([
+            'ids' => $nostrIds,
+            'kinds' => [1],
+        ], returnActivityGuids: true);
+
+        $rows = $prepared->fetchAll();
+
+        foreach ($rows as $row) {
+            if (isset($row)) {
+                $activityGuid = $row['activity_guid'];
+
+                $activity = $this->entitiesBuilder->single($activityGuid);
+                if ($activity instanceof Activity) {
+                    yield $activity;
+                }
+            }
+        }
+    }
+
+    /**
      * Executre queries against the nostr_events table
      * @param array $filters
      * @param bool $returnActivityGuids - set to true if you want to do a join against nostr_kind_1_to_activity_guid table
@@ -315,6 +341,7 @@ class Repository
         }
 
         if ($filters) {
+            $where[] = "(e.deleted = 0 OR e.deleted IS NULL)"; // Only return non-deleted events
             $statement .= " WHERE " . implode(' AND ', $where);
         }
 
@@ -370,6 +397,20 @@ class Repository
         return $prepared->execute();
     }
 
+
+    /**
+     * Removes Nostr event -> activity mapping for the specified ids
+     * @param array $ids
+     * @return bool
+     */
+    public function deleteActivityToNostrId(array $ids = []): bool
+    {
+        $statement = "DELETE FROM nostr_kind_1_to_activity_guid ag WHERE ag.id IN " . $this->inPad($ids);
+
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
+
+        return $prepared->execute($ids);
+    }
 
     /**
      * Adds a Minds User and Nostr public key pairing
@@ -482,6 +523,20 @@ class Repository
         }
 
         return $users;
+    }
+
+    /**
+     * Deletes the specified Nostr events
+     * @param array $ids
+     * @return bool
+     */
+    public function deleteNostrEvents(array $ids = []): bool
+    {
+        $statement = "UPDATE nostr_events e SET content = null, sig = null, deleted = true WHERE e.id IN " . $this->inPad($ids);
+
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
+
+        return $prepared->execute($ids);
     }
 
     /**

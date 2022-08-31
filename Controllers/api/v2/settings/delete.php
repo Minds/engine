@@ -4,12 +4,11 @@
  */
 namespace Minds\Controllers\api\v2\settings;
 
-use Minds\Entities;
 use Minds\Interfaces;
-
 use Minds\Core\Di\Di;
 use Minds\Api\Factory;
 use Minds\Core;
+use Zend\Diactoros\ServerRequestFactory;
 
 class delete implements Interfaces\Api
 {
@@ -22,10 +21,16 @@ class delete implements Interfaces\Api
     {
         $validator = Di::_()->get('Security\Password');
 
-        if (!$validator->check(Core\Session::getLoggedinUser(), $_POST['password'])) {
+        $user = Core\Session::getLoggedinUser();
+
+        if (!$validator->check($user, $_POST['password'])) {
             header('HTTP/1.1 401 Unauthorized', true, 401);
             return Factory::response(['status' => 'failed']);
         }
+
+        // Force two-factor confirmation.
+        $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
+        $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
 
         /** @var Core\Channels\Manager $manager */
         $manager = Di::_()->get('Channels\Manager');

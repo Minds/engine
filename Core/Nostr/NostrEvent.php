@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\Nostr;
 
 use JsonSerializable;
@@ -23,6 +24,9 @@ class NostrEvent implements ExportableInterface, JsonSerializable
 
     /** @var int */
     const EVENT_KIND_2 = 2; // recommend_server
+
+    /** @var int */
+    const EVENT_KIND_9 = 9; // delete
 
     protected string $id;
     protected string $pubKey;
