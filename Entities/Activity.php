@@ -44,6 +44,7 @@ use Minds\Core\Feeds\Activity\RemindIntent;
  * @property string $license
  * @property string $permaweb_id
  * @property string $blurhash
+ * @property array $attachments
  */
 class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface
 {
