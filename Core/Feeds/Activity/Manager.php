@@ -7,24 +7,34 @@
 
 namespace Minds\Core\Feeds\Activity;
 
-use Minds\Entities\Activity;
-use Minds\Entities\Image;
-use Minds\Entities\Video;
 use Minds\Common\EntityMutation;
-use Minds\Core\Entities\Actions\Save;
-use Minds\Core\Entities\Actions\Delete;
-use Minds\Core\Entities\PropagateProperties;
-use Minds\Core\Entities\GuidLinkResolver;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Di\Di;
-use Minds\Core\Session;
 use Minds\Common\Urn;
 use Minds\Core\Boost\Network\ElasticRepository as BoostElasticRepository;
+use Minds\Core\Data\Locks\LockFailedException;
+use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Delete;
+use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Entities\GuidLinkResolver;
+use Minds\Core\Entities\PropagateProperties;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Feeds\Activity\Exceptions\CreateActivityFailedException;
+use Minds\Core\Guid;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
+use Minds\Core\Session;
+use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
+use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentFailedException;
+use Minds\Core\Supermind\Exceptions\SupermindRequestCreationCompletionException;
+use Minds\Core\Supermind\Manager as SupermindManager;
+use Minds\Core\Supermind\Models\SupermindRequest;
+use Minds\Core\Supermind\Validators\SupermindReplyValidator;
+use Minds\Core\Supermind\Validators\SupermindRequestValidator;
+use Minds\Entities\Activity;
 use Minds\Entities\Entity;
-use Minds\Entities\EntityInterface;
+use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
 use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
+use Stripe\Exception\ApiErrorException;
 
 class Manager
 {
@@ -80,7 +90,8 @@ class Manager
         private ?MessageLengthValidator $messageLengthValidator = null,
         private ?TitleLengthValidator $titleLengthValidator = null,
         private ?BoostElasticRepository $boostRepository = null,
-        private ?GuidLinkResolver $guidLinkResolver = null
+        private ?GuidLinkResolver $guidLinkResolver = null,
+        private ?SupermindManager $supermindManager = null
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -98,14 +109,18 @@ class Manager
         $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
         $this->boostRepository ??= new BoostElasticRepository();
         $this->guidLinkResolver ??= new GuidLinkResolver();
+        $this->supermindManager ??= Di::_()->get("Supermind\Manager");
     }
 
     /**
      * Add an activity
      * @param Activity $activity
+     * @param bool $fromV2Controller
      * @return bool
+     * @throws UnverifiedEmailException
+     * @throws StopEventException
      */
-    public function add(Activity $activity, $fromV2Controller = false): bool
+    public function add(Activity $activity, bool $fromV2Controller = false): bool
     {
         $this->validateStringLengths($activity);
 
@@ -120,7 +135,6 @@ class Manager
             $activity->setNsfw(array_merge($remind->getNsfw(), $activity->getNsfw()));
         }
 
-        // Before add delegattes
         if (!$fromV2Controller) {
             //$this->timeCreatedDelegate->beforeAdd($activity, );
             $this->paywallDelegate->beforeAdd($activity);
@@ -136,6 +150,108 @@ class Manager
         }
 
         return $success;
+    }
+
+    /**
+     * @param array $supermindDetails
+     * @param Activity $activity
+     * @return bool
+     * @throws CreateActivityFailedException
+     * @throws StopEventException
+     * @throws UnverifiedEmailException
+     * @throws UserErrorException
+     * @throws LockFailedException
+     * @throws SupermindPaymentIntentFailedException
+     * @throws ApiErrorException
+     */
+    public function addSupermindRequest(array $supermindDetails, Activity $activity): bool
+    {
+        $validator = new SupermindRequestValidator();
+
+        if (!$validator->validate($supermindDetails)) {
+            throw new UserErrorException(
+                message: "An error was encountered whilst validating the request",
+                code: 400,
+                errors: $validator->getErrors()
+            );
+        }
+
+        $paymentMethodId = $supermindDetails['supermind_request']['payment_options']['payment_method_id'] ?? null;
+
+        $supermindRequest = (new SupermindRequest())
+            ->setGuid((int) Guid::build())
+            ->setSenderGuid($activity->owner_guid)
+            ->setReceiverGuid((int) $supermindDetails['supermind_request']['receiver_guid'])
+            ->setReplyType($supermindDetails['supermind_request']['reply_type'])
+            ->setTwitterRequired($supermindDetails['supermind_request']['twitter_required'])
+            ->setPaymentAmount($supermindDetails['supermind_request']['payment_options']['amount'])
+            ->setPaymentMethod($supermindDetails['supermind_request']['payment_options']['payment_type']);
+
+        $isSupermindRequestCreated = $this->supermindManager->addSupermindRequest($supermindRequest, $paymentMethodId);
+
+        if (!$isSupermindRequestCreated) {
+            throw new CreateActivityFailedException();
+        }
+
+        $isActivityCreated = $this->add($activity, true);
+
+        if (!$isActivityCreated) {
+            $this->supermindManager->deleteSupermindRequest($supermindRequest->getGuid());
+            throw new CreateActivityFailedException();
+        }
+
+        try {
+            $this->supermindManager->completeSupermindRequestCreation($supermindRequest->getGuid(), $activity->getGuid());
+        } catch (SupermindRequestCreationCompletionException $e) {
+            $this->delete($activity);
+            $this->supermindManager->deleteSupermindRequest($supermindRequest->getGuid());
+        }
+
+        return true;
+    }
+
+    /**
+     * @param array $supermindDetails
+     * @param Activity $activity
+     * @return bool
+     * @throws ApiErrorException
+     * @throws CreateActivityFailedException
+     * @throws LockFailedException
+     * @throws StopEventException
+     * @throws UnverifiedEmailException
+     * @throws UserErrorException
+     * @throws SupermindNotFoundException
+     */
+    public function addSupermindReply(array $supermindDetails, Activity $activity): bool
+    {
+        $validator = new SupermindReplyValidator();
+
+        if (
+            !$validator->validate(
+                array_merge(
+                    $supermindDetails,
+                    [
+                        'activity' => $activity
+                    ]
+                )
+            )
+        ) {
+            throw new UserErrorException(
+                message: "An error was encountered whilst validating the request",
+                code: 400,
+                errors: $validator->getErrors()
+            );
+        }
+
+        // TODO: add Supermind request's reply guid to the activity entity
+        
+        $isActivityCreated = $this->add($activity);
+
+        if (!$isActivityCreated) {
+            throw new CreateActivityFailedException();
+        }
+
+        return $this->supermindManager->acceptSupermindRequest($supermindDetails['supermind_reply_guid']);
     }
 
     /**

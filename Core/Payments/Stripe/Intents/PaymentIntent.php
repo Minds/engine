@@ -14,7 +14,10 @@ use Minds\Traits\MagicAttributes;
  * @method PaymentIntent getOffSession(): bool
  * @method PaymentIntent getServiceFeePct(): int
  * @method PaymentIntent setCaptureMethod($method)
+ * @method bool isOffSession()
  * @method string getCaptureMethod()
+ * @method array getMetadata()
+ * @method self setMetadata(array $metadata)
  */
 class PaymentIntent extends Intent
 {
@@ -35,11 +38,13 @@ class PaymentIntent extends Intent
     /** @var string */
     private $captureMethod = 'automatic';
 
-    /** @var boolean $offSession */
+    /** @var bool $offSession */
     private $offSession = false;
 
     /** @var int $serviceFeePct */
     private $serviceFeePct = 0;
+
+    private array $metadata = [];
 
     /**
      * Return the service

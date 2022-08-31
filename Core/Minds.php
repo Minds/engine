@@ -4,11 +4,12 @@ namespace Minds\Core;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
-use Minds\Interfaces\ModuleInterface;
 use Minds\Helpers;
+use Minds\Interfaces\ModuleInterface;
 
 /**
  * Core Minds Engine.
+ * @OA\Info(title="Minds engine API", version="1.0.0")
  */
 class Minds extends base
 {
@@ -68,7 +69,8 @@ class Minds extends base
         Nostr\Module::class,
         Entities\Ops\Module::class,
         FeedNotices\Module::class,
-        Metrics\Module::class
+        Metrics\Module::class,
+        Supermind\Module::class
     ];
 
     /**
@@ -148,6 +150,7 @@ class Minds extends base
         (new Channels\ChannelsProvider())->register();
         (new Blogs\BlogsProvider())->register();
         (new Permaweb\PermawebProvider())->register();
+        (new Supermind\Provider())->register();
     }
 
     /**

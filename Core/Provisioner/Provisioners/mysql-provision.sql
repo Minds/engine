@@ -40,3 +40,20 @@ CREATE TABLE IF NOT EXISTS nostr_events (
     sig varchar(128),
     PRIMARY KEY (id, pubkey)
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS superminds(
+    guid bigint NOT NULL PRIMARY KEY,
+    activity_guid bigint,
+    sender_guid bigint,
+    receiver_guid bigint,
+    status int,
+    payment_amount float(7,2),
+    payment_method int,
+    payment_reference text,
+    created_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp NULL DEFAULT NULL,
+    twitter_required boolean,
+    reply_type int,
+    INDEX (sender_guid, status),
+    INDEX (receiver_guid, status)
+) ENGINE=InnoDB;
