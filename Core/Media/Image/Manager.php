@@ -84,7 +84,7 @@ class Manager
                 $assetGuids[] = $video->getGuid();
                 $lastUpdated = $video->get('last_updated');
                 if ($video->getTranscoder() === 'cloudflare' && !$video->thumbnail) {
-                    return $this->cloudflareStreamsManager->getThumbnailUrl($video);
+                    return [ $this->cloudflareStreamsManager->getThumbnailUrl($video) ];
                 }
                 break;
             case Comment::class:
