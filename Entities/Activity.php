@@ -44,6 +44,7 @@ use Minds\Core\Feeds\Activity\RemindIntent;
  * @property string $license
  * @property string $permaweb_id
  * @property string $blurhash
+ * @property array $attachments
  */
 class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface
 {
@@ -94,6 +95,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'permaweb_id' => '',
             'blurhash' => null,
             //	'node' => elgg_get_site_url()
+            'attachments' => null,
         ]);
     }
 
@@ -368,6 +370,21 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             if ($this->remind_object['guid']) {
                 $export['message'] .= ' ' . $this->getRemindUrl();
             }
+        }
+
+        // convert attachments to custom data
+        if ($this->hasAttachments()) {
+            $export['custom_type'] = 'batch';
+
+            // hydrate the src urls (includes signing)
+            $mediaManager = Di::_()->get('Media\Image\Manager');
+            $imageUrls = $mediaManager->getPublicAssetUris($this, 'xlarge');
+            $customData = $this->attachments;
+
+            foreach ($customData as $k => $v) {
+                $customData[$k]['src'] = $imageUrls[$k];
+            }
+            $export['custom_data'] = $customData;
         }
 
         $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'activity', ['entity' => $this], []));
@@ -855,6 +872,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
 
     /**
      * Return thumbnails array to be used with export
+     * TODO: Possibly deprecate now we have ->attachment support
      * @return array
      */
     public function getThumbnails(): array
@@ -863,13 +881,13 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         switch ($this->custom_type) {
             case 'video':
                 $mediaManager = Di::_()->get('Media\Image\Manager');
-                $thumbnails['xlarge'] = $mediaManager->getPublicAssetUri($this, 'xlarge');
+                $thumbnails['xlarge'] = $mediaManager->getPublicAssetUris($this, 'xlarge')[0];
                 break;
             case 'batch':
                 $mediaManager = Di::_()->get('Media\Image\Manager');
                 $sizes = ['xlarge', 'large'];
                 foreach ($sizes as $size) {
-                    $thumbnails[$size] = $mediaManager->getPublicAssetUri($this, $size);
+                    $thumbnails[$size] = $mediaManager->getPublicAssetUris($this, $size)[0];
                 }
                 break;
         }
@@ -1046,6 +1064,35 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     private function getRemindUrl(): string
     {
         return Di::_()->get('Config')->get('site_url') . 'newsfeed/' . $this->remind_object['guid'];
+    }
+
+    /**
+     * Build denormalized views of attachments
+     * @param Video[]|Image[] $attachmentEntities
+     */
+    public function setAttachments(array $attachmentEntities)
+    {
+        $attachments = [];
+        foreach ($attachmentEntities as $attachmentEntity) {
+            $attachments[] = [
+                'guid' => $attachmentEntity->getGuid(),
+                'type' => $attachmentEntity->getSubtype(),
+                'width' => $attachmentEntity->width,
+                'height' => $attachmentEntity->height,
+                'blurhash' => $attachmentEntity->blurhash,
+            ];
+        }
+        $this->attachments = $attachments;
+        return $this;
+    }
+
+    /**
+     * Returns true/false if the activity has any attachments
+     * @return bool
+     */
+    public function hasAttachments(): bool
+    {
+        return $this->attachments && count($this->attachments) > 0;
     }
 
     /**

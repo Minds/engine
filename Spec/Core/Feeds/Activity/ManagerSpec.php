@@ -162,7 +162,8 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($this->save);
 
         $this->save->save()
-            ->shouldBeCalled();
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->boostRepository->getList([
             'entity_guid' => null,
@@ -233,7 +234,8 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($this->save);
 
         $this->save->save()
-            ->shouldBeCalled();
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->boostRepository->getList([
                 'entity_guid' => null,
