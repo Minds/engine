@@ -93,7 +93,7 @@ class Image extends File
         // }
         $mediaManager = Di::_()->get('Media\Image\Manager');
 
-        return $mediaManager->getPublicAssetUri($this, $size);
+        return $mediaManager->getPublicAssetUris($this, $size)[0];
     }
 
     protected function getIndexKeys($ia = false)

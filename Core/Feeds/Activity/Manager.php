@@ -21,6 +21,7 @@ use Minds\Core\Session;
 use Minds\Common\Urn;
 use Minds\Core\Boost\Network\ElasticRepository as BoostElasticRepository;
 use Minds\Entities\Entity;
+use Minds\Entities\EntityInterface;
 use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
 use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
@@ -104,7 +105,7 @@ class Manager
      * @param Activity $activity
      * @return bool
      */
-    public function add(Activity $activity): bool
+    public function add(Activity $activity, $fromV2Controller = false): bool
     {
         $this->validateStringLengths($activity);
 
@@ -117,6 +118,12 @@ class Manager
                 return false; // Can not save a remind where the original post doesn't exist
             }
             $activity->setNsfw(array_merge($remind->getNsfw(), $activity->getNsfw()));
+        }
+
+        // Before add delegattes
+        if (!$fromV2Controller) {
+            //$this->timeCreatedDelegate->beforeAdd($activity, );
+            $this->paywallDelegate->beforeAdd($activity);
         }
 
         $success = $this->save
@@ -170,7 +177,7 @@ class Manager
      * @throws UserErrorException
      * @throws \Exception
      */
-    public function update(EntityMutation $activityMutation): void
+    public function update(EntityMutation $activityMutation): bool
     {
         $activity = $activityMutation->getMutatedEntity();
 
@@ -184,7 +191,7 @@ class Manager
             'video', 'image'
         ], true)) {
             $this->foreignEntityDelegate->onUpdate($activity, $activityMutation);
-            return;
+            return true;
         }
 
         if ($activity->type !== 'activity') {
@@ -233,11 +240,14 @@ class Manager
             $this->paywallDelegate->onUpdate($activity);
         }
 
-        $this->save
+        $success = $this->save
             ->setEntity($activity)
             ->save();
 
+        // Will no longer be relevant for new media posts without entity_guid
         $this->propagateProperties->from($activity);
+
+        return $success;
     }
 
     /**
@@ -277,6 +287,17 @@ class Manager
         }
 
         return $activity;
+    }
+
+    /**
+     * Will update entity attachments (post entity_guid multi image assets)
+     * @param Activity $activity
+     * @param EntityInterface $entity
+     * @return bool
+     */
+    public function patchAttachmentEntity(Activity $activity, EntityInterface $entity): bool
+    {
+        return $this->save->setEntity($entity)->save();
     }
 
     /**

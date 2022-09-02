@@ -311,7 +311,7 @@ class Comment extends RepositoryEntity implements EntityInterface
         $mediaManager = Di::_()->get('Media\Image\Manager');
         $sizes = [ 'xlarge', 'large' ];
         foreach ($sizes as $size) {
-            $thumbnails[$size] = $mediaManager->getPublicAssetUri($this, $size);
+            $thumbnails[$size] = $mediaManager->getPublicAssetUris($this, $size)[0];
         }
         return $thumbnails;
     }
