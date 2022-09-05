@@ -11,14 +11,14 @@ use Minds\Entities\ExportableInterface;
 use Minds\Traits\MagicAttributes;
 
 /**
- * @method int getGuid()
- * @method self setGuid(int $guid)
+ * @method string getGuid()
+ * @method self setGuid(string $guid)
  * @method string getActivityGuid()
  * @method self setActivityGuid(string $guid)
- * @method int getSenderGuid()
- * @method self setSenderGuid(int $senderGuid)
- * @method int getReceiverGuid()
- * @method self setReceiverGuid(int $receiverGuid)
+ * @method string getSenderGuid()
+ * @method self setSenderGuid(string $senderGuid)
+ * @method string getReceiverGuid()
+ * @method self setReceiverGuid(string $receiverGuid)
  * @method int getStatus()
  * @method self setStatus(int $status)
  * @method float getPaymentAmount()
@@ -58,7 +58,7 @@ class SupermindRequest implements ExportableInterface
         $request = new SupermindRequest();
 
         if (isset($data['guid'])) {
-            $request->setGuid((int) $data['guid']);
+            $request->setGuid($data['guid']);
         }
 
         if (isset($data['activity_guid'])) {
@@ -90,11 +90,11 @@ class SupermindRequest implements ExportableInterface
         }
 
         if (isset($data['created_timestamp'])) {
-            $request->setCreatedAt($data['created_timestamp']);
+            $request->setCreatedAt(strtotime($data['created_timestamp']));
         }
 
         if (isset($data['updated_timestamp'])) {
-            $request->setUpdatedAt($data['updated_timestamp']);
+            $request->setUpdatedAt(strtotime($data['updated_timestamp']));
         }
 
         if (isset($data['twitter_required'])) {

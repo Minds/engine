@@ -7,7 +7,7 @@ namespace Minds\Core\Payments\Stripe\Intents;
 use Minds\Traits\MagicAttributes;
 
 /**
- * @method PaymentIntent getAmount(): int
+ * @method int getAmount()
  * @method PaymentIntent getQuantity(): int
  * @method PaymentIntent getCurrency(): string
  * @method PaymentIntent getConfirm(): bool

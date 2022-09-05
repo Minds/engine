@@ -2,14 +2,14 @@
 
 namespace Minds\Entities;
 
-use Minds\Helpers;
 use Minds\Core;
-use Minds\Core\Di\Di;
-use Minds\Core\Queue;
 use Minds\Core\Analytics;
+use Minds\Core\Di\Di;
+use Minds\Core\Feeds\Activity\RemindIntent;
+use Minds\Core\Queue;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Core\Wire\Paywall\PaywallEntityTrait;
-use Minds\Core\Feeds\Activity\RemindIntent;
+use Minds\Helpers;
 
 /**
  * Activity Entity
@@ -45,6 +45,7 @@ use Minds\Core\Feeds\Activity\RemindIntent;
  * @property string $permaweb_id
  * @property string $blurhash
  * @property array $attachments
+ * @property array $supermind
  */
 class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface
 {
@@ -96,6 +97,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'blurhash' => null,
             //	'node' => elgg_get_site_url()
             'attachments' => null,
+            'supermind' => null,
         ]);
     }
 
@@ -285,7 +287,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'pinned',
                 'time_sent',
                 'permaweb_id',
-                'blurhash'
+                'blurhash',
+                'supermind'
             ]
         );
     }
@@ -1093,6 +1096,16 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function hasAttachments(): bool
     {
         return $this->attachments && count($this->attachments) > 0;
+    }
+
+    /**
+     * @param array $supermindDetails
+     * @return $this
+     */
+    public function setSupermind(array $supermindDetails): self
+    {
+        $this->supermind = $supermindDetails;
+        return $this;
     }
 
     /**

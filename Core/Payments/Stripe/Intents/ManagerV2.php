@@ -63,7 +63,9 @@ class ManagerV2
 
         $paymentIntent = $this->prepareStripePaymentIntent($intent);
 
-        $stripeIntent = $this->stripeClient->paymentIntents->create($paymentIntent->toArray());
+        $params = $paymentIntent->toArray();
+
+        $stripeIntent = $this->stripeClient->paymentIntents->create($params);
 
         $intent->setId($stripeIntent->id);
         return $intent;
@@ -76,7 +78,7 @@ class ManagerV2
         $paymentIntent->currency = $intent->getCurrency();
         $paymentIntent->customer = $intent->getCustomerId();
         $paymentIntent->payment_method = $intent->getPaymentMethod();
-        $paymentIntent->setup_future_usage = $intent->isOffSession();
+        $paymentIntent->setup_future_usage = $intent->isOffSession() ? "off_session" : "on_session";
         $paymentIntent->capture_method = $intent->getCaptureMethod();
         $paymentIntent->on_behalf_of = $intent->getStripeAccountId();
         $paymentIntent->transfer_data = [

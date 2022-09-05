@@ -57,7 +57,7 @@ class SupermindPaymentProcessor
 
         return (new PaymentIntent())
             ->setUserGuid($request->getSenderGuid())
-            ->setAmount($request->getPaymentAmount())
+            ->setAmount($request->getPaymentAmount() * 100)
             ->setPaymentMethod($paymentMethodId)
             ->setOffSession(true)
             ->setConfirm(false)
@@ -106,7 +106,7 @@ class SupermindPaymentProcessor
     {
         $transaction = $this->offchainTransactions
             ->setUser(
-                $this->retrieveUser($request->getSenderGuid())
+                $this->buildUser($request->getSenderGuid())
             )
             ->setAmount(-$request->getPaymentAmount())
             ->setType("supermind")

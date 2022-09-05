@@ -125,14 +125,14 @@ class Manager
     private function setupCashPayment(string $paymentMethodId, SupermindRequest $supermindRequest): string
     {
         try {
-            $paymentIntent = $this->paymentProcessor->setupSupermindStripePayment($paymentMethodId, $supermindRequest);
+            $paymentIntentId = $this->paymentProcessor->setupSupermindStripePayment($paymentMethodId, $supermindRequest);
 
-            if (!$paymentIntent->getId()) {
+            if (!$paymentIntentId) {
                 $this->repository->rollbackTransaction();
                 throw new SupermindPaymentIntentFailedException();
             }
 
-            return $paymentIntent->getId();
+            return $paymentIntentId;
         } catch (Exception $e) {
             $this->repository->rollbackTransaction();
             throw $e;
@@ -155,7 +155,7 @@ class Manager
             throw new SupermindNotFoundException();
         }
 
-        if ($supermindRequest->getSenderGuid() !== $this->user->getGuid()) {
+        if ($this->user->isAdmin() || $supermindRequest->getSenderGuid() !== $this->user->getGuid()) {
             throw new SupermindUnauthorizedSenderException();
         }
 
@@ -267,10 +267,30 @@ class Manager
      * @return Response
      * @throws SupermindNotFoundException
      */
-    public function getRequests(int $offset, int $limit): Response
+    public function getReceivedRequests(int $offset, int $limit): Response
     {
         $requests = [];
-        foreach ($this->repository->getReceivedRequests($this->user->getGuid()) as $supermindRequest) {
+        foreach ($this->repository->getReceivedRequests($this->user->getGuid(), $offset, $limit) as $supermindRequest) {
+            $requests[] = $supermindRequest;
+        }
+
+        if (count($requests) === 0) {
+            throw new SupermindNotFoundException();
+        }
+
+        return new Response($requests);
+    }
+
+    /**
+     * @param int $offset
+     * @param int $limit
+     * @return Response
+     * @throws SupermindNotFoundException
+     */
+    public function getSentRequests(int $offset, int $limit): Response
+    {
+        $requests = [];
+        foreach ($this->repository->getSentRequests($this->user->getGuid(), $offset, $limit) as $supermindRequest) {
             $requests[] = $supermindRequest;
         }
 

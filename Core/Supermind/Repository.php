@@ -14,32 +14,34 @@ use PDOStatement;
 
 class Repository
 {
-    private PDO $mysqlClient;
+    private PDO $mysqlClientReader;
+    private PDO $mysqlClientWriter;
 
     public function __construct(
         private ?MySQLClient $mysqlHandler = null
     ) {
         $this->mysqlHandler ??= Di::_()->get("Database\MySQL\Client");
-        $this->mysqlClient = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_REPLICA);
+        $this->mysqlClientReader = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_REPLICA);
+        $this->mysqlClientWriter = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_MASTER);
     }
 
     public function beginTransaction(): void
     {
-        if ($this->mysqlClient->inTransaction()) {
+        if ($this->mysqlClientWriter->inTransaction()) {
             throw new PDOException("Cannot initiate transaction. Previously initiated transaction still in progress.");
         }
 
-        $this->mysqlClient->beginTransaction();
+        $this->mysqlClientWriter->beginTransaction();
     }
 
     public function rollbackTransaction(): void
     {
-        $this->mysqlClient->rollBack();
+        $this->mysqlClientWriter->rollBack();
     }
 
     public function commitTransaction(): void
     {
-        $this->mysqlClient->commit();
+        $this->mysqlClientWriter->commit();
     }
 
     /**
@@ -83,26 +85,28 @@ class Repository
             'limit' => $limit
         ];
 
-        $statement = $this->mysqlClient->prepare($query);
+        $statement = $this->mysqlClientReader->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
         return $statement;
     }
 
     /**
      * @param string $senderGuid
+     * @param int $offset
+     * @param int $limit
      * @return Iterator
      */
-    public function getSentRequests(string $senderGuid): Iterator
+    public function getSentRequests(string $senderGuid, int $offset, int $limit): Iterator
     {
-        $statement = $this->buildSentRequestsQuery($senderGuid);
+        $statement = $this->buildSentRequestsQuery($senderGuid, $offset, $limit);
         $statement->execute();
 
-        foreach ($statement as $row) {
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
             yield SupermindRequest::fromData($row);
         }
     }
 
-    private function buildSentRequestsQuery(string $senderGuid): PDOStatement
+    private function buildSentRequestsQuery(string $senderGuid, int $offset, int $limit): PDOStatement
     {
         $query = "SELECT
                 *
@@ -114,10 +118,12 @@ class Repository
                 :offset, :limit";
         $values = [
             'sender_guid' => $senderGuid,
-            'status' => SupermindRequestStatus::PENDING
+            'status' => SupermindRequestStatus::PENDING,
+            'offset' => $offset,
+            'limit' => $limit
         ];
 
-        $statement = $this->mysqlClient->prepare($query);
+        $statement = $this->mysqlClientReader->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
         return $statement;
     }
@@ -142,22 +148,23 @@ class Repository
     private function buildNewSupermindRequestQuery(SupermindRequest $request): PDOStatement
     {
         $query = "INSERT INTO
-                superminds (sender_guid, receiver_guid, status, payment_amount, payment_method, payment_txid, created_timestamp, twitter_required, reply_type)
+                superminds (guid, sender_guid, receiver_guid, status, payment_amount, payment_method, payment_reference, created_timestamp, twitter_required, reply_type)
             VALUES
-                (:sender_guid, :receiver_guid, :status, :payment_amount, :payment_method, :payment_txid, :created_timestamp :twitter_required, :reply_type)";
+                (:guid, :sender_guid, :receiver_guid, :status, :payment_amount, :payment_method, :payment_reference, :created_timestamp, :twitter_required, :reply_type)";
         $values = [
+            "guid" => $request->getGuid(),
             "sender_guid" => $request->getSenderGuid(),
             "receiver_guid" => $request->getReceiverGuid(),
             "status" => SupermindRequestStatus::PENDING,
             "payment_amount" => $request->getPaymentAmount(),
             "payment_method" => $request->getPaymentMethod(),
-            "payment_txid" => $request->getPaymentTxID(),
-            "created_timestamp" => time(),
+            "payment_reference" => $request->getPaymentTxID(),
+            "created_timestamp" => date('c', time()),
             "twitter_required" => $request->getTwitterRequired(),
             "reply_type" => $request->getReplyType()
         ];
 
-        $statement = $this->mysqlClient->prepare($query);
+        $statement = $this->mysqlClientWriter->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
         return $statement;
     }
@@ -172,11 +179,11 @@ class Repository
         $statement = "UPDATE superminds SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid";
         $values = [
             "status" => $status,
-            "updated_timestamp" => time(),
+            'update_timestamp' => date('c', time()),
             "guid" => $supermindRequestId
         ];
 
-        $statement = $this->mysqlClient->prepare($statement);
+        $statement = $this->mysqlClientWriter->prepare($statement);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         $statement->execute();
@@ -195,7 +202,7 @@ class Repository
             "guid" => $supermindRequestId
         ];
 
-        $statement = $this->mysqlClient->prepare($statement);
+        $statement = $this->mysqlClientReader->prepare($statement);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         $statement->execute();
@@ -216,15 +223,15 @@ class Repository
      */
     public function updateSupermindRequestActivityGuid(int $supermindRequestId, int $activityGuid): bool
     {
-        $statement = "UPDATE superminds SET activity_guid = :activity_guid, status = :status, update_timestamp = :update_timestamp WHERE guid = :guid";
+        $statement = "UPDATE superminds SET activity_guid = :activity_guid, status = :status, updated_timestamp = :update_timestamp WHERE guid = :guid";
         $values = [
             'activity_guid' => $activityGuid,
             'status' => SupermindRequestStatus::CREATED,
-            'update_timestamp' => time(),
+            'update_timestamp' => date('c', time()),
             'guid' => $supermindRequestId
         ];
 
-        $statement = $this->mysqlClient->prepare($statement);
+        $statement = $this->mysqlClientWriter->prepare($statement);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         $statement->execute();
@@ -247,7 +254,7 @@ class Repository
             'guid' => $supermindRequestId
         ];
 
-        $statement = $this->mysqlClient->prepare($statement);
+        $statement = $this->mysqlClientWriter->prepare($statement);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         $statement->execute();

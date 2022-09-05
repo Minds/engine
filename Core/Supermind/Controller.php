@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Supermind;
 
+use Minds\Api\Exportable;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
@@ -123,6 +124,22 @@ class Controller
 //            new OA\Response(response: 404, description: "Not found")
 //        ]
 //    )]
+    public function getSupermindInboxRequests(ServerRequestInterface $request): JsonResponse
+    {
+        $loggedInUser = $request->getAttribute("_user");
+        $this->manager->setUser($loggedInUser);
+
+        ['limit' => $limit, 'offset' => $offset] = $request->getQueryParams();
+
+        $response = $this->manager->getReceivedRequests((int) $offset, (int) $limit);
+        return new JsonResponse($response);
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     * @throws SupermindNotFoundException
+     */
 //    #[OA\Get(
 //        path: '/api/v3/supermind/outbox',
 //        parameters: [
@@ -146,14 +163,14 @@ class Controller
 //            new OA\Response(response: 404, description: "Not found")
 //        ]
 //    )]
-    public function getSupermindRequests(ServerRequestInterface $request): JsonResponse
+    public function getSupermindOutboxRequests(ServerRequestInterface $request): JsonResponse
     {
         $loggedInUser = $request->getAttribute("_user");
         $this->manager->setUser($loggedInUser);
 
         ['limit' => $limit, 'offset' => $offset] = $request->getQueryParams();
 
-        $response = $this->manager->getRequests($offset, $limit);
-        return new JsonResponse($response);
+        $response = $this->manager->getSentRequests((int) $offset, (int) $limit);
+        return new JsonResponse(Exportable::_($response));
     }
 }

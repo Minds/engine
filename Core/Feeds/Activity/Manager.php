@@ -195,7 +195,10 @@ class Manager
             throw new CreateActivityFailedException();
         }
 
-        $activity->set
+        $activity->setSupermind([
+            'request_guid' => $supermindRequest->getGuid(),
+            'is_reply' => false
+        ]);
 
         $isActivityCreated = $this->add($activity, true);
 
@@ -247,7 +250,10 @@ class Manager
             );
         }
 
-        // TODO: add Supermind request's reply guid to the activity entity
+        $activity->setSupermind([
+            'request_guid' => $supermindDetails['supermind_reply_guid'],
+            'is_reply' => true
+        ]);
         
         $isActivityCreated = $this->add($activity);
 
