@@ -151,7 +151,7 @@ class SupermindPaymentProcessor
     {
         $this->offchainTransactions
             ->setUser(
-                $this->retrieveUser($request->getReceiverGuid())
+                $this->buildUser($request->getReceiverGuid())
             )
             ->setAmount($request->getPaymentAmount())
             ->setType("supermind")
