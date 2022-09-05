@@ -250,6 +250,8 @@ class Manager
             );
         }
 
+        $isSupermindReplyProcessed = $this->supermindManager->acceptSupermindRequest($supermindDetails['supermind_reply_guid']);
+
         $activity->setSupermind([
             'request_guid' => $supermindDetails['supermind_reply_guid'],
             'is_reply' => true
@@ -261,7 +263,7 @@ class Manager
             throw new CreateActivityFailedException();
         }
 
-        return $this->supermindManager->acceptSupermindRequest($supermindDetails['supermind_reply_guid']);
+        return
     }
 
     /**
