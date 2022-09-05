@@ -87,7 +87,10 @@
         }
     },
     "config": {
-        "bin-dir": "bin"
+        "bin-dir": "bin",
+        "allow-plugins": {
+            "minds/mw3": true
+        }
     },
     "require-dev": {
         "phpspec/phpspec": "^7.1",

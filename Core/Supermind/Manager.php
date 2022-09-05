@@ -107,7 +107,6 @@ class Manager
 
         if (!$isPaymentSuccessful) {
             $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::FAILED_PAYMENT, $supermindRequestId);
-            // TODO: Complete validation
         } else {
             $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::ACCEPTED, $supermindRequestId);
         }

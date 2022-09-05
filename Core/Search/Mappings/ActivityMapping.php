@@ -62,6 +62,14 @@ class ActivityMapping extends EntityMapping implements MappingInterface
             $map['remind_guid'] = (string) $this->entity->get('remind_object')['guid'];
         }
 
+        $map['is_supermind'] = false;
+        if (!empty($this->entity->supermind)) {
+            $map['is_supermind'] = true;
+            $map['supermind_request_guid'] = $this->entity->supermind['request_guid'];
+            $map['is_supermind_reply'] = $this->entity->supermind['is_reply'];
+        }
+
+
         return $map;
     }
 }
