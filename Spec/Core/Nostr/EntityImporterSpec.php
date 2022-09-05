@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Nostr;
 
+use Minds\Core\Channels\AvatarService;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Nostr\EntityImporter;
 use Minds\Core\Nostr\NostrEvent;
@@ -20,14 +21,16 @@ class EntityImporterSpec extends ObjectBehavior
     protected $saveActionMock;
     protected $aclMock;
     protected $activityManagerMock;
+    protected $avatarServiceMock;
 
-    public function let(Manager $manager, Save $saveAction, ACL $acl, Feeds\Activity\Manager $activityManager)
+    public function let(Manager $manager, Save $saveAction, ACL $acl, Feeds\Activity\Manager $activityManager, AvatarService $avatarServiceMock)
     {
-        $this->beConstructedWith($manager, $saveAction, $acl, $activityManager);
+        $this->beConstructedWith($manager, $saveAction, $acl, $activityManager, $avatarServiceMock);
         $this->managerMock = $manager;
         $this->saveActionMock = $saveAction;
         $this->aclMock = $acl;
         $this->activityManagerMock = $activityManager;
+        $this->avatarServiceMock = $avatarServiceMock;
     }
 
     public function it_is_initializable()
@@ -72,16 +75,7 @@ class EntityImporterSpec extends ObjectBehavior
     {
         $nostrEvent = $this->getNostrEventKind1Mock();
 
-        $this->managerMock->isOnWhitelist('36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b')
-            ->willReturn(true);
-
-        $this->managerMock->getUserByPublicKey('36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b')
-            ->wilLReturn($owner);
-
-        $this->managerMock->verifyEvent(Argument::any())
-            ->willReturn(true);
-
-        $this->managerMock->beginTransaction()->willReturn(true);
+        $this->prepareValidEvent($owner);
 
         // Throw exec
         $this->managerMock->addEvent($nostrEvent)->willThrow(new PDOException());
@@ -99,16 +93,7 @@ class EntityImporterSpec extends ObjectBehavior
     {
         $nostrEvent = $this->getNostrEventKind1Mock();
 
-        $this->managerMock->isOnWhitelist('36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b')
-            ->willReturn(true);
-
-        $this->managerMock->getUserByPublicKey('36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b')
-            ->wilLReturn($owner);
-
-        $this->managerMock->verifyEvent(Argument::any())
-            ->willReturn(true);
-
-        $this->managerMock->beginTransaction()->willReturn(true);
+        $this->prepareValidEvent($owner);
 
         $this->managerMock->addMention(
             "af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c",
@@ -143,10 +128,10 @@ class EntityImporterSpec extends ObjectBehavior
     {
         $nostrEvent = $this->getNostrEventKind0Mock();
 
-        $this->managerMock->isOnWhitelist('36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b')
+        $this->managerMock->isOnWhitelist('86f0689bd48dcd19c67a19d994f938ee34f251d8c39976290955ff585f2db42e')
             ->willReturn(true);
 
-        $this->managerMock->getUserByPublicKey('36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b')
+        $this->managerMock->getUserByPublicKey('86f0689bd48dcd19c67a19d994f938ee34f251d8c39976290955ff585f2db42e')
             ->wilLReturn($owner);
 
         $this->managerMock->verifyEvent(Argument::any())
@@ -157,8 +142,14 @@ class EntityImporterSpec extends ObjectBehavior
         $this->managerMock->addEvent($nostrEvent)
             ->shouldBeCalled();
 
-        $owner->setName('markonnostrtest2')->shouldBeCalled();
+        $owner->setName('markharding_test1')->shouldBeCalled();
         $owner->setBriefDescription(('hello world'))->shouldBeCalled();
+
+        $this->avatarServiceMock->withUser($owner)
+            ->willReturn($this->avatarServiceMock);
+
+        $this->avatarServiceMock->createFromUrl('https://cdn.minds.com/icon/100000000000000063/master/1654594990')
+            ->shouldBeCalled();
 
         $this->saveActionMock->setEntity($owner)
             ->willReturn($this->saveActionMock);
@@ -168,6 +159,39 @@ class EntityImporterSpec extends ObjectBehavior
         $this->managerMock->commit()->willReturn(true);
 
         $this->onNostrEvent($nostrEvent);
+    }
+
+    public function it_should_delete_event(User $owner)
+    {
+        $nostrEvent = $this->getNostrEventKind9Mock();
+
+        $this->prepareValidEvent($owner);
+
+        $this->managerMock->addReply(Argument::type('string'), Argument::type('array'))
+            ->willReturn(true);
+        $this->managerMock->addEvent($nostrEvent)->shouldBeCalled();
+
+        $this->managerMock->getNostrEvents(Argument::type('array'))->willReturn([$this->getNostrEventKind1Mock()]);
+
+        $this->managerMock->getActivitiesFromNostrId(Argument::type('array'))->willReturn([]);
+
+        $this->managerMock->deleteNostrEvents(Argument::type('array'))->willReturn(true);
+        $this->managerMock->deleteActivityToNostrId(Argument::type('array'))->willReturn(true);
+
+        $this->managerMock->commit()->willReturn(true);
+
+        $this->onNostrEvent($nostrEvent);
+    }
+
+    protected function prepareValidEvent(User $owner): void
+    {
+        $this->managerMock->isOnWhitelist(Argument::type('string'))->willReturn(true);
+
+        $this->managerMock->getUserByPublicKey(Argument::type('string'))->willReturn($owner);
+
+        $this->managerMock->verifyEvent(Argument::type('string'))->willReturn(true);
+
+        $this->managerMock->beginTransaction()->willReturn(true);
     }
 
     protected function getNostrEventKind1Mock(): NostrEvent
@@ -192,13 +216,35 @@ END;
     {
         $rawNostrEvent = <<<END
 {
-    "id": "0d5e3045691b2a4002481ef600b3b6600931137e02d151ba17ab425b64f6abde",
+    "pubkey":"86f0689bd48dcd19c67a19d994f938ee34f251d8c39976290955ff585f2db42e",
+    "created_at":1660312711,
+    "kind":0,
+    "tags":[],
+    "content":"{\"name\":\"markharding_test1\",\"picture\":\"https://cdn.minds.com/icon/100000000000000063/master/1654594990\",\"about\":\"hello world\"}",
+    "id":"55f920dcec572e37cc1cb1ef2cf10e7ec07bb7e4be9fd89be7a223774469870e",
+    "sig":"9ba42699f4bf87503ae8a84b0c3699f3419a2bc0e2b960582b36a915000c6fdefd5632c034c10392ce537f5062cf5fc4ee6bdf4070843e78476693e491328aed"
+}
+END;
+        $rawNostrEventArray = json_decode($rawNostrEvent, true);
+        return NostrEvent::buildFromArray($rawNostrEventArray);
+    }
+
+    protected function getNostrEventKind9Mock(): NostrEvent
+    {
+        $rawNostrEvent = <<<END
+{
+    "id": "4216cd67def3f08df450eda61eee5bd535f2644fea3c74370f2a11d8adcbd4c4",
     "pubkey": "36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b",
-    "created_at": 1658236946,
-    "kind": 0,
-    "tags": [],
-    "content": "{\"name\":\"markonnostrtest2\",\"about\":\"hello world\"}",
-    "sig": "07c0f7d55fc678ed8ca90d20f437778d979f794329916c8e8991419af1e0da731b265f16127cd0eaf9e37e0d2b47949cd53dd4fbc97946b5f3d230c7aae0d21c"
+    "created_at": 1660536153,
+    "kind": 9,
+    "tags": [
+        [
+            "e",
+            "22e204d14ba279d565cf75dcc302e1ee24eff4b47d35415e3980931cec928669"
+        ]
+    ],
+    "content": "delete",
+    "sig": "16956a7927eb190098bef9670b5f6789d8825bd1fd34c0093c5561164cca96d412b29ba2c23ace8f7531dae062e873ebeb6aee9debee9461876f5bb76963d727"
 }
 END;
         $rawNostrEventArray = json_decode($rawNostrEvent, true);

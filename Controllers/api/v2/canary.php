@@ -68,6 +68,11 @@ class canary implements Interfaces\Api
         $user = Session::getLoggedInUser();
         $user->setCanary(false);
         $user->save();
+
+        // Set the canary cookie
+        Di::_()->get('Features\Canary')
+            ->setCookie(false);
+    
         return Factory::response([]);
     }
 }

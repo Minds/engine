@@ -11,16 +11,20 @@ use Minds\Entities;
 use Minds\Helpers;
 use Minds\Core\Analytics\Metrics;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 
 class Defaults
 {
     private static $_;
-    /** @var FeaturesManager */
-    private $features;
 
-    public function __construct($features = null)
-    {
-        $this->features = $features ?? Di::_()->get('Features\Manager');
+    public function __construct(
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?ExperimentsManager $experiments = null,
+    ) {
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->experiments ??= Di::_()->get('Experiments\Manager');
+
         $this->init();
     }
 
@@ -35,12 +39,25 @@ class Defaults
             }
 
             $export = $event->response() ?: [];
-            if ($params['entity']->fullExport && $params['entity']->ownerObj && is_array($params['entity']->ownerObj)) {
+
+            if (
+                $this->experiments->isOn('front-5658-owner-hydration') &&
+                $params['entity']->ownerObj &&
+                is_array($params['entity']->ownerObj)
+            ) {
+                $export['ownerObj'] = $this->entitiesBuilder->single($params['entity']->ownerObj['guid'], [
+                    'cache' => true,
+                    'cacheTtl' => 259200 // Cache for 3 day.
+                ])->export();
+            } elseif (
+                $params['entity']->fullExport &&
+                $params['entity']->ownerObj &&
+                is_array($params['entity']->ownerObj)
+            ) {
                 $export['ownerObj'] = Entities\Factory::build($params['entity']->ownerObj)->export();
-                //$export['ownerObj'] = \Minds\Helpers\Export::sanitize($params['entity']->ownerObj);
-                //  $export['ownerObj']['guid'] = (string) $params['entity']->ownerObj['guid'];
-                $event->setResponse($export);
             }
+
+            $event->setResponse($export);
         });
 
         // Decode special characters and strip tags.
@@ -53,9 +70,9 @@ class Defaults
             }
 
             $allowedTags = '';
-            if ($this->features->has('code-highlight')) {
-                $allowedTags = '<pre><code>';
-            }
+            // if ($this->features->has('code-highlight')) {
+            //     $allowedTags = '<pre><code>';
+            // }
 
             if (isset($export['message'])) {
                 $export['message'] = strip_tags(

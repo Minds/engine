@@ -143,7 +143,7 @@ class Video extends MindsObject
         }
 
         $mediaManager = Di::_()->get('Media\Image\Manager');
-        return $mediaManager->getPublicAssetUri($this, 'medium');
+        return $mediaManager->getPublicAssetUris($this, 'medium')[0];
     }
 
     public function getURL()

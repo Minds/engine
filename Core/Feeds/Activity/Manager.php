@@ -30,8 +30,7 @@ use Minds\Core\Supermind\Validators\SupermindReplyValidator;
 use Minds\Core\Supermind\Validators\SupermindRequestValidator;
 use Minds\Entities\Activity;
 use Minds\Entities\Entity;
-use Minds\Entities\Image;
-use Minds\Entities\Video;
+use Minds\Entities\EntityInterface;
 use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
@@ -117,12 +116,12 @@ class Manager
     /**
      * Add an activity
      * @param Activity $activity
-     * @param bool $isSupermind
+     * @param bool $fromV2Controller
      * @return bool
      * @throws UnverifiedEmailException
      * @throws StopEventException
      */
-    public function add(Activity $activity, bool $isSupermind = false): bool
+    public function add(Activity $activity, bool $fromV2Controller = false): bool
     {
         $this->validateStringLengths($activity);
 
@@ -136,10 +135,11 @@ class Manager
             }
             $activity->setNsfw(array_merge($remind->getNsfw(), $activity->getNsfw()));
         }
-
-        // TODO: Sanitise Activity data for Supermind.
-        if ($isSupermind) {
-            $this->sanitizeActivityForSupermind();
+        
+        // Before add delegattes
+        if (!$fromV2Controller) {
+            //$this->timeCreatedDelegate->beforeAdd($activity, );
+            $this->paywallDelegate->beforeAdd($activity);
         }
 
         $success = $this->save
@@ -181,9 +181,9 @@ class Manager
         $paymentMethodId = $supermindDetails['supermind_request']['payment_options']['payment_method_id'] ?? null;
 
         $supermindRequest = (new SupermindRequest())
-            ->setGuid((int) Guid::build())
-            ->setSenderGuid($activity->owner_guid)
-            ->setReceiverGuid((int) $supermindDetails['supermind_request']['receiver_guid'])
+            ->setGuid(Guid::build())
+            ->setSenderGuid((string)$activity->owner_guid)
+            ->setReceiverGuid((string) $supermindDetails['supermind_request']['receiver_guid'])
             ->setReplyType($supermindDetails['supermind_request']['reply_type'])
             ->setTwitterRequired($supermindDetails['supermind_request']['twitter_required'])
             ->setPaymentAmount($supermindDetails['supermind_request']['payment_options']['amount'])
@@ -194,6 +194,8 @@ class Manager
         if (!$isSupermindRequestCreated) {
             throw new CreateActivityFailedException();
         }
+
+        $activity->set
 
         $isActivityCreated = $this->add($activity, true);
 
@@ -295,7 +297,7 @@ class Manager
      * @throws UserErrorException
      * @throws \Exception
      */
-    public function update(EntityMutation $activityMutation): void
+    public function update(EntityMutation $activityMutation): bool
     {
         $activity = $activityMutation->getMutatedEntity();
 
@@ -309,7 +311,7 @@ class Manager
             'video', 'image'
         ], true)) {
             $this->foreignEntityDelegate->onUpdate($activity, $activityMutation);
-            return;
+            return true;
         }
 
         if ($activity->type !== 'activity') {
@@ -358,11 +360,14 @@ class Manager
             $this->paywallDelegate->onUpdate($activity);
         }
 
-        $this->save
+        $success = $this->save
             ->setEntity($activity)
             ->save();
 
+        // Will no longer be relevant for new media posts without entity_guid
         $this->propagateProperties->from($activity);
+
+        return $success;
     }
 
     /**
@@ -402,6 +407,17 @@ class Manager
         }
 
         return $activity;
+    }
+
+    /**
+     * Will update entity attachments (post entity_guid multi image assets)
+     * @param Activity $activity
+     * @param EntityInterface $entity
+     * @return bool
+     */
+    public function patchAttachmentEntity(Activity $activity, EntityInterface $entity): bool
+    {
+        return $this->save->setEntity($entity)->save();
     }
 
     /**

@@ -42,7 +42,7 @@ class ManagerSpec extends ObjectBehavior
         $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge/1575542933';
         $this->signedUri->sign($uri, Argument::any())
             ->willReturn('signed url will be here');
-        $this->getPublicAssetUri($activity)
+        $this->getPublicAssetUris($activity)[0]
             ->shouldBe('signed url will be here');
     }
 
@@ -56,7 +56,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('https://minds.dev/');
         $this->config->get('site_url')
             ->willReturn('https://minds.dev/');
-        $this->getPublicAssetUri($activity)
+        $this->getPublicAssetUris($activity)[0]
             ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge/1575542933');
     }
 
@@ -73,7 +73,7 @@ class ManagerSpec extends ObjectBehavior
         $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge/';
         $this->signedUri->sign($uri, Argument::any())
             ->willReturn('signed url will be here');
-        $this->getPublicAssetUri($entity)
+        $this->getPublicAssetUris($entity)[0]
             ->shouldBe('signed url will be here');
     }
 
@@ -86,7 +86,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('https://minds.dev/');
         $this->config->get('site_url')
             ->willReturn('https://minds.dev/');
-        $this->getPublicAssetUri($entity)
+        $this->getPublicAssetUris($entity)[0]
             ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge/');
     }
 
@@ -103,7 +103,7 @@ class ManagerSpec extends ObjectBehavior
         $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge/1575542933';
         $this->signedUri->sign($uri, Argument::any())
             ->willReturn('signed url will be here');
-        $this->getPublicAssetUri($entity)
+        $this->getPublicAssetUris($entity)[0]
             ->shouldBe('signed url will be here');
     }
 
@@ -118,7 +118,7 @@ class ManagerSpec extends ObjectBehavior
         $this->config->get('site_url')
             ->willReturn('https://minds.dev/');
         $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge/1575542933';
-        $this->getPublicAssetUri($entity)
+        $this->getPublicAssetUris($entity)[0]
             ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge/1575542933');
     }
 
@@ -134,7 +134,7 @@ class ManagerSpec extends ObjectBehavior
         $uri = 'https://minds.dev/fs/v1/thumbnail/123/xlarge/';
         $this->signedUri->sign($uri, Argument::any())
             ->willReturn('signed url will be here');
-        $this->getPublicAssetUri($entity)
+        $this->getPublicAssetUris($entity)[0]
             ->shouldBe('signed url will be here');
     }
 
@@ -145,7 +145,7 @@ class ManagerSpec extends ObjectBehavior
         $entity->access_id = ACCESS_PUBLIC;
         $this->config->get('cdn_url')
             ->willReturn('https://minds.dev/');
-        $this->getPublicAssetUri($entity)
+        $this->getPublicAssetUris($entity)[0]
             ->shouldBe('https://minds.dev/fs/v1/thumbnail/123/xlarge/');
     }
 }
