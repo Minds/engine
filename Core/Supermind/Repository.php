@@ -8,6 +8,7 @@ use Iterator;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
 use Minds\Core\Supermind\Models\SupermindRequest;
+use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -17,6 +18,10 @@ class Repository
     private PDO $mysqlClientReader;
     private PDO $mysqlClientWriter;
 
+    /**
+     * @param MySQLClient|null $mysqlHandler
+     * @throws ServerErrorException
+     */
     public function __construct(
         private ?MySQLClient $mysqlHandler = null
     ) {

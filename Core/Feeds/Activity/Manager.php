@@ -212,6 +212,7 @@ class Manager
         } catch (SupermindRequestCreationCompletionException $e) {
             $this->delete($activity);
             $this->supermindManager->deleteSupermindRequest($supermindRequest->getGuid());
+            throw new CreateActivityFailedException();
         }
 
         return true;
@@ -259,11 +260,7 @@ class Manager
         
         $isActivityCreated = $this->add($activity);
 
-        if (!$isActivityCreated) {
-            throw new CreateActivityFailedException();
-        }
-
-        return
+        return $isActivityCreated ? true : throw new CreateActivityFailedException();
     }
 
     /**

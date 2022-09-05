@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Supermind\Validators;
 
+use Exception;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments\Stripe\PaymentMethods\Manager as PaymentMethodsManager;
 use Minds\Core\Session;
@@ -34,7 +35,7 @@ class SupermindRequestValidator implements ValidatorInterface
     /**
      * @param array $dataToValidate
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function validate(array $dataToValidate): bool
     {
@@ -118,11 +119,10 @@ class SupermindRequestValidator implements ValidatorInterface
     /**
      * @param array $supermindRequest
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     private function checkSupermindDetails(array $supermindRequest): void
     {
-
         if (!isset($supermindRequest['terms_agreed']) || !$supermindRequest['terms_agreed']) {
             $this->errors->add(
                 new ValidationError(
@@ -148,7 +148,13 @@ class SupermindRequestValidator implements ValidatorInterface
                     "You must provide the Supermind request reply type"
                 )
             );
-        } elseif (!in_array($supermindRequest['reply_type'], SupermindRequestReplyType::VALID_REPLY_TYPES)) {
+        } elseif (
+            !in_array(
+                $supermindRequest['reply_type'],
+                SupermindRequestReplyType::VALID_REPLY_TYPES,
+                true
+            )
+        ) {
             $this->errors->add(
                 new ValidationError(
                     "supermind_request:reply_type",
