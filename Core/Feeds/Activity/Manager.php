@@ -91,8 +91,7 @@ class Manager
         private ?MessageLengthValidator $messageLengthValidator = null,
         private ?TitleLengthValidator $titleLengthValidator = null,
         private ?BoostElasticRepository $boostRepository = null,
-        private ?GuidLinkResolver $guidLinkResolver = null,
-        private ?SupermindManager $supermindManager = null
+        private ?GuidLinkResolver $guidLinkResolver = null
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -110,7 +109,11 @@ class Manager
         $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
         $this->boostRepository ??= new BoostElasticRepository();
         $this->guidLinkResolver ??= new GuidLinkResolver();
-        $this->supermindManager ??= Di::_()->get("Supermind\Manager");
+    }
+
+    public function getSupermindManager(): SupermindManager
+    {
+        return $this->supermindManager ??= Di::_()->get("Supermind\Manager");
     }
 
     /**
@@ -168,6 +171,7 @@ class Manager
      */
     public function addSupermindRequest(array $supermindDetails, Activity $activity): bool
     {
+        $this->getSupermindManager();
         $validator = new SupermindRequestValidator();
 
         if (!$validator->validate($supermindDetails)) {
@@ -232,6 +236,7 @@ class Manager
      */
     public function addSupermindReply(array $supermindDetails, Activity $activity): bool
     {
+        $this->getSupermindManager();
         $validator = new SupermindReplyValidator();
 
         if (
