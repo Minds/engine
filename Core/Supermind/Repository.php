@@ -176,15 +176,15 @@ class Repository
 
     /**
      * @param int $status
-     * @param int $supermindRequestId
+     * @param string $supermindRequestId
      * @return bool
      */
-    public function updateSupermindRequestStatus(int $status, int $supermindRequestId): bool
+    public function updateSupermindRequestStatus(int $status, string $supermindRequestId): bool
     {
         $statement = "UPDATE superminds SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid";
         $values = [
             "status" => $status,
-            'update_timestamp' => date('c', time()),
+            'updated_timestamp' => date('c', time()),
             "guid" => $supermindRequestId
         ];
 
@@ -197,10 +197,10 @@ class Repository
     }
 
     /**
-     * @param int $supermindRequestId
+     * @param string $supermindRequestId
      * @return SupermindRequest|null
      */
-    public function getSupermindRequest(int $supermindRequestId): ?SupermindRequest
+    public function getSupermindRequest(string $supermindRequestId): ?SupermindRequest
     {
         $statement = "SELECT * FROM superminds WHERE guid = :guid";
         $values = [
@@ -222,11 +222,11 @@ class Repository
     }
 
     /**
-     * @param int $supermindRequestId
+     * @param string $supermindRequestId
      * @param int $activityGuid
      * @return bool
      */
-    public function updateSupermindRequestActivityGuid(int $supermindRequestId, int $activityGuid): bool
+    public function updateSupermindRequestActivityGuid(string $supermindRequestId, int $activityGuid): bool
     {
         $statement = "UPDATE superminds SET activity_guid = :activity_guid, status = :status, updated_timestamp = :update_timestamp WHERE guid = :guid";
         $values = [
@@ -249,10 +249,10 @@ class Repository
     }
 
     /**
-     * @param int $supermindRequestId
+     * @param string $supermindRequestId
      * @return bool
      */
-    public function deleteSupermindRequest(int $supermindRequestId): bool
+    public function deleteSupermindRequest(string $supermindRequestId): bool
     {
         $statement = "DELETE FROM superminds WHERE guid = :guid";
         $values = [

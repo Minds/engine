@@ -15,6 +15,7 @@ use Minds\Traits\MagicAttributes;
  * @method PaymentIntent getServiceFeePct(): int
  * @method PaymentIntent setCaptureMethod($method)
  * @method bool isOffSession()
+ * @method bool isConfirm()
  * @method string getCaptureMethod()
  * @method array getMetadata()
  * @method self setMetadata(array $metadata)

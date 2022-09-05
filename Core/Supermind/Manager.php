@@ -10,6 +10,7 @@ use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
+use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentCaptureFailedException;
 use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentFailedException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestCreationCompletionException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestDeleteException;
@@ -84,20 +85,22 @@ class Manager
     }
 
     /**
-     * @param int $supermindRequestId
-     * @param int $status
+     * @param string $supermindRequestId
      * @return bool
      * @throws ApiErrorException
      * @throws LockFailedException
      * @throws SupermindNotFoundException
+     * @throws SupermindPaymentIntentCaptureFailedException
      */
-    public function acceptSupermindRequest(int $supermindRequestId): bool
+    public function acceptSupermindRequest(string $supermindRequestId): bool
     {
         $supermindRequest = $this->repository->getSupermindRequest($supermindRequestId);
 
         if (is_null($supermindRequest)) {
             throw new SupermindNotFoundException();
         }
+
+        $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::ACCEPTED, $supermindRequestId);
 
         if ($supermindRequest->getPaymentMethod() === SupermindRequestPaymentMethod::CASH) {
             $isPaymentSuccessful = $this->paymentProcessor->capturePaymentIntent($supermindRequest->getPaymentTxID());
@@ -107,8 +110,7 @@ class Manager
 
         if (!$isPaymentSuccessful) {
             $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::FAILED_PAYMENT, $supermindRequestId);
-        } else {
-            $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::ACCEPTED, $supermindRequestId);
+            throw new SupermindPaymentIntentCaptureFailedException();
         }
 
         return true;
@@ -139,14 +141,14 @@ class Manager
     }
 
     /**
-     * @param int $supermindRequestId
+     * @param string $supermindRequestId
      * @return bool
      * @throws ApiErrorException
      * @throws LockFailedException
      * @throws SupermindNotFoundException
      * @throws SupermindUnauthorizedSenderException
      */
-    public function revokeSupermindRequest(int $supermindRequestId): bool
+    public function revokeSupermindRequest(string $supermindRequestId): bool
     {
         $supermindRequest = $this->repository->getSupermindRequest($supermindRequestId);
 
@@ -166,14 +168,14 @@ class Manager
     }
 
     /**
-     * @param int $supermindRequestId
+     * @param string $supermindRequestId
      * @return bool
      * @throws ApiErrorException
      * @throws LockFailedException
      * @throws SupermindNotFoundException
      * @throws SupermindUnauthorizedSenderException
      */
-    public function rejectSupermindRequest(int $supermindRequestId): bool
+    public function rejectSupermindRequest(string $supermindRequestId): bool
     {
         $supermindRequest = $this->repository->getSupermindRequest($supermindRequestId);
 
@@ -192,14 +194,14 @@ class Manager
     }
 
     /**
-     * @param int $supermindRequestId
+     * @param string $supermindRequestId
      * @return bool
      * @throws ApiErrorException
      * @throws ForbiddenException
      * @throws LockFailedException
      * @throws SupermindNotFoundException
      */
-    public function expireSupermindRequest(int $supermindRequestId): bool
+    public function expireSupermindRequest(string $supermindRequestId): bool
     {
         if (php_sapi_name() !== "cli") {
             throw new ForbiddenException();
@@ -232,12 +234,12 @@ class Manager
     }
 
     /**
-     * @param int $supermindRequestId
+     * @param string $supermindRequestId
      * @param int $activityGuid
      * @return bool
      * @throws SupermindRequestCreationCompletionException
      */
-    public function completeSupermindRequestCreation(int $supermindRequestId, int $activityGuid): bool
+    public function completeSupermindRequestCreation(string $supermindRequestId, int $activityGuid): bool
     {
         $isSuccessful = $this->repository->updateSupermindRequestActivityGuid($supermindRequestId, $activityGuid);
 
@@ -247,11 +249,11 @@ class Manager
     }
 
     /**
-     * @param int $supermindRequestId
+     * @param string $supermindRequestId
      * @return bool
      * @throws SupermindRequestDeleteException
      */
-    public function deleteSupermindRequest(int $supermindRequestId): bool
+    public function deleteSupermindRequest(string $supermindRequestId): bool
     {
         $isSuccessful = $this->repository->deleteSupermindRequest($supermindRequestId);
 
@@ -301,11 +303,12 @@ class Manager
     }
 
     /**
-     * @param int $supermindRequestId
+     * @param string $supermindRequestId
      * @return SupermindRequest
+     * @throws SupermindNotFoundException
      */
-    public function getRequest(int $supermindRequestId): SupermindRequest
+    public function getRequest(string $supermindRequestId): SupermindRequest
     {
-        return $this->repository->getSupermindRequest($supermindRequestId);
+        return $this->repository->getSupermindRequest($supermindRequestId) ?? throw new SupermindNotFoundException();
     }
 }

@@ -85,8 +85,8 @@ class SupermindRequest implements ExportableInterface
             $request->setPaymentMethod($data['payment_method']);
         }
 
-        if (isset($data['payment_txid'])) {
-            $request->setPaymentTxID($data['payment_txid']);
+        if (isset($data['payment_reference'])) {
+            $request->setPaymentTxID($data['payment_reference']);
         }
 
         if (isset($data['created_timestamp'])) {

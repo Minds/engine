@@ -61,35 +61,35 @@ class ManagerV2
 
         $intent->setCustomerId($customerId);
 
-        $paymentIntent = $this->prepareStripePaymentIntent($intent);
+        $paymentIntentDetails = $this->prepareStripePaymentIntent($intent);
 
-        $params = $paymentIntent->toArray();
-
-        $stripeIntent = $this->stripeClient->paymentIntents->create($params);
+        $stripeIntent = StripePaymentIntent::create($paymentIntentDetails);
 
         $intent->setId($stripeIntent->id);
         return $intent;
     }
 
-    private function prepareStripePaymentIntent(PaymentIntent $intent): StripePaymentIntent
+    private function prepareStripePaymentIntent(PaymentIntent $intent): array
     {
-        $paymentIntent = new StripePaymentIntent();
-        $paymentIntent->amount = $intent->getAmount();
-        $paymentIntent->currency = $intent->getCurrency();
-        $paymentIntent->customer = $intent->getCustomerId();
-        $paymentIntent->payment_method = $intent->getPaymentMethod();
-        $paymentIntent->setup_future_usage = $intent->isOffSession() ? "off_session" : "on_session";
-        $paymentIntent->capture_method = $intent->getCaptureMethod();
-        $paymentIntent->on_behalf_of = $intent->getStripeAccountId();
-        $paymentIntent->transfer_data = [
-            'destination' => $intent->getStripeAccountId()
+        return [
+            'amount' => $intent->getAmount(),
+            'currency' => $intent->getCurrency(),
+            'customer' => $intent->getCustomerId(),
+            'payment_method' => $intent->getPaymentMethod(),
+            'confirmation_method' => 'automatic',
+            'confirm' => true,
+            'off_session' => true,
+            'capture_method' => $intent->getCaptureMethod(),
+            'on_behalf_of' => $intent->getStripeAccountId(),
+            'application_fee_amount' => $intent->getServiceFee(),
+            'transfer_data' => [
+                'destination' => $intent->getStripeAccountId(),
+            ],
+            'metadata' => $intent->getMetadata(),
+            'payment_method_types' => [
+                'card'
+            ]
         ];
-        $paymentIntent->payment_method_types = [
-            'card'
-        ];
-        $paymentIntent->metadata = $intent->getMetadata();
-
-        return $paymentIntent;
     }
 
     private function addSetupIntent(SetupIntent $intent): SetupIntent
