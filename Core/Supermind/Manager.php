@@ -57,14 +57,14 @@ class Manager
     {
         $this->repository->beginTransaction();
 
-        if ($supermindRequest->getPaymentMethod() == SupermindRequestPaymentMethod::CASH) {
-            $paymentIntentId = $this->setupCashPayment($paymentMethodId, $supermindRequest);
-            $supermindRequest->setPaymentTxID($paymentIntentId);
-        } else {
-            $this->paymentProcessor->setupOffchainPayment($supermindRequest);
-        }
-
         try {
+            if ($supermindRequest->getPaymentMethod() == SupermindRequestPaymentMethod::CASH) {
+                $paymentIntentId = $this->setupCashPayment($paymentMethodId, $supermindRequest);
+                $supermindRequest->setPaymentTxID($paymentIntentId);
+            } else {
+                $this->paymentProcessor->setupOffchainPayment($supermindRequest);
+            }
+
             $isRequestAdded = $this->repository->addSupermindRequest($supermindRequest);
 
             if (!$isRequestAdded) {
@@ -77,6 +77,7 @@ class Manager
                 $this->repository->rollbackTransaction();
             }
         } catch (Exception $e) {
+            $this->repository->rollbackTransaction();
             throw $e;
         }
 
