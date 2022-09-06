@@ -311,4 +311,10 @@ class Manager
     {
         return $this->repository->getSupermindRequest($supermindRequestId) ?? throw new SupermindNotFoundException();
     }
+
+    public function expireRequests(): bool
+    {
+        $this->repository->expireSupermindRequests();
+        return true;
+    }
 }

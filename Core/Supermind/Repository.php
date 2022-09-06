@@ -270,4 +270,25 @@ class Repository
 
         return true;
     }
+
+    /**
+     * @return bool
+     * @throws PDOException
+     */
+    public function expireSupermindRequests(): bool
+    {
+        $statement = "UPDATE superminds SET status = :target_status WHERE status = :created_status AND created_timestamp <= :target_timestamp";
+        $values = [
+            "target_status" => SupermindRequestStatus::EXPIRED,
+            "created_status" => SupermindRequestStatus::CREATED,
+            "target_timestamp" => date('c', strtotime("-7 days"))
+        ];
+
+        $statement = $this->mysqlClientWriter->prepare($statement);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        $statement->execute();
+
+        return true;
+    }
 }
