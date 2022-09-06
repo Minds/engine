@@ -95,7 +95,7 @@ class Manager
     public function add(Video $video): bool
     {
         if ($video->getTranscoder() === self::TRANSCODER_CLOUDFLARE) {
-            $this->cloudflareStreamsManager->copy($video, $this->getPublicAssetUri($video, 'source')[0]);
+            $this->cloudflareStreamsManager->copy($video, $this->getPublicAssetUri($video, 'source'));
         }
 
         // Save the video
