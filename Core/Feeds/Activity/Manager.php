@@ -75,6 +75,8 @@ class Manager
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
+    private SupermindManager $supermindManager;
+
     public function __construct(
         $foreignEntityDelegate = null,
         $translationsDelegate = null,
@@ -257,6 +259,14 @@ class Manager
         }
 
         $isSupermindReplyProcessed = $this->supermindManager->acceptSupermindRequest($supermindDetails['supermind_reply_guid']);
+
+        if ($isSupermindReplyProcessed) {
+            throw new UserErrorException(
+                message: "An error was encountered whilst accepting the Supermind request",
+                code: 400,
+                errors: $validator->getErrors()
+            );
+        }
 
         $activity->setSupermind([
             'request_guid' => $supermindDetails['supermind_reply_guid'],
