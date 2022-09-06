@@ -30,12 +30,12 @@ class RepositorySpec extends ObjectBehavior
     {
         $address1 = '0x00';
         $reason1 = 'custom';
-        $network1 = 'ethereum';
+        $network1 = 'ETH';
         $timeAdded1 = '10000';
 
         $address2 = '0x01';
         $reason2 = 'ofac';
-        $network2 = 'ethereum';
+        $network2 = 'ETH';
         $timeAdded2 = '20000';
 
         $this->client->request(Argument::that(function ($arg) {
@@ -76,11 +76,11 @@ class RepositorySpec extends ObjectBehavior
     {
         $address1 = '0x00';
         $reason1 = 'custom';
-        $network1 = 'ethereum';
+        $network1 = 'ETH';
         $timeAdded1 = '10000';
 
         $this->client->request(Argument::that(function ($arg) {
-            return $arg->getTemplate() === 'SELECT * FROM blockchain_restricted_addresses WHERE address = ?';
+            return $arg->getTemplate() === "SELECT * FROM blockchain_restricted_addresses WHERE reason IN ('ofac', 'custom') AND address = ?";
         }))->shouldBeCalled()
             ->willReturn(
                 new Rows([
@@ -106,16 +106,16 @@ class RepositorySpec extends ObjectBehavior
     {
         $address1 = '0x00';
         $reason1 = 'custom';
-        $network1 = 'ethereum';
+        $network1 = 'ETH';
         $timeAdded1 = '10000';
 
         $address2 = '0x01';
         $reason2 = 'ofac';
-        $network2 = 'ethereum';
+        $network2 = 'ETH';
         $timeAdded2 = '20000';
 
         $this->client->request(Argument::that(function ($arg) {
-            return $arg->getTemplate() === 'SELECT * FROM blockchain_restricted_addresses WHERE address = ?';
+            return $arg->getTemplate() === "SELECT * FROM blockchain_restricted_addresses WHERE reason IN ('ofac', 'custom') AND address = ?";
         }))->shouldBeCalled()
             ->willReturn(
                 new Rows([
@@ -152,7 +152,7 @@ class RepositorySpec extends ObjectBehavior
     {
         $address = '0x00';
         $reason = 'custom';
-        $network = 'ethereum';
+        $network = 'ETH';
         $timeAdded = '10000';
 
         $restriction->getAddress()
@@ -191,12 +191,26 @@ class RepositorySpec extends ObjectBehavior
         $address = '0x00';
 
         $this->client->request(Argument::that(function ($arg) {
-            return $arg->getTemplate() === 'DELETE FROM blockchain_restricted_addresses WHERE address = ?';
+            return $arg->getTemplate() === "DELETE FROM blockchain_restricted_addresses WHERE reason IN ('ofac', 'custom') AND address = ?";
         }))->shouldBeCalled()
             ->willReturn(
                 new Rows([[]], null)
             );
 
         $this->delete($address)->shouldBe(true);
+    }
+
+    public function it_should_delete_a_restriction_by_reason()
+    {
+        $reason = 'custom';
+
+        $this->client->request(Argument::that(function ($arg) {
+            return $arg->getTemplate() === "DELETE FROM blockchain_restricted_addresses WHERE reason = ?";
+        }))->shouldBeCalled()
+            ->willReturn(
+                new Rows([[]], null)
+            );
+
+        $this->deleteByReason($reason)->shouldBe(true);
     }
 }

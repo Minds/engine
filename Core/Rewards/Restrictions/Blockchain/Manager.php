@@ -6,7 +6,7 @@ use Minds\Core\Channels\Ban;
 use Minds\Core\Di\Di;
 use Minds\Core\Reports\Report;
 use Minds\Core\Reports\Verdict\Delegates\EmailDelegate;
-use Minds\Core\Rewards\Restrictions\Blockchain\RestrictedException;
+use Minds\Core\Rewards\Restrictions\Blockchain\Exceptions\RestrictedException;
 use Minds\Entities\User;
 
 /**
@@ -54,13 +54,23 @@ class Manager
     }
 
     /**
-     * Delete from repository
+     * Delete from repository by address.
      * @param string $address - address to delete entries for.
      * @return boolean true if address was deleted.
      */
     public function delete(string $address): bool
     {
         return $this->repository->delete($address);
+    }
+
+    /**
+     * Delete from repository by reason.
+     * @param string $address - reason to delete entries for.
+     * @return boolean true if all entries for reason were deleted.
+     */
+    public function deleteByReason(string $reason): bool
+    {
+        return $this->repository->deleteByReason($reason);
     }
 
     /**

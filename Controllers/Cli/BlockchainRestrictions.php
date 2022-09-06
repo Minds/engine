@@ -7,8 +7,9 @@ use Minds\Interfaces;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Rewards\Restrictions\Blockchain\Manager;
+use Minds\Core\Rewards\Restrictions\Blockchain\Ofac\Manager as OfacManager;
 use Minds\Core\Rewards\Restrictions\Blockchain\Restriction;
-use Minds\Core\Rewards\Restrictions\Blockchain\RestrictedException;
+use Minds\Core\Rewards\Restrictions\Blockchain\Exceptions\RestrictedException;
 
 /**
  * CLI for checking and changing the state of blockchain restrictions.
@@ -17,9 +18,11 @@ class BlockchainRestrictions extends Cli\Controller implements Interfaces\CliCon
 {
     public function __construct(
         private ?Manager $manager = null,
+        private ?OfacManager $ofacManager = null,
         private ?EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->manager ??= Di::_()->get('Rewards\Restrictions\Blockchain\Manager');
+        $this->ofacManager ??=  $manager = Di::_()->get('Rewards\Restrictions\Blockchain\Ofac\Manager');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
     }
 
@@ -94,10 +97,10 @@ class BlockchainRestrictions extends Cli\Controller implements Interfaces\CliCon
     /**
      * Add a restriction.
      * @example
-     * - php cli.php BlockchainRestrictions add --address='0x000000000000000000000000000000000000dead' --network='ethereum' --reason='ofac';
+     * - php cli.php BlockchainRestrictions add --address='0x000000000000000000000000000000000000dead' --network='ETH' --reason='custom';
      * @return void
      */
-    public function add()
+    public function add(): void
     {
         $address = $this->getOpt('address') ?? false;
         $reason = $this->getOpt('reason') ?? false;
@@ -126,7 +129,7 @@ class BlockchainRestrictions extends Cli\Controller implements Interfaces\CliCon
      * - php cli.php BlockchainRestrictions delete --address='0x000000000000000000000000000000000000dead'
      * @return void
      */
-    public function delete()
+    public function delete(): void
     {
         $address = $this->getOpt('address') ?? false;
           
@@ -147,7 +150,7 @@ class BlockchainRestrictions extends Cli\Controller implements Interfaces\CliCon
      * - php cli.php BlockchainRestrictions check --username='testuser'
      * @return void
      */
-    public function check()
+    public function check(): void
     {
         $username = $this->getOpt('username') ?? false;
 
@@ -173,5 +176,16 @@ class BlockchainRestrictions extends Cli\Controller implements Interfaces\CliCon
         } catch (RestrictedException $e) {
             $this->out("User $username is restricted and has been banned");
         }
+    }
+
+    /**
+     * Populate table from OFAC sanctions list
+     * @example
+     * - php cli.php BlockchainRestrictions populate
+     * @return void
+     */
+    public function populate(): void
+    {
+        $this->ofacManager->populate();
     }
 }

@@ -5,11 +5,11 @@ namespace Spec\Minds\Core\Rewards\Restrictions\Blockchain;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Rewards\Restrictions\Blockchain\Manager;
 use Minds\Core\Rewards\Restrictions\Blockchain\Repository;
-use Minds\Core\Rewards\Restrictions\Blockchain\RestrictedException;
 use Minds\Core\Rewards\Restrictions\Blockchain\Restriction;
 use Minds\Core\Reports\Verdict\Delegates\EmailDelegate;
 use Minds\Core\Reports\Report;
 use Minds\Core\Channels\Ban;
+use Minds\Core\Rewards\Restrictions\Blockchain\Exceptions\RestrictedException;
 use Minds\Entities\User;
 use Prophecy\Argument;
 
@@ -84,6 +84,17 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->delete($address)->shouldBe(true);
+    }
+
+    public function it_should_delete_a_restriction_by_reason()
+    {
+        $reason = 'custom';
+
+        $this->repository->deleteByReason($reason)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->deleteByReason($reason)->shouldBe(true);
     }
 
     public function it_should_determine_if_a_user_is_restricted()

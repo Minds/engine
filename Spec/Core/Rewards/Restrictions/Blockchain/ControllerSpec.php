@@ -4,10 +4,9 @@ namespace Spec\Minds\Core\Rewards\Restrictions\Blockchain;
 
 use PhpSpec\ObjectBehavior;
 use Zend\Diactoros\ServerRequest;
-use Zend\Diactoros\Uri;
 use Minds\Core\Rewards\Restrictions\Blockchain\Manager;
 use Minds\Core\Rewards\Restrictions\Blockchain\Controller;
-use Minds\Core\Rewards\Restrictions\Blockchain\RestrictedException;
+use Minds\Core\Rewards\Restrictions\Blockchain\Exceptions\RestrictedException;
 use Minds\Entities\User;
 use Zend\Diactoros\Response\JsonResponse;
 

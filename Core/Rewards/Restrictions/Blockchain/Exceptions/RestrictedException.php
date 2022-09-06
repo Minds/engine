@@ -1,5 +1,5 @@
 <?php
-namespace Minds\Core\Rewards\Restrictions\Blockchain;
+namespace Minds\Core\Rewards\Restrictions\Blockchain\Exceptions;
 
 use Minds\Exceptions\UserErrorException;
 

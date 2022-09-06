@@ -49,7 +49,8 @@ class Repository
      */
     public function get(string $address): array
     {
-        $statement =  "SELECT * FROM blockchain_restricted_addresses WHERE address = ?";
+        $reasonsClause = $this->getReasonsClause();
+        $statement =  "SELECT * FROM blockchain_restricted_addresses WHERE $reasonsClause AND address = ?";
         $values = [ $address ];
 
         $prepared = new Custom();
@@ -97,12 +98,40 @@ class Repository
      */
     public function delete(string $address): bool
     {
-        $statement = "DELETE FROM blockchain_restricted_addresses WHERE address = ?";
+        $reasonsClause = $this->getReasonsClause();
+        $statement = "DELETE FROM blockchain_restricted_addresses WHERE $reasonsClause AND address = ?";
         $values = [ $address ];
 
         $query = new Custom();
         $query->query($statement, $values);
 
         return (bool) $this->client->request($query);
+    }
+
+    /**
+     * Delete a Restriction to the database by reason.
+     * @param string $reason - reason to clear all entries for.
+     * @return bool true if deleted.
+     */
+    public function deleteByReason(string $reason): bool
+    {
+        $statement = "DELETE FROM blockchain_restricted_addresses WHERE reason = ?";
+        $values = [ $reason ];
+
+        $query = new Custom();
+        $query->query($statement, $values);
+
+        return (bool) $this->client->request($query);
+    }
+
+    /**
+     * Gets reasons clause for query that permits any reason.
+     * @return string reasons clause.
+     */
+    private function getReasonsClause(): string
+    {
+        return 'reason IN ('.implode(', ', array_map(function ($reason) {
+            return "'$reason'";
+        }, Constants::ALLOWED_REASONS)).')';
     }
 }

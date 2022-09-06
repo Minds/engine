@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Rewards\Restrictions\Blockchain;
 
+use Minds\Core\Rewards\Restrictions\Blockchain\Exceptions\UnsupportedNetworkException;
 use Minds\Exceptions\UserErrorException;
 
 /**
@@ -9,12 +10,6 @@ use Minds\Exceptions\UserErrorException;
  */
 class Restriction
 {
-    /** @var array ALLOWED_REASONS - permitted reasons */
-    const ALLOWED_REASONS = ['ofac', 'custom'];
-
-    /** @var array ALLOWED_NETWORKS - permitted networks */
-    const ALLOWED_NETWORKS = ['ethereum'];
-
     /** @var string $address - restricted address */
     private string $address;
 
@@ -63,7 +58,7 @@ class Restriction
      */
     public function setReason(string $reason): self
     {
-        if (!in_array($reason, self::ALLOWED_REASONS, true)) {
+        if (!in_array($reason, Constants::ALLOWED_REASONS, true)) {
             throw new UserErrorException('Invalid reason provided');
         }
         $this->reason = $reason;
@@ -106,8 +101,8 @@ class Restriction
      */
     public function setNetwork(string $network): self
     {
-        if (!in_array($network, self::ALLOWED_NETWORKS, true)) {
-            throw new UserErrorException('Invalid network provided');
+        if (!in_array($network, Constants::ALLOWED_NETWORKS, true)) {
+            throw new UnsupportedNetworkException();
         }
         $this->network = $network;
         return $this;

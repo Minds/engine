@@ -19,5 +19,13 @@ class Provider extends Di\Provider
         $this->di->bind('Rewards\Restrictions\Blockchain\Repository', function ($di) {
             return new Repository();
         }, [ 'useFactory'=> true ]);
+
+        $this->di->bind('Rewards\Restrictions\Blockchain\Ofac\Manager', function ($di) {
+            return new Ofac\Manager();
+        }, [ 'useFactory'=> true ]);
+
+        $this->di->bind('Rewards\Restrictions\Blockchain\Ofac\Client', function ($di) {
+            return new Ofac\Client();
+        }, [ 'useFactory'=> true ]);
     }
 }

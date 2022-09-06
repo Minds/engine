@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Rewards\Restrictions\Blockchain;
 
+use Minds\Core\Rewards\Restrictions\Blockchain\Exceptions\UnsupportedNetworkException;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Rewards\Restrictions\Blockchain\Restriction;
 use Minds\Exceptions\UserErrorException;
@@ -35,7 +36,7 @@ class RestrictionSpec extends ObjectBehavior
 
     public function it_should_get_and_set_a_network()
     {
-        $network = 'ethereum';
+        $network = 'ETH';
         $this->setNetwork($network);
         $this->getNetwork()->shouldBe($network);
     }
@@ -43,7 +44,7 @@ class RestrictionSpec extends ObjectBehavior
     public function it_should_NOT_get_and_set_an_unsupported_network()
     {
         $network = 'unsupported_network';
-        $this->shouldThrow(UserErrorException::class)->during('setNetwork', [$network]);
+        $this->shouldThrow(UnsupportedNetworkException::class)->during('setNetwork', [$network]);
     }
 
     public function it_should_get_and_set_time_added()
@@ -58,7 +59,7 @@ class RestrictionSpec extends ObjectBehavior
     {
         $address = '0x00';
         $reason = 'custom';
-        $network = 'ethereum';
+        $network = 'ETH';
         $timeAdded = '1000';
 
         $this->setAddress($address)
