@@ -28,7 +28,7 @@ class TimeCreatedDelegate
      * @param string $time_created
      * @return bool
      */
-    public function onAdd($entity, $time_created, $time_sent)
+    public function beforeAdd($entity, $time_created, $time_sent)
     {
         $this->entityTimeCreated->validate($entity, $time_created, $time_sent);
         return true;

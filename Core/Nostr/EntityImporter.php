@@ -171,6 +171,33 @@ class EntityImporter
 
                     break;
                 case NostrEvent::EVENT_KIND_2: // recommend_server
+                case NostrEvent::EVENT_KIND_9: // delete
+                    // If the event contains e tags
+                    if (count($replies) > 0) {
+                        $events = array_map(fn ($tag): string => $tag[1], $replies);
+
+                        // First, validate the public key matches for each event
+                        foreach ($this->manager->getNostrEvents(['ids' => $events ]) as $event) {
+                            if ($nostrEvent->getPubKey() != $event->getPubKey()) {
+                                throw new UserErrorException("Invalid delete request. Public keys do not match!");
+                            }
+                        }
+
+                        // Then, delete the events from Vitess
+                        $this->manager->deleteNostrEvents($events);
+
+                        // Then, delete activities
+                        foreach ($this->manager->getActivitiesFromNostrId($events) as $activity) {
+                            $this->activityManager->delete($activity);
+                        }
+
+                        // Finally, delete the event->actvitiy mapping
+                        $this->manager->deleteActivityToNostrId($events);
+                    }
+
+                    // Commit
+                    $this->manager->commit();
+                    break;
                 default:
                     // Commit
                     $this->manager->commit();

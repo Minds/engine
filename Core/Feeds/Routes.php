@@ -53,6 +53,19 @@ class Routes extends ModuleRoutes
                             'subscribed/latest/count',
                             Ref::_('Feeds\Subscribed\Controller', 'getLatestCount')
                         );
+                        $route->put(
+                            'activity',
+                            Ref::_('Feeds\Activity\Controller', 'createNewActivity'),
+                        );
+                        $route->post(
+                            'activity/:guid',
+                            Ref::_('Feeds\Activity\Controller', 'updateExistingActivity'),
+                        );
+                        $route->delete(
+                            'activity/:urn',
+                            Ref::_('Feeds\Activity\Controller', 'delete')
+                        );
+                        //TODO: Deprecate the below
                         $route->delete(
                             ':urn',
                             Ref::_('Feeds\Activity\Controller', 'delete')

@@ -21,7 +21,7 @@ class PaywallDelegate
      * @param Activity $activity
      * @return void
      */
-    public function onAdd(Activity $activity): void
+    public function beforeAdd(Activity $activity): void
     {
         $this->paywallManager->validateEntity($activity);
     }
