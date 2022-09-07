@@ -18,7 +18,6 @@ class RegistrationSteps extends ApiTester
     #[Given('I want to register to Minds with the following data :registrationData')]
     public function IWantToRegisterToMindsWithData(PyStringNode $registrationData)
     {
-        $registrationData->
         Fixtures::add("registration-data", json_decode($registrationData->getRaw(), true));
     }
 
