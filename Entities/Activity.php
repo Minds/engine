@@ -372,9 +372,13 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             }
         }
 
-        // convert attachments to custom data
+        /**
+         * Multi media attachment export logic
+         * Does not cover legacy entity_guid export logic.
+         * Convert attachments to custom data
+         */
         if ($this->hasAttachments()) {
-            $export['custom_type'] = 'batch';
+            $export['custom_type'] = $this->attachments[0]['type'] === 'video' ? 'video' : 'batch';
 
             // hydrate the src urls (includes signing)
             $mediaManager = Di::_()->get('Media\Image\Manager');
@@ -384,7 +388,14 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             foreach ($customData as $k => $v) {
                 $customData[$k]['src'] = $imageUrls[$k];
             }
-            $export['custom_data'] = $customData;
+
+            // currently does not support array
+            if ($export['custom_type'] === 'video') {
+                $export['custom_data'] = $customData[0];
+                $export['entity_guid'] = (string) $this->getGuid(); // mobile expects this
+            } else {
+                $export['custom_data'] = $customData;
+            }
         }
 
         $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'activity', ['entity' => $this], []));
@@ -1087,13 +1098,15 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     {
         $attachments = [];
         foreach ($attachmentEntities as $attachmentEntity) {
-            $attachments[] = [
+            $attachment = [
                 'guid' => $attachmentEntity->getGuid(),
                 'type' => $attachmentEntity->getSubtype(),
                 'width' => $attachmentEntity->width,
                 'height' => $attachmentEntity->height,
                 'blurhash' => $attachmentEntity->blurhash,
             ];
+
+            $attachments[] = $attachment;
         }
         $this->attachments = $attachments;
         return $this;
@@ -1106,6 +1119,42 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function hasAttachments(): bool
     {
         return $this->attachments && count($this->attachments) > 0;
+    }
+
+    /**
+     * Will return isPortrait logic for posts created
+     * with attachments. This will not have an impact to legacy 'entity_guid'
+     * created image/batch posts
+     * @return bool
+     */
+    public function isPortrait(): bool
+    {
+        $isPortrait = false;
+
+        // Video
+
+        if ($this->custom_type === 'video' && is_array($this->custom_data)) {
+            $isPortrait = $this->custom_data['height'] > $this->custom_data['width'];
+        }
+
+        // Image (legacy entity_guid)
+        if (
+            in_array($this->custom_type, ['image', 'batch'], true) &&
+            is_array($this->custom_data) &&
+            is_array($this->custom_data[0])
+        ) {
+            $isPortrait = $this->custom_data[0]['height'] > $this->custom_data[0]['width'];
+        }
+
+        // Multi media attachments
+        if (
+            $this->hasAttachments() &&
+            count($this->attachments) === 1 // you can only have isPortrait if single image post
+        ) {
+            $isPortrait = $this->attachments[0]['height'] > $this->attachments[0]['width'];
+        }
+
+        return $isPortrait;
     }
 
     /**

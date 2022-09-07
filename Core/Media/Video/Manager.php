@@ -83,6 +83,12 @@ class Manager
     public function get($guid): ?Video
     {
         $entity = $this->entitiesBuilder->single($guid);
+
+        if ($entity instanceof Activity && $entity->hasAttachments()) {
+            $videoGuid = $entity->attachments[0]['guid'];
+            $entity = $this->entitiesBuilder->single($videoGuid);
+        }
+
         if (!$entity instanceof Video) {
             return null;
         }
