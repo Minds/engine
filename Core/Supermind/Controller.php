@@ -101,7 +101,6 @@ class Controller
     /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
-     * @throws SupermindNotFoundException
      */
 //    #[OA\Get(
 //        path: '/api/v3/supermind/inbox',
@@ -123,7 +122,6 @@ class Controller
 //            new OA\Response(response: 200, description: "Ok"),
 //            new OA\Response(response: 400, description: "Bad Request"),
 //            new OA\Response(response: 401, description: "Unauthorized"),
-//            new OA\Response(response: 404, description: "Not found")
 //        ]
 //    )]
     public function getSupermindInboxRequests(ServerRequestInterface $request): JsonResponse
@@ -140,7 +138,6 @@ class Controller
     /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
-     * @throws SupermindNotFoundException
      * @throws UserErrorException
      */
 //    #[OA\Get(
@@ -163,7 +160,6 @@ class Controller
 //            new OA\Response(response: 200, description: "Ok"),
 //            new OA\Response(response: 400, description: "Bad Request"),
 //            new OA\Response(response: 401, description: "Unauthorized"),
-//            new OA\Response(response: 404, description: "Not found")
 //        ]
 //    )]
     public function getSupermindOutboxRequests(ServerRequestInterface $request): JsonResponse
