@@ -15,10 +15,9 @@ use \Codeception\Event\TestEvent;
  *
  * To use this group extension, include it to "extensions" option of global Codeception config.
  */
-
-class Registration extends \Codeception\Platform\Group
+class BlockchainRestrictions extends \Codeception\Platform\Group
 {
-    public static $group = 'registration';
+    public static $group = 'blockchainRestrictions';
 
     public function _before(TestEvent $e)
     {

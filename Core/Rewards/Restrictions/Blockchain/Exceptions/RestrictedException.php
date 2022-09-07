@@ -9,5 +9,8 @@ use Minds\Exceptions\UserErrorException;
 class RestrictedException extends UserErrorException
 {
     /** @var string */
+    protected $code = 403;
+
+    /** @var string */
     protected $message = "Your address is restricted";
 }
