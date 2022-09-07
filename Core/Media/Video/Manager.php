@@ -84,6 +84,10 @@ class Manager
     {
         $entity = $this->entitiesBuilder->single($guid);
 
+        /**
+         * Mobile may send the activity guid instead of the video asset guid,
+         * so we will fix that here and return the first video attachment
+         */
         if ($entity instanceof Activity && $entity->hasAttachments()) {
             $videoGuid = $entity->attachments[0]['guid'];
             $entity = $this->entitiesBuilder->single($videoGuid);
