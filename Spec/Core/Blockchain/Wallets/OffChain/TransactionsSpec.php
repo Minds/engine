@@ -154,7 +154,7 @@ class TransactionsSpec extends ObjectBehavior
         $this->balance->setUser($user)->willReturn($this->balance);
         $this->balance->get()->willReturn(-55);
 
-        $this->shouldThrow(new \Exception('Not enough funds'))->duringCreate();
+        $this->shouldThrow(new \Exception('The funds available are insufficient to complete the operation'))->duringCreate();
     }
 
     public function it_should_throw_exception_if_save_fails()
