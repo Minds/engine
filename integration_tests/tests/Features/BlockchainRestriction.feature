@@ -6,7 +6,7 @@ Feature: BlockchainRestrictions
       | username                          | password   |
       | minds_engine_integration_tests    | Pa$$w0rd!@ |
     When I call the login endpoint
-    And I call the check endpoint
+    And I call the check endpoint with "0x0000000000000000000000000000000000000000"
     Then I get a 200 response containing
       """json
       {
@@ -14,7 +14,7 @@ Feature: BlockchainRestrictions
       }
       """
 
-  Scenario: Ban Minds account with restricted wallet
+  Scenario: Ban Minds account with restricted wallet on check
     Given I register to Minds with
       """json
       {

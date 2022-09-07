@@ -15,12 +15,6 @@ use Behat\Gherkin\Node\PyStringNode;
 #[Group("blockchainRestrictions")]
 class BlockchainRestrictionsSteps extends ApiTester
 {
-    #[When('I call the check endpoint')]
-    public function ICallTheCheckEndpoint()
-    {
-        $this->sendGetAsJson("v3/rewards/check/0x0000000000000000000000000000000000000000");
-    }
-
     #[When('I call the check endpoint with :wallet_address')]
     public function ICallTheCheckEndpointWithWalletAddress(string $walletAddress)
     {
