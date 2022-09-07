@@ -49,6 +49,8 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->getMature()->willReturn(false);
         $activity->isRemind()->willReturn(false);
         $activity->isQuotedPost()->willReturn(false);
+        $activity->isPortrait()->willReturn(false);
+        $activity->hasAttachments()->willReturn(false);
 
         $this
             ->setEntity($activity)
@@ -124,6 +126,8 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->get('language')->willReturn('en');
         $activity->isRemind()->willReturn(false);
         $activity->isQuotedPost()->willReturn(false);
+        $activity->isPortrait()->willReturn(false);
+        $activity->hasAttachments()->willReturn(false);
 
         $this
             ->setEntity($activity)
@@ -202,6 +206,8 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->getMature()->willReturn(false);
         $activity->isRemind()->willReturn(true);
         $activity->isQuotedPost()->willReturn(false);
+        $activity->isPortrait()->willReturn(false);
+        $activity->hasAttachments()->willReturn(false);
         $activity->get('remind_object')
             ->willReturn(['guid' => 123]);
 
@@ -281,6 +287,8 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->getMature()->willReturn(false);
         $activity->isRemind()->willReturn(false);
         $activity->isQuotedPost()->willReturn(true);
+        $activity->isPortrait()->willReturn(false);
+        $activity->hasAttachments()->willReturn(false);
         $activity->get('remind_object')->willReturn(['guid' => 123]);
 
         $this

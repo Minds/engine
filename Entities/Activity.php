@@ -378,23 +378,11 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
          * Convert attachments to custom data
          */
         if ($this->hasAttachments()) {
-            $export['custom_type'] = $this->attachments[0]['type'] === 'video' ? 'video' : 'batch';
-
-            // hydrate the src urls (includes signing)
-            $mediaManager = Di::_()->get('Media\Image\Manager');
-            $imageUrls = $mediaManager->getPublicAssetUris($this, 'xlarge');
-            $customData = $this->attachments;
-
-            foreach ($customData as $k => $v) {
-                $customData[$k]['src'] = $imageUrls[$k];
-            }
-
-            // currently does not support array
+            $export['custom_type'] = $this->getCustomType();
+            $export['custom_data'] = $this->getCustomData();
+        
             if ($export['custom_type'] === 'video') {
-                $export['custom_data'] = $customData[0];
                 $export['entity_guid'] = (string) $this->getGuid(); // mobile expects this
-            } else {
-                $export['custom_data'] = $customData;
             }
         }
 
@@ -609,7 +597,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     }
 
     /**
-     * Get the custom data
+     * Get the custom data (deprecated, use getCustomType() and getCustomData())
      * @return array
      */
     public function getCustom(): array
@@ -1122,9 +1110,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     }
 
     /**
-     * Will return isPortrait logic for posts created
-     * with attachments. This will not have an impact to legacy 'entity_guid'
-     * created image/batch posts
+     * Will return isPortrait logic for posts
      * @return bool
      */
     public function isPortrait(): bool
@@ -1155,6 +1141,45 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         }
 
         return $isPortrait;
+    }
+
+    /**
+     * Returns the custom type of activity
+     * @return string
+     */
+    public function getCustomType(): ?string
+    {
+        if ($this->hasAttachments()) {
+            return $this->attachments[0]['type'] === 'video' ? 'video' : 'batch';
+        }
+
+        return $this->custom_type;
+    }
+
+    /**
+     * Returns the custom data
+     */
+    public function getCustomData(): ?array
+    {
+        if ($this->hasAttachments()) {
+            // hydrate the src urls (includes signing)
+            $mediaManager = Di::_()->get('Media\Image\Manager');
+            $imageUrls = $mediaManager->getPublicAssetUris($this, 'xlarge');
+            $customData = $this->attachments;
+
+            foreach ($customData as $k => $v) {
+                $customData[$k]['src'] = $imageUrls[$k];
+            }
+
+            // currently does not support array
+            if ($this->getCustomType() === 'video') {
+                return $customData[0];
+            } else {
+                return $customData;
+            }
+        }
+
+        return $this->custom_data;
     }
 
     /**
