@@ -276,7 +276,6 @@ class Manager
      * @param int $offset
      * @param int $limit
      * @return Response
-     * @throws SupermindNotFoundException
      */
     public function getReceivedRequests(int $offset, int $limit): Response
     {
@@ -285,12 +284,6 @@ class Manager
             $requests[] = $supermindRequest;
         }
 
-        if (count($requests) === 0) {
-            throw new SupermindNotFoundException();
-        }
-
-
-
         return new Response($requests);
     }
 
@@ -298,17 +291,12 @@ class Manager
      * @param int $offset
      * @param int $limit
      * @return Response
-     * @throws SupermindNotFoundException
      */
     public function getSentRequests(int $offset, int $limit): Response
     {
         $requests = [];
         foreach ($this->repository->getSentRequests($this->user->getGuid(), $offset, $limit) as $supermindRequest) {
             $requests[] = $supermindRequest;
-        }
-
-        if (count($requests) === 0) {
-            throw new SupermindNotFoundException();
         }
 
         return new Response($requests);

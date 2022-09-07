@@ -92,7 +92,7 @@ class Repository
             WHERE
                 receiver_guid = :receiver_guid and status != :status
             ORDER BY
-                status, created_timestamp DESC
+                created_timestamp DESC
             LIMIT
                 :offset, :limit";
         $values = [
@@ -137,6 +137,8 @@ class Repository
                 superminds
             WHERE
                 sender_guid = :sender_guid and status != :status
+            ORDER BY
+                created_timestamp DESC
             LIMIT
                 :offset, :limit";
         $values = [
