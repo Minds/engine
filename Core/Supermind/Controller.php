@@ -9,6 +9,8 @@ use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Exceptions\SupermindUnauthorizedSenderException;
+use Minds\Core\Supermind\Validators\SupermindGetRequestsValidator;
+use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Stripe\Exception\ApiErrorException;
 use Zend\Diactoros\Response\JsonResponse;
@@ -99,7 +101,6 @@ class Controller
     /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
-     * @throws SupermindNotFoundException
      */
 //    #[OA\Get(
 //        path: '/api/v3/supermind/inbox',
@@ -121,7 +122,6 @@ class Controller
 //            new OA\Response(response: 200, description: "Ok"),
 //            new OA\Response(response: 400, description: "Bad Request"),
 //            new OA\Response(response: 401, description: "Unauthorized"),
-//            new OA\Response(response: 404, description: "Not found")
 //        ]
 //    )]
     public function getSupermindInboxRequests(ServerRequestInterface $request): JsonResponse
@@ -132,13 +132,13 @@ class Controller
         ['limit' => $limit, 'offset' => $offset] = $request->getQueryParams();
 
         $response = $this->manager->getReceivedRequests((int) $offset, (int) $limit);
-        return new JsonResponse($response);
+        return new JsonResponse(Exportable::_($response));
     }
 
     /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
-     * @throws SupermindNotFoundException
+     * @throws UserErrorException
      */
 //    #[OA\Get(
 //        path: '/api/v3/supermind/outbox',
@@ -160,13 +160,22 @@ class Controller
 //            new OA\Response(response: 200, description: "Ok"),
 //            new OA\Response(response: 400, description: "Bad Request"),
 //            new OA\Response(response: 401, description: "Unauthorized"),
-//            new OA\Response(response: 404, description: "Not found")
 //        ]
 //    )]
     public function getSupermindOutboxRequests(ServerRequestInterface $request): JsonResponse
     {
         $loggedInUser = $request->getAttribute("_user");
         $this->manager->setUser($loggedInUser);
+
+        $requestValidator = new SupermindGetRequestsValidator();
+
+        if (!$requestValidator->validate($request->getQueryParams())) {
+            throw new UserErrorException(
+                message: "An error was encountered whilst validating the request",
+                code: 400,
+                errors: $requestValidator->getErrors()
+            );
+        }
 
         ['limit' => $limit, 'offset' => $offset] = $request->getQueryParams();
 

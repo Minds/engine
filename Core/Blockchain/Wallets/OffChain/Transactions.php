@@ -10,6 +10,7 @@ namespace Minds\Core\Blockchain\Wallets\OffChain;
 
 use Minds\Core\Blockchain\Transactions\Repository;
 use Minds\Core\Blockchain\Transactions\Transaction;
+use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Data\Locks;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
@@ -78,6 +79,12 @@ class Transactions
         return $this;
     }
 
+    /**
+     * @return Transaction
+     * @throws LockFailedException
+     * @throws Locks\KeyNotSetupException
+     * @throws OffchainWalletInsufficientFundsException
+     */
     public function create()
     {
         $this->locks->setKey("balance:{$this->user->guid}");
@@ -97,7 +104,7 @@ class Transactions
             $balance = BigNumber::_($this->balance->setUser($this->user)->get());
 
             if ($balance->add($this->amount)->lt(0)) {
-                throw new \Exception('Not enough funds');
+                throw new OffchainWalletInsufficientFundsException();
             }
 
             $transaction = new Transaction();

@@ -6,7 +6,7 @@ Feature: User Registration
       """json
       {
         "username": "",
-        "password": "Pa$$w0rd",
+        "password": "Pa$$w0rd!@",
         "email": "fausto@minds.com",
         "captcha": "{\"clientText\": \"captcha_bypass\"}",
         "parentId": ""

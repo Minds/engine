@@ -7,6 +7,7 @@
 
 namespace Minds\Core\Feeds\Activity;
 
+use Exception;
 use Minds\Common\EntityMutation;
 use Minds\Common\Urn;
 use Minds\Core\Boost\Network\ElasticRepository as BoostElasticRepository;
@@ -31,6 +32,9 @@ use Minds\Core\Supermind\Validators\SupermindRequestValidator;
 use Minds\Entities\Activity;
 use Minds\Entities\Entity;
 use Minds\Entities\EntityInterface;
+use Minds\Entities\User;
+use Minds\Entities\ValidationError;
+use Minds\Entities\ValidationErrorCollection;
 use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
@@ -74,6 +78,8 @@ class Manager
 
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
+
+    private SupermindManager $supermindManager;
 
     public function __construct(
         $foreignEntityDelegate = null,
@@ -181,13 +187,26 @@ class Manager
                 errors: $validator->getErrors()
             );
         }
+        try {
+            $receiverUser = new User($supermindDetails['supermind_request']['receiver_guid']);
+        } catch (Exception $e) {
+            throw new UserErrorException(
+                message: "An error was encountered whilst validating the request",
+                code: 400,
+                errors: (new ValidationErrorCollection())->add(
+                    new ValidationError(
+                        "supermind_request:receiver_guid"
+                    )
+                )
+            );
+        }
 
         $paymentMethodId = $supermindDetails['supermind_request']['payment_options']['payment_method_id'] ?? null;
 
         $supermindRequest = (new SupermindRequest())
             ->setGuid(Guid::build())
             ->setSenderGuid((string)$activity->owner_guid)
-            ->setReceiverGuid((string) $supermindDetails['supermind_request']['receiver_guid'])
+            ->setReceiverGuid((string) $receiverUser->getGuid())
             ->setReplyType($supermindDetails['supermind_request']['reply_type'])
             ->setTwitterRequired($supermindDetails['supermind_request']['twitter_required'])
             ->setPaymentAmount($supermindDetails['supermind_request']['payment_options']['amount'])
@@ -257,6 +276,14 @@ class Manager
         }
 
         $isSupermindReplyProcessed = $this->supermindManager->acceptSupermindRequest($supermindDetails['supermind_reply_guid']);
+
+        if ($isSupermindReplyProcessed) {
+            throw new UserErrorException(
+                message: "An error was encountered whilst accepting the Supermind request",
+                code: 400,
+                errors: $validator->getErrors()
+            );
+        }
 
         $activity->setSupermind([
             'request_guid' => $supermindDetails['supermind_reply_guid'],
