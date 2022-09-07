@@ -878,12 +878,25 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getThumbnails(): array
     {
         $thumbnails = [];
-        switch ($this->custom_type) {
+        $customType = $this->custom_type;
+
+        if ($this->hasAttachments()) {
+            $customType = 'multiImage';
+        }
+
+        switch ($customType) {
             case 'video':
                 $mediaManager = Di::_()->get('Media\Image\Manager');
                 $thumbnails['xlarge'] = $mediaManager->getPublicAssetUris($this, 'xlarge')[0];
                 break;
             case 'batch':
+                $mediaManager = Di::_()->get('Media\Image\Manager');
+                $sizes = ['xlarge', 'large'];
+                foreach ($sizes as $size) {
+                    $thumbnails[$size] = $mediaManager->getPublicAssetUris($this, $size)[0];
+                }
+                break;
+            case 'multiImage':
                 $mediaManager = Di::_()->get('Media\Image\Manager');
                 $sizes = ['xlarge', 'large'];
                 foreach ($sizes as $size) {
