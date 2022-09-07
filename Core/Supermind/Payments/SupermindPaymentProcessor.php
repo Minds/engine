@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Minds\Core\Supermind\Payments;
 
 use Exception;
+use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Blockchain\Wallets\OffChain\Transactions as OffchainTransactions;
 use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Data\Locks\LockFailedException;
@@ -100,6 +101,7 @@ class SupermindPaymentProcessor
      * @param SupermindRequest $request
      * @return string
      * @throws LockFailedException
+     * @throws OffchainWalletInsufficientFundsException
      * @throws Exception
      */
     public function setupOffchainPayment(SupermindRequest $request): string

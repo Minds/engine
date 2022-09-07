@@ -7,6 +7,7 @@ namespace Minds\Core\Supermind;
 use Iterator;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
@@ -20,11 +21,14 @@ class Repository
 
     /**
      * @param MySQLClient|null $mysqlHandler
+     * @param EntitiesBuilder|null $entitiesBuilder
      * @throws ServerErrorException
      */
     public function __construct(
-        private ?MySQLClient $mysqlHandler = null
+        private ?MySQLClient $mysqlHandler = null,
+        private ?EntitiesBuilder $entitiesBuilder = null
     ) {
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->mysqlHandler ??= Di::_()->get("Database\MySQL\Client");
         $this->mysqlClientReader = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_REPLICA);
         $this->mysqlClientWriter = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_MASTER);
@@ -62,8 +66,14 @@ class Repository
         $statement = $this->buildReceivedRequestsQuery($receiverGuid, $offset, $limit);
         $statement->execute();
 
-        foreach ($statement as $row) {
-            yield SupermindRequest::fromData($row);
+        $i = 0;
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $request = SupermindRequest::fromData($row);
+            if ($i < 12) {
+                $request->setEntity($this->entitiesBuilder->single($request->getActivityGuid()));
+            }
+            yield $request;
+            $i++;
         }
     }
 
@@ -108,8 +118,14 @@ class Repository
         $statement = $this->buildSentRequestsQuery($senderGuid, $offset, $limit);
         $statement->execute();
 
+        $i = 0;
         foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            yield SupermindRequest::fromData($row);
+            $request = SupermindRequest::fromData($row);
+            if ($i < 12) {
+                $request->setEntity($this->entitiesBuilder->single($request->getActivityGuid()));
+            }
+            yield $request;
+            $i++;
         }
     }
 

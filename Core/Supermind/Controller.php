@@ -9,6 +9,8 @@ use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Exceptions\SupermindUnauthorizedSenderException;
+use Minds\Core\Supermind\Validators\SupermindGetRequestsValidator;
+use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Stripe\Exception\ApiErrorException;
 use Zend\Diactoros\Response\JsonResponse;
@@ -132,13 +134,14 @@ class Controller
         ['limit' => $limit, 'offset' => $offset] = $request->getQueryParams();
 
         $response = $this->manager->getReceivedRequests((int) $offset, (int) $limit);
-        return new JsonResponse($response);
+        return new JsonResponse(Exportable::_($response));
     }
 
     /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
      * @throws SupermindNotFoundException
+     * @throws UserErrorException
      */
 //    #[OA\Get(
 //        path: '/api/v3/supermind/outbox',
@@ -167,6 +170,16 @@ class Controller
     {
         $loggedInUser = $request->getAttribute("_user");
         $this->manager->setUser($loggedInUser);
+
+        $requestValidator = new SupermindGetRequestsValidator();
+
+        if (!$requestValidator->validate($request->getQueryParams())) {
+            throw new UserErrorException(
+                message: "An error was encountered whilst validating the request",
+                code: 400,
+                errors: $requestValidator->getErrors()
+            );
+        }
 
         ['limit' => $limit, 'offset' => $offset] = $request->getQueryParams();
 

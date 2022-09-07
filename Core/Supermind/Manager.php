@@ -6,10 +6,12 @@ namespace Minds\Core\Supermind;
 
 use Exception;
 use Minds\Common\Repository\Response;
+use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
+use Minds\Core\Supermind\Exceptions\SupermindOffchainPaymentFailedException;
 use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentCaptureFailedException;
 use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentFailedException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestCreationCompletionException;
@@ -52,6 +54,8 @@ class Manager
      * @return bool
      * @throws ApiErrorException
      * @throws LockFailedException
+     * @throws OffchainWalletInsufficientFundsException
+     * @throws SupermindOffchainPaymentFailedException
      * @throws SupermindPaymentIntentFailedException
      */
     public function addSupermindRequest(SupermindRequest $supermindRequest, ?string $paymentMethodId = null): bool
@@ -79,6 +83,8 @@ class Manager
             }
         } catch (CardException $e) {
             throw new SupermindPaymentIntentFailedException(message: $e->getMessage());
+        } catch (OffchainWalletInsufficientFundsException $e) {
+            throw new SupermindOffchainPaymentFailedException(message: $e->getMessage());
         } catch (Exception $e) {
             $this->repository->rollbackTransaction();
             throw $e;
@@ -282,6 +288,8 @@ class Manager
         if (count($requests) === 0) {
             throw new SupermindNotFoundException();
         }
+
+
 
         return new Response($requests);
     }

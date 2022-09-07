@@ -7,6 +7,7 @@ namespace Minds\Core\Supermind\Models;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Supermind\SupermindRequestReplyType;
 use Minds\Core\Supermind\SupermindRequestStatus;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\ExportableInterface;
 use Minds\Traits\MagicAttributes;
 
@@ -35,6 +36,8 @@ use Minds\Traits\MagicAttributes;
  * @method self setTwitterRequired(bool $twitterRequired)
  * @method bool getReplyType()
  * @method self setReplyType(bool $twitterRequired)
+ * @method null|EntityInterface getEntity()
+ * @method self setEntity(EntityInterface $entity)
  */
 class SupermindRequest implements ExportableInterface
 {
@@ -52,6 +55,7 @@ class SupermindRequest implements ExportableInterface
     private ?int $updatedAt = null;
     private bool $twitterRequired = false;
     private int $replyType = SupermindRequestReplyType::TEXT;
+    private ?EntityInterface $entity = null;
 
     public static function fromData(array $data): self
     {
@@ -127,6 +131,7 @@ class SupermindRequest implements ExportableInterface
             "updated_timestamp" => $this->updatedAt,
             "twitter_required" => $this->twitterRequired,
             "reply_type" => $this->replyType,
+            "entity" => $this->entity->export()
         ];
     }
 }
