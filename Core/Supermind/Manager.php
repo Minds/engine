@@ -25,6 +25,11 @@ use Stripe\Exception\ApiErrorException;
  */
 class Manager
 {
+    /**
+     * @const int Represents the threshold expressed in seconds used to consider a Supermind request expired.
+     */
+    private const SUPERMIND_EXPIRY_THRESHOLD = 7 * 86400;
+
     private User $user;
 
     public function __construct(
@@ -312,9 +317,12 @@ class Manager
         return $this->repository->getSupermindRequest($supermindRequestId) ?? throw new SupermindNotFoundException();
     }
 
+    /**
+     * @return bool
+     */
     public function expireRequests(): bool
     {
-        $this->repository->expireSupermindRequests();
+        $this->repository->expireSupermindRequests(self::SUPERMIND_EXPIRY_THRESHOLD);
         return true;
     }
 }

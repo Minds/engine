@@ -272,16 +272,16 @@ class Repository
     }
 
     /**
+     * @param int $thresholdInSeconds
      * @return bool
-     * @throws PDOException
      */
-    public function expireSupermindRequests(): bool
+    public function expireSupermindRequests(int $thresholdInSeconds): bool
     {
         $statement = "UPDATE superminds SET status = :target_status WHERE status = :created_status AND created_timestamp <= :target_timestamp";
         $values = [
             "target_status" => SupermindRequestStatus::EXPIRED,
             "created_status" => SupermindRequestStatus::CREATED,
-            "target_timestamp" => date('c', strtotime("-7 days"))
+            "target_timestamp" => date('c', strtotime("-${thresholdInSeconds} seconds"))
         ];
 
         $statement = $this->mysqlClientWriter->prepare($statement);
