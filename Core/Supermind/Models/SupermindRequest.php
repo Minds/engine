@@ -43,6 +43,11 @@ class SupermindRequest implements ExportableInterface
 {
     use MagicAttributes;
 
+    /**
+     * @const int Represents the threshold expressed in seconds used to consider a Supermind request expired.
+     */
+    public const SUPERMIND_EXPIRY_THRESHOLD = 7 * 86400;
+
     private string $guid;
     private string $activityGuid;
     private string $senderGuid;
@@ -128,10 +133,11 @@ class SupermindRequest implements ExportableInterface
             "payment_method" => $this->paymentMethod,
             "payment_txid" => $this->paymentTxID,
             "created_timestamp" => $this->createdAt,
+            "expiry_threshold" => self::SUPERMIND_EXPIRY_THRESHOLD,
             "updated_timestamp" => $this->updatedAt,
             "twitter_required" => $this->twitterRequired,
             "reply_type" => $this->replyType,
-            "entity" => $this->entity->export()
+            "entity" => $this->entity?->export()
         ];
     }
 }
