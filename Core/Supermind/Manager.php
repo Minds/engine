@@ -19,6 +19,7 @@ use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
 use Minds\Entities\User;
 use Stripe\Exception\ApiErrorException;
+use Stripe\Exception\CardException;
 
 /**
  *
@@ -76,6 +77,8 @@ class Manager
 
                 $this->repository->rollbackTransaction();
             }
+        } catch (CardException $e) {
+            throw new SupermindPaymentIntentFailedException(message: $e->getMessage());
         } catch (Exception $e) {
             $this->repository->rollbackTransaction();
             throw $e;

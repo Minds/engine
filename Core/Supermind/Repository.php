@@ -41,7 +41,9 @@ class Repository
 
     public function rollbackTransaction(): void
     {
-        $this->mysqlClientWriter->rollBack();
+        if ($this->mysqlClientWriter->inTransaction()) {
+            $this->mysqlClientWriter->rollBack();
+        }
     }
 
     public function commitTransaction(): void
