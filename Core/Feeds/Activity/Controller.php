@@ -162,7 +162,7 @@ class Controller
             }));
 
             // validate there is not a mix of videos and images
-            if ($imageCount > 1 && $videoCount > 1) {
+            if ($imageCount >= 1 && $videoCount >= 1) {
                 throw new UserErrorException("You may not have both image and videos at this time");
             }
 
