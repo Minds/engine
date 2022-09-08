@@ -2,14 +2,14 @@
 
 namespace Minds\Entities;
 
-use Minds\Helpers;
 use Minds\Core;
-use Minds\Core\Di\Di;
-use Minds\Core\Queue;
 use Minds\Core\Analytics;
+use Minds\Core\Di\Di;
+use Minds\Core\Feeds\Activity\RemindIntent;
+use Minds\Core\Queue;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Core\Wire\Paywall\PaywallEntityTrait;
-use Minds\Core\Feeds\Activity\RemindIntent;
+use Minds\Helpers;
 
 /**
  * Activity Entity
@@ -44,6 +44,8 @@ use Minds\Core\Feeds\Activity\RemindIntent;
  * @property string $license
  * @property string $permaweb_id
  * @property string $blurhash
+ * @property array $attachments
+ * @property array $supermind
  */
 class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface
 {
@@ -94,6 +96,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'permaweb_id' => '',
             'blurhash' => null,
             //	'node' => elgg_get_site_url()
+            'attachments' => null,
+            'supermind' => null,
         ]);
     }
 
@@ -283,7 +287,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'pinned',
                 'time_sent',
                 'permaweb_id',
-                'blurhash'
+                'blurhash',
+                'supermind'
             ]
         );
     }
@@ -367,6 +372,20 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             $export['remind_deleted'] = true;
             if ($this->remind_object['guid']) {
                 $export['message'] .= ' ' . $this->getRemindUrl();
+            }
+        }
+
+        /**
+         * Multi media attachment export logic
+         * Does not cover legacy entity_guid export logic.
+         * Convert attachments to custom data
+         */
+        if ($this->hasAttachments()) {
+            $export['custom_type'] = $this->getCustomType();
+            $export['custom_data'] = $this->getCustomData();
+        
+            if ($export['custom_type'] === 'video') {
+                $export['entity_guid'] = (string) $this->getGuid(); // mobile expects this
             }
         }
 
@@ -581,7 +600,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     }
 
     /**
-     * Get the custom data
+     * Get the custom data (deprecated, use getCustomType() and getCustomData())
      * @return array
      */
     public function getCustom(): array
@@ -855,21 +874,35 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
 
     /**
      * Return thumbnails array to be used with export
+     * TODO: Possibly deprecate now we have ->attachment support
      * @return array
      */
     public function getThumbnails(): array
     {
         $thumbnails = [];
-        switch ($this->custom_type) {
+        $customType = $this->custom_type;
+
+        if ($this->hasAttachments()) {
+            $customType = 'multiImage';
+        }
+
+        switch ($customType) {
             case 'video':
                 $mediaManager = Di::_()->get('Media\Image\Manager');
-                $thumbnails['xlarge'] = $mediaManager->getPublicAssetUri($this, 'xlarge');
+                $thumbnails['xlarge'] = $mediaManager->getPublicAssetUris($this, 'xlarge')[0];
                 break;
             case 'batch':
                 $mediaManager = Di::_()->get('Media\Image\Manager');
                 $sizes = ['xlarge', 'large'];
                 foreach ($sizes as $size) {
-                    $thumbnails[$size] = $mediaManager->getPublicAssetUri($this, $size);
+                    $thumbnails[$size] = $mediaManager->getPublicAssetUris($this, $size)[0];
+                }
+                break;
+            case 'multiImage':
+                $mediaManager = Di::_()->get('Media\Image\Manager');
+                $sizes = ['xlarge', 'large'];
+                foreach ($sizes as $size) {
+                    $thumbnails[$size] = $mediaManager->getPublicAssetUris($this, $size)[0];
                 }
                 break;
         }
@@ -1046,6 +1079,121 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     private function getRemindUrl(): string
     {
         return Di::_()->get('Config')->get('site_url') . 'newsfeed/' . $this->remind_object['guid'];
+    }
+
+    /**
+     * Build denormalized views of attachments
+     * @param Video[]|Image[] $attachmentEntities
+     */
+    public function setAttachments(array $attachmentEntities)
+    {
+        $attachments = [];
+        foreach ($attachmentEntities as $attachmentEntity) {
+            $attachment = [
+                'guid' => $attachmentEntity->getGuid(),
+                'type' => $attachmentEntity->getSubtype(),
+                'width' => $attachmentEntity->width,
+                'height' => $attachmentEntity->height,
+                'blurhash' => $attachmentEntity->blurhash,
+            ];
+
+            $attachments[] = $attachment;
+        }
+        $this->attachments = $attachments;
+        return $this;
+    }
+
+    /**
+     * Returns true/false if the activity has any attachments
+     * @return bool
+     */
+    public function hasAttachments(): bool
+    {
+        return $this->attachments && count($this->attachments) > 0;
+    }
+
+    /**
+     * @param array $supermindDetails
+     * @return $this
+     */
+    public function setSupermind(array $supermindDetails): self
+    {
+        $this->supermind = $supermindDetails;
+        return $this;
+    }
+
+    /**
+     * Will return isPortrait logic for posts
+     * @return bool
+     */
+    public function isPortrait(): bool
+    {
+        $isPortrait = false;
+
+        // Video
+
+        if ($this->custom_type === 'video' && is_array($this->custom_data)) {
+            $isPortrait = $this->custom_data['height'] > $this->custom_data['width'];
+        }
+
+        // Image (legacy entity_guid)
+        if (
+            in_array($this->custom_type, ['image', 'batch'], true) &&
+            is_array($this->custom_data) &&
+            is_array($this->custom_data[0])
+        ) {
+            $isPortrait = $this->custom_data[0]['height'] > $this->custom_data[0]['width'];
+        }
+
+        // Multi media attachments
+        if (
+            $this->hasAttachments() &&
+            count($this->attachments) === 1 // you can only have isPortrait if single image post
+        ) {
+            $isPortrait = $this->attachments[0]['height'] > $this->attachments[0]['width'];
+        }
+
+        return $isPortrait;
+    }
+
+    /**
+     * Returns the custom type of activity
+     * @return string
+     */
+    public function getCustomType(): ?string
+    {
+        if ($this->hasAttachments()) {
+            return $this->attachments[0]['type'] === 'video' ? 'video' : 'batch';
+        }
+
+        return $this->custom_type;
+    }
+
+    /**
+     * Returns the custom data
+     * @return array
+     */
+    public function getCustomData(): ?array
+    {
+        if ($this->hasAttachments()) {
+            // hydrate the src urls (includes signing)
+            $mediaManager = Di::_()->get('Media\Image\Manager');
+            $imageUrls = $mediaManager->getPublicAssetUris($this, 'xlarge');
+            $customData = $this->attachments;
+
+            foreach ($customData as $k => $v) {
+                $customData[$k]['src'] = $imageUrls[$k];
+            }
+
+            // currently does not support array
+            if ($this->getCustomType() === 'video') {
+                return $customData[0];
+            } else {
+                return $customData;
+            }
+        }
+
+        return $this->custom_data;
     }
 
     /**

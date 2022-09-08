@@ -111,6 +111,11 @@ class Events
                     $src = $export['thumbnails']['xlarge'];
                     $export['custom_data'][0]['src'] = $src;
                     $export['thumbnail_src'] = $src;
+
+                    // if entity_guid, then apply to custom_data
+                    if ($entity->getEntityGuid()) {
+                        $export['custom_data'][0]['guid'] = (string) $entity->getEntityGuid();
+                    }
                     break;
             }
 

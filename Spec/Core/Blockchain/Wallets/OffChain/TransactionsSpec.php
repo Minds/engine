@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\Blockchain\Wallets\OffChain;
 
 use Minds\Core\Blockchain\Transactions\Repository;
 use Minds\Core\Blockchain\Wallets\OffChain\Balance;
+use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Blockchain\Skale\Locks as SkaleLocks;
 use Minds\Core\Blockchain\Skale\Tools as SkaleTools;
@@ -206,7 +207,7 @@ class TransactionsSpec extends ObjectBehavior
         $this->balance->setUser($user)->willReturn($this->balance);
         $this->balance->get()->willReturn(-55);
 
-        $this->shouldThrow(new \Exception('Not enough funds'))->duringCreate();
+        $this->shouldThrow(new OffchainWalletInsufficientFundsException())->duringCreate();
     }
 
     public function it_should_throw_exception_if_save_fails()

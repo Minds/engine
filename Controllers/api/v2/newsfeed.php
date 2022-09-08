@@ -7,18 +7,15 @@
 namespace Minds\Controllers\api\v2;
 
 use Minds\Api\Factory;
+use Minds\Common\EntityMutation;
 use Minds\Core;
+use Minds\Core\Di\Di;
+use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Security;
 use Minds\Entities;
 use Minds\Entities\Activity;
 use Minds\Helpers;
-use Minds\Helpers\Counters;
 use Minds\Interfaces;
-use Minds\Interfaces\Flaggable;
-use Minds\Core\Di\Di;
-use Minds\Core\Entities\Actions\Save;
-use Minds\Common\EntityMutation;
-use Minds\Core\Feeds\Activity\RemindIntent;
 
 // WIP: Modernize. Use PSR-7 router.
 class newsfeed implements Interfaces\Api
@@ -358,12 +355,13 @@ class newsfeed implements Interfaces\Api
         $activity->setNsfw($_POST['nsfw'] ?? []);
 
         $user = Core\Session::getLoggedInUser();
+        $entityGuid = $_POST['entity_guid'] ?? $_POST['attachment_guid'] ?? null;
 
         $now = time();
 
         try {
             $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
-            $timeCreatedDelegate->onAdd($activity, $_POST['time_created'] ?? $now, $now);
+            $timeCreatedDelegate->beforeAdd($activity, $_POST['time_created'] ?? $now, $now);
         } catch (\Exception $e) {
             return Factory::response([
                 'status' => 'error',
@@ -411,7 +409,7 @@ class newsfeed implements Interfaces\Api
             $remindIntent = new RemindIntent();
             $remindIntent->setGuid($remind->getGuid())
                         ->setOwnerGuid($remind->getOwnerGuid())
-                        ->setQuotedPost(!!($_POST['message'] ?? false));
+                        ->setQuotedPost(!!($_POST['message'] ?: $entityGuid ?: false));
 
             $activity->setRemind($remindIntent);
         }
@@ -429,7 +427,7 @@ class newsfeed implements Interfaces\Api
 
             $activity->setWireThreshold($_POST['wire_threshold']);
             $paywallDelegate = new Core\Feeds\Activity\Delegates\PaywallDelegate();
-            $paywallDelegate->onAdd($activity);
+            $paywallDelegate->beforeAdd($activity);
         }
 
         // Container
@@ -475,7 +473,6 @@ class newsfeed implements Interfaces\Api
 
         $activity->setLicense($_POST['license'] ?? $_POST['attachment_license'] ?? '');
 
-        $entityGuid = $_POST['entity_guid'] ?? $_POST['attachment_guid'] ?? null;
         $url = $_POST['url'] ?? null;
 
         try {
@@ -509,9 +506,8 @@ class newsfeed implements Interfaces\Api
                 $videoPosterDelegate = new Core\Feeds\Activity\Delegates\VideoPosterDelegate();
                 $videoPosterDelegate->onAdd($activity);
             }
-
             // save entity
-            $success = $manager->add($activity);
+            $success = $manager->add($activity, fromV2Controller: true);
 
             // if posting to permaweb
             try {

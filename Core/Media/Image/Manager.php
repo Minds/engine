@@ -44,55 +44,67 @@ class Manager
      * Typically an ACL check for permission will happen already on entity export.
      * @param Entity $entity
      * @param string $size
-     * @return string
+     * @return string[]
      */
-    public function getPublicAssetUri($entity, $size = 'xlarge'): string
+    public function getPublicAssetUris($entity, $size = 'xlarge'): array
     {
-        $uri = null;
-        $asset_guid = null;
+        $uris = [];
+        $assetGuids = [];
         $lastUpdated = null;
         switch (get_class($entity)) {
             case Activity::class:
+
+                if ($entity->hasAttachments()) {
+                    $assetGuids = array_map(function ($attachment) {
+                        return $attachment['guid'];
+                    }, $entity->attachments);
+                    break;
+                }
+
                 switch ($entity->get('custom_type')) {
                     case "video":
-                        $asset_guid = $entity->get('entity_guid');
+                        $assetGuids[] = $entity->get('entity_guid');
                         // Cloudflare caches 302 redirect, so bust it each day
                         $entity->set('last_updated', strtotime('midnight'));
                         break;
                     case "batch":
-                        $asset_guid = $entity->get('entity_guid');
+                        $assetGuids[] = $entity->get('entity_guid');
                         break;
                     default:
-                        $asset_guid = $entity->get('entity_guid');
+                        $assetGuids[] = $entity->get('entity_guid');
                 }
                 $lastUpdated = $entity->get('last_updated');
                 break;
             case Image::class:
-                $asset_guid = $entity->getGuid();
+                $assetGuids[] = $entity->getGuid();
                 break;
             case Video::class:
                 /** @var Video */
                 $video = $entity;
-                $asset_guid = $video->getGuid();
+                $assetGuids[] = $video->getGuid();
                 $lastUpdated = $video->get('last_updated');
                 if ($video->getTranscoder() === 'cloudflare' && !$video->thumbnail) {
-                    return $this->cloudflareStreamsManager->getThumbnailUrl($video);
+                    return [ $this->cloudflareStreamsManager->getThumbnailUrl($video) ];
                 }
                 break;
             case Comment::class:
-                $asset_guid = $entity->getAttachments()['attachment_guid'] ?? null;
+                $assetGuids[] = $entity->getAttachments()['attachment_guid'] ?? null;
                 break;
         }
 
-        $path = 'fs/v1/thumbnail/' . $asset_guid . '/' . $size . '/' . $lastUpdated;
-        $uri = $this->config->get('cdn_url') . $path;
+        foreach ($assetGuids as $assetGuid) {
+            $path = 'fs/v1/thumbnail/' . $assetGuid . '/' . $size . '/' . $lastUpdated;
+            $uris[] = $this->config->get('cdn_url') . $path;
+        }
 
         if (
             $entity->access_id !== ACCESS_PUBLIC
             || $entity->owner_guid != $entity->container_guid
             || ($entity instanceof PaywallEntityInterface && $entity->isPayWall())
         ) {
-            $uri = $this->config->get('site_url') . $path;
+            foreach ($uris as &$uri) {
+                $uri = str_replace($this->config->get('cdn_url'), $this->config->get('site_url'), $uri);
+            }
 
             $shouldSign = false;
 
@@ -110,17 +122,21 @@ class Manager
             }
 
             if ($shouldSign) {
-                $uri = $this->signUri($uri);
+                foreach ($uris as &$uri) {
+                    $uri = $this->signUri($uri);
+                }
             }
 
             // TODO: move this over to paywall manager via a hook (or something?)
             $loggedInUser = Session::getLoggedInUser();
             if ($entity instanceof PaywallEntityInterface && $entity->isPayWallUnlocked() || ($loggedInUser && $entity->owner_guid == $loggedInUser->getGuid())) {
-                $uri .= "&unlock_paywall=" . time();
+                foreach ($uris as &$uri) {
+                    $uri .= "&unlock_paywall=" . time();
+                }
             }
         }
 
-        return $uri;
+        return $uris;
     }
 
     /**

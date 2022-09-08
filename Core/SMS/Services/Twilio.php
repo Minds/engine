@@ -13,6 +13,7 @@ use Minds\Core\SMS\Exceptions\InvalidPhoneException;
 use Minds\Core\SMS\SMSServiceInterface;
 use Twilio\Rest\Client as TwilioClient;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
+use Minds\Core\SMS\Exceptions\UnsupportedRegionException;
 
 class Twilio implements SMSServiceInterface
 {
@@ -99,6 +100,10 @@ class Twilio implements SMSServiceInterface
                 ]
             );
         } catch (\Exception $e) {
+            if ($e->getCode() === 21408) {
+                throw new UnsupportedRegionException();
+            }
+                
             error_log("[guard] Twilio error: {$e->getMessage()}");
         }
 

@@ -14,6 +14,7 @@ use Minds\Core\Blockchain\Skale\Locks as SkaleLocks;
 use Minds\Core\Blockchain\Skale\Tools as SkaleTools;
 use Minds\Core\Blockchain\Skale\Escrow\Manager as SkaleEscrowManager;
 use Minds\Core\Config\Config;
+use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Data\Locks;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
@@ -111,6 +112,12 @@ class Transactions
         return $this;
     }
 
+    /*
+     * @return Transaction
+     * @throws LockFailedException
+     * @throws Locks\KeyNotSetupException
+     * @throws OffchainWalletInsufficientFundsException
+     */
     public function create()
     {
         $skaleMirrorEnabled = $this->isSkaleMirrorEnabled();
@@ -140,7 +147,7 @@ class Transactions
             $balance = BigNumber::_($this->balance->setUser($this->user)->get());
 
             if ($balance->add($this->amount)->lt(0)) {
-                throw new \Exception('Not enough funds');
+                throw new OffchainWalletInsufficientFundsException();
             }
 
             $transaction = new Transaction();
