@@ -147,7 +147,6 @@ class Manager
         
         // Before add delegattes
         if (!$fromV2Controller) {
-            //$this->timeCreatedDelegate->beforeAdd($activity, );
             $this->paywallDelegate->beforeAdd($activity);
         }
 

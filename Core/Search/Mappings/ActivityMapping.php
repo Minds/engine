@@ -37,21 +37,13 @@ class ActivityMapping extends EntityMapping implements MappingInterface
             return $map;
         }
 
-        $isPortrait = false;
 
-        if ($this->entity->custom_type === 'video' && is_array($this->entity->custom_data)) {
-            $isPortrait = $this->entity->custom_data['height'] > $this->entity->custom_data['width'];
+        //
+        $map['is_portrait'] = $this->entity->isPortrait();
+
+        if ($this->entity->hasAttachments()) {
+            $map['custom_type'] = $this->entity->getCustomType();
         }
-
-        if (
-            in_array($this->entity->custom_type, ['image', 'batch'], true) &&
-            is_array($this->entity->custom_data) &&
-            is_array($this->entity->custom_data[0])
-        ) {
-            $isPortrait = $this->entity->custom_data[0]['height'] > $this->entity->custom_data[0]['width'];
-        }
-
-        $map['is_portrait'] = $isPortrait;
 
         // Reminds
 

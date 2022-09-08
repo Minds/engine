@@ -7,6 +7,7 @@ use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\Exceptions\CreateActivityFailedException;
+use Minds\Core\Feeds\Scheduled\EntityTimeCreated;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
@@ -29,11 +30,13 @@ class Controller
     public function __construct(
         protected ?Manager $manager = null,
         protected ?EntitiesBuilder $entitiesBuilder = null,
-        protected ?ACL $acl = null
+        protected ?ACL $acl = null,
+        protected ?EntityTimeCreated $entityTimeCreated = null
     ) {
         $this->manager ??= new Manager();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->acl ??= Di::_()->get('Security\ACL');
+        $this->entityTimeCreated ??= new EntityTimeCreated();
     }
 
     /**
@@ -179,7 +182,7 @@ class Controller
             }));
 
             // validate there is not a mix of videos and images
-            if ($imageCount > 1 && $videoCount > 1) {
+            if ($imageCount >= 1 && $videoCount >= 1) {
                 throw new UserErrorException("You may not have both image and videos at this time");
             }
 
@@ -209,6 +212,14 @@ class Controller
                 ->setBlurb(rawurldecode($payload['description']))
                 ->setURL(rawurldecode($payload['url']))
                 ->setThumbnail($payload['thumbnail']);
+        }
+
+        /**
+         * Scheduled posts
+         */
+        if (isset($payload['time_created'])) {
+            $now = time();
+            $this->entityTimeCreated->validate($activity, $payload['time_created'] ?? $now, $now);
         }
 
         /**

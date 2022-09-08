@@ -375,19 +375,18 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             }
         }
 
-        // convert attachments to custom data
+        /**
+         * Multi media attachment export logic
+         * Does not cover legacy entity_guid export logic.
+         * Convert attachments to custom data
+         */
         if ($this->hasAttachments()) {
-            $export['custom_type'] = 'batch';
-
-            // hydrate the src urls (includes signing)
-            $mediaManager = Di::_()->get('Media\Image\Manager');
-            $imageUrls = $mediaManager->getPublicAssetUris($this, 'xlarge');
-            $customData = $this->attachments;
-
-            foreach ($customData as $k => $v) {
-                $customData[$k]['src'] = $imageUrls[$k];
+            $export['custom_type'] = $this->getCustomType();
+            $export['custom_data'] = $this->getCustomData();
+        
+            if ($export['custom_type'] === 'video') {
+                $export['entity_guid'] = (string) $this->getGuid(); // mobile expects this
             }
-            $export['custom_data'] = $customData;
         }
 
         $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'activity', ['entity' => $this], []));
@@ -601,7 +600,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     }
 
     /**
-     * Get the custom data
+     * Get the custom data (deprecated, use getCustomType() and getCustomData())
      * @return array
      */
     public function getCustom(): array
@@ -881,12 +880,25 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getThumbnails(): array
     {
         $thumbnails = [];
-        switch ($this->custom_type) {
+        $customType = $this->custom_type;
+
+        if ($this->hasAttachments()) {
+            $customType = 'multiImage';
+        }
+
+        switch ($customType) {
             case 'video':
                 $mediaManager = Di::_()->get('Media\Image\Manager');
                 $thumbnails['xlarge'] = $mediaManager->getPublicAssetUris($this, 'xlarge')[0];
                 break;
             case 'batch':
+                $mediaManager = Di::_()->get('Media\Image\Manager');
+                $sizes = ['xlarge', 'large'];
+                foreach ($sizes as $size) {
+                    $thumbnails[$size] = $mediaManager->getPublicAssetUris($this, $size)[0];
+                }
+                break;
+            case 'multiImage':
                 $mediaManager = Di::_()->get('Media\Image\Manager');
                 $sizes = ['xlarge', 'large'];
                 foreach ($sizes as $size) {
@@ -1077,13 +1089,15 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     {
         $attachments = [];
         foreach ($attachmentEntities as $attachmentEntity) {
-            $attachments[] = [
+            $attachment = [
                 'guid' => $attachmentEntity->getGuid(),
                 'type' => $attachmentEntity->getSubtype(),
                 'width' => $attachmentEntity->width,
                 'height' => $attachmentEntity->height,
                 'blurhash' => $attachmentEntity->blurhash,
             ];
+
+            $attachments[] = $attachment;
         }
         $this->attachments = $attachments;
         return $this;
@@ -1106,6 +1120,80 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     {
         $this->supermind = $supermindDetails;
         return $this;
+    }
+
+    /**
+     * Will return isPortrait logic for posts
+     * @return bool
+     */
+    public function isPortrait(): bool
+    {
+        $isPortrait = false;
+
+        // Video
+
+        if ($this->custom_type === 'video' && is_array($this->custom_data)) {
+            $isPortrait = $this->custom_data['height'] > $this->custom_data['width'];
+        }
+
+        // Image (legacy entity_guid)
+        if (
+            in_array($this->custom_type, ['image', 'batch'], true) &&
+            is_array($this->custom_data) &&
+            is_array($this->custom_data[0])
+        ) {
+            $isPortrait = $this->custom_data[0]['height'] > $this->custom_data[0]['width'];
+        }
+
+        // Multi media attachments
+        if (
+            $this->hasAttachments() &&
+            count($this->attachments) === 1 // you can only have isPortrait if single image post
+        ) {
+            $isPortrait = $this->attachments[0]['height'] > $this->attachments[0]['width'];
+        }
+
+        return $isPortrait;
+    }
+
+    /**
+     * Returns the custom type of activity
+     * @return string
+     */
+    public function getCustomType(): ?string
+    {
+        if ($this->hasAttachments()) {
+            return $this->attachments[0]['type'] === 'video' ? 'video' : 'batch';
+        }
+
+        return $this->custom_type;
+    }
+
+    /**
+     * Returns the custom data
+     * @return array
+     */
+    public function getCustomData(): ?array
+    {
+        if ($this->hasAttachments()) {
+            // hydrate the src urls (includes signing)
+            $mediaManager = Di::_()->get('Media\Image\Manager');
+            $imageUrls = $mediaManager->getPublicAssetUris($this, 'xlarge');
+            $customData = $this->attachments;
+
+            foreach ($customData as $k => $v) {
+                $customData[$k]['src'] = $imageUrls[$k];
+            }
+
+            // currently does not support array
+            if ($this->getCustomType() === 'video') {
+                return $customData[0];
+            } else {
+                return $customData;
+            }
+        }
+
+        return $this->custom_data;
     }
 
     /**
