@@ -4,8 +4,8 @@ namespace Minds\Core\Payments\Stripe\PaymentMethods;
 
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
-use Minds\Core\Payments\Stripe\Customers\Manager as CustomersManager;
 use Minds\Core\Payments\Stripe\Customers\Customer;
+use Minds\Core\Payments\Stripe\Customers\Manager as CustomersManager;
 use Minds\Core\Payments\Stripe\Instances\PaymentMethodInstance;
 
 class Manager
@@ -61,6 +61,30 @@ class Manager
             $response[] = $paymentMethod;
         }
         return $response;
+    }
+
+    /**
+     * @param string $userGuid
+     * @param string $paymentMethodId
+     * @return bool
+     * @throws \Exception
+     */
+    public function checkPaymentMethodOwnership(string $userGuid, string $paymentMethodId): bool
+    {
+        $customerDetails = $this->customersManager->getFromUserGuid($userGuid);
+        if (!$customerDetails) {
+            return false;
+        }
+
+        $paymentMethods = $this->getList(['user_guid' => $userGuid]);
+
+        $results = array_filter(
+            $paymentMethods->toArray(),
+            function (PaymentMethod $item) use ($paymentMethodId): bool {
+                return $item->getId() === $paymentMethodId;
+            }
+        );
+        return count($results) > 0;
     }
 
     /**
