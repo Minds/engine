@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Minds Offchain Transactions
+ * Minds Offchain Transactions.
  *
  * @author mark
  */
