@@ -4,6 +4,7 @@ namespace Minds\Core\Media;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Entities;
 use Minds\Entities\Image;
 use Minds\Entities\Video;
@@ -154,7 +155,7 @@ class Thumbnails
          */
         if ($entity instanceof Image && !$isLocked && $entity->getContainerGUID() == $entity->getAccessId()) {
             $entity = $this->entitiesBuilder->single($entity->getContainerGUID());
-            return $this->isLocked($entity);
+            return $entity instanceof PaywallEntityInterface && $this->isLocked($entity);
         }
 
         return $isLocked;

@@ -6,13 +6,13 @@ stages:
   - build
   - test
   - prepare
-  - scan
   - review
   - integration_testing
   - deploy:staging
   - qa
   - deploy:canary
   - deploy:production
+  - scan
 
 build:
   stage: build
@@ -234,6 +234,7 @@ staging:fpm:
     refs:
       - master
       - feat/ci-k8s
+  allow_failure: true
 
 canary:fpm:
   <<: *deploy
