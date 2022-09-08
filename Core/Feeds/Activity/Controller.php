@@ -3,20 +3,27 @@
 namespace Minds\Core\Feeds\Activity;
 
 use Minds\Common\EntityMutation;
+use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Feeds\Activity\Exceptions\CreateActivityFailedException;
 use Minds\Core\Feeds\Scheduled\EntityTimeCreated;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
-use Zend\Diactoros\ServerRequest;
-use Zend\Diactoros\Response\JsonResponse;
+use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
+use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentFailedException;
 use Minds\Entities\Activity;
 use Minds\Entities\Image;
 use Minds\Entities\User;
 use Minds\Entities\Video;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserErrorException;
+use Stripe\Exception\ApiErrorException;
+use Zend\Diactoros\Response\JsonResponse;
+use Zend\Diactoros\ServerRequest;
 
 class Controller
 {
@@ -36,10 +43,20 @@ class Controller
      * PUT
      * @param ServerRequest $request
      * @return JsonResponse
+     * @throws CreateActivityFailedException
+     * @throws ServerErrorException
+     * @throws UnauthorizedException
+     * @throws UserErrorException
+     * @throws LockFailedException
+     * @throws UnverifiedEmailException
+     * @throws SupermindNotFoundException
+     * @throws SupermindPaymentIntentFailedException
+     * @throws StopEventException
+     * @throws ApiErrorException
      */
     public function createNewActivity(ServerRequest $request): JsonResponse
     {
-        /** @var User */
+        /** @var User $user */
         $user = $request->getAttribute('_user');
 
         $payload = $request->getParsedBody();
@@ -208,7 +225,11 @@ class Controller
         /**
          * Save the activity
          */
-        if (!$this->manager->add($activity)) {
+        if (isset($payload['supermind_request'])) {
+            $this->manager->addSupermindRequest($payload, $activity);
+        } elseif (isset($payload['supermind_reply_guid'])) {
+            $this->manager->addSupermindReply($payload, $activity);
+        } elseif (!$this->manager->add($activity)) {
             throw new ServerErrorException("The post could not be saved.");
         }
 

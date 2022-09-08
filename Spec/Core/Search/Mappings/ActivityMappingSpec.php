@@ -4,7 +4,6 @@ namespace Spec\Minds\Core\Search\Mappings;
 
 use Minds\Entities\Activity;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 
 class ActivityMappingSpec extends ObjectBehavior
 {
@@ -44,6 +43,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->get('license')->willReturn('cc-test-lic');
         $activity->getWireThreshold()->willReturn(null);
         $activity->get('language')->willReturn('en');
+        $activity->get('supermind')->willReturn(false);
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -88,6 +88,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'is_portrait' => false,
                 'is_remind' => false,
                 'is_quoted_post' => false,
+                'is_supermind' => false,
             ]);
     }
 
@@ -124,6 +125,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->getTags()->willReturn(['spaceiscool']);
         $activity->getWireThreshold()->willReturn(null);
         $activity->get('language')->willReturn('en');
+        $activity->get('supermind')->willReturn(false);
         $activity->isRemind()->willReturn(false);
         $activity->isQuotedPost()->willReturn(false);
         $activity->isPortrait()->willReturn(false);
@@ -167,6 +169,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'is_portrait' => false,
                 'is_remind' => false,
                 'is_quoted_post' => false,
+                'is_supermind' => false,
             ]);
     }
 
@@ -201,6 +204,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->get('license')->willReturn('cc-test-lic');
         $activity->getWireThreshold()->willReturn(null);
         $activity->get('language')->willReturn('en');
+        $activity->get('supermind')->willReturn(false);
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -247,7 +251,8 @@ class ActivityMappingSpec extends ObjectBehavior
                 'is_portrait' => false,
                 'is_remind' => true,
                 'is_quoted_post' => false,
-                'remind_guid' => '123'
+                'remind_guid' => '123',
+                'is_supermind' => false,
             ]);
     }
 
@@ -282,6 +287,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->get('license')->willReturn('cc-test-lic');
         $activity->getWireThreshold()->willReturn(null);
         $activity->get('language')->willReturn('en');
+        $activity->get('supermind')->willReturn(false);
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -327,7 +333,8 @@ class ActivityMappingSpec extends ObjectBehavior
                 'is_portrait' => false,
                 'is_remind' => false,
                 'is_quoted_post' => true,
-                'remind_guid' => '123'
+                'remind_guid' => '123',
+                'is_supermind' => false,
             ]);
     }
 }

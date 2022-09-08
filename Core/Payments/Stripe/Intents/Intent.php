@@ -7,10 +7,10 @@ namespace Minds\Core\Payments\Stripe\Intents;
 use Minds\Traits\MagicAttributes;
 
 /**
- * @method Intent getId(): string
+ * @method string getId()
  * @method Intent getCustomerId(): string
  * @method Intent getPaymentMethod(): string
- * @method Intent getStripeAccountId(): string
+ * @method string getStripeAccountId()
  * @method Intent getClientSecret(): string
  */
 class Intent
