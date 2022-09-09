@@ -123,6 +123,7 @@ class Repository
             $request = SupermindRequest::fromData($row);
             if ($i < 12) {
                 $request->setEntity($this->entitiesBuilder->single($request->getActivityGuid()));
+                $request->setReceiverEntity($this->entitiesBuilder->single($request->getReceiverGuid()));
             }
             yield $request;
             $i++;

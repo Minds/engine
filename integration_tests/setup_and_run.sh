@@ -21,6 +21,6 @@ php -r "unlink('composer-setup.php');"
 
 php composer.phar install
 
-cp .env.sandbox .env
+cp ".env.$CURRENT_ENV" .env
 
 php bin/codecept run

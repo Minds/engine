@@ -38,6 +38,8 @@ use Minds\Traits\MagicAttributes;
  * @method self setReplyType(bool $twitterRequired)
  * @method null|EntityInterface getEntity()
  * @method self setEntity(EntityInterface $entity)
+ * @method null|EntityInterface getReceiverEntity()
+ * @method self setReceiverEntity(EntityInterface $receiverEntity)
  */
 class SupermindRequest implements ExportableInterface
 {
@@ -61,6 +63,7 @@ class SupermindRequest implements ExportableInterface
     private bool $twitterRequired = false;
     private int $replyType = SupermindRequestReplyType::TEXT;
     private ?EntityInterface $entity = null;
+    private ?EntityInterface $receiverEntity = null;
 
     public static function fromData(array $data): self
     {
@@ -137,7 +140,8 @@ class SupermindRequest implements ExportableInterface
             "updated_timestamp" => $this->updatedAt,
             "twitter_required" => $this->twitterRequired,
             "reply_type" => $this->replyType,
-            "entity" => $this->entity?->export()
+            "entity" => $this->entity?->export(),
+            "receiver_entity" => $this->receiverEntity?->export()
         ];
     }
 }

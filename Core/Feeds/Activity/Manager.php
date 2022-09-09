@@ -188,13 +188,26 @@ class Manager
         }
         try {
             $receiverUser = new User($supermindDetails['supermind_request']['receiver_guid']);
+            if ($receiverUser->getGuid() === null) {
+                throw new UserErrorException(
+                    message: "An error was encountered whilst validating the request",
+                    code: 400,
+                    errors: (new ValidationErrorCollection())->add(
+                        new ValidationError(
+                            "supermind_request:receiver_guid",
+                            "The receiving user for the Supermind request could not be found"
+                        )
+                    )
+                );
+            }
         } catch (Exception $e) {
             throw new UserErrorException(
                 message: "An error was encountered whilst validating the request",
                 code: 400,
                 errors: (new ValidationErrorCollection())->add(
                     new ValidationError(
-                        "supermind_request:receiver_guid"
+                        "supermind_request:receiver_guid",
+                        "The receiving user for the Supermind request could not be found"
                     )
                 )
             );
