@@ -129,6 +129,16 @@ class Controller
         $loggedInUser = $request->getAttribute("_user");
         $this->manager->setUser($loggedInUser);
 
+        $requestValidator = new SupermindGetRequestsValidator();
+
+        if (!$requestValidator->validate($request->getQueryParams())) {
+            throw new UserErrorException(
+                message: "An error was encountered whilst validating the request",
+                code: 400,
+                errors: $requestValidator->getErrors()
+            );
+        }
+
         ['limit' => $limit, 'offset' => $offset] = $request->getQueryParams();
 
         $response = $this->manager->getReceivedRequests((int) $offset, (int) $limit);
