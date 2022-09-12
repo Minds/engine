@@ -755,15 +755,15 @@ $CONFIG->set('captcha', [
         'signing_secret' => '{{site-secret}}',
         'difficulty_scaling' => [
             'vote_up' => [
-                1 => ['solutions' => 50, 'difficulty' => 100],
-                50 => ['solutions' => 50, 'difficulty' => 120],
-                100 => ['solutions' => 75, 'difficulty' => 140],
+                0 => ['solutions' => 50, 'difficulty' => 100],
+                49 => ['solutions' => 50, 'difficulty' => 150],
+                99 => ['solutions' => 110, 'difficulty' => 150]
             ],
             'registration' => [
-                1 => ['solutions' => 50, 'difficulty' => 120],
-                2 => ['solutions' => 50, 'difficulty' => 150],
-                5 => ['solutions' => 75, 'difficulty' => 170],
-                10 => ['solutions' => 75, 'difficulty' => 175],
+                0 => ['solutions' => 50, 'difficulty' => 100],
+                1 => ['solutions' => 60, 'difficulty' => 150],
+                4 => ['solutions' => 125, 'difficulty' => 165],
+                9 => ['solutions' => 240, 'difficulty' => 165]
             ]
         ]
     ]
