@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Support\Step\Api;
 
+use Behat\Gherkin\Node\PyStringNode;
 use Codeception\Attribute\Given;
 use Codeception\Attribute\Group;
 use Tests\Support\ApiTester;
@@ -16,5 +17,11 @@ class SupermindSteps extends ApiTester
     {
         $this->loginWithSupermindRequesterAccount();
         $this->seeResponseCodeIs(200);
+    }
+
+    #[Given('I create a Supermind request with :activityDetails')]
+    public function givenICreateASupermindRequest(PyStringNode $activityDetails)
+    {
+//        $this->
     }
 }

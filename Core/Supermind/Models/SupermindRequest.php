@@ -120,6 +120,11 @@ class SupermindRequest implements ExportableInterface
         return $request;
     }
 
+    public function isExpired(): bool
+    {
+        return time() >= ($this->createdAt + self::SUPERMIND_EXPIRY_THRESHOLD);
+    }
+
     /**
      * @param array $extras
      * @return array

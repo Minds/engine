@@ -9,12 +9,17 @@ namespace Tests\Support\Helper;
 
 use Codeception\Exception\ModuleException;
 use Codeception\Module;
+use Codeception\Module\REST;
+use Codeception\Util\Fixtures;
 
 /**
  *
  */
 class Supermind extends Module
 {
+    private const SUPERMIND_REQUEST_CREATION_METHOD = 'PUT';
+    private const SUPERMIND_REQUEST_CREATION_ENDPOINT = 'v3/newsfeed/activity';
+
     public function populateActivitySupermindRequestDetails(array $supermindRequest): array
     {
         $supermindRequest['receiver_guid'] = $_ENV['SUPERMIND_RECEIVER'];
@@ -58,5 +63,29 @@ class Supermind extends Module
             $_ENV['SUPERMIND_RECEIVER_USERNAME'],
             $_ENV['SUPERMIND_RECEIVER_PASSWORD']
         );
+    }
+
+    /**
+     * @param array $activityDetails
+     * @return void
+     * @throws ModuleException
+     */
+    public function createSupermindRequestWithDetails(array $activityDetails): void
+    {
+        /**
+         * @var REST $apiClient
+         */
+        $apiClient = $this->getModule("REST");
+        $this->loginWithSupermindRequesterAccount();
+
+        $apiClient->send(
+            self::SUPERMIND_REQUEST_CREATION_METHOD,
+            self::SUPERMIND_REQUEST_CREATION_ENDPOINT,
+            $activityDetails
+        );
+        $apiClient->seeResponseCodeIs(200);
+        $activity = json_decode($apiClient->response);
+        
+        Fixtures::add('created_activity', $activity);
     }
 }

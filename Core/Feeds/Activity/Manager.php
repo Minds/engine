@@ -289,11 +289,10 @@ class Manager
 
         $isSupermindReplyProcessed = $this->supermindManager->acceptSupermindRequest($supermindDetails['supermind_reply_guid']);
 
-        if ($isSupermindReplyProcessed) {
+        if (!$isSupermindReplyProcessed) {
             throw new UserErrorException(
                 message: "An error was encountered whilst accepting the Supermind request",
-                code: 400,
-                errors: $validator->getErrors()
+                code: 400
             );
         }
 

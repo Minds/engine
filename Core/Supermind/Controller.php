@@ -55,10 +55,10 @@ class Controller
         $loggedInUser = $request->getAttribute("_user");
         $this->manager->setUser($loggedInUser);
 
-        $supermindRequestID = $request->getAttribute("guid");
+        $supermindRequestID = $request->getAttribute("parameters")["guid"];
         $this->manager->revokeSupermindRequest($supermindRequestID);
 
-        return new JsonResponse(['error']);
+        return new JsonResponse([]);
     }
 
     /**
@@ -92,7 +92,7 @@ class Controller
         $loggedInUser = $request->getAttribute("_user");
         $this->manager->setUser($loggedInUser);
 
-        $supermindRequestID = $request->getAttribute("guid");
+        $supermindRequestID = $request->getAttribute("parameters")["guid"];
         $this->manager->rejectSupermindRequest($supermindRequestID);
 
         return new JsonResponse([]);
@@ -101,6 +101,7 @@ class Controller
     /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
+     * @throws UserErrorException
      */
 //    #[OA\Get(
 //        path: '/api/v3/supermind/inbox',

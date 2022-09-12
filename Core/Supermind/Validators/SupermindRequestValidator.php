@@ -8,6 +8,7 @@ use Exception;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments\Stripe\PaymentMethods\Manager as PaymentMethodsManager;
 use Minds\Core\Session;
+use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Supermind\SupermindRequestReplyType;
 use Minds\Entities\ValidationError;
@@ -22,9 +23,11 @@ class SupermindRequestValidator implements ValidatorInterface
     private ?ValidationErrorCollection $errors;
 
     public function __construct(
-        private ?PaymentMethodsManager $paymentMethodsManager = null
+        private ?PaymentMethodsManager $paymentMethodsManager = null,
+        private ?SupermindPaymentProcessor $paymentProcessor = null
     ) {
         $this->paymentMethodsManager ??= Di::_()->get('Stripe\PaymentMethods\Manager');
+        $this->paymentProcessor ??= new SupermindPaymentProcessor();
     }
 
     private function resetErrors(): void
@@ -176,7 +179,14 @@ class SupermindRequestValidator implements ValidatorInterface
                 $this->errors->add(
                     new ValidationError(
                         "supermind_request:payment_options:amount",
-                        "An amount of at least 0.01 must be provided"
+                        "An amount of at least " . $this->paymentProcessor->getMinimumAllowedAmount() . " must be provided"
+                    )
+                );
+            } elseif (!$this->paymentProcessor->isPaymentAmountAllowed($paymentOptions['amount'])) {
+                $this->errors->add(
+                    new ValidationError(
+                        "supermind_request:payment_options:amount",
+                        "An amount of at least " . $this->paymentProcessor->getMinimumAllowedAmount() . " must be provided"
                     )
                 );
             }
