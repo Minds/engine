@@ -78,7 +78,7 @@ Feature: Supermind
       }
       """
 
-  Scenario: Supermind request creation with off-chain token payment and invalid details
+  Scenario: Supermind request creation with invalid details
     Given I want to create an activity with the following details
       """json
       {
@@ -113,4 +113,4 @@ Feature: Supermind
       {}
       """
 
-  Scenario:
+#  Scenario:
