@@ -46,8 +46,8 @@ class SupermindPaymentProcessor
     public function getMinimumAllowedAmount(): float
     {
         $minimumAmount = self::SUPERMIND_REQUEST_MINIMUM_AMOUNT;
-        if (isset($this->config->get('supermind')['minimum_amount'])) {
-            $minimumAmount = $this->config->get('supermind')['minimum_amount'];
+        if (isset($this->mindsConfig->get('supermind')['minimum_amount'])) {
+            $minimumAmount = $this->mindsConfig->get('supermind')['minimum_amount'];
         }
 
         // TODO: Add check for user settings override
