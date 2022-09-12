@@ -6,6 +6,7 @@ use Google\Cloud\BigQuery\Numeric;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain\Manager;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain\Repository;
 use Minds\Core\Blockchain\Wallets\OnChain\UniqueOnChain\UniqueOnChainAddress;
+use Minds\Core\Rewards\Restrictions\Blockchain\Manager as RestrictionsManager;
 use Minds\Core\Blockchain\Services\Ethereum;
 use Minds\Core\Blockchain\BigQuery\HoldersQuery;
 use Minds\Entities\User;
@@ -23,19 +24,25 @@ class ManagerSpec extends ObjectBehavior
     /** @var HoldersQuery */
     protected $holdersQuery;
 
+    /** @var RestrictionsManager */
+    protected $restrictionsManager;
+
     public function let(
         Repository $repository,
         Ethereum $ethereum,
         HoldersQuery $holdersQuery,
+        RestrictionsManager $restrictionsManager
     ) {
         $this->beConstructedWith(
             $repository,
             $ethereum,
             $holdersQuery,
+            $restrictionsManager
         );
         $this->repository = $repository;
         $this->ethereum = $ethereum;
         $this->holdersQuery = $holdersQuery;
+        $this->restrictionsManager = $restrictionsManager;
     }
 
     public function it_is_initializable()
@@ -43,7 +50,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_add_address()
+    public function it_should_add_address(User $user)
     {
         $payload = json_encode(([
             'user_guid' => 123,
@@ -55,6 +62,12 @@ class ManagerSpec extends ObjectBehavior
             ->setPayload($payload)
             ->setSignature('0xSIG');
 
+
+        //
+
+        $this->restrictionsManager->gatekeeper('0xADDR', $user)
+            ->shouldBeCalled();
+
         //
 
         $this->ethereum->verifyMessage($payload, '0xSIG')
@@ -65,7 +78,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->add($address)
             ->willReturn(true);
 
-        $this->add($address)
+        $this->add($address, $user)
             ->shouldBe(true);
     }
 
