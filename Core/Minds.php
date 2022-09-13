@@ -54,6 +54,7 @@ class Minds extends base
         Boost\Module::class,
         OEmbed\Module::class,
         Rewards\Module::class,
+        Rewards\Restrictions\Blockchain\Module::class,
         Media\Video\CloudflareStreams\Module::class,
         Matrix\Module::class,
         Sessions\Module::class,
