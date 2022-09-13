@@ -144,8 +144,8 @@ class Manager
             }
             $activity->setNsfw(array_merge($remind->getNsfw(), $activity->getNsfw()));
         }
-        
-        // Before add delegattes
+
+        // Before add delegates
         if (!$fromV2Controller) {
             $this->paywallDelegate->beforeAdd($activity);
         }
@@ -288,7 +288,7 @@ class Manager
             'request_guid' => $supermindDetails['supermind_reply_guid'],
             'is_reply' => true
         ]);
-        
+
         $isActivityCreated = $this->add($activity);
 
         return $isActivityCreated ? true : throw new CreateActivityFailedException();

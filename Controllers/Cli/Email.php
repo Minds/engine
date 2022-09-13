@@ -22,6 +22,7 @@ use Minds\Core\Blockchain\Purchase\Purchase;
 use Minds\Core\Suggestions\Manager;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\V2\SendLists;
+use Minds\Core\Supermind\Models\SupermindRequest;
 
 class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -372,7 +373,7 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
     public function testPostSignupSurvey(): void
     {
         $userGuid = $this->getOpt('userGuid');
-     
+
         if (!$userGuid) {
             $this->out('[Error] Missing --userGuid parameter.');
             return;
