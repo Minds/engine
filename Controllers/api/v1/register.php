@@ -183,7 +183,10 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             $_POST['friendly_captcha_enabled']
         ) {
             $friendlyCaptchaManager = Di::_()->get('FriendlyCaptcha\Manager');
-            if (!$friendlyCaptchaManager->verify($captcha, DifficultyScalingType::DIFFICULTY_SCALING_REGISTRATION)) {
+            $difficultyScalingType = !isset($_SERVER['HTTP_APP_VERSION']) ?
+                DifficultyScalingType::DIFFICULTY_SCALING_REGISTRATION
+                : null;
+            if (!$friendlyCaptchaManager->verify($captcha, $difficultyScalingType)) {
                 throw new InvalidSolutionException('Captcha failed');
             }
             return true;
