@@ -10,6 +10,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Core\Log\Logger;
+use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -379,6 +380,12 @@ class Controller
         $xml = simplexml_load_string(file_get_contents('php://input'), 'SimpleXMLElement', LIBXML_NOCDATA);
         $videoId = substr((string) $xml->entry->id, 9);
         $channelId = substr((string) $xml->entry->author->uri, 32);
+
+        $publishedAt = strtotime($xml->entry->published);
+        $updatedAt = strtotime($xml->entry->updated);
+        if ($updatedAt > $publishedAt) {
+            throw new UserErrorException("We don't support updated events yet.");
+        }
 
         $video = (new YTVideo())
             ->setVideoId($videoId)
