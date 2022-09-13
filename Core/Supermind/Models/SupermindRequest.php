@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Supermind\Models;
 
+use Minds\Common\Access;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Supermind\SupermindRequestReplyType;
 use Minds\Core\Supermind\SupermindRequestStatus;
@@ -12,7 +13,6 @@ use Minds\Entities\ExportableInterface;
 use Minds\Traits\MagicAttributes;
 
 /**
- * @method string getGuid()
  * @method self setGuid(string $guid)
  * @method string getActivityGuid()
  * @method self setActivityGuid(string $guid)
@@ -39,7 +39,7 @@ use Minds\Traits\MagicAttributes;
  * @method null|EntityInterface getEntity()
  * @method self setEntity(EntityInterface $entity)
  */
-class SupermindRequest implements ExportableInterface
+class SupermindRequest implements ExportableInterface, EntityInterface
 {
     use MagicAttributes;
 
@@ -47,6 +47,7 @@ class SupermindRequest implements ExportableInterface
      * @const int Represents the threshold expressed in seconds used to consider a Supermind request expired.
      */
     public const SUPERMIND_EXPIRY_THRESHOLD = 7 * 86400;
+    public const URN_METHOD = 'supermind';
 
     private string $guid;
     private string $activityGuid;
@@ -115,6 +116,55 @@ class SupermindRequest implements ExportableInterface
         }
 
         return $request;
+    }
+
+    /**
+     * @return string
+     * */
+    public function getGuid(): ?string
+    {
+        return $this->guid;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOwnerGuid(): ?string
+    {
+        return $this->senderGuid;
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getType(): string
+    {
+        return 'supermind';
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubtype(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUrn(): string
+    {
+        return 'urn:' . self::URN_METHOD . ':' . $this->getGuid();
+    }
+
+    /**
+     * @return string
+     */
+    public function getAccessId(): string
+    {
+        return (string) Access::PUBLIC;
     }
 
     /**

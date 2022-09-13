@@ -74,34 +74,34 @@ class SupermindEventStreamsSubscription implements SubscriptionInterface
         /** @var SupermindRequest */
         $supermindRequest = $event->getEntity();
 
-        $this->SupermindEmailer
+        $this->supermindEmailer
             ->setSupermindRequest($supermindRequest);
 
         switch ($event->getAction()) {
             case ActionEvent::ACTION_SUPERMIND_REQUEST_CREATE:
-                $this->SupermindEmailer
+                $this->supermindEmailer
                     ->setTopic('supermind_request_sent')
                     ->send();
 
-                $this->SupermindEmailer
+                $this->supermindEmailer
                     ->setTopic('supermind_request_received')
                     ->send();
                 break;
 
             case ActionEvent::ACTION_SUPERMIND_REQUEST_ACCEPT:
-                $this->SupermindEmailer
+                $this->supermindEmailer
                     ->setTopic('supermind_request_accepted')
                     ->send();
                 break;
 
             case ActionEvent::ACTION_SUPERMIND_REQUEST_REJECT:
-                $this->SupermindEmailer
+                $this->supermindEmailer
                     ->setTopic('supermind_request_rejected')
                     ->send();
                 break;
 
             case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
-                $this->SupermindEmailer
+                $this->supermindEmailer
                     ->setTopic('supermind_request_expired')
                     ->send();
                 break;
