@@ -11,15 +11,13 @@ use Codeception\Exception\ModuleException;
 use Codeception\Module;
 use Codeception\Module\REST;
 use Codeception\Util\Fixtures;
+use stdClass;
 
 /**
  *
  */
 class Supermind extends Module
 {
-    private const SUPERMIND_REQUEST_CREATION_METHOD = 'PUT';
-    private const SUPERMIND_REQUEST_CREATION_ENDPOINT = 'v3/newsfeed/activity';
-
     public function populateActivitySupermindRequestDetails(array $supermindRequest): array
     {
         $supermindRequest['receiver_guid'] = $_ENV['SUPERMIND_RECEIVER'];
@@ -29,6 +27,19 @@ class Supermind extends Module
         }
 
         return $supermindRequest;
+    }
+
+    public function populateSupermindReplyDetails(array $supermindReply, string $dataToRetrieve): array
+    {
+        /**
+         * @var stdClass $supermindRequestDetails
+         */
+        $supermindRequestDetails = Fixtures::get($dataToRetrieve);
+
+        $supermindReply['supermind_reply_guid'] = $supermindRequestDetails->supermind->request_guid;
+        $supermindReply['remind_guid'] = $supermindRequestDetails->guid;
+
+        return $supermindReply;
     }
 
     /**
@@ -66,26 +77,26 @@ class Supermind extends Module
     }
 
     /**
-     * @param array $activityDetails
+     * @param string $dataToRetrieve
      * @return void
      * @throws ModuleException
      */
-    public function createSupermindRequestWithDetails(array $activityDetails): void
+    public function rejectSupermindRequest(string $dataToRetrieve): void
     {
+        /**
+         * @var stdClass $details
+         */
+        $details = Fixtures::get('created_activity');
+
         /**
          * @var REST $apiClient
          */
         $apiClient = $this->getModule("REST");
-        $this->loginWithSupermindRequesterAccount();
 
+        $apiClient->haveHttpHeader("Content-Type", 'application/json');
         $apiClient->send(
-            self::SUPERMIND_REQUEST_CREATION_METHOD,
-            self::SUPERMIND_REQUEST_CREATION_ENDPOINT,
-            $activityDetails
+            "POST",
+            "v3/supermind/{$details->supermind->request_guid}/reject"
         );
-        $apiClient->seeResponseCodeIs(200);
-        $activity = json_decode($apiClient->response);
-        
-        Fixtures::add('created_activity', $activity);
     }
 }

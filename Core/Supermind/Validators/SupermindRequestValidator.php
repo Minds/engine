@@ -198,6 +198,13 @@ class SupermindRequestValidator implements ValidatorInterface
                         "A valid payment type must be provided"
                     )
                 );
+            } elseif (!in_array($paymentOptions['payment_type'], SupermindRequestPaymentMethod::VALID_PAYMENT_METHODS, true)) {
+                $this->errors->add(
+                    new ValidationError(
+                        "supermind_request:payment_options:payment_type",
+                        "A valid payment type must be provided"
+                    )
+                );
             }
 
             if (

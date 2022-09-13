@@ -184,12 +184,6 @@ integration_testing:
       else
         export MINDS_DOMAIN=https://$CI_BUILD_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
       fi
-    - >
-      if [ "$CI_COMMIT_REF_NAME" == "master ]; then
-        export CURRENT_ENV=production
-      else
-        export CURRENT_ENV=sandbox
-      fi
     - export BYPASS_SIGNING_KEY=$BYPASS_SIGNING_KEY
     - sh integration_tests/setup_and_run.sh
   allow_failure: true

@@ -24,7 +24,7 @@ use Tests\Support\ApiTester;
 class CommonSteps extends ApiTester
 {
     #[Given("I want to create an activity with the following details :activityDetails")]
-    public function something(PyStringNode $activityDetails)
+    public function givenIWantToCreateNewActivityWithDetails(PyStringNode $activityDetails)
     {
         $activityDetails = json_decode($activityDetails->getRaw(), true);
 

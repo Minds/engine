@@ -8,6 +8,8 @@ use Minds\Api\Exportable;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
+use Minds\Core\Supermind\Exceptions\SupermindRequestExpiredException;
+use Minds\Core\Supermind\Exceptions\SupermindRequestIncorrectStatusException;
 use Minds\Core\Supermind\Exceptions\SupermindUnauthorizedSenderException;
 use Minds\Core\Supermind\Validators\SupermindGetRequestsValidator;
 use Minds\Exceptions\UserErrorException;
@@ -65,9 +67,11 @@ class Controller
      * @param ServerRequestInterface $request
      * @return JsonResponse
      * @throws ApiErrorException
+     * @throws SupermindRequestExpiredException
+     * @throws SupermindRequestIncorrectStatusException
+     * @throws LockFailedException
      * @throws SupermindNotFoundException
      * @throws SupermindUnauthorizedSenderException
-     * @throws LockFailedException
      */
 //    #[OA\Post(
 //        path: '/api/v3/supermind/:guid/reject',
