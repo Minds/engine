@@ -1,6 +1,6 @@
 <?php
 /**
- * Supermind request sent
+ * Supermind emailer
  */
 
 namespace Minds\Core\Email\V2\Campaigns\Recurring\Supermind;
