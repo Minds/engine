@@ -5,6 +5,8 @@
 
 namespace Minds\Core\Email\V2\Campaigns\Recurring\Supermind;
 
+use Exception;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\Mailer;
@@ -49,12 +51,12 @@ class Supermind extends EmailCampaign
         $template = null,
         $mailer = null,
         $entitiesBuilder = null,
-        $config = null,
+        protected ?Config $config = null,
     ) {
         $this->template = $template ?: new Template();
         $this->mailer = $mailer ?: new Mailer();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
-        $this->config = $config ?: Di::_()->get('Config');
+        $this->config ??= Di::_()->get('Config');
     }
 
     /**
@@ -247,6 +249,8 @@ class Supermind extends EmailCampaign
             }
 
             return round($supermindRequest->getPaymentAmount(), 2) . $currency;
+        } else {
+            throw new Exception("Unsupported payment method supplied");
         }
     }
 }
