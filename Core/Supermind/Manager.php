@@ -16,6 +16,8 @@ use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentCaptureFailedException
 use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentFailedException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestCreationCompletionException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestDeleteException;
+use Minds\Core\Supermind\Exceptions\SupermindRequestExpiredException;
+use Minds\Core\Supermind\Exceptions\SupermindRequestIncorrectStatusException;
 use Minds\Core\Supermind\Exceptions\SupermindUnauthorizedSenderException;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
@@ -104,6 +106,8 @@ class Manager
      * @throws LockFailedException
      * @throws SupermindNotFoundException
      * @throws SupermindPaymentIntentCaptureFailedException
+     * @throws SupermindRequestExpiredException
+     * @throws SupermindRequestIncorrectStatusException
      */
     public function acceptSupermindRequest(string $supermindRequestId): bool
     {
@@ -111,6 +115,15 @@ class Manager
 
         if (is_null($supermindRequest)) {
             throw new SupermindNotFoundException();
+        }
+
+        if ($supermindRequest->getStatus() !== SupermindRequestStatus::CREATED) {
+            throw new SupermindRequestIncorrectStatusException();
+        }
+
+        if ($supermindRequest->isExpired()) {
+            $this->expireSupermindRequest($supermindRequestId);
+            throw new SupermindRequestExpiredException();
         }
 
         $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::ACCEPTED, $supermindRequestId);
@@ -162,6 +175,8 @@ class Manager
      * @throws ApiErrorException
      * @throws LockFailedException
      * @throws SupermindNotFoundException
+     * @throws SupermindRequestExpiredException
+     * @throws SupermindRequestIncorrectStatusException
      * @throws SupermindUnauthorizedSenderException
      */
     public function revokeSupermindRequest(string $supermindRequestId): bool
@@ -172,8 +187,19 @@ class Manager
             throw new SupermindNotFoundException();
         }
 
-        if ($this->user->isAdmin() || $supermindRequest->getSenderGuid() !== $this->user->getGuid()) {
-            throw new SupermindUnauthorizedSenderException();
+        if ($supermindRequest->getStatus() !== SupermindRequestStatus::CREATED) {
+            throw new SupermindRequestIncorrectStatusException();
+        }
+
+        if ($supermindRequest->isExpired()) {
+            $this->expireSupermindRequest($supermindRequestId);
+            throw new SupermindRequestExpiredException();
+        }
+
+        if ($supermindRequest) {
+            if ($this->user->isAdmin() || $supermindRequest->getSenderGuid() !== $this->user->getGuid()) {
+                throw new SupermindUnauthorizedSenderException();
+            }
         }
 
         $this->reimburseSupermindPayment($supermindRequest);
@@ -189,6 +215,8 @@ class Manager
      * @throws ApiErrorException
      * @throws LockFailedException
      * @throws SupermindNotFoundException
+     * @throws SupermindRequestExpiredException
+     * @throws SupermindRequestIncorrectStatusException
      * @throws SupermindUnauthorizedSenderException
      */
     public function rejectSupermindRequest(string $supermindRequestId): bool
@@ -197,6 +225,15 @@ class Manager
 
         if (is_null($supermindRequest)) {
             throw new SupermindNotFoundException();
+        }
+
+        if ($supermindRequest->getStatus() !== SupermindRequestStatus::CREATED) {
+            throw new SupermindRequestIncorrectStatusException();
+        }
+
+        if ($supermindRequest->isExpired()) {
+            $this->expireSupermindRequest($supermindRequestId);
+            throw new SupermindRequestExpiredException();
         }
 
         if ($supermindRequest->getReceiverGuid() !== $this->user->getGuid()) {
@@ -216,16 +253,11 @@ class Manager
      * @param string $supermindRequestId
      * @return bool
      * @throws ApiErrorException
-     * @throws ForbiddenException
      * @throws LockFailedException
      * @throws SupermindNotFoundException
      */
-    public function expireSupermindRequest(string $supermindRequestId): bool
+    private function expireSupermindRequest(string $supermindRequestId): bool
     {
-        if (php_sapi_name() !== "cli") {
-            throw new ForbiddenException();
-        }
-
         $supermindRequest = $this->repository->getSupermindRequest($supermindRequestId);
 
         if (is_null($supermindRequest)) {
@@ -332,9 +364,14 @@ class Manager
 
     /**
      * @return bool
+     * @throws ForbiddenException
      */
     public function expireRequests(): bool
     {
+        if (php_sapi_name() !== "cli") {
+            throw new ForbiddenException();
+        }
+
         $this->repository->expireSupermindRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD);
         return true;
     }

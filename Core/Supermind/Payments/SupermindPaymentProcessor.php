@@ -18,7 +18,15 @@ use Minds\Entities\User;
 
 class SupermindPaymentProcessor
 {
+    /**
+     * @const int Stripe service fee percentage
+     */
     const SUPERMIND_SERVICE_FEE_PCT = 10;
+
+    /**
+     * @const float Defines the minimum allowed amount for a Supermind requests
+     */
+    private const SUPERMIND_REQUEST_MINIMUM_AMOUNT = 10.00;
 
     public function __construct(
         private ?IntentsManagerV2 $intentsManager = null,
@@ -30,6 +38,26 @@ class SupermindPaymentProcessor
         $this->mindsConfig ??= Di::_()->get("Config");
         $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
         $this->offchainTransactions ??= new OffchainTransactions();
+    }
+
+    /**
+     * @return float
+     */
+    public function getMinimumAllowedAmount(): float
+    {
+        $minimumAmount = self::SUPERMIND_REQUEST_MINIMUM_AMOUNT;
+        if (isset($this->mindsConfig->get('supermind')['minimum_amount'])) {
+            $minimumAmount = $this->mindsConfig->get('supermind')['minimum_amount'];
+        }
+
+        // TODO: Add check for user settings override
+
+        return $minimumAmount;
+    }
+
+    public function isPaymentAmountAllowed(float $paymentAmount): bool
+    {
+        return $paymentAmount >= $this->getMinimumAllowedAmount();
     }
 
     /**

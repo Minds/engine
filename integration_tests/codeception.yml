@@ -16,6 +16,9 @@ suites:
                     depends: PhpBrowser
                     part: Json
                 - Tests\Support\Helper\Api
+                - Tests\Support\Helper\Authentication
+                - Tests\Support\Helper\Activities
+                - Tests\Support\Helper\Supermind
         step_decorators:
             - \Codeception\Step\AsJson
 

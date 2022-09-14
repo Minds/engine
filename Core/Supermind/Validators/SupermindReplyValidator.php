@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Minds\Core\Supermind\Validators;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Manager as SupermindManager;
 use Minds\Core\Supermind\SupermindRequestReplyType;
 use Minds\Entities\Activity;
@@ -27,6 +28,11 @@ class SupermindReplyValidator implements ValidatorInterface
         $this->errors = new ValidationErrorCollection();
     }
 
+    /**
+     * @param array $dataToValidate
+     * @return bool
+     * @throws SupermindNotFoundException
+     */
     public function validate(array $dataToValidate): bool
     {
         $this->resetErrors();
@@ -35,22 +41,55 @@ class SupermindReplyValidator implements ValidatorInterface
             $this->errors->add(
                 new ValidationError(
                     "mature",
-                    "A Supermind request cannot be marked as NSFW"
+                    "A Supermind reply cannot be marked as NSFW"
                 )
             );
         }
 
-        if (isset($dataToValidate['paywall'])) {
+        if (!empty($dataToValidate['time_created'])) {
             $this->errors->add(
                 new ValidationError(
-                    "paywall",
-                    "A Supermind request cannot be monetized"
+                    "time_created",
+                    "A Supermind reply cannot be a scheduled post"
                 )
             );
         }
 
-        // TODO: Add validation for schedule option
-        // TODO: Add validation for ellipsis menu options
+        if (isset($dataToValidate['post_to_permaweb']) && $dataToValidate['post_to_permaweb']) {
+            $this->errors->add(
+                new ValidationError(
+                    "post_to_permaweb",
+                    "A Supermind request cannot be a Permaweb post"
+                )
+            );
+        }
+
+        if (isset($dataToValidate['access_id']) && $dataToValidate['access_id'] != ACCESS_PUBLIC) {
+            $this->errors->add(
+                new ValidationError(
+                    'access_id',
+                    "A Supermind request must be a public post"
+                )
+            );
+        }
+
+        if (isset($dataToValidate['license']) && $dataToValidate['license'] !== "all-rights-reserved") {
+            $this->errors->add(
+                new ValidationError(
+                    "license",
+                    "A Supermind request must have an 'All Rights Reserved' license applied"
+                )
+            );
+        }
+
+        if (isset($dataToValidate['wire_threshold']) || isset($dataToValidate['paywall'])) {
+            $this->errors->add(
+                new ValidationError(
+                    isset($dataToValidate['wire_threshold']) ? 'wire_threshold' : 'paywall',
+                    'A Supermind request cannot be monetized'
+                )
+            );
+        }
 
         if (!isset($dataToValidate['supermind_reply_guid'])) {
             $this->errors->add(
@@ -69,18 +108,8 @@ class SupermindReplyValidator implements ValidatorInterface
         $activity = $dataToValidate['activity'];
 
         switch ($supermindRequest->getReplyType()) {
-            case SupermindRequestReplyType::TEXT:
-                if ($activity->getType() === "object") {
-                    $this->errors->add(
-                        new ValidationError(
-                            "supermind_reply_guid",
-                            "The reply type does not match the requested type"
-                        )
-                    );
-                }
-                break;
             case SupermindRequestReplyType::IMAGE:
-                if ($activity->getSubtype() !== "image") {
+                if ($activity->getCustomType() !== "batch") {
                     $this->errors->add(
                         new ValidationError(
                             "supermind_reply_guid",
@@ -90,7 +119,7 @@ class SupermindReplyValidator implements ValidatorInterface
                 }
                 break;
             case SupermindRequestReplyType::VIDEO:
-                if ($activity->getSubtype() !== "video") {
+                if ($activity->getCustomType() !== "video") {
                     $this->errors->add(
                         new ValidationError(
                             "supermind_reply_guid",

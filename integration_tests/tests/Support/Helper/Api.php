@@ -44,6 +44,28 @@ class Api extends Module
     }
 
     /**
+     * @return void
+     * @throws ModuleException
+     */
+    public function setRateLimitBypass(): void
+    {
+        $signing_secret = $_ENV['BYPASS_SIGNING_KEY'] ?? "testing";
+
+        $jwtConfig = Configuration::forSymmetricSigner(new Sha256(), InMemory::plainText($signing_secret));
+
+        $token = $jwtConfig
+            ->builder()
+            ->expiresAt(new DateTimeImmutable("+5m"))
+            ->withClaim('timestamp_ms', time())
+            ->getToken(
+                $jwtConfig->signer(),
+                $jwtConfig->signingKey()
+            );
+
+        $this->setCookie('rate_limit_bypass', $token->toString());
+    }
+
+    /**
      * @param array{key: mixed, value: string} $params
      * @return string
      */
