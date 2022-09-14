@@ -240,13 +240,13 @@ class Supermind extends EmailCampaign
 
         // Token payments
         elseif ($supermindRequest->getPaymentMethod() == SupermindRequestPaymentMethod::OFFCHAIN_TOKEN) {
-            if ($pluralize){
+            if ($pluralize) {
                 $currency = $supermindRequest->getPaymentAmount() != 1 ? ' tokens' : ' token';
             } else {
                 $currency = ' token';
             }
 
-            return round($supermindRequest->getPaymentAmount(),2) . $currency;
+            return round($supermindRequest->getPaymentAmount(), 2) . $currency;
         }
     }
 }

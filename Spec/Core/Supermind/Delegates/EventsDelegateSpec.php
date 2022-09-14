@@ -91,7 +91,7 @@ class EventsDelegateSpec extends ObjectBehavior
         $this->onAcceptSupermindRequest($supermindRequest);
     }
 
-        public function it_should_trigger_a_supermind_request_reject_event(ActionEventsTopic $actionEventsTopic, EntitiesBuilder $entitiesBuilder)
+    public function it_should_trigger_a_supermind_request_reject_event(ActionEventsTopic $actionEventsTopic, EntitiesBuilder $entitiesBuilder)
     {
         $this->beConstructedWith($actionEventsTopic, $entitiesBuilder);
 
@@ -121,7 +121,7 @@ class EventsDelegateSpec extends ObjectBehavior
     }
 
 
-        public function it_should_trigger_a_supermind_request_expire_event(ActionEventsTopic $actionEventsTopic, EntitiesBuilder $entitiesBuilder)
+    public function it_should_trigger_a_supermind_request_expire_event(ActionEventsTopic $actionEventsTopic, EntitiesBuilder $entitiesBuilder)
     {
         $this->beConstructedWith($actionEventsTopic, $entitiesBuilder);
 
