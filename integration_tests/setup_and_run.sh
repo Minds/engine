@@ -3,14 +3,14 @@
 # Exit script wit ERRORLEVEL if any command fails
 set -e
 
-# Clear vendor cache
-rm -rf ../vendor
-
 # Keep current directory ref
 CURRENT_DIR=$(pwd)
 
 # Got back to current dir if changed
 cd "$CURRENT_DIR/integration_tests"
+
+# Clear vendor cache
+rm -rf ./vendor
 
 # Setup composer
 # Hash update information - https://getcomposer.org/download/
@@ -22,7 +22,5 @@ php -r "unlink('composer-setup.php');"
 php composer.phar install
 
 cp "$ENGINE_INTEGRATION_TESTS_CONFIG" .env
-
-cat .env
 
 php bin/codecept run
