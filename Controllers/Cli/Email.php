@@ -18,11 +18,12 @@ use Minds\Core\Reports;
 use Minds\Core\Blockchain\Purchase\Delegates\IssuedTokenEmail;
 use Minds\Core\Blockchain\Purchase\Delegates\NewPurchaseEmail;
 use Minds\Core\Blockchain\Purchase\Purchase;
+use Minds\Core\Supermind;
+use Minds\Core\Email\V2\Campaigns\Recurring\Supermind\Supermind as SupermindEmail;
 
 use Minds\Core\Suggestions\Manager;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\V2\SendLists;
-use Minds\Core\Supermind\Models\SupermindRequest;
 
 class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -403,6 +404,41 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $emailDelegate->onCreate($subscription);
 
         $this->out('End.');
+    }
+
+    /**
+     * Example usage:
+     * php cli.php Email testSupermind --topic='supermind_request_sent' --output=/var/www/Minds/engine/supermind.html --senderGuid='1215744293826727938' --receiverGuid='1107439332647505934' --activityGuid='1416522245517348865' --paymentMethod=1 --paymentAmount=12.345
+     *
+     * Payment method can be 0 (cash) or 1 (off-chain tokens)
+     * See the Supermind emailer for topics
+     */
+    public function testSupermind()
+    {
+        $output = $this->getOpt('output');
+        $topic = $this->getOpt('topic');
+        $senderGuid = $this->getOpt('senderGuid');
+        $receiverGuid = $this->getOpt('receiverGuid');
+        $activityGuid = $this->getOpt('activityGuid');
+        $paymentMethod = $this->getOpt('paymentMethod');
+        $paymentAmount = $this->getOpt('paymentAmount');
+
+        $supermindRequest = new Supermind\Models\SupermindRequest();
+
+        $supermindRequest->setActivityGuid($activityGuid)
+        ->setSenderGuid($senderGuid)
+        ->setReceiverGuid($receiverGuid)
+        ->setPaymentMethod($paymentMethod)
+        ->setPaymentAmount($paymentAmount);
+
+        $supermindEmailer = new SupermindEmail();
+        $supermindEmailer->setTopic($topic)
+            ->setSupermindRequest($supermindRequest);
+
+        if ($output) {
+            $message = $supermindEmailer->build();
+            file_put_contents($output, $message->buildHtml());
+        }
     }
 
     public function sync_sendgrid_lists(): void

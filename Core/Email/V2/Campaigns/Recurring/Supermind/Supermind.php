@@ -26,11 +26,14 @@ class Supermind extends EmailCampaign
     /** @var Mailer */
     protected $mailer;
 
+    /** @var EntitiesBuilder */
+    private $entitiesBuilder;
+
     /** @var SupermindRequest */
     protected $supermindRequest;
 
     /** @var User */
-    protected $emailRecipient;
+    protected $user;
 
     /** @var string */
     protected $topic;
@@ -39,13 +42,19 @@ class Supermind extends EmailCampaign
      * Constructor.
      * @param Template $template
      * @param Mailer $mailer
+     * @param EntitiesBuilder $entitiesBuilder
+     * @param Config $config
      */
     public function __construct(
         $template = null,
-        $mailer = null
+        $mailer = null,
+        $entitiesBuilder = null,
+        $config = null,
     ) {
         $this->template = $template ?: new Template();
         $this->mailer = $mailer ?: new Mailer();
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->config = $config ?: Di::_()->get('Config');
     }
 
     /**
@@ -73,67 +82,65 @@ class Supermind extends EmailCampaign
             return;
         }
 
+        $learnMorePath = 'https://support.minds.com/hc/en-us/articles/9188136065684';
+
         switch ($this->topic) {
             case 'supermind_request_sent':
-                $this->emailRecipient = $requester;
+                $this->user = $requester;
                 $headerText = 'You sent a ' . $paymentString . ' Supermind offer to @' . $receiver->getUsername();
                 $bodyText = 'They have 7 days to reply and accept this offer.';
                 $ctaText = 'View Offer';
                 $ctaPath = 'supermind/outbox?';
-                $topic = $this->topic;
                 break;
 
             case 'supermind_request_received':
-                $this->emailRecipient = $receiver;
+                $this->user = $receiver;
                 $headerText = '@' . $requester->getUsername() . ' sent you a ' . $paymentString . ' Supermind offer';
                 $bodyText = 'You have 7 days to reply and accept this offer.';
                 $ctaText = 'View Offer';
                 $ctaPath = 'supermind/inbox?';
-                $topic = $this->topic;
                 break;
 
             case 'supermind_request_accepted':
-                $this->emailRecipient = $requester;
+                $this->user = $requester;
                 $headerText = 'Congrats! @' . $receiver->getUsername() . ' replied to your Supermind offer';
-                $bodyText = $paymentString . ' was sent to @' . $receiver->getUsername() . ' for their reply.';
+                $bodyText = $this->buildPaymentString($this->supermindRequest, true) . ' was sent to @' . $receiver->getUsername() . ' for their reply.';
                 $ctaText = 'View Reply';
                 $ctaPath = 'newsfeed/' . $this->supermindRequest->getActivityGuid() . '?';
-                $topic = $this->topic;
 
 
                 // Additional cta link/path
                 $currency = $this->supermindRequest->getPaymentMethod() == SupermindRequestPaymentMethod::CASH ? 'cash' : 'tokens';
 
-                $this->template->set('additionalCtaPath', '/wallet/' . $currency . '/transactions');
+                $siteUrl = $this->config->get('site_url') ?: 'https://www.minds.com/';
+
+                $this->template->set('additionalCtaPath', $siteUrl . 'wallet/' . $currency . '/transactions');
                 $this->template->set('additionalCtaText', 'View Billing');
 
                 break;
 
             case 'supermind_request_rejected':
-                $this->emailRecipient = $requester;
-                $headerText = '@' . $receiver->getUsername() . 'declined your Supermind offer';
-                $bodyText = "Don't worry, you have not been charged. You can try increasing your offer specto improve your chance of reply";
+                $this->user = $requester;
+                $headerText = '@' . $receiver->getUsername() . ' declined your Supermind offer';
+                $bodyText = "Don't worry, you have not been charged. You can try increasing your offer to improve your chance of reply";
                 $ctaText = 'Learn more';
-                $ctaPath = 'https://support.minds.com/hc/en-us/articles/9188136065684';
-                $topic = $this->topic;
+                $ctaPath = $learnMorePath;
                 break;
 
             case 'supermind_request_expiring':
-                $this->emailRecipient = $receiver;
+                $this->user = $receiver;
                 $headerText = 'Your ' . $paymentString . ' Supermind offer expires tomorrow';
-                $bodyText = "You have 24 hours remaining to review @" . $receiver->getUsername() . "'s" . $paymentString . "offer";
+                $bodyText = "You have 24 hours remaining to review @" . $requester->getUsername() . "'s " . $paymentString . " offer";
                 $ctaText = 'View Offer';
                 $ctaPath = 'supermind/inbox?';
-                $topic = $this->topic;
                 break;
 
             case 'supermind_request_expired':
-                $this->emailRecipient = $requester;
+                $this->user = $requester;
                 $headerText = 'Your Supermind offer to @' . $receiver->getUsername() . ' expired';
                 $bodyText = "Don't worry, you have not been charged. You can try increasing your offer to improve your chance of reply";
                 $ctaText = 'Learn more';
-                $ctaPath = 'https://support.minds.com/hc/en-us/articles/9188136065684';
-                $topic = $this->topic;
+                $ctaPath = $learnMorePath;
                 break;
 
             default:
@@ -142,7 +149,7 @@ class Supermind extends EmailCampaign
 
 
         $tracking = [
-            '__e_ct_guid' => $this->emailRecipient->getGUID(),
+            '__e_ct_guid' => $this->user->getGUID(),
             'campaign' => 'when',
             'topic' => $this->topic,
             'state' => 'new',
@@ -150,10 +157,10 @@ class Supermind extends EmailCampaign
 
         $trackingQuery = http_build_query($tracking);
 
-        $this->template->set('user', $this->emailRecipient);
-        $this->template->set('username', $this->emailRecipient->username);
-        $this->template->set('email', $this->emailRecipient->getEmail());
-        $this->template->set('guid', $this->emailRecipient->guid);
+        $this->template->set('user', $this->user);
+        $this->template->set('username', $this->user->username);
+        $this->template->set('email', $this->user->getEmail());
+        $this->template->set('guid', $this->user->guid);
         $this->template->set('campaign', $this->campaign);
         $this->template->set('topic', $this->topic);
         $this->template->set('tracking', $trackingQuery);
@@ -163,19 +170,22 @@ class Supermind extends EmailCampaign
         $this->template->set('bodyText', $bodyText);
         $this->template->set('headerText', $headerText);
 
+        // Don't add tracking query to helpdesk links
+        $actionButtonPath = ($this->topic == 'supermind_request_rejected' || $this->topic == 'supermind_request_expired') ? $ctaPath : $ctaPath . $trackingQuery;
+
         $actionButton = (new ActionButtonV2())
             ->setLabel($ctaText)
-            ->setPath($ctaPath . $trackingQuery)
+            ->setPath($actionButtonPath)
             ;
 
         $this->template->set('actionButton', $actionButton->build());
 
         $message = new Message();
         $message
-            ->setTo($this->emailRecipient)
+            ->setTo($this->user)
             ->setMessageId(implode(
                 '-',
-                [ $this->emailRecipient->guid, sha1($this->emailRecipient->getEmail()), sha1($this->campaign . $this->topic . time()) ]
+                [ $this->user->guid, sha1($this->user->getEmail()), sha1($this->campaign . $this->topic . time()) ]
             ))
             ->setSubject($headerText)
             ->setHtml($this->template);
@@ -188,11 +198,13 @@ class Supermind extends EmailCampaign
      */
     public function send()
     {
-        if ($this->emailRecipient && $this->emailRecipient->getEmail()) {
+        $msg = $this->build();
+
+        if ($this->user && $this->user->getEmail()) {
             // User is still not enabled
 
             $this->mailer->queue(
-                $this->build(),
+                $msg,
                 true
             );
 
@@ -216,18 +228,25 @@ class Supermind extends EmailCampaign
     /**
      * Build human-readable string consisting of payment method and amount
     * @param SupermindRequest $supermindRequest
+    * @param bool $pluralize
      * @return string
      */
-    public function buildPaymentString(SupermindRequest $supermindRequest): string
+    public function buildPaymentString(SupermindRequest $supermindRequest, bool $pluralize = false): string
     {
         // Cash payments
         if ($supermindRequest->getPaymentMethod() == SupermindRequestPaymentMethod::CASH) {
             return "$" . $supermindRequest->getPaymentAmount();
         }
+
         // Token payments
         elseif ($supermindRequest->getPaymentMethod() == SupermindRequestPaymentMethod::OFFCHAIN_TOKEN) {
-            $currency = $supermindRequest->getPaymentAmount() != 1 ? 'tokens' : 'token';
-            return $supermindRequest->getPaymentAmount() . $currency;
+            if ($pluralize){
+                $currency = $supermindRequest->getPaymentAmount() != 1 ? ' tokens' : ' token';
+            } else {
+                $currency = ' token';
+            }
+
+            return round($supermindRequest->getPaymentAmount(),2) . $currency;
         }
     }
 }

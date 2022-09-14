@@ -109,6 +109,6 @@ class SupermindEventStreamsSubscription implements SubscriptionInterface
             default:
                 return true; // Do nothing
         }
-        return false;
+        return true;
     }
 }
