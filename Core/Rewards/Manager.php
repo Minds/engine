@@ -25,6 +25,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Rewards\TokenomicsManifests\TokenomicsManifestInterface;
 use Minds\Core\Rewards\TokenomicsManifests\TokenomicsManifestV2;
 use Minds\Core\Log\Logger;
+use Minds\Helpers\Flags;
 
 class Manager
 {
@@ -322,14 +323,14 @@ class Manager
             if (in_array($rewardEntry->getRewardType(), [static::REWARD_TYPE_LIQUIDITY, static::REWARD_TYPE_HOLDING], false)) {
                 /** @var User */
                 $user = $this->entitiesBuilder->single($rewardEntry->getUserGuid());
-                if (!$user || !$this->uniqueOnChainManager->isUnique($user)) {
+                if (!$user || !$this->uniqueOnChainManager->isUnique($user) || Flags::shouldFail($user)) {
                     // do not issue payout
 
                     $rewardEntry->setScore(BigDecimal::of(0));
                     $rewardEntry->setTokenAmount(BigDecimal::of(0));
                     $this->repository->update($rewardEntry, [ 'token_amount', 'score' ]);
 
-                    $this->logger->info("[$i]: Clearing score and token amount for {$rewardEntry->getUserGuid()}. Address isn't unique.", [
+                    $this->logger->info("[$i]: Clearing score and token amount for {$rewardEntry->getUserGuid()}. Address isn't unique or user is not valid.", [
                         'userGuid' => $rewardEntry->getUserGuid(),
                         'reward_type' => $rewardEntry->getRewardType(),
                     ]);
