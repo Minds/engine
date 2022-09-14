@@ -23,4 +23,6 @@ php composer.phar install
 
 cp "$ENGINE_INTEGRATION_TESTS_CONFIG" .env
 
+cat .env
+
 php bin/codecept run
