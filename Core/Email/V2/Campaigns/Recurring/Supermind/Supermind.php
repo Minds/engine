@@ -203,12 +203,8 @@ class Supermind extends EmailCampaign
         $msg = $this->build();
 
         if ($this->user && $this->user->getEmail()) {
-            // User is still not enabled
-
-            $this->mailer->queue(
-                $msg,
-                true
-            );
+            // Send immediatly, as this is executed from a runner
+            $this->mailer->send($msg);
 
             $this->saveCampaignLog();
         }
