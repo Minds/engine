@@ -8,6 +8,8 @@ use Minds\Api\Exportable;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
+use Minds\Core\Supermind\Exceptions\SupermindRequestExpiredException;
+use Minds\Core\Supermind\Exceptions\SupermindRequestIncorrectStatusException;
 use Minds\Core\Supermind\Exceptions\SupermindUnauthorizedSenderException;
 use Minds\Core\Supermind\Validators\SupermindGetRequestsValidator;
 use Minds\Exceptions\UserErrorException;
@@ -55,19 +57,21 @@ class Controller
         $loggedInUser = $request->getAttribute("_user");
         $this->manager->setUser($loggedInUser);
 
-        $supermindRequestID = $request->getAttribute("guid");
+        $supermindRequestID = $request->getAttribute("parameters")["guid"];
         $this->manager->revokeSupermindRequest($supermindRequestID);
 
-        return new JsonResponse(['error']);
+        return new JsonResponse([]);
     }
 
     /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
      * @throws ApiErrorException
+     * @throws SupermindRequestExpiredException
+     * @throws SupermindRequestIncorrectStatusException
+     * @throws LockFailedException
      * @throws SupermindNotFoundException
      * @throws SupermindUnauthorizedSenderException
-     * @throws LockFailedException
      */
 //    #[OA\Post(
 //        path: '/api/v3/supermind/:guid/reject',
@@ -92,7 +96,7 @@ class Controller
         $loggedInUser = $request->getAttribute("_user");
         $this->manager->setUser($loggedInUser);
 
-        $supermindRequestID = $request->getAttribute("guid");
+        $supermindRequestID = $request->getAttribute("parameters")["guid"];
         $this->manager->rejectSupermindRequest($supermindRequestID);
 
         return new JsonResponse([]);
@@ -101,6 +105,7 @@ class Controller
     /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
+     * @throws UserErrorException
      */
 //    #[OA\Get(
 //        path: '/api/v3/supermind/inbox',
@@ -128,6 +133,16 @@ class Controller
     {
         $loggedInUser = $request->getAttribute("_user");
         $this->manager->setUser($loggedInUser);
+
+        $requestValidator = new SupermindGetRequestsValidator();
+
+        if (!$requestValidator->validate($request->getQueryParams())) {
+            throw new UserErrorException(
+                message: "An error was encountered whilst validating the request",
+                code: 400,
+                errors: $requestValidator->getErrors()
+            );
+        }
 
         ['limit' => $limit, 'offset' => $offset] = $request->getQueryParams();
 
