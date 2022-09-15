@@ -5,6 +5,8 @@
 
 namespace Minds\Core\Email\V2\Campaigns\Recurring\Supermind;
 
+use Exception;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\Mailer;
@@ -49,12 +51,12 @@ class Supermind extends EmailCampaign
         $template = null,
         $mailer = null,
         $entitiesBuilder = null,
-        $config = null,
+        protected ?Config $config = null,
     ) {
         $this->template = $template ?: new Template();
         $this->mailer = $mailer ?: new Mailer();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
-        $this->config = $config ?: Di::_()->get('Config');
+        $this->config ??= Di::_()->get('Config');
     }
 
     /**
@@ -203,12 +205,8 @@ class Supermind extends EmailCampaign
         $msg = $this->build();
 
         if ($this->user && $this->user->getEmail()) {
-            // User is still not enabled
-
-            $this->mailer->queue(
-                $msg,
-                true
-            );
+            // Send immediatly, as this is executed from a runner
+            $this->mailer->send($msg);
 
             $this->saveCampaignLog();
         }
@@ -242,13 +240,15 @@ class Supermind extends EmailCampaign
 
         // Token payments
         elseif ($supermindRequest->getPaymentMethod() == SupermindRequestPaymentMethod::OFFCHAIN_TOKEN) {
-            if ($pluralize){
+            if ($pluralize) {
                 $currency = $supermindRequest->getPaymentAmount() != 1 ? ' tokens' : ' token';
             } else {
                 $currency = ' token';
             }
 
-            return round($supermindRequest->getPaymentAmount(),2) . $currency;
+            return round($supermindRequest->getPaymentAmount(), 2) . $currency;
+        } else {
+            throw new Exception("Unsupported payment method supplied");
         }
     }
 }
