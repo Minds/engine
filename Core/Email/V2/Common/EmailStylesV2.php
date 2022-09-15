@@ -49,6 +49,16 @@ class EmailStylesV2
             "line-height: 70px;",
             "color: #0a080b;",
             "border: 1px dashed #666666;",
+        ],
+        "m-mainContent__standaloneLink" => [
+            "font-family: 'Inter', Arial, sans-serif;",
+            "display: inline-block;",
+            "margin: 30px 20px 0px;",
+            "font-size: 18px;",
+            "line-height: 20px;",
+            "color: #0a080b;",
+            "text-align:center;",
+            "text-decoration: underline;"
         ]
     ];
 
