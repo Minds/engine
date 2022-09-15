@@ -105,14 +105,12 @@ class Supermind extends EmailCampaign
                 $this->user = $requester;
                 $headerText = 'Congrats! @' . $receiver->getUsername() . ' replied to your Supermind offer';
                 $bodyText = $this->buildPaymentString($this->supermindRequest, true) . ' was sent to @' . $receiver->getUsername() . ' for their reply.';
-                $ctaText = 'View Reply';
-                $ctaPath = 'newsfeed/' . $this->supermindRequest->getActivityGuid() . '?';
+                // $ctaText = 'View Reply';
+                // $ctaPath = 'newsfeed/' . $this->supermindRequest->getActivityGuid() . '?';
 
-
-                // Additional cta link/path
-                $currency = $this->supermindRequest->getPaymentMethod() == SupermindRequestPaymentMethod::CASH ? 'cash' : 'tokens';
-
+                // Build path to wallet transactions table for selected currency
                 $siteUrl = $this->config->get('site_url') ?: 'https://www.minds.com/';
+                $currency = $this->supermindRequest->getPaymentMethod() == SupermindRequestPaymentMethod::CASH ? 'cash' : 'tokens';
 
                 $this->template->set('additionalCtaPath', $siteUrl . 'wallet/' . $currency . '/transactions');
                 $this->template->set('additionalCtaText', 'View Billing');
@@ -170,15 +168,19 @@ class Supermind extends EmailCampaign
         $this->template->set('bodyText', $bodyText);
         $this->template->set('headerText', $headerText);
 
-        // Don't add tracking query to helpdesk links
-        $actionButtonPath = ($this->topic == 'supermind_request_rejected' || $this->topic == 'supermind_request_expired') ? $ctaPath : $ctaPath . $trackingQuery;
+        if(isset($ctaText) && isset($ctaPath)){
 
-        $actionButton = (new ActionButtonV2())
-            ->setLabel($ctaText)
-            ->setPath($actionButtonPath)
-            ;
+            // Don't add tracking query to helpdesk links
+            $actionButtonPath = ($this->topic == 'supermind_request_rejected' || $this->topic == 'supermind_request_expired') ? $ctaPath : $ctaPath . $trackingQuery;
 
-        $this->template->set('actionButton', $actionButton->build());
+        // Create action button
+            $actionButton = (new ActionButtonV2())
+                ->setLabel($ctaText)
+                ->setPath($actionButtonPath)
+                ;
+
+            $this->template->set('actionButton', $actionButton->build());
+        }
 
         $message = new Message();
         $message

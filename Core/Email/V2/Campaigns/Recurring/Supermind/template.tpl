@@ -8,8 +8,9 @@
     <?php echo $vars['bodyText']; ?></p>
 
 <!--ACTION BUTTON-->
-<?php echo $vars['actionButton']; ?>
-
+<?php if(isset($vars['actionButton'])){ ?>
+    <?php echo $vars['actionButton']; ?>
+<?php } ?>
 
 <!-- ADD'L LINK (OPTIONAL) -->
 <?php if(isset($vars['additionalCtaPath']) && isset($vars['additionalCtaText'])){ ?>
