@@ -13,7 +13,10 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
+use Minds\Core\Supermind\Exceptions\SupermindRequestPaymentTypeNotFoundException;
 use Minds\Core\Supermind\Models\SupermindRequest;
+use Minds\Core\Supermind\SupermindRequestPaymentMethod;
+use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
 
 class SupermindPaymentProcessor
@@ -26,7 +29,10 @@ class SupermindPaymentProcessor
     /**
      * @const float Defines the minimum allowed amount for a Supermind requests
      */
-    private const SUPERMIND_REQUEST_MINIMUM_AMOUNT = 10.00;
+    private const SUPERMIND_REQUEST_MINIMUM_AMOUNT = [
+        SupermindRequestPaymentMethod::CASH => 10.00,
+        SupermindRequestPaymentMethod::OFFCHAIN_TOKEN => 1.00,
+    ];
 
     public function __construct(
         private ?IntentsManagerV2 $intentsManager = null,
@@ -41,13 +47,18 @@ class SupermindPaymentProcessor
     }
 
     /**
+     * @param int $paymentMethod
      * @return float
+     * @throws SupermindRequestPaymentTypeNotFoundException
      */
-    public function getMinimumAllowedAmount(): float
+    public function getMinimumAllowedAmount(int $paymentMethod): float
     {
-        $minimumAmount = self::SUPERMIND_REQUEST_MINIMUM_AMOUNT;
-        if (isset($this->mindsConfig->get('supermind')['minimum_amount'])) {
-            $minimumAmount = $this->mindsConfig->get('supermind')['minimum_amount'];
+        $minimumAmount = self::SUPERMIND_REQUEST_MINIMUM_AMOUNT[$paymentMethod];
+
+        $paymentTypeId = SupermindRequestPaymentMethod::getPaymentTypeId($paymentMethod);
+
+        if (isset($this->mindsConfig->get('supermind')['minimum_amount'][$paymentTypeId])) {
+            $minimumAmount = $this->mindsConfig->get('supermind')['minimum_amount'][$paymentTypeId];
         }
 
         // TODO: Add check for user settings override
@@ -55,9 +66,9 @@ class SupermindPaymentProcessor
         return $minimumAmount;
     }
 
-    public function isPaymentAmountAllowed(float $paymentAmount): bool
+    public function isPaymentAmountAllowed(float $paymentAmount, int $paymentMethod): bool
     {
-        return $paymentAmount >= $this->getMinimumAllowedAmount();
+        return $paymentAmount >= $this->getMinimumAllowedAmount($paymentMethod);
     }
 
     /**
@@ -138,7 +149,7 @@ class SupermindPaymentProcessor
             ->setUser(
                 $this->buildUser($request->getSenderGuid())
             )
-            ->setAmount(-$request->getPaymentAmount())
+            ->setAmount((double) BigNumber::toPlain($request->getPaymentAmount(), 18)->neg())
             ->setType("supermind")
             ->setData([
                 'supermind' => $request->getGuid(),
@@ -162,7 +173,7 @@ class SupermindPaymentProcessor
             ->setUser(
                 $this->buildUser($request->getSenderGuid())
             )
-            ->setAmount($request->getPaymentAmount())
+            ->setAmount((double) BigNumber::toPlain($request->getPaymentAmount(), 18))
             ->setType("supermind")
             ->setData([
                 'supermind' => $request->getGuid(),
@@ -176,6 +187,7 @@ class SupermindPaymentProcessor
      * @param SupermindRequest $request
      * @return bool
      * @throws LockFailedException
+     * @throws Exception
      */
     public function creditOffchainPayment(SupermindRequest $request): bool
     {
@@ -183,7 +195,7 @@ class SupermindPaymentProcessor
             ->setUser(
                 $this->buildUser($request->getReceiverGuid())
             )
-            ->setAmount($request->getPaymentAmount())
+            ->setAmount((double) BigNumber::toPlain($request->getPaymentAmount(), 18))
             ->setType("supermind")
             ->setData([
                 'supermind' => $request->getGuid(),

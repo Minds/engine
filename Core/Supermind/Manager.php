@@ -21,6 +21,7 @@ use Minds\Core\Supermind\Exceptions\SupermindRequestIncorrectStatusException;
 use Minds\Core\Supermind\Exceptions\SupermindUnauthorizedSenderException;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
+use Minds\Core\Supermind\Delegates\EventsDelegate;
 use Minds\Entities\User;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
@@ -34,10 +35,12 @@ class Manager
 
     public function __construct(
         private ?Repository $repository = null,
-        private ?SupermindPaymentProcessor $paymentProcessor = null
+        private ?SupermindPaymentProcessor $paymentProcessor = null,
+        private ?EventsDelegate $eventsDelegate = null
     ) {
         $this->repository ??= Di::_()->get("Supermind\Repository");
         $this->paymentProcessor ??= new SupermindPaymentProcessor();
+        $this->eventsDelegate ??= new EventsDelegate();
     }
 
     /**
@@ -134,6 +137,9 @@ class Manager
         if (!$isPaymentSuccessful) {
             $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::FAILED_PAYMENT, $supermindRequestId);
             throw new SupermindPaymentIntentCaptureFailedException();
+        } else {
+            $supermindRequest = $this->repository->getSupermindRequest($supermindRequestId);
+            $this->eventsDelegate->onAcceptSupermindRequest($supermindRequest);
         }
 
         return true;
@@ -237,6 +243,9 @@ class Manager
         $this->reimburseSupermindPayment($supermindRequest);
 
         $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::REJECTED, $supermindRequestId);
+
+        $this->eventsDelegate->onRejectSupermindRequest($supermindRequest);
+
         return true;
     }
 
@@ -257,7 +266,11 @@ class Manager
 
         $this->reimburseSupermindPayment($supermindRequest);
 
-        return $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::EXPIRED, $supermindRequestId);
+        $expired = $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::EXPIRED, $supermindRequestId);
+
+        $this->eventsDelegate->onExpireSupermindRequest($supermindRequest);
+
+        return $expired;
     }
 
     /**
@@ -284,6 +297,11 @@ class Manager
     public function completeSupermindRequestCreation(string $supermindRequestId, int $activityGuid): bool
     {
         $isSuccessful = $this->repository->updateSupermindRequestActivityGuid($supermindRequestId, $activityGuid);
+
+        if ($isSuccessful) {
+            $supermindRequest = $this->repository->getSupermindRequest($supermindRequestId);
+            $this->eventsDelegate->onCompleteSupermindRequestCreation($supermindRequest);
+        }
 
         return $isSuccessful
             ? true

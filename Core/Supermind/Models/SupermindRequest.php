@@ -50,8 +50,14 @@ class SupermindRequest implements ExportableInterface
      */
     public const SUPERMIND_EXPIRY_THRESHOLD = 7 * 86400;
 
+    /**
+     * @const string
+     */
+    public const URN_METHOD = 'supermind';
+
     private string $guid;
     private string $activityGuid;
+    private string $replyActivityGuid;
     private string $senderGuid;
     private string $receiverGuid;
     private int $status = SupermindRequestStatus::PENDING;
@@ -126,6 +132,14 @@ class SupermindRequest implements ExportableInterface
     }
 
     /**
+     * @return string
+     */
+    public function getUrn(): string
+    {
+        return 'urn:' . self::URN_METHOD . ':' . $this->getGuid();
+    }
+
+    /**
      * @param array $extras
      * @return array
      */
@@ -134,6 +148,7 @@ class SupermindRequest implements ExportableInterface
         return [
             "guid" => $this->guid,
             "activity_guid" => $this->activityGuid,
+            "reply_activity_guid" => $this->replyActivityGuid,
             "sender_guid" => $this->senderGuid,
             "receiver_guid" => $this->receiverGuid,
             "status" => $this->status,
