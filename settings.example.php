@@ -835,5 +835,12 @@ $CONFIG->set('metascraper', [
 ]);
 
 $CONFIG->set('jury', [
-    'development_mode' => false
+    'development_mode' => true
+]);
+
+$CONFIG->set('supermind', [
+    'minimum_amount' => [
+        'usd' => 10.00,
+        'offchain_token' => 1.00
+    ]
 ]);

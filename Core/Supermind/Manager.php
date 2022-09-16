@@ -10,18 +10,20 @@ use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficient
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Router\Exceptions\ForbiddenException;
+use Minds\Core\Supermind\Delegates\EventsDelegate;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Exceptions\SupermindOffchainPaymentFailedException;
 use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentCaptureFailedException;
 use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentFailedException;
+use Minds\Core\Supermind\Exceptions\SupermindRequestAcceptCompletionException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestCreationCompletionException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestDeleteException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestExpiredException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestIncorrectStatusException;
+use Minds\Core\Supermind\Exceptions\SupermindRequestStatusUpdateException;
 use Minds\Core\Supermind\Exceptions\SupermindUnauthorizedSenderException;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
-use Minds\Core\Supermind\Delegates\EventsDelegate;
 use Minds\Entities\User;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
@@ -137,12 +139,20 @@ class Manager
         if (!$isPaymentSuccessful) {
             $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::FAILED_PAYMENT, $supermindRequestId);
             throw new SupermindPaymentIntentCaptureFailedException();
-        } else {
-            $supermindRequest = $this->repository->getSupermindRequest($supermindRequestId);
-            $this->eventsDelegate->onAcceptSupermindRequest($supermindRequest);
         }
 
         return true;
+    }
+
+    /**
+     * @param string $supermindRequestId
+     * @param int $targetStatus
+     * @return bool
+     * @throws SupermindRequestStatusUpdateException
+     */
+    public function updateSupermindRequestStatus(string $supermindRequestId, int $targetStatus): bool
+    {
+        return $this->repository->updateSupermindRequestStatus($targetStatus, $supermindRequestId) ? true : throw new SupermindRequestStatusUpdateException();
     }
 
     /**
@@ -306,6 +316,26 @@ class Manager
         return $isSuccessful
             ? true
             : throw new SupermindRequestCreationCompletionException();
+    }
+
+    /**
+     * @param string $supermindRequestId
+     * @param int $replyActivityGuid
+     * @return bool
+     * @throws SupermindRequestAcceptCompletionException
+     */
+    public function completeAcceptSupermindRequest(string $supermindRequestId, int $replyActivityGuid): bool
+    {
+        $isSuccessful = $this->repository->updateSupermindRequestReplyActivityGuid($supermindRequestId, $replyActivityGuid);
+
+        if ($isSuccessful) {
+            $supermindRequest = $this->repository->getSupermindRequest($supermindRequestId);
+            $this->eventsDelegate->onAcceptSupermindRequest($supermindRequest);
+        }
+
+        return $isSuccessful
+            ? true
+            : throw new SupermindRequestAcceptCompletionException();
     }
 
     /**

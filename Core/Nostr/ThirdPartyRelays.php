@@ -1,14 +1,20 @@
 <?php
 namespace Minds\Core\Nostr;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
+
 class ThirdPartyRelays
 {
     /** @var \WebSocket\Client[] */
     protected array $clients = [];
 
-    public function __construct(array $clients = [])
-    {
+    public function __construct(
+        array $clients = [],
+        private ?Config $config = null
+    ) {
         $this->clients = $clients;
+        $this->config ??= Di::_()->get('Config');
     }
 
     /**

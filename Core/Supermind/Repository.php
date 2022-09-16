@@ -271,6 +271,33 @@ class Repository
 
     /**
      * @param string $supermindRequestId
+     * @param int $replyActivityGuid
+     * @return bool
+     */
+    public function updateSupermindRequestReplyActivityGuid(string $supermindRequestId, int $replyActivityGuid): bool
+    {
+        $statement = "UPDATE superminds SET reply_activity_guid = :reply_activity_guid, status = :status, updated_timestamp = :update_timestamp WHERE guid = :guid";
+        $values = [
+            'reply_activity_guid' => $replyActivityGuid,
+            'status' => SupermindRequestStatus::ACCEPTED,
+            'update_timestamp' => date('c', time()),
+            'guid' => $supermindRequestId
+        ];
+
+        $statement = $this->mysqlClientWriter->prepare($statement);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        $statement->execute();
+
+        if ($statement->rowCount() === 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param string $supermindRequestId
      * @return bool
      */
     public function deleteSupermindRequest(string $supermindRequestId): bool
