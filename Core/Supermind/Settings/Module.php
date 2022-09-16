@@ -1,17 +1,13 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Minds\Core\Supermind;
+namespace Minds\Core\Supermind\Settings;
 
 use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
 {
-    /** @var array $submodules */
-    public $submodules = [
-        Settings\Module::class,
-    ];
-
     /**
      * @return void
      */
