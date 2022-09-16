@@ -171,7 +171,7 @@ class Supermind extends EmailCampaign
         $this->template->set('bodyText', $bodyText);
         $this->template->set('headerText', $headerText);
 
-        if (isset($ctaText) && isset($ctaPath)) {
+        if (!empty($ctaText) && !empty($ctaPath)) {
 
             // Don't add tracking query to helpdesk links
             $actionButtonPath = ($this->topic == 'supermind_request_rejected' || $this->topic == 'supermind_request_expired') ? $ctaPath : $ctaPath . $trackingQuery;
