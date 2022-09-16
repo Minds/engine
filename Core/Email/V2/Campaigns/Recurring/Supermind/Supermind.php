@@ -170,20 +170,17 @@ class Supermind extends EmailCampaign
         $this->template->set('preheader', $bodyText);
         $this->template->set('bodyText', $bodyText);
         $this->template->set('headerText', $headerText);
+        
+        // Don't add tracking query to helpdesk links
+        $actionButtonPath = ($this->topic == 'supermind_request_rejected' || $this->topic == 'supermind_request_expired') ? $ctaPath : $ctaPath . $trackingQuery;
 
-        if (!empty($ctaText) && !empty($ctaPath)) {
+        // Create action button
+        $actionButton = (new ActionButtonV2())
+            ->setLabel($ctaText)
+            ->setPath($actionButtonPath)
+            ;
 
-            // Don't add tracking query to helpdesk links
-            $actionButtonPath = ($this->topic == 'supermind_request_rejected' || $this->topic == 'supermind_request_expired') ? $ctaPath : $ctaPath . $trackingQuery;
-
-            // Create action button
-            $actionButton = (new ActionButtonV2())
-                ->setLabel($ctaText)
-                ->setPath($actionButtonPath)
-                ;
-
-            $this->template->set('actionButton', $actionButton->build());
-        }
+        $this->template->set('actionButton', $actionButton->build());
 
         $message = new Message();
         $message
