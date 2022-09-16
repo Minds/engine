@@ -30,3 +30,6 @@ cd $CURRENT_DIR
 
 # Grab dependencies
 php composer.phar install $INSTALLOPTS --ignore-platform-reqs
+
+# Issue with composer plugin not firing for mw3 package
+npm --prefix ./vendor/minds/mw3 install
