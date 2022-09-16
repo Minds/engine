@@ -15,7 +15,9 @@ use Minds\Traits\MagicAttributes;
 /**
  * @method self setGuid(string $guid)
  * @method string getActivityGuid()
- * @method self setActivityGuid(string $guid)
+ * @method self setActivityGuid(string $activityGuid)
+ * @method string|null getReplyActivityGuid()
+ * @method self setReplyActivityGuid(string $replyActivityGuid)
  * @method string getSenderGuid()
  * @method self setSenderGuid(string $senderGuid)
  * @method string getReceiverGuid()
@@ -49,10 +51,15 @@ class SupermindRequest implements ExportableInterface, EntityInterface
      * @const int Represents the threshold expressed in seconds used to consider a Supermind request expired.
      */
     public const SUPERMIND_EXPIRY_THRESHOLD = 7 * 86400;
+
+    /**
+     * @const string
+     */
     public const URN_METHOD = 'supermind';
 
     private string $guid;
     private string $activityGuid;
+    private ?string $replyActivityGuid = null;
     private string $senderGuid;
     private string $receiverGuid;
     private int $status = SupermindRequestStatus::PENDING;
@@ -76,6 +83,10 @@ class SupermindRequest implements ExportableInterface, EntityInterface
 
         if (isset($data['activity_guid'])) {
             $request->setActivityGuid($data['activity_guid']);
+        }
+
+        if (isset($data['reply_activity_guid'])) {
+            $request->setReplyActivityGuid($data['reply_activity_guid']);
         }
 
         if (isset($data['sender_guid'])) {
@@ -126,37 +137,9 @@ class SupermindRequest implements ExportableInterface, EntityInterface
         return time() >= ($this->createdAt + self::SUPERMIND_EXPIRY_THRESHOLD);
     }
 
-    /**
-     * @return string
-     * */
-    public function getGuid(): ?string
+    public function getGuid(): string
     {
         return $this->guid;
-    }
-
-    /**
-     * @return string
-     */
-    public function getOwnerGuid(): ?string
-    {
-        return $this->senderGuid;
-    }
-
-
-    /**
-     * @return string
-     */
-    public function getType(): string
-    {
-        return 'supermind';
-    }
-
-    /**
-     * @return string
-     */
-    public function getSubtype(): ?string
-    {
-        return null;
     }
 
     /**
@@ -167,9 +150,21 @@ class SupermindRequest implements ExportableInterface, EntityInterface
         return 'urn:' . self::URN_METHOD . ':' . $this->getGuid();
     }
 
-    /**
-     * @return string
-     */
+    public function getOwnerGuid(): ?string
+    {
+        return $this->senderGuid;
+    }
+
+    public function getType(): string
+    {
+        return 'supermind';
+    }
+
+    public function getSubtype(): ?string
+    {
+        return null;
+    }
+
     public function getAccessId(): string
     {
         return (string) Access::PUBLIC;
@@ -184,6 +179,7 @@ class SupermindRequest implements ExportableInterface, EntityInterface
         return [
             "guid" => $this->guid,
             "activity_guid" => $this->activityGuid,
+            "reply_activity_guid" => $this->replyActivityGuid,
             "sender_guid" => $this->senderGuid,
             "receiver_guid" => $this->receiverGuid,
             "status" => $this->status,

@@ -98,8 +98,8 @@ Feature: Supermind
         "supermind_request": {
             "receiver_guid": "",
             "payment_options": {
-                "payment_type": -1,
-                "amount": 9.00
+                "payment_type": 1,
+                "amount": 0.50
             },
             "reply_type": -1,
             "terms_agreed": false

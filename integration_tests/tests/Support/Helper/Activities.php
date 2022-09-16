@@ -7,6 +7,7 @@ namespace Tests\Support\Helper;
 // here you can define custom actions
 // all public methods declared in helper class will be available in $I
 
+use Codeception\Exception\ModuleException;
 use Codeception\Module;
 use Codeception\Module\REST;
 use Codeception\Util\Fixtures;
@@ -19,6 +20,12 @@ class Activities extends Module
     private const ACTIVITY_CREATION_METHOD = 'PUT';
     private const ACTIVITY_CREATION_ENDPOINT = 'v3/newsfeed/activity';
 
+    /**
+     * @param array $activityDetails
+     * @param bool $checkResponse
+     * @return void
+     * @throws ModuleException
+     */
     public function createActivityWithDetails(array $activityDetails, bool $checkResponse = false): void
     {
         /**
