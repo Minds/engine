@@ -16,7 +16,7 @@ use Minds\Traits\MagicAttributes;
  * @method self setGuid(string $guid)
  * @method string getActivityGuid()
  * @method self setActivityGuid(string $activityGuid)
- * @method string getReplyActivityGuid()
+ * @method string|null getReplyActivityGuid()
  * @method self setReplyActivityGuid(string $replyActivityGuid)
  * @method string getSenderGuid()
  * @method self setSenderGuid(string $senderGuid)
@@ -59,7 +59,7 @@ class SupermindRequest implements ExportableInterface, EntityInterface
 
     private string $guid;
     private string $activityGuid;
-    private string $replyActivityGuid;
+    private ?string $replyActivityGuid = null;
     private string $senderGuid;
     private string $receiverGuid;
     private int $status = SupermindRequestStatus::PENDING;
