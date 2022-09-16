@@ -175,21 +175,6 @@ class SupermindRequestValidator implements ValidatorInterface
             );
         } else {
             $paymentOptions = $supermindRequest['payment_options'];
-            if (!isset($paymentOptions['amount']) || !$paymentOptions['amount']) {
-                $this->errors->add(
-                    new ValidationError(
-                        "supermind_request:payment_options:amount",
-                        "An amount of at least " . $this->paymentProcessor->getMinimumAllowedAmount() . " must be provided"
-                    )
-                );
-            } elseif (!$this->paymentProcessor->isPaymentAmountAllowed($paymentOptions['amount'])) {
-                $this->errors->add(
-                    new ValidationError(
-                        "supermind_request:payment_options:amount",
-                        "An amount of at least " . $this->paymentProcessor->getMinimumAllowedAmount() . " must be provided"
-                    )
-                );
-            }
 
             if (!isset($paymentOptions['payment_type'])) {
                 $this->errors->add(
@@ -227,6 +212,22 @@ class SupermindRequestValidator implements ValidatorInterface
                         )
                     );
                 }
+            }
+
+            if (!isset($paymentOptions['amount']) || !$paymentOptions['amount']) {
+                $this->errors->add(
+                    new ValidationError(
+                        "supermind_request:payment_options:amount",
+                        "An amount of at least " . $this->paymentProcessor->getMinimumAllowedAmount($paymentOptions['payment_type']) . " must be provided"
+                    )
+                );
+            } elseif (!$this->paymentProcessor->isPaymentAmountAllowed($paymentOptions['amount'], $paymentOptions['payment_type'])) {
+                $this->errors->add(
+                    new ValidationError(
+                        "supermind_request:payment_options:amount",
+                        "An amount of at least " . $this->paymentProcessor->getMinimumAllowedAmount($paymentOptions['payment_type']) . " must be provided"
+                    )
+                );
             }
         }
     }

@@ -29,7 +29,7 @@ class SupermindSteps extends ApiTester
     {
         $activityDetails = json_decode($activityDetails->getRaw(), true);
 
-        $this->loginWithSupermindReceiverAccount();
+        $this->loginWithSupermindRequesterAccount();
         $activityDetails['supermind_request'] = $this->populateActivitySupermindRequestDetails($activityDetails['supermind_request']);
 
         $this->createActivityWithDetails($activityDetails, true);

@@ -57,3 +57,7 @@ CREATE TABLE IF NOT EXISTS superminds(
     INDEX (sender_guid, status),
     INDEX (receiver_guid, status)
 ) ENGINE=InnoDB;
+
+ALTER TABLE superminds
+    ADD reply_activity_guid bigint
+        AFTER activity_guid;
