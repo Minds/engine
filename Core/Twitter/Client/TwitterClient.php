@@ -27,16 +27,33 @@ class TwitterClient implements TwitterClientInterface
         $this->mindsConfig ??= Di::_()->get('Config');
 
         $this->connection ??= new TwitterOAuth(
-            $this->mindsConfig->get('twitter')['client_id'],
-            $this->mindsConfig->get('twitter')['client_secret'],
+            $this->mindsConfig->get('twitter')['api_key'],
+            $this->mindsConfig->get('twitter')['api_secret'],
+            $this->mindsConfig->get('twitter')['access_token'],
+            $this->mindsConfig->get('twitter')['access_token_secret'],
         );
         $this->connection->setApiVersion('2');
     }
 
-    public function requestOAuthToken()
+    public function requestOAuthTokenUrlDetails(): array
     {
-        $this->connection->oauth2('oauth/request_token', [
-            'oauth_callback' => urlencode($this->mindsConfig->get('site_url') . self::OAUTH_TOKEN_REQUEST_CALLBACK)
-        ]);
+        return [
+            'response_type' => 'code',
+            'client_id' => $this->mindsConfig->get('twitter')['client_id'],
+            'redirect_uri' => $this->mindsConfig->get('site_url') . self::OAUTH_TOKEN_REQUEST_CALLBACK,
+            'scope' => urlencode(
+                join(
+                    " ",
+                    [
+                        'tweet.read',
+                        'tweet.write',
+                        'offline.access',
+                    ]
+                )
+            ),
+            'state' => 'state',
+            'code_challenge' => 'challenge',
+            'code_challenge_method' => 'plain'
+        ];
     }
 }

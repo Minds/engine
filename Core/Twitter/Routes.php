@@ -21,7 +21,12 @@ class Routes extends ModuleRoutes
             ->do(function (Route $route) {
                 $route->post(
                     'request-oauth-token',
-                    Ref::_('Supermind\Controller', 'requestTwitterOAuthToken')
+                    Ref::_('Twitter\Controller', 'requestTwitterOAuthToken')
+                );
+
+                $route->get(
+                    'oauth',
+                    Ref::_('Twitter\Controller', 'storeTwitterOAuthToken')
                 );
             });
     }
