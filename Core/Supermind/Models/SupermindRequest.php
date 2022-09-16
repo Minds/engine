@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Supermind\Models;
 
+use Minds\Common\Access;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Supermind\SupermindRequestReplyType;
 use Minds\Core\Supermind\SupermindRequestStatus;
@@ -12,10 +13,11 @@ use Minds\Entities\ExportableInterface;
 use Minds\Traits\MagicAttributes;
 
 /**
- * @method string getGuid()
  * @method self setGuid(string $guid)
  * @method string getActivityGuid()
- * @method self setActivityGuid(string $guid)
+ * @method self setActivityGuid(string $activityGuid)
+ * @method string getReplyActivityGuid()
+ * @method self setReplyActivityGuid(string $replyActivityGuid)
  * @method string getSenderGuid()
  * @method self setSenderGuid(string $senderGuid)
  * @method string getReceiverGuid()
@@ -41,7 +43,7 @@ use Minds\Traits\MagicAttributes;
  * @method null|EntityInterface getReceiverEntity()
  * @method self setReceiverEntity(EntityInterface $receiverEntity)
  */
-class SupermindRequest implements ExportableInterface
+class SupermindRequest implements ExportableInterface, EntityInterface
 {
     use MagicAttributes;
 
@@ -81,6 +83,10 @@ class SupermindRequest implements ExportableInterface
 
         if (isset($data['activity_guid'])) {
             $request->setActivityGuid($data['activity_guid']);
+        }
+
+        if (isset($data['reply_activity_guid'])) {
+            $request->setReplyActivityGuid($data['reply_activity_guid']);
         }
 
         if (isset($data['sender_guid'])) {
@@ -131,12 +137,37 @@ class SupermindRequest implements ExportableInterface
         return time() >= ($this->createdAt + self::SUPERMIND_EXPIRY_THRESHOLD);
     }
 
+    public function getGuid(): string
+    {
+        return $this->guid;
+    }
+
     /**
      * @return string
      */
     public function getUrn(): string
     {
         return 'urn:' . self::URN_METHOD . ':' . $this->getGuid();
+    }
+
+    public function getOwnerGuid(): ?string
+    {
+        return $this->senderGuid;
+    }
+
+    public function getType(): string
+    {
+        return 'supermind';
+    }
+
+    public function getSubtype(): ?string
+    {
+        return null;
+    }
+
+    public function getAccessId(): string
+    {
+        return (string) Access::PUBLIC;
     }
 
     /**

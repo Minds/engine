@@ -15,8 +15,8 @@ use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
-use Minds\Traits\MagicAttributes;
 use Minds\Entities\User;
+use Minds\Traits\MagicAttributes;
 
 class Supermind extends EmailCampaign
 {
@@ -61,6 +61,7 @@ class Supermind extends EmailCampaign
 
     /**
      * @return Message
+     * @throws Exception
      */
     public function build()
     {
@@ -107,8 +108,8 @@ class Supermind extends EmailCampaign
                 $this->user = $requester;
                 $headerText = 'Congrats! @' . $receiver->getUsername() . ' replied to your Supermind offer';
                 $bodyText = $this->buildPaymentString($this->supermindRequest, true) . ' was sent to @' . $receiver->getUsername() . ' for their reply.';
-                // $ctaText = 'View Reply';
-                // $ctaPath = 'newsfeed/' . $this->supermindRequest->getActivityGuid() . '?';
+                $ctaText = 'View Reply';
+                $ctaPath = 'newsfeed/' . $this->supermindRequest->getReplyActivityGuid() . '?';
 
                 // Build path to wallet transactions table for selected currency
                 $siteUrl = $this->config->get('site_url') ?: 'https://www.minds.com/';

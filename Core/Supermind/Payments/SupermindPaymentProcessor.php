@@ -66,6 +66,12 @@ class SupermindPaymentProcessor
         return $minimumAmount;
     }
 
+    /**
+     * @param float $paymentAmount
+     * @param int $paymentMethod
+     * @return bool
+     * @throws SupermindRequestPaymentTypeNotFoundException
+     */
     public function isPaymentAmountAllowed(float $paymentAmount, int $paymentMethod): bool
     {
         return $paymentAmount >= $this->getMinimumAllowedAmount($paymentMethod);
@@ -149,7 +155,7 @@ class SupermindPaymentProcessor
             ->setUser(
                 $this->buildUser($request->getSenderGuid())
             )
-            ->setAmount((double) BigNumber::toPlain($request->getPaymentAmount(), 18)->neg())
+            ->setAmount((string) BigNumber::toPlain($request->getPaymentAmount(), 18)->neg())
             ->setType("supermind")
             ->setData([
                 'supermind' => $request->getGuid(),
@@ -173,7 +179,7 @@ class SupermindPaymentProcessor
             ->setUser(
                 $this->buildUser($request->getSenderGuid())
             )
-            ->setAmount((double) BigNumber::toPlain($request->getPaymentAmount(), 18))
+            ->setAmount((string) BigNumber::toPlain($request->getPaymentAmount(), 18))
             ->setType("supermind")
             ->setData([
                 'supermind' => $request->getGuid(),
@@ -195,7 +201,7 @@ class SupermindPaymentProcessor
             ->setUser(
                 $this->buildUser($request->getReceiverGuid())
             )
-            ->setAmount((double) BigNumber::toPlain($request->getPaymentAmount(), 18))
+            ->setAmount((string) BigNumber::toPlain($request->getPaymentAmount(), 18))
             ->setType("supermind")
             ->setData([
                 'supermind' => $request->getGuid(),

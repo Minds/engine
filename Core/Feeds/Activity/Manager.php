@@ -24,9 +24,10 @@ use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Session;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentFailedException;
-use Minds\Core\Supermind\Exceptions\SupermindRequestCreationCompletionException;
+use Minds\Core\Supermind\Exceptions\SupermindRequestAcceptCompletionException;
 use Minds\Core\Supermind\Manager as SupermindManager;
 use Minds\Core\Supermind\Models\SupermindRequest;
+use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Core\Supermind\Validators\SupermindReplyValidator;
 use Minds\Core\Supermind\Validators\SupermindRequestValidator;
 use Minds\Entities\Activity;
@@ -303,7 +304,14 @@ class Manager
 
         $isActivityCreated = $this->add($activity);
 
-        return $isActivityCreated ? true : throw new CreateActivityFailedException();
+        if (!$isActivityCreated) {
+            $this->supermindManager->updateSupermindRequestStatus($supermindDetails['supermind_reply_guid'], SupermindRequestStatus::CREATED);
+            throw new SupermindRequestAcceptCompletionException();
+        }
+
+        $this->supermindManager->completeAcceptSupermindRequest($supermindDetails['supermind_reply_guid'], $activity->getGuid());
+
+        return true;
     }
 
     /**
