@@ -28,7 +28,8 @@ class SettingsSpec extends ObjectBehavior
         $this->shouldHaveType(Settings::class);
     }
 
-    public function it_should_serialize_class() {
+    public function it_should_serialize_class()
+    {
         $this->beConstructedWith(1, 10, $this->config);
 
         $data = [
