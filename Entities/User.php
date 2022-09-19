@@ -4,6 +4,7 @@ namespace Minds\Entities;
 
 use Minds\Common\ChannelMode;
 use Minds\Core;
+use Minds\Core\Supermind\Settings\Models\Settings;
 use Minds\Helpers;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
 
@@ -1461,7 +1462,9 @@ class User extends \ElggUser
      */
     public function getSupermindSettings(): array
     {
-        return $this->supermind_settings ?? [];
+        return $this->supermind_settings && count($this->supermind_settings) ?
+            $this->supermind_settings :
+            (new Settings())->jsonSerialize();
     }
 
     /**
