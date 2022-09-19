@@ -104,7 +104,7 @@ class WithdrawEvent implements BlockchainEventInterface
                 throw new \Exception('Unknown withdrawal');
             }
 
-            if ((string) $address !== (string) $request->getAddress()) {
+            if ((string) strtolower($address) !== (string) strtolower($request->getAddress())) {
                 throw new \Exception('Wrong address value');
             } elseif ((string) $gas !== (string) $request->getGas()) {
                 throw new \Exception('Wrong gas value');
