@@ -32,7 +32,7 @@ class Settings implements \JsonSerializable
         private ?Config $config = null
     ) {
         $this->config ??= Di::_()->get('Config');
-        $this->minOffchainTokens ??= $this->getDefaultMinimumAmount(SupermindRequestPaymentMethod::OFFCHAIN_TOKEN); // TODO: Get from config
+        $this->minOffchainTokens ??= $this->getDefaultMinimumAmount(SupermindRequestPaymentMethod::OFFCHAIN_TOKEN);
         $this->minCash ??= $this->getDefaultMinimumAmount(SupermindRequestPaymentMethod::CASH);
     }
 
