@@ -8,7 +8,6 @@ use Minds\Core\Di\Di;
 use Minds\Core\Supermind\Settings\Exceptions\SettingsNotFoundException;
 use Minds\Core\Supermind\Settings\Models\Settings;
 use Minds\Core\Supermind\Settings\Repositories\RepositoryInterface;
-use Minds\Core\Supermind\Settings\Validators\SupermindUpdateSettingsRequestValidator;
 use Minds\Entities\User;
 
 class Manager
@@ -17,11 +16,9 @@ class Manager
     private User $user;
 
     public function __construct(
-        private ?RepositoryInterface $manager = null,
-        private ?SupermindUpdateSettingsRequestValidator $getValidator = null
+        private ?RepositoryInterface $settingsRepository = null
     ) {
         $this->settingsRepository ??= Di::_()->get('Supermind\Settings\Repository');
-        $this->getValidator ??= new SupermindUpdateSettingsRequestValidator();
     }
 
     /**
