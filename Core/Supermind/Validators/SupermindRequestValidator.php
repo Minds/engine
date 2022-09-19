@@ -126,6 +126,9 @@ class SupermindRequestValidator implements ValidatorInterface
      */
     private function checkSupermindDetails(array $supermindRequest): void
     {
+        $user = Session::getLoggedInUser();
+        $this->paymentProcessor->setUser($user);
+
         if (!isset($supermindRequest['terms_agreed']) || !$supermindRequest['terms_agreed']) {
             $this->errors->add(
                 new ValidationError(
@@ -203,7 +206,7 @@ class SupermindRequestValidator implements ValidatorInterface
                     )
                 );
             } elseif ($paymentOptions['payment_type'] === SupermindRequestPaymentMethod::CASH) {
-                $isPaymentMethodIdValid = $this->paymentMethodsManager->checkPaymentMethodOwnership(Session::getLoggedinUser()->getGuid(), $paymentOptions['payment_method_id']);
+                $isPaymentMethodIdValid = $this->paymentMethodsManager->checkPaymentMethodOwnership($user->getGuid(), $paymentOptions['payment_method_id']);
                 if (!$isPaymentMethodIdValid) {
                     $this->errors->add(
                         new ValidationError(
