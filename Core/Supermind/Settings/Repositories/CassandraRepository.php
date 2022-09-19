@@ -49,8 +49,8 @@ class CassandraRepository implements RepositoryInterface
             $parsedResult = json_decode($result->first()['value']);
 
             return (new Settings(
-                minOffchainTokens: $parsedResult->min_offchain_tokens,
-                minCash: $parsedResult->min_cash
+                minOffchainTokens: $parsedResult->min_offchain_tokens ?? null,
+                minCash: $parsedResult->min_cash ?? null
             ));
         } catch (SettingsNotFoundException) {
             throw new SettingsNotFoundException();
