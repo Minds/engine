@@ -189,8 +189,12 @@ class Manager
             );
         }
         try {
-            $receiverUser = new User($supermindDetails['supermind_request']['receiver_guid']);
-            if ($receiverUser->getGuid() === null) {
+            $receiverGuid = $supermindDetails['supermind_request']['receiver_guid'];
+            $receiverUser = is_numeric($receiverGuid) ?
+                $this->entitiesBuilder->single($receiverGuid) :
+                $this->entitiesBuilder->getByUserByIndex($receiverGuid);
+
+            if (!$receiverUser || !$receiverUser instanceof User) {
                 throw new UserErrorException(
                     message: "An error was encountered whilst validating the request",
                     code: 400,

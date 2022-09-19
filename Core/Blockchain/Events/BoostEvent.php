@@ -23,8 +23,6 @@ class BoostEvent implements BlockchainEventInterface
         'blockchain:fail' => 'boostFail',
     ];
 
-    protected $mongo;
-
     /** @var Repository $txRepository */
     protected $txRepository;
 
@@ -35,12 +33,10 @@ class BoostEvent implements BlockchainEventInterface
     protected $config;
 
     public function __construct(
-        $mongo = null,
         $txRepository = null,
         $boostRepository = null,
         $config = null
     ) {
-        $this->mongo = $mongo ?: Data\Client::build('MongoDB');
         $this->txRepository = $txRepository ?: Di::_()->get('Blockchain\Transactions\Repository');
         $this->boostRepository = $boostRepository ?: Di::_()->get('Boost\Repository');
         $this->config = $config ?: Di::_()->get('Config');
@@ -100,8 +96,6 @@ class BoostEvent implements BlockchainEventInterface
 
         $boost->setState('failed')
             ->save();
-
-        $this->mongo->remove("boost", [ '_id' => $boost->getId() ]);
     }
 
     public function boostSent($log, $transaction)

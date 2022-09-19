@@ -5,22 +5,19 @@ namespace Spec\Minds\Core\Blockchain\Events;
 use Minds\Core\Blockchain\Transactions\Repository;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Config;
-use Minds\Core\Data\MongoDB\Client;
 use Minds\Entities\Boost\Network;
 use PhpSpec\ObjectBehavior;
 
 class BoostEventSpec extends ObjectBehavior
 {
-    protected $mongo;
     protected $txRepository;
     protected $boostRepository;
     protected $config;
 
-    public function let(Client $mongo, Repository $txRepository, \Minds\Core\Boost\Repository $boostRepository, Config $config)
+    public function let(Repository $txRepository, \Minds\Core\Boost\Repository $boostRepository, Config $config)
     {
-        $this->beConstructedWith($mongo, $txRepository, $boostRepository, $config);
+        $this->beConstructedWith($txRepository, $boostRepository, $config);
 
-        $this->mongo = $mongo;
         $this->txRepository = $txRepository;
         $this->boostRepository = $boostRepository;
         $this->config = $config;
@@ -188,12 +185,6 @@ class BoostEventSpec extends ObjectBehavior
         $boost->save()
             ->shouldBeCalled();
 
-        $this->mongo->remove("boost", ["_id" => 'boost_id']);
-
-        $boost->getId()
-            ->shouldBeCalled()
-            ->willReturn('boost_id');
-
         $this->event('blockchain:fail', ['address' => '0xasd'], $transaction);
     }
 
@@ -299,9 +290,6 @@ class BoostEventSpec extends ObjectBehavior
             ]);
 
         $this->txRepository->update($transaction, ['failed'])
-            ->shouldBeCalled();
-
-        $this->mongo->remove('boost', ['_id' => 'boostID'])
             ->shouldBeCalled();
 
         $this->boostFail(['address' => '0xasd'], $transaction);
