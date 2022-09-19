@@ -3,6 +3,7 @@
 namespace Minds\Core\Feeds\Activity;
 
 use Minds\Common\EntityMutation;
+use Minds\Core\Blogs\Blog;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
@@ -16,6 +17,7 @@ use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentFailedException;
 use Minds\Entities\Activity;
 use Minds\Entities\Image;
+use Minds\Entities\MindsObject;
 use Minds\Entities\User;
 use Minds\Entities\Video;
 use Minds\Exceptions\ServerErrorException;
@@ -96,7 +98,15 @@ class Controller
             // Fetch the remind
 
             $remind = $this->entitiesBuilder->single($payload['remind_guid']);
-            if (!$remind instanceof Activity) {
+            if (!(
+                $remind instanceof Activity ||
+                $remind instanceof Image ||
+                $remind instanceof Video ||
+                $remind instanceof Blog
+            )) {
+                // We should **NOT** allow for the reminding of non-Activity entities,
+                // however this is causing client side regressions and they are being cast to activity views
+                // This can be revisited once we migrate entirely away from ->entity_guid support.
                 throw new UserErrorException("The post your are trying to remind or quote was not found");
             }
                     
