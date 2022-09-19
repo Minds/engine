@@ -25,22 +25,22 @@ class ControllerSpec extends ObjectBehavior
         $this->shouldHaveType(Controller::class);
     }
 
-    public function it_should_set_scheduled_post(ServerRequest $serverRequest)
-    {
-        $serverRequest->getAttribute('_user')->willReturn(new User());
-        $serverRequest->getParsedBody()
-            ->willReturn([
-                'time_created' => strtotime('midnight tomorrow'),
-            ]);
+    // public function it_should_set_scheduled_post(ServerRequest $serverRequest)
+    // {
+    //     $serverRequest->getAttribute('_user')->willReturn(new User());
+    //     $serverRequest->getParsedBody()
+    //         ->willReturn([
+    //             'time_created' => strtotime('midnight tomorrow'),
+    //         ]);
 
-        $this->managerMock->add(Argument::that(function ($activity) {
-            $activity->guid = '123';
+    //     $this->managerMock->add(Argument::that(function ($activity) {
+    //         $activity->guid = '123';
 
-            return $activity->getTimeCreated() === strtotime('midnight tomorrow');
-        }))
-            ->shouldBeCalled()
-            ->willReturn(true);
+    //         return $activity->getTimeCreated() === strtotime('midnight tomorrow');
+    //     }))
+    //         ->shouldBeCalled()
+    //         ->willReturn(true);
 
-        $this->createNewActivity($serverRequest);
-    }
+    //     $this->createNewActivity($serverRequest);
+    // }
 }
