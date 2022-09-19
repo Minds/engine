@@ -262,42 +262,42 @@ Feature: Supermind
   Scenario: Get Supermind inbox
     Given I login to "receive" Supermind requests
     When I call the "v3/supermind/inbox" endpoint with params
-    """json
-    [
-        {
-          "key": "limit",
-          "value": 12
-        },
-        {
-          "key": "offset",
-          "value": 0
-        }
-      ]
-    """
+      """json
+      [
+          {
+            "key": "limit",
+            "value": 12
+          },
+          {
+            "key": "offset",
+            "value": 0
+          }
+        ]
+      """
     Then I get a 200 response containing
-    """json
-    {}
-    """
+      """json
+      {}
+      """
 
   Scenario: Get Supermind outbox
     Given I login to "create" Supermind requests
     When I call the "v3/supermind/outbox" endpoint with params
-    """json
-    [
-        {
-          "key": "limit",
-          "value": 12
-        },
-        {
-          "key": "offset",
-          "value": 0
-        }
-      ]
-    """
+      """json
+      [
+          {
+            "key": "limit",
+            "value": 12
+          },
+          {
+            "key": "offset",
+            "value": 0
+          }
+        ]
+      """
     Then I get a 200 response containing
-    """json
-    {}
-    """
+      """json
+      {}
+      """
 
   Scenario: Get default supermind settings
     Given I register to Minds with
@@ -311,16 +311,16 @@ Feature: Supermind
       }
       """
     When I call the "v3/supermind/settings" endpoint with params
-    """json
-      {}
-    """
+      """json
+        {}
+      """
     Then I get a 200 response containing
-    """json
-      {
-        "min_offchain_tokens": 1,
-        "min_cash": 10
-      }
-    """
+      """json
+        {
+          "min_offchain_tokens": 1,
+          "min_cash": 10
+        }
+      """
 
   Scenario: Change supermind settings
     Given I register to Minds with
@@ -333,24 +333,18 @@ Feature: Supermind
         "parentId": ""
       }
       """
-    When I change my supermind settings to 
-    """json
-      {
-        "min_offchain_tokens": 2,
-        "min_cash": 20
-      }
-    """
-    And I call the "v3/supermind/settings" endpoint with params
-    """json
-      {}
-    """
+    And I have "supermind_settings" data
+      """json
+        {
+          "min_offchain_tokens": 3.14,
+          "min_cash": 20
+        }
+      """
+    When I "POST" stored data "supermind_settings" to the "v3/supermind/settings" endpoint
     Then I get a 200 response containing
-    """json
-      {
-        "min_offchain_tokens": 2,
-        "min_cash": 20
-      }
-    """
+      """json
+        {}
+      """
 
   Scenario: Change single supermind setting
     Given I register to Minds with
@@ -363,54 +357,15 @@ Feature: Supermind
         "parentId": ""
       }
       """
-    When I change my supermind settings to 
-    """json
-      {
-        "min_cash": 20
-      }
-    """
-    And I call the "v3/supermind/settings" endpoint with params
-    """json
-      {}
-    """
-    Then I get a 200 response containing
-    """json
-      {
-        "min_offchain_tokens": 1,
-        "min_cash": 20
-      }
-    """
-
-
-  Scenario: Change supermind settings to values with valid decimal places
-    Given I register to Minds with
+    And I have "supermind_settings" data
       """json
-      {
-        "username": "",
-        "password": "Pa$$w0rd",
-        "email": "noreply@minds.com",
-        "captcha": "{\"clientText\": \"captcha_bypass\"}",
-        "parentId": ""
-      }
+        { "min_cash": 20 }
       """
-    When I change my supermind settings to 
-    """json
-      {
-        "min_offchain_tokens": 2.0,
-        "min_cash": 20.0
-      }
-    """
-    And I call the "v3/supermind/settings" endpoint with params
-    """json
-      {}
-    """
+    When I "POST" stored data "supermind_settings" to the "v3/supermind/settings" endpoint
     Then I get a 200 response containing
-    """json
-      {
-        "min_offchain_tokens": 2.0,
-        "min_cash": 20.0
-      }
-    """
+      """json
+        {}
+      """
 
   Scenario: Try to change supermind settings to have too many decimal places
     Given I register to Minds with
@@ -423,17 +378,18 @@ Feature: Supermind
         "parentId": ""
       }
       """
-    When I change my supermind settings to 
-    """json
-      {
-        "min_offchain_tokens": 2.001,
-        "min_cash": 20.001
-      }
-    """
+    And I have "supermind_settings" data
+      """json
+        {
+          "min_offchain_tokens": 2.001,
+          "min_cash": 20.001
+        }
+      """
+    When I "POST" stored data "supermind_settings" to the "v3/supermind/settings" endpoint
     Then I get a 400 response containing
-    """json
-    {}
-    """
+      """json
+      {}
+      """
 
   Scenario: Try to change supermind settings to have too low a value
     Given I register to Minds with
@@ -446,14 +402,29 @@ Feature: Supermind
         "parentId": ""
       }
       """
-    When I change my supermind settings to 
-    """json
-      {
-        "min_offchain_tokens": 0.9,
-        "min_cash": 9
-      }
-    """
+    And I have "supermind_settings" data
+      """json
+        {
+          "min_offchain_tokens": 0.9,
+          "min_cash": 9
+        }
+      """
+    When I "POST" stored data "supermind_settings" to the "v3/supermind/settings" endpoint
     Then I get a 400 response containing
-    """json
-    {}
-    """
+      """json
+      {}
+      """
+
+  Scenario: Try to change settings when not logged in
+    Given I have "supermind_settings" data
+      """json
+        {
+          "min_offchain_tokens": 0.9,
+          "min_cash": 9
+        }
+      """
+    When I "POST" stored data "supermind_settings" to the "v3/supermind/settings" endpoint
+    Then I get a 401 response containing
+      """json
+      {}
+      """

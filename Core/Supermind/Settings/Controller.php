@@ -54,7 +54,6 @@ class Controller
 //            new OA\Response(response: 200, description: "Ok"),
 //            new OA\Response(response: 400, description: "Bad Request"),
 //            new OA\Response(response: 401, description: "Unauthorized"),
-//            new OA\Response(response: 403, description: "Forbidden"),
 //        ]
 //    )]
     public function storeSettings(ServerRequestInterface $request): JsonResponse
