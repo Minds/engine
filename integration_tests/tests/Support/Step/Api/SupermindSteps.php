@@ -50,4 +50,11 @@ class SupermindSteps extends ApiTester
     {
         $this->rejectSupermindRequest($dataToRetrieve);
     }
+
+    #[When('I change my supermind settings to ":supermindSettingsData"')]
+    public function whenIChangeMySupermindSettingsTo(PyStringNode $supermindSettingsData)
+    {
+        $supermindSettingsData = json_decode($supermindSettingsData->getRaw(), true);
+        $this->setSupermindSettings($supermindSettingsData);
+    }
 }

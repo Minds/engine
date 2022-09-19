@@ -99,4 +99,25 @@ class Supermind extends Module
             "v3/supermind/{$details->supermind->request_guid}/reject"
         );
     }
+
+    /**
+     * Set supermind settings, passing provided array to endpoint.
+     * @param array $settings - settings to update.
+     * @return void
+     * @throws ModuleException
+     */
+    public function setSupermindSettings(array $settings): void
+    {
+        /**
+         * @var REST $apiClient
+         */
+        $apiClient = $this->getModule("REST");
+
+        $apiClient->haveHttpHeader("Content-Type", 'application/json');
+        $apiClient->send(
+            "POST",
+            "v3/supermind/settings",
+            $settings
+        );
+    }
 }
