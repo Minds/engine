@@ -66,7 +66,7 @@ class Settings implements JsonSerializable
     const DEFAULT_TEXT_COLOR = '#000000';
 
     /** @var string */
-    const DEFAULT_PRIMARY_COLOR = '#4690df';
+    const DEFAULT_PRIMARY_COLOR = '#1b85d6';
 
     /** @var string */
     const DEFAULT_PLAIN_BACKGROUND_COLOR = '#ffffff';
