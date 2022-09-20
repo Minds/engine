@@ -17,6 +17,7 @@ use Minds\Core\Rewards\Contributions\ContributionValues;
 use Minds\Core\Session;
 use Minds\Core\ThirdPartyNetworks\Manager as ThirdPartyNetworksManager;
 use Minds\Core\Experiments;
+use Minds\Core\Supermind\Settings\Models\Settings as SupermindSettings;
 use Minds\Entities\User;
 use Minds\Core\Wire;
 
@@ -110,12 +111,6 @@ class Exported
             'contribution_values' => ContributionValues::export(),
             'environment' => getenv('MINDS_ENV') ?: 'development',
             'boost_rotator_interval' => $this->config->get('boost_rotator_interval'),
-            'supermind' => [
-                'min_thresholds' => [
-                    'min_cash' => $this->config->get('supermind')['minimum_amount']['usd'],
-                    'min_offchain_tokens' => $this->config->get('supermind')['minimum_amount']['offchain_token']
-                ]
-            ],
             'token_exchange_rate' => $this->config->get('token_exchange_rate'),
             'matrix' => [
                 'chat_url' => $this->config->get('matrix')['chat_url'] ?? null,
@@ -165,6 +160,14 @@ class Exported
             // If not a pro site and not root then tell frontend to redirect
             $exported['redirect_to_root_on_init'] = true;
         }
+
+        $defaultSupermindSettings = new SupermindSettings();
+        $exported['supermind'] = [
+            'min_thresholds' => [
+                'min_cash' => $defaultSupermindSettings->getMinCash(),
+                'min_offchain_tokens' => $defaultSupermindSettings->getMinOffchainTokens()
+            ]
+        ];
 
         return $exported;
     }

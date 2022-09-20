@@ -11,8 +11,10 @@ use Minds\Traits\MagicAttributes;
 
 /**
  * Settings model
- * @method Settings setMinCash(int $amount)
- * @method Settings setMinOffchainTokens(int $amount)
+ * @method float getMinCash()
+ * @method float getMinOffchainTokens()
+ * @method Settings setMinCash(float $amount)
+ * @method Settings setMinOffchainTokens(float $amount)
  */
 class Settings implements \JsonSerializable
 {
