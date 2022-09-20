@@ -49,7 +49,8 @@ class SupermindUpdateSettingsRequestValidator implements ValidatorInterface
         }
 
         foreach ($dataToValidate as $key => $value) {
-            $this->checkDecimalPlaces($key, $value, 2)
+            $this->checkType($key, $value)
+                ->checkDecimalPlaces($key, $value, 2)
                 ->checkMinTokenAmount($key, $value)
                 ->checkMinCashAmount($key, $value);
         }
@@ -66,13 +67,32 @@ class SupermindUpdateSettingsRequestValidator implements ValidatorInterface
     }
 
     /**
+     * Check type is numeric but not a string.
+     * @param string $fieldName - field name to check for.
+     * @param mixed $value - value to check.
+     * @return self
+     */
+    private function checkType(string $fieldName, mixed $value): self
+    {
+        if (!is_numeric($value) || is_string($value)) {
+            $this->errors->add(
+                new ValidationError(
+                    $fieldName,
+                    "$fieldName must be a number"
+                )
+            );
+        }
+        return $this;
+    }
+
+    /**
      * Check decimal places in a float are not more than a given amount.
      * @param string $fieldName - field name to check for.
-     * @param float $value - value to check.
+     * @param mixed $value - value to check.
      * @param integer $decimalPlaces - maximum decimal places for value.
      * @return self
      */
-    private function checkDecimalPlaces(string $fieldName, float $value, int $decimalPlaces): self
+    private function checkDecimalPlaces(string $fieldName, mixed $value, int $decimalPlaces): self
     {
         if ((int) strpos(strrev((string) $value), ".") > $decimalPlaces) {
             $this->errors->add(
@@ -88,10 +108,10 @@ class SupermindUpdateSettingsRequestValidator implements ValidatorInterface
     /**
      * Check minimum token amount - add any errors to instance member errors.
      * @param string $key - key to check for.
-     * @param float $value - value to check for.
+     * @param mixed $value - value to check for.
      * @return self
      */
-    private function checkMinTokenAmount(string $key, float $value): self
+    private function checkMinTokenAmount(string $key, mixed $value): self
     {
         $minimumTokenAmount = $this->defaultSettings->getDefaultMinimumAmount(SupermindRequestPaymentMethod::OFFCHAIN_TOKEN);
 
@@ -109,10 +129,10 @@ class SupermindUpdateSettingsRequestValidator implements ValidatorInterface
     /**
      * Check minimum cash amount - add any errors to instance member errors.
      * @param string $key - key to check for.
-     * @param float $value - value to check for.
+     * @param mixed $value - value to check for.
      * @return self
      */
-    private function checkMinCashAmount(string $key, float $value): self
+    private function checkMinCashAmount(string $key, mixed $value): self
     {
         $minimumCashAmount = $this->defaultSettings->getDefaultMinimumAmount(SupermindRequestPaymentMethod::CASH);
 

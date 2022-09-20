@@ -110,6 +110,12 @@ class Exported
             'contribution_values' => ContributionValues::export(),
             'environment' => getenv('MINDS_ENV') ?: 'development',
             'boost_rotator_interval' => $this->config->get('boost_rotator_interval'),
+            'supermind' => [
+                'min_thresholds' => [
+                    'min_cash' => $this->config->get('supermind')['minimum_amount']['usd'],
+                    'min_offchain_tokens' => $this->config->get('supermind')['minimum_amount']['offchain_token']
+                ]
+            ],
             'token_exchange_rate' => $this->config->get('token_exchange_rate'),
             'matrix' => [
                 'chat_url' => $this->config->get('matrix')['chat_url'] ?? null,

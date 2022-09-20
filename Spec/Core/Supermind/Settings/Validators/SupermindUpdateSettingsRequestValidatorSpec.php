@@ -43,6 +43,27 @@ class SupermindUpdateSettingsRequestValidatorSpec extends ObjectBehavior
         $this->getErrors()->count()->shouldBe(0);
     }
 
+
+    public function it_should_NOT_validate_a_change_with_strings_instead_of_numbers()
+    {
+        $data = [
+            'min_offchain_tokens' => "2",
+            'min_cash' => 20
+        ];
+
+        $this->defaultSettings->getDefaultMinimumAmount(SupermindRequestPaymentMethod::CASH)
+            ->shouldBeCalled()
+            ->willReturn(10);
+
+        $this->defaultSettings->getDefaultMinimumAmount(SupermindRequestPaymentMethod::OFFCHAIN_TOKEN)
+            ->shouldBeCalled()
+            ->willReturn(1);
+
+        $this->validate($data);
+
+        $this->getErrors()->count()->shouldBe(1);
+    }
+
     public function it_should_NOT_validate_a_change_with_too_many_decimal_places()
     {
         $data = [
