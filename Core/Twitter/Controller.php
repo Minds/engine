@@ -38,17 +38,22 @@ class Controller
     {
         $authorizationCode = $request->getQueryParams()['code'] ?? null;
 
-        if (is_null($authorizationCode)) {
-            return new JsonResponse($request->getQueryParams());
-        }
+        $loggedInUser = $request->getAttribute('_user');
+        $this->manager->setUser($loggedInUser);
 
         $this->manager->generateOAuthAccessToken($authorizationCode);
 
         return new JsonResponse([]);
     }
 
-    public function storeTwitterOAuthAccessToken(ServerRequestInterface $request): JsonResponse
+    public function postTweet(ServerRequestInterface $request): JsonResponse
     {
-        return new JsonResponse([]);
+        $requestBody = $request->getParsedBody();
+
+        $loggedInUser = $request->getAttribute('_user');
+        $this->manager->setUser($loggedInUser);
+
+        $response = $this->manager->postTweet($requestBody['tweet_text']);
+        return new JsonResponse($response);
     }
 }

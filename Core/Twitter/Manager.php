@@ -3,6 +3,7 @@
 namespace Minds\Core\Twitter;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Twitter\Client\DTOs\TweetDTO;
 use Minds\Core\Twitter\Client\TwitterClient;
 use Minds\Core\Twitter\Client\TwitterClientInterface;
 use Minds\Core\Twitter\Exceptions\TwitterDetailsNotFoundException;
@@ -41,14 +42,55 @@ class Manager
      */
     public function generateOAuthAccessToken(string $authorizationCode): void
     {
-        ['accessToken' => $accessToken, 'refreshToken' => $refreshToken] =
+        ['accessToken' => $accessToken, 'refreshToken' => $refreshToken, 'accessTokenExpiry' => $accessTokenExpiry] =
             $this->twitterClient->generateOAuthAccessToken($authorizationCode);
 
         $this->repository->storeOAuth2TokenInfo(
             userGuid: $this->user->getGuid(),
             accessToken: $accessToken,
+            accessTokenExpiry: $accessTokenExpiry,
             refreshToken: $refreshToken
         );
+    }
+
+    /**
+     * Publish Tweet on user's Twitter account
+     * @param string $text
+     * @return bool
+     * @throws TwitterDetailsNotFoundException
+     */
+    public function postTweet(string $text): bool
+    {
+        $twitterDetails = $this->repository->getDetails($this->user->getGuid());
+
+        $tweet = (new TweetDTO())
+            ->setText($text);
+
+        $accessToken = $this->checkAndRefreshToken($twitterDetails);
+
+        return $this->twitterClient->postTweet($tweet, $accessToken);
+    }
+
+    /**
+     * @param TwitterDetails $twitterDetails
+     * @return string
+     */
+    private function checkAndRefreshToken(TwitterDetails $twitterDetails): string
+    {
+        $accessToken = $twitterDetails->getAccessToken();
+        if (time() >= $twitterDetails->getAccessTokenExpiry()) {
+            ['accessToken' => $accessToken, 'refreshToken' => $refreshToken, 'accessTokenExpiry' => $accessTokenExpiry] =
+                $this->twitterClient->refreshOAuthAccessToken($twitterDetails->getRefreshToken());
+
+            $this->repository->storeOAuth2TokenInfo(
+                userGuid: $this->user->getGuid(),
+                accessToken: $accessToken,
+                accessTokenExpiry: $accessTokenExpiry,
+                refreshToken: $refreshToken
+            );
+        }
+
+        return $accessToken;
     }
 
     /**

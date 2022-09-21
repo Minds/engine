@@ -6,10 +6,12 @@ namespace Minds\Core\Twitter\Client;
 
 use Abraham\TwitterOAuth\TwitterOAuth;
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
 use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Di\Di;
+use Minds\Core\Twitter\Client\DTOs\TweetDTO;
 
 /**
  *
@@ -19,7 +21,6 @@ class TwitterClient implements TwitterClientInterface
     private const API_BASE_URI = 'https://api.twitter.com';
 
     private const OAUTH_TOKEN_REQUEST_CALLBACK = 'api/v3/twitter/oauth';
-    private const OAUTH_ACCESS_TOKEN_REQUEST_CALLBACK = 'api/v3/twitter/oauth/access-token';
 
     /**
      * @param TwitterOAuth|null $connection
@@ -53,6 +54,7 @@ class TwitterClient implements TwitterClientInterface
                 [
                     'tweet.read',
                     'tweet.write',
+                    'users.read',
                     'offline.access',
                 ]
             ),
@@ -83,7 +85,8 @@ class TwitterClient implements TwitterClientInterface
             $details = json_decode($response->getBody()->getContents(), true);
             return [
                 'accessToken' => $details['access_token'],
-                'refreshToken' => $details['refresh_token']
+                'accessTokenExpiry' => strtotime("+" . $details['expires_in'] . " seconds"),
+                'refreshToken' => $details['refresh_token'],
             ];
         });
 
@@ -109,9 +112,34 @@ class TwitterClient implements TwitterClientInterface
             $details = json_decode($response->getBody()->getContents(), true);
             return [
                 'accessToken' => $details['access_token'],
+                'accessTokenExpiry' => strtotime("+" . $details['expires_in'] . " seconds"),
                 'refreshToken' => $details['refresh_token']
             ];
         });
+
+        return $response->wait(true);
+    }
+
+    public function postTweet(TweetDTO $tweet, string $accessToken): bool
+    {
+        $response = $this->httpClient->postAsync(
+            '2/tweets',
+            [
+                RequestOptions::HEADERS => [
+                    'Content-Type' => 'application/json',
+                    'Authorization' => "Bearer $accessToken"
+                ],
+                RequestOptions::BODY => json_encode($tweet)
+            ]
+        )->then(
+            function (Response $response): bool {
+                return true;
+            },
+            function (RequestException $e): void {
+                print_r(json_decode($e->getResponse()->getBody()->getContents()));
+                throw $e;
+            }
+        );
 
         return $response->wait(true);
     }

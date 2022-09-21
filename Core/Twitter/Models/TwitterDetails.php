@@ -27,6 +27,8 @@ use Minds\Traits\MagicAttributes;
  * @method int|null getTwitterUserId()
  * @method self setTwitterUsername(string $twitterUsername)
  * @method string|null getTwitterUsername()
+ * @method self setAccessTokenExpiry(string $accessTokenExpiry)
+ * @method string getAccessTokenExpiry()
  */
 class TwitterDetails implements ExportableInterface, EntityInterface
 {
@@ -40,6 +42,7 @@ class TwitterDetails implements ExportableInterface, EntityInterface
     private ?int $twitterUserId = null;
     private ?string $twitterUsername = null;
     private string $accessToken;
+    private string $accessTokenExpiry;
     private string $refreshToken;
 
     public function __construct(
@@ -81,11 +84,15 @@ class TwitterDetails implements ExportableInterface, EntityInterface
         }
 
         if (isset($data['access_token'])) {
-            $twitterDetails->accessToken = $data['access_token'];
+            $twitterDetails->setAccessToken($data['access_token']);
+        }
+
+        if (isset($data['access_token_expiry'])) {
+            $twitterDetails->setAccessTokenExpiry($data['access_token_expiry']);
         }
 
         if (isset($data['refresh_token'])) {
-            $twitterDetails->refreshToken = $data['refresh_token'];
+            $twitterDetails->setRefreshToken($data['refresh_token']);
         }
 
         return $twitterDetails;
@@ -141,6 +148,11 @@ class TwitterDetails implements ExportableInterface, EntityInterface
 
     public function setAccessToken(string $accessToken): self
     {
+        if (OpenSSL::decrypt($accessToken, file_get_contents($this->mindsConfig->get('encryptionKeys')['twt_tokens']['private'])) !== null) {
+            $this->accessToken = $accessToken;
+            return $this;
+        }
+
         $this->accessToken = base64_encode(OpenSSL::encrypt($accessToken, file_get_contents($this->mindsConfig->get('encryptionKeys')['twt_tokens']['public'])));
         return $this;
     }
@@ -152,6 +164,10 @@ class TwitterDetails implements ExportableInterface, EntityInterface
 
     public function setRefreshToken(string $refreshToken): self
     {
+        if (OpenSSL::decrypt($refreshToken, file_get_contents($this->mindsConfig->get('encryptionKeys')['twt_tokens']['private'])) !== null) {
+            $this->refreshToken = $refreshToken;
+            return $this;
+        }
         $this->refreshToken = base64_encode(OpenSSL::encrypt($refreshToken, file_get_contents($this->mindsConfig->get('encryptionKeys')['twt_tokens']['public'])));
         return $this;
     }

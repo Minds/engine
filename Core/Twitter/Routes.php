@@ -29,10 +29,16 @@ class Routes extends ModuleRoutes
                     Ref::_('Twitter\Controller', 'generateTwitterOAuthAccessToken')
                 );
 
-                $route->get(
-                    'oauth/access-token',
-                    Ref::_('Twitter\Controller', 'storeTwitterOAuthAccessToken')
+//                $route
+//                    ->withMiddleware([
+//                        AdminMiddleware::class
+//                    ])
+//                    ->do(function (Route $route) {
+                $route->post(
+                    'tweets',
+                    Ref::_('Twitter\Controller', 'postTweet')
                 );
+//                    });
             });
     }
 }

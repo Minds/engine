@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Minds\Core\Twitter;
 
 use Cassandra\Bigint;
+use Cassandra\Timestamp;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom as PreparedStatement;
 use Minds\Core\Di\Di;
@@ -16,7 +17,7 @@ class Repository
     public function __construct(
         private ?Client $cassandraClient = null,
     ) {
-        $this->$cassandraClient ??= Di::_()->get('Database\Cassandra\Cql');
+        $this->cassandraClient ??= Di::_()->get('Database\Cassandra\Cql');
     }
 
     /**
@@ -28,17 +29,25 @@ class Repository
     public function storeOAuth2TokenInfo(
         string $userGuid,
         string $accessToken,
+        string $accessTokenExpiry,
         string $refreshToken
     ): bool {
+        $details = TwitterDetails::fromData([
+            'user_guid' => $userGuid,
+            'access_token' => $accessToken,
+            'refresh_token' => $refreshToken
+        ]);
+
         $statement =
             "INSERT INTO twitter_sync
-                (user_guid, access_token, refresh_token)
+                (user_guid, access_token, access_token_expiry, refresh_token)
             VALUES
-                (?, ?, ?)";
+                (?, ?, ?, ?)";
         $values = [
             new Bigint($userGuid),
-            $accessToken,
-            $refreshToken
+            $details->getAccessToken(),
+            new Timestamp((int) $accessTokenExpiry, 0),
+            $details->getRefreshToken()
         ];
 
         $query = (new PreparedStatement())->query($statement, $values);
