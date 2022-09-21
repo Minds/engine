@@ -9,7 +9,7 @@ class AdminReportTokenAccountEvent implements EventInterface
     use TimebasedEventTrait;
 
     /** @var string */
-    const TOPIC_NAME = 'admin-report-token-accounts-json';
+    const TOPIC_NAME = 'admin-report-token-accounts';
 
     protected string $userGuid;
     protected string $userType;

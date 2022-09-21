@@ -9,7 +9,7 @@ class ScoreCommentsForSpamEvent implements EventInterface
     use TimebasedEventTrait;
 
     /** @var string */
-    const TOPIC_NAME = 'score-comments-for-spam-json';
+    const TOPIC_NAME = 'score-comments-for-spam';
 
     protected string $commentUrn;
     protected string $ownerGuid;

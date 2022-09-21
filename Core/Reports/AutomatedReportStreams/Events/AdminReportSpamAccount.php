@@ -9,7 +9,7 @@ class AdminReportSpamAccountEvent implements EventInterface
     use TimebasedEventTrait;
 
     /** @var string */
-    const TOPIC_NAME = 'admin-report-spam-accounts-json';
+    const TOPIC_NAME = 'admin-report-spam-accounts';
 
     protected string $userGuid;
     protected int $totalComments;
