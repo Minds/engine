@@ -96,6 +96,51 @@ class WithdrawEventSpec extends ObjectBehavior
         ], $transaction);
     }
 
+    public function it_should_complete_withdrawal_and_force_lowercase_on_event(
+        Request $request,
+        Transaction $transaction
+    ) {
+        $transaction->getTimestamp()
+            ->shouldBeCalled()
+            ->willReturn(123456789);
+
+        $request->getAddress()
+            ->shouldBeCalled()
+            ->willReturn('0x177fd9efd24535e73b81e99e7f838cdef265e6CB');
+
+        $request->getGas()
+            ->shouldBeCalled()
+            ->willReturn('67839000000000');
+
+        $request->getAmount()
+            ->shouldBeCalled()
+            ->willReturn('10000000000000000000');
+
+        $this->manager->get(
+            Argument::that(function (Request $request) {
+                return (string) $request->getUserGuid() === '786645648014315523' &&
+                    $request->getTimestamp() === 123456789 &&
+                    $request->getTx() === '0x62a70ccf3b37b9368efa3dd4785e715139c994ba9957a125e299b14a8eccd00c';
+            })
+        )
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $this->manager->confirm($request, Argument::type('\Minds\Core\Blockchain\Transactions\Transaction'))
+            ->shouldBeCalled();
+
+        $data = "0x000000000000000000000000177fd9efd24535e73b81e99e7f838cdef265e6cb"
+            . "0000000000000000000000000000000000000000000000000aeaba0c8e001003"
+            . "00000000000000000000000000000000000000000000000000003db2ff7f3600"
+            . "0000000000000000000000000000000000000000000000008ac7230489e80000";
+
+        $this->onRequest([
+            'address' => '0xasd',
+            'data' => $data,
+            'transactionHash' => '0x62a70ccf3b37b9368efa3dd4785e715139c994ba9957a125e299b14a8eccd00c',
+        ], $transaction);
+    }
+
     public function it_should_send_a_blockchain_fail_event(Transaction $transaction)
     {
         $transaction->getContract()
