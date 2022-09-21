@@ -1800,3 +1800,6 @@ ALTER TABLE minds.twitter_sync
 
 ALTER TABLE minds.twitter_sync
     ADD refresh_token text;
+
+ALTER TABLE minds.twitter_sync
+    ADD access_token_expiry timestamp;
