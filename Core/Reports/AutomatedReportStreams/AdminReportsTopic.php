@@ -6,10 +6,6 @@ use Minds\Core\EventStreams\Topics\AbstractTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Pulsar\Consumer;
 use Pulsar\ConsumerConfiguration;
-use Pulsar\MessageBuilder;
-use Pulsar\ProducerConfiguration;
-use Pulsar\Result;
-use Pulsar\SchemaType;
 
 class AdminReportsTopic extends AbstractTopic implements TopicInterface
 {
@@ -29,10 +25,27 @@ class AdminReportsTopic extends AbstractTopic implements TopicInterface
     {
         $tenant = $this->getPulsarTenant();
         $namespace = $this->getPulsarNamespace();
-        $topicRegex = 'admin-report-' . $topicRegex;
+        $topicRegex = $topicRegex;
    
         $config = new ConsumerConfiguration();
         $config->setConsumerType(Consumer::ConsumerShared);
+        // $config->setSchema(SchemaType::JSON, "SpamComment", '{
+        //     "type": "record",
+        //     "name": "SpamComment",
+        //     "fields": [
+        //         {"name": "comment_guid", "type": "long" },
+        //         {"name": "owner_guid", "type": "long" },
+        //         {"name": "entity_guid", "type": ["null", "long" ] },
+        //         {"name": "parent_guid_l1", "type": ["null", "long" ] },
+        //         {"name": "parent_guid_l2", "type": ["null", "long" ] },
+        //         {"name": "parent_guid_l3", "type": ["null", "long" ] },
+        //         {"name": "time_created", "type": "long" },
+        //         {"name": "spam_predict", "type": "double" },
+        //         {"name": "activity_views", "type": "int" },
+        //         {"name": "last_engagement", "type": "long" },
+        //         {"name": "score", "type": "double" }
+        //     ]
+        // }',[]);
 
         $consumer = $this->client()->subscribeWithRegex("persistent://$tenant/$namespace/$topicRegex", $subscriptionId, $config);
     
@@ -50,7 +63,8 @@ class AdminReportsTopic extends AbstractTopic implements TopicInterface
                 $topicName = str_replace("persistent://$tenant/$namespace/", '', $message->getMessageId()->getTopicName());
 
                 $event = match ($topicName) {
-                    'admin-report-spam-comments' => new Events\AdminReportSpamCommentEvent($data),
+                    Events\ScoreCommentsForSpamEvent::TOPIC_NAME => new Events\ScoreCommentsForSpamEvent($data),
+                    Events\AdminReportSpamCommentEvent::TOPIC_NAME => new Events\AdminReportSpamCommentEvent($data),
                     'admin-report-spam-accounts' => new Events\AdminReportSpamAccountEvent($data),
                     'admin-report-token-accounts' => new Events\AdminReportTokenAccountEvent($data),
                 };

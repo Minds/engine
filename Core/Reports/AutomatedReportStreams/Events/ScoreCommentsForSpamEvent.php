@@ -4,19 +4,16 @@ namespace Minds\Core\Reports\AutomatedReportStreams\Events;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\TimebasedEventTrait;
 
-class AdminReportSpamCommentEvent implements EventInterface
+class ScoreCommentsForSpamEvent implements EventInterface
 {
     use TimebasedEventTrait;
 
     /** @var string */
-    const TOPIC_NAME = 'admin-report-spam-comments';
+    const TOPIC_NAME = 'score-comments-for-spam-json';
 
     protected string $commentUrn;
     protected string $ownerGuid;
-    protected float $spamPredict;
-    protected int $activityViews;
-    protected int $lastEngagement;
-    protected float $score;
+    protected float $spamScore;
 
     public function __construct(array $data)
     {
@@ -27,23 +24,17 @@ class AdminReportSpamCommentEvent implements EventInterface
         // {'name': 'parent_guid_l2', 'type': ['null', 'long' ] },
         // {'name': 'parent_guid_l3', 'type': ['null', 'long' ] },
         // {'name': 'time_created', 'type': 'long' },
-        // {'name': 'spam_predict', 'type': 'double' },
-        // {'name': 'activity_views', 'type': 'int' },
-        // {'name': 'last_engagement', 'type': 'long' },
-        // {'name': 'score', 'type': 'double' }
+        // {'name': 'spam_score', 'type': 'double' }
 
         $this->commentUrn = 'urn:comment:' . implode(':', [
             $data['entity_guid'],
-            $data['parent_guid_l1'],
-            $data['parent_guid_l2'],
-            $data['parent_guid_l3'],
+            $data['parent_guid_l1'] ?? 0,
+            $data['parent_guid_l2'] ?? 0,
+            $data['parent_guid_l3'] ?? 0,
             $data['comment_guid']
         ]);
         $this->ownerGuid = $data['owner_guid'];
-        $this->spamPredict = $data['spam_predict'];
-        $this->activityViews = $data['activity_views'];
-        $this->lastEngagement = $data['last_engagement'];
-        $this->score = $data['score'];
+        $this->spamScore = $data['spam_score'];
     }
 
     /**
@@ -65,32 +56,8 @@ class AdminReportSpamCommentEvent implements EventInterface
     /**
      * @return float
      */
-    public function getSpamPredict(): float
+    public function getSpamScore(): float
     {
-        return $this->spamPredict;
-    }
-
-    /**
-     * @return int
-     */
-    public function getActivityViews(): int
-    {
-        return $this->activityViews;
-    }
-
-    /**
-     * @return int
-     */
-    public function getLastEngagement(): int
-    {
-        return $this->lastEngagement;
-    }
-
-    /**
-     * @return int
-     */
-    public function getScore(): int
-    {
-        return $this->score;
+        return $this->spamScore;
     }
 }
