@@ -8,6 +8,9 @@ use Minds\Core\Di\Di;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
 
+/**
+ * The controller for the Twitter module's endpoints
+ */
 class Controller
 {
     public function __construct(
@@ -16,19 +19,36 @@ class Controller
         $this->manager ??= Di::_()->get('Twitter\Manager');
     }
 
+    /**
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     */
     public function requestTwitterOAuthToken(ServerRequestInterface $request): JsonResponse
     {
-        $url = $this->manager->getRequestOAuthTokenUrl();
+        $url = $this->manager->getRequestOAuthAuthorizationCodeUrl();
 
         return new JsonResponse(['authorization_url' => $url]);
     }
 
-    public function storeTwitterOAuthToken(ServerRequestInterface $request): JsonResponse
+    /**
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     */
+    public function generateTwitterOAuthAccessToken(ServerRequestInterface $request): JsonResponse
     {
-        print_r($request->getQueryParams());
-        echo "\n\n";
-        print_r($request->getParsedBody());
+        $authorizationCode = $request->getQueryParams()['code'] ?? null;
 
+        if (is_null($authorizationCode)) {
+            return new JsonResponse($request->getQueryParams());
+        }
+
+        $this->manager->generateOAuthAccessToken($authorizationCode);
+
+        return new JsonResponse([]);
+    }
+
+    public function storeTwitterOAuthAccessToken(ServerRequestInterface $request): JsonResponse
+    {
         return new JsonResponse([]);
     }
 }

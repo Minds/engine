@@ -1794,3 +1794,9 @@ CREATE TABLE minds.blockchain_restricted_addresses (
     time_added timestamp,
     PRIMARY KEY (address, reason)
 );
+
+ALTER TABLE minds.twitter_sync
+    ADD access_token text;
+
+ALTER TABLE minds.twitter_sync
+    ADD refresh_token text;

@@ -26,7 +26,12 @@ class Routes extends ModuleRoutes
 
                 $route->get(
                     'oauth',
-                    Ref::_('Twitter\Controller', 'storeTwitterOAuthToken')
+                    Ref::_('Twitter\Controller', 'generateTwitterOAuthAccessToken')
+                );
+
+                $route->get(
+                    'oauth/access-token',
+                    Ref::_('Twitter\Controller', 'storeTwitterOAuthAccessToken')
                 );
             });
     }

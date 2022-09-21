@@ -4,22 +4,65 @@ declare(strict_types=1);
 
 namespace Minds\Core\Twitter;
 
-use Minds\Core\Twitter\Client\TwitterClient;
-use Minds\Core\Twitter\Client\TwitterClientInterface;
+use Cassandra\Bigint;
+use Minds\Core\Data\Cassandra\Client;
+use Minds\Core\Data\Cassandra\Prepared\Custom as PreparedStatement;
+use Minds\Core\Di\Di;
+use Minds\Core\Twitter\Exceptions\TwitterDetailsNotFoundException;
+use Minds\Core\Twitter\Models\TwitterDetails;
 
 class Repository
 {
     public function __construct(
-        private ?TwitterClientInterface $twitterClient = null
+        private ?Client $cassandraClient = null,
     ) {
-        $this->twitterClient ??= new TwitterClient();
+        $this->$cassandraClient ??= Di::_()->get('Database\Cassandra\Cql');
     }
 
     /**
-     * @return array
+     * @param string $userGuid
+     * @param string $accessToken
+     * @param string $refreshToken
+     * @return bool
      */
-    public function getRequestOAuthTokenUrlDetails(): array
+    public function storeOAuth2TokenInfo(
+        string $userGuid,
+        string $accessToken,
+        string $refreshToken
+    ): bool {
+        $statement =
+            "INSERT INTO twitter_sync
+                (user_guid, access_token, refresh_token)
+            VALUES
+                (?, ?, ?)";
+        $values = [
+            new Bigint($userGuid),
+            $accessToken,
+            $refreshToken
+        ];
+
+        $query = (new PreparedStatement())->query($statement, $values);
+
+        return (bool) $this->cassandraClient->request($query);
+    }
+
+    /**
+     * @param string $userGuid
+     * @return TwitterDetails
+     * @throws TwitterDetailsNotFoundException
+     */
+    public function getDetails(string $userGuid): TwitterDetails
     {
-        return $this->twitterClient->requestOAuthTokenUrlDetails();
+        $statement = "SELECT * FROM twitter_sync WHERE user_guid = ?";
+        $values = [ new Bigint($userGuid) ];
+        $query = (new PreparedStatement())->query($statement, $values);
+
+        $response = $this->cassandraClient->request($query);
+
+        if (!$response || $response->count() === 0) {
+            throw new TwitterDetailsNotFoundException();
+        }
+
+        return TwitterDetails::fromData($response->first());
     }
 }

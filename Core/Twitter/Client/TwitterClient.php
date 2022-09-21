@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Minds\Core\Twitter\Client;
 
 use Abraham\TwitterOAuth\TwitterOAuth;
+use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\RequestOptions;
 use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Di\Di;
 
@@ -13,47 +16,103 @@ use Minds\Core\Di\Di;
  */
 class TwitterClient implements TwitterClientInterface
 {
+    private const API_BASE_URI = 'https://api.twitter.com';
+
     private const OAUTH_TOKEN_REQUEST_CALLBACK = 'api/v3/twitter/oauth';
+    private const OAUTH_ACCESS_TOKEN_REQUEST_CALLBACK = 'api/v3/twitter/oauth/access-token';
 
     /**
      * @param TwitterOAuth|null $connection
      * @param MindsConfig|null $mindsConfig
-     * @throws \Abraham\TwitterOAuth\TwitterOAuthException
+     * @param HttpClient|null $httpClient
      */
     public function __construct(
         private ?TwitterOAuth $connection = null,
-        private ?MindsConfig $mindsConfig = null
+        private ?MindsConfig $mindsConfig = null,
+        private ?HttpClient $httpClient = null
     ) {
         $this->mindsConfig ??= Di::_()->get('Config');
-
-        $this->connection ??= new TwitterOAuth(
-            $this->mindsConfig->get('twitter')['api_key'],
-            $this->mindsConfig->get('twitter')['api_secret'],
-            $this->mindsConfig->get('twitter')['access_token'],
-            $this->mindsConfig->get('twitter')['access_token_secret'],
-        );
-        $this->connection->setApiVersion('2');
+        $this->httpClient ??= new HttpClient([
+            'base_uri' => self::API_BASE_URI
+        ]);
     }
 
-    public function requestOAuthTokenUrlDetails(): array
+    private function getBearerToken(): string
+    {
+        return base64_encode($this->mindsConfig->get('twitter')['client_id'] . ":" . $this->mindsConfig->get('twitter')['client_secret']);
+    }
+
+    public function requestOAuthAuthorizationCodeUrlDetails(): array
     {
         return [
             'response_type' => 'code',
             'client_id' => $this->mindsConfig->get('twitter')['client_id'],
             'redirect_uri' => $this->mindsConfig->get('site_url') . self::OAUTH_TOKEN_REQUEST_CALLBACK,
-            'scope' => urlencode(
-                join(
-                    " ",
-                    [
-                        'tweet.read',
-                        'tweet.write',
-                        'offline.access',
-                    ]
-                )
+            'scope' => join(
+                " ",
+                [
+                    'tweet.read',
+                    'tweet.write',
+                    'offline.access',
+                ]
             ),
             'state' => 'state',
             'code_challenge' => 'challenge',
             'code_challenge_method' => 'plain'
         ];
+    }
+
+    /**
+     * @param string $authorizationCode
+     * @return array
+     */
+    public function generateOAuthAccessToken(string $authorizationCode): array
+    {
+        $response = $this->httpClient->postAsync("2/oauth2/token", [
+            RequestOptions::HEADERS => [
+                "Content-Type" => '',
+                "Authorization" => 'Basic ' . $this->getBearerToken(),
+            ],
+            RequestOptions::QUERY => [
+                'grant_type' => 'authorization_code',
+                'code' => $authorizationCode,
+                'redirect_uri' => $this->mindsConfig->get('site_url') . self::OAUTH_TOKEN_REQUEST_CALLBACK,
+                'code_verifier' => 'challenge'
+            ]
+        ])->then(function (Response $response): array {
+            $details = json_decode($response->getBody()->getContents(), true);
+            return [
+                'accessToken' => $details['access_token'],
+                'refreshToken' => $details['refresh_token']
+            ];
+        });
+
+        return $response->wait(true);
+    }
+
+    /**
+     * @param string $refreshToken
+     * @return array
+     */
+    public function refreshOAuthAccessToken(string $refreshToken): array
+    {
+        $response = $this->httpClient->postAsync("2/oauth2/token", [
+            RequestOptions::HEADERS => [
+                "Content-Type" => '',
+                "Authorization" => 'Basic ' . $this->getBearerToken(),
+            ],
+            RequestOptions::QUERY => [
+                'grant_type' => 'refresh_token',
+                'refresh_token' => $refreshToken
+            ]
+        ])->then(function (Response $response): array {
+            $details = json_decode($response->getBody()->getContents(), true);
+            return [
+                'accessToken' => $details['access_token'],
+                'refreshToken' => $details['refresh_token']
+            ];
+        });
+
+        return $response->wait(true);
     }
 }
