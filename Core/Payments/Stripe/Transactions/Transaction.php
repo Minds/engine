@@ -41,6 +41,8 @@ class Transaction
     /** @var string */
     private $userGuid;
 
+    private array $metadata = [];
+
     /**
      * Expose to the public apis
      * @param array $extend
@@ -60,6 +62,7 @@ class Transaction
             'net' => $this->net,
             'customer_user_guid' => $this->userGuid,
             'customer_user' => $this->customerUser ? $this->customerUser->export() : null,
+            'metadata' => $this->metadata,
         ];
     }
 }

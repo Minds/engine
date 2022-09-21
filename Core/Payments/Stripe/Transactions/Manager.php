@@ -1,12 +1,12 @@
 <?php
 namespace Minds\Core\Payments\Stripe\Transactions;
 
+use Minds\Common\Repository\Response;
+use Minds\Core\Di\Di;
 use Minds\Core\Payments\Stripe\Connect\Account;
-use Minds\Core\Payments\Stripe\Instances\TransferInstance;
 use Minds\Core\Payments\Stripe\Instances\ChargeInstance;
 use Minds\Core\Payments\Stripe\Instances\PayoutInstance;
-use Minds\Core\Di\Di;
-use Minds\Common\Repository\Response;
+use Minds\Core\Payments\Stripe\Instances\TransferInstance;
 
 class Manager
 {
@@ -118,7 +118,7 @@ class Manager
             }
             $transaction = new Transaction();
             $transaction->setId($transfer->id)
-                ->setType('wire')
+                ->setType(isset($payment->metadata['supermind']) ? 'supermind' : 'wire')
                 ->setStatus('paid')
                 ->setTimestamp($transfer->created)
                 ->setGross($payment->amount)
@@ -126,7 +126,8 @@ class Manager
                 ->setNet($transfer->amount)
                 ->setCurrency($transfer->currency)
                 ->setCustomerUserGuid($payment->metadata['user_guid'])
-                ->setCustomerUser($this->entitiesBuilder->single($payment->metadata['user_guid']));
+                ->setCustomerUser($this->entitiesBuilder->single($payment->metadata['user_guid']))
+                ->setMetadata($payment->metadata);
             $response[] = $transaction;
         }
 
