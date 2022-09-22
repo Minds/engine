@@ -45,6 +45,11 @@ class EmailDelegate
         $entityGuid = $this->urn->setUrn($entityUrn)->getNss();
 
         $entity = $this->entitiesBuilder->single($entityGuid);
+
+        if (!$entity) {
+            return; // Comment strikes don't seem to be working. TODO: Fix entity resolution
+        }
+
         $owner = $entity->type === 'user' ? $entity : $this->entitiesBuilder->single($entity->getOwnerGuid());
 
         $type = $entity->type;
