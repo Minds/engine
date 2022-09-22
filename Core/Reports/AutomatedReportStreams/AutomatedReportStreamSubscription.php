@@ -64,6 +64,9 @@ class AutomatedReportStreamSubscription implements SubscriptionInterface
      */
     public function consume(EventInterface $event): bool
     {
+        // Do not ignore the ACL
+        $this->acl->setIgnore(false);
+
         $report = new Reports\Report();
         $entity = null;
 
@@ -141,7 +144,7 @@ class AutomatedReportStreamSubscription implements SubscriptionInterface
          * Submit report to admins
          */
         if ($this->userReportsManager->add($userReport)) {
-            $this->logger->info("Submitted report");
+            $this->logger->info("Submitted report {$report->getEntityUrn()} {$report->getReasonCode()}:{$report->getSubReasonCode()}");
             return true;
         } else {
             $this->logger->error("Unable to submit user report", [

@@ -32,11 +32,11 @@ class AdminReportTokenAccountEvent implements EventInterface
 
         $this->userGuid = $data['user_guid'];
         $this->userType = $data['user_type'];
-        $this->engagementCount = $data['engagement_count'];
-        $this->avgEngagementScore = $data['avg_engagement_score'];
-        $this->contentCount = $data['content_count'];
-        $this->avgContentScore = $data['avg_content_score'];
-        $this->score = $data['score'];
+        $this->engagementCount = $data['engagement_count'] ?? 0;
+        $this->avgEngagementScore = $data['avg_engagement_score'] ?? 0;
+        $this->contentCount = $data['content_count'] ?? 0;
+        $this->avgContentScore = $data['avg_content_score'] ?? 0;
+        $this->score = $data['score'] ?? 0;
     }
 
     /**
