@@ -34,9 +34,9 @@ class AdminReportSpamCommentEvent implements EventInterface
 
         $this->commentUrn = 'urn:comment:' . implode(':', [
             $data['entity_guid'],
-            $data['parent_guid_l1'],
-            $data['parent_guid_l2'],
-            $data['parent_guid_l3'],
+            $data['parent_guid_l1'] ?? 0,
+            $data['parent_guid_l2'] ?? 0,
+            $data['parent_guid_l3'] ?? 0,
             $data['comment_guid']
         ]);
         $this->ownerGuid = $data['owner_guid'];

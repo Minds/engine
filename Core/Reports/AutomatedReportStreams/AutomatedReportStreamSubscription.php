@@ -11,6 +11,7 @@ use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
 use Minds\Core\Reports;
+use Minds\Core\Security\ACL;
 
 class AutomatedReportStreamSubscription implements SubscriptionInterface
 {
@@ -18,12 +19,14 @@ class AutomatedReportStreamSubscription implements SubscriptionInterface
         protected ?EntitiesBuilder $entitiesBuilder = null,
         protected ?Entities\Resolver $entitiesResolver = null,
         protected ?Reports\UserReports\Manager $userReportsManager = null,
-        protected ?Logger $logger = null
+        protected ?Logger $logger = null,
+        protected ?ACL $acl = null,
     ) {
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->entitiesResolver ??= new Entities\Resolver();
         $this->userReportsManager ??= Di::_()->get('Moderation\UserReports\Manager');
         $this->logger ??= Di::_()->get('Logger');
+        $this->acl ??= Di::_()->get('Security\ACL');
     }
 
     /**
@@ -113,6 +116,11 @@ class AutomatedReportStreamSubscription implements SubscriptionInterface
   
         if (!$entity) {
             $this->logger->warn("Unable to find entity. Awknowledging.");
+            return true; // No entity found, but return true to awknowledge
+        }
+
+        if (!$this->acl->read($entity)) {
+            $this->logger->warn("Unable to read entity ({$entity->getUrn()} so we will not report. Awknowledging.");
             return true; // No entity found, but return true to awknowledge
         }
 
