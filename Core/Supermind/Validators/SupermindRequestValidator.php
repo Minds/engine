@@ -251,9 +251,14 @@ class SupermindRequestValidator implements ValidatorInterface
      */
     private function loadSupermindPaymentSettings(string $targetUserGuid): void
     {
-        $receiver = $this->entitiesBuilder->single($targetUserGuid);
+        // try build from username
+        $receiver = $this->entitiesBuilder->getByUserByIndex($targetUserGuid);
+        if ($receiver === null) {
+            // try build from guid
+            $receiver = $this->entitiesBuilder->single($targetUserGuid);
+        }
         if (!($receiver instanceof User)) {
-            throw new ServerErrorException();
+            throw new ServerErrorException('Could not build a user from the provided target GUID');
         }
         $this->paymentProcessor->setUser($receiver);
     }
