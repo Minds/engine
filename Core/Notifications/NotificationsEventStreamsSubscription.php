@@ -16,6 +16,7 @@ use Minds\Core\Wire\Wire;
 use Minds\Entities\User;
 use Minds\Entities\Boost\Peer;
 use Minds\Core\Config;
+use Minds\Core\Supermind\Models\SupermindRequest;
 
 class NotificationsEventStreamsSubscription implements SubscriptionInterface
 {
@@ -79,6 +80,7 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
         if ($entity->getOwnerGuid() == $user->getGuid()
             && !$entity instanceof Wire // Wire owners are the senders
             && !$entity instanceof Peer // Peer boosters are the senders
+            && !$entity instanceof SupermindRequest
             && $event->getAction() !== ActionEvent::ACTION_GROUP_QUEUE_ADD // Actor is post owner
         ) {
             $this->logger->info('Skipping as owner is sender');
@@ -250,6 +252,26 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                     'method' => $wire->getMethod(),
                 ]);
                 break;
+            case ActionEvent::ACTION_SUPERMIND_REQUEST_CREATE:
+                $notification->setToGuid($entity->getReceiverGuid());
+                $notification->setFromGuid($entity->getSenderGuid());
+                $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_CREATE);
+                break;
+            case ActionEvent::ACTION_SUPERMIND_REQUEST_ACCEPT:
+                $notification->setToGuid($entity->getSenderGuid());
+                $notification->setFromGuid($entity->getReceiverGuid());
+                $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_ACCEPT);
+                break;
+            case ActionEvent::ACTION_SUPERMIND_REQUEST_REJECT:
+                $notification->setToGuid($entity->getSenderGuid());
+                $notification->setFromGuid($entity->getReceiverGuid());
+                $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_REJECT);
+                break;
+            // case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
+            //     $notification->setToGuid($entity->getSenderGuid());
+            //     $notification->setFromGuid($entity->getReceiverGuid());
+            //     $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE);
+            //     break;
             default:
                 return true; // We will not make a notification from this
         }

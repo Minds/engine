@@ -217,6 +217,33 @@ class NotificationTypes
     /** @var string */
     const GROUPING_TYPE_TOP_POSTS = 'top_posts';
 
+    /**
+     * *******************************************
+     * Top Posts
+     */
+
+    /** @var string */
+    const TYPE_SUPERMIND_REQUEST_CREATE = 'supermind_created';
+    
+    /** @var string */
+    const TYPE_SUPERMIND_REQUEST_ACCEPT = 'supermind_accepted';
+    
+    /** @var string */
+    const TYPE_SUPERMIND_REQUEST_REJECT = 'supermind_rejected';
+    
+    /** @var string */
+    const TYPE_SUPERMIND_REQUEST_EXPIRE = 'supermind_expired';
+
+    /** @var string[] */
+    const GROUPING_SUPERMIND = [
+        self::TYPE_SUPERMIND_REQUEST_CREATE,
+        self::TYPE_SUPERMIND_REQUEST_ACCEPT,
+        self::TYPE_SUPERMIND_REQUEST_REJECT,
+        self::TYPE_SUPERMIND_REQUEST_EXPIRE
+    ];
+    
+    /** @var string */
+    const GROUPING_TYPE_SUPERMIND = 'supermind';
 
     /**
      * *******************************************
@@ -300,6 +327,11 @@ class NotificationTypes
         self::TYPE_WIRE_RECEIVED,
         //
         self::TYPE_REPORT_ACTIONED,
+        //
+        self::TYPE_SUPERMIND_REQUEST_CREATE,
+        self::TYPE_SUPERMIND_REQUEST_ACCEPT,
+        self::TYPE_SUPERMIND_REQUEST_REJECT,
+        self::TYPE_SUPERMIND_REQUEST_EXPIRE
     ];
 
     /** @var array */
@@ -317,5 +349,6 @@ class NotificationTypes
         self::GROUPING_TYPE_REPORTS => self::GROUPING_REPORTS,
         self::GROUPING_TYPE_TOP_POSTS => self::GROUPING_TOP_POSTS,
         self::GROUPING_TYPE_COMMUNITY_UPDATES => self::GROUPING_COMMUNITY_UPDATES,
+        self::GROUPING_TYPE_SUPERMIND => self::GROUPING_SUPERMIND
     ];
 }

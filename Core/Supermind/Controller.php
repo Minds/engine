@@ -197,4 +197,16 @@ class Controller
         $response = $this->manager->getSentRequests((int) $offset, (int) $limit);
         return new JsonResponse(Exportable::_($response));
     }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     * @throws UserErrorException
+     */
+    public function getSupermindRequest(ServerRequestInterface $request): JsonResponse
+    {
+        $supermindRequestID = $request->getAttribute("parameters")["guid"];
+        $response = $this->manager->getRequest((string) $supermindRequestID);
+        return new JsonResponse(Exportable::_([$response]));
+    }
 }

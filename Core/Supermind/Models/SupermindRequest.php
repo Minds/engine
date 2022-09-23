@@ -58,7 +58,7 @@ class SupermindRequest implements ExportableInterface, EntityInterface
     public const URN_METHOD = 'supermind';
 
     private string $guid;
-    private string $activityGuid;
+    private ?string $activityGuid = null;
     private ?string $replyActivityGuid = null;
     private string $senderGuid;
     private string $receiverGuid;
