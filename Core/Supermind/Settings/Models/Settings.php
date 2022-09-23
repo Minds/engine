@@ -39,8 +39,8 @@ class Settings implements \JsonSerializable
     }
 
     /**
-     * Called on JSON serialization.
-     * @return array - array that will be JSON serialized.
+     * Export object as array.
+     * @return array - array containing object data.
      */
     public function export(): array
     {
@@ -51,8 +51,8 @@ class Settings implements \JsonSerializable
     }
 
     /**
-     * Export object as array.
-     * @return array - array containing object data.
+     * Called on JSON serialization.
+     * @return array - array that will be JSON serialized.
      */
     public function jsonSerialize(): array
     {
