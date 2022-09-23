@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Minds\Core\Supermind\Settings;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Supermind\Settings\Exceptions\SettingsNotFoundException;
 use Minds\Core\Supermind\Settings\Models\Settings;
 use Minds\Core\Supermind\Settings\Repositories\RepositoryInterface;
 use Minds\Entities\User;
@@ -39,11 +38,7 @@ class Manager
      */
     public function getSettings(): Settings
     {
-        try {
-            return $this->settingsRepository->get($this->user);
-        } catch (SettingsNotFoundException $e) {
-            return new Settings();
-        }
+        return $this->settingsRepository->get($this->user);
     }
 
     /**

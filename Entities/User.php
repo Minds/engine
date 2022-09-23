@@ -1464,7 +1464,7 @@ class User extends \ElggUser
     {
         return $this->supermind_settings && count($this->supermind_settings) ?
             $this->supermind_settings :
-            (new Settings())->jsonSerialize();
+            (new Settings())->export(); // default settings.
     }
 
     /**

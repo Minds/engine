@@ -19,7 +19,7 @@ class Provider extends DiProvider
         }, ['factory' => true]);
 
         $this->di->bind("Supermind\Settings\Repository", function ($di) {
-            return new Repositories\CassandraRepository();
+            return new Repositories\UserStorageRepository();
         }, ['factory' => true]);
     }
 }

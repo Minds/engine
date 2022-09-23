@@ -39,18 +39,6 @@ class ManagerSpec extends ObjectBehavior
         $this->getSettings()->shouldBe($settings);
     }
 
-    public function it_should_return_default_settings_on_not_found_exception(
-        User $user
-    ) {
-        $this->setUser($user);
-        
-        $this->settingsRepository->get($user)
-            ->shouldBeCalled()
-            ->willThrow(new SettingsNotFoundException());
-
-        $this->getSettings()->shouldBeLike(new Settings());
-    }
-
     public function it_should_update_settings(
         User $user,
         Settings $settings

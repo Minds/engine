@@ -42,12 +42,21 @@ class Settings implements \JsonSerializable
      * Called on JSON serialization.
      * @return array - array that will be JSON serialized.
      */
-    public function jsonSerialize(): array
+    public function export(): array
     {
         return [
             'min_offchain_tokens' => $this->minOffchainTokens,
             'min_cash' => $this->minCash,
         ];
+    }
+
+    /**
+     * Export object as array.
+     * @return array - array containing object data.
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->export();
     }
 
     /**
