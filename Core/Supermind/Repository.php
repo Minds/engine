@@ -237,9 +237,13 @@ class Repository
             return null;
         }
 
-        return SupermindRequest::fromData(
+        $supermindRequest = SupermindRequest::fromData(
             $statement->fetch(PDO::FETCH_ASSOC)
         );
+        $supermindRequest->setEntity($this->entitiesBuilder->single($supermindRequest->getActivityGuid()));
+        $supermindRequest->setReceiverEntity($this->entitiesBuilder->single($supermindRequest->getReceiverGuid()));
+
+        return $supermindRequest;
     }
 
     /**

@@ -9,7 +9,10 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Router\Exceptions\ForbiddenException;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
+use Minds\Core\Security\ACL;
 use Minds\Core\Supermind\Delegates\EventsDelegate;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Exceptions\SupermindOffchainPaymentFailedException;
@@ -25,6 +28,8 @@ use Minds\Core\Supermind\Exceptions\SupermindUnauthorizedSenderException;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\StopEventException;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
 
@@ -38,11 +43,15 @@ class Manager
     public function __construct(
         private ?Repository $repository = null,
         private ?SupermindPaymentProcessor $paymentProcessor = null,
-        private ?EventsDelegate $eventsDelegate = null
+        private ?EventsDelegate $eventsDelegate = null,
+        private ?ACL $acl = null,
+        private ?EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->repository ??= Di::_()->get("Supermind\Repository");
         $this->paymentProcessor ??= new SupermindPaymentProcessor();
         $this->eventsDelegate ??= new EventsDelegate();
+        $this->acl ??= Di::_()->get('Security\ACL');
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -60,13 +69,27 @@ class Manager
      * @param string|null $paymentMethodId
      * @return bool
      * @throws ApiErrorException
+     * @throws ForbiddenException
      * @throws LockFailedException
      * @throws OffchainWalletInsufficientFundsException
+     * @throws ServerErrorException
      * @throws SupermindOffchainPaymentFailedException
      * @throws SupermindPaymentIntentFailedException
+     * @throws UnverifiedEmailException
      */
     public function addSupermindRequest(SupermindRequest $supermindRequest, ?string $paymentMethodId = null): bool
     {
+        if (
+            !$this->acl->interact(
+                $this->buildUser(
+                    $supermindRequest->getReceiverGuid()
+                ),
+                $this->user
+            )
+        ) {
+            throw new ForbiddenException();
+        }
+
         $this->repository->beginTransaction();
 
         try {
@@ -105,11 +128,14 @@ class Manager
      * @param string $supermindRequestId
      * @return bool
      * @throws ApiErrorException
+     * @throws ForbiddenException
      * @throws LockFailedException
+     * @throws StopEventException
      * @throws SupermindNotFoundException
      * @throws SupermindPaymentIntentCaptureFailedException
      * @throws SupermindRequestExpiredException
      * @throws SupermindRequestIncorrectStatusException
+     * @throws UnverifiedEmailException
      */
     public function acceptSupermindRequest(string $supermindRequestId): bool
     {
@@ -126,6 +152,10 @@ class Manager
         if ($supermindRequest->isExpired()) {
             $this->expireSupermindRequest($supermindRequestId);
             throw new SupermindRequestExpiredException();
+        }
+
+        if (!$this->acl->write($supermindRequest, $this->user)) {
+            throw new ForbiddenException();
         }
 
         $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::ACCEPTED, $supermindRequestId);
@@ -206,10 +236,8 @@ class Manager
             throw new SupermindRequestExpiredException();
         }
 
-        if ($supermindRequest) {
-            if ($this->user->isAdmin() || $supermindRequest->getSenderGuid() !== $this->user->getGuid()) {
-                throw new SupermindUnauthorizedSenderException();
-            }
+        if ($this->user->isAdmin() || $supermindRequest->getSenderGuid() !== $this->user->getGuid()) {
+            throw new SupermindUnauthorizedSenderException();
         }
 
         $this->reimburseSupermindPayment($supermindRequest);
@@ -404,5 +432,15 @@ class Manager
 
         $this->repository->expireSupermindRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD);
         return true;
+    }
+
+    /**
+     * @param string $userGuid
+     * @return User
+     * @throws ServerErrorException
+     */
+    private function buildUser(string $userGuid): User
+    {
+        return $this->entitiesBuilder->single($userGuid) ?? throw new ServerErrorException();
     }
 }
