@@ -136,7 +136,6 @@ class TwitterClient implements TwitterClientInterface
                 return true;
             },
             function (RequestException $e): void {
-                print_r(json_decode($e->getResponse()->getBody()->getContents()));
                 throw $e;
             }
         );

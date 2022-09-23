@@ -59,6 +59,13 @@ class RequestHandlerMiddleware implements MiddlewareInterface
                         }
 
                         $middlewareInstance = new $middleware;
+                    } elseif (is_array($middleware)) {
+                        if (!class_exists($middleware['class'])) {
+                            throw new Exception("{$middleware['class']} does not exist");
+                        }
+
+                        $middlewareClass = $middleware['class'];
+                        $middlewareInstance = new $middlewareClass(...$middleware['args']);
                     } else {
                         $middlewareInstance = $middleware;
                     }
