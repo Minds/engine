@@ -320,6 +320,17 @@ class Repository
     }
 
     /**
+     * Trigger if createTime is between min and max
+     * @param int $minThresholdInSeconds
+     * @param int $maxThresholdInSeconds
+     * @return ojmTodo array of requests expiring on or between threshold boundaries
+     */
+    public function getRequestsExpiringSoon(int $minThresholdInSeconds, int $maxThresholdInSeconds): ojmTodo
+    {
+        // OJMTODO
+    }
+
+    /**
      * @param int $thresholdInSeconds
      * @return bool
      */
