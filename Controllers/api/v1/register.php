@@ -12,6 +12,7 @@ use Minds\Api\Factory;
 use Minds\Common\PseudonymousIdentifier;
 use Minds\Core;
 use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
+use Minds\Core\Captcha\FriendlyCaptcha\Classes\DifficultyScalingType;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Helpers\StringLengthValidators\UsernameLengthValidator;
@@ -182,7 +183,10 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             $_POST['friendly_captcha_enabled']
         ) {
             $friendlyCaptchaManager = Di::_()->get('FriendlyCaptcha\Manager');
-            if (!$friendlyCaptchaManager->verify($captcha)) {
+            $difficultyScalingType = !isset($_SERVER['HTTP_APP_VERSION']) ?
+                DifficultyScalingType::DIFFICULTY_SCALING_REGISTRATION
+                : null;
+            if (!$friendlyCaptchaManager->verify($captcha, $difficultyScalingType)) {
                 throw new InvalidSolutionException('Captcha failed');
             }
             return true;
