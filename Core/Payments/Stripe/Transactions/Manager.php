@@ -7,6 +7,7 @@ use Minds\Core\Payments\Stripe\Connect\Account;
 use Minds\Core\Payments\Stripe\Instances\ChargeInstance;
 use Minds\Core\Payments\Stripe\Instances\PayoutInstance;
 use Minds\Core\Payments\Stripe\Instances\TransferInstance;
+use Stripe\Charge;
 
 class Manager
 {
@@ -112,7 +113,7 @@ class Manager
         $response = new Response();
         foreach ($transfers->autoPagingIterator() as $transfer) {
             try {
-                $payment = $this->chargeInstance->retrieve($transfer->source_transaction);
+                $payment = Charge::retrieve($transfer->source_transaction);
             } catch (\Exception $e) {
                 continue;
             }
@@ -127,7 +128,7 @@ class Manager
                 ->setCurrency($transfer->currency)
                 ->setCustomerUserGuid($payment->metadata['user_guid'])
                 ->setCustomerUser($this->entitiesBuilder->single($payment->metadata['user_guid']))
-                ->setMetadata($payment->metadata->values);
+                ->setMetadata($payment->metadata->values());
             $response[] = $transaction;
         }
 
