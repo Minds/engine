@@ -128,7 +128,7 @@ class Manager
                 ->setCurrency($transfer->currency)
                 ->setCustomerUserGuid($payment->metadata['user_guid'])
                 ->setCustomerUser($this->entitiesBuilder->single($payment->metadata['user_guid']))
-                ->setMetadata($payment->metadata->values());
+                ->setMetadata($payment->metadata->toArray());
             $response[] = $transaction;
         }
 
