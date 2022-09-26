@@ -203,6 +203,13 @@ class Controller
      * @return JsonResponse
      * @throws UserErrorException
      */
+//    #[OA\Get(
+//        path: '/api/v3/supermind/:guid',
+//        responses: [
+//            new OA\Response(response: 200, description: "Ok"),
+//            new OA\Response(response: 401, description: "Unauthorized"),
+//        ]
+//    )]
     public function getSupermindRequest(ServerRequestInterface $request): JsonResponse
     {
         $supermindRequestID = $request->getAttribute("parameters")["guid"];

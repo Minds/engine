@@ -298,3 +298,14 @@ Feature: Supermind
     """json
     {}
     """
+  
+  Scenario: Unable to get single Supermind with a guid with no attached entity
+    Given I login to "create" Supermind requests
+    When I call the "v3/supermind/123" endpoint with params
+    """json
+      {}
+    """
+    Then I get a 404 response containing
+    """json
+      {}
+    """
