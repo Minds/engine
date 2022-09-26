@@ -298,8 +298,45 @@ Feature: Supermind
     """json
     {}
     """
-  
-  Scenario: Unable to get single Supermind with a guid with no attached entity
+
+  Scenario: Get a single Supermind
+    Given I login to "create" Supermind requests
+    And I create a Supermind request with the following details
+      """json
+      {
+        "message": "This is a test post for supermind request from integration tests",
+        "wire_threshold": null,
+        "paywall": null,
+        "time_created": null,
+        "mature": false,
+        "nsfw": null,
+        "tags": [
+            "test_tag"
+        ],
+        "access_id": "2",
+        "license": "all-rights-reserved",
+        "post_to_permaweb": false,
+        "entity_guid_update": true,
+        "supermind_request": {
+            "receiver_guid": "",
+            "payment_options": {
+                "payment_type": 1,
+                "amount": 10.00
+            },
+            "reply_type": 0,
+            "twitter_required": false,
+            "terms_agreed": true
+        }
+      }
+      """
+    And I login to "receive" Supermind requests
+    When I call the single Supermind endpoint with last created Supermind guid
+    Then I get a 200 response containing
+    """json
+      { }
+    """
+
+  Scenario: Unable to get single Supermind with a guid that has no attached entity
     Given I login to "create" Supermind requests
     When I call the "v3/supermind/123" endpoint with params
     """json
