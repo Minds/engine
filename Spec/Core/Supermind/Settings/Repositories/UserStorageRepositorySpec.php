@@ -27,7 +27,7 @@ class UserStorageRepositorySpec extends ObjectBehavior
     public function it_should_get_from_user_object(
         User $user,
     ) {
-        $user->getSupermindSettings()   
+        $user->getSupermindSettings()
             ->shouldBeCalled()
             ->willReturn([
                 'min_offchain_tokens' => 1,
