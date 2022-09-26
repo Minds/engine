@@ -10,6 +10,7 @@ namespace Minds\Core\Feeds\Activity;
 use Exception;
 use Minds\Common\EntityMutation;
 use Minds\Common\Urn;
+use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Boost\Network\ElasticRepository as BoostElasticRepository;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
@@ -20,12 +21,19 @@ use Minds\Core\Entities\PropagateProperties;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\Exceptions\CreateActivityFailedException;
 use Minds\Core\Guid;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Session;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
+use Minds\Core\Supermind\Exceptions\SupermindOffchainPaymentFailedException;
+use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentCaptureFailedException;
 use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentFailedException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestAcceptCompletionException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestCreationCompletionException;
+use Minds\Core\Supermind\Exceptions\SupermindRequestDeleteException;
+use Minds\Core\Supermind\Exceptions\SupermindRequestExpiredException;
+use Minds\Core\Supermind\Exceptions\SupermindRequestIncorrectStatusException;
+use Minds\Core\Supermind\Exceptions\SupermindRequestStatusUpdateException;
 use Minds\Core\Supermind\Manager as SupermindManager;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\SupermindRequestStatus;
@@ -37,6 +45,7 @@ use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
+use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
@@ -131,6 +140,7 @@ class Manager
      * @return bool
      * @throws UnverifiedEmailException
      * @throws StopEventException
+     * @throws Exception
      */
     public function add(Activity $activity, bool $fromV2Controller = false): bool
     {
@@ -168,13 +178,19 @@ class Manager
      * @param array $supermindDetails
      * @param Activity $activity
      * @return bool
+     * @throws ApiErrorException
      * @throws CreateActivityFailedException
+     * @throws LockFailedException
      * @throws StopEventException
+     * @throws SupermindPaymentIntentFailedException
      * @throws UnverifiedEmailException
      * @throws UserErrorException
-     * @throws LockFailedException
-     * @throws SupermindPaymentIntentFailedException
-     * @throws ApiErrorException
+     * @throws OffchainWalletInsufficientFundsException
+     * @throws ForbiddenException
+     * @throws SupermindOffchainPaymentFailedException
+     * @throws SupermindRequestDeleteException
+     * @throws ServerErrorException
+     * @throws Exception
      */
     public function addSupermindRequest(array $supermindDetails, Activity $activity): bool
     {
@@ -194,7 +210,7 @@ class Manager
                 $this->entitiesBuilder->single($receiverGuid) :
                 $this->entitiesBuilder->getByUserByIndex($receiverGuid);
 
-            if (!$receiverUser || !$receiverUser instanceof User) {
+            if (!($receiverUser instanceof User)) {
                 throw new UserErrorException(
                     message: "An error was encountered whilst validating the request",
                     code: 400,
@@ -230,6 +246,8 @@ class Manager
             ->setPaymentAmount($supermindDetails['supermind_request']['payment_options']['amount'])
             ->setPaymentMethod($supermindDetails['supermind_request']['payment_options']['payment_type']);
 
+        $this->supermindManager->setUser(Session::getLoggedinUser());
+
         $isSupermindRequestCreated = $this->supermindManager->addSupermindRequest($supermindRequest, $paymentMethodId);
 
         if (!$isSupermindRequestCreated) {
@@ -264,12 +282,17 @@ class Manager
      * @param Activity $activity
      * @return bool
      * @throws ApiErrorException
-     * @throws CreateActivityFailedException
+     * @throws ForbiddenException
      * @throws LockFailedException
      * @throws StopEventException
+     * @throws SupermindNotFoundException
+     * @throws SupermindRequestAcceptCompletionException
      * @throws UnverifiedEmailException
      * @throws UserErrorException
-     * @throws SupermindNotFoundException
+     * @throws SupermindPaymentIntentCaptureFailedException
+     * @throws SupermindRequestExpiredException
+     * @throws SupermindRequestIncorrectStatusException
+     * @throws SupermindRequestStatusUpdateException
      */
     public function addSupermindReply(array $supermindDetails, Activity $activity): bool
     {
@@ -292,6 +315,8 @@ class Manager
                 errors: $validator->getErrors()
             );
         }
+
+        $this->supermindManager->setUser(Session::getLoggedinUser());
 
         $isSupermindReplyProcessed = $this->supermindManager->acceptSupermindRequest($supermindDetails['supermind_reply_guid']);
 

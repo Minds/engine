@@ -154,7 +154,7 @@ class Manager
             throw new SupermindRequestExpiredException();
         }
 
-        if (!$this->acl->write($supermindRequest, $this->user)) {
+        if (!$this->acl->write($supermindRequest, $this->user, ['isReply' => true])) {
             throw new ForbiddenException();
         }
 

@@ -204,7 +204,7 @@ class ACL
      * @throws UnverifiedEmailException
      * @throws StopEventException
      */
-    public function write($entity, $user = null)
+    public function write($entity, $user = null, array $additionalData = [])
     {
         if (!$user) {
             $user = Core\Session::getLoggedinUser();
@@ -212,6 +212,10 @@ class ACL
 
         if (self::$ignore == true) {
             return true;
+        }
+
+        if ($entity instanceof Core\Supermind\Models\SupermindRequest) {
+            echo "ACL write for SupermindRequest";
         }
 
         if (!$user) {
@@ -268,7 +272,7 @@ class ACL
          */
         $type = method_exists($entity, 'getType') ? $entity->getType() : 'all';
         $type = property_exists($entity, 'type') ? $entity->type : $type;
-        if (Core\Events\Dispatcher::trigger('acl:write', $type, ['entity' => $entity, 'user' => $user], false) === true) {
+        if (Core\Events\Dispatcher::trigger('acl:write', $type, ['entity' => $entity, 'user' => $user, 'additionalData' => $additionalData], false) === true) {
             return true;
         }
 

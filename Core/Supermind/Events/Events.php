@@ -59,7 +59,13 @@ class Events
              */
             $user = $params['user'];
 
-            if (
+            $additionalData = $params['additionalData'] ?? [];
+
+            if (isset($additionalData['isReply']) && $additionalData['isReply']) {
+                if ($supermindRequest->getReceiverGuid() === $user->getGuid()) {
+                    $event->setResponse(true);
+                }
+            } elseif (
                 $supermindRequest->getSenderGuid() === $user->getGuid() ||
                 $supermindRequest->getReceiverGuid() === $user->getGuid()
             ) {
