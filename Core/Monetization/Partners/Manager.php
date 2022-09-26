@@ -28,7 +28,7 @@ class Manager
     const PLUS_SHARE_PCT = Plus\Manager::REVENUE_SHARE_PCT; // 25%
 
     /** @var int */
-    const WIRE_REFERRAL_SHARE_PCT = 100; // 100%
+    const WIRE_REFERRAL_SHARE_PCT = 50; // 50%
 
     /** @var int */
     const MIN_PAYOUT_CENTS = 10000; // $100 USD
@@ -159,6 +159,8 @@ class Manager
         }
 
         foreach ($feesToUserGuid as $userGuid => $cents) {
+            $cents = $cents / (100 / self::WIRE_REFERRAL_SHARE_PCT);
+
             $deposit = new EarningsDeposit();
             $deposit->setTimestamp($opts['from'])
                 ->setUserGuid($userGuid)
