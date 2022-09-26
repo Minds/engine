@@ -108,7 +108,7 @@ class Supermind extends Module
      */
     public function callSingleSupermindEndpoint(?string $guid = null): void
     {
-        if (!$guid) { 
+        if (!$guid) {
             $lastActivity = Fixtures::get('created_activity');
             $guid = $lastActivity->supermind->request_guid;
         }
