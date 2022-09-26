@@ -3,7 +3,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
       <title></title>
       <style>
-        p, li { 
+        p, li {
           font-family: Roboto,Arial,sans-serif;
           font-size: 18px;
           line-height: 1.5;
@@ -11,7 +11,7 @@
           padding-bottom: 16px;
         }
         a {
-          color: #4690df;
+          color: #1b85d6;
         }
         #body table {
              width: 100%;
@@ -78,7 +78,7 @@
                     <p><b>The Minds Team</b></p>
                   </td>
                 </tr>
-              </tbody> 
+              </tbody>
             </table>
 
 
@@ -93,9 +93,9 @@
                 <tr>
                   <td>
                     <a href="https://www.minds.com/emails/unsubscribe/<?= $vars['guid']?>/<?= $vars['email']?>/<?= $vars['campaign']?><?= '/' . $vars['topic']?>?__e_ct_guid=<?= $vars['guid']?>&campaign=<?= $vars['campaign'] ?>&topic=<?= $vars['topic'] ?>&state=<?= $vars['state'] ?>" align="center" style="color:#888">
-                      Unsubscribe 
+                      Unsubscribe
                     </a>
-                    from this type of email. 
+                    from this type of email.
                   </td>
                   <td>
                     <a href="https://www.minds.com/settings/emails" align="center" style="color:#888">
