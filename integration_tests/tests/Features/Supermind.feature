@@ -300,8 +300,7 @@ Feature: Supermind
     """
 
   Scenario: Get a single Supermind
-    Given I login to "create" Supermind requests
-    And I create a Supermind request with the following details
+    Given I create a Supermind request with the following details
       """json
       {
         "message": "This is a test post for supermind request from integration tests",
@@ -329,11 +328,10 @@ Feature: Supermind
         }
       }
       """
-    And I login to "receive" Supermind requests
     When I call the single Supermind endpoint with last created Supermind guid
     Then I get a 200 response containing
     """json
-      { }
+      {}
     """
 
   Scenario: Unable to get single Supermind with a guid that has no attached entity
