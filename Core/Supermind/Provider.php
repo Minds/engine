@@ -17,8 +17,5 @@ class Provider extends DiProvider
         $this->di->bind("Supermind\Repository", function ($di) {
             return new Repository();
         }, ['factory' => true]);
-        $this->di->bind("Supermind\Notifications\Push\Manager", function ($di) {
-            return new Notifications\Push\Manager();
-        }, ['factory' => true]);
     }
 }
