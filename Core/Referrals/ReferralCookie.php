@@ -56,14 +56,6 @@ class ReferralCookie
         // always prefer the referrer in the param to the cookie we already have
         if (isset($params['referrer'])) {
             $referrer = $params['referrer'];
-        } elseif (!isset($cookies['referrer']) && $this->entity) {
-            switch (get_class($this->entity)) {
-                case User::class:
-                    $referrer = $this->entity->getGuid();
-                    break;
-                default:
-                    $referrer = $this->entity->getOwnerGuid();
-            }
         }
 
         if ($referrer) {
