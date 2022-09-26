@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\Twitter\Client;
 
-use Abraham\TwitterOAuth\TwitterOAuth;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Response;
@@ -23,12 +22,10 @@ class TwitterClient implements TwitterClientInterface
     private const OAUTH_TOKEN_REQUEST_CALLBACK = 'api/v3/twitter/oauth';
 
     /**
-     * @param TwitterOAuth|null $connection
      * @param MindsConfig|null $mindsConfig
      * @param HttpClient|null $httpClient
      */
     public function __construct(
-        private ?TwitterOAuth $connection = null,
         private ?MindsConfig $mindsConfig = null,
         private ?HttpClient $httpClient = null
     ) {
