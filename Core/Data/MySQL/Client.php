@@ -91,7 +91,7 @@ class Client
      * @param int|bool|string|null $value
      * @return int
      */
-    private function getParameterType(int|bool|string|null $value): int
+    private function getParameterType(int|float|bool|string|null $value): int
     {
         return match (gettype($value)) {
             "boolean" => PDO::PARAM_BOOL,

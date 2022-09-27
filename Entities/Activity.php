@@ -386,6 +386,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         
             if ($export['custom_type'] === 'video') {
                 $export['entity_guid'] = (string) $this->getGuid(); // mobile expects this
+                $export['thumbnail_src'] = $export['custom_data']['src']; // discovery/plus expects this
             }
         }
 
