@@ -365,11 +365,12 @@ class Manager
                     'wire_support_tier' => $this->plusSupportTierUrn,
                 ],
             ];
-            // Only blogs and videos show in top half of discovery
+            // Only videos show in top half of discovery
             // as we don't want blury thumbnails
-            $types = [
-                'object-video',
-                'object-blog',
+            $must[] = [
+                'term' => [
+                    'custom_type' => 'video'
+                ],
             ];
         }
 
