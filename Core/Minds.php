@@ -71,7 +71,8 @@ class Minds extends base
         Entities\Ops\Module::class,
         FeedNotices\Module::class,
         Metrics\Module::class,
-        Supermind\Module::class
+        Supermind\Module::class,
+        Twitter\Module::class,
     ];
 
     /**
