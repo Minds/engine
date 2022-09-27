@@ -228,7 +228,12 @@ class Repository
             "guid" => $supermindRequestId
         ];
 
-        $statement = $this->mysqlClientReader->prepare($statement);
+        /**
+         * TODO: Use writer to ensure immediate consistency if making a write call
+         * before this. Switch back to reader when refactored such that consistency
+         * is not a pre-requisite.
+         */
+        $statement = $this->mysqlClientWriter->prepare($statement);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         $statement->execute();
@@ -237,12 +242,8 @@ class Repository
             return null;
         }
 
-        $supermindRequest = SupermindRequest::fromData(
-            $statement->fetch(PDO::FETCH_ASSOC)
-        );
-        if ($activityGuid = $supermindRequest->getActivityGuid()) {
-            $supermindRequest->setEntity($this->entitiesBuilder->single($activityGuid));
-        }
+        $supermindRequest = SupermindRequest::fromData($statement->fetch(PDO::FETCH_ASSOC));
+        $supermindRequest->setEntity($this->entitiesBuilder->single($supermindRequest->getActivityGuid()));
         $supermindRequest->setReceiverEntity($this->entitiesBuilder->single($supermindRequest->getReceiverGuid()));
 
         return $supermindRequest;
