@@ -13,6 +13,8 @@ use Minds\Helpers\OpenSSL;
 use Minds\Traits\MagicAttributes;
 
 /**
+ * Represents the twitter details stored in Cassandra within the twitter_sync table
+ *
  * @method self setUserGuid(string $userGuid)
  * @method string getUserGuid()
  * @method self setDiscoverable(bool $discoverable)
