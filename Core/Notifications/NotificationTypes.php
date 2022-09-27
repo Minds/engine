@@ -219,7 +219,7 @@ class NotificationTypes
 
     /**
      * *******************************************
-     * Top Posts
+     * Supermind
      */
 
     /** @var string */
