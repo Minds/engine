@@ -214,10 +214,6 @@ class ACL
             return true;
         }
 
-        if ($entity instanceof Core\Supermind\Models\SupermindRequest) {
-            echo "ACL write for SupermindRequest";
-        }
-
         if (!$user) {
             return false;
         }

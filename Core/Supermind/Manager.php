@@ -251,11 +251,14 @@ class Manager
      * @param string $supermindRequestId
      * @return bool
      * @throws ApiErrorException
+     * @throws ForbiddenException
      * @throws LockFailedException
+     * @throws StopEventException
      * @throws SupermindNotFoundException
      * @throws SupermindRequestExpiredException
      * @throws SupermindRequestIncorrectStatusException
      * @throws SupermindUnauthorizedSenderException
+     * @throws UnverifiedEmailException
      */
     public function rejectSupermindRequest(string $supermindRequestId): bool
     {
@@ -276,6 +279,10 @@ class Manager
 
         if ($supermindRequest->getReceiverGuid() !== $this->user->getGuid()) {
             throw new SupermindUnauthorizedSenderException();
+        }
+
+        if (!$this->acl->write($supermindRequest, $this->user, ['isReply' => true])) {
+            throw new ForbiddenException();
         }
 
         $this->reimburseSupermindPayment($supermindRequest);
