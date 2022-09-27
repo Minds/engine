@@ -753,6 +753,19 @@ $CONFIG->set('captcha', [
     'bypass_key' => '{{site-secret}}',
     'friendly_captcha' => [
         'signing_secret' => '{{site-secret}}',
+        'difficulty_scaling' => [
+            'vote_up' => [
+                0 => ['solutions' => 50, 'difficulty' => 100],
+                49 => ['solutions' => 50, 'difficulty' => 150],
+                99 => ['solutions' => 110, 'difficulty' => 150]
+            ],
+            'registration' => [
+                0 => ['solutions' => 50, 'difficulty' => 100],
+                1 => ['solutions' => 60, 'difficulty' => 150],
+                4 => ['solutions' => 125, 'difficulty' => 165],
+                9 => ['solutions' => 240, 'difficulty' => 165]
+            ]
+        ]
     ]
 ]);
 

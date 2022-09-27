@@ -159,6 +159,6 @@ class Resolver
     {
         $this->urns = [$urn];
         $entities = $this->fetch();
-        return $entities[0];
+        return $entities[0] ?? null;
     }
 }
