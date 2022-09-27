@@ -34,6 +34,8 @@ class DifficultyScalingConfig
         return match ($difficultyScalingType) {
             DifficultyScalingType::DIFFICULTY_SCALING_VOTE_UP =>
                 $this->config->get("captcha")["friendly_captcha"]["difficulty_scaling"]["vote_up"] ?? self::DEFAULT_DIFFICULTY_SCALING,
+            DifficultyScalingType::DIFFICULTY_SCALING_REGISTRATION =>
+                $this->config->get("captcha")["friendly_captcha"]["difficulty_scaling"]["registration"] ?? self::DEFAULT_DIFFICULTY_SCALING,
             default => self::DEFAULT_DIFFICULTY_SCALING
         };
     }

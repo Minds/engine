@@ -56,7 +56,7 @@ class Route
     }
 
     /**
-     * @param string[] $middleware
+     * @param string[]|string[][] $middleware
      * @return Route
      */
     public function withMiddleware(array $middleware): Route

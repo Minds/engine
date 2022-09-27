@@ -23,7 +23,7 @@ Feature: Supermind
             "payment_options": {
                 "payment_type": 0,
                 "payment_method_id": "",
-                "amount": 10.00
+                "amount": 10.53
             },
             "reply_type": 0,
             "twitter_required": false,
@@ -40,7 +40,7 @@ Feature: Supermind
       }
       """
 
-  Scenario: Successful Supermind request creation with off-chain token payment
+  Scenario: Successful Supermind request creation with offchain token payment
     Given I want to create an activity with the following details
       """json
       {
@@ -262,39 +262,39 @@ Feature: Supermind
   Scenario: Get Supermind inbox
     Given I login to "receive" Supermind requests
     When I call the "v3/supermind/inbox" endpoint with params
-    """json
-    [
-        {
-          "key": "limit",
-          "value": 12
-        },
-        {
-          "key": "offset",
-          "value": 0
-        }
-      ]
-    """
+      """json
+      [
+          {
+            "key": "limit",
+            "value": 12
+          },
+          {
+            "key": "offset",
+            "value": 0
+          }
+        ]
+      """
     Then I get a 200 response containing
-    """json
-    {}
-    """
+      """json
+      {}
+      """
 
   Scenario: Get Supermind outbox
     Given I login to "create" Supermind requests
     When I call the "v3/supermind/outbox" endpoint with params
-    """json
-    [
-        {
-          "key": "limit",
-          "value": 12
-        },
-        {
-          "key": "offset",
-          "value": 0
-        }
-      ]
-    """
+      """json
+      [
+          {
+            "key": "limit",
+            "value": 12
+          },
+          {
+            "key": "offset",
+            "value": 0
+          }
+        ]
+      """
     Then I get a 200 response containing
-    """json
-    {}
-    """
+      """json
+      {}
+      """

@@ -101,7 +101,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($mockUser1);
 
         $this->repository->add(Argument::that(function ($deposit) {
-            return $deposit->getAmountCents() === (float) 1000;
+            return $deposit->getAmountCents() === (float) 500; // 1000 fee / 2
         }))
             ->shouldBeCalled()
             ->willReturn(true);
@@ -134,7 +134,7 @@ class ManagerSpec extends ObjectBehavior
 
         $response->current()
             ->getAmountCents()
-            ->shouldBe((float) 1000);
+            ->shouldBe((float) 500); // 1000 cent wire fee / 2 (50% share)
         //
         $response->next();
         $response->current()

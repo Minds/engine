@@ -39,35 +39,6 @@ class ReferralCookieSpec extends ObjectBehavior
         expect($_COOKIE['referrer'])
             ->toBe('bill');
     }
-
-    public function it_should_set_cookie_from_user_entity()
-    {
-        $user = new User();
-        $user->guid = 123;
-
-        $request = (new ServerRequest());
-        $this->withRouterRequest($request);
-        $this->setEntity($user);
-        $this->create();
-
-        expect($_COOKIE['referrer'])
-            ->toBe('123');
-    }
-
-    public function it_should_set_cookie_from_activity()
-    {
-        $activity = new Activity();
-        $activity->guid = 123;
-        $activity->owner_guid = 456;
-
-        $request = (new ServerRequest());
-        $this->withRouterRequest($request);
-        $this->setEntity($activity);
-        $this->create();
-
-        expect($_COOKIE['referrer'])
-            ->toBe('456');
-    }
     
     public function it_should_not_allow_entity_to_override_param()
     {
