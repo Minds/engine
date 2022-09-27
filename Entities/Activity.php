@@ -1113,7 +1113,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         return $this->attachments && count($this->attachments) > 0;
     }
 
-
     /**
      * Get Supermind details.
      * @return array|null supermind details.

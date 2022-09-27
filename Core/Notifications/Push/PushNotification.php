@@ -199,7 +199,7 @@ class PushNotification implements PushNotificationInterface
                 return $this->config->get('site_url') . 'newsfeed/' . $entity->getEntityGuid() . '?focusedCommentUrn=' . $entity->getUrn();
             case 'supermind':
                 if ($entity instanceof SupermindRequest && $entity->getStatus() === SupermindRequestStatus::ACCEPTED) {
-                    return $this->config->get('site_url') . 'newsfeed/' . $entity->getActivityGuid();
+                    return $this->config->get('site_url') . 'newsfeed/' . $entity->getReplyActivityGuid();
                 }
                 return $this->config->get('site_url') . 'supermind/' . $entity->getGuid();
             case 'activity':
