@@ -23,7 +23,7 @@ Feature: Supermind
             "payment_options": {
                 "payment_type": 0,
                 "payment_method_id": "",
-                "amount": 10.00
+                "amount": 10.53
             },
             "reply_type": 0,
             "twitter_required": false,
@@ -40,7 +40,7 @@ Feature: Supermind
       }
       """
 
-  Scenario: Successful Supermind request creation with off-chain token payment
+  Scenario: Successful Supermind request creation with offchain token payment
     Given I want to create an activity with the following details
       """json
       {

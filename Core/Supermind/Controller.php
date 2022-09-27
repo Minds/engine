@@ -32,6 +32,8 @@ class Controller
      * @throws ApiErrorException
      * @throws LockFailedException
      * @throws SupermindNotFoundException
+     * @throws SupermindRequestExpiredException
+     * @throws SupermindRequestIncorrectStatusException
      * @throws SupermindUnauthorizedSenderException
      */
 //    #[OA\Delete(
