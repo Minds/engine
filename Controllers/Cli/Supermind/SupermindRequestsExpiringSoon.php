@@ -2,7 +2,7 @@
 
 namespace Minds\Controllers\Cli\Supermind;
 
-use Minds\Core\Supermind\Manager as SupermindManager;
+use Minds\Core\Supermind\ExpiringSoonEvents;
 
 /**
  * Cli script to get all supermind requests that will be expiring soon
@@ -23,16 +23,11 @@ class SupermindRequestsExpiringSoon extends \Minds\Cli\Controller implements \Mi
      */
     public function exec()
     {
-        //ojm cli file
-        $supermindManager = $this->getSupermindManager();
-        $this->out("About to trigger events for expiring Supermind requests");
+        $expiringSoonEvents = new ExpiringSoonEvents();
+        $this->out("About to trigger events for Supermind requests expiring soon");
 
-        $supermindManager->triggerExpiringSoonEvents();
+        $expiringSoonEvents->triggerExpiringSoonEvents();
         $this->out("Supermind requests expiring soon events triggered");
     }
 
-    private function getSupermindManager(): SupermindManager
-    {
-        return new SupermindManager();
-    }
 }

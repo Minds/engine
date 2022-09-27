@@ -106,6 +106,12 @@ class SupermindEventStreamsSubscription implements SubscriptionInterface
                     ->send();
                 break;
 
+            case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRING_SOON:
+                $this->supermindEmailer
+                    ->setTopic('supermind_request_expiring_soon')
+                    ->send();
+                break;
+
             default:
                 return true; // Do nothing
         }
