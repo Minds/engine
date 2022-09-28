@@ -341,10 +341,14 @@ class Manager
      */
     public function completeSupermindRequestCreation(string $supermindRequestId, int $activityGuid): bool
     {
+        $supermindRequest = $this->repository->getSupermindRequest($supermindRequestId);
+
         $isSuccessful = $this->repository->updateSupermindRequestActivityGuid($supermindRequestId, $activityGuid);
 
         if ($isSuccessful) {
-            $supermindRequest = $this->repository->getSupermindRequest($supermindRequestId);
+            $supermindRequest->setActivityGuid((string) $activityGuid);
+            $supermindRequest->setEntity($this->entitiesBuilder->single($supermindRequest->getActivityGuid()));
+            $supermindRequest->setReceiverEntity($this->entitiesBuilder->single($supermindRequest->getReceiverGuid()));
             $this->eventsDelegate->onCompleteSupermindRequestCreation($supermindRequest);
         }
 
@@ -361,10 +365,14 @@ class Manager
      */
     public function completeAcceptSupermindRequest(string $supermindRequestId, int $replyActivityGuid): bool
     {
+        $supermindRequest = $this->repository->getSupermindRequest($supermindRequestId);
+
         $isSuccessful = $this->repository->updateSupermindRequestReplyActivityGuid($supermindRequestId, $replyActivityGuid);
 
         if ($isSuccessful) {
-            $supermindRequest = $this->repository->getSupermindRequest($supermindRequestId);
+            $supermindRequest->setReplyActivityGuid((string) $replyActivityGuid);
+            $supermindRequest->setEntity($this->entitiesBuilder->single($supermindRequest->getActivityGuid()));
+            $supermindRequest->setReceiverEntity($this->entitiesBuilder->single($supermindRequest->getReceiverGuid()));
             $this->eventsDelegate->onAcceptSupermindRequest($supermindRequest);
         }
 
@@ -424,7 +432,11 @@ class Manager
      */
     public function getRequest(string $supermindRequestId): SupermindRequest
     {
-        return $this->repository->getSupermindRequest($supermindRequestId) ?? throw new SupermindNotFoundException();
+        $supermindRequest = $this->repository->getSupermindRequest($supermindRequestId) ?? throw new SupermindNotFoundException();
+        $supermindRequest->setEntity($this->entitiesBuilder->single($supermindRequest->getActivityGuid()));
+        $supermindRequest->setReceiverEntity($this->entitiesBuilder->single($supermindRequest->getReceiverGuid()));
+
+        return $supermindRequest;
     }
 
     /**
