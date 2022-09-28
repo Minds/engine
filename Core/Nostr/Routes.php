@@ -7,6 +7,7 @@
 namespace Minds\Core\Nostr;
 
 use Minds\Core\Di\Ref;
+use Minds\Core\Router\Middleware\LoggedInMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 
@@ -45,6 +46,25 @@ class Routes extends ModuleRoutes
                     'event',
                     Ref::_('Nostr\Controller', 'putEvent')
                 );
+
+                $route
+                    ->withMiddleware([
+                        LoggedInMiddleware::class,
+                    ])
+                    ->do(function (Route $route) {
+                        $route->get(
+                            'nip26-delegation',
+                            Ref::_('Nostr\Controller', 'getNip26Delegation')
+                        );
+                        $route->post(
+                            'nip26-delegation',
+                            Ref::_('Nostr\Controller', 'setupNip26Delegation')
+                        );
+                        $route->delete(
+                            'nip26-delegation',
+                            Ref::_('Nostr\Controller', 'removeNip26Delegation')
+                        );
+                    });
             });
     }
 }

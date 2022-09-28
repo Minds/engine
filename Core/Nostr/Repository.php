@@ -540,6 +540,72 @@ class Repository
     }
 
     /**
+     * Adds a NIP26 delegation token to the database
+     * @param NIP26DelegateToken $nip26DelegateToken
+     * @return bool
+     */
+    public function addNip26DelegationToken(NIP26DelegateToken $nip26DelegateToken): bool
+    {
+        $statement = "INSERT INTO nostr_nip26_tokens (delegate_pubkey, delegator_pubkey, conditions_query_string, sig) VALUES (?,?,?,?)";
+
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
+
+        return $prepared->execute([
+            $nip26DelegateToken->getDelegatePublicKey(),
+            $nip26DelegateToken->getDelegatorPublicKey(),
+            $nip26DelegateToken->getConditionsQueryString(),
+            $nip26DelegateToken->getSig(),
+        ]);
+    }
+
+    /**
+     * Will fetch the NIP26 delegation token
+     * @param string $delegatePulicKey
+     * @return NIP26DelegateToken|null
+     */
+    public function getNip26DelegationToken(string $delegatePulicKey): ?NIP26DelegateToken
+    {
+        $statement = "SELECT * FROM nostr_nip26_tokens WHERE delegate_pubkey = ?";
+
+        $values = [
+            $delegatePulicKey,
+        ];
+
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_REPLICA)->prepare($statement);
+        $prepared->execute($values);
+
+        $rows = $prepared->fetchAll();
+
+        if (!$rows) {
+            return null;
+        }
+
+        return new NIP26DelegateToken(
+            delegatePublicKey: $rows[0]['delegate_pubkey'],
+            delegatorPublicKey: $rows[0]['delegator_pubkey'],
+            conditionsQueryString: $rows[0]['conditions_query_string'],
+            sig: $rows[0]['sig'],
+        );
+    }
+
+    /**
+     * Deletes the delegation token from the database
+     * @param string $delegatePulicKey
+     * @return bool
+     */
+    public function deleteNip26DelegationToken(string $delegatePulicKey): bool
+    {
+        $statement = "DELETE FROM nostr_nip26_tokens WHERE delegate_pubkey = ?";
+
+        $values = [
+            $delegatePulicKey,
+        ];
+
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
+        return $prepared->execute($values);
+    }
+
+    /**
      * Helper function to pad out IN (?,?,?)
      * @param array $arr
      * @return string
