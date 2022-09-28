@@ -116,7 +116,7 @@ class Controller
                 throw new UnauthorizedException();
             }
 
-            $shouldBeQuotedPost = (bool) $payload['message'] || count($payload['attachment_guids']);
+            $shouldBeQuotedPost = $payload['message'] || count($payload['attachment_guids']);
             $remindIntent = new RemindIntent();
             $remindIntent->setGuid($remind->getGuid())
                         ->setOwnerGuid($remind->getOwnerGuid())
