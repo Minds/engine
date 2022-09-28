@@ -266,7 +266,7 @@ class ACL
         /**
          * Allow plugins to extend the ACL check
          */
-        $type = method_exists($entity, 'getType') ? $entity->getType() : 'all';
+        $type = method_exists($entity, 'getType') ? $entity->getType() ?? 'all' : 'all';
         $type = property_exists($entity, 'type') ? $entity->type : $type;
         if (Core\Events\Dispatcher::trigger('acl:write', $type, ['entity' => $entity, 'user' => $user, 'additionalData' => $additionalData], false) === true) {
             return true;
