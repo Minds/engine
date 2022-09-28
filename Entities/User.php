@@ -4,6 +4,7 @@ namespace Minds\Entities;
 
 use Minds\Common\ChannelMode;
 use Minds\Core;
+use Minds\Core\Supermind\Settings\Models\Settings;
 use Minds\Helpers;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
 
@@ -29,6 +30,7 @@ use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
  * @property int $canary
  * @property int $opted_in_hashtags
  * @property int $last_accepted_tos
+ * @property array $supermind_settings
  * @property int $creator_frequency
  * @property string $phone_number
  * @property string $phone_number_hash
@@ -141,6 +143,7 @@ class User extends \ElggUser
         $this->attributes['public_dob'] = 0;
         $this->attributes['dismissed_widgets'] = [];
         $this->attributes['liquidity_spot_opt_out'] = 0;
+        $this->attributes['supermind_settings'] = [];
 
         parent::initializeAttributes();
     }
@@ -1107,6 +1110,7 @@ class User extends \ElggUser
         $export['mature_lock'] = $this->getMatureLock();
         $export['mature'] = (int) $this->getViewMature();
         $export['last_accepted_tos'] = (int) $this->getLastAcceptedTOS();
+        $export['supermind_settings'] = $this->getSupermindSettings();
         $export['opted_in_hashtags'] = (int) $this->getOptedInHashtags();
         $export['canary'] = (bool) $this->isCanary();
         $export['is_admin'] = $this->attributes['admin'] == 'yes';
@@ -1453,6 +1457,28 @@ class User extends \ElggUser
     }
 
     /**
+     * Getter for supermind settings.
+     * @return array
+     */
+    public function getSupermindSettings(): array
+    {
+        return $this->supermind_settings && count($this->supermind_settings) ?
+            $this->supermind_settings :
+            (new Settings())->export(); // default settings.
+    }
+
+    /**
+     * Set supermind settings.
+     * @param string $value
+     * @return $this
+     */
+    public function setSupermindSettings($value)
+    {
+        $this->supermind_settings = $value;
+        return $this;
+    }
+
+    /**
      * @return int
      */
     public function getOptedInHashtags()
@@ -1518,7 +1544,8 @@ class User extends \ElggUser
             'hide_share_buttons',
             'allow_unsubscribed_contact',
             'dismissed_widgets',
-            'liquidity_spot_opt_out'
+            'liquidity_spot_opt_out',
+            'supermind_settings'
         ]);
     }
 

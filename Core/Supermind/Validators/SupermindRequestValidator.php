@@ -6,14 +6,18 @@ namespace Minds\Core\Supermind\Validators;
 
 use Exception;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\Stripe\PaymentMethods\Manager as PaymentMethodsManager;
 use Minds\Core\Session;
 use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Supermind\SupermindRequestReplyType;
+use Minds\Entities\User;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Interfaces\ValidatorInterface;
+use Minds\Core\Supermind\Settings\Models\Settings as SupermindSettings;
+use Minds\Exceptions\ServerErrorException;
 
 /**
  * Responsible for validating Supermind requests coming in
@@ -24,10 +28,12 @@ class SupermindRequestValidator implements ValidatorInterface
 
     public function __construct(
         private ?PaymentMethodsManager $paymentMethodsManager = null,
-        private ?SupermindPaymentProcessor $paymentProcessor = null
+        private ?SupermindPaymentProcessor $paymentProcessor = null,
+        private ?EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->paymentMethodsManager ??= Di::_()->get('Stripe\PaymentMethods\Manager');
         $this->paymentProcessor ??= new SupermindPaymentProcessor();
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
     }
 
     private function resetErrors(): void
@@ -126,20 +132,21 @@ class SupermindRequestValidator implements ValidatorInterface
      */
     private function checkSupermindDetails(array $supermindRequest): void
     {
-        if (!isset($supermindRequest['terms_agreed']) || !$supermindRequest['terms_agreed']) {
-            $this->errors->add(
-                new ValidationError(
-                    "supermind_request:terms_agreed",
-                    "You must agree to the terms and condition in order to create a Supermind request"
-                )
-            );
-        }
-
         if (!isset($supermindRequest['receiver_guid']) || !$supermindRequest['receiver_guid']) {
             $this->errors->add(
                 new ValidationError(
                     "supermind_request:receiver_guid",
                     "You must provide the Supermind request target"
+                )
+            );
+            return;
+        }
+
+        if (!isset($supermindRequest['terms_agreed']) || !$supermindRequest['terms_agreed']) {
+            $this->errors->add(
+                new ValidationError(
+                    "supermind_request:terms_agreed",
+                    "You must agree to the terms and condition in order to create a Supermind request"
                 )
             );
         }
@@ -203,7 +210,10 @@ class SupermindRequestValidator implements ValidatorInterface
                     )
                 );
             } elseif ($paymentOptions['payment_type'] === SupermindRequestPaymentMethod::CASH) {
-                $isPaymentMethodIdValid = $this->paymentMethodsManager->checkPaymentMethodOwnership(Session::getLoggedinUser()->getGuid(), $paymentOptions['payment_method_id']);
+                $isPaymentMethodIdValid = $this->paymentMethodsManager->checkPaymentMethodOwnership(
+                    (string) Session::getLoggedinUser()->getGuid(),
+                    $paymentOptions['payment_method_id']
+                );
                 if (!$isPaymentMethodIdValid) {
                     $this->errors->add(
                         new ValidationError(
@@ -213,6 +223,8 @@ class SupermindRequestValidator implements ValidatorInterface
                     );
                 }
             }
+
+            $this->loadSupermindPaymentSettings($supermindRequest['receiver_guid']);
 
             if (!isset($paymentOptions['amount']) || !$paymentOptions['amount']) {
                 $this->errors->add(
@@ -230,6 +242,25 @@ class SupermindRequestValidator implements ValidatorInterface
                 );
             }
         }
+    }
+
+    /**
+     * @param string $targetUserGuid
+     * @return SupermindSettings
+     * @throws ServerErrorException
+     */
+    private function loadSupermindPaymentSettings(string $targetUserGuid): void
+    {
+        // try build from username
+        $receiver = $this->entitiesBuilder->getByUserByIndex($targetUserGuid);
+        if ($receiver === null) {
+            // try build from guid
+            $receiver = $this->entitiesBuilder->single($targetUserGuid);
+        }
+        if (!($receiver instanceof User)) {
+            throw new ServerErrorException('Could not build a user from the provided target GUID');
+        }
+        $this->paymentProcessor->setUser($receiver);
     }
 
     public function getErrors(): ?ValidationErrorCollection
