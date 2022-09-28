@@ -17,6 +17,7 @@ use Minds\Core\Rewards\Contributions\ContributionValues;
 use Minds\Core\Session;
 use Minds\Core\ThirdPartyNetworks\Manager as ThirdPartyNetworksManager;
 use Minds\Core\Experiments;
+use Minds\Core\Supermind\Settings\Models\Settings as SupermindSettings;
 use Minds\Entities\User;
 use Minds\Core\Wire;
 
@@ -159,6 +160,14 @@ class Exported
             // If not a pro site and not root then tell frontend to redirect
             $exported['redirect_to_root_on_init'] = true;
         }
+
+        $defaultSupermindSettings = new SupermindSettings();
+        $exported['supermind'] = [
+            'min_thresholds' => [
+                'min_cash' => $defaultSupermindSettings->getMinCash(),
+                'min_offchain_tokens' => $defaultSupermindSettings->getMinOffchainTokens()
+            ]
+        ];
 
         return $exported;
     }
