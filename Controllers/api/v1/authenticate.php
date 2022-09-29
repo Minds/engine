@@ -68,6 +68,9 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         /** @var Core\Security\LoginAttempts $attempts */
         $attempts = Core\Di\Di::_()->get('Security\LoginAttempts');
 
+        $logger = Di::_()->get('Logger');
+        $logger->warn('USERNAME FROM CASS: '.$user->username);
+
         if (!$user->username) {
             header('HTTP/1.1 404 Not Found', true, 404);
             return Factory::response(['status' => 'failed']);
