@@ -9,20 +9,16 @@ use Minds\Core\Supermind\Repository;
 
 class ExpiringSoonEvents
 {
-    /** @var CassandraCache */
-    private $cache;
-
-    /** @var EventsDelegate */
-    private $eventsDelegate;
-
-    /** @var Repository */
-    private $repository;
-
-    public function __construct(CassandraCache $cache = null, EventsDelegate $eventsDelegate = null, Repository $repository = null)
-    {
+    public function __construct(
+        protected ?CassandraCache $cache = null,
+        protected ?EventsDelegate $eventsDelegate = null,
+        protected ?Repository $repository = null,
+        protected ?int $nowTs = null
+    ) {
         $this->cache = $cache ?? Di::_()->get('Cache\Cassandra');
         $this->eventsDelegate ??= new EventsDelegate();
         $this->repository ??= new Repository();
+        $this->nowTs ??= time();
     }
 
     /**
@@ -66,7 +62,7 @@ class ExpiringSoonEvents
         $lifespanBeforeExpiringSoon = $lifespan - $soon;
 
         // 6 days ago
-        $latestCreatedTime = time() - $lifespanBeforeExpiringSoon;
+        $latestCreatedTime = $this->nowTs - $lifespanBeforeExpiringSoon;
 
         return $latestCreatedTime;
     }
@@ -83,7 +79,7 @@ class ExpiringSoonEvents
         $lifespan = SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD;
 
         // 7 days ago
-        $earliestCreatedTime = time() - $lifespan;
+        $earliestCreatedTime = $this->nowTs - $lifespan;
 
         if ($this->cache->has('supermind_expiring_soon_last_max_created_time')) {
             // for example, 6.5 days ago

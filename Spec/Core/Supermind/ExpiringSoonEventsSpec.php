@@ -15,21 +15,24 @@ use Prophecy\Argument;
 class ExpiringSoonEventsSpec extends ObjectBehavior
 {
     /** @var CassandraCache */
-    private $cache;
+    private $cacheMock;
 
     /** @var EventsDelegate */
-    private $eventsDelegate;
+    private $eventsDelegateMock;
 
     /** @var Repository */
-    private $repository;
+    private $repositoryMock;
+
+    /** @var int */
+    private $specTestEpoch = 1664453797;
 
     public function let(CassandraCache $cache, EventsDelegate $eventsDelegate, Repository $repository)
     {
-        $this->beConstructedWith($cache, $eventsDelegate);
+        $this->beConstructedWith($cache, $eventsDelegate, $repository, $this->specTestEpoch);
 
-        $this->cache = $cache;
-        $this->eventsDelegate = $eventsDelegate;
-        $this->repository = $repository;
+        $this->cacheMock = $cache;
+        $this->eventsDelegateMock = $eventsDelegate;
+        $this->repositoryMock = $repository;
     }
 
     public function it_is_initializable()
@@ -37,13 +40,13 @@ class ExpiringSoonEventsSpec extends ObjectBehavior
         $this->shouldHaveType(ExpiringSoonEvents::class);
     }
 
-    public function it_triggers_expiring_events(CassandraCache $cache, EventsDelegate $eventsDelegate, Repository $repository)
+    public function it_triggers_expiring_events_with_cache()
     {
         $cacheKey = 'supermind_expiring_soon_last_max_created_time';
-        $earliestCreatedTime = 604800; // 7 days ago
-        $latestCreatedTime = 518400; // 6 days ago
+        $earliestCreatedTime = $this->specTestEpoch - $this->daysToSeconds(7); // 7 days ago
+        $latestCreatedTime = $this->specTestEpoch - $this->daysToSeconds(6); // 6 days ago
 
-        $cachedTime = 561600; // 6.5 days ago
+        $cachedTime = $this->specTestEpoch - $this->daysToSeconds(6.5); // 6.5 days ago
 
         $supermindRequest = new SupermindRequest();
 
@@ -51,38 +54,70 @@ class ExpiringSoonEventsSpec extends ObjectBehavior
             ->setGuid('123')
             ->setReceiverGuid('456')
             ->setSenderGuid('789')
-            ->setCreatedAt(518401)
+            ->setCreatedAt($this->specTestEpoch - ($this->daysToSeconds(6) + 1))
             ->setStatus(1);
 
         $requests = [$supermindRequest];
 
-        $this->beConstructedWith($cache, $eventsDelegate, $repository);
-
-        $this->cache->has($cacheKey)
+        $this->cacheMock->has($cacheKey)
             ->willReturn(true);
 
-        $this->cache->get($cacheKey)
+        $this->cacheMock->get($cacheKey)
             ->willReturn($cachedTime);
-
-        // Created 7 days ago
-        $this->getEarliestCreatedTime()
-            ->willReturn($earliestCreatedTime);
-
-        // Created 6 days ago
-        $this->getLatestCreatedTime()
-             ->willReturn($latestCreatedTime);
-
-        $this->repository->getRequestsExpiringSoon($earliestCreatedTime, $latestCreatedTime)
+        
+        $this->repositoryMock->getRequestsExpiringSoon($cachedTime, $latestCreatedTime)
             ->shouldBeCalled()
-            ->willReturn(
+            ->willYield(
                 $requests
             );
 
-        $this->eventsDelegate->onSupermindRequestExpiringSoon($requests[0]);
+        $this->eventsDelegateMock->onSupermindRequestExpiringSoon($requests[0]);
 
-        $this->cache->set($cacheKey, $latestCreatedTime)
-            ->shouldBeCalled();
+        $this->cacheMock->set($cacheKey, $latestCreatedTime)
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->triggerExpiringSoonEvents();
+    }
+
+    public function it_triggers_expiring_events_without_cache()
+    {
+        $cacheKey = 'supermind_expiring_soon_last_max_created_time';
+        $earliestCreatedTime = $this->specTestEpoch - $this->daysToSeconds(7); // 7 days ago
+        $latestCreatedTime = $this->specTestEpoch - $this->daysToSeconds(6); // 6 days ago
+
+        $supermindRequest = new SupermindRequest();
+
+        $supermindRequest
+            ->setGuid('123')
+            ->setReceiverGuid('456')
+            ->setSenderGuid('789')
+            ->setCreatedAt($this->specTestEpoch - ($this->daysToSeconds(6) + 1))
+            ->setStatus(1);
+
+        $requests = [$supermindRequest];
+
+        $this->cacheMock->has($cacheKey)
+            ->willReturn(false);
+
+        $this->repositoryMock->getRequestsExpiringSoon($earliestCreatedTime, $latestCreatedTime)
+            ->shouldBeCalled()
+            ->willYield(
+                $requests
+            );
+
+        $this->eventsDelegateMock->onSupermindRequestExpiringSoon($requests[0]);
+
+        $this->cacheMock->set($cacheKey, $latestCreatedTime)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->triggerExpiringSoonEvents();
+    }
+
+    private function daysToSeconds(int $days): int
+    {
+        $dayInSecs = 86400;
+        return $dayInSecs * $days;
     }
 }
