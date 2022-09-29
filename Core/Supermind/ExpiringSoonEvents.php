@@ -5,60 +5,97 @@ use Minds\Core\Data\cache\Cassandra as CassandraCache;
 use Minds\Core\Di\Di;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\Delegates\EventsDelegate;
+use Minds\Core\Supermind\Repository;
 
 class ExpiringSoonEvents
 {
     /** @var CassandraCache */
-    protected $cache;
+    private $cache;
 
-    /** @var ActionEventsTopic */
-    protected $actionEventsTopic;
+    /** @var EventsDelegate */
+    private $eventsDelegate;
 
-    public function __construct(CassandraCache $cache = null, private ?EventsDelegate $eventsDelegate = null)
+    /** @var Repository */
+    private $repository;
+
+    public function __construct(CassandraCache $cache = null, EventsDelegate $eventsDelegate = null, Repository $repository = null)
     {
         $this->cache = $cache ?? Di::_()->get('Cache\Cassandra');
         $this->eventsDelegate ??= new EventsDelegate();
+        $this->repository ??= new Repository();
     }
 
     /**
+     * Trigger events for all supermind requests that are expiring soon
+     * (and haven't been triggered already)
      * @return bool
-     * @throws ForbiddenException
      */
     public function triggerExpiringSoonEvents(): bool
     {
-        // A supermind request expires after 7 days
-        $lifespan = SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD;
+        // We want the requests created between these times
+        $earliestCreatedTime = $this->getEarliestCreatedTime();
+        $latestCreatedTime = $this->getLatestCreatedTime();
 
-        // 1 day left before expiry
-        $soon = SupermindRequest::SUPERMIND_EXPIRING_SOON_THRESHOLD;
+        $requestsExpiringSoon = $this->repository->getRequestsExpiringSoon($earliestCreatedTime, $latestCreatedTime);
 
-        // 6 days is the age we want to start triggering soon events
-        $lifespanBeforeExpiringSoon = $lifespan - $soon;
-
-
-        // We want to get the requests that are between 6 and 7 days old
-        // but only the ones that we haven't checked on previous runs
-
-
-        // CreatedAt should be more than 6 days ago
-        // and not older than the previous time we ran this check
-        $gtTime = min(time() - $lifespanBeforeExpiringSoon, $this->cache->get('supermind_expiring_soon_last_from_time'));
-
-        // CreatedAt should not be more than 7 days ago
-        // (we don't want to notify requests already expired)
-        $lteTime = time() - $lifespan;
-
-        $requestsExpiringSoon = $this->repository->getRequestsExpiringSoon($gtTime, $lteTime);
-
-        foreach ($requestsExpiringSoon as $request)
-        {
+        foreach ($requestsExpiringSoon as $request) {
             $this->eventsDelegate->onSupermindRequestExpiringSoon($request);
         }
 
-        // Store the earliest created time we just checked
-        $this->cache->set('supermind_expiring_soon_last_from_time', $gtTime);
+        // Store the most recent created time we just checked
+        // So next time we run this function,
+        // we don't re-trigger anything earlier than that
+        $this->cache->set('supermind_expiring_soon_last_max_created_time', $latestCreatedTime);
 
         return true;
+    }
+
+    /**
+     * Created time should be more than 6 days ago
+     * @return int
+     */
+    private function getLatestCreatedTime(): int {
+        // A supermind request expires after 7 days
+        $lifespan = SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD;
+
+        // 1 day before expiry
+        $soon = SupermindRequest::SUPERMIND_EXPIRING_SOON_THRESHOLD;
+
+        // 6 days
+        $lifespanBeforeExpiringSoon = $lifespan - $soon;
+
+        // 6 days ago
+        $latestCreatedTime = time() - $lifespanBeforeExpiringSoon;
+
+        return $latestCreatedTime;
+    }
+
+    /**
+     * We want requests created no more than 7 days ago
+     * (as those requests have already expired)
+     * and also created after the requests we've already checked
+     * @return int
+     */
+    private function getEarliestCreatedTime(): int {
+        // 7 days
+        $lifespan = SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD;
+
+        // 7 days ago
+        $earliestCreatedTime = time() - $lifespan;
+
+        if ($this->cache->has('supermind_expiring_soon_last_max_created_time')) {
+            // for example, 6.5 days ago
+            $alreadyTriggeredRequestsOlderThan = $this->cache->get('supermind_expiring_soon_last_max_created_time');
+
+            // e.g. Since we already triggered requests created 6.5+ days ago,
+            // we no longer want to get requests between 6.5 - 7 days old.
+            //
+            // The oldest create date we DO want is younger
+            // (aka a higher value create date) than the ones we've already triggered
+            $earliestCreatedTime = max($earliestCreatedTime, $alreadyTriggeredRequestsOlderThan);
+        }
+
+        return $earliestCreatedTime;
     }
 }
 
