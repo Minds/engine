@@ -52,6 +52,7 @@ class Manager
     public function setUser(User $user): self
     {
         $this->user = $user;
+        $this->paymentProcessor->setUser($user);
         return $this;
     }
 

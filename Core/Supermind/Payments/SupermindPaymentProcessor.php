@@ -13,6 +13,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
+use Minds\Core\Supermind\Settings\Manager as SettingsManager;
 use Minds\Core\Supermind\Exceptions\SupermindRequestPaymentTypeNotFoundException;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
@@ -21,29 +22,31 @@ use Minds\Entities\User;
 
 class SupermindPaymentProcessor
 {
+    private User $user;
+
     /**
      * @const int Stripe service fee percentage
      */
     const SUPERMIND_SERVICE_FEE_PCT = 10;
 
-    /**
-     * @const float Defines the minimum allowed amount for a Supermind requests
-     */
-    private const SUPERMIND_REQUEST_MINIMUM_AMOUNT = [
-        SupermindRequestPaymentMethod::CASH => 10.00,
-        SupermindRequestPaymentMethod::OFFCHAIN_TOKEN => 1.00,
-    ];
-
     public function __construct(
         private ?IntentsManagerV2 $intentsManager = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?OffchainTransactions $offchainTransactions = null,
-        private ?MindsConfig $mindsConfig = null
+        private ?MindsConfig $mindsConfig = null,
+        private ?SettingsManager $settingsManager = null
     ) {
         $this->intentsManager ??= new IntentsManagerV2();
         $this->mindsConfig ??= Di::_()->get("Config");
         $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
-        $this->offchainTransactions ??= new OffchainTransactions();
+        $this->offchainTransactions ??= new OffchainTransactions();#
+        $this->settingsManager ??= Di::_()->get("Supermind\Settings\Manager");
+    }
+
+    public function setUser(User $user): self
+    {
+        $this->user = $user;
+        return $this;
     }
 
     /**
@@ -53,17 +56,13 @@ class SupermindPaymentProcessor
      */
     public function getMinimumAllowedAmount(int $paymentMethod): float
     {
-        $minimumAmount = self::SUPERMIND_REQUEST_MINIMUM_AMOUNT[$paymentMethod];
+        $settings = $this->settingsManager->setUser($this->user)
+            ->getSettings($paymentMethod);
 
-        $paymentTypeId = SupermindRequestPaymentMethod::getPaymentTypeId($paymentMethod);
-
-        if (isset($this->mindsConfig->get('supermind')['minimum_amount'][$paymentTypeId])) {
-            $minimumAmount = $this->mindsConfig->get('supermind')['minimum_amount'][$paymentTypeId];
-        }
-
-        // TODO: Add check for user settings override
-
-        return $minimumAmount;
+        return match ($paymentMethod) {
+            SupermindRequestPaymentMethod::CASH => $settings->getMinCash(),
+            SupermindRequestPaymentMethod::OFFCHAIN_TOKEN => $settings->getMinOffchainTokens()
+        };
     }
 
     /**

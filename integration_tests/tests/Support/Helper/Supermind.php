@@ -7,6 +7,7 @@ namespace Tests\Support\Helper;
 // here you can define custom actions
 // all public methods declared in helper class will be available in $I
 
+use Behat\Gherkin\Node\PyStringNode;
 use Codeception\Exception\ModuleException;
 use Codeception\Module;
 use Codeception\Module\REST;
