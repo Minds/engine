@@ -80,7 +80,7 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
         if ($entity->getOwnerGuid() == $user->getGuid()
             && !$entity instanceof Wire // Wire owners are the senders
             && !$entity instanceof Peer // Peer boosters are the senders
-            && !$entity instanceof SupermindRequest
+            && !$entity instanceof SupermindRequest // Supermind entity owners are the senders
             && $event->getAction() !== ActionEvent::ACTION_GROUP_QUEUE_ADD // Actor is post owner
         ) {
             $this->logger->info('Skipping as owner is sender');
