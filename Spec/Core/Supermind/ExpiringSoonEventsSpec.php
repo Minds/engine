@@ -37,7 +37,7 @@ class ExpiringSoonEventsSpec extends ObjectBehavior
         $this->shouldHaveType(ExpiringSoonEvents::class);
     }
 
-    public function it_triggers_expiring_events (CassandraCache $cache, EventsDelegate $eventsDelegate, Repository $repository)
+    public function it_triggers_expiring_events(CassandraCache $cache, EventsDelegate $eventsDelegate, Repository $repository)
     {
         $cacheKey = 'supermind_expiring_soon_last_max_created_time';
         $earliestCreatedTime = 604800; // 7 days ago
@@ -84,6 +84,5 @@ class ExpiringSoonEventsSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->triggerExpiringSoonEvents();
-        }
-
+    }
 }

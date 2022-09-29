@@ -54,7 +54,8 @@ class ExpiringSoonEvents
      * Created time should be more than 6 days ago
      * @return int
      */
-    private function getLatestCreatedTime(): int {
+    private function getLatestCreatedTime(): int
+    {
         // A supermind request expires after 7 days
         $lifespan = SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD;
 
@@ -76,7 +77,8 @@ class ExpiringSoonEvents
      * and also created after the requests we've already checked
      * @return int
      */
-    private function getEarliestCreatedTime(): int {
+    private function getEarliestCreatedTime(): int
+    {
         // 7 days
         $lifespan = SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD;
 
@@ -98,7 +100,3 @@ class ExpiringSoonEvents
         return $earliestCreatedTime;
     }
 }
-
-
-
-
