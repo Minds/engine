@@ -1,19 +1,12 @@
-<!-- It should not get offers that have expired already (aka older than 7days)
-
-It should not get offers that aren't yet eligible for a reminder (aka younger than 6 days)
-
-It should not get offers that we've already triggered events for (aka create date is before the cache's last value)
-
-It should get offers that are expiring soon, not expired and we haven't triggered yet  -->
-
 <?php
 
 namespace Spec\Minds\Core\Supermind;
 
+use Minds\Core\Data\cache\Cassandra as CassandraCache;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Supermind\Delegates\EventsDelegate;
-use Minds\Core\EventStreams\ActionEvent;
-use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Core\Supermind\ExpiringSoonEvents;
+use Minds\Core\Supermind\Repository;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -21,140 +14,76 @@ use Prophecy\Argument;
 
 class ExpiringSoonEventsSpec extends ObjectBehavior
 {
-    /** @var ActionEventsTopic */
-    private $actionEventsTopic;
+    /** @var CassandraCache */
+    private $cache;
 
-    /** @var EntitiesBuilder */
-    private $entitiesBuilder;
+    /** @var EventsDelegate */
+    private $eventsDelegate;
 
-    public function let(ActionEventsTopic $actionEventsTopic, EntitiesBuilder $entitiesBuilder)
+    /** @var Repository */
+    private $repository;
+
+    public function let(CassandraCache $cache, EventsDelegate $eventsDelegate, Repository $repository)
     {
-        $this->beConstructedWith($actionEventsTopic, $entitiesBuilder);
+        $this->beConstructedWith($cache, $eventsDelegate);
 
-        $this->actionEventsTopic = $actionEventsTopic;
-        $this->entitiesBuilder = $entitiesBuilder;
+        $this->cache = $cache;
+        $this->eventsDelegate = $eventsDelegate;
+        $this->repository = $repository;
     }
 
     public function it_is_initializable()
     {
-        $this->shouldHaveType(EventsDelegate::class);
+        $this->shouldHaveType(ExpiringSoonEvents::class);
     }
 
-    public function it_should_trigger_a_supermind_request_create_event(ActionEventsTopic $actionEventsTopic, EntitiesBuilder $entitiesBuilder)
+    public function it_triggers_expiring_events (CassandraCache $cache, EventsDelegate $eventsDelegate, Repository $repository)
     {
-        $this->beConstructedWith($actionEventsTopic, $entitiesBuilder);
+        $cacheKey = 'supermind_expiring_soon_last_max_created_time';
+        $earliestCreatedTime = 604800; // 7 days ago
+        $latestCreatedTime = 518400; // 6 days ago
 
-        // Acting user is the sender
-        $user = (new User())
-            ->set('guid', '123');
-        $entitiesBuilder->single('123')
-            ->shouldBeCalled()
-            ->willReturn($user);
+        $cachedTime = 561600; // 6.5 days ago
 
         $supermindRequest = new SupermindRequest();
-        $supermindRequest->setSenderGuid('123')
-            ->setReceiverGuid('456')
-            ->setPaymentAmount(42)
-            ->setPaymentMethod(0)
-            ->setStatus(0)
-            ->setPaymentTxId('789')
-            ->setCreatedAt(12345);
 
-        $actionEventsTopic->send(Argument::that(function ($actionEvent) {
-            return $actionEvent->getAction() === 'supermind_request_create';
-        }))
-            ->shouldBeCalled()
+        $supermindRequest
+            ->setGuid('123')
+            ->setReceiverGuid('456')
+            ->setSenderGuid('789')
+            ->setCreatedAt(518401)
+            ->setStatus(1);
+
+        $requests = [$supermindRequest];
+
+        $this->beConstructedWith($cache, $eventsDelegate, $repository);
+
+        $this->cache->has($cacheKey)
             ->willReturn(true);
 
-        $this->onCompleteSupermindRequestCreation($supermindRequest);
-    }
+        $this->cache->get($cacheKey)
+            ->willReturn($cachedTime);
 
+        // Created 7 days ago
+        $this->getEarliestCreatedTime()
+            ->willReturn($earliestCreatedTime);
 
-    public function it_should_trigger_a_supermind_request_accept_event(ActionEventsTopic $actionEventsTopic, EntitiesBuilder $entitiesBuilder)
-    {
-        $this->beConstructedWith($actionEventsTopic, $entitiesBuilder);
+        // Created 6 days ago
+        $this->getLatestCreatedTime()
+             ->willReturn($latestCreatedTime);
 
-        // Acting user is the receiver
-        $user = (new User())
-            ->set('guid', '456');
-        $entitiesBuilder->single('456')
+        $this->repository->getRequestsExpiringSoon($earliestCreatedTime, $latestCreatedTime)
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(
+                $requests
+            );
 
-        $supermindRequest = new SupermindRequest();
-        $supermindRequest->setSenderGuid('123')
-            ->setReceiverGuid('456')
-            ->setPaymentAmount(42)
-            ->setPaymentMethod(0)
-            ->setStatus(0)
-            ->setPaymentTxId('789')
-            ->setCreatedAt(12345);
+        $this->eventsDelegate->onSupermindRequestExpiringSoon($requests[0]);
 
-        $actionEventsTopic->send(Argument::that(function ($actionEvent) {
-            return $actionEvent->getAction() === 'supermind_request_accept';
-        }))
-            ->shouldBeCalled()
-            ->willReturn(true);
+        $this->cache->set($cacheKey, $latestCreatedTime)
+            ->shouldBeCalled();
 
-        $this->onAcceptSupermindRequest($supermindRequest);
-    }
+        $this->triggerExpiringSoonEvents();
+        }
 
-    public function it_should_trigger_a_supermind_request_reject_event(ActionEventsTopic $actionEventsTopic, EntitiesBuilder $entitiesBuilder)
-    {
-        $this->beConstructedWith($actionEventsTopic, $entitiesBuilder);
-
-        // Acting user is the receiver
-        $user = (new User())
-            ->set('guid', '456');
-        $entitiesBuilder->single('456')
-            ->shouldBeCalled()
-            ->willReturn($user);
-
-        $supermindRequest = new SupermindRequest();
-        $supermindRequest->setSenderGuid('123')
-            ->setReceiverGuid('456')
-            ->setPaymentAmount(42)
-            ->setPaymentMethod(0)
-            ->setStatus(0)
-            ->setPaymentTxId('789')
-            ->setCreatedAt(12345);
-
-        $actionEventsTopic->send(Argument::that(function ($actionEvent) {
-            return $actionEvent->getAction() === 'supermind_request_reject';
-        }))
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->onRejectSupermindRequest($supermindRequest);
-    }
-
-
-    public function it_should_trigger_a_supermind_request_expire_event(ActionEventsTopic $actionEventsTopic, EntitiesBuilder $entitiesBuilder)
-    {
-        $this->beConstructedWith($actionEventsTopic, $entitiesBuilder);
-
-        // Acting user is the receiver
-        $user = (new User())
-            ->set('guid', '456');
-        $entitiesBuilder->single('456')
-            ->shouldBeCalled()
-            ->willReturn($user);
-
-        $supermindRequest = new SupermindRequest();
-        $supermindRequest->setSenderGuid('123')
-            ->setReceiverGuid('456')
-            ->setPaymentAmount(42)
-            ->setPaymentMethod(0)
-            ->setStatus(0)
-            ->setPaymentTxId('789')
-            ->setCreatedAt(12345);
-
-        $actionEventsTopic->send(Argument::that(function ($actionEvent) {
-            return $actionEvent->getAction() === 'supermind_request_expire';
-        }))
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->onExpireSupermindRequest($supermindRequest);
-    }
 }

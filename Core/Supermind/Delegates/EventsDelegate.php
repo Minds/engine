@@ -100,7 +100,6 @@ class EventsDelegate
             ->setAction(ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRING_SOON)
             ->setEntity($supermindRequest)
             ->setUser(new SystemUser);
-        // ojm this *might* work
         $this->actionEventsTopic->send($actionEvent);
     }
 

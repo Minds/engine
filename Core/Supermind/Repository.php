@@ -346,44 +346,31 @@ class Repository
      * @param int $lte
      * @return Iterator
      */
-    public function getRequestsExpiringSoon(int $gt, int $lte): Iterator
+    public function getRequestsExpiringSoon(int $gt, int $lt): Iterator
     {
-        $statement = $this->buildRequestsExpiringSoonQuery($gt, $lte);
+        // BUILD STATEMENT
+
+        $query = "SELECT * FROM superminds WHERE status = :status AND  created_timestamp > :min_timestamp AND created_timestamp < :max_timestamp ORDER BY created_timestamp DESC";
+        $values = [
+            'status' => SupermindRequestStatus::CREATED,
+            'min_timestamp' => date('c', $gt),
+            'max_timestamp' => date('c', $lt),
+        ];
+
+        $statement = $this->mysqlClientReader->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        // RUN STATEMENT
+
         $statement->execute();
 
         $i = 0;
         foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $request = SupermindRequest::fromData($row);
-            if ($i < 12) {
-                $request->setEntity($this->entitiesBuilder->single($request->getActivityGuid()));
-                $request->setReceiverEntity($this->entitiesBuilder->single($request->getReceiverGuid()));
-            }
+            $request->setEntity($this->entitiesBuilder->single($request->getActivityGuid()));
+            $request->setReceiverEntity($this->entitiesBuilder->single($request->getReceiverGuid()));
             yield $request;
             $i++;
         }
     }
-
-    private function buildRequestsExpiringSoonQuery(int $gt, int $lte): PDOStatement
-    {
-        $query = "SELECT
-                *
-            FROM
-                superminds
-            WHERE
-                status == :status
-                AND created_timestamp > :min_timestamp
-                AND created_timestamp <= :max_timestamp
-            ORDER BY
-                created_timestamp DESC";
-        $values = [
-            'status' => SupermindRequestStatus::CREATED,
-            'min_timestamp' => $gt,
-            'max_timestamp' => $lte
-        ];
-
-        $statement = $this->mysqlClientReader->prepare($query);
-        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
-        return $statement;
-    }
-
 }

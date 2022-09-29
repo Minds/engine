@@ -29,5 +29,4 @@ class SupermindRequestsExpiringSoon extends \Minds\Cli\Controller implements \Mi
         $expiringSoonEvents->triggerExpiringSoonEvents();
         $this->out("Supermind requests expiring soon events triggered");
     }
-
 }
