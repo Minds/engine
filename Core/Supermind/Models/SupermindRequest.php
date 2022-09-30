@@ -53,6 +53,12 @@ class SupermindRequest implements ExportableInterface, EntityInterface
     public const SUPERMIND_EXPIRY_THRESHOLD = 7 * 86400;
 
     /**
+     * @const int The amount of seconds before expiration that we use to define when a Supermind request is "expiring soon"
+     */
+    public const SUPERMIND_EXPIRING_SOON_THRESHOLD = 60 * 60 * 24; // 24 hours
+
+
+    /**
      * @const string
      */
     public const URN_METHOD = 'supermind';
