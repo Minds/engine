@@ -69,8 +69,8 @@ class Cassandra implements CacheInterface
                     (?, ?)
                 USING TTL ?;",
                 [
-                    $key,
-                    $value,
+                    (string) $key,
+                    (string) $value,
                     $ttl
                 ]
             );
@@ -157,7 +157,7 @@ class Cassandra implements CacheInterface
     }
 
     /**
-     * Check if a keu exists within the cache table
+     * Check if a key exists within the cache table
      * @inheritDoc
      */
     public function has($key): bool
