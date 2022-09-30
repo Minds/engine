@@ -74,7 +74,7 @@ class ElasticsearchDocumentsDelegate implements ArtifactsDelegateInterface
         ];
 
         $query = [
-            'index' => $this->config->get('elasticsearch')['index'],
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-activity',
             'body' => $body,
         ];
 
@@ -108,7 +108,7 @@ class ElasticsearchDocumentsDelegate implements ArtifactsDelegateInterface
         ];
 
         $query = [
-            'index' => $this->config->get('elasticsearch')['index'],
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-activity',
             'body' => $body,
             'conflicts' => 'proceed'
         ];
@@ -125,8 +125,7 @@ class ElasticsearchDocumentsDelegate implements ArtifactsDelegateInterface
     public function delete($userGuid)
     {
         $params = [
-            'index' => $this->config->get('elasticsearch')['index'],
-            'type' => 'user',
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-user',
             'id' => $userGuid
         ];
 
