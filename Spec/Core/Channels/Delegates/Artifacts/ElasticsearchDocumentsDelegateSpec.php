@@ -106,8 +106,7 @@ class ElasticsearchDocumentsDelegateSpec extends ObjectBehavior
             ->willReturn(['indexes' => [ 'search_prefix' => 'phpspec' ]]);
 
         $this->esNativeClient->delete([
-            'index' => 'phpspec',
-            'type' => 'user',
+            'index' => 'phpspec-user',
             'id' => 1000,
         ])
             ->shouldBeCalled()
