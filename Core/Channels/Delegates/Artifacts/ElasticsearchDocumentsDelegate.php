@@ -146,7 +146,7 @@ class ElasticsearchDocumentsDelegate implements ArtifactsDelegateInterface
         ];
 
         $query = [
-            'index' => $this->config->get('elasticsearch')['index'],
+            'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-activity',
             'body' => $body,
         ];
 
