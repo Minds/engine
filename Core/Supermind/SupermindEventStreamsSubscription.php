@@ -57,7 +57,7 @@ class SupermindEventStreamsSubscription implements SubscriptionInterface
      */
     public function getTopicRegex(): string
     {
-        return '(supermind_request_create|supermind_request_accept|supermind_request_reject|supermind_request_expire)';
+        return '(supermind_request_create|supermind_request_accept|supermind_request_reject|supermind_request_expire|supermind_request_expiring_soon)';
     }
 
     /**
