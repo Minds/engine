@@ -19,11 +19,13 @@ class Controller
         protected ?PocSync $pocSync = null,
         protected ?EntityImporter $entityImporter = null,
         protected ?EntityExporter $entityExporter = null,
+        protected ?Keys $keys = null,
     ) {
         $this->manager ??= Di::_()->get('Nostr\Manager');
         $this->pocSync ??= Di::_()->get('Nostr\PocSync');
         $this->entityImporter ??= new EntityImporter();
         $this->entityExporter ??= new EntityExporter();
+        $this->keys ??= new Keys();
     }
 
     /**
@@ -146,6 +148,71 @@ class Controller
         $nostrEvent = NostrEvent::buildFromArray($rawEvent);
 
         $this->entityImporter->onNostrEvent($nostrEvent);
+
+        return new JsonResponse([]);
+    }
+
+    /**
+     * POST /api/v3/nostr/nip26-delegation
+     *
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     */
+    public function setupNip26Delegation(ServerRequestInterface $request): JsonResponse
+    {
+        $payload = $request->getParsedBody();
+        $user = $request->getAttribute('_user');
+
+        $delegatePublicKey = $this->manager->getPublicKeyFromUser($user);
+
+        $nip26DelegateToken = new NIP26DelegateToken(
+            delegatePublicKey: $delegatePublicKey,
+            delegatorPublicKey:  $payload['delegator_public_key'],
+            conditionsQueryString: $payload['conditions_query_string'],
+            sig: $payload['sig']
+        );
+
+        $this->keys->addNip26DelegationToken($nip26DelegateToken);
+
+        return new JsonResponse([]);
+    }
+
+    /**
+     * GET /api/v3/nostr/nip26-delegation
+     *
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     */
+    public function getNip26Delegation(ServerRequestInterface $request): JsonResponse
+    {
+        $user = $request->getAttribute('_user');
+
+        $delegatePublicKey = $this->manager->getPublicKeyFromUser($user);
+
+        $nip26DelegateToken = $this->keys->getNip26DelegationToken($delegatePublicKey);
+
+        if (!$nip26DelegateToken) {
+            throw new NotFoundException();
+        }
+
+        return new JsonResponse([
+            'tag' => $nip26DelegateToken->toTag(),
+        ]);
+    }
+
+    /**
+     * DELETE /api/v3/nostr/nip26-delegation
+     *
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     */
+    public function removeNip26Delegation(ServerRequestInterface $request): JsonResponse
+    {
+        $user = $request->getAttribute('_user');
+
+        $delegatePublicKey = $this->manager->getPublicKeyFromUser($user);
+
+        $this->keys->removeNip26DelegationToken($delegatePublicKey);
 
         return new JsonResponse([]);
     }
