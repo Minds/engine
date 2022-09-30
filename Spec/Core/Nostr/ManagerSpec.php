@@ -126,6 +126,8 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
         $this->keys->getSecp256k1PrivateKey()
             ->willReturn(pack('H*', "51931a1fffbb7e408099d615b283c5a8615a23695b0e46e943e74f404c95042a"));
+        $this->keys->getNip26DelegationToken('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715')
+            ->willReturn(null);
 
         $nostrEvent = $this->buildNostrEvent($user);
         $nostrEvent->getId()->shouldBe('9a6632c7bd77040c167241bc9796836914532bc669e7f56170d37a7c91f4a1a2');
@@ -158,6 +160,8 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
         $this->keys->getSecp256k1PrivateKey()
             ->willReturn(pack('H*', "51931a1fffbb7e408099d615b283c5a8615a23695b0e46e943e74f404c95042a"));
+        $this->keys->getNip26DelegationToken('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715')
+            ->willReturn(null);
 
         $nostrEvent = $this->buildNostrEvent($activity);
         $nostrEvent->getId()->shouldBe('c7462cd60b3278e59cf863a512971b2c35da77aabd6761eb76d1e42083da9038');
