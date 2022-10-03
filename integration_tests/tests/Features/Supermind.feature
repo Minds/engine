@@ -387,3 +387,133 @@ Feature: Supermind
       """json
       {}
       """
+
+  Scenario: Get default supermind settings
+    Given I register to Minds with
+      """json
+      {
+        "username": "",
+        "password": "Pa$$w0rd",
+        "email": "noreply@minds.com",
+        "captcha": "{\"clientText\": \"captcha_bypass\"}",
+        "parentId": ""
+      }
+      """
+    When I call the "v3/supermind/settings" endpoint with params
+      """json
+        {}
+      """
+    Then I get a 200 response containing
+      """json
+        {
+          "min_offchain_tokens": 1,
+          "min_cash": 10
+        }
+      """
+
+  Scenario: Change supermind settings
+    Given I register to Minds with
+      """json
+      {
+        "username": "",
+        "password": "Pa$$w0rd",
+        "email": "noreply@minds.com",
+        "captcha": "{\"clientText\": \"captcha_bypass\"}",
+        "parentId": ""
+      }
+      """
+    And I have "supermind_settings" data
+      """json
+        {
+          "min_offchain_tokens": 3.14,
+          "min_cash": 20
+        }
+      """
+    When I "POST" stored data "supermind_settings" to the "v3/supermind/settings" endpoint
+    Then I get a 200 response containing
+      """json
+        {}
+      """
+
+  Scenario: Change single supermind setting
+    Given I register to Minds with
+      """json
+      {
+        "username": "",
+        "password": "Pa$$w0rd",
+        "email": "noreply@minds.com",
+        "captcha": "{\"clientText\": \"captcha_bypass\"}",
+        "parentId": ""
+      }
+      """
+    And I have "supermind_settings" data
+      """json
+        { "min_cash": 20 }
+      """
+    When I "POST" stored data "supermind_settings" to the "v3/supermind/settings" endpoint
+    Then I get a 200 response containing
+      """json
+        {}
+      """
+
+  Scenario: Try to change supermind settings to have too many decimal places
+    Given I register to Minds with
+      """json
+      {
+        "username": "",
+        "password": "Pa$$w0rd",
+        "email": "noreply@minds.com",
+        "captcha": "{\"clientText\": \"captcha_bypass\"}",
+        "parentId": ""
+      }
+      """
+    And I have "supermind_settings" data
+      """json
+        {
+          "min_offchain_tokens": 2.001,
+          "min_cash": 20.001
+        }
+      """
+    When I "POST" stored data "supermind_settings" to the "v3/supermind/settings" endpoint
+    Then I get a 400 response containing
+      """json
+      {}
+      """
+
+  Scenario: Try to change supermind settings to have too low a value
+    Given I register to Minds with
+      """json
+      {
+        "username": "",
+        "password": "Pa$$w0rd",
+        "email": "noreply@minds.com",
+        "captcha": "{\"clientText\": \"captcha_bypass\"}",
+        "parentId": ""
+      }
+      """
+    And I have "supermind_settings" data
+      """json
+        {
+          "min_offchain_tokens": 0.9,
+          "min_cash": 9
+        }
+      """
+    When I "POST" stored data "supermind_settings" to the "v3/supermind/settings" endpoint
+    Then I get a 400 response containing
+      """json
+      {}
+      """
+
+  Scenario: Try to change settings when not logged in
+    Given I have "supermind_settings" data
+      """json
+        {
+          "min_offchain_tokens": 0.9,
+          "min_cash": 9
+        }
+      """
+    When I "POST" stored data "supermind_settings" to the "v3/supermind/settings" endpoint
+    Then I get a 401 response containing
+      """json
+      {}
+      """

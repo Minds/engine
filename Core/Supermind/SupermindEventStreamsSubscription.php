@@ -57,7 +57,7 @@ class SupermindEventStreamsSubscription implements SubscriptionInterface
      */
     public function getTopicRegex(): string
     {
-        return '(supermind_request_create|supermind_request_accept|supermind_request_reject|supermind_request_expire)';
+        return '(supermind_request_create|supermind_request_accept|supermind_request_reject|supermind_request_expire|supermind_request_expiring_soon)';
     }
 
     /**
@@ -103,6 +103,12 @@ class SupermindEventStreamsSubscription implements SubscriptionInterface
             case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
                 $this->supermindEmailer
                     ->setTopic('supermind_request_expired')
+                    ->send();
+                break;
+
+            case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRING_SOON:
+                $this->supermindEmailer
+                    ->setTopic('supermind_request_expiring_soon')
                     ->send();
                 break;
 

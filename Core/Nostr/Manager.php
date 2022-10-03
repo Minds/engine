@@ -175,12 +175,20 @@ class Manager
             throw new ServerErrorException("Unsupported entity type " . get_class($entity));
         }
 
+        $tags = [];
+
+        // Has this user setup delegated event signing (NIP-26?)
+        $nip26DelegationToken = $this->keys->getNip26DelegationToken($publicKey);
+        if ($nip26DelegationToken) {
+            $tags[] = $nip26DelegationToken->toTag();
+        }
+
         $id = hash('sha256', json_encode([// sha256 hash
             0,
             strtolower($publicKey), // <pubkey, as a (lowercase) hex string>,
             $createdAt, //  <created_at, as a number>,
             $kind, // kind
-            [], // <tags, as an array of arrays of strings>,
+            $tags, // <tags, as an array of arrays of strings>,
             $content, // <content, as a string>
         ], JSON_UNESCAPED_SLASHES));
 
@@ -199,7 +207,7 @@ class Manager
             ->setPubKey($publicKey)
             ->setCreated_at($createdAt)
             ->setKind($kind)
-            ->setTags([])
+            ->setTags($tags)
             ->setContent($content)
             ->setSig(unpack("H*", (string)$sig64)[1]);
 

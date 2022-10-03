@@ -37,6 +37,21 @@ class CommonSteps extends ApiTester
         Fixtures::add('activity_details', $activityDetails);
     }
 
+    /**
+     * Store data into global state which can be reused in subsequent steps.
+     * @param string $dataKey - represents the name of the data to be stored.
+     * @param PyStringNode $data - data to store
+     * @return void
+     */
+    #[Given('I have ":dataKey" data :data')]
+    public function givenIHaveData(
+        string $dataKey,
+        PyStringNode $data
+    ): void {
+        $data = json_decode($data->getRaw(), true);
+        Fixtures::add($dataKey, $data);
+    }
+
     #[When('I call the ":uri" endpoint with params :queryParams')]
     public function whenICallEndpoint(string $uri, PyStringNode $queryParams)
     {

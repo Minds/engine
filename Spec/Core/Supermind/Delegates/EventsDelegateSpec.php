@@ -125,13 +125,6 @@ class EventsDelegateSpec extends ObjectBehavior
     {
         $this->beConstructedWith($actionEventsTopic, $entitiesBuilder);
 
-        // Acting user is the receiver
-        $user = (new User())
-            ->set('guid', '456');
-        $entitiesBuilder->single('456')
-            ->shouldBeCalled()
-            ->willReturn($user);
-
         $supermindRequest = new SupermindRequest();
         $supermindRequest->setSenderGuid('123')
             ->setReceiverGuid('456')
