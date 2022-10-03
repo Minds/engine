@@ -115,8 +115,11 @@ class Controller
             if (!$this->acl->interact($remind, $user)) {
                 throw new UnauthorizedException();
             }
-
-            $shouldBeQuotedPost = $payload['message'] || count($payload['attachment_guids']);
+            $shouldBeQuotedPost = $payload['message'] || (
+                is_array($payload['attachment_guids']) &&
+                count($payload['attachment_guids'])
+            );
+            // $shouldBeQuotedPost = $payload['message'] || count($payload['attachment_guids']);
             $remindIntent = new RemindIntent();
             $remindIntent->setGuid($remind->getGuid())
                         ->setOwnerGuid($remind->getOwnerGuid())
