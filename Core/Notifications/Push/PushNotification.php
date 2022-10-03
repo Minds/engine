@@ -6,6 +6,8 @@ use Minds\Core\Di\Di;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
+use Minds\Core\Supermind\Models\SupermindRequest;
+use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Entities\User;
 
 /**
@@ -101,6 +103,27 @@ class PushNotification implements PushNotificationInterface
                 $pronoun = '';
                 $noun = 'you';
                 break;
+            case NotificationTypes::TYPE_SUPERMIND_REQUEST_CREATE:
+                $verb = 'sent you a';
+                $pronoun = '';
+                $noun = 'Supermind offer';
+                break;
+            case NotificationTypes::TYPE_SUPERMIND_REQUEST_ACCEPT:
+                $verb = 'has replied to';
+                $pronoun = 'your';
+                $noun = 'Supermind offer';
+                break;
+            case NotificationTypes::TYPE_SUPERMIND_REQUEST_REJECT:
+                $verb = 'has declined';
+                $pronoun = 'your';
+                $noun = 'Supermind offer';
+                break;
+            // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
+            //     $verb = 'missed';
+            //     $pronoun = 'your';
+            //     $noun = 'Supermind Offer';
+            //     break;
+                //repeat
             case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
                 return 'Minds Token Rewards';
             default:
@@ -174,6 +197,11 @@ class PushNotification implements PushNotificationInterface
                 return $this->config->get('site_url') . $entity->getUsername();
             case 'comment':
                 return $this->config->get('site_url') . 'newsfeed/' . $entity->getEntityGuid() . '?focusedCommentUrn=' . $entity->getUrn();
+            case 'supermind':
+                if ($entity instanceof SupermindRequest && $entity->getStatus() === SupermindRequestStatus::ACCEPTED) {
+                    return $this->config->get('site_url') . 'newsfeed/' . $entity->getReplyActivityGuid();
+                }
+                return $this->config->get('site_url') . 'supermind/' . $entity->getGuid();
             case 'activity':
             case 'object':
                 return $this->config->get('site_url') . 'newsfeed/' . $entity->getGuid();
@@ -295,6 +323,10 @@ class PushNotification implements PushNotificationInterface
             case NotificationTypes::TYPE_COMMENT:
             case NotificationTypes::TYPE_TAG:
             case NotificationTypes::TYPE_SUBSCRIBE:
+            case NotificationTypes::TYPE_SUPERMIND_REQUEST_CREATE:
+            case NotificationTypes::TYPE_SUPERMIND_REQUEST_ACCEPT:
+            case NotificationTypes::TYPE_SUPERMIND_REQUEST_REJECT:
+            // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
             case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
                 return true;
         }

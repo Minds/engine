@@ -12,6 +12,7 @@ use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\NotificationsEventStreamsSubscription;
 use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Rewards\Withdraw\Request;
+use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Wire\Wire;
 use Minds\Entities\Activity;
 use Minds\Entities\Group;
@@ -650,6 +651,168 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
                 && $notification->getData()['wire_urn'] === 'urn:wire:urn-here'
                 && $notification->getData()['amount'] === 10
                 && $notification->getData()['method'] === 'usd';
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->consume($actionEvent)->shouldBe(true);
+    }
+
+    public function it_should_send_supermind_request_create(ActionEvent $actionEvent, SupermindRequest $request, User $sender, User $receiver)
+    {
+        $actionEvent->getAction()
+            ->shouldBeCalled()
+            ->willReturn(ActionEvent::ACTION_SUPERMIND_REQUEST_CREATE);
+
+        $actionEvent->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $actionEvent->getUser()
+            ->shouldBeCalled()
+            ->willReturn($sender);
+
+        $actionEvent->getTimestamp()
+            ->willReturn(time());
+
+        //
+
+        $request->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $request->getUrn()
+            ->shouldBeCalled()
+            ->willReturn('urn:supermind:urn-here');
+
+        $request->getReceiverGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+
+        $request->getSenderGuid()
+            ->shouldBeCalled()
+            ->willReturn('321');
+        //
+
+        $sender->getGuid()
+            ->willReturn('122');
+
+        $receiver->getGuid()
+            ->willReturn('456');
+
+        $this->manager->add(Argument::that(function (Notification $notification) {
+            return $notification->getType() === NotificationTypes::TYPE_SUPERMIND_REQUEST_CREATE
+                && $notification->getToGuid() === '123'
+                && $notification->getFromGuid() === '321';
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->consume($actionEvent)->shouldBe(true);
+    }
+
+    public function it_should_send_supermind_request_accept(ActionEvent $actionEvent, SupermindRequest $request, User $sender, User $receiver)
+    {
+        $actionEvent->getAction()
+            ->shouldBeCalled()
+            ->willReturn(ActionEvent::ACTION_SUPERMIND_REQUEST_ACCEPT);
+
+        $actionEvent->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $actionEvent->getUser()
+            ->shouldBeCalled()
+            ->willReturn($sender);
+
+        $actionEvent->getTimestamp()
+            ->willReturn(time());
+
+        //
+
+        $request->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $request->getUrn()
+            ->shouldBeCalled()
+            ->willReturn('urn:supermind:urn-here');
+
+        $request->getReceiverGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+
+        $request->getSenderGuid()
+            ->shouldBeCalled()
+            ->willReturn('321');
+        //
+
+        $sender->getGuid()
+            ->willReturn('122');
+
+        $receiver->getGuid()
+            ->willReturn('456');
+
+        $this->manager->add(Argument::that(function (Notification $notification) {
+            return $notification->getType() === NotificationTypes::TYPE_SUPERMIND_REQUEST_ACCEPT
+                && $notification->getToGuid() === '321'
+                && $notification->getFromGuid() === '123';
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->consume($actionEvent)->shouldBe(true);
+    }
+
+    public function it_should_send_supermind_request_reject(ActionEvent $actionEvent, SupermindRequest $request, User $sender, User $receiver)
+    {
+        $actionEvent->getAction()
+            ->shouldBeCalled()
+            ->willReturn(ActionEvent::ACTION_SUPERMIND_REQUEST_REJECT);
+
+        $actionEvent->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($request);
+
+        $actionEvent->getUser()
+            ->shouldBeCalled()
+            ->willReturn($sender);
+
+        $actionEvent->getTimestamp()
+            ->willReturn(time());
+
+        //
+
+        $request->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $request->getUrn()
+            ->shouldBeCalled()
+            ->willReturn('urn:supermind:urn-here');
+
+        $request->getReceiverGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+
+        $request->getSenderGuid()
+            ->shouldBeCalled()
+            ->willReturn('321');
+        //
+
+        $sender->getGuid()
+            ->willReturn('122');
+
+        $receiver->getGuid()
+            ->willReturn('456');
+
+        $this->manager->add(Argument::that(function (Notification $notification) {
+            return $notification->getType() === NotificationTypes::TYPE_SUPERMIND_REQUEST_REJECT
+                && $notification->getToGuid() === '321'
+                && $notification->getFromGuid() === '123';
         }))
             ->shouldBeCalled()
             ->willReturn(true);
