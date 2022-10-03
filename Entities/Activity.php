@@ -1114,6 +1114,15 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     }
 
     /**
+     * Get Supermind details.
+     * @return array|null supermind details.
+     */
+    public function getSupermind(): ?array
+    {
+        return $this->supermind;
+    }
+
+    /**
      * @param array $supermindDetails
      * @return $this
      */

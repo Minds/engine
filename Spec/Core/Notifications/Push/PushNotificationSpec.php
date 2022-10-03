@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\Notifications\Push;
 
 use Minds\Core\Config\Config;
 use Minds\Core\Notifications\Notification;
+use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Push\PushNotification;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
@@ -381,5 +382,122 @@ class PushNotificationSpec extends ObjectBehavior
 
         $this->getTitle()
             ->shouldReturn('Minds Token Rewards');
+    }
+
+    public function it_should_get_text_for_supermind_request_create(
+        User $sender,
+        Activity $entity
+    ) {
+        $sender->getName()
+            ->shouldBeCalled()
+            ->willReturn('MindsUser');
+
+        $this->notification->getFrom()
+            ->shouldBeCalled()
+            ->willReturn($sender);
+
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $this->notification->getMergedCount()
+            ->shouldBeCalled()
+            ->willReturn(0);
+
+        $entity->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $this->notification->getToGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $entity->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_SUPERMIND_REQUEST_CREATE);
+        
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_SUPERMIND_REQUEST_CREATE);
+            
+        $this->getTitle()->shouldReturn('MindsUser sent you a Supermind offer');
+    }
+
+    public function it_should_get_text_for_supermind_request_accept(
+        User $sender,
+        Activity $entity
+    ) {
+        $sender->getName()
+            ->shouldBeCalled()
+            ->willReturn('MindsUser');
+
+        $this->notification->getFrom()
+            ->shouldBeCalled()
+            ->willReturn($sender);
+
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $this->notification->getMergedCount()
+            ->shouldBeCalled()
+            ->willReturn(0);
+
+        $entity->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $this->notification->getToGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $entity->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_SUPERMIND_REQUEST_ACCEPT);
+        
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_SUPERMIND_REQUEST_ACCEPT);
+            
+        $this->getTitle()->shouldReturn('MindsUser has replied to your Supermind offer');
+    }
+
+    public function it_should_get_text_for_supermind_request_reject(
+        User $sender,
+        Activity $entity
+    ) {
+        $sender->getName()
+            ->shouldBeCalled()
+            ->willReturn('MindsUser');
+
+        $this->notification->getFrom()
+            ->shouldBeCalled()
+            ->willReturn($sender);
+
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $this->notification->getMergedCount()
+            ->shouldBeCalled()
+            ->willReturn(0);
+
+        $entity->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $this->notification->getToGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $entity->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_SUPERMIND_REQUEST_REJECT);
+        
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_SUPERMIND_REQUEST_REJECT);
+            
+        $this->getTitle()->shouldReturn('MindsUser has declined your Supermind offer');
     }
 }
