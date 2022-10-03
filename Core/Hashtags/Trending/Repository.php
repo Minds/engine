@@ -74,13 +74,14 @@ class Repository
                 'bool'=> [
                     'must'=> $must,
                     'must_not'=> [
-                        'bool'=> [
-                            'should'=> [
-                                [
-                                    'terms'=> [
-                                        'nsfw'=> [ 1, 2, 3, 4, 5, 6],
-                                    ],
-                                ],
+                        [
+                            'term' => [
+                                'deleted' => true,
+                            ]
+                        ],
+                        [
+                            'terms' => [
+                                'nsfw'=> [ 1, 2, 3, 4, 5, 6],
                             ],
                         ],
                     ],

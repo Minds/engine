@@ -128,7 +128,7 @@ class Supermind extends EmailCampaign
                 $ctaPath = $learnMorePath;
                 break;
 
-            case 'supermind_request_expiring':
+            case 'supermind_request_expiring_soon':
                 $this->user = $receiver;
                 $headerText = 'Your ' . $paymentString . ' Supermind offer expires tomorrow';
                 $bodyText = "You have 24 hours remaining to review @" . $requester->getUsername() . "'s " . $paymentString . " offer";

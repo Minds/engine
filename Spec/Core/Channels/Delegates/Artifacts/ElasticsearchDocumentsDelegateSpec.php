@@ -61,7 +61,7 @@ class ElasticsearchDocumentsDelegateSpec extends ObjectBehavior
     {
         $this->config->get('elasticsearch')
             ->shouldBeCalled()
-            ->willReturn(['index' => 'phpspec']);
+            ->willReturn(['indexes' => [ 'search_prefix' => 'phpspec' ]]);
 
         $this->elasticsearch->getClient()
             ->shouldBeCalled()
@@ -82,7 +82,7 @@ class ElasticsearchDocumentsDelegateSpec extends ObjectBehavior
     {
         $this->config->get('elasticsearch')
             ->shouldBeCalled()
-            ->willReturn(['index' => 'phpspec']);
+            ->willReturn(['indexes' => [ 'search_prefix' => 'phpspec' ]]);
 
         $this->elasticsearch->getClient()
             ->shouldBeCalled()
@@ -103,11 +103,10 @@ class ElasticsearchDocumentsDelegateSpec extends ObjectBehavior
     {
         $this->config->get('elasticsearch')
             ->shouldBeCalled()
-            ->willReturn(['index' => 'phpspec']);
+            ->willReturn(['indexes' => [ 'search_prefix' => 'phpspec' ]]);
 
         $this->esNativeClient->delete([
-            'index' => 'phpspec',
-            'type' => 'user',
+            'index' => 'phpspec-user',
             'id' => 1000,
         ])
             ->shouldBeCalled()

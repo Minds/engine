@@ -45,3 +45,11 @@ CREATE TABLE IF NOT EXISTS nostr_pubkey_whitelist (
     pubkey varchar(64),
     PRIMARY KEY (pubkey)
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS nostr_nip26_tokens (
+    delegate_pubkey varchar(64),
+    delegator_pubkey varchar(64),
+    conditions_query_string text,
+    sig varchar(128),
+    PRIMARY KEY (delegate_pubkey)
+) ENGINE=InnoDB;

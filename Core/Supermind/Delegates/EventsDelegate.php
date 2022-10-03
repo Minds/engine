@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Supermind\Delegates;
 
+use Minds\Common\SystemUser;
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
@@ -82,8 +83,23 @@ class EventsDelegate
         $actionEvent
             ->setAction(ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE)
             ->setEntity($supermindRequest)
-            ->setUser($this->buildUser($supermindRequest->getReceiverGuid()));
+            ->setUser(new SystemUser);
 
+        $this->actionEventsTopic->send($actionEvent);
+    }
+
+    /**
+     * Triggers event when a supermind request is expiring soon
+     * @param SupermindRequest $supermindRequest
+     * @return void
+     */
+    public function onSupermindRequestExpiringSoon(SupermindRequest $supermindRequest)
+    {
+        $actionEvent = new ActionEvent();
+        $actionEvent
+            ->setAction(ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRING_SOON)
+            ->setEntity($supermindRequest)
+            ->setUser(new SystemUser);
         $this->actionEventsTopic->send($actionEvent);
     }
 

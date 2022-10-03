@@ -107,6 +107,9 @@ class ActionEvent implements EventInterface
     const ACTION_SUPERMIND_REQUEST_REJECT = 'supermind_request_reject';
 
     /** @var string */
+    const ACTION_SUPERMIND_REQUEST_EXPIRING_SOON = 'supermind_request_expiring_soon';
+
+    /** @var string */
     const ACTION_SUPERMIND_REQUEST_EXPIRE = 'supermind_request_expire';
 
     /** @var string */
@@ -197,11 +200,12 @@ class ActionEvent implements EventInterface
                 break;
             case self::ACTION_SYSTEM_PUSH_NOTIFICATION:
                 break;
-                case self::ACTION_SUPERMIND_REQUEST_CREATE:
-                case self::ACTION_SUPERMIND_REQUEST_ACCEPT:
-                case self::ACTION_SUPERMIND_REQUEST_REJECT:
-                case self::ACTION_SUPERMIND_REQUEST_EXPIRE:
-                    break;
+            case self::ACTION_SUPERMIND_REQUEST_CREATE:
+            case self::ACTION_SUPERMIND_REQUEST_ACCEPT:
+            case self::ACTION_SUPERMIND_REQUEST_REJECT:
+            case self::ACTION_SUPERMIND_REQUEST_EXPIRING_SOON:
+            case self::ACTION_SUPERMIND_REQUEST_EXPIRE:
+                break;
             default:
                 throw new \Exception("Invalid action set. Ensure allowedKeys are set in ActionEvent model");
         }
