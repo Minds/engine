@@ -146,6 +146,9 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 ]);
                 break;
             case ActionEvent::ACTION_QUOTE:
+                if ($event->getActionData()['is_supermind_reply'] ?? false) {
+                    return true; // Do not send as we will be sending a Supermind reply notification afterward.
+                }
                 $notification->setType(NotificationTypes::TYPE_QUOTE);
                 $notification->setData([
                     'quote_urn' => $event->getActionData()['quote_urn'],
