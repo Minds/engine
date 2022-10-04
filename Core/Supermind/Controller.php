@@ -146,9 +146,13 @@ class Controller
             );
         }
 
-        ['limit' => $limit, 'offset' => $offset] = $request->getQueryParams();
+        ['limit' => $limit, 'offset' => $offset, 'status' => $status] = $request->getQueryParams();
 
-        $response = $this->manager->getReceivedRequests((int) $offset, (int) $limit);
+        $response = $this->manager->getReceivedRequests(
+            offset: (int) $offset,
+            limit: (int) $limit,
+            status: (int) $status
+        );
         return new JsonResponse(Exportable::_($response));
     }
 

@@ -356,12 +356,18 @@ class Manager
     /**
      * @param int $offset
      * @param int $limit
+     * @param int $status
      * @return Response
      */
-    public function getReceivedRequests(int $offset, int $limit): Response
+    public function getReceivedRequests(int $offset, int $limit, int $status): Response
     {
         $requests = [];
-        foreach ($this->repository->getReceivedRequests($this->user->getGuid(), $offset, $limit) as $supermindRequest) {
+        foreach ($this->repository->getReceivedRequests(
+            receiverGuid: (string) $this->user->getGuid(),
+            offset: $offset,
+            limit: $limit,
+            status: $status
+        ) as $supermindRequest) {
             $requests[] = $supermindRequest;
         }
 

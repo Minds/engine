@@ -61,9 +61,9 @@ class Repository
      * @param int $limit
      * @return Iterator
      */
-    public function getReceivedRequests(string $receiverGuid, int $offset, int $limit): Iterator
+    public function getReceivedRequests(string $receiverGuid, int $offset, int $limit, int $status): Iterator
     {
-        $statement = $this->buildReceivedRequestsQuery($receiverGuid, $offset, $limit);
+        $statement = $this->buildReceivedRequestsQuery($receiverGuid, $offset, $limit, $status);
         $statement->execute();
 
         $i = 0;
@@ -83,21 +83,35 @@ class Repository
      * @param int $limit
      * @return PDOStatement
      */
-    private function buildReceivedRequestsQuery(string $receiverGuid, int $offset, int $limit): PDOStatement
+    private function buildReceivedRequestsQuery(string $receiverGuid, int $offset, int $limit, int $status): PDOStatement
     {
-        $query = "SELECT
+        if (!$status) {
+            $query = "SELECT
+                    *
+                FROM
+                    superminds
+                WHERE
+                    receiver_guid = :receiver_guid and status != :status
+                ORDER BY
+                    created_timestamp DESC
+                LIMIT
+                    :offset, :limit";
+        } else {
+            $query = "SELECT
                 *
             FROM
                 superminds
             WHERE
-                receiver_guid = :receiver_guid and status != :status
+                receiver_guid = :receiver_guid and status = :status
             ORDER BY
                 created_timestamp DESC
             LIMIT
                 :offset, :limit";
+        }
+
         $values = [
             'receiver_guid' => $receiverGuid,
-            'status' => SupermindRequestStatus::PENDING,
+            'status' => $status,
             'offset' => $offset,
             'limit' => $limit
         ];
