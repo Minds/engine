@@ -89,4 +89,11 @@ class ActivitySpec extends ObjectBehavior
         ];
         $this->isQuotedPost()->shouldBe(true);
     }
+
+    public function it_should_get_supermind_data()
+    {
+        $data = [ 'min_tokens' => 1 ];
+        $this->supermind = $data;
+        $this->getSupermind()->shouldReturn($data);
+    }
 }

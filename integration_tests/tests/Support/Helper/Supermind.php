@@ -100,4 +100,29 @@ class Supermind extends Module
             "v3/supermind/{$details->supermind->request_guid}/reject"
         );
     }
+
+    /**
+     * Call single supermind endpoint
+     * @param string|null $guid - GUID to call single Supermind endpoint with. If null, will use request_guid of last activity created.
+     * @return void
+     * @throws ModuleException
+     */
+    public function callSingleSupermindEndpoint(?string $guid = null): void
+    {
+        if (!$guid) {
+            $lastActivity = Fixtures::get('created_activity');
+            $guid = $lastActivity->supermind->request_guid;
+        }
+
+        /**
+         * @var REST $apiClient
+         */
+        $apiClient = $this->getModule("REST");
+
+        $apiClient->haveHttpHeader("Content-Type", 'application/json');
+        $apiClient->send(
+            "GET",
+            "v3/supermind/{$guid}"
+        );
+    }
 }

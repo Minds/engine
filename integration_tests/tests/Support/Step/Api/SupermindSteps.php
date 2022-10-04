@@ -50,4 +50,10 @@ class SupermindSteps extends ApiTester
     {
         $this->rejectSupermindRequest($dataToRetrieve);
     }
+
+    #[When('I call the single Supermind endpoint with last created Supermind guid')]
+    public function whenICallTheSingleSupermindEndpointWithLastCreatedSupermindGuid()
+    {
+        $this->callSingleSupermindEndpoint();
+    }
 }

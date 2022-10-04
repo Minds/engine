@@ -28,6 +28,10 @@ class Routes extends ModuleRoutes
                     'outbox',
                     Ref::_('Supermind\Controller', 'getSupermindOutboxRequests')
                 );
+                $route->get(
+                    ':guid',
+                    Ref::_('Supermind\Controller', 'getSupermindRequest')
+                );
                 $route->post(
                     ':guid/reject',
                     Ref::_('Supermind\Controller', 'rejectSupermindRequest')
