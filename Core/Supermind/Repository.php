@@ -59,11 +59,17 @@ class Repository
      * @param string $receiverGuid
      * @param int $offset
      * @param int $limit
+     * @param int|null $status
      * @return Iterator
      */
-    public function getReceivedRequests(string $receiverGuid, int $offset, int $limit, int $status): Iterator
+    public function getReceivedRequests(string $receiverGuid, int $offset, int $limit, ?int $status): Iterator
     {
-        $statement = $this->buildReceivedRequestsQuery($receiverGuid, $offset, $limit, $status);
+        $statement = $this->buildReceivedRequestsQuery(
+            receiverGuid: $receiverGuid,
+            offset: $offset,
+            limit: $limit,
+            status: $status
+        );
         $statement->execute();
 
         $i = 0;
@@ -81,40 +87,34 @@ class Repository
      * @param string $receiverGuid
      * @param int $offset
      * @param int $limit
+     * @param int|null $status
      * @return PDOStatement
      */
-    private function buildReceivedRequestsQuery(string $receiverGuid, int $offset, int $limit, int $status): PDOStatement
+    private function buildReceivedRequestsQuery(string $receiverGuid, int $offset, int $limit, ?int $status): PDOStatement
     {
-        if (!$status) {
-            $query = "SELECT
-                    *
-                FROM
-                    superminds
-                WHERE
-                    receiver_guid = :receiver_guid and status != :status
-                ORDER BY
-                    created_timestamp DESC
-                LIMIT
-                    :offset, :limit";
-        } else {
-            $query = "SELECT
-                *
-            FROM
-                superminds
-            WHERE
-                receiver_guid = :receiver_guid and status = :status
-            ORDER BY
-                created_timestamp DESC
-            LIMIT
-                :offset, :limit";
-        }
-
         $values = [
             'receiver_guid' => $receiverGuid,
-            'status' => $status,
+            'excludedStatus' => SupermindRequestStatus::PENDING,
             'offset' => $offset,
             'limit' => $limit
         ];
+
+        $whereStatusClause = '';
+        if ($status) {
+            $values['status'] = $status;
+            $whereStatusClause = "AND status = :status";
+        }
+
+        $orderClauseSortOrder = 'DESC';
+        if ($status === SupermindRequestStatus::CREATED) {
+            $orderClauseSortOrder = 'ASC';
+        }
+
+        $query = "SELECT * FROM superminds
+            WHERE receiver_guid = :receiver_guid AND status != :excludedStatus $whereStatusClause 
+            ORDER BY created_timestamp $orderClauseSortOrder
+            LIMIT :offset, :limit
+        ";
 
         $statement = $this->mysqlClientReader->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
@@ -127,9 +127,14 @@ class Repository
      * @param int $limit
      * @return Iterator
      */
-    public function getSentRequests(string $senderGuid, int $offset, int $limit): Iterator
+    public function getSentRequests(string $senderGuid, int $offset, int $limit, ?int $status): Iterator
     {
-        $statement = $this->buildSentRequestsQuery($senderGuid, $offset, $limit);
+        $statement = $this->buildSentRequestsQuery(
+            senderGuid: $senderGuid,
+            offset: $offset,
+            limit: $limit,
+            status: $status
+        );
         $statement->execute();
 
         $i = 0;
@@ -144,24 +149,31 @@ class Repository
         }
     }
 
-    private function buildSentRequestsQuery(string $senderGuid, int $offset, int $limit): PDOStatement
+    private function buildSentRequestsQuery(string $senderGuid, int $offset, int $limit, ?int $status): PDOStatement
     {
-        $query = "SELECT
-                *
-            FROM
-                superminds
-            WHERE
-                sender_guid = :sender_guid and status != :status
-            ORDER BY
-                created_timestamp DESC
-            LIMIT
-                :offset, :limit";
         $values = [
             'sender_guid' => $senderGuid,
-            'status' => SupermindRequestStatus::PENDING,
+            'excludedStatus' => SupermindRequestStatus::PENDING,
             'offset' => $offset,
             'limit' => $limit
         ];
+
+        $whereStatusClause = '';
+        if ($status) {
+            $values['status'] = $status;
+            $whereStatusClause = "AND status = :status";
+        }
+
+        $orderClauseSortOrder = 'DESC';
+        if ($status === SupermindRequestStatus::CREATED) {
+            $orderClauseSortOrder = 'ASC';
+        }
+
+        $query = "SELECT * FROM superminds
+            WHERE sender_guid = :sender_guid AND status != :excludedStatus $whereStatusClause 
+            ORDER BY created_timestamp $orderClauseSortOrder
+            LIMIT :offset, :limit
+        ";
 
         $statement = $this->mysqlClientReader->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);

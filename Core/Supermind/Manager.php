@@ -356,10 +356,10 @@ class Manager
     /**
      * @param int $offset
      * @param int $limit
-     * @param int $status
+     * @param int|null $status
      * @return Response
      */
-    public function getReceivedRequests(int $offset, int $limit, int $status): Response
+    public function getReceivedRequests(int $offset, int $limit, ?int $status): Response
     {
         $requests = [];
         foreach ($this->repository->getReceivedRequests(
@@ -377,12 +377,18 @@ class Manager
     /**
      * @param int $offset
      * @param int $limit
+     * @param int|null $status
      * @return Response
      */
-    public function getSentRequests(int $offset, int $limit): Response
+    public function getSentRequests(int $offset, int $limit, ?int $status): Response
     {
         $requests = [];
-        foreach ($this->repository->getSentRequests($this->user->getGuid(), $offset, $limit) as $supermindRequest) {
+        foreach ($this->repository->getSentRequests(
+            senderGuid: (string) $this->user->getGuid(),
+            offset: $offset,
+            limit: $limit,
+            status: $status
+        ) as $supermindRequest) {
             $requests[] = $supermindRequest;
         }
 
