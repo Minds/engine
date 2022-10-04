@@ -343,6 +343,94 @@ Feature: Supermind
         ]
       """
     Then I get a 200 response containing
+    """json
+    {}
+    """
+  Scenario: Accepting Supermind request from unauthorized account
+    Given I create a Supermind request with the following details
+      """json
+      {
+        "message": "This is a test post for supermind request from integration tests",
+        "wire_threshold": null,
+        "paywall": null,
+        "time_created": null,
+        "mature": false,
+        "nsfw": null,
+        "tags": [
+            "test_tag"
+        ],
+        "access_id": "2",
+        "license": "all-rights-reserved",
+        "post_to_permaweb": false,
+        "entity_guid_update": true,
+        "supermind_request": {
+            "receiver_guid": "",
+            "payment_options": {
+                "payment_type": 1,
+                "amount": 10.00
+            },
+            "reply_type": 0,
+            "twitter_required": false,
+            "terms_agreed": true
+        }
+      }
+      """
+    When I accept the Supermind request for stored data "created_activity" with the following reply
+      """json
+      {
+        "message": "This is a test post for supermind request from integration tests",
+        "wire_threshold": null,
+        "paywall": null,
+        "time_created": null,
+        "mature": false,
+        "nsfw": [],
+        "tags": [
+            "test_tag"
+        ],
+        "access_id": "2",
+        "license": "all-rights-reserved",
+        "remind_guid": "",
+        "post_to_permaweb": false,
+        "entity_guid_update": true,
+        "supermind_reply_guid": ""
+      }
+      """
+    Then I get a 403 response containing
+      """json
+      {}
+      """
+
+  Scenario: Rejecting Supermind request from unauthorized account
+    Given I create a Supermind request with the following details
+      """json
+      {
+        "message": "This is a test post for supermind request from integration tests",
+        "wire_threshold": null,
+        "paywall": null,
+        "time_created": null,
+        "mature": false,
+        "nsfw": null,
+        "tags": [
+            "test_tag"
+        ],
+        "access_id": "2",
+        "license": "all-rights-reserved",
+        "post_to_permaweb": false,
+        "entity_guid_update": true,
+        "supermind_request": {
+            "receiver_guid": "",
+            "payment_options": {
+                "payment_type": 1,
+                "amount": 10.00
+            },
+            "reply_type": 0,
+            "twitter_required": false,
+            "terms_agreed": true
+        }
+      }
+      """
+    When I reject the Supermind request for stored data "created_activity"
+    Then I get a 403 response containing
       """json
       {}
       """
@@ -394,6 +482,52 @@ Feature: Supermind
       """json
       {}
       """
+
+  Scenario: Get a single Supermind
+    Given I create a Supermind request with the following details
+      """json
+      {
+        "message": "This is a test post for supermind request from integration tests",
+        "wire_threshold": null,
+        "paywall": null,
+        "time_created": null,
+        "mature": false,
+        "nsfw": null,
+        "tags": [
+            "test_tag"
+        ],
+        "access_id": "2",
+        "license": "all-rights-reserved",
+        "post_to_permaweb": false,
+        "entity_guid_update": true,
+        "supermind_request": {
+            "receiver_guid": "",
+            "payment_options": {
+                "payment_type": 1,
+                "amount": 10.00
+            },
+            "reply_type": 0,
+            "twitter_required": false,
+            "terms_agreed": true
+        }
+      }
+      """
+    When I call the single Supermind endpoint with last created Supermind guid
+    Then I get a 200 response containing
+    """json
+      {}
+    """
+
+  Scenario: Unable to get single Supermind with a guid that has no attached entity
+    Given I login to "create" Supermind requests
+    When I call the "v3/supermind/123" endpoint with params
+    """json
+      {}
+    """
+    Then I get a 404 response containing
+    """json
+      {}
+    """
 
   Scenario: Get default supermind settings
     Given I register to Minds with

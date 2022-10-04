@@ -7,12 +7,12 @@
 namespace Minds\Core\Events;
 
 use Minds\Core;
-use Minds\Entities;
-use Minds\Helpers;
 use Minds\Core\Analytics\Metrics;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Entities;
+use Minds\Helpers;
 
 class Defaults
 {
@@ -197,6 +197,9 @@ class Defaults
 
         // Entities events
         (new Core\Entities\Events())->register();
+
+        // Supermind events
+        (new Core\Supermind\Events\Events())->register();
     }
 
     public static function _()

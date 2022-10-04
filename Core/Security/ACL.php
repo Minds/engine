@@ -6,9 +6,10 @@ namespace Minds\Core\Security;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Core\Log\Logger;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
+use Minds\Core\Security\TwoFactor\Manager as TwoFactorManager;
 use Minds\Entities;
 use Minds\Entities\Entity;
 use Minds\Entities\RepositoryEntity;
@@ -16,8 +17,6 @@ use Minds\Entities\User;
 use Minds\Exceptions\StopEventException;
 use Minds\Helpers\Flags;
 use Minds\Helpers\MagicAttributes;
-use Minds\Core\Security\TwoFactor\Manager as TwoFactorManager;
-use Zend\Diactoros\ServerRequestFactory;
 
 class ACL
 {
@@ -205,7 +204,7 @@ class ACL
      * @throws UnverifiedEmailException
      * @throws StopEventException
      */
-    public function write($entity, $user = null)
+    public function write($entity, $user = null, array $additionalData = [])
     {
         if (!$user) {
             $user = Core\Session::getLoggedinUser();
@@ -267,8 +266,9 @@ class ACL
         /**
          * Allow plugins to extend the ACL check
          */
-        $type = property_exists($entity, 'type') ? $entity->type : 'all';
-        if (Core\Events\Dispatcher::trigger('acl:write', $entity->type, ['entity' => $entity, 'user' => $user], false) === true) {
+        $type = method_exists($entity, 'getType') ? $entity->getType() ?? 'all' : 'all';
+        $type = property_exists($entity, 'type') ? $entity->type : $type;
+        if (Core\Events\Dispatcher::trigger('acl:write', $type, ['entity' => $entity, 'user' => $user, 'additionalData' => $additionalData], false) === true) {
             return true;
         }
 
