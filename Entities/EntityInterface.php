@@ -17,12 +17,12 @@ interface EntityInterface
     public function getOwnerGuid(): ?string;
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getType(): string;
+    public function getType(): ?string;
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getSubtype(): ?string;
 

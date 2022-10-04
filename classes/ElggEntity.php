@@ -859,9 +859,9 @@ abstract class ElggEntity extends ElggData implements
     /**
      * Returns the entity type
      *
-     * @return string Entity type
+     * @return string|null Entity type
      */
-    public function getType(): string
+    public function getType(): ?string
     {
         return $this->get('type');
     }
