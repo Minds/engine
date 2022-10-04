@@ -19,6 +19,8 @@ class Manager
         'discovery-disclaimer-2020',
         'language-sidebar-2020',
         'matrix',
+        'supermind-onboarding-modal-reply',
+        'supermind-onboarding-modal-request',
     ];
 
     /** @var User */
