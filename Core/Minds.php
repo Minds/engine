@@ -73,6 +73,7 @@ class Minds extends base
         Metrics\Module::class,
         Supermind\Module::class,
         Twitter\Module::class,
+        Entities\Module::class,
     ];
 
     /**
