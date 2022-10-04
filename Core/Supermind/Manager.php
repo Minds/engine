@@ -114,6 +114,8 @@ class Manager
             }
         } catch (CardException $e) {
             throw new SupermindPaymentIntentFailedException(message: $e->getMessage());
+        } catch (ApiErrorException $e) {
+            throw new SupermindPaymentIntentFailedException(message: "@" . $supermindRequest->getReceiverGuid() . " cannot receive cash offers");
         } catch (OffchainWalletInsufficientFundsException $e) {
             throw new SupermindOffchainPaymentFailedException(message: $e->getMessage());
         } catch (Exception $e) {
