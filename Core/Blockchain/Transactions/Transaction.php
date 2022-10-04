@@ -4,10 +4,10 @@
  */
 namespace Minds\Core\Blockchain\Transactions;
 
-use Minds\Entities\User;
 use Minds\Entities\Factory as EntityFactory;
-use Minds\Traits\MagicAttributes;
+use Minds\Entities\User;
 use Minds\Helpers\Unknown;
+use Minds\Traits\MagicAttributes;
 
 /**
  * Class Transaction
@@ -60,7 +60,7 @@ class Transaction
     /** @var bool $failed */
     private $failed = false;
 
-    /** @var int $data */
+    /** @var array $data */
     private $data;
 
     /**
@@ -76,10 +76,14 @@ class Transaction
             'amount' => $this->amount,
             'failed' => $this->failed,
             'timestamp' => $this->timestamp,
-            'contract' => $this->contract
+            'contract' => $this->contract,
+            'metadata' => $this->data
         ];
         if (isset($this->data['sender_guid'])) {
             $sender = EntityFactory::build($this->data['sender_guid']) ?: Unknown::user();
+            $export['sender'] = $sender->export();
+        } elseif (isset($this->data['user_guid'])) {
+            $sender = EntityFactory::build($this->data['user_guid']) ?: Unknown::user();
             $export['sender'] = $sender->export();
         }
         if (isset($this->data['receiver_guid'])) {
