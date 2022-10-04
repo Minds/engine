@@ -9,18 +9,19 @@
 
 namespace Minds\Controllers\api\v1;
 
+use Exception;
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Security;
+use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
+use Minds\Core\Supermind\Manager as SupermindManager;
+use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Entities;
 use Minds\Entities\Activity;
 use Minds\Exceptions\DeprecatedException;
 use Minds\Helpers;
-use Minds\Helpers\Counters;
 use Minds\Interfaces;
-use Minds\Interfaces\Flaggable;
 
 class newsfeed implements Interfaces\Api
 {
@@ -77,7 +78,7 @@ class newsfeed implements Interfaces\Api
                 break;
             case 'top':
                 $offset = isset($_GET['offset']) ? $_GET['offset'] : "";
-                $result = Core\Di\Di::_()->get('Trending\Repository')
+                $result = Di::_()->get('Trending\Repository')
                     ->getList([
                         'type' => 'newsfeed',
                         'rating' => isset($_GET['rating']) ? (int) $_GET['rating'] : 1,
@@ -92,7 +93,7 @@ class newsfeed implements Interfaces\Api
                 $loadNext = base64_encode($result['token']);
                 break;
             case 'featured':
-                $db = Core\Di\Di::_()->get('Database\Cassandra\Indexes');
+                $db = Di::_()->get('Database\Cassandra\Indexes');
                 $offset = isset($_GET['offset']) ? $_GET['offset'] : "";
                 $guids = $db->getRow('activity:featured', ['limit' => 24, 'offset' => $offset]);
                 if ($guids) {
@@ -130,7 +131,7 @@ class newsfeed implements Interfaces\Api
                 'type' => 'activity',
             ], $options));
 
-            $db = Core\Di\Di::_()->get('Database\Cassandra\Indexes');
+            $db = Di::_()->get('Database\Cassandra\Indexes');
             $guids = $db->get($namespace, [
                 'limit' => 5000,
                 'offset' => $offset,
@@ -178,7 +179,7 @@ class newsfeed implements Interfaces\Api
                 $offset = $cacher->get(Core\Session::getLoggedinUser()->guid . ':boost-offset:newsfeed');
 
                 /** @var Core\Boost\Network\Iterator $iterator */
-                $iterator = Core\Di\Di::_()->get('Boost\Network\Iterator');
+                $iterator = Di::_()->get('Boost\Network\Iterator');
                 $iterator->setPriority(!get_input('offset', ''))
                     ->setType('newsfeed')
                     ->setLimit($limit)
@@ -198,7 +199,7 @@ class newsfeed implements Interfaces\Api
                     //}
                 }
                 $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset:newsfeed', $iterator->getOffset(), (3600 / 2));
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
             }
 
             if (isset($_GET['thumb_guids'])) {
@@ -266,7 +267,7 @@ class newsfeed implements Interfaces\Api
                         ->setMetric('impression')
                         ->setKey($activity->owner_guid)
                         ->increment();
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                 }
                 break;
         }
@@ -274,15 +275,34 @@ class newsfeed implements Interfaces\Api
         return Factory::response([]);
     }
 
-    public function delete($pages)
+    /**
+     * @throws SupermindNotFoundException
+     * @throws Exception
+     */
+    public function delete($pages): void
     {
         $activity = new Activity($pages[0]);
         if (!$activity->guid) {
-            return Factory::response(['status' => 'error', 'message' => 'could not find activity post']);
+            Factory::response(['status' => 'error', 'message' => 'could not find activity post']);
+            return;
+        }
+
+        if ($activity->supermind) {
+            if ($activity->supermind['is_reply']) {
+                Factory::response(['status'=>'error', 'message' => "This activity cannot be deleted"]);
+                return;
+            }
+            $supermindManager = $this->getSupermindManager();
+            $supermindRequest = $supermindManager->getRequest($activity->supermind['request_guid']);
+            if ($supermindRequest->getStatus() === SupermindRequestStatus::CREATED) {
+                Factory::response(['status'=>'error', 'message' => "This activity cannot be deleted"]);
+                return;
+            }
         }
 
         if (!$activity->canEdit()) {
-            return Factory::response(['status' => 'error', 'message' => 'you don\'t have permission']);
+            Factory::response(['status' => 'error', 'message' => 'you don\'t have permission']);
+            return;
         }
         /** @var Entities\User $owner */
         $owner = $activity->getOwnerEntity();
@@ -298,7 +318,7 @@ class newsfeed implements Interfaces\Api
                 if ($attachment && $owner->guid == $attachment->owner_guid) {
                     $attachment->delete();
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 error_log("Cannot delete attachment: {$activity->entity_guid}");
             }
         }
@@ -307,10 +327,11 @@ class newsfeed implements Interfaces\Api
         $owner->removePinned($activity->guid);
 
         if ($activity->delete()) {
-            return Factory::response(['message' => 'removed ' . $pages[0]]);
+            Factory::response(['message' => 'removed ' . $pages[0]]);
+            return;
         }
 
-        return Factory::response(['status' => 'error', 'message' => 'could not delete']);
+        Factory::response(['status' => 'error', 'message' => 'could not delete']);
     }
 
     /**
@@ -347,5 +368,14 @@ class newsfeed implements Interfaces\Api
         }
 
         return false;
+    }
+
+    /**
+     * Returns a new instance of the Supermind Manager
+     * @return SupermindManager
+     */
+    private function getSupermindManager(): SupermindManager
+    {
+        return Di::_()->get('Supermind\Manager');
     }
 }
