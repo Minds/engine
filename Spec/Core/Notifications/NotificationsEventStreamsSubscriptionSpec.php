@@ -819,4 +819,89 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
 
         $this->consume($actionEvent)->shouldBe(true);
     }
+
+    /**
+     * Quote notifications
+     */
+    public function it_should_send_a_quote_post_notification(ActionEvent $actionEvent, Activity $activity, User $user)
+    {
+        $quoteUrn = 'urn:activity:123';
+        $activityUrn = 'urn:activity:456';
+
+        $actionEvent->getAction()
+            ->willReturn(ActionEvent::ACTION_QUOTE);
+
+        $actionEvent->getUser()
+            ->willReturn($user);
+
+        $actionEvent->getEntity()
+            ->willReturn($activity);
+
+        $actionEvent->getTimestamp()
+            ->willReturn(time());
+
+        $actionEvent->getActionData()
+            ->willReturn([
+                'quote_urn' => $quoteUrn
+            ]);
+
+        //
+
+        $ownerGuid = '456';
+        $activity->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($ownerGuid);
+
+        $activity->getUrn()
+            ->willReturn($activityUrn);
+
+        $this->manager->add(Argument::that(function (Notification $notification) use ($ownerGuid) {
+            return $notification->getType() === NotificationTypes::TYPE_QUOTE
+                && $notification->getToGuid() === $ownerGuid
+                && $notification->getUrn() === 'urn:notification:456-';
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->consume($actionEvent);
+    }
+
+    public function it_should_NOT_send_a_quote_post_notification_for_supermind_replies(ActionEvent $actionEvent, Activity $activity, User $user)
+    {
+        $quoteUrn = 'urn:activity:123';
+        $activityUrn = 'urn:activity:456';
+
+        $actionEvent->getAction()
+            ->willReturn(ActionEvent::ACTION_QUOTE);
+
+        $actionEvent->getUser()
+            ->willReturn($user);
+
+        $actionEvent->getEntity()
+            ->willReturn($activity);
+
+        $actionEvent->getTimestamp()
+            ->willReturn(time());
+
+        $actionEvent->getActionData()
+            ->willReturn([
+                'quote_urn' => $quoteUrn,
+                'is_supermind_reply' => true
+            ]);
+
+        //
+
+        $ownerGuid = '456';
+        $activity->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($ownerGuid);
+
+        $activity->getUrn()
+            ->willReturn($activityUrn);
+
+        $this->manager->add(Argument::any())
+            ->shouldNotBeCalled();
+
+        $this->consume($actionEvent)->shouldBe(true);
+    }
 }

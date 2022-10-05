@@ -49,15 +49,23 @@ class NotificationsDelegate
                 ]);
             }
 
+            $actionData = [ ($activity->isRemind() ? 'remind_urn' : 'quote_urn') => $activity->getUrn() ];
+
+            if (
+                !$activity->isRemind() &&
+                method_exists($activity, 'getSupermind') &&
+                ($activity->getSupermind()['is_reply'] ?? false)
+            ) {
+                $actionData['is_supermind_reply'] = true;
+            }
+
             // New style events system
             $actionEvent = new ActionEvent();
             $actionEvent
                 ->setUser($activity->getOwnerEntity())
                 ->setEntity($remind)
                 ->setAction($activity->isRemind() ? ActionEvent::ACTION_REMIND : ActionEvent::ACTION_QUOTE)
-                ->setActionData([
-                    ($activity->isRemind() ? 'remind_urn' : 'quote_urn') => $activity->getUrn(),
-                ]);
+                ->setActionData($actionData);
             $this->actionEventsTopic->send($actionEvent);
         }
     }
