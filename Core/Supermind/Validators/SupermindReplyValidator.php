@@ -113,7 +113,7 @@ class SupermindReplyValidator implements ValidatorInterface
                     $this->errors->add(
                         new ValidationError(
                             "supermind_reply_guid",
-                            "The reply type does not match the requested type"
+                            "This Supermind offer requires an image in the reply"
                         )
                     );
                 }
@@ -123,7 +123,7 @@ class SupermindReplyValidator implements ValidatorInterface
                     $this->errors->add(
                         new ValidationError(
                             "supermind_reply_guid",
-                            "The reply type does not match the requested type"
+                            "This Supermind offer requires a video in the reply"
                         )
                     );
                 }

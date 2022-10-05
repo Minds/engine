@@ -114,6 +114,9 @@ class Manager
             }
         } catch (CardException $e) {
             throw new SupermindPaymentIntentFailedException(message: $e->getMessage());
+        } catch (ApiErrorException $e) {
+            $receiver = $this->buildUser($supermindRequest->getReceiverGuid());
+            throw new SupermindPaymentIntentFailedException(message: "@" . $receiver->getUsername() . " is unable to receive payments at this time");
         } catch (OffchainWalletInsufficientFundsException $e) {
             throw new SupermindOffchainPaymentFailedException(message: $e->getMessage());
         } catch (Exception $e) {
