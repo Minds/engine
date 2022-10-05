@@ -1,12 +1,13 @@
 <?php
 namespace Minds\Core\Payments\Stripe\Transactions;
 
+use Minds\Common\Repository\Response;
+use Minds\Core\Di\Di;
 use Minds\Core\Payments\Stripe\Connect\Account;
-use Minds\Core\Payments\Stripe\Instances\TransferInstance;
 use Minds\Core\Payments\Stripe\Instances\ChargeInstance;
 use Minds\Core\Payments\Stripe\Instances\PayoutInstance;
-use Minds\Core\Di\Di;
-use Minds\Common\Repository\Response;
+use Minds\Core\Payments\Stripe\Instances\TransferInstance;
+use Stripe\Charge;
 
 class Manager
 {
@@ -112,13 +113,13 @@ class Manager
         $response = new Response();
         foreach ($transfers->autoPagingIterator() as $transfer) {
             try {
-                $payment = $this->chargeInstance->retrieve($transfer->source_transaction);
+                $payment = Charge::retrieve($transfer->source_transaction);
             } catch (\Exception $e) {
                 continue;
             }
             $transaction = new Transaction();
             $transaction->setId($transfer->id)
-                ->setType('wire')
+                ->setType(isset($payment->metadata['supermind']) ? 'supermind' : 'wire')
                 ->setStatus('paid')
                 ->setTimestamp($transfer->created)
                 ->setGross($payment->amount)
@@ -126,7 +127,8 @@ class Manager
                 ->setNet($transfer->amount)
                 ->setCurrency($transfer->currency)
                 ->setCustomerUserGuid($payment->metadata['user_guid'])
-                ->setCustomerUser($this->entitiesBuilder->single($payment->metadata['user_guid']));
+                ->setCustomerUser($this->entitiesBuilder->single($payment->metadata['user_guid']))
+                ->setMetadata($payment->metadata->toArray());
             $response[] = $transaction;
         }
 

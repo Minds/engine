@@ -4,6 +4,7 @@ namespace Tests\Support\Helper;
 
 use Codeception\Exception\ModuleException;
 use Codeception\Module;
+use Codeception\Module\REST;
 use DateTimeImmutable;
 use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
@@ -12,6 +13,18 @@ use Symfony\Component\BrowserKit\Cookie;
 
 class Api extends Module
 {
+    /**
+     * @return REST
+     * @throws ModuleException
+     */
+    private function _getApiClient(): REST
+    {
+        /**
+         * @type REST
+         */
+        return $this->getModule("REST");
+    }
+
     /**
      * @throws ModuleException
      */
@@ -80,5 +93,17 @@ class Api extends Module
                 $params
             )
         );
+    }
+
+    /**
+     * @param string $method
+     * @param string $uri
+     * @param array $params
+     * @return void
+     * @throws ModuleException
+     */
+    public function callApiEndpoint(string $method, string $uri, array $params)
+    {
+        $apiClient = $this->_getApiClient();
     }
 }

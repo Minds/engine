@@ -158,7 +158,7 @@ class SupermindPaymentProcessor
             ->setType("supermind")
             ->setData([
                 'supermind' => $request->getGuid(),
-                'user_guid' => $request->getSenderGuid(),
+                'sender_guid' => $request->getSenderGuid(),
                 'receiver_guid' => $request->getReceiverGuid()
             ])
             ->create();
@@ -182,7 +182,7 @@ class SupermindPaymentProcessor
             ->setType("supermind")
             ->setData([
                 'supermind' => $request->getGuid(),
-                'user_guid' => $request->getSenderGuid(),
+                'sender_guid' => $request->getSenderGuid(),
                 'receiver_guid' => $request->getReceiverGuid()
             ])
             ->create();
@@ -204,7 +204,7 @@ class SupermindPaymentProcessor
             ->setType("supermind")
             ->setData([
                 'supermind' => $request->getGuid(),
-                'user_guid' => $request->getSenderGuid(),
+                'sender_guid' => $request->getSenderGuid(),
                 'receiver_guid' => $request->getReceiverGuid()
             ])
             ->create();

@@ -8,18 +8,14 @@
 namespace Minds\Core\Wire;
 
 use Minds\Core;
-use Minds\Core\Data;
 use Minds\Core\Di\Di;
-use Minds\Core\Events\Dispatcher;
 use Minds\Core\Guid;
+use Minds\Core\Payments\Stripe\Intents\Manager as StripeIntentsManager;
+use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
 use Minds\Core\Util\BigNumber;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;
-use Minds\Core\Wire\Subscriptions\Manager as SubscriptionsManager;
-use Minds\Common\Urn;
 use Minds\Entities;
 use Minds\Entities\User;
-use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
-use Minds\Core\Payments\Stripe\Intents\Manager as StripeIntentsManager;
 
 class Manager
 {
@@ -90,7 +86,7 @@ class Manager
     protected $eventsDelegate;
 
     /** @var int */
-    const WIRE_SERVICE_FEE_PCT = 5;
+    const WIRE_SERVICE_FEE_PCT = 10;
 
     /** @var int */
     const TRIAL_DAYS = 7;
