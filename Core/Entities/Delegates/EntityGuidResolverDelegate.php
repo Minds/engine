@@ -11,6 +11,7 @@ use Minds\Common\Urn;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Elastic\Entities as TopEntities;
+use Minds\Entities\EntityInterface;
 
 class EntityGuidResolverDelegate implements ResolverDelegate
 {
@@ -69,7 +70,7 @@ class EntityGuidResolverDelegate implements ResolverDelegate
         foreach ($guids as $guid) {
             $entity = $this->entitiesBuilder->single($guid, $opts);
 
-            if ($entity) {
+            if ($entity && $entity instanceof EntityInterface) {
                 $entities[] = $entity;
             }
         }
