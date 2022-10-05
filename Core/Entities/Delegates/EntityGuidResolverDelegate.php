@@ -107,7 +107,7 @@ class EntityGuidResolverDelegate implements ResolverDelegate
             return null;
         }
 
-        if ($entity->getUrn()) {
+        if (method_exists($entity, 'getUrn') && $entity->getUrn()) {
             return $entity->getUrn();
         }
 
