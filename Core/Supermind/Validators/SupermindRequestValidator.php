@@ -15,9 +15,9 @@ use Minds\Core\Supermind\SupermindRequestReplyType;
 use Minds\Entities\User;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
-use Minds\Interfaces\ValidatorInterface;
-use Minds\Core\Supermind\Settings\Models\Settings as SupermindSettings;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
+use Minds\Interfaces\ValidatorInterface;
 
 /**
  * Responsible for validating Supermind requests coming in
@@ -141,6 +141,12 @@ class SupermindRequestValidator implements ValidatorInterface
             );
             return;
         }
+        $receiver = $this->buildUser($supermindRequest['receiver_guid']);
+        if ($this->getLoggedInUserGuid() === $receiver->getGuid()) {
+            throw new UserErrorException(
+                "It is not possible to send a Supermind offer to yourself"
+            );
+        }
 
         if (!isset($supermindRequest['terms_agreed']) || !$supermindRequest['terms_agreed']) {
             $this->errors->add(
@@ -211,7 +217,7 @@ class SupermindRequestValidator implements ValidatorInterface
                 );
             } elseif ($paymentOptions['payment_type'] === SupermindRequestPaymentMethod::CASH) {
                 $isPaymentMethodIdValid = $this->paymentMethodsManager->checkPaymentMethodOwnership(
-                    (string) Session::getLoggedinUser()->getGuid(),
+                    $this->getLoggedInUserGuid(),
                     $paymentOptions['payment_method_id']
                 );
                 if (!$isPaymentMethodIdValid) {
@@ -244,22 +250,38 @@ class SupermindRequestValidator implements ValidatorInterface
         }
     }
 
+    private function getLoggedInUserGuid(): string
+    {
+        return (string) Session::getLoggedinUser()->getGuid();
+    }
+
+    /**
+     * @param string $userGuid
+     * @return User
+     * @throws ServerErrorException
+     */
+    private function buildUser(string $userGuid): User
+    {
+        $user = $this->entitiesBuilder->getByUserByIndex($userGuid);
+        if ($user === null) {
+            // try build from guid
+            $user = $this->entitiesBuilder->single($userGuid);
+        }
+        if (!($user instanceof User)) {
+            throw new ServerErrorException('Could not build a user from the provided target GUID');
+        }
+        return $user;
+    }
+
     /**
      * @param string $targetUserGuid
-     * @return SupermindSettings
+     * @return void
      * @throws ServerErrorException
      */
     private function loadSupermindPaymentSettings(string $targetUserGuid): void
     {
         // try build from username
-        $receiver = $this->entitiesBuilder->getByUserByIndex($targetUserGuid);
-        if ($receiver === null) {
-            // try build from guid
-            $receiver = $this->entitiesBuilder->single($targetUserGuid);
-        }
-        if (!($receiver instanceof User)) {
-            throw new ServerErrorException('Could not build a user from the provided target GUID');
-        }
+        $receiver = $this->buildUser($targetUserGuid);
         $this->paymentProcessor->setUser($receiver);
     }
 
