@@ -122,6 +122,52 @@ class Repository
     }
 
     /**
+     * Get count of received requests.
+     * @param string $receiverGuid - guid of receiver.
+     * @param int|null $status - status to count for (null will return all).
+     * @return int count.
+     */
+    public function countReceivedRequests(string $receiverGuid, ?int $status = null): int
+    {
+        $statement = $this->buildCountReceivedRequestsQuery(
+            receiverGuid: $receiverGuid,
+            status: $status
+        );
+        $statement->execute();
+
+        $result = $statement->fetch(PDO::FETCH_ASSOC);
+        return (int) $result['count'] ?? 0;
+    }
+
+    /**
+     * Build query to count received requests.
+     * @param string $receiverGuid - guid of receiver.
+     * @param int|null $status - status to count for (null will return all).
+     * @return PDOStatement
+     */
+    private function buildCountReceivedRequestsQuery(string $receiverGuid, int $status = null): PDOStatement
+    {
+        $values = [
+            'receiver_guid' => $receiverGuid,
+            'excludedStatus' => SupermindRequestStatus::PENDING
+        ];
+
+        $whereStatusClause = '';
+        if ($status) {
+            $values['status'] = $status;
+            $whereStatusClause = "AND status = :status";
+        }
+
+        $query = "SELECT COUNT(*) as count FROM superminds
+            WHERE receiver_guid = :receiver_guid AND status != :excludedStatus $whereStatusClause 
+        ";
+
+        $statement = $this->mysqlClientReader->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+        return $statement;
+    }
+
+    /**
      * @param string $senderGuid
      * @param int $offset
      * @param int $limit
@@ -173,6 +219,52 @@ class Repository
             WHERE sender_guid = :sender_guid AND status != :excludedStatus $whereStatusClause 
             ORDER BY created_timestamp $orderClauseSortOrder
             LIMIT :offset, :limit
+        ";
+
+        $statement = $this->mysqlClientReader->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+        return $statement;
+    }
+
+    /**
+     * Get count of sent requests.
+     * @param string $senderGuid - guid of sender.
+     * @param int|null $status - status to count for (null will return all).
+     * @return int count.
+     */
+    public function countSentRequests(string $senderGuid, ?int $status = null): int
+    {
+        $statement = $this->buildCountSentRequestsQuery(
+            senderGuid: $senderGuid,
+            status: $status
+        );
+        $statement->execute();
+
+        $result = $statement->fetch(PDO::FETCH_ASSOC);
+        return (int) $result['count'] ?? 0;
+    }
+
+    /**
+     * Build query to count sent requests.
+     * @param string $senderGuid - guid of sender.
+     * @param int|null $status - status to count for (null will return all).
+     * @return PDOStatement
+     */
+    private function buildCountSentRequestsQuery(string $senderGuid, int $status = null): PDOStatement
+    {
+        $values = [
+            'sender_guid' => $senderGuid,
+            'excludedStatus' => SupermindRequestStatus::PENDING
+        ];
+
+        $whereStatusClause = '';
+        if ($status) {
+            $values['status'] = $status;
+            $whereStatusClause = "AND status = :status";
+        }
+
+        $query = "SELECT COUNT(*) as count FROM superminds
+            WHERE sender_guid = :sender_guid AND status != :excludedStatus $whereStatusClause 
         ";
 
         $statement = $this->mysqlClientReader->prepare($query);

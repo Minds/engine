@@ -658,3 +658,89 @@ Feature: Supermind
       """json
       {}
       """
+
+  Scenario: Count inbox requests with no status param
+    Given I login to "receive" Supermind requests
+    When I call the "v3/supermind/inbox/count" endpoint with params
+      """json
+        {}
+      """
+    Then I get a 200 response containing
+      """json
+        {}
+      """
+
+  Scenario: Count inbox requests with status param
+    Given I login to "receive" Supermind requests
+    When I call the "v3/supermind/inbox/count" endpoint with params
+       """json
+        [
+          {
+            "key": "status",
+            "value": 1
+          }
+        ]
+      """
+    Then I get a 200 response containing
+      """json
+        {}
+      """
+
+  Scenario: Count inbox requests with invalid status param
+    Given I login to "receive" Supermind requests
+    When I call the "v3/supermind/inbox/count" endpoint with params
+       """json
+        [
+          {
+            "key": "status",
+            "value": 0
+          }
+        ]
+      """
+    Then I get a 400 response containing
+      """json
+        {}
+      """
+
+  Scenario: Count outbox requests with no status param
+    Given I login to "send" Supermind requests
+    When I call the "v3/supermind/outbox/count" endpoint with params
+      """json
+        {}
+      """
+    Then I get a 200 response containing
+      """json
+        {}
+      """
+
+  Scenario: Count outbox requests with status param
+    Given I login to "send" Supermind requests
+    When I call the "v3/supermind/outbox/count" endpoint with params
+       """json
+        [
+          {
+            "key": "status",
+            "value": 1
+          }
+        ]
+      """
+    Then I get a 200 response containing
+      """json
+        {}
+      """
+
+  Scenario: Count outbox requests with invalid status param
+    Given I login to "send" Supermind requests
+    When I call the "v3/supermind/outbox/count" endpoint with params
+       """json
+        [
+          {
+            "key": "status",
+            "value": 0
+          }
+        ]
+      """
+    Then I get a 400 response containing
+      """json
+        {}
+      """
