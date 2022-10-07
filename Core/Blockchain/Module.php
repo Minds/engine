@@ -17,6 +17,7 @@ class Module implements ModuleInterface
         Wallets\OnChain\UniqueOnChain\Module::class,
         TokenPrices\Module::class,
         Metrics\Module::class,
+        UnstoppableDomains\Module::class,
     ];
 
     /**
