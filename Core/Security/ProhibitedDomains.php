@@ -310,5 +310,7 @@ class ProhibitedDomains
         '.clickbank.net',
         '//v.ht/',
         '//sites.google.com/',
+        '//UsaRealService.com/',
+        '//smmseomarket.com/',
     ];
 }
