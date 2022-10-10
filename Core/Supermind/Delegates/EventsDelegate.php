@@ -99,7 +99,7 @@ class EventsDelegate
         $actionEvent
             ->setAction(ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRING_SOON)
             ->setEntity($supermindRequest)
-            ->setUser(new SystemUser);
+            ->setUser($this->buildUser($supermindRequest->getSenderGuid()));
         $this->actionEventsTopic->send($actionEvent);
     }
 

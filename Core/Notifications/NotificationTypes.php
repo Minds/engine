@@ -234,12 +234,16 @@ class NotificationTypes
     /** @var string */
     const TYPE_SUPERMIND_REQUEST_EXPIRE = 'supermind_expired';
 
+    /** @var string */
+    const TYPE_SUPERMIND_REQUEST_EXPIRING_SOON = 'supermind_expiring_soon';
+
     /** @var string[] */
     const GROUPING_SUPERMIND = [
         self::TYPE_SUPERMIND_REQUEST_CREATE,
         self::TYPE_SUPERMIND_REQUEST_ACCEPT,
         self::TYPE_SUPERMIND_REQUEST_REJECT,
-        self::TYPE_SUPERMIND_REQUEST_EXPIRE
+        self::TYPE_SUPERMIND_REQUEST_EXPIRE,
+        self::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON,
     ];
     
     /** @var string */
