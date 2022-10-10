@@ -7,7 +7,12 @@ namespace Minds\Core\Payments\Stripe\Intents;
 use Exception;
 use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Guid;
 use Minds\Core\Payments\Stripe\Customers\Manager as StripeCustomersManager;
+use Minds\Core\Payments\Stripe\Connect\Manager as StripeConnectManager;
+use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use Stripe\PaymentIntent as StripePaymentIntent;
 use Stripe\SetupIntent as StripeSetupIntent;
@@ -21,11 +26,15 @@ class ManagerV2
     public function __construct(
         private ?StripeClient           $stripeClient = null,
         private ?StripeCustomersManager $stripeCustomersManager = null,
-        private ?MindsConfig            $mindsConfig = null
+        private ?MindsConfig            $mindsConfig = null,
+        private ?StripeConnectManager   $stripeConnectManager = null,
+        private ?EntitiesBuilder        $entitiesBuilder = null
     ) {
         $this->mindsConfig ??= Di::_()->get('Config');
         $this->stripeClient ??= new StripeClient($this->mindsConfig->get('payments')['stripe']['api_key']);
         $this->stripeCustomersManager ??= new StripeCustomersManager();
+        $this->stripeConnectManager ??= new StripeConnectManager();
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -71,7 +80,7 @@ class ManagerV2
 
     private function prepareStripePaymentIntent(PaymentIntent $intent): array
     {
-        return [
+        $intentData = [
             'amount' => $intent->getAmount(),
             'currency' => $intent->getCurrency(),
             'customer' => $intent->getCustomerId(),
@@ -80,16 +89,26 @@ class ManagerV2
             'confirm' => true,
             'off_session' => true,
             'capture_method' => $intent->getCaptureMethod(),
-            'on_behalf_of' => $intent->getStripeAccountId(),
-            'application_fee_amount' => $intent->getServiceFee(),
-            'transfer_data' => [
-                'destination' => $intent->getStripeAccountId(),
-            ],
             'metadata' => $intent->getMetadata(),
             'payment_method_types' => [
                 'card'
-            ]
+            ],
         ];
+
+        if ($intent->getStripeAccountId()) {
+            // If there is already an account setup with Stripe Connect
+            $intentData['on_behalf_of'] = $intent->getStripeAccountId();
+            $intentData['application_fee_amount'] = $intent->getServiceFee();
+            $intentData['transfer_data'] = [
+                'destination' => $intent->getStripeAccountId(),
+            ];
+        } else {
+            // If there is not yet an account setup with Stripe Connect
+            $intentData['transfer_group'] = $intent->getStripeFutureAccountGuid() . '-' . Guid::build(); // TODO
+            $intentData['metadata']['future_account_guid'] = $intent->getStripeFutureAccountGuid();
+        }
+
+        return $intentData;
     }
 
     private function addSetupIntent(SetupIntent $intent): SetupIntent
@@ -125,8 +144,45 @@ class ManagerV2
      */
     public function capturePaymentIntent(string $paymentIntentId): bool
     {
+        $paymentIntent = $this->stripeClient->paymentIntents->retrieve($paymentIntentId);
+
+        $manualTransfer = !$paymentIntent->transfer_data->destination;
+
+        if ($manualTransfer) {
+            // If no destination was set, the we expect that the payment intent has a meta field
+            // call 'future_account_guid' that we will fetch the user for
+            $futureAccountGuid = $paymentIntent->metadata->future_account_guid;
+
+            // Grab the user entity of the futureAccount
+            $futureAccountUser = $this->entitiesBuilder->single($futureAccountGuid);
+            if (!$futureAccountUser instanceof User) {
+                throw new ServerErrorException("Unable to find user for future account payment");
+            }
+
+            $stripeFutureAccount = $this->stripeConnectManager->getByUser($futureAccountUser);
+
+            if (!$stripeFutureAccount) {
+                throw new UserErrorException("Stripe account not found. It may not be created yet");
+            }
+        }
+        
         $paymentIntent = $this->stripeClient->paymentIntents->capture($paymentIntentId);
 
-        return $paymentIntent->status === "succeeded";
+        if ($paymentIntent->status !== "succeeded") {
+            return false;
+        }
+
+        // Was there a transfer destination? If not
+        if ($manualTransfer) {
+            $this->stripeClient->transfers->create([
+                'amount' => $paymentIntent->amount,
+                'currency' => 'usd',
+                'destination' => $stripeFutureAccount->getId(),
+                'transfer_group' => $paymentIntent->transfer_group,
+                'source_transaction' => $paymentIntent->charges->data[0]->id
+            ]);
+        }
+
+        return true;
     }
 }

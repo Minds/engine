@@ -162,8 +162,6 @@ class Manager
             throw new ForbiddenException();
         }
 
-        $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::ACCEPTED, $supermindRequestId);
-
         if ($supermindRequest->getPaymentMethod() === SupermindRequestPaymentMethod::CASH) {
             $isPaymentSuccessful = $this->paymentProcessor->capturePaymentIntent($supermindRequest->getPaymentTxID());
         } else {
@@ -173,6 +171,8 @@ class Manager
         if (!$isPaymentSuccessful) {
             $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::FAILED_PAYMENT, $supermindRequestId);
             throw new SupermindPaymentIntentCaptureFailedException();
+        } else {
+            $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::ACCEPTED, $supermindRequestId);
         }
 
         return true;

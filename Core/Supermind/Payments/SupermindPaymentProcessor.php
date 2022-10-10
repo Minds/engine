@@ -100,20 +100,27 @@ class SupermindPaymentProcessor
     {
         $receiver = $this->buildUser($request->getReceiverGuid());
 
-        return (new PaymentIntent())
+        $paymentIntent = (new PaymentIntent())
             ->setUserGuid($request->getSenderGuid())
             ->setAmount($request->getPaymentAmount() * 100)
             ->setPaymentMethod($paymentMethodId)
             ->setOffSession(true)
             ->setConfirm(false)
             ->setCaptureMethod('manual')
-            ->setStripeAccountId($receiver->getMerchant()['id'])
             ->setMetadata([
                 'supermind' => $request->getGuid(),
                 'receiver_guid' => $request->getReceiverGuid(),
                 'user_guid' => $request->getSenderGuid(),
             ])
             ->setServiceFeePct($this->mindsConfig->get('payments')['stripe']['service_fee_pct'] ?? self::SUPERMIND_SERVICE_FEE_PCT);
+
+        if ($receiver->getMerchant()['id']) {
+            $paymentIntent->setStripeAccountId($receiver->getMerchant()['id']);
+        } else {
+            $paymentIntent->setStripeFutureAccountGuid($receiver->getGuid());
+        }
+
+        return $paymentIntent;
     }
 
     private function buildUser(string $userGuid): User
