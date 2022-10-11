@@ -3,6 +3,7 @@ namespace Minds\Core\Supermind;
 
 use Minds\Core\Data\cache\Cassandra as CassandraCache;
 use Minds\Core\Di\Di;
+use Minds\Core\Log\Logger;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\Delegates\EventsDelegate;
 use Minds\Core\Supermind\Repository;
@@ -13,12 +14,14 @@ class ExpiringSoonEvents
         protected ?CassandraCache $cache = null,
         protected ?EventsDelegate $eventsDelegate = null,
         protected ?Repository $repository = null,
-        protected ?int $nowTs = null
+        protected ?int $nowTs = null,
+        protected ?Logger $logger = null,
     ) {
         $this->cache = $cache ?? Di::_()->get('Cache\Cassandra');
         $this->eventsDelegate ??= new EventsDelegate();
         $this->repository ??= new Repository();
         $this->nowTs ??= time();
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -35,6 +38,7 @@ class ExpiringSoonEvents
         $requestsExpiringSoon = $this->repository->getRequestsExpiringSoon($earliestCreatedTime, $latestCreatedTime);
 
         foreach ($requestsExpiringSoon as $request) {
+            $this->logger->info("Sending expiring soon event for {$request->getGuid()}");
             $this->eventsDelegate->onSupermindRequestExpiringSoon($request);
         }
 

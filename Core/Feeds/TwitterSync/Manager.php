@@ -240,7 +240,7 @@ class Manager
 
                 $photos = $recentTweet->getPhotosData();
 
-                if (count($photos)) {
+                if (count($photos) && $photos[0] instanceof MediaData) {
                     // Only extract for a first bit of attached media for now
                     // in future we can add multi-image support.
                     $this->imageExtractor->extractAndUploadToActivity(
