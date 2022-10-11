@@ -84,7 +84,12 @@ class SupermindEventStreamsSubscription implements SubscriptionInterface
                     ->send();
 
                 $this->supermindEmailer
-                    ->setTopic('supermind_request_received')
+                    /**
+                     * Until a larger refactor of the email system, we are sending
+                     * the topic as wire_received for the sake of email settings.
+                     */
+                    // ->setTopic('supermind_request_received')
+                    ->setTopic('wire_received')
                     ->send();
                 break;
 
