@@ -40,8 +40,8 @@ class TwitterTweet
      */
     public function getPhotosData(): array
     {
-        return array_filter($this->getMediaData(), function ($media) {
+        return array_values(array_filter($this->getMediaData(), function ($media) {
             return $media->getType() === 'photo';
-        }) ?? [];
+        })) ?? [];
     }
 }
