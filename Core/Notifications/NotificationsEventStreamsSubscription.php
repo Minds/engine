@@ -146,6 +146,9 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 ]);
                 break;
             case ActionEvent::ACTION_QUOTE:
+                if ($event->getActionData()['is_supermind_reply'] ?? false) {
+                    return true; // Do not send as we will be sending a Supermind reply notification afterward.
+                }
                 $notification->setType(NotificationTypes::TYPE_QUOTE);
                 $notification->setData([
                     'quote_urn' => $event->getActionData()['quote_urn'],
@@ -266,6 +269,11 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 $notification->setToGuid($entity->getSenderGuid());
                 $notification->setFromGuid($entity->getReceiverGuid());
                 $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_REJECT);
+                break;
+            case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRING_SOON:
+                $notification->setToGuid($entity->getReceiverGuid());
+                $notification->setFromGuid(SystemUser::GUID);
+                $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON);
                 break;
             // case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
             //     $notification->setToGuid($entity->getSenderGuid());

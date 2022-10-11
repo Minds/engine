@@ -160,7 +160,7 @@ class ActionEvent implements EventInterface
                 $allowedKeys = [ 'remind_urn' ];
                 break;
             case self::ACTION_QUOTE:
-                $allowedKeys = [ 'quote_urn' ];
+                $allowedKeys = [ 'quote_urn', 'is_supermind_reply' ];
                 break;
             case self::ACTION_REFERRAL_PING:
             case self::ACTION_REFERRAL_PENDING:
