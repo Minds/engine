@@ -1,4 +1,4 @@
-FROM php:8.1.11-fpm-alpine
+FROM php:8.0-fpm-alpine3.15
 
 RUN apk add --no-cache --update --virtual .php-deps make
 
@@ -140,24 +140,21 @@ ENV BUILD_DEPS \
     gtest-dev gmock \
     $PHPIZE_DEPS
 
-COPY PHP-CPP PHP-CPP
-
 RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     # PHP CPP
-    # && git clone https://github.com/NobletSolutions/PHP-CPP.git \
+    && git clone https://github.com/Minds/PHP-CPP.git \
     && cd PHP-CPP \
-    # && git checkout php81 \
-    && make clean \
+    && git checkout php80 \
     && make -j4 \
     && make install \
     && cd .. \
     # Pulsar CPP Client
-    && git clone --depth 1 https://github.com/apache/pulsar-client-cpp \
-    && cd pulsar-client-cpp \
+    && git clone --depth 1 https://github.com/apache/pulsar.git \
+    && cd pulsar/pulsar-client-cpp \
     && cmake . -DBUILD_TESTS=OFF \
     && make -j2 \
     && make install \
-    && cd .. \
+    && cd ../.. \
     && git clone https://gitlab.com/minds/pulsar-php-client \
     && cd pulsar-php-client \
     && make -j4 \
@@ -167,6 +164,7 @@ RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && apk del build-deps
 
 RUN apk add protobuf-dev automake
+
 
 RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     # libsecp256kq
