@@ -62,7 +62,7 @@ class Supermind extends EmailCampaign
         $this->mailer = $mailer ?: new Mailer();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->config ??= Di::_()->get('Config');
-        $this->manager ??= Di::_()->get('Email\Manager');
+        $this->manager = $manager ?? Di::_()->get('Email\Manager');
 
         $this->campaign = 'when';
     }
