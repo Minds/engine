@@ -204,6 +204,7 @@ class Repository
             // Focus on quotes
             'quote_guid' => null,
             'include_group_posts' => false,
+            'supermind' => false
         ], $opts);
 
         if (!$opts['type']) {
@@ -294,6 +295,18 @@ class Repository
 
 
         //
+
+        if ($opts['supermind']) {
+            if (!isset($body['query']['function_score']['query']['bool']['must'])) {
+                $body['query']['function_score']['query']['bool']['must'] = [];
+            }
+
+            $body['query']['function_score']['query']['bool']['must'][] = [
+                'term' => [
+                    'is_supermind' => true,
+                ],
+            ];
+        }
 
         if ($opts['container_guid']) {
             $containerGuids = Text::buildArray($opts['container_guid']);

@@ -65,6 +65,7 @@ class Routes extends ModuleRoutes
                             'activity/:urn',
                             Ref::_('Feeds\Activity\Controller', 'delete')
                         );
+
                         //TODO: Deprecate the below
                         $route->delete(
                             ':urn',
