@@ -124,6 +124,7 @@ class Manager
             'include_group_posts' => false,
             'unseen' => false,
             'demoted' => false,
+            'supermind' => false
         ], $opts);
 
         if (isset($opts['query']) && $opts['query']) {
