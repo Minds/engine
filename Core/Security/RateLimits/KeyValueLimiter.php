@@ -2,13 +2,14 @@
 /**
  * Key based limiter
  */
+
 namespace Minds\Core\Security\RateLimits;
 
 use Minds\Common\Jwt;
-use Minds\Traits\MagicAttributes;
-use Minds\Core\Di\Di;
 use Minds\Core\Data\Redis\Client as RedisServer;
+use Minds\Core\Di\Di;
 use Minds\Core\Logger;
+use Minds\Traits\MagicAttributes;
 
 /**
  * @method KeyValueLimiter setKey(string $key)
@@ -92,7 +93,7 @@ class KeyValueLimiter
 
         $rateLimitsWithRemainings = [];
         foreach ($rateLimits as $index => $rateLimit) {
-            $rateLimit->setRemaining(max($rateLimit->getMax() - (int) $counts[$index], 0));
+            $rateLimit->setRemaining(max($rateLimit->getMax() - (int)$counts[$index], 0));
             $rateLimitsWithRemainings[] = $rateLimit;
         }
 
@@ -103,7 +104,7 @@ class KeyValueLimiter
      * Verify whether or not rate limits can be bypassed.
      * @return bool
      */
-    private function verifyBypass(): bool
+    public function verifyBypass(): bool
     {
         if (!isset($_COOKIE['rate_limit_bypass'])) {
             return false;
@@ -140,8 +141,8 @@ class KeyValueLimiter
 
     /**
      * checks ratelimits and throws an exception if one was hit
-     * @throws RateLimitExceededException
      * @return void
+     * @throws RateLimitExceededException
      */
     private function check(): void
     {
