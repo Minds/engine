@@ -10,7 +10,10 @@ use Codeception\Attribute\Group;
 use Codeception\Attribute\When;
 use Tests\Support\ApiTester;
 
-#[Group('supermind')]
+#[Group(
+    'supermind',
+    'discovery'
+)]
 class SupermindSteps extends ApiTester
 {
     #[Given('I login to ":action" Supermind requests')]

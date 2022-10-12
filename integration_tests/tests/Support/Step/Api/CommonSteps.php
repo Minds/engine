@@ -21,7 +21,8 @@ use Tests\Support\ApiTester;
     "login",
     "newsfeed",
     "supermind",
-    "blockchainRestrictions"
+    "blockchainRestrictions",
+    "discovery"
 )]
 class CommonSteps extends ApiTester
 {
