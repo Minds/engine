@@ -71,6 +71,8 @@ class SupermindEventStreamsSubscription implements SubscriptionInterface
             return false;
         }
 
+        $this->logger->info("Consuming a {$event->getAction()} action");
+
         /** @var SupermindRequest */
         $supermindRequest = $event->getEntity();
 
@@ -79,10 +81,12 @@ class SupermindEventStreamsSubscription implements SubscriptionInterface
 
         switch ($event->getAction()) {
             case ActionEvent::ACTION_SUPERMIND_REQUEST_CREATE:
+                $this->logger->info("Dispatching supermind_request_sent to SupermindEmailer");
                 $this->supermindEmailer
                     ->setTopic('supermind_request_sent')
                     ->send();
 
+                $this->logger->info("Dispatching wire_received to SupermindEmailer");
                 $this->supermindEmailer
                     /**
                      * Until a larger refactor of the email system, we are sending
@@ -94,30 +98,35 @@ class SupermindEventStreamsSubscription implements SubscriptionInterface
                 break;
 
             case ActionEvent::ACTION_SUPERMIND_REQUEST_ACCEPT:
+                $this->logger->info("Dispatching supermind_request_accepted to SupermindEmailer");
                 $this->supermindEmailer
                     ->setTopic('supermind_request_accepted')
                     ->send();
                 break;
 
             case ActionEvent::ACTION_SUPERMIND_REQUEST_REJECT:
+                $this->logger->info("Dispatching supermind_request_rejected to SupermindEmailer");
                 $this->supermindEmailer
                     ->setTopic('supermind_request_rejected')
                     ->send();
                 break;
 
             case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
+                $this->logger->info("Dispatching supermind_request_expired to SupermindEmailer");
                 $this->supermindEmailer
                     ->setTopic('supermind_request_expired')
                     ->send();
                 break;
 
             case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRING_SOON:
+                $this->logger->info("Dispatching supermind_request_expiring_soon to SupermindEmailer");
                 $this->supermindEmailer
                     ->setTopic('supermind_request_expiring_soon')
                     ->send();
                 break;
 
             default:
+                $this->logger->info("Not dispatching to SupermindEmailer");
                 return true; // Do nothing
         }
         return true;
