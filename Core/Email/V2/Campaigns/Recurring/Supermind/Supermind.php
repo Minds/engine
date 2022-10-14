@@ -214,8 +214,11 @@ class Supermind extends EmailCampaign
     {
         $msg = $this->build();
 
-        if ($this->user && $this->user->getEmail() && $this->canSend()) {
-            // Send immediatly, as this is executed from a runner
+        // only checking whether wire_received can be sent.
+        $canSend = $this->topic !== 'wire_received' || $this->canSend();
+
+        if ($this->user && $this->user->getEmail() && $canSend) {
+            // Send immediately, as this is executed from a runner
             $this->mailer->send($msg);
 
             $this->saveCampaignLog();
