@@ -11,6 +11,7 @@ use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestExpiredException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestIncorrectStatusException;
 use Minds\Core\Supermind\Exceptions\SupermindUnauthorizedSenderException;
+use Minds\Core\Supermind\Validators\SupermindCountRequestsValidator;
 use Minds\Core\Supermind\Validators\SupermindGetRequestsValidator;
 use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
@@ -157,6 +158,52 @@ class Controller
     }
 
     /**
+     * Count Supermind offers in the logged in users inbox.
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     * @throws UserErrorException
+     */
+//    #[OA\Get(
+//        path: '/api/v3/supermind/inbox/count',
+//        parameters: [
+//            new OA\Parameter(
+//                name: "status",
+//                in: "query",
+//                required: false,
+//                schema: new OA\Schema(type: 'integer')
+//            )
+//        ],
+//        responses: [
+//            new OA\Response(response: 200, description: "Ok"),
+//            new OA\Response(response: 400, description: "Bad Request"),
+//            new OA\Response(response: 401, description: "Unauthorized"),
+//        ]
+//    )]
+    public function countSupermindInboxRequests(ServerRequestInterface $request): JsonResponse
+    {
+        $loggedInUser = $request->getAttribute("_user");
+    
+        $requestValidator = new SupermindCountRequestsValidator();
+        if (!$requestValidator->validate($request->getQueryParams())) {
+            throw new UserErrorException(
+                message: "An error was encountered whilst validating the request",
+                code: 400,
+                errors: $requestValidator->getErrors()
+            );
+        }
+    
+        $this->manager->setUser($loggedInUser);
+
+        ['status' => $status] = $request->getQueryParams();
+
+        $count = $this->manager->countReceivedRequests(
+            status: (int) $status ?? null
+        );
+
+        return new JsonResponse([ 'count' => $count ]);
+    }
+
+    /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
      * @throws UserErrorException
@@ -207,6 +254,53 @@ class Controller
         );
         return new JsonResponse(Exportable::_($response));
     }
+
+    /**
+     * Count Supermind offers in the logged in users outbox.
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     * @throws UserErrorException
+     */
+//    #[OA\Get(
+//        path: '/api/v3/supermind/outbox/count',
+//        parameters: [
+//            new OA\Parameter(
+//                name: "status",
+//                in: "query",
+//                required: false,
+//                schema: new OA\Schema(type: 'integer')
+//            )
+//        ],
+//        responses: [
+//            new OA\Response(response: 200, description: "Ok"),
+//            new OA\Response(response: 400, description: "Bad Request"),
+//            new OA\Response(response: 401, description: "Unauthorized"),
+//        ]
+//    )]
+    public function countSupermindOutboxRequests(ServerRequestInterface $request): JsonResponse
+    {
+        $loggedInUser = $request->getAttribute("_user");
+
+        $requestValidator = new SupermindCountRequestsValidator();
+        if (!$requestValidator->validate($request->getQueryParams())) {
+            throw new UserErrorException(
+                message: "An error was encountered whilst validating the request",
+                code: 400,
+                errors: $requestValidator->getErrors()
+            );
+        }
+
+        $this->manager->setUser($loggedInUser);
+
+        ['status' => $status] = $request->getQueryParams();
+
+        $count = $this->manager->countSentRequests(
+            status: (int) $status ?? null
+        );
+
+        return new JsonResponse([ 'count' => $count ]);
+    }
+
 
     /**
      * @param ServerRequestInterface $request

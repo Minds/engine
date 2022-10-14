@@ -25,8 +25,16 @@ class Routes extends ModuleRoutes
                     Ref::_('Supermind\Controller', 'getSupermindInboxRequests')
                 );
                 $route->get(
+                    'inbox/count',
+                    Ref::_('Supermind\Controller', 'countSupermindInboxRequests')
+                );
+                $route->get(
                     'outbox',
                     Ref::_('Supermind\Controller', 'getSupermindOutboxRequests')
+                );
+                $route->get(
+                    'outbox/count',
+                    Ref::_('Supermind\Controller', 'countSupermindOutboxRequests')
                 );
                 $route->get(
                     ':guid',

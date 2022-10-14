@@ -421,6 +421,19 @@ class Manager
     }
 
     /**
+     * Count received requests for instance user.
+     * @param integer|null $status - status to count for (null will return all).
+     * @return integer returns count of received requests.
+     */
+    public function countReceivedRequests(?int $status = null): int
+    {
+        return $this->repository->countReceivedRequests(
+            receiverGuid: (string) $this->user->getGuid(),
+            status: $status
+        ) ?? 0;
+    }
+
+    /**
      * @param int $offset
      * @param int $limit
      * @param int|null $status
@@ -439,6 +452,19 @@ class Manager
         }
 
         return new Response($requests);
+    }
+
+    /**
+     * Count sent requests for instance user.
+     * @param integer|null $status - status to count for (null will return all).
+     * @return integer returns count of sent requests.
+     */
+    public function countSentRequests(?int $status = null): int
+    {
+        return $this->repository->countSentRequests(
+            senderGuid: (string) $this->user->getGuid(),
+            status: $status
+        ) ?? 0;
     }
 
     /**
