@@ -88,7 +88,8 @@ class ManagerV2
             'metadata' => $intent->getMetadata(),
             'payment_method_types' => [
                 'card'
-            ]
+            ],
+            'statement_descriptor' => $intent->getDescriptor()
         ];
     }
 
