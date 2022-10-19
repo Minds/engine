@@ -75,6 +75,7 @@ class Minds extends base
         Twitter\Module::class,
         Entities\Module::class,
         Authentication\Module::class,
+        Payments\Module::class
     ];
 
     /**

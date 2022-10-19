@@ -3,29 +3,21 @@
 namespace Minds\Controllers\Cli;
 
 use Minds\Core;
-use Minds\Core\Di\Di;
 use Minds\Cli;
 use Minds\Interfaces;
-use Minds\Exceptions;
 use Minds\Entities;
-use Minds\Core\Data\ElasticSearch\Prepared;
-use Minds\Core\Analytics\Iterators\SignupsOffsetIterator;
-use Minds\Core\Boost\Network\Manager;
-use Minds\Core\Util\BigNumber;
-use Minds\Helpers\Counters;
+use Minds\Core\Payments\Models\GetPaymentsOpts;
+use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
+use Minds\Exceptions\UserErrorException;
 
 class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
 {
-    private $db;
-    private $es;
-    private $elasticRepository;
-
-    private $pendingBulkInserts = [];
-
-    public function __construct()
-    {
+    public function __construct(
+        private ?IntentsManagerV2 $intentsManager = null
+    ) {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
+        $this->intentsManager ??= new IntentsManagerV2();
     }
 
     public function help($command = null)
@@ -116,6 +108,52 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
                 $connectManager->update($account);
             } catch (\Exception $e) {
             }
+        }
+    }
+
+    /**
+     * Get payment intents and output to terminal. Must have at minimum customerId OR user ID but not both.
+     * @param string $customerId - customer id to check.
+     * @param string $userId - user ID to check.
+     * @param string $endingBefore - payment id to get payments before, for pagination.
+     * @param string $limit - limit of payments to get.
+     * @return void
+     * @example Usage:
+     * - php cli.php Stripe getPaymentIntents --limit=1 --customerId=cus_123456789
+     * - php cli.php Stripe getPaymentIntents --endingBefore=payment_123456 --userId=123456789
+     */
+    public function getPaymentIntents(): void
+    {
+        $customerId = $this->getOpt('customerId') ?? false;
+        $userGuid = $this->getOpt('userGuid') ?? false;
+
+        $opts = new GetPaymentsOpts();
+
+        if (!$customerId xor $userGuid) {
+            throw new UserErrorException('Must provider either customerId or userGuid, but not both');
+        }
+
+        if ($endingBefore = $this->getOpt('endingBefore') ?? false) {
+            $opts->setEndingBefore($endingBefore);
+        }
+
+        if ($limit = $this->getOpt('limit') ?? false) {
+            $opts->setLimit((int) $limit);
+        }
+
+        $paymentIntents = null;
+
+        if ($userGuid) {
+            $paymentIntents = $this->intentsManager->getPaymentIntentsByUserGuid($userGuid, $opts);
+        }
+
+        if ($customerId) {
+            $opts->setCustomerId($customerId);
+            $paymentIntents = $this->intentsManager->getPaymentIntents($opts);
+        }
+
+        foreach ($paymentIntents as $paymentIntent) {
+            var_dump($paymentIntent);
         }
     }
 }

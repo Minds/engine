@@ -71,11 +71,16 @@ class Manager
             'on_behalf_of' => $intent->getStripeAccountId(),
             'transfer_data' => [
                 'destination' => $intent->getStripeAccountId(),
-            ],
-            'metadata' => [
-                'user_guid' => $intent->getUserGuid(),
-            ],
+            ]
         ];
+
+        if ($intent->getMetadata()) {
+            $params['metadata'] = $intent->getMetadata();
+        } else {
+            $params['metadata'] = [
+                'user_guid' => $intent->getUserGuid()
+            ];
+        }
 
         if ($intent->getServiceFee()) {
             $params['application_fee_amount'] = $intent->getServiceFee();
