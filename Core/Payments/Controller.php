@@ -30,7 +30,7 @@ class Controller
 //        path: '/api/v3/payments',
 //        parameters: [
 //            new OA\Parameter(
-//                name: "startingAfter",
+//                name: "offset",
 //                in: "query",
 //                required: false,
 //                schema: new OA\Schema(type: 'string')
@@ -55,7 +55,7 @@ class Controller
 
         $opts = new GetPaymentsOpts();
 
-        if ($startingAfter = $queryParams['startingAfter'] ?? false) {
+        if ($startingAfter = $queryParams['offset'] ?? false) {
             $opts->setStartingAfter($startingAfter);
         }
 
