@@ -71,7 +71,11 @@ class Manager
             'on_behalf_of' => $intent->getStripeAccountId(),
             'transfer_data' => [
                 'destination' => $intent->getStripeAccountId(),
-            ]
+            ],
+            'metadata' => [
+                'user_guid' => $intent->getUserGuid(),
+            ],
+            'statement_descriptor' => $intent->getDescriptor()
         ];
 
         if ($intent->getMetadata()) {
