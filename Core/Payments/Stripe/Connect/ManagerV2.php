@@ -103,7 +103,7 @@ class ManagerV2
     protected function getAccountIdByUser(User $user): string
     {
         $merchantData = $user->getMerchant() ?: [];
-        if ($merchantData['service'] === 'stripe') {
+        if (isset($merchantData['service']) && $merchantData['service'] === 'stripe') {
             return $merchantData['id'];
         }
 
