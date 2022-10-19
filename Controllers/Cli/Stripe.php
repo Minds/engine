@@ -115,12 +115,12 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
      * Get payment intents and output to terminal. Must have at minimum customerId OR user ID but not both.
      * @param string $customerId - customer id to check.
      * @param string $userId - user ID to check.
-     * @param string $endingBefore - payment id to get payments before, for pagination.
+     * @param string $startingAfter - payment id to get payments after, for pagination.
      * @param string $limit - limit of payments to get.
      * @return void
      * @example Usage:
      * - php cli.php Stripe getPaymentIntents --limit=1 --customerId=cus_123456789
-     * - php cli.php Stripe getPaymentIntents --endingBefore=payment_123456 --userId=123456789
+     * - php cli.php Stripe getPaymentIntents --startingAfter=payment_123456 --userId=123456789
      */
     public function getPaymentIntents(): void
     {
@@ -133,8 +133,8 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
             throw new UserErrorException('Must provider either customerId or userGuid, but not both');
         }
 
-        if ($endingBefore = $this->getOpt('endingBefore') ?? false) {
-            $opts->setEndingBefore($endingBefore);
+        if ($startingAfter = $this->getOpt('startingAfter') ?? false) {
+            $opts->setStartingAfter($startingAfter);
         }
 
         if ($limit = $this->getOpt('limit') ?? false) {

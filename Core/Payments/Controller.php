@@ -30,7 +30,7 @@ class Controller
 //        path: '/api/v3/payments',
 //        parameters: [
 //            new OA\Parameter(
-//                name: "endingBefore",
+//                name: "startingAfter",
 //                in: "query",
 //                required: false,
 //                schema: new OA\Schema(type: 'string')
@@ -55,8 +55,8 @@ class Controller
 
         $opts = new GetPaymentsOpts();
 
-        if ($endingBefore = $queryParams['endingBefore'] ?? false) {
-            $opts->setEndingBefore($endingBefore);
+        if ($startingAfter = $queryParams['startingAfter'] ?? false) {
+            $opts->setStartingAfter($startingAfter);
         }
 
         if ($limit = $queryParams['limit'] ?? false) {
