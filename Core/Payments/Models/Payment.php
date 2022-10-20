@@ -97,6 +97,10 @@ class Payment implements ExportableInterface
      */
     public function export(array $extras = []): array
     {
+        $recipient = null;
+        if ($this->getRecipient()) {
+            $recipient = $this->getRecipient()->export() ?? [];
+        }
         return [
             'status' => $this->getStatus(),
             'payment_id' => $this->getPaymentId(),
@@ -105,7 +109,7 @@ class Payment implements ExportableInterface
             'statement_descriptor' => $this->getStatementDescriptor(),
             'receipt_url' => $this->getReceiptUrl(),
             'created_timestamp' => $this->getCreatedTimestamp(),
-            'recipient' => $this->getRecipient(),
+            'recipient' => $recipient,
             ...$extras
         ];
     }
