@@ -262,14 +262,11 @@ class Manager
      */
     private function buildRecipient(array $data): ?User
     {
-        switch ($data['metadata']['user_guid'] ?? '') {
-            case "Minds: Payment":
-            case "Minds: Supermind":
-                return $this->entitiesBuilder->single(
-                    $data['metadata']['receiver_guid'] ?? null
-                ) ?? null;
-            default:
-                return null;
+        if (isset($data['metadata']) && isset($data['metadata']['receiver_guid'])) {
+            return $this->entitiesBuilder->single(
+                $data['metadata']['receiver_guid']
+            ) ?? null;
         }
+        return null;
     }
 }
