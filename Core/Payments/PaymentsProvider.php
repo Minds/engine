@@ -32,22 +32,45 @@ class PaymentsProvider extends Provider
             \Stripe\Stripe::setApiVersion('2020-03-02');
         }, ['useFactory'=>true]);
 
+        /**
+         * Connect
+         */
         $this->di->bind('Stripe\Connect\Manager', function ($di) {
             return new Stripe\Connect\Manager();
         }, ['useFactory'=>true]);
 
+        $this->di->bind('Stripe\Connect\ManagerV2', function ($di) {
+            return new Stripe\Connect\ManagerV2();
+        }, ['useFactory'=>true]);
+
+        $this->di->bind('Stripe\Connect\Controller', function ($di) {
+            return new Stripe\Connect\Controller();
+        }, ['useFactory'=>true]);
+
+        /**
+         * Intents
+         */
         $this->di->bind('Stripe\Intents\Manager', function ($di) {
             return new Stripe\Intents\Manager();
         }, ['useFactory'=>true]);
 
+        /**
+         * Transactions
+         */
         $this->di->bind('Stripe\Transactions\Manager', function ($di) {
             return new Stripe\Transactions\Manager();
         }, ['useFactory'=>true]);
 
+        /**
+         * Payment methods
+         */
         $this->di->bind('Stripe\PaymentMethods\Manager', function ($di) {
             return new Stripe\PaymentMethods\Manager();
         }, ['useFactory'=>true]);
 
+        /**
+         * Customers
+         */
         $this->di->bind('Stripe\Customers\Manager', function ($di) {
             return new Stripe\Customers\Manager();
         }, ['useFactory'=>true]);
