@@ -9,6 +9,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Security\Exceptions\UserNotSetupException;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Entities\User;
+use RedisException;
 
 class LoginAttempts
 {
@@ -49,8 +50,9 @@ class LoginAttempts
      * Logs a failed login attempt
      * @return bool
      * @throws UserNotSetupException
+     * @throws RedisException
      */
-    public function logFailure()
+    public function logFailure(): bool
     {
         if (!$this->user) {
             throw new UserNotSetupException();
@@ -76,8 +78,12 @@ class LoginAttempts
      * @return bool
      * @throws UserNotSetupException
      */
-    public function checkFailures()
+    public function checkFailures(): bool
     {
+        if ($this->kvLimiter->verifyBypass()) {
+            return false;
+        }
+        
         if (!$this->user) {
             throw new UserNotSetupException();
         }
@@ -101,7 +107,7 @@ class LoginAttempts
      * @return bool
      * @throws UserNotSetupException
      */
-    public function resetFailuresCount()
+    public function resetFailuresCount(): bool
     {
         if (!$this->user) {
             throw new UserNotSetupException();

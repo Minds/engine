@@ -5,26 +5,26 @@
  * @version 1
  * @author Mark Harding
  */
+
 namespace Minds\Controllers\api\v1;
 
-use Minds\Core;
-use Minds\Core\Security;
-use Minds\Core\Session;
-use Minds\Core\Features;
-use Minds\Core\Di\Di;
-use Minds\Entities;
-use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Common\IpAddress;
 use Minds\Common\PseudonymousIdentifier;
-use Minds\Exceptions\TwoFactorRequired;
-use Minds\Core\Queue;
-use Minds\Core\Subscriptions;
+use Minds\Core;
 use Minds\Core\Analytics;
+use Minds\Core\Di\Di;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
+use Minds\Core\Security;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
+use Minds\Core\Session;
+use Minds\Entities;
+use Minds\Interfaces;
 use Zend\Diactoros\ServerRequestFactory;
 
+/**
+ * @deprecated
+ */
 class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
     /**
@@ -32,7 +32,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function get($pages)
     {
-        return Factory::response(['status'=>'error', 'message'=>'GET is not supported for this endpoint']);
+        return Factory::response(['status' => 'error', 'message' => 'GET is not supported for this endpoint']);
     }
 
     /**
@@ -55,11 +55,11 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         // Note: the password rate limits are in Core\Security\Password->check
 
         Di::_()->get("Security\RateLimits\KeyValueLimiter")
-                ->setKey('router-post-api-v1-authenticate')
-                ->setValue((new IpAddress)->get())
-                ->setSeconds(3600)
-                ->setMax(100) // 100 times an hour
-                ->checkAndIncrement();
+            ->setKey('router-post-api-v1-authenticate')
+            ->setValue((new IpAddress)->get())
+            ->setSeconds(3600)
+            ->setMax(100) // 100 times an hour
+            ->checkAndIncrement();
 
         //
 
@@ -127,7 +127,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         $sessions = Di::_()->get('Sessions\Manager');
         $sessions->setUser($user);
         $sessions->createSession();
-        $sessions->save(); //save to db and cookie
+        $sessions->save(); // save to db and cookie
 
         \set_last_login($user); // TODO: Refactor this
 
