@@ -22,7 +22,8 @@ use Tests\Support\ApiTester;
     "newsfeed",
     "supermind",
     "blockchainRestrictions",
-    "discovery"
+    "discovery",
+    "payments"
 )]
 class CommonSteps extends ApiTester
 {
@@ -58,6 +59,21 @@ class CommonSteps extends ApiTester
     {
         $params = $this->generateUrlQueryParams(json_decode($queryParams->getRaw(), true));
         $this->sendGetAsJson($uri . "?$params");
+    }
+
+    #[When('I call ":requestMethod" ":uri" with params :queryParams')]
+    public function whenICallEndpointByMethod(string $requestMethod, string $uri, PyStringNode $params)
+    {
+        switch (strtolower($requestMethod)) {
+            case 'get':
+                $params = $this->generateUrlQueryParams(json_decode($params->getRaw(), true));
+                $this->sendGetAsJson($uri . "?$params");
+                break;
+            case 'post':
+                $params = json_decode($params->getRaw(), true);
+                $this->sendPostAsJson($uri, $params);
+                break;
+        }
     }
 
     #[When('I ":requestMethod" stored data ":dataToRetrieve" to the ":uri" endpoint')]
