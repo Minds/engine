@@ -4,10 +4,14 @@ namespace Minds\Core\Payments\Stripe\Connect;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
+use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserErrorException;
 use Stripe;
+use Stripe\Account;
+use Stripe\Exception\ApiErrorException;
 
 class ManagerV2
 {
@@ -24,7 +28,11 @@ class ManagerV2
     /**
      * Creates a stripe connect account
      * @param User $user
-     * @return Stripe\Account
+     * @return Account
+     * @throws ApiErrorException
+     * @throws UserErrorException
+     * @throws UnverifiedEmailException
+     * @throws StopEventException
      */
     public function createAccount(User $user): Stripe\Account
     {
@@ -71,21 +79,26 @@ class ManagerV2
     /**
      * Returns a stripe user account, if exists
      * @param User $user
-     * @return Stripe\Account
+     * @return Account
+     * @throws ApiErrorException
+     * @throws NotFoundException
      */
     public function getAccount(User $user): Stripe\Account
     {
-        $account = $this->stripeClient->accounts->retrieve($this->getAccountIdByUser($user));
-        return $account;
+        return $this->stripeClient->accounts->retrieve($this->getAccountIdByUser($user));
     }
 
     /**
      * Redirect to onboarding
+     * @param User $user
+     * @return string
+     * @throws NotFoundException
+     * @throws ApiErrorException
      */
     public function getAccountLink(User $user): string
     {
         $accountLink = $this->stripeClient->accountLinks->create([
-            'account' => $user->getMerchant()['id'],
+            'account' => $this->getAccountIdByUser($user),
             'refresh_url' => $this->getSiteUrl(). 'api/v3/payments/stripe/connect/onboarding',
             'return_url' => $this->getSiteUrl() . 'wallet/cash/settings',
             'type' => 'account_onboarding',

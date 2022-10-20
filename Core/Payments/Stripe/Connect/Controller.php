@@ -3,6 +3,7 @@ namespace Minds\Core\Payments\Stripe\Connect;
 
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
+use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\Response\RedirectResponse;
 use Zend\Diactoros\ServerRequest;
@@ -18,6 +19,7 @@ class Controller
      * Creates a stripe connect (express) account
      * @param ServerRequest $request
      * @return JsonResponse
+     * @throws UserErrorException
      */
     public function createAccount(ServerRequest $request): JsonResponse
     {
