@@ -446,29 +446,56 @@ class Repository
 
     /**
      * @param int $thresholdInSeconds
-     * @return bool
+     * @return string[]
      */
-    public function expireSupermindRequests(int $thresholdInSeconds): bool
+    public function expireSupermindRequests(int $thresholdInSeconds): array
     {
-        $statement = "UPDATE superminds SET status = :target_status WHERE status = :created_status AND created_timestamp <= :target_timestamp";
+        $statement = "SELECT guid FROM superminds WHERE status = :created_status AND created_timestamp <= :target_timestamp";
         $values = [
-            "target_status" => SupermindRequestStatus::EXPIRED,
             "created_status" => SupermindRequestStatus::CREATED,
             "target_timestamp" => date('c', strtotime("-${thresholdInSeconds} seconds"))
         ];
+
+        $statement = $this->mysqlClientReader->prepare($statement);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+        $statement->execute();
+
+        $supermindRequestIDs = $statement->fetchAll(PDO::FETCH_COLUMN);
+
+        if (count($supermindRequestIDs) === 0) {
+            return [];
+        }
+
+
+        $statement = "UPDATE superminds SET status = :target_status WHERE status = :created_status AND created_timestamp <= :target_timestamp AND guid IN ";
+        $values['target_status'] = SupermindRequestStatus::EXPIRED;
+
+        $statement .= "(" .
+            join(
+                ",",
+                array_map(
+                    function (int $index, string $value) use (&$values): string {
+                        $values["supermind_$index"] = $value;
+                        return ":supermind_$index";
+                    },
+                    array_keys($supermindRequestIDs),
+                    array_values($supermindRequestIDs)
+                )
+            ) .
+            ")";
 
         $statement = $this->mysqlClientWriter->prepare($statement);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         $statement->execute();
 
-        return true;
+        return $supermindRequestIDs;
     }
 
     /**
      * Get all requests where createTime is between min and max
      * @param int $gt
-     * @param int $lte
+     * @param int $lt
      * @return Iterator
      */
     public function getRequestsExpiringSoon(int $gt, int $lt): Iterator
@@ -497,5 +524,84 @@ class Repository
             yield $request;
             $i++;
         }
+    }
+
+    /**
+     * @param array $supermindRequestIds
+     * @return SupermindRequest[]
+     */
+    public function getRequestsFromIds(array $supermindRequestIds): Iterator
+    {
+        $values = [];
+        $query = "SELECT * FROM superminds WHERE guid in (";
+        $query .= join(
+            ",",
+            array_map(
+                function (int $index, string $value) use (&$values): string {
+                    $values["supermind_$index"] = $value;
+                    return ":supermind_$index";
+                },
+                array_keys($supermindRequestIds),
+                array_values($supermindRequestIds)
+            )
+        );
+        $query .= ")";
+
+        $statement = $this->mysqlClientReader->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        $statement->execute();
+
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $request = SupermindRequest::fromData($row);
+            yield $request;
+        }
+    }
+
+    /**
+     * @param int $status
+     * @return SupermindRequest[]
+     */
+    public function getRequestsByStatus(int $status): Iterator
+    {
+        $query = 'SELECT * FROM superminds WHERE status = :status';
+        $values = [
+            'status' => $status
+        ];
+        $statement = $this->mysqlClientReader->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+        $statement->execute();
+
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            yield SupermindRequest::fromData($row);
+        }
+    }
+
+    public function saveSupermindRefundTransaction(string $supermindRequestId, string $transactionId): void
+    {
+        $query = "INSERT INTO supermind_refunds (supermind_request_guid, tx_id) VALUES (?, ?)";
+        $values = [
+            $supermindRequestId,
+            $transactionId
+        ];
+        $statement = $this->mysqlClientWriter->prepare($query);
+        $result = $statement->execute($values);
+
+        if (!$result) {
+            throw new PDOException("An error occurred whilst storing the details for the Supermind payment refund");
+        }
+    }
+
+    public function getSupermindRefundTransactionId(string $supermindRequestId): string|false
+    {
+        $query = "SELECT tx_id FROM supermind_refunds WHERE supermind_request_guid = ?";
+        $statement = $this->mysqlClientReader->prepare($query);
+        $result = $statement->execute([$supermindRequestId]);
+
+        if (!$result || $statement->rowCount() === 0) {
+            return false;
+        }
+
+        return $statement->fetch(PDO::FETCH_ASSOC)['tx_id'];
     }
 }
