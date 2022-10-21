@@ -133,6 +133,18 @@ class ManagerV2
     }
 
     /**
+     * Gets payment intent by payment ID as array.
+     * @param string $paymentId - payment id.
+     * @return array payment data.
+     */
+    public function getPaymentIntentByPaymentId(string $paymentId): array
+    {
+        return $this->stripeClient->paymentIntents->retrieve(
+            $paymentId
+        )->toArray();
+    }
+
+    /**
      * Get payment intents from Stripe from opts.
      * @param GetPaymentsOpts $opts - options for API call.
      * @return array payment intents.

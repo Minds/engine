@@ -17,6 +17,7 @@ use Minds\Core\Payments\Models\Payment;
 use Minds\Helpers\Cql;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
 
 class Manager
@@ -190,6 +191,22 @@ class Manager
     }
 
     /**
+     * Get an individual payment by paymentId.
+     * @param string $paymentId - payment id to get payment for.
+     * @return Payment payment model.
+     */
+    public function getPaymentById(string $paymentId): Payment
+    {
+        try {
+            $paymentIntent = $this->intentsManager->getPaymentIntentByPaymentId($paymentId);
+            return $this->buildPaymentFromData($paymentIntent);
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+            throw new NotFoundException('Could not find payment');
+        }
+    }
+
+    /**
      * Get payments for a user.
      * @param GetPaymentsOpts $opts - opts to get payments with. If set, user id will be ignored
      * and replaced with instance users guid.
@@ -206,31 +223,45 @@ class Manager
                 throw new UserErrorException('No payment data found');
             }
         } catch (UserErrorException $e) {
-            $this->logger->warn($e->getMessage());
+            throw $e;
+        } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
             return [];
         }
 
         $payments = [];
         foreach ($paymentIntents['data'] as $paymentIntent) {
-            $charge = $this->selectPrimaryCharge($paymentIntent['charges']['data']);
-            $recipient = $this->buildRecipient($paymentIntent);
-
-            $payments[] = Payment::fromData([
-                'status' => $paymentIntent['status'],
-                'payment_id' => $paymentIntent['id'],
-                'currency' => $paymentIntent['currency'],
-                'minor_unit_amount' => $paymentIntent['amount'],
-                'statement_descriptor' => $paymentIntent['statement_descriptor'],
-                'receipt_url' => $charge['receipt_url'],
-                'created_timestamp' => $paymentIntent['created'],
-                'recipient' => $recipient
-            ]);
+            $payments[] = $this->buildPaymentFromData($paymentIntent);
         }
 
         return [
             'has_more' => $paymentIntents['has_more'],
             'data' => $payments
         ];
+    }
+
+    /**
+     * Build a payment from payment data.
+     * @param array $paymentIntent - data to build from.
+     * @return Payment - payment model.
+     */
+    private function buildPaymentFromData(array $paymentIntent): Payment
+    {
+        $charge = $this->selectPrimaryCharge($paymentIntent['charges']['data']);
+        $recipient = $this->buildRecipient($paymentIntent);
+        $sender = $this->buildSender($paymentIntent);
+
+        return Payment::fromData([
+            'status' => $paymentIntent['status'],
+            'payment_id' => $paymentIntent['id'],
+            'currency' => $paymentIntent['currency'],
+            'minor_unit_amount' => $paymentIntent['amount'],
+            'statement_descriptor' => $paymentIntent['statement_descriptor'],
+            'receipt_url' => $charge['receipt_url'],
+            'created_timestamp' => $paymentIntent['created'],
+            'recipient' => $recipient,
+            'sender' => $sender
+        ]);
     }
 
     /**
@@ -266,6 +297,21 @@ class Manager
         if (isset($data['metadata']) && isset($data['metadata']['receiver_guid'])) {
             return $this->entitiesBuilder->single(
                 $data['metadata']['receiver_guid']
+            ) ?? null;
+        }
+        return null;
+    }
+
+    /**
+     * Build sender from Stripe PaymentIntent data.
+     * @param array $data - Stripe PaymentIntent data.
+     * @return User|null - sender user if one can be established, else null.
+     */
+    private function buildSender(array $data): ?User
+    {
+        if (isset($data['metadata']) && isset($data['metadata']['user_guid'])) {
+            return $this->entitiesBuilder->single(
+                $data['metadata']['user_guid']
             ) ?? null;
         }
         return null;
