@@ -23,7 +23,7 @@ class GetPaymentsOpts implements ExportableInterface
     /** @var int requested items to return */
     private int $limit = 12;
 
-    /** @var string|null payment id to get payments BEFORE */
+    /** @var string|null payment id that acts as paging token */
     private ?string $startingAfter = null;
 
     /** @var string customer id to get payments for */

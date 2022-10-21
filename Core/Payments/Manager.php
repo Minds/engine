@@ -193,7 +193,7 @@ class Manager
      * Get payments for a user.
      * @param GetPaymentsOpts $opts - opts to get payments with. If set, user id will be ignored
      * and replaced with instance users guid.
-     * @return array array of payments.
+     * @return array array containing data on payments, and whether there are more to get.
      */
     public function getPayments(GetPaymentsOpts $opts): array
     {
@@ -244,6 +244,7 @@ class Manager
         if (!count($charges)) {
             return null;
         }
+
         $successfulCharge = array_values(array_filter($charges, function ($charge) {
             return $charge['status'] === 'succeeded';
         }))[0] ?? false;

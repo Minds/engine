@@ -149,6 +149,7 @@ class ManagerV2
      * @param string $userGuid - user guid to get by. Any set user guid WILL be overridden by the
      * user passed via userGuid.
      * @param GetPaymentsOpts|null $opts - payment opts.
+     * @throws UserErrorException if user is not found.
      * @return array payment intents.
      */
     public function getPaymentIntentsByUserGuid(string $userGuid, GetPaymentsOpts $opts = null): array
