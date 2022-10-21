@@ -8,6 +8,7 @@ namespace Minds\Core\Email\V2\Campaigns\Recurring\Supermind;
 use Exception;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Email\Manager;
 use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\V2\Common\Message;
@@ -40,6 +41,9 @@ class Supermind extends EmailCampaign
     /** @var string */
     protected $topic;
 
+    /** @var Manager */
+    protected $manager;
+
     /**
      * Constructor.
      * @param Template $template
@@ -52,11 +56,15 @@ class Supermind extends EmailCampaign
         $mailer = null,
         $entitiesBuilder = null,
         protected ?Config $config = null,
+        ?Manager $manager = null
     ) {
         $this->template = $template ?: new Template();
         $this->mailer = $mailer ?: new Mailer();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->config ??= Di::_()->get('Config');
+        $this->manager = $manager ?? Di::_()->get('Email\Manager');
+
+        $this->campaign = 'when';
     }
 
     /**
@@ -97,7 +105,11 @@ class Supermind extends EmailCampaign
                 $ctaPath = 'supermind/outbox?';
                 break;
 
+            // `supermind_request_received` is currently grouped with `wire_received`
+            // until we make a large refactor to our email system that allows us
+            // to add new subscription settings without a large regression scope.
             case 'supermind_request_received':
+            case 'wire_received':
                 $this->user = $receiver;
                 $headerText = '@' . $requester->getUsername() . ' sent you a ' . $paymentString . ' Supermind offer';
                 $bodySubjectText = "@{$receiver->getUsername()},";
@@ -209,8 +221,11 @@ class Supermind extends EmailCampaign
     {
         $msg = $this->build();
 
-        if ($this->user && $this->user->getEmail()) {
-            // Send immediatly, as this is executed from a runner
+        // only checking whether wire_received can be sent.
+        $canSend = $this->topic !== 'wire_received' || $this->canSend();
+
+        if ($this->user && $this->user->getEmail() && $canSend) {
+            // Send immediately, as this is executed from a runner
             $this->mailer->send($msg);
 
             $this->saveCampaignLog();

@@ -74,6 +74,8 @@ class Minds extends base
         Supermind\Module::class,
         Twitter\Module::class,
         Entities\Module::class,
+        Payments\Stripe\Module::class,
+        Authentication\Module::class,
     ];
 
     /**
