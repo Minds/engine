@@ -28,10 +28,26 @@ class Api extends Module
     /**
      * @throws ModuleException
      */
+    public function getCookie(string $name): ?Cookie
+    {
+        /**
+         * @var REST $apiClient
+         */
+        $apiClient = $this->getModule("REST");
+        return $apiClient->client->getCookieJar()->get($name);
+    }
+
+    /**
+     * @throws ModuleException
+     */
     public function setCookie(string $name, mixed $value)
     {
         $cookie = Cookie::fromString("$name=$value;", $this->getModule('REST')->_getConfig("url"));
-        $this->getModule("REST")->client->getCookieJar()->set($cookie);
+        /**
+         * @var REST $apiClient
+         */
+        $apiClient = $this->getModule("REST");
+        $apiClient->client->getCookieJar()->set($cookie);
     }
 
     /**
@@ -69,7 +85,7 @@ class Api extends Module
         $token = $jwtConfig
             ->builder()
             ->expiresAt(new DateTimeImmutable("+5m"))
-            ->withClaim('timestamp_ms', time())
+            ->withClaim('timestamp_ms', time() * 1000)
             ->getToken(
                 $jwtConfig->signer(),
                 $jwtConfig->signingKey()

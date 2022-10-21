@@ -13,9 +13,9 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
-use Minds\Core\Supermind\Settings\Manager as SettingsManager;
 use Minds\Core\Supermind\Exceptions\SupermindRequestPaymentTypeNotFoundException;
 use Minds\Core\Supermind\Models\SupermindRequest;
+use Minds\Core\Supermind\Settings\Manager as SettingsManager;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
@@ -112,7 +112,8 @@ class SupermindPaymentProcessor
                 'receiver_guid' => $request->getReceiverGuid(),
                 'user_guid' => $request->getSenderGuid(),
             ])
-            ->setServiceFeePct($this->mindsConfig->get('payments')['stripe']['service_fee_pct'] ?? self::SUPERMIND_SERVICE_FEE_PCT);
+            ->setServiceFeePct($this->mindsConfig->get('payments')['stripe']['service_fee_pct'] ?? self::SUPERMIND_SERVICE_FEE_PCT)
+            ->setDescriptor('Supermind');
 
         if ($receiver->getMerchant()['id']) {
             $paymentIntent->setStripeAccountId($receiver->getMerchant()['id']);

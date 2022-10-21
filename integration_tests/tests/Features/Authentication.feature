@@ -24,7 +24,8 @@ Feature: Authentication
         "status": "failed"
       }
       """
-
+    
+  Scenario: Bad Request authentication
     Given my login details are
       | username | password |
       |          |          |

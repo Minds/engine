@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Supermind\Validators;
 
+use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Interfaces\ValidatorInterface;
@@ -11,6 +12,10 @@ use Minds\Interfaces\ValidatorInterface;
 class SupermindGetRequestsValidator implements ValidatorInterface
 {
     private ?ValidationErrorCollection $errors = null;
+
+    private array $invalidStatuses = [
+        SupermindRequestStatus::PENDING
+    ];
 
     private function resetErrors(): void
     {
@@ -38,6 +43,16 @@ class SupermindGetRequestsValidator implements ValidatorInterface
                 new ValidationError(
                     "limit",
                     "The 'offset' parameter must be provided and have a minimum value of '0' (zero)"
+                )
+            );
+        }
+  
+        $status = $dataToValidate['status'];
+        if (!is_null($status) && ($status < 1 || in_array($status, $this->invalidStatuses, true))) {
+            $this->errors->add(
+                new ValidationError(
+                    "status",
+                    "The provided 'status' parameter is invalid"
                 )
             );
         }

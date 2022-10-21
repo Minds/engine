@@ -23,12 +23,12 @@ class AuthenticationSteps extends ApiTester
     #[When("I call the login endpoint")]
     public function ICallTheLoginEndpoint()
     {
-        [$username, $password] = (array) Fixtures::get("loginDetails") ?? ["", ""];
+        [$username, $password] = (array)Fixtures::get("loginDetails") ?? ["", ""];
 
         $this->setCookie("XSRF-TOKEN", "13b900e725e3fe5ea60464d3c8bf7423e2d215ed5c473ccca34118cb0e7c538432b89cecaa98c424246ca789ec464a0516166d492c82f3573b3d2446903f31e1");
         $this->haveHttpHeader("X-XSRF-TOKEN", "13b900e725e3fe5ea60464d3c8bf7423e2d215ed5c473ccca34118cb0e7c538432b89cecaa98c424246ca789ec464a0516166d492c82f3573b3d2446903f31e1");
         $this->setRateLimitBypass();
-        
+
         $this->sendPostAsJson("v1/authenticate", [
             "password" => $password,
             "username" => $username

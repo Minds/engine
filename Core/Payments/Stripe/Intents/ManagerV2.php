@@ -9,8 +9,8 @@ use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
-use Minds\Core\Payments\Stripe\Customers\Manager as StripeCustomersManager;
 use Minds\Core\Payments\Stripe\Connect\Manager as StripeConnectManager;
+use Minds\Core\Payments\Stripe\Customers\Manager as StripeCustomersManager;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
@@ -93,6 +93,7 @@ class ManagerV2
             'payment_method_types' => [
                 'card'
             ],
+            'statement_descriptor' => $intent->getDescriptor()
         ];
 
         if ($intent->getStripeAccountId()) {

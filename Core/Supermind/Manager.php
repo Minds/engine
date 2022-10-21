@@ -402,12 +402,18 @@ class Manager
     /**
      * @param int $offset
      * @param int $limit
+     * @param int|null $status
      * @return Response
      */
-    public function getReceivedRequests(int $offset, int $limit): Response
+    public function getReceivedRequests(int $offset, int $limit, ?int $status): Response
     {
         $requests = [];
-        foreach ($this->repository->getReceivedRequests($this->user->getGuid(), $offset, $limit) as $supermindRequest) {
+        foreach ($this->repository->getReceivedRequests(
+            receiverGuid: (string) $this->user->getGuid(),
+            offset: $offset,
+            limit: $limit,
+            status: $status
+        ) as $supermindRequest) {
             $requests[] = $supermindRequest;
         }
 
@@ -415,18 +421,50 @@ class Manager
     }
 
     /**
+     * Count received requests for instance user.
+     * @param integer|null $status - status to count for (null will return all).
+     * @return integer returns count of received requests.
+     */
+    public function countReceivedRequests(?int $status = null): int
+    {
+        return $this->repository->countReceivedRequests(
+            receiverGuid: (string) $this->user->getGuid(),
+            status: $status
+        ) ?? 0;
+    }
+
+    /**
      * @param int $offset
      * @param int $limit
+     * @param int|null $status
      * @return Response
      */
-    public function getSentRequests(int $offset, int $limit): Response
+    public function getSentRequests(int $offset, int $limit, ?int $status): Response
     {
         $requests = [];
-        foreach ($this->repository->getSentRequests($this->user->getGuid(), $offset, $limit) as $supermindRequest) {
+        foreach ($this->repository->getSentRequests(
+            senderGuid: (string) $this->user->getGuid(),
+            offset: $offset,
+            limit: $limit,
+            status: $status
+        ) as $supermindRequest) {
             $requests[] = $supermindRequest;
         }
 
         return new Response($requests);
+    }
+
+    /**
+     * Count sent requests for instance user.
+     * @param integer|null $status - status to count for (null will return all).
+     * @return integer returns count of sent requests.
+     */
+    public function countSentRequests(?int $status = null): int
+    {
+        return $this->repository->countSentRequests(
+            senderGuid: (string) $this->user->getGuid(),
+            status: $status
+        ) ?? 0;
     }
 
     /**

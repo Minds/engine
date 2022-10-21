@@ -279,6 +279,54 @@ Feature: Supermind
       {}
       """
 
+  Scenario: Get Supermind inbox with valid status parameter
+    Given I login to "receive" Supermind requests
+    When I call the "v3/supermind/inbox" endpoint with params
+      """json
+      [
+          {
+            "key": "limit",
+            "value": 12
+          },
+          {
+            "key": "offset",
+            "value": 0
+          },
+          {
+            "key": "status",
+            "value": 1
+          }
+        ]
+      """
+    Then I get a 200 response containing
+      """json
+      {}
+      """
+
+  Scenario: Get Supermind inbox with invalid status parameter
+    Given I login to "receive" Supermind requests
+    When I call the "v3/supermind/inbox" endpoint with params
+      """json
+      [
+          {
+            "key": "limit",
+            "value": 12
+          },
+          {
+            "key": "offset",
+            "value": 0
+          },
+          {
+            "key": "status",
+            "value": 0
+          }
+        ]
+      """
+    Then I get a 400 response containing
+      """json
+      {}
+      """
+
   Scenario: Get Supermind outbox
     Given I login to "create" Supermind requests
     When I call the "v3/supermind/outbox" endpoint with params
@@ -383,6 +431,54 @@ Feature: Supermind
       """
     When I reject the Supermind request for stored data "created_activity"
     Then I get a 403 response containing
+      """json
+      {}
+      """
+
+  Scenario: Get Supermind outbox with valid status parameter
+    Given I login to "create" Supermind requests
+    When I call the "v3/supermind/outbox" endpoint with params
+      """json
+      [
+          {
+            "key": "limit",
+            "value": 12
+          },
+          {
+            "key": "offset",
+            "value": 0
+          },
+          {
+            "key": "status",
+            "value": 1
+          }
+        ]
+      """
+    Then I get a 200 response containing
+      """json
+      {}
+      """
+
+  Scenario: Get Supermind outbox with invalid status parameter
+    Given I login to "create" Supermind requests
+    When I call the "v3/supermind/outbox" endpoint with params
+      """json
+      [
+          {
+            "key": "limit",
+            "value": 12
+          },
+          {
+            "key": "offset",
+            "value": 0
+          },
+          {
+            "key": "status",
+            "value": 0
+          }
+        ]
+      """
+    Then I get a 400 response containing
       """json
       {}
       """
@@ -561,4 +657,90 @@ Feature: Supermind
     Then I get a 401 response containing
       """json
       {}
+      """
+
+  Scenario: Count inbox requests with no status param
+    Given I login to "receive" Supermind requests
+    When I call the "v3/supermind/inbox/count" endpoint with params
+      """json
+        {}
+      """
+    Then I get a 200 response containing
+      """json
+        {}
+      """
+
+  Scenario: Count inbox requests with status param
+    Given I login to "receive" Supermind requests
+    When I call the "v3/supermind/inbox/count" endpoint with params
+       """json
+        [
+          {
+            "key": "status",
+            "value": 1
+          }
+        ]
+      """
+    Then I get a 200 response containing
+      """json
+        {}
+      """
+
+  Scenario: Count inbox requests with invalid status param
+    Given I login to "receive" Supermind requests
+    When I call the "v3/supermind/inbox/count" endpoint with params
+       """json
+        [
+          {
+            "key": "status",
+            "value": 0
+          }
+        ]
+      """
+    Then I get a 400 response containing
+      """json
+        {}
+      """
+
+  Scenario: Count outbox requests with no status param
+    Given I login to "send" Supermind requests
+    When I call the "v3/supermind/outbox/count" endpoint with params
+      """json
+        {}
+      """
+    Then I get a 200 response containing
+      """json
+        {}
+      """
+
+  Scenario: Count outbox requests with status param
+    Given I login to "send" Supermind requests
+    When I call the "v3/supermind/outbox/count" endpoint with params
+       """json
+        [
+          {
+            "key": "status",
+            "value": 1
+          }
+        ]
+      """
+    Then I get a 200 response containing
+      """json
+        {}
+      """
+
+  Scenario: Count outbox requests with invalid status param
+    Given I login to "send" Supermind requests
+    When I call the "v3/supermind/outbox/count" endpoint with params
+       """json
+        [
+          {
+            "key": "status",
+            "value": 0
+          }
+        ]
+      """
+    Then I get a 400 response containing
+      """json
+        {}
       """

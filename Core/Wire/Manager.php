@@ -233,13 +233,18 @@ class Manager
             ->setTimestamp(time())
             ->setRecurringInterval($this->recurringInterval);
 
+        $isProPayment = false;
+        $isPlusPayment = false;
+
         // If receiver is handler for Minds+/Pro, bypass the ACL
         $bypassAcl = false;
         if ((string) $this->receiver->getGuid() === (string) $this->config->get('plus')['handler']) {
+            $isPlusPayment = true;
             $bypassAcl = true;
         }
 
         if ((string) $this->receiver->getGuid() === (string) $this->config->get('pro')['handler']) {
+            $isProPayment = true;
             $bypassAcl = true;
         }
 
@@ -341,6 +346,13 @@ class Manager
                     $wire->setTrialDays(self::TRIAL_DAYS);
                 }
 
+                $descriptor = 'Payment';
+                if ($isPlusPayment) {
+                    $descriptor = 'Plus sub';
+                } elseif ($isProPayment) {
+                    $descriptor = 'Pro sub';
+                }
+
                 // If this is a trial, we still create the subscription but do not charge
                 $intent = new PaymentIntent();
                 $intent
@@ -351,7 +363,8 @@ class Manager
                     ->setConfirm(true)
                     ->setCaptureMethod(!$wire->getTrialDays() ? 'automatic' : 'manual') // Do not charge card
                     ->setStripeAccountId($this->receiver->getMerchant()['id'])
-                    ->setServiceFeePct(static::WIRE_SERVICE_FEE_PCT);
+                    ->setServiceFeePct(static::WIRE_SERVICE_FEE_PCT)
+                    ->setDescriptor($descriptor);
 
                 // Charge stripe
                 $intent = $this->stripeIntentsManager->add($intent);

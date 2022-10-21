@@ -270,6 +270,11 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 $notification->setFromGuid($entity->getReceiverGuid());
                 $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_REJECT);
                 break;
+            case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRING_SOON:
+                $notification->setToGuid($entity->getReceiverGuid());
+                $notification->setFromGuid(SystemUser::GUID);
+                $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON);
+                break;
             // case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
             //     $notification->setToGuid($entity->getSenderGuid());
             //     $notification->setFromGuid($entity->getReceiverGuid());

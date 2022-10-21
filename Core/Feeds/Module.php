@@ -11,6 +11,7 @@ use Minds\Interfaces\ModuleInterface;
 class Module implements ModuleInterface
 {
     public $submodules = [
+        Supermind\Module::class,
         TwitterSync\Module::class,
         Activity\RichEmbed\Module::class,
     ];
