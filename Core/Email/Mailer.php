@@ -6,6 +6,7 @@ namespace Minds\Core\Email;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Log\Logger;
 use Minds\Core\Queue\Client as Queue;
 use Minds\Entities;
 use PHPMailer;
@@ -19,8 +20,12 @@ class Mailer
     /** @var SpamFilter */
     private $filter;
 
-    public function __construct($mailer = null, $queue = null, $filter = null)
-    {
+    public function __construct(
+        $mailer = null,
+        $queue = null,
+        $filter = null,
+        private ?Logger $logger = null
+    ) {
         $this->mailer = $mailer ?: new PHPMailer();
         if (isset(Core\Config::_()->email['smtp'])) {
             $this->setup();
@@ -31,6 +36,7 @@ class Mailer
         ];
         $this->queue = $queue ?: Queue::build();
         $this->filter = $filter ?: Di::_()->get('Email\SpamFilter');
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     private function setup()
@@ -84,8 +90,10 @@ class Mailer
         $this->mailer->CharSet = 'utf-8';
 
         if ($this->mailer->Send()) {
+            $this->logger->info("Sent email");
             $this->stats['sent']++;
         } else {
+            $this->logger->info("Failed to send email with error: {$this->mailer->ErrorInfo}");
             $this->stats['failed']++;
         }
 
