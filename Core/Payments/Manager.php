@@ -18,6 +18,7 @@ use Minds\Helpers\Cql;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
+use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 
 class Manager
@@ -210,6 +211,7 @@ class Manager
      * Get payments for a user.
      * @param GetPaymentsOpts $opts - opts to get payments with. If set, user id will be ignored
      * and replaced with instance users guid.
+     * @throws ServerErrorException - if there is a server error while getting payments.
      * @return array array containing data on payments, and whether there are more to get.
      */
     public function getPayments(GetPaymentsOpts $opts): array
@@ -220,13 +222,15 @@ class Manager
                 opts: $opts
             );
             if (!count($paymentIntents['data'])) {
-                throw new UserErrorException('No payment data found');
+                $this->logger->warn("Customer not found: {$this->user_guid}");
+                return [];
             }
         } catch (UserErrorException $e) {
-            throw $e;
+            $this->logger->warn($e->getMessage());
+            return [];
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
-            return [];
+            throw new ServerErrorException('An error occurred while getting your payments');
         }
 
         $payments = [];

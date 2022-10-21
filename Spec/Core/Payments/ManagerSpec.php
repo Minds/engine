@@ -10,8 +10,6 @@ use Minds\Core\Payments\Repository;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
-use Minds\Exceptions\UserErrorException;
-use Stripe\PaymentIntent;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -343,7 +341,7 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_throw_an_error_if_no_payments_are_found(GetPaymentsOpts $opts)
+    public function it_should_return_empty_data_if_customer_is_not_found(GetPaymentsOpts $opts)
     {
         $this->setUserGuid('123');
 
@@ -354,7 +352,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([ 'data' => [] ]);
 
-        $this->shouldThrow(UserErrorException::class)->during('getPayments', [$opts]);
+        $this->getPayments($opts)->shouldBe([]);
     }
 
     public function it_should_select_primary_charge_as_successful_charge(GetPaymentsOpts $opts)
