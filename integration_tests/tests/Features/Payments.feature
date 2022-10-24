@@ -62,3 +62,14 @@ Feature: Payments
       """json
         {}
       """
+    
+  Scenario: Get payments for logged in user
+    Given I login to "send" Supermind requests
+    When I call "GET" "v3/payments" with params
+      """json
+        {}
+      """
+    Then I get a 200 response containing
+      """json
+        {}
+      """
