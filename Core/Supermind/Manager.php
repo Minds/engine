@@ -185,7 +185,7 @@ class Manager
         }
 
         if ($isTransferFailed) {
-            $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::FAILED_PAYMENT, $supermindRequestId);
+            $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::TRANSFER_FAILED, $supermindRequestId);
         } elseif (!$isPaymentSuccessful) {
             $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::FAILED_PAYMENT, $supermindRequestId);
             throw new SupermindPaymentIntentCaptureFailedException();
