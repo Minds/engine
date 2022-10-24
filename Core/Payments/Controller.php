@@ -6,6 +6,7 @@ namespace Minds\Core\Payments;
 
 use Minds\Api\Exportable;
 use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Core\Payments\Models\GetPaymentsOpts;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
@@ -22,7 +23,7 @@ class Controller
         private ?Config $config = null
     ) {
         $this->manager ??= new Manager();
-        $this->config ??= new Config();
+        $this->config ??= Di::_()->get('Config');
     }
 
     /**
