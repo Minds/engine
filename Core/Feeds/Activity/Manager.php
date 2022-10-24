@@ -47,6 +47,7 @@ use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\StopEventException;
+use Minds\Exceptions\UserCashSetupException;
 use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
 use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
@@ -284,15 +285,17 @@ class Manager
      * @throws ApiErrorException
      * @throws ForbiddenException
      * @throws LockFailedException
+     * @throws ServerErrorException
      * @throws StopEventException
      * @throws SupermindNotFoundException
-     * @throws SupermindRequestAcceptCompletionException
-     * @throws UnverifiedEmailException
-     * @throws UserErrorException
      * @throws SupermindPaymentIntentCaptureFailedException
+     * @throws SupermindRequestAcceptCompletionException
      * @throws SupermindRequestExpiredException
      * @throws SupermindRequestIncorrectStatusException
      * @throws SupermindRequestStatusUpdateException
+     * @throws UnverifiedEmailException
+     * @throws UserErrorException
+     * @throws UserCashSetupException
      */
     public function addSupermindReply(array $supermindDetails, Activity $activity): bool
     {

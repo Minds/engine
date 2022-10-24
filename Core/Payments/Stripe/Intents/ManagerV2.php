@@ -11,9 +11,11 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
 use Minds\Core\Payments\Stripe\Connect\Manager as StripeConnectManager;
 use Minds\Core\Payments\Stripe\Customers\Manager as StripeCustomersManager;
+use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
+use Stripe\Exception\ApiErrorException;
 use Stripe\PaymentIntent as StripePaymentIntent;
 use Stripe\SetupIntent as StripeSetupIntent;
 use Stripe\StripeClient;
@@ -55,7 +57,7 @@ class ManagerV2
      * @param PaymentIntent $intent
      * @return PaymentIntent
      * @throws UserErrorException
-     * @throws \Stripe\Exception\ApiErrorException
+     * @throws ApiErrorException
      */
     private function addPaymentIntent(PaymentIntent $intent): PaymentIntent
     {
@@ -107,6 +109,7 @@ class ManagerV2
             // If there is not yet an account setup with Stripe Connect
             $intentData['transfer_group'] = $intent->getStripeFutureAccountGuid() . '-' . Guid::build(); // TODO
             $intentData['metadata']['future_account_guid'] = $intent->getStripeFutureAccountGuid();
+            $intentData['metadata']['application_fee_amount'] = $intent->getServiceFee();
         }
 
         return $intentData;
@@ -129,7 +132,7 @@ class ManagerV2
     /**
      * @param string $paymentIntentId
      * @return bool
-     * @throws \Stripe\Exception\ApiErrorException
+     * @throws ApiErrorException
      */
     public function cancelPaymentIntent(string $paymentIntentId): bool
     {
@@ -141,18 +144,23 @@ class ManagerV2
     /**
      * @param string $paymentIntentId
      * @return bool
-     * @throws \Stripe\Exception\ApiErrorException
+     * @throws ServerErrorException
+     * @throws UserErrorException
+     * @throws ApiErrorException
+     * @throws StripeTransferFailedException
+     * @throws Exception
      */
     public function capturePaymentIntent(string $paymentIntentId): bool
     {
         $paymentIntent = $this->stripeClient->paymentIntents->retrieve($paymentIntentId);
 
-        $manualTransfer = !$paymentIntent->transfer_data->destination;
+        $manualTransfer = !$paymentIntent->transfer_data?->destination;
 
         if ($manualTransfer) {
             // If no destination was set, the we expect that the payment intent has a meta field
             // call 'future_account_guid' that we will fetch the user for
-            $futureAccountGuid = $paymentIntent->metadata->future_account_guid;
+            $futureAccountGuid = $paymentIntent->metadata?->future_account_guid;
+            $applicationFeeAmount = $paymentIntent->metadata?->application_fee_amount;
 
             // Grab the user entity of the futureAccount
             $futureAccountUser = $this->entitiesBuilder->single($futureAccountGuid);
@@ -175,13 +183,19 @@ class ManagerV2
 
         // Was there a transfer destination? If not
         if ($manualTransfer) {
-            $this->stripeClient->transfers->create([
-                'amount' => $paymentIntent->amount,
-                'currency' => 'usd',
-                'destination' => $stripeFutureAccount->getId(),
-                'transfer_group' => $paymentIntent->transfer_group,
-                'source_transaction' => $paymentIntent->charges->data[0]->id
-            ]);
+            try {
+                $this->stripeClient->transfers->create([
+                    'amount' => $paymentIntent->amount - $applicationFeeAmount,
+                    'currency' => 'usd',
+                    'destination' => $stripeFutureAccount?->getId(),
+                    'transfer_group' => $paymentIntent->transfer_group,
+                    'source_transaction' => $paymentIntent->charges->data[0]->id
+                ]);
+            } catch (ApiErrorException $e) {
+                error_log($e->getMessage());
+                error_log($e->getTraceAsString());
+                throw new StripeTransferFailedException();
+            }
         }
 
         return true;

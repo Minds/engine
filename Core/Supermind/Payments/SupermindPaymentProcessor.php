@@ -11,14 +11,17 @@ use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
-use Minds\Core\Supermind\Exceptions\SupermindRequestPaymentTypeNotFoundException;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\Settings\Manager as SettingsManager;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
+use Stripe\Exception\ApiErrorException;
 
 class SupermindPaymentProcessor
 {
@@ -52,7 +55,6 @@ class SupermindPaymentProcessor
     /**
      * @param int $paymentMethod
      * @return float
-     * @throws SupermindRequestPaymentTypeNotFoundException
      */
     public function getMinimumAllowedAmount(int $paymentMethod): float
     {
@@ -69,7 +71,6 @@ class SupermindPaymentProcessor
      * @param float $paymentAmount
      * @param int $paymentMethod
      * @return bool
-     * @throws SupermindRequestPaymentTypeNotFoundException
      */
     public function isPaymentAmountAllowed(float $paymentAmount, int $paymentMethod): bool
     {
@@ -132,7 +133,10 @@ class SupermindPaymentProcessor
     /**
      * @param string $paymentIntentId
      * @return bool
-     * @throws \Stripe\Exception\ApiErrorException
+     * @throws StripeTransferFailedException
+     * @throws ServerErrorException
+     * @throws UserErrorException
+     * @throws ApiErrorException
      */
     public function capturePaymentIntent(string $paymentIntentId): bool
     {

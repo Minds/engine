@@ -10,6 +10,7 @@ use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficient
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
@@ -30,6 +31,8 @@ use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\StopEventException;
+use Minds\Exceptions\UserCashSetupException;
+use Minds\Exceptions\UserErrorException;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
 
@@ -134,12 +137,15 @@ class Manager
      * @throws ApiErrorException
      * @throws ForbiddenException
      * @throws LockFailedException
+     * @throws ServerErrorException
      * @throws StopEventException
      * @throws SupermindNotFoundException
      * @throws SupermindPaymentIntentCaptureFailedException
      * @throws SupermindRequestExpiredException
      * @throws SupermindRequestIncorrectStatusException
      * @throws UnverifiedEmailException
+     * @throws UserCashSetupException
+     * @throws UserErrorException
      */
     public function acceptSupermindRequest(string $supermindRequestId): bool
     {
@@ -153,6 +159,10 @@ class Manager
             throw new SupermindRequestIncorrectStatusException();
         }
 
+        if (!isset($this->user->getMerchant()['id'])) {
+            throw new UserCashSetupException();
+        }
+
         if ($supermindRequest->isExpired()) {
             $this->expireSupermindRequest($supermindRequestId);
             throw new SupermindRequestExpiredException();
@@ -162,13 +172,21 @@ class Manager
             throw new ForbiddenException();
         }
 
+        $isTransferFailed = false;
         if ($supermindRequest->getPaymentMethod() === SupermindRequestPaymentMethod::CASH) {
-            $isPaymentSuccessful = $this->paymentProcessor->capturePaymentIntent($supermindRequest->getPaymentTxID());
+            try {
+                $isPaymentSuccessful = $this->paymentProcessor->capturePaymentIntent($supermindRequest->getPaymentTxID());
+            } catch (StripeTransferFailedException $e) {
+                $isPaymentSuccessful = false;
+                $isTransferFailed = true;
+            }
         } else {
             $isPaymentSuccessful = $this->paymentProcessor->creditOffchainPayment($supermindRequest);
         }
 
-        if (!$isPaymentSuccessful) {
+        if ($isTransferFailed) {
+            $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::FAILED_PAYMENT, $supermindRequestId);
+        } elseif (!$isPaymentSuccessful) {
             $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::FAILED_PAYMENT, $supermindRequestId);
             throw new SupermindPaymentIntentCaptureFailedException();
         } else {
