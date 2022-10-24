@@ -2,20 +2,48 @@
 
 namespace Spec\Minds\Core\Payments;
 
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
+use Minds\Core\Payments\Models\GetPaymentsOpts;
+use Minds\Core\Payments\Models\Payment;
 use Minds\Core\Payments\Repository;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
+use Minds\Exceptions\UserErrorException;
+use Stripe\PaymentIntent;
 
 class ManagerSpec extends ObjectBehavior
 {
+    /** @var Repository */
     protected $repository;
 
+    /** @var IntentsManagerV2 */
+    protected $intentsManager;
+
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    /** @var Logger */
+    protected $logger;
+
     public function let(
-        Repository $repository
+        Repository $repository,
+        IntentsManagerV2 $intentsManager,
+        EntitiesBuilder $entitiesBuilder,
+        Logger $logger
     ) {
         $this->repository = $repository;
+        $this->intentsManager = $intentsManager;
+        $this->entitiesBuilder = $entitiesBuilder;
+        $this->logger = $logger;
 
-        $this->beConstructedWith($repository);
+        $this->beConstructedWith(
+            $repository,
+            $intentsManager,
+            $entitiesBuilder,
+            $logger
+        );
     }
 
     public function it_is_initializable()
@@ -233,5 +261,224 @@ class ManagerSpec extends ObjectBehavior
             ->setPaymentId($payment_id)
             ->shouldThrow(new \Exception('Cannot update payment'))
             ->duringUpdatePaymentById($data);
+    }
+
+    public function it_should_get_payments(GetPaymentsOpts $opts)
+    {
+        $this->setUserGuid('123');
+
+        $this->intentsManager->getPaymentIntentsByUserGuid(
+            userGuid: '123',
+            opts: $opts
+        )
+            ->shouldBeCalled()
+            ->willReturn([
+                'data' => [
+                    [
+                        'status' => 'succeeded',
+                        'id' => 'pay_123',
+                        'currency' => 'usd',
+                        'amount' => 1000,
+                        'statement_descriptor' => 'Minds: Plus sub',
+                        'created' => 10000000,
+                        'metadata' => [
+                            'receiver_guid' => '123'
+                        ],
+                        'charges' => [
+                            'data' => [
+                                [
+                                    'status' => 'succeeded',
+                                    'receipt_url' => 'https://www.minds.com/'
+                                ]
+                            ]
+                        ]
+                    ],
+                    [
+                        'status' => 'succeeded',
+                        'id' => 'pay_234',
+                        'currency' => 'usd',
+                        'amount' => 2000,
+                        'statement_descriptor' => 'Minds: Supermind',
+                        'created' => 20000000,
+                        'metadata' => [
+                            'receiver_guid' => '234'
+                        ],
+                        'charges' => [
+                            'data' => [
+                                [
+                                    'status' => 'succeeded',
+                                    'receipt_url' => 'https://www.minds.com/'
+                                ]
+                            ]
+                        ]
+                    ],
+                ],
+                'has_more' => true
+            ]);
+
+        $this->getPayments($opts)->shouldBeLike([
+            'has_more' => true,
+            'data' => [
+                (
+                    (new Payment())
+                        ->setStatus('succeeded')
+                        ->setCurrency('usd')
+                        ->setStatementDescriptor('Minds: Plus sub')
+                        ->setMinorUnitAmount(1000)
+                        ->setCreatedTimestamp(10000000)
+                        ->setReceiptUrl('https://www.minds.com/')
+                        ->setPaymentId('pay_123')
+                ),
+                (
+                    (new Payment())
+                        ->setStatus('succeeded')
+                        ->setCurrency('usd')
+                        ->setStatementDescriptor('Minds: Supermind')
+                        ->setMinorUnitAmount(2000)
+                        ->setCreatedTimestamp(20000000)
+                        ->setReceiptUrl('https://www.minds.com/')
+                        ->setPaymentId('pay_234')
+                )
+            ]
+        ]);
+    }
+
+    public function it_should_throw_an_error_if_no_payments_are_found(GetPaymentsOpts $opts)
+    {
+        $this->setUserGuid('123');
+
+        $this->intentsManager->getPaymentIntentsByUserGuid(
+            userGuid: '123',
+            opts: $opts
+        )
+            ->shouldBeCalled()
+            ->willReturn([ 'data' => [] ]);
+
+        $this->logger->warn('No payment data found')
+            ->shouldBeCalled();
+
+        $this->getPayments($opts)->shouldReturn([]);
+    }
+
+    public function it_should_select_primary_charge_as_successful_charge(GetPaymentsOpts $opts)
+    {
+        $this->setUserGuid('123');
+
+        $this->intentsManager->getPaymentIntentsByUserGuid(
+            userGuid: '123',
+            opts: $opts
+        )
+            ->shouldBeCalled()
+            ->willReturn([
+                'data' => [
+                    [
+                        'status' => 'succeeded',
+                        'id' => 'pay_234',
+                        'currency' => 'usd',
+                        'amount' => 2000,
+                        'statement_descriptor' => 'Minds: Supermind',
+                        'created' => 20000000,
+                        'metadata' => [
+                            'receiver_guid' => '234'
+                        ],
+                        'charges' => [
+                            'data' => [
+                                [
+                                    'status' => 'failed',
+                                    'receipt_url' => 'https://www.minds.com/'
+                                ],
+                                [
+                                    'status' => 'succeeded',
+                                    'receipt_url' => 'succeeded_receipt_url'
+                                ],
+                                [
+                                    'status' => 'failed',
+                                    'receipt_url' => 'https://www.minds.com/'
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                'has_more' => true
+            ]);
+
+        $this->getPayments($opts)->shouldBeLike([
+            'has_more' => true,
+            'data' => [
+                (
+                    (new Payment())
+                        ->setStatus('succeeded')
+                        ->setCurrency('usd')
+                        ->setStatementDescriptor('Minds: Supermind')
+                        ->setMinorUnitAmount(2000)
+                        ->setCreatedTimestamp(20000000)
+                        ->setReceiptUrl('succeeded_receipt_url')
+                        ->setPaymentId('pay_234')
+                )
+            ]
+        ]);
+    }
+
+    public function it_should_select_primary_charge_as_last_unsuccessful_charge_when_no_successful_charge(
+        GetPaymentsOpts $opts
+    ) {
+        $this->setUserGuid('123');
+
+        $this->entitiesBuilder->single('234')
+            ->shouldBeCalled();
+
+        $this->intentsManager->getPaymentIntentsByUserGuid(
+            userGuid: '123',
+            opts: $opts
+        )
+            ->shouldBeCalled()
+            ->willReturn([
+                'data' => [
+                    [
+                        'status' => 'succeeded',
+                        'id' => 'pay_234',
+                        'currency' => 'usd',
+                        'amount' => 2000,
+                        'statement_descriptor' => 'Minds: Supermind',
+                        'created' => 20000000,
+                        'metadata' => [
+                            'receiver_guid' => '234'
+                        ],
+                        'charges' => [
+                            'data' => [
+                                [
+                                    'status' => 'failed',
+                                    'receipt_url' => 'https://www.minds.com/'
+                                ],
+                                [
+                                    'status' => 'failed',
+                                    'receipt_url' => 'https://www.minds.com/'
+                                ],
+                                [
+                                    'status' => 'failed',
+                                    'receipt_url' => 'last_failure'
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                'has_more' => true
+            ]);
+
+        $this->getPayments($opts)->shouldBeLike([
+            'has_more' => true,
+            'data' => [
+                (
+                    (new Payment())
+                        ->setStatus('succeeded')
+                        ->setCurrency('usd')
+                        ->setStatementDescriptor('Minds: Supermind')
+                        ->setMinorUnitAmount(2000)
+                        ->setCreatedTimestamp(20000000)
+                        ->setReceiptUrl('last_failure')
+                        ->setPaymentId('pay_234')
+                )
+            ]
+        ]);
     }
 }

@@ -7,6 +7,7 @@ namespace Minds\Core\Payments\Stripe\Intents;
 use Exception;
 use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Di\Di;
+use Minds\Core\Payments\Models\GetPaymentsOpts;
 use Minds\Core\Payments\Stripe\Customers\Manager as StripeCustomersManager;
 use Minds\Exceptions\UserErrorException;
 use Stripe\PaymentIntent as StripePaymentIntent;
@@ -129,5 +130,35 @@ class ManagerV2
         $paymentIntent = $this->stripeClient->paymentIntents->capture($paymentIntentId);
 
         return $paymentIntent->status === "succeeded";
+    }
+
+    /**
+     * Get payment intents from Stripe from opts.
+     * @param GetPaymentsOpts $opts - options for API call.
+     * @return array payment intents.
+     */
+    public function getPaymentIntents(GetPaymentsOpts $opts): array
+    {
+        return $this->stripeClient->paymentIntents->all(
+            $opts->export()
+        )->toArray();
+    }
+
+    /**
+     * Get payment intents by user guid.
+     * @param string $userGuid - user guid to get by. Any set user guid WILL be overridden by the
+     * user passed via userGuid.
+     * @param GetPaymentsOpts|null $opts - payment opts.
+     * @throws UserErrorException if user is not found.
+     * @return array payment intents.
+     */
+    public function getPaymentIntentsByUserGuid(string $userGuid, GetPaymentsOpts $opts = null): array
+    {
+        $customer = $this->stripeCustomersManager->getFromUserGuid($userGuid);
+        if (!$customer) {
+            throw new UserErrorException("Customer was not found: $userGuid");
+        }
+        $opts->setCustomerId($customer->getId());
+        return $this->getPaymentIntents($opts);
     }
 }

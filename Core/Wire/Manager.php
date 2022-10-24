@@ -364,6 +364,10 @@ class Manager
                     ->setCaptureMethod(!$wire->getTrialDays() ? 'automatic' : 'manual') // Do not charge card
                     ->setStripeAccountId($this->receiver->getMerchant()['id'])
                     ->setServiceFeePct(static::WIRE_SERVICE_FEE_PCT)
+                    ->setMetadata([
+                        'user_guid' => $this->sender->getGuid(),
+                        'receiver_guid' => $this->receiver->getGuid()
+                    ])
                     ->setDescriptor($descriptor);
 
                 // Charge stripe

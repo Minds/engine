@@ -9,8 +9,15 @@
 namespace Minds\Core\Payments;
 
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
+use Minds\Core\Log\Logger;
+use Minds\Core\Payments\Models\GetPaymentsOpts;
+use Minds\Core\Payments\Models\Payment;
 use Minds\Helpers\Cql;
+use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
+use Minds\Entities\User;
+use Minds\Exceptions\UserErrorException;
 
 class Manager
 {
@@ -29,9 +36,16 @@ class Manager
     /** @var Repository $repository */
     protected $repository;
 
-    public function __construct($repository = null)
-    {
+    public function __construct(
+        $repository = null,
+        private ?IntentsManagerV2 $intentsManager = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?Logger $logger = null
+    ) {
         $this->repository = $repository ?: Di::_()->get('Payments\Repository');
+        $this->intentsManager ??= new IntentsManagerV2();
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -173,5 +187,87 @@ class Manager
         }
 
         return $this->getPaymentId();
+    }
+
+    /**
+     * Get payments for a user.
+     * @param GetPaymentsOpts $opts - opts to get payments with. If set, user id will be ignored
+     * and replaced with instance users guid.
+     * @return array array containing data on payments, and whether there are more to get.
+     */
+    public function getPayments(GetPaymentsOpts $opts): array
+    {
+        try {
+            $paymentIntents = $this->intentsManager->getPaymentIntentsByUserGuid(
+                userGuid: $this->user_guid,
+                opts: $opts
+            );
+            if (!count($paymentIntents['data'])) {
+                throw new UserErrorException('No payment data found');
+            }
+        } catch (UserErrorException $e) {
+            $this->logger->warn($e->getMessage());
+            return [];
+        }
+
+        $payments = [];
+        foreach ($paymentIntents['data'] as $paymentIntent) {
+            $charge = $this->selectPrimaryCharge($paymentIntent['charges']['data']);
+            $recipient = $this->buildRecipient($paymentIntent);
+
+            $payments[] = Payment::fromData([
+                'status' => $paymentIntent['status'],
+                'payment_id' => $paymentIntent['id'],
+                'currency' => $paymentIntent['currency'],
+                'minor_unit_amount' => $paymentIntent['amount'],
+                'statement_descriptor' => $paymentIntent['statement_descriptor'],
+                'receipt_url' => $charge['receipt_url'],
+                'created_timestamp' => $paymentIntent['created'],
+                'recipient' => $recipient
+            ]);
+        }
+
+        return [
+            'has_more' => $paymentIntents['has_more'],
+            'data' => $payments
+        ];
+    }
+
+    /**
+     * Select primary charge from charges array. Will take the succeeded charge first.
+     * If one does not exist, will take the last charge made.
+     * @param array $charges - charges to check.
+     * @return array|null - primary charge.
+     */
+    private function selectPrimaryCharge(array $charges): ?array
+    {
+        if (!count($charges)) {
+            return null;
+        }
+
+        $successfulCharge = array_values(array_filter($charges, function ($charge) {
+            return $charge['status'] === 'succeeded';
+        }))[0] ?? false;
+
+        if ($successfulCharge) {
+            return $successfulCharge;
+        }
+
+        return end($charges);
+    }
+
+    /**
+     * Build recipient from Stripe PaymentIntent data.
+     * @param array $data - Stripe PaymentIntent data.
+     * @return User|null - recipient user if one can be established, else null.
+     */
+    private function buildRecipient(array $data): ?User
+    {
+        if (isset($data['metadata']) && isset($data['metadata']['receiver_guid'])) {
+            return $this->entitiesBuilder->single(
+                $data['metadata']['receiver_guid']
+            ) ?? null;
+        }
+        return null;
     }
 }
