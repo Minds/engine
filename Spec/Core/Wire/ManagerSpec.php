@@ -9,6 +9,7 @@ use Minds\Core\Config;
 use Minds\Core\Data\cache\Redis;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
 use Minds\Core\Queue\SQS\Client;
+use Minds\Core\Security\ACL;
 use Minds\Core\Wire\Repository;
 use Minds\Core\Wire\Subscriptions\Manager as SubscriptionsManager;
 use Minds\Core\Wire\Wire as WireModel;
@@ -54,6 +55,9 @@ class ManagerSpec extends ObjectBehavior
     /** @var Core\Wire\Delegates\EventsDelegate */
     protected $eventsDelegate;
 
+    /** @var ACL */
+    protected $acl;
+
     public function let(
         Repository $repo,
         BlockchainManager $txManager,
@@ -68,6 +72,7 @@ class ManagerSpec extends ObjectBehavior
         Core\Wire\Delegates\CacheDelegate $cacheDelegate,
         Core\Blockchain\Wallets\OffChain\Transactions $offchainTxs,
         Core\Payments\Stripe\Intents\Manager $stripeIntentsManager,
+        ACL $acl,
         Core\Wire\Delegates\EventsDelegate $eventsDelegate
     ) {
         $this->beConstructedWith(
@@ -84,7 +89,7 @@ class ManagerSpec extends ObjectBehavior
             $cacheDelegate,
             $offchainTxs,
             $stripeIntentsManager,
-            null,
+            $acl,
             $eventsDelegate
         );
 
@@ -100,6 +105,7 @@ class ManagerSpec extends ObjectBehavior
         $this->plusDelegate = $plusDelegate;
         $this->offchainTxs = $offchainTxs;
         $this->stripeIntentsManager = $stripeIntentsManager;
+        $this->acl = $acl;
         $this->eventsDelegate = $eventsDelegate;
     }
 
@@ -380,6 +386,155 @@ class ManagerSpec extends ObjectBehavior
         $intent->setId('123');
 
         $this->stripeIntentsManager->add(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($intent);
+
+        $this->setSender($sender)
+            ->setEntity($receiver)
+            ->setPayload($payload)
+            ->setAmount(100001)
+            ->create()
+            ->shouldReturn(true);
+    }
+
+    public function it_should_create_a_cash_transaction_with_default_descriptor()
+    {
+        $sender = new User();
+        $sender->guid = 123;
+
+        $receiver = new User();
+        $receiver->guid = 111;
+        $receiver->merchant = [
+            'id' => 'mock_id'
+        ];
+
+        $this->config->get('plus')
+            ->willReturn([
+                'handler' => 456
+            ]);
+
+        $this->config->get('pro')
+            ->willReturn([
+                'handler' => 789
+            ]);
+
+        $this->acl->write(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $payload = [
+            'method' => 'usd',
+            'paymentMethodId' => 'mockPaymentId',
+        ];
+
+        $this->repo->add(Argument::that(function ($wire) {
+            return !$wire->getTrialDays();
+        }))
+            ->shouldBeCalled();
+
+        $intent = new PaymentIntent();
+        $intent->setId('123');
+
+        $this->stripeIntentsManager->add(Argument::that(function ($arg) {
+            return $arg->getDescriptor() === 'Minds: Payment';
+        }))
+            ->shouldBeCalled()
+            ->willReturn($intent);
+
+        $this->setSender($sender)
+            ->setEntity($receiver)
+            ->setPayload($payload)
+            ->setAmount(100001)
+            ->create()
+            ->shouldReturn(true);
+    }
+
+    public function it_should_create_a_cash_transaction_with_plus_sub_descriptor()
+    {
+        $sender = new User();
+        $sender->guid = 123;
+        $sender->plus_expires = strtotime('30 days ago'); // We had plus 30 days ago, so we cant have it again
+
+        $receiver = new User();
+        $receiver->guid = 456;
+        $receiver->merchant = [
+            'id' => 'mock_id'
+        ];
+
+        $this->config->get('plus')
+            ->willReturn([
+                'handler' => 456
+            ]);
+
+        $this->config->get('pro')
+            ->willReturn([
+                'handler' => 789
+            ]);
+
+        $payload = [
+            'method' => 'usd',
+            'paymentMethodId' => 'mockPaymentId',
+        ];
+
+        $this->repo->add(Argument::that(function ($wire) {
+            return !$wire->getTrialDays();
+        }))
+            ->shouldBeCalled();
+
+        $intent = new PaymentIntent();
+        $intent->setId('123');
+
+        $this->stripeIntentsManager->add(Argument::that(function ($arg) {
+            return $arg->getDescriptor() === 'Minds: Plus sub';
+        }))
+            ->shouldBeCalled()
+            ->willReturn($intent);
+
+        $this->setSender($sender)
+            ->setEntity($receiver)
+            ->setPayload($payload)
+            ->setAmount(100001)
+            ->create()
+            ->shouldReturn(true);
+    }
+
+    public function it_should_create_a_cash_transaction_with_pro_sub_descriptor()
+    {
+        $sender = new User();
+        $sender->guid = 123;
+
+        $receiver = new User();
+        $receiver->guid = 456;
+        $receiver->merchant = [
+            'id' => 'mock_id'
+        ];
+
+        $this->config->get('plus')
+            ->willReturn([
+                'handler' => 545
+            ]);
+
+        $this->config->get('pro')
+            ->willReturn([
+                'handler' => 456
+            ]);
+
+        $payload = [
+            'method' => 'usd',
+            'paymentMethodId' => 'mockPaymentId',
+        ];
+
+        $this->repo->add(Argument::that(function ($wire) {
+            return !$wire->getTrialDays();
+        }))
+            ->shouldBeCalled();
+
+        $intent = new PaymentIntent();
+        $intent->setId('123');
+
+        $this->stripeIntentsManager->add(Argument::that(function ($arg) {
+            return $arg->getDescriptor() === 'Minds: Pro sub';
+        }))
             ->shouldBeCalled()
             ->willReturn($intent);
 

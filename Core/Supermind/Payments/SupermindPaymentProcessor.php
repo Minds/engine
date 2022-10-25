@@ -113,7 +113,8 @@ class SupermindPaymentProcessor
                 'receiver_guid' => $request->getReceiverGuid(),
                 'user_guid' => $request->getSenderGuid(),
             ])
-            ->setServiceFeePct($this->mindsConfig->get('payments')['stripe']['service_fee_pct'] ?? self::SUPERMIND_SERVICE_FEE_PCT);
+            ->setServiceFeePct($this->mindsConfig->get('payments')['stripe']['service_fee_pct'] ?? self::SUPERMIND_SERVICE_FEE_PCT)
+            ->setDescriptor('Supermind');
     }
 
     private function buildUser(string $userGuid): User

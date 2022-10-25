@@ -75,7 +75,16 @@ class Manager
             'metadata' => [
                 'user_guid' => $intent->getUserGuid(),
             ],
+            'statement_descriptor' => $intent->getDescriptor()
         ];
+
+        if ($intent->getMetadata()) {
+            $params['metadata'] = $intent->getMetadata();
+        } else {
+            $params['metadata'] = [
+                'user_guid' => $intent->getUserGuid()
+            ];
+        }
 
         if ($intent->getServiceFee()) {
             $params['application_fee_amount'] = $intent->getServiceFee();

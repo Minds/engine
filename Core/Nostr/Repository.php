@@ -147,6 +147,7 @@ class Repository
         VALUES ";
 
         $values = [];
+        $rows = [];
         foreach ($tags as $i => $tag) {
             $rows[] = "(?,?,?,?)";
             $values[] = $eventId;
@@ -178,6 +179,7 @@ class Repository
 
 
         $values = [];
+        $rows = [];
         foreach ($tags as $i => $tag) {
             $rows[] = "(?,?)";
             $values[] = $eventId;
