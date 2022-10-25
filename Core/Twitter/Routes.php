@@ -20,7 +20,7 @@ class Routes extends ModuleRoutes
                 LoggedInMiddleware::class
             ])
             ->do(function (Route $route) {
-                $route->post(
+                $route->get(
                     'request-oauth-token',
                     Ref::_('Twitter\Controller', 'requestTwitterOAuthToken')
                 );

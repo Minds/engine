@@ -6,7 +6,9 @@ namespace Minds\Core\Twitter;
 
 use Minds\Core\Di\Di;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\SimpleCache\InvalidArgumentException;
 use Zend\Diactoros\Response\JsonResponse;
+use Zend\Diactoros\Response\RedirectResponse;
 
 /**
  * The controller for the Twitter module's endpoints
@@ -22,19 +24,27 @@ class Controller
     /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
+     * @throws InvalidArgumentException
      */
     public function requestTwitterOAuthToken(ServerRequestInterface $request): JsonResponse
     {
+        $redirectPath = $request->getQueryParams()['redirectPath'];
+
+        $loggedInUser = $request->getAttribute('_user');
+        $this->manager->setUser($loggedInUser);
+
         $url = $this->manager->getRequestOAuthAuthorizationCodeUrl();
+
+        $this->manager->storeOAuthRedirectPath($redirectPath);
 
         return new JsonResponse(['authorization_url' => $url]);
     }
 
     /**
      * @param ServerRequestInterface $request
-     * @return JsonResponse
+     * @return RedirectResponse
      */
-    public function generateTwitterOAuthAccessToken(ServerRequestInterface $request): JsonResponse
+    public function generateTwitterOAuthAccessToken(ServerRequestInterface $request): RedirectResponse
     {
         $authorizationCode = $request->getQueryParams()['code'] ?? null;
 
@@ -43,7 +53,7 @@ class Controller
 
         $this->manager->generateOAuthAccessToken($authorizationCode);
 
-        return new JsonResponse([]);
+        return new RedirectResponse($this->manager->getStoredOAuthRedirectPath());
     }
 
     public function postTweet(ServerRequestInterface $request): JsonResponse
