@@ -104,11 +104,16 @@ class Manager
 
     /**
      * @return TwitterDetails
-     * @throws TwitterDetailsNotFoundException
      */
     public function getDetails(): TwitterDetails
     {
-        return $this->repository->getDetails($this->user->getGuid());
+        try {
+            $response = $this->repository->getDetails($this->user->getGuid());
+        } catch (TwitterDetailsNotFoundException $e) {
+            $response = (new TwitterDetails())->setUserGuid($this->user->getGuid());
+        }
+
+        return $response;
     }
 
     /**
@@ -131,6 +136,6 @@ class Manager
      */
     public function getStoredOAuthRedirectPath(): string
     {
-        return $this->mindsConfig->get('site_url') . $this->cache->get(self::TWITTER_REDIRECT_PATH_KEY_PREFIX . $this->user->getGuid());
+        return rtrim($this->mindsConfig->get('site_url'), '/') . $this->cache->get(self::TWITTER_REDIRECT_PATH_KEY_PREFIX . $this->user->getGuid());
     }
 }

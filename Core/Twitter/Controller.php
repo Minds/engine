@@ -52,9 +52,15 @@ class Controller
         $loggedInUser = $request->getAttribute('_user');
         $this->manager->setUser($loggedInUser);
 
+        $redirectUrl = $this->manager->getStoredOAuthRedirectPath();
+
+        if (!$authorizationCode) {
+            return new RedirectResponse($redirectUrl);
+        }
+
         $this->manager->generateOAuthAccessToken($authorizationCode);
 
-        return new RedirectResponse($this->manager->getStoredOAuthRedirectPath());
+        return new RedirectResponse($redirectUrl);
     }
 
     /**
@@ -76,7 +82,6 @@ class Controller
     /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
-     * @throws Exceptions\TwitterDetailsNotFoundException
      */
     public function getUserConfig(ServerRequestInterface $request): JsonResponse
     {
