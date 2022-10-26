@@ -23,6 +23,10 @@ class Routes extends ModuleRoutes
                     '',
                     Ref::_('Payments\Controller', 'getPayments')
                 );
+                $route->get(
+                    'receipt/:paymentId',
+                    Ref::_('Payments\Controller', 'redirectToReceipt')
+                );
             });
     }
 }

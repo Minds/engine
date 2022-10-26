@@ -10,8 +10,6 @@ use Minds\Core\Payments\Repository;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
-use Minds\Exceptions\UserErrorException;
-use Stripe\PaymentIntent;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -343,7 +341,7 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_throw_an_error_if_no_payments_are_found(GetPaymentsOpts $opts)
+    public function it_should_return_empty_data_if_customer_is_not_found(GetPaymentsOpts $opts)
     {
         $this->setUserGuid('123');
 
@@ -354,10 +352,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([ 'data' => [] ]);
 
-        $this->logger->warn('No payment data found')
-            ->shouldBeCalled();
-
-        $this->getPayments($opts)->shouldReturn([]);
+        $this->getPayments($opts)->shouldBe([]);
     }
 
     public function it_should_select_primary_charge_as_successful_charge(GetPaymentsOpts $opts)
@@ -480,5 +475,61 @@ class ManagerSpec extends ObjectBehavior
                 )
             ]
         ]);
+    }
+
+    public function it_should_get_a_payment_by_id()
+    {
+        $paymentId = 'pay_123';
+
+        $this->entitiesBuilder->single('234')
+            ->shouldBeCalled();
+
+        $this->entitiesBuilder->single('123')
+            ->shouldBeCalled();
+
+        $this->intentsManager->getPaymentIntentByPaymentId($paymentId)
+            ->shouldBeCalled()
+            ->willReturn([
+                'status' => 'succeeded',
+                'id' => 'pay_123',
+                'currency' => 'usd',
+                'amount' => 2000,
+                'statement_descriptor' => 'Minds: Supermind',
+                'created' => 20000000,
+                'metadata' => [
+                    'receiver_guid' => '234',
+                    'user_guid' => '123'
+                ],
+                'charges' => [
+                    'data' => [
+                        [
+                            'status' => 'success',
+                            'receipt_url' => 'https://www.minds.com/'
+                        ]
+                    ]
+                ]
+            ]);
+
+        $this->getPaymentById($paymentId)->shouldBeLike(
+            (new Payment())
+                ->setStatus('succeeded')
+                ->setCurrency('usd')
+                ->setStatementDescriptor('Minds: Supermind')
+                ->setMinorUnitAmount(2000)
+                ->setCreatedTimestamp(20000000)
+                ->setReceiptUrl('https://www.minds.com/')
+                ->setPaymentId('pay_123')
+        );
+    }
+
+    public function it_should_pass_through_exceptions_thrown_getting_payment_by_id()
+    {
+        $paymentId = 'pay_123';
+
+        $this->intentsManager->getPaymentIntentByPaymentId($paymentId)
+            ->shouldBeCalled()
+            ->willThrow(new \Exception());
+
+        $this->shouldThrow(\Exception::class)->during('getPaymentById', [$paymentId]);
     }
 }
