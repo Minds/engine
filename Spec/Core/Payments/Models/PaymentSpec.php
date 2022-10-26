@@ -13,7 +13,7 @@ class PaymentSpec extends ObjectBehavior
         $this->shouldHaveType(Payment::class);
     }
 
-    public function it_should_export(User $recipient)
+    public function it_should_export(User $recipient, User $sender)
     {
         $status = 'succeeded';
         $paymentId = 'pay_123';
@@ -22,11 +22,16 @@ class PaymentSpec extends ObjectBehavior
         $statementDescriptor = 'Minds: Payment';
         $receiptUrl = 'https://www.minds.com/';
         $createdTimestamp = 1666285605;
-        $exportedRecipient = ['user_guid' => 123];
+        $exportedRecipient = ['user_guid' => '123'];
+        $exportedSender = ['user_guid' => '234'];
 
         $recipient->export()
             ->shouldBeCalled()
             ->willReturn($exportedRecipient);
+        
+        $sender->export()
+            ->shouldBeCalled()
+            ->willReturn($exportedSender);
 
         $this->setStatus($status)
             ->setPaymentId($paymentId)
@@ -35,7 +40,8 @@ class PaymentSpec extends ObjectBehavior
             ->setStatementDescriptor($statementDescriptor)
             ->setReceiptUrl($receiptUrl)
             ->setCreatedTimestamp($createdTimestamp)
-            ->setRecipient($recipient);
+            ->setRecipient($recipient)
+            ->setSender($sender);
         
         $this->export()->shouldReturn([
             'status' => $status,
@@ -45,7 +51,8 @@ class PaymentSpec extends ObjectBehavior
             'statement_descriptor' => $statementDescriptor,
             'receipt_url' => $receiptUrl,
             'created_timestamp' => $createdTimestamp,
-            'recipient' => $exportedRecipient
+            'recipient' => $exportedRecipient,
+            'sender' => $exportedSender
         ]);
     }
 }
