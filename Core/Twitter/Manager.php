@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Twitter;
 
+use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\Twitter\Client\DTOs\TweetDTO;
@@ -21,11 +22,13 @@ class Manager
     public function __construct(
         private ?Repository $repository = null,
         private ?TwitterClientInterface $twitterClient = null,
-        private ?PsrWrapper $cache = null
+        private ?PsrWrapper $cache = null,
+        private ?MindsConfig $mindsConfig = null
     ) {
         $this->twitterClient ??= new TwitterClient();
         $this->repository ??= Di::_()->get('Twitter\Repository');
         $this->cache ??= Di::_()->get('Cache\PsrWrapper');
+        $this->mindsConfig ??= Di::_()->get('Config');
     }
 
     public function setUser(User $user): self
@@ -128,6 +131,6 @@ class Manager
      */
     public function getStoredOAuthRedirectPath(): string
     {
-        return $this->cache->get(self::TWITTER_REDIRECT_PATH_KEY_PREFIX . $this->user->getGuid());
+        return $this->mindsConfig->get('site_url') . $this->cache->get(self::TWITTER_REDIRECT_PATH_KEY_PREFIX . $this->user->getGuid());
     }
 }

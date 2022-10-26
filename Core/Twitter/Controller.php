@@ -43,6 +43,7 @@ class Controller
     /**
      * @param ServerRequestInterface $request
      * @return RedirectResponse
+     * @throws InvalidArgumentException
      */
     public function generateTwitterOAuthAccessToken(ServerRequestInterface $request): RedirectResponse
     {
@@ -56,6 +57,11 @@ class Controller
         return new RedirectResponse($this->manager->getStoredOAuthRedirectPath());
     }
 
+    /**
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     * @throws Exceptions\TwitterDetailsNotFoundException
+     */
     public function postTweet(ServerRequestInterface $request): JsonResponse
     {
         $requestBody = $request->getParsedBody();
@@ -65,5 +71,20 @@ class Controller
 
         $response = $this->manager->postTweet($requestBody['tweet_text']);
         return new JsonResponse($response);
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     * @throws Exceptions\TwitterDetailsNotFoundException
+     */
+    public function getUserConfig(ServerRequestInterface $request): JsonResponse
+    {
+        $loggedInUser = $request->getAttribute('_user');
+
+        $this->manager->setUser($loggedInUser);
+
+        $response = $this->manager->getDetails();
+        return new JsonResponse($response->export());
     }
 }

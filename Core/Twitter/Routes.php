@@ -44,6 +44,10 @@ class Routes extends ModuleRoutes
                             'tweets',
                             Ref::_('Twitter\Controller', 'postTweet')
                         );
+                        $route->get(
+                            'config',
+                            Ref::_('Twitter\Controller', 'getUserConfig')
+                        );
                     });
             });
     }
