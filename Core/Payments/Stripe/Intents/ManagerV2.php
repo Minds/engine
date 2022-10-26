@@ -156,6 +156,7 @@ class ManagerV2
 
         $manualTransfer = !$paymentIntent->transfer_data?->destination;
 
+        $applicationFeeAmount = $futureAccountGuid = null;
         if ($manualTransfer) {
             // If no destination was set, the we expect that the payment intent has a meta field
             // call 'future_account_guid' that we will fetch the user for
