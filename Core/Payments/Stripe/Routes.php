@@ -26,6 +26,7 @@ class Routes extends ModuleRoutes
                         LoggedInMiddleware::class,
                     ])
                     ->do(function (Route $route) {
+                        // connect
                         $route->post(
                             'connect/account',
                             Ref::_('Stripe\Connect\Controller', 'createAccount')
@@ -37,6 +38,19 @@ class Routes extends ModuleRoutes
                         $route->get(
                             'connect/onboarding',
                             Ref::_('Stripe\Connect\Controller', 'redirectToOnboarding')
+                        );
+                        // checkout
+                        $route->get(
+                            'checkout/setup',
+                            Ref::_('Stripe\Checkout\Controller', 'redirectToSetup')
+                        );
+                        $route->get(
+                            'checkout/cancel',
+                            Ref::_('Stripe\Checkout\Controller', 'closeWindow')
+                        );
+                        $route->get(
+                            'checkout/success',
+                            Ref::_('Stripe\Checkout\Controller', 'closeWindow')
                         );
                     });
             });
