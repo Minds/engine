@@ -210,7 +210,6 @@ class Annotate extends AbstractImagick
      */
     public function annotate(int $width, string $text, string $username)
     {
-
         if ((!isset($width)) || (!isset($text)) || (!isset($username))) {
             throw new \Exception('Width, text and username are required to create an annotated image');
         }
