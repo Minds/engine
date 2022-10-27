@@ -26,6 +26,8 @@ use Minds\Traits\MagicAttributes;
  * @method self setPaymentId(string $paymentId)
  * @method User|null getRecipient()
  * @method self setRecipient(User $user)
+ * @method User|null getSender()
+ * @method self setSender(User $user)
  */
 class Payment implements ExportableInterface
 {
@@ -55,6 +57,9 @@ class Payment implements ExportableInterface
     /** @var User|null */
     private ?User $recipient = null;
 
+    /** @var User|null */
+    private ?User $sender = null;
+    
     /**
      * Construct from data from Stripe API.
      * @param array $data - data to construct from.
@@ -87,6 +92,9 @@ class Payment implements ExportableInterface
         if ($data['recipient']) {
             $instance->setRecipient($data['recipient']);
         }
+        if ($data['sender']) {
+            $instance->setSender($data['sender']);
+        }
         return $instance;
     }
 
@@ -101,6 +109,12 @@ class Payment implements ExportableInterface
         if ($this->getRecipient()) {
             $recipient = $this->getRecipient()->export() ?? [];
         }
+
+        $sender = null;
+        if ($this->getSender()) {
+            $sender = $this->getSender()->export() ?? [];
+        }
+
         return [
             'status' => $this->getStatus(),
             'payment_id' => $this->getPaymentId(),
@@ -110,6 +124,7 @@ class Payment implements ExportableInterface
             'receipt_url' => $this->getReceiptUrl(),
             'created_timestamp' => $this->getCreatedTimestamp(),
             'recipient' => $recipient,
+            'sender' => $sender,
             ...$extras
         ];
     }
