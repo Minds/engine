@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Minds\Core\Supermind;
 
 use Exception;
+use Iterator;
 use Minds\Common\Repository\Response;
 use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
+use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
@@ -71,6 +73,7 @@ class Manager
      * @return bool
      * @throws ApiErrorException
      * @throws ForbiddenException
+     * @throws KeyNotSetupException
      * @throws LockFailedException
      * @throws OffchainWalletInsufficientFundsException
      * @throws ServerErrorException
@@ -217,7 +220,9 @@ class Manager
      * @param string $supermindRequestId
      * @return bool
      * @throws ApiErrorException
+     * @throws KeyNotSetupException
      * @throws LockFailedException
+     * @throws OffchainWalletInsufficientFundsException
      * @throws SupermindNotFoundException
      * @throws SupermindRequestExpiredException
      * @throws SupermindRequestIncorrectStatusException
@@ -313,9 +318,20 @@ class Manager
             throw new SupermindNotFoundException();
         }
 
+        return $this->expireSupermindRequestFromDetails($supermindRequest);
+    }
+
+    /**
+     * @param SupermindRequest $supermindRequest
+     * @return bool
+     * @throws ApiErrorException
+     * @throws LockFailedException
+     */
+    private function expireSupermindRequestFromDetails(SupermindRequest $supermindRequest): bool
+    {
         $this->reimburseSupermindPayment($supermindRequest);
 
-        $expired = $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::EXPIRED, $supermindRequestId);
+        $expired = $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::EXPIRED, $supermindRequest->getGuid());
 
         $this->eventsDelegate->onExpireSupermindRequest($supermindRequest);
 
@@ -327,13 +343,16 @@ class Manager
      * @return void
      * @throws ApiErrorException
      * @throws LockFailedException
+     * @throws OffchainWalletInsufficientFundsException
+     * @throws KeyNotSetupException
      */
-    private function reimburseSupermindPayment(SupermindRequest $request): void
+    public function reimburseSupermindPayment(SupermindRequest $request): void
     {
         if ($request->getPaymentMethod() === SupermindRequestPaymentMethod::CASH) {
             $this->paymentProcessor->cancelPaymentIntent($request->getPaymentTxID());
         } else {
-            $this->paymentProcessor->refundOffchainPayment($request);
+            $transactionID = $this->paymentProcessor->refundOffchainPayment($request);
+            $this->repository->saveSupermindRefundTransaction($request->getGuid(), $transactionID);
         }
     }
 
@@ -481,9 +500,17 @@ class Manager
         return $supermindRequest;
     }
 
+    public function getSupermindRequestsFromIds(array $supermindRequestIDs): Iterator
+    {
+        foreach ($this->repository->getRequestsFromIds($supermindRequestIDs) as $supermindRequest) {
+            yield $supermindRequest;
+        }
+    }
+
     /**
      * @return bool
      * @throws ForbiddenException
+     * @throws Exception
      */
     public function expireRequests(): bool
     {
@@ -491,7 +518,34 @@ class Manager
             throw new ForbiddenException();
         }
 
-        $this->repository->expireSupermindRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD);
+        $this->repository->beginTransaction();
+
+        try {
+            $expiredSupermindRequests = $this->repository->expireSupermindRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD);
+        } catch (Exception $e) {
+            $this->repository->rollbackTransaction();
+            throw $e;
+        }
+
+        if (count($expiredSupermindRequests) === 0) {
+            return true;
+        }
+
+        foreach ($this->getSupermindRequestsFromIds($expiredSupermindRequests) as $supermindRequest) {
+            try {
+                $this->eventsDelegate->onExpireSupermindRequest($supermindRequest);
+
+                if ($supermindRequest->getPaymentMethod() === SupermindRequestPaymentMethod::OFFCHAIN_TOKEN) {
+                    $transactionId = $this->paymentProcessor->refundOffchainPayment($supermindRequest);
+                    $this->repository->saveSupermindRefundTransaction($supermindRequest->getGuid(), $transactionId);
+                }
+            } catch (Exception $e) {
+                $this->repository->rollbackTransaction();
+                throw $e;
+            }
+        }
+
+        $this->repository->commitTransaction();
         return true;
     }
 
@@ -503,5 +557,21 @@ class Manager
     private function buildUser(string $userGuid): User
     {
         return $this->entitiesBuilder->single($userGuid) ?? throw new ServerErrorException();
+    }
+
+    /**
+     * @param int $status
+     * @return Iterator
+     */
+    public function getSupermindRequestsByStatus(int $status): Iterator
+    {
+        foreach ($this->repository->getRequestsByStatus($status) as $supermindRequest) {
+            yield $supermindRequest;
+        }
+    }
+
+    public function isSupermindRequestRefunded(string $supermindRequestId): bool
+    {
+        return (bool) $this->repository->getSupermindRefundTransactionId($supermindRequestId);
     }
 }
