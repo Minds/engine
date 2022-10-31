@@ -30,7 +30,7 @@ use Minds\Traits\MagicAttributes;
  * @method self setTwitterUsername(string $twitterUsername)
  * @method string|null getTwitterUsername()
  * @method self setAccessTokenExpiry(string $accessTokenExpiry)
- * @method string getAccessTokenExpiry()
+ * @method string|null getAccessTokenExpiry()
  */
 class TwitterDetails implements ExportableInterface, EntityInterface
 {
@@ -43,9 +43,9 @@ class TwitterDetails implements ExportableInterface, EntityInterface
     private ?int $twitterFollowersCount = null;
     private ?int $twitterUserId = null;
     private ?string $twitterUsername = null;
-    private string $accessToken;
-    private string $accessTokenExpiry;
-    private string $refreshToken;
+    private ?string $accessToken = null;
+    private ?string $accessTokenExpiry = null;
+    private ?string $refreshToken = null;
 
     public function __construct(
         private ?MindsConfig $mindsConfig = null
@@ -159,9 +159,9 @@ class TwitterDetails implements ExportableInterface, EntityInterface
         return $this;
     }
 
-    public function getAccessToken(): string
+    public function getAccessToken(): ?string
     {
-        return OpenSSL::decrypt(base64_decode($this->accessToken, true), file_get_contents($this->mindsConfig->get('encryptionKeys')['twt_tokens']['private']));
+        return $this->accessToken ? OpenSSL::decrypt(base64_decode($this->accessToken, true), file_get_contents($this->mindsConfig->get('encryptionKeys')['twt_tokens']['private'])) : null;
     }
 
     public function setRefreshToken(string $refreshToken): self
@@ -174,9 +174,9 @@ class TwitterDetails implements ExportableInterface, EntityInterface
         return $this;
     }
 
-    public function getRefreshToken(): string
+    public function getRefreshToken(): ?string
     {
-        return OpenSSL::decrypt(base64_decode($this->refreshToken, true), file_get_contents($this->mindsConfig->get('encryptionKeys')['twt_tokens']['private']));
+        return $this->refreshToken ? OpenSSL::decrypt(base64_decode($this->refreshToken, true), file_get_contents($this->mindsConfig->get('encryptionKeys')['twt_tokens']['private'])) : null;
     }
 
     /**
@@ -192,7 +192,8 @@ class TwitterDetails implements ExportableInterface, EntityInterface
             'last_sync_ts' => $this->getLastSyncTimestamp(),
             'twitter_followers_count' => $this->getTwitterFollowersCount(),
             'twitter_user_id' => $this->getTwitterUserId(),
-            'twitter_username' => $this->getTwitterUsername()
+            'twitter_username' => $this->getTwitterUsername(),
+            'twitter_oauth2_connected' => !empty($this->accessToken)
         ];
     }
 }
