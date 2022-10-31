@@ -792,15 +792,41 @@ class RepositorySpec extends ObjectBehavior
 
     // expireSupermindRequests
 
-
     public function it_should_expire_supermind_requests(
+        PDOStatement $selectPdoStatement,
         PDOStatement $pdoStatement
     ) {
         $thresholdInSeconds = 9999;
+        $supermindRequestIds = [
+            '123',
+            '234',
+            '345'
+        ];
+
+        $selectPdoStatement->execute()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $selectPdoStatement->fetchAll(PDO::FETCH_COLUMN)
+            ->shouldBeCalled()
+            ->willReturn($supermindRequestIds);
+
+        $this->mysqlClientReader->prepare(Argument::that(function ($arg) {
+            return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine(
+                "SELECT guid FROM superminds WHERE status = :created_status AND created_timestamp <= :target_timestamp"
+            );
+        }))
+            ->shouldBeCalled()
+            ->willReturn($selectPdoStatement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($selectPdoStatement, Argument::that(function ($arg) {
+            return $arg['created_status'] === SupermindRequestStatus::CREATED &&
+                is_string($arg['target_timestamp']);
+        }))->shouldBeCalled();
 
         $this->mysqlClientWriter->prepare(Argument::that(function ($arg) {
             return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine("
-                UPDATE superminds SET status = :target_status WHERE status = :created_status AND created_timestamp <= :target_timestamp
+                UPDATE superminds SET status = :target_status WHERE status = :created_status AND created_timestamp <= :target_timestamp AND guid IN (:supermind_0,:supermind_1,:supermind_2)
             ");
         }))
             ->shouldBeCalled()
@@ -816,7 +842,36 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->expireSupermindRequests($thresholdInSeconds)->shouldBe(true);
+        $this->expireSupermindRequests($thresholdInSeconds)->shouldBeLike($supermindRequestIds);
+    }
+
+    public function it_should_return_empty_array_when_expiring_supermind_requests_if_no_ids_are_found(
+        PDOStatement $selectPdoStatement
+    ) {
+        $thresholdInSeconds = 9999;
+
+        $selectPdoStatement->execute()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $selectPdoStatement->fetchAll(PDO::FETCH_COLUMN)
+            ->shouldBeCalled()
+            ->willReturn([]);
+
+        $this->mysqlClientReader->prepare(Argument::that(function ($arg) {
+            return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine(
+                "SELECT guid FROM superminds WHERE status = :created_status AND created_timestamp <= :target_timestamp"
+            );
+        }))
+            ->shouldBeCalled()
+            ->willReturn($selectPdoStatement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($selectPdoStatement, Argument::that(function ($arg) {
+            return $arg['created_status'] === SupermindRequestStatus::CREATED &&
+                is_string($arg['target_timestamp']);
+        }))->shouldBeCalled();
+
+        $this->expireSupermindRequests($thresholdInSeconds)->shouldBeLike([]);
     }
 
     // getRequestsExpiringSoon
