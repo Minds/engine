@@ -327,6 +327,7 @@ class SupermindPaymentProcessorSpec extends ObjectBehavior
         $senderGuid = '234';
         $receiverGuid = '345';
         $paymentAmount = 100;
+        $txId = 'offchain:wire:123';
 
         $request->getGuid()
             ->shouldBeCalled()
@@ -343,6 +344,10 @@ class SupermindPaymentProcessorSpec extends ObjectBehavior
         $request->getPaymentAmount()
             ->shouldBeCalled()
             ->willReturn($paymentAmount);
+
+        $transaction->getTx()
+            ->shouldBeCalled()
+            ->willReturn($txId);
 
         $this->entitiesBuilder->single($senderGuid)
             ->shouldBeCalled()
@@ -372,7 +377,7 @@ class SupermindPaymentProcessorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($transaction);
 
-        $this->refundOffchainPayment($request);
+        $this->refundOffchainPayment($request)->shouldBe($txId);
     }
 
     public function it_should_credit_an_offchain_payment(
