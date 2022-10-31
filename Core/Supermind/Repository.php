@@ -105,14 +105,9 @@ class Repository
             $whereStatusClause = "AND status = :status";
         }
 
-        $orderClauseSortOrder = 'DESC';
-        if ($status === SupermindRequestStatus::CREATED) {
-            $orderClauseSortOrder = 'ASC';
-        }
-
         $query = "SELECT * FROM superminds
             WHERE receiver_guid = :receiver_guid AND status != :excludedStatus $whereStatusClause 
-            ORDER BY created_timestamp $orderClauseSortOrder
+            ORDER BY created_timestamp DESC
             LIMIT :offset, :limit
         ";
 
@@ -210,14 +205,9 @@ class Repository
             $whereStatusClause = "AND status = :status";
         }
 
-        $orderClauseSortOrder = 'DESC';
-        if ($status === SupermindRequestStatus::CREATED) {
-            $orderClauseSortOrder = 'ASC';
-        }
-
         $query = "SELECT * FROM superminds
             WHERE sender_guid = :sender_guid AND status != :excludedStatus $whereStatusClause 
-            ORDER BY created_timestamp $orderClauseSortOrder
+            ORDER BY created_timestamp DESC
             LIMIT :offset, :limit
         ";
 
