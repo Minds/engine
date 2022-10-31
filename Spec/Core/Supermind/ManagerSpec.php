@@ -29,11 +29,14 @@ use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use Spec\Minds\Common\Traits\CommonMatchers;
 use Stripe\Exception\CardException;
 use Stripe\Exception\AuthenticationException;
 
 class ManagerSpec extends ObjectBehavior
 {
+    use CommonMatchers;
+
     /** @var Repository */
     private $repository;
 
@@ -810,7 +813,11 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getPaymentMethod()
             ->shouldBeCalled()
             ->willReturn(SupermindRequestPaymentMethod::CASH);
-            
+        
+        $supermindRequest->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($supermindRequestId);
+
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
@@ -841,6 +848,7 @@ class ManagerSpec extends ObjectBehavior
     ) {
         $supermindRequestId = '123';
         $supermindStatus = SupermindRequestStatus::CREATED;
+        $txId = 'offchain:wire:123';
 
         $supermindRequest->getStatus()
             ->shouldBeCalled()
@@ -849,7 +857,11 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getPaymentMethod()
             ->shouldBeCalled()
             ->willReturn(SupermindRequestPaymentMethod::OFFCHAIN_TOKEN);
-            
+        
+        $supermindRequest->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($supermindRequestId);
+
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
@@ -863,6 +875,10 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($supermindRequest);
         
         $this->paymentProcessor->refundOffchainPayment($supermindRequest)
+            ->shouldBeCalled()
+            ->willReturn($txId);
+
+        $this->repository->saveSupermindRefundTransaction($supermindRequestId, $txId)
             ->shouldBeCalled();
 
         $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::EXPIRED, $supermindRequestId)
@@ -1040,6 +1056,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $supermindRequest->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($supermindRequestId);
 
         $supermindRequest->getPaymentTxID()
             ->shouldBeCalled()
@@ -1171,7 +1190,8 @@ class ManagerSpec extends ObjectBehavior
         $receiverGuid = '234';
         $supermindStatus = SupermindRequestStatus::CREATED;
         $paymentMethod = SupermindRequestPaymentMethod::OFFCHAIN_TOKEN;
-        
+        $txId = 'offchain:wire:123';
+
         $actor->getGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid);
@@ -1197,6 +1217,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($paymentMethod);
 
+        $supermindRequest->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($supermindRequestId);
+
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
@@ -1209,6 +1233,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->paymentProcessor->refundOffchainPayment($supermindRequest)
+            ->shouldBeCalled()
+            ->willReturn($txId);
+
+        $this->repository->saveSupermindRefundTransaction($supermindRequestId, $txId)
             ->shouldBeCalled();
 
         $this->rejectSupermindRequest($supermindRequestId)->shouldBe(true);
@@ -1271,6 +1299,10 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getPaymentMethod()
             ->shouldBeCalled()
             ->willReturn($paymentMethod);
+
+        $supermindRequest->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($supermindRequestId);
 
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
@@ -1724,11 +1756,195 @@ class ManagerSpec extends ObjectBehavior
 
     // expireRequests
 
-    public function it_should_allow_cli_sapi_name_to_expire_requests()
-    {
+    public function it_should_allow_cli_sapi_name_to_expire_requests_for_offchain_tokens() {
+        $ids = [ '567' ];
+        $txId = 'offchain:wire:123';
+        $supermindRequestId = '567';
+        $paymentMethod = SupermindRequestPaymentMethod::CASH;
+        $supermindRequest = (new SupermindRequest())
+            ->setGuid($supermindRequestId)
+            ->setPaymentMethod($paymentMethod);
+
+        $returnIterator = new ArrayIterator([
+            $supermindRequest
+        ]);
+
+        $this->repository->beginTransaction()
+            ->shouldBeCalled();
+
         $this->repository->expireSupermindRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD)
+            ->shouldBeCalled()
+            ->willReturn($ids);
+
+        $this->repository->getRequestsFromIds($ids)
+            ->shouldBeCalled()
+            ->willReturn($returnIterator);
+
+        $this->eventsDelegate->onExpireSupermindRequest($supermindRequest)
+            ->shouldBeCalled();
+
+        $this->paymentProcessor->refundOffchainPayment($supermindRequest)
+            ->shouldNotBeCalled();
+
+        $this->repository->saveSupermindRefundTransaction($supermindRequestId, $txId)
+            ->shouldNotBeCalled();
+
+        $this->repository->commitTransaction()
             ->shouldBeCalled();
 
         $this->expireRequests()->shouldBe(true);
+    }
+
+    public function it_should_allow_cli_sapi_name_to_expire_requests_for_cash() {
+        $ids = [ '567' ];
+        $txId = 'offchain:wire:123';
+        $supermindRequestId = '567';
+        $supermindRequest = (new SupermindRequest())->setGuid($supermindRequestId);
+        $returnIterator = new ArrayIterator([
+            (new SupermindRequest())->setGuid($supermindRequestId)
+        ]);
+
+        $this->repository->beginTransaction()
+            ->shouldBeCalled();
+
+        $this->repository->expireSupermindRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD)
+            ->shouldBeCalled()
+            ->willReturn($ids);
+
+        $this->repository->getRequestsFromIds($ids)
+            ->shouldBeCalled()
+            ->willReturn($returnIterator);
+
+        $this->eventsDelegate->onExpireSupermindRequest($supermindRequest)
+            ->shouldBeCalled();
+
+        $this->paymentProcessor->refundOffchainPayment($supermindRequest)
+            ->shouldBeCalled()
+            ->willReturn($txId);
+
+        $this->repository->saveSupermindRefundTransaction($supermindRequestId, $txId)
+            ->shouldBeCalled();
+
+        $this->repository->commitTransaction()
+            ->shouldBeCalled();
+
+        $this->expireRequests()->shouldBe(true);
+    }
+
+    public function it_should_rollback_transactions_on_error_expiring_requests() {
+        $ids = [ '567' ];
+        $thrownException = new \Exception('ERROR');
+
+        $this->repository->beginTransaction()
+            ->shouldBeCalled();
+
+        $this->repository->expireSupermindRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD)
+            ->shouldBeCalled()
+            ->willThrow($thrownException);
+
+        $this->repository->getRequestsFromIds($ids)
+            ->shouldNotBeCalled();
+
+        $this->repository->rollbackTransaction()
+            ->shouldBeCalled();
+
+        $this->shouldThrow($thrownException)->duringExpireRequests();
+    }
+
+    public function it_should_return_true_if_no_expired_request_found_while_expiring_reqeusts() {
+        $ids = [ '567' ];
+
+        $this->repository->beginTransaction()
+            ->shouldBeCalled();
+
+        $this->repository->expireSupermindRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD)
+            ->shouldBeCalled()
+            ->willReturn([]);
+
+        $this->repository->getRequestsFromIds($ids)
+            ->shouldNotBeCalled();
+
+        $this->expireRequests()->shouldBe(true);
+    }
+
+    public function it_should_rollback_transactions_on_error_refunding_requests() {
+        $ids = [ '567' ];
+        $txId = 'offchain:wire:123';
+        $supermindRequestId = '567';
+        $supermindRequest = (new SupermindRequest())->setGuid($supermindRequestId);
+        $returnIterator = new ArrayIterator([
+            (new SupermindRequest())->setGuid($supermindRequestId)
+        ]);
+
+        $this->repository->beginTransaction()
+            ->shouldBeCalled();
+
+        $this->repository->expireSupermindRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD)
+            ->shouldBeCalled()
+            ->willReturn($ids);
+
+        $this->repository->getRequestsFromIds($ids)
+            ->shouldBeCalled()
+            ->willReturn($returnIterator);
+
+        $this->eventsDelegate->onExpireSupermindRequest($supermindRequest)
+            ->shouldBeCalled();
+
+        $this->paymentProcessor->refundOffchainPayment($supermindRequest)
+            ->shouldBeCalled()
+            ->willReturn($txId);
+
+        $this->repository->saveSupermindRefundTransaction($supermindRequestId, $txId)
+            ->shouldBeCalled()
+            ->willThrow(new \Exception('error'));
+
+        $this->repository->rollbackTransaction()
+            ->shouldBeCalled();
+
+        $this->repository->commitTransaction()
+            ->shouldNotBeCalled();
+
+        $this->shouldThrow(\Exception::class)->duringExpireRequests();
+    }
+
+    // getSupermindRequestsByStatus
+
+    public function it_should_get_supermind_requests_by_status() {
+        $status = 2;
+
+        $supermindRequest1 = (new SupermindRequest())->setGuid('123');
+        $supermindRequest2 = (new SupermindRequest())->setGuid('234');
+
+        $returnIterator = new ArrayIterator([
+            $supermindRequest1,
+            $supermindRequest2
+        ]);
+
+        $this->repository->getRequestsByStatus($status)
+            ->shouldBeCalled()
+            ->willReturn($returnIterator);
+        
+        $this->getSupermindRequestsByStatus($status)->shouldBeAGenerator([
+            $supermindRequest1,
+            $supermindRequest2
+        ]);
+    }
+
+    // isSupermindRequestRefunded
+
+    public function it_should_check_if_supermind_request_was_refunded() {
+        $supermindRequestId = '123';
+        $this->repository->getSupermindRefundTransactionId($supermindRequestId)
+            ->shouldBeCalled()
+            ->willReturn('0123');
+        $this->isSupermindRequestRefunded($supermindRequestId)->shouldBe(true);
+    }
+
+    public function it_should_check_if_supermind_request_was_NOT_refunded() {
+        $supermindRequestId = '123';
+        $this->repository->getSupermindRefundTransactionId($supermindRequestId)
+            ->shouldBeCalled()
+            ->willReturn('');
+        $this->isSupermindRequestRefunded($supermindRequestId)->shouldBe(false);
     }
 }
