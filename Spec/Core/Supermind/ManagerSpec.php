@@ -1756,7 +1756,8 @@ class ManagerSpec extends ObjectBehavior
 
     // expireRequests
 
-    public function it_should_allow_cli_sapi_name_to_expire_requests_for_offchain_tokens() {
+    public function it_should_allow_cli_sapi_name_to_expire_requests_for_offchain_tokens()
+    {
         $ids = [ '567' ];
         $txId = 'offchain:wire:123';
         $supermindRequestId = '567';
@@ -1795,7 +1796,8 @@ class ManagerSpec extends ObjectBehavior
         $this->expireRequests()->shouldBe(true);
     }
 
-    public function it_should_allow_cli_sapi_name_to_expire_requests_for_cash() {
+    public function it_should_allow_cli_sapi_name_to_expire_requests_for_cash()
+    {
         $ids = [ '567' ];
         $txId = 'offchain:wire:123';
         $supermindRequestId = '567';
@@ -1831,7 +1833,8 @@ class ManagerSpec extends ObjectBehavior
         $this->expireRequests()->shouldBe(true);
     }
 
-    public function it_should_rollback_transactions_on_error_expiring_requests() {
+    public function it_should_rollback_transactions_on_error_expiring_requests()
+    {
         $ids = [ '567' ];
         $thrownException = new \Exception('ERROR');
 
@@ -1851,7 +1854,8 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow($thrownException)->duringExpireRequests();
     }
 
-    public function it_should_return_true_if_no_expired_request_found_while_expiring_reqeusts() {
+    public function it_should_return_true_if_no_expired_request_found_while_expiring_reqeusts()
+    {
         $ids = [ '567' ];
 
         $this->repository->beginTransaction()
@@ -1867,7 +1871,8 @@ class ManagerSpec extends ObjectBehavior
         $this->expireRequests()->shouldBe(true);
     }
 
-    public function it_should_rollback_transactions_on_error_refunding_requests() {
+    public function it_should_rollback_transactions_on_error_refunding_requests()
+    {
         $ids = [ '567' ];
         $txId = 'offchain:wire:123';
         $supermindRequestId = '567';
@@ -1909,7 +1914,8 @@ class ManagerSpec extends ObjectBehavior
 
     // getSupermindRequestsByStatus
 
-    public function it_should_get_supermind_requests_by_status() {
+    public function it_should_get_supermind_requests_by_status()
+    {
         $status = 2;
 
         $supermindRequest1 = (new SupermindRequest())->setGuid('123');
@@ -1932,7 +1938,8 @@ class ManagerSpec extends ObjectBehavior
 
     // isSupermindRequestRefunded
 
-    public function it_should_check_if_supermind_request_was_refunded() {
+    public function it_should_check_if_supermind_request_was_refunded()
+    {
         $supermindRequestId = '123';
         $this->repository->getSupermindRefundTransactionId($supermindRequestId)
             ->shouldBeCalled()
@@ -1940,7 +1947,8 @@ class ManagerSpec extends ObjectBehavior
         $this->isSupermindRequestRefunded($supermindRequestId)->shouldBe(true);
     }
 
-    public function it_should_check_if_supermind_request_was_NOT_refunded() {
+    public function it_should_check_if_supermind_request_was_NOT_refunded()
+    {
         $supermindRequestId = '123';
         $this->repository->getSupermindRefundTransactionId($supermindRequestId)
             ->shouldBeCalled()
