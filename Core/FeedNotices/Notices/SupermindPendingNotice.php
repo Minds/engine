@@ -51,13 +51,7 @@ class SupermindPendingNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        $latestCreatedSupermind = $this->supermindManager->setUser($user)
-            ->getReceivedRequests(
-                offset: 0,
-                limit: 1,
-                status: SupermindRequestStatus::CREATED
-            )->first();
-
-        return $latestCreatedSupermind && !$latestCreatedSupermind->isExpired();
+        return $this->supermindManager->setUser($user)
+            ->countReceivedRequests(SupermindRequestStatus::CREATED) > 0;
     }
 }

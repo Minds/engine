@@ -38,86 +38,34 @@ class SupermindPendingNoticeSpec extends ObjectBehavior
     }
 
     public function it_should_determine_if_notice_should_show(
-        User $user,
-        Response $response,
-        SupermindRequest $supermindRequest
+        User $user
     ) {
-        $supermindRequest->isExpired()
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $response->first()
-            ->shouldBeCalled()
-            ->willReturn($supermindRequest);
-
         $this->supermindManager->setUser($user)
             ->shouldBeCalled()
             ->willReturn($this->supermindManager);
 
-        $this->supermindManager->getReceivedRequests(
-            offset: 0,
-            limit: 1,
-            status: SupermindRequestStatus::CREATED
+        $this->supermindManager->countReceivedRequests(
+            SupermindRequestStatus::CREATED
         )
             ->shouldBeCalled()
-            ->willReturn($response);
+            ->willReturn(1);
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(true);
     }
 
     public function it_should_determine_if_notice_should_NOT_show_because_no_request_is_found(
-        User $user,
-        Response $response,
-        SupermindRequest $supermindRequest
+        User $user
     ) {
-        $supermindRequest->isExpired()
-            ->shouldNotBeCalled();
-
-        $response->first()
-            ->shouldBeCalled()
-            ->willReturn(null);
-
         $this->supermindManager->setUser($user)
             ->shouldBeCalled()
             ->willReturn($this->supermindManager);
 
-        $this->supermindManager->getReceivedRequests(
-            offset: 0,
-            limit: 1,
-            status: SupermindRequestStatus::CREATED
+        $this->supermindManager->countReceivedRequests(
+            SupermindRequestStatus::CREATED
         )
             ->shouldBeCalled()
-            ->willReturn($response);
-
-        $this->callOnWrappedObject('shouldShow', [$user])
-            ->shouldBe(false);
-    }
-
-    public function it_should_determine_if_notice_should_NOT_show_because_supermind_is_expired(
-        User $user,
-        Response $response,
-        SupermindRequest $supermindRequest
-    ) {
-        $supermindRequest->isExpired()
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $response->first()
-            ->shouldBeCalled()
-            ->willReturn($supermindRequest);
-
-        $this->supermindManager->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->supermindManager);
-
-        $this->supermindManager->getReceivedRequests(
-            offset: 0,
-            limit: 1,
-            status: SupermindRequestStatus::CREATED
-        )
-            ->shouldBeCalled()
-            ->willReturn($response);
+            ->willReturn(0);
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);
@@ -130,29 +78,17 @@ class SupermindPendingNoticeSpec extends ObjectBehavior
     }
 
     public function it_should_export(
-        User $user,
-        Response $response,
-        SupermindRequest $supermindRequest
+        User $user
     ) {
-        $supermindRequest->isExpired()
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $response->first()
-            ->shouldBeCalled()
-            ->willReturn($supermindRequest);
-
         $this->supermindManager->setUser($user)
             ->shouldBeCalled()
             ->willReturn($this->supermindManager);
 
-        $this->supermindManager->getReceivedRequests(
-            offset: 0,
-            limit: 1,
-            status: SupermindRequestStatus::CREATED
+        $this->supermindManager->countReceivedRequests(
+            SupermindRequestStatus::CREATED
         )
             ->shouldBeCalled()
-            ->willReturn($response);
+            ->willReturn(1);
 
         $this->setUser($user);
 
