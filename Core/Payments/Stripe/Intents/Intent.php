@@ -29,6 +29,9 @@ class Intent
     /** @var string $stripeAccountId */
     protected $stripeAccountId;
 
+    /** @var string $stripeFutureAccountGuid */
+    protected $stripeFutureAccountGuid;
+
     /** @var string $clientSecret */
     protected $clientSecret;
 

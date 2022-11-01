@@ -6,12 +6,12 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Payments\Stripe\Connect\Delegates\NotificationDelegate;
 use Minds\Core\Payments\Stripe\Currencies;
 use Minds\Core\Payments\Stripe\Instances\AccountInstance;
+use Minds\Core\Payments\Stripe\Instances\ApplicationFeeInstance;
 use Minds\Core\Payments\Stripe\Instances\BalanceInstance;
 use Minds\Core\Payments\Stripe\Instances\FileInstance;
-use Minds\Core\Payments\Stripe\Instances\ApplicationFeeInstance;
 use Minds\Core\Payments\Stripe\Transactions;
-use Stripe;
 use Minds\Entities\User;
+use Stripe;
 
 class Manager
 {
@@ -374,7 +374,8 @@ class Manager
     /**
      * Get account from user
      * @param User $user
-     * @return Account
+     * @return Account|null
+     * @throws \Exception
      */
     public function getByUser(User $user): ?Account
     {

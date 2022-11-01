@@ -20,18 +20,18 @@ use Minds\Core\Supermind\Exceptions\SupermindRequestExpiredException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestIncorrectStatusException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestStatusUpdateException;
 use Minds\Core\Supermind\Exceptions\SupermindUnauthorizedSenderException;
-use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
-use Minds\Core\Supermind\Repository;
 use Minds\Core\Supermind\Manager;
 use Minds\Core\Supermind\Models\SupermindRequest;
+use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
+use Minds\Core\Supermind\Repository;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Spec\Minds\Common\Traits\CommonMatchers;
-use Stripe\Exception\CardException;
 use Stripe\Exception\AuthenticationException;
+use Stripe\Exception\CardException;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -626,17 +626,22 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_accept_a_supermind_request_for_cash(
         SupermindRequest $supermindRequest,
-        User $sender
+        User $recipient
     ) {
         $supermindRequestId = '123';
         $supermindStatus = SupermindRequestStatus::CREATED;
         $paymentMethod = SupermindRequestPaymentMethod::CASH;
         $paymentTxid = 'pay_123';
+
+        $recipient->getMerchant()
+            ->willReturn([
+                'id' => 'test'
+            ]);
         
-        $this->paymentProcessor->setUser($sender)
+        $this->paymentProcessor->setUser($recipient)
             ->shouldBeCalled();
         
-        $this->setUser($sender);
+        $this->setUser($recipient);
 
         $supermindRequest->getStatus()
             ->shouldBeCalled()
@@ -658,7 +663,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
             
-        $this->acl->write($supermindRequest, $sender, ['isReply' => true])
+        $this->acl->write($supermindRequest, $recipient, ['isReply' => true])
             ->shouldBeCalled()
             ->willReturn(true);
         
@@ -717,17 +722,22 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_try_accept_a_supermind_request_but_throw_capture_fail_exception_if_payment_fails(
         SupermindRequest $supermindRequest,
-        User $sender
+        User $recipient
     ) {
         $supermindRequestId = '123';
         $supermindStatus = SupermindRequestStatus::CREATED;
         $paymentMethod = SupermindRequestPaymentMethod::CASH;
         $paymentTxid = 'pay_123';
+
+        $recipient->getMerchant()
+            ->willReturn([
+                'id' => 'test'
+            ]);
         
-        $this->paymentProcessor->setUser($sender)
+        $this->paymentProcessor->setUser($recipient)
             ->shouldBeCalled();
         
-        $this->setUser($sender);
+        $this->setUser($recipient);
 
         $supermindRequest->getStatus()
             ->shouldBeCalled()
@@ -749,12 +759,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
             
-        $this->acl->write($supermindRequest, $sender, ['isReply' => true])
+        $this->acl->write($supermindRequest, $recipient, ['isReply' => true])
             ->shouldBeCalled()
             ->willReturn(true);
-        
-        $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::ACCEPTED, $supermindRequestId)
-            ->shouldBeCalled();
 
         $this->paymentProcessor->capturePaymentIntent($paymentTxid)
             ->shouldBeCalled()
@@ -796,11 +803,23 @@ class ManagerSpec extends ObjectBehavior
     }
 
     public function it_should_throw_a_supermind_expired_exception_on_accepting_a_request_when_supermind_is_expired_and_force_expiration_reimbursing_cash(
-        SupermindRequest $supermindRequest
+        SupermindRequest $supermindRequest,
+        User $recipient
     ) {
         $supermindRequestId = '123';
         $supermindStatus = SupermindRequestStatus::CREATED;
         $paymentId = 'pay_123';
+
+        $recipient->getMerchant()
+            ->willReturn([
+                'id' => 'test'
+            ]);
+
+        $this->paymentProcessor
+            ->setUser($recipient)
+            ->willReturn($this->paymentProcessor);
+
+        $this->setUser($recipient);
 
         $supermindRequest->getStatus()
             ->shouldBeCalled()
@@ -891,7 +910,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow(SupermindRequestExpiredException::class)->duringAcceptSupermindRequest($supermindRequestId);
     }
 
-    public function it_should_throw_exception_on_accept_if_a_user_is_not_authed_to_reply(
+    public function it_should_throw_exception_on_accept_if_a_user_is_not_authorised_to_reply(
         SupermindRequest $supermindRequest,
         User $sender
     ) {
@@ -905,6 +924,10 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->isExpired()
             ->shouldBeCalled()
             ->willReturn(false);
+
+        $supermindRequest->getPaymentMethod()
+            ->shouldBeCalled()
+            ->willReturn(SupermindRequestPaymentMethod::OFFCHAIN_TOKEN);
 
         $this->paymentProcessor->setUser($sender)
             ->shouldBeCalled()
