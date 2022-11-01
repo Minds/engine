@@ -75,7 +75,7 @@ class Controller
         $loggedInUser = $request->getAttribute('_user');
         $this->manager->setUser($loggedInUser);
 
-        $response = $this->manager->postTweet($requestBody['tweet_text']);
+        $response = $this->manager->postTextTweet($requestBody['tweet_text']);
         return new JsonResponse($response);
     }
 

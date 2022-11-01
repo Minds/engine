@@ -16,6 +16,7 @@ use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Supermind\Delegates\EventsDelegate;
+use Minds\Core\Supermind\Delegates\TwitterEventsDelegate;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Exceptions\SupermindOffchainPaymentFailedException;
 use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentCaptureFailedException;
@@ -29,6 +30,7 @@ use Minds\Core\Supermind\Exceptions\SupermindRequestStatusUpdateException;
 use Minds\Core\Supermind\Exceptions\SupermindUnauthorizedSenderException;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
+use Minds\Core\Twitter\Exceptions\TwitterDetailsNotFoundException;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\StopEventException;
@@ -47,13 +49,15 @@ class Manager
         private ?SupermindPaymentProcessor $paymentProcessor = null,
         private ?EventsDelegate $eventsDelegate = null,
         private ?ACL $acl = null,
-        private ?EntitiesBuilder $entitiesBuilder = null
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?TwitterEventsDelegate $twitterEventsDelegate = null
     ) {
         $this->repository ??= Di::_()->get("Supermind\Repository");
         $this->paymentProcessor ??= new SupermindPaymentProcessor();
         $this->eventsDelegate ??= new EventsDelegate();
         $this->acl ??= Di::_()->get('Security\ACL');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->twitterEventsDelegate ??= new TwitterEventsDelegate();
     }
 
     /**
@@ -385,6 +389,7 @@ class Manager
      * @param int $replyActivityGuid
      * @return bool
      * @throws SupermindRequestAcceptCompletionException
+     * @throws TwitterDetailsNotFoundException
      */
     public function completeAcceptSupermindRequest(string $supermindRequestId, int $replyActivityGuid): bool
     {
@@ -397,6 +402,7 @@ class Manager
             $supermindRequest->setEntity($this->entitiesBuilder->single($supermindRequest->getActivityGuid()));
             $supermindRequest->setReceiverEntity($this->entitiesBuilder->single($supermindRequest->getReceiverGuid()));
             $this->eventsDelegate->onAcceptSupermindRequest($supermindRequest);
+            $this->twitterEventsDelegate->onAcceptSupermindOffer($supermindRequest);
         }
 
         return $isSuccessful
