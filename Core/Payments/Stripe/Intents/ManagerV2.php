@@ -9,6 +9,7 @@ use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
+use Minds\Core\Payments\Models\GetPaymentsOpts;
 use Minds\Core\Payments\Stripe\Connect\Manager as StripeConnectManager;
 use Minds\Core\Payments\Stripe\Customers\Manager as StripeCustomersManager;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
@@ -156,7 +157,7 @@ class ManagerV2
 
         $manualTransfer = !$paymentIntent->transfer_data?->destination;
 
-        $applicationFeeAmount = $futureAccountGuid = null;
+        $applicationFeeAmount = $stripeFutureAccount = null;
         if ($manualTransfer) {
             // If no destination was set, the we expect that the payment intent has a meta field
             // call 'future_account_guid' that we will fetch the user for
@@ -200,5 +201,47 @@ class ManagerV2
         }
 
         return true;
+    }
+
+    /**
+     * Gets payment intent by payment ID as array.
+     * @param string $paymentId - payment id.
+     * @return array payment data.
+     */
+    public function getPaymentIntentByPaymentId(string $paymentId): array
+    {
+        return $this->stripeClient->paymentIntents->retrieve(
+            $paymentId
+        )->toArray();
+    }
+
+    /**
+     * Get payment intents from Stripe from opts.
+     * @param GetPaymentsOpts $opts - options for API call.
+     * @return array payment intents.
+     */
+    public function getPaymentIntents(GetPaymentsOpts $opts): array
+    {
+        return $this->stripeClient->paymentIntents->all(
+            $opts->export()
+        )->toArray();
+    }
+
+    /**
+     * Get payment intents by user guid.
+     * @param string $userGuid - user guid to get by. Any set user guid WILL be overridden by the
+     * user passed via userGuid.
+     * @param GetPaymentsOpts|null $opts - payment opts.
+     * @throws UserErrorException if user is not found.
+     * @return array payment intents.
+     */
+    public function getPaymentIntentsByUserGuid(string $userGuid, GetPaymentsOpts $opts = null): array
+    {
+        $customer = $this->stripeCustomersManager->getFromUserGuid($userGuid);
+        if (!$customer) {
+            throw new UserErrorException("Customer was not found: $userGuid");
+        }
+        $opts->setCustomerId($customer->getId());
+        return $this->getPaymentIntents($opts);
     }
 }

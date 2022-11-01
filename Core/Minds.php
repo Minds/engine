@@ -76,6 +76,7 @@ class Minds extends base
         Entities\Module::class,
         Payments\Stripe\Module::class,
         Authentication\Module::class,
+        Payments\Module::class
     ];
 
     /**

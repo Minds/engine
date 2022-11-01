@@ -8,6 +8,7 @@ use Exception;
 use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Blockchain\Wallets\OffChain\Transactions as OffchainTransactions;
 use Minds\Core\Config\Config as MindsConfig;
+use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
@@ -180,13 +181,14 @@ class SupermindPaymentProcessor
 
     /**
      * @param SupermindRequest $request
-     * @return void
+     * @return string
      * @throws LockFailedException
-     * @throws Exception
+     * @throws OffchainWalletInsufficientFundsException
+     * @throws KeyNotSetupException
      */
-    public function refundOffchainPayment(SupermindRequest $request): void
+    public function refundOffchainPayment(SupermindRequest $request): string
     {
-        $this->offchainTransactions
+        $transaction = $this->offchainTransactions
             ->setUser(
                 $this->buildUser($request->getSenderGuid())
             )
@@ -198,6 +200,7 @@ class SupermindPaymentProcessor
                 'receiver_guid' => $request->getReceiverGuid()
             ])
             ->create();
+        return $transaction->getTx();
     }
 
     /**
