@@ -2,25 +2,23 @@
 
 namespace Minds\Core\Email\V2\SendLists;
 
-use Minds\Core\Email\Campaigns\EmailCampaign;
-
 class Factory
 {
     /**
      * Build the campaign
      * @param  string $batch
-     * @return EmailCampaign
+     * @return SendListInterface
      */
-    public static function build($campaign): SendListInterface
+    public static function build($sendList): SendListInterface
     {
-        $campaign = ucfirst($campaign);
-        $campaign = "Minds\\Core\\Email\\V2\\SendLists\\$campaign";
-        if (class_exists($campaign)) {
-            $class = new $campaign();
+        $sendList = ucfirst($sendList);
+        $sendList = "Minds\\Core\\Email\\V2\\SendLists\\$sendList";
+        if (class_exists($sendList)) {
+            $class = new $sendList();
             if ($class instanceof SendListInterface) {
                 return $class;
             }
         }
-        throw new \Exception("Campaign not found");
+        throw new \Exception("SendList not found - $sendList");
     }
 }
