@@ -2,17 +2,17 @@
 
 namespace Spec\Minds\Core\Supermind;
 
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Supermind\Repository;
-use PhpSpec\ObjectBehavior;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Supermind\Models\SupermindRequest;
+use Minds\Core\Supermind\Repository;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Supermind\SupermindRequestReplyType;
 use Minds\Core\Supermind\SupermindRequestStatus;
 use PDO;
 use PDOException;
 use PDOStatement;
+use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Spec\Minds\Common\Traits\CommonMatchers;
 
@@ -666,7 +666,7 @@ class RepositorySpec extends ObjectBehavior
 
         $this->mysqlClientWriter->prepare(Argument::that(function ($arg) {
             return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine("
-                UPDATE superminds SET reply_activity_guid = :reply_activity_guid, status = :status, updated_timestamp = :update_timestamp WHERE guid = :guid
+                UPDATE superminds SET reply_activity_guid = :reply_activity_guid, updated_timestamp = :update_timestamp WHERE guid = :guid
             ");
         }))
             ->shouldBeCalled()
@@ -678,8 +678,7 @@ class RepositorySpec extends ObjectBehavior
         ) {
             return $arg['guid'] === $supermindRequestId &&
                 $arg['reply_activity_guid'] === (int) $activityGuid &&
-                is_string($arg['update_timestamp']) &&
-                $arg['status'] === SupermindRequestStatus::ACCEPTED;
+                is_string($arg['update_timestamp']);
         }))->shouldBeCalled();
 
         $pdoStatement->execute()
@@ -701,7 +700,7 @@ class RepositorySpec extends ObjectBehavior
 
         $this->mysqlClientWriter->prepare(Argument::that(function ($arg) {
             return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine("
-                UPDATE superminds SET reply_activity_guid = :reply_activity_guid, status = :status, updated_timestamp = :update_timestamp WHERE guid = :guid
+                UPDATE superminds SET reply_activity_guid = :reply_activity_guid, updated_timestamp = :update_timestamp WHERE guid = :guid
             ");
         }))
             ->shouldBeCalled()
@@ -713,8 +712,7 @@ class RepositorySpec extends ObjectBehavior
         ) {
             return $arg['guid'] === $supermindRequestId &&
                 $arg['reply_activity_guid'] === (int) $activityGuid &&
-                is_string($arg['update_timestamp']) &&
-                $arg['status'] === SupermindRequestStatus::ACCEPTED;
+                is_string($arg['update_timestamp']);
         }))->shouldBeCalled();
 
         $pdoStatement->execute()

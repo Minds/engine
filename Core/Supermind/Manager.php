@@ -162,7 +162,7 @@ class Manager
             throw new SupermindRequestIncorrectStatusException();
         }
 
-        if (!isset($this->user->getMerchant()['id'])) {
+        if ($supermindRequest->getPaymentMethod() === SupermindRequestPaymentMethod::CASH && !isset($this->user->getMerchant()['id'])) {
             throw new UserCashSetupException();
         }
 
