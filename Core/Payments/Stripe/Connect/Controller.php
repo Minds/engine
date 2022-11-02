@@ -81,4 +81,19 @@ class Controller
     
         return new RedirectResponse($link);
     }
+
+    /**
+     * Returns to user the onboarding page on stripe
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
+    public function getOnboardingUri(ServerRequest $request): JsonResponse
+    {
+        /** @var User */
+        $user = $request->getAttribute('_user');
+    
+        $link = $this->manager->getAccountLink($user);
+    
+        return new JsonResponse([ 'uri' => $link ]);
+    }
 }

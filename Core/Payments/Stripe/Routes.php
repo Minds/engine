@@ -39,6 +39,10 @@ class Routes extends ModuleRoutes
                             'connect/onboarding',
                             Ref::_('Stripe\Connect\Controller', 'redirectToOnboarding')
                         );
+                        $route->get(
+                            'connect/onboarding-uri',
+                            Ref::_('Stripe\Connect\Controller', 'getOnboardingUri')
+                        );
                         // checkout
                         $route->get(
                             'checkout/setup',
