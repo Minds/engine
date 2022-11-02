@@ -3,7 +3,9 @@ namespace Minds\Core\Payments\Stripe\Connect;
 
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
+use Stripe\Exception\ApiErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\Response\RedirectResponse;
 use Zend\Diactoros\ServerRequest;
@@ -70,15 +72,24 @@ class Controller
     /**
      * Takes a user to the onboarding page on stripe
      * @param ServerRequest $request
-     * @return RedirectResponse
+     * @return RedirectResponse|JsonResponse
+     * @throws ApiErrorException
+     * @throws NotFoundException
      */
-    public function redirectToOnboarding(ServerRequest $request): RedirectResponse
+    public function redirectToOnboarding(ServerRequest $request): RedirectResponse|JsonResponse
     {
-        /** @var User */
+        /** @var User $user */
         $user = $request->getAttribute('_user');
     
         $link = $this->manager->getAccountLink($user);
-    
+
+
+        if (!empty($request->getAttribute('oauth_user_id'))) {
+            return new JsonResponse([
+                'redirect_url' => $link
+            ]);
+        }
+
         return new RedirectResponse($link);
     }
 }
