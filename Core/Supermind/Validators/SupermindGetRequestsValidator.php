@@ -41,13 +41,13 @@ class SupermindGetRequestsValidator implements ValidatorInterface
         if (!isset($dataToValidate['offset']) || $dataToValidate['offset'] < 0) {
             $this->errors->add(
                 new ValidationError(
-                    "limit",
+                    "offset",
                     "The 'offset' parameter must be provided and have a minimum value of '0' (zero)"
                 )
             );
         }
   
-        $status = $dataToValidate['status'];
+        $status = $dataToValidate['status'] ?? null;
         if (!is_null($status) && ($status < 1 || in_array($status, $this->invalidStatuses, true))) {
             $this->errors->add(
                 new ValidationError(

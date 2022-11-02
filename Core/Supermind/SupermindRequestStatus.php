@@ -17,4 +17,5 @@ class SupermindRequestStatus
     const FAILED_PAYMENT = 5;
     const FAILED = 6;
     const EXPIRED = 7;
+    const TRANSFER_FAILED = 8;
 }

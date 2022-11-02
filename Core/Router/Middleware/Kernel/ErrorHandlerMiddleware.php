@@ -8,21 +8,20 @@ namespace Minds\Core\Router\Middleware\Kernel;
 
 use Exception;
 use Minds\Api\Exportable;
-use Minds\Core\Di\Di;
 use Minds\Core\Config;
+use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
-use Minds\Exceptions\UserErrorException;
-use Minds\Exceptions\ServerErrorException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
+use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Diactoros\Response\JsonResponse;
-use Zend\Diactoros\Uri;
 
 class ErrorHandlerMiddleware implements MiddlewareInterface
 {
@@ -70,7 +69,7 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
             $message = 'Unauthorized';
             $status = 401;
         } catch (ForbiddenException $e) {
-            $message = 'Forbidden';
+            $message = !empty($e->getMessage()) ? $e->getMessage() : 'Forbidden';
             $status = 403;
         } catch (UserErrorException $e) {
             $message = $e->getMessage();

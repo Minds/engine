@@ -8,17 +8,21 @@ use Exception;
 use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Blockchain\Wallets\OffChain\Transactions as OffchainTransactions;
 use Minds\Core\Config\Config as MindsConfig;
+use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
-use Minds\Core\Supermind\Settings\Manager as SettingsManager;
-use Minds\Core\Supermind\Exceptions\SupermindRequestPaymentTypeNotFoundException;
 use Minds\Core\Supermind\Models\SupermindRequest;
+use Minds\Core\Supermind\Settings\Manager as SettingsManager;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
+use Stripe\Exception\ApiErrorException;
 
 class SupermindPaymentProcessor
 {
@@ -52,7 +56,6 @@ class SupermindPaymentProcessor
     /**
      * @param int $paymentMethod
      * @return float
-     * @throws SupermindRequestPaymentTypeNotFoundException
      */
     public function getMinimumAllowedAmount(int $paymentMethod): float
     {
@@ -69,7 +72,6 @@ class SupermindPaymentProcessor
      * @param float $paymentAmount
      * @param int $paymentMethod
      * @return bool
-     * @throws SupermindRequestPaymentTypeNotFoundException
      */
     public function isPaymentAmountAllowed(float $paymentAmount, int $paymentMethod): bool
     {
@@ -100,14 +102,13 @@ class SupermindPaymentProcessor
     {
         $receiver = $this->buildUser($request->getReceiverGuid());
 
-        return (new PaymentIntent())
+        $paymentIntent = (new PaymentIntent())
             ->setUserGuid($request->getSenderGuid())
             ->setAmount($request->getPaymentAmount() * 100)
             ->setPaymentMethod($paymentMethodId)
             ->setOffSession(true)
             ->setConfirm(false)
             ->setCaptureMethod('manual')
-            ->setStripeAccountId($receiver->getMerchant()['id'])
             ->setMetadata([
                 'supermind' => $request->getGuid(),
                 'receiver_guid' => $request->getReceiverGuid(),
@@ -115,6 +116,14 @@ class SupermindPaymentProcessor
             ])
             ->setServiceFeePct($this->mindsConfig->get('payments')['stripe']['service_fee_pct'] ?? self::SUPERMIND_SERVICE_FEE_PCT)
             ->setDescriptor('Supermind');
+
+        if ($receiver->getMerchant()['id']) {
+            $paymentIntent->setStripeAccountId($receiver->getMerchant()['id']);
+        } else {
+            $paymentIntent->setStripeFutureAccountGuid($receiver->getGuid());
+        }
+
+        return $paymentIntent;
     }
 
     private function buildUser(string $userGuid): User
@@ -125,7 +134,10 @@ class SupermindPaymentProcessor
     /**
      * @param string $paymentIntentId
      * @return bool
-     * @throws \Stripe\Exception\ApiErrorException
+     * @throws StripeTransferFailedException
+     * @throws ServerErrorException
+     * @throws UserErrorException
+     * @throws ApiErrorException
      */
     public function capturePaymentIntent(string $paymentIntentId): bool
     {
@@ -169,13 +181,14 @@ class SupermindPaymentProcessor
 
     /**
      * @param SupermindRequest $request
-     * @return void
+     * @return string
      * @throws LockFailedException
-     * @throws Exception
+     * @throws OffchainWalletInsufficientFundsException
+     * @throws KeyNotSetupException
      */
-    public function refundOffchainPayment(SupermindRequest $request): void
+    public function refundOffchainPayment(SupermindRequest $request): string
     {
-        $this->offchainTransactions
+        $transaction = $this->offchainTransactions
             ->setUser(
                 $this->buildUser($request->getSenderGuid())
             )
@@ -187,6 +200,7 @@ class SupermindPaymentProcessor
                 'receiver_guid' => $request->getReceiverGuid()
             ])
             ->create();
+        return $transaction->getTx();
     }
 
     /**

@@ -62,6 +62,10 @@ class MediaProvider extends Provider
             return new Imagick\Resize();
         }, ['useFactory' => true]);
 
+        $this->di->bind('Media\Imagick\Annotate', function ($di) {
+            return new Imagick\Annotate();
+        }, ['useFactory' => true]);
+
         $this->di->bind('Media\Imagick\Manager', function ($di) {
             return new Imagick\Manager();
         }, ['useFactory' => false]);

@@ -19,6 +19,10 @@ use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
+/**
+ * @method self setSupermindRequest($supermindRequest)
+ * @method self setTopic($topic)
+ */
 class Supermind extends EmailCampaign
 {
     use MagicAttributes;
