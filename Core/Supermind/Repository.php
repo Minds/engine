@@ -401,10 +401,9 @@ class Repository
      */
     public function updateSupermindRequestReplyActivityGuid(string $supermindRequestId, int $replyActivityGuid): bool
     {
-        $statement = "UPDATE superminds SET reply_activity_guid = :reply_activity_guid, status = :status, updated_timestamp = :update_timestamp WHERE guid = :guid";
+        $statement = "UPDATE superminds SET reply_activity_guid = :reply_activity_guid, updated_timestamp = :update_timestamp WHERE guid = :guid";
         $values = [
             'reply_activity_guid' => $replyActivityGuid,
-            'status' => SupermindRequestStatus::ACCEPTED,
             'update_timestamp' => date('c', time()),
             'guid' => $supermindRequestId
         ];

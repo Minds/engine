@@ -5,6 +5,7 @@ namespace Minds\Core\Media\Imagick;
 use Minds\Core\Di\Di;
 use Minds\Core\Media\Imagick\Autorotate;
 use Minds\Core\Media\Imagick\Resize;
+use Minds\Core\Media\Imagick\Annotate;
 
 class Manager
 {
@@ -14,13 +15,17 @@ class Manager
     /** @var Resize */
     private $resize;
 
+    /** @var Annotate */
+    private $annotate;
+
     /** @var \Imagick */
     private $image;
 
-    public function __construct($autorotate = null, $resize = null)
+    public function __construct($autorotate = null, $resize = null, $annotate = null)
     {
         $this->autorotate = $autorotate ?: Di::_()->get('Media\Imagick\Autorotate');
         $this->resize = $resize ?: Di::_()->get('Media\Imagick\Resize');
+        $this->annotate = $annotate ?: Di::_()->get('Media\Imagick\Annotate');
     }
 
     public function getImage()
@@ -111,5 +116,24 @@ class Manager
             ->resize();
 
         return $this;
+    }
+
+    /**
+     * @param int $width - of the output image
+     * @param string $text - to be added over the gradient background
+     * @param string $username - of text author
+     * @return $annotatedImage
+     */
+    public function annotate(int $width, string $text, string $username)
+    {
+        echo $width;
+
+        echo $text;
+
+        echo $username;
+
+        $this->annotate->annotate($width, $text, $username);
+
+        return $this->annotate->getOutput();
     }
 }

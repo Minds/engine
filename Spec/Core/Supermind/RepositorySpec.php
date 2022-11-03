@@ -2,17 +2,17 @@
 
 namespace Spec\Minds\Core\Supermind;
 
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Supermind\Repository;
-use PhpSpec\ObjectBehavior;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Supermind\Models\SupermindRequest;
+use Minds\Core\Supermind\Repository;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Supermind\SupermindRequestReplyType;
 use Minds\Core\Supermind\SupermindRequestStatus;
 use PDO;
 use PDOException;
 use PDOStatement;
+use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Spec\Minds\Common\Traits\CommonMatchers;
 
@@ -666,7 +666,7 @@ class RepositorySpec extends ObjectBehavior
 
         $this->mysqlClientWriter->prepare(Argument::that(function ($arg) {
             return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine("
-                UPDATE superminds SET reply_activity_guid = :reply_activity_guid, status = :status, updated_timestamp = :update_timestamp WHERE guid = :guid
+                UPDATE superminds SET reply_activity_guid = :reply_activity_guid, updated_timestamp = :update_timestamp WHERE guid = :guid
             ");
         }))
             ->shouldBeCalled()
@@ -678,8 +678,7 @@ class RepositorySpec extends ObjectBehavior
         ) {
             return $arg['guid'] === $supermindRequestId &&
                 $arg['reply_activity_guid'] === (int) $activityGuid &&
-                is_string($arg['update_timestamp']) &&
-                $arg['status'] === SupermindRequestStatus::ACCEPTED;
+                is_string($arg['update_timestamp']);
         }))->shouldBeCalled();
 
         $pdoStatement->execute()
@@ -701,7 +700,7 @@ class RepositorySpec extends ObjectBehavior
 
         $this->mysqlClientWriter->prepare(Argument::that(function ($arg) {
             return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine("
-                UPDATE superminds SET reply_activity_guid = :reply_activity_guid, status = :status, updated_timestamp = :update_timestamp WHERE guid = :guid
+                UPDATE superminds SET reply_activity_guid = :reply_activity_guid, updated_timestamp = :update_timestamp WHERE guid = :guid
             ");
         }))
             ->shouldBeCalled()
@@ -713,8 +712,7 @@ class RepositorySpec extends ObjectBehavior
         ) {
             return $arg['guid'] === $supermindRequestId &&
                 $arg['reply_activity_guid'] === (int) $activityGuid &&
-                is_string($arg['update_timestamp']) &&
-                $arg['status'] === SupermindRequestStatus::ACCEPTED;
+                is_string($arg['update_timestamp']);
         }))->shouldBeCalled();
 
         $pdoStatement->execute()
@@ -792,15 +790,41 @@ class RepositorySpec extends ObjectBehavior
 
     // expireSupermindRequests
 
-
     public function it_should_expire_supermind_requests(
+        PDOStatement $selectPdoStatement,
         PDOStatement $pdoStatement
     ) {
         $thresholdInSeconds = 9999;
+        $supermindRequestIds = [
+            '123',
+            '234',
+            '345'
+        ];
+
+        $selectPdoStatement->execute()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $selectPdoStatement->fetchAll(PDO::FETCH_COLUMN)
+            ->shouldBeCalled()
+            ->willReturn($supermindRequestIds);
+
+        $this->mysqlClientReader->prepare(Argument::that(function ($arg) {
+            return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine(
+                "SELECT guid FROM superminds WHERE status = :created_status AND created_timestamp <= :target_timestamp"
+            );
+        }))
+            ->shouldBeCalled()
+            ->willReturn($selectPdoStatement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($selectPdoStatement, Argument::that(function ($arg) {
+            return $arg['created_status'] === SupermindRequestStatus::CREATED &&
+                is_string($arg['target_timestamp']);
+        }))->shouldBeCalled();
 
         $this->mysqlClientWriter->prepare(Argument::that(function ($arg) {
             return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine("
-                UPDATE superminds SET status = :target_status WHERE status = :created_status AND created_timestamp <= :target_timestamp
+                UPDATE superminds SET status = :target_status WHERE status = :created_status AND created_timestamp <= :target_timestamp AND guid IN (:supermind_0,:supermind_1,:supermind_2)
             ");
         }))
             ->shouldBeCalled()
@@ -816,7 +840,36 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->expireSupermindRequests($thresholdInSeconds)->shouldBe(true);
+        $this->expireSupermindRequests($thresholdInSeconds)->shouldBeLike($supermindRequestIds);
+    }
+
+    public function it_should_return_empty_array_when_expiring_supermind_requests_if_no_ids_are_found(
+        PDOStatement $selectPdoStatement
+    ) {
+        $thresholdInSeconds = 9999;
+
+        $selectPdoStatement->execute()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $selectPdoStatement->fetchAll(PDO::FETCH_COLUMN)
+            ->shouldBeCalled()
+            ->willReturn([]);
+
+        $this->mysqlClientReader->prepare(Argument::that(function ($arg) {
+            return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine(
+                "SELECT guid FROM superminds WHERE status = :created_status AND created_timestamp <= :target_timestamp"
+            );
+        }))
+            ->shouldBeCalled()
+            ->willReturn($selectPdoStatement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($selectPdoStatement, Argument::that(function ($arg) {
+            return $arg['created_status'] === SupermindRequestStatus::CREATED &&
+                is_string($arg['target_timestamp']);
+        }))->shouldBeCalled();
+
+        $this->expireSupermindRequests($thresholdInSeconds)->shouldBeLike([]);
     }
 
     // getRequestsExpiringSoon
