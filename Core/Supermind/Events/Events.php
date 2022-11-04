@@ -26,6 +26,11 @@ class Events
     private function supermindACLEvents(): void
     {
         $this->eventsDispatcher->register('acl:read', 'supermind', function (Event $event) {
+            if (php_sapi_name() === "cli") {
+                $event->setResponse(true);
+                return;
+            }
+
             $params = $event->getParameters();
 
             /**
@@ -47,6 +52,11 @@ class Events
         });
 
         $this->eventsDispatcher->register('acl:write', 'supermind', function (Event $event) {
+            if (php_sapi_name() === "cli") {
+                $event->setResponse(true);
+                return;
+            }
+
             $params = $event->getParameters();
 
             /**

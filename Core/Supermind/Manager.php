@@ -43,7 +43,7 @@ use Stripe\Exception\CardException;
  */
 class Manager
 {
-    private User $user;
+    private ?User $user = null;
 
     public function __construct(
         private ?Repository $repository = null,
@@ -515,7 +515,7 @@ class Manager
         $supermindRequest = $this->repository->getSupermindRequest($supermindRequestId) ?? throw new SupermindNotFoundException();
 
         if (!$this->acl->read($supermindRequest, $this->user)) {
-            throw new ForbiddenException();
+            throw new ForbiddenException("Unable to view this Supermind - Are you logged into the correct account?");
         }
 
         $supermindRequest->setEntity($this->entitiesBuilder->single($supermindRequest->getActivityGuid()));
