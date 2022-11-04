@@ -3,6 +3,12 @@
     <?php echo $vars['headerText']; ?>
 </h1>
 
+<!--BODY SUBJECT TEXT-->
+<?php if(isset($vars['bodySubjectText'])){ ?>
+    <p <?= $emailStylesV2->getStyles(['m-mainContent__paragraphSubject']) ?> >
+    <?php echo $vars['bodySubjectText']; ?></p>
+<?php } ?>
+
 <!--BODY TEXT-->
 <p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?> >
     <?php echo $vars['bodyText']; ?></p>
