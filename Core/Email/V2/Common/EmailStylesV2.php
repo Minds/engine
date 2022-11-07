@@ -34,6 +34,13 @@ class EmailStylesV2
         "m-mainContent__mainArticle" => [
             "padding: 30px 0 50px;",
         ],
+        "m-mainContent__paragraphSubject" => [
+            "font-family: 'Inter', Arial, sans-serif;",
+            "margin: 10px 20px 10px;",
+            "font-size: 18px;",
+            "line-height: 28px;",
+            "color: #0a080b;"
+        ],
         "m-mainContent__paragraph" => [
             "font-family: 'Inter', Arial, sans-serif;",
             "margin: 10px 20px 30px;",
