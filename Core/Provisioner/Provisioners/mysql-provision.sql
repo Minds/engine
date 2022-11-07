@@ -73,3 +73,10 @@ CREATE TABLE IF NOT EXISTS supermind_refunds
     tx_id                  varchar(32) NOT NULL,
     timestamp              timestamp   NOT NULL default CURRENT_TIMESTAMP
 ) ENGINE = InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS user_configurations
+(
+    user_guid bigint PRIMARY KEY,
+    terms_accepted_at timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB;
