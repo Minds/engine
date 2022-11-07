@@ -97,7 +97,8 @@ class Supermind extends EmailCampaign
             return;
         }
 
-        $singleSupermindPagePath = "supermind/{$this->supermindRequest->getGuid()}?";
+        $siteUrl = $this->config->get('site_url') ?: 'https://www.minds.com/';
+        $singleSupermindPagePath =  $siteUrl . "supermind/{$this->supermindRequest->getGuid()}?";
         $learnMorePath = 'https://support.minds.com/hc/en-us/articles/9188136065684';
         $bodySubjectText = null;
 
@@ -131,7 +132,6 @@ class Supermind extends EmailCampaign
                 $ctaPath = 'newsfeed/' . $this->supermindRequest->getReplyActivityGuid() . '?';
 
                 // Build path to wallet transactions table for selected currency
-                $siteUrl = $this->config->get('site_url') ?: 'https://www.minds.com/';
                 $currency = $this->supermindRequest->getPaymentMethod() == SupermindRequestPaymentMethod::CASH ? 'cash' : 'tokens';
 
                 $this->template->set('additionalCtaPath', $siteUrl . 'wallet/' . $currency . '/transactions');
