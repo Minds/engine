@@ -74,9 +74,12 @@ CREATE TABLE IF NOT EXISTS supermind_refunds
     timestamp              timestamp   NOT NULL default CURRENT_TIMESTAMP
 ) ENGINE = InnoDB;
 
-
 CREATE TABLE IF NOT EXISTS user_configurations
 (
     user_guid bigint PRIMARY KEY,
-    terms_accepted_at timestamp NULL DEFAULT NULL
+    terms_accepted_at timestamp NULL DEFAULT NULL,
+    supermind_cash_min float(7, 2) NULL DEFAULT NULL,
+    supermind_offchain_tokens_min float(7, 2) NULL DEFAULT NULL,
+    created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
+    updated_at timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB;

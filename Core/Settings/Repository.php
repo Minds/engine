@@ -28,13 +28,38 @@ class Repository
 
     public function storeUserSettings(UserSettings $settings): bool
     {
-        return true;
+        $query = "INSERT INTO
+            user_configurations (user_guid, terms_accepted_at, supermind_cash_min, supermind_offchain_tokens_min)
+            VALUES (:user_guid, :terms_accepted_at, :supermind_cash_min, :supermind_offchain_tokens_min)
+            ON DUPLICATE KEY UPDATE
+                terms_accepted_at = :terms_accepted_at,
+                supermind_cash_min = :supermind_cash_min,
+                supermind_offchain_tokens_min = :supermind_offchain_tokens_min,
+                updated_at = :updated_at
+            ";
+        $values = [
+            'user_guid' => $settings->getUserGuid(),
+            'terms_accepted_at' => $settings->getTermsAcceptedAt() ? date('c', $settings->getTermsAcceptedAt()) : null,
+            'supermind_cash_min' => $settings->getSupermindCashMin(),
+            'supermind_offchain_tokens_min' => $settings->getSupermindOffchainTokensMin(),
+            'updated_at' => date('c', time())
+        ];
+
+        $statement = $this->mysqlClientWriter->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+        return $statement->execute();
     }
 
+    /**
+     * @param string $userGuid
+     * @return UserSettings
+     * @throws ServerErrorException
+     * @throws UserSettingsNotFoundException
+     */
     public function getUserSettings(string $userGuid): UserSettings
     {
         $query = "SELECT * FROM user_configurations WHERE user_guid = :user_guid";
-        $values = [$userGuid];
+        $values = ['user_guid' => $userGuid];
 
         $statement = $this->mysqlClientReader->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);

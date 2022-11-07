@@ -3,6 +3,7 @@
 namespace Minds\Core\Settings;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Settings\Exceptions\UserSettingsNotFoundException;
 use Minds\Core\Settings\Models\UserSettings;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -25,11 +26,32 @@ class Manager
 
     /**
      * @return UserSettings
-     * @throws Exceptions\UserSettingsNotFoundException
+     * @throws UserSettingsNotFoundException
      * @throws ServerErrorException
      */
     public function getUserSettings(): UserSettings
     {
         return $this->repository->getUserSettings($this->user->getGuid());
+    }
+
+    /**
+     * @param array $data
+     * @return bool
+     * @throws ServerErrorException
+     * @throws UserSettingsNotFoundException
+     */
+    public function storeUserSettings(array $data): bool
+    {
+        try {
+            $settings = $this->getUserSettings();
+            $settings->overrideWithData($data);
+        } catch (UserSettingsNotFoundException $e) {
+            if (!isset($data['user_guid'])) {
+                $data['user_guid'] = $this->user->getGuid();
+            }
+            $settings = UserSettings::fromData($data);
+        }
+
+        return $this->repository->storeUserSettings($settings);
     }
 }
