@@ -23,13 +23,14 @@ class Repository
     /**
      * @param string $userGuid
      * @param string $accessToken
+     * @param int $accessTokenExpiry
      * @param string $refreshToken
      * @return bool
      */
     public function storeOAuth2TokenInfo(
         string $userGuid,
         string $accessToken,
-        string $accessTokenExpiry,
+        int $accessTokenExpiry,
         string $refreshToken
     ): bool {
         $details = TwitterDetails::fromData([
@@ -46,7 +47,7 @@ class Repository
         $values = [
             new Bigint($userGuid),
             $details->getAccessToken(),
-            new Timestamp((int) $accessTokenExpiry, 0),
+            new Timestamp($accessTokenExpiry, 0),
             $details->getRefreshToken()
         ];
 

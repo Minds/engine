@@ -57,7 +57,7 @@ class Manager
         $this->repository->storeOAuth2TokenInfo(
             userGuid: $this->user->getGuid(),
             accessToken: $accessToken,
-            accessTokenExpiry: $accessTokenExpiry,
+            accessTokenExpiry: (int) $accessTokenExpiry,
             refreshToken: $refreshToken
         );
     }
@@ -96,7 +96,7 @@ class Manager
             $this->repository->storeOAuth2TokenInfo(
                 userGuid: $this->user->getGuid(),
                 accessToken: $accessToken,
-                accessTokenExpiry: $accessTokenExpiry,
+                accessTokenExpiry: (int) $accessTokenExpiry,
                 refreshToken: $refreshToken
             );
         }

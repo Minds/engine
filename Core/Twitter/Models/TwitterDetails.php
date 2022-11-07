@@ -29,8 +29,8 @@ use Minds\Traits\MagicAttributes;
  * @method int|null getTwitterUserId()
  * @method self setTwitterUsername(string $twitterUsername)
  * @method string|null getTwitterUsername()
- * @method self setAccessTokenExpiry(string $accessTokenExpiry)
- * @method string|null getAccessTokenExpiry()
+ * @method self setAccessTokenExpiry(int $accessTokenExpiry)
+ * @method int|null getAccessTokenExpiry()
  */
 class TwitterDetails implements ExportableInterface, EntityInterface
 {
@@ -44,7 +44,7 @@ class TwitterDetails implements ExportableInterface, EntityInterface
     private ?int $twitterUserId = null;
     private ?string $twitterUsername = null;
     private ?string $accessToken = null;
-    private ?string $accessTokenExpiry = null;
+    private ?int $accessTokenExpiry = null;
     private ?string $refreshToken = null;
 
     public function __construct(

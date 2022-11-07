@@ -7,6 +7,7 @@ namespace Minds\Core\Supermind\Delegates;
 use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Twitter\Exceptions\TwitterDetailsNotFoundException;
 use Minds\Core\Twitter\Manager as TwitterManager;
@@ -18,11 +19,13 @@ class TwitterEventsDelegate
     public function __construct(
         private ?TwitterManager $twitterManager = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?MindsConfig $mindsConfig = null
+        private ?MindsConfig $mindsConfig = null,
+        private ?Logger $logger = null
     ) {
         $this->twitterManager ??= Di::_()->get('Twitter\Manager');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->mindsConfig ??= Di::_()->get('Config');
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -36,9 +39,6 @@ class TwitterEventsDelegate
             return;
         }
 
-        // TODO: check if user wants to publish to twitter
-
-
         $activityMindsUrl = $this->getActivityMindsUrl($supermindRequest->getReplyActivityGuid()) . $this->getAnalyticsParameters();
 
         /**
@@ -49,14 +49,11 @@ class TwitterEventsDelegate
         $content .= strlen($activityPost->getMessage()) > 253 ? '...' : ' ';
         $content .= $activityMindsUrl;
 
-        error_log("tweet message length: " . strlen($content));
-
-        // $tweet = (new TweetDTO())
-        //     ->setText($activityMindsUrl);
+        $this->logger->addInfo("tweet message length: " . strlen($content));
 
         $this->twitterManager
             ->setUser($this->buildUser($supermindRequest->getReceiverGuid()))
-            // The below method call will trigger the TwitterDetailsNotFoundException if the user has not
+            // The below method call will trigger the TwitterDetailsNotFoundException if the user has no Twitter details provided.
             ->postTextTweet($content);
     }
 
