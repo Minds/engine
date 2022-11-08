@@ -22,17 +22,18 @@ class RepositorySpec extends ObjectBehavior
 
     public function let(
         MySQLClient $mysqlHandler,
-        PDO $pdo
+        PDO $mysqlClientReader,
+        PDO $mysqlClientWriter
     ): void {
         $this->mysqlHandler = $mysqlHandler;
 
+        $this->mysqlClientReader = $mysqlClientReader;
         $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_REPLICA)
-            ->willReturn($pdo);
-        $this->mysqlClientReader = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_REPLICA);
+            ->willReturn($this->mysqlClientReader);
 
+        $this->mysqlClientWriter = $mysqlClientWriter;
         $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_MASTER)
-            ->willReturn($pdo);
-        $this->mysqlClientWriter = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_MASTER);
+            ->willReturn($this->mysqlClientWriter);
 
         $this->beConstructedWith($this->mysqlHandler);
     }
@@ -51,9 +52,6 @@ class RepositorySpec extends ObjectBehavior
     public function it_should_successfully_get_user_settings(
         PDOStatement $statement
     ): void {
-        $expectedOutput = (new UserSettings())
-            ->setUserGuid('123');
-
         $statement->execute()
             ->shouldBeCalledOnce()
             ->willReturn(true);
@@ -61,6 +59,12 @@ class RepositorySpec extends ObjectBehavior
         $statement->rowCount()
             ->shouldBeCalledOnce()
             ->willReturn(1);
+
+        $statement->fetch(Argument::type('integer'))
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'user_guid' => '123'
+            ]);
 
         $this->mysqlClientReader->prepare(Argument::type('string'))
             ->shouldBeCalledOnce()
@@ -70,7 +74,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce();
 
         $this->getUserSettings('123')
-            ->shouldBeEqualTo($expectedOutput);
+            ->shouldBeAnInstanceOf(UserSettings::class);
     }
 
     /**
@@ -88,8 +92,15 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(0);
 
+        $this->mysqlClientReader->prepare(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
+            ->shouldBeCalledOnce();
+
         $this->shouldThrow(UserSettingsNotFoundException::class)
-            ->during('getUserSettings');
+            ->during('getUserSettings', ['123']);
     }
 
     /**
@@ -97,7 +108,7 @@ class RepositorySpec extends ObjectBehavior
      * @param UserSettings $settings
      * @return void
      */
-    public function it_should_successfully_store_settings_with_no_pre_existing_settings(
+    public function it_should_successfully_store_settings(
         PDOStatement $statement,
         UserSettings $settings
     ): void {
@@ -114,5 +125,10 @@ class RepositorySpec extends ObjectBehavior
 
         $this->storeUserSettings($settings)
             ->shouldBeEqualTo(true);
+    }
+
+    private function forceStringSingleLine(string $string)
+    {
+        return trim(preg_replace('/\s+/', ' ', str_replace(["\n", "\r"], '', $string)));
     }
 }
