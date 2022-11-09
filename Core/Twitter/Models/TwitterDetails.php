@@ -90,7 +90,7 @@ class TwitterDetails implements ExportableInterface, EntityInterface
         }
 
         if (isset($data['access_token_expiry'])) {
-            $twitterDetails->setAccessTokenExpiry($data['access_token_expiry']);
+            $twitterDetails->setAccessTokenExpiry((int) $data['access_token_expiry']);
         }
 
         if (isset($data['refresh_token'])) {
