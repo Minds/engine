@@ -113,7 +113,7 @@ class Repository
 
         $statement = $this->mysqlClientReader->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
-        return $statement;
+        return $statement; // arbitrary comment
     }
 
     /**
