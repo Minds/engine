@@ -433,4 +433,22 @@ class Manager
 
         return true;
     }
+
+    /**
+     * Get direct comment parent. If passed a level 2 comment, will return the level 1 parent comment.
+     * If passed a level 1 comment, will return the level 0 parent. If passes a level comment, will
+     * return null.
+     * @param Comment $comment - comment to get direct parent comment for.
+     * @return Comment|null - direct parent comment or null if direct parent is not found.
+     */
+    public function getDirectParent(Comment $comment): ?Comment
+    {
+        if ($comment->getParentGuidL2()) {
+            return $this->get($comment->getEntityGuid(), $comment->getParentPath(), $comment->getParentGuidL2());
+        }
+        if ($comment->getParentGuidL1()) {
+            return $this->get($comment->getEntityGuid(), $comment->getParentPath(), $comment->getParentGuidL1());
+        }
+        return null;
+    }
 }

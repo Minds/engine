@@ -452,6 +452,90 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(0);
     }
 
+    public function it_should_get_direct_parent_of_tier_2_comment(
+        Comment $paramComment,
+        Comment $returnComment
+    ) {
+        $parentGuid = '123';
+        $entityGuid = '234';
+        $parentPath = 'path:234:123';
+
+        $paramComment->getParentGuidL2()
+            ->shouldBeCalledTimes(2)
+            ->willReturn($parentGuid);
+
+        $paramComment->getEntityGuid()
+            ->shouldBeCalled()
+            ->willReturn($entityGuid);
+
+        $paramComment->getParentPath()
+            ->shouldBeCalled()
+            ->willReturn($parentPath);
+
+        $this->repository->get($entityGuid, $parentPath, $parentGuid)
+            ->shouldBeCalled()
+            ->willReturn($returnComment);
+
+        $this->getDirectParent($paramComment)
+            ->shouldBe($returnComment);
+    }
+
+    public function it_should_get_direct_parent_of_tier_1_comment(
+        Comment $paramComment,
+        Comment $returnComment
+    ) {
+        $parentGuid = '123';
+        $entityGuid = '234';
+        $parentPath = 'path:234:123';
+
+        $paramComment->getParentGuidL2()
+            ->shouldBeCalledTimes(1)
+            ->willReturn(null);
+        
+        $paramComment->getParentGuidL1()
+            ->shouldBeCalledTimes(2)
+            ->willReturn($parentGuid);
+
+        $paramComment->getEntityGuid()
+            ->shouldBeCalled()
+            ->willReturn($entityGuid);
+
+        $paramComment->getParentPath()
+            ->shouldBeCalled()
+            ->willReturn($parentPath);
+
+        $this->repository->get($entityGuid, $parentPath, $parentGuid)
+            ->shouldBeCalled()
+            ->willReturn($returnComment);
+
+        $this->getDirectParent($paramComment)
+            ->shouldBe($returnComment);
+    }
+
+    public function it_should_get_no_direct_parent_for_a_tier_0_comment(
+        Comment $paramComment,
+    ) {
+        $paramComment->getParentGuidL2()
+            ->shouldBeCalledTimes(1)
+            ->willReturn(null);
+        
+        $paramComment->getParentGuidL1()
+            ->shouldBeCalledTimes(1)
+            ->willReturn(null);
+
+        $paramComment->getEntityGuid()
+            ->shouldNotBeCalled();
+
+        $paramComment->getParentPath()
+            ->shouldNotBeCalled();
+
+        $this->repository->get(Argument::any(), Argument::any(), Argument::any())
+            ->shouldNotBeCalled();
+
+        $this->getDirectParent($paramComment)
+            ->shouldBe(null);
+    }
+
     private function kvLimiterMock()
     {
         $this->kvLimiter->setKey(Argument::any())->willReturn($this->kvLimiter);
