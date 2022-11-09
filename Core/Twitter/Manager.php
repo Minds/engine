@@ -2,6 +2,8 @@
 
 namespace Minds\Core\Twitter;
 
+use Minds\Core\Config\Config as MindsConfig;
+use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\Twitter\Client\DTOs\TweetDTO;
 use Minds\Core\Twitter\Client\TwitterClient;
@@ -9,17 +11,24 @@ use Minds\Core\Twitter\Client\TwitterClientInterface;
 use Minds\Core\Twitter\Exceptions\TwitterDetailsNotFoundException;
 use Minds\Core\Twitter\Models\TwitterDetails;
 use Minds\Entities\User;
+use Psr\SimpleCache\InvalidArgumentException;
 
 class Manager
 {
     private User $user;
+    private const TWITTER_REDIRECT_PATH_KEY_PREFIX = "twitter_oauth_redirect_path_";
+    private const TWITTER_REDIRECT_PATH_KEY_TTL = 30; // seconds
 
     public function __construct(
         private ?Repository $repository = null,
-        private ?TwitterClientInterface $twitterClient = null
+        private ?TwitterClientInterface $twitterClient = null,
+        private ?PsrWrapper $cache = null,
+        private ?MindsConfig $mindsConfig = null
     ) {
         $this->twitterClient ??= new TwitterClient();
         $this->repository ??= Di::_()->get('Twitter\Repository');
+        $this->cache ??= Di::_()->get('Cache\PsrWrapper');
+        $this->mindsConfig ??= Di::_()->get('Config');
     }
 
     public function setUser(User $user): self
@@ -95,10 +104,38 @@ class Manager
 
     /**
      * @return TwitterDetails
-     * @throws TwitterDetailsNotFoundException
      */
     public function getDetails(): TwitterDetails
     {
-        return $this->repository->getDetails($this->user->getGuid());
+        try {
+            $response = $this->repository->getDetails($this->user->getGuid());
+        } catch (TwitterDetailsNotFoundException $e) {
+            $response = (new TwitterDetails())->setUserGuid($this->user->getGuid());
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param string $path
+     * @return void
+     * @throws InvalidArgumentException
+     */
+    public function storeOAuthRedirectPath(string $path): void
+    {
+        $this->cache->set(
+            self::TWITTER_REDIRECT_PATH_KEY_PREFIX . $this->user->getGuid(),
+            $path,
+            self::TWITTER_REDIRECT_PATH_KEY_TTL
+        );
+    }
+
+    /**
+     * @return string
+     * @throws InvalidArgumentException
+     */
+    public function getStoredOAuthRedirectPath(): string
+    {
+        return rtrim($this->mindsConfig->get('site_url'), '/') . $this->cache->get(self::TWITTER_REDIRECT_PATH_KEY_PREFIX . $this->user->getGuid());
     }
 }
