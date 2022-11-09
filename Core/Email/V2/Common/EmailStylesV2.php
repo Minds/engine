@@ -20,7 +20,9 @@ class EmailStylesV2
             "font-size:24px;",
             "line-height:28px;",
             "text-decoration: none;",
-            "padding: 0;"
+            "padding: 0;",
+            // "margin-left: auto",
+            // "margin-right: auto"
         ],
         "m-mainContent__h1" => [
             "font-family: 'Inter', Arial, sans-serif;",
