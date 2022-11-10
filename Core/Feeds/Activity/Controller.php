@@ -23,8 +23,10 @@ use Minds\Entities\Video;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserErrorException;
+use Minds\Helpers\File;
 use Stripe\Exception\ApiErrorException;
 use Zend\Diactoros\Response\JsonResponse;
+use Zend\Diactoros\Response\TextResponse;
 use Zend\Diactoros\ServerRequest;
 
 class Controller
