@@ -28,26 +28,37 @@ class Repository
 
     public function storeUserSettings(UserSettings $settings): bool
     {
-        $query = "INSERT INTO
-            user_configurations (user_guid, terms_accepted_at, supermind_cash_min, supermind_offchain_tokens_min)
-            VALUES (:user_guid, :terms_accepted_at, :supermind_cash_min, :supermind_offchain_tokens_min)
-            ON DUPLICATE KEY UPDATE
-                terms_accepted_at = :terms_accepted_at,
-                supermind_cash_min = :supermind_cash_min,
-                supermind_offchain_tokens_min = :supermind_offchain_tokens_min,
-                updated_at = :updated_at
-            ";
-        $values = [
-            'user_guid' => $settings->getUserGuid(),
-            'terms_accepted_at' => $settings->getTermsAcceptedAt() ? date('c', $settings->getTermsAcceptedAt()) : null,
-            'supermind_cash_min' => $settings->getSupermindCashMin(),
-            'supermind_offchain_tokens_min' => $settings->getSupermindOffchainTokensMin(),
-            'updated_at' => date('c', time())
-        ];
+        [
+            "fields" => $fields,
+            "valueIds" => $valueIds,
+            "values" => $values,
+            "update" => $updateProperty
+        ] = $this->buildUpsertStatementSections($settings);
+
+        $query = "INSERT INTO user_configurations (" . join(',', $fields) . ")
+                  VALUES (" . join(',', $valueIds) . ")
+                  ON DUPLICATE KEY UPDATE " . join(',', $updateProperty) . ",
+                    updated_at = :updated_at";
+
+        $values['updated_at'] = date('c', time());
 
         $statement = $this->mysqlClientWriter->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
         return $statement->execute();
+    }
+
+    private function buildUpsertStatementSections(UserSettings $settings): array
+    {
+        $sections = [];
+
+        foreach ($settings->getUpdatedProperties() as $propertyName => $propertyValue) {
+            $sections['fields'][] = $propertyName;
+            $sections['values'][$propertyName] = $propertyValue;
+            $sections['valueIds'][] = ":$propertyName";
+            $sections['update'][] = "$propertyName = :$propertyName";
+        }
+
+        return $sections;
     }
 
     /**
@@ -72,6 +83,7 @@ class Repository
             throw new UserSettingsNotFoundException();
         }
 
-        return UserSettings::fromData($statement->fetch(PDO::FETCH_ASSOC));
+        return (new UserSettings())
+            ->withData($statement->fetch(PDO::FETCH_ASSOC));
     }
 }

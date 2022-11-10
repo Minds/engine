@@ -33,26 +33,20 @@ class Manager
      */
     public function getUserSettings(): UserSettings
     {
-        return $this->repository->getUserSettings($this->user->getGuid());
+        return $this->repository
+            ->getUserSettings($this->user->getGuid())
+            ->withUser($this->user);
     }
 
     /**
      * @param array $data
      * @return bool
-     * @throws ServerErrorException
-     * @throws UserSettingsNotFoundException
      */
     public function storeUserSettings(array $data): bool
     {
-        try {
-            $settings = $this->getUserSettings();
-            $settings->overrideWithData($data);
-        } catch (UserSettingsNotFoundException $e) {
-            if (!isset($data['user_guid'])) {
-                $data['user_guid'] = $this->user->getGuid();
-            }
-            $settings = UserSettings::fromData($data);
-        }
+        $settings = (new UserSettings())
+            ->withUser($this->user)
+            ->withData($data);
 
         return $this->repository->storeUserSettings($settings);
     }

@@ -123,6 +123,9 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
             ->shouldBeCalledOnce();
 
+        $settings->getUpdatedProperties()
+            ->willReturn(['user_guid' => '123']);
+
         $this->storeUserSettings($settings)
             ->shouldBeEqualTo(true);
     }

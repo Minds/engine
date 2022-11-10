@@ -2,18 +2,14 @@
 
 namespace Minds\Core\Settings\Models;
 
-use Minds\Core\Settings\Exceptions\UserSettingsNotFoundException;
 use Minds\Entities\ExportableInterface;
+use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
 /**
- * @method self setUserGuid(string $userGuid)
  * @method string getUserGuid()
- * @method self setTermsAcceptedAt(int $termsAcceptedAt)
  * @method int|null getTermsAcceptedAt()
- * @method self setSupermindCashMin(float $supermindCashMin)
  * @method float|null getSupermindCashMin()
- * @method self setSupermindOffchainTokensMin(float $supermindOffchainTokensMin)
  * @method float|null getSupermindOffchainTokensMin()
  */
 class UserSettings implements ExportableInterface
@@ -25,19 +21,54 @@ class UserSettings implements ExportableInterface
     private ?float $supermindCashMin = null;
     private ?float $supermindOffchainTokensMin = null;
 
+    private array $dirty = [];
+
+    public function setUserGuid(string $userGuid): self
+    {
+        $this->userGuid = $userGuid;
+        $this->markPropertyAsUpdated('user_guid', $userGuid);
+        return $this;
+    }
+
+    public function setTermsAcceptedAt(int $termsAcceptedAt): self
+    {
+        $this->termsAcceptedAt = $termsAcceptedAt;
+        $this->markPropertyAsUpdated('terms_accepted_at', $termsAcceptedAt);
+        return $this;
+    }
+
+    public function setSupermindCashMin(float $supermindCashMin): self
+    {
+        $this->supermindCashMin = $supermindCashMin;
+        $this->markPropertyAsUpdated('supermind_cash_min', $supermindCashMin);
+        return $this;
+    }
+
+    public function setSupermindOffchainTokensMin(float $supermindOffchainTokensMin): self
+    {
+        $this->supermindOffchainTokensMin = $supermindOffchainTokensMin;
+        $this->markPropertyAsUpdated('supermind_offchain_tokens_min', $supermindOffchainTokensMin);
+        return $this;
+    }
+
+    /**
+     * @param User $user
+     * @return self
+     */
+    public function withUser(User $user): self
+    {
+        $instance = clone $this;
+        $instance->setUserGuid($user->getGuid());
+        return $instance;
+    }
+
     /**
      * @param array $data
-     * @return static
-     * @throws UserSettingsNotFoundException
+     * @return self
      */
-    public static function fromData(array $data): self
+    public function withData(array $data): self
     {
-        $userSettings = new self();
-
-        if (!isset($data['user_guid'])) {
-            throw new UserSettingsNotFoundException();
-        }
-        $userSettings->setUserGuid($data['user_guid']);
+        $userSettings = clone $this;
 
         if (isset($data['terms_accepted_at'])) {
             $userSettings->setTermsAcceptedAt(
@@ -60,26 +91,14 @@ class UserSettings implements ExportableInterface
         return $userSettings;
     }
 
-    public function overrideWithData(array $data): self
+    private function markPropertyAsUpdated(string $propertyName, mixed $propertyValue): void
     {
-        if (isset($data['terms_accepted_at'])) {
-            $this->setTermsAcceptedAt(
-                strtotime($data['terms_accepted_at'])
-            );
-        }
+        $this->dirty[$propertyName] = $propertyValue;
+    }
 
-        if (isset($data['supermind_cash_min'])) {
-            $this->setSupermindCashMin(
-                (float) $data['supermind_cash_min']
-            );
-        }
-
-        if (isset($data['supermind_offchain_tokens_min'])) {
-            $this->setSupermindOffchainTokensMin(
-                (float) $data['supermind_offchain_tokens_min']
-            );
-        }
-        return $this;
+    public function getUpdatedProperties(): array
+    {
+        return $this->dirty;
     }
 
     public function export(array $extras = []): array

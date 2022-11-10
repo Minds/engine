@@ -37,11 +37,9 @@ class ManagerSpec extends ObjectBehavior
      * @throws ServerErrorException
      */
     public function it_should_successfully_get_user_settings(
-        User $user
+        User $user,
+        UserSettings $settings
     ): void {
-        $expectedOutput = (new UserSettings())
-            ->setUserGuid('123');
-
         $user->guid = '123';
         $user->getGuid()
             ->willReturn('123');
@@ -49,14 +47,18 @@ class ManagerSpec extends ObjectBehavior
         $this->setUser($user)
             ->willReturn($user);
 
+        $settings->getUserGuid()
+            ->willReturn('123');
+
+        $settings->withUser($user)
+            ->willReturn($settings);
+
         $this->repository->getUserSettings(Argument::type('string'))
             ->shouldBeCalledOnce()
-            ->willReturn($expectedOutput);
-
-
+            ->willReturn($settings);
 
         $this->getUserSettings()
-            ->shouldBeEqualTo($expectedOutput);
+            ->shouldBeEqualTo($settings);
     }
 
     /**
@@ -89,38 +91,7 @@ class ManagerSpec extends ObjectBehavior
      * @throws ServerErrorException
      * @throws UserSettingsNotFoundException
      */
-    public function it_should_successfully_store_settings_with_no_pre_existing_settings(
-        User $user
-    ): void {
-        $this->repository
-            ->getUserSettings(Argument::type('string'))
-            ->shouldBeCalledOnce()
-            ->willThrow(UserSettingsNotFoundException::class);
-
-        $user->guid = '123';
-        $user->getGuid()
-            ->willReturn('123');
-
-        $this->setUser($user);
-
-        $this->repository
-            ->storeUserSettings(Argument::type(UserSettings::class))
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
-
-        $data = [];
-
-        $this->storeUserSettings($data)
-            ->shouldBeEqualTo(true);
-    }
-
-    /**
-     * @param User $user
-     * @return void
-     * @throws ServerErrorException
-     * @throws UserSettingsNotFoundException
-     */
-    public function it_should_successfully_store_settings_with_pre_existing_settings(
+    public function it_should_successfully_store_settings(
         User $user
     ): void {
         $user->guid = '123';
@@ -128,14 +99,6 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('123');
 
         $this->setUser($user);
-
-        $this->repository
-            ->getUserSettings(Argument::type('string'))
-            ->shouldBeCalledOnce()
-            ->willReturn(
-                (new UserSettings())
-                    ->setUserGuid('123')
-            );
 
         $this->repository
             ->storeUserSettings(Argument::type(UserSettings::class))
