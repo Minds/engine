@@ -183,7 +183,7 @@ class Annotate extends AbstractImagick
             $this->text = substr($this->text, 0, 197) . '...';
         }
 
-        $wrappedText = wordwrap($this->text, $this->scaledSize(14));
+        $wrappedText = wordwrap($this->text, $this->scaledSize(28));
         $textToLines = explode("\n", $wrappedText);
         $numberOfLines = count($textToLines);
         $y = $numberOfLines > 1 ? ($lineHeight * ($numberOfLines - 1)) * -0.5  : 0;

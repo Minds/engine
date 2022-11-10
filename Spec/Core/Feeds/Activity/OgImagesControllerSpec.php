@@ -66,7 +66,7 @@ class OgImagesControllerSpec extends ObjectBehavior
             ->willReturn('phpspec');
 
         $this->imagickManager->annotate(
-            width: 2000,
+            width: Argument::any(),
             text: 'hello world',
             username: 'phpspec'
         )

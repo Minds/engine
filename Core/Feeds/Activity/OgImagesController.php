@@ -50,7 +50,7 @@ class OgImagesController
 
             if ($activity->getSupermind() && $activity->getMessage()) {
                 $image = $this->imagickManager->annotate(
-                    width: 2000,
+                    width: 1000,
                     text: $activity->getMessage(),
                     username: $activity->getOwnerEntity()->getUsername(),
                 );
