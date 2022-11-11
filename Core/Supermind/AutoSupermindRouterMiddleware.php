@@ -125,7 +125,7 @@ class AutoSupermindRouterMiddleware implements RouterMiddleware
      */
     protected function getSupermindManager(): Manager
     {
-        return $this->supermindsManager ??=  Di::_()->get("Supermind\Manager");
+        return $this->supermindManager ??=  Di::_()->get("Supermind\Manager");
     }
 
     /**
