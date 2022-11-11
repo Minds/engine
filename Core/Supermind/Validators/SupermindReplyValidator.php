@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Minds\Core\Supermind\Validators;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Session;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Manager as SupermindManager;
 use Minds\Core\Supermind\SupermindRequestReplyType;
@@ -100,7 +101,9 @@ class SupermindReplyValidator implements ValidatorInterface
             );
         }
 
-        $supermindRequest = $this->supermindManager->getRequest($dataToValidate['supermind_reply_guid']);
+        $supermindRequest = $this->supermindManager
+            ->setUser(Session::getLoggedinUser())
+            ->getRequest($dataToValidate['supermind_reply_guid']);
 
         /**
          * @var Activity $activity
