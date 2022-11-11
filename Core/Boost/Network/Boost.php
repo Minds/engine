@@ -5,8 +5,10 @@
 namespace Minds\Core\Boost\Network;
 
 use Minds\Common\Access;
+use Minds\Core\Guid;
 use Minds\Entities\EntityInterface;
 use Minds\Traits\MagicAttributes;
+use Minds\Entities\User;
 
 /**
  * Boost Entity
@@ -17,7 +19,9 @@ use Minds\Traits\MagicAttributes;
  * @method Boost setEntityGuid(string $guid)
  * @method Boost setEntity()
  * @method Entity getEntity()
+ * @method int getBid()
  * @method Boost setBid()
+ * @method string getBidType()
  * @method Boost setBidType()
  * @method Booot setImpressions()
  * @method int getImpressions()
@@ -25,7 +29,6 @@ use Minds\Traits\MagicAttributes;
  * @method long getOwnerGuid()
  * @method Boost setOwner()
  * @method User getOwner()
- *
  * @method Boost setRejectedReason(int $reason)
  * @method int getRejectedReason()
  * @method Boost setCompletedTimestamp(int $ts)
@@ -132,10 +135,14 @@ class Boost implements EntityInterface
     }
 
     /**
-     * @return string
+     * Gets GUID for boost - if one does not exist, generates one.
+     * @return string guid.
      */
     public function getGuid(): string
     {
+        if (!$this->guid) {
+            $this->guid = Guid::build();
+        }
         return (string) $this->guid;
     }
 

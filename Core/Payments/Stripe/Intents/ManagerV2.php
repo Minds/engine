@@ -96,7 +96,8 @@ class ManagerV2
             'payment_method_types' => [
                 'card'
             ],
-            'statement_descriptor' => $intent->getDescriptor()
+            'statement_descriptor' => $intent->getDescriptor(),
+            'description' => $intent->getDescription()
         ];
 
         if ($intent->getStripeAccountId()) {
@@ -154,8 +155,9 @@ class ManagerV2
     public function capturePaymentIntent(string $paymentIntentId): bool
     {
         $paymentIntent = $this->stripeClient->paymentIntents->retrieve($paymentIntentId);
-
-        $manualTransfer = !$paymentIntent->transfer_data?->destination;
+        
+        // is manual in this context refers to a manual transfer method rather than capture method.
+        $manualTransfer = $paymentIntent->metadata?->is_manual_transfer !== 'false' ?? $paymentIntent->transfer_data?->destination;
 
         $applicationFeeAmount = $stripeFutureAccount = null;
         if ($manualTransfer) {
