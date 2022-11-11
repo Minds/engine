@@ -97,7 +97,10 @@ class Supermind extends EmailCampaign
             return;
         }
 
+        $siteUrl = $this->config->get('site_url') ?: 'https://www.minds.com/';
+        $singleSupermindPagePath =  $siteUrl . "supermind/{$this->supermindRequest->getGuid()}?";
         $learnMorePath = 'https://support.minds.com/hc/en-us/articles/9188136065684';
+        $bodySubjectText = null;
 
         switch ($this->topic) {
             case 'supermind_request_sent':
@@ -105,7 +108,7 @@ class Supermind extends EmailCampaign
                 $headerText = 'You sent a ' . $paymentString . ' Supermind offer to @' . $receiver->getUsername();
                 $bodyText = 'They have 7 days to reply and accept this offer.';
                 $ctaText = 'View Offer';
-                $ctaPath = 'supermind/outbox?';
+                $ctaPath = $singleSupermindPagePath;
                 break;
 
             // `supermind_request_received` is currently grouped with `wire_received`
@@ -115,9 +118,10 @@ class Supermind extends EmailCampaign
             case 'wire_received':
                 $this->user = $receiver;
                 $headerText = '@' . $requester->getUsername() . ' sent you a ' . $paymentString . ' Supermind offer';
+                $bodySubjectText = "@{$receiver->getUsername()},";
                 $bodyText = 'You have 7 days to reply and accept this offer.';
                 $ctaText = 'View Offer';
-                $ctaPath = 'supermind/inbox?';
+                $ctaPath = $singleSupermindPagePath;
                 break;
 
             case 'supermind_request_accepted':
@@ -128,7 +132,6 @@ class Supermind extends EmailCampaign
                 $ctaPath = 'newsfeed/' . $this->supermindRequest->getReplyActivityGuid() . '?';
 
                 // Build path to wallet transactions table for selected currency
-                $siteUrl = $this->config->get('site_url') ?: 'https://www.minds.com/';
                 $currency = $this->supermindRequest->getPaymentMethod() == SupermindRequestPaymentMethod::CASH ? 'cash' : 'tokens';
 
                 $this->template->set('additionalCtaPath', $siteUrl . 'wallet/' . $currency . '/transactions');
@@ -147,9 +150,10 @@ class Supermind extends EmailCampaign
             case 'supermind_request_expiring_soon':
                 $this->user = $receiver;
                 $headerText = 'Your ' . $paymentString . ' Supermind offer expires tomorrow';
+                $bodySubjectText = "@{$receiver->getUsername()},";
                 $bodyText = "You have 24 hours remaining to review @" . $requester->getUsername() . "'s " . $paymentString . " offer";
                 $ctaText = 'View Offer';
-                $ctaPath = 'supermind/inbox?';
+                $ctaPath = $singleSupermindPagePath;
                 break;
 
             case 'supermind_request_expired':
@@ -186,7 +190,8 @@ class Supermind extends EmailCampaign
         $this->template->set('preheader', $bodyText);
         $this->template->set('bodyText', $bodyText);
         $this->template->set('headerText', $headerText);
-        
+        $this->template->set('bodySubjectText', $bodySubjectText ?? null);
+
         // Don't add tracking query to helpdesk links
         $actionButtonPath = ($this->topic == 'supermind_request_rejected' || $this->topic == 'supermind_request_expired') ? $ctaPath : $ctaPath . $trackingQuery;
 

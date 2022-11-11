@@ -7,6 +7,7 @@ namespace Minds\Core\Supermind;
 use Minds\Api\Exportable;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestExpiredException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestIncorrectStatusException;
@@ -305,7 +306,8 @@ class Controller
     /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
-     * @throws UserErrorException
+     * @throws SupermindNotFoundException
+     * @throws ForbiddenException
      */
 //    #[OA\Get(
 //        path: '/api/v3/supermind/:guid',
@@ -316,8 +318,11 @@ class Controller
 //    )]
     public function getSupermindRequest(ServerRequestInterface $request): JsonResponse
     {
+        $user = $request->getAttribute('_user');
         $supermindRequestID = $request->getAttribute("parameters")["guid"];
-        $response = $this->manager->getRequest((string) $supermindRequestID);
+        $response = $this->manager
+            ->setUser($user)
+            ->getRequest((string) $supermindRequestID);
         return new JsonResponse(Exportable::_([$response]));
     }
 }

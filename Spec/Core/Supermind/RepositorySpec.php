@@ -343,6 +343,44 @@ class RepositorySpec extends ObjectBehavior
         $this->countReceivedRequests($receiverGuid, $status)->shouldBe($resultCount);
     }
 
+    public function it_should_count_received_requests_filtering_out_unmarked_expired_for_created_superminds(
+        PDOStatement $pdoStatement,
+    ) {
+        $receiverGuid = '567';
+        $status = SupermindRequestStatus::CREATED;
+        $receiverGuid = '123';
+        $resultCount = 3;
+
+        $pdoStatement->execute()
+            ->shouldBeCalled()
+            ->willReturn(true);
+        
+        $pdoStatement->fetch(PDO::FETCH_ASSOC)
+            ->shouldBeCalled()
+            ->willReturn([
+                'count' => $resultCount
+            ]);
+
+        $this->mysqlClientReader->prepare(Argument::that(function ($arg) {
+            return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine("
+                SELECT COUNT(*) as count
+                FROM superminds
+                WHERE receiver_guid = :receiver_guid
+                AND status != :excludedStatus
+                AND status = :status
+                AND created_timestamp >= :min_timestamp
+            ");
+        }))
+            ->shouldBeCalled()
+            ->willReturn($pdoStatement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($pdoStatement, Argument::that(function ($arg) use ($receiverGuid) {
+            return $arg['receiver_guid'] === $receiverGuid;
+        }))->shouldBeCalled();
+
+        $this->countReceivedRequests($receiverGuid, $status)->shouldBe($resultCount);
+    }
+
     // countSentRequests
 
     public function it_should_count_sent_requests(
