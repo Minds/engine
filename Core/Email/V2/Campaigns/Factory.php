@@ -21,6 +21,6 @@ class Factory
                 return $class;
             }
         }
-        throw new \Exception("Campaign not found");
+        throw new \Exception("Campaign not found - $campaign");
     }
 }
