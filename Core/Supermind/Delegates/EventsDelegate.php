@@ -17,8 +17,10 @@ class EventsDelegate
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
-    public function __construct(ActionEventsTopic $actionEventsTopic = null, $entitiesBuilder = null)
-    {
+    public function __construct(
+        ActionEventsTopic $actionEventsTopic = null,
+        $entitiesBuilder = null
+    ) {
         $this->actionEventsTopic = $actionEventsTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
 
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
@@ -47,11 +49,13 @@ class EventsDelegate
      */
     public function onAcceptSupermindRequest(SupermindRequest $supermindRequest)
     {
+        $targetUser = $this->buildUser($supermindRequest->getReceiverGuid());
+
         $actionEvent = new ActionEvent();
         $actionEvent
             ->setAction(ActionEvent::ACTION_SUPERMIND_REQUEST_ACCEPT)
             ->setEntity($supermindRequest)
-            ->setUser($this->buildUser($supermindRequest->getReceiverGuid()));
+            ->setUser($targetUser);
 
         $this->actionEventsTopic->send($actionEvent);
     }

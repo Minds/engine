@@ -57,7 +57,7 @@ class Manager
         $this->repository->storeOAuth2TokenInfo(
             userGuid: $this->user->getGuid(),
             accessToken: $accessToken,
-            accessTokenExpiry: $accessTokenExpiry,
+            accessTokenExpiry: (int) $accessTokenExpiry,
             refreshToken: $refreshToken
         );
     }
@@ -68,7 +68,7 @@ class Manager
      * @return bool
      * @throws TwitterDetailsNotFoundException
      */
-    public function postTweet(string $text): bool
+    public function postTextTweet(string $text): bool
     {
         $twitterDetails = $this->repository->getDetails($this->user->getGuid());
 
@@ -76,6 +76,8 @@ class Manager
             ->setText($text);
 
         $accessToken = $this->checkAndRefreshToken($twitterDetails);
+
+        error_log($accessToken);
 
         return $this->twitterClient->postTweet($tweet, $accessToken);
     }
@@ -87,14 +89,14 @@ class Manager
     private function checkAndRefreshToken(TwitterDetails $twitterDetails): string
     {
         $accessToken = $twitterDetails->getAccessToken();
-        if (time() >= $twitterDetails->getAccessTokenExpiry()) {
+        if (time() >= ($twitterDetails->getAccessTokenExpiry() / 1000)) {
             ['accessToken' => $accessToken, 'refreshToken' => $refreshToken, 'accessTokenExpiry' => $accessTokenExpiry] =
                 $this->twitterClient->refreshOAuthAccessToken($twitterDetails->getRefreshToken());
 
             $this->repository->storeOAuth2TokenInfo(
                 userGuid: $this->user->getGuid(),
                 accessToken: $accessToken,
-                accessTokenExpiry: $accessTokenExpiry,
+                accessTokenExpiry: (int) $accessTokenExpiry,
                 refreshToken: $refreshToken
             );
         }
