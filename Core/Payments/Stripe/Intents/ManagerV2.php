@@ -157,7 +157,9 @@ class ManagerV2
         $paymentIntent = $this->stripeClient->paymentIntents->retrieve($paymentIntentId);
         
         // is manual in this context refers to a manual transfer method rather than capture method.
-        $manualTransfer = $paymentIntent->metadata?->is_manual_transfer !== 'false' ?? $paymentIntent->transfer_data?->destination;
+        $manualTransfer = isset($paymentIntent->metadata?->is_manual_transfer) ?
+            $paymentIntent->metadata?->is_manual_transfer !== 'false' :
+            $paymentIntent->transfer_data?->destination;
 
         $applicationFeeAmount = $stripeFutureAccount = null;
         if ($manualTransfer) {
