@@ -1518,6 +1518,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($activityGuid);
 
+        $supermindRequest->getTwitterRequired()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $supermindRequest->getReceiverGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid);
