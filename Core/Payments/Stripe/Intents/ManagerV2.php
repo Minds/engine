@@ -161,8 +161,6 @@ class ManagerV2
             $paymentIntent->metadata?->is_manual_transfer !== 'false' :
             !$paymentIntent->transfer_data?->destination;
 
-        // $manualTransfer = !$paymentIntent->transfer_data?->destination;
-
         $applicationFeeAmount = $stripeFutureAccount = null;
         if ($manualTransfer) {
             // If no destination was set, the we expect that the payment intent has a meta field
