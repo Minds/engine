@@ -10,6 +10,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\TwoFactor\Manager as TwoFactorManager;
+use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Entities;
 use Minds\Entities\Entity;
 use Minds\Entities\RepositoryEntity;
@@ -163,6 +164,7 @@ class ACL
             in_array($entity->getAccessId(), [ACCESS_LOGGED_IN, ACCESS_PUBLIC], false)
             && ($entity->owner_guid == $entity->container_guid
                 || $entity->container_guid == 0)
+            && !($entity instanceof SupermindRequest)
         ) {
             return true;
         }

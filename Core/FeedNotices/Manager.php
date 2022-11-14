@@ -10,6 +10,7 @@ use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
 use Minds\Core\FeedNotices\Notices\BuildYourAlgorithmNotice;
 use Minds\Core\FeedNotices\Notices\UpdateTagsNotice;
 use Minds\Core\FeedNotices\Notices\EnablePushNotificationsNotice;
+use Minds\Core\FeedNotices\Notices\SupermindPendingNotice;
 use Minds\Core\Log\Logger;
 use Minds\Entities\User;
 
@@ -33,6 +34,7 @@ class Manager
      */
     private const NOTICES = [
         VerifyEmailNotice::class,
+        SupermindPendingNotice::class,
         BuildYourAlgorithmNotice::class,
         UpdateTagsNotice::class,
         SetupChannelNotice::class,

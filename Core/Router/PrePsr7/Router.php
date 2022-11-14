@@ -13,6 +13,7 @@ use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequestFactory;
 use Minds\Core\Security;
 use Minds\Core\page;
+use Minds\Core\Supermind\AutoSupermindRouterMiddleware;
 
 /**
  * Minds Core Router.
@@ -78,6 +79,7 @@ class Router
         /** @var RouterMiddleware[] $prePsr7Middleware */
         $prePsr7Middleware = [
             new ProMiddleware(),
+            new AutoSupermindRouterMiddleware(),
         ];
 
         foreach ($prePsr7Middleware as $middleware) {
