@@ -857,3 +857,9 @@ $CONFIG->set('supermind', [
         'offchain_token' => 1.00
     ]
 ]);
+
+$CONFIG->set('ocr', [
+    'google' => [
+        'api_key' => ''
+    ]
+]);
