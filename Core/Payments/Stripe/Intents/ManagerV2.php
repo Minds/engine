@@ -159,7 +159,9 @@ class ManagerV2
         // is manual in this context refers to a manual transfer method rather than capture method.
         $manualTransfer = isset($paymentIntent->metadata?->is_manual_transfer) ?
             $paymentIntent->metadata?->is_manual_transfer !== 'false' :
-            $paymentIntent->transfer_data?->destination;
+            !$paymentIntent->transfer_data?->destination;
+
+        // $manualTransfer = !$paymentIntent->transfer_data?->destination;
 
         $applicationFeeAmount = $stripeFutureAccount = null;
         if ($manualTransfer) {
