@@ -32,6 +32,11 @@ class Routes extends ModuleRoutes
                     Ref::_('Feeds\Controller', 'getDefaultFeed'),
                 );
 
+                $route->get(
+                    'activity/og-image/:guid',
+                    Ref::_('Feeds\Activity\OgImageController', 'renderOgImage'),
+                );
+
                 $route
                     ->withMiddleware([
                         LoggedInMiddleware::class

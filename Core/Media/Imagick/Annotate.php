@@ -15,14 +15,20 @@ namespace Minds\Core\Media\Imagick;
  */
 class Annotate extends AbstractImagick
 {
+    /**
+     * This value is the root size. We scale font sizes based on the actual width required.
+     * @var int
+     */
+    const BASE_WIDTH = 500;
+
+    /** @var int */
+    const WIDTH_TO_HEIGHT_RATIO = 2;
+
     /** @var int $width */
     protected $width;
 
     /** @var int $height */
     protected $height;
-
-    /** @var int $widthToHeightRatio */
-    protected $widthToHeightRatio = 2;
 
     /** @var string $text */
     protected $text;
@@ -32,6 +38,9 @@ class Annotate extends AbstractImagick
 
     /** @var string $fontFile */
     protected $fontFile = './Assets/fonts/Roboto-Medium.ttf';
+
+    /** @var string $fontFileBold */
+    protected $fontFileBold = './Assets/fonts/Roboto-Black.ttf';
 
     /** @var \Imagick $canvas */
     protected $canvas;
@@ -60,7 +69,7 @@ class Annotate extends AbstractImagick
         }
 
         $this->width = $width;
-        $this->height = $this->width / $this->widthToHeightRatio;
+        $this->height = $this->width / self::WIDTH_TO_HEIGHT_RATIO;
 
         return $this;
     }
@@ -137,7 +146,14 @@ class Annotate extends AbstractImagick
      */
     private function addLogoToCanvas()
     {
-        // TODO
+        $imageWidth = $this->scaledSize(38);
+        $imageHeight = $this->scaledSize(14);
+
+        $logo = new \Imagick('./Assets/logos/white.png');
+        $logo->resizeImage($imageWidth, $imageHeight, \Imagick::FILTER_BOX, 1);
+
+        $this->canvas->compositeImage($logo, \Imagick::COMPOSITE_DEFAULT, ($this->width / 2) - ($imageWidth / 2), $this->scaledSize(32));
+
         return $this;
     }
 
@@ -149,23 +165,51 @@ class Annotate extends AbstractImagick
     private function addTextToCanvas()
     {
         // TODO remove rich-embed urls??
-        // TODO $this->truncate($this->text, $maxChars = 280);
 
         $textColor = new \ImagickPixel('white');
+
+        $textCharLength = strlen($this->text);
+
+        $baseFontSize = 16;
+        
+        if ($textCharLength > 180) {
+            $rem = 1;
+        } elseif ($textCharLength > 100) {
+            $rem = 1.35;
+        } elseif ($textCharLength > 50) {
+            $rem = 1.7;
+        } else {
+            $rem = 2;
+        }
 
         /**
          * Set up draw object for writing text
          */
         $draw = new \ImagickDraw();
         $draw->setFillColor($textColor);
-        $draw->setFont($this->fontFile);
-        $draw->setFontSize(60); // TODO make size dynamic
+        $draw->setFont($this->fontFileBold);
+        $draw->setFontSize($this->scaledSize($baseFontSize * $rem)); // TODO make size dynamic
         $draw->setGravity(\Imagick::GRAVITY_CENTER);
+
+        $lineHeight = $this->scaledSize(($baseFontSize * $rem) + ($rem * 2));
+
+        if (strlen($this->text) >= 280) {
+            $this->text = substr($this->text, 0, 280) . '...';
+        }
+
+        $wrappedText = wordwrap($this->text, 52 / $rem);
+        $textToLines = explode("\n", $wrappedText);
+        $numberOfLines = count($textToLines);
+        $y = $numberOfLines > 1 ? ($lineHeight * ($numberOfLines - 1)) * -0.5  : 0;
+
 
         /**
          * Annotate canvas with text
          */
-        $this->canvas->annotateImage($draw, 0, 0, 0, $this->text);
+        foreach ($textToLines as $line) {
+            $this->canvas->annotateImage($draw, 0, $y, 0, $line);
+            $y += $lineHeight;
+        }
 
         return $this;
     }
@@ -176,7 +220,6 @@ class Annotate extends AbstractImagick
      */
     private function addUsernameToCanvas()
     {
-        // TODO $this->truncate($this->username, $maxChars = 80);
         $textColor = new \ImagickPixel('white');
 
         /**
@@ -185,13 +228,13 @@ class Annotate extends AbstractImagick
         $draw = new \ImagickDraw();
         $draw->setFillColor($textColor);
         $draw->setFont($this->fontFile);
-        $draw->setFontSize(24);
+        $draw->setFontSize($this->scaledSize(12));
         $draw->setGravity(\Imagick::GRAVITY_SOUTH);
 
         /**
          * Annotate canvas with text
          */
-        $paddingBottom = ($this->width / $this->widthToHeightRatio) / 5;
+        $paddingBottom = $this->scaledSize(32);
 
         $this->canvas->annotateImage($draw, 0, $paddingBottom, 0, '@' . $this->username);
 
@@ -227,5 +270,16 @@ class Annotate extends AbstractImagick
         $this->output = $this->canvas;
 
         return $this;
+    }
+
+    /**
+     * Calculates the sizes based off our base size
+     * @param int $size
+     * @return int
+     */
+    protected function scaledSize($size): int
+    {
+        $scale = $this->width / self::BASE_WIDTH;
+        return $size * $scale;
     }
 }
