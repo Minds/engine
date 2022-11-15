@@ -16,8 +16,6 @@ use Psr\SimpleCache\InvalidArgumentException;
 class Manager
 {
     private User $user;
-    private const TWITTER_REDIRECT_PATH_KEY_PREFIX = "twitter_oauth_redirect_path_";
-    private const TWITTER_REDIRECT_PATH_KEY_TTL = 30; // seconds
 
     public function __construct(
         private ?Repository $repository = null,
@@ -116,28 +114,5 @@ class Manager
         }
 
         return $response;
-    }
-
-    /**
-     * @param string $path
-     * @return void
-     * @throws InvalidArgumentException
-     */
-    public function storeOAuthRedirectPath(string $path): void
-    {
-        $this->cache->set(
-            self::TWITTER_REDIRECT_PATH_KEY_PREFIX . $this->user->getGuid(),
-            $path,
-            self::TWITTER_REDIRECT_PATH_KEY_TTL
-        );
-    }
-
-    /**
-     * @return string
-     * @throws InvalidArgumentException
-     */
-    public function getStoredOAuthRedirectPath(): string
-    {
-        return rtrim($this->mindsConfig->get('site_url'), '/') . $this->cache->get(self::TWITTER_REDIRECT_PATH_KEY_PREFIX . $this->user->getGuid());
     }
 }
