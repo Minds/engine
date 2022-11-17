@@ -32,6 +32,9 @@ class EventsSpec extends ObjectBehavior
         $this->eventsDispatcher->register('acl:write', 'supermind', Argument::type('callable'))
             ->shouldBeCalled();
 
+        $this->eventsDispatcher->register('export:extender', 'activity', Argument::type('callable'))
+            ->shouldBeCalled();
+
         $this->register();
     }
 }
