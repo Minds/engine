@@ -133,4 +133,16 @@ class CashPaymentProcessorSpec extends ObjectBehavior
 
         $this->cancelPaymentIntent($paymentIntentId)->shouldBe(true);
     }
+
+    public function it_should_get_description_from_sender(User $user)
+    {
+        $username = 'testuser123';
+
+        $user->getUsername()
+            ->shouldBeCalled()
+            ->willReturn($username);
+
+        $this->getDescription($user)
+            ->shouldBe("Boost from @testuser123");
+    }
 }
