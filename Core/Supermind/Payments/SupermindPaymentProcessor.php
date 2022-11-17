@@ -115,7 +115,8 @@ class SupermindPaymentProcessor
                 'user_guid' => $request->getSenderGuid(),
             ])
             ->setServiceFeePct($this->mindsConfig->get('payments')['stripe']['service_fee_pct'] ?? self::SUPERMIND_SERVICE_FEE_PCT)
-            ->setDescriptor('Supermind');
+            ->setStatementDescriptor('Supermind')
+            ->setDescription("Supermind to @{$receiver->getUsername()}");
 
         if ($receiver->getMerchant()['id']) {
             $paymentIntent->setStripeAccountId($receiver->getMerchant()['id']);

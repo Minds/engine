@@ -83,7 +83,7 @@ class CashPaymentProcessor
                 'is_manual_transfer' => false // transfer method, NOT capture method.
             ])
             ->setServiceFeePct(self::SERVICE_FEE_PERCENT)
-            ->setDescriptor('Boost')
+            ->setStatementDescriptor('Boost')
             ->setDescription("Boost from @{$boostOwner->getUsername()}");
     }
 }

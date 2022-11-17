@@ -14,6 +14,7 @@ use Minds\Core\Payments\Stripe\Intents\Manager as StripeIntentsManager;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
 use Minds\Core\Util\BigNumber;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;
+use Minds\Core\Wire\SupportTiers\Manager as SupportTiersManager;
 use Minds\Entities;
 use Minds\Entities\User;
 
@@ -109,7 +110,8 @@ class Manager
         $offchainTxs = null,
         $stripeIntentsManager = null,
         $acl = null,
-        $eventsDelegate = null
+        $eventsDelegate = null,
+        private ?SupportTiersManager $supportTiersManager = null
     ) {
         $this->repository = $repository ?: Di::_()->get('Wire\Repository');
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
@@ -126,6 +128,7 @@ class Manager
         $this->stripeIntentsManager = $stripeIntentsManager ?? Di::_()->get('Stripe\Intents\Manager');
         $this->acl = $acl ?: Core\Security\ACL::_();
         $this->eventsDelegate = $eventsDelegate ?? new Delegates\EventsDelegate();
+        $this->supportTiersManager ??= Di::_()->get('Wire\SupportTiers\Manager');
     }
 
     /**
@@ -346,11 +349,20 @@ class Manager
                     $wire->setTrialDays(self::TRIAL_DAYS);
                 }
 
-                $descriptor = 'Payment';
+                $wire->setAddress('stripe')
+                    ->setMethod('usd');
+
+                $statementDescriptor = 'Tip';
+                $description = "Tip to @{$this->receiver->getUsername()}";
                 if ($isPlusPayment) {
-                    $descriptor = 'Plus sub';
+                    $statementDescriptor = 'Plus sub';
+                    $description = 'Minds Plus';
                 } elseif ($isProPayment) {
-                    $descriptor = 'Pro sub';
+                    $statementDescriptor = 'Pro sub';
+                    $description = 'Minds Pro';
+                } elseif ($supportTier = $this->supportTiersManager->getByWire($wire)) {
+                    $statementDescriptor = 'Membership';
+                    $description = "@{$this->receiver->getUsername()}'s {$supportTier->getName()} Membership";
                 }
 
                 // If this is a trial, we still create the subscription but do not charge
@@ -368,7 +380,8 @@ class Manager
                         'user_guid' => $this->sender->getGuid(),
                         'receiver_guid' => $this->receiver->getGuid()
                     ])
-                    ->setDescriptor($descriptor);
+                    ->setStatementDescriptor($statementDescriptor)
+                    ->setDescription($description);
 
                 // Charge stripe
                 $intent = $this->stripeIntentsManager->add($intent);
@@ -376,9 +389,6 @@ class Manager
                 if (!$intent->getId()) {
                     throw new \Exception("Payment failed");
                 }
-
-                $wire->setAddress('stripe')
-                    ->setMethod('usd');
 
                 // Save the wire to the Repository
                 $this->repository->add($wire);

@@ -14,6 +14,8 @@ use Minds\Traits\MagicAttributes;
  * @method self setStatus(string $status)
  * @method string getCurrency()
  * @method self setCurrency(string $currency)
+ * @method string|null getDescription()
+ * @method self setDescription(string $description)
  * @method string|null getStatementDescriptor()
  * @method self setStatementDescriptor(string $statementDescriptor)
  * @method int getMinorUnitAmount()
@@ -41,6 +43,9 @@ class Payment implements ExportableInterface
 
     /** @var string|null */
     private ?string $statementDescriptor = null;
+
+    /** @var string|null */
+    private ?string $description = null;
 
     /** @var int */
     private int $minorUnitAmount;
@@ -83,6 +88,9 @@ class Payment implements ExportableInterface
         if (isset($data['statement_descriptor'])) {
             $instance->setStatementDescriptor($data['statement_descriptor']);
         }
+        if (isset($data['description'])) {
+            $instance->setDescription($data['description']);
+        }
         if ($data['receipt_url']) {
             $instance->setReceiptUrl($data['receipt_url']);
         }
@@ -121,6 +129,7 @@ class Payment implements ExportableInterface
             'currency' => $this->getCurrency(),
             'minor_unit_amount' => $this->getMinorUnitAmount(),
             'statement_descriptor' => $this->getStatementDescriptor(),
+            'description' => $this->getDescription(),
             'receipt_url' => $this->getReceiptUrl(),
             'created_timestamp' => $this->getCreatedTimestamp(),
             'recipient' => $recipient,

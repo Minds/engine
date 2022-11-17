@@ -75,7 +75,7 @@ class Manager
             'metadata' => [
                 'user_guid' => $intent->getUserGuid(),
             ],
-            'statement_descriptor' => $intent->getDescriptor(),
+            'statement_descriptor' => $intent->getStatementDescriptor(),
             'description' => $intent->getDescription(),
         ];
 

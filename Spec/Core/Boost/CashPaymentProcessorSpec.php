@@ -103,7 +103,7 @@ class CashPaymentProcessorSpec extends ObjectBehavior
                 $metadata['impressions'] === $boostImpressions &&
                 $metadata['is_manual_transfer'] === false &&
                 $arg->getServiceFeePct() === 0 &&
-                $arg->getDescriptor() === 'Minds: Boost' &&
+                $arg->getStatementDescriptor() === 'Minds: Boost' &&
                 $arg->getDescription() === "Boost from @$boostOwnerUsername";
         }))
             ->shouldBeCalled()
