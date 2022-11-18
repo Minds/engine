@@ -207,7 +207,15 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
             $description = 'Minds Payment';
 
             // get new description string.
-            if (isset($metadata['receiver_guid'])) {
+            if (isset($metadata['boost_guid'])) {
+                // if it's a boost, try to construct it.
+                $boostSender = $this->entitiesBuilder->single($metadata['boost_sender_guid']); //TODO: WRONG GUID
+                if (!$boostSender || !$boostSender instanceof User) {
+                    $description = "Boost from {$metadata['boost_sender_guid']}";
+                } else {
+                    $description = $this->boostCashPaymentProcessor->getDescription($boostSender);
+                }
+            } else if (isset($metadata['receiver_guid'])) {
                 $receiver = $this->entitiesBuilder->single($metadata['receiver_guid']);
 
                 if (!$receiver instanceof User) {
@@ -218,14 +226,6 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
                 } elseif (isset($metadata['supermind'])) {
                     // supermind takes precedence over wire.
                     $description = $this->supermindPaymentProcessor->getDescription($receiver);
-                } elseif (isset($metadata['boost_guid'])) {
-                    // if it's a boost, try to construct it.
-                    $boostSender = $this->entitiesBuilder->single($metadata['boost_sender_guid']); //TODO: WRONG GUID
-                    if (!$boostSender || !$boostSender instanceof User) {
-                        $description = "Boost from {$metadata['boost_sender_guid']}";
-                    } else {
-                        $description = $this->boostCashPaymentProcessor->getDescription($boostSender);
-                    }
                 } else {
                     // fallback to it being a wire if nothing else fits.
                     $description = $this->wireManager->getDescriptionFromWire(
