@@ -45,10 +45,13 @@ class Defaults
                 $params['entity']->ownerObj &&
                 is_array($params['entity']->ownerObj)
             ) {
-                $export['ownerObj'] = $this->entitiesBuilder->single($params['entity']->ownerObj['guid'], [
+                $ownerObj = $this->entitiesBuilder->single($params['entity']->ownerObj['guid'], [
                     'cache' => true,
                     'cacheTtl' => 259200 // Cache for 3 day.
-                ])->export();
+                ]);
+                if ($ownerObj) {
+                    $export['ownerObj'] = $ownerObj->export();
+                }
             } elseif (
                 $params['entity']->fullExport &&
                 $params['entity']->ownerObj &&

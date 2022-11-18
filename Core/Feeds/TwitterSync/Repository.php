@@ -51,7 +51,7 @@ class Repository
                 ->setLastImportedTweetId((string) $row['last_imported_tweet_id'])
                 ->setLastSyncUnixTs(isset($row['last_sync_ts']) ? $row['last_sync_ts']->time() : time())
                 ->setDiscoverable($row['discoverable'])
-                ->setConnectedTimestampSeconds($row['connected_timestamp']->time());
+                ->setConnectedTimestampSeconds(isset($row['connected_timestamp']) ? $row['connected_timestamp']->time() : null);
 
             yield $connectedAccount;
         }

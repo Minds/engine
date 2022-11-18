@@ -19,7 +19,7 @@ class TwitterClient implements TwitterClientInterface
 {
     private const API_BASE_URI = 'https://api.twitter.com';
 
-    private const OAUTH_TOKEN_REQUEST_CALLBACK = 'api/v3/twitter/oauth';
+    private const OAUTH_TOKEN_REQUEST_CALLBACK = 'api/v3/twitter/oauth-callback';
 
     /**
      * @param MindsConfig|null $mindsConfig
