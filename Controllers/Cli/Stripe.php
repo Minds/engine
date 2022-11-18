@@ -204,7 +204,7 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
                 continue;
             }
 
-            $description = 'Unknown Payment';
+            $description = 'Minds Payment';
 
             // get new description string.
             if (isset($metadata['receiver_guid'])) {
@@ -214,15 +214,15 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
                     // if receiver isn't a user, we can't derive the target.
                     // this can happen when sharing between localhost and sandbox
                     // or if user has deleted themselves.
-                    $description = 'Unknown Payment (No User)';
+                    $description = "Minds Payment ({$metadata['receiver_guid']})";
                 } elseif (isset($metadata['supermind'])) {
                     // supermind takes precedence over wire.
                     $description = $this->supermindPaymentProcessor->getDescription($receiver);
                 } elseif (isset($metadata['boost_guid'])) {
                     // if it's a boost, try to construct it.
-                    $boostSender = $this->entitiesBuilder->single($metadata['boost_sender_guid']);
+                    $boostSender = $this->entitiesBuilder->single($metadata['boost_sender_guid']); //TODO: WRONG GUID
                     if (!$boostSender || !$boostSender instanceof User) {
-                        $description = 'Boost from unknown';
+                        $description = "Boost from {$metadata['boost_sender_guid']}";
                     } else {
                         $description = $this->boostCashPaymentProcessor->getDescription($boostSender);
                     }
