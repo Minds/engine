@@ -7,6 +7,7 @@ namespace Minds\Core\Twitter;
 use Minds\Core\Di\Di;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\SimpleCache\InvalidArgumentException;
+use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\Response\RedirectResponse;
 
@@ -28,14 +29,10 @@ class Controller
      */
     public function requestTwitterOAuthToken(ServerRequestInterface $request): JsonResponse
     {
-        $redirectPath = $request->getQueryParams()['redirectPath'];
-
         $loggedInUser = $request->getAttribute('_user');
         $this->manager->setUser($loggedInUser);
 
         $url = $this->manager->getRequestOAuthAuthorizationCodeUrl();
-
-        $this->manager->storeOAuthRedirectPath($redirectPath);
 
         return new JsonResponse(['authorization_url' => $url]);
     }
@@ -45,22 +42,40 @@ class Controller
      * @return RedirectResponse
      * @throws InvalidArgumentException
      */
-    public function generateTwitterOAuthAccessToken(ServerRequestInterface $request): RedirectResponse
+    public function redirectToTwitterAuthUrl(ServerRequestInterface $request): RedirectResponse
+    {
+        $loggedInUser = $request->getAttribute('_user');
+        $this->manager->setUser($loggedInUser);
+
+        $url = $this->manager->getRequestOAuthAuthorizationCodeUrl();
+
+        return new RedirectResponse($url);
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return HtmlResponse
+     * @throws InvalidArgumentException
+     */
+    public function generateTwitterOAuthAccessToken(ServerRequestInterface $request): HtmlResponse
     {
         $authorizationCode = $request->getQueryParams()['code'] ?? null;
 
         $loggedInUser = $request->getAttribute('_user');
         $this->manager->setUser($loggedInUser);
 
-        $redirectUrl = $this->manager->getStoredOAuthRedirectPath();
-
-        if (!$authorizationCode) {
-            return new RedirectResponse($redirectUrl);
+        if ($authorizationCode) {
+            $this->manager->generateOAuthAccessToken($authorizationCode);
+        } else {
+            // Oops, there was a problem
         }
 
-        $this->manager->generateOAuthAccessToken($authorizationCode);
-
-        return new RedirectResponse($redirectUrl);
+        return new HtmlResponse(
+            <<<HTML
+<script>window.close();</script>
+<p>Please close this window/tab.</p>
+HTML
+        );
     }
 
     /**
