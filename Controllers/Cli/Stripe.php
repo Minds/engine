@@ -194,55 +194,59 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
         $count = 0;
         foreach ($this->intentsManager->getPaymentIntentsGenerator($opts) as $intent) {
             $count++;
-            $metadata = $intent['metadata']->toArray();
-            
-            // if it has a description already, we don't need to set one unless we are overwriting.
-            if (!$overwrite && $intent['description']) {
-                if ($verbose) {
-                    $this->out("{$intent['id']} has a description already");
+            try {
+                $metadata = $intent['metadata']->toArray();
+                
+                // if it has a description already, we don't need to set one unless we are overwriting.
+                if (!$overwrite && $intent['description']) {
+                    if ($verbose) {
+                        $this->out("{$intent['id']} has a description already");
+                    }
+                    continue;
                 }
-                continue;
-            }
 
-            $description = 'Minds Payment';
+                $description = 'Minds Payment';
 
-            // get new description string.
-            if (isset($metadata['boost_guid'])) {
-                // if it's a boost, try to construct it.
-                $boostSender = $this->entitiesBuilder->single($metadata['boost_sender_guid']); //TODO: WRONG GUID
-                if (!$boostSender || !$boostSender instanceof User) {
-                    $description = "Boost from {$metadata['boost_sender_guid']}";
-                } else {
-                    $description = $this->boostCashPaymentProcessor->getDescription($boostSender);
+                // get new description string.
+                if (isset($metadata['boost_guid'])) {
+                    // if it's a boost, try to construct it.
+                    $boostSender = $this->entitiesBuilder->single($metadata['boost_sender_guid']); //TODO: WRONG GUID
+                    if (!$boostSender || !$boostSender instanceof User) {
+                        $description = "Boost from {$metadata['boost_sender_guid']}";
+                    } else {
+                        $description = $this->boostCashPaymentProcessor->getDescription($boostSender);
+                    }
+                } elseif (isset($metadata['receiver_guid'])) {
+                    $receiver = $this->entitiesBuilder->single($metadata['receiver_guid']);
+
+                    if (!$receiver instanceof User) {
+                        // if receiver isn't a user, we can't derive the target.
+                        // this can happen when sharing between localhost and sandbox
+                        // or if user has deleted themselves.
+                        $description = "Minds Payment ({$metadata['receiver_guid']})";
+                    } elseif (isset($metadata['supermind'])) {
+                        // supermind takes precedence over wire.
+                        $description = $this->supermindPaymentProcessor->getDescription($receiver);
+                    } else {
+                        // fallback to it being a wire if nothing else fits.
+                        $description = $this->wireManager->getDescriptionFromWire(
+                            (new Wire())
+                                ->setMethod('usd')
+                                ->setReceiver($receiver)
+                                ->setAmount($intent['amount'])
+                        );
+                    }
                 }
-            } elseif (isset($metadata['receiver_guid'])) {
-                $receiver = $this->entitiesBuilder->single($metadata['receiver_guid']);
 
-                if (!$receiver instanceof User) {
-                    // if receiver isn't a user, we can't derive the target.
-                    // this can happen when sharing between localhost and sandbox
-                    // or if user has deleted themselves.
-                    $description = "Minds Payment ({$metadata['receiver_guid']})";
-                } elseif (isset($metadata['supermind'])) {
-                    // supermind takes precedence over wire.
-                    $description = $this->supermindPaymentProcessor->getDescription($receiver);
-                } else {
-                    // fallback to it being a wire if nothing else fits.
-                    $description = $this->wireManager->getDescriptionFromWire(
-                        (new Wire())
-                            ->setMethod('usd')
-                            ->setReceiver($receiver)
-                            ->setAmount($intent['amount'])
-                    );
+                $this->out("Change description for {$intent['id']} to: '$description'");
+
+                if ($description && !$dryRun) {
+                    $this->intentsManager->updatePaymentIntentById($intent['id'], [
+                        'description' => $description
+                    ]);
                 }
-            }
-
-            $this->out("Change description for {$intent['id']} to: '$description'");
-
-            if ($description && !$dryRun) {
-                $this->intentsManager->updatePaymentIntentById($intent['id'], [
-                    'description' => $description
-                ]);
+            } catch (\Exception $e) {
+                $this->out($e->getMessage());
             }
         }
 
