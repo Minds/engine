@@ -74,6 +74,8 @@ class Controllers
         $entities = $this->manager->getSearch($query, $filter, $type, [
             'plus' => $plus,
             'nsfw' => $nsfw,
+            'use_legacy_time_ranges' => false, // Significantly faster
+            'exclude_scheduled' => true,
         ]);
 
         return new JsonResponse([
