@@ -215,7 +215,7 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
                 } else {
                     $description = $this->boostCashPaymentProcessor->getDescription($boostSender);
                 }
-            } else if (isset($metadata['receiver_guid'])) {
+            } elseif (isset($metadata['receiver_guid'])) {
                 $receiver = $this->entitiesBuilder->single($metadata['receiver_guid']);
 
                 if (!$receiver instanceof User) {
