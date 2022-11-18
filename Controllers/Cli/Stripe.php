@@ -204,7 +204,7 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
                 continue;
             }
 
-            $description = null;
+            $description = 'Unknown Payment';
 
             // get new description string.
             if (isset($metadata['receiver_guid'])) {
@@ -214,7 +214,7 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
                     // if receiver isn't a user, we can't derive the target.
                     // this can happen when sharing between localhost and sandbox
                     // or if user has deleted themselves.
-                    $description = 'Unknown Payment';
+                    $description = 'Unknown Payment (No User)';
                 } elseif (isset($metadata['supermind'])) {
                     // supermind takes precedence over wire.
                     $description = $this->supermindPaymentProcessor->getDescription($receiver);
