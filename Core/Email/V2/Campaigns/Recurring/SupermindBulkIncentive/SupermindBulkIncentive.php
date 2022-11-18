@@ -117,7 +117,7 @@ class SupermindBulkIncentive extends EmailCampaign
             'topic' => $this->topic,
             'state' => 'new',
             'utm_medium' => 'email',
-            'utm_campaign' => 'supermind_boffer_launch',
+            'utm_campaign' => 'supermind_boffer_' . $this->activityGuid,
             'utm_source' => 'manual',
             'activity_guid' => $this->activityGuid,
             'validator' => $this->getValidatorToken(),
