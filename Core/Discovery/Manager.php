@@ -614,6 +614,8 @@ class Manager
             'hide_own_posts' => false,
             'from_timestamp' => null,
             'reverse_sort' => null,
+            'use_legacy_time_ranges' => true,
+            'exclude_scheduled' => false,
         ], $opts);
 
         switch ($type) {
@@ -658,6 +660,8 @@ class Manager
             'hide_own_posts' => $opts['hide_own_posts'],
             'from_timestamp' => $opts['from_timestamp'],
             'reverse_sort' => $opts['reverse_sort'],
+            'use_legacy_time_ranges' => $opts['use_legacy_time_ranges'],
+            'exclude_scheduled' => $opts['exclude_scheduled'],
         ]);
     }
 
