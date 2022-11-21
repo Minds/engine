@@ -25,7 +25,7 @@ baseimage:
     - |
       docker build \
         -t minds/php:pdo \
-        -f containers/php/Dockerfile
+        -f containers/php/Dockerfile \
         .
     - docker push minds/php:pdo
   rules:
