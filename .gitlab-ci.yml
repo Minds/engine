@@ -33,6 +33,7 @@ baseimage:
       changes:
         - containers/**/*
     - when: manual
+      allow_failure: true
 
 build:
   stage: build
