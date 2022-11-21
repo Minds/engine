@@ -79,7 +79,7 @@ prepare:fpm:
         .
     - docker push $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
     - >
-      if [ $CI_COMMIT_BRANCH == "master" ]; then 
+      if [ $CI_COMMIT_BRANCH == "master" ]; then
         docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:latest &&
         docker push $CI_REGISTRY_IMAGE/fpm:latest
       fi
@@ -100,7 +100,7 @@ prepare:runners:
         .
     - docker push $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
     - >
-      if [ $CI_COMMIT_BRANCH == "master" ]; then 
+      if [ $CI_COMMIT_BRANCH == "master" ]; then
         docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:latest &&
         docker push $CI_REGISTRY_IMAGE/runners:latest
       fi
@@ -125,7 +125,7 @@ container_scanning_runners:
   extends: container_scanning
   stage: scan
   variables:
-    DOCKER_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
+    DOCKER_IMAGE: $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
 
 dependency_scanning:
   stage: scan
