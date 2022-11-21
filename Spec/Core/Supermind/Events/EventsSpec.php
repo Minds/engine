@@ -34,6 +34,10 @@ class EventsSpec extends ObjectBehavior
         EntitiesBuilder $entitiesBuilderMock,
         ACL $aclMock
     ) {
+        Di::_()->bind('EventsDispatcher', function ($di) {
+            return new EventsDispatcher();
+        });
+
         $this->beConstructedWith(null, $supermindManagerMock, $entitiesBuilderMock, $aclMock);
 
         $this->eventsDispatcherMock = $eventsDispatcherMock;
