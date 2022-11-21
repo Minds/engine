@@ -149,8 +149,8 @@ RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && make install \
     && cd .. \
     # Pulsar CPP Client
-    && git clone --depth 1 https://github.com/apache/pulsar.git \
-    && cd pulsar/pulsar-client-cpp \
+    && git clone --depth 1 https://github.com/apache/pulsar-client-cpp.git \
+    && cd pulsar-client-cpp \
     && cmake . -DBUILD_TESTS=OFF \
     && make -j2 \
     && make install \
