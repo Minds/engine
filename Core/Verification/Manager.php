@@ -14,6 +14,7 @@ use Minds\Core\Verification\Models\VerificationRequest;
 use Minds\Core\Verification\Models\VerificationRequestStatus;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
 use Minds\Traits\RandomGenerators;
 use Zend\Diactoros\Stream;
 
@@ -55,10 +56,11 @@ class Manager
 
     /**
      * @param string $deviceId
+     * @param string $ipAddr
      * @return VerificationRequest
      * @throws ServerErrorException
      */
-    public function createVerificationRequest(string $deviceId): VerificationRequest
+    public function createVerificationRequest(string $deviceId, string $ipAddr): VerificationRequest
     {
         $verificationRequest = new VerificationRequest();
         try {
@@ -69,23 +71,28 @@ class Manager
 
             return $verificationRequest;
         } catch (VerificationRequestNotFoundException|VerificationRequestExpiredException $e) {
-            $verificationRequest = $verificationRequest->withData([
-                'user_guid' => $this->user->getGuid(),
-                'device_id' => $deviceId,
-                'status' => VerificationRequestStatus::PENDING,
-                'verification_code' => $this->generateRandomInteger(),
-                'created_at' => date('c', time())
-            ]);
+            $verificationRequest = new VerificationRequest();
+            $verificationRequest
+                ->setUserGuid($this->user->getGuid())
+                ->setDeviceId($deviceId)
+                ->setVerificationCode($this->generateRandomInteger())
+                ->setIpAddr($ipAddr);
         }
 
         if (!$this->repository->createVerificationRequest($verificationRequest)) {
             throw new ServerErrorException("An error occurred whilst creating the verification request");
         }
+
+        // Send push notification to the device
+
         return $verificationRequest;
     }
 
     /**
-     * @param array $data
+     * @param string $deviceId
+     * @param string $ipAddr
+     * @param Stream $imageStream
+     * @param string $sensorData
      * @return bool
      * @throws ImagickException
      * @throws ServerErrorException
@@ -93,17 +100,13 @@ class Manager
      * @throws VerificationRequestFailedException
      * @throws VerificationRequestNotFoundException
      */
-    public function verifyAccount(array $data): bool
-    {
-        /**
-         * @var Stream $imageStream
-         */
-        [
-            'deviceId' => $deviceId,
-            'imageStream' => $imageStream,
-            'sensorData' => $sensorData
-        ] = $data;
-
+    public function verifyAccount(
+        string $deviceId,
+        string $ipAddr,
+        Stream $imageStream,
+        string $sensorData,
+        string $geo,
+    ): bool {
         $verificationRequest = $this->repository->getVerificationRequestDetails(
             userGuid: $this->user->getGuid(),
             deviceId: $deviceId
@@ -113,6 +116,12 @@ class Manager
             throw new VerificationRequestExpiredException();
         }
 
+        if ($verificationRequest->getIpAddr() !== $ipAddr) {
+            throw new UserErrorException("We detected a different IP address between your request and response. Please request a new code");
+        }
+
+        // TODO Store the raw image on S3
+
         $imageProcessor = $this->imageProcessor->withStream($imageStream);
 
         $imageProcessor->cropVerificationImage();
@@ -121,17 +130,16 @@ class Manager
 
         if ($verificationRequest->getVerificationCode() !== $providedCode) {
             $this->repository->updateVerificationRequestStatus(
-                userGuid: $this->user->getGuid(),
-                deviceId: $deviceId,
+                $verificationRequest,
                 status: VerificationRequestStatus::FAILED
             );
             throw new VerificationRequestFailedException();
         }
 
         $this->repository->markRequestAsVerified(
-            userGuid: $this->user->getGuid(),
-            deviceId: $deviceId,
-            sensorData: $sensorData
+            $verificationRequest,
+            sensorData: $sensorData,
+            geo: $geo,
         );
         return true;
     }

@@ -54,17 +54,34 @@ class Repository
             throw new VerificationRequestNotFoundException();
         }
 
-        return (new VerificationRequest())->withData($statement->fetch(PDO::FETCH_ASSOC));
+        return new VerificationRequest($statement->fetch(PDO::FETCH_ASSOC));
     }
 
+    /**
+     * @param VerificationRequest $verificationRequest
+     * @return bool
+     */
     public function createVerificationRequest(VerificationRequest $verificationRequest): bool
     {
-        $query = "INSERT INTO user_verification (user_guid, device_id, status, verification_code) VALUES (:user_guid, :device_id, :status, :verification_code)";
+        $query = "INSERT INTO user_verification (
+                user_guid,
+                device_id,
+                status,
+                verification_code,
+                ip
+            ) VALUES (
+                :user_guid,
+                :device_id,
+                :status,
+                :verification_code,
+                :ip
+            )";
         $values = [
             'user_guid' => $verificationRequest->getUserGuid(),
             'device_id' => $verificationRequest->getDeviceId(),
             'status' => $verificationRequest->getStatus(),
-            'verification_code' => $verificationRequest->getVerificationCode()
+            'verification_code' => $verificationRequest->getVerificationCode(),
+            'ip' => $verificationRequest->getIpAddr(),
         ];
 
         $statement = $this->mysqlClientWriter->prepare($query);
@@ -73,40 +90,72 @@ class Repository
         return $statement->execute();
     }
 
-    public function updateVerificationRequestStatus(string $userGuid, string $deviceId, int $status): bool
+    /**
+     * @param VerificationRequest $verificationRequest,
+     * @param int $status
+     * @return bool
+     */
+    public function updateVerificationRequestStatus(VerificationRequest $verificationRequest, int $status): bool
     {
-        $query = "UPDATE user_verification SET status = :status, updated_at = :updated_at WHERE user_guid = :user_guid AND device_id = :device_id";
+        $query = "UPDATE user_verification 
+            SET status = :status,
+                updated_at = :updated_at
+            WHERE user_guid = :user_guid
+                AND device_id = :device_id
+                AND created_at = :created_at";
         $values = [
+            // Where clause
+            'user_guid' => $verificationRequest->getUserGuid(),
+            'device_id' => $verificationRequest->getDeviceId(),
+            'created_at' => date('c', $verificationRequest->getCreatedAt()),
+            // Update values
             'status' => $status,
             'updated_at' => date('c', time()),
-            'user_guid' => $userGuid,
-            'device_id' => $deviceId
         ];
 
-        $statement = $this->mysqlClientReader->prepare($query);
+        $statement = $this->mysqlClientWriter->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         return $statement->execute();
     }
 
     /**
-     * @param string $userGuid
-     * @param string $deviceId
+     * @param VerificationRequest $verificationRequest,
+     * @param string $geo
      * @param string|null $sensorData
      * @return bool
      */
-    public function markRequestAsVerified(string $userGuid, string $deviceId, ?string $sensorData = null): bool
-    {
-        $query = "UPDATE user_verification SET status = :status, updated_at = :updated_at, sensor_data = :sensor_data WHERE user_guid = :user_guid AND device_id = :device_id";
+    public function markRequestAsVerified(
+        VerificationRequest $verificationRequest,
+        string $geo,
+        ?string $sensorData = null
+    ): bool {
+        [ $geoLat, $geoLon ] = explode(',', $geo);
+
+        $query = "UPDATE user_verification 
+            SET status = :status, 
+                updated_at = :updated_at,
+                sensor_data = :sensor_data,
+                geo_lat = :geo_lat,
+                geo_lon = :geo_lon
+            WHERE user_guid = :user_guid 
+                AND device_id = :device_id
+                AND created_at = :created_at";
+
         $values = [
+            // Where clause
+            'user_guid' => $verificationRequest->getUserGuid(),
+            'device_id' => $verificationRequest->getDeviceId(),
+            'created_at' => date('c', $verificationRequest->getCreatedAt()),
+            // Update value
             'status' => VerificationRequestStatus::VERIFIED,
             'updated_at' => date('c', time()),
             'sensor_data' => $sensorData,
-            'user_guid' => $userGuid,
-            'device_id' => $deviceId
+            'geo_lat' => $geoLat,
+            'geo_lon' => $geoLon,
         ];
 
-        $statement = $this->mysqlClientReader->prepare($query);
+        $statement = $this->mysqlClientWriter->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         return $statement->execute();

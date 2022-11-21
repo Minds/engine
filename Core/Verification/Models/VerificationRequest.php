@@ -20,6 +20,10 @@ use Minds\Traits\MagicAttributes;
  * @method int|null getUpdatedAt()
  * @method self setSensorData(string $sensorData)
  * @method string|null getSensorData()
+ * @method self setIpAddr(string $ipAddr)
+ * @method string getIpAddr()
+ * @method self setGeo(string $geo)
+ * @method string getGeo()
  */
 class VerificationRequest implements ExportableInterface
 {
@@ -30,49 +34,62 @@ class VerificationRequest implements ExportableInterface
     private string $userGuid;
     private string $deviceId;
     private string $verificationCode;
-    private int $status;
+    private int $status = VerificationRequestStatus::PENDING;
     private int $createdAt;
     private ?int $updatedAt = null;
     private ?string $sensorData = null;
+    private string $ipAddr;
+    private string $geo;
 
-    public function withData(array $data): self
+    public function __construct(array $data = [])
     {
-        $instance = clone $this;
-
         if (isset($data['user_guid'])) {
-            $instance->setUserGuid($data['user_guid']);
+            $this->setUserGuid($data['user_guid']);
         }
 
         if (isset($data['device_id'])) {
-            $instance->setDeviceId($data['device_id']);
+            $this->setDeviceId($data['device_id']);
         }
 
         if (isset($data['verification_code'])) {
-            $instance->setVerificationCode($data['verification_code']);
+            $this->setVerificationCode($data['verification_code']);
         }
 
         if (isset($data['status'])) {
-            $instance->setStatus($data['status']);
+            $this->setStatus($data['status']);
         }
 
         if (isset($data['created_at'])) {
-            $instance->setCreatedAt((int) $data['created_at']);
+            $this->setCreatedAt(strtotime($data['created_at']));
+        } else {
+            $this->setCreatedAt(time());
         }
 
         if (isset($data['updated_at'])) {
-            $instance->setUpdatedAt((int) $data['updated_at']);
+            $this->setUpdatedAt(strtotime($data['updated_at']));
         }
 
         if (isset($data['sensor_data'])) {
-            $instance->setSensorData($data['sensor_data']);
+            $this->setSensorData($data['sensor_data']);
         }
 
-        return $instance;
+        if (isset($data['ip'])) {
+            $this->setIpAddr($data['ip']);
+        }
+
+        if (isset($data['geo_lat']) && isset($data['geo_lon'])) {
+            $this->setGeo("{$data['geo_lat']},{$data['geo_lon']}");
+        }
     }
 
     public function isExpired(): bool
     {
-        return $this->status === VerificationRequestStatus::EXPIRED || time() < ($this->createdAt + self::EXPIRY_THRESHOLD);
+        return $this->status === VerificationRequestStatus::EXPIRED || time() > ($this->createdAt + self::EXPIRY_THRESHOLD);
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->stats === VerificationRequestStatus::VERIFIED;
     }
 
     public function getStatus(): int
@@ -89,7 +106,7 @@ class VerificationRequest implements ExportableInterface
             'user_guid' => $this->getUserGuid(),
             'device_id' => $this->getDeviceId(),
             'status' => $this->getStatus(),
-            'verification_code' => $this->getVerificationCode(),
+            // 'verification_code' => $this->getVerificationCode(),
             'created_at' => $this->getCreatedAt(),
             'updated_at' => $this->getUpdatedAt()
         ];

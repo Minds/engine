@@ -30,7 +30,7 @@ class GoogleVisionOCRClient implements MindsOCRInterface
                 "Content-Type" => 'application/json; charset=utf-8'
             ],
             RequestOptions::QUERY => [
-                'key' => $this->mindsConfig->get('ocr')['google']['api_key']
+                'key' => $this->mindsConfig->get('google')['vision']['api_key']
             ],
             RequestOptions::JSON => [
                 'requests' => [
