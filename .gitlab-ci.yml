@@ -3,6 +3,7 @@ include:
   - template: Security/Container-Scanning.gitlab-ci.yml
 
 stages:
+  - baseimage
   - build
   - test
   - prepare
@@ -13,6 +14,25 @@ stages:
   - deploy:canary
   - deploy:production
   - scan
+
+baseimage:
+  stage: baseimage
+  image: minds/ci:latest
+  services:
+    - docker:dind
+  script:
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
+    - |
+      docker build \
+        -t minds/php:pdo \
+        -f containers/php/Dockerfile
+        .
+    - docker push minds/php:pdo
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      changes:
+        - containers/**/*
+    - when: manual
 
 build:
   stage: build
