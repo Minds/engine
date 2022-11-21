@@ -1,5 +1,7 @@
 FROM php:8.0-fpm-alpine3.15
 
+RUN apk update # Update package lists before we install stuff
+
 RUN apk add --no-cache --update --virtual .php-deps make
 
 RUN apk add --no-cache --virtual build-deps \
