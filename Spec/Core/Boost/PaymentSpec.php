@@ -23,7 +23,12 @@ use Minds\Entities\Boost\Network;
 use Minds\Entities\Boost\Peer;
 use Minds\Entities\User;
 use Minds\Core\Data\Locks\Redis as Locks;
- 
+use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Boost\CashPaymentProcessor;
+use Minds\Core\Boost\Network\Boost as NetworkBoost;
+use Minds\Core\EntitiesBuilder;
+use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -62,6 +67,15 @@ class PaymentSpec extends ObjectBehavior
     /** @var WithholdingRepository */
     protected $withholding;
 
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    /** @var ExperimentsManager */
+    protected $experimentsManager;
+
+    /** @var CashPaymentProcessor */
+    protected $cashPaymentProcessor;
+
     public function let(
         Transactions $offchainTransactions,
         Stripe $stripePayments,
@@ -73,7 +87,10 @@ class PaymentSpec extends ObjectBehavior
         Locks $locks,
         Lookup $lu,
         RatesInterface $rates,
-        WithholdingRepository $withholding
+        WithholdingRepository $withholding,
+        EntitiesBuilder $entitiesBuilder,
+        CashPaymentProcessor $cashPaymentProcessor,
+        ExperimentsManager $experimentsManager
     ) {
         $this->offchainTransactions = $offchainTransactions;
         $this->stripePayments = $stripePayments;
@@ -86,6 +103,9 @@ class PaymentSpec extends ObjectBehavior
         $this->lu = $lu;
         $this->rates = $rates;
         $this->withholding = $withholding;
+        $this->entitiesBuilder = $entitiesBuilder;
+        $this->cashPaymentProcessor = $cashPaymentProcessor;
+        $this->experimentsManager = $experimentsManager;
 
         $this->beConstructedWith(
             $this->stripePayments,
@@ -93,7 +113,10 @@ class PaymentSpec extends ObjectBehavior
             $this->txManager,
             $this->txRepository,
             $this->config,
-            $this->locks
+            $this->locks,
+            $this->entitiesBuilder,
+            $this->cashPaymentProcessor,
+            $this->experimentsManager
         );
 
         Di::_()->bind('Blockchain\Wallets\OffChain\Transactions', function () use ($offchainTransactions) {
@@ -123,48 +146,31 @@ class PaymentSpec extends ObjectBehavior
     }
 
     public function it_should_pay_network_with_money(
-        Network $boost,
-        User $owner,
-        Customer $customer
+        NetworkBoost $boost
     ) {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('network');
+        $paymentMethodId = '123';
+        $payload = [
+            'payment_method_id' => $paymentMethodId
+        ];
+        $responseId = '234';
 
         $boost->getBidType()
             ->shouldBeCalled()
-            ->willReturn('money');
+            ->willReturn('cash');
 
-        $boost->getGuid()
-            ->shouldBeCalled()
-            ->willReturn(8000);
-
-        $boost->getOwner()
-            ->shouldBeCalled()
-            ->willReturn($owner);
-
-        $boost->getBid()
-            ->shouldBeCalled()
-            ->willReturn(10);
-
-        $owner->get('guid')->willReturn(5000);
-        $owner->get('referrer')->willReturn(null);
-
-        $this->stripePayments->createCustomer(Argument::type(Customer::class))
-            ->shouldBeCalled()
-            ->willReturn($customer);
-
-        $customer->getId()
-            ->shouldBeCalled()
-            ->willReturn('phpspec');
-
-        $this->stripePayments->setSale(Argument::type(Sale::class))
+        $this->experimentsManager->isOn('engine-2462-cash-boosts')
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this
-            ->pay($boost, 'phpspec')
-            ->shouldReturn(true);
+        $this->cashPaymentProcessor->setupNetworkBoostStripePayment(
+            $paymentMethodId,
+            $boost
+        )
+            ->shouldBeCalled()
+            ->willReturn($responseId);
+
+        $this->pay($boost, $payload)
+            ->shouldReturn($responseId);
     }
 
     public function it_should_throw_if_peer_during_pay_with_money(
@@ -176,11 +182,43 @@ class PaymentSpec extends ObjectBehavior
 
         $boost->getMethod()
             ->shouldBeCalled()
-            ->willReturn('money');
+            ->willReturn('cash');
 
         $this
-            ->shouldThrow(new \Exception('Money P2P boosts are not supported'))
+            ->shouldThrow(new \Exception('USD boost offers are not supported'))
             ->duringPay($boost, '~Stripe');
+    }
+
+    public function it_should_throw_if_experiment_not_enabled_during_pay_with_money(
+        NetworkBoost $boost
+    ) {
+        $boost->getBidType()
+            ->shouldBeCalled()
+            ->willReturn('cash');
+
+        $this->experimentsManager->isOn('engine-2462-cash-boosts')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this
+            ->shouldThrow(new ServerErrorException('Cash boost feature is not enabled'))
+            ->duringPay($boost, '~Stripe');
+    }
+
+    public function it_should_throw_if_no_payment_method_id_in_payload_during_pay_with_money(
+        NetworkBoost $boost
+    ) {
+        $boost->getBidType()
+            ->shouldBeCalled()
+            ->willReturn('cash');
+
+        $this->experimentsManager->isOn('engine-2462-cash-boosts')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this
+            ->shouldThrow(new UserErrorException('Payment method ID must be supplied'))
+            ->duringPay($boost, []);
     }
 
     public function it_should_pay_network_with_offchain_tokens(
@@ -558,33 +596,6 @@ class PaymentSpec extends ObjectBehavior
     //         ->shouldReturn('creditcard:~sale');
     // }
 
-    public function it_should_throw_if_no_rewards_program_during_pay_peer_with_creditcard_offchain_tokens(
-        Peer $boost,
-        User $destination
-    ) {
-        $boost->getHandler()
-            ->shouldBeCalled()
-            ->willReturn('peer');
-
-        $boost->getMethod()
-            ->shouldBeCalled()
-            ->willReturn('tokens');
-
-        $boost->getDestination()
-            ->shouldBeCalled()
-            ->willReturn($destination);
-
-        $destination->getPhoneNumberHash()
-            ->shouldBeCalled()
-            ->willReturn('');
-
-        $this
-            ->shouldThrow(new \Exception('Boost target should participate in the Rewards program.'))
-            ->duringPay($boost, [
-                'method' => 'creditcard'
-            ]);
-    }
-
     public function it_should_pay_network_with_onchain_tokens(
         Network $boost,
         User $owner
@@ -704,35 +715,26 @@ class PaymentSpec extends ObjectBehavior
             ->duringPay($boost, '');
     }
 
-    // function it_should_charge_money_boost(
-    //     Network $boost,
-    //     User $owner
-    // )
-    // {
-    //     $boost->getBidType()
-    //         ->shouldBeCalled()
-    //         ->willReturn('money');
+    public function it_should_charge_money_boost(
+        Network $boost,
+    ) {
+        $paymentIntentId = '~stripe';
+        $boost->getBidType()
+            ->shouldBeCalled()
+            ->willReturn('cash');
 
-    //     $boost->getOwner()
-    //         ->shouldBeCalled()
-    //         ->willReturn($owner);
+        $boost->getTransactionId()
+            ->shouldBeCalled()
+            ->willReturn($paymentIntentId);
 
-    //     $boost->getTransactionId()
-    //         ->shouldBeCalled()
-    //         ->willReturn('~stripe');
+        $this->cashPaymentProcessor->capturePaymentIntent($paymentIntentId)
+            ->shouldBeCalled()
+            ->willReturn(true);
 
-    //     $owner->get('referrer')
-    //         ->shouldBeCalled()
-    //         ->willReturn(null);
-
-    //     $this->stripePayments->chargeSale(Argument::type(Sale::class))
-    //         ->shouldBeCalled()
-    //         ->willReturn(null); // Don't trigger email
-
-    //     $this
-    //         ->charge($boost)
-    //         ->shouldReturn(null);
-    // }
+        $this
+            ->charge($boost)
+            ->shouldReturn(true);
+    }
 
     public function it_should_charge_peer_offchain_tokens_boost(
         Peer $boost,
@@ -890,25 +892,20 @@ class PaymentSpec extends ObjectBehavior
             ->duringCharge($boost);
     }
 
-    public function it_should_refund_network_money_boost(
-        Network $boost,
-        User $owner
+    public function it_should_refund_network_cash_boost(
+        Network $boost
     ) {
+        $boostPaymentId = '~stripe123';
+
         $boost->getBidType()
             ->shouldBeCalled()
-            ->willReturn('money');
+            ->willReturn('cash');
 
         $boost->getTransactionId()
             ->shouldBeCalled()
-            ->willReturn('~stripe');
+            ->willReturn($boostPaymentId);
 
-        $boost->getOwner()
-            ->shouldBeCalled()
-            ->willReturn($owner);
-
-        $owner->get('referrer')->willReturn(null);
-
-        $this->stripePayments->voidOrRefundSale(Argument::type(Sale::class), true)
+        $this->cashPaymentProcessor->cancelPaymentIntent($boostPaymentId)
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -1202,26 +1199,6 @@ class PaymentSpec extends ObjectBehavior
         $this
             ->shouldThrow(LockFailedException::class)
             ->duringRefund($boost);
-    }
-
-    public function it_should_refund_creditcard_tokens_boost(
-        Network $boost
-    ) {
-        $boost->getBidType()
-            ->shouldBeCalled()
-            ->willReturn('tokens');
-
-        $boost->getTransactionId()
-            ->shouldBeCalled()
-            ->willReturn('creditcard:~stripe');
-
-        $this->stripePayments->voidOrRefundSale(Argument::type(Sale::class), true)
-            ->shouldBeCalled()
-            ->willReturn('~stripe-refund');
-
-        $this
-            ->refund($boost)
-            ->shouldReturn('~stripe-refund');
     }
 
     public function it_should_throw_if_payment_method_is_not_supported_during_refund(

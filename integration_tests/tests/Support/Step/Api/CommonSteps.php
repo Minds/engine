@@ -82,6 +82,13 @@ class CommonSteps extends ApiTester
         $this->sendAsJson($requestMethod, $uri, Fixtures::get($dataToRetrieve));
     }
 
+    #[When('I ":requestMethod" stored data ":dataToRetrieve" to the ":uri" endpoint and store the response with key ":response_data_key"')]
+    public function whenICallEndpointWithDataAndStore(string $requestMethod, string $dataToRetrieve, string $uri, string $responseDataStorageKey)
+    {
+        $response = $this->sendAsJson($requestMethod, $uri, Fixtures::get($dataToRetrieve));
+        Fixtures::add($responseDataStorageKey, $response);
+    }
+
     #[Then('I get a :targetHttpStatusCode response containing :targetResponseContent')]
     public function thenISuccessfullyLogin(string $targetHttpStatusCode, PyStringNode $targetResponseContent)
     {

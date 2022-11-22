@@ -16,6 +16,8 @@ use Minds\Traits\MagicAttributes;
  * @method PaymentIntent getServiceFeePct(): int
  * @method PaymentIntent setCaptureMethod($method)
  * @method PaymentIntent getDescriptor(): string
+ * @method PaymentIntent setDescription(string $description)
+ * @method PaymentIntent getDescription(): string
  * @method bool isOffSession()
  * @method bool isConfirm()
  * @method string getCaptureMethod()
@@ -44,8 +46,11 @@ class PaymentIntent extends Intent
     /** @var bool $offSession */
     private $offSession = false;
 
-    /** @var string $descriptor */
+    /** @var string $descriptor - statement descriptor to appear on statements */
     private $descriptor = 'MINDS, INC.';
+
+    /** @var string $description - longer form description for more detailed tracking */
+    private $description = '';
 
     /** @var int $serviceFeePct */
     private $serviceFeePct = 0;

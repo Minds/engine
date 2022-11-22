@@ -100,10 +100,4 @@ class Manager
 
         return $result;
     }
-
-    public function getRate()
-    {
-        // how many units per token
-        return 1000;
-    }
 }
