@@ -100,13 +100,15 @@ class DataProvider extends Provider
         $this->di->bind('Redis', function ($di) {
             $master = ($di->get('Config')->redis ?? null)['master'] ?? null;
             $client = new Redis\Client();
-            $client->connect($master);
+            // $client->connect($master);
+            $client->connect($master, 6379);
             return $client;
         }, ['useFactory'=>true]);
         $this->di->bind('Redis\Slave', function ($di) {
             $slave = ($di->get('Config')->redis ?? null)['slave'] ?? null;
             $client = new Redis\Client();
-            $client->connect($slave);
+            // $client->connect($slave);
+            $client->connect($slave, 6380);
             return $client;
         }, ['useFactory'=>true]);
         /**
