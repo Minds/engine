@@ -51,4 +51,12 @@ class PaymentIntentSpec extends ObjectBehavior
             ->shouldBeCalled();
         $this->getDescriptor()->shouldBe($defaultDescriptor);
     }
+
+    public function it_should_get_description()
+    {
+        $description = 'Minds Payment for service';
+        $this->setDescription($description)
+            ->getDescription()
+            ->shouldBe($description);
+    }
 }

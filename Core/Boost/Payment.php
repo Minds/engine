@@ -3,7 +3,6 @@
 namespace Minds\Core\Boost;
 
 use Minds\Core;
-use Minds\Core\Blockchain\Services\RatesInterface;
 use Minds\Core\Blockchain\Services;
 use Minds\Core\Boost\Network\Boost;
 use Minds\Core\Config;
@@ -13,7 +12,10 @@ use Minds\Core\Payments;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\Boost\Peer;
 use Minds\Entities\User;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Data\Locks\LockFailedException;
+use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
 
 class Payment
 {
@@ -45,7 +47,9 @@ class Payment
         $txRepository = null,
         $config = null,
         $locks = null,
-        private ?EntitiesBuilder $entitiesBuilder = null
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?CashPaymentProcessor $cashPaymentProcessor = null,
+        private ?ExperimentsManager $experimentsManager = null
     ) {
         $this->stripePayments = $stripePayments ?: Di::_()->get('StripePayments');
         $this->eth = $eth ?: Di::_()->get('Blockchain\Services\Ethereum');
@@ -54,6 +58,8 @@ class Payment
         $this->config = $config ?: Di::_()->get('Config');
         $this->locks = $locks ?: Di::_()->get('Database\Locks');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->cashPaymentProcessor ??= new CashPaymentProcessor();
+        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -66,7 +72,7 @@ class Payment
     }
 
     /**
-     * @param Network|Peer $boost
+     * @param Network|Peer|Network\Boost|Peer\Boost $boost
      * @param $payload
      * @return null
      * @throws \Exception
@@ -77,42 +83,27 @@ class Payment
             $boost->getMethod() : $boost->getBidType();
 
         switch ($currency) {
-            case 'usd':
-            case 'money':
-                if ($boost->getHandler() === 'peer') {
-                    throw new \Exception('Money P2P boosts are not supported');
+            case 'cash':
+                $handler = method_exists($boost, 'getHandler')
+                    ? $boost->getHandler()
+                    : $boost->getBidType();
+
+                if ($handler === 'peer' || $boost instanceof Peer) {
+                    throw new \Exception('USD boost offers are not supported');
                 }
 
-                $customer = (new Payments\Customer())
-                    ->setUser($boost->getOwner());
-
-                $source = $payload;
-
-                if (!$customer->getId()) {
-                    $customer->setPaymentToken($payload);
-                    $customer = $this->stripePayments->createCustomer($customer);
-
-                    // Token already consumed to set default payment method, let's use the
-                    // customer itself
-                    $source = $customer->getId();
+                if (!$this->experimentsManager->isOn('engine-2462-cash-boosts')) {
+                    throw new ServerErrorException('Cash boost feature is not enabled');
                 }
 
-                $sale = (new Payments\Sale())
-                    ->setOrderId('boost-' . $boost->getGuid())
-                    ->setAmount($boost->getBid())
-                    ->setCustomerId($customer->getId())
-                    ->setCustomer($customer)
-                    ->setSource($source)
-                    ->setSettle(false);
-
-                if ($boost->getOwner()->referrer) {
-                    $referrer = new User($boost->getOwner()->referrer);
-                    $sale->setMerchant($referrer)
-                        ->setFee(0.75); //payout 25% to referrer
+                if (!isset($payload['payment_method_id'])) {
+                    throw new UserErrorException('Payment method ID must be supplied');
                 }
 
-                return $this->stripePayments->setSale($sale);
-
+                return $this->cashPaymentProcessor->setupNetworkBoostStripePayment(
+                    $payload['payment_method_id'],
+                    $boost
+                );
             case 'tokens':
                 switch ($payload['method']) {
                     case 'offchain':
@@ -150,73 +141,6 @@ class Payment
                             ->create();
 
                         return $tx->getTx();
-
-                    case 'creditcard':
-                        if ($boost->getHandler() === 'peer' && !$boost->getDestination()->getPhoneNumberHash()) {
-                            throw new \Exception('Boost target should participate in the Rewards program.');
-                        }
-
-                        //charge the card
-                        $customer = (new Core\Payments\Customer())
-                            ->setUser($boost->getOwner());
-
-                        $source = $payload['token'];
-                        // if customer doesn't exist on Stripe, create it
-                        if (!$this->stripePayments->getCustomer($customer) || !$customer->getId()) {
-                            $customer->setPaymentToken($source);
-                            $customer = $this->stripePayments->createCustomer($customer);
-                            $source = $customer->getId();
-                        }
-
-                        $currencyId = $this->config->get('blockchain')['token_symbol'];
-
-                        /** @var RatesInterface $rates */
-                        $rates = Di::_()->get('Blockchain\Rates');
-                        $exRate = $rates
-                            ->setCurrency($currencyId)
-                            ->get();
-
-                        $usd = round(BigNumber::fromPlain($boost->getBid(), 18)
-                            ->mul($exRate)
-                            ->mul(100)
-                            ->toDouble()); //*100 for $ -> cents
-
-                        $sale = new Core\Payments\Sale();
-                        $sale
-                            ->setOrderId('boost-' . $boost->getGuid())
-                            ->setAmount($usd)
-                            ->setCustomerId($customer->getId())
-                            ->setCustomer($customer)
-                            ->setSource($source)
-                            ->setSettle(false);
-
-                        $tx = 'creditcard:' . $this->stripePayments->setSale($sale);
-
-                        $txData = [
-                            'amount' => (string) $boost->getBid(),
-                            'guid' => (string) $boost->getGuid(),
-                            'handler' => (string) $boost->getHandler()
-                        ];
-
-                        if ($boost->getHandler() === 'peer') {
-                            $txData['sender_guid'] = (string) $boost->getOwner()->guid;
-                            $txData['receiver_guid'] = (string) $boost->getDestination()->guid;
-                        }
-
-                        $sendersTx = new Core\Blockchain\Transactions\Transaction();
-                        $sendersTx
-                            ->setTx($tx)
-                            ->setContract('boost')
-                            ->setWalletAddress('creditcard')
-                            ->setAmount((string) BigNumber::_($boost->getBid())->neg())
-                            ->setTimestamp(time())
-                            ->setUserGuid($boost->getOwner()->guid)
-                            ->setCompleted(true)
-                            ->setData($txData);
-                        $this->txManager->add($sendersTx);
-
-                        return $tx;
-
                     case 'onchain':
                         if ($boost->getHandler() === 'peer' && !$boost->getDestination()->getEthWallet()) {
                             throw new \Exception('Boost target should participate in the Rewards program.');
@@ -285,6 +209,10 @@ class Payment
         switch ($currency) {
             case 'points':
                 return true; // Already charged
+            case 'cash':
+                return $this->cashPaymentProcessor->capturePaymentIntent(
+                    $boost->getTransactionId()
+                );
             case 'tokens':
                 $method = '';
                 $txIdMeta = '';
@@ -362,18 +290,10 @@ class Payment
             case 'points':
                 return true;
                 break;
-            case 'usd':
-            case 'money':
-                $sale = (new Payments\Sale())
-                    ->setId($boost->getTransactionId());
-
-                if ($boost->getOwner()->referrer) {
-                    $referrer = new User($boost->getOwner()->referrer);
-                    $sale->setMerchant($referrer);
-                }
-
-                return $this->stripePayments->voidOrRefundSale($sale, true);
-
+            case 'cash':
+                return $this->cashPaymentProcessor->cancelPaymentIntent(
+                    $boost->getTransactionId()
+                );
             case 'tokens':
                 $method = '';
                 $txIdMeta = '';
@@ -457,12 +377,6 @@ class Payment
                             ->create();
 
                         break;
-
-                    case 'creditcard':
-                        $sale = (new Payments\Sale())
-                            ->setId($txIdMeta);
-
-                        return $this->stripePayments->voidOrRefundSale($sale, true);
                 }
 
 
