@@ -90,7 +90,9 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             $campaign = clone $campaign;
 
             if ($campaign instanceof SupermindBulkIncentive) {
-                $campaign = $campaign->withActivityGuid($this->getOpt('activity-guid'));
+                $campaign = $campaign
+                    ->withActivityGuid($this->getOpt('activity-guid'))
+                    ->withReplyType((int) $this->getOpt('reply-type'));
             }
 
             $campaign->setUser($user);
