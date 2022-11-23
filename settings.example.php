@@ -353,6 +353,8 @@ $CONFIG->set('payouts', [
 $CONFIG->set('payments', [
     'stripe' => [
         'api_key' => '',
+        'test_api_key' => '',
+        'test_email' => '',
         'transfers' => [
             'source_type' => 'bank_account',
         ],

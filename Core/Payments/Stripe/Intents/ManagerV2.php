@@ -14,13 +14,13 @@ use Minds\Core\Payments\Models\GetPaymentsOpts;
 use Minds\Core\Payments\Stripe\Connect\Manager as StripeConnectManager;
 use Minds\Core\Payments\Stripe\Customers\Manager as StripeCustomersManager;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
+use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use Stripe\Exception\ApiErrorException;
 use Stripe\PaymentIntent as StripePaymentIntent;
 use Stripe\SetupIntent as StripeSetupIntent;
-use Stripe\StripeClient;
 
 /**
  * Manager for Stripe intents (Payment, Setup)
@@ -35,7 +35,7 @@ class ManagerV2
         private ?EntitiesBuilder        $entitiesBuilder = null
     ) {
         $this->mindsConfig ??= Di::_()->get('Config');
-        $this->stripeClient ??= new StripeClient($this->mindsConfig->get('payments')['stripe']['api_key']);
+        $this->stripeClient ??= new StripeClient();
         $this->stripeCustomersManager ??= new StripeCustomersManager();
         $this->stripeConnectManager ??= new StripeConnectManager();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');

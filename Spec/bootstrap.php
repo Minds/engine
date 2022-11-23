@@ -38,6 +38,8 @@ $CONFIG->elasticsearch = [
 $CONFIG->payments = [
     'stripe' => [
         'api_key' => 'phpspec',
+        'test_api_key' => 'phpspec_test_creds',
+        'test_email' => 'teststripe@minds.io',
     ],
 ];
 

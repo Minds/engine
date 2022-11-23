@@ -5,9 +5,9 @@ namespace Minds\Core\Payments\Stripe\Checkout;
 use Minds\Core\Payments\Stripe\Customers;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Entities\User;
 use Stripe\Checkout\Session;
-use Stripe\StripeClient;
 
 class Manager
 {
@@ -17,7 +17,7 @@ class Manager
         private ?Config            $config = null
     ) {
         $this->config ??= Di::_()->get('Config');
-        $this->stripeClient ??= new StripeClient($this->config->get('payments')['stripe']['api_key']);
+        $this->stripeClient ??= new StripeClient();
         $this->customersManager ??= new Customers\ManagerV2();
     }
 
