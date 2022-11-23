@@ -36,7 +36,7 @@ class AutoSupermindRouterMiddleware implements RouterMiddleware
     {
         $queryParams = $request->getQueryParams();
         
-        if (($queryParams['utm_campaign'] ?? '') !== 'supermind_boffer_launch') {
+        if (strpos($queryParams['utm_campaign'] ?? '', 'supermind_boffer_', 0) === false) {
             return true;
         }
 
@@ -61,9 +61,11 @@ class AutoSupermindRouterMiddleware implements RouterMiddleware
          */
         $validatorTokenProvided = $queryParams['validator'] ?? '';
         $activityGuid = $queryParams['activity_guid'] ?? '';
+        $replyType = $queryParams['reply_type'] ?? SupermindRequestReplyType::TEXT;
         $validatorTokenExpected = $this
             ->getSupermindBulkIncentiveEmailCampaign()
             ->withActivityGuid($activityGuid)
+            ->withReplyType($replyType)
             ->setUser($receiverUser)->getValidatorToken();
         
         if ($validatorTokenProvided !== $validatorTokenExpected) {
@@ -98,7 +100,7 @@ class AutoSupermindRouterMiddleware implements RouterMiddleware
             ->setGuid(Guid::build())
             ->setSenderGuid((string) $activityOwner->getGuid())
             ->setReceiverGuid((string) $receiverUser->getGuid())
-            ->setReplyType(SupermindRequestReplyType::TEXT)
+            ->setReplyType($replyType)
             ->setTwitterRequired(false)
             ->setPaymentAmount(5)
             ->setPaymentMethod(SupermindRequestPaymentMethod::OFFCHAIN_TOKEN);

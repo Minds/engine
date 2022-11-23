@@ -14,7 +14,9 @@ use Minds\Core\Email\Mailer;
 use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
+use Minds\Core\Supermind\SupermindRequestReplyType;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 use Minds\Traits\MagicAttributes;
 
 class SupermindBulkIncentive extends EmailCampaign
@@ -30,6 +32,8 @@ class SupermindBulkIncentive extends EmailCampaign
     /** @var string */
     private $activityGuid;
 
+    /** @var int */
+    private $replyType = SupermindRequestReplyType::TEXT;
 
     /** @var User */
     protected $user;
@@ -63,13 +67,29 @@ class SupermindBulkIncentive extends EmailCampaign
     }
 
     /**
-     * @return
+     * @return SupermindBulkIncentive
      */
     public function withActivityGuid(string $activityGuid): SupermindBulkIncentive
     {
         $instance = clone $this;
 
         $instance->activityGuid = $activityGuid;
+
+        return $instance;
+    }
+
+    /**
+     * @return SupermindBulkIncentive
+     */
+    public function withReplyType(int $replyType): SupermindBulkIncentive
+    {
+        $instance = clone $this;
+
+        if (!in_array($replyType, SupermindRequestReplyType::VALID_REPLY_TYPES, true)) {
+            throw new ServerErrorException("You must provide a valid reply type");
+        }
+
+        $instance->replyType = $replyType;
 
         return $instance;
     }
@@ -85,6 +105,7 @@ class SupermindBulkIncentive extends EmailCampaign
             get_class($this), // Class name
             $this->user->getGUID(), // User guid email was sent to
             $this->activityGuid, // guid of the activity we create the supermind from
+            $this->replyType,
             $this->config->get('emails_secret'),
         ];
         $validatorString = implode('', $validator);
@@ -117,9 +138,10 @@ class SupermindBulkIncentive extends EmailCampaign
             'topic' => $this->topic,
             'state' => 'new',
             'utm_medium' => 'email',
-            'utm_campaign' => 'supermind_boffer_launch',
+            'utm_campaign' => 'supermind_boffer_' . $this->activityGuid,
             'utm_source' => 'manual',
             'activity_guid' => $this->activityGuid,
+            'reply_type' => $this->replyType,
             'validator' => $this->getValidatorToken(),
         ];
 
