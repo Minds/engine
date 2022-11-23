@@ -43,10 +43,7 @@ class Manager
      */
     private function getRepository(): RepositoryInterface
     {
-        if ($this->experimentsManager->isOn("engine-2364-vitess-clustered-recs")) {
-            return $this->repositoryFactory->getInstance(MySQLRepository::class);
-        }
-        return $this->repositoryFactory->getInstance(ElasticSearchRepository::class);
+        return $this->repositoryFactory->getInstance(MySQLRepository::class);
     }
 
     /**
@@ -71,10 +68,6 @@ class Manager
     {
         $clusterId = $this->userRecommendationsCluster->calculateUserRecommendationsClusterId($this->user);
         $seenEntitiesList = [];
-
-        if (!$this->experimentsManager->isOn("engine-2364-vitess-clustered-recs") && $unseen) {
-            $seenEntitiesList = $this->seenManager->listSeenEntities();
-        }
 
         $entries = $this->repository->getList($clusterId, $limit, $seenEntitiesList, $unseen, $this->seenManager->getIdentifier());
         $feedSyncEntities = $this->prepareFeedSyncEntities($entries);
