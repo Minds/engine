@@ -33,14 +33,13 @@ class ElasticRepository
             'order' => null,
             'offchain' => null,
         ], $opts);
-
         $must = [];
         $must_not = [];
         $sort = [ '@timestamp' => $opts['order'] ?? 'asc' ];
 
         $must[] = [
-            'term' => [
-                'bid_type' => 'tokens',
+            'terms' => [
+                'bid_type' => ['tokens' , 'cash'],
             ],
         ];
 

@@ -97,9 +97,4 @@ class ManagerSpec extends ObjectBehavior
                 ]
             ]);
     }
-
-    public function it_should_get_the_rate()
-    {
-        $this->getRate()->shouldReturn(1000);
-    }
 }
