@@ -103,7 +103,7 @@ class CashPaymentProcessorSpec extends ObjectBehavior
                 $metadata['impressions'] === $boostImpressions &&
                 $metadata['is_manual_transfer'] === false &&
                 $arg->getServiceFeePct() === 0 &&
-                $arg->getDescriptor() === 'Minds: Boost' &&
+                $arg->getStatementDescriptor() === 'Minds: Boost' &&
                 $arg->getDescription() === "Boost from @$boostOwnerUsername";
         }))
             ->shouldBeCalled()
@@ -132,5 +132,17 @@ class CashPaymentProcessorSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->cancelPaymentIntent($paymentIntentId)->shouldBe(true);
+    }
+
+    public function it_should_get_description_from_sender(User $user)
+    {
+        $username = 'testuser123';
+
+        $user->getUsername()
+            ->shouldBeCalled()
+            ->willReturn($username);
+
+        $this->getDescription($user)
+            ->shouldBe("Boost from @testuser123");
     }
 }

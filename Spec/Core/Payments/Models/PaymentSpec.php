@@ -20,6 +20,7 @@ class PaymentSpec extends ObjectBehavior
         $currency = 'usd';
         $minorUnitAmount = 1000;
         $statementDescriptor = 'Minds: Payment';
+        $description = 'Tip to @testaccount';
         $receiptUrl = 'https://www.minds.com/';
         $createdTimestamp = 1666285605;
         $exportedRecipient = ['user_guid' => '123'];
@@ -38,6 +39,7 @@ class PaymentSpec extends ObjectBehavior
             ->setCurrency($currency)
             ->setMinorUnitAmount($minorUnitAmount)
             ->setStatementDescriptor($statementDescriptor)
+            ->setDescription($description)
             ->setReceiptUrl($receiptUrl)
             ->setCreatedTimestamp($createdTimestamp)
             ->setRecipient($recipient)
@@ -49,6 +51,7 @@ class PaymentSpec extends ObjectBehavior
             'currency' => $currency,
             'minor_unit_amount' => $minorUnitAmount,
             'statement_descriptor' => $statementDescriptor,
+            'description' => $description,
             'receipt_url' => $receiptUrl,
             'created_timestamp' => $createdTimestamp,
             'recipient' => $exportedRecipient,
