@@ -65,7 +65,7 @@ class AutoSupermindRouterMiddleware implements RouterMiddleware
         $validatorTokenExpected = $this
             ->getSupermindBulkIncentiveEmailCampaign()
             ->withActivityGuid($activityGuid)
-            ->withReplyType($replyType)
+            ->withReplyType((int) $replyType)
             ->setUser($receiverUser)->getValidatorToken();
         
         if ($validatorTokenProvided !== $validatorTokenExpected) {
