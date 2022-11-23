@@ -125,7 +125,7 @@ class SupermindBulkIncentive extends EmailCampaign
 
         $trackingQuery = http_build_query($tracking);
 
-        $headerText = "@Minds wants to send you a 5 token Supermind offer";
+        $headerText = "@{$this->user->getUsername()}, we want to send you a 5 token Supermind offer";
 
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);
@@ -139,7 +139,7 @@ class SupermindBulkIncentive extends EmailCampaign
         $this->template->set('preheader', $headerText);
         $this->template->set('headerText', $headerText);
         
-        $actionButtonPath = 'https://www.minds.com/supermind/inbox?'. $trackingQuery . '&utm_content=cta';
+        $actionButtonPath = 'https://email.minds.com/supermind/inbox?'. $trackingQuery . '&utm_content=cta';
 
         // Create action button
         $actionButton = (new ActionButtonV2())
