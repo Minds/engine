@@ -103,6 +103,7 @@ class ManagerV2
 
         if ($intent->getStripeAccountId()) {
             // If there is already an account setup with Stripe Connect
+            $intentData['on_behalf_of'] = $intent->getStripeAccountId();
             $intentData['application_fee_amount'] = $intent->getServiceFee();
             $intentData['transfer_data'] = [
                 'destination' => $intent->getStripeAccountId(),
