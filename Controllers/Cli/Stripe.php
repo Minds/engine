@@ -4,20 +4,35 @@ namespace Minds\Controllers\Cli;
 
 use Minds\Core;
 use Minds\Cli;
+use Minds\Core\Boost\CashPaymentProcessor as BoostCashPaymentProcessor;
+use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Interfaces;
 use Minds\Entities;
 use Minds\Core\Payments\Models\GetPaymentsOpts;
+use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
+use Minds\Core\Wire\Manager as WireManager;
+use Minds\Core\Wire\Wire;
+use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 
 class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
 {
     public function __construct(
-        private ?IntentsManagerV2 $intentsManager = null
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?IntentsManagerV2 $intentsManager = null,
+        private ?SupermindPaymentProcessor $supermindPaymentProcessor = null,
+        private ?BoostCashPaymentProcessor $boostCashPaymentProcessor = null,
+        private ?WireManager $wireManager = null
     ) {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->intentsManager ??= new IntentsManagerV2();
+        $this->supermindPaymentProcessor ??= new SupermindPaymentProcessor();
+        $this->boostCashPaymentProcessor ??= new BoostCashPaymentProcessor();
+        $this->wireManager ??= Di::_()->get('Wire\Manager');
     }
 
     public function help($command = null)
@@ -155,5 +170,86 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
         foreach ($paymentIntents as $paymentIntent) {
             var_dump($paymentIntent);
         }
+    }
+
+    /**
+     * Updates descriptions of payment intents.
+     * @param string $dryRun - whether to dry run without changes being made.
+     * @param string $verbose - extra logging information.
+     * @param string $pageSize - size of pages to load at a time.
+     * @param string $overwrite - whether existing descriptions should be overwritten.
+     * @return void
+     * @example Usage:
+     * - php cli.php Stripe updatePaymentDescriptions --pageSize=10 --overwrite --verbose --dryRun
+     */
+    public function updatePaymentDescriptions(): void
+    {
+        $dryRun = $this->getOpt('dryRun') ?? false;
+        $verbose = $this->getOpt('verbose') ?? false;
+        $pageSize = $this->getOpt('pageSize') ?? 10;
+        $overwrite = $this->getOpt('overwrite') ?? false;
+
+        $opts = (new GetPaymentsOpts())->setLimit($pageSize);
+
+        $count = 0;
+        foreach ($this->intentsManager->getPaymentIntentsGenerator($opts) as $intent) {
+            $count++;
+            try {
+                $metadata = $intent['metadata']->toArray();
+                
+                // if it has a description already, we don't need to set one unless we are overwriting.
+                if (!$overwrite && $intent['description']) {
+                    if ($verbose) {
+                        $this->out("{$intent['id']} has a description already");
+                    }
+                    continue;
+                }
+
+                $description = 'Minds Payment';
+
+                // get new description string.
+                if (isset($metadata['boost_guid'])) {
+                    // if it's a boost, try to construct it.
+                    $boostSender = $this->entitiesBuilder->single($metadata['boost_sender_guid']); //TODO: WRONG GUID
+                    if (!$boostSender || !$boostSender instanceof User) {
+                        $description = "Boost from {$metadata['boost_sender_guid']}";
+                    } else {
+                        $description = $this->boostCashPaymentProcessor->getDescription($boostSender);
+                    }
+                } elseif (isset($metadata['receiver_guid'])) {
+                    $receiver = $this->entitiesBuilder->single($metadata['receiver_guid']);
+
+                    if (!$receiver instanceof User) {
+                        // if receiver isn't a user, we can't derive the target.
+                        // this can happen when sharing between localhost and sandbox
+                        // or if user has deleted themselves.
+                        $description = "Minds Payment ({$metadata['receiver_guid']})";
+                    } elseif (isset($metadata['supermind'])) {
+                        // supermind takes precedence over wire.
+                        $description = $this->supermindPaymentProcessor->getDescription($receiver);
+                    } else {
+                        // fallback to it being a wire if nothing else fits.
+                        $description = $this->wireManager->getDescriptionFromWire(
+                            (new Wire())
+                                ->setMethod('usd')
+                                ->setReceiver($receiver)
+                                ->setAmount($intent['amount'])
+                        );
+                    }
+                }
+
+                $this->out("Change description for {$intent['id']} to: '$description'");
+
+                if ($description && !$dryRun) {
+                    $this->intentsManager->updatePaymentIntentById($intent['id'], [
+                        'description' => $description
+                    ]);
+                }
+            } catch (\Exception $e) {
+                $this->out($e->getMessage());
+            }
+        }
+
+        $this->out("Completed. Processed $count PaymentIntents");
     }
 }

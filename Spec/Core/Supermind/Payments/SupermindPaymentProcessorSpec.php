@@ -165,6 +165,7 @@ class SupermindPaymentProcessorSpec extends ObjectBehavior
         $guid = '123';
         $senderGuid = '234';
         $receiverGuid = '345';
+        $receiverUsername = 'testaccount';
         $merchant = [ 'id' => 'acc_123' ];
         $paymentAmount = 123;
         $serviceFeePercent = 14;
@@ -189,6 +190,10 @@ class SupermindPaymentProcessorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($merchant);
 
+        $receiver->getUsername()
+            ->shouldBeCalled()
+            ->willReturn($receiverUsername);
+
         $this->entitiesBuilder->single($receiverGuid)
             ->shouldBeCalled()
             ->willReturn($receiver);
@@ -206,6 +211,7 @@ class SupermindPaymentProcessorSpec extends ObjectBehavior
         $this->intentsManager->add(Argument::that(function ($arg) use (
             $guid,
             $receiverGuid,
+            $receiverUsername,
             $senderGuid,
             $paymentAmount,
             $merchant,
@@ -223,7 +229,8 @@ class SupermindPaymentProcessorSpec extends ObjectBehavior
                     'user_guid' => $senderGuid
                 ] &&
                 $arg->getServiceFeePct() === $serviceFeePercent &&
-                $arg->getDescriptor() === 'Minds: Supermind';
+                $arg->getStatementDescriptor() === 'Minds: Supermind' &&
+                $arg->getDescription() === "Supermind to @$receiverUsername";
         }))
             ->shouldBeCalled()
             ->willReturn($intent);

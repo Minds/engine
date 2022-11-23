@@ -26,8 +26,8 @@ class GetPaymentsOpts implements ExportableInterface
     /** @var string|null payment id that acts as paging token */
     private ?string $startingAfter = null;
 
-    /** @var string customer id to get payments for */
-    private string $customerId;
+    /** @var string|null customer id to get payments for */
+    private ?string $customerId = null;
 
     /**
      * Export options as array to be passed to Stripe API.

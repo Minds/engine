@@ -5,6 +5,7 @@ namespace Minds\Core\Boost;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
 use Minds\Core\Boost\Network\Boost as NetworkBoost;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
+use Minds\Entities\User;
 
 /**
  * Handler for Boost cash payments - creation and accepting / cancelling.
@@ -57,6 +58,16 @@ class CashPaymentProcessor
     }
 
     /**
+     * Get description from sender for PaymentIntent.
+     * @param User $sender - sender to get description for.
+     * @return string - description.
+     */
+    public function getDescription(User $sender): string
+    {
+        return "Boost from @{$sender->getUsername()}";
+    }
+
+    /**
      * Prepare a new payment intent from a given boost.
      * @param string $paymentMethodId - payment method id (reference the card to be used).
      * @param NetworkBoost $boost - boost to have an intent prepared from.
@@ -83,7 +94,7 @@ class CashPaymentProcessor
                 'is_manual_transfer' => false // transfer method, NOT capture method.
             ])
             ->setServiceFeePct(self::SERVICE_FEE_PERCENT)
-            ->setDescriptor('Boost')
-            ->setDescription("Boost from @{$boostOwner->getUsername()}");
+            ->setStatementDescriptor('Boost')
+            ->setDescription($this->getDescription($boostOwner));
     }
 }

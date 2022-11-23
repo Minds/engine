@@ -27,36 +27,36 @@ class PaymentIntentSpec extends ObjectBehavior
     {
         $defaultDescriptor = 'Default';
         $descriptor = 'Payment';
-        $this->setDescriptor($defaultDescriptor, false);
-        $this->setDescriptor($descriptor);
-        $this->getDescriptor()->shouldBe("Minds: $descriptor");
+        $this->setStatementDescriptor($defaultDescriptor, false);
+        $this->setStatementDescriptor($descriptor);
+        $this->getStatementDescriptor()->shouldBe("Minds: $descriptor");
     }
 
     public function it_should_set_a_valid_descriptor_without_prefix()
     {
         $defaultDescriptor = 'Default';
         $descriptor = '22 character string xy';
-        $this->setDescriptor($defaultDescriptor, false);
-        $this->setDescriptor($descriptor, false);
-        $this->getDescriptor()->shouldBe($descriptor);
+        $this->setStatementDescriptor($defaultDescriptor, false);
+        $this->setStatementDescriptor($descriptor, false);
+        $this->getStatementDescriptor()->shouldBe($descriptor);
     }
 
     public function it_should_NOT_set_an_invalid_descriptor_without_prefix()
     {
         $defaultDescriptor = 'Default';
         $descriptor = '23 character string xyz';
-        $this->setDescriptor($defaultDescriptor, false);
-        $this->setDescriptor($descriptor, false);
-        $this->logger->error("PaymentIntent descriptor must be less than 22 characters: '$descriptor'")
+        $this->setStatementDescriptor($defaultDescriptor, false);
+        $this->setStatementDescriptor($descriptor, false);
+        $this->logger->error("PaymentIntent statement descriptor must be less than 22 characters: '$descriptor'")
             ->shouldBeCalled();
-        $this->getDescriptor()->shouldBe($defaultDescriptor);
+        $this->getStatementDescriptor()->shouldBe($defaultDescriptor);
     }
 
     public function it_should_get_description()
     {
-        $description = 'Minds Payment for service';
-        $this->setDescription($description)
-            ->getDescription()
+        $description = 'Minds Payment';
+        $this->setStatementDescriptor($description, false)
+            ->getStatementDescriptor()
             ->shouldBe($description);
     }
 }
