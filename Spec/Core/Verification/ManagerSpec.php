@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Verification;
 
-use Minds\Core\Notifications\Push\PushNotificationInterface;
 use Minds\Core\Notifications\Push\Services\ApnsService;
 use Minds\Core\Notifications\Push\Services\FcmService;
+use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
 use Minds\Core\Verification\Exceptions\UserVerificationPushNotificationFailedException;
 use Minds\Core\Verification\Exceptions\VerificationRequestExpiredException;
 use Minds\Core\Verification\Exceptions\VerificationRequestFailedException;
@@ -47,7 +47,9 @@ class ManagerSpec extends ObjectBehavior
         $this->beConstructedWith(
             $this->repository,
             $this->ocrClient,
-            $this->imageProcessor
+            $this->imageProcessor,
+            $this->fcmService,
+            $this->apnsService
         );
     }
 
@@ -104,6 +106,31 @@ class ManagerSpec extends ObjectBehavior
     }
 
     public function it_should_create_verification_request(
+        User $user
+    ): void {
+        $user->getGuid()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $this->repository->getVerificationRequestDetails(
+            Argument::type('string'),
+            Argument::type('string'),
+        )
+            ->shouldBeCalledOnce()
+            ->willThrow(new VerificationRequestNotFoundException());
+
+        $this->repository->createVerificationRequest(Argument::type(VerificationRequest::class))
+            ->willReturn(true);
+
+        $this->fcmService->send(Argument::type(CustomPushNotification::class))
+            ->willReturn(true);
+
+        $this->createVerificationRequest('1:123', '123', '')
+            ->shouldBeAnInstanceOf(VerificationRequest::class);
+    }
+
+    public function it_should_try_to_create_verification_request_when_existing_request_is_expired(
         User $user,
         VerificationRequest $verificationRequest
     ): void {
@@ -111,6 +138,40 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('123');
 
         $this->setUser($user);
+
+        $verificationRequest->isExpired()
+            ->willReturn(true);
+
+        $this->repository->getVerificationRequestDetails(
+            Argument::type('string'),
+            Argument::type('string'),
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($verificationRequest);
+
+        $this->repository->createVerificationRequest(Argument::type(VerificationRequest::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->fcmService->send(Argument::type(CustomPushNotification::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->createVerificationRequest('1:123', '123', '')
+            ->shouldBeAnInstanceOf(VerificationRequest::class);
+    }
+
+    public function it_should_try_to_create_verification_request_and_request_exists_and_throw_push_notification_failed_exception(
+        User $user,
+        VerificationRequest $verificationRequest
+    ): void {
+        $user->getGuid()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $verificationRequest->isExpired()
+            ->willReturn(false);
 
         $verificationRequest->getUserGuid()
             ->willReturn('123');
@@ -129,75 +190,13 @@ class ManagerSpec extends ObjectBehavior
             Argument::type('string'),
         )
             ->shouldBeCalledOnce()
-            ->willThrow(new VerificationRequestNotFoundException());
+            ->willReturn($verificationRequest);
 
         $this->repository->createVerificationRequest(Argument::type(VerificationRequest::class))
             ->willReturn(true);
 
-        $this->fcmService->send(Argument::type(PushNotificationInterface::class))
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
-
-        $this->createVerificationRequest('123', '123', '')
-            ->shouldBeAnInstanceOf(VerificationRequest::class);
-    }
-
-    public function it_should_try_to_create_verification_request_when_existing_request_is_expired(
-        User $user,
-        VerificationRequest $verificationRequest
-    ): void {
-        $user->getGuid()
-            ->willReturn('123');
-
-        $this->setUser($user);
-
-        $verificationRequest->isExpired()
-            ->willReturn(true);
-
-        $verificationRequest->getDeviceId()
-            ->willReturn('1:123');
-
-        $verificationRequest->getDeviceToken()
-            ->willReturn('123');
-
-        $this->repository->getVerificationRequestDetails()
-            ->shouldBeCalledOnce()
-            ->willReturn($verificationRequest);
-
-        $this->getVerificationRequest('123')
-            ->shouldBeCalledOnce()
-            ->willReturn($verificationRequest);
-
-        $this->repository->createVerificationRequest($verificationRequest)
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
-        $this->sendRequestPushNotification($verificationRequest)
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
-
-        $this->createVerificationRequest('123', '123', '')
-            ->shouldBeAnInstanceOf(VerificationRequest::class);
-    }
-
-    public function it_should_try_to_create_verification_request_and_request_exists_and_throw_push_notification_failed_exception(
-        User $user,
-        VerificationRequest $verificationRequest
-    ): void {
-        $user->getGuid()
-            ->willReturn('123');
-
-        $this->setUser($user);
-
-        $verificationRequest->isExpired()
+        $this->fcmService->send(Argument::type(CustomPushNotification::class))
             ->willReturn(false);
-
-        $this->getVerificationRequest('123')
-            ->shouldBeCalledOnce()
-            ->willReturn($verificationRequest);
-
-        $this->sendRequestPushNotification($verificationRequest)
-            ->shouldBeCalledOnce()
-            ->willThrow(new UserVerificationPushNotificationFailedException());
 
         $this->shouldThrow(UserVerificationPushNotificationFailedException::class)->during('createVerificationRequest', ['123', '123', '']);
     }
@@ -211,19 +210,20 @@ class ManagerSpec extends ObjectBehavior
 
         $this->setUser($user);
 
-        $this->getVerificationRequest('123')
+        $this->repository->getVerificationRequestDetails(
+            Argument::type('string'),
+            Argument::type('string'),
+        )
             ->shouldBeCalledOnce()
             ->willThrow(new VerificationRequestNotFoundException());
 
-        $this->repository->createVerificationRequest($verificationRequest)
-            ->shouldBeCalledOnce()
+        $this->repository->createVerificationRequest(Argument::type(VerificationRequest::class))
             ->willReturn(true);
 
-        $this->sendRequestPushNotification($verificationRequest)
-            ->shouldBeCalledOnce()
-            ->willThrow(new UserVerificationPushNotificationFailedException());
+        $this->fcmService->send(Argument::type(CustomPushNotification::class))
+            ->willReturn(false);
 
-        $this->shouldThrow(UserVerificationPushNotificationFailedException::class)->during('createVerificationRequest', ['123', '123', '']);
+        $this->shouldThrow(UserVerificationPushNotificationFailedException::class)->during('createVerificationRequest', ['1:123', '123', '']);
     }
 
     /**
@@ -268,6 +268,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($this->imageProcessor);
 
+        $this->imageProcessor->cropVerificationImage()
+            ->shouldBeCalledOnce();
+
         $this->imageProcessor->getImageAsString()
             ->shouldBeCalledOnce()
             ->willReturn('');
@@ -275,6 +278,14 @@ class ManagerSpec extends ObjectBehavior
         $this->ocrClient->processImageScan(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn('123');
+
+        $this->repository->markRequestAsVerified(
+            Argument::type(VerificationRequest::class),
+            Argument::type('string'),
+            Argument::type('string')
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
 
         $this->verifyAccount(
             deviceId: '123',
@@ -284,5 +295,166 @@ class ManagerSpec extends ObjectBehavior
             geo: '0,0'
         )
             ->shouldBeEqualTo(true);
+    }
+
+    /**
+     * @param User $user
+     * @param Stream $imageStream
+     * @param VerificationRequest $verificationRequest
+     * @return void
+     * @throws ServerErrorException
+     * @throws VerificationRequestNotFoundException
+     * @throws \ImagickException
+     * @throws VerificationRequestExpiredException
+     * @throws VerificationRequestFailedException
+     * @throws UserErrorException
+     */
+    public function it_should_try_to_verify_user_with_expired_request_and_throw_expired_request_exception(
+        User $user,
+        Stream $imageStream,
+        VerificationRequest $verificationRequest
+    ): void {
+        $user->getGuid()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $verificationRequest->isExpired()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->getVerificationRequestDetails(
+            Argument::type('string'),
+            Argument::type('string')
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($verificationRequest);
+
+        $this->repository->updateVerificationRequestStatus(
+            Argument::type(VerificationRequest::class),
+            Argument::type('integer')
+        )
+            ->shouldBeCalledOnce();
+
+        $this->shouldThrow(VerificationRequestExpiredException::class)->during(
+            'verifyAccount',
+            [
+                '123',
+                '123',
+                $imageStream,
+                '',
+                '0,0'
+            ]
+        );
+    }
+
+    /**
+     * @param User $user
+     * @param Stream $imageStream
+     * @return void
+     * @throws ServerErrorException
+     * @throws VerificationRequestNotFoundException
+     * @throws \ImagickException
+     * @throws VerificationRequestExpiredException
+     * @throws VerificationRequestFailedException
+     * @throws UserErrorException
+     */
+    public function it_should_try_to_verify_user_with_request_not_found_and_throw_request_not_found_exception(
+        User $user,
+        Stream $imageStream
+    ): void {
+        $user->getGuid()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $this->repository->getVerificationRequestDetails(
+            Argument::type('string'),
+            Argument::type('string')
+        )
+            ->shouldBeCalledOnce()
+            ->willThrow(new VerificationRequestNotFoundException());
+
+        $this->shouldThrow(VerificationRequestNotFoundException::class)->during(
+            'verifyAccount',
+            [
+                '123',
+                '123',
+                $imageStream,
+                '',
+                '0,0'
+            ]
+        );
+    }
+
+    /**
+     * @param User $user
+     * @param Stream $imageStream
+     * @param VerificationRequest $verificationRequest
+     * @return void
+     * @throws ServerErrorException
+     * @throws VerificationRequestNotFoundException
+     * @throws \ImagickException
+     * @throws VerificationRequestExpiredException
+     * @throws VerificationRequestFailedException
+     * @throws UserErrorException
+     */
+    public function it_should_try_to_verify_user_with_mismatching_code_and_throw_verification_failed_exception(
+        User $user,
+        Stream $imageStream,
+        VerificationRequest $verificationRequest
+    ): void {
+        $user->getGuid()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $verificationRequest->isExpired()
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
+        $verificationRequest->getIpAddr()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $verificationRequest->getVerificationCode()
+            ->shouldBeCalledOnce()
+            ->willReturn('124');
+
+        $this->repository->getVerificationRequestDetails(Argument::type('string'), Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($verificationRequest);
+
+        $this->imageProcessor->withStream($imageStream)
+            ->shouldBeCalledOnce()
+            ->willReturn($this->imageProcessor);
+
+        $this->imageProcessor->cropVerificationImage()
+            ->shouldBeCalledOnce();
+
+        $this->imageProcessor->getImageAsString()
+            ->shouldBeCalledOnce()
+            ->willReturn('');
+
+        $this->ocrClient->processImageScan(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->repository->updateVerificationRequestStatus(
+            Argument::type(VerificationRequest::class),
+            Argument::type('integer')
+        )
+            ->shouldBeCalledOnce();
+
+        $this->shouldThrow(VerificationRequestFailedException::class)->during(
+            'verifyAccount',
+            [
+                '123',
+                '123',
+                $imageStream,
+                '',
+                '0,0'
+            ]
+        );
     }
 }

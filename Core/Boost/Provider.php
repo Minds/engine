@@ -40,6 +40,9 @@ class Provider extends Di\Provider
         $this->di->bind('Boost\Network\Expire', function ($di) {
             return new Network\Expire();
         }, ['useFactory' => false]);
+        $this->di->bind('Boost\Network\Rates', function ($di) {
+            return new Network\Rates();
+        }, ['useFactory' => true]);
         $this->di->bind('Boost\Newsfeed', function ($di) {
             return new Newsfeed(Client::build('MongoDB'));
         }, ['useFactory' => true]);

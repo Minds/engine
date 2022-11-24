@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\Stripe\Intents;
 
 use Exception;
+use Generator;
 use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
@@ -96,7 +97,8 @@ class ManagerV2
             'payment_method_types' => [
                 'card'
             ],
-            'statement_descriptor' => $intent->getDescriptor()
+            'statement_descriptor' => $intent->getStatementDescriptor(),
+            'description' => $intent->getDescription()
         ];
 
         if ($intent->getStripeAccountId()) {
@@ -154,8 +156,11 @@ class ManagerV2
     public function capturePaymentIntent(string $paymentIntentId): bool
     {
         $paymentIntent = $this->stripeClient->paymentIntents->retrieve($paymentIntentId);
-
-        $manualTransfer = !$paymentIntent->transfer_data?->destination;
+        
+        // is manual in this context refers to a manual transfer method rather than capture method.
+        $manualTransfer = isset($paymentIntent->metadata?->is_manual_transfer) ?
+            $paymentIntent->metadata?->is_manual_transfer !== 'false' :
+            !$paymentIntent->transfer_data?->destination;
 
         $applicationFeeAmount = $stripeFutureAccount = null;
         if ($manualTransfer) {
@@ -225,6 +230,32 @@ class ManagerV2
         return $this->stripeClient->paymentIntents->all(
             $opts->export()
         )->toArray();
+    }
+
+    /**
+     * Get payment intents generator from Stripe from opts.
+     * @param GetPaymentsOpts $opts - options for API call.
+     * @return Generator payment intents.
+     */
+    public function getPaymentIntentsGenerator(GetPaymentsOpts $opts): Generator
+    {
+        return $this->stripeClient->paymentIntents->all(
+            $opts->export()
+        )->autoPagingIterator();
+    }
+
+    /**
+     * Update a payment intent for Stripe.
+     * @param string $paymentIntentId - payment intent id to update for.
+     * @param array $payload - payload with data to update.
+     * @return StripePaymentIntent Stripe payment intent object.
+     */
+    public function updatePaymentIntentById(string $paymentIntentId, array $payload): StripePaymentIntent
+    {
+        return $this->stripeClient->paymentIntents->update(
+            $paymentIntentId,
+            $payload
+        );
     }
 
     /**

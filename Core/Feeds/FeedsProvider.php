@@ -42,6 +42,10 @@ class FeedsProvider extends Provider
             return new Activity\Controller();
         });
 
+        $this->di->bind('Feeds\Activity\OgImageController', function ($di) {
+            return new Activity\OgImagesController();
+        });
+
         $this->di->bind('Feeds\Activity\InteractionCounters', function ($di) {
             return new Activity\InteractionCounters();
         });

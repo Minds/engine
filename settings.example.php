@@ -319,6 +319,9 @@ $CONFIG->set('boost', [
     'network' => [
         'min' => 100,
         'max' => 5000,
+        // impression rate for impressions per currency unit.
+        'cash_impression_rate' => 1000,
+        'token_impression_rate' => 1000
     ],
     'peer' => [
         'min' => 100,

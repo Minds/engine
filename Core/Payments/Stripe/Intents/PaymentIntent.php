@@ -15,7 +15,10 @@ use Minds\Traits\MagicAttributes;
  * @method PaymentIntent getOffSession(): bool
  * @method PaymentIntent getServiceFeePct(): int
  * @method PaymentIntent setCaptureMethod($method)
- * @method PaymentIntent getDescriptor(): string
+ * @method PaymentIntent getStatementDescriptor(): string
+ * @method PaymentIntent setStatementDescriptor(string $description)
+ * @method PaymentIntent setDescription(string $description)
+ * @method PaymentIntent getDescription(): string
  * @method bool isOffSession()
  * @method bool isConfirm()
  * @method string getCaptureMethod()
@@ -44,8 +47,11 @@ class PaymentIntent extends Intent
     /** @var bool $offSession */
     private $offSession = false;
 
-    /** @var string $descriptor */
-    private $descriptor = 'MINDS, INC.';
+    /** @var string $statementDescriptor - statement descriptor to appear on statements */
+    private $statementDescriptor = 'MINDS, INC.';
+
+    /** @var string $description - longer form description for more detailed tracking */
+    private $description = '';
 
     /** @var int $serviceFeePct */
     private $serviceFeePct = 0;
@@ -68,24 +74,25 @@ class PaymentIntent extends Intent
     }
 
     /**
-     * Set descriptor for payment. Cannot be more than 22 characters
+     * Set statement descriptor for payment. Cannot be more than 22 characters
      * or will log error and use default value instead.
-     * @param string $descriptor - descriptor to set (max of 22 character).
+     * @param string $statementDescriptor - statement descriptor to set (max of 22 character).
+     * @param string $usePrefix - statement descriptor to set (max of 22 character).
      * @return self
      */
-    public function setDescriptor(string $descriptor, bool $usePrefix = true): self
+    public function setStatementDescriptor(string $statementDescriptor, bool $usePrefix = true): self
     {
         if ($usePrefix) {
-            $descriptor = "Minds: $descriptor";
+            $statementDescriptor = "Minds: $statementDescriptor";
         }
 
-        // if descriptor is more than 22 characters, log an error and don't set so that default is used.
-        if (strlen($descriptor) > 22) {
-            $this->logger->error("PaymentIntent descriptor must be less than 22 characters: '$descriptor'");
+        // if statement descriptor is more than 22 characters, log an error and don't set so that default is used.
+        if (strlen($statementDescriptor) > 22) {
+            $this->logger->error("PaymentIntent statement descriptor must be less than 22 characters: '$statementDescriptor'");
             return $this;
         }
 
-        $this->descriptor = $descriptor;
+        $this->statementDescriptor = $statementDescriptor;
         return $this;
     }
 

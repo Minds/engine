@@ -81,12 +81,15 @@ class boost implements Interfaces\Api
                     ],
                 ], (array)Core\Di\Di::_()->get('Config')->get('boost'));
 
+                /** @var Rates */
+                $boostRates = Di::_()->get('Boost\Network\Rates');
+
                 $response['cap'] = $config['network']['max'];
                 $response['min'] = $config['network']['min'];
                 $response['priority'] = $this->getQueuePriorityRate();
-                $response['usd'] = $this->getUSDRate();
+                $response['usd'] = $boostRates->getUSDRate();
                 $response['minUsd'] = $this->getMinUSDCharge();
-                $response['tokens'] = $this->getTokensRate();
+                $response['tokens'] = $boostRates->getTokensRate();
                 break;
             case "p2p":
                 /** @var Core\Boost\Peer\Review $review */
@@ -249,7 +252,7 @@ class boost implements Interfaces\Api
                         $amount *= $priorityRate + 1;
                     }
 
-                    if (!in_array($bidType, [ 'usd', 'tokens' ], true)) {
+                    if (!in_array($bidType, [ 'cash', 'tokens' ], true)) {
                         return Factory::response([
                             'status' => 'error',
                             'stage' => 'initial',
@@ -257,11 +260,19 @@ class boost implements Interfaces\Api
                         ]);
                     }
 
-                    // Amount normalizing
+                    /** @var Rates */
+                    $boostRates = Di::_()->get('Boost\Network\Rates');
 
+                    // Amount normalizing and bid vs impressions validation.
                     switch ($bidType) {
-                        case 'usd':
-                            $amount = round($amount / $this->getUSDRate(), 2) * 100;
+                        case 'cash':
+                            // Round impressions down to nearest 10.
+                            if ($impressions % 10 !== 0) {
+                                $impressions -= $impressions % 10;
+                            }
+
+                            $usdRate = $boostRates->getUSDRate();
+                            $amount = round($amount / $usdRate, 2) * 100;
 
                             if (($amount / 100) < $this->getMinUSDCharge()) {
                                 return Factory::response([
@@ -272,7 +283,7 @@ class boost implements Interfaces\Api
                             break;
 
                         case 'tokens':
-                            $amount = BigNumber::toPlain(round($amount / $this->getTokensRate(), 4), 18);
+                            $amount = BigNumber::toPlain(round($amount / $boostRates->getTokenRate(), 4), 18);
                             break;
                     }
 
@@ -499,18 +510,6 @@ class boost implements Interfaces\Api
     {
         // @todo: Calculate based on boost queue
         return 10;
-    }
-
-    protected function getUSDRate()
-    {
-        $config = (array)Core\Di\Di::_()->get('Config')->get('boost');
-
-        return isset($config['usd']) ? $config['usd'] : 1000;
-    }
-
-    protected function getTokensRate()
-    {
-        return Core\Di\Di::_()->get('Blockchain\Manager')->getRate();
     }
 
     protected function getMinUSDCharge()

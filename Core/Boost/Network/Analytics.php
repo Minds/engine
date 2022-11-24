@@ -35,8 +35,8 @@ class Analytics
                 'bool' => [
                     'must' => [
                         [
-                            'term' => [
-                                'bid_type' => 'tokens',
+                            'terms' => [
+                                'bid_type' => ['tokens' , 'cash'],
                             ],
                         ],
                     ],
@@ -113,8 +113,8 @@ class Analytics
                 'bool' => [
                     'must' => [
                         [
-                            'term' => [
-                                'bid_type' => 'tokens',
+                            'terms' => [
+                                'bid_type' => ['tokens' , 'cash'],
                             ],
                         ],
                         [
