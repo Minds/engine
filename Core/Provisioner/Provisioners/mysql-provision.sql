@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS user_verification
 (
     user_guid bigint NOT NULL,
     device_id varchar(64) NOT NULL,
+    device_token varchar(256) NOT NULL,
     verification_code varchar(6) NOT NULL,
     status int NOT NULL,
     created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

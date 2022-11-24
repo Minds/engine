@@ -5,7 +5,11 @@ namespace Minds\Traits;
 
 trait RandomGenerators
 {
-    public function generateRandomInteger($len = 6)
+    /**
+     * @param int $len
+     * @return string
+     */
+    public function generateRandomInteger(int $len = 6): string
     {
         $last =-1;
         $code = '';

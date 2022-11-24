@@ -66,12 +66,14 @@ class Repository
         $query = "INSERT INTO user_verification (
                 user_guid,
                 device_id,
+                device_token,
                 status,
                 verification_code,
                 ip
             ) VALUES (
                 :user_guid,
                 :device_id,
+                :device_token,
                 :status,
                 :verification_code,
                 :ip
@@ -79,6 +81,7 @@ class Repository
         $values = [
             'user_guid' => $verificationRequest->getUserGuid(),
             'device_id' => $verificationRequest->getDeviceId(),
+            'device_token' => $verificationRequest->getDeviceToken(),
             'status' => $verificationRequest->getStatus(),
             'verification_code' => $verificationRequest->getVerificationCode(),
             'ip' => $verificationRequest->getIpAddr(),

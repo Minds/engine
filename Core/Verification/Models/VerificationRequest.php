@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Minds\Core\Verification\Models;
 
+use Minds\Common\Access;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\ExportableInterface;
 use Minds\Traits\MagicAttributes;
 
@@ -11,6 +13,8 @@ use Minds\Traits\MagicAttributes;
  * @method string getUserGuid()
  * @method self setDeviceId(string $deviceId)
  * @method string getDeviceId()
+ * @method self setDeviceToken(string $deviceToken)
+ * @method string getDeviceToken()
  * @method self setVerificationCode(string $verificationCode)
  * @method string getVerificationCode()
  * @method self setStatus(int $status)
@@ -25,14 +29,17 @@ use Minds\Traits\MagicAttributes;
  * @method self setGeo(string $geo)
  * @method string getGeo()
  */
-class VerificationRequest implements ExportableInterface
+class VerificationRequest implements ExportableInterface, EntityInterface
 {
     use MagicAttributes;
 
     private const EXPIRY_THRESHOLD = 900; // in seconds
 
+    private const URN_METHOD = 'user-verification';
+
     private string $userGuid;
     private string $deviceId;
+    private string $deviceToken;
     private string $verificationCode;
     private int $status = VerificationRequestStatus::PENDING;
     private int $createdAt;
@@ -49,6 +56,10 @@ class VerificationRequest implements ExportableInterface
 
         if (isset($data['device_id'])) {
             $this->setDeviceId($data['device_id']);
+        }
+
+        if (isset($data['device_token'])) {
+            $this->setDeviceToken($data['device_token']);
         }
 
         if (isset($data['verification_code'])) {
@@ -89,7 +100,7 @@ class VerificationRequest implements ExportableInterface
 
     public function isVerified(): bool
     {
-        return $this->stats === VerificationRequestStatus::VERIFIED;
+        return $this->status === VerificationRequestStatus::VERIFIED;
     }
 
     public function getStatus(): int
@@ -106,9 +117,38 @@ class VerificationRequest implements ExportableInterface
             'user_guid' => $this->getUserGuid(),
             'device_id' => $this->getDeviceId(),
             'status' => $this->getStatus(),
-            // 'verification_code' => $this->getVerificationCode(),
             'created_at' => $this->getCreatedAt(),
             'updated_at' => $this->getUpdatedAt()
         ];
+    }
+
+    public function getGuid(): ?string
+    {
+        return null;
+    }
+
+    public function getOwnerGuid(): ?string
+    {
+        return $this->getUserGuid();
+    }
+
+    public function getType(): ?string
+    {
+        return 'user-verification';
+    }
+
+    public function getSubtype(): ?string
+    {
+        return null;
+    }
+
+    public function getUrn(): string
+    {
+        return 'urn:' . self::URN_METHOD . ':' . $this->getGuid();
+    }
+
+    public function getAccessId(): string
+    {
+        return (string) Access::PUBLIC;
     }
 }

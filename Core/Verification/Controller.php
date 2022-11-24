@@ -29,6 +29,7 @@ class Controller
      * @param ServerRequestInterface $request
      * @return JsonResponse
      * @throws ServerErrorException
+     * @throws UserErrorException
      * @throws VerificationRequestDeviceTypeNotFoundException
      * @throws VerificationRequestNotFoundException
      */
@@ -73,6 +74,7 @@ class Controller
      * @param ServerRequestInterface $request
      * @return JsonResponse
      * @throws ServerErrorException
+     * @throws UserErrorException
      * @throws VerificationRequestDeviceTypeNotFoundException
      */
     // #[OA\Post(
@@ -95,10 +97,14 @@ class Controller
         $loggedInUser = $request->getAttribute('_user');
         $deviceId = $request->getAttribute("parameters")["deviceid"];
 
-        ['device_type' => $deviceTypeId] = $request->getParsedBody();
+        ['device_type' => $deviceTypeId, 'device_token' => $deviceToken] = $request->getParsedBody();
 
         if (!$deviceTypeId) {
             throw new UserErrorException('device_id must be provided in body', 400);
+        }
+
+        if (!$deviceToken) {
+            throw new UserErrorException('device_token must be provided in body', 400);
         }
 
         $ipAddr = (new IpAddress())->setServerRequest($request)->get();
@@ -106,8 +112,9 @@ class Controller
         $verificationRequest = $this->manager
             ->setUser($loggedInUser)
             ->createVerificationRequest(
-                VerificationRequestDeviceType::fromId($deviceTypeId) . ":" . $deviceId,
-                ipAddr: $ipAddr,
+                deviceId: VerificationRequestDeviceType::fromId($deviceTypeId) . ":" . $deviceId,
+                deviceToken: $deviceToken,
+                ipAddr: $ipAddr
             );
 
         return new JsonResponse($verificationRequest->export(), 201);
@@ -116,11 +123,12 @@ class Controller
     /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
-     * @throws VerificationRequestFailedException
      * @throws ImagickException
      * @throws ServerErrorException
+     * @throws UserErrorException
      * @throws VerificationRequestDeviceTypeNotFoundException
      * @throws VerificationRequestExpiredException
+     * @throws VerificationRequestFailedException
      * @throws VerificationRequestNotFoundException
      */
     // #[OA\Post(
@@ -154,6 +162,10 @@ class Controller
             'device_type' => $deviceTypeId,
             'geo' => $geo,
         ] = $request->getParsedBody();
+
+        if (!$deviceTypeId) {
+            throw new UserErrorException('device_id must be provided in body', 400);
+        }
 
         $ipAddr = (new IpAddress())->setServerRequest($request)->get();
 

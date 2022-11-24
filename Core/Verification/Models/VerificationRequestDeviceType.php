@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Minds\Core\Verification\Models;
 
@@ -8,6 +9,10 @@ class VerificationRequestDeviceType
 {
     public const ANDROID = 1;
     public const IOS = 2;
+    public const PUSH_NOTIFICATION_SERVICE_MAPPING = [
+        self::ANDROID => 'fcm',
+        self::IOS => 'apns'
+    ];
 
     /**
      * @param string $deviceTypeId

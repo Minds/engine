@@ -3,14 +3,22 @@ declare(strict_types=1);
 
 namespace Minds\Core\Verification;
 
+use Exception;
 use ImagickException;
 use Minds\Core\Di\Di;
+use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
+use Minds\Core\Notifications\Push\Services\ApnsService;
+use Minds\Core\Notifications\Push\Services\FcmService;
+use Minds\Core\Notifications\Push\Services\PushServiceInterface;
+use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
+use Minds\Core\Verification\Exceptions\UserVerificationPushNotificationFailedException;
 use Minds\Core\Verification\Exceptions\VerificationRequestExpiredException;
 use Minds\Core\Verification\Exceptions\VerificationRequestFailedException;
 use Minds\Core\Verification\Exceptions\VerificationRequestNotFoundException;
 use Minds\Core\Verification\Helpers\ImageProcessor;
 use Minds\Core\Verification\Helpers\OCR\MindsOCRInterface;
 use Minds\Core\Verification\Models\VerificationRequest;
+use Minds\Core\Verification\Models\VerificationRequestDeviceType;
 use Minds\Core\Verification\Models\VerificationRequestStatus;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -27,11 +35,17 @@ class Manager
     public function __construct(
         private ?Repository $repository = null,
         private ?MindsOCRInterface $ocrClient = null,
-        private ?ImageProcessor $imageProcessor = null
+        private ?ImageProcessor $imageProcessor = null,
+        private ?FcmService $fcmService = null,
+        private ?ApnsService $apnsService = null
     ) {
         $this->repository ??= Di::_()->get('Verification\Repository');
         $this->ocrClient ??= Di::_()->get('Verification\Helpers\OCR\DefaultOCRClient');
         $this->imageProcessor ??= new ImageProcessor();
+
+        // Push Notification services
+        $this->fcmService ??= new FcmService();
+        $this->apnsService ??= new ApnsService();
     }
 
     public function setUser(User $user): self
@@ -56,18 +70,21 @@ class Manager
 
     /**
      * @param string $deviceId
+     * @param string $deviceToken
      * @param string $ipAddr
      * @return VerificationRequest
      * @throws ServerErrorException
+     * @throws UserVerificationPushNotificationFailedException
      */
-    public function createVerificationRequest(string $deviceId, string $ipAddr): VerificationRequest
+    public function createVerificationRequest(string $deviceId, string $deviceToken, string $ipAddr): VerificationRequest
     {
-        $verificationRequest = new VerificationRequest();
         try {
             $verificationRequest = $this->getVerificationRequest($deviceId);
             if ($verificationRequest->isExpired()) {
                 throw new VerificationRequestExpiredException();
             }
+
+            $this->sendRequestPushNotification($verificationRequest);
 
             return $verificationRequest;
         } catch (VerificationRequestNotFoundException|VerificationRequestExpiredException $e) {
@@ -75,6 +92,7 @@ class Manager
             $verificationRequest
                 ->setUserGuid($this->user->getGuid())
                 ->setDeviceId($deviceId)
+                ->setDeviceToken($deviceToken)
                 ->setVerificationCode($this->generateRandomInteger())
                 ->setIpAddr($ipAddr);
         }
@@ -84,6 +102,7 @@ class Manager
         }
 
         // Send push notification to the device
+        $this->sendRequestPushNotification($verificationRequest);
 
         return $verificationRequest;
     }
@@ -93,9 +112,11 @@ class Manager
      * @param string $ipAddr
      * @param Stream $imageStream
      * @param string $sensorData
+     * @param string $geo
      * @return bool
      * @throws ImagickException
      * @throws ServerErrorException
+     * @throws UserErrorException
      * @throws VerificationRequestExpiredException
      * @throws VerificationRequestFailedException
      * @throws VerificationRequestNotFoundException
@@ -113,6 +134,10 @@ class Manager
         );
 
         if ($verificationRequest->isExpired()) {
+            $this->repository->updateVerificationRequestStatus(
+                verificationRequest: $verificationRequest,
+                status: VerificationRequestStatus::EXPIRED
+            );
             throw new VerificationRequestExpiredException();
         }
 
@@ -130,17 +155,64 @@ class Manager
 
         if ($verificationRequest->getVerificationCode() !== $providedCode) {
             $this->repository->updateVerificationRequestStatus(
-                $verificationRequest,
+                verificationRequest: $verificationRequest,
                 status: VerificationRequestStatus::FAILED
             );
             throw new VerificationRequestFailedException();
         }
 
         $this->repository->markRequestAsVerified(
-            $verificationRequest,
-            sensorData: $sensorData,
+            verificationRequest: $verificationRequest,
             geo: $geo,
+            sensorData: $sensorData,
         );
         return true;
+    }
+
+    /**
+     * @param VerificationRequest $request
+     * @return bool
+     * @throws UserVerificationPushNotificationFailedException]
+     * @throws Exception
+     */
+    private function sendRequestPushNotification(VerificationRequest $request): bool
+    {
+        [$deviceType] = explode(':', $request->getDeviceId());
+
+        $notification = (new CustomPushNotification())
+            ->setTitle("Minds User Verification")
+            ->setBody("Your verification code is {$request->getVerificationCode()}")
+            ->setUri('')
+            ->setMetadata([
+                'verification_code' => $request->getVerificationCode()
+            ])
+            ->setDeviceSubscription(
+                (new DeviceSubscription())
+                ->setUserGuid($request->getUserGuid())
+                ->setService(VerificationRequestDeviceType::PUSH_NOTIFICATION_SERVICE_MAPPING[$deviceType])
+                ->setToken($request->getDeviceToken())
+            );
+
+        $pushNotificationService = $this->getPushNotificationService((int) $deviceType);
+
+        if (!$pushNotificationService->send($notification)) {
+            throw new UserVerificationPushNotificationFailedException();
+        }
+
+        return true;
+    }
+
+    /**
+     * @param int $deviceType
+     * @return PushServiceInterface
+     * @throws Exception
+     */
+    private function getPushNotificationService(int $deviceType): PushServiceInterface
+    {
+        return match ($deviceType) {
+            VerificationRequestDeviceType::ANDROID => $this->fcmService,
+            VerificationRequestDeviceType::IOS => $this->apnsService,
+            default => throw new Exception('Invalid device type')
+        };
     }
 }
