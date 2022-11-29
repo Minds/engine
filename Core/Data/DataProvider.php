@@ -97,36 +97,34 @@ class DataProvider extends Provider
         /**
          * Redis
          */
-        $redisHa = ($this->di->get('Config')->redis ?? null)['ha'] ?? null;
-        if ($redisHa) {
-            $this->di->bind('Redis', function ($di) {
+        $this->di->bind('Redis', function ($di) {
+            $redisHa = ($di->get('Config')->redis ?? null)['ha'] ?? null;
+            if ($redisHa) {
                 $master = ($di->get('Config')->redis ?? null)['master']['host'] ?? null;
                 $masterPort = ($di->get('Config')->redis ?? null)['master']['port'] ?? null;
                 $client = new Redis\Client();
                 $client->connect($master, $masterPort);
-                return $client;
-            }, ['useFactory'=>true]);
-            $this->di->bind('Redis\Slave', function ($di) {
+            } else {
+                $master = ($di->get('Config')->redis ?? null)['master'] ?? null;
+                $client = new Redis\Client();
+                $client->connect($master);
+            }
+            return $client;
+        }, ['useFactory'=>true]);
+        $this->di->bind('Redis\Slave', function ($di) {
+            $redisHa = ($di->get('Config')->redis ?? null)['ha'] ?? null;
+            if ($redisHa) {
                 $slave = ($di->get('Config')->redis ?? null)['slave']['host'] ?? null;
                 $slavePort = ($di->get('Config')->redis ?? null)['slave']['port'] ?? null;
                 $client = new Redis\Client();
                 $client->connect($slave, $slavePort);
-                return $client;
-            }, ['useFactory'=>true]);
-        } else {
-            $this->di->bind('Redis', function ($di) {
-                $master = ($di->get('Config')->redis ?? null)['master'] ?? null;
-                $client = new Redis\Client();
-                $client->connect($master);
-                return $client;
-            }, ['useFactory'=>true]);
-            $this->di->bind('Redis\Slave', function ($di) {
+            } else {
                 $slave = ($di->get('Config')->redis ?? null)['slave'] ?? null;
                 $client = new Redis\Client();
                 $client->connect($slave);
-                return $client;
-            }, ['useFactory'=>true]);
-        }
+            }
+            return $client;
+        }, ['useFactory'=>true]);
         /**
          * Prepared statements
          */
