@@ -84,6 +84,36 @@ CREATE TABLE IF NOT EXISTS user_configurations
     updated_at timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS boosts
+(
+    guid bigint PRIMARY KEY,
+    owner_guid bigint NOT NULL,
+    entity_guid bigint NOT NULL,
+    target_location int NOT NULL,
+    payment_method int NOT NULL,
+    payment_amount float NOT NULL,
+    payment_tx_id text NOT NULL,
+    daily_bid float NOT NULL,
+    duration_days int NOT NULL,
+    status int NOT NULL,
+    created_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp NULL DEFAULT NULL,
+    approved_timestamp timestamp NULL DEFAULT NULL,
+    INDEX (owner_guid),
+    INDEX (entity_guid),
+    INDEX (target_location),
+    INDEX (payment_method),
+    INDEX (created_timestamp)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS boost_summaries
+(
+    guid bigint PRIMARY KEY,
+    day int NOT NULL,
+    views int NOT NULL,
+    reach int NOT NULL
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS boost_rankings
 (
     guid bigint PRIMARY KEY,
