@@ -199,7 +199,18 @@ class KeyValueLimiter
     private function getRedis(): RedisServer
     {
         if (!$this->redisIsConnected && $this->config->redis) {
-            $this->redis->connect($this->config->redis['master']);
+
+            // TODO fully move to Redis HA
+            $redisHa = ($this->config->redis['ha']) ?? null;
+            if ($redisHa) {
+                $master = ($this->config->redis['master']['host']) ?? null;
+                $masterPort = ($this->config->redis['master']['port']) ?? null;
+                
+                $this->redis->connect($master, $masterPort);
+            } else {
+                $this->redis->connect($this->config->redis['master']);
+            }
+
             $this->redisIsConnected = true;
         }
         return $this->redis;
