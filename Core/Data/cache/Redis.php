@@ -36,10 +36,10 @@ class Redis extends abstractCacher
             $this->redisMaster = new RedisServer();
 
             // TODO fully move to Redis HA
-            $redisHa = ($di->get('Config')->redis ?? null)['ha'] ?? null;
+            $redisHa = ($this->config->get('redis')['ha'] ?? null;
             if ($redisHa) {
-                $master = ($di->get('Config')->redis ?? null)['master']['host'] ?? null;
-                $masterPort = ($di->get('Config')->redis ?? null)['master']['port'] ?? null;
+                $master = ($this->config->get('redis')['master']['host'] ?? null;
+                $masterPort = ($this->config->get('redis')['master']['port'] ?? null;
                 $this->redisSlave->connect($master, $masterPort);
             } else {
                 $this->redisMaster->connect($this->config->get('redis')['master']);
@@ -55,10 +55,10 @@ class Redis extends abstractCacher
             $this->redisSlave = new RedisServer();
 
             // TODO fully move to Redis HAs
-            $redisHa = ($di->get('Config')->redis ?? null)['ha'] ?? null;
+            $redisHa = ($this->config->get('redis')['ha'] ?? null;
             if ($redisHa) {
-                $slave = ($di->get('Config')->redis ?? null)['slave']['host'] ?? null;
-                $slavePort = ($di->get('Config')->redis ?? null)['slave']['port'] ?? null;
+                $slave = ($this->config->get('redis')['slave']['host'] ?? null;
+                $slavePort = ($this->config->get('redis')['slave']['port'] ?? null;
                 $this->redisSlave->connect($slave, $slavePort);
             } else {
                 $this->redisSlave->connect($this->config->get('redis')['slave']);
