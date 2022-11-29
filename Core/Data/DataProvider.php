@@ -97,7 +97,7 @@ class DataProvider extends Provider
         /**
          * Redis
          */
-        $redisHa = ($di->get('Config')->redis ?? null)['ha'] ?? null;
+        $redisHa = ($this->di->get('Config')->redis ?? null)['ha'] ?? null;
         if ($redisHa) {
             $this->di->bind('Redis', function ($di) {
                 $master = ($di->get('Config')->redis ?? null)['master']['host'] ?? null;
