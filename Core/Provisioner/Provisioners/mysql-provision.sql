@@ -83,3 +83,11 @@ CREATE TABLE IF NOT EXISTS user_configurations
     created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
     updated_at timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS boost_rankings
+(
+    guid bigint PRIMARY KEY,
+    ranking_open float,
+    ranking_safe float,
+    last_updated timestamp
+) ENGINE=InnoDB;

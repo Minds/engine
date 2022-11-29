@@ -141,7 +141,7 @@ class Repository
             (int) ($view->getYear() ?? $date->format('Y')),
             new Tinyint((int) ($view->getMonth() ?? $date->format('m'))),
             new Tinyint((int) ($view->getDay() ?? $date->format('d'))),
-            new Timeuuid($view->getUuid() ?? $timestamp * 1000),
+            $view->getUuid() ? new Timeuuid($view->getUuid()) : new Timeuuid(),
             $view->getEntityUrn() ?: '',
             (string) ($view->getOwnerGuid() ?? ''),
             $view->getPageToken() ?: '',
