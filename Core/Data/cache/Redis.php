@@ -36,7 +36,7 @@ class Redis extends abstractCacher
             $this->redisMaster = new RedisServer();
 
             // TODO fully move to Redis HA
-            $redisHa = ($this->config->get('redis')['ha'] ?? null;
+            $redisHa = ($this->config->get('redis')['ha']) ?? null;
             if ($redisHa) {
                 $master = ($this->config->get('redis')['master']['host'] ?? null;
                 $masterPort = ($this->config->get('redis')['master']['port'] ?? null;
@@ -55,7 +55,7 @@ class Redis extends abstractCacher
             $this->redisSlave = new RedisServer();
 
             // TODO fully move to Redis HAs
-            $redisHa = ($this->config->get('redis')['ha'] ?? null;
+            $redisHa = ($this->config->get('redis')['ha']) ?? null;
             if ($redisHa) {
                 $slave = ($this->config->get('redis')['slave']['host'] ?? null;
                 $slavePort = ($this->config->get('redis')['slave']['port'] ?? null;
