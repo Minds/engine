@@ -125,7 +125,7 @@ class DataProvider extends Provider
                 $client = new Redis\Client();
                 $client->connect($slave);
                 return $client;
-            }, ['useFactory'=>true]);			
+            }, ['useFactory'=>true]);
         }
         /**
          * Prepared statements
