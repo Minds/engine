@@ -34,7 +34,16 @@ class Redis extends abstractCacher
     {
         if (!$this->redisMaster) {
             $this->redisMaster = new RedisServer();
-            $this->redisMaster->connect($this->config->get('redis')['master']);
+
+            // TODO fully move to Redis HA
+            $redisHa = ($this->di->get('Config')->redis ?? null)['ha'] ?? null;
+            if ($redisHa) {
+                $master = ($di->get('Config')->redis ?? null)['master']['host'] ?? null;
+                $masterPort = ($di->get('Config')->redis ?? null)['master']['port'] ?? null;
+                $this->redisSlave->connect($master, $masterPort);
+            } else {
+                $this->redisMaster->connect($this->config->get('redis')['master']);
+            }
         }
 
         return $this->redisMaster;
@@ -44,7 +53,16 @@ class Redis extends abstractCacher
     {
         if (!$this->redisSlave) {
             $this->redisSlave = new RedisServer();
-            $this->redisSlave->connect($this->config->get('redis')['slave']);
+
+            // TODO fully move to Redis HAs
+            $redisHa = ($this->di->get('Config')->redis ?? null)['ha'] ?? null;
+            if ($redisHa) {
+                $slave = ($di->get('Config')->redis ?? null)['slave']['host'] ?? null;
+                $slavePort = ($di->get('Config')->redis ?? null)['slave']['port'] ?? null;
+                $this->redisSlave->connect($slave, $slavePort);
+            } else {
+                $this->redisSlave->connect($this->config->get('redis')['slave']);
+            }
         }
 
         return $this->redisSlave;
@@ -92,7 +110,7 @@ class Redis extends abstractCacher
             }
         } catch (\Exception $e) {
             //error_log("could not write ($key) to redis $this->master");
-        //error_log($e->getMessage());
+            //error_log($e->getMessage());
         }
     }
 
