@@ -130,7 +130,7 @@ class Controller
      */
     public function approveBoost(ServerRequestInterface $request): JsonResponse
     {
-        ['guid' => $boostGuid] = $request->getAttribute("parameters")["guid"];
+        $boostGuid = $request->getAttribute("parameters")["guid"];
 
         $this->manager->approveBoost($boostGuid);
 
@@ -151,7 +151,7 @@ class Controller
      */
     public function rejectBoost(ServerRequestInterface $request): JsonResponse
     {
-        ['guid' => $boostGuid] = $request->getAttribute("parameters")["guid"];
+        $boostGuid = $request->getAttribute("parameters")["guid"];
 
         $this->manager->rejectBoost($boostGuid);
 

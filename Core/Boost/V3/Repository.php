@@ -63,8 +63,8 @@ class Repository
      */
     public function createBoost(Boost $boost): bool
     {
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, payment_method, payment_amount, daily_bid, duration_days, status)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :payment_method, :payment_amount, :daily_bid, :duration_days, :status)";
+        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, payment_method, payment_amount, payment_tx_id, daily_bid, duration_days, status)
+                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status)";
         $values = [
             'guid' => $boost->getGuid(),
             'owner_guid' => $boost->getOwnerGuid(),
@@ -73,6 +73,7 @@ class Repository
             'target_location' => $boost->getTargetLocation(),
             'payment_method' => $boost->getPaymentMethod(),
             'payment_amount' => $boost->getPaymentAmount(),
+            'payment_tx_id' => $boost->getPaymentTxId(),
             'daily_bid' => $boost->getDailyBid(),
             'duration_days' => $boost->getDurationDays(),
             'status' => BoostStatus::PENDING,
