@@ -15,7 +15,22 @@ stages:
   - deploy:production
   - scan
 
-baseimage:
+baseimage:prepare:
+  stage: baseimage
+  image: minds/ci:latest
+  services:
+    - docker:dind
+  script:
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
+    - docker build -t $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID containers/php
+    - docker push $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID
+  rules:
+    - changes:
+        - containers/**/*
+    - when: manual
+      allow_failure: true
+
+baseimage:deploy:
   stage: baseimage
   image: minds/ci:latest
   services:
