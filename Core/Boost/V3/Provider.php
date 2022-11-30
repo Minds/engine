@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\Boost\V3;
 
-use Minds\Core\Boost\V3\Repositories\BoostRepository;
-use Minds\Core\Boost\V3\Repositories\BoostSummaryRepository;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
