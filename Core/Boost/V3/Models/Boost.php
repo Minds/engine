@@ -18,6 +18,8 @@ use Minds\Traits\MagicAttributes;
  * @method string getEntityGuid()
  * @method self setTargetLocation(int $targetLocation)
  * @method int getTargetLocation()
+ * @method self setTargetSuitability(int $targetSuitability)
+ * @method int getTargetSuitability()
  * @method self setPaymentMethod(int $paymentMethod)
  * @method int getPaymentMethod()
  * @method self setPaymentMethodId(string|null $paymentMethodId)
@@ -46,65 +48,23 @@ class Boost implements ExportableInterface
 
     private string $guid;
     private string $ownerGuid;
-    private string $entityGuid;
-    private int $targetLocation;
-    private int $paymentMethod;
-    private ?string $paymentMethodId;
-    private float $paymentAmount;
-    private ?string $paymentTxId;
-    private float $dailyBid;
-    private int $durationDays;
-    private int $status;
-    private int $createdTimestamp;
-    private ?int $updatedTimestamp = null;
-    private ?int $approvedTimestamp = null;
     private ?EntityInterface $entity = null;
 
 
-    public function __construct(array $data)
-    {
-        if (isset($data['guid'])) {
-            $this->setGuid($data['guid']);
-        }
-        if (isset($data['owner_guid'])) {
-            $this->setOwnerGuid($data['owner_guid']);
-        }
-        if (isset($data['entity_guid'])) {
-            $this->setEntityGuid($data['entity_guid']);
-        }
-        if (isset($data['target_location'])) {
-            $this->setTargetLocation($data['target_location']);
-        }
-        if (isset($data['payment_method'])) {
-            $this->setPaymentMethod($data['payment_method']);
-        }
-        if (isset($data['payment_method'])) {
-            $this->setPaymentMethod($data['payment_method']);
-        }
-        if (isset($data['payment_amount'])) {
-            $this->setPaymentAmount($data['payment_amount']);
-        }
-        if (isset($data['payment_tx_id'])) {
-            $this->setPaymentTxId($data['payment_tx_id']);
-        }
-        if (isset($data['daily_bid'])) {
-            $this->setDailyBid($data['daily_bid']);
-        }
-        if (isset($data['duration_days'])) {
-            $this->setDurationDays($data['duration_days']);
-        }
-        if (isset($data['status'])) {
-            $this->setStatus($data['status']);
-        }
-        if (isset($data['created_timestamp'])) {
-            $this->setCreatedTimestamp(strtotime($data['created_timestamp']));
-        }
-        if (isset($data['updated_timestamp']) && $data['updated_timestamp']) {
-            $this->setUpdatedTimestamp(strtotime($data['updated_timestamp']));
-        }
-        if (isset($data['approved_timestamp']) && $data['approved_timestamp']) {
-            $this->setApprovedTimestamp(strtotime($data['approved_timestamp']));
-        }
+    public function __construct(
+        private string $entityGuid,
+        private int $targetLocation,
+        private int $targetSuitability,
+        private int $paymentMethod,
+        private float $paymentAmount,
+        private float $dailyBid,
+        private int $durationDays,
+        private ?int $status = null,
+        private ?int $createdTimestamp = null,
+        private ?string $paymentTxId = null,
+        private ?int $updatedTimestamp = null,
+        private ?int $approvedTimestamp = null
+    ) {
     }
 
     /**
@@ -119,6 +79,7 @@ class Boost implements ExportableInterface
             'entity_guid' => $this->getEntityGuid(),
             'entity' => $this->entity,
             'target_location' => $this->getTargetLocation(),
+            'target_suitability' => $this->getTargetSuitability(),
             'payment_method' => $this->getPaymentMethod(),
             'payment_amount' => $this->getPaymentAmount(),
             'daily_bid' => $this->getDailyBid(),
