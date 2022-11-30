@@ -35,7 +35,10 @@ class ElasticRepository
         ], $opts);
         $must = [];
         $must_not = [];
-        $sort = [ '@timestamp' => $opts['order'] ?? 'asc' ];
+        $sort = [
+            'bid_type' => 'asc',
+            '@timestamp' => $opts['order'] ?? 'asc'
+        ];
 
         $must[] = [
             'terms' => [
@@ -121,7 +124,10 @@ class ElasticRepository
                     'field' => '@reviewed',
                 ],
             ];
-            $sort = ['@timestamp' => 'asc'];
+            $sort = [
+                'bid_type' => 'asc',
+                '@timestamp' => 'asc'
+            ];
         }
 
         if ($opts['state'] === 'approved' || $opts['state'] === 'review' || $opts['state'] === 'active') {
