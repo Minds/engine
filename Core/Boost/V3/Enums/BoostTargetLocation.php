@@ -11,6 +11,14 @@ class BoostTargetLocation
     public const SIDEBAR = 2;
 
     /**
+     * @var array A list of valid values for the enum - To be used for validation purposes
+     */
+    public const VALID = [
+        self::NEWSFEED,
+        self::SIDEBAR,
+    ];
+
+    /**
      * @param int $targetLocation
      * @return string
      * @throws InvalidBoostTargetLocationException

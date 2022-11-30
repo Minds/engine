@@ -8,5 +8,7 @@ class BoostStatus
     public const PENDING = 1;
     public const APPROVED = 2;
     public const REJECTED = 3;
-    public const FAILED = 4;
+    public const REFUND_IN_PROGRESS = 4;
+    public const REFUND_PROCESSED = 5;
+    public const FAILED = 6;
 }

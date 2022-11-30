@@ -4,9 +4,12 @@ declare(strict_types=1);
 namespace Minds\Core\Boost\V3;
 
 use Exception;
-use Iterator;
+use Minds\Common\Repository\Response;
+use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentSetupFailedException;
+use Minds\Core\Boost\V3\Exceptions\IncorrectBoostStatusException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Data\Locks\KeyNotSetupException;
@@ -57,8 +60,19 @@ class Manager
     {
         $this->repository->beginTransaction();
 
-        $boost = (new Boost($data))
-            ->setGuid(Guid::build());
+        $boost = (
+            new Boost(
+                entityGuid: $data['entity_guid'],
+                targetLocation: (int) $data['target_location'],
+                targetSuitability: (int) $data['target_suitability'],
+                paymentMethod: (int) $data['payment_method'],
+                paymentAmount: (float) ($data['daily_bid'] * $data['duration_days']),
+                dailyBid: (float) $data['daily_bid'],
+                durationDays: (int) $data['duration_days'],
+            )
+        )
+            ->setGuid(Guid::build())
+            ->setOwnerGuid($this->user->getGuid());
 
         try {
             if (!$this->paymentProcessor->setupBoostPayment($boost)) {
@@ -106,8 +120,6 @@ class Manager
         } catch (Exception $e) {
             $this->repository->rollbackTransaction();
 
-            // TODO: Ask Mark if we should set request status to failed
-
             throw $e;
         }
 
@@ -130,29 +142,27 @@ class Manager
      */
     public function rejectBoost(string $boostGuid): bool
     {
-        $this->repository->beginTransaction();
+        // Only process if status is Pending
+        $boost = $this->repository->getBoostByGuid($boostGuid);
 
-        try {
-            $boost = $this->repository->getBoostByGuid($boostGuid);
-
-            if (!$this->paymentProcessor->refundBoostPayment($boost)) {
-                throw new BoostPaymentCaptureFailedException();
-            }
-
-            // NOTE: By this point, even if the following business logic fails, the payment intent is already refunded
-            // and cannot be captured so the boost should be marked as failed if an error occurs in the below code.
-            // We might decide to handle the offchain token boost request in a different way
-            // for the scenario mentioned above.
-
-            if (!$this->repository->rejectBoost($boostGuid)) {
-                throw new ServerErrorException();
-            }
-        } catch (Exception $e) {
-            $this->repository->rollbackTransaction();
-            throw $e;
+        if ($boost->getStatus() !== BoostStatus::PENDING) {
+            throw new IncorrectBoostStatusException();
         }
 
-        $this->repository->commitTransaction();
+        // Mark request as Refund_in_progress
+        $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_IN_PROGRESS);
+
+        if (!$this->paymentProcessor->refundBoostPayment($boost)) {
+            throw new BoostPaymentCaptureFailedException();
+        }
+
+        // Mark request as Refund_processed
+        $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_PROCESSED);
+
+        if (!$this->repository->rejectBoost($boostGuid)) {
+            throw new ServerErrorException();
+        }
+
         return true;
     }
 
@@ -163,7 +173,8 @@ class Manager
      * @param bool $forApprovalQueue
      * @param string|null $targetUserGuid
      * @param bool $orderByRanking
-     * @return Iterator
+     * @param int $targetAudience
+     * @return Response
      */
     public function getBoosts(
         int $limit = 12,
@@ -171,15 +182,24 @@ class Manager
         ?int $targetStatus = null,
         bool $forApprovalQueue = false,
         ?string $targetUserGuid = null,
-        bool $orderByRanking = false
-    ): Iterator {
-        return $this->repository->getBoosts(
+        bool $orderByRanking = false,
+        int $targetAudience = BoostTargetAudiences::SAFE
+    ): Response {
+        $hasNext = false;
+        $boosts = $this->repository->getBoosts(
             limit: $limit,
             offset: $offset,
             targetStatus: $targetStatus,
             forApprovalQueue: $forApprovalQueue,
             targetUserGuid: $targetUserGuid ?? $this->user->getGuid(),
-            orderByRanking: $orderByRanking
+            orderByRanking: $orderByRanking,
+            targetAudience: $targetAudience,
+            hasNext: $hasNext
         );
+
+        return new Response([
+            'boosts' => $boosts,
+            'hasNext' => $hasNext
+        ]);
     }
 }

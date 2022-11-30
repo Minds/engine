@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace Minds\Core\Boost\V3;
 
+use Exception;
 use Minds\Api\Exportable;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentSetupFailedException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
+use Minds\Core\Boost\V3\Validators\BoostCreateRequestValidator;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
@@ -30,18 +32,25 @@ class Controller
     {
         $loggedInUser = $request->getAttribute('_user');
 
-        // TODO: get limit and offset from query params
+        [
+            'limit' => $limit,
+            'offset' => $offset,
+            'audience' => $audience
+        ] = $request->getQueryParams();
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
             ->getBoosts(
+                limit: $limit,
+                offset: $offset,
                 targetStatus: BoostStatus::APPROVED,
-                orderByRanking: true
+                orderByRanking: true,
+                targetAudience: $audience
             );
         return new JsonResponse(Exportable::_($boosts));
     }
 
-    public function getBoosts(ServerRequestInterface $request): JsonResponse
+    public function getOwnBoosts(ServerRequestInterface $request): JsonResponse
     {
         $loggedInUser = $request->getAttribute('_user');
 
@@ -60,14 +69,27 @@ class Controller
      * @throws InvalidBoostPaymentMethodException
      * @throws KeyNotSetupException
      * @throws LockFailedException
-     * @throws ServerErrorException
      * @throws NotImplementedException
+     * @throws ServerErrorException
+     * @throws UserErrorException
+     * @throws Exception
      */
     public function createBoost(ServerRequestInterface $request): JsonResponse
     {
         $loggedInUser = $request->getAttribute('_user');
 
         $data = $request->getParsedBody();
+
+        // validate data received
+        $validator = new BoostCreateRequestValidator();
+
+        if (!$validator->validate($data)) {
+            throw new UserErrorException(
+                message: "An error occurred when validating the request data",
+                code: 400,
+                errors: $validator->getErrors()
+            );
+        }
 
         $this->manager
             ->setUser($loggedInUser)
@@ -82,7 +104,7 @@ class Controller
      * @param ServerRequestInterface $request
      * @return JsonResponse
      */
-    public function getPendingBoosts(ServerRequestInterface $request): JsonResponse
+    public function getAdminPendingBoosts(ServerRequestInterface $request): JsonResponse
     {
         $loggedInUser = $request->getAttribute('_user');
 

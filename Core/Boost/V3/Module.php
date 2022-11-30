@@ -8,7 +8,7 @@ use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
 {
-    private array $submodules = [
+    public array $submodules = [
         Summaries\Module::class
     ];
     

@@ -125,6 +125,7 @@ class PaymentProcessor
             ->setAmount($boost->getPaymentAmount())
             ->setType('boost')
             ->setData([
+                'boost' => $boost->getGuid(),
                 'amount' => $boost->getPaymentAmount(),
                 'sender_guid' => $boost->getOwnerGuid(),
                 'receiver_guid' => $receiverGuid,
@@ -226,6 +227,7 @@ class PaymentProcessor
             ->setAmount($boost->getPaymentAmount())
             ->setType('boost')
             ->setData([
+                'boost' => $boost->getGuid(),
                 'amount' => $boost->getPaymentAmount(),
                 'sender_guid' => $senderGuid,
                 'receiver_guid' => $boost->getOwnerGuid(),

@@ -89,6 +89,7 @@ CREATE TABLE IF NOT EXISTS boosts
     guid bigint PRIMARY KEY,
     owner_guid bigint NOT NULL,
     entity_guid bigint NOT NULL,
+    target_suitability int NOT NULL,
     target_location int NOT NULL,
     payment_method int NOT NULL,
     payment_amount float NOT NULL,
