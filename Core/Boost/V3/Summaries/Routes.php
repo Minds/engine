@@ -20,7 +20,7 @@ class Routes extends ModuleRoutes
             ->do(function (Route $route): void {
                 $route->get(
                     '',
-                    Ref::_('Boosts\V3\Summaries\Controller', 'getBoostSummary')
+                    Ref::_('Boost\V3\Summaries\Controller', 'getBoostSummary')
                 );
             });
     }

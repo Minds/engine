@@ -11,16 +11,16 @@ namespace Minds\Core\Config;
 use Minds\Core\Blockchain\Manager as BlockchainManager;
 use Minds\Core\Boost\Network\Rates;
 use Minds\Core\Di\Di;
-use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Core\I18n\Manager as I18nManager;
 use Minds\Core\Navigation\Manager as NavigationManager;
 use Minds\Core\Rewards\Contributions\ContributionValues;
 use Minds\Core\Session;
-use Minds\Core\ThirdPartyNetworks\Manager as ThirdPartyNetworksManager;
 use Minds\Core\Supermind\Settings\Models\Settings as SupermindSettings;
-use Minds\Entities\User;
+use Minds\Core\ThirdPartyNetworks\Manager as ThirdPartyNetworksManager;
 use Minds\Core\Wire;
+use Minds\Entities\User;
 
 class Exported
 {
@@ -174,6 +174,10 @@ class Exported
                 'min_offchain_tokens' => $defaultSupermindSettings->getMinOffchainTokens()
             ]
         ];
+
+        $boost = $this->config->get('boost');
+        unset($boost['offchain_wallet_guid']);
+        $exported['boost'] = $boost;
 
         return $exported;
     }

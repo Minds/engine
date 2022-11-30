@@ -133,7 +133,7 @@ class BoostCreateRequestValidator implements ValidatorInterface
                             "Daily bid cannot be lower than \${$this->mindsConfig->get('boost')['min']['cash']}"
                         )
                     );
-                } elseif (!in_array($dataToValidate['daily_bid'], $this->mindsConfig->get('boost')['increments']['cash'], true)) {
+                } elseif (!in_array((float) $dataToValidate['daily_bid'], $this->mindsConfig->get('boost')['bid_increments']['cash'], true)) {
                     $this->errors->add(
                         new ValidationError(
                             'daily_bid',
@@ -149,7 +149,7 @@ class BoostCreateRequestValidator implements ValidatorInterface
                             "Daily bid cannot be lower than {$this->mindsConfig->get('boost')['min']['offchain_tokens']} MINDS tokens"
                         )
                     );
-                } elseif (!in_array($dataToValidate['daily_bid'], $this->mindsConfig->get('boost')['increments']['offchain_tokens'], true)) {
+                } elseif (!in_array((float) $dataToValidate['daily_bid'], $this->mindsConfig->get('boost')['bid_increments']['offchain_tokens'], true)) {
                     $this->errors->add(
                         new ValidationError(
                             'daily_bid',
@@ -182,15 +182,22 @@ class BoostCreateRequestValidator implements ValidatorInterface
                 if ($dataToValidate['duration_days'] < $this->mindsConfig->get('boost')['duration']['cash']['min']) {
                     $this->errors->add(
                         new ValidationError(
-                            '',
+                            'duration_days',
                             "Duration in days cannot be less than {$this->mindsConfig->get('boost')['duration']['cash']['min']} days"
                         )
                     );
                 } elseif ($dataToValidate['duration_days'] > $this->mindsConfig->get('boost')['duration']['cash']['max']) {
                     $this->errors->add(
                         new ValidationError(
-                            '',
+                            'duration_days',
                             "Duration in days cannot be more than {$this->mindsConfig->get('boost')['duration']['cash']['max']} days"
+                        )
+                    );
+                } elseif (!in_array((float) $dataToValidate['duration_days'], $this->mindsConfig->get('boost')['duration']['cash']['increments'], true)) {
+                    $this->errors->add(
+                        new ValidationError(
+                            'duration_days',
+                            'Duration in days must be one of the provided increments'
                         )
                     );
                 }
@@ -207,6 +214,13 @@ class BoostCreateRequestValidator implements ValidatorInterface
                         new ValidationError(
                             '',
                             "Duration in days cannot be more than {$this->mindsConfig->get('boost')['duration']['tokens']['max']} days"
+                        )
+                    );
+                } elseif (!in_array((float) $dataToValidate['duration_days'], $this->mindsConfig->get('boost')['duration']['tokens']['increments'], true)) {
+                    $this->errors->add(
+                        new ValidationError(
+                            'duration_days',
+                            'Duration in days must be one of the provided increments'
                         )
                     );
                 }
