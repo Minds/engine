@@ -202,11 +202,12 @@ $CONFIG->elasticsearch = [
     'cert' => '/var/secure/elasticsearch.crt',
 ];
 
-// Vitess (MySQL) configuration
+// MySQL configuration
 $CONFIG->mysql = [
-    'host' => 'vitess:15306',
+    'host' => 'mysql:3306',
     'db' => 'minds',
     'user' => 'user',
+    'password' => 'changeme',
     'ssl_skip_verify' => true,
 ];
 
