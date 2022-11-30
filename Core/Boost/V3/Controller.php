@@ -100,6 +100,7 @@ class Controller
         $this->manager
             ->setUser($loggedInUser)
             ->createBoost($data);
+
         return new JsonResponse(
             data: "",
             status: 201
@@ -141,7 +142,7 @@ class Controller
     {
         $boostGuid = $request->getAttribute("parameters")["guid"];
 
-        $this->manager->approveBoost($boostGuid);
+        $this->manager->approveBoost((string) $boostGuid);
 
         return new JsonResponse("");
     }
@@ -162,7 +163,7 @@ class Controller
     {
         $boostGuid = $request->getAttribute("parameters")["guid"];
 
-        $this->manager->rejectBoost($boostGuid);
+        $this->manager->rejectBoost((string) $boostGuid);
 
         return new JsonResponse("");
     }

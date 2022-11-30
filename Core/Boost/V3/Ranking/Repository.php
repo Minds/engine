@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Boost\V3\Ranking;
 
+use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Data\MySQL\Client;
 use PDOStatement;
@@ -88,6 +89,7 @@ class Repository
      */
     protected function prepareShareRatiosCalculationQuery(string $guid = null): PDOStatement
     {
+        $status = BoostStatus::APPROVED;
         $statement = "SELECT
             guid,
             boosts.target_location,
@@ -114,15 +116,16 @@ class Repository
                 SUM(CASE WHEN payment_method=2 AND target_suitability=2 THEN daily_bid ELSE 0 END) as token_bids_for_open,
                 SUM(CASE WHEN payment_method=2 THEN daily_bid ELSE 0 END) as token_bids_for_all
                 FROM boosts
-                WHERE status = 2
+                WHERE status = $status
                 AND approved_timestamp > DATE_SUB(approved_timestamp, INTERVAL `duration_days` DAY)
                 AND approved_timestamp < DATE_ADD(approved_timestamp, INTERVAL `duration_days` DAY)
                 GROUP BY target_location
             ) AS total_bids 
-            ON boosts.target_location = total_bids.target_location";
+            ON boosts.target_location = total_bids.target_location
+        WHERE status = $status";
 
         if ($guid) {
-            $statement .= " WHERE guid=:guid";
+            $statement .= " AND guid=:guid";
         }
 
         return $this->mysqlClient->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);

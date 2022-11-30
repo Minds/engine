@@ -5,6 +5,7 @@ namespace Minds\Controllers\Cli;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Cli;
+use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Interfaces;
 use Minds\Entities;
 use Monolog\Logger as MonologLogger;
@@ -45,7 +46,7 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
     public function rank()
     {
         /** @var Core\Boost\V3\Ranking\Manager */
-        $rankingManager = Di::_()->get('Boost\V3\Ranking\Manager');
+        $rankingManager = Di::_()->get(Core\Boost\V3\Ranking\Manager::class);
 
         while (true) {
             $this->simulateViews();
@@ -66,15 +67,20 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
     {
         $viewsManager = new Core\Analytics\Views\Manager();
 
-        /** @var Core\Boost\V3\Ranking\Repository */
-        $boostRankingRepo =  Di::_()->get('Boost\V3\Ranking\Repository');
-        foreach ($boostRankingRepo->getBoostShareRatios() as $boostShareRatio) {
+        /** @var Core\Boost\V3\Manager */
+        $boostManager =  Di::_()->get(Core\Boost\V3\Manager::class);
+
+        foreach ($boostManager->getBoosts(
+            targetStatus: BoostStatus::APPROVED,
+            limit: 1,
+            orderByRanking: true
+        ) as $boost) {
             $viewsManager->record(
                 (new Core\Analytics\Views\View())
-                    ->setEntityUrn("urn:entity:" . $boostShareRatio->getGuid())
+                    ->setEntityUrn("urn:entity:" . $boost->getEntityGuid())
                     ->setOwnerGuid((string) 0)
                     ->setClientMeta([])
-                    ->setCampaign('urn:boost:newsfeed:' . $boostShareRatio->getGuid())
+                    ->setCampaign('urn:boost:newsfeed:' . $boost->getGuid())
             );
             //$this->out('View for ' . $boost->getGuid());
         }

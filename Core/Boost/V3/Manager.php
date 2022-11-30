@@ -192,7 +192,7 @@ class Manager
             offset: $offset,
             targetStatus: $targetStatus,
             forApprovalQueue: $forApprovalQueue,
-            targetUserGuid: $targetUserGuid ?? $this->user->getGuid(),
+            targetUserGuid: $targetUserGuid,
             orderByRanking: $orderByRanking,
             targetAudience: $targetAudience,
             hasNext: $hasNext

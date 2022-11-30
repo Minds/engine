@@ -130,7 +130,7 @@ class Repository
                 $orderByRankingAudience = 'ranking_open';
             }
 
-            $orderByClause = " ORDER BY boost_rankings.$orderByRankingAudience DESC, boosts.approved_timestamp DESC";
+            $orderByClause = " ORDER BY boost_rankings.$orderByRankingAudience DESC, boosts.approved_timestamp ASC";
         }
 
         $query = "SELECT boosts.* FROM boosts $orderByRankingJoin WHERE $statusClause $ownerClause $orderByClause LIMIT :offset, :limit";
@@ -144,7 +144,11 @@ class Repository
 
         $hasNext = $statement->rowCount() === $limit + 1;
 
+        $i = 0;
         foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $boostData) {
+            if (++$i > $limit) {
+                break;
+            }
             $entity = $this->entitiesBuilder->single($boostData['entity_guid']);
             yield (
                 new Boost(
@@ -153,13 +157,13 @@ class Repository
                     targetSuitability: (int) $boostData['target_suitability'],
                     paymentMethod: (int) $boostData['payment_method'],
                     paymentAmount: (float) $boostData['payment_amount'],
-                    dailyBid: (float) $boostData['daily_bid'],
+                    dailyBid: (int) $boostData['daily_bid'],
                     durationDays: (int) $boostData['duration_days'],
                     status: (int) $boostData['status'],
                     createdTimestamp: strtotime($boostData['created_timestamp']),
                     paymentTxId: $boostData['payment_tx_id'],
-                    updatedTimestamp: $boostData['updated_timestamp'] ? strtotime($boostData['updated_timestamp']) : null,
-                    approvedTimestamp: $boostData['approved_timestamp'] ? strtotime($boostData['approvedTimestamp']) : null
+                    updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
+                    approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null
                 )
             )
                 ->setGuid($boostData['guid'])
