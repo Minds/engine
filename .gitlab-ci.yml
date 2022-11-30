@@ -26,7 +26,7 @@ baseimage:prepare:
     - docker push $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID
   rules:
     - changes:
-        - containers/**/*
+        - containers/php/*
     - when: manual
       allow_failure: true
 
@@ -42,7 +42,7 @@ baseimage:deploy:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
-        - containers/**/*
+        - containers/php/*
     - when: manual
       allow_failure: true
 
