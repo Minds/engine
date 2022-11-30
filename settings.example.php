@@ -199,7 +199,7 @@ $CONFIG->elasticsearch = [
     ],
     'username' => null,
     'password' => null,
-    'cert' => '/var/secure/elasticsearch.crt',
+    'cert' => null,
 ];
 
 // MySQL configuration
