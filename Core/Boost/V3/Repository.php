@@ -75,7 +75,7 @@ class Repository
             'payment_amount' => $boost->getPaymentAmount(),
             'daily_bid' => $boost->getDailyBid(),
             'duration_days' => $boost->getDurationDays(),
-            'status' => $boost->getStatus(),
+            'status' => BoostStatus::PENDING,
         ];
 
         $statement = $this->mysqlClientWriter->prepare($query);
@@ -148,17 +148,17 @@ class Repository
             yield (
                 new Boost(
                     entityGuid: $boostData['entity_guid'],
-                    targetLocation: $boostData['target_location'],
-                    targetSuitability: $boostData['target_suitability'],
-                    paymentMethod: $boostData['payment_method'],
-                    paymentAmount: $boostData['payment_amount'],
-                    dailyBid: $boostData['daily_bid'],
-                    durationDays: $boostData['duration_days'],
-                    status: $boostData['status'],
-                    createdTimestamp: $boostData['created_timestamp'],
+                    targetLocation: (int) $boostData['target_location'],
+                    targetSuitability: (int) $boostData['target_suitability'],
+                    paymentMethod: (int) $boostData['payment_method'],
+                    paymentAmount: (float) $boostData['payment_amount'],
+                    dailyBid: (float) $boostData['daily_bid'],
+                    durationDays: (int) $boostData['duration_days'],
+                    status: (int) $boostData['status'],
+                    createdTimestamp: strtotime($boostData['created_timestamp']),
                     paymentTxId: $boostData['payment_tx_id'],
-                    updatedTimestamp: $boostData['updated_timestamp'],
-                    approvedTimestamp: $boostData['approved_timestamp']
+                    updatedTimestamp: $boostData['updated_timestamp'] ? strtotime($boostData['updated_timestamp']) : null,
+                    approvedTimestamp: $boostData['approved_timestamp'] ? strtotime($boostData['approvedTimestamp']) : null
                 )
             )
                 ->setGuid($boostData['guid'])
@@ -191,17 +191,17 @@ class Repository
         return (
             new Boost(
                 entityGuid: $boostData['entity_guid'],
-                targetLocation: $boostData['target_location'],
-                targetSuitability: $boostData['target_suitability'],
-                paymentMethod: $boostData['payment_method'],
-                paymentAmount: $boostData['payment_amount'],
-                dailyBid: $boostData['daily_bid'],
-                durationDays: $boostData['duration_days'],
-                status: $boostData['status'],
-                createdTimestamp: $boostData['created_timestamp'],
+                targetLocation: (int) $boostData['target_location'],
+                targetSuitability: (int) $boostData['target_suitability'],
+                paymentMethod: (int) $boostData['payment_method'],
+                paymentAmount: (float) $boostData['payment_amount'],
+                dailyBid: (float) $boostData['daily_bid'],
+                durationDays: (int) $boostData['duration_days'],
+                status: (int) $boostData['status'],
+                createdTimestamp: strtotime($boostData['created_timestamp']),
                 paymentTxId: $boostData['payment_tx_id'],
-                updatedTimestamp: $boostData['updated_timestamp'],
-                approvedTimestamp: $boostData['approved_timestamp']
+                updatedTimestamp: $boostData['updated_timestamp'] ? strtotime($boostData['updated_timestamp']) : null,
+                approvedTimestamp: $boostData['approved_timestamp'] ? strtotime($boostData['approvedTimestamp']) : null
             )
         )
             ->setGuid($boostData['guid'])
