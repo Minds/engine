@@ -72,7 +72,8 @@ class Manager
             )
         )
             ->setGuid(Guid::build())
-            ->setOwnerGuid($this->user->getGuid());
+            ->setOwnerGuid($this->user->getGuid())
+            ->setPaymentMethodId($data['payment_method_id']);
 
         try {
             if (!$this->paymentProcessor->setupBoostPayment($boost)) {
