@@ -247,6 +247,7 @@ class Manager
         }
 
         $guid = str_replace('urn:boost:newsfeed:', '', $campaign);
-        return $this->repository->getBoostShareRatiosByGuid($guid);
+
+        return $this->activeBoostsCache[$guid] ?? $this->repository->getBoostShareRatiosByGuid($guid);
     }
 }

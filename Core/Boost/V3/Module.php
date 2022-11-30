@@ -8,8 +8,9 @@ use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
 {
-    private array $submodules = [
-        Summaries\Module::class
+    public array $submodules = [
+        Summaries\Module::class,
+        Ranking\Module::class,
     ];
     
     /**

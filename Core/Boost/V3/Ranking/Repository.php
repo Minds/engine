@@ -81,6 +81,11 @@ class Repository
         );
     }
 
+    /**
+     * Prepares the PDO statement to get the shares of boost deliver
+     * @param string $guid (optional)
+     * @return PDOStatement
+     */
     protected function prepareShareRatiosCalculationQuery(string $guid = null): PDOStatement
     {
         $statement = "SELECT

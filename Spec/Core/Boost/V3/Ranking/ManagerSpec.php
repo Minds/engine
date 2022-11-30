@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Boost\V3\Ranking;
 
+use Cassandra\Timeuuid;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\Ranking\BoostShareRatio;
@@ -43,13 +44,62 @@ class ManagerSpec extends ObjectBehavior
                     ],
                     targetLocation: BoostTargetLocation::NEWSFEED,
                     targetSuitability: 1, // SAFE
+                )),
+                (new BoostShareRatio(
+                    guid: "1235",
+                    targetAudienceShares: [
+                        BoostTargetAudiences::OPEN => 0.5,
+                        BoostTargetAudiences::SAFE => 0.25,
+                    ],
+                    targetLocation: BoostTargetLocation::NEWSFEED,
+                    targetSuitability: 1, // SAFE
                 ))
             ]);
 
-        $this->scrollMock->request(Argument::any())
-            ->willYield([]);
+        // initial views
+        $this->scrollMock->request(Argument::that(function ($prepared) {
+            $query = $prepared->build();
+            return count($query['values']) === 4; // doesn't include lt time
+        }))
+            ->willYield([
+                [
+                    'uuid' => new Timeuuid(time()),
+                    'campaign' => 'urn:boost:newsfeed:1234',
+                ],
+                [
+                    'uuid' => new Timeuuid(time()),
+                    'campaign' => 'urn:boost:newsfeed:1234',
+                ],
+                [
+                    'uuid' => new Timeuuid(time()),
+                    'campaign' => 'urn:boost:newsfeed:1235',
+                ]
+            ]);
 
-        $this->repositoryMock->addBoostRanking(Argument::any())
+        // cleanup views
+        $this->scrollMock->request(Argument::that(function ($prepared) {
+            $query = $prepared->build();
+            return count($query['values']) === 5; // includes lt time
+        }))
+            ->willYield([
+
+            ]);
+
+        // RANK saves for "1234"
+        $this->repositoryMock->addBoostRanking(Argument::that(function ($boostRank) {
+            return $boostRank->getGuid() === '1234'
+                && $boostRank->getRanking(BoostTargetAudiences::OPEN) === 0.75
+                && $boostRank->getRanking(BoostTargetAudiences::SAFE) === 0.375;
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        // RANK saves for "1235" - should have a higher rank
+        $this->repositoryMock->addBoostRanking(Argument::that(function ($boostRank) {
+            return $boostRank->getGuid() === '1235'
+                && $boostRank->getRanking(BoostTargetAudiences::OPEN) === 1.5
+                && $boostRank->getRanking(BoostTargetAudiences::SAFE) === 0.75;
+        }))
             ->shouldBeCalled()
             ->willReturn(true);
 
