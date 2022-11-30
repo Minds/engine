@@ -44,17 +44,18 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
 
     public function rank()
     {
-        $rankingManager = new Core\Boost\V3\Ranking\Manager();
+        /** @var Core\Boost\V3\Ranking\Manager */
+        $rankingManager = Di::_()->get('Boost\V3\Ranking\Manager');
 
         while (true) {
             $this->simulateViews();
 
-            // sleep(1);
-
             $rankingManager->calculateRanks();
 
+            // There is a memory leak, uncomment to log
             // $mem = memory_get_usage();
             // Di::_()->get('Logger')->info(round($mem/1048576, 2) . 'mb used');
+    
             sleep(1);
         }
 
@@ -64,7 +65,9 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
     protected function simulateViews()
     {
         $viewsManager = new Core\Analytics\Views\Manager();
-        $boostRankingRepo = new Core\Boost\V3\Ranking\Repository();
+
+        /** @var Core\Boost\V3\Ranking\Repository */
+        $boostRankingRepo =  Di::_()->get('Boost\V3\Ranking\Repository');
         foreach ($boostRankingRepo->getBoostShareRatios() as $boostShareRatio) {
             $viewsManager->record(
                 (new Core\Analytics\Views\View())
