@@ -40,7 +40,7 @@ class Manager
         protected ?Scroll $scroll = null,
         protected ?Logger $logger = null
     ) {
-        $this->repository ??= Di::_()->get('Boost\V3\Ranking\Repository');
+        $this->repository ??= Di::_()->get(Repository::class);
         $this->scroll ??= Di::_()->get('Database\Cassandra\Cql\Scroll');
         $this->logger ??= Di::_()->get('Logger');
     }

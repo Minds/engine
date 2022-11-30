@@ -129,7 +129,7 @@ class Repository
                 $orderByRankingAudience = 'ranking_open';
             }
 
-            $orderByClause = " ORDER BY boost_rankings.$orderByRankingAudience DESC, boost.approved_timestamp DESC";
+            $orderByClause = " ORDER BY boost_rankings.$orderByRankingAudience DESC, boosts.approved_timestamp DESC";
         }
 
         $query = "SELECT * FROM boosts $orderByRankingJoin WHERE $statusClause $ownerClause $orderByClause LIMIT :offset, :limit";

@@ -21,16 +21,16 @@ class Routes extends ModuleRoutes
             ->do(function (Route $route): void {
                 $route->get(
                     '/feed',
-                    Ref::_('Boost\V3\Controller', 'getBoostFeed')
+                    Ref::_(Controller::class, 'getBoostFeed')
                 );
                 $route->get(
                     '',
-                    Ref::_('Boost\V3\Controller', 'getOwnBoosts')
+                    Ref::_(Controller::class, 'getOwnBoosts')
                 );
 
                 $route->post(
                     '',
-                    Ref::_('Boost\V3\Controller', 'createBoost')
+                    Ref::_(Controller::class, 'createBoost')
                 );
 
                 $route
@@ -40,15 +40,15 @@ class Routes extends ModuleRoutes
                     ->do(function (Route $route): void {
                         $route->get(
                             'pending',
-                            Ref::_('Boost\V3\Controller', 'getAdminPendingBoosts')
+                            Ref::_(Controller::class, 'getAdminPendingBoosts')
                         );
                         $route->post(
                             ':guid/approve',
-                            Ref::_('Boost\V3\Controller', 'approveBoost')
+                            Ref::_(Controller::class, 'approveBoost')
                         );
                         $route->post(
                             ':guid/reject',
-                            Ref::_('Boost\V3\Controller', 'rejectBoost')
+                            Ref::_(Controller::class, 'rejectBoost')
                         );
                     });
             });
