@@ -77,7 +77,7 @@ class Boost implements ExportableInterface
             'guid' => $this->getGuid(),
             'owner_guid' => $this->getOwnerGuid(),
             'entity_guid' => $this->getEntityGuid(),
-            'entity' => $this->entity,
+            'entity' => $this->entity?->export(),
             'target_location' => $this->getTargetLocation(),
             'target_suitability' => $this->getTargetSuitability(),
             'payment_method' => $this->getPaymentMethod(),
