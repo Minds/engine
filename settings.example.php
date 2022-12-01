@@ -209,6 +209,7 @@ $CONFIG->mysql = [
     'user' => 'user',
     'password' => 'changeme',
     'ssl_skip_verify' => true,
+    'is_vitess' => false
 ];
 
 /*
