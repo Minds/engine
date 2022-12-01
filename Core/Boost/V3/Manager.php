@@ -31,7 +31,7 @@ class Manager
         private ?Repository $repository = null,
         private ?PaymentProcessor $paymentProcessor = null
     ) {
-        $this->repository ??= Di::_()->get('Boost\V3\Repository');
+        $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
     }
 
@@ -192,15 +192,12 @@ class Manager
             offset: $offset,
             targetStatus: $targetStatus,
             forApprovalQueue: $forApprovalQueue,
-            targetUserGuid: $targetUserGuid ?? $this->user->getGuid(),
+            targetUserGuid: $targetUserGuid,
             orderByRanking: $orderByRanking,
             targetAudience: $targetAudience,
             hasNext: $hasNext
         );
 
-        return new Response([
-            'boosts' => $boosts,
-            'hasNext' => $hasNext
-        ]);
+        return new Response(iterator_to_array($boosts), $hasNext);
     }
 }

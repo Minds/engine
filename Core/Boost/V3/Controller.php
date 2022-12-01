@@ -25,7 +25,7 @@ class Controller
     public function __construct(
         private ?Manager $manager = null
     ) {
-        $this->manager ??= Di::_()->get('Boost\V3\Manager');
+        $this->manager ??= Di::_()->get(Manager::class);
     }
 
     public function getBoostFeed(ServerRequestInterface $request): JsonResponse
@@ -41,13 +41,16 @@ class Controller
         $boosts = $this->manager
             ->setUser($loggedInUser)
             ->getBoosts(
-                limit: $limit,
-                offset: $offset,
+                limit: (int) $limit,
+                offset: (int) $offset,
                 targetStatus: BoostStatus::APPROVED,
                 orderByRanking: true,
-                targetAudience: $audience
+                targetAudience: (int) $audience
             );
-        return new JsonResponse(Exportable::_($boosts));
+        return new JsonResponse([
+            'boosts' => Exportable::_($boosts),
+            'has_more' => $boosts->getPagingToken(),
+        ]);
     }
 
     public function getOwnBoosts(ServerRequestInterface $request): JsonResponse
@@ -58,8 +61,11 @@ class Controller
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
-            ->getBoosts($targetStatus);
-        return new JsonResponse(Exportable::_($boosts));
+            ->getBoosts(targetStatus: (int) $targetStatus); // TODO: fix this so can support all statuses
+        return new JsonResponse([
+            'boosts' => Exportable::_($boosts),
+            'has_more' => $boosts->getPagingToken(),
+        ]);
     }
 
     /**
@@ -94,6 +100,7 @@ class Controller
         $this->manager
             ->setUser($loggedInUser)
             ->createBoost($data);
+
         return new JsonResponse(
             data: "",
             status: 201
@@ -114,7 +121,10 @@ class Controller
                 targetStatus: BoostStatus::PENDING,
                 forApprovalQueue: true
             );
-        return new JsonResponse(Exportable::_($boosts));
+        return new JsonResponse([
+            'boosts' => Exportable::_($boosts),
+            'has_more' => $boosts->getPagingToken(),
+        ]);
     }
 
     /**
@@ -132,7 +142,7 @@ class Controller
     {
         $boostGuid = $request->getAttribute("parameters")["guid"];
 
-        $this->manager->approveBoost($boostGuid);
+        $this->manager->approveBoost((string) $boostGuid);
 
         return new JsonResponse("");
     }
@@ -153,7 +163,7 @@ class Controller
     {
         $boostGuid = $request->getAttribute("parameters")["guid"];
 
-        $this->manager->rejectBoost($boostGuid);
+        $this->manager->rejectBoost((string) $boostGuid);
 
         return new JsonResponse("");
     }

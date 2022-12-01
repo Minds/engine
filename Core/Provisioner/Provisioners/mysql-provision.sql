@@ -114,3 +114,11 @@ CREATE TABLE IF NOT EXISTS boost_summaries
     views int NOT NULL,
     reach int NOT NULL
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS boost_rankings
+(
+    guid bigint PRIMARY KEY,
+    ranking_open float,
+    ranking_safe float,
+    last_updated timestamp
+) ENGINE=InnoDB;
