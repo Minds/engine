@@ -61,7 +61,10 @@ class Controller
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
-            ->getBoosts(targetStatus: (int) $targetStatus); // TODO: fix this so can support all statuses
+            ->getBoosts(
+                targetUserGuid: $loggedInUser->getGuid(),
+                targetStatus: (int) $targetStatus
+            );
         return new JsonResponse([
             'boosts' => Exportable::_($boosts),
             'has_more' => $boosts->getPagingToken(),
