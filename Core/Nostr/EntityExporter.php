@@ -39,6 +39,7 @@ class EntityExporter
             'since' => null,
             'until' => null,
             'limit' => 12,
+            'tags' => [],
         ], $filters);
 
         // Cap limit
@@ -46,6 +47,10 @@ class EntityExporter
 
         // # of sent events
         $count = 0;
+
+        // Add delgated public keys to 'authors' for NIP-26
+        $delegated = array_filter(array_map(fn($author) => $this->manager->getNip26Delegate($author), $filters['authors']));
+        $filters['authors'] = array_merge($filters['authors'], $delegated);
 
         // Query all nostr events based off filters
         foreach ($this->manager->getNostrEvents($filters) as $nostrEvent) {

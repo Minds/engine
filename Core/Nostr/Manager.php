@@ -125,6 +125,16 @@ class Manager
     }
 
     /**
+     * Will return a delegate pubkey from a delegator public key
+     * @param string $pubKey
+     * @return User|null
+     */
+    public function getNip26Delegate(string $delegatorPulicKey): ?string
+    {
+        return $this->repository->getNip26Delegate($delegatorPulicKey);
+    }
+
+    /**
      * Will build a signed Nostr event
      * https://github.com/nostr-protocol/nips/blob/master/01.md#events-and-signatures
      * @param EntityInterface $entity

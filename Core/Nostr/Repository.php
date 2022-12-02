@@ -616,4 +616,29 @@ class Repository
     {
         return '(' . rtrim(str_repeat('?,', count($arr)), ',') . ')';
     }
+
+    /**
+     * Will return a delegate pubkey from a delegator public key
+     * @param string $pubKey
+     * @return User|null
+     */
+    public function getNip26Delegate(string $delegator_pubkey): ?string
+    {
+        $statement = "SELECT delegate_pubkey FROM nostr_nip26_tokens WHERE delegator_pubkey = ?";
+
+        $values = [
+            $delegator_pubkey,
+        ];
+
+        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_REPLICA)->prepare($statement);
+        $prepared->execute($values);
+
+        $rows = $prepared->fetchAll();
+
+        if (!$rows || count($rows) == 0) {
+            return null;
+        }
+
+        return $rows[0]['delegate_pubkey'];
+    }
 }
