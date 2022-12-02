@@ -126,12 +126,12 @@ class Manager
 
     /**
      * Will return a delegate pubkey from a delegator public key
-     * @param string $pubKey
-     * @return User|null
+     * @param string $delegator_pubkey
+     * @return string|null
      */
-    public function getNip26Delegate(string $delegatorPulicKey): ?string
+    public function getNip26Delegate(string $delegator_pubkey): ?string
     {
-        return $this->repository->getNip26Delegate($delegatorPulicKey);
+        return $this->repository->getNip26Delegate($delegator_pubkey);
     }
 
     /**
