@@ -57,13 +57,13 @@ class Provider extends Di\Provider
             // Password grant
             $server->enableGrantType(
                 $di->get('OAuth\Grants\Password'),
-                new \DateInterval('PT72H') // expire access token after 72 hours
+                new \DateInterval('PT2M') // expire access token after 72 hours
             );
 
             // Refresh grant
             $server->enableGrantType(
                 $di->get('OAuth\Grants\RefreshToken'),
-                new \DateInterval('PT72H') // expire access token after 72 hours
+                new \DateInterval('PT3M') // expire access token after 72 hours
             );
 
             // Implicit grant
