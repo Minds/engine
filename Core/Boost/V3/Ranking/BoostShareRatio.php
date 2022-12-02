@@ -2,9 +2,17 @@
 namespace Minds\Core\Boost\V3\Ranking;
 
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
+use Minds\Exceptions\ServerErrorException;
 
 class BoostShareRatio
 {
+    /**
+     * @param string $guid
+     * @param array $targetAudienceShares
+     * @param int $targetLocation
+     * @param int $targetSuitability
+     * @throws ServerErrorException
+     */
     public function __construct(
         protected string $guid,
         protected array $targetAudienceShares,
@@ -29,6 +37,7 @@ class BoostShareRatio
      * @param int $targetAudience
      * @param float $share
      * @return self
+     * @throws ServerErrorException
      */
     public function setTargetAudienceShare(int $targetAudience, float $share): self
     {

@@ -84,7 +84,7 @@ class Boost implements ExportableInterface
             'payment_amount' => $this->getPaymentAmount(),
             'daily_bid' => $this->getDailyBid(),
             'duration_days' => $this->getDurationDays(),
-            'status' => $this->getStatus(),
+            'boost_status' => $this->getStatus(),
             'created_timestamp' => $this->getCreatedTimestamp(),
             'updated_timestamp' => $this->getUpdatedTimestamp(),
             'approved_timestamp' => $this->getApprovedTimestamp(),

@@ -339,20 +339,8 @@ $CONFIG->set('boost', [
         'onchain_tokens' => 100
     ],
     'duration' => [ // in days
-        'cash' => [
-            'min' => 1,
-            'max' => 30,
-            'increments' => [
-                1, 2, 5, 10, 15, 21, 30
-            ]
-        ],
-        'tokens' => [
-            'min' => 1,
-            'max' => 30,
-            'increments' => [
-                1, 2, 5, 10, 15, 21, 30
-            ]
-        ]
+        'min' => 1,
+        'max' => 30
     ],
     'bid_increments' => [
         'cash' => [
