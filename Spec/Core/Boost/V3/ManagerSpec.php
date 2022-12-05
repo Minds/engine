@@ -291,7 +291,7 @@ class ManagerSpec extends ObjectBehavior
     ): void {
         $boost->getStatus()
             ->shouldBeCalledOnce()
-            ->willReturn(BoostStatus::REFUND_IN_PROGRESS);
+            ->willReturn(BoostStatus::PENDING);
 
         $this->repository->getBoostByGuid(Argument::type('string'))
             ->shouldBeCalledOnce()
@@ -316,7 +316,7 @@ class ManagerSpec extends ObjectBehavior
     ): void {
         $boost->getStatus()
             ->shouldBeCalledOnce()
-            ->willReturn(BoostStatus::REFUND_IN_PROGRESS);
+            ->willReturn(BoostStatus::PENDING);
 
         $this->repository->getBoostByGuid(Argument::type('string'))
             ->shouldBeCalledOnce()
