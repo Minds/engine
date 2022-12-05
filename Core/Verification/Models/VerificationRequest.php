@@ -116,7 +116,7 @@ class VerificationRequest implements ExportableInterface, EntityInterface
         return [
             'user_guid' => $this->getUserGuid(),
             'device_id' => $this->getDeviceId(),
-            'status' => $this->getStatus(),
+            'request_status' => $this->getStatus(),
             'created_at' => $this->getCreatedAt(),
             'updated_at' => $this->getUpdatedAt()
         ];

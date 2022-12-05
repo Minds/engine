@@ -55,6 +55,6 @@ class GoogleVisionOCRClient implements MindsOCRInterface
 
         $parsedResponse = json_decode($processedImage->getBody()->getContents());
 
-        return $parsedResponse->responses[0]->fullTextAnnotation->text;
+        return $parsedResponse->responses[0]->fullTextAnnotation?->text ?? false;
     }
 }

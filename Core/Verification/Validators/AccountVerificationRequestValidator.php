@@ -1,22 +1,14 @@
 <?php
 
-declare(strict_types=1);
+namespace Minds\Core\Verification\Validators;
 
-namespace Minds\Core\Supermind\Validators;
-
-use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
-use Minds\Interfaces\ValidatorInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class SupermindGetRequestsValidator implements ValidatorInterface
+class AccountVerificationRequestValidator implements \Minds\Interfaces\ValidatorInterface
 {
     private ?ValidationErrorCollection $errors = null;
-
-    private array $invalidStatuses = [
-        SupermindRequestStatus::PENDING
-    ];
 
     private function resetErrors(): void
     {
@@ -30,30 +22,38 @@ class SupermindGetRequestsValidator implements ValidatorInterface
     {
         $this->resetErrors();
 
-        if (!isset($dataToValidate['limit']) || $dataToValidate['limit'] < 1) {
+        if (!isset($dataToValidate->getUploadedFiles()['image'])) {
             $this->errors->add(
                 new ValidationError(
-                    "limit",
-                    "The 'limit' parameter must be provided and have a minimum value of '1'"
+                    "image",
+                    "The file with name 'image' must be provided"
                 )
             );
         }
 
-        if (!isset($dataToValidate['offset']) || $dataToValidate['offset'] < 0) {
+        if (!array_key_exists('device_type', $dataToValidate->getParsedBody())) {
             $this->errors->add(
                 new ValidationError(
-                    "offset",
-                    "The 'offset' parameter must be provided and have a minimum value of '0' (zero)"
+                    "device_type",
+                    "The device type must be provided"
                 )
             );
         }
-  
-        $status = $dataToValidate['status'] ?? null;
-        if (!is_null($status) && ($status < 1 || in_array($status, $this->invalidStatuses, true))) {
+
+        if (!array_key_exists('geo', $dataToValidate->getParsedBody())) {
             $this->errors->add(
                 new ValidationError(
-                    "status",
-                    "The provided 'status' parameter is invalid"
+                    "geo",
+                    "The device type must be provided"
+                )
+            );
+        }
+
+        if (!array_key_exists('sensor_data', $dataToValidate->getParsedBody())) {
+            $this->errors->add(
+                new ValidationError(
+                    "sensor_data",
+                    "The sensor data must be provided"
                 )
             );
         }

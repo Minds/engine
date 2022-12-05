@@ -11,6 +11,7 @@ use Minds\Core\Verification\Exceptions\VerificationRequestExpiredException;
 use Minds\Core\Verification\Exceptions\VerificationRequestFailedException;
 use Minds\Core\Verification\Exceptions\VerificationRequestNotFoundException;
 use Minds\Core\Verification\Models\VerificationRequestDeviceType;
+use Minds\Core\Verification\Validators\AccountVerificationRequestValidator;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
@@ -152,6 +153,16 @@ class Controller
         $loggedInUser = $request->getAttribute('_user');
         $deviceId = $request->getAttribute("parameters")["deviceid"];
 
+        $validator = new AccountVerificationRequestValidator();
+
+        if (!$validator->validate($request)) {
+            throw new UserErrorException(
+                'An error occurred whilst validating the request',
+                400,
+                $validator->getErrors()
+            );
+        }
+
         /**
          * @var UploadedFile $image
          */
@@ -162,10 +173,6 @@ class Controller
             'device_type' => $deviceTypeId,
             'geo' => $geo,
         ] = $request->getParsedBody();
-
-        if (!$deviceTypeId) {
-            throw new UserErrorException('device_id must be provided in body', 400);
-        }
 
         $ipAddr = (new IpAddress())->setServerRequest($request)->get();
 
