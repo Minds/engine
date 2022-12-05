@@ -8,6 +8,7 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
+use Minds\Core\Boost\V3\Exceptions\BoostPaymentRefundFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentSetupFailedException;
 use Minds\Core\Boost\V3\Exceptions\IncorrectBoostStatusException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
@@ -154,7 +155,7 @@ class Manager
         $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_IN_PROGRESS);
 
         if (!$this->paymentProcessor->refundBoostPayment($boost)) {
-            throw new BoostPaymentCaptureFailedException();
+            throw new BoostPaymentRefundFailedException();
         }
 
         // Mark request as Refund_processed

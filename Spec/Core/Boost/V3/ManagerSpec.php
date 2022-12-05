@@ -3,8 +3,11 @@
 namespace Spec\Minds\Core\Boost\V3;
 
 use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
+use Minds\Core\Boost\V3\Exceptions\BoostPaymentRefundFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentSetupFailedException;
+use Minds\Core\Boost\V3\Exceptions\IncorrectBoostStatusException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
 use Minds\Core\Boost\V3\Manager;
 use Minds\Core\Boost\V3\Models\Boost;
@@ -267,5 +270,89 @@ class ManagerSpec extends ObjectBehavior
 
         $this->rejectBoost('123')
             ->shouldBeEqualTo(true);
+    }
+
+    public function it_should_try_reject_boost_and_throw_incorrect_status_exception(
+        Boost $boost
+    ): void {
+        $boost->getStatus()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostStatus::REFUND_IN_PROGRESS);
+
+        $this->repository->getBoostByGuid(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($boost);
+
+        $this->shouldThrow(IncorrectBoostStatusException::class)->during('rejectBoost', ['123']);
+    }
+
+    public function it_should_try_reject_boost_and_throw_payment_refund_failed_exception(
+        Boost $boost
+    ): void {
+        $boost->getStatus()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostStatus::REFUND_IN_PROGRESS);
+
+        $this->repository->getBoostByGuid(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($boost);
+
+        $this->repository->updateStatus(
+            Argument::type('string'),
+            BoostStatus::REFUND_IN_PROGRESS
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->paymentProcessor->refundBoostPayment(Argument::type(Boost::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
+        $this->shouldThrow(BoostPaymentRefundFailedException::class)->during('rejectBoost', ['123']);
+    }
+
+    public function it_should_try_reject_boost_and_throw_server_error_exception(
+        Boost $boost
+    ): void {
+        $boost->getStatus()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostStatus::REFUND_IN_PROGRESS);
+
+        $this->repository->getBoostByGuid(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($boost);
+
+        $this->repository->updateStatus(
+            Argument::type('string'),
+            BoostStatus::REFUND_IN_PROGRESS
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->updateStatus(
+            Argument::type('string'),
+            BoostStatus::REFUND_PROCESSED
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->rejectBoost(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
+        $this->paymentProcessor->refundBoostPayment(Argument::type(Boost::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->shouldThrow(ServerErrorException::class)->during('rejectBoost', ['123']);
+    }
+
+    public function it_should_try_reject_boost_and_throw_boost_not_found_exception(): void
+    {
+        $this->repository->getBoostByGuid(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willThrow(BoostNotFoundException::class);
+
+        $this->shouldThrow(BoostNotFoundException::class)->during('rejectBoost', ['123']);
     }
 }
