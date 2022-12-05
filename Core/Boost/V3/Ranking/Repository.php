@@ -1,9 +1,11 @@
 <?php
 namespace Minds\Core\Boost\V3\Ranking;
 
+use Iterator;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Data\MySQL\Client;
+use Minds\Exceptions\ServerErrorException;
 use PDOStatement;
 
 class Repository
@@ -28,7 +30,7 @@ class Repository
             ON DUPLICATE KEY UPDATE last_updated=NOW(),ranking_open=:ranking_open,ranking_safe=:ranking_safe";
         $values = [
             'guid' => $boostRanking->getGuid(),
-            'ranking_open' => $boostRanking->getRanking(BoostTargetAudiences::OPEN),
+            'ranking_open' => $boostRanking->getRanking(BoostTargetAudiences::CONTROVERSIAL),
             'ranking_safe' => $boostRanking->getRanking(BoostTargetAudiences::SAFE),
         ];
 
@@ -38,9 +40,10 @@ class Repository
 
     /**
      * Returns an iterator of all the available boosts and their share calculations
-     * @return iterable<BoostShareRatio>
+     * @return Iterator
+     * @throws ServerErrorException
      */
-    public function getBoostShareRatios(): iterable
+    public function getBoostShareRatios(): Iterator
     {
         $stmt = $this->prepareShareRatiosCalculationQuery();
         $stmt->execute();
@@ -52,7 +55,8 @@ class Repository
 
     /**
      * Returns an iterator of all the available boosts and their share calculations
-     * @return iterable
+     * @param string $guid
+     * @return BoostShareRatio|null
      */
     public function getBoostShareRatiosByGuid(string $guid): ?BoostShareRatio
     {
@@ -68,13 +72,14 @@ class Repository
      * Builds the model from raw row data
      * @param array $row
      * @return BoostShareRatio
+     * @throws ServerErrorException
      */
     protected function buildBoostShareModel(array $row): BoostShareRatio
     {
         return new BoostShareRatio(
             guid: $row['guid'],
             targetAudienceShares: [
-                BoostTargetAudiences::OPEN => $row['share_ratio_open_audience'],
+                BoostTargetAudiences::CONTROVERSIAL => $row['share_ratio_open_audience'],
                 BoostTargetAudiences::SAFE => $row['share_ratio_safe_audience'],
             ],
             targetLocation: $row['target_location'],
@@ -84,8 +89,9 @@ class Repository
 
     /**
      * Prepares the PDO statement to get the shares of boost deliver
-     * @param string $guid (optional)
+     * @param string|null $guid (optional)
      * @return PDOStatement
+     * @throws ServerErrorException
      */
     protected function prepareShareRatiosCalculationQuery(string $guid = null): PDOStatement
     {

@@ -6,7 +6,7 @@ use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 class BoostRanking
 {
     protected $rankings = [
-        BoostTargetAudiences::OPEN => 0,
+        BoostTargetAudiences::CONTROVERSIAL => 0,
         BoostTargetAudiences::SAFE => 0,
     ];
 

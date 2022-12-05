@@ -133,7 +133,7 @@ class Manager
      * @param string $boostGuid
      * @return bool
      * @throws ApiErrorException
-     * @throws BoostPaymentCaptureFailedException
+     * @throws BoostPaymentRefundFailedException
      * @throws Exception
      * @throws Exceptions\BoostNotFoundException
      * @throws InvalidBoostPaymentMethodException

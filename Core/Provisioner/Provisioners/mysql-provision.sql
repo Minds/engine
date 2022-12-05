@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS boosts
     target_location int NOT NULL,
     payment_method int NOT NULL,
     payment_amount float NOT NULL,
-    payment_tx_id text NOT NULL,
+    payment_tx_id text NULL DEFAULT NULL,
     daily_bid float NOT NULL,
     duration_days int NOT NULL,
     status int NOT NULL,

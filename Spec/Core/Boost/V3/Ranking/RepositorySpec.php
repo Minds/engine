@@ -54,7 +54,7 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn(true);
 
         $boostRanking = new BoostRanking('1234');
-        $boostRanking->setRank(BoostTargetAudiences::OPEN, 1.5)
+        $boostRanking->setRank(BoostTargetAudiences::CONTROVERSIAL, 1.5)
             ->setRank(BoostTargetAudiences::SAFE, 0.5);
 
         $this->addBoostRanking($boostRanking)->shouldBe(true);
@@ -88,7 +88,7 @@ class RepositorySpec extends ObjectBehavior
                 new BoostShareRatio(
                     guid: '1234',
                     targetAudienceShares: [
-                        BoostTargetAudiences::OPEN => 0.5,
+                        BoostTargetAudiences::CONTROVERSIAL => 0.5,
                         BoostTargetAudiences::SAFE => 0.75
                     ],
                     targetLocation: BoostTargetLocation::NEWSFEED,
@@ -97,7 +97,7 @@ class RepositorySpec extends ObjectBehavior
                 new BoostShareRatio(
                     guid: '1235',
                     targetAudienceShares: [
-                        BoostTargetAudiences::OPEN => 0.5,
+                        BoostTargetAudiences::CONTROVERSIAL => 0.5,
                         BoostTargetAudiences::SAFE => 0.25
                     ],
                     targetLocation: BoostTargetLocation::NEWSFEED,
@@ -127,7 +127,7 @@ class RepositorySpec extends ObjectBehavior
                 new BoostShareRatio(
                     guid: '1234',
                     targetAudienceShares: [
-                        BoostTargetAudiences::OPEN => 0.5,
+                        BoostTargetAudiences::CONTROVERSIAL => 0.5,
                         BoostTargetAudiences::SAFE => 0.75
                     ],
                     targetLocation: BoostTargetLocation::NEWSFEED,

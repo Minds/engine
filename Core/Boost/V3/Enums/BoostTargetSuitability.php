@@ -8,13 +8,13 @@ class BoostTargetSuitability
     public const SAFE = 1;
 
     /** @var int - A boost with this suitability will be displayed to users who have opted to see only safe content */
-    public const OPEN = 2;
+    public const CONTROVERSIAL = 2;
 
     /**
      * @var array A list of valid values for the enum - To be used for validation purposes
      */
     public const VALID = [
         self::SAFE,
-        self::OPEN,
+        self::CONTROVERSIAL,
     ];
 }

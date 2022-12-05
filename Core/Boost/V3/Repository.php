@@ -126,7 +126,7 @@ class Repository
             $orderByRankingJoin = " LEFT JOIN boost_rankings ON boosts.guid = boost_rankings.guid";
 
             $orderByRankingAudience = 'ranking_safe';
-            if ($targetAudience === BoostTargetAudiences::OPEN) {
+            if ($targetAudience === BoostTargetAudiences::CONTROVERSIAL) {
                 $orderByRankingAudience = 'ranking_open';
             }
 
@@ -205,8 +205,8 @@ class Repository
                 status: (int) $boostData['status'],
                 createdTimestamp: strtotime($boostData['created_timestamp']),
                 paymentTxId: $boostData['payment_tx_id'],
-                updatedTimestamp: $boostData['updated_timestamp'] ? strtotime($boostData['updated_timestamp']) : null,
-                approvedTimestamp: $boostData['approved_timestamp'] ? strtotime($boostData['approvedTimestamp']) : null
+                updatedTimestamp: isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
+                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approvedTimestamp']) : null
             )
         )
             ->setGuid($boostData['guid'])

@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Boost\V3;
 
+use Minds\Common\Repository\Response;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
@@ -235,6 +236,35 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow(ServerErrorException::class)->during('approveBoost', ['123']);
     }
 
+    /**
+     * @return void
+     */
+    public function it_should_try_approve_boost_and_throw_boost_not_found_exception(): void
+    {
+        $this->repository->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->repository->rollbackTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->repository->getBoostByGuid(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willThrow(BoostNotFoundException::class);
+
+        $this->shouldThrow(BoostNotFoundException::class)->during('approveBoost', ['123']);
+    }
+
+    /**
+     * @param Boost $boost
+     * @return void
+     * @throws BoostNotFoundException
+     * @throws BoostPaymentCaptureFailedException
+     * @throws InvalidBoostPaymentMethodException
+     * @throws KeyNotSetupException
+     * @throws LockFailedException
+     * @throws NotImplementedException
+     * @throws ServerErrorException
+     * @throws \Stripe\Exception\ApiErrorException
+     */
     public function it_should_reject_boost(
         Boost $boost
     ): void {
@@ -272,6 +302,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeEqualTo(true);
     }
 
+    /**
+     * @param Boost $boost
+     * @return void
+     */
     public function it_should_try_reject_boost_and_throw_incorrect_status_exception(
         Boost $boost
     ): void {
@@ -286,6 +320,10 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow(IncorrectBoostStatusException::class)->during('rejectBoost', ['123']);
     }
 
+    /**
+     * @param Boost $boost
+     * @return void
+     */
     public function it_should_try_reject_boost_and_throw_payment_refund_failed_exception(
         Boost $boost
     ): void {
@@ -311,6 +349,10 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow(BoostPaymentRefundFailedException::class)->during('rejectBoost', ['123']);
     }
 
+    /**
+     * @param Boost $boost
+     * @return void
+     */
     public function it_should_try_reject_boost_and_throw_server_error_exception(
         Boost $boost
     ): void {
@@ -347,6 +389,9 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow(ServerErrorException::class)->during('rejectBoost', ['123']);
     }
 
+    /**
+     * @return void
+     */
     public function it_should_try_reject_boost_and_throw_boost_not_found_exception(): void
     {
         $this->repository->getBoostByGuid(Argument::type('string'))
@@ -354,5 +399,31 @@ class ManagerSpec extends ObjectBehavior
             ->willThrow(BoostNotFoundException::class);
 
         $this->shouldThrow(BoostNotFoundException::class)->during('rejectBoost', ['123']);
+    }
+
+    /**
+     * @param Boost $boost
+     * @return void
+     */
+    public function it_should_get_boosts(
+        Boost $boost
+    ): void {
+        $hasNext = false;
+
+        $this->repository->getBoosts(
+            Argument::type('integer'),
+            Argument::type('integer'),
+            null,
+            Argument::type('bool'),
+            null,
+            Argument::type('bool'),
+            Argument::type('integer'),
+            Argument::type('bool')
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->getBoosts()
+            ->shouldReturnAnInstanceOf(Response::class);
     }
 }

@@ -2,11 +2,11 @@
 namespace Minds\Core\Boost\V3\Ranking;
 
 use Cassandra\Timeuuid;
-use Minds\Core\Boost\V3\Manager as BoostManager;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
-use Minds\Core\Data\Cassandra\Scroll;
 use Minds\Core\Data\Cassandra\Prepared;
+use Minds\Core\Data\Cassandra\Prepared\Custom;
+use Minds\Core\Data\Cassandra\Scroll;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Exceptions\ServerErrorException;
@@ -16,24 +16,24 @@ class Manager
     const TIME_WINDOW_SECS = 3600; // 1 hour
 
     /** @var int[] - the total views for the time window */
-    protected $totalViews = [
-        BoostTargetLocation::NEWSFEED . '_' . BoostTargetAudiences::OPEN => 0,
+    protected array $totalViews = [
+        BoostTargetLocation::NEWSFEED . '_' . BoostTargetAudiences::CONTROVERSIAL => 0,
         BoostTargetLocation::NEWSFEED . '_' . BoostTargetAudiences::SAFE => 0,
-        BoostTargetLocation::SIDEBAR . '_' . BoostTargetAudiences::OPEN => 0,
+        BoostTargetLocation::SIDEBAR . '_' . BoostTargetAudiences::CONTROVERSIAL => 0,
         BoostTargetLocation::SIDEBAR . '_' . BoostTargetAudiences::SAFE => 0,
     ];
 
     /** @var int[] - the views for the timewindow, split by key value boostGuid=>totalViews */
-    protected $viewsByBoostGuid = [];
+    protected array $viewsByBoostGuid = [];
 
-    /** @var Timeuuid - the uuid of the oldest view record we hold */
-    protected $minScanUuid;
+    /** @var Timeuuid|null - the uuid of the oldest view record we hold */
+    protected ?Timeuuid $minScanUuid = null;
 
-    /** @var Timeuuid - the uuid of the newest view record we hold */
-    protected $maxScanUuid;
+    /** @var Timeuuid|null - the uuid of the newest view record we hold */
+    protected ?Timeuuid $maxScanUuid = null;
 
-    /** @var BoostShareRatio */
-    protected $activeBoostsCache = [];
+    /** @var BoostShareRatio[] */
+    protected array $activeBoostsCache = [];
 
     public function __construct(
         protected ?Repository $repository = null,
@@ -48,8 +48,9 @@ class Manager
     /**
      * Call this function periodically to update the rankings of the boosts
      * This function will also store the boosts to the ranking table
+     * @throws ServerErrorException
      */
-    public function calculateRanks()
+    public function calculateRanks(): void
     {
         /**
          * Grab all the boosts are scheduled to be delivered
@@ -68,7 +69,7 @@ class Manager
          */
         foreach ($this->activeBoostsCache as $boost) {
             $targetAudiences = [
-                BoostTargetAudiences::OPEN => $boost->getTargetAudienceShare(BoostTargetAudiences::OPEN), // Will always go to open audience
+                BoostTargetAudiences::CONTROVERSIAL => $boost->getTargetAudienceShare(BoostTargetAudiences::CONTROVERSIAL), // Will always go to open audience
                 BoostTargetAudiences::SAFE => $boost->getTargetAudienceShare(BoostTargetAudiences::SAFE), // Only safe boosts will go here
             ];
 
@@ -105,8 +106,9 @@ class Manager
      * Collects all the view data and stores them in memory
      * Each time this function is called it will resume from the last position
      * @return void
+     * @throws ServerErrorException
      */
-    public function collectAllViews()
+    public function collectAllViews(): void
     {
         /**
          * If there is no min value set, set to TIME_WINDOW_SECS ago (ie. 1 hour ago)
@@ -139,8 +141,8 @@ class Manager
          * Prune views outside of the valid time window
          */
         $query = $this->prepareQuery(
-            ltTimeuuid: new Timeuuid((time() - self::TIME_WINDOW_SECS) * 1000), // find those less than one hour
-            gtTimeuuid: $this->minScanUuid, // but greater than our last min scan
+            gtTimeuuid: $this->minScanUuid,                                    // find those less than one hour
+            ltTimeuuid: new Timeuuid((time() - self::TIME_WINDOW_SECS) * 1000) // but greater than our last min scan
         );
         foreach ($this->scroll->request($query) as $row) {
             // Set the minScanUuid to be the last item we see, as the next prune will look for GreaterThan this uuid
@@ -156,10 +158,11 @@ class Manager
 
     /**
      * Prepares the query for our scans
-     * TODO: support for overlapping parititions. ie. midnight should include previous day partition
-     * @param null|\Cassandra\Timeuuid $gtTimeuuid
-     * @param null|\Cassandra\Timeuuid $ltTimeuuid
-     * @return Prepared\Custom
+     * TODO: support for overlapping partitions. ie. midnight should include previous day partition
+     * @param null|Timeuuid $gtTimeuuid
+     * @param null|Timeuuid $ltTimeuuid
+     * @return Custom
+     * @throws ServerErrorException
      */
     protected function prepareQuery(
         \Cassandra\Timeuuid $gtTimeuuid = null,
@@ -214,7 +217,7 @@ class Manager
     /**
      * Safe boosts will go to Open targets.
      * Open boots will ONLY go to Open targets, never safe.
-     * @param Boost $boost
+     * @param BoostShareRatio $boost
      * @param int $val - negative to decrement
      * @return void
      */
@@ -222,7 +225,7 @@ class Manager
     {
         $targetLocation = $boost->getTargetLocation();
 
-        $this->totalViews[$targetLocation . '_' . BoostTargetAudiences::OPEN] += $val;
+        $this->totalViews[$targetLocation . '_' . BoostTargetAudiences::CONTROVERSIAL] += $val;
 
         if ($boost->isSafe()) {
             $this->totalViews[$targetLocation . '_' . BoostTargetAudiences::SAFE] += $val;
@@ -238,7 +241,7 @@ class Manager
     /**
      * Will return a boost from its campaign id
      * @param string $campaign
-     * @return null|boost
+     * @return null|BoostShareRatio
      */
     protected function getBoostByCampaign(string $campaign): ?BoostShareRatio
     {

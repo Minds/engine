@@ -39,7 +39,7 @@ class ManagerSpec extends ObjectBehavior
                 (new BoostShareRatio(
                     guid: "1234",
                     targetAudienceShares: [
-                        BoostTargetAudiences::OPEN => 0.5,
+                        BoostTargetAudiences::CONTROVERSIAL => 0.5,
                         BoostTargetAudiences::SAFE => 0.25,
                     ],
                     targetLocation: BoostTargetLocation::NEWSFEED,
@@ -48,7 +48,7 @@ class ManagerSpec extends ObjectBehavior
                 (new BoostShareRatio(
                     guid: "1235",
                     targetAudienceShares: [
-                        BoostTargetAudiences::OPEN => 0.5,
+                        BoostTargetAudiences::CONTROVERSIAL => 0.5,
                         BoostTargetAudiences::SAFE => 0.25,
                     ],
                     targetLocation: BoostTargetLocation::NEWSFEED,
@@ -88,7 +88,7 @@ class ManagerSpec extends ObjectBehavior
         // RANK saves for "1234"
         $this->repositoryMock->addBoostRanking(Argument::that(function ($boostRank) {
             return $boostRank->getGuid() === '1234'
-                && $boostRank->getRanking(BoostTargetAudiences::OPEN) === 0.75
+                && $boostRank->getRanking(BoostTargetAudiences::CONTROVERSIAL) === 0.75
                 && $boostRank->getRanking(BoostTargetAudiences::SAFE) === 0.375;
         }))
             ->shouldBeCalled()
@@ -97,7 +97,7 @@ class ManagerSpec extends ObjectBehavior
         // RANK saves for "1235" - should have a higher rank
         $this->repositoryMock->addBoostRanking(Argument::that(function ($boostRank) {
             return $boostRank->getGuid() === '1235'
-                && $boostRank->getRanking(BoostTargetAudiences::OPEN) === 1.5
+                && $boostRank->getRanking(BoostTargetAudiences::CONTROVERSIAL) === 1.5
                 && $boostRank->getRanking(BoostTargetAudiences::SAFE) === 0.75;
         }))
             ->shouldBeCalled()
