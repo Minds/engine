@@ -105,7 +105,7 @@ class Controller
             ->createBoost($data);
 
         return new JsonResponse(
-            data: "",
+            data: [],
             status: 201
         );
     }
