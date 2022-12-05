@@ -1,4 +1,4 @@
-FROM minds/php:pdo
+FROM registry.gitlab.com/minds/engine/php:pdo
 
 # Copy our built the code
 
@@ -14,7 +14,7 @@ RUN apk add --no-cache \
         supervisor&& \
     mkdir /etc/supervisor && \
     mkdir /etc/supervisor/conf.d
-    
+
 # Copy secrets script
 
 COPY containers/php-runners/pull-secrets.sh pull-secrets.sh

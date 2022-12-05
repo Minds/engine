@@ -138,7 +138,7 @@ class SupermindBulkIncentive extends EmailCampaign
             'topic' => $this->topic,
             'state' => 'new',
             'utm_medium' => 'email',
-            'utm_campaign' => 'supermind_boffer_' . $this->activityGuid,
+            'utm_campaign' => $this->getEmailCampaignId(),
             'utm_source' => 'manual',
             'activity_guid' => $this->activityGuid,
             'reply_type' => $this->replyType,
@@ -182,6 +182,14 @@ class SupermindBulkIncentive extends EmailCampaign
             ->setHtml($this->template);
 
         return $message;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getEmailCampaignId()
+    {
+        return 'supermind_boffer_' . $this->activityGuid;
     }
 
     /**
