@@ -50,7 +50,7 @@ class StripeConnectList extends AbstractSendList implements SendListInterface
         foreach ($this->stripeConnectManager->getAll() as $account) {
             $isRestricted = !$account->charges_enabled || !$account->payouts_enabled;
 
-            if ($this->onlyRestricted && $isRestricted) {
+            if ($this->onlyRestricted && !$isRestricted) {
                 continue;
             }
 
