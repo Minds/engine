@@ -7,15 +7,18 @@ use Exception;
 use Minds\Common\Repository\Response;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
+use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentRefundFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentSetupFailedException;
+use Minds\Core\Boost\V3\Exceptions\EntityTypeNotAllowedInLocationException;
 use Minds\Core\Boost\V3\Exceptions\IncorrectBoostStatusException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Entities\User;
@@ -30,10 +33,12 @@ class Manager
 
     public function __construct(
         private ?Repository $repository = null,
-        private ?PaymentProcessor $paymentProcessor = null
+        private ?PaymentProcessor $paymentProcessor = null,
+        private ?EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -59,6 +64,10 @@ class Manager
      */
     public function createBoost(array $data): bool
     {
+        if (!$this->isEntityTypeAllowed($data['entity_guid'], (int) $data['target_location'])) {
+            throw new EntityTypeNotAllowedInLocationException();
+        }
+
         $this->repository->beginTransaction();
 
         $boost = (
@@ -91,6 +100,27 @@ class Manager
 
         $this->repository->commitTransaction();
         return true;
+    }
+
+    /**
+     * Checks if the provided entity can be boosted.
+     * @param string $entityGuid
+     * @param int $targetLocation
+     * @return bool
+     */
+    private function isEntityTypeAllowed(string $entityGuid, int $targetLocation): bool
+    {
+        $entity = $this->entitiesBuilder->single($entityGuid);
+
+        if (!$entity) {
+            return false;
+        }
+
+        return match ($entity->getType()) {
+            'activity' => $targetLocation === BoostTargetLocation::NEWSFEED,
+            'user' => $targetLocation === BoostTargetLocation::SIDEBAR,
+            default => false
+        };
     }
 
     /**

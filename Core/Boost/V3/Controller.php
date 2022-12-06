@@ -62,8 +62,8 @@ class Controller
         $boosts = $this->manager
             ->setUser($loggedInUser)
             ->getBoosts(
-                targetUserGuid: $loggedInUser->getGuid(),
-                targetStatus: (int) $targetStatus
+                targetStatus: (int) $targetStatus,
+                targetUserGuid: $loggedInUser->getGuid()
             );
         return new JsonResponse([
             'boosts' => Exportable::_($boosts),
@@ -147,7 +147,7 @@ class Controller
 
         $this->manager->approveBoost((string) $boostGuid);
 
-        return new JsonResponse("");
+        return new JsonResponse([]);
     }
 
     /**
@@ -168,6 +168,6 @@ class Controller
 
         $this->manager->rejectBoost((string) $boostGuid);
 
-        return new JsonResponse("");
+        return new JsonResponse([]);
     }
 }

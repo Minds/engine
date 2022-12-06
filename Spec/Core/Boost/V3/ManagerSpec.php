@@ -8,6 +8,7 @@ use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentRefundFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentSetupFailedException;
+use Minds\Core\Boost\V3\Exceptions\EntityTypeNotAllowedInLocationException;
 use Minds\Core\Boost\V3\Exceptions\IncorrectBoostStatusException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
 use Minds\Core\Boost\V3\Manager;
@@ -16,6 +17,8 @@ use Minds\Core\Boost\V3\PaymentProcessor;
 use Minds\Core\Boost\V3\Repository;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
+use Minds\Core\EntitiesBuilder;
+use Minds\Entities\Entity;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use NotImplementedException;
@@ -27,14 +30,18 @@ class ManagerSpec extends ObjectBehavior
 {
     private Collaborator $repository;
     private Collaborator $paymentProcessor;
+    private Collaborator $entitiesBuilder;
+
     public function let(
         Repository $repository,
-        PaymentProcessor $paymentProcessor
+        PaymentProcessor $paymentProcessor,
+        EntitiesBuilder $entitiesBuilder
     ) {
         $this->repository = $repository;
         $this->paymentProcessor = $paymentProcessor;
+        $this->entitiesBuilder = $entitiesBuilder;
 
-        $this->beConstructedWith($this->repository, $this->paymentProcessor);
+        $this->beConstructedWith($this->repository, $this->paymentProcessor, $this->entitiesBuilder);
     }
 
     public function it_is_initializable(): void
@@ -44,16 +51,18 @@ class ManagerSpec extends ObjectBehavior
 
     /**
      * @param User $user
+     * @param Entity $entity
      * @return void
      * @throws BoostPaymentSetupFailedException
      * @throws InvalidBoostPaymentMethodException
      * @throws KeyNotSetupException
      * @throws LockFailedException
-     * @throws ServerErrorException
      * @throws NotImplementedException
+     * @throws ServerErrorException
      */
     public function it_should_create_boost(
-        User $user
+        User $user,
+        Entity $entity
     ): void {
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
@@ -63,6 +72,14 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('123');
 
         $this->setUser($user);
+
+        $entity->getType()
+            ->shouldBeCalledOnce()
+            ->willReturn('activity');
+
+        $this->entitiesBuilder->single(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($entity);
 
         $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
             ->shouldBeCalledOnce()
@@ -89,11 +106,36 @@ class ManagerSpec extends ObjectBehavior
     }
 
     /**
+     * @param Entity $entity
+     * @return void
+     */
+    public function it_should_try_to_create_boost_and_throw_incorrect_entity_type_location_combo_exception(
+        Entity $entity
+    ): void {
+        $entity->getType()
+            ->shouldBeCalledOnce()
+            ->willReturn('user');
+
+        $this->entitiesBuilder->single(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($entity);
+
+        $boostData = [
+            'entity_guid' => '123',
+            'target_location' => 1
+        ];
+
+        $this->shouldThrow(EntityTypeNotAllowedInLocationException::class)->during('createBoost', [$boostData]);
+    }
+
+    /**
      * @param User $user
+     * @param Entity $entity
      * @return void
      */
     public function it_should_try_to_create_boost_and_throw_payment_setup_failed_exception(
-        User $user
+        User $user,
+        Entity $entity
     ): void {
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
@@ -103,6 +145,14 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('123');
 
         $this->setUser($user);
+
+        $entity->getType()
+            ->shouldBeCalledOnce()
+            ->willReturn('activity');
+
+        $this->entitiesBuilder->single(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($entity);
 
         $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
             ->shouldBeCalledOnce()
@@ -125,10 +175,12 @@ class ManagerSpec extends ObjectBehavior
 
     /**
      * @param User $user
+     * @param Entity $entity
      * @return void
      */
     public function it_should_try_to_create_boost_and_throw_server_error_exception(
-        User $user
+        User $user,
+        Entity $entity
     ): void {
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
@@ -138,6 +190,14 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn('123');
 
         $this->setUser($user);
+
+        $entity->getType()
+            ->shouldBeCalledOnce()
+            ->willReturn('activity');
+
+        $this->entitiesBuilder->single(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($entity);
 
         $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
             ->shouldBeCalledOnce()
