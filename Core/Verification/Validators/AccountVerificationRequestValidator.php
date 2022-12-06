@@ -56,6 +56,13 @@ class AccountVerificationRequestValidator implements \Minds\Interfaces\Validator
                     "The sensor data must be provided"
                 )
             );
+        } elseif (@json_decode($dataToValidate->getParsedBody()['sensor_data']) && json_last_error() !== JSON_ERROR_NONE) {
+            $this->errors->add(
+                new ValidationError(
+                    "sensor_data",
+                    "The sensor data must be a valid JSON string"
+                )
+            );
         }
 
         return $this->errors->count() === 0;
