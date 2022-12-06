@@ -20,7 +20,7 @@ class Routes extends ModuleRoutes
             ])
             ->do(function (Route $route): void {
                 $route->get(
-                    '/feed',
+                    'feed',
                     Ref::_(Controller::class, 'getBoostFeed')
                 );
                 $route->get(
@@ -39,8 +39,8 @@ class Routes extends ModuleRoutes
                     ])
                     ->do(function (Route $route): void {
                         $route->get(
-                            'pending',
-                            Ref::_(Controller::class, 'getAdminPendingBoosts')
+                            'admin',
+                            Ref::_(Controller::class, 'getBoostsForAdmin')
                         );
                         $route->post(
                             ':guid/approve',

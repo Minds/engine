@@ -133,7 +133,12 @@ class Repository
             $orderByClause = " ORDER BY boost_rankings.$orderByRankingAudience DESC, boosts.approved_timestamp ASC";
         }
 
-        $query = "SELECT boosts.* FROM boosts $orderByRankingJoin WHERE $statusClause $ownerClause $orderByClause LIMIT :offset, :limit";
+        $whereClause = "";
+        if ($statusClause !== "" || $ownerClause !== "") {
+            $whereClause = "WHERE $statusClause $ownerClause";
+        }
+
+        $query = "SELECT boosts.* FROM boosts $orderByRankingJoin $whereClause $orderByClause LIMIT :offset, :limit";
         $values['offset'] = $offset;
         $values['limit'] = $limit + 1;
 

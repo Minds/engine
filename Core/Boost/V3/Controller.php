@@ -114,14 +114,19 @@ class Controller
      * @param ServerRequestInterface $request
      * @return JsonResponse
      */
-    public function getAdminPendingBoosts(ServerRequestInterface $request): JsonResponse
+    public function getBoostsForAdmin(ServerRequestInterface $request): JsonResponse
     {
         $loggedInUser = $request->getAttribute('_user');
+
+        $status = null;
+        if (array_key_exists('status', $request->getQueryParams())) {
+            ['status' => $status] = $request->getQueryParams();
+        }
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
             ->getBoosts(
-                targetStatus: BoostStatus::PENDING,
+                targetStatus: $status,
                 forApprovalQueue: true
             );
         return new JsonResponse([

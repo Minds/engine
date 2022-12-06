@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Spec\Minds\Core\Boost\V3;
 
 use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\Repository;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
@@ -14,9 +15,12 @@ use PDOStatement;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use Spec\Minds\Common\Traits\CommonMatchers;
 
 class RepositorySpec extends ObjectBehavior
 {
+    use CommonMatchers;
+
     private Collaborator $mysqlHandler;
     private Collaborator $mysqlClientReader;
     private Collaborator $mysqlClientWriter;
@@ -75,6 +79,187 @@ class RepositorySpec extends ObjectBehavior
 
         $this->createBoost($boost)
             ->shouldBeEqualTo(true);
+    }
+
+    public function it_should_get_boosts(
+        PDOStatement $statement
+    ): void {
+        $boostData = [
+            'guid' => '123',
+            'owner_guid' => '123',
+            'entity_guid' => '123',
+            'target_location' => 1,
+            'target_suitability' => 1,
+            'payment_method' => 1,
+            'payment_amount' => 20,
+            'daily_bid' => 10,
+            'duration_days' => 2,
+            'status' => 1,
+            'payment_tx_id' => null,
+            'created_timestamp' => date('c', time())
+        ];
+
+        $query = "SELECT boosts.* FROM boosts    LIMIT :offset, :limit";
+
+        $statement->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $statement->rowCount()
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
+
+        $statement->fetchAll(Argument::type('integer'))
+            ->shouldBeCalledOnce()
+            ->willReturn([$boostData]);
+
+        $this->mysqlClientReader->prepare($query)
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
+            ->shouldBeCalledOnce();
+
+        $this->getBoosts()
+            ->shouldYieldAnInstanceOf(Boost::class);
+    }
+
+    public function it_should_get_boosts_by_status(
+        PDOStatement $statement
+    ): void {
+        $boostData = [
+            'guid' => '123',
+            'owner_guid' => '123',
+            'entity_guid' => '123',
+            'target_location' => 1,
+            'target_suitability' => 1,
+            'payment_method' => 1,
+            'payment_amount' => 20,
+            'daily_bid' => 10,
+            'duration_days' => 2,
+            'status' => 1,
+            'payment_tx_id' => null,
+            'created_timestamp' => date('c', time())
+        ];
+
+        $query = "SELECT boosts.* FROM boosts  WHERE status = :status   LIMIT :offset, :limit";
+
+        $statement->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $statement->rowCount()
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
+
+        $statement->fetchAll(Argument::type('integer'))
+            ->shouldBeCalledOnce()
+            ->willReturn([$boostData]);
+
+        $this->mysqlClientReader->prepare($query)
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
+            ->shouldBeCalledOnce();
+
+        $this->getBoosts(
+            targetStatus: BoostStatus::PENDING
+        )
+            ->shouldYieldAnInstanceOf(Boost::class);
+    }
+
+    public function it_should_get_boosts_by_status_and_ranking_for_safe_queue(
+        PDOStatement $statement
+    ): void {
+        $boostData = [
+            'guid' => '123',
+            'owner_guid' => '123',
+            'entity_guid' => '123',
+            'target_location' => 1,
+            'target_suitability' => 1,
+            'payment_method' => 1,
+            'payment_amount' => 20,
+            'daily_bid' => 10,
+            'duration_days' => 2,
+            'status' => 1,
+            'payment_tx_id' => null,
+            'created_timestamp' => date('c', time())
+        ];
+
+        $query = "SELECT boosts.* FROM boosts  LEFT JOIN boost_rankings ON boosts.guid = boost_rankings.guid WHERE status = :status   ORDER BY boost_rankings.ranking_safe DESC, boosts.approved_timestamp ASC LIMIT :offset, :limit";
+
+        $statement->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $statement->rowCount()
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
+
+        $statement->fetchAll(Argument::type('integer'))
+            ->shouldBeCalledOnce()
+            ->willReturn([$boostData]);
+
+        $this->mysqlClientReader->prepare($query)
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
+            ->shouldBeCalledOnce();
+
+        $this->getBoosts(
+            targetStatus: BoostStatus::PENDING,
+            orderByRanking: true
+        )
+            ->shouldYieldAnInstanceOf(Boost::class);
+    }
+
+    public function it_should_get_boosts_by_status_and_ranking_for_controversial_queue(
+        PDOStatement $statement
+    ): void {
+        $boostData = [
+            'guid' => '123',
+            'owner_guid' => '123',
+            'entity_guid' => '123',
+            'target_location' => 1,
+            'target_suitability' => 1,
+            'payment_method' => 1,
+            'payment_amount' => 20,
+            'daily_bid' => 10,
+            'duration_days' => 2,
+            'status' => 1,
+            'payment_tx_id' => null,
+            'created_timestamp' => date('c', time())
+        ];
+
+        $query = "SELECT boosts.* FROM boosts  LEFT JOIN boost_rankings ON boosts.guid = boost_rankings.guid WHERE status = :status   ORDER BY boost_rankings.ranking_open DESC, boosts.approved_timestamp ASC LIMIT :offset, :limit";
+
+        $statement->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $statement->rowCount()
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
+
+        $statement->fetchAll(Argument::type('integer'))
+            ->shouldBeCalledOnce()
+            ->willReturn([$boostData]);
+
+        $this->mysqlClientReader->prepare($query)
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
+            ->shouldBeCalledOnce();
+
+        $this->getBoosts(
+            targetStatus: BoostStatus::PENDING,
+            orderByRanking: true,
+            targetAudience: BoostTargetAudiences::CONTROVERSIAL
+        )
+            ->shouldYieldAnInstanceOf(Boost::class);
     }
 
     public function it_should_get_boost_by_guid(

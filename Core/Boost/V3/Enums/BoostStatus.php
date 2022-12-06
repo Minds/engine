@@ -11,4 +11,5 @@ class BoostStatus
     public const REFUND_IN_PROGRESS = 4;
     public const REFUND_PROCESSED = 5;
     public const FAILED = 6;
+    public const REPORTED = 7;
 }
