@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Payments\Stripe\Connect;
 
+use Iterator;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
@@ -109,6 +110,15 @@ class ManagerV2
         ]);
 
         return $accountLink->url;
+    }
+
+    /**
+     * Will return an iterator of all stripe connect accounts
+     * @return Iterator
+     */
+    public function getAll(): Iterator
+    {
+        return $this->stripeClient->accounts->all(['limit' => 100])->autoPagingIterator();
     }
 
     /**
