@@ -33,7 +33,7 @@ class StripeConnectList extends AbstractSendList implements SendListInterface
         foreach ($cliOpts as $k => $v) {
             switch ($k) {
                 case "only-restricted":
-                    $this->onRestricted = $v;
+                    $this->onlyRestricted = $v;
                     break;
             }
         }
