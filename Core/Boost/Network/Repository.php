@@ -111,6 +111,17 @@ class Repository
                 $response[] = $boost;
             }
 
+            /**
+             * Ensure cash boosts show first
+             */
+            $response = $response->sort(function ($a, $b) {
+                if ($a->getBidType() === 'cash') {
+                    return -1;
+                } else {
+                    return 1;
+                };
+            });
+
             $response->setPagingToken(base64_encode($result->pagingStateToken()));
         } catch (\Exception $e) {
             // TODO: Log or warning
