@@ -25,10 +25,13 @@ baseimage:prepare:
     - docker build -t $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID containers/php
     - docker push $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID
   rules:
+    - if: '$CI_PIPELINE_SOURCE != "push"'
+      when: never
     - changes:
         - containers/php/*
     - when: manual
       allow_failure: true
+
 
 baseimage:deploy:
   stage: baseimage
@@ -43,6 +46,8 @@ baseimage:deploy:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
         - containers/php/*
+    - if: '$CI_COMMIT_REF_NAME != "master"'
+      when: never
     - when: manual
       allow_failure: true
 
