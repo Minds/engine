@@ -29,9 +29,6 @@ baseimage:prepare:
         - containers/php/*
     - when: manual
       allow_failure: true
-  only:
-    variables:
-      - $BUILD_BASE_IMAGES == "true"
 
 
 baseimage:deploy:
@@ -47,11 +44,10 @@ baseimage:deploy:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
         - containers/php/*
+    - if: '$CI_COMMIT_REF_NAME != "master"'
+      when: never
     - when: manual
       allow_failure: true
-  only:
-    variables:
-      - $BUILD_BASE_IMAGES == "true"
 
 build:
   stage: build
