@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Verification\Validators;
 
+use Minds\Core\Log\Logger;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
 use Psr\Http\Message\ServerRequestInterface;
@@ -9,6 +10,12 @@ use Psr\Http\Message\ServerRequestInterface;
 class AccountVerificationRequestValidator implements \Minds\Interfaces\ValidatorInterface
 {
     private ?ValidationErrorCollection $errors = null;
+
+    public function __construct(
+        private ?Logger $logger = null
+    ) {
+        $this->logger ??= new Logger();
+    }
 
     private function resetErrors(): void
     {
@@ -30,6 +37,9 @@ class AccountVerificationRequestValidator implements \Minds\Interfaces\Validator
                 )
             );
         }
+
+        $this->logger->addInfo($dataToValidate->getHeader('Content-Type'));
+        $this->logger->addInfo("Verification request body content: " . $dataToValidate->getBody()->getContents());
 
         if (!array_key_exists('device_type', $dataToValidate->getParsedBody())) {
             $this->errors->add(
