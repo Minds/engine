@@ -29,6 +29,10 @@ baseimage:prepare:
         - containers/php/*
     - when: manual
       allow_failure: true
+  only:
+    variables:
+      - $BUILD_BASE_IMAGES == "true"
+
 
 baseimage:deploy:
   stage: baseimage
@@ -45,6 +49,9 @@ baseimage:deploy:
         - containers/php/*
     - when: manual
       allow_failure: true
+  only:
+    variables:
+      - $BUILD_BASE_IMAGES == "true"
 
 build:
   stage: build
