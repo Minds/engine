@@ -133,6 +133,10 @@ class Group extends NormalizedEntity implements EntityInterface
         // Temporary until this is refactored into a Manager
         (new ElasticSearchDelegate())->onSave($this);
 
+        Di::_()->get('EventsDispatcher')->trigger('entities-ops', $creation ? 'create' : 'update', [
+            'entityUrn' => $this->getUrn()
+        ]);
+
         return $saved;
     }
 
@@ -164,6 +168,10 @@ class Group extends NormalizedEntity implements EntityInterface
               'type' => 'group',
               'group' => $this->export()
           ]);
+
+        Di::_()->get('EventsDispatcher')->trigger('entities-ops', 'delete', [
+            'entityUrn' => $this->getUrn()
+        ]);
 
         return (bool) $this->db->removeRow($this->getGuid());
     }
