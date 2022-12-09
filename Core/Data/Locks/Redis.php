@@ -22,8 +22,20 @@ class Redis
     {
         $this->config = $config ?: Di::_()->get('Config');
         $this->redis = $redis ?: new RedisServer();
-        if (isset($this->config->get('redis')['master'])) {
-            $this->redis->connect($this->config->get('redis')['master']);
+
+        // TODO fully move to Redis HA
+        $redisHa = ($this->config->get('redis')['ha']) ?? null;
+        if ($redisHa) {
+            $master = ($this->config->get('redis')['master']['host']) ?? null;
+            $masterPort = ($this->config->get('redis')['master']['port']) ?? null;
+
+            if (isset($this->config->get('redis')['master'])) {
+                $this->redis->connect($master, $masterPort);
+            }
+        } else {
+            if (isset($this->config->get('redis')['master'])) {
+                $this->redis->connect($this->config->get('redis')['master']);
+            }
         }
     }
 
