@@ -384,10 +384,16 @@ class comments implements Interfaces\Api
             $manager->delete($comment);
             return Factory::response([]);
         }
-        //check if owner of activity trying to remove
-        $entity = Entities\Factory::build($comment->getEntityGuid());
 
-        if ($entity->owner_guid == Core\Session::getLoggedInUserGuid()) {
+        $entity = Entities\Factory::build($comment->getEntityGuid());
+        $directParentComment = $manager->getDirectParent($comment);
+        $loggedInUserGuid = Core\Session::getLoggedInUserGuid();
+
+        // check if owner of activity or direct parent comment owner are trying to remove.
+        if (
+            $entity->owner_guid == $loggedInUserGuid ||
+            ($directParentComment && $directParentComment->getOwnerObj()['guid'] == $loggedInUserGuid)
+        ) {
             $manager->delete($comment, ['force' => true]);
             return Factory::response([]);
         }
