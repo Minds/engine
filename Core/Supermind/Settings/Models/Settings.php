@@ -24,7 +24,7 @@ class Settings implements \JsonSerializable
      * @const float Defines the minimum allowed amount for a Supermind requests
      */
     private const SUPERMIND_REQUEST_MINIMUM_AMOUNT = [
-        SupermindRequestPaymentMethod::CASH => 10.00,
+        SupermindRequestPaymentMethod::CASH => 1.00,
         SupermindRequestPaymentMethod::OFFCHAIN_TOKEN => 1.00,
     ];
 
