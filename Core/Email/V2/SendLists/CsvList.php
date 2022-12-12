@@ -42,6 +42,7 @@ class CsvList extends AbstractSendList implements SendListInterface
 
     /**
      * Fetch all the users who are subscribed to a certain email campaign/topic
+     * @return iterable<User>
      */
     public function getList(): Iterator
     {
@@ -60,6 +61,6 @@ class CsvList extends AbstractSendList implements SendListInterface
             yield $user;
         }
 
-        fclose($handle);
+        return fclose($handle);
     }
 }

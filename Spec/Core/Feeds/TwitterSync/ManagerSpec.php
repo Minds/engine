@@ -14,6 +14,8 @@ use Minds\Core\Feeds\TwitterSync\Delegates\ChannelLinksDelegate;
 use Minds\Core\Feeds\TwitterSync\ImageExtractor;
 use Minds\Core\Feeds\TwitterSync\Repository;
 use Minds\Core\Feeds\TwitterSync\TwitterUser;
+use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service as MetascraperService;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Log\Logger;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
@@ -30,6 +32,8 @@ class ManagerSpec extends ObjectBehavior
     protected $richEmbedManager;
     protected $logger;
     protected $imageExtractor;
+    protected $metascraperService;
+    protected $experimentsManager;
 
     public function let(
         Client $client,
@@ -40,9 +44,11 @@ class ManagerSpec extends ObjectBehavior
         RichEmbed\Manager $richEmbedManager,
         ChannelLinksDelegate $channelLinksDelegate,
         Logger $logger,
-        ImageExtractor $imageExtractor
+        ImageExtractor $imageExtractor,
+        MetascraperService $metascraperService,
+        ExperimentsManager $experimentsManager
     ) {
-        $this->beConstructedWith($client, $repository, $config, $entitiesBuilder, $save, $richEmbedManager, $channelLinksDelegate, $logger, $imageExtractor);
+        $this->beConstructedWith($client, $repository, $config, $entitiesBuilder, $save, $richEmbedManager, $channelLinksDelegate, $logger, $imageExtractor, $metascraperService, $experimentsManager);
         $this->client = $client;
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
@@ -50,6 +56,8 @@ class ManagerSpec extends ObjectBehavior
         $this->richEmbedManager = $richEmbedManager;
         $this->logger = $logger;
         $this->imageExtractor = $imageExtractor;
+        $this->metascraperService = $metascraperService;
+        $this->experimentsManager = $experimentsManager;
     }
 
     public function it_is_initializable()
@@ -57,7 +65,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_copy_over_a_tweet(ConnectedAccount $connectedAccount, TwitterUser $twitterUser, User $user)
+    public function it_should_copy_over_a_tweet_using_legacy_rich_embed_manager(ConnectedAccount $connectedAccount, TwitterUser $twitterUser, User $user)
     {
         //
         $this->repository->getList()
@@ -107,7 +115,105 @@ class ManagerSpec extends ObjectBehavior
 
         //
 
+        $this->experimentsManager->isOn('front-5815-metascraper-stage-2')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $this->richEmbedManager->getRichEmbed('https://www.minds.com/mark')
+            ->willReturn([
+                'meta' => [
+                    'description' => 'This is a rich embed',
+                    'title' => 'Mark Harding (CTO)',
+                ],
+                'links' => [
+                    'thumbnail' => [
+                        [
+                            'href' => 'https://www.minds.com/icon/mark'
+                        ]
+                    ]
+                ]
+            ]);
+
+        //
+
+        $this->saveAction->setEntity(Argument::that(function ($entity) {
+            return true;
+        }))
+            ->shouldBeCalled()
+            ->willReturn($this->saveAction);
+
+        $this->saveAction->save()
+            ->shouldBeCalled();
+
+        //
+
+        $connectedAccount->setLastImportedTweetId('789')
+            ->shouldBeCalled();
+
+        $connectedAccount->setLastSyncUnixTs(time())
+            ->shouldBeCalled();
+
+        $this->repository->add($connectedAccount)
+            ->shouldBeCalled();
+
+        $this->syncTweets()->shouldHaveCount(1);
+    }
+
+    public function it_should_copy_over_a_tweet_using_metascraper_for_rich_embed_preview(ConnectedAccount $connectedAccount, TwitterUser $twitterUser, User $user)
+    {
+        //
+        $this->repository->getList()
+            ->willReturn([
+                $connectedAccount
+            ]);
+
+        //
+        $connectedAccount->getTwitterUser()
+            ->willReturn($twitterUser);
+        $connectedAccount->getLastImportedTweetId()
+            ->willReturn('456');
+        $connectedAccount->getLastSyncUnixTs()
+            ->willReturn(time());
+        $connectedAccount->getUserGuid()
+            ->willReturn('123');
+        //
+        $twitterUser->getFollowersCount()
+            ->willReturn(100000);
+        $twitterUser->getUserId()
+            ->willReturn(123);
+
+        //
+
+        $this->client->request('GET', Argument::any())
+            ->willReturn(new JsonResponse([
+                'data' => [
+                    [
+                        'id' => '789',
+                        'text' => 'this is a tweet with a link https://t.co/8t6gxbh0j8',
+                        'entities' => [
+                            'urls' => [
+                                [
+                                    'url' => 'https://t.co/8t6gxbh0j8',
+                                    'expanded_url' => 'https://www.minds.com/mark'
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]));
+
+        //
+
+        $this->entitiesBuilder->single('123')
+            ->willReturn($user);
+
+        //
+
+        $this->experimentsManager->isOn('front-5815-metascraper-stage-2')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->metascraperService->scrape('https://www.minds.com/mark')
             ->willReturn([
                 'meta' => [
                     'description' => 'This is a rich embed',
