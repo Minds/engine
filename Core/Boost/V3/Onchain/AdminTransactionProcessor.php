@@ -67,7 +67,7 @@ class AdminTransactionProcessor
         }
 
         if ($receipt['status'] === '0x1') {
-            $guid = (string) BigNumber::fromHex($receipt['logs'][2]['data']);
+            $guid = (string) BigNumber::fromHex($receipt['logs'][3]['data']);
             return $boost->getGuid() === $guid;
         }
 

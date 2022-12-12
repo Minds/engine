@@ -9,6 +9,7 @@ use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
+use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentRefundFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentSetupFailedException;
@@ -240,11 +241,14 @@ class Manager
      * Get a single boost by its GUID.
      * @param string $boostGuid - guid to get boost for.
      * @return Boost - boost with matching GUID.
-     * @throws BoostNotFoundException - if no boost is found.
      */
-    public function getBoostByGuid(string $boostGuid): Boost
+    public function getBoostByGuid(string $boostGuid): ?Boost
     {
-        return $this->repository->getBoostByGuid($boostGuid);
+        try {
+            return $this->repository->getBoostByGuid($boostGuid);
+        } catch (BoostNotFoundException $e) {
+            return null;
+        }
     }
 
     /**

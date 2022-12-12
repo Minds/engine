@@ -11,7 +11,7 @@ namespace Minds\Core\Blockchain\Events;
 use Minds\Core\Blockchain\Transactions\Repository;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
-use Minds\Core\Boost\V3\Repository as BoostManagerV3;
+use Minds\Core\Boost\V3\Manager as BoostManagerV3;
 use Minds\Core\Data;
 use Minds\Core\Di\Di;
 
@@ -37,7 +37,7 @@ class BoostEvent implements BlockchainEventInterface
     public function __construct(
         $txRepository = null,
         $boostRepository = null,
-        private ?BoostManagerV3 $boostRepositoryV3 = null,
+        private ?BoostManagerV3 $boostManagerV3 = null,
         $config = null
     ) {
         $this->txRepository = $txRepository ?: Di::_()->get('Blockchain\Transactions\Repository');
