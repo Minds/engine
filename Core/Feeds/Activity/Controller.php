@@ -348,6 +348,14 @@ class Controller
         }
 
         /**
+         * Time Created
+         */
+        if (isset($payload['time_created'])) {
+            $now = time();
+            $this->entityTimeCreated->validate($mutatedActivity, $payload['time_created'] ?? $now, $now);
+        }
+
+        /**
          * Title
          */
         if (isset($payload['title']) && $activity->hasAttachments()) {
