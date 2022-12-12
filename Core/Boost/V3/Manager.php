@@ -5,6 +5,7 @@ namespace Minds\Core\Boost\V3;
 
 use Exception;
 use Minds\Common\Repository\Response;
+use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
@@ -81,12 +82,15 @@ class Manager
                 durationDays: (int) $data['duration_days'],
             )
         )
-            ->setGuid(Guid::build())
+            ->setGuid($data['guid'] ?? Guid::build())
             ->setOwnerGuid($this->user->getGuid())
             ->setPaymentMethodId($data['payment_method_id'] ?? null);
 
         try {
-            if (!$this->paymentProcessor->setupBoostPayment($boost)) {
+            if ($boost->getPaymentMethod() === BoostPaymentMethod::ONCHAIN_TOKENS) {
+                $boost->setStatus(BoostStatus::PENDING_ONCHAIN_CONFIRMATION)
+                    ->setPaymentTxId($data['payment_tx_id']);
+            } elseif (!$this->paymentProcessor->setupBoostPayment($boost)) {
                 throw new BoostPaymentSetupFailedException();
             }
 
@@ -230,5 +234,26 @@ class Manager
         );
 
         return new Response(iterator_to_array($boosts), $hasNext);
+    }
+
+    /**
+     * Get a single boost by its GUID.
+     * @param string $boostGuid - guid to get boost for.
+     * @return Boost - boost with matching GUID.
+     * @throws BoostNotFoundException - if no boost is found.
+     */
+    public function getBoostByGuid(string $boostGuid): Boost
+    {
+        return $this->repository->getBoostByGuid($boostGuid);
+    }
+
+    /**
+     * Update the status of a single boost.
+     * @param string $boostGuid - guid of boost to update.
+     * @return bool true if boost updated.
+     */
+    public function updateStatus(string $boostGuid, int $status): bool
+    {
+        return $this->repository->updateStatus($boostGuid, $status);
     }
 }

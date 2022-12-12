@@ -10,6 +10,8 @@ namespace Minds\Core\Blockchain\Events;
 
 use Minds\Core\Blockchain\Transactions\Repository;
 use Minds\Core\Blockchain\Transactions\Transaction;
+use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Core\Boost\V3\Repository as BoostManagerV3;
 use Minds\Core\Data;
 use Minds\Core\Di\Di;
 
@@ -35,10 +37,12 @@ class BoostEvent implements BlockchainEventInterface
     public function __construct(
         $txRepository = null,
         $boostRepository = null,
+        private ?BoostManagerV3 $boostRepositoryV3 = null,
         $config = null
     ) {
         $this->txRepository = $txRepository ?: Di::_()->get('Blockchain\Transactions\Repository');
         $this->boostRepository = $boostRepository ?: Di::_()->get('Boost\Repository');
+        $this->boostManagerV3 ??= new BoostManagerV3();
         $this->config = $config ?: Di::_()->get('Config');
     }
 
@@ -77,8 +81,17 @@ class BoostEvent implements BlockchainEventInterface
             return;
         }
 
+        $boostGuid = $transaction->getData()['guid'];
+        if ($boostV3 = $this->boostManagerV3->getBoostByGuid($boostGuid)) {
+            if ($boostV3->getStatus() !== BoostStatus::PENDING_ONCHAIN_CONFIRMATION) {
+                throw new \Exception("Boost with guid {$boostGuid} is not pending onchain confirmation. Status: " . $boostV3->getStatus());
+            }
+            $this->boostManagerV3->updateStatus($boostGuid, BoostStatus::FAILED);
+            return;
+        }
+
         $boost = $this->boostRepository
-            ->getEntity($transaction->getData()['handler'], $transaction->getData()['guid']);
+            ->getEntity($transaction->getData()['handler'], $boostGuid);
 
         $tx = (string) $transaction->getTx();
 
@@ -108,7 +121,16 @@ class BoostEvent implements BlockchainEventInterface
      */
     private function resolve($transaction)
     {
-        $boost = $this->boostRepository->getEntity($transaction->getData()['handler'], $transaction->getData()['guid']);
+        $boostGuid = $transaction->getData()['guid'];
+        if ($boostV3 = $this->boostManagerV3->getBoostByGuid($boostGuid)) {
+            if ($boostV3->getStatus() !== BoostStatus::PENDING_ONCHAIN_CONFIRMATION) {
+                throw new \Exception("Boost with guid {$boostGuid} is not pending onchain confirmation. Status: " . $boostV3->getStatus());
+            }
+            $this->boostManagerV3->updateStatus($boostGuid, BoostStatus::PENDING);
+            return;
+        }
+
+        $boost = $this->boostRepository->getEntity($transaction->getData()['handler'], $boostGuid);
 
         $tx = (string) $transaction->getTx();
 

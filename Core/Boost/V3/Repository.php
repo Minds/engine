@@ -76,7 +76,7 @@ class Repository
             'payment_tx_id' => $boost->getPaymentTxId(),
             'daily_bid' => $boost->getDailyBid(),
             'duration_days' => $boost->getDurationDays(),
-            'status' => BoostStatus::PENDING,
+            'status' => $boost->getStatus() ?? BoostStatus::PENDING,
         ];
 
         $statement = $this->mysqlClientWriter->prepare($query);
@@ -211,7 +211,7 @@ class Repository
                 createdTimestamp: strtotime($boostData['created_timestamp']),
                 paymentTxId: $boostData['payment_tx_id'],
                 updatedTimestamp: isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
-                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approvedTimestamp']) : null
+                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null
             )
         )
             ->setGuid($boostData['guid'])
