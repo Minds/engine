@@ -548,7 +548,7 @@ Feature: Supermind
       """json
         {
           "min_offchain_tokens": 1,
-          "min_cash": 10
+          "min_cash": 1
         }
       """
 
