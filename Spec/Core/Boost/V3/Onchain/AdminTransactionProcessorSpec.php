@@ -9,6 +9,7 @@ use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\Onchain\AdminTransactionProcessor;
 use Minds\Core\Config\Config;
 use Minds\Core\Util\BigNumber;
+use Minds\Exceptions\ServerErrorException;
 use Prophecy\Argument;
 
 class AdminTransactionProcessorSpec extends ObjectBehavior
@@ -52,12 +53,16 @@ class AdminTransactionProcessorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($boostGuid);
 
+        $boost->getPaymentAmount()
+            ->shouldBeCalled()
+            ->willReturn(144);
+
         $this->ethereumService->request('eth_getTransactionReceipt', [ $paymentTxId ])
             ->shouldBeCalled()
             ->willReturn([
                 'status' => '0x1',
                 'logs' => [
-                    0 => [],
+                    0 => ['data' => "0x000000000000000000000000000000000000000000000007ce66c50e28400000"],
                     1 => [],
                     2 => [],
                     3 => ['data' => BigNumber::_($boostGuid)->toHex() ]
@@ -122,12 +127,16 @@ class AdminTransactionProcessorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($boostGuid);
 
+        $boost->getPaymentAmount()
+            ->shouldBeCalled()
+            ->willReturn(144);
+
         $this->ethereumService->request('eth_getTransactionReceipt', [ $paymentTxId ])
             ->shouldBeCalled()
             ->willReturn([
                 'status' => '0x1',
                 'logs' => [
-                    0 => [],
+                    0 => ['data' => "0x000000000000000000000000000000000000000000000007ce66c50e28400000"],
                     1 => [],
                     2 => [],
                     3 => ['data' => BigNumber::_($boostGuid)->toHex() ]
@@ -208,12 +217,16 @@ class AdminTransactionProcessorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($boostGuid);
 
+        $boost->getPaymentAmount()
+            ->shouldBeCalled()
+            ->willReturn(144);
+
         $this->ethereumService->request('eth_getTransactionReceipt', [ $paymentTxId ])
             ->shouldBeCalled()
             ->willReturn([
                 'status' => '0x1',
                 'logs' => [
-                    0 => [],
+                    0 => ['data' => "0x000000000000000000000000000000000000000000000007ce66c50e28400000"],
                     1 => [],
                     2 => [],
                     3 => ['data' => BigNumber::_('999999')->toHex() ]
@@ -226,5 +239,38 @@ class AdminTransactionProcessorSpec extends ObjectBehavior
 
         $this->send($boost, BoostAdminAction::ACCEPT)
             ->shouldBe('');
+    }
+
+    public function it_should_NOT_send_an_accept_transaction_that_a_mismatch_between_blockchain_and_stored_amounts(Boost $boost): void
+    {
+        $paymentTxId = '0x234';
+        $boostGuid = '1234';
+        $walletPkey = '0x999';
+
+        $boost->getPaymentTxId()
+            ->shouldBeCalled()
+            ->willReturn($paymentTxId);
+
+        $boost->getPaymentAmount()
+            ->shouldBeCalled()
+            ->willReturn(144);
+
+        $this->ethereumService->request('eth_getTransactionReceipt', [ $paymentTxId ])
+            ->shouldBeCalled()
+            ->willReturn([
+                'status' => '0x1',
+                'logs' => [
+                    0 => ['data' => "0x123"],
+                    1 => [],
+                    2 => [],
+                    3 => ['data' => BigNumber::_($boostGuid)->toHex() ]
+                ]
+            ]);
+
+        $this->ethereumService->sendRawTransaction($walletPkey, Argument::any())
+            ->shouldNotBeCalled()
+            ->willReturn();
+
+        $this->shouldThrow(new ServerErrorException('Amount mismatch between blockchain and server'))->duringSend($boost, BoostAdminAction::ACCEPT);
     }
 }

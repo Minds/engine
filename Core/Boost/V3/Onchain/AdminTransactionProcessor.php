@@ -32,6 +32,7 @@ class AdminTransactionProcessor
      * @param array $data - data to submit to contract.
      * @param int $gasLimit - gas limit to use to send.
      * @throws Exception - if an exception occurs.
+     * @throws ServerErrorException - if there is an amount mismatch between blockchain and server.
      * @return string txid if one is present.
      */
     public function send(Boost $boost, int $action, int $gasLimit = 200000): string
@@ -56,6 +57,7 @@ class AdminTransactionProcessor
      * Whether a boost is actionable based upon whether is is confirmed onchain and the boost GUID for the transaction
      * matches the expected GUID.
      * @param Boost $boost - boost to check is actionable.
+     * @throws ServerErrorException - if there is an amount mismatch between blockchain and server.
      * @return bool true if boost is actionable.
      */
     private function isActionable(Boost $boost): bool
@@ -67,6 +69,14 @@ class AdminTransactionProcessor
         }
 
         if ($receipt['status'] === '0x1') {
+            $blockchainAmount = BigNumber::fromHex($receipt['logs'][0]['data']);
+            $blockchainAmountDouble = BigNumber::fromPlain($blockchainAmount, 18)->toDouble();
+            $serverAmountDouble = BigNumber::_($boost->getPaymentAmount())->toDouble();
+
+            if ($serverAmountDouble !== $blockchainAmountDouble) {
+                throw new ServerErrorException('Amount mismatch between blockchain and server');
+            }
+
             $guid = (string) BigNumber::fromHex($receipt['logs'][3]['data']);
             return $boost->getGuid() === $guid;
         }

@@ -182,6 +182,7 @@ class PaymentProcessor
      * @param Boost $boost - onchain boost to capture.
      * @return bool true if boost has been captured.
      * @throws Exception - if an exception occurs.
+     * @throws ServerErrorException - if there is an amount mismatch between blockchain and server.
      */
     private function captureOnchainBoostPayment(Boost $boost): bool
     {
