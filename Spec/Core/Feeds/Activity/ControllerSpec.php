@@ -2,9 +2,14 @@
 
 namespace Spec\Minds\Core\Feeds\Activity;
 
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\Manager;
 use Minds\Core\Feeds\Activity\Controller;
+use Minds\Core\Feeds\Scheduled\EntityTimeCreated;
+use Minds\Core\Security\ACL;
+use Minds\Entities\Activity;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Zend\Diactoros\ServerRequest;
@@ -12,17 +17,95 @@ use Zend\Diactoros\ServerRequest;
 class ControllerSpec extends ObjectBehavior
 {
     /** @var Manager */
-    private $managerMock;
+    private $manager;
 
-    public function let(Manager $managerMock)
-    {
-        $this->beConstructedWith($managerMock);
-        $this->managerMock = $managerMock;
+    /** @var EntitiesBuilder */
+    private $entitiesBuilder;
+
+    /** @var ACL */
+    private $acl;
+
+    /** @var EntityTimeCreated */
+    private $entityTimeCreated;
+
+
+    public function let(
+        Manager $manager,
+        EntitiesBuilder $entitiesBuilder,
+        ACL $acl,
+        EntityTimeCreated $entityTimeCreated
+    ) {
+        $this->manager = $manager;
+        $this->entitiesBuilder = $entitiesBuilder;
+        $this->acl = $acl;
+        $this->entityTimeCreated = $entityTimeCreated;
+
+        $this->beConstructedWith(
+            $manager,
+            $entitiesBuilder,
+            $acl,
+            $entityTimeCreated
+        );
     }
 
     public function it_is_initializable()
     {
         $this->shouldHaveType(Controller::class);
+    }
+
+    public function it_should_allow_the_update_of_scheduled_time(
+        ServerRequest $serverRequest,
+        Activity $mutatedActivity,
+    ) {
+        $activityGuid = '123';
+        $updatedCreationTimestamp = strtotime('midnight tomorrow');
+        
+        $serverRequest->getAttribute('_user')->willReturn(new User());
+        $serverRequest->getAttribute('parameters')->willReturn([ 'guid' => $activityGuid ]);
+        
+        $serverRequest->getParsedBody()
+            ->shouldBeCalled()
+            ->willReturn([
+                'time_created' => $updatedCreationTimestamp,
+            ]);
+
+        $mutatedActivity->canEdit()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $mutatedActivity->getTimeCreated()
+            ->shouldBeCalled()
+            ->willReturn($updatedCreationTimestamp);
+
+        $mutatedActivity->setMature(false)
+            ->shouldBeCalled()
+            ->willReturn($mutatedActivity);
+
+        $mutatedActivity->setNsfw([])
+            ->shouldBeCalled()
+            ->willReturn($mutatedActivity);
+
+        $mutatedActivity->setLicense('')
+            ->shouldBeCalled()
+            ->willReturn($mutatedActivity);
+
+        $this->entitiesBuilder->single($activityGuid)
+            ->shouldBeCalled()
+            ->willReturn($mutatedActivity);
+
+        $this->manager->update(Argument::that(function ($arg) use ($updatedCreationTimestamp) {
+            return $arg->getMutatedEntity()->getTimeCreated() == $updatedCreationTimestamp;
+        }))
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        /**
+         * the design of this function means we cannot check the exported entity or get the entity mutation
+         * because we construct a new EntityMutation within the function - as a result here we are asserting that
+         * update was called with the correct parameter above to verify the specified behavior, and are not able
+         * to verifying the functionality on save success.
+         */
+        $this->shouldThrow(new ServerErrorException("The post could not be saved."))->duringUpdateExistingActivity($serverRequest);
     }
 
     // public function it_should_set_scheduled_post(ServerRequest $serverRequest)

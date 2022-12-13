@@ -14,6 +14,7 @@ class Manager
         Lists\EthUsersList::class,
         Lists\MembershipTierOwnerList::class,
         // Lists\Active30DayList::class,
+        Lists\SubscribersList::class,
     ];
 
     /** @var \SendGrid */
@@ -27,6 +28,9 @@ class Manager
 
     /** @var array */
     protected $pendingContacts = [];
+
+    /** @var int */
+    protected $retries = 0;
 
     public function __construct($sendGrid = null, $config = null, $logger = null)
     {
@@ -50,6 +54,14 @@ class Manager
         $i = 0;
         foreach ($lists as $list) {
             foreach ($list->getContacts() as $contact) {
+                try {
+                    if (!\validate_email_address($contact->getEmail())) {
+                        continue;
+                    }
+                } catch (\Exception $e) {
+                    continue;
+                }
+
                 ++$i;
                 $export = $contact->export();
                 $export['custom_fields'] = $this->patchCustomFields($export['custom_fields']);
@@ -84,10 +96,13 @@ class Manager
         if ($response->statusCode() !== 202) {
             $this->logger->error("FAILED with {$response->statusCode()}");
             var_dump($response);
-            sleep(15);
-            $this->bulkContacts();
-            return;
+            if (++$this->retries < 3) {
+                sleep(15);
+                $this->bulkContacts();
+                return;
+            }
         }
+        $this->retries = 0;
         $this->pendingContacts = [];
     }
 
