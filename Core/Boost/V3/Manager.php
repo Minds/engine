@@ -215,7 +215,8 @@ class Manager
         bool $forApprovalQueue = false,
         ?string $targetUserGuid = null,
         bool $orderByRanking = false,
-        int $targetAudience = BoostTargetAudiences::SAFE
+        int $targetAudience = BoostTargetAudiences::SAFE,
+        int $targetLocation = null
     ): Response {
         $hasNext = false;
         $boosts = $this->repository->getBoosts(
@@ -226,6 +227,7 @@ class Manager
             targetUserGuid: $targetUserGuid,
             orderByRanking: $orderByRanking,
             targetAudience: $targetAudience,
+            targetLocation: $targetLocation,
             hasNext: $hasNext
         );
 

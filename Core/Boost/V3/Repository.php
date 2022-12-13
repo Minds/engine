@@ -104,6 +104,7 @@ class Repository
         ?string $targetUserGuid = null,
         bool $orderByRanking = false,
         int $targetAudience = BoostTargetAudiences::SAFE,
+        int $targetLocation = null,
         bool &$hasNext = false
     ): Iterator {
         $values = [];
@@ -118,6 +119,12 @@ class Repository
         if (!$forApprovalQueue && $targetUserGuid) {
             $ownerClause = (empty($statusClause) ? "" : " AND ") . "owner_guid = :owner_guid";
             $values['owner_guid'] = $targetUserGuid;
+        }
+
+        $locationClause = "";
+        if ($targetLocation) {
+            $locationClause = (empty($statusClause) ? "" : " AND ") . "target_location = :target_location";
+            $values['target_location'] = $targetLocation;
         }
 
         $orderByRankingJoin = "";
@@ -135,7 +142,7 @@ class Repository
 
         $whereClause = "";
         if ($statusClause !== "" || $ownerClause !== "") {
-            $whereClause = "WHERE $statusClause $ownerClause";
+            $whereClause = "WHERE $statusClause $ownerClause $locationClause";
         }
 
         $query = "SELECT boosts.* FROM boosts $orderByRankingJoin $whereClause $orderByClause LIMIT :offset, :limit";

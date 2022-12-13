@@ -6,6 +6,7 @@ namespace Minds\Core\Boost\V3;
 use Exception;
 use Minds\Api\Exportable;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentSetupFailedException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
 use Minds\Core\Boost\V3\Validators\BoostCreateRequestValidator;
@@ -35,8 +36,13 @@ class Controller
         [
             'limit' => $limit,
             'offset' => $offset,
-            'audience' => $audience
+            'audience' => $audience,
+            'location' => $targetLocation
         ] = $request->getQueryParams();
+
+        if (!$audience && $loggedInUser->getBoostRating() !== BoostTargetAudiences::CONTROVERSIAL) {
+            $audience = BoostTargetAudiences::SAFE;
+        }
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
@@ -45,9 +51,12 @@ class Controller
                 offset: (int) $offset,
                 targetStatus: BoostStatus::APPROVED,
                 orderByRanking: true,
-                targetAudience: (int) $audience
+                targetAudience: (int) $audience,
+                targetLocation: (int) $targetLocation
             );
+
         return new JsonResponse([
+            'status' => 'success',
             'boosts' => Exportable::_($boosts),
             'has_more' => $boosts->getPagingToken(),
         ]);
