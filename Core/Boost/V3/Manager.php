@@ -236,6 +236,7 @@ class Manager
 
         return new Response(iterator_to_array($boosts), $hasNext);
     }
+<<<<<<< HEAD
 
     /**
      * Get a single boost by its GUID.
@@ -260,4 +261,6 @@ class Manager
     {
         return $this->repository->updateStatus($boostGuid, $status);
     }
+=======
+>>>>>>> 45cf5bf3917265dcf8a424269788df44fd48100f
 }
