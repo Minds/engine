@@ -136,12 +136,12 @@ class Repository
         $timestamp = $view->getTimestamp() ?: time();
         $date = new DateTime("@{$timestamp}", new DateTimeZone('utc'));
 
-        $cql = "INSERT INTO views (year, month, day, uuid, entity_urn, owner_guid, page_token, position, platform, source, medium, campaign, delta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $cql = "INSERT INTO views (year, month, day, uuid, entity_urn, owner_guid, page_token, position, platform, source, medium, campaign, delta) 
+        VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $values = [
             (int) ($view->getYear() ?? $date->format('Y')),
             new Tinyint((int) ($view->getMonth() ?? $date->format('m'))),
             new Tinyint((int) ($view->getDay() ?? $date->format('d'))),
-            new Timeuuid($view->getUuid() ?? $timestamp * 1000),
             $view->getEntityUrn() ?: '',
             (string) ($view->getOwnerGuid() ?? ''),
             $view->getPageToken() ?: '',

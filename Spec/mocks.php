@@ -8,6 +8,7 @@ class Mock
     const CONSISTENCY_ALL = 1;
     const CONSISTENCY_QUORUM = 2;
     const CONSISTENCY_LOCAL_QUORUM = 3;
+    const CONSISTENCY_ONE= 4;
 
     public function __construct($a = null)
     {
@@ -107,6 +108,11 @@ class Mock
     public function toFloat()
     {
         return $this->a;
+    }
+
+    public function toDateTime()
+    {
+        return (new DateTime())->setTimestamp($this->a);
     }
 
     public function value()

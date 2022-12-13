@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Common\Traits;
 
+use Iterator;
 use PhpSpec\Exception\Example\FailureException;
 
 trait CommonMatchers
@@ -24,6 +25,15 @@ trait CommonMatchers
                     throw new FailureException(sprintf("Subject should be a traversable containing %s, but got %s.", json_encode($items), json_encode($subjectItems)));
                 }
     
+                return true;
+            },
+            'yieldAnInstanceOf' => function (Iterator $subject, string $className): bool {
+                foreach ($subject as $item) {
+                    if (!$item instanceof $className) {
+                        return false;
+                    }
+                }
+
                 return true;
             }
         ];
