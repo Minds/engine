@@ -200,7 +200,8 @@ class Controller
      * @param integer|null $showBoostsAfterX - how long after registration till users should see boosts.
      * @return boolean true if boosts should be shown.
      */
-    private function shouldShowBoosts(User $user, ?int $showBoostsAfterX = null): bool {
+    private function shouldShowBoosts(User $user, ?int $showBoostsAfterX = null): bool
+    {
         $showBoostsAfterX = filter_var($showBoostsAfterX, FILTER_VALIDATE_INT, [
             'options' => [
                 'default' => 3600, // 1 day
@@ -209,5 +210,5 @@ class Controller
             ]
         ]);
         return (time() - $user->getTimeCreated()) > $showBoostsAfterX;
-    } 
+    }
 }
