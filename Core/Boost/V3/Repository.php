@@ -108,23 +108,26 @@ class Repository
         bool &$hasNext = false
     ): Iterator {
         $values = [];
+        $whereClauses = [];
 
-        $statusClause = "";
         if ($targetStatus) {
-            $statusClause = "status = :status";
+            $whereClauses[] = "status = :status";
             $values['status'] = $targetStatus;
         }
 
-        $ownerClause = "";
         if (!$forApprovalQueue && $targetUserGuid) {
-            $ownerClause = (empty($statusClause) ? "" : " AND ") . "owner_guid = :owner_guid";
+            $whereClauses[] = "owner_guid = :owner_guid";
             $values['owner_guid'] = $targetUserGuid;
         }
 
-        $locationClause = "";
         if ($targetLocation) {
-            $locationClause = (empty($statusClause) ? "" : " AND ") . "target_location = :target_location";
+            $whereClauses[] = "target_location = :target_location";
             $values['target_location'] = $targetLocation;
+        }
+
+        if ($targetAudience) {
+            $whereClauses[] = "target_suitability = :target_suitability";
+            $values['target_suitability'] = $targetAudience;
         }
 
         $orderByRankingJoin = "";
@@ -140,9 +143,9 @@ class Repository
             $orderByClause = " ORDER BY boost_rankings.$orderByRankingAudience DESC, boosts.approved_timestamp ASC";
         }
 
-        $whereClause = "";
-        if ($statusClause !== "" || $ownerClause !== "") {
-            $whereClause = "WHERE $statusClause $ownerClause $locationClause";
+        $whereClause = '';
+        if (count($whereClauses)) {
+            $whereClause = 'WHERE '.implode(' AND ', $whereClauses);
         }
 
         $query = "SELECT boosts.* FROM boosts $orderByRankingJoin $whereClause $orderByClause LIMIT :offset, :limit";
@@ -204,7 +207,7 @@ class Repository
         }
 
         $boostData = $statement->fetch(PDO::FETCH_ASSOC);
-
+        $entity = $this->entitiesBuilder->single($boostData['entity_guid']);
         return (
             new Boost(
                 entityGuid: $boostData['entity_guid'],
@@ -218,11 +221,12 @@ class Repository
                 createdTimestamp: strtotime($boostData['created_timestamp']),
                 paymentTxId: $boostData['payment_tx_id'],
                 updatedTimestamp: isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
-                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approvedTimestamp']) : null
+                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null
             )
         )
             ->setGuid($boostData['guid'])
-            ->setOwnerGuid($boostData['owner_guid']);
+            ->setOwnerGuid($boostData['owner_guid'])
+            ->setEntity($entity);
     }
 
     public function approveBoost(string $boostGuid): bool

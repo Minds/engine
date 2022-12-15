@@ -75,6 +75,7 @@ class Boost implements ExportableInterface
     {
         return [
             'guid' => $this->getGuid(),
+            'urn' => "urn:boost:{$this->getGuid()}",
             'owner_guid' => $this->getOwnerGuid(),
             'entity_guid' => $this->getEntityGuid(),
             'entity' => $this->entity?->export(),
