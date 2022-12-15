@@ -23,6 +23,8 @@ class BoostGuidResolverDelegate implements ResolverDelegate
     /**
      * BoostGuidResolverDelegate constructor.
      * @param Manager $manager
+     * @param BoostManagerV3 $managerV3
+     * @param ExperimentsManager $experimentsManager
      */
     public function __construct(
         $manager = null,
@@ -30,8 +32,6 @@ class BoostGuidResolverDelegate implements ResolverDelegate
         private ?ExperimentsManager $experimentsManager = null
     ) {
         $this->manager = $manager ?: Di::_()->get('Boost\Network\Manager');
-        $this->managerV3 ??= Di::_()->get(BoostManagerV3::class);
-        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -55,7 +55,7 @@ class BoostGuidResolverDelegate implements ResolverDelegate
         foreach ($urns as $urn) {
             /** @var BoostEntityInterface $boost */
             $boost = $this->isDynamicBoostExperimentActive() ?
-                $this->managerV3->getBoostByGuid(end(explode(':', $urn))) :
+                $this->getBoostManagerV3()->getBoostByGuid(end(explode(':', $urn))) :
                 $this->manager->get($urn, [ 'hydrate' => true ]);
             $entities[] = $boost;
         }
@@ -102,6 +102,30 @@ class BoostGuidResolverDelegate implements ResolverDelegate
      */
     private function isDynamicBoostExperimentActive(): bool
     {
-        return $this->experimentsManager->isOn('epic-293-dynamic-boost');
+        return $this->getExperimentManager()->isOn('epic-293-dynamic-boost');
+    }
+
+    /**
+     * Get BoostManagerV3 as it cannot be passed via constructor.
+     * @return BoostManagerV3
+     */
+    private function getBoostManagerV3(): BoostManagerV3
+    {
+        if (!$this->managerV3) {
+            $this->managerV3 = Di::_()->get(BoostManagerV3::class);
+        }
+        return $this->managerV3;
+    }
+
+    /**
+     * Get ExperimentsManager as it cannot be passed via constructor.
+     * @return ExperimentsManager
+     */
+    private function getExperimentManager(): ExperimentsManager
+    {
+        if (!$this->experimentsManager) {
+            $this->experimentsManager = Di::_()->get('Experiments\Manager');
+        }
+        return $this->experimentsManager;
     }
 }
