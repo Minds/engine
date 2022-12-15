@@ -217,7 +217,7 @@ class Manager
         ?string $targetUserGuid = null,
         bool $orderByRanking = false,
         int $targetAudience = BoostTargetAudiences::SAFE,
-        int $targetLocation = null
+        ?int $targetLocation = null
     ): Response {
         $hasNext = false;
         $boosts = $this->repository->getBoosts(

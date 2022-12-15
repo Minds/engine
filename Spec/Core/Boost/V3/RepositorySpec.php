@@ -99,7 +99,7 @@ class RepositorySpec extends ObjectBehavior
             'created_timestamp' => date('c', time())
         ];
 
-        $query = "SELECT boosts.* FROM boosts    LIMIT :offset, :limit";
+        $query = "SELECT boosts.* FROM boosts  WHERE target_suitability = :target_suitability  LIMIT :offset, :limit";
 
         $statement->execute()
             ->shouldBeCalledOnce()
@@ -142,7 +142,7 @@ class RepositorySpec extends ObjectBehavior
             'created_timestamp' => date('c', time())
         ];
 
-        $query = "SELECT boosts.* FROM boosts  WHERE status = :status   LIMIT :offset, :limit";
+        $query = "SELECT boosts.* FROM boosts  WHERE status = :status AND target_suitability = :target_suitability  LIMIT :offset, :limit";
 
         $statement->execute()
             ->shouldBeCalledOnce()
@@ -187,7 +187,7 @@ class RepositorySpec extends ObjectBehavior
             'created_timestamp' => date('c', time())
         ];
 
-        $query = "SELECT boosts.* FROM boosts  LEFT JOIN boost_rankings ON boosts.guid = boost_rankings.guid WHERE status = :status   ORDER BY boost_rankings.ranking_safe DESC, boosts.approved_timestamp ASC LIMIT :offset, :limit";
+        $query = "SELECT boosts.* FROM boosts  LEFT JOIN boost_rankings ON boosts.guid = boost_rankings.guid WHERE status = :status AND target_suitability = :target_suitability  ORDER BY boost_rankings.ranking_safe DESC, boosts.approved_timestamp ASC LIMIT :offset, :limit";
 
         $statement->execute()
             ->shouldBeCalledOnce()
@@ -233,7 +233,7 @@ class RepositorySpec extends ObjectBehavior
             'created_timestamp' => date('c', time())
         ];
 
-        $query = "SELECT boosts.* FROM boosts  LEFT JOIN boost_rankings ON boosts.guid = boost_rankings.guid WHERE status = :status   ORDER BY boost_rankings.ranking_open DESC, boosts.approved_timestamp ASC LIMIT :offset, :limit";
+        $query = "SELECT boosts.* FROM boosts  LEFT JOIN boost_rankings ON boosts.guid = boost_rankings.guid WHERE status = :status AND target_suitability = :target_suitability  ORDER BY boost_rankings.ranking_open DESC, boosts.approved_timestamp ASC LIMIT :offset, :limit";
 
         $statement->execute()
             ->shouldBeCalledOnce()
