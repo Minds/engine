@@ -40,7 +40,7 @@ class Redis extends abstractCacher
             if ($redisHa) {
                 $master = ($this->config->get('redis')['master']['host']) ?? null;
                 $masterPort = ($this->config->get('redis')['master']['port']) ?? null;
-                $this->redisSlave->connect($master, $masterPort);
+                $this->redisMaster->connect($master, $masterPort);
             } else {
                 $this->redisMaster->connect($this->config->get('redis')['master']);
             }
