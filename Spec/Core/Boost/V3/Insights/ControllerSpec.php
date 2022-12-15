@@ -9,6 +9,9 @@ use Zend\Diactoros\ServerRequest;
 
 class ControllerSpec extends ObjectBehavior
 {
+    /** @var Manager */
+    protected $managerMock;
+
     public function let(Manager $managerMock)
     {
         $this->beConstructedWith($managerMock);
@@ -29,6 +32,10 @@ class ControllerSpec extends ObjectBehavior
                 'audience' => 1,
                 'payment_method' => 1,
             ]);
+
+        $this->managerMock->getEstimate(1, 1, 1, 10, 1)
+            ->willReturn([]);
+
         $this->getEstimate($request);
     }
 }
