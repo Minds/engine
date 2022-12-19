@@ -122,3 +122,13 @@ CREATE TABLE IF NOT EXISTS boost_rankings
     ranking_safe float,
     last_updated timestamp
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS boost_estimates
+(
+    target_audience int NOT NULL,
+    target_location int NOT NULL,
+    payment_method int NOT NULL,
+    24h_bids int NOT NULL,
+    24h_views int NOT NULL,
+    PRIMARY KEY (target_audience, target_location, payment_method)
+) ENGINE=InnoDB;
