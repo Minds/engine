@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Boost\V3\Models;
 
+use Minds\Common\Access;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\ExportableInterface;
 use Minds\Traits\MagicAttributes;
@@ -11,9 +12,7 @@ use Minds\Traits\MagicAttributes;
  * Class representing a V3 boost
  *
  * @method self setGuid(string $guid)
- * @method string getGuid()
  * @method self setOwnerGuid(string $ownerGuid)
- * @method string getOwnerGuid()
  * @method self setEntityGuid(string $entityGuid)
  * @method string getEntityGuid()
  * @method self setTargetLocation(int $targetLocation)
@@ -42,7 +41,7 @@ use Minds\Traits\MagicAttributes;
  * @method int|null getApprovedTimestamp()
  * @method self setEntity(EntityInterface $entity)
  */
-class Boost implements ExportableInterface
+class Boost implements EntityInterface, ExportableInterface
 {
     use MagicAttributes;
 
@@ -68,6 +67,51 @@ class Boost implements ExportableInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function getGuid(): string
+    {
+        return $this->guid;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOwnerGuid(): string
+    {
+        return $this->ownerGuid;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getType(): string
+    {
+        return 'boost';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSubtype(): ?string
+    {
+        return '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAccessId(): string
+    {
+        return (string) Access::PUBLIC;
+    }
+
+    public function getUrn(): string
+    {
+        return 'urn:boost:' . $this->getGuid();
+    }
+
+    /**
      * @param array $extras
      * @return array
      */
@@ -75,6 +119,7 @@ class Boost implements ExportableInterface
     {
         return [
             'guid' => $this->getGuid(),
+            'urn' => $this->getUrn(),
             'owner_guid' => $this->getOwnerGuid(),
             'entity_guid' => $this->getEntityGuid(),
             'entity' => $this->entity?->export(),
