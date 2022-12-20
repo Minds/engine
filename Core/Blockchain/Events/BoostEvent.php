@@ -42,7 +42,7 @@ class BoostEvent implements BlockchainEventInterface
     ) {
         $this->txRepository = $txRepository ?: Di::_()->get('Blockchain\Transactions\Repository');
         $this->boostRepository = $boostRepository ?: Di::_()->get('Boost\Repository');
-        $this->boostManagerV3 ??= new BoostManagerV3();
+        $this->boostManagerV3 ??= Di::_()->get(BoostManagerV3::class);
         $this->config = $config ?: Di::_()->get('Config');
     }
 
