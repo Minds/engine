@@ -5,6 +5,7 @@ namespace Minds\Core\Boost\V3;
 
 use Exception;
 use Minds\Common\Repository\Response;
+use Minds\Core\Boost\Checksum;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
@@ -23,6 +24,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
+use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
@@ -259,5 +261,34 @@ class Manager
     public function updateStatus(string $boostGuid, int $status): bool
     {
         return $this->repository->updateStatus($boostGuid, $status);
+    }
+
+    /**
+     * Will prepare an onchain boost
+     * @param string $entityGuid
+     * @return array
+     */
+    public function prepareOnchainBoost(string $entityGuid): array
+    {
+        $entity = $this->entitiesBuilder->single($entityGuid);
+
+        if (!($entity instanceof Activity || $entity instanceof User)) {
+            throw new ServerErrorException("Invalid entity type provided");
+        }
+
+        if ($entity->getNsfw() || $entity->getNsfwLock()) {
+            throw new UserErrorException('NSFW content cannot be boosted.');
+        }
+
+        $guid = Guid::build();
+        $checksum = (new Checksum())
+            ->setGuid($guid)
+            ->setEntity($entity)
+            ->generate();
+    
+        return [
+            'guid' => $guid,
+            'checksum' => $checksum
+        ];
     }
 }
