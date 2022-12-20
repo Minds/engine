@@ -199,15 +199,17 @@ $CONFIG->elasticsearch = [
     ],
     'username' => null,
     'password' => null,
-    'cert' => '/var/secure/elasticsearch.crt',
+    'cert' => null,
 ];
 
-// Vitess (MySQL) configuration
+// MySQL configuration
 $CONFIG->mysql = [
-    'host' => 'vitess:15306',
+    'host' => 'mysql:3306',
     'db' => 'minds',
     'user' => 'user',
+    'password' => 'changeme',
     'ssl_skip_verify' => true,
+    'is_vitess' => false
 ];
 
 /*
@@ -327,6 +329,32 @@ $CONFIG->set('boost', [
         'min' => 100,
         'max' => 5000000,
     ],
+    'offchain_wallet_guid' => "5926995457130554052",
+    'min' => [
+        'cash' => 2,
+        'offchain_tokens' => 1,
+        'onchain_tokens' => 1
+    ],
+    'max' => [
+        'cash' => 5000,
+        'offchain_tokens' => 1000,
+        'onchain_tokens' => 100
+    ],
+    'duration' => [ // in days
+        'min' => 1,
+        'max' => 30
+    ],
+    'bid_increments' => [
+        'cash' => [
+            2, 5, 10, 20, 40, 100, 250, 500, 1000, 1500, 2500, 3500, 5000
+        ],
+        'offchain_tokens' => [
+            1, 5, 10, 20, 40, 100, 250, 500, 750, 1000
+        ],
+        'onchain_tokens' => [
+            1, 5, 10, 20, 40, 100
+        ]
+    ]
 ]);
 
 /* Maximum view per day */
@@ -856,7 +884,7 @@ $CONFIG->set('jury', [
 
 $CONFIG->set('supermind', [
     'minimum_amount' => [
-        'usd' => 10.00,
+        'usd' => 1.00,
         'offchain_token' => 1.00
     ]
 ]);

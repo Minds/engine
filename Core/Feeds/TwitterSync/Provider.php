@@ -10,7 +10,19 @@ class Provider extends Di\Provider
     public function register()
     {
         $this->di->bind('Feeds\TwitterSync\Manager', function ($di) {
-            return new Manager(new Client(), $di->get('Feeds\TwitterSync\Repository'), $di->get('Config'), $di->get('EntitiesBuilder'), new Save(), $di->get('Feeds\Activity\RichEmbed\Manager'), new Delegates\ChannelLinksDelegate($di->get('EntitiesBuilder')), $di->get('Logger'), $di->get('Feeds\TwitterSync\ImageExtractor'));
+            return new Manager(
+                new Client(),
+                $di->get('Feeds\TwitterSync\Repository'),
+                $di->get('Config'),
+                $di->get('EntitiesBuilder'),
+                new Save(),
+                $di->get('Feeds\Activity\RichEmbed\Manager'),
+                new Delegates\ChannelLinksDelegate($di->get('EntitiesBuilder')),
+                $di->get('Logger'),
+                $di->get('Feeds\TwitterSync\ImageExtractor'),
+                $di->get('Metascraper\Service'),
+                $di->get('Experiments\Manager')
+            );
         });
         $this->di->bind('Feeds\TwitterSync\Repository', function ($di) {
             return new Repository($di->get('Database\Cassandra\Cql'));

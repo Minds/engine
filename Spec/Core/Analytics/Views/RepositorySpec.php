@@ -38,7 +38,7 @@ class RepositorySpec extends ObjectBehavior
         $view->getYear()->shouldBeCalled()->willReturn(2019);
         $view->getMonth()->shouldBeCalled()->willReturn(5);
         $view->getDay()->shouldBeCalled()->willReturn(29);
-        $view->getUuid()->shouldBeCalled()->willReturn('8a7675d2-f1a7-11e9-8dea-b8aeed731cad');
+        //$view->getUuid()->shouldBeCalled()->willReturn('8a7675d2-f1a7-11e9-8dea-b8aeed731cad');
         $view->getEntityUrn()->shouldBeCalled()->willReturn('urn:test:123123');
         $view->getOwnerGuid()->shouldBeCalled()->wilLReturn('789');
         $view->getPageToken()->shouldBeCalled()->willReturn('95e82e24-f1a7-11e9-8dea-b8aeed731cad');
@@ -56,16 +56,15 @@ class RepositorySpec extends ObjectBehavior
                 $statement['values'][0] === 2019 &&
                 $statement['values'][1]->toInt() === 5 &&
                 $statement['values'][2]->toInt() === 29 &&
-                $statement['values'][3]->uuid() === '8a7675d2-f1a7-11e9-8dea-b8aeed731cad' &&
-                $statement['values'][4] === 'urn:test:123123' &&
-                $statement['values'][5] === '789' &&
-                $statement['values'][6] === '95e82e24-f1a7-11e9-8dea-b8aeed731cad' &&
-                $statement['values'][7] === 5 &&
-                $statement['values'][8] === 'php' &&
-                $statement['values'][9] === 'phpspec' &&
-                $statement['values'][10] === 'test' &&
-                $statement['values'][11] === 'urn:phpspec:234234' &&
-                $statement['values'][12] === 100;
+                $statement['values'][3] === 'urn:test:123123' &&
+                $statement['values'][4] === '789' &&
+                $statement['values'][5] === '95e82e24-f1a7-11e9-8dea-b8aeed731cad' &&
+                $statement['values'][6] === 5 &&
+                $statement['values'][7] === 'php' &&
+                $statement['values'][8] === 'phpspec' &&
+                $statement['values'][9] === 'test' &&
+                $statement['values'][10] === 'urn:phpspec:234234' &&
+                $statement['values'][11] === 100;
         }), true)->shouldBeCalled()->willReturn(true);
 
         $this->add($view)->shouldReturn(true);
@@ -79,7 +78,7 @@ class RepositorySpec extends ObjectBehavior
         $view->getYear()->shouldBeCalled()->willReturn(null);
         $view->getMonth()->shouldBeCalled()->willReturn(null);
         $view->getDay()->shouldBeCalled()->willReturn(null);
-        $view->getUuid()->shouldBeCalled()->willReturn(null);
+        //$view->getUuid()->shouldBeCalled()->willReturn(null);
         $view->getEntityUrn()->shouldBeCalled()->willReturn('urn:test:123123');
         $view->getOwnerGuid()->shouldBeCalled()->willReturn(789);
         $view->getPageToken()->shouldBeCalled()->willReturn('95e82e24-f1a7-11e9-8dea-b8aeed731cad');
@@ -97,17 +96,15 @@ class RepositorySpec extends ObjectBehavior
                 $statement['values'][0] === 2019 &&
                 $statement['values'][1]->toInt() === 5 &&
                 $statement['values'][2]->toInt() === 29 &&
-                //TODO:  Timeuuid isreturning different value between actual vs mock
-                //$statement['values'][3]->time() == $now &&
-                $statement['values'][4] === 'urn:test:123123' &&
-                $statement['values'][5] === '789' &&
-                $statement['values'][6] === '95e82e24-f1a7-11e9-8dea-b8aeed731cad' &&
-                $statement['values'][7] === 5 &&
-                $statement['values'][8] === 'php' &&
-                $statement['values'][9] === 'phpspec' &&
-                $statement['values'][10] === 'test' &&
-                $statement['values'][11] === 'urn:phpspec:234234' &&
-                $statement['values'][12] === 100;
+                $statement['values'][3] === 'urn:test:123123' &&
+                $statement['values'][4] === '789' &&
+                $statement['values'][5] === '95e82e24-f1a7-11e9-8dea-b8aeed731cad' &&
+                $statement['values'][6] === 5 &&
+                $statement['values'][7] === 'php' &&
+                $statement['values'][8] === 'phpspec' &&
+                $statement['values'][9] === 'test' &&
+                $statement['values'][10] === 'urn:phpspec:234234' &&
+                $statement['values'][11] === 100;
         }), true)->shouldBeCalled()->willReturn(true);
 
         //$this->db->request(Argument::type(Custom::class), true)->shouldBeCalled();

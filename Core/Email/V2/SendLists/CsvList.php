@@ -3,7 +3,7 @@
 
 namespace Minds\Core\Email\V2\SendLists;
 
-use Minds\Core\Data\Cassandra;
+use Iterator;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
@@ -42,8 +42,9 @@ class CsvList extends AbstractSendList implements SendListInterface
 
     /**
      * Fetch all the users who are subscribed to a certain email campaign/topic
+     * @return iterable<User>
      */
-    public function getList(): iterable
+    public function getList(): Iterator
     {
         if (($handle = fopen($this->csvFileSrc, "r")) === false) {
             throw new ServerErrorException("Could not open file");
@@ -60,6 +61,6 @@ class CsvList extends AbstractSendList implements SendListInterface
             yield $user;
         }
 
-        fclose($handle);
+        return fclose($handle);
     }
 }
