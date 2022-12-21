@@ -10,9 +10,8 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Entities;
-use Minds\Entities\Video;
-use Minds\Interfaces;
 use Minds\Helpers\File;
+use Minds\Interfaces;
 
 class thumbnail extends Core\page implements Interfaces\page
 {
@@ -87,6 +86,11 @@ class thumbnail extends Core\page implements Interfaces\page
                 error_log($e);
                 $contentType = 'image/jpeg';
             }
+
+            $image = new Imagick();
+            $image->readImageBlob($contents);
+            $image->stripImage();
+            $contents = $image->getImageBlob();
 
             header('Content-type: '.$contentType);
             header('Expires: '.date('r', strtotime('today + 6 months')), true);
