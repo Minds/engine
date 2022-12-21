@@ -5,6 +5,7 @@
 
 namespace Minds\Controllers\fs\v1;
 
+use Imagick;
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
@@ -89,7 +90,15 @@ class thumbnail extends Core\page implements Interfaces\page
 
             $image = new Imagick();
             $image->readImageBlob($contents);
+
+            $profiles = $image->getImageProfiles("icc", true);
+
             $image->stripImage();
+
+            if (!empty($profiles)) {
+                $image->profileImage("icc", $profiles['icc']);
+            }
+
             $contents = $image->getImageBlob();
 
             header('Content-type: '.$contentType);
