@@ -570,7 +570,7 @@
                                               <div style="display: inline-block;">
                                                 Minds Inc
                                                 <span style="white-space: nowrap;"
-                                                  >© 2021</span
+                                                  >© 2023</span
                                                 >
                                               </div>
                                             </div>

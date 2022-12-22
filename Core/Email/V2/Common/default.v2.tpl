@@ -343,7 +343,7 @@
                                     <!--dark mode logo image-->
                                     <!--[if !mso]><! -->
                                     <div class="dark-img"
-                                         <?= $emailStylesV2->getStyles(['dark-img']) ?> 
+                                         <?= $emailStylesV2->getStyles(['dark-img']) ?>
                                          align="center">
                                         <img src="<?php echo $vars['cdn_assets_url']; ?>/assets/logos/logo-dark-mode.png" width="130" height="50" alt="Minds"
                                             <?= $emailStylesV2->getStyles(['m-mainContent__imageAltText']) ?>
@@ -367,7 +367,7 @@
             <tr>
                 <td class="footer" align="center" valign="top" <?= $emailStylesV2->getStyles(['m-footer']) ?> >
                     <p <?= $emailStylesV2->getStyles(['m-footer__paragraph']) ?>>
-                        Minds Inc © 2021 - PO Box 7681, Wilton, CT 06897<br><br>
+                        Minds Inc © 2023 - PO Box 7681, Wilton, CT 06897<br><br>
                         <a href="<?php echo $vars['site_url']; ?>settings/canary/account/email-notifications" class="link" target="_blank"
                            <?= $emailStylesV2->getStyles(['m-footer__link']) ?>>
                             <?= $vars['translator']->trans('Manage email settings') ?>

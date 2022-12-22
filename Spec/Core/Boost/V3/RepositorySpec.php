@@ -3,8 +3,11 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Boost\V3;
 
+use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
+use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
+use Minds\Core\Boost\V3\Enums\BoostTargetSuitability;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\Repository;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
@@ -76,6 +79,27 @@ class RepositorySpec extends ObjectBehavior
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
             ->shouldBeCalledOnce();
+
+        $boost->getGuid()
+            ->willReturn('1234');
+        $boost->getOwnerGuid()
+            ->willReturn('1235');
+        $boost->getEntityGuid()
+            ->willReturn('1236');
+        $boost->getTargetSuitability()
+            ->willReturn(BoostTargetSuitability::SAFE);
+        $boost->getTargetLocation()
+            ->willReturn(BoostTargetLocation::NEWSFEED);
+        $boost->getPaymentMethod()
+            ->willReturn(BoostPaymentMethod::CASH);
+        $boost->getPaymentAmount()
+            ->willReturn(1.00);
+        $boost->getPaymentTxId()
+            ->willReturn('');
+        $boost->getDailyBid()
+            ->willReturn(1.00);
+        $boost->getDurationDays()
+            ->willReturn(1);
 
         $this->createBoost($boost)
             ->shouldBeEqualTo(true);
