@@ -14,7 +14,7 @@ class Manager
         Lists\EthUsersList::class,
         Lists\MembershipTierOwnerList::class,
         // Lists\Active30DayList::class,
-        Lists\SubscribersList::class,
+        // Lists\SubscribersList::class,
     ];
 
     /** @var \SendGrid */
