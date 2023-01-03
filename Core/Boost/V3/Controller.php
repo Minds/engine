@@ -6,6 +6,7 @@ namespace Minds\Core\Boost\V3;
 use Exception;
 use Minds\Api\Exportable;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentSetupFailedException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
 use Minds\Core\Boost\V3\Validators\BoostCreateRequestValidator;
@@ -13,6 +14,7 @@ use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
+use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use NotImplementedException;
@@ -35,8 +37,21 @@ class Controller
         [
             'limit' => $limit,
             'offset' => $offset,
-            'audience' => $audience
+            'audience' => $audience,
+            'location' => $targetLocation,
+            'show_boosts_after_x' => $showBoostsAfterX
         ] = $request->getQueryParams();
+
+        if (!$audience && $loggedInUser->getBoostRating() !== BoostTargetAudiences::CONTROVERSIAL) {
+            $audience = BoostTargetAudiences::SAFE;
+        }
+
+        if (!$this->shouldShowBoosts($loggedInUser, (int) $showBoostsAfterX)) {
+            return new JsonResponse([
+                'status' => 'success',
+                'boosts' => []
+            ]);
+        }
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
@@ -45,9 +60,12 @@ class Controller
                 offset: (int) $offset,
                 targetStatus: BoostStatus::APPROVED,
                 orderByRanking: true,
-                targetAudience: (int) $audience
+                targetAudience: (int) $audience,
+                targetLocation: (int) $targetLocation
             );
+
         return new JsonResponse([
+            'status' => 'success',
             'boosts' => Exportable::_($boosts),
             'has_more' => $boosts->getPagingToken(),
         ]);
@@ -185,5 +203,23 @@ class Controller
         $this->manager->rejectBoost((string) $boostGuid);
 
         return new JsonResponse([]);
+    }
+
+    /**
+     * Whether boosts should be shown for a user
+     * @param User $user - user to show.
+     * @param integer|null $showBoostsAfterX - how long after registration till users should see boosts.
+     * @return boolean true if boosts should be shown.
+     */
+    private function shouldShowBoosts(User $user, ?int $showBoostsAfterX = null): bool
+    {
+        $showBoostsAfterX = filter_var($showBoostsAfterX, FILTER_VALIDATE_INT, [
+            'options' => [
+                'default' => 3600, // 1 day
+                'min_range' => 0,
+                'max_range' => 604800 // 1 week
+            ]
+        ]);
+        return (time() - $user->getTimeCreated()) > $showBoostsAfterX;
     }
 }
