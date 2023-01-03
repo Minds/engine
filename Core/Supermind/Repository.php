@@ -100,13 +100,20 @@ class Repository
         ];
 
         $whereStatusClause = '';
+        $createdAfterClause = '';
         if ($status) {
             $values['status'] = $status;
             $whereStatusClause = "AND status = :status";
         }
 
+        // for created - we want to filter out any expired superminds not yet marked as expired.
+        if ($status == SupermindRequestStatus::CREATED) {
+            $values['min_timestamp'] = date('c', time() - SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD);
+            $createdAfterClause = 'AND created_timestamp >= :min_timestamp';
+        }
+
         $query = "SELECT * FROM superminds
-            WHERE receiver_guid = :receiver_guid AND status != :excludedStatus $whereStatusClause 
+            WHERE receiver_guid = :receiver_guid AND status != :excludedStatus $whereStatusClause $createdAfterClause
             ORDER BY created_timestamp DESC
             LIMIT :offset, :limit
         ";
@@ -161,7 +168,7 @@ class Repository
         }
 
         $query = "SELECT COUNT(*) as count FROM superminds
-            WHERE receiver_guid = :receiver_guid 
+            WHERE receiver_guid = :receiver_guid
             AND status != :excludedStatus $whereStatusClause $createdAfterClause
         ";
 
@@ -208,13 +215,20 @@ class Repository
         ];
 
         $whereStatusClause = '';
+        $createdAfterClause = '';
         if ($status) {
             $values['status'] = $status;
             $whereStatusClause = "AND status = :status";
         }
 
+        // for created - we want to filter out any expired superminds not yet marked as expired.
+        if ($status == SupermindRequestStatus::CREATED) {
+            $values['min_timestamp'] = date('c', time() - SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD);
+            $createdAfterClause = 'AND created_timestamp >= :min_timestamp';
+        }
+
         $query = "SELECT * FROM superminds
-            WHERE sender_guid = :sender_guid AND status != :excludedStatus $whereStatusClause 
+            WHERE sender_guid = :sender_guid AND status != :excludedStatus $whereStatusClause $createdAfterClause
             ORDER BY created_timestamp DESC
             LIMIT :offset, :limit
         ";
@@ -262,7 +276,7 @@ class Repository
         }
 
         $query = "SELECT COUNT(*) as count FROM superminds
-            WHERE sender_guid = :sender_guid AND status != :excludedStatus $whereStatusClause 
+            WHERE sender_guid = :sender_guid AND status != :excludedStatus $whereStatusClause
         ";
 
         $statement = $this->mysqlClientReader->prepare($query);
