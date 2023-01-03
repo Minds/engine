@@ -207,6 +207,8 @@ class Manager
      * @param string|null $targetUserGuid
      * @param bool $orderByRanking
      * @param int $targetAudience
+     * @param int|null $targetLocation
+     * @param string|null $entityGuid
      * @return Response
      */
     public function getBoosts(
@@ -217,7 +219,8 @@ class Manager
         ?string $targetUserGuid = null,
         bool $orderByRanking = false,
         int $targetAudience = BoostTargetAudiences::SAFE,
-        ?int $targetLocation = null
+        ?int $targetLocation = null,
+        ?string $entityGuid = null
     ): Response {
         $hasNext = false;
         $boosts = $this->repository->getBoosts(
@@ -229,6 +232,7 @@ class Manager
             orderByRanking: $orderByRanking,
             targetAudience: $targetAudience,
             targetLocation: $targetLocation,
+            entityGuid: $entityGuid,
             hasNext: $hasNext
         );
 
@@ -238,7 +242,7 @@ class Manager
     /**
      * Get a single boost by its GUID.
      * @param string $boostGuid - guid to get boost for.
-     * @return Boost - boost with matching GUID.
+     * @return Boost|null - boost with matching GUID.
      */
     public function getBoostByGuid(string $boostGuid): ?Boost
     {

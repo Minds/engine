@@ -351,9 +351,14 @@ class Manager
      * Delete activity
      * @param Activity $activity
      * @return bool
+     * @throws Exception
      */
     public function delete(Activity $activity): bool
     {
+        if (!$activity->canEdit()) {
+            throw new \Exception('Invalid permission to edit this activity post');
+        }
+
         $success = $this->delete->setEntity($activity)->delete();
 
         if ($success) {
@@ -366,7 +371,8 @@ class Manager
     /**
      * Get by urn
      * @param string $urn
-     * @return Activity
+     * @return Activity|null
+     * @throws Exception
      */
     public function getByUrn(string $urn): ?Activity
     {
