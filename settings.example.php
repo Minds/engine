@@ -888,3 +888,13 @@ $CONFIG->set('supermind', [
         'offchain_token' => 1.00
     ]
 ]);
+
+$CONFIG->set('nostr', [
+    'domain' => 'minds.io',
+    'relays' => [
+        'wss://nostr-relay.untethr.me',
+        'wss://nostr.bitcoiner.social',
+        'wss://nostr-relay.wlvs.space',
+        'wss://nostr-pub.wellorder.net'
+    ]
+]);
