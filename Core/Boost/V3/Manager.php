@@ -33,7 +33,7 @@ use Stripe\Exception\ApiErrorException;
 
 class Manager
 {
-    private User $user;
+    private ?User $user = null;
 
     public function __construct(
         private ?Repository $repository = null,
@@ -235,6 +235,7 @@ class Manager
             orderByRanking: $orderByRanking,
             targetAudience: $targetAudience,
             targetLocation: $targetLocation,
+            loggedInUser: $this->user,
             hasNext: $hasNext
         );
 
