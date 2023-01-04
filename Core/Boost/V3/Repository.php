@@ -11,6 +11,7 @@ use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
@@ -95,6 +96,7 @@ class Repository
      * @param int $targetAudience
      * @param int|null $targetLocation
      * @param string|null $entityGuid
+     * @param User|null $loggedInUser
      * @param bool $hasNext
      * @return Iterator
      */
@@ -108,6 +110,7 @@ class Repository
         int $targetAudience = BoostTargetAudiences::SAFE,
         int $targetLocation = null,
         ?string $entityGuid = null,
+        ?User $loggedInUser = null,
         bool &$hasNext = false
     ): Iterator {
         $values = [];
@@ -139,6 +142,20 @@ class Repository
             $values['entity_guid'] = $entityGuid;
         }
 
+        $hiddenEntitiesJoin = "";
+
+        /**
+         * Hide entities if a user has aid they don't want to see them
+         */
+        if ($loggedInUser) {
+            $hiddenEntitiesJoin = " LEFT JOIN entities_hidden
+                ON boosts.entity_guid = entities_hidden.entity_guid
+                AND entities_hidden.user_guid = :user_guid";
+            $values['user_guid'] = $loggedInUser->getGuid();
+
+            $whereClauses[] = 'entities_hidden.entity_guid IS NULL';
+        }
+
         $orderByRankingJoin = "";
         $orderByClause = "";
         if ($orderByRanking) {
@@ -157,7 +174,7 @@ class Repository
             $whereClause = 'WHERE '.implode(' AND ', $whereClauses);
         }
 
-        $query = "SELECT boosts.* FROM boosts $orderByRankingJoin $whereClause $orderByClause LIMIT :offset, :limit";
+        $query = "SELECT boosts.* FROM boosts $hiddenEntitiesJoin $orderByRankingJoin $whereClause $orderByClause LIMIT :offset, :limit";
         $values['offset'] = $offset;
         $values['limit'] = $limit + 1;
 
