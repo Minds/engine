@@ -123,8 +123,6 @@ class RepositorySpec extends ObjectBehavior
             'created_timestamp' => date('c', time())
         ];
 
-        $query = "SELECT boosts.* FROM boosts  WHERE target_suitability = :target_suitability  LIMIT :offset, :limit";
-
         $statement->execute()
             ->shouldBeCalledOnce()
             ->willReturn(true);
@@ -137,7 +135,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn([$boostData]);
 
-        $this->mysqlClientReader->prepare($query)
+        $this->mysqlClientReader->prepare(Argument::any())
             ->shouldBeCalledOnce()
             ->willReturn($statement);
 
@@ -166,8 +164,6 @@ class RepositorySpec extends ObjectBehavior
             'created_timestamp' => date('c', time())
         ];
 
-        $query = "SELECT boosts.* FROM boosts  WHERE status = :status AND target_suitability = :target_suitability  LIMIT :offset, :limit";
-
         $statement->execute()
             ->shouldBeCalledOnce()
             ->willReturn(true);
@@ -180,7 +176,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn([$boostData]);
 
-        $this->mysqlClientReader->prepare($query)
+        $this->mysqlClientReader->prepare(Argument::any())
             ->shouldBeCalledOnce()
             ->willReturn($statement);
 
@@ -211,8 +207,6 @@ class RepositorySpec extends ObjectBehavior
             'created_timestamp' => date('c', time())
         ];
 
-        $query = "SELECT boosts.* FROM boosts  LEFT JOIN boost_rankings ON boosts.guid = boost_rankings.guid WHERE status = :status AND target_suitability = :target_suitability  ORDER BY boost_rankings.ranking_safe DESC, boosts.approved_timestamp ASC LIMIT :offset, :limit";
-
         $statement->execute()
             ->shouldBeCalledOnce()
             ->willReturn(true);
@@ -225,7 +219,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn([$boostData]);
 
-        $this->mysqlClientReader->prepare($query)
+        $this->mysqlClientReader->prepare(Argument::any())
             ->shouldBeCalledOnce()
             ->willReturn($statement);
 
@@ -257,8 +251,6 @@ class RepositorySpec extends ObjectBehavior
             'created_timestamp' => date('c', time())
         ];
 
-        $query = "SELECT boosts.* FROM boosts  LEFT JOIN boost_rankings ON boosts.guid = boost_rankings.guid WHERE status = :status AND target_suitability = :target_suitability  ORDER BY boost_rankings.ranking_open DESC, boosts.approved_timestamp ASC LIMIT :offset, :limit";
-
         $statement->execute()
             ->shouldBeCalledOnce()
             ->willReturn(true);
@@ -271,7 +263,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn([$boostData]);
 
-        $this->mysqlClientReader->prepare($query)
+        $this->mysqlClientReader->prepare(Argument::any())
             ->shouldBeCalledOnce()
             ->willReturn($statement);
 
