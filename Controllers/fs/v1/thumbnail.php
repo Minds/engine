@@ -88,9 +88,11 @@ class thumbnail extends Core\page implements Interfaces\page
                 $contentType = 'image/jpeg';
             }
 
+            $test = "hello";
+
             // Skip stripping EXIF data for Gifs since they don't support it.
             // This causes issues with them since only the first frame is read here.
-            if (!($contentType == 'image/gif')) {
+            if (!(str_contains($contentType, 'image/gif'))) {
                 $image = new Imagick();
                 $image->readImageBlob($contents);
     
