@@ -16,6 +16,7 @@ use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
+use Zend\Diactoros\ServerRequestFactory;
 use Zend\Diactoros\UploadedFile;
 
 class Controller
@@ -152,6 +153,7 @@ class Controller
     {
         $loggedInUser = $request->getAttribute('_user');
         $deviceId = $request->getAttribute("parameters")["deviceid"];
+        $request = ServerRequestFactory::fromGlobals();
 
         $validator = new AccountVerificationRequestValidator();
 
