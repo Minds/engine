@@ -26,6 +26,9 @@ class ControllerSpec extends ObjectBehavior
         $manager->getPublicKeyFromUsername('mark')
             ->willReturn('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
 
+        $manager->getDomain()
+            ->willReturn('minds.com');
+
         $response = $this->resolveNip05($request);
         $response->getBody()->getContents()->shouldBe(
             json_encode([
@@ -35,7 +38,7 @@ class ControllerSpec extends ObjectBehavior
                 'relays' => [
                     '4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715' => [ 'wss://relay.minds.com/nostr/v1/ws' ]
                 ]
-            ])
+            ], JSON_UNESCAPED_SLASHES)
         );
     }
 }
