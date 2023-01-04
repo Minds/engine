@@ -14,6 +14,7 @@ class Module implements ModuleInterface
         Supermind\Module::class,
         TwitterSync\Module::class,
         Activity\RichEmbed\Module::class,
+        HideEntities\Module::class,
     ];
 
     /**
