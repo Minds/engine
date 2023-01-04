@@ -10,6 +10,7 @@ use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
 use Minds\Core\FeedNotices\Notices\BuildYourAlgorithmNotice;
 use Minds\Core\FeedNotices\Notices\UpdateTagsNotice;
 use Minds\Core\FeedNotices\Notices\EnablePushNotificationsNotice;
+use Minds\Core\FeedNotices\Notices\PlusUpgradeNotice;
 use Minds\Core\FeedNotices\Notices\SupermindPendingNotice;
 use Minds\Core\Log\Logger;
 use Minds\Entities\User;
@@ -28,19 +29,21 @@ class Manager
         $this->logger ??= Di::_()->get('Logger');
     }
 
-    /**
-     * The priority that notices will show in is determined by
-     * the order of Notices in this array.
-     */
-    private const NOTICES = [
+    // Priority notices, to be shown first, in order specified by array.
+    private const PRIORITY_NOTICES = [
         VerifyEmailNotice::class,
-        SupermindPendingNotice::class,
+        SupermindPendingNotice::class
+    ];
+
+    // Non-priority notices - to be shown after priority notices - should be shuffled.
+    private const NON_PRIORITY_NOTICES = [
         BuildYourAlgorithmNotice::class,
         UpdateTagsNotice::class,
         SetupChannelNotice::class,
         VerifyUniquenessNotice::class,
         ConnectWalletNotice::class,
         EnablePushNotificationsNotice::class,
+        PlusUpgradeNotice::class
     ];
 
     /**
@@ -50,19 +53,44 @@ class Manager
      */
     public function getNotices(User $user): array
     {
-        $notices = [];
+        $noticeExports = [];
+        $noticeClasses = $this->getSortedNoticeClasses();
 
-        foreach (self::NOTICES as $noticeClass) {
+        foreach ($noticeClasses as $noticeClass) {
             try {
                 $notice = (new $noticeClass())
                     ->setUser($user);
-                array_push($notices, $notice->export());
+                array_push($noticeExports, $notice->export());
             } catch (\Exception $e) {
                 // log error and skip over this notice.
                 $this->logger->error($e);
             }
         }
 
+        return $noticeExports;
+    }
+
+    /**
+     * Get sorted notice classes where priority notices are first by index,
+     * followed by shuffled non-priority notices.
+     * @return array sorted notice classes.
+     */
+    private function getSortedNoticeClasses(): array
+    {
+        return [
+            ...self::PRIORITY_NOTICES,
+            ...$this->shuffleNotices(self::NON_PRIORITY_NOTICES)
+        ];
+    }
+
+    /**
+     * Return shuffle notices.
+     * @param array $notices - notices to shuffle.
+     * @return array shuffled notices.
+     */
+    private function shuffleNotices(array $notices): array
+    {
+        shuffle($notices);
         return $notices;
     }
 }
