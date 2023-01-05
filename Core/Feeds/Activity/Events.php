@@ -41,7 +41,7 @@ class Events
     {
         $boostManager = $this->getBoostManager();
         $experimentsManager = $this->getExperimentsManager();
-        $this->eventsDispatcher->register("acl:write", "activity", function (Event $event) use ($boostManager, $experimentsManager): void {
+        $this->eventsDispatcher->register("acl:write:blacklist", "activity", function (Event $event) use ($boostManager, $experimentsManager): void {
             $params = $event->getParameters();
 
             /**
@@ -49,18 +49,16 @@ class Events
              */
             $entity = $params['entity'];
 
-            $experimentsManager->setUser(Session::getLoggedinUser()->getGuid());
+            $experimentsManager->setUser(Session::getLoggedinUser());
 
+            // Stop if flag is off
             if (!$experimentsManager->isOn("epic-293-dynamic-boost")) {
-                $event->setResponse(true);
                 return;
             }
 
             if (count($boostManager->getBoosts(limit: 1, targetStatus: BoostStatus::APPROVED, entityGuid: $entity->getGuid()))) {
-                return;
+                $event->setResponse(true);
             }
-
-            $event->setResponse(true);
         });
     }
 

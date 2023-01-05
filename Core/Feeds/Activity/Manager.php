@@ -356,7 +356,7 @@ class Manager
     public function delete(Activity $activity): bool
     {
         if (!$activity->canEdit()) {
-            throw new \Exception('Invalid permission to edit this activity post');
+            throw new Exception('Invalid permission to delete this activity post');
         }
 
         $success = $this->delete->setEntity($activity)->delete();
@@ -414,7 +414,7 @@ class Manager
         }
 
         if (!$activity->canEdit()) {
-            throw new \Exception('Invalid permission to edit this activity post');
+            throw new Exception('Invalid permission to edit this activity post');
         }
 
         $activity->setEdited(true);
