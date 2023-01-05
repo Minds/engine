@@ -88,18 +88,22 @@ class thumbnail extends Core\page implements Interfaces\page
                 $contentType = 'image/jpeg';
             }
 
-            $image = new Imagick();
-            $image->readImageBlob($contents);
-
-            $profiles = $image->getImageProfiles("icc", true);
-
-            $image->stripImage();
-
-            if (!empty($profiles)) {
-                $image->profileImage("icc", $profiles['icc']);
+            // Skip stripping EXIF data for Gifs since they don't support it.
+            // This causes issues with them since only the first frame is read here.
+            if (!(str_contains($contentType, 'image/gif'))) {
+                $image = new Imagick();
+                $image->readImageBlob($contents);
+    
+                $profiles = $image->getImageProfiles("icc", true);
+    
+                $image->stripImage();
+    
+                if (!empty($profiles)) {
+                    $image->profileImage("icc", $profiles['icc']);
+                }
+    
+                $contents = $image->getImageBlob();
             }
-
-            $contents = $image->getImageBlob();
 
             header('Content-type: '.$contentType);
             header('Expires: '.date('r', strtotime('today + 6 months')), true);
