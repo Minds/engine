@@ -75,13 +75,16 @@ class Controller
     {
         $loggedInUser = $request->getAttribute('_user');
 
-        ['status' => $targetStatus] = $request->getQueryParams();
+        ['location' => $targetLocation] = $request->getQueryParams();
+
+        $targetStatus = $request->getQueryParams()['status'] ?? null;
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
             ->getBoosts(
                 targetStatus: (int) $targetStatus,
-                targetUserGuid: $loggedInUser->getGuid()
+                targetUserGuid: $loggedInUser->getGuid(),
+                targetLocation: $targetLocation
             );
         return new JsonResponse([
             'boosts' => Exportable::_($boosts),
@@ -141,11 +144,18 @@ class Controller
             ['status' => $status] = $request->getQueryParams();
         }
 
+        $targetAudience = $request->getQueryParams()['audience'] ?? null;
+        $targetLocation = $request->getQueryParams()['location'] ?? null;
+        $paymentMethod = $request->getQueryParams()['payment_method'] ?? null;
+
         $boosts = $this->manager
             ->setUser($loggedInUser)
             ->getBoosts(
                 targetStatus: $status,
-                forApprovalQueue: true
+                forApprovalQueue: true,
+                targetAudience: $targetAudience,
+                targetLocation: $targetLocation,
+                paymentMethod: $paymentMethod
             );
         return new JsonResponse([
             'boosts' => Exportable::_($boosts),
@@ -190,6 +200,30 @@ class Controller
         $boostGuid = $request->getAttribute("parameters")["guid"];
 
         $this->manager->rejectBoost((string) $boostGuid);
+
+        return new JsonResponse([]);
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     * @throws ApiErrorException
+     * @throws Exceptions\BoostNotFoundException
+     * @throws Exceptions\BoostPaymentCaptureFailedException
+     * @throws InvalidBoostPaymentMethodException
+     * @throws KeyNotSetupException
+     * @throws LockFailedException
+     * @throws NotImplementedException
+     * @throws ServerErrorException
+     */
+    public function cancelBoost(ServerRequestInterface $request): JsonResponse
+    {
+        $loggedInUser = $request->getAttribute('_user');
+        $boostGuid = $request->getAttribute("parameters")["guid"];
+
+        $this->manager
+            ->setUser($loggedInUser)
+            ->cancelBoost((string) $boostGuid);
 
         return new JsonResponse([]);
     }

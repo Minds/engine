@@ -94,6 +94,9 @@ class Repository
      * @param string|null $targetUserGuid
      * @param bool $orderByRanking
      * @param int $targetAudience
+     * @param int|null $targetLocation
+     * @param int|null $paymentMethod
+     * @param User|null $loggedInUser
      * @param bool $hasNext
      * @return Iterator
      */
@@ -105,7 +108,8 @@ class Repository
         ?string $targetUserGuid = null,
         bool $orderByRanking = false,
         int $targetAudience = BoostTargetAudiences::SAFE,
-        int $targetLocation = null,
+        ?int $targetLocation = null,
+        ?int $paymentMethod = null,
         ?User $loggedInUser = null,
         bool &$hasNext = false
     ): Iterator {
@@ -125,6 +129,11 @@ class Repository
         if ($targetLocation) {
             $whereClauses[] = "target_location = :target_location";
             $values['target_location'] = $targetLocation;
+        }
+
+        if ($paymentMethod) {
+            $whereClauses[] = "payment_method = :payment_method";
+            $values['payment_method'] = $paymentMethod;
         }
 
         if ($targetAudience) {
@@ -268,6 +277,22 @@ class Repository
             'status' => BoostStatus::REJECTED,
             'updated_timestamp' => date('c', time()),
             'guid' => $boostGuid
+        ];
+
+        $statement = $this->mysqlClientWriter->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        return $statement->execute();
+    }
+
+    public function cancelBoost(string $boostGuid, string $userGuid): bool
+    {
+        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid AND user_guid = :user_guid";
+        $values = [
+            'status' => BoostStatus::CANCELLED,
+            'updated_timestamp' => date('c', time()),
+            'guid' => $boostGuid,
+            'user_guid' => $userGuid,
         ];
 
         $statement = $this->mysqlClientWriter->prepare($query);

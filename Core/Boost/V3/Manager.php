@@ -200,6 +200,45 @@ class Manager
     }
 
     /**
+     * @param string $boostGuid
+     * @return bool
+     * @throws ApiErrorException
+     * @throws BoostPaymentRefundFailedException
+     * @throws Exception
+     * @throws Exceptions\BoostNotFoundException
+     * @throws InvalidBoostPaymentMethodException
+     * @throws KeyNotSetupException
+     * @throws LockFailedException
+     * @throws NotImplementedException
+     * @throws ServerErrorException
+     */
+    public function cancelBoost(string $boostGuid): bool
+    {
+        // Only process if status is Pending
+        $boost = $this->repository->getBoostByGuid($boostGuid);
+
+        if ($boost->getStatus() !== BoostStatus::PENDING) {
+            throw new IncorrectBoostStatusException();
+        }
+
+        // Mark request as Refund_in_progress
+        $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_IN_PROGRESS);
+
+        if (!$this->paymentProcessor->refundBoostPayment($boost)) {
+            throw new BoostPaymentRefundFailedException();
+        }
+
+        // Mark request as Refund_processed
+        $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_PROCESSED);
+
+        if (!$this->repository->cancelBoost($boostGuid, $this->user->getGuid())) {
+            throw new ServerErrorException();
+        }
+
+        return true;
+    }
+
+    /**
      * @param int $limit
      * @param int $offset
      * @param int|null $targetStatus
@@ -207,6 +246,7 @@ class Manager
      * @param string|null $targetUserGuid
      * @param bool $orderByRanking
      * @param int $targetAudience
+     * @param int|null $targetLocation
      * @return Response
      */
     public function getBoosts(
@@ -217,7 +257,8 @@ class Manager
         ?string $targetUserGuid = null,
         bool $orderByRanking = false,
         int $targetAudience = BoostTargetAudiences::SAFE,
-        ?int $targetLocation = null
+        ?int $targetLocation = null,
+        ?int $paymentMethod = null
     ): Response {
         $hasNext = false;
         $boosts = $this->repository->getBoosts(
@@ -229,6 +270,7 @@ class Manager
             orderByRanking: $orderByRanking,
             targetAudience: $targetAudience,
             targetLocation: $targetLocation,
+            paymentMethod: $paymentMethod,
             loggedInUser: $this->user,
             hasNext: $hasNext
         );
