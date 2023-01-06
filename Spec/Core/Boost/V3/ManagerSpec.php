@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Boost\V3;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
@@ -31,17 +32,25 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $repository;
     private Collaborator $paymentProcessor;
     private Collaborator $entitiesBuilder;
+    private Collaborator $actionEventDelegate;
 
     public function let(
         Repository $repository,
         PaymentProcessor $paymentProcessor,
-        EntitiesBuilder $entitiesBuilder
+        EntitiesBuilder $entitiesBuilder,
+        ActionEventDelegate $actionEventDelegate
     ) {
         $this->repository = $repository;
         $this->paymentProcessor = $paymentProcessor;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->actionEventDelegate = $actionEventDelegate;
 
-        $this->beConstructedWith($this->repository, $this->paymentProcessor, $this->entitiesBuilder);
+        $this->beConstructedWith(
+            $this->repository,
+            $this->paymentProcessor,
+            $this->entitiesBuilder,
+            $this->actionEventDelegate
+        );
     }
 
     public function it_is_initializable(): void
@@ -242,6 +251,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
+        $this->actionEventDelegate->onApprove($boost)
+            ->shouldBeCalled();
+
         $this->approveBoost('123')
             ->shouldBeEqualTo(true);
     }
@@ -357,6 +369,9 @@ class ManagerSpec extends ObjectBehavior
         $this->paymentProcessor->refundBoostPayment(Argument::type(Boost::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
+
+        $this->actionEventDelegate->onReject($boost, 999)
+            ->shouldBeCalled();
 
         $this->rejectBoost('123')
             ->shouldBeEqualTo(true);

@@ -5,6 +5,7 @@ namespace Minds\Core\Boost\V3;
 
 use Exception;
 use Minds\Common\Repository\Response;
+use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
@@ -35,11 +36,13 @@ class Manager
     public function __construct(
         private ?Repository $repository = null,
         private ?PaymentProcessor $paymentProcessor = null,
-        private ?EntitiesBuilder $entitiesBuilder = null
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?ActionEventDelegate $actionEventDelegate = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->actionEventDelegate ??= Di::_()->get(ActionEventDelegate::class);
     }
 
     /**
@@ -157,6 +160,9 @@ class Manager
         }
 
         $this->repository->commitTransaction();
+
+        $this->actionEventDelegate->onApprove($boost);
+
         return true;
     }
 
@@ -195,6 +201,9 @@ class Manager
         if (!$this->repository->rejectBoost($boostGuid)) {
             throw new ServerErrorException();
         }
+
+        // TODO: Get rejection reason from boost when possible.
+        $this->actionEventDelegate->onReject($boost, 999);
 
         return true;
     }

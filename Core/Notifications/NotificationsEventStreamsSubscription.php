@@ -156,12 +156,23 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 // Replace entity_urn with our quote
                 $notification->setEntityUrn($event->getActionData()['quote_urn']);
                 break;
+            case ActionEvent::ACTION_BOOST_ACCEPTED:
+                $notification->setType(NotificationTypes::TYPE_BOOST_ACCEPTED);
+                $notification->setFromGuid(SystemUser::GUID);
+                $notification->setToGuid((string) $event->getEntity()->getOwnerGuid());
+                break;
             case ActionEvent::ACTION_BOOST_REJECTED:
                 $notification->setType(NotificationTypes::TYPE_BOOST_REJECTED);
                 $notification->setFromGuid(SystemUser::GUID);
+                $notification->setToGuid((string) $event->getEntity()->getOwnerGuid());
                 $notification->setData([
                     'reason' => $event->getActionData()['boost_reject_reason'],
                 ]);
+                break;
+            case ActionEvent::ACTION_BOOST_COMPLETED:
+                $notification->setType(NotificationTypes::TYPE_BOOST_COMPLETED);
+                $notification->setFromGuid(SystemUser::GUID);
+                $notification->setToGuid((string) $event->getEntity()->getOwnerGuid());
                 break;
             case ActionEvent::ACTION_BOOST_PEER_REQUEST:
                 /** @var Peer */

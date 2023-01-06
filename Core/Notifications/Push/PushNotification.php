@@ -333,6 +333,7 @@ class PushNotification implements PushNotificationInterface
             // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
             case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
                 return true;
+            // TODO: Add boost and language then test - if any wording is awkward talk and we can change.
         }
         return false;
     }

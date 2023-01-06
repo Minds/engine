@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Boost\V3;
 
+use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
@@ -23,6 +24,9 @@ class Provider extends DiProvider
         });
         Di::_()->bind(Repository::class, function ($di): Repository {
             return new Repository();
+        });
+        Di::_()->bind(ActionEventDelegate::class, function ($di): ActionEventDelegate {
+            return new ActionEventDelegate();
         });
     }
 }

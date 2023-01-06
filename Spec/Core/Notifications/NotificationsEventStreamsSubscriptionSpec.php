@@ -84,6 +84,70 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $this->consume($actionEvent);
     }
 
+    public function it_should_send_if_admin_accepts_boost(ActionEvent $actionEvent, Boost $boost, User $admin, User $boostOwner)
+    {
+        $actionEvent->getAction()
+            ->willReturn(ActionEvent::ACTION_BOOST_ACCEPTED);
+
+        $actionEvent->getUser()
+            ->willReturn($admin);
+
+        $actionEvent->getEntity()
+            ->willReturn($boost);
+
+        $actionEvent->getTimestamp()
+            ->willReturn(time());
+
+        $boost->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn('456');
+
+        $boost->getUrn()
+            ->willReturn('urn:boost:network:guid');
+
+        $this->manager->add(Argument::that(function (Notification $notification) {
+            return $notification->getType() === NotificationTypes::TYPE_BOOST_ACCEPTED
+                && $notification->getToGuid() === '456'
+                && $notification->getFromGuid() === SystemUser::GUID;
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->consume($actionEvent);
+    }
+
+    public function it_should_send_if_boost_completion_event_is_passed(ActionEvent $actionEvent, Boost $boost, User $admin, User $boostOwner)
+    {
+        $actionEvent->getAction()
+            ->willReturn(ActionEvent::ACTION_BOOST_COMPLETED);
+
+        $actionEvent->getUser()
+            ->willReturn($admin);
+
+        $actionEvent->getEntity()
+            ->willReturn($boost);
+
+        $actionEvent->getTimestamp()
+            ->willReturn(time());
+
+        $boost->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn('456');
+
+        $boost->getUrn()
+            ->willReturn('urn:boost:network:guid');
+
+        $this->manager->add(Argument::that(function (Notification $notification) {
+            return $notification->getType() === NotificationTypes::TYPE_BOOST_COMPLETED
+                && $notification->getToGuid() === '456'
+                && $notification->getFromGuid() === SystemUser::GUID;
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->consume($actionEvent);
+    }
+
     public function it_should_send_peer_boost_request(ActionEvent $actionEvent, Peer $peerBoost, User $peerBoostOwner, User $peerBoostDestination)
     {
         $actionEvent->getAction()
