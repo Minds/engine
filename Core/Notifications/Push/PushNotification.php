@@ -216,7 +216,7 @@ class PushNotification implements PushNotificationInterface
                 return $this->config->get('site_url') . 'notifications';
             case NotificationTypes::TYPE_BOOST_ACCEPTED:
             case NotificationTypes::TYPE_BOOST_COMPLETED:
-                return $this->getBoostConsoleUrl($this->notification->getType());
+                return $this->getBoostConsoleUrl();
         }
 
         $entity = $this->notification->getEntity();
