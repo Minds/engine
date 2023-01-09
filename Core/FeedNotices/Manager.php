@@ -3,14 +3,15 @@
 namespace Minds\Core\FeedNotices;
 
 use Minds\Core\Di\Di;
-use Minds\Core\FeedNotices\Notices\VerifyEmailNotice;
-use Minds\Core\FeedNotices\Notices\ConnectWalletNotice;
-use Minds\Core\FeedNotices\Notices\SetupChannelNotice;
-use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
 use Minds\Core\FeedNotices\Notices\BuildYourAlgorithmNotice;
-use Minds\Core\FeedNotices\Notices\UpdateTagsNotice;
+use Minds\Core\FeedNotices\Notices\ConnectWalletNotice;
 use Minds\Core\FeedNotices\Notices\EnablePushNotificationsNotice;
+use Minds\Core\FeedNotices\Notices\InAppVerifyUniquenessNotice;
+use Minds\Core\FeedNotices\Notices\SetupChannelNotice;
 use Minds\Core\FeedNotices\Notices\SupermindPendingNotice;
+use Minds\Core\FeedNotices\Notices\UpdateTagsNotice;
+use Minds\Core\FeedNotices\Notices\VerifyEmailNotice;
+use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
 use Minds\Core\Log\Logger;
 use Minds\Entities\User;
 
@@ -35,6 +36,7 @@ class Manager
     private const NOTICES = [
         VerifyEmailNotice::class,
         SupermindPendingNotice::class,
+        InAppVerifyUniquenessNotice::class,
         BuildYourAlgorithmNotice::class,
         UpdateTagsNotice::class,
         SetupChannelNotice::class,
