@@ -90,6 +90,17 @@ class Controller
     }
 
     /**
+     * Prepares an onchain boost by returning a guid
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     */
+    public function prepareOnchainBoost(ServerRequestInterface $request): JsonResponse
+    {
+        $entityGuid = $request->getAttribute("parameters")["entityGuid"];
+        return new JsonResponse($this->manager->prepareOnchainBoost($entityGuid));
+    }
+
+    /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
      * @throws BoostPaymentSetupFailedException
