@@ -12,6 +12,7 @@ use Minds\Core\Notifications\Push\Services\FcmService;
 use Minds\Core\Notifications\Push\Services\PushServiceInterface;
 use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
 use Minds\Core\Verification\Exceptions\UserVerificationPushNotificationFailedException;
+use Minds\Core\Verification\Exceptions\VerificationCodeMismatchException;
 use Minds\Core\Verification\Exceptions\VerificationRequestExpiredException;
 use Minds\Core\Verification\Exceptions\VerificationRequestFailedException;
 use Minds\Core\Verification\Exceptions\VerificationRequestNotFoundException;
@@ -158,7 +159,7 @@ class Manager
                 verificationRequest: $verificationRequest,
                 status: VerificationRequestStatus::FAILED
             );
-            throw new VerificationRequestFailedException();
+            throw new VerificationCodeMismatchException();
         }
 
         $this->repository->markRequestAsVerified(
