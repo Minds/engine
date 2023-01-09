@@ -480,6 +480,7 @@ class ManagerSpec extends ObjectBehavior
             Argument::type('integer'),
             null,
             null,
+            null,
             Argument::type('bool')
         )
             ->shouldBeCalledOnce()
