@@ -49,16 +49,25 @@ class ActionEventDelegateSpec extends ObjectBehavior
         Boost $boost,
         User $sender
     ): void {
+        $boostLocation = 1;
+
+        $boost->getTargetLocation()
+            ->shouldBeCalled()
+            ->willReturn($boostLocation);
+
         // This path is forced by the CLI and not the user that will
         // be retrieved for all action events.
         $this->entitiesBuilder->single('100000000000000519')
             ->shouldBeCalled()
             ->willReturn($sender);
 
-        $this->actionEventsTopic->send(Argument::that(function ($arg) use ($boost, $sender) {
+        $this->actionEventsTopic->send(Argument::that(function ($arg) use ($boost, $boostLocation, $sender) {
             return $arg->getEntity() === $boost->getWrappedObject() &&
                 $arg->getUser() === $sender->getWrappedObject() &&
-                $arg->getAction() === 'boost_accepted';
+                $arg->getAction() === 'boost_accepted' &&
+                $arg->getActionData() === [
+                    'boost_location' => $boostLocation
+                ];
         }))
             ->shouldBeCalled()
             ->willReturn(true);
@@ -71,18 +80,25 @@ class ActionEventDelegateSpec extends ObjectBehavior
         User $sender
     ): void {
         $rejectionReason = 22;
+        $boostLocation = 1;
+
+        $boost->getTargetLocation()
+            ->shouldBeCalled()
+            ->willReturn($boostLocation);
+
         // This path is forced by the CLI and not the user that will
         // be retrieved for all action events.
         $this->entitiesBuilder->single('100000000000000519')
             ->shouldBeCalled()
             ->willReturn($sender);
 
-        $this->actionEventsTopic->send(Argument::that(function ($arg) use ($boost, $sender, $rejectionReason) {
+        $this->actionEventsTopic->send(Argument::that(function ($arg) use ($boost, $sender, $rejectionReason, $boostLocation) {
             return $arg->getEntity() === $boost->getWrappedObject() &&
                 $arg->getUser() === $sender->getWrappedObject() &&
                 $arg->getAction() === 'boost_rejected' &&
                 $arg->getActionData() === [
-                    'boost_reject_reason' => $rejectionReason
+                    'boost_reject_reason' => $rejectionReason,
+                    'boost_location' => $boostLocation
                 ];
         }))
             ->shouldBeCalled()
@@ -95,14 +111,23 @@ class ActionEventDelegateSpec extends ObjectBehavior
         Boost $boost,
         User $sender
     ): void {
+        $boostLocation = 1;
+
+        $boost->getTargetLocation()
+            ->shouldBeCalled()
+            ->willReturn($boostLocation);
+
         $this->entitiesBuilder->single('100000000000000519')
             ->shouldBeCalled()
             ->willReturn($sender);
 
-        $this->actionEventsTopic->send(Argument::that(function ($arg) use ($boost, $sender) {
+        $this->actionEventsTopic->send(Argument::that(function ($arg) use ($boost, $boostLocation, $sender) {
             return $arg->getEntity() === $boost->getWrappedObject() &&
                 $arg->getUser() === $sender->getWrappedObject() &&
-                $arg->getAction() === 'boost_completed';
+                $arg->getAction() === 'boost_completed' &&
+                $arg->getActionData() === [
+                    'boost_location' => $boostLocation
+                ];
         }))
             ->shouldBeCalled()
             ->willReturn(true);

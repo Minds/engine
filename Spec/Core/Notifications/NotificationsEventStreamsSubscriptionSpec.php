@@ -98,6 +98,11 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $actionEvent->getTimestamp()
             ->willReturn(time());
 
+        $actionEvent->getActionData()
+            ->willReturn([
+                'boost_location' => 1
+            ]);
+
         $boost->getOwnerGuid()
             ->shouldBeCalled()
             ->willReturn('456');
@@ -126,6 +131,12 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
 
         $actionEvent->getEntity()
             ->willReturn($boost);
+
+
+        $actionEvent->getActionData()
+            ->willReturn([
+                'boost_location' => 1
+            ]);
 
         $actionEvent->getTimestamp()
             ->willReturn(time());

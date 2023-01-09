@@ -176,10 +176,12 @@ class ActionEvent implements EventInterface
                 $allowedKeys = [ 'tag_in_entity_urn' ];
                 break;
             case self::ACTION_BOOST_REJECTED:
-                $allowedKeys = [ 'boost_reject_reason' ];
+                $allowedKeys = [ 'boost_reject_reason', 'boost_location' ];
                 break;
             case self::ACTION_BOOST_ACCEPTED:
             case self::ACTION_BOOST_COMPLETED:
+                $allowedKeys = [ 'boost_location' ];
+                break;
             case self::ACTION_BOOST_PEER_REQUEST:
             case self::ACTION_BOOST_PEER_ACCEPTED:
             case self::ACTION_BOOST_PEER_REJECTED:
