@@ -129,6 +129,13 @@ class PushNotification implements PushNotificationInterface
                 //repeat
             case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
                 return 'Minds Token Rewards';
+            case NotificationTypes::TYPE_BOOST_ACCEPTED:
+                return 'Your Boost is now running';
+            case NotificationTypes::TYPE_BOOST_REJECTED:
+                return 'Your Boost was rejected';
+                break;
+            case NotificationTypes::TYPE_BOOST_COMPLETED:
+                return 'Your Boost is complete';
             default:
                 throw new UndeliverableException("Invalid type");
         }
@@ -158,6 +165,14 @@ class PushNotification implements PushNotificationInterface
      */
     public function getBody(): ?string
     {
+        if (in_array($this->notification->getType(), [
+            NotificationTypes::TYPE_BOOST_ACCEPTED,
+            NotificationTypes::TYPE_BOOST_REJECTED,
+            NotificationTypes::TYPE_BOOST_COMPLETED
+        ], true)) {
+            return '';
+        }
+
         $entity = $this->notification->getEntity();
         $excerpt = '';
 
@@ -190,8 +205,12 @@ class PushNotification implements PushNotificationInterface
      */
     public function getUri(): string
     {
-        if ($this->notification->getType() === NotificationTypes::TYPE_SUBSCRIBE) {
-            return $this->config->get('site_url') . 'notifications';
+        switch ($this->notification->getType()) {
+            case NotificationTypes::TYPE_SUBSCRIBE:
+                return $this->config->get('site_url') . 'notifications';
+            case NotificationTypes::TYPE_BOOST_ACCEPTED:
+            case NotificationTypes::TYPE_BOOST_COMPLETED:
+                return $this->config->get('site_url') . 'boost/console-v2';
         }
 
         $entity = $this->notification->getEntity();
@@ -332,8 +351,10 @@ class PushNotification implements PushNotificationInterface
             case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON:
             // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
             case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
+            case NotificationTypes::TYPE_BOOST_ACCEPTED:
+            case NotificationTypes::TYPE_BOOST_REJECTED:
+            case NotificationTypes::TYPE_BOOST_COMPLETED:
                 return true;
-            // TODO: Add boost and language then test - if any wording is awkward talk and we can change.
         }
         return false;
     }

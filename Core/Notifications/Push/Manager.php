@@ -8,6 +8,7 @@ use Minds\Core\Notifications;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\Services\PushServiceInterface;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Features;
 use Minds\Entities\User;
 
@@ -42,13 +43,15 @@ class Manager
         DeviceSubscriptions\Manager $deviceSubscriptionsManager = null,
         Settings\Manager $settingsManager = null,
         EntitiesBuilder $entitiesBuilder = null,
-        Features\Manager $featuresManager = null
+        Features\Manager $featuresManager = null,
+        private ?ExperimentsManager $experimentsManager = null
     ) {
         $this->notificationsManager = $notificationsManager;
         $this->deviceSubscriptionsManager = $deviceSubscriptionsManager;
         $this->settingsManager = $settingsManager;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->featuresManager = $featuresManager;
+        $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
     }
 
     /**
@@ -67,6 +70,14 @@ class Manager
 
         // Only if the user allows the feature flag, should we send a push notification
         if (!$this->getFeaturesManager()->setUser($toUser)->has('notifications-v3')) {
+            return;
+        }
+
+        // Only send boost push notifications if dynamic boost experiment is on.
+        if (
+            $notification->isDynamicBoostNotification() &&
+            !$this->isDynamicBoostExperimentActive()
+        ) {
             return;
         }
 
@@ -205,5 +216,14 @@ class Manager
     {
         $this->fcmService = $fcmService;
         return $this;
+    }
+
+    /**
+     * Whether dynamic boost experiment is active.
+     * @return boolean true if dynamic boost experiment is active.
+     */
+    private function isDynamicBoostExperimentActive(): bool
+    {
+        return $this->experimentsManager->isOn('epic-293-dynamic-boost');
     }
 }
