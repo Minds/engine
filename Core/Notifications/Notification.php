@@ -198,19 +198,6 @@ class Notification
     }
 
     /**
-     * Boost notifications to be shown under dynamic boost system.
-     * @return boolean true if notification is a dynamic boost notification.
-     */
-    public function isDynamicBoostNotification(): bool
-    {
-        return in_array($this->getType(), [
-            NotificationTypes::TYPE_BOOST_ACCEPTED,
-            NotificationTypes::TYPE_BOOST_REJECTED,
-            NotificationTypes::TYPE_BOOST_COMPLETED
-        ], true);
-    }
-
-    /**
      * Export
      * @return array
      */

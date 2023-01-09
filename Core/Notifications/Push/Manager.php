@@ -42,7 +42,7 @@ class Manager
         DeviceSubscriptions\Manager $deviceSubscriptionsManager = null,
         Settings\Manager $settingsManager = null,
         EntitiesBuilder $entitiesBuilder = null,
-        Features\Manager $featuresManager = null,
+        Features\Manager $featuresManager = null
     ) {
         $this->notificationsManager = $notificationsManager;
         $this->deviceSubscriptionsManager = $deviceSubscriptionsManager;
@@ -71,6 +71,7 @@ class Manager
         }
 
         // TODO: Get the max read timestamp, as this will indicate how 'active' the user is
+
         $opts = new Notifications\NotificationsListOpts();
         $opts->setToGuid((string) $notification->getToGuid());
         $opts->setLteUuid($notification->getUuid());
