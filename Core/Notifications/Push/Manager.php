@@ -8,7 +8,6 @@ use Minds\Core\Notifications;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\Services\PushServiceInterface;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Features;
 use Minds\Entities\User;
 
@@ -44,14 +43,12 @@ class Manager
         Settings\Manager $settingsManager = null,
         EntitiesBuilder $entitiesBuilder = null,
         Features\Manager $featuresManager = null,
-        private ?ExperimentsManager $experimentsManager = null
     ) {
         $this->notificationsManager = $notificationsManager;
         $this->deviceSubscriptionsManager = $deviceSubscriptionsManager;
         $this->settingsManager = $settingsManager;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->featuresManager = $featuresManager;
-        $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
     }
 
     /**
@@ -73,16 +70,7 @@ class Manager
             return;
         }
 
-        // Only send boost push notifications if dynamic boost experiment is on.
-        if (
-            $notification->isDynamicBoostNotification() &&
-            !$this->isDynamicBoostExperimentActive()
-        ) {
-            return;
-        }
-
         // TODO: Get the max read timestamp, as this will indicate how 'active' the user is
-
         $opts = new Notifications\NotificationsListOpts();
         $opts->setToGuid((string) $notification->getToGuid());
         $opts->setLteUuid($notification->getUuid());
@@ -216,14 +204,5 @@ class Manager
     {
         $this->fcmService = $fcmService;
         return $this;
-    }
-
-    /**
-     * Whether dynamic boost experiment is active.
-     * @return boolean true if dynamic boost experiment is active.
-     */
-    private function isDynamicBoostExperimentActive(): bool
-    {
-        return $this->experimentsManager->isOn('epic-293-dynamic-boost');
     }
 }

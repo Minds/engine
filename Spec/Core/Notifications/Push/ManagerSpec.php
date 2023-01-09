@@ -13,7 +13,6 @@ use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\Services\ApnsService;
 use Minds\Core\Notifications\Push\Settings;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -34,25 +33,20 @@ class ManagerSpec extends ObjectBehavior
     
     /** @var Features\Manager */
     protected $featuresManager;
-
-    /** @var ExperimentsManager */
-    protected $experimentsManager;
     
     public function let(
         Notifications\Manager $notificationsManager,
         DeviceSubscriptions\Manager $deviceSubscriptionsManager,
         Settings\Manager $settingsManager,
         EntitiesBuilder $entitiesBuilder,
-        Features\Manager $featuresManager,
-        ExperimentsManager $experimentsManager
+        Features\Manager $featuresManager
     ) {
-        $this->beConstructedWith($notificationsManager, $deviceSubscriptionsManager, $settingsManager, $entitiesBuilder, $featuresManager, $experimentsManager);
+        $this->beConstructedWith($notificationsManager, $deviceSubscriptionsManager, $settingsManager, $entitiesBuilder, $featuresManager);
         $this->notificationsManager = $notificationsManager;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->settingsManager = $settingsManager;
         $this->deviceSubscriptionsManager = $deviceSubscriptionsManager;
         $this->featuresManager = $featuresManager;
-        $this->experimentsManager = $experimentsManager;
     }
 
     public function it_is_initializable()
@@ -124,20 +118,5 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->sendPushNotification($notification);
-    }
-
-    public function it_should_not_send_a_push_notifiction_when_experiment_is_not_active_but_notification_is_a_dynamic_boost_notification(ApnsService $apnsService)
-    {
-        $notification = new Notification();
-        $notification->setToGuid('123');
-        $notification->setUuid('uuid-1');
-        $notification->setType(NotificationTypes::TYPE_BOOST_ACCEPTED);
-
-        $apnsService->send(Argument::that(function ($pushNotification) {
-            return true;
-        }))
-            ->shouldNotBeCalled();
-
-        $this->sendPushNotification($notification)->shouldBe(null);
     }
 }

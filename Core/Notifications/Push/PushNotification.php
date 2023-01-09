@@ -6,6 +6,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Entities\User;
@@ -26,8 +27,11 @@ class PushNotification implements PushNotificationInterface
     /** @var int */
     protected $unreadCount = 0;
 
-    public function __construct(Notification $notification, Config $config = null)
-    {
+    public function __construct(
+        Notification $notification,
+        Config $config = null,
+        private ?ExperimentsManager $experimentsManager = null
+    ) {
         $this->notification = $notification;
 
         if (!$this->isValidNotification($notification)) {
@@ -35,6 +39,7 @@ class PushNotification implements PushNotificationInterface
         }
 
         $this->config = $config ?? Di::_()->get('Config');
+        $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
     }
 
     /**
@@ -210,7 +215,10 @@ class PushNotification implements PushNotificationInterface
                 return $this->config->get('site_url') . 'notifications';
             case NotificationTypes::TYPE_BOOST_ACCEPTED:
             case NotificationTypes::TYPE_BOOST_COMPLETED:
-                return $this->config->get('site_url') . 'boost/console-v2';
+                $urlPath = $this->isDynamicBoostExperimentActive() ?
+                    'boost/console-v2' :
+                    'boost/console/newsfeed/history';
+                return $this->config->get('site_url') . $urlPath;
         }
 
         $entity = $this->notification->getEntity();
@@ -357,5 +365,14 @@ class PushNotification implements PushNotificationInterface
                 return true;
         }
         return false;
+    }
+
+    /**
+     * Whether dynamic boost experiment is active.
+     * @return boolean true if dynamic boost experiment is active.
+     */
+    private function isDynamicBoostExperimentActive(): bool
+    {
+        return $this->experimentsManager->isOn('epic-293-dynamic-boost');
     }
 }
