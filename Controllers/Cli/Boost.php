@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Cli;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Exceptions\CliException;
 use Minds\Interfaces;
 use Monolog\Logger as MonologLogger;
 
@@ -133,6 +134,8 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
             case 'reject':
                 $actionEventDelegate->onReject($boost, $rejectionReason);
                 break;
+            default:
+                throw new CliException('Unknown event type provided. Must be: complete, accept or reject');
         }
         
         $this->out("Completion notice dispatched for boost: $boostGuid");

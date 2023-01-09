@@ -159,17 +159,19 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
             case ActionEvent::ACTION_BOOST_ACCEPTED:
                 $notification->setType(NotificationTypes::TYPE_BOOST_ACCEPTED);
                 $notification->setFromGuid(SystemUser::GUID);
-                $notification->setToGuid((string) $event->getEntity()->getOwnerGuid());
+
+                $actionData = $event->getActionData();
+                $notification->setToGuid($actionData['boost_owner_guid'] ?? $event->getEntity()->getOwnerGuid());
                 $notification->setData([
-                    'boost_location' => $event->getActionData()['boost_location']  ?? null
+                    'boost_location' => $actionData['boost_location']  ?? null
                 ]);
                 break;
             case ActionEvent::ACTION_BOOST_REJECTED:
                 $notification->setType(NotificationTypes::TYPE_BOOST_REJECTED);
                 $notification->setFromGuid(SystemUser::GUID);
-                $notification->setToGuid((string) $event->getEntity()->getOwnerGuid());
 
                 $actionData = $event->getActionData();
+                $notification->setToGuid($actionData['boost_owner_guid'] ?? $event->getEntity()->getOwnerGuid());
                 $notification->setData([
                     'reason' => $actionData['boost_reject_reason'],
                     'boost_location' => $actionData['boost_location']  ?? null
@@ -178,9 +180,11 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
             case ActionEvent::ACTION_BOOST_COMPLETED:
                 $notification->setType(NotificationTypes::TYPE_BOOST_COMPLETED);
                 $notification->setFromGuid(SystemUser::GUID);
-                $notification->setToGuid((string) $event->getEntity()->getOwnerGuid());
+
+                $actionData = $event->getActionData();
+                $notification->setToGuid($actionData['boost_owner_guid'] ?? $event->getEntity()->getOwnerGuid());
                 $notification->setData([
-                    'boost_location' => $event->getActionData()['boost_location'] ?? null
+                    'boost_location' => $actionData['boost_location'] ?? null
                 ]);
                 break;
             case ActionEvent::ACTION_BOOST_PEER_REQUEST:
