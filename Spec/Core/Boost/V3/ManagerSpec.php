@@ -523,7 +523,7 @@ class ManagerSpec extends ObjectBehavior
      * @param Boost $boost
      * @return void
      */
-    public function it_should_try_reject_boost_and_throw_incorrect_status_exception(
+    public function it_should_try_cancel_boost_and_throw_incorrect_status_exception(
         Boost $boost
     ): void {
         $boost->getStatus()
@@ -534,14 +534,14 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($boost);
 
-        $this->shouldThrow(IncorrectBoostStatusException::class)->during('rejectBoost', ['123']);
+        $this->shouldThrow(IncorrectBoostStatusException::class)->during('cancelBoost', ['123']);
     }
 
     /**
      * @param Boost $boost
      * @return void
      */
-    public function it_should_try_reject_boost_and_throw_payment_refund_failed_exception(
+    public function it_should_try_cancel_boost_and_throw_payment_refund_failed_exception(
         Boost $boost
     ): void {
         $boost->getStatus()
@@ -563,16 +563,24 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
-        $this->shouldThrow(BoostPaymentRefundFailedException::class)->during('rejectBoost', ['123']);
+        $this->shouldThrow(BoostPaymentRefundFailedException::class)->during('cancelBoost', ['123']);
     }
 
     /**
+     * @param User $user
      * @param Boost $boost
      * @return void
      */
-    public function it_should_try_reject_boost_and_throw_server_error_exception(
+    public function it_should_try_cancel_boost_and_throw_server_error_exception(
+        User $user,
         Boost $boost
     ): void {
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
         $boost->getStatus()
             ->shouldBeCalledOnce()
             ->willReturn(BoostStatus::PENDING);
@@ -595,7 +603,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $this->repository->rejectBoost(Argument::type('string'))
+        $this->repository->cancelBoost(Argument::type('string'), Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -603,19 +611,19 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $this->shouldThrow(ServerErrorException::class)->during('rejectBoost', ['123']);
+        $this->shouldThrow(ServerErrorException::class)->during('cancelBoost', ['123']);
     }
 
     /**
      * @return void
      */
-    public function it_should_try_reject_boost_and_throw_boost_not_found_exception(): void
+    public function it_should_try_cancel_boost_and_throw_boost_not_found_exception(): void
     {
         $this->repository->getBoostByGuid(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willThrow(BoostNotFoundException::class);
 
-        $this->shouldThrow(BoostNotFoundException::class)->during('rejectBoost', ['123']);
+        $this->shouldThrow(BoostNotFoundException::class)->during('cancelBoost', ['123']);
     }
 
     /**
@@ -635,6 +643,7 @@ class ManagerSpec extends ObjectBehavior
             null,
             Argument::type('bool'),
             Argument::type('integer'),
+            null,
             null,
             null,
             Argument::type('bool')
