@@ -643,7 +643,13 @@ class PushNotificationSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(NotificationTypes::TYPE_BOOST_ACCEPTED);
 
-        $this->getUri()->shouldReturn('https://www.minds.com/boost/console-v2');
+        $this->notification->getData()
+            ->shouldBeCalled()
+            ->willReturn([
+                'boost_location' => 2
+            ]);
+
+        $this->getUri()->shouldReturn('https://www.minds.com/boost/console-v2?state=approved&location=sidebar');
     }
 
     public function it_should_get_uri_for_a_boost_accepted_notification_when_dynamic_boost_experiment_is_off()
@@ -677,7 +683,13 @@ class PushNotificationSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(NotificationTypes::TYPE_BOOST_COMPLETED);
 
-        $this->getUri()->shouldReturn('https://www.minds.com/boost/console-v2');
+        $this->notification->getData()
+            ->shouldBeCalled()
+            ->willReturn([
+                'boost_location' => 1
+            ]);
+
+        $this->getUri()->shouldReturn('https://www.minds.com/boost/console-v2?state=completed&location=newsfeed');
     }
 
     public function it_should_get_uri_for_a_boost_completed_notification_when_dynamic_boost_experiment_is_off()

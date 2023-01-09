@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Notifications\Push;
 
+use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Notifications\Notification;
@@ -215,10 +216,7 @@ class PushNotification implements PushNotificationInterface
                 return $this->config->get('site_url') . 'notifications';
             case NotificationTypes::TYPE_BOOST_ACCEPTED:
             case NotificationTypes::TYPE_BOOST_COMPLETED:
-                $urlPath = $this->isDynamicBoostExperimentActive() ?
-                    'boost/console-v2' :
-                    'boost/console/newsfeed/history';
-                return $this->config->get('site_url') . $urlPath;
+                return $this->getBoostConsoleUrl($this->notification->getType());
         }
 
         $entity = $this->notification->getEntity();
@@ -365,6 +363,49 @@ class PushNotification implements PushNotificationInterface
                 return true;
         }
         return false;
+    }
+
+    /**
+     * Gets boost console URL.
+     * @return string url for boost console.
+     */
+    private function getBoostConsoleUrl(): string
+    {
+        $baseUrl = $this->config->get('site_url');
+        if (!$this->isDynamicBoostExperimentActive()) {
+            return $baseUrl . 'boost/console/newsfeed/history';
+        }
+        $queryParams = http_build_query([
+            'state' => $this->getBoostStateParamValue(),
+            'location' => $this->getBoostLocationParamValue()
+        ]);
+        return $this->config->get('site_url') . 'boost/console-v2?' . $queryParams;
+    }
+
+    /**
+     * Gets boost state query param value.
+     * @return string boost state query param value.
+     */
+    private function getBoostStateParamValue(): string
+    {
+        return match ($this->notification->getType()) {
+            'boost_completed' => 'completed',
+            'boost_accepted' => 'approved',
+            default => ''
+        };
+    }
+
+    /**
+     * Gets boost location query paran value.
+     * @return string boost location query param value.
+     */
+    private function getBoostLocationParamValue(): string
+    {
+        return match ($this->notification->getData()['boost_location'] ?? '') {
+            BoostTargetLocation::NEWSFEED => 'newsfeed',
+            BoostTargetLocation::SIDEBAR => 'sidebar',
+            default => ''
+        };
     }
 
     /**
