@@ -389,8 +389,8 @@ class PushNotification implements PushNotificationInterface
     private function getBoostStateParamValue(): string
     {
         return match ($this->notification->getType()) {
-            'boost_completed' => 'completed',
-            'boost_accepted' => 'approved',
+            NotificationTypes::TYPE_BOOST_COMPLETED => 'completed',
+            NotificationTypes::TYPE_BOOST_ACCEPTED => 'approved',
             default => ''
         };
     }
