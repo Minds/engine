@@ -100,6 +100,8 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn(1.00);
         $boost->getDurationDays()
             ->willReturn(1);
+        $boost->getStatus()
+            ->willReturn(BoostStatus::PENDING);
 
         $this->createBoost($boost)
             ->shouldBeEqualTo(true);
