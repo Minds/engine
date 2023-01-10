@@ -200,16 +200,14 @@ class KeyValueLimiter
     {
         if (!$this->redisIsConnected && $this->config->redis) {
 
-            // TODO fully move to Redis HA
-            $redisHa = ($this->config->redis['ha']) ?? null;
-            if ($redisHa) {
-                $master = ($this->config->redis['master']['host']) ?? null;
-                $masterPort = ($this->config->redis['master']['port']) ?? null;
-                
+            $master = ($this->config->redis['master']['host']) ?? null;
+            $masterPort = ($this->config->redis['master']['port']) ?? null;
+
+            try {
                 $this->redis->connect($master, $masterPort);
-            } else {
-                $this->redis->connect($this->config->redis['master']);
-            }
+            } catch (\RedisException $re) {
+                //throw $re;
+            }            
 
             $this->redisIsConnected = true;
         }

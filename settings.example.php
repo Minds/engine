@@ -16,8 +16,14 @@ $CONFIG->cassandra = [
 ];
 
 $CONFIG->redis = [
-    'master' => 'redis',
-    'slave' => 'redis',
+    'master' => [
+        'host' => 'redis',
+        'port' => 6379
+    ],
+    'slave' => [
+        'host' => 'redis',
+        'port' => 6379
+    ],
 ];
 
 $CONFIG->rabbitmq = [

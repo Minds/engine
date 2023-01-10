@@ -51,15 +51,13 @@ class ConversationsCache
         try {
             $config = $this->config->get('redis');
 
-            // TODO fully move to Redis HA
-            $redisHa = ($config['ha']) ?? null;
-            if ($redisHa) {
-                $master = ($config['master']['host']) ?? null;
-                $masterPort = ($config['master']['port']) ?? null;
-                
+            $master = ($config['master']['host']) ?? null;
+            $masterPort = ($config['master']['port']) ?? null;
+            
+            try {
                 $this->redis->connect($config['pubsub'] ?: $master ?: '127.0.0.1', $masterPort);
-            } else {
-                $this->redis->connect($config['pubsub'] ?: $config['master'] ?: '127.0.0.1');
+            } catch (\RedisException $re) {
+                // throw $re;
             }
             $return = $this->redis->smembers("object:gathering:conversations:{$this->user_guid}");
         } catch (\Exception $e) {
@@ -74,15 +72,13 @@ class ConversationsCache
         try {
             $config = $this->config->get('redis');
 
-            // TODO fully move to Redis HA
-            $redisHa = ($config['ha']) ?? null;
-            if ($redisHa) {
-                $master = ($config['master']['host']) ?? null;
-                $masterPort = ($config['master']['port']) ?? null;
-                
+            $master = ($config['master']['host']) ?? null;
+            $masterPort = ($config['master']['port']) ?? null;
+            
+            try {
                 $this->redis->connect($config['pubsub'] ?: $master ?: '127.0.0.1', $masterPort);
-            } else {
-                $this->redis->connect($config['pubsub'] ?: $config['master'] ?: '127.0.0.1');
+            } catch (\RedisException $re) {
+                // throw $re;
             }
             $guids = array_map(function ($c) {
                 return $c->getGuid();
