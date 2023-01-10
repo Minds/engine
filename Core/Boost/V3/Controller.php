@@ -84,7 +84,7 @@ class Controller
             ->getBoosts(
                 targetStatus: (int) $targetStatus,
                 targetUserGuid: $loggedInUser->getGuid(),
-                targetLocation: $targetLocation
+                targetLocation: (int) $targetLocation ?: null
             );
         return new JsonResponse([
             'boosts' => Exportable::_($boosts),
@@ -154,8 +154,8 @@ class Controller
                 targetStatus: $status,
                 forApprovalQueue: true,
                 targetAudience: $targetAudience,
-                targetLocation: $targetLocation,
-                paymentMethod: $paymentMethod
+                targetLocation: (int) $targetLocation ?: null,
+                paymentMethod: (int) $paymentMethod ?: null
             );
         return new JsonResponse([
             'boosts' => Exportable::_($boosts),
