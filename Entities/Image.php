@@ -174,7 +174,7 @@ class Image extends File
     public function createThumbnails(string $filepath = null): string
     {
         $sizes = ['xlarge', 'large', 'medium', 'small'];
-        
+
         $master = $filepath ?: $this->getFilenameOnFilestore();
         $image = new Imagick($master);
 
@@ -281,7 +281,10 @@ class Image extends File
                 ->setHeight($sizeProperties['height'])
                 ->resize();
 
-            $imageBlob = $resize->getJpeg(90);
+            $imageBlob = match ($image->getImageMimeType()) {
+                "image/png" => $resize->getPng(),
+                default => $resize->getJpeg(90)
+            };
 
             if ($size == 'xlarge') {
                 $thumbnail = $imageBlob;
