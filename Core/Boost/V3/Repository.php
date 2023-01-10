@@ -146,7 +146,7 @@ class Repository
         /**
          * Hide entities if a user has aid they don't want to see them
          */
-        if ($loggedInUser) {
+        if (!$forApprovalQueue && $loggedInUser) {
             $hiddenEntitiesJoin = " LEFT JOIN entities_hidden
                 ON boosts.entity_guid = entities_hidden.entity_guid
                 AND entities_hidden.user_guid = :user_guid";

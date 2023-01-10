@@ -151,9 +151,9 @@ class Controller
         $boosts = $this->manager
             ->setUser($loggedInUser)
             ->getBoosts(
-                targetStatus: $status,
+                targetStatus: (int) $status ?: null,
                 forApprovalQueue: true,
-                targetAudience: $targetAudience,
+                targetAudience: (int) $targetAudience,
                 targetLocation: (int) $targetLocation ?: null,
                 paymentMethod: (int) $paymentMethod ?: null
             );
