@@ -37,6 +37,11 @@ class Routes extends ModuleRoutes
                     Ref::_(Controller::class, 'cancelBoost')
                 );
 
+                $route->post(
+                    'prepare-onchain/:entityGuid',
+                    Ref::_(Controller::class, 'prepareOnchainBoost')
+                );
+
                 $route
                     ->withMiddleware([
                         AdminMiddleware::class

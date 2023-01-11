@@ -116,6 +116,15 @@ class BoostCreateRequestValidator implements ValidatorInterface
                     )
                 );
             }
+        } elseif ((int) $dataToValidate['payment_method'] === BoostPaymentMethod::ONCHAIN_TOKENS) {
+            if (!$dataToValidate['payment_tx_id'] || !str_starts_with($dataToValidate['payment_tx_id'], '0x')) {
+                $this->errors->add(
+                    new ValidationError(
+                        "supermind_request:payment_options:payment_method_id",
+                        "The provided payment method must be supplied along with a valid payment_tx_id"
+                    )
+                );
+            }
         }
 
         $this->checkDailyBid($dataToValidate);

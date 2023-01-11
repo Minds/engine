@@ -5,6 +5,7 @@ namespace Minds\Core\Boost\V3;
 
 use Exception;
 use Minds\Core\Blockchain\Wallets\OffChain\Transactions as OffchainTransactions;
+use Minds\Core\Boost\V3\Enums\BoostAdminAction;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
@@ -16,6 +17,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
+use Minds\Core\Boost\V3\Onchain\AdminTransactionProcessor;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -31,12 +33,14 @@ class PaymentProcessor
         private ?IntentsManagerV2 $intentsManager = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?OffchainTransactions $offchainTransactions = null,
-        private ?MindsConfig $mindsConfig = null
+        private ?MindsConfig $mindsConfig = null,
+        private ?AdminTransactionProcessor $onchainAdminTransactionProcessor = null
     ) {
         $this->intentsManager ??= new IntentsManagerV2();
         $this->mindsConfig ??= Di::_()->get("Config");
         $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
         $this->offchainTransactions ??= new OffchainTransactions();
+        $this->onchainAdminTransactionProcessor ??= new AdminTransactionProcessor();
     }
 
     /**
@@ -53,7 +57,7 @@ class PaymentProcessor
         return match ($boost->getPaymentMethod()) {
             BoostPaymentMethod::CASH => $this->setupCashPaymentIntent($boost),
             BoostPaymentMethod::OFFCHAIN_TOKENS => $this->setupOffchainTokensPayment($boost),
-            BoostPaymentMethod::ONCHAIN_TOKENS => throw new NotImplementedException("The payment method selected is not available yet"),
+            BoostPaymentMethod::ONCHAIN_TOKENS => throw new ServerErrorException("Onchain transactions are processed client-side"),
             default => throw new InvalidBoostPaymentMethodException()
         };
     }
@@ -149,7 +153,7 @@ class PaymentProcessor
         return match ($boost->getPaymentMethod()) {
             BoostPaymentMethod::CASH => $this->captureCashPaymentIntent($boost),
             BoostPaymentMethod::OFFCHAIN_TOKENS => $this->captureOffchainTokenPayment($boost),
-            BoostPaymentMethod::ONCHAIN_TOKENS => throw new NotImplementedException("The payment method selected is not available yet"),
+            BoostPaymentMethod::ONCHAIN_TOKENS => $this->captureOnchainBoostPayment($boost),
             default => throw new InvalidBoostPaymentMethodException()
         };
     }
@@ -174,6 +178,21 @@ class PaymentProcessor
     }
 
     /**
+     * Capture an onchain boost on the Ethereum network.
+     * @param Boost $boost - onchain boost to capture.
+     * @return bool true if boost has been captured.
+     * @throws Exception - if an exception occurs.
+     * @throws ServerErrorException - if there is an amount mismatch between blockchain and server.
+     */
+    private function captureOnchainBoostPayment(Boost $boost): bool
+    {
+        return (bool) $this->onchainAdminTransactionProcessor->send(
+            boost: $boost,
+            action: BoostAdminAction::ACCEPT
+        );
+    }
+
+    /**
      * @param Boost $boost
      * @return bool
      * @throws ApiErrorException
@@ -187,7 +206,7 @@ class PaymentProcessor
         return match ($boost->getPaymentMethod()) {
             BoostPaymentMethod::CASH => $this->refundCashPaymentIntent($boost),
             BoostPaymentMethod::OFFCHAIN_TOKENS => $this->refundOffchainTokensPayment($boost),
-            BoostPaymentMethod::ONCHAIN_TOKENS => throw new NotImplementedException("The payment method selected is not available yet"),
+            BoostPaymentMethod::ONCHAIN_TOKENS => $this->refundOnchainTokensPayment($boost),
             default => throw new InvalidBoostPaymentMethodException()
         };
     }
@@ -234,5 +253,20 @@ class PaymentProcessor
                 'entity_guid' => $boost->getEntityGuid()
             ])
             ->transferFrom($sender);
+    }
+
+    /**
+     * Refund an onchain boost on the Ethereum network by calling
+     * the contracts reject function.
+     * @param Boost $boost - onchain boost to refund.
+     * @return bool true if boost has been refunded.
+     * @throws Exception - if an exception occurs.
+     */
+    private function refundOnchainTokensPayment(Boost $boost): bool
+    {
+        return (bool) $this->onchainAdminTransactionProcessor->send(
+            boost: $boost,
+            action: BoostAdminAction::REJECT,
+        );
     }
 }

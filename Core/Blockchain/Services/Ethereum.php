@@ -218,6 +218,16 @@ class Ethereum
     }
 
     /**
+     * Query RPC endpoint for current gas price.
+     * @throws \Exception - on error.
+     * @return string|null current gas price.
+     */
+    public function getCurrentGasPrice(): ?string
+    {
+        return $this->request('eth_gasPrice', []);
+    }
+
+    /**
      * Returns the next available RPC endpoint
      * @return string
      * @throws \Exception
