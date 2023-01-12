@@ -29,6 +29,16 @@ class ActionEventDelegate
     }
 
     /**
+     * On boost creation, dispatch an ActionEvent to subscribers.
+     * @param Boost $boost - boost to dispatch event for.
+     * @return void
+     */
+    public function onCreate(Boost $boost): void
+    {
+        $this->send($boost, ActionEvent::ACTION_BOOST_CREATED);
+    }
+
+    /**
      * On boost approval, dispatch an ActionEvent to subscribers.
      * @param Boost $boost - boost to dispatch event for.
      * @return void

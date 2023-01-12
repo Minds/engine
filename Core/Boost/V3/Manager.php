@@ -109,6 +109,9 @@ class Manager
         }
 
         $this->repository->commitTransaction();
+
+        $this->actionEventDelegate->onCreate($boost);
+
         return true;
     }
 
