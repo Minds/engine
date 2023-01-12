@@ -113,17 +113,19 @@ class BoostEmailer extends EmailCampaign
             case ActionEvent::ACTION_BOOST_REJECTED:
                 $headerText = 'Your Boost was rejected';
                 $preHeaderText = "Find out why.";
+                $contentPolicyHtml = '<a href="https://support.minds.com/hc/en-us/articles/11723536774292-Boost-Content-Policy" style="color: #4080D0; text-decoration: underline" target="_blank">content policy</a>';
                 if ($this->boost->getTargetSuitability() === BoostTargetAudiences::SAFE) {
-                    $bodyText = "We’ve reviewed your Boost and determined the content does not meet the content policy requirements for the selected audience. You have been refunded. If your content is suitable for another audience, you can select that audience and try again.";
+                    $bodyText = "We’ve reviewed your Boost and determined the content does not meet the $contentPolicyHtml requirements for the selected audience. You have been refunded. If your content is suitable for another audience, you can select that audience and try again.";
                     $ctaText = 'Try Again';
+                    $ctaPath = $this->getActivityPostUrl() . $trackingQueryString;
                 } elseif ($this->boost->getTargetSuitability() === BoostTargetAudiences::CONTROVERSIAL) {
-                    $bodyText = "We’ve reviewed your Boost and determined the content does not meet the content policy requirements for Boost. You have been refunded.";
+                    $bodyText = "We’ve reviewed your Boost and determined the content does not meet the $contentPolicyHtml requirements for Boost. You have been refunded.";
                     $ctaText = "View Results";
+                    $ctaPath = $this->getConsoleUrl($trackingQueryParams);
                 } else {
                     $this->logger->error("Unsupported target suitability when sending email for Boost {$this->boost->getGuid()}");
                     return null;
                 }
-                $ctaPath = $this->getActivityPostUrl() . $trackingQueryString;
                 break;
 
             case ActionEvent::ACTION_BOOST_ACCEPTED:

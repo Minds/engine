@@ -50,6 +50,7 @@ class BoostConsoleUrlBuilder
             BoostStatus::COMPLETED => 'completed',
             BoostStatus::APPROVED => 'approved',
             BoostStatus::PENDING => 'pending',
+            BoostStatus::REJECTED => 'rejected',
             default => '' // not yet implemented
         };
     }
