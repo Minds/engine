@@ -23,6 +23,7 @@ use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Entities\Activity;
@@ -255,6 +256,44 @@ class Manager
     }
 
     /**
+     * Get boost feed as feed sync entities.
+     * @param int $limit
+     * @param int $offset
+     * @param int|null $targetStatus
+     * @param bool $forApprovalQueue
+     * @param string|null $targetUserGuid
+     * @param bool $orderByRanking
+     * @param int $targetAudience
+     * @return Response
+     */
+    public function getBoostFeed(
+        int $limit = 12,
+        int $offset = 0,
+        ?int $targetStatus = null,
+        bool $forApprovalQueue = false,
+        ?string $targetUserGuid = null,
+        bool $orderByRanking = false,
+        int $targetAudience = BoostTargetAudiences::SAFE,
+        ?int $targetLocation = null
+    ): Response {
+        $hasNext = false;
+        $boosts = $this->repository->getBoosts(
+            limit: $limit,
+            offset: $offset,
+            targetStatus: $targetStatus,
+            forApprovalQueue: $forApprovalQueue,
+            targetUserGuid: $targetUserGuid,
+            orderByRanking: $orderByRanking,
+            targetAudience: $targetAudience,
+            targetLocation: $targetLocation,
+            loggedInUser: $this->user,
+            hasNext: $hasNext
+        );
+        $feedSyncEntities = $this->castToFeedSyncEntities($boosts);
+        return new Response($feedSyncEntities);
+    }
+
+    /**
      * Get a single boost by its GUID.
      * @param string $boostGuid - guid to get boost for.
      * @return Boost - boost with matching GUID.
@@ -305,5 +344,29 @@ class Manager
             'guid' => $guid,
             'checksum' => $checksum
         ];
+    }
+
+    /**
+     * Casts an array of boosts to feed sync entities from boost,
+     * containing the exported boosted content.
+     * @param iterable $boosts - boosts to cast
+     * @return array feed sync entities.
+     */
+    private function castToFeedSyncEntities(iterable $boosts): array
+    {
+        $feedSyncEntities = [];
+
+        foreach ($boosts as $boost) {
+            // pre-export the boost to grab the export patched entity.
+            $exportedBoost = $boost->export(['patchForFeedSyncEntity' => true]);
+            $feedSyncEntities[] = (new FeedSyncEntity())
+                ->setGuid($boost->getGuid())
+                ->setOwnerGuid($boost->getOwnerGuid())
+                ->setTimestamp($boost->getCreatedTimestamp())
+                ->setUrn($boost->getUrn())
+                ->setEntity($exportedBoost['entity']);
+        }
+
+        return $feedSyncEntities;
     }
 }

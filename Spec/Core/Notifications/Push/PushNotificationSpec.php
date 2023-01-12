@@ -2,30 +2,32 @@
 
 namespace Spec\Minds\Core\Notifications\Push;
 
+use Minds\Core\Boost\V3\Utils\BoostConsoleUrlBuilder;
 use Minds\Core\Config\Config;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Push\PushNotification;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
+use Minds\Core\Boost\V3\Models\Boost as BoostV3;
+use Minds\Core\Boost\Network\Boost;
 use PhpSpec\ObjectBehavior;
 
 class PushNotificationSpec extends ObjectBehavior
 {
     public $notification;
     public $config;
-    public $experimentsManager;
+    public $boostConsoleUrlBuilder;
 
     public function let(
         Notification $notification,
         Config $config,
-        ExperimentsManager $experimentsManager
+        BoostConsoleUrlBuilder $boostConsoleUrlBuilder
     ) {
-        $this->beConstructedWith($notification, $config, $experimentsManager);
+        $this->beConstructedWith($notification, $config, $boostConsoleUrlBuilder);
         $this->notification = $notification;
         $this->config = $config;
-        $this->experimentsManager = $experimentsManager;
+        $this->boostConsoleUrlBuilder = $boostConsoleUrlBuilder;
     }
 
     public function it_is_initializable()
@@ -629,34 +631,31 @@ class PushNotificationSpec extends ObjectBehavior
         $this->getBody()->shouldReturn('');
     }
 
-    public function it_should_get_uri_for_a_boost_accepted_notification_when_dynamic_boost_experiment_is_on()
-    {
-        $this->experimentsManager->isOn('epic-293-dynamic-boost')
+    public function it_should_get_uri_for_a_boost_accepted_notification_when_boost_is_a_v3_boost(
+        BoostV3 $boost
+    ) {
+        $url = 'https://www.minds.com/boost/boost-console?state=approved&location=sidebar';
+        $this->notification->getEntity()
             ->shouldBeCalled()
-            ->willReturn(true);
+            ->willReturn($boost);
 
-        $this->config->get('site_url')
-            ->shouldBeCalled()
-            ->willReturn('https://www.minds.com/');
-        
         $this->notification->getType()
             ->shouldBeCalled()
             ->willReturn(NotificationTypes::TYPE_BOOST_ACCEPTED);
 
-        $this->notification->getData()
+        $this->boostConsoleUrlBuilder->build($boost)
             ->shouldBeCalled()
-            ->willReturn([
-                'boost_location' => 2
-            ]);
+            ->willReturn($url);
 
-        $this->getUri()->shouldReturn('https://www.minds.com/boost/console-v2?state=approved&location=sidebar');
+        $this->getUri()->shouldReturn($url);
     }
 
-    public function it_should_get_uri_for_a_boost_accepted_notification_when_dynamic_boost_experiment_is_off()
-    {
-        $this->experimentsManager->isOn('epic-293-dynamic-boost')
+    public function it_should_get_uri_for_a_boost_accepted_notification_when_boost_is_not_a_v3_boosts(
+        Boost $boost
+    ) {
+        $this->notification->getEntity()
             ->shouldBeCalled()
-            ->willReturn(false);
+            ->willReturn($boost);
 
         $this->config->get('site_url')
             ->shouldBeCalled()
@@ -665,38 +664,38 @@ class PushNotificationSpec extends ObjectBehavior
         $this->notification->getType()
             ->shouldBeCalled()
             ->willReturn(NotificationTypes::TYPE_BOOST_ACCEPTED);
+
+        $this->boostConsoleUrlBuilder->build($boost)
+            ->shouldNotBeCalled();
 
         $this->getUri()->shouldReturn('https://www.minds.com/boost/console/newsfeed/history');
     }
 
-    public function it_should_get_uri_for_a_boost_completed_notification_when_dynamic_boost_experiment_is_on()
-    {
-        $this->experimentsManager->isOn('epic-293-dynamic-boost')
+    public function it_should_get_uri_for_a_boost_completed_notification_when_boost_is_a_v3_boosts(
+        BoostV3 $boost
+    ) {
+        $url = 'https://www.minds.com/boost/boost-console?state=completed&location=newsfeed';
+        $this->notification->getEntity()
             ->shouldBeCalled()
-            ->willReturn(true);
+            ->willReturn($boost);
 
-        $this->config->get('site_url')
-            ->shouldBeCalled()
-            ->willReturn('https://www.minds.com/');
-        
         $this->notification->getType()
             ->shouldBeCalled()
             ->willReturn(NotificationTypes::TYPE_BOOST_COMPLETED);
 
-        $this->notification->getData()
+        $this->boostConsoleUrlBuilder->build($boost)
             ->shouldBeCalled()
-            ->willReturn([
-                'boost_location' => 1
-            ]);
+            ->willReturn($url);
 
-        $this->getUri()->shouldReturn('https://www.minds.com/boost/console-v2?state=completed&location=newsfeed');
+        $this->getUri()->shouldReturn('https://www.minds.com/boost/boost-console?state=completed&location=newsfeed');
     }
 
-    public function it_should_get_uri_for_a_boost_completed_notification_when_dynamic_boost_experiment_is_off()
-    {
-        $this->experimentsManager->isOn('epic-293-dynamic-boost')
+    public function it_should_get_uri_for_a_boost_completed_notification_when_boost_is_not_a_v3_boosts(
+        Boost $boost
+    ) {
+        $this->notification->getEntity()
             ->shouldBeCalled()
-            ->willReturn(false);
+            ->willReturn($boost);
 
         $this->config->get('site_url')
             ->shouldBeCalled()

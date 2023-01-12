@@ -1,13 +1,13 @@
 <?php
 namespace Minds\Core\Notifications\Push;
 
-use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
+use Minds\Core\Boost\V3\Models\Boost as BoostV3;
+use Minds\Core\Boost\V3\Utils\BoostConsoleUrlBuilder;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Entities\User;
@@ -31,7 +31,7 @@ class PushNotification implements PushNotificationInterface
     public function __construct(
         Notification $notification,
         Config $config = null,
-        private ?ExperimentsManager $experimentsManager = null
+        private ?BoostConsoleUrlBuilder $boostConsoleUrlBuilder = null
     ) {
         $this->notification = $notification;
 
@@ -40,7 +40,7 @@ class PushNotification implements PushNotificationInterface
         }
 
         $this->config = $config ?? Di::_()->get('Config');
-        $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
+        $this->boostConsoleUrlBuilder ??= Di::_()->get(BoostConsoleUrlBuilder::class);
     }
 
     /**
@@ -371,49 +371,11 @@ class PushNotification implements PushNotificationInterface
      */
     private function getBoostConsoleUrl(): string
     {
-        $baseUrl = $this->config->get('site_url');
-        if (!$this->isDynamicBoostExperimentActive()) {
+        $boost = $this->notification->getEntity();
+        if (!$boost instanceof BoostV3) {
+            $baseUrl = $this->config->get('site_url');
             return $baseUrl . 'boost/console/newsfeed/history';
         }
-        $queryParams = http_build_query([
-            'state' => $this->getBoostStateParamValue(),
-            'location' => $this->getBoostLocationParamValue()
-        ]);
-        return $this->config->get('site_url') . 'boost/console-v2?' . $queryParams;
-    }
-
-    /**
-     * Gets boost state query param value.
-     * @return string boost state query param value.
-     */
-    private function getBoostStateParamValue(): string
-    {
-        return match ($this->notification->getType()) {
-            NotificationTypes::TYPE_BOOST_COMPLETED => 'completed',
-            NotificationTypes::TYPE_BOOST_ACCEPTED => 'approved',
-            default => ''
-        };
-    }
-
-    /**
-     * Gets boost location query paran value.
-     * @return string boost location query param value.
-     */
-    private function getBoostLocationParamValue(): string
-    {
-        return match ($this->notification->getData()['boost_location'] ?? '') {
-            BoostTargetLocation::NEWSFEED => 'newsfeed',
-            BoostTargetLocation::SIDEBAR => 'sidebar',
-            default => ''
-        };
-    }
-
-    /**
-     * Whether dynamic boost experiment is active.
-     * @return boolean true if dynamic boost experiment is active.
-     */
-    private function isDynamicBoostExperimentActive(): bool
-    {
-        return $this->experimentsManager->isOn('epic-293-dynamic-boost');
+        return $this->boostConsoleUrlBuilder->build($boost);
     }
 }

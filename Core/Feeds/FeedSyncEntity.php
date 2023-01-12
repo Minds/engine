@@ -65,12 +65,23 @@ class FeedSyncEntity implements JsonSerializable
      */
     public function export()
     {
+        $entity = null;
+
+        if ($this->entity && !is_array($this->entity) && method_exists($this->entity, 'export')) {
+            $entity = $this->entity->export();
+        }
+        
+        // pre-exported.
+        if (is_array($this->entity)) {
+            $entity = $this->entity;
+        }
+
         return [
             'guid' => (string) $this->guid,
             'owner_guid' => (string) $this->ownerGuid,
             'timestamp' => $this->timestamp,
             'urn' => $this->urn,
-            'entity' => $this->entity ? $this->entity->export() : null,
+            'entity' => $entity
         ];
     }
 

@@ -49,31 +49,16 @@ class ActionEventDelegateSpec extends ObjectBehavior
         Boost $boost,
         User $sender
     ): void {
-        $boostLocation = 1;
-        $ownerGuid = 345678;
-
-        $boost->getTargetLocation()
-            ->shouldBeCalled()
-            ->willReturn($boostLocation);
-
-        $boost->getOwnerGuid()
-            ->shouldBeCalled()
-            ->willReturn($ownerGuid);
-
         // This path is forced by the CLI and not the user that will
         // be retrieved for all action events.
         $this->entitiesBuilder->single('100000000000000519')
             ->shouldBeCalled()
             ->willReturn($sender);
 
-        $this->actionEventsTopic->send(Argument::that(function ($arg) use ($boost, $boostLocation, $ownerGuid, $sender) {
+        $this->actionEventsTopic->send(Argument::that(function ($arg) use ($boost, $sender) {
             return $arg->getEntity() === $boost->getWrappedObject() &&
                 $arg->getUser() === $sender->getWrappedObject() &&
-                $arg->getAction() === 'boost_accepted' &&
-                $arg->getActionData() === [
-                    'boost_location' => $boostLocation,
-                    'boost_owner_guid' => (string) $ownerGuid
-                ];
+                $arg->getAction() === 'boost_accepted';
         }))
             ->shouldBeCalled()
             ->willReturn(true);
@@ -86,16 +71,6 @@ class ActionEventDelegateSpec extends ObjectBehavior
         User $sender
     ): void {
         $rejectionReason = 22;
-        $boostLocation = 1;
-        $ownerGuid = 345678;
-
-        $boost->getTargetLocation()
-            ->shouldBeCalled()
-            ->willReturn($boostLocation);
-
-        $boost->getOwnerGuid()
-            ->shouldBeCalled()
-            ->willReturn($ownerGuid);
         
         // This path is forced by the CLI and not the user that will
         // be retrieved for all action events.
@@ -103,14 +78,12 @@ class ActionEventDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($sender);
 
-        $this->actionEventsTopic->send(Argument::that(function ($arg) use ($boost, $sender, $rejectionReason, $boostLocation, $ownerGuid) {
+        $this->actionEventsTopic->send(Argument::that(function ($arg) use ($boost, $sender, $rejectionReason) {
             return $arg->getEntity() === $boost->getWrappedObject() &&
                 $arg->getUser() === $sender->getWrappedObject() &&
                 $arg->getAction() === 'boost_rejected' &&
                 $arg->getActionData() === [
-                    'boost_reject_reason' => $rejectionReason,
-                    'boost_location' => $boostLocation,
-                    'boost_owner_guid' => (string) $ownerGuid
+                    'boost_reject_reason' => $rejectionReason
                 ];
         }))
             ->shouldBeCalled()
@@ -123,29 +96,14 @@ class ActionEventDelegateSpec extends ObjectBehavior
         Boost $boost,
         User $sender
     ): void {
-        $boostLocation = 1;
-        $ownerGuid = 345678;
-
-        $boost->getTargetLocation()
-            ->shouldBeCalled()
-            ->willReturn($boostLocation);
-
-        $boost->getOwnerGuid()
-            ->shouldBeCalled()
-            ->willReturn($ownerGuid);
-
         $this->entitiesBuilder->single('100000000000000519')
             ->shouldBeCalled()
             ->willReturn($sender);
 
-        $this->actionEventsTopic->send(Argument::that(function ($arg) use ($boost, $boostLocation, $sender, $ownerGuid) {
+        $this->actionEventsTopic->send(Argument::that(function ($arg) use ($boost, $sender) {
             return $arg->getEntity() === $boost->getWrappedObject() &&
                 $arg->getUser() === $sender->getWrappedObject() &&
-                $arg->getAction() === 'boost_completed' &&
-                $arg->getActionData() === [
-                    'boost_location' => $boostLocation,
-                    'boost_owner_guid' => (string) $ownerGuid
-                ];
+                $arg->getAction() === 'boost_completed';
         }))
             ->shouldBeCalled()
             ->willReturn(true);
