@@ -117,12 +117,20 @@ class Boost implements EntityInterface, ExportableInterface
      */
     public function export(array $extras = []): array
     {
+        $exportedEntity = $this->entity?->export();
+
+        if (isset($extras['patchForFeedSyncEntity']) && $extras['patchForFeedSyncEntity']) {
+            $exportedEntity['boosted'] = true;
+            $exportedEntity['boosted_guid'] = $this->getGuid();
+            $exportedEntity['urn'] = $this->getUrn();
+        }
+
         return [
             'guid' => $this->getGuid(),
             'urn' => $this->getUrn(),
             'owner_guid' => $this->getOwnerGuid(),
             'entity_guid' => $this->getEntityGuid(),
-            'entity' => $this->entity?->export(),
+            'entity' => $exportedEntity,
             'target_location' => $this->getTargetLocation(),
             'target_suitability' => $this->getTargetSuitability(),
             'payment_method' => $this->getPaymentMethod(),

@@ -565,4 +565,43 @@ class ManagerSpec extends ObjectBehavior
         $this->getBoosts()
             ->shouldReturnAnInstanceOf(Response::class);
     }
+
+    public function it_should_get_boosts_as_feed_sync_entity(
+        Boost $boost
+    ): void {
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->repository->getBoosts(
+            Argument::type('integer'),
+            Argument::type('integer'),
+            null,
+            Argument::type('bool'),
+            null,
+            Argument::type('bool'),
+            Argument::type('integer'),
+            null,
+            null,
+            Argument::type('bool')
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->getBoostFeed()
+            ->shouldReturnAnInstanceOf(Response::class);
+    }
 }

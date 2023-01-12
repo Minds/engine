@@ -75,10 +75,9 @@ class ActionEventDelegate
             ->setEntity($boost)
             ->setUser($this->getSender($action));
 
-        $actionData['boost_location'] = $boost->getTargetLocation();
-        $actionData['boost_owner_guid'] = $boost->getOwnerGuid();
-
-        $actionEvent->setActionData($actionData);
+        if (count($actionData)) {
+            $actionEvent->setActionData($actionData);
+        }
 
         $this->actionEventsTopic->send($actionEvent);
     }
