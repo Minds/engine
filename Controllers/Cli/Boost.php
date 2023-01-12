@@ -93,6 +93,7 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
      * @example
      * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='complete'
      * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='approve'
+     * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='create'
      * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='reject' --rejectionReason=3
      * @return void
      */
@@ -124,6 +125,9 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
         $actionEventDelegate =  Di::_()->get(ActionEventDelegate::class);
 
         switch ($eventType) {
+            case 'create':
+                $actionEventDelegate->onCreate($boost);
+                break;
             case 'complete':
                 $actionEventDelegate->onComplete($boost);
                 break;
@@ -135,7 +139,7 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
                 $actionEventDelegate->onReject($boost, $rejectionReason);
                 break;
             default:
-                throw new CliException('Unknown event type provided. Must be: complete, accept or reject');
+                throw new CliException('Unknown event type provided. Must be: complete, accept, create or reject');
         }
         
         $this->out("Completion notice dispatched for boost: $boostGuid");

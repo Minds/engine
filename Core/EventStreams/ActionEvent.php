@@ -50,6 +50,9 @@ class ActionEvent implements EventInterface
     const ACTION_TAG = 'tag';
 
     /** @var string */
+    const ACTION_BOOST_CREATED = 'boost_created';
+
+    /** @var string */
     const ACTION_BOOST_REJECTED = 'boost_rejected';
 
     /** @var string */
@@ -178,6 +181,7 @@ class ActionEvent implements EventInterface
             case self::ACTION_BOOST_REJECTED:
                 $allowedKeys = [ 'boost_reject_reason' ];
                 break;
+            case self::ACTION_BOOST_CREATED:
             case self::ACTION_BOOST_ACCEPTED:
             case self::ACTION_BOOST_COMPLETED:
                 break;
