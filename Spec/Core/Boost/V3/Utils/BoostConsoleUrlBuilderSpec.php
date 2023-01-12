@@ -10,7 +10,8 @@ use Minds\Core\Config\Config;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 
-class BoostConsoleUrlBuilderSpec extends ObjectBehavior {
+class BoostConsoleUrlBuilderSpec extends ObjectBehavior
+{
     private Collaborator $config;
 
     public function let(
@@ -20,7 +21,8 @@ class BoostConsoleUrlBuilderSpec extends ObjectBehavior {
         $this->beConstructedWith($this->config);
     }
 
-    public function it_should_build_a_a_url(Boost $boost) {
+    public function it_should_build_a_a_url(Boost $boost)
+    {
         $status = BoostStatus::APPROVED;
         $location = BoostTargetLocation::NEWSFEED;
         $siteUrl = 'https://www.minds.com/';
@@ -40,7 +42,8 @@ class BoostConsoleUrlBuilderSpec extends ObjectBehavior {
         $this->build($boost)->shouldBe('https://www.minds.com/boost/boost-console?state=approved&location=newsfeed');
     }
 
-    public function it_should_build_a_a_url_with_extra_query_params(Boost $boost) {
+    public function it_should_build_a_a_url_with_extra_query_params(Boost $boost)
+    {
         $status = BoostStatus::PENDING;
         $location = BoostTargetLocation::SIDEBAR;
         $siteUrl = 'https://www.minds.com/';
