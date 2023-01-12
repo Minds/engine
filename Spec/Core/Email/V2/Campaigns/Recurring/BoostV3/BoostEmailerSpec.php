@@ -549,7 +549,7 @@ class BoostEmailerSpec extends ObjectBehavior
         $targetSuitability = BoostTargetSuitability::SAFE;
         $campaign = 'when';
         $tracking = "__e_ct_guid=$userGuid&campaign=when&topic=$topic";
-        $bodyText = "We’ve reviewed your Boost and determined the content does not meet the content policy requirements for the selected audience. You have been refunded. If your content is suitable for another audience, you can select that audience and try again.";
+        $bodyText = 'We’ve reviewed your Boost and determined the content does not meet the <a href="https://support.minds.com/hc/en-us/articles/11723536774292-Boost-Content-Policy" style="color: #4080D0; text-decoration: underline" target="_blank">content policy</a> requirements for the selected audience. You have been refunded. If your content is suitable for another audience, you can select that audience and try again.';
         $headerText = "Your Boost was rejected";
         $preHeaderText = "Find out why.";
 
@@ -658,13 +658,12 @@ class BoostEmailerSpec extends ObjectBehavior
         $topic = ActionEvent::ACTION_BOOST_REJECTED;
 
         $userGuid = '234';
-        $entityGuid ='567';
         $userUsername = 'minds_receiver';
         $userEmail = 'no-reply@minds.com';
         $targetSuitability = BoostTargetSuitability::CONTROVERSIAL;
         $campaign = 'when';
         $tracking = "__e_ct_guid=$userGuid&campaign=when&topic=$topic";
-        $bodyText = "We’ve reviewed your Boost and determined the content does not meet the content policy requirements for Boost. You have been refunded.";
+        $bodyText = 'We’ve reviewed your Boost and determined the content does not meet the <a href="https://support.minds.com/hc/en-us/articles/11723536774292-Boost-Content-Policy" style="color: #4080D0; text-decoration: underline" target="_blank">content policy</a> requirements for Boost. You have been refunded.';
         $headerText = "Your Boost was rejected";
         $preHeaderText = "Find out why.";
 
@@ -675,10 +674,6 @@ class BoostEmailerSpec extends ObjectBehavior
         $boost->getTargetSuitability()
             ->shouldBeCalled()
             ->willReturn($targetSuitability);
-
-        $boost->getEntityGuid()
-            ->shouldBeCalled()
-            ->willReturn($entityGuid);
 
         $user->getGuid()
             ->shouldBeCalled()
@@ -709,7 +704,8 @@ class BoostEmailerSpec extends ObjectBehavior
             'campaign' => $campaign,
             'topic' => $topic,
         ])
-            ->shouldNotBeCalled();
+            ->shouldBeCalled()
+            ->willReturn('~url~');
 
         $this->template->setTemplate('default.v2.tpl')->shouldBeCalled();
         $this->template->setBody('./template.tpl')->shouldBeCalled();
@@ -753,7 +749,6 @@ class BoostEmailerSpec extends ObjectBehavior
         $this->template->set('actionButton', Argument::type('string'))
             ->shouldBeCalled()
             ->willReturn($userUsername);
-
 
         $this->mailer->send(Argument::any())->shouldBeCalled();
 
