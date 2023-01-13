@@ -182,6 +182,9 @@ class BoostEmailer extends EmailCampaign
         if ($receiptUrl) {
             $this->template->set('additionalCtaText', 'Receipt');
             $this->template->set('additionalCtaPath', $receiptUrl);
+        } else {
+            $this->template->set('additionalCtaText', '');
+            $this->template->set('additionalCtaPath', '');
         }
         
         // Create action button
