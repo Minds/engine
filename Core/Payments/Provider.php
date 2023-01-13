@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Minds\Core\Payments;
 
 use Minds\Core\Di\Provider as DiProvider;
-use Minds\Core\Boost\V3\Utils\BoostReceiptUrlBuilder;
 
 class Provider extends DiProvider
 {
