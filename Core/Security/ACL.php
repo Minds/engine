@@ -252,7 +252,6 @@ class ACL
                 !$entity->container_guid // there is no container guid
                 || ($entity->container_guid == $user->guid) // or it is the same as owner
             )
-            && ($additionalData['allowBoosted'] ?? true)
         ) {
             return true;
         }
