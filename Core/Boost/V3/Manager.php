@@ -5,6 +5,8 @@ namespace Minds\Core\Boost\V3;
 
 use Exception;
 use Minds\Common\Repository\Response;
+use Minds\Core\Boost\Checksum;
+use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
@@ -22,6 +24,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
+use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
@@ -30,7 +33,7 @@ use Stripe\Exception\ApiErrorException;
 
 class Manager
 {
-    private User $user;
+    private ?User $user = null;
 
     public function __construct(
         private ?Repository $repository = null,
@@ -82,12 +85,15 @@ class Manager
                 durationDays: (int) $data['duration_days'],
             )
         )
-            ->setGuid(Guid::build())
+            ->setGuid($data['guid'] ?? Guid::build())
             ->setOwnerGuid($this->user->getGuid())
             ->setPaymentMethodId($data['payment_method_id'] ?? null);
 
         try {
-            if (!$this->paymentProcessor->setupBoostPayment($boost)) {
+            if ($boost->getPaymentMethod() === BoostPaymentMethod::ONCHAIN_TOKENS) {
+                $boost->setStatus(BoostStatus::PENDING_ONCHAIN_CONFIRMATION)
+                    ->setPaymentTxId($data['payment_tx_id']);
+            } elseif (!$this->paymentProcessor->setupBoostPayment($boost)) {
                 throw new BoostPaymentSetupFailedException();
             }
 
@@ -229,6 +235,7 @@ class Manager
             orderByRanking: $orderByRanking,
             targetAudience: $targetAudience,
             targetLocation: $targetLocation,
+            loggedInUser: $this->user,
             hasNext: $hasNext
         );
 
@@ -247,5 +254,44 @@ class Manager
         } catch (BoostNotFoundException $e) {
             return null;
         }
+    }
+
+    /**
+     * Update the status of a single boost.
+     * @param string $boostGuid - guid of boost to update.
+     * @return bool true if boost updated.
+     */
+    public function updateStatus(string $boostGuid, int $status): bool
+    {
+        return $this->repository->updateStatus($boostGuid, $status);
+    }
+
+    /**
+     * Will prepare an onchain boost
+     * @param string $entityGuid
+     * @return array
+     */
+    public function prepareOnchainBoost(string $entityGuid): array
+    {
+        $entity = $this->entitiesBuilder->single($entityGuid);
+
+        if (!($entity instanceof Activity || $entity instanceof User)) {
+            throw new ServerErrorException("Invalid entity type provided");
+        }
+
+        if ($entity->getNsfw() || $entity->getNsfwLock()) {
+            throw new UserErrorException('NSFW content cannot be boosted.');
+        }
+
+        $guid = Guid::build();
+        $checksum = (new Checksum())
+            ->setGuid($guid)
+            ->setEntity($entity)
+            ->generate();
+    
+        return [
+            'guid' => $guid,
+            'checksum' => $checksum
+        ];
     }
 }

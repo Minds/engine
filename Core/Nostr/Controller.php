@@ -49,6 +49,9 @@ class Controller
             [
                 "names" => [
                     $name => $publicKey,
+                ],
+                "relays" => [
+                    $publicKey => [ "wss://relay.{$this->manager->getDomain()}/nostr/v1/ws" ]
                 ]
             ],
             200,

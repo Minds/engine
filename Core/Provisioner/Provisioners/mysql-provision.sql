@@ -148,3 +148,11 @@ CREATE TABLE IF NOT EXISTS boost_estimates
     24h_views int NOT NULL,
     PRIMARY KEY (target_audience, target_location, payment_method)
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS entities_hidden
+(
+    user_guid bigint NOT NULL,
+    entity_guid bigint NOT NULL,
+    created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_guid, entity_guid)
+) ENGINE=InnoDB;

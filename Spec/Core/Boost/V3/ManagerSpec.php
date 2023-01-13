@@ -222,6 +222,68 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow(ServerErrorException::class)->during('createBoost', [$boostData]);
     }
 
+    /**
+     * @param User $user
+     * @param Entity $entity
+     * @return void
+     * @throws BoostPaymentSetupFailedException
+     * @throws InvalidBoostPaymentMethodException
+     * @throws KeyNotSetupException
+     * @throws LockFailedException
+     * @throws NotImplementedException
+     * @throws ServerErrorException
+     */
+    public function it_should_create_an_onchain_boost_with_a_supplied_guid(
+        User $user,
+        Entity $entity
+    ): void {
+        $this->repository->beginTransaction()
+            ->shouldBeCalledOnce();
+
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $entity->getType()
+            ->shouldBeCalledOnce()
+            ->willReturn('activity');
+
+        $this->entitiesBuilder->single(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($entity);
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
+            ->shouldNotBeCalled()
+            ->willReturn(true);
+
+        $this->repository->createBoost(Argument::that(function ($arg) {
+            return $arg->getStatus() === BoostStatus::PENDING_ONCHAIN_CONFIRMATION &&
+                $arg->getPaymentTxId() === '0x123' &&
+                $arg->getGuid() === '567';
+        }))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $boostData = [
+            'guid' => '567',
+            'entity_guid' => '123',
+            'target_location' => 1,
+            'target_suitability' => 1,
+            'payment_method' => 3,
+            'payment_tx_id' => '0x123',
+            'daily_bid' => 10,
+            'duration_days' => 2
+        ];
+
+        $this->createBoost($boostData)
+            ->shouldBeEqualTo(true);
+    }
+
     public function it_should_approve_boost(
         Boost $boost
     ): void {
@@ -478,6 +540,7 @@ class ManagerSpec extends ObjectBehavior
             null,
             Argument::type('bool'),
             Argument::type('integer'),
+            null,
             null,
             Argument::type('bool')
         )

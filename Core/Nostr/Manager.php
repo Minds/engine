@@ -251,7 +251,7 @@ class Manager
     /**
      * @return string
      */
-    protected function getDomain(): string
+    public function getDomain(): string
     {
         return urlencode($this->config->get('nostr')['domain'] ?? '');
     }
