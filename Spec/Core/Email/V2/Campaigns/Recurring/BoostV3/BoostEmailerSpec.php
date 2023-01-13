@@ -12,6 +12,7 @@ use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\Utils\BoostConsoleUrlBuilder;
+use Minds\Core\Boost\V3\Utils\BoostReceiptUrlBuilder;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\Log\Logger;
 use Minds\Entities\User;
@@ -26,7 +27,8 @@ class BoostEmailerSpec extends ObjectBehavior
     private Collaborator $mailer;
     private Collaborator $entitiesBuilder;
     private Collaborator $config;
-    private Collaborator $urlBuilder;
+    private Collaborator $consoleUrlBuilder;
+    private Collaborator $receiptUrlBuilder;
     private Collaborator $logger;
 
     public function let(
@@ -35,7 +37,8 @@ class BoostEmailerSpec extends ObjectBehavior
         Mailer $mailer,
         EntitiesBuilder $entitiesBuilder,
         Config $config,
-        BoostConsoleUrlBuilder $urlBuilder,
+        BoostConsoleUrlBuilder $consoleUrlBuilder,
+        BoostReceiptUrlBuilder $receiptUrlBuilder,
         Logger $logger
     ) {
         $this->beConstructedWith(
@@ -44,7 +47,8 @@ class BoostEmailerSpec extends ObjectBehavior
             $mailer,
             $entitiesBuilder,
             $config,
-            $urlBuilder,
+            $consoleUrlBuilder,
+            $receiptUrlBuilder,
             $logger
         );
         $this->emailManager = $emailManager;
@@ -52,7 +56,8 @@ class BoostEmailerSpec extends ObjectBehavior
         $this->mailer = $mailer;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->config = $config;
-        $this->urlBuilder = $urlBuilder;
+        $this->consoleUrlBuilder = $consoleUrlBuilder;
+        $this->receiptUrlBuilder = $receiptUrlBuilder;
         $this->logger = $logger;
     }
 
@@ -78,6 +83,7 @@ class BoostEmailerSpec extends ObjectBehavior
         $headerText = "Your Boost is in review";
         $preHeaderText = "Here's what comes next.";
         $url = '~url~';
+        $receiptUrl = '~receiptUrl~';
 
         $boost->getOwnerGuid()
             ->shouldBeCalled()
@@ -119,13 +125,21 @@ class BoostEmailerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($durationDays);
 
-        $this->urlBuilder->build($boost, [
+        $this->consoleUrlBuilder->build($boost, [
             '__e_ct_guid' => $userGuid,
             'campaign' => $campaign,
             'topic' => $topic,
         ])
             ->shouldBeCalled()
             ->willReturn($url);
+
+        $this->receiptUrlBuilder->setBoost($boost)
+            ->shouldBeCalled()
+            ->willReturn($this->receiptUrlBuilder);
+
+        $this->receiptUrlBuilder->build()
+            ->shouldBeCalled()
+            ->willReturn($receiptUrl);
 
         $this->template->setTemplate('default.v2.tpl')->shouldBeCalled();
         $this->template->setBody('./template.tpl')->shouldBeCalled();
@@ -164,6 +178,12 @@ class BoostEmailerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->template->set('headerText', $headerText)
+            ->shouldBeCalled();
+
+        $this->template->set('additionalCtaText', 'Receipt')
+            ->shouldBeCalled();
+
+        $this->template->set('additionalCtaPath', $receiptUrl)
             ->shouldBeCalled();
 
         $this->template->set('actionButton', Argument::type('string'))
@@ -199,6 +219,7 @@ class BoostEmailerSpec extends ObjectBehavior
         $headerText = "Your Boost is in review";
         $preHeaderText = "Here's what comes next.";
         $url = '~url~';
+        $receiptUrl = '~receiptUrl~';
 
         $boost->getOwnerGuid()
             ->shouldBeCalled()
@@ -240,13 +261,21 @@ class BoostEmailerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($durationDays);
 
-        $this->urlBuilder->build($boost, [
+        $this->consoleUrlBuilder->build($boost, [
             '__e_ct_guid' => $userGuid,
             'campaign' => $campaign,
             'topic' => $topic,
         ])
             ->shouldBeCalled()
             ->willReturn($url);
+
+        $this->receiptUrlBuilder->setBoost($boost)
+            ->shouldBeCalled()
+            ->willReturn($this->receiptUrlBuilder);
+
+        $this->receiptUrlBuilder->build()
+            ->shouldBeCalled()
+            ->willReturn($receiptUrl);
 
         $this->template->setTemplate('default.v2.tpl')->shouldBeCalled();
         $this->template->setBody('./template.tpl')->shouldBeCalled();
@@ -285,6 +314,12 @@ class BoostEmailerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->template->set('headerText', $headerText)
+            ->shouldBeCalled();
+
+        $this->template->set('additionalCtaText', 'Receipt')
+            ->shouldBeCalled();
+
+        $this->template->set('additionalCtaPath', $receiptUrl)
             ->shouldBeCalled();
 
         $this->template->set('actionButton', Argument::type('string'))
@@ -352,7 +387,7 @@ class BoostEmailerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($durationDays);
 
-        $this->urlBuilder->build($boost, [
+        $this->consoleUrlBuilder->build($boost, [
             '__e_ct_guid' => $userGuid,
             'campaign' => $campaign,
             'topic' => $topic,
@@ -473,7 +508,7 @@ class BoostEmailerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($durationDays);
 
-        $this->urlBuilder->build($boost, [
+        $this->consoleUrlBuilder->build($boost, [
             '__e_ct_guid' => $userGuid,
             'campaign' => $campaign,
             'topic' => $topic,
@@ -589,7 +624,7 @@ class BoostEmailerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
-        $this->urlBuilder->build($boost, [
+        $this->consoleUrlBuilder->build($boost, [
             '__e_ct_guid' => $userGuid,
             'campaign' => $campaign,
             'topic' => $topic,
@@ -699,7 +734,7 @@ class BoostEmailerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
-        $this->urlBuilder->build($boost, [
+        $this->consoleUrlBuilder->build($boost, [
             '__e_ct_guid' => $userGuid,
             'campaign' => $campaign,
             'topic' => $topic,

@@ -19,6 +19,7 @@ use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\Utils\BoostConsoleUrlBuilder;
+use Minds\Core\Boost\V3\Utils\BoostReceiptUrlBuilder;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\Log\Logger;
@@ -47,7 +48,8 @@ class BoostEmailer extends EmailCampaign
         private ?Mailer $mailer = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?Config $config = null,
-        private ?BoostConsoleUrlBuilder $urlBuilder = null,
+        private ?BoostConsoleUrlBuilder $consoleUrlBuilder = null,
+        private ?BoostReceiptUrlBuilder $receiptUrlBuilder = null,
         private ?Logger $logger = null
     ) {
         $this->manager = $manager ?? Di::_()->get('Email\Manager');
@@ -55,7 +57,8 @@ class BoostEmailer extends EmailCampaign
         $this->mailer ??= new Mailer();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->config ??= Di::_()->get('Config');
-        $this->urlBuilder ??= Di::_()->get(BoostConsoleUrlBuilder::class);
+        $this->consoleUrlBuilder ??= Di::_()->get(BoostConsoleUrlBuilder::class);
+        $this->receiptUrlBuilder ??= Di::_()->get(BoostReceiptUrlBuilder::class);
         $this->logger ??= Di::_()->get('Logger');
 
         $this->campaign = 'when';
@@ -74,11 +77,26 @@ class BoostEmailer extends EmailCampaign
     }
 
     /**
+     * Builds and sends email for given instance Boost and topic.
+     * @return void
+     * @throws Exception
+     */
+    public function send(): void
+    {
+        $msg = $this->build();
+
+        if ($this->user && $this->user->getEmail()) {
+            $this->mailer->send($msg);
+            $this->saveCampaignLog();
+        }
+    }
+
+    /**
      * Build email for instance Boost and the set topic.
      * @return Message build message.
      * @throws Exception
      */
-    public function build(): ?Message
+    private function build(): ?Message
     {
         if (!$this->topic || !$this->boost) {
             return null;
@@ -87,7 +105,6 @@ class BoostEmailer extends EmailCampaign
         $this->template->setTemplate('default.v2.tpl');
         $this->template->setBody('./template.tpl');
 
-        /** @var User */
         $this->user = $this->buildUser($this->boost->getOwnerGuid());
 
         if (!$this->user) {
@@ -101,6 +118,7 @@ class BoostEmailer extends EmailCampaign
         ];
 
         $trackingQueryString = http_build_query($trackingQueryParams);
+        $receiptUrl = null;
 
         switch ($this->topic) {
             case ActionEvent::ACTION_BOOST_CREATED:
@@ -108,6 +126,7 @@ class BoostEmailer extends EmailCampaign
                 $preHeaderText = "Here's what comes next.";
                 $bodyText = "We're reviewing your Boost for {$this->getPaymentAmountString()} over {$this->getLengthDays()} days. Once it's approved, your Boost will automatically begin running on Minds.";
                 $ctaText = 'View Status';
+                $receiptUrl = $this->getBoostReceiptUrl();
                 $ctaPath = $this->getConsoleUrl($trackingQueryParams);
                 break;
             case ActionEvent::ACTION_BOOST_REJECTED:
@@ -160,6 +179,11 @@ class BoostEmailer extends EmailCampaign
         $this->template->set('bodyText', $bodyText);
         $this->template->set('headerText', $headerText);
 
+        if ($receiptUrl) {
+            $this->template->set('additionalCtaText', 'Receipt');
+            $this->template->set('additionalCtaPath', $receiptUrl);
+        }
+        
         // Create action button
         $actionButton = (new ActionButtonV2())
             ->setLabel($ctaText)
@@ -181,26 +205,11 @@ class BoostEmailer extends EmailCampaign
     }
 
     /**
-     * Builds and sends email for given instance Boost and topic.
-     * @return void
-     * @throws Exception
-     */
-    public function send(): void
-    {
-        $msg = $this->build();
-
-        if ($this->user && $this->user->getEmail()) {
-            $this->mailer->send($msg);
-            $this->saveCampaignLog();
-        }
-    }
-
-    /**
      * Build user from user guid
      * @param string $guid - guid of the user
      * @return ?User user if one is found.
      */
-    public function buildUser(string $guid): ?User
+    private function buildUser(string $guid): ?User
     {
         $user = $this->entitiesBuilder->single($guid);
         return $user instanceof User ? $user : null;
@@ -222,7 +231,17 @@ class BoostEmailer extends EmailCampaign
      */
     private function getConsoleUrl(array $queryParams = []): string
     {
-        return $this->urlBuilder->build($this->boost, $queryParams);
+        return $this->consoleUrlBuilder->build($this->boost, $queryParams);
+    }
+
+    /**
+     * Gets receipt for a given boost.
+     * @return string|null receipt URL for payment.
+     */
+    private function getBoostReceiptUrl(): ?string
+    {
+        return $this->receiptUrlBuilder->setBoost($this->boost)
+            ->build();
     }
 
     /**
@@ -248,7 +267,7 @@ class BoostEmailer extends EmailCampaign
         }
 
         // Token payments
-        elseif (in_array($paymentMethod, [BoostPaymentMethod::OFFCHAIN_TOKENS, BoostPaymentMethod::OFFCHAIN_TOKENS], true)) {
+        elseif (in_array($paymentMethod, [BoostPaymentMethod::OFFCHAIN_TOKENS, BoostPaymentMethod::ONCHAIN_TOKENS], true)) {
             $currency = $this->boost->getPaymentAmount() != 1 ? ' tokens' : ' token';
             return round($this->boost->getPaymentAmount(), 2) . $currency;
         } else {

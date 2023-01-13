@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Minds\Core\Payments;
 
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\Boost\V3\Utils\BoostReceiptUrlBuilder;
 
 class Provider extends DiProvider
 {
@@ -13,5 +14,8 @@ class Provider extends DiProvider
         $this->di->bind('Payments\Controller', function ($di) {
             return new Controller();
         }, ['useFactory' => false]);
+        $this->di->bind(Manager::class, function ($di): Manager {
+            return new Manager();
+        });
     }
 }
