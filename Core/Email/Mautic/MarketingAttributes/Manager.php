@@ -36,7 +36,7 @@ class Manager
 
     /**
      * @param int $fromTs (optional)
-     * @return iterable
+     * @return iterable<array>
      */
     public function getList(int $fromTs = null): iterable
     {
@@ -53,6 +53,7 @@ class Manager
 
             yield $row;
         }
+        return;
     }
 
     /**

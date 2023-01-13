@@ -37,7 +37,7 @@ class Repository
 
     /**
      * @param int $fromTs (optional)
-     * @return iterable
+     * @return iterable<array>
      */
     public function getList(int $fromTs = null): iterable
     {

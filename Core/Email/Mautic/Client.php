@@ -8,7 +8,7 @@ use Psr\Http\Message\ResponseInterface;
 
 class Client
 {
-    protected string $user;
+    protected string $username;
     protected string $password;
 
     /**
