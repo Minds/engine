@@ -456,4 +456,22 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $sendGridManager = Di::_()->get('SendGrid\Manager');
         $sendGridManager->syncContactLists();
     }
+
+    public function sync_marketing_attributes()
+    {
+        $mautic = new Core\Email\Mautic\MarketingAttributes\Manager();
+        $mautic->sync();
+    }
+
+    public function sync_mautic()
+    {
+        $fromTs = null;
+
+        if ($fromDate = $this->getOpt('from-timestamp')) {
+            $fromTs = strtotime($fromDate);
+        }
+
+        $mautic = Di::_()->get(Core\Email\Mautic\Manager::class);
+        $mautic->sync(fromTs: $fromTs);
+    }
 }

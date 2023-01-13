@@ -642,6 +642,11 @@ $CONFIG->set('email', [
         'password' => '',
         'port' => 465,
     ],
+    'mautic' => [
+        'base_url' => 'https://mautic.minds.io/api',
+        'username' => '',
+        'password' => '',
+    ],
 ]);
 
 /* Maximum video length for non-plus users */
