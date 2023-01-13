@@ -7,6 +7,7 @@ use Minds\Core\Notifications\Push\Services\ApnsService;
 use Minds\Core\Notifications\Push\Services\FcmService;
 use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
 use Minds\Core\Verification\Exceptions\UserVerificationPushNotificationFailedException;
+use Minds\Core\Verification\Exceptions\VerificationCodeMismatchException;
 use Minds\Core\Verification\Exceptions\VerificationRequestExpiredException;
 use Minds\Core\Verification\Exceptions\VerificationRequestFailedException;
 use Minds\Core\Verification\Exceptions\VerificationRequestNotFoundException;
@@ -399,7 +400,7 @@ class ManagerSpec extends ObjectBehavior
      * @throws VerificationRequestFailedException
      * @throws UserErrorException
      */
-    public function it_should_try_to_verify_user_with_mismatching_code_and_throw_verification_failed_exception(
+    public function it_should_try_to_verify_user_with_mismatching_code_and_throw_verification_code_mismatch_exception(
         User $user,
         Stream $imageStream,
         VerificationRequest $verificationRequest
@@ -446,7 +447,7 @@ class ManagerSpec extends ObjectBehavior
         )
             ->shouldBeCalledOnce();
 
-        $this->shouldThrow(VerificationRequestFailedException::class)->during(
+        $this->shouldThrow(VerificationCodeMismatchException::class)->during(
             'verifyAccount',
             [
                 '123',
