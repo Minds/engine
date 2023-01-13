@@ -434,6 +434,12 @@ class BoostEmailerSpec extends ObjectBehavior
         $this->template->set('headerText', $headerText)
             ->shouldBeCalled();
 
+        $this->template->set('additionalCtaText', '')
+            ->shouldBeCalled();
+
+        $this->template->set('additionalCtaPath', '')
+            ->shouldBeCalled();
+
         $this->template->set('actionButton', Argument::type('string'))
             ->shouldBeCalled()
             ->willReturn($userUsername);
@@ -555,6 +561,12 @@ class BoostEmailerSpec extends ObjectBehavior
         $this->template->set('headerText', $headerText)
             ->shouldBeCalled();
 
+        $this->template->set('additionalCtaText', '')
+            ->shouldBeCalled();
+
+        $this->template->set('additionalCtaPath', '')
+            ->shouldBeCalled();
+
         $this->template->set('actionButton', Argument::type('string'))
             ->shouldBeCalled()
             ->willReturn($userUsername);
@@ -670,6 +682,12 @@ class BoostEmailerSpec extends ObjectBehavior
         $this->template->set('headerText', $headerText)
             ->shouldBeCalled();
 
+        $this->template->set('additionalCtaText', '')
+            ->shouldBeCalled();
+
+        $this->template->set('additionalCtaPath', '')
+            ->shouldBeCalled();
+
         $this->template->set('actionButton', Argument::type('string'))
             ->shouldBeCalled()
             ->willReturn($userUsername);
@@ -779,6 +797,12 @@ class BoostEmailerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->template->set('headerText', $headerText)
+            ->shouldBeCalled();
+
+        $this->template->set('additionalCtaText', '')
+            ->shouldBeCalled();
+
+        $this->template->set('additionalCtaPath', '')
             ->shouldBeCalled();
 
         $this->template->set('actionButton', Argument::type('string'))
