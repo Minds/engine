@@ -220,6 +220,11 @@ class PushNotification implements PushNotificationInterface
         }
 
         $entity = $this->notification->getEntity();
+
+        if ($entity instanceof BoostV3) {
+            $entity = $entity->getEntity();
+        }
+
         switch ($entity->getType()) {
             case 'user':
                 return $this->config->get('site_url') . $entity->getUsername();
