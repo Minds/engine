@@ -77,7 +77,7 @@ class Repository
             'payment_tx_id' => $boost->getPaymentTxId(),
             'daily_bid' => $boost->getDailyBid(),
             'duration_days' => $boost->getDurationDays(),
-            'status' => BoostStatus::PENDING,
+            'status' => $boost->getStatus() ?? BoostStatus::PENDING,
         ];
 
         $statement = $this->mysqlClientWriter->prepare($query);

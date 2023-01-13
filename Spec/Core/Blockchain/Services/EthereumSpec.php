@@ -272,4 +272,19 @@ class EthereumSpec extends ObjectBehavior
             ['privateKey', $transaction]
         );
     }
+
+    public function it_should_request_gas_price_via_rpc()
+    {
+        $this->_config->get()->willReturn([
+            'rpc_endpoints' => ['127.0.0.1'],
+            'mw3' => '/dev/null'
+        ]);
+
+        $this->_jsonRpc->post(Argument::type('string'), [
+            'method' => 'eth_gasPrice',
+            'params' => []
+        ])->willReturn(['result' => '0x123']);
+
+        $this->getCurrentGasPrice()->shouldReturn('0x123');
+    }
 }
