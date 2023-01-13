@@ -354,14 +354,17 @@ class Manager
         $feedSyncEntities = [];
 
         foreach ($boosts as $boost) {
-            // pre-export the boost to grab the export patched entity.
-            $exportedBoost = $boost->export(['patchForFeedSyncEntity' => true]);
+            $exportedBoostEntity = $boost->export()['entity'];
+            $exportedBoostEntity['boosted'] = true;
+            $exportedBoostEntity['boosted_guid'] = $boost->getGuid();
+            $exportedBoostEntity['urn'] = $boost->getUrn();
+
             $feedSyncEntities[] = (new FeedSyncEntity())
                 ->setGuid($boost->getGuid())
                 ->setOwnerGuid($boost->getOwnerGuid())
                 ->setTimestamp($boost->getCreatedTimestamp())
                 ->setUrn($boost->getUrn())
-                ->setEntity($exportedBoost['entity']);
+                ->setExportedEntity($exportedBoostEntity);
         }
 
         return $feedSyncEntities;
