@@ -16,9 +16,6 @@ use Minds\Entities\EntityInterface;
  */
 class Events
 {
-    private ?BoostManager $boostManager = null;
-    private ?ExperimentsManager $experimentsManager = null;
-
     public function __construct(
         private ?EventsDispatcher $eventsDispatcher = null,
     ) {
@@ -39,9 +36,10 @@ class Events
      */
     private function activityEditEvent(): void
     {
-        $boostManager = $this->getBoostManager();
-        $experimentsManager = $this->getExperimentsManager();
-        $this->eventsDispatcher->register("acl:write:blacklist", "activity", function (Event $event) use ($boostManager, $experimentsManager): void {
+        $this->eventsDispatcher->register("acl:write:blacklist", "activity", function (Event $event): void {
+            $boostManager = Di::_()->get(BoostManager::class);
+            $experimentsManager = new ExperimentsManager();
+
             $params = $event->getParameters();
 
             /**
@@ -60,15 +58,5 @@ class Events
                 $event->setResponse(true);
             }
         });
-    }
-
-    private function getBoostManager(): BoostManager
-    {
-        return $this->boostManager ??= Di::_()->get(BoostManager::class);
-    }
-
-    private function getExperimentsManager(): ExperimentsManager
-    {
-        return $this->experimentsManager ??= new ExperimentsManager();
     }
 }
