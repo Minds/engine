@@ -80,7 +80,7 @@ static-analysis:
   image: minds/php:pdo
   script:
     - mv settings.example.php settings.php
-    - bin/phpstan analyse --memory-limit=1G --error-format=table --debug
+    - bin/phpstan analyse --memory-limit=1G
   allow_failure: true
 
 prepare:fpm:
