@@ -37,7 +37,7 @@ class Events
     private function activityEditEvent(): void
     {
         $this->eventsDispatcher->register("acl:write:blacklist", "activity", function (Event $event): void {
-            $boostManager = Di::_()->get(BoostManager::class);
+            $boostManager = new BoostManager();
             $experimentsManager = new ExperimentsManager();
 
             $params = $event->getParameters();
