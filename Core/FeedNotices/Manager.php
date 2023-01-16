@@ -3,6 +3,7 @@
 namespace Minds\Core\FeedNotices;
 
 use Minds\Core\Di\Di;
+use Minds\Core\FeedNotices\Notices\BoostChannelNotice;
 use Minds\Core\FeedNotices\Notices\VerifyEmailNotice;
 use Minds\Core\FeedNotices\Notices\ConnectWalletNotice;
 use Minds\Core\FeedNotices\Notices\SetupChannelNotice;
@@ -41,6 +42,7 @@ class Manager
         VerifyUniquenessNotice::class,
         ConnectWalletNotice::class,
         EnablePushNotificationsNotice::class,
+        BoostChannelNotice::class
     ];
 
     /**
