@@ -44,7 +44,8 @@ class Manager
         VerifyUniquenessNotice::class,
         ConnectWalletNotice::class,
         EnablePushNotificationsNotice::class,
-        BoostChannelNotice::class
+        BoostChannelNotice::class,
+        PlusUpgradeNotice::class
     ];
 
     /**
