@@ -315,4 +315,53 @@ class Repository
 
         return $statement->execute();
     }
+
+    /**
+     * Get admin stats.
+     * @param int $targetStatus - target status to get stats for.
+     * @param int|null $targetLocation - target location to get stats for.
+     * @param int|null $paymentMethod - payment method to get stats for.
+     * @return array key value array with admin stats.
+     */
+    public function getAdminStats(
+        int $targetStatus = BoostStatus::PENDING,
+        ?int $targetLocation = null,
+        ?int $paymentMethod = null,
+    ): array {
+        $values = [];
+        $whereClauses = [];
+
+        $whereClauses[] = "status = :status";
+        $values['status'] = $targetStatus;
+
+        if ($targetLocation) {
+            $whereClauses[] = "target_location = :target_location";
+            $values['target_location'] = $targetLocation;
+        }
+
+        if ($paymentMethod) {
+            $whereClauses[] = "payment_method = :payment_method";
+            $values['payment_method'] = $paymentMethod;
+        }
+
+        $whereClause = '';
+        if (count($whereClauses)) {
+            $whereClause = 'WHERE '.implode(' AND ', $whereClauses);
+        }
+
+        $query = "SELECT
+            SUM(CASE WHEN boosts.target_suitability = :safe_audience THEN 1 ELSE 0 END) as safe_count,
+            SUM(CASE WHEN boosts.target_suitability = :controversial_audience THEN 1 ELSE 0 END) AS controversial_count
+            FROM boosts $whereClause";
+
+        $values['safe_audience'] = BoostTargetAudiences::SAFE;
+        $values['controversial_audience'] = BoostTargetAudiences::CONTROVERSIAL;
+
+        $statement = $this->mysqlClientReader->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        $statement->execute();
+
+        return $statement->fetch(PDO::FETCH_ASSOC);
+    }
 }
