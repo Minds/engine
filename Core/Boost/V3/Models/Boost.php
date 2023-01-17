@@ -98,7 +98,7 @@ class Boost implements EntityInterface, ExportableInterface
         return '';
     }
 
-    /**
+    /**~
      * @inheritDoc
      */
     public function getAccessId(): string
@@ -125,6 +125,7 @@ class Boost implements EntityInterface, ExportableInterface
             'entity' => $this->entity?->export(),
             'target_location' => $this->getTargetLocation(),
             'target_suitability' => $this->getTargetSuitability(),
+            'payment_tx_id' => $this->getPaymentTxId(),
             'payment_method' => $this->getPaymentMethod(),
             'payment_amount' => $this->getPaymentAmount(),
             'daily_bid' => $this->getDailyBid(),
