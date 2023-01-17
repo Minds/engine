@@ -67,6 +67,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->experimentsManager->isOn('epic-275-in-app-verification')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(true);
     }

@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\FeedNotices\Notices;
 
 use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\FeedNotices\Notices\InAppVerifyUniquenessNotice;
 use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -21,16 +22,12 @@ class InAppVerifyUniquenessNoticeSpec extends ObjectBehavior
     ) {
         $this->eligibilityManager = $eligibilityManager;
         $this->experimentsManager = $experimentsManager;
-
-        $this->beConstructedWith(
-            $eligibilityManager,
-            $experimentsManager
-        );
+        $this->beConstructedWith($eligibilityManager, $experimentsManager);
     }
 
-    public function it_is_initializable()
+    public function it_is_initializable(): void
     {
-        $this->shouldHaveType(InAppVerifyUniquenessNotice::class);
+        $this->shouldBeAnInstanceOf(InAppVerifyUniquenessNotice::class);
     }
 
     public function it_should_get_location()
@@ -46,14 +43,6 @@ class InAppVerifyUniquenessNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_show(
         User $user
     ) {
-        $this->eligibilityManager->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->eligibilityManager);
-
-        $this->eligibilityManager->isEligible()
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this->experimentsManager->setUser($user)
             ->shouldBeCalled()
             ->willReturn($this->experimentsManager);
@@ -66,8 +55,8 @@ class InAppVerifyUniquenessNoticeSpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    public function it_should_determine_if_notice_should_NOT_show_when_experiment_is_off(
-        User $user,
+    public function it_should_determine_if_notice_should_NOT_show(
+        User $user
     ) {
         $this->experimentsManager->setUser($user)
             ->shouldBeCalled()
@@ -89,20 +78,20 @@ class InAppVerifyUniquenessNoticeSpec extends ObjectBehavior
 
     public function it_should_export(User $user)
     {
-        $this->setUser($user);
-
         $this->experimentsManager->setUser($user)
             ->shouldBeCalled()
             ->willReturn($this->experimentsManager);
 
         $this->experimentsManager->isOn('epic-275-in-app-verification')
             ->shouldBeCalled()
-            ->willReturn(false);
+            ->willReturn(true);
+
+        $this->setUser($user);
 
         $this->export()->shouldBe([
             'key' => 'verify-uniqueness',
             'location' => 'top',
-            'should_show' => false
+            'should_show' => true
         ]);
     }
 }
