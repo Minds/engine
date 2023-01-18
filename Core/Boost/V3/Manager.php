@@ -288,10 +288,23 @@ class Manager
             ->setGuid($guid)
             ->setEntity($entity)
             ->generate();
-    
+
         return [
             'guid' => $guid,
             'checksum' => $checksum
         ];
+    }
+
+    public function processExpiredApprovedBoosts(): void
+    {
+        $this->repository->beginTransaction();
+
+        foreach ($this->repository->getExpiredApprovedBoosts() as $boost) {
+            $this->repository->updateStatus($boost->getGuid(), BoostStatus::COMPLETED);
+
+            $this->actionEventDelegate->onComplete($boost);
+        }
+
+        $this->repository->commitTransaction();
     }
 }

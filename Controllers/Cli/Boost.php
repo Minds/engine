@@ -2,12 +2,11 @@
 
 namespace Minds\Controllers\Cli;
 
-use Minds\Core;
-use Minds\Core\Di\Di;
 use Minds\Cli;
+use Minds\Core;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Core\Di\Di;
 use Minds\Interfaces;
-use Minds\Entities;
 use Monolog\Logger as MonologLogger;
 
 class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
@@ -20,7 +19,7 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
     {
         $this->out('TBD');
     }
-    
+
     public function exec()
     {
         $this->out('Usage: cli boost [*]');
@@ -56,7 +55,7 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
             // There is a memory leak, uncomment to log
             // $mem = memory_get_usage();
             // Di::_()->get('Logger')->info(round($mem/1048576, 2) . 'mb used');
-    
+
             sleep(1);
         }
 
@@ -84,5 +83,15 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
             );
             //$this->out('View for ' . $boost->getGuid());
         }
+    }
+
+    public function scanExpired()
+    {
+        /**
+         * @var Core\Boost\V3\Manager $boostManager
+         */
+        $boostManager = Di::_()->get(Core\Boost\V3\Manager::class);
+
+        $boostManager->processExpiredApprovedBoosts();
     }
 }
