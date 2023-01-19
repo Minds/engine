@@ -77,6 +77,7 @@ class Minds extends base
         Payments\Stripe\Module::class,
         Authentication\Module::class,
         Payments\Module::class,
+        Verification\Module::class,
         Settings\Module::class,
         Boost\V3\Module::class
     ];

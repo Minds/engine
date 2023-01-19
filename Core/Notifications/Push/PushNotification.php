@@ -26,6 +26,8 @@ class PushNotification implements PushNotificationInterface
     /** @var int */
     protected $unreadCount = 0;
 
+    private array $metadata = [];
+
     public function __construct(Notification $notification, Config $config = null)
     {
         $this->notification = $notification;
@@ -287,6 +289,11 @@ class PushNotification implements PushNotificationInterface
     public function getUnreadCount(): int
     {
         return $this->unreadCount;
+    }
+
+    public function getMetadata(): array
+    {
+        return $this->metadata;
     }
 
     /**

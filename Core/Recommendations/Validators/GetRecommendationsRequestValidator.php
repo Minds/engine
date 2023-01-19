@@ -6,6 +6,7 @@ use Minds\Core\Recommendations\Config\RecommendationsLocationsMappingConfig;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Interfaces\ValidatorInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Validator class for GetRecommendationsRequest
@@ -28,10 +29,10 @@ class GetRecommendationsRequestValidator implements ValidatorInterface
 
     /**
      * Checks if the 'location' parameter has been provided in the request
-     * @param array $dataToValidate
+     * @param array|ServerRequestInterface $dataToValidate
      * @return bool
      */
-    private function isLocationProvided(array $dataToValidate): bool
+    private function isLocationProvided(array|ServerRequestInterface $dataToValidate): void
     {
         if (!isset($dataToValidate['location']) || empty($dataToValidate['location'])) {
             $this->errors->add(
@@ -50,16 +51,14 @@ class GetRecommendationsRequestValidator implements ValidatorInterface
                 )
             );
         }
-
-        return true;
     }
 
     /**
      * Performs the validation of the Http request data
-     * @param array $dataToValidate
+     * @param array|ServerRequestInterface $dataToValidate
      * @return bool
      */
-    public function validate(array $dataToValidate): bool
+    public function validate(array|ServerRequestInterface $dataToValidate): bool
     {
         $this->clearErrors();
 
