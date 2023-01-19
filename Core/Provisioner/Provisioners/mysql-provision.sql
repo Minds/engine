@@ -74,6 +74,22 @@ CREATE TABLE IF NOT EXISTS supermind_refunds
     timestamp              timestamp   NOT NULL default CURRENT_TIMESTAMP
 ) ENGINE = InnoDB;
 
+CREATE TABLE IF NOT EXISTS user_verification
+(
+    user_guid bigint NOT NULL,
+    device_id varchar(64) NOT NULL,
+    device_token varchar(256) NOT NULL,
+    verification_code varchar(6) NOT NULL,
+    status int NOT NULL,
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp NULL DEFAULT NULL,
+    sensor_data json NULL DEFAULT NULL,
+    ip text NULL DEFAULT NULL,
+    geo_lat DECIMAL(10, 8) NULL DEFAULT NULL,
+    geo_lon DECIMAL(11, 8) NULL DEFAULT NULL,
+    PRIMARY KEY (user_guid, device_id, created_at)
+) ENGINE = InnoDB;
+
 CREATE TABLE IF NOT EXISTS user_configurations
 (
     user_guid bigint PRIMARY KEY,

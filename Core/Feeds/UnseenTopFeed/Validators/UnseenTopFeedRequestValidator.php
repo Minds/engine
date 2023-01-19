@@ -4,11 +4,12 @@ namespace Minds\Core\Feeds\UnseenTopFeed\Validators;
 
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Validates the request data for the /api/v3/newsfeed/feed/unseen-top
  */
-class UnseenTopFeedRequestValidator implements ValidatorInterface
+class UnseenTopFeedRequestValidator implements \Minds\Interfaces\ValidatorInterface
 {
     public function __construct(
         private ?ValidationErrorCollection $errors = null
@@ -26,10 +27,10 @@ class UnseenTopFeedRequestValidator implements ValidatorInterface
 
     /**
      * Validates the array of answers being provided and returns a collection of validation errors if any
-     * @param array $dataToValidate
+     * @param array|ServerRequestInterface $dataToValidate
      * @return bool
      */
-    public function validate($dataToValidate): bool
+    public function validate(array|ServerRequestInterface $dataToValidate): bool
     {
         $this->clearErrors();
 
@@ -40,10 +41,10 @@ class UnseenTopFeedRequestValidator implements ValidatorInterface
 
     /**
      * Performs validation on the property 'limit'
-     * @param array $dataToValidate
+     * @param array|ServerRequestInterface $dataToValidate
      * @return bool
      */
-    private function isLimitProvided(array $dataToValidate): bool
+    private function isLimitProvided(array|ServerRequestInterface $dataToValidate): bool
     {
         if (!isset($dataToValidate['limit']) || empty($dataToValidate['limit'])) {
             $this->errors->add(new ValidationError(
