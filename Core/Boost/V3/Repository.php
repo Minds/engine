@@ -94,6 +94,9 @@ class Repository
      * @param string|null $targetUserGuid
      * @param bool $orderByRanking
      * @param int $targetAudience
+     * @param int|null $targetLocation
+     * @param string|null $entityGuid
+     * @param User|null $loggedInUser
      * @param bool $hasNext
      * @return Iterator
      */
@@ -106,6 +109,7 @@ class Repository
         bool $orderByRanking = false,
         int $targetAudience = BoostTargetAudiences::SAFE,
         int $targetLocation = null,
+        ?string $entityGuid = null,
         ?User $loggedInUser = null,
         bool &$hasNext = false
     ): Iterator {
@@ -127,9 +131,15 @@ class Repository
             $values['target_location'] = $targetLocation;
         }
 
+        // NOTE: this check is doing nothing as the property checked will always have a value and we should never pass 0 (zero)
         if ($targetAudience) {
             $whereClauses[] = "target_suitability = :target_suitability";
             $values['target_suitability'] = $targetAudience;
+        }
+
+        if ($entityGuid) {
+            $whereClauses[] = "entity_guid = :entity_guid";
+            $values['entity_guid'] = $entityGuid;
         }
 
         $hiddenEntitiesJoin = "";
