@@ -310,6 +310,9 @@ $CONFIG->set('google', [
         'project_id' => '',
         'key_file_path' =>  __DIR__ . '/.auth/bigquery.json'
     ],
+    'vision' => [
+        'api_key' => '{{google-api-key}}'
+    ]
 ]);
 
 $CONFIG->set('apple', [
