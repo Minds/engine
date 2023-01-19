@@ -9,13 +9,14 @@ use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Interfaces\ValidatorInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Request validator for update Supermind settings requests.
  */
 class SupermindUpdateSettingsRequestValidator implements ValidatorInterface
 {
-    /** @var ValidationErrorCollection $errors - validation errors */
+    /** @var ValidationErrorCollection|null $errors - validation errors */
     private ?ValidationErrorCollection $errors = null;
 
     public function __construct(private ?Settings $defaultSettings = null)
@@ -35,7 +36,7 @@ class SupermindUpdateSettingsRequestValidator implements ValidatorInterface
     /**
      * @inheritDoc
      */
-    public function validate(array $dataToValidate): bool
+    public function validate(array|ServerRequestInterface $dataToValidate): bool
     {
         $this->resetErrors();
 

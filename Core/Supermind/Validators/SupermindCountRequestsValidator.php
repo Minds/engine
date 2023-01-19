@@ -8,6 +8,7 @@ use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Interfaces\ValidatorInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Validator for count requests of inbox and outbox.
@@ -28,7 +29,7 @@ class SupermindCountRequestsValidator implements ValidatorInterface
     /**
      * @inheritDoc
      */
-    public function validate(array $dataToValidate): bool
+    public function validate(array|ServerRequestInterface $dataToValidate): bool
     {
         $this->resetErrors();
   
