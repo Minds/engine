@@ -28,5 +28,9 @@ class Provider extends DiProvider
         $this->di->bind(MarketingAttributes\Repository::class, function ($di) {
             return new MarketingAttributes\Repository();
         }, ['useFactory' => true]);
+
+        $this->di->bind(MarketingAttributes\EmailPreferenceLists::class, function ($di) {
+            return new MarketingAttributes\EmailPreferenceLists();
+        }, ['useFactory' => true]);
     }
 }

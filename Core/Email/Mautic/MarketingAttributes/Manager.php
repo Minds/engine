@@ -18,19 +18,22 @@ class Manager
         Lists\MonetizedUsersList::class,
         Lists\TwitterSyncList::class,
         Lists\YoutubeSyncList::class,
-        //Lists\EthUsersList::class,
+        Lists\EthUsersList::class,
         Lists\MembershipTierOwnerList::class,
         Lists\Active30DayList::class,
-        Lists\SubscribersList::class,
+        // Takes too long
+        // Lists\SubscribersList::class,
     ];
 
     public function __construct(
         protected ?Repository $repository = null,
         protected ?EntitiesBuilder $entitiesBuilder = null,
+        protected ?EmailPreferenceLists $emailPreferenceLists = null,
         protected ?Logger $logger = null
     ) {
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->repository ??= Di::_()->get(Repository::class);
+        $this->emailPreferenceLists ??= Di::_()->get(EmailPreferenceLists::class);
         $this->logger ??= Di::_()->get('Logger');
     }
 
@@ -38,9 +41,9 @@ class Manager
      * @param int $fromTs (optional)
      * @return iterable<array>
      */
-    public function getList(int $fromTs = null): iterable
+    public function getList(int $fromTs = null, int $offset = 0): iterable
     {
-        foreach ($this->repository->getList(fromTs: $fromTs) as $row) {
+        foreach ($this->repository->getList(fromTs: $fromTs, offset: $offset) as $row) {
             $user = $this->entitiesBuilder->single($row['user_guid']);
 
             if (!$user instanceof User) {
@@ -49,7 +52,21 @@ class Manager
 
             $row['guid'] = $user->getGuid();
             $row['email'] = $user->getEmail();
-            $row['lastActive'] = date('c', $user->last_login);
+            //$row['lastActive'] = date('c', $user->last_login);
+            $row['lastActive'] = $row['last_active_30_day_ts'] ?? date('c', $user->last_login); // More accurate than last login
+            $row['time_created'] = date('c', $user->getTimeCreated());
+            $row['is_admin'] = ($user->admin == 'yes');
+            $row['verified_email'] = $user->isTrusted();
+
+            // Construct email preference lists
+            foreach ($this->emailPreferenceLists->getList($user->getGuid()) as $emailSubscription) {
+                $key = substr(implode('_', [
+                    'pref',
+                    $emailSubscription->getCampaign(),
+                    $emailSubscription->getTopic(),
+                ]), 0, 25);
+                $row[$key] = $emailSubscription->getValue() === "0" ? false : true; // Empty we imply they are opted in
+            }
 
             yield $row;
         }

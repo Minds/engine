@@ -39,7 +39,7 @@ class Repository
      * @param int $fromTs (optional)
      * @return iterable<array>
      */
-    public function getList(int $fromTs = null): iterable
+    public function getList(int $fromTs = null, int $offset = 0): iterable
     {
         $statement = "SELECT
             a.user_guid,
@@ -59,10 +59,16 @@ class Repository
             $values['from_ts'] = date('c', $fromTs);
         }
 
-        $statement .= "GROUP BY a.user_guid";
+        $statement .= " GROUP BY a.user_guid";
+        $statement .= " LIMIT :offset, 100000"; // Vitess has a max of 100k
+
+        $values['offset'] = (int) $offset;
 
         $stmt = $this->mysqlClient->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
-        $stmt->execute($values);
+
+        $this->mysqlClient->bindValuesToPreparedStatement($stmt, $values);
+
+        $stmt->execute();
 
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
             yield $row;

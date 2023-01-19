@@ -9,6 +9,7 @@ class Manager
 {
     protected $create = [];
     protected $update = [];
+    protected $offset = 0;
 
     public function __construct(
         protected ?MarketingAttributes\Manager $marketingAttributesManager = null,
@@ -25,9 +26,12 @@ class Manager
      * @param int $fromTs (optional) specify if you wish to sync from a certain time
      * @return void
      */
-    public function sync(int $fromTs = null): void
+    public function sync(int $fromTs = null, int $offset = 0): void
     {
-        foreach ($this->marketingAttributesManager->getList(fromTs: $fromTs) as $row) {
+        $this->offset = $offset;
+        foreach ($this->marketingAttributesManager->getList(fromTs: $fromTs, offset: $offset) as $row) {
+            ++$this->offset;
+
             $row['minds_guid'] = $row['user_guid'];
             // Do we have the mautic_id?
             if (isset($row['mautic_id'])) {
@@ -36,18 +40,25 @@ class Manager
             } else {
                 $this->create[] = $row;
             }
+            $this->bulkContacts();
         }
-        $this->bulkContacts();
+        $this->bulkContacts(final: true);
     }
 
     /**
      * Bulk insert the contacts
      * @return void
      */
-    private function bulkContacts(): void
+    private function bulkContacts(bool $final = false): void
     {
-        $this->submit('PATCH', $this->update);
-        $this->submit('PUT', $this->create);
+        if (count($this->update) >= 200 || $final) {
+            $this->submit('PATCH', $this->update);
+            $this->update = [];
+        }
+        if (count($this->create) >= 200 || $final) {
+            $this->submit('PUT', $this->create);
+            $this->create = [];
+        }
     }
 
     /**
@@ -76,7 +87,7 @@ class Manager
             'PUT' => 'Created'
         };
 
-        $this->logger->info("$verb $count contacts in $latencySecs seconds");
+        $this->logger->info("$verb $count contacts in $latencySecs seconds. Offset: $this->offset");
 
         if (!in_array($response->getStatusCode(), [200, 201], true)) {
             $this->logger->error("FAILED with {$response->getStatusCode()}");
