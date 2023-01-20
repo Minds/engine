@@ -474,6 +474,10 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             $fromTs = strtotime($fromDate);
         }
 
+        if ($hoursAgo = $this->getOpt('hours-ago')) {
+            $fromTs = strtotime("$hoursAgo hours ago");
+        }
+
         $mautic = Di::_()->get(Core\Email\Mautic\Manager::class);
         $mautic->sync(fromTs: $fromTs, offset: $offset);
     }

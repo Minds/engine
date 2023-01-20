@@ -57,6 +57,7 @@ class Manager
             $row['time_created'] = date('c', $user->getTimeCreated());
             $row['is_admin'] = ($user->admin == 'yes');
             $row['verified_email'] = $user->isTrusted();
+            $row['is_enabled'] = $user->isEnabled();
 
             // Construct email preference lists
             foreach ($this->emailPreferenceLists->getList($user->getGuid()) as $emailSubscription) {
