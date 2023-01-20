@@ -25,6 +25,8 @@ use Minds\Traits\MagicAttributes;
  * @method FeedSyncEntity setUrn(string $urn)
  * @method Entity getEntity()
  * @method FeedSyncEntity setEntity(Entity $entity)
+ * @method array getExportedEntity()
+ * @method FeedSyncEntity setExportedEntity(array $exportedEntity)
  */
 class FeedSyncEntity implements JsonSerializable
 {
@@ -44,6 +46,9 @@ class FeedSyncEntity implements JsonSerializable
 
     /** @var Entity */
     protected $entity;
+
+    /** @var array */
+    protected $exportedEntity;
 
     /** @var bool */
     protected $deleted = false;
@@ -70,7 +75,9 @@ class FeedSyncEntity implements JsonSerializable
             'owner_guid' => (string) $this->ownerGuid,
             'timestamp' => $this->timestamp,
             'urn' => $this->urn,
-            'entity' => $this->entity ? $this->entity->export() : null,
+            'entity' => isset($this->exportedEntity) ?
+                $this->exportedEntity :
+                $this->entity?->export()
         ];
     }
 
