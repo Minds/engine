@@ -10,8 +10,8 @@ namespace Minds\Core\Entities\Delegates;
 use Minds\Common\Urn;
 use Minds\Core\Di\Di;
 use Minds\Core\Boost\V3\Manager as BoostManagerV3;
+use Minds\Core\Boost\V3\Models\Boost as BoostV3;
 use Minds\Entities\Boost\BoostEntityInterface;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 
 class BoostGuidResolverDelegate implements ResolverDelegate
 {
@@ -24,12 +24,10 @@ class BoostGuidResolverDelegate implements ResolverDelegate
      * BoostGuidResolverDelegate constructor.
      * @param Manager $manager
      * @param BoostManagerV3 $managerV3
-     * @param ExperimentsManager $experimentsManager
      */
     public function __construct(
         $manager = null,
         private ?BoostManagerV3 $managerV3 = null,
-        private ?ExperimentsManager $experimentsManager = null
     ) {
         $this->manager = $manager ?: Di::_()->get('Boost\Network\Manager');
     }
@@ -54,9 +52,9 @@ class BoostGuidResolverDelegate implements ResolverDelegate
 
         foreach ($urns as $urn) {
             /** @var BoostEntityInterface $boost */
-            $boost = $this->isDynamicBoostExperimentActive() ?
-                $this->getBoostManagerV3()->getBoostByGuid(end(explode(':', $urn))) :
-                $this->manager->get($urn, [ 'hydrate' => true ]);
+            $boost = $this->isLegacyUrn($urn) ?
+                $this->manager->get($urn, [ 'hydrate' => true ]) :
+                $this->getBoostManagerV3()->getBoostByGuid(end(explode(':', $urn)));
             $entities[] = $boost;
         }
 
@@ -69,6 +67,10 @@ class BoostGuidResolverDelegate implements ResolverDelegate
      */
     public function map($urn, $entity)
     {
+        if (!$this->isLegacyUrn($urn)) {
+            return $entity; // do not map non-legacy URNs.
+        }
+
         $boostedEntity = $entity->getEntity();
 
         if ($boostedEntity) {
@@ -91,18 +93,11 @@ class BoostGuidResolverDelegate implements ResolverDelegate
             return null;
         }
 
-        return $this->isDynamicBoostExperimentActive() ?
-            "urn:boost:{$entity->getGuid()}" :
-            "urn:boost:{$entity->getType()}:{$entity->getGuid()}";
-    }
+        if ($entity instanceof BoostV3) {
+            return $entity->getUrn();
+        }
 
-    /**
-     * Whether dynamic boost experiment is active.
-     * @return boolean true if experiment is active.
-     */
-    private function isDynamicBoostExperimentActive(): bool
-    {
-        return $this->getExperimentManager()->isOn('epic-293-dynamic-boost');
+        return "urn:boost:{$entity->getType()}:{$entity->getGuid()}";
     }
 
     /**
@@ -118,14 +113,12 @@ class BoostGuidResolverDelegate implements ResolverDelegate
     }
 
     /**
-     * Get ExperimentsManager as it cannot be passed via constructor.
-     * @return ExperimentsManager
+     * Check if the URN is a legacy boost URN.
+     * @param string $urn - urn to check.
+     * @return boolean true if URN is a legacy URN.
      */
-    private function getExperimentManager(): ExperimentsManager
+    private function isLegacyUrn(string $urn): bool
     {
-        if (!$this->experimentsManager) {
-            $this->experimentsManager = Di::_()->get('Experiments\Manager');
-        }
-        return $this->experimentsManager;
+        return substr_count($urn, ':') === 3;
     }
 }

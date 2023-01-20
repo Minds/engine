@@ -1,6 +1,8 @@
 <?php
 namespace Minds\Core\Notifications\Push;
 
+use Minds\Core\Boost\V3\Models\Boost as BoostV3;
+use Minds\Core\Boost\V3\Utils\BoostConsoleUrlBuilder;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Notifications\Notification;
@@ -28,8 +30,11 @@ class PushNotification implements PushNotificationInterface
 
     private array $metadata = [];
 
-    public function __construct(Notification $notification, Config $config = null)
-    {
+    public function __construct(
+        Notification $notification,
+        Config $config = null,
+        private ?BoostConsoleUrlBuilder $boostConsoleUrlBuilder = null
+    ) {
         $this->notification = $notification;
 
         if (!$this->isValidNotification($notification)) {
@@ -37,6 +42,7 @@ class PushNotification implements PushNotificationInterface
         }
 
         $this->config = $config ?? Di::_()->get('Config');
+        $this->boostConsoleUrlBuilder ??= Di::_()->get(BoostConsoleUrlBuilder::class);
     }
 
     /**
@@ -131,6 +137,13 @@ class PushNotification implements PushNotificationInterface
                 //repeat
             case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
                 return 'Minds Token Rewards';
+            case NotificationTypes::TYPE_BOOST_ACCEPTED:
+                return 'Your Boost is now running';
+            case NotificationTypes::TYPE_BOOST_REJECTED:
+                return 'Your Boost was rejected';
+                break;
+            case NotificationTypes::TYPE_BOOST_COMPLETED:
+                return 'Your Boost is complete';
             default:
                 throw new UndeliverableException("Invalid type");
         }
@@ -160,6 +173,14 @@ class PushNotification implements PushNotificationInterface
      */
     public function getBody(): ?string
     {
+        if (in_array($this->notification->getType(), [
+            NotificationTypes::TYPE_BOOST_ACCEPTED,
+            NotificationTypes::TYPE_BOOST_REJECTED,
+            NotificationTypes::TYPE_BOOST_COMPLETED
+        ], true)) {
+            return '';
+        }
+
         $entity = $this->notification->getEntity();
         $excerpt = '';
 
@@ -192,11 +213,20 @@ class PushNotification implements PushNotificationInterface
      */
     public function getUri(): string
     {
-        if ($this->notification->getType() === NotificationTypes::TYPE_SUBSCRIBE) {
-            return $this->config->get('site_url') . 'notifications';
+        switch ($this->notification->getType()) {
+            case NotificationTypes::TYPE_SUBSCRIBE:
+                return $this->config->get('site_url') . 'notifications';
+            case NotificationTypes::TYPE_BOOST_ACCEPTED:
+            case NotificationTypes::TYPE_BOOST_COMPLETED:
+                return $this->getBoostConsoleUrl();
         }
 
         $entity = $this->notification->getEntity();
+
+        if ($entity instanceof BoostV3) {
+            $entity = $entity->getEntity();
+        }
+
         switch ($entity->getType()) {
             case 'user':
                 return $this->config->get('site_url') . $entity->getUsername();
@@ -339,8 +369,25 @@ class PushNotification implements PushNotificationInterface
             case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON:
             // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
             case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
+            case NotificationTypes::TYPE_BOOST_ACCEPTED:
+            case NotificationTypes::TYPE_BOOST_REJECTED:
+            case NotificationTypes::TYPE_BOOST_COMPLETED:
                 return true;
         }
         return false;
+    }
+
+    /**
+     * Gets boost console URL.
+     * @return string url for boost console.
+     */
+    private function getBoostConsoleUrl(): string
+    {
+        $boost = $this->notification->getEntity();
+        if (!$boost instanceof BoostV3) {
+            $baseUrl = $this->config->get('site_url');
+            return $baseUrl . 'boost/console/newsfeed/history';
+        }
+        return $this->boostConsoleUrlBuilder->build($boost);
     }
 }
