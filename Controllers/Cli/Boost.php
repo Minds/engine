@@ -5,9 +5,10 @@ namespace Minds\Controllers\Cli;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Cli;
+use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Exceptions\CliException;
 use Minds\Interfaces;
-use Minds\Entities;
 use Monolog\Logger as MonologLogger;
 
 class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
@@ -84,5 +85,59 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
             );
             //$this->out('View for ' . $boost->getGuid());
         }
+    }
+
+    /**
+     * Trigger an action event for a given boost. Does NOT mark the boost states, just pushes to action event topic.
+     * @param string boostGuid - guid of the boost.
+     * @example
+     * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='complete'
+     * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='approve'
+     * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='reject' --rejectionReason=3
+     * @return void
+     */
+    public function triggerActionEvent(): void
+    {
+        $boostGuid = $this->getOpt('boostGuid');
+        $eventType = $this->getOpt('eventType') ?? 'complete';
+        $rejectionReason = $this->getOpt('rejectionReason') ?? false;
+
+        if (!$boostGuid) {
+            $this->out('Boost GUID must be provided');
+            return;
+        }
+
+        if ($eventType === 'reject' && !$rejectionReason) {
+            $this->out('A rejectionReason parameter must be provided for reject events');
+            return;
+        }
+
+        /** @var Core\Boost\V3\Manager */
+        $boostManager =  Di::_()->get(Core\Boost\V3\Manager::class);
+
+        if (!$boost = $boostManager->getBoostByGuid($boostGuid)) {
+            $this->out('Boost not found');
+            return;
+        }
+
+        /** @var ActionEventDelegate */
+        $actionEventDelegate =  Di::_()->get(ActionEventDelegate::class);
+
+        switch ($eventType) {
+            case 'complete':
+                $actionEventDelegate->onComplete($boost);
+                break;
+            case 'accept':
+            case 'approve':
+                $actionEventDelegate->onApprove($boost);
+                break;
+            case 'reject':
+                $actionEventDelegate->onReject($boost, $rejectionReason);
+                break;
+            default:
+                throw new CliException('Unknown event type provided. Must be: complete, accept or reject');
+        }
+        
+        $this->out("Completion notice dispatched for boost: $boostGuid");
     }
 }
