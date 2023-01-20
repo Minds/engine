@@ -11,6 +11,7 @@ use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
 use Minds\Core\FeedNotices\Notices\BuildYourAlgorithmNotice;
 use Minds\Core\FeedNotices\Notices\UpdateTagsNotice;
 use Minds\Core\FeedNotices\Notices\EnablePushNotificationsNotice;
+use Minds\Core\FeedNotices\Notices\InviteYourFriendsNotice;
 use Minds\Core\FeedNotices\Notices\PlusUpgradeNotice;
 use Minds\Core\FeedNotices\Notices\SupermindPendingNotice;
 use Minds\Core\Log\Logger;
@@ -45,7 +46,8 @@ class Manager
         ConnectWalletNotice::class,
         EnablePushNotificationsNotice::class,
         BoostChannelNotice::class,
-        PlusUpgradeNotice::class
+        PlusUpgradeNotice::class,
+        InviteYourFriendsNotice::class
     ];
 
     /**
