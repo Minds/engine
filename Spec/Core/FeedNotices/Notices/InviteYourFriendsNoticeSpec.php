@@ -2,15 +2,15 @@
 
 namespace Spec\Minds\Core\FeedNotices\Notices;
 
-use Minds\Core\FeedNotices\Notices\InviteYourFriendsNotice;
+use Minds\Core\FeedNotices\Notices\InviteFriendsNotice;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 
-class InviteYourFriendsNoticeSpec extends ObjectBehavior
+class InviteFriendsNoticeSpec extends ObjectBehavior
 {
     public function it_is_initializable()
     {
-        $this->shouldHaveType(InviteYourFriendsNotice::class);
+        $this->shouldHaveType(InviteFriendsNotice::class);
     }
 
     public function it_should_get_location()
@@ -20,7 +20,7 @@ class InviteYourFriendsNoticeSpec extends ObjectBehavior
 
     public function it_should_get_key()
     {
-        $this->getKey()->shouldBe('invite-your-friends');
+        $this->getKey()->shouldBe('invite-friends');
     }
 
     public function it_should_determine_if_notice_should_show(
@@ -41,7 +41,7 @@ class InviteYourFriendsNoticeSpec extends ObjectBehavior
         $this->setUser($user);
 
         $this->export()->shouldBe([
-            'key' => 'invite-your-friends',
+            'key' => 'invite-friends',
             'location' => 'top',
             'should_show' => true
         ]);

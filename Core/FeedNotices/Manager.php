@@ -11,7 +11,7 @@ use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
 use Minds\Core\FeedNotices\Notices\BuildYourAlgorithmNotice;
 use Minds\Core\FeedNotices\Notices\UpdateTagsNotice;
 use Minds\Core\FeedNotices\Notices\EnablePushNotificationsNotice;
-use Minds\Core\FeedNotices\Notices\InviteYourFriendsNotice;
+use Minds\Core\FeedNotices\Notices\InviteFriendsNotice;
 use Minds\Core\FeedNotices\Notices\PlusUpgradeNotice;
 use Minds\Core\FeedNotices\Notices\SupermindPendingNotice;
 use Minds\Core\Log\Logger;
@@ -47,7 +47,7 @@ class Manager
         EnablePushNotificationsNotice::class,
         BoostChannelNotice::class,
         PlusUpgradeNotice::class,
-        InviteYourFriendsNotice::class
+        InviteFriendsNotice::class
     ];
 
     /**
