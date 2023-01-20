@@ -38,17 +38,9 @@ class Controller
     {
         $loggedInUser = $request->getAttribute('_user');
 
-        [
-            'limit' => $limit,
-            'offset' => $offset,
-            'audience' => $audience,
-            'location' => $targetLocation,
-            'show_boosts_after_x' => $showBoostsAfterX
-        ] = $request->getQueryParams();
-
-        if (!$audience && $loggedInUser->getBoostRating() !== BoostTargetAudiences::CONTROVERSIAL) {
-            $audience = BoostTargetAudiences::SAFE;
-        }
+        $params = $request->getQueryParams();
+        
+        $showBoostsAfterX = $params['show_boosts_after_x'];
 
         if (!$this->shouldShowBoosts($loggedInUser, (int) $showBoostsAfterX)) {
             return new JsonResponse([
@@ -56,6 +48,19 @@ class Controller
                 'boosts' => []
             ]);
         }
+
+        $limit = $params['limit'] ?? 12;
+        $offset = $params['offset'] ?? 0;
+
+        $audience =
+            $params['audience'] ??
+            (
+                $loggedInUser->getBoostRating() !== BoostTargetAudiences::CONTROVERSIAL ?
+                    BoostTargetAudiences::SAFE :
+                    BoostTargetAudiences::CONTROVERSIAL
+            );
+
+        $targetLocation = $params['location'] ?? null;
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
@@ -65,7 +70,7 @@ class Controller
                 targetStatus: BoostStatus::APPROVED,
                 orderByRanking: true,
                 targetAudience: (int) $audience,
-                targetLocation: (int) $targetLocation
+                targetLocation: (int) $targetLocation ?: null
             );
 
         return new JsonResponse([
@@ -79,13 +84,16 @@ class Controller
     {
         $loggedInUser = $request->getAttribute('_user');
 
-        ['status' => $targetStatus] = $request->getQueryParams();
+        ['location' => $targetLocation] = $request->getQueryParams();
+
+        $targetStatus = $request->getQueryParams()['status'] ?? null;
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
             ->getBoosts(
                 targetStatus: (int) $targetStatus,
-                targetUserGuid: $loggedInUser->getGuid()
+                targetUserGuid: $loggedInUser->getGuid(),
+                targetLocation: (int) $targetLocation ?: null
             );
         return new JsonResponse([
             'boosts' => Exportable::_($boosts),
@@ -156,11 +164,18 @@ class Controller
             ['status' => $status] = $request->getQueryParams();
         }
 
+        $targetAudience = $request->getQueryParams()['audience'] ?? null;
+        $targetLocation = $request->getQueryParams()['location'] ?? null;
+        $paymentMethod = $request->getQueryParams()['payment_method'] ?? null;
+
         $boosts = $this->manager
             ->setUser($loggedInUser)
             ->getBoosts(
-                targetStatus: $status,
-                forApprovalQueue: true
+                targetStatus: (int) $status ?: null,
+                forApprovalQueue: true,
+                targetAudience: (int) $targetAudience,
+                targetLocation: (int) $targetLocation ?: null,
+                paymentMethod: (int) $paymentMethod ?: null
             );
         return new JsonResponse([
             'boosts' => Exportable::_($boosts),
@@ -212,6 +227,30 @@ class Controller
         }
 
         $this->manager->rejectBoost((string) $boostGuid, $reasonCode);
+
+        return new JsonResponse([]);
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     * @throws ApiErrorException
+     * @throws Exceptions\BoostNotFoundException
+     * @throws Exceptions\BoostPaymentCaptureFailedException
+     * @throws InvalidBoostPaymentMethodException
+     * @throws KeyNotSetupException
+     * @throws LockFailedException
+     * @throws NotImplementedException
+     * @throws ServerErrorException
+     */
+    public function cancelBoost(ServerRequestInterface $request): JsonResponse
+    {
+        $loggedInUser = $request->getAttribute('_user');
+        $boostGuid = $request->getAttribute("parameters")["guid"];
+
+        $this->manager
+            ->setUser($loggedInUser)
+            ->cancelBoost((string) $boostGuid);
 
         return new JsonResponse([]);
     }

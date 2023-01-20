@@ -96,6 +96,7 @@ class Repository
      * @param int $targetAudience
      * @param int|null $targetLocation
      * @param string|null $entityGuid
+     * @param int|null $paymentMethod
      * @param User|null $loggedInUser
      * @param bool $hasNext
      * @return Iterator
@@ -108,8 +109,9 @@ class Repository
         ?string $targetUserGuid = null,
         bool $orderByRanking = false,
         int $targetAudience = BoostTargetAudiences::SAFE,
-        int $targetLocation = null,
+        ?int $targetLocation = null,
         ?string $entityGuid = null,
+        ?int $paymentMethod = null,
         ?User $loggedInUser = null,
         bool &$hasNext = false
     ): Iterator {
@@ -131,7 +133,11 @@ class Repository
             $values['target_location'] = $targetLocation;
         }
 
-        // NOTE: this check is doing nothing as the property checked will always have a value and we should never pass 0 (zero)
+        if ($paymentMethod) {
+            $whereClauses[] = "payment_method = :payment_method";
+            $values['payment_method'] = $paymentMethod;
+        }
+
         if ($targetAudience) {
             $whereClauses[] = "target_suitability = :target_suitability";
             $values['target_suitability'] = $targetAudience;
@@ -147,7 +153,7 @@ class Repository
         /**
          * Hide entities if a user has aid they don't want to see them
          */
-        if ($loggedInUser) {
+        if (!$forApprovalQueue && $loggedInUser) {
             $hiddenEntitiesJoin = " LEFT JOIN entities_hidden
                 ON boosts.entity_guid = entities_hidden.entity_guid
                 AND entities_hidden.user_guid = :user_guid";
@@ -201,6 +207,7 @@ class Repository
                     dailyBid: (int) $boostData['daily_bid'],
                     durationDays: (int) $boostData['duration_days'],
                     status: (int) $boostData['status'],
+                    rejectionReason: (int) $boostData['reason'] ?: null,
                     createdTimestamp: strtotime($boostData['created_timestamp']),
                     paymentTxId: $boostData['payment_tx_id'],
                     updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
@@ -244,6 +251,7 @@ class Repository
                 dailyBid: (float) $boostData['daily_bid'],
                 durationDays: (int) $boostData['duration_days'],
                 status: (int) $boostData['status'],
+                rejectionReason: (int) $boostData['reason'] ?: null,
                 createdTimestamp: strtotime($boostData['created_timestamp']),
                 paymentTxId: $boostData['payment_tx_id'],
                 updatedTimestamp: isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
@@ -279,6 +287,22 @@ class Repository
             'updated_timestamp' => date('c', time()),
             'reason' => $reasonCode,
             'guid' => $boostGuid
+        ];
+
+        $statement = $this->mysqlClientWriter->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        return $statement->execute();
+    }
+
+    public function cancelBoost(string $boostGuid, string $userGuid): bool
+    {
+        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid AND user_guid = :user_guid";
+        $values = [
+            'status' => BoostStatus::CANCELLED,
+            'updated_timestamp' => date('c', time()),
+            'guid' => $boostGuid,
+            'user_guid' => $userGuid,
         ];
 
         $statement = $this->mysqlClientWriter->prepare($query);

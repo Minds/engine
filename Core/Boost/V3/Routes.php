@@ -32,6 +32,10 @@ class Routes extends ModuleRoutes
                     '',
                     Ref::_(Controller::class, 'createBoost')
                 );
+                $route->post(
+                    ':guid/cancel',
+                    Ref::_(Controller::class, 'cancelBoost')
+                );
 
                 $route->post(
                     'prepare-onchain/:entityGuid',

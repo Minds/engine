@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Minds\Core\Boost\V3\Enums;
 
@@ -16,7 +17,7 @@ class BoostRejectionReason
         self::ONCHAIN_PAYMENT_FAILED,
     ];
 
-    public static function isValid(int $rejectionReasonCode): bool
+    public static function isValid(?int $rejectionReasonCode): bool
     {
         return in_array($rejectionReasonCode, self::VALID_REJECTION_REASONS, true);
     }
@@ -26,19 +27,19 @@ class BoostRejectionReason
         return [
             [
                 'code' => self::WRONG_AUDIENCE,
-                'labels' => "Wrong audience"
+                'label' => "Wrong audience"
             ],
             [
                 'code' => self::AGAINST_MINDS_BOOST_POLICY,
-                'labels' => "Against Minds Boost policy"
+                'label' => "Against Minds Boost policy"
             ],
             [
                 'code' => self::AGAINST_STRIPE_TERMS_OF_SERVICE,
-                'labels' => "Against Stripe terms of service"
+                'label' => "Against Stripe terms of service"
             ],
             [
                 'code' => self::ONCHAIN_PAYMENT_FAILED,
-                'labels' => "Payment failed"
+                'label' => "Payment failed"
             ],
         ];
     }

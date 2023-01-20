@@ -33,6 +33,8 @@ use Minds\Traits\MagicAttributes;
  * @method int getDurationDays()
  * @method self setStatus(int $status)
  * @method int getStatus()
+ * @method self setRejectionReason(int $rejectionStatus)
+ * @method int getRejectionReason()
  * @method self setCreatedTimestamp(int $createdTimestamp)
  * @method int getCreatedTimestamp()
  * @method self setUpdatedTimestamp(int|null $updatedTimestamp)
@@ -59,6 +61,7 @@ class Boost implements EntityInterface, ExportableInterface
         private float $dailyBid,
         private int $durationDays,
         private ?int $status = null,
+        private ?int $rejectionReason = null,
         private ?int $createdTimestamp = null,
         private ?string $paymentTxId = null,
         private ?int $updatedTimestamp = null,
@@ -130,6 +133,7 @@ class Boost implements EntityInterface, ExportableInterface
             'daily_bid' => $this->getDailyBid(),
             'duration_days' => $this->getDurationDays(),
             'boost_status' => $this->getStatus(),
+            'rejection_reason' => $this->getRejectionReason(),
             'created_timestamp' => $this->getCreatedTimestamp(),
             'updated_timestamp' => $this->getUpdatedTimestamp(),
             'approved_timestamp' => $this->getApprovedTimestamp(),
