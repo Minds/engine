@@ -261,12 +261,13 @@ class Repository
         return $statement->execute();
     }
 
-    public function rejectBoost(string $boostGuid): bool
+    public function rejectBoost(string $boostGuid, int $reasonCode): bool
     {
-        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid";
+        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp, reason = :reason WHERE guid = :guid";
         $values = [
             'status' => BoostStatus::REJECTED,
             'updated_timestamp' => date('c', time()),
+            'reason' => $reasonCode,
             'guid' => $boostGuid
         ];
 

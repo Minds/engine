@@ -5,10 +5,14 @@ namespace Minds\Core\Boost\V3;
 
 use Exception;
 use Minds\Api\Exportable;
+use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
+use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
+use Minds\Core\Boost\V3\Exceptions\BoostPaymentRefundFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentSetupFailedException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
+use Minds\Core\Boost\V3\Exceptions\InvalidRejectionReasonException;
 use Minds\Core\Boost\V3\Validators\BoostCreateRequestValidator;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
@@ -188,9 +192,10 @@ class Controller
      * @param ServerRequestInterface $request
      * @return JsonResponse
      * @throws ApiErrorException
-     * @throws Exceptions\BoostNotFoundException
-     * @throws Exceptions\BoostPaymentCaptureFailedException
+     * @throws BoostNotFoundException
+     * @throws BoostPaymentRefundFailedException
      * @throws InvalidBoostPaymentMethodException
+     * @throws InvalidRejectionReasonException
      * @throws KeyNotSetupException
      * @throws LockFailedException
      * @throws NotImplementedException
@@ -200,7 +205,13 @@ class Controller
     {
         $boostGuid = $request->getAttribute("parameters")["guid"];
 
-        $this->manager->rejectBoost((string) $boostGuid);
+        ['reason' => $reasonCode] = $request->getParsedBody();
+
+        if (!BoostRejectionReason::isValid($reasonCode)) {
+            throw new InvalidRejectionReasonException();
+        }
+
+        $this->manager->rejectBoost((string) $boostGuid, $reasonCode);
 
         return new JsonResponse([]);
     }

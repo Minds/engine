@@ -168,18 +168,19 @@ class Manager
 
     /**
      * @param string $boostGuid
+     * @param int $reasonCode
      * @return bool
      * @throws ApiErrorException
+     * @throws BoostNotFoundException
      * @throws BoostPaymentRefundFailedException
-     * @throws Exception
-     * @throws Exceptions\BoostNotFoundException
+     * @throws IncorrectBoostStatusException
      * @throws InvalidBoostPaymentMethodException
      * @throws KeyNotSetupException
      * @throws LockFailedException
      * @throws NotImplementedException
      * @throws ServerErrorException
      */
-    public function rejectBoost(string $boostGuid): bool
+    public function rejectBoost(string $boostGuid, int $reasonCode): bool
     {
         // Only process if status is Pending
         $boost = $this->repository->getBoostByGuid($boostGuid);
@@ -198,7 +199,7 @@ class Manager
         // Mark request as Refund_processed
         $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_PROCESSED);
 
-        if (!$this->repository->rejectBoost($boostGuid)) {
+        if (!$this->repository->rejectBoost($boostGuid, $reasonCode)) {
             throw new ServerErrorException();
         }
 
@@ -288,7 +289,7 @@ class Manager
             ->setGuid($guid)
             ->setEntity($entity)
             ->generate();
-    
+
         return [
             'guid' => $guid,
             'checksum' => $checksum
