@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Minds\Core\Authentication\Validators;
 
 use Minds\Entities\ValidationErrorCollection;
+use Psr\Http\Message\ServerRequestInterface;
 
 class AuthenticationRequestValidator implements \Minds\Interfaces\ValidatorInterface
 {
@@ -18,7 +19,7 @@ class AuthenticationRequestValidator implements \Minds\Interfaces\ValidatorInter
     /**
      * @inheritDoc
      */
-    public function validate(array $dataToValidate): bool
+    public function validate(array|ServerRequestInterface $dataToValidate): bool
     {
         return $this->errors->count() === 0;
     }

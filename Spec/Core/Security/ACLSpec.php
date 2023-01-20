@@ -2,13 +2,13 @@
 
 namespace Spec\Minds\Core\Security;
 
-use PhpSpec\ObjectBehavior;
 use Minds\Core;
 use Minds\Core\Config;
-use Minds\Entities\User;
-use Minds\Entities\Entity;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Activity;
+use Minds\Entities\Entity;
+use Minds\Entities\User;
+use PhpSpec\ObjectBehavior;
 
 class ACLSpec extends ObjectBehavior
 {
@@ -54,7 +54,7 @@ class ACLSpec extends ObjectBehavior
         $user->getDeleted()->willReturn(false);
         $user->isBanned()->willReturn(false);
         $user->isEnabled()->willReturn(true);
-        
+
         $this->entitiesBuilder->single(123, [ 'cache' => true, 'cacheTtl' => 604800 ])
             ->shouldBeCalled()
             ->willReturn($user);
@@ -81,7 +81,7 @@ class ACLSpec extends ObjectBehavior
         $user->getDeleted()->willReturn(false);
         $user->isBanned()->willReturn(true);
         $user->isEnabled()->willReturn(true);
-        
+
         $this->entitiesBuilder->single(123, [ 'cache' => true, 'cacheTtl' => 604800 ])
             ->shouldBeCalled()
             ->willReturn($user);
@@ -109,11 +109,11 @@ class ACLSpec extends ObjectBehavior
         $user->getDeleted()->willReturn(false);
         $user->isBanned()->willReturn(false);
         $user->isEnabled()->willReturn(true);
-        
+
         $this->entitiesBuilder->single(123, [ 'cache' => true, 'cacheTtl' => 604800 ])
             ->shouldBeCalled()
             ->willReturn($user);
-    
+
         $entity->getType()->willReturn('specy');
         $entity->get('access_id')->willReturn(0);
         $entity->get('owner_guid')->willReturn(123);
@@ -153,9 +153,12 @@ class ACLSpec extends ObjectBehavior
     {
         $this->mock_session(true);
 
+        $entity->getType()
+            ->willReturn('activity');
+
         $entity->get('owner_guid')
             ->willReturn(123);
-        
+
         $entity->get('container_guid')
             ->willReturn(123);
 

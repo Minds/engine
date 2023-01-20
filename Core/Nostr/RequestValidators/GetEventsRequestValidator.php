@@ -5,6 +5,7 @@ namespace Minds\Core\Nostr\RequestValidators;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Interfaces\ValidatorInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  *
@@ -21,7 +22,7 @@ class GetEventsRequestValidator implements ValidatorInterface
     /**
      * @inheritDoc
      */
-    public function validate(array $dataToValidate): bool
+    public function validate(array|ServerRequestInterface $dataToValidate): bool
     {
         $this->resetErrors();
 
