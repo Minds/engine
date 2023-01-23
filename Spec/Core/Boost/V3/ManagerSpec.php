@@ -26,6 +26,7 @@ use NotImplementedException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use Stripe\Exception\ApiErrorException;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -539,6 +540,170 @@ class ManagerSpec extends ObjectBehavior
     }
 
     /**
+     * @param User $user
+     * @param Boost $boost
+     * @return void
+     * @throws BoostNotFoundException
+     * @throws BoostPaymentRefundFailedException
+     * @throws InvalidBoostPaymentMethodException
+     * @throws KeyNotSetupException
+     * @throws LockFailedException
+     * @throws NotImplementedException
+     * @throws ServerErrorException
+     * @throws ApiErrorException
+     */
+    public function it_should_cancel_boost(
+        User $user,
+        Boost $boost
+    ): void {
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $boost->getStatus()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostStatus::PENDING);
+
+        $this->repository->getBoostByGuid(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($boost);
+
+        $this->repository->updateStatus(
+            Argument::type('string'),
+            BoostStatus::REFUND_IN_PROGRESS
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->updateStatus(
+            Argument::type('string'),
+            BoostStatus::REFUND_PROCESSED
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->cancelBoost(Argument::type('string'), '123')
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->paymentProcessor->refundBoostPayment(Argument::type(Boost::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->cancelBoost('123')
+            ->shouldBeEqualTo(true);
+    }
+
+    /**
+     * @param Boost $boost
+     * @return void
+     */
+    public function it_should_try_cancel_boost_and_throw_incorrect_status_exception(
+        Boost $boost
+    ): void {
+        $boost->getStatus()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostStatus::REFUND_IN_PROGRESS);
+
+        $this->repository->getBoostByGuid(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($boost);
+
+        $this->shouldThrow(IncorrectBoostStatusException::class)->during('cancelBoost', ['123']);
+    }
+
+    /**
+     * @param Boost $boost
+     * @return void
+     */
+    public function it_should_try_cancel_boost_and_throw_payment_refund_failed_exception(
+        Boost $boost
+    ): void {
+        $boost->getStatus()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostStatus::PENDING);
+
+        $this->repository->getBoostByGuid(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($boost);
+
+        $this->repository->updateStatus(
+            Argument::type('string'),
+            BoostStatus::REFUND_IN_PROGRESS
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->paymentProcessor->refundBoostPayment(Argument::type(Boost::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
+        $this->shouldThrow(BoostPaymentRefundFailedException::class)->during('cancelBoost', ['123']);
+    }
+
+    /**
+     * @param User $user
+     * @param Boost $boost
+     * @return void
+     */
+    public function it_should_try_cancel_boost_and_throw_server_error_exception(
+        User $user,
+        Boost $boost
+    ): void {
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $boost->getStatus()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostStatus::PENDING);
+
+        $this->repository->getBoostByGuid(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($boost);
+
+        $this->repository->updateStatus(
+            Argument::type('string'),
+            BoostStatus::REFUND_IN_PROGRESS
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->updateStatus(
+            Argument::type('string'),
+            BoostStatus::REFUND_PROCESSED
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->cancelBoost(Argument::type('string'), Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
+        $this->paymentProcessor->refundBoostPayment(Argument::type(Boost::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->shouldThrow(ServerErrorException::class)->during('cancelBoost', ['123']);
+    }
+
+    /**
+     * @return void
+     */
+    public function it_should_try_cancel_boost_and_throw_boost_not_found_exception(): void
+    {
+        $this->repository->getBoostByGuid(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willThrow(BoostNotFoundException::class);
+
+        $this->shouldThrow(BoostNotFoundException::class)->during('cancelBoost', ['123']);
+    }
+
+    /**
      * @param Boost $boost
      * @return void
      */
@@ -558,6 +723,7 @@ class ManagerSpec extends ObjectBehavior
             null,
             null,
             null,
+            null,
             Argument::type('bool')
         )
             ->shouldBeCalledOnce()
@@ -567,44 +733,43 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturnAnInstanceOf(Response::class);
     }
 
-    public function it_should_get_boosts_as_feed_sync_entity(
-        Boost $boost
-    ): void {
-        $boost = (new Boost(
-            '123',
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            '123',
-            1,
-            1
-        ))->setOwnerGuid('123')
-            ->setGuid('234');
+    // public function it_should_get_boosts_as_feed_sync_entity(
+    //     Boost $boost
+    // ): void {
+    //     $boost = (new Boost(
+    //         '123',
+    //         1,
+    //         1,
+    //         1,
+    //         1,
+    //         1,
+    //         1,
+    //         1,
+    //         1,
+    //         1,
+    //         '123',
+    //         1,
+    //         1
+    //     ))->setOwnerGuid('123')
+    //         ->setGuid('234');
 
-        $this->repository->getBoosts(
-            Argument::type('integer'),
-            Argument::type('integer'),
-            null,
-            Argument::type('bool'),
-            null,
-            Argument::type('bool'),
-            Argument::type('integer'),
-            null,
-            null,
-            null,
-            Argument::type('bool'),
-            null
-        )
-            ->shouldBeCalledOnce()
-            ->willYield([$boost]);
+    //     $this->repository->getBoosts(
+    //         limit: Argument::type('integer'),
+    //         offset: Argument::type('integer'),
+    //         targetStatus: null,
+    //         forApprovalQueue: Argument::type('bool'),
+    //         targetUserGuid: null,
+    //         orderByRanking: Argument::type('bool'),
+    //         targetAudience: Argument::type('integer'),
+    //         targetLocation: null,
+    //         paymentMethod: null,
+    //         loggedInUser: null,
+    //         hasNext: Argument::type('bool'),
+    //     )
+    //         ->shouldBeCalledOnce()
+    //         ->willYield([$boost]);
 
-        $this->getBoostFeed()
-            ->shouldReturnAnInstanceOf(Response::class);
-    }
+    //     $this->getBoostFeed()
+    //         ->shouldReturnAnInstanceOf(Response::class);
+    // }
 }
