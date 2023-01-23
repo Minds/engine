@@ -18,6 +18,7 @@ use Minds\Entities\ValidationErrorCollection;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use Minds\Interfaces\ValidatorInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Responsible for validating Supermind requests coming in
@@ -42,11 +43,11 @@ class SupermindRequestValidator implements ValidatorInterface
     }
 
     /**
-     * @param array $dataToValidate
+     * @param array|ServerRequestInterface $dataToValidate
      * @return bool
      * @throws Exception
      */
-    public function validate(array $dataToValidate): bool
+    public function validate(array|ServerRequestInterface $dataToValidate): bool
     {
         $this->resetErrors();
 
@@ -68,7 +69,7 @@ class SupermindRequestValidator implements ValidatorInterface
         return $this->errors->count() === 0;
     }
 
-    private function checkActivitySettings(array $dataToValidate): void
+    private function checkActivitySettings(array|ServerRequestInterface $dataToValidate): void
     {
         if (isset($dataToValidate['mature']) && $dataToValidate['mature'] === true) {
             $this->errors->add(
