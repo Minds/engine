@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Boost\V3;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
@@ -413,7 +414,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $this->repository->rejectBoost(Argument::type('string'))
+        $this->repository->rejectBoost(Argument::type('string'), Argument::type("integer"))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -421,7 +422,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $this->rejectBoost('123')
+        $this->rejectBoost('123', BoostRejectionReason::WRONG_AUDIENCE)
             ->shouldBeEqualTo(true);
     }
 
@@ -440,7 +441,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($boost);
 
-        $this->shouldThrow(IncorrectBoostStatusException::class)->during('rejectBoost', ['123']);
+        $this->shouldThrow(IncorrectBoostStatusException::class)->during('rejectBoost', ['123', BoostRejectionReason::WRONG_AUDIENCE]);
     }
 
     /**
@@ -469,7 +470,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
-        $this->shouldThrow(BoostPaymentRefundFailedException::class)->during('rejectBoost', ['123']);
+        $this->shouldThrow(BoostPaymentRefundFailedException::class)->during('rejectBoost', ['123', BoostRejectionReason::WRONG_AUDIENCE]);
     }
 
     /**
@@ -501,7 +502,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $this->repository->rejectBoost(Argument::type('string'))
+        $this->repository->rejectBoost(Argument::type('string'), Argument::type('integer'))
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -509,7 +510,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $this->shouldThrow(ServerErrorException::class)->during('rejectBoost', ['123']);
+        $this->shouldThrow(ServerErrorException::class)->during('rejectBoost', ['123', BoostRejectionReason::WRONG_AUDIENCE]);
     }
 
     /**
@@ -521,7 +522,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willThrow(BoostNotFoundException::class);
 
-        $this->shouldThrow(BoostNotFoundException::class)->during('rejectBoost', ['123']);
+        $this->shouldThrow(BoostNotFoundException::class)->during('rejectBoost', ['123', BoostRejectionReason::WRONG_AUDIENCE]);
     }
 
     /**
@@ -705,6 +706,7 @@ class ManagerSpec extends ObjectBehavior
             null,
             Argument::type('bool'),
             Argument::type('integer'),
+            null,
             null,
             null,
             null,
