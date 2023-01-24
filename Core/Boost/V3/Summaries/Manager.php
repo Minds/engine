@@ -89,7 +89,7 @@ class Manager
      */
     protected function getBoostByCampaign(string $campaign): ?Boost
     {
-        if (strpos($campaign, 'urn:boost:', 0) === false) {
+        if (strpos($campaign, 'urn:boost:', 0) === false && count(explode(':', $campaign)) > 3) {
             return null;
         }
 
