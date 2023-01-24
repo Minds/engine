@@ -203,6 +203,9 @@ class Defaults
 
         // Supermind events
         (new Core\Supermind\Events\Events())->register();
+
+        // Activity Events
+        (new Core\Feeds\Activity\Events())->register();
     }
 
     public static function _()

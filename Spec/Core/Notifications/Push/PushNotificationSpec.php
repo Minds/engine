@@ -2,26 +2,32 @@
 
 namespace Spec\Minds\Core\Notifications\Push;
 
+use Minds\Core\Boost\V3\Utils\BoostConsoleUrlBuilder;
 use Minds\Core\Config\Config;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Push\PushNotification;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
+use Minds\Core\Boost\V3\Models\Boost as BoostV3;
+use Minds\Core\Boost\Network\Boost;
 use PhpSpec\ObjectBehavior;
 
 class PushNotificationSpec extends ObjectBehavior
 {
     public $notification;
     public $config;
+    public $boostConsoleUrlBuilder;
 
     public function let(
         Notification $notification,
-        Config $config
+        Config $config,
+        BoostConsoleUrlBuilder $boostConsoleUrlBuilder
     ) {
-        $this->beConstructedWith($notification, $config);
+        $this->beConstructedWith($notification, $config, $boostConsoleUrlBuilder);
         $this->notification = $notification;
         $this->config = $config;
+        $this->boostConsoleUrlBuilder = $boostConsoleUrlBuilder;
     }
 
     public function it_is_initializable()
@@ -384,6 +390,103 @@ class PushNotificationSpec extends ObjectBehavior
             ->shouldReturn('Minds Token Rewards');
     }
 
+    public function it_should_get_title_for_a_boost_accepted_notification(
+        User $sender,
+        Activity $entity
+    ) {
+        $this->notification->getFrom()
+            ->shouldBeCalled()
+            ->willReturn($sender);
+
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $entity->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $this->notification->getToGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $entity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_BOOST_ACCEPTED);
+
+        $this->getTitle()
+            ->shouldReturn('Your Boost is now running');
+    }
+
+    public function it_should_get_title_for_a_boost_rejected_notification(
+        User $sender,
+        Activity $entity
+    ) {
+        $this->notification->getFrom()
+            ->shouldBeCalled()
+            ->willReturn($sender);
+
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $entity->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $this->notification->getToGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $entity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_BOOST_REJECTED);
+
+        $this->getTitle()
+            ->shouldReturn('Your Boost was rejected');
+    }
+
+
+    public function it_should_get_title_for_a_boost_completed_notification(
+        User $sender,
+        Activity $entity
+    ) {
+        $this->notification->getFrom()
+            ->shouldBeCalled()
+            ->willReturn($sender);
+
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $entity->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $this->notification->getToGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $entity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_BOOST_COMPLETED);
+
+        $this->getTitle()
+            ->shouldReturn('Your Boost is complete');
+    }
+
     public function it_should_get_text_for_supermind_request_create(
         User $sender,
         Activity $entity
@@ -499,5 +602,161 @@ class PushNotificationSpec extends ObjectBehavior
             ->willReturn(NotificationTypes::TYPE_SUPERMIND_REQUEST_REJECT);
             
         $this->getTitle()->shouldReturn('MindsUser has declined your Supermind offer');
+    }
+
+    public function it_should_get_body_for_a_boost_accepted_notification()
+    {
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_BOOST_ACCEPTED);
+
+        $this->getBody()->shouldReturn('');
+    }
+
+    public function it_should_get_body_for_a_boost_rejected_notification()
+    {
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_BOOST_REJECTED);
+
+        $this->getBody()->shouldReturn('');
+    }
+
+    public function it_should_get_body_for_a_boost_completed_notification()
+    {
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_BOOST_COMPLETED);
+
+        $this->getBody()->shouldReturn('');
+    }
+
+    public function it_should_get_uri_for_a_boost_accepted_notification_when_boost_is_a_v3_boost(
+        BoostV3 $boost
+    ) {
+        $url = 'https://www.minds.com/boost/boost-console?state=approved&location=sidebar';
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($boost);
+
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_BOOST_ACCEPTED);
+
+        $this->boostConsoleUrlBuilder->build($boost)
+            ->shouldBeCalled()
+            ->willReturn($url);
+
+        $this->getUri()->shouldReturn($url);
+    }
+
+    public function it_should_get_uri_for_a_boost_accepted_notification_when_boost_is_not_a_v3_boosts(
+        Boost $boost
+    ) {
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($boost);
+
+        $this->config->get('site_url')
+            ->shouldBeCalled()
+            ->willReturn('https://www.minds.com/');
+        
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_BOOST_ACCEPTED);
+
+        $this->boostConsoleUrlBuilder->build($boost)
+            ->shouldNotBeCalled();
+
+        $this->getUri()->shouldReturn('https://www.minds.com/boost/console/newsfeed/history');
+    }
+
+    public function it_should_get_uri_for_a_boost_completed_notification_when_boost_is_a_v3_boosts(
+        BoostV3 $boost
+    ) {
+        $url = 'https://www.minds.com/boost/boost-console?state=completed&location=newsfeed';
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($boost);
+
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_BOOST_COMPLETED);
+
+        $this->boostConsoleUrlBuilder->build($boost)
+            ->shouldBeCalled()
+            ->willReturn($url);
+
+        $this->getUri()->shouldReturn('https://www.minds.com/boost/boost-console?state=completed&location=newsfeed');
+    }
+
+    public function it_should_get_uri_for_a_boost_completed_notification_when_boost_is_not_a_v3_boosts(
+        Boost $boost
+    ) {
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($boost);
+
+        $this->config->get('site_url')
+            ->shouldBeCalled()
+            ->willReturn('https://www.minds.com/');
+        
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_BOOST_COMPLETED);
+
+        $this->getUri()->shouldReturn('https://www.minds.com/boost/console/newsfeed/history');
+    }
+
+    public function it_should_get_uri_for_a_boost_rejected_notification_for_an_activity(
+        Activity $entity
+    ) {
+        $this->config->get('site_url')
+            ->shouldBeCalled()
+            ->willReturn('https://www.minds.com/');
+        
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_BOOST_REJECTED);
+
+        $entity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
+        $entity->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $this->getUri()->shouldReturn('https://www.minds.com/newsfeed/123');
+    }
+
+    public function it_should_get_uri_for_a_boost_rejected_notification_for_a_channel(
+        User $entity
+    ) {
+        $this->config->get('site_url')
+            ->shouldBeCalled()
+            ->willReturn('https://www.minds.com/');
+        
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_BOOST_REJECTED);
+
+        $entity->getType()
+            ->shouldBeCalled()
+            ->willReturn('user');
+
+        $entity->getUsername()
+            ->shouldBeCalled()
+            ->willReturn('testuser');
+
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $this->getUri()->shouldReturn('https://www.minds.com/testuser');
     }
 }
