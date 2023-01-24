@@ -10,6 +10,7 @@ use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
 use Minds\Core\Boost\V3\Models\Boost;
+use Minds\Core\Boost\V3\Onchain\AdminTransactionProcessor;
 use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
@@ -17,8 +18,8 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
-use Minds\Core\Boost\V3\Onchain\AdminTransactionProcessor;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
+use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
@@ -109,6 +110,7 @@ class PaymentProcessor
      * @return bool
      * @throws KeyNotSetupException
      * @throws LockFailedException
+     * @throws Exception
      */
     private function setupOffchainTokensPayment(Boost $boost): bool
     {
@@ -126,7 +128,7 @@ class PaymentProcessor
 
         return $this->offchainTransactions
             ->setUser($receiver)
-            ->setAmount($boost->getPaymentAmount())
+            ->setAmount((string) BigNumber::toPlain($boost->getPaymentAmount(), 18))
             ->setType('boost')
             ->setData([
                 'boost' => $boost->getGuid(),
@@ -143,7 +145,6 @@ class PaymentProcessor
      * @return bool
      * @throws ApiErrorException
      * @throws InvalidBoostPaymentMethodException
-     * @throws NotImplementedException
      * @throws ServerErrorException
      * @throws StripeTransferFailedException
      * @throws UserErrorException
@@ -199,7 +200,7 @@ class PaymentProcessor
      * @throws InvalidBoostPaymentMethodException
      * @throws KeyNotSetupException
      * @throws LockFailedException
-     * @throws NotImplementedException
+     * @throws Exception
      */
     public function refundBoostPayment(Boost $boost): bool
     {
@@ -243,7 +244,7 @@ class PaymentProcessor
 
         return $this->offchainTransactions
             ->setUser($receiver)
-            ->setAmount($boost->getPaymentAmount())
+            ->setAmount((string) BigNumber::toPlain($boost->getPaymentAmount(), 18))
             ->setType('boost')
             ->setData([
                 'boost' => $boost->getGuid(),
