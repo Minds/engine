@@ -33,7 +33,8 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
 
                 $urn = $_POST['client_meta']['campaign'] ?? "urn:boost:newsfeed:{$pages[1]}";
 
-                $boost = $entityResolver->single(new Urn($urn));
+                // New style urns will call from the urn resolver. Old style (4 part) urns will use the legacy boost manager
+                $boost = count(explode(':', $urn)) === 3 ? $entityResolver->single(new Urn($urn)) : $manager->get($urn, [ 'hydrate' => true ]);
                 if (!$boost) {
                     return Factory::response([
                         'status' => 'error',
