@@ -125,10 +125,10 @@ CREATE TABLE IF NOT EXISTS boosts
 
 CREATE TABLE IF NOT EXISTS boost_summaries
 (
-    guid bigint PRIMARY KEY,
-    day int NOT NULL,
+    guid bigint,
+    date date NOT NULL,
     views int NOT NULL,
-    reach int NOT NULL
+    PRIMARY KEY (guid, date)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS boost_rankings
