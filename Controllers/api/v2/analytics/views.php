@@ -57,6 +57,8 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
                         $expire->setBoost($boost);
                         $expire->expire();
                     }
+                } else {
+                    $count = 0;
                 }
 
                 Counters::increment($boost->getEntity()->guid, "impression");
