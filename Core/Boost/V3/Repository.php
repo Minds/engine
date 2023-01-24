@@ -119,8 +119,18 @@ class Repository
         $whereClauses = [];
 
         if ($targetStatus) {
-            $whereClauses[] = "status = :status";
+            $statusWhereClause = "(status = :status";
             $values['status'] = $targetStatus;
+
+            if ($targetStatus !== BoostStatus::COMPLETED) {
+                $statusWhereClause .= " AND :expired_timestamp < TIMESTAMPADD(DAY, duration_days, approved_timestamp)";
+            } else {
+                $statusWhereClause .= " OR :expired_timestamp >= TIMESTAMPADD(DAY, duration_days, approved_timestamp)";
+            }
+            $values['expired_timestamp'] = date('c', time());
+
+            $statusWhereClause = ")";
+            $whereClauses[] = $statusWhereClause;
         }
 
         if (!$forApprovalQueue && $targetUserGuid) {
@@ -295,12 +305,12 @@ class Repository
 
     public function cancelBoost(string $boostGuid, string $userGuid): bool
     {
-        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid AND user_guid = :user_guid";
+        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid AND owner_guid = :owner_guid";
         $values = [
             'status' => BoostStatus::CANCELLED,
             'updated_timestamp' => date('c', time()),
             'guid' => $boostGuid,
-            'user_guid' => $userGuid,
+            'owner_guid' => $userGuid,
         ];
 
         $statement = $this->mysqlClientWriter->prepare($query);
