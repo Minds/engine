@@ -255,45 +255,6 @@ class Manager
     }
 
     /**
-     * @param string $boostGuid
-     * @return bool
-     * @throws ApiErrorException
-     * @throws BoostPaymentRefundFailedException
-     * @throws Exception
-     * @throws Exceptions\BoostNotFoundException
-     * @throws InvalidBoostPaymentMethodException
-     * @throws KeyNotSetupException
-     * @throws LockFailedException
-     * @throws NotImplementedException
-     * @throws ServerErrorException
-     */
-    public function cancelBoost(string $boostGuid): bool
-    {
-        // Only process if status is Pending
-        $boost = $this->repository->getBoostByGuid($boostGuid);
-
-        if ($boost->getStatus() !== BoostStatus::PENDING) {
-            throw new IncorrectBoostStatusException();
-        }
-
-        // Mark request as Refund_in_progress
-        $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_IN_PROGRESS);
-
-        if (!$this->paymentProcessor->refundBoostPayment($boost)) {
-            throw new BoostPaymentRefundFailedException();
-        }
-
-        // Mark request as Refund_processed
-        $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_PROCESSED);
-
-        if (!$this->repository->cancelBoost($boostGuid, $this->user->getGuid())) {
-            throw new ServerErrorException();
-        }
-
-        return true;
-    }
-
-    /**
      * @param int $limit
      * @param int $offset
      * @param int|null $targetStatus
