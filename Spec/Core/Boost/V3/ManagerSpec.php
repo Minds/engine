@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Boost\V3;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
@@ -33,17 +34,25 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $repository;
     private Collaborator $paymentProcessor;
     private Collaborator $entitiesBuilder;
+    private Collaborator $actionEventDelegate;
 
     public function let(
         Repository $repository,
         PaymentProcessor $paymentProcessor,
-        EntitiesBuilder $entitiesBuilder
+        EntitiesBuilder $entitiesBuilder,
+        ActionEventDelegate $actionEventDelegate
     ) {
         $this->repository = $repository;
         $this->paymentProcessor = $paymentProcessor;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->actionEventDelegate = $actionEventDelegate;
 
-        $this->beConstructedWith($this->repository, $this->paymentProcessor, $this->entitiesBuilder);
+        $this->beConstructedWith(
+            $this->repository,
+            $this->paymentProcessor,
+            $this->entitiesBuilder,
+            $this->actionEventDelegate
+        );
     }
 
     public function it_is_initializable(): void
@@ -306,6 +315,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
+        $this->actionEventDelegate->onApprove($boost)
+            ->shouldBeCalled();
+
         $this->approveBoost('123')
             ->shouldBeEqualTo(true);
     }
@@ -421,6 +433,9 @@ class ManagerSpec extends ObjectBehavior
         $this->paymentProcessor->refundBoostPayment(Argument::type(Boost::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
+
+        $this->actionEventDelegate->onReject($boost, BoostRejectionReason::WRONG_AUDIENCE)
+            ->shouldBeCalled();
 
         $this->rejectBoost('123', BoostRejectionReason::WRONG_AUDIENCE)
             ->shouldBeEqualTo(true);
@@ -718,4 +733,44 @@ class ManagerSpec extends ObjectBehavior
         $this->getBoosts()
             ->shouldReturnAnInstanceOf(Response::class);
     }
+
+    // public function it_should_get_boosts_as_feed_sync_entity(
+    //     Boost $boost
+    // ): void {
+    //     $boost = (new Boost(
+    //         '123',
+    //         1,
+    //         1,
+    //         1,
+    //         1,
+    //         1,
+    //         1,
+    //         1,
+    //         1,
+    //         1,
+    //         '123',
+    //         1,
+    //         1
+    //     ))->setOwnerGuid('123')
+    //         ->setGuid('234');
+
+    //     $this->repository->getBoosts(
+    //         limit: Argument::type('integer'),
+    //         offset: Argument::type('integer'),
+    //         targetStatus: null,
+    //         forApprovalQueue: Argument::type('bool'),
+    //         targetUserGuid: null,
+    //         orderByRanking: Argument::type('bool'),
+    //         targetAudience: Argument::type('integer'),
+    //         targetLocation: null,
+    //         paymentMethod: null,
+    //         loggedInUser: null,
+    //         hasNext: Argument::type('bool'),
+    //     )
+    //         ->shouldBeCalledOnce()
+    //         ->willYield([$boost]);
+
+    //     $this->getBoostFeed()
+    //         ->shouldReturnAnInstanceOf(Response::class);
+    // }
 }

@@ -56,6 +56,9 @@ class ActionEvent implements EventInterface
     const ACTION_BOOST_ACCEPTED = 'boost_accepted';
 
     /** @var string */
+    const ACTION_BOOST_COMPLETED = 'boost_completed';
+    
+    /** @var string */
     const ACTION_BOOST_PEER_REQUEST = 'boost_peer_request';
 
     /** @var string */
@@ -179,6 +182,8 @@ class ActionEvent implements EventInterface
                 $allowedKeys = [ 'boost_reject_reason' ];
                 break;
             case self::ACTION_BOOST_ACCEPTED:
+            case self::ACTION_BOOST_COMPLETED:
+                break;
             case self::ACTION_BOOST_PEER_REQUEST:
             case self::ACTION_BOOST_PEER_ACCEPTED:
             case self::ACTION_BOOST_PEER_REJECTED:

@@ -39,7 +39,7 @@ class Controller
         $loggedInUser = $request->getAttribute('_user');
 
         $params = $request->getQueryParams();
-        
+
         $showBoostsAfterX = $params['show_boosts_after_x'];
 
         if (!$this->shouldShowBoosts($loggedInUser, (int) $showBoostsAfterX)) {
@@ -64,7 +64,7 @@ class Controller
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
-            ->getBoosts(
+            ->getBoostFeed(
                 limit: (int) $limit,
                 offset: (int) $offset,
                 targetStatus: BoostStatus::APPROVED,
@@ -84,13 +84,18 @@ class Controller
     {
         $loggedInUser = $request->getAttribute('_user');
 
-        ['location' => $targetLocation] = $request->getQueryParams();
+        $queryParams = $request->getQueryParams();
 
-        $targetStatus = $request->getQueryParams()['status'] ?? null;
+        $limit = $queryParams['limit'] ?? 12;
+        $offset = $queryParams['offset'] ?? 0;
+        $targetLocation = $queryParams['location'] ?? null;
+        $targetStatus = $queryParams['status'] ?? null;
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
             ->getBoosts(
+                limit: (int) $limit,
+                offset: (int) $offset,
                 targetStatus: (int) $targetStatus,
                 targetUserGuid: $loggedInUser->getGuid(),
                 targetLocation: (int) $targetLocation ?: null
@@ -159,19 +164,21 @@ class Controller
     {
         $loggedInUser = $request->getAttribute('_user');
 
-        $status = null;
-        if (array_key_exists('status', $request->getQueryParams())) {
-            ['status' => $status] = $request->getQueryParams();
-        }
+        $queryParams = $request->getQueryParams();
 
-        $targetAudience = $request->getQueryParams()['audience'] ?? null;
-        $targetLocation = $request->getQueryParams()['location'] ?? null;
-        $paymentMethod = $request->getQueryParams()['payment_method'] ?? null;
+        $limit = $queryParams['limit'] ?? 12;
+        $offset = $queryParams['offset'] ?? 0;
+        $targetLocation = $queryParams['location'] ?? null;
+        $targetStatus = $queryParams['status'] ?? null;
+        $targetAudience = $queryParams['audience'] ?? null;
+        $paymentMethod = $queryParams['payment_method'] ?? null;
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
             ->getBoosts(
-                targetStatus: (int) $status ?: null,
+                limit: (int) $limit,
+                offset: (int) $offset,
+                targetStatus: (int) $targetStatus ?: null,
                 forApprovalQueue: true,
                 targetAudience: (int) $targetAudience,
                 targetLocation: (int) $targetLocation ?: null,

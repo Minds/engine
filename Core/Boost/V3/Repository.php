@@ -95,6 +95,7 @@ class Repository
      * @param bool $orderByRanking
      * @param int $targetAudience
      * @param int|null $targetLocation
+     * @param int|null $paymentMethod
      * @param string|null $entityGuid
      * @param int|null $paymentMethod
      * @param User|null $loggedInUser
