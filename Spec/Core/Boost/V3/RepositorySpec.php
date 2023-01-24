@@ -122,7 +122,8 @@ class RepositorySpec extends ObjectBehavior
             'duration_days' => 2,
             'status' => 1,
             'payment_tx_id' => null,
-            'created_timestamp' => date('c', time())
+            'created_timestamp' => date('c', time()),
+            'total_views' => 100
         ];
 
         $statement->execute()
@@ -163,7 +164,8 @@ class RepositorySpec extends ObjectBehavior
             'duration_days' => 2,
             'status' => 1,
             'payment_tx_id' => null,
-            'created_timestamp' => date('c', time())
+            'created_timestamp' => date('c', time()),
+            'total_views' => 150
         ];
 
         $statement->execute()
@@ -206,7 +208,8 @@ class RepositorySpec extends ObjectBehavior
             'duration_days' => 2,
             'status' => 1,
             'payment_tx_id' => null,
-            'created_timestamp' => date('c', time())
+            'created_timestamp' => date('c', time()),
+            'total_views' => 175
         ];
 
         $statement->execute()
@@ -250,7 +253,8 @@ class RepositorySpec extends ObjectBehavior
             'duration_days' => 2,
             'status' => 1,
             'payment_tx_id' => null,
-            'created_timestamp' => date('c', time())
+            'created_timestamp' => date('c', time()),
+            'total_views' => 200
         ];
 
         $statement->execute()
@@ -295,7 +299,8 @@ class RepositorySpec extends ObjectBehavior
             'duration_days' => 2,
             'status' => 1,
             'payment_tx_id' => null,
-            'created_timestamp' => date('c', time())
+            'created_timestamp' => date('c', time()),
+            'total_views' => 225
         ];
         $query = "SELECT * FROM boosts WHERE guid = :guid";
 
