@@ -9,7 +9,7 @@ class Flags
     public static function shouldFail($entity)
     {
         $currentUser = Core\Session::getLoggedInUserGuid();
-        $owner = $entity instanceof User ? $entity->getGuid() : $entity->getOwnerGuid();
+        $owner = $entity instanceof User ? $entity->guid : $entity->getOwnerGuid();
 
         if (
             // Core\Session::isAdmin() ||
