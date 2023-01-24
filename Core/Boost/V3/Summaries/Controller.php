@@ -10,6 +10,6 @@ class Controller
     public function __construct(
         private ?Manager $manager = null
     ) {
-        $this->manager ??= Di::_()->get('Boost\V3\Summaries\Manager');
+        $this->manager ??= Di::_()->get(Manager::class);
     }
 }

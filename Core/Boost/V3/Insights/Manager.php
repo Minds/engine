@@ -1,18 +1,15 @@
 <?php
 namespace Minds\Core\Boost\V3\Insights;
 
-use Cassandra\Duration;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 
 class Manager
 {
     public function __construct(
-        protected ?ViewsScroller $viewsScroller = null,
         protected ?Repository $repository = null,
         protected ?Config $config = null
     ) {
-        $this->viewsScroller ??= Di::_()->get(ViewsScroller::class);
         $this->repository ??= Di::_()->get(Repository::class);
         $this->config ??= Di::_()->get('Config');
     }
