@@ -116,6 +116,10 @@ class Repository
         bool &$hasNext = false
     ): Iterator {
         $values = [];
+
+        $selectColumns = [
+            "boosts.*"
+        ];
         $whereClauses = [];
 
         if ($targetStatus) {
@@ -176,12 +180,26 @@ class Repository
             $orderByClause = " ORDER BY boost_rankings.$orderByRankingAudience DESC, boosts.approved_timestamp ASC";
         }
 
+        /**
+         * Joins with the boost_summaries table to get total views
+         * Can be expanded later to get other aggregated statistics
+         */
+        $summariesJoin = " LEFT JOIN (
+                SELECT guid, SUM(views) as total_views FROM boost_summaries
+                GROUP BY 1
+            ) summary 
+            ON boosts.guid=summary.guid";
+        $selectColumns[] = "summary.total_views";
+        
+
         $whereClause = '';
         if (count($whereClauses)) {
             $whereClause = 'WHERE '.implode(' AND ', $whereClauses);
         }
 
-        $query = "SELECT boosts.* FROM boosts $hiddenEntitiesJoin $orderByRankingJoin $whereClause $orderByClause LIMIT :offset, :limit";
+        $selectColumnsStr = implode(',', $selectColumns);
+
+        $query = "SELECT $selectColumnsStr FROM boosts $summariesJoin $hiddenEntitiesJoin $orderByRankingJoin $whereClause $orderByClause LIMIT :offset, :limit";
         $values['offset'] = $offset;
         $values['limit'] = $limit + 1;
 
@@ -211,7 +229,8 @@ class Repository
                     createdTimestamp: strtotime($boostData['created_timestamp']),
                     paymentTxId: $boostData['payment_tx_id'],
                     updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
-                    approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null
+                    approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
+                    summaryViewsDelivered: (int) $boostData['total_views'],
                 )
             )
                 ->setGuid($boostData['guid'])

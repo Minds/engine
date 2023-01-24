@@ -15,13 +15,13 @@ class Provider extends DiProvider
      */
     public function register(): void
     {
-        Di::_()->bind('Boost\V3\Summaries\Controller', function ($di): Controller {
+        Di::_()->bind(Controller::class, function ($di): Controller {
             return new Controller();
         });
-        Di::_()->bind('Boost\V3\Summaries\Manager', function ($di): Manager {
+        Di::_()->bind(Manager::class, function ($di): Manager {
             return new Manager();
         });
-        Di::_()->bind('Boost\V3\Summaries\Repository', function ($di): Repository {
+        Di::_()->bind(Repository::class, function ($di): Repository {
             return new Repository();
         });
     }

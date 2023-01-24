@@ -2,11 +2,13 @@
 
 namespace Minds\Controllers\Cli;
 
+use DateTime;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Cli;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Core\Security\ACL;
 use Minds\Exceptions\CliException;
 use Minds\Interfaces;
 use Monolog\Logger as MonologLogger;
@@ -44,14 +46,18 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->out('done');
     }
 
+    /**
+     * Run continously to ensure boosts are correctly ranked and served
+     * `php cli.php Boost rank`
+     */
     public function rank()
     {
+        Di::_()->get('Config')->set('min_log_level', MonologLogger::INFO);
+
         /** @var Core\Boost\V3\Ranking\Manager */
         $rankingManager = Di::_()->get(Core\Boost\V3\Ranking\Manager::class);
 
         while (true) {
-            $this->simulateViews();
-
             $rankingManager->calculateRanks();
 
             // There is a memory leak, uncomment to log
@@ -64,6 +70,28 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->out('Done');
     }
 
+    /**
+     * Call this function to sync views to summaries
+     * `php cli.php Boost syncViews`
+     */
+    public function syncViews()
+    {
+        Di::_()->get('Config')->set('min_log_level', MonologLogger::INFO);
+
+        ACL::_()->setIgnore(true);
+
+        /** @var Core\Boost\V3\Summaries\Manager */
+        $summariesManager = Di::_()->get(Core\Boost\V3\Summaries\Manager::class);
+
+        $summariesManager->sync(new DateTime('midnight'));
+
+        $this->out('Done');
+    }
+
+    /**
+     * use for testing in your local environments only!
+     * `php cli.php Boost simulateViews`
+     */
     protected function simulateViews()
     {
         $viewsManager = new Core\Analytics\Views\Manager();

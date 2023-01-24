@@ -64,15 +64,15 @@ class ManagerSpec extends ObjectBehavior
             ->willYield([
                 [
                     'uuid' => new Timeuuid(time()),
-                    'campaign' => 'urn:boost:newsfeed:1234',
+                    'campaign' => 'urn:boost:1234',
                 ],
                 [
                     'uuid' => new Timeuuid(time()),
-                    'campaign' => 'urn:boost:newsfeed:1234',
+                    'campaign' => 'urn:boost:1234',
                 ],
                 [
                     'uuid' => new Timeuuid(time()),
-                    'campaign' => 'urn:boost:newsfeed:1235',
+                    'campaign' => 'urn:boost:1235',
                 ]
             ]);
 
