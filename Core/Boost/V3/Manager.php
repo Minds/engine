@@ -25,6 +25,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
+use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
@@ -37,6 +38,8 @@ class Manager
 {
     private ?User $user = null;
 
+    private ?Logger $logger = null;
+
     public function __construct(
         private ?Repository $repository = null,
         private ?PaymentProcessor $paymentProcessor = null,
@@ -47,6 +50,8 @@ class Manager
         $this->paymentProcessor ??= new PaymentProcessor();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->actionEventDelegate ??= Di::_()->get(ActionEventDelegate::class);
+
+        $this->logger = Di::_()->get("Logger");
     }
 
     /**
@@ -396,6 +401,10 @@ class Manager
             $this->repository->updateStatus($boost->getGuid(), BoostStatus::COMPLETED);
 
             $this->actionEventDelegate->onComplete($boost);
+
+            echo "\n";
+            $this->logger->addInfo("Boost {$boost->getGuid()} has been marked as COMPLETED");
+            echo "\n";
         }
 
         $this->repository->commitTransaction();
