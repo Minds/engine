@@ -10,10 +10,10 @@ use Minds\Entities\User;
 /**
  * Feed notice to prompt a user to join rewards and verify their uniqueness.
  */
-class VerifyUniquenessNotice extends AbstractNotice
+class InAppVerifyUniquenessNotice extends AbstractNotice
 {
     // location of notice in feed.
-    private const LOCATION = 'inline';
+    private const LOCATION = 'top';
 
     // notice key / identifier.
     private const KEY = 'verify-uniqueness';
@@ -52,10 +52,10 @@ class VerifyUniquenessNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return $this->experimentsManager->setUser($user)->isOn('minds-3131-onboarding-notices') &&
-            !$user->getPhoneNumberHash() &&
-            $this->isEligibleForRewards($user) &&
-            !$this->experimentsManager->isOn('epic-275-in-app-verification');
+        // TODO: Double check that the rewards eligibility is a requirement for the notice to show up
+        return $this->experimentsManager->setUser($user)->isOn('epic-275-in-app-verification');
+        // return $this->experimentsManager->setUser($user)->isOn('epic-275-in-app-verification') &&
+        //     $this->isEligibleForRewards($user);
     }
 
     /**
