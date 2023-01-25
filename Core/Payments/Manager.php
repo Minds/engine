@@ -14,12 +14,12 @@ use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Models\GetPaymentsOpts;
 use Minds\Core\Payments\Models\Payment;
-use Minds\Helpers\Cql;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
+use Minds\Helpers\Cql;
 
 class Manager
 {
@@ -313,10 +313,18 @@ class Manager
      */
     private function buildSender(array $data): ?User
     {
-        if (isset($data['metadata']) && isset($data['metadata']['user_guid'])) {
-            return $this->entitiesBuilder->single(
-                $data['metadata']['user_guid']
-            ) ?? null;
+        if (isset($data['metadata'])) {
+            if (isset($data['metadata']['user_guid'])) {
+                return $this->entitiesBuilder->single(
+                    $data['metadata']['user_guid']
+                ) ?? null;
+            }
+
+            if (isset($data['metadata']['boost_sender_guid'])) {
+                return $this->entitiesBuilder->single(
+                    $data['metadata']['boost_sender_guid']
+                ) ?? null;
+            }
         }
         return null;
     }
