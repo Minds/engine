@@ -99,6 +99,9 @@ class NotificationTypes
      */
 
     /** @var string */
+    const TYPE_BOOST_ACCEPTED = 'boost_accepted';
+
+    /** @var string */
     const TYPE_BOOST_COMPLETED = 'boost_completed';
 
     /** @var string */
@@ -115,6 +118,7 @@ class NotificationTypes
 
     /** @var string[] */
     const GROUPING_BOOSTS = [
+        self::TYPE_BOOST_ACCEPTED,
         self::TYPE_BOOST_COMPLETED,
         self::TYPE_BOOST_REJECTED,
         self::TYPE_BOOST_PEER_REQUEST,

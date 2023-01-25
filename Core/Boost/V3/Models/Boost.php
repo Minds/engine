@@ -62,7 +62,8 @@ class Boost implements EntityInterface, ExportableInterface
         private ?int $createdTimestamp = null,
         private ?string $paymentTxId = null,
         private ?int $updatedTimestamp = null,
-        private ?int $approvedTimestamp = null
+        private ?int $approvedTimestamp = null,
+        private ?int $summaryViewsDelivered = 0
     ) {
     }
 
@@ -134,6 +135,9 @@ class Boost implements EntityInterface, ExportableInterface
             'created_timestamp' => $this->getCreatedTimestamp(),
             'updated_timestamp' => $this->getUpdatedTimestamp(),
             'approved_timestamp' => $this->getApprovedTimestamp(),
+            'summary' => [
+                'views_delivered' => $this->summaryViewsDelivered,
+            ],
         ];
     }
 }

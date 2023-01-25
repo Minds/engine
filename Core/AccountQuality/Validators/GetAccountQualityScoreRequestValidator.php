@@ -6,6 +6,7 @@ use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Helpers\UserValidator;
 use Minds\Interfaces\ValidatorInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Responsible to run validation of the GET /api/v3/account-quality request
@@ -19,7 +20,7 @@ class GetAccountQualityScoreRequestValidator implements ValidatorInterface
         $this->errors = new ValidationErrorCollection();
     }
 
-    public function validate(array $dataToValidate): bool
+    public function validate(array|ServerRequestInterface $dataToValidate): bool
     {
         $this->reset();
 

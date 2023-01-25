@@ -94,6 +94,10 @@ class Repository
      * @param string|null $targetUserGuid
      * @param bool $orderByRanking
      * @param int $targetAudience
+     * @param int|null $targetLocation
+     * @param int|null $paymentMethod
+     * @param string|null $entityGuid
+     * @param User|null $loggedInUser
      * @param bool $hasNext
      * @return Iterator
      */
@@ -105,11 +109,17 @@ class Repository
         ?string $targetUserGuid = null,
         bool $orderByRanking = false,
         int $targetAudience = BoostTargetAudiences::SAFE,
-        int $targetLocation = null,
+        ?int $targetLocation = null,
+        ?int $paymentMethod = null,
+        ?string $entityGuid = null,
         ?User $loggedInUser = null,
         bool &$hasNext = false
     ): Iterator {
         $values = [];
+
+        $selectColumns = [
+            "boosts.*"
+        ];
         $whereClauses = [];
 
         if ($targetStatus) {
@@ -127,9 +137,20 @@ class Repository
             $values['target_location'] = $targetLocation;
         }
 
+        if ($paymentMethod) {
+            $whereClauses[] = "payment_method = :payment_method";
+            $values['payment_method'] = $paymentMethod;
+        }
+
+        // NOTE: this check is doing nothing as the property checked will always have a value and we should never pass 0 (zero)
         if ($targetAudience) {
             $whereClauses[] = "target_suitability = :target_suitability";
             $values['target_suitability'] = $targetAudience;
+        }
+
+        if ($entityGuid) {
+            $whereClauses[] = "entity_guid = :entity_guid";
+            $values['entity_guid'] = $entityGuid;
         }
 
         $hiddenEntitiesJoin = "";
@@ -137,7 +158,7 @@ class Repository
         /**
          * Hide entities if a user has aid they don't want to see them
          */
-        if ($loggedInUser) {
+        if (!$forApprovalQueue && $loggedInUser) {
             $hiddenEntitiesJoin = " LEFT JOIN entities_hidden
                 ON boosts.entity_guid = entities_hidden.entity_guid
                 AND entities_hidden.user_guid = :user_guid";
@@ -159,12 +180,26 @@ class Repository
             $orderByClause = " ORDER BY boost_rankings.$orderByRankingAudience DESC, boosts.approved_timestamp ASC";
         }
 
+        /**
+         * Joins with the boost_summaries table to get total views
+         * Can be expanded later to get other aggregated statistics
+         */
+        $summariesJoin = " LEFT JOIN (
+                SELECT guid, SUM(views) as total_views FROM boost_summaries
+                GROUP BY 1
+            ) summary 
+            ON boosts.guid=summary.guid";
+        $selectColumns[] = "summary.total_views";
+        
+
         $whereClause = '';
         if (count($whereClauses)) {
             $whereClause = 'WHERE '.implode(' AND ', $whereClauses);
         }
 
-        $query = "SELECT boosts.* FROM boosts $hiddenEntitiesJoin $orderByRankingJoin $whereClause $orderByClause LIMIT :offset, :limit";
+        $selectColumnsStr = implode(',', $selectColumns);
+
+        $query = "SELECT $selectColumnsStr FROM boosts $summariesJoin $hiddenEntitiesJoin $orderByRankingJoin $whereClause $orderByClause LIMIT :offset, :limit";
         $values['offset'] = $offset;
         $values['limit'] = $limit + 1;
 
@@ -194,7 +229,8 @@ class Repository
                     createdTimestamp: strtotime($boostData['created_timestamp']),
                     paymentTxId: $boostData['payment_tx_id'],
                     updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
-                    approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null
+                    approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
+                    summaryViewsDelivered: (int) $boostData['total_views'],
                 )
             )
                 ->setGuid($boostData['guid'])
@@ -276,6 +312,22 @@ class Repository
         return $statement->execute();
     }
 
+    public function cancelBoost(string $boostGuid, string $userGuid): bool
+    {
+        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid AND user_guid = :user_guid";
+        $values = [
+            'status' => BoostStatus::CANCELLED,
+            'updated_timestamp' => date('c', time()),
+            'guid' => $boostGuid,
+            'user_guid' => $userGuid,
+        ];
+
+        $statement = $this->mysqlClientWriter->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        return $statement->execute();
+    }
+
     public function updateStatus(string $boostGuid, int $status): bool
     {
         $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid";
@@ -289,5 +341,54 @@ class Repository
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         return $statement->execute();
+    }
+
+    /**
+     * Get admin stats.
+     * @param int $targetStatus - target status to get stats for.
+     * @param int|null $targetLocation - target location to get stats for.
+     * @param int|null $paymentMethod - payment method to get stats for.
+     * @return array key value array with admin stats.
+     */
+    public function getAdminStats(
+        int $targetStatus = BoostStatus::PENDING,
+        ?int $targetLocation = null,
+        ?int $paymentMethod = null,
+    ): array {
+        $values = [];
+        $whereClauses = [];
+
+        $whereClauses[] = "status = :status";
+        $values['status'] = $targetStatus;
+
+        if ($targetLocation) {
+            $whereClauses[] = "target_location = :target_location";
+            $values['target_location'] = $targetLocation;
+        }
+
+        if ($paymentMethod) {
+            $whereClauses[] = "payment_method = :payment_method";
+            $values['payment_method'] = $paymentMethod;
+        }
+
+        $whereClause = '';
+        if (count($whereClauses)) {
+            $whereClause = 'WHERE '.implode(' AND ', $whereClauses);
+        }
+
+        $query = "SELECT
+            SUM(CASE WHEN boosts.target_suitability = :safe_audience THEN 1 ELSE 0 END) as safe_count,
+            SUM(CASE WHEN boosts.target_suitability = :controversial_audience THEN 1 ELSE 0 END) AS controversial_count
+            FROM boosts $whereClause";
+
+        $values['safe_audience'] = BoostTargetAudiences::SAFE;
+        $values['controversial_audience'] = BoostTargetAudiences::CONTROVERSIAL;
+
+        $statement = $this->mysqlClientReader->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        $statement->execute();
+
+        return $statement->fetch(PDO::FETCH_ASSOC);
     }
 }

@@ -61,4 +61,9 @@ interface PushNotificationInterface
      * @return int
      */
     public function getUnreadCount(): int;
+
+    /**
+     * @return array
+     */
+    public function getMetadata(): array;
 }

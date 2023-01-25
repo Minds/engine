@@ -17,16 +17,13 @@ use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentFailedException;
 use Minds\Entities\Activity;
 use Minds\Entities\Image;
-use Minds\Entities\MindsObject;
 use Minds\Entities\User;
 use Minds\Entities\Video;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserErrorException;
-use Minds\Helpers\File;
 use Stripe\Exception\ApiErrorException;
 use Zend\Diactoros\Response\JsonResponse;
-use Zend\Diactoros\Response\TextResponse;
 use Zend\Diactoros\ServerRequest;
 
 class Controller
@@ -111,7 +108,7 @@ class Controller
                 // This can be revisited once we migrate entirely away from ->entity_guid support.
                 throw new UserErrorException("The post your are trying to remind or quote was not found");
             }
-                    
+
             // throw and error return response if acl interaction check fails.
 
             if (!$this->acl->interact($remind, $user)) {
@@ -151,7 +148,7 @@ class Controller
             if (isset($payload['wire_threshold']) && $payload['wire_threshold']) {
                 throw new UserErrorException("You can not monetize group posts");
             }
-                    
+
             $activity->container_guid = $payload['container_guid'];
             if ($container = $this->entitiesBuilder->single($activity->container_guid)) {
                 $activity->containerObj = $container->export();
@@ -292,7 +289,7 @@ class Controller
         if (!$activity) {
             throw new UserErrorException('Activity not found');
         }
-    
+
         // When editing media posts, they can sometimes be non-activity entities
         // so we provide some additional field
         // TODO: Anoter possible bug is the descrepency between 'description' and 'message'
@@ -314,7 +311,7 @@ class Controller
          * Check we can edit
          */
         if (!$activity->canEdit()) {
-            throw new ForbiddenException();
+            throw new ForbiddenException("Invalid permission to edit this activity post");
         }
 
         /**
@@ -373,7 +370,7 @@ class Controller
          * License
          */
         $mutatedActivity->setLicense($payload['license'] ?? $payload['attachment_license'] ?? '');
-    
+
         /**
          * Rich embeds
          */

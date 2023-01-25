@@ -1,5 +1,5 @@
 <?php
-namespace Minds\Core\Boost\V3\Insights;
+namespace Minds\Core\Boost\V3\Common;
 
 use Minds\Core\Data\Cassandra\Scroll;
 use Minds\Core\Data\Cassandra\Prepared;
