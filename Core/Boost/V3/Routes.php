@@ -51,6 +51,10 @@ class Routes extends ModuleRoutes
                             'admin',
                             Ref::_(Controller::class, 'getBoostsForAdmin')
                         );
+                        $route->get(
+                            'admin/stats',
+                            Ref::_(Controller::class, 'getAdminStats')
+                        );
                         $route->post(
                             ':guid/approve',
                             Ref::_(Controller::class, 'approveBoost')
