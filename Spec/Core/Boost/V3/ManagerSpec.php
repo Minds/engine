@@ -733,6 +733,27 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturnAnInstanceOf(Response::class);
     }
 
+    public function it_should_get_admin_stats()
+    {
+        $globalPendingStats = [
+            'safe_count' => 56,
+            'controversial_count' => 92
+        ];
+
+        $this->repository->getAdminStats(
+            targetStatus: BoostStatus::PENDING
+        )
+            ->shouldBeCalled()
+            ->willReturn($globalPendingStats);
+
+        $this->getAdminStats()->shouldBeLike(new Response([
+            'global_pending' => [
+                'safe_count' => $globalPendingStats['safe_count'],
+                'controversial_count' => $globalPendingStats['controversial_count']
+            ]
+        ]));
+    }
+
     // public function it_should_get_boosts_as_feed_sync_entity(
     //     Boost $boost
     // ): void {

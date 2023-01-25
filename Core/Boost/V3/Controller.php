@@ -182,6 +182,16 @@ class Controller
     }
 
     /**
+     * Get admin stats.
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     */
+    public function getAdminStats(ServerRequestInterface $request): JsonResponse
+    {
+        return new JsonResponse($this->manager->getAdminStats());
+    }
+
+    /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
      * @throws Exceptions\BoostNotFoundException

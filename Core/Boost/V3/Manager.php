@@ -411,6 +411,24 @@ class Manager
     }
 
     /**
+     * Get admin stats from repository.
+     * @return Response admin stats as response.
+     */
+    public function getAdminStats(): Response
+    {
+        $globalPendingStats = $this->repository->getAdminStats(
+            targetStatus: BoostStatus::PENDING
+        );
+
+        return new Response([
+            'global_pending' => [
+                'safe_count' => (int) $globalPendingStats['safe_count'],
+                'controversial_count' => (int) $globalPendingStats['controversial_count']
+            ]
+        ]);
+    }
+
+    /**
      * Casts an array of boosts to feed sync entities from boost,
      * containing the exported boosted content.
      * @param iterable $boosts - boosts to cast
