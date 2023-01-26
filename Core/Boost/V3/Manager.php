@@ -216,6 +216,45 @@ class Manager
     }
 
     /**
+     * @param string $boostGuid
+     * @return bool
+     * @throws ApiErrorException
+     * @throws BoostPaymentRefundFailedException
+     * @throws Exception
+     * @throws Exceptions\BoostNotFoundException
+     * @throws InvalidBoostPaymentMethodException
+     * @throws KeyNotSetupException
+     * @throws LockFailedException
+     * @throws NotImplementedException
+     * @throws ServerErrorException
+     */
+    public function cancelBoost(string $boostGuid): bool
+    {
+        // Only process if status is Pending
+        $boost = $this->repository->getBoostByGuid($boostGuid);
+
+        if ($boost->getStatus() !== BoostStatus::PENDING) {
+            throw new IncorrectBoostStatusException();
+        }
+
+        // Mark request as Refund_in_progress
+        $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_IN_PROGRESS);
+
+        if (!$this->paymentProcessor->refundBoostPayment($boost)) {
+            throw new BoostPaymentRefundFailedException();
+        }
+
+        // Mark request as Refund_processed
+        $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_PROCESSED);
+
+        if (!$this->repository->cancelBoost($boostGuid, $this->user->getGuid())) {
+            throw new ServerErrorException();
+        }
+
+        return true;
+    }
+
+    /**
      * @param int $limit
      * @param int $offset
      * @param int|null $targetStatus
@@ -236,6 +275,7 @@ class Manager
         bool $orderByRanking = false,
         int $targetAudience = BoostTargetAudiences::SAFE,
         ?int $targetLocation = null,
+        ?int $paymentMethod = null,
         ?string $entityGuid = null
     ): Response {
         $hasNext = false;
@@ -248,6 +288,7 @@ class Manager
             orderByRanking: $orderByRanking,
             targetAudience: $targetAudience,
             targetLocation: $targetLocation,
+            paymentMethod: $paymentMethod,
             entityGuid: $entityGuid,
             loggedInUser: $this->user,
             hasNext: $hasNext
@@ -345,6 +386,24 @@ class Manager
             'guid' => $guid,
             'checksum' => $checksum
         ];
+    }
+
+    /**
+     * Get admin stats from repository.
+     * @return Response admin stats as response.
+     */
+    public function getAdminStats(): Response
+    {
+        $globalPendingStats = $this->repository->getAdminStats(
+            targetStatus: BoostStatus::PENDING
+        );
+
+        return new Response([
+            'global_pending' => [
+                'safe_count' => (int) $globalPendingStats['safe_count'],
+                'controversial_count' => (int) $globalPendingStats['controversial_count']
+            ]
+        ]);
     }
 
     /**

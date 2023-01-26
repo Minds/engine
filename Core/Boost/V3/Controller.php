@@ -75,13 +75,21 @@ class Controller
     {
         $loggedInUser = $request->getAttribute('_user');
 
-        ['status' => $targetStatus] = $request->getQueryParams();
+        $queryParams = $request->getQueryParams();
+
+        $limit = $queryParams['limit'] ?? 12;
+        $offset = $queryParams['offset'] ?? 0;
+        $targetLocation = $queryParams['location'] ?? null;
+        $targetStatus = $queryParams['status'] ?? null;
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
             ->getBoosts(
+                limit: (int) $limit,
+                offset: (int) $offset,
                 targetStatus: (int) $targetStatus,
-                targetUserGuid: $loggedInUser->getGuid()
+                targetUserGuid: $loggedInUser->getGuid(),
+                targetLocation: (int) $targetLocation ?: null
             );
         return new JsonResponse([
             'boosts' => Exportable::_($boosts),
@@ -147,21 +155,40 @@ class Controller
     {
         $loggedInUser = $request->getAttribute('_user');
 
-        $status = null;
-        if (array_key_exists('status', $request->getQueryParams())) {
-            ['status' => $status] = $request->getQueryParams();
-        }
+        $queryParams = $request->getQueryParams();
+
+        $limit = $queryParams['limit'] ?? 12;
+        $offset = $queryParams['offset'] ?? 0;
+        $targetLocation = $queryParams['location'] ?? null;
+        $targetStatus = $queryParams['status'] ?? null;
+        $targetAudience = $queryParams['audience'] ?? null;
+        $paymentMethod = $queryParams['payment_method'] ?? null;
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
             ->getBoosts(
-                targetStatus: $status,
-                forApprovalQueue: true
+                limit: (int) $limit,
+                offset: (int) $offset,
+                targetStatus: (int) $targetStatus ?: null,
+                forApprovalQueue: true,
+                targetAudience: (int) $targetAudience,
+                targetLocation: (int) $targetLocation ?: null,
+                paymentMethod: (int) $paymentMethod ?: null
             );
         return new JsonResponse([
             'boosts' => Exportable::_($boosts),
             'has_more' => $boosts->getPagingToken(),
         ]);
+    }
+
+    /**
+     * Get admin stats.
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     */
+    public function getAdminStats(ServerRequestInterface $request): JsonResponse
+    {
+        return new JsonResponse($this->manager->getAdminStats());
     }
 
     /**
@@ -201,6 +228,30 @@ class Controller
         $boostGuid = $request->getAttribute("parameters")["guid"];
 
         $this->manager->rejectBoost((string) $boostGuid);
+
+        return new JsonResponse([]);
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     * @throws ApiErrorException
+     * @throws Exceptions\BoostNotFoundException
+     * @throws Exceptions\BoostPaymentCaptureFailedException
+     * @throws InvalidBoostPaymentMethodException
+     * @throws KeyNotSetupException
+     * @throws LockFailedException
+     * @throws NotImplementedException
+     * @throws ServerErrorException
+     */
+    public function cancelBoost(ServerRequestInterface $request): JsonResponse
+    {
+        $loggedInUser = $request->getAttribute('_user');
+        $boostGuid = $request->getAttribute("parameters")["guid"];
+
+        $this->manager
+            ->setUser($loggedInUser)
+            ->cancelBoost((string) $boostGuid);
 
         return new JsonResponse([]);
     }

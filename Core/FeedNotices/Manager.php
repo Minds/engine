@@ -4,16 +4,17 @@ namespace Minds\Core\FeedNotices;
 
 use Minds\Core\Di\Di;
 use Minds\Core\FeedNotices\Notices\BoostChannelNotice;
-use Minds\Core\FeedNotices\Notices\VerifyEmailNotice;
-use Minds\Core\FeedNotices\Notices\ConnectWalletNotice;
-use Minds\Core\FeedNotices\Notices\SetupChannelNotice;
-use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
 use Minds\Core\FeedNotices\Notices\BuildYourAlgorithmNotice;
-use Minds\Core\FeedNotices\Notices\UpdateTagsNotice;
+use Minds\Core\FeedNotices\Notices\ConnectWalletNotice;
 use Minds\Core\FeedNotices\Notices\EnablePushNotificationsNotice;
 use Minds\Core\FeedNotices\Notices\InviteFriendsNotice;
+use Minds\Core\FeedNotices\Notices\InAppVerifyUniquenessNotice;
 use Minds\Core\FeedNotices\Notices\PlusUpgradeNotice;
+use Minds\Core\FeedNotices\Notices\SetupChannelNotice;
 use Minds\Core\FeedNotices\Notices\SupermindPendingNotice;
+use Minds\Core\FeedNotices\Notices\UpdateTagsNotice;
+use Minds\Core\FeedNotices\Notices\VerifyEmailNotice;
+use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
 use Minds\Core\Log\Logger;
 use Minds\Entities\User;
 
@@ -34,7 +35,8 @@ class Manager
     // Priority notices, to be shown first, in order specified by array.
     private const PRIORITY_NOTICES = [
         VerifyEmailNotice::class,
-        SupermindPendingNotice::class
+        SupermindPendingNotice::class,
+        InAppVerifyUniquenessNotice::class,
     ];
 
     // Non-priority notices - to be shown after priority notices - should be shuffled.
