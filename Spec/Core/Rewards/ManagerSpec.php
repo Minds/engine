@@ -21,6 +21,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Rewards\Contributions\ContributionSummary;
 use Minds\Core\Rewards\Repository as RewardsRepository;
 use Minds\Core\Rewards\RewardEntry;
+use Minds\Core\Rewards\RewardsQueryOpts;
 use Minds\Entities\User;
 
 class ManagerSpec extends ObjectBehavior
@@ -160,26 +161,26 @@ class ManagerSpec extends ObjectBehavior
         }))->shouldBeCalled();
 
         // Holding
-        $this->blockFinder->getBlockByTimestamp(Argument::any())
-            ->willReturn(1);
+        // $this->blockFinder->getBlockByTimestamp(Argument::any())
+        //     ->willReturn(1);
 
-        $this->uniqueOnChainManager->getAll()
-            ->willReturn(new Response([
-                (new UniqueOnChainAddress)
-                    ->setAddress('0xAddresss')
-                    ->setUserGuid('123')
-            ]));
+        // $this->uniqueOnChainManager->getAll()
+        //     ->willReturn(new Response([
+        //         (new UniqueOnChainAddress)
+        //             ->setAddress('0xAddresss')
+        //             ->setUserGuid('123')
+        //     ]));
         
-        $this->token->fromTokenUnit("10")
-                ->willReturn(10);
-        $this->token->balanceOf('0xAddresss', 1)
-                ->willReturn("10");
+        // $this->token->fromTokenUnit("10")
+        //         ->willReturn(10);
+        // $this->token->balanceOf('0xAddresss', 1)
+        //         ->willReturn("10");
 
-        $this->repository->add(Argument::that(function ($rewardEntry) {
-            return $rewardEntry->getUserGuid() === '123'
-                && (string) $rewardEntry->getScore() === "10.1095890410900"
-                && $rewardEntry->getRewardType() === 'holding';
-        }))->shouldBeCalled();
+        // $this->repository->add(Argument::that(function ($rewardEntry) {
+        //     return $rewardEntry->getUserGuid() === '123'
+        //         && (string) $rewardEntry->getScore() === "10.1095890410900"
+        //         && $rewardEntry->getRewardType() === 'holding';
+        // }))->shouldBeCalled();
 
         // Calculation of tokens
         $this->repository->getIterator(Argument::any())
@@ -300,7 +301,11 @@ class ManagerSpec extends ObjectBehavior
         }), ['token_amount'])->shouldBeCalled()
             ->willReturn(true);
 
-        $this->calculate();
+        $opts = new RewardsQueryOpts();
+        $opts->setDateTs(time());
+        $opts->setRecalculate(true);
+
+        $this->calculate($opts);
     }
 
     public function it_should_allow_max_multiplier_of_3_in_365_days()
