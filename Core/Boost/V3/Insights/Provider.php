@@ -22,8 +22,5 @@ class Provider extends DiProvider
         Di::_()->bind(Repository::class, function ($di): Repository {
             return new Repository();
         });
-        Di::_()->bind(ViewsScroller::class, function ($di): ViewsScroller {
-            return new ViewsScroller();
-        });
     }
 }
