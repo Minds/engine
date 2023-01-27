@@ -159,14 +159,24 @@ class Manager
         if ($entity instanceof Activity) {
             /** @var Activity */
             $activity = $entity;
-            $content = (string)$activity->getMessage();
+            $title = (string)$activity->getTitle() ?? '';
+            $permaUrl = (string)$activity->getPermaURL() ?? '';
+            $content = (string)$activity->getMessage() ?? '';
 
+            if (!empty($title)) {
+                $content = $title . "\n" . $content;
+            }
+
+            if (!empty($permaUrl)) {
+                $content .= empty($activity->getMessage()) ? $permaUrl : ("\n" . $permaUrl);
+            }
+            
             if (
                 $activity->getEntityGuid()
                 || $activity->isRemind()
                 || $activity->isQuotedPost()
             ) {
-                $content .= ' ' . $activity->getURL();
+                $content .= "\n" . $activity->getURL();
             }
 
             $createdAt = $activity->getTimeCreated();

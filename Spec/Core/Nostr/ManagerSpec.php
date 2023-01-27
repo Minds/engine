@@ -142,6 +142,10 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn("123");
         $activity->getTimeCreated()
             ->willReturn(1653047334);
+        $activity->getTitle()
+            ->willReturn("");
+        $activity->getPermaURL()
+            ->willReturn("");
         $activity->getMessage()
             ->willReturn('Hello nostr. This is Minds calling');
         $activity->getEntityGuid()
