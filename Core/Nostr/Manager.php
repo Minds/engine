@@ -163,12 +163,14 @@ class Manager
             $permaUrl = (string)$activity->getPermaURL() ?? '';
             $content = (string)$activity->getMessage() ?? '';
 
+            // If we have a title, prefix the content with it
             if (!empty($title)) {
                 $content = $title . "\n" . $content;
-            }
 
-            if (!empty($permaUrl)) {
-                $content .= empty($activity->getMessage()) ? $permaUrl : ("\n" . $permaUrl);
+                // Given a title and a permaweb URL is present, append the URL to the content
+                if (!empty($permaUrl)) {
+                    $content .= empty($activity->getMessage()) ? $permaUrl : ("\n" . $permaUrl);
+                }
             }
             
             if (
