@@ -2,11 +2,15 @@
 
 namespace Minds\Controllers\Cli;
 
-use Minds\Core;
-use Minds\Core\Di\Di;
+use DateTime;
 use Minds\Cli;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Core;
+use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
+use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Core\Di\Di;
+use Minds\Core\Security\ACL;
 use Minds\Exceptions\CliException;
 use Minds\Interfaces;
 use Monolog\Logger as MonologLogger;
@@ -21,7 +25,7 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
     {
         $this->out('TBD');
     }
-    
+
     public function exec()
     {
         $this->out('Usage: cli boost [*]');
@@ -44,26 +48,52 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->out('done');
     }
 
+    /**
+     * Run continously to ensure boosts are correctly ranked and served
+     * `php cli.php Boost rank`
+     */
     public function rank()
     {
+        Di::_()->get('Config')->set('min_log_level', MonologLogger::INFO);
+
         /** @var Core\Boost\V3\Ranking\Manager */
         $rankingManager = Di::_()->get(Core\Boost\V3\Ranking\Manager::class);
 
         while (true) {
-            $this->simulateViews();
-
             $rankingManager->calculateRanks();
 
             // There is a memory leak, uncomment to log
             // $mem = memory_get_usage();
             // Di::_()->get('Logger')->info(round($mem/1048576, 2) . 'mb used');
-    
+
             sleep(1);
         }
 
         $this->out('Done');
     }
 
+    /**
+     * Call this function to sync views to summaries
+     * `php cli.php Boost syncViews`
+     */
+    public function syncViews()
+    {
+        Di::_()->get('Config')->set('min_log_level', MonologLogger::INFO);
+
+        ACL::_()->setIgnore(true);
+
+        /** @var Core\Boost\V3\Summaries\Manager */
+        $summariesManager = Di::_()->get(Core\Boost\V3\Summaries\Manager::class);
+
+        $summariesManager->sync(new DateTime('midnight'));
+
+        $this->out('Done');
+    }
+
+    /**
+     * use for testing in your local environments only!
+     * `php cli.php Boost simulateViews`
+     */
     protected function simulateViews()
     {
         $viewsManager = new Core\Analytics\Views\Manager();
@@ -96,6 +126,25 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
      * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='create'
      * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='reject' --rejectionReason=3
      * @return void
+     */
+    public function processExpired()
+    {
+        /**
+         * @var Core\Boost\V3\Manager $boostManager
+         */
+        $boostManager = Di::_()->get(Core\Boost\V3\Manager::class);
+
+        $boostManager->processExpiredApprovedBoosts();
+    }
+
+    /**
+     * Trigger an action event for a given boost. Does NOT mark the boost states, just pushes to action event topic.
+     * @return void
+     * @throws CliException
+     * @example
+     * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='complete'
+     * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='approve'
+     * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='reject' --rejectionReason=3
      */
     public function triggerActionEvent(): void
     {

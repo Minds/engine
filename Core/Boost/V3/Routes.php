@@ -32,6 +32,10 @@ class Routes extends ModuleRoutes
                     '',
                     Ref::_(Controller::class, 'createBoost')
                 );
+                $route->post(
+                    ':guid/cancel',
+                    Ref::_(Controller::class, 'cancelBoost')
+                );
 
                 $route->post(
                     'prepare-onchain/:entityGuid',
@@ -46,6 +50,10 @@ class Routes extends ModuleRoutes
                         $route->get(
                             'admin',
                             Ref::_(Controller::class, 'getBoostsForAdmin')
+                        );
+                        $route->get(
+                            'admin/stats',
+                            Ref::_(Controller::class, 'getAdminStats')
                         );
                         $route->post(
                             ':guid/approve',

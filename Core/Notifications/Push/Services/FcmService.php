@@ -23,7 +23,6 @@ class FcmService extends AbstractService implements PushServiceInterface
     /**
      * @param PushNotification $pushNotification
      * @return bool
-     * @throws Exception
      * @throws GuzzleException
      * @throws UndeliverableException
      */
@@ -40,6 +39,7 @@ class FcmService extends AbstractService implements PushServiceInterface
                     'bigPicture' => $pushNotification->getMedia(),
                     'badge' => (string) $pushNotification->getUnreadCount(), // Has to be a string
                     'user_guid' => $pushNotification->getUserGuid(),
+                    'metadata' => json_encode($pushNotification->getMetadata())
                 ],
                 'token' => $pushNotification->getDeviceSubscription()->getToken(),
             ],

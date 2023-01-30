@@ -5,6 +5,7 @@ namespace Minds\Core\Recommendations\Algorithms\FriendsOfFriend\Validators;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Interfaces\ValidatorInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Validates the repository options for the FriendsOfFriends recommendation algorithm
@@ -23,7 +24,7 @@ class RepositoryOptionsValidator implements ValidatorInterface
     /**
      * @inheritDoc
      */
-    public function validate(array $dataToValidate): bool
+    public function validate(array|ServerRequestInterface $dataToValidate): bool
     {
         $this->clearErrors();
 

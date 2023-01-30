@@ -2,13 +2,14 @@
 namespace Minds\Helpers;
 
 use Minds\Core;
+use Minds\Entities\User;
 
 class Flags
 {
     public static function shouldFail($entity)
     {
         $currentUser = Core\Session::getLoggedInUserGuid();
-        $owner = $entity->type == 'user' ? $entity->guid : $entity->owner_guid;
+        $owner = $entity instanceof User ? $entity->guid : $entity->getOwnerGuid();
 
         if (
             // Core\Session::isAdmin() ||

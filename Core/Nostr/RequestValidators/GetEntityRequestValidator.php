@@ -4,6 +4,7 @@ namespace Minds\Core\Nostr\RequestValidators;
 
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
+use Psr\Http\Message\ServerRequestInterface;
 
 class GetEntityRequestValidator implements \Minds\Interfaces\ValidatorInterface
 {
@@ -17,7 +18,7 @@ class GetEntityRequestValidator implements \Minds\Interfaces\ValidatorInterface
     /**
      * @inheritDoc
      */
-    public function validate(array $dataToValidate): bool
+    public function validate(array|ServerRequestInterface $dataToValidate): bool
     {
         $this->resetErrors();
 

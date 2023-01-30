@@ -39,6 +39,8 @@ class ApnsServiceSpec extends ObjectBehavior
             ->willReturn('This is the body line');
         $pushNotification->getUnreadCount()
             ->willReturn(2);
+        $pushNotification->getMetadata()
+            ->willReturn([]);
         $pushNotification->getUri()
             ->willReturn('uri-here');
         $pushNotification->getIcon()

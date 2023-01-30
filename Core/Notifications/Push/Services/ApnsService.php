@@ -35,6 +35,7 @@ class ApnsService extends AbstractService implements PushServiceInterface
             'uri' => $pushNotification->getUri(),
             'user_guid' => $pushNotification->getDeviceSubscription()->getUserGuid(),
             'largeIcon' => $pushNotification->getIcon(),
+            'metadata' => json_encode($pushNotification->getMetadata())
         ];
 
         $headers = [

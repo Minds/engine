@@ -14,4 +14,5 @@ class BoostStatus
     public const REPORTED = 7;
     public const PENDING_ONCHAIN_CONFIRMATION = 8;
     public const COMPLETED = 9;
+    public const CANCELLED = 10;
 }

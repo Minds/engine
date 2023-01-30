@@ -7,6 +7,7 @@ use Exception;
 use Minds\Common\Repository\Response;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\Checksum;
+use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
@@ -25,6 +26,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
+use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
@@ -37,6 +39,8 @@ class Manager
 {
     private ?User $user = null;
 
+    private ?Logger $logger = null;
+
     public function __construct(
         private ?Repository $repository = null,
         private ?PaymentProcessor $paymentProcessor = null,
@@ -47,6 +51,8 @@ class Manager
         $this->paymentProcessor ??= new PaymentProcessor();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->actionEventDelegate ??= Di::_()->get(ActionEventDelegate::class);
+
+        $this->logger = Di::_()->get("Logger");
     }
 
     /**
@@ -219,6 +225,45 @@ class Manager
     }
 
     /**
+     * @param string $boostGuid
+     * @return bool
+     * @throws ApiErrorException
+     * @throws BoostPaymentRefundFailedException
+     * @throws Exception
+     * @throws Exceptions\BoostNotFoundException
+     * @throws InvalidBoostPaymentMethodException
+     * @throws KeyNotSetupException
+     * @throws LockFailedException
+     * @throws NotImplementedException
+     * @throws ServerErrorException
+     */
+    public function cancelBoost(string $boostGuid): bool
+    {
+        // Only process if status is Pending
+        $boost = $this->repository->getBoostByGuid($boostGuid);
+
+        if ($boost->getStatus() !== BoostStatus::PENDING) {
+            throw new IncorrectBoostStatusException();
+        }
+
+        // Mark request as Refund_in_progress
+        $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_IN_PROGRESS);
+
+        if (!$this->paymentProcessor->refundBoostPayment($boost)) {
+            throw new BoostPaymentRefundFailedException();
+        }
+
+        // Mark request as Refund_processed
+        $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_PROCESSED);
+
+        if (!$this->repository->cancelBoost($boostGuid, $this->user->getGuid())) {
+            throw new ServerErrorException();
+        }
+
+        return true;
+    }
+
+    /**
      * @param int $limit
      * @param int $offset
      * @param int|null $targetStatus
@@ -226,6 +271,8 @@ class Manager
      * @param string|null $targetUserGuid
      * @param bool $orderByRanking
      * @param int $targetAudience
+     * @param int|null $targetLocation
+     * @param string|null $entityGuid
      * @return Response
      */
     public function getBoosts(
@@ -236,7 +283,9 @@ class Manager
         ?string $targetUserGuid = null,
         bool $orderByRanking = false,
         int $targetAudience = BoostTargetAudiences::SAFE,
-        ?int $targetLocation = null
+        ?int $targetLocation = null,
+        ?int $paymentMethod = null,
+        ?string $entityGuid = null
     ): Response {
         $hasNext = false;
         $boosts = $this->repository->getBoosts(
@@ -248,6 +297,8 @@ class Manager
             orderByRanking: $orderByRanking,
             targetAudience: $targetAudience,
             targetLocation: $targetLocation,
+            paymentMethod: $paymentMethod,
+            entityGuid: $entityGuid,
             loggedInUser: $this->user,
             hasNext: $hasNext
         );
@@ -296,7 +347,7 @@ class Manager
     /**
      * Get a single boost by its GUID.
      * @param string $boostGuid - guid to get boost for.
-     * @return Boost - boost with matching GUID.
+     * @return Boost|null - boost with matching GUID.
      */
     public function getBoostByGuid(string $boostGuid): ?Boost
     {
@@ -339,11 +390,46 @@ class Manager
             ->setGuid($guid)
             ->setEntity($entity)
             ->generate();
-    
+
         return [
             'guid' => $guid,
             'checksum' => $checksum
         ];
+    }
+
+    public function processExpiredApprovedBoosts(): void
+    {
+        $this->repository->beginTransaction();
+
+        foreach ($this->repository->getExpiredApprovedBoosts() as $boost) {
+            $this->repository->updateStatus($boost->getGuid(), BoostStatus::COMPLETED);
+
+            $this->actionEventDelegate->onComplete($boost);
+
+            echo "\n";
+            $this->logger->addInfo("Boost {$boost->getGuid()} has been marked as COMPLETED");
+            echo "\n";
+        }
+
+        $this->repository->commitTransaction();
+    }
+
+    /**
+     * Get admin stats from repository.
+     * @return Response admin stats as response.
+     */
+    public function getAdminStats(): Response
+    {
+        $globalPendingStats = $this->repository->getAdminStats(
+            targetStatus: BoostStatus::PENDING
+        );
+
+        return new Response([
+            'global_pending' => [
+                'safe_count' => (int) $globalPendingStats['safe_count'],
+                'controversial_count' => (int) $globalPendingStats['controversial_count']
+            ]
+        ]);
     }
 
     /**

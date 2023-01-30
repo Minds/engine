@@ -13,6 +13,7 @@ use Minds\Traits\MagicAttributes;
  * @method self setIcon(string $icon)
  * @method self setMedia(string $media)
  * @method self setDeviceSubscription(DeviceSubscription $deviceSubscription)
+ * @method self setMetadata(array $metadata)
  */
 class CustomPushNotification implements PushNotificationInterface
 {
@@ -25,6 +26,7 @@ class CustomPushNotification implements PushNotificationInterface
     private ?string $icon;
     private ?string $media;
     private DeviceSubscription $deviceSubscription;
+    private array $metadata = [];
 
     /**
      * @return string
@@ -95,5 +97,10 @@ class CustomPushNotification implements PushNotificationInterface
     public function getUnreadCount(): int
     {
         return 1;
+    }
+
+    public function getMetadata(): array
+    {
+        return $this->metadata;
     }
 }
