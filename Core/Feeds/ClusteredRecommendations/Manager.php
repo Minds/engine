@@ -34,7 +34,6 @@ class Manager
         $this->seenManager = $seenManager ?? Di::_()->get('Feeds\Seen\Manager');
         $this->repositoryFactory ??= new RepositoryFactory();
         $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
-        $this->repository ??= $this->getRepository();
     }
 
     /**
@@ -43,7 +42,11 @@ class Manager
      */
     private function getRepository(): RepositoryInterface
     {
-        return $this->repositoryFactory->getInstance(MySQLRepository::class);
+        $this->experimentsManager->setUser($this->user);
+        return match ($this->experimentsManager->isOn('engine-2494-clustered-recs-v2')) {
+            true => $this->repositoryFactory->getInstance(MySQLRepository::class),
+            default => $this->repositoryFactory->getInstance(LegacyMySQLRepository::class)
+        };
     }
 
     /**
@@ -66,7 +69,15 @@ class Manager
      */
     public function getList(int $limit, bool $unseen = false): Response
     {
-        $clusterId = $this->userRecommendationsCluster->calculateUserRecommendationsClusterId($this->user);
+        $this->repository ??= $this->getRepository();
+
+        $clusterId = 0;
+        if (!$this->experimentsManager->isOn('engine-2494-clustered-recs-v2')) {
+            $clusterId = $this->userRecommendationsCluster->calculateUserRecommendationsClusterId($this->user);
+        } else {
+            $this->repository->setUser($this->user);
+        }
+
         $seenEntitiesList = [];
 
         $entries = $this->repository->getList($clusterId, $limit, $seenEntitiesList, $unseen, $this->seenManager->getIdentifier());
