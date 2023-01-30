@@ -123,8 +123,18 @@ class Repository
         $whereClauses = [];
 
         if ($targetStatus) {
-            $whereClauses[] = "status = :status";
+            $statusWhereClause = "(status = :status";
             $values['status'] = $targetStatus;
+
+            if ($targetStatus !== BoostStatus::COMPLETED) {
+                $statusWhereClause .= " AND :expired_timestamp < TIMESTAMPADD(DAY, duration_days, approved_timestamp)";
+            } else {
+                $statusWhereClause .= " OR :expired_timestamp >= TIMESTAMPADD(DAY, duration_days, approved_timestamp)";
+            }
+            $values['expired_timestamp'] = date('c', time());
+
+            $statusWhereClause = ")";
+            $whereClauses[] = $statusWhereClause;
         }
 
         if (!$forApprovalQueue && $targetUserGuid) {
@@ -190,7 +200,7 @@ class Repository
             ) summary 
             ON boosts.guid=summary.guid";
         $selectColumns[] = "summary.total_views";
-        
+
 
         $whereClause = '';
         if (count($whereClauses)) {
@@ -314,12 +324,12 @@ class Repository
 
     public function cancelBoost(string $boostGuid, string $userGuid): bool
     {
-        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid AND user_guid = :user_guid";
+        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid AND owner_guid = :owner_guid";
         $values = [
             'status' => BoostStatus::CANCELLED,
             'updated_timestamp' => date('c', time()),
             'guid' => $boostGuid,
-            'user_guid' => $userGuid,
+            'owner_guid' => $userGuid,
         ];
 
         $statement = $this->mysqlClientWriter->prepare($query);
@@ -342,6 +352,8 @@ class Repository
 
         return $statement->execute();
     }
+
+
 
     /**
      * Get admin stats.
@@ -373,7 +385,7 @@ class Repository
 
         $whereClause = '';
         if (count($whereClauses)) {
-            $whereClause = 'WHERE '.implode(' AND ', $whereClauses);
+            $whereClause = 'WHERE ' . implode(' AND ', $whereClauses);
         }
 
         $query = "SELECT
@@ -390,5 +402,43 @@ class Repository
         $statement->execute();
 
         return $statement->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * @return iterable<Boost>|null
+     */
+    public function getExpiredApprovedBoosts(): ?iterable
+    {
+        $query = "SELECT * FROM boosts WHERE status = :status AND :expired_timestamp > TIMESTAMPADD(DAY, duration_days, approved_timestamp)";
+        $values = [
+            "status" => BoostStatus::APPROVED,
+            "expired_timestamp" => date('c', time())
+        ];
+        $statement = $this->mysqlClientReader->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        $statement->execute();
+        if ($statement->rowCount() === 0) {
+            return null;
+        }
+
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $boostData) {
+            yield (new Boost(
+                entityGuid: $boostData['entity_guid'],
+                targetLocation: (int) $boostData['target_location'],
+                targetSuitability: (int) $boostData['target_suitability'],
+                paymentMethod: (int) $boostData['payment_method'],
+                paymentAmount: (float) $boostData['payment_amount'],
+                dailyBid: (int) $boostData['daily_bid'],
+                durationDays: (int) $boostData['duration_days'],
+                status: (int) $boostData['status'],
+                createdTimestamp: strtotime($boostData['created_timestamp']),
+                paymentTxId: $boostData['payment_tx_id'],
+                updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
+                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null
+            ))
+                ->setGuid($boostData['guid'])
+                ->setOwnerGuid($boostData['owner_guid']);
+        }
     }
 }
