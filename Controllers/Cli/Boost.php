@@ -3,11 +3,11 @@
 namespace Minds\Controllers\Cli;
 
 use DateTime;
-use Minds\Core;
-use Minds\Core\Di\Di;
 use Minds\Cli;
+use Minds\Core;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Core\Di\Di;
 use Minds\Core\Security\ACL;
 use Minds\Exceptions\CliException;
 use Minds\Interfaces;
@@ -23,7 +23,7 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
     {
         $this->out('TBD');
     }
-    
+
     public function exec()
     {
         $this->out('Usage: cli boost [*]');
@@ -63,7 +63,7 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
             // There is a memory leak, uncomment to log
             // $mem = memory_get_usage();
             // Di::_()->get('Logger')->info(round($mem/1048576, 2) . 'mb used');
-    
+
             sleep(1);
         }
 
@@ -115,14 +115,24 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
         }
     }
 
+    public function processExpired()
+    {
+        /**
+         * @var Core\Boost\V3\Manager $boostManager
+         */
+        $boostManager = Di::_()->get(Core\Boost\V3\Manager::class);
+
+        $boostManager->processExpiredApprovedBoosts();
+    }
+
     /**
      * Trigger an action event for a given boost. Does NOT mark the boost states, just pushes to action event topic.
-     * @param string boostGuid - guid of the boost.
+     * @return void
+     * @throws CliException
      * @example
      * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='complete'
      * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='approve'
      * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='reject' --rejectionReason=3
-     * @return void
      */
     public function triggerActionEvent(): void
     {
@@ -165,7 +175,7 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
             default:
                 throw new CliException('Unknown event type provided. Must be: complete, accept or reject');
         }
-        
+
         $this->out("Completion notice dispatched for boost: $boostGuid");
     }
 }
