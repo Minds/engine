@@ -5,8 +5,8 @@ namespace Minds\Core\Boost\V3;
 
 use Exception;
 use Minds\Common\Repository\Response;
-use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\Checksum;
+use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
@@ -25,6 +25,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
+use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
@@ -37,6 +38,8 @@ class Manager
 {
     private ?User $user = null;
 
+    private ?Logger $logger = null;
+
     public function __construct(
         private ?Repository $repository = null,
         private ?PaymentProcessor $paymentProcessor = null,
@@ -47,6 +50,8 @@ class Manager
         $this->paymentProcessor ??= new PaymentProcessor();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->actionEventDelegate ??= Di::_()->get(ActionEventDelegate::class);
+
+        $this->logger = Di::_()->get("Logger");
     }
 
     /**
@@ -381,11 +386,28 @@ class Manager
             ->setGuid($guid)
             ->setEntity($entity)
             ->generate();
-    
+
         return [
             'guid' => $guid,
             'checksum' => $checksum
         ];
+    }
+
+    public function processExpiredApprovedBoosts(): void
+    {
+        $this->repository->beginTransaction();
+
+        foreach ($this->repository->getExpiredApprovedBoosts() as $boost) {
+            $this->repository->updateStatus($boost->getGuid(), BoostStatus::COMPLETED);
+
+            $this->actionEventDelegate->onComplete($boost);
+
+            echo "\n";
+            $this->logger->addInfo("Boost {$boost->getGuid()} has been marked as COMPLETED");
+            echo "\n";
+        }
+
+        $this->repository->commitTransaction();
     }
 
     /**
