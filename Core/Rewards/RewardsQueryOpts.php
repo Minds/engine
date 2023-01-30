@@ -8,6 +8,8 @@ use Minds\Common\Repository\AbstractRepositoryOpts;
  * @method string getUserGuid()
  * @method self setDateTs(int $unixTs)
  * @method int getDateTs()
+ * @method self setRecalculate(bool $recalculate)
+ * @method bool isRecalculate()
  */
 class RewardsQueryOpts extends AbstractRepositoryOpts
 {
@@ -16,4 +18,7 @@ class RewardsQueryOpts extends AbstractRepositoryOpts
 
     /** @var int */
     protected $dateTs = 0;
+
+    /** @var bool */
+    protected $recalculate = false;
 }
