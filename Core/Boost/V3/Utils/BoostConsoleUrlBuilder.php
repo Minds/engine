@@ -62,7 +62,7 @@ class BoostConsoleUrlBuilder
     private function getBoostLocationParamValue(int $location): string
     {
         return match ($location) {
-            BoostTargetLocation::NEWSFEED => 'newsfeed',
+            BoostTargetLocation::NEWSFEED => 'feed',
             BoostTargetLocation::SIDEBAR => 'sidebar',
             default => '' // not yet implemented
         };
