@@ -7,8 +7,6 @@ use Minds\Cli;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core;
-use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
-use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Di\Di;
 use Minds\Core\Security\ACL;
 use Minds\Exceptions\CliException;
