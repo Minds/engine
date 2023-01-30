@@ -117,16 +117,6 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
         }
     }
 
-    /**
-     * Trigger an action event for a given boost. Does NOT mark the boost states, just pushes to action event topic.
-     * @param string boostGuid - guid of the boost.
-     * @example
-     * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='complete'
-     * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='approve'
-     * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='create'
-     * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='reject' --rejectionReason=3
-     * @return void
-     */
     public function processExpired()
     {
         /**
@@ -139,12 +129,13 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
 
     /**
      * Trigger an action event for a given boost. Does NOT mark the boost states, just pushes to action event topic.
-     * @return void
-     * @throws CliException
+     * @param string boostGuid - guid of the boost.
      * @example
      * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='complete'
      * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='approve'
+     * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='create'
      * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='reject' --rejectionReason=3
+     * @return void
      */
     public function triggerActionEvent(): void
     {
