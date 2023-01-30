@@ -89,7 +89,8 @@ class MySQLRepository implements RepositoryInterface
         $query .= " from
                         minds.recommendations_user_cluster_map as recs_cluster
                         inner join minds.recommendations_cluster_activity_map as recs_activities on
-                            recs_cluster.cluster_id = recs_activities.cluster_id";
+                            recs_cluster.cluster_id = recs_activities.cluster_id
+                            and recs_cluster.user_id <> recs_activities.channel_guid";
 
         if ($demote) {
             $query .= " LEFT JOIN
@@ -103,8 +104,6 @@ class MySQLRepository implements RepositoryInterface
                         user_id = :user_id or user_id = :default_recs_user_id
                     order by
                         user_id desc,
-                        recs_activities.cluster_id,
-                        _valid_from desc,
                         adjusted_score desc
                     limit :limit
                     ";
