@@ -23,6 +23,7 @@ use Minds\Core\Email\V2\Campaigns\Recurring\Supermind\Supermind as SupermindEmai
 
 use Minds\Core\Suggestions\Manager;
 use Minds\Core\Di\Di;
+use Minds\Core\Email\V2\Campaigns\Recurring\SupermindBulkIncentive\SupermindBulkIncentive;
 use Minds\Core\Email\V2\SendLists;
 
 class Email extends Cli\Controller implements Interfaces\CliControllerInterface
@@ -87,6 +88,13 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             ++$i;
 
             $campaign = clone $campaign;
+
+            if ($campaign instanceof SupermindBulkIncentive) {
+                $campaign = $campaign
+                    ->withActivityGuid($this->getOpt('activity-guid'))
+                    ->withReplyType((int) $this->getOpt('reply-type'));
+            }
+
             $campaign->setUser($user);
 
             if (!$dry) {

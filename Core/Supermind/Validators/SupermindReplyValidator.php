@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Minds\Core\Supermind\Validators;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Router\Exceptions\ForbiddenException;
+use Minds\Core\Session;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Manager as SupermindManager;
 use Minds\Core\Supermind\SupermindRequestReplyType;
@@ -12,6 +14,7 @@ use Minds\Entities\Activity;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Interfaces\ValidatorInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 class SupermindReplyValidator implements ValidatorInterface
 {
@@ -29,11 +32,12 @@ class SupermindReplyValidator implements ValidatorInterface
     }
 
     /**
-     * @param array $dataToValidate
+     * @param array|ServerRequestInterface $dataToValidate
      * @return bool
      * @throws SupermindNotFoundException
+     * @throws ForbiddenException
      */
-    public function validate(array $dataToValidate): bool
+    public function validate(array|ServerRequestInterface $dataToValidate): bool
     {
         $this->resetErrors();
 
@@ -100,7 +104,9 @@ class SupermindReplyValidator implements ValidatorInterface
             );
         }
 
-        $supermindRequest = $this->supermindManager->getRequest($dataToValidate['supermind_reply_guid']);
+        $supermindRequest = $this->supermindManager
+            ->setUser(Session::getLoggedinUser())
+            ->getRequest($dataToValidate['supermind_reply_guid']);
 
         /**
          * @var Activity $activity

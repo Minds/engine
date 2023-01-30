@@ -3,6 +3,7 @@ include:
   - template: Security/Container-Scanning.gitlab-ci.yml
 
 stages:
+  - baseimage
   - build
   - test
   - prepare
@@ -13,6 +14,42 @@ stages:
   - deploy:canary
   - deploy:production
   - scan
+
+baseimage:prepare:
+  stage: baseimage
+  image: minds/ci:latest
+  services:
+    - docker:dind
+  script:
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
+    - docker build -t $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID containers/php
+    - docker push $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID
+  rules:
+    - if: '$CI_PIPELINE_SOURCE != "push"'
+      when: never
+    - changes:
+        - containers/php/*
+    - when: manual
+      allow_failure: true
+
+
+baseimage:deploy:
+  stage: baseimage
+  image: minds/ci:latest
+  services:
+    - docker:dind
+  script:
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
+    - docker build -t $CI_REGISTRY_IMAGE/php:pdo containers/php
+    - docker push $CI_REGISTRY_IMAGE/php:pdo
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      changes:
+        - containers/php/*
+    - if: '$CI_COMMIT_REF_NAME != "master"'
+      when: never
+    - when: manual
+      allow_failure: true
 
 build:
   stage: build
@@ -62,7 +99,7 @@ prepare:fpm:
         .
     - docker push $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
     - >
-      if [ $CI_COMMIT_BRANCH == "master" ]; then 
+      if [ $CI_COMMIT_BRANCH == "master" ]; then
         docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:latest &&
         docker push $CI_REGISTRY_IMAGE/fpm:latest
       fi
@@ -83,7 +120,7 @@ prepare:runners:
         .
     - docker push $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
     - >
-      if [ $CI_COMMIT_BRANCH == "master" ]; then 
+      if [ $CI_COMMIT_BRANCH == "master" ]; then
         docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:latest &&
         docker push $CI_REGISTRY_IMAGE/runners:latest
       fi
@@ -108,7 +145,7 @@ container_scanning_runners:
   extends: container_scanning
   stage: scan
   variables:
-    DOCKER_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
+    DOCKER_IMAGE: $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
 
 dependency_scanning:
   stage: scan

@@ -33,14 +33,16 @@ class ElasticRepository
             'order' => null,
             'offchain' => null,
         ], $opts);
-
         $must = [];
         $must_not = [];
-        $sort = [ '@timestamp' => $opts['order'] ?? 'asc' ];
+        $sort = [
+            'bid_type' => 'asc',
+            '@timestamp' => $opts['order'] ?? 'asc'
+        ];
 
         $must[] = [
-            'term' => [
-                'bid_type' => 'tokens',
+            'terms' => [
+                'bid_type' => ['tokens' , 'cash'],
             ],
         ];
 
@@ -122,7 +124,10 @@ class ElasticRepository
                     'field' => '@reviewed',
                 ],
             ];
-            $sort = ['@timestamp' => 'asc'];
+            $sort = [
+                'bid_type' => 'asc',
+                '@timestamp' => 'asc'
+            ];
         }
 
         if ($opts['state'] === 'approved' || $opts['state'] === 'review' || $opts['state'] === 'active') {

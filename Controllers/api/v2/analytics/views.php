@@ -4,8 +4,11 @@
 namespace Minds\Controllers\api\v2\analytics;
 
 use Minds\Api\Factory;
+use Minds\Common\Urn;
 use Minds\Core;
+use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Resolver;
 use Minds\Entities;
 use Minds\Helpers\Counters;
 use Minds\Interfaces;
@@ -26,16 +29,20 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
                 $expire = Di::_()->get('Boost\Network\Expire');
                 $metrics = Di::_()->get('Boost\Network\Metrics');
                 $manager = Di::_()->get('Boost\Network\Manager');
+                $entityResolver = new Resolver();
 
-                $urn = "urn:boost:newsfeed:{$pages[1]}";
+                $urn = $_POST['client_meta']['campaign'] ?? "urn:boost:newsfeed:{$pages[1]}";
 
-                $boost = $manager->get($urn, [ 'hydrate' => true ]);
+                // New style urns will call from the urn resolver. Old style (4 part) urns will use the legacy boost manager
+                $boost = count(explode(':', $urn)) === 3 ? $entityResolver->single(new Urn($urn)) : $manager->get($urn, [ 'hydrate' => true ]);
                 if (!$boost) {
                     return Factory::response([
                         'status' => 'error',
                         'message' => 'Could not find boost'
                     ]);
                 }
+
+                $isV3 = ($boost instanceof Boost);
 
                 if ($_POST['client_meta']['medium'] === 'boost-rotator' && $_POST['client_meta']['position'] < 0) {
                     return Factory::response([
@@ -44,11 +51,15 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
                     ]);
                 }
 
-                $count = $metrics->incrementViews($boost);
+                if (!$isV3) {
+                    $count = $metrics->incrementViews($boost);
 
-                if ($count > $boost->getImpressions()) {
-                    $expire->setBoost($boost);
-                    $expire->expire();
+                    if ($count > $boost->getImpressions()) {
+                        $expire->setBoost($boost);
+                        $expire->expire();
+                    }
+                } else {
+                    $count = 0;
                 }
 
                 Counters::increment($boost->getEntity()->guid, "impression");
@@ -71,11 +82,18 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
                     error_log($e);
                 }
 
-                return Factory::response([
-                    'status' => 'success',
-                    'impressions' => $boost->getImpressions(),
-                    'impressions_met' => $count,
-                ]);
+                if ($isV3) {
+                    Factory::response([
+                        'status' => 'success',
+                    ]);
+                } else {
+                    Factory::response([
+                        'status' => 'success',
+                        'impressions' => $boost->getImpressions(),
+                        'impressions_met' => $count,
+                    ]);
+                }
+                return;
                 break;
             case 'activity':
             case 'entity':

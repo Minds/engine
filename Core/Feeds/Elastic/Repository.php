@@ -204,7 +204,9 @@ class Repository
             // Focus on quotes
             'quote_guid' => null,
             'include_group_posts' => false,
-            'supermind' => false
+            'supermind' => false,
+            'use_legacy_time_ranges' => true,
+            'exclude_scheduled' => false,
         ], $opts);
 
         if (!$opts['type']) {
@@ -519,58 +521,72 @@ class Repository
             ];
         }
 
-        // Time bounds
+        // Exclude Scheduled posts
 
-        $timestampUpperBounds = []; // LTE
-        $timestampLowerBounds = []; // GTE
-
-        if ($algorithm->isTimestampConstrain() && static::PERIODS[$opts['period']] > -1) {
-            $timestampLowerBounds[] = (time() - static::PERIODS[$opts['period']]) * 1000;
-        }
-
-        // Will start the feed after this timestamp (used for pagination)
-        if ($opts['from_timestamp'] && !$opts['to_timestamp']) {
-            if (!$opts['reverse_sort']) {
-                $timestampUpperBounds[] = (int) $opts['from_timestamp'];
-            } else {
-                $timestampLowerBounds[] = (int) $opts['from_timestamp'];
-            }
-        }
-
-        // Load the feed between these two timestamps
-        if ($opts['from_timestamp'] && $opts['to_timestamp']) {
-            $timestampUpperBounds[] = (int) $opts['from_timestamp'];
-            $timestampLowerBounds[] = (int) $opts['to_timestamp'];
-        }
-
-        if (!$opts['to_timestamp']) {
-            if ($opts['future']) {
-                $timestampLowerBounds[] = time() * 1000;
-            } else {
-                $timestampUpperBounds[] = time() * 1000;
-            }
-        }
-
-        if ($timestampUpperBounds || $timestampLowerBounds) {
-            if (!isset($body['query']['function_score']['query']['bool']['must'])) {
-                $body['query']['function_score']['query']['bool']['must'] = [];
-            }
-
-            $range = [];
-
-            if ($timestampUpperBounds) {
-                $range['lte'] = min($timestampUpperBounds);
-            }
-
-            if ($timestampLowerBounds) {
-                $range['gte'] = max($timestampLowerBounds);
-            }
-
-            $body['query']['function_score']['query']['bool']['must'][] = [
+        if ($opts['exclude_scheduled'] === true) {
+            $body['query']['function_score']['query']['bool']['must_not'][] = [
                 'range' => [
-                    '@timestamp' => $range,
-                ],
+                    '@timestamp' => [
+                        'gte' => 'now'
+                    ],
+                ]
             ];
+        }
+
+        // Time bounds (deprecated)
+
+        if ($opts['use_legacy_time_ranges'] === true) {
+            $timestampUpperBounds = []; // LTE
+            $timestampLowerBounds = []; // GTE
+
+            if ($algorithm->isTimestampConstrain() && static::PERIODS[$opts['period']] > -1) {
+                $timestampLowerBounds[] = (time() - static::PERIODS[$opts['period']]) * 1000;
+            }
+
+            // Will start the feed after this timestamp (used for pagination)
+            if ($opts['from_timestamp'] && !$opts['to_timestamp']) {
+                if (!$opts['reverse_sort']) {
+                    $timestampUpperBounds[] = (int) $opts['from_timestamp'];
+                } else {
+                    $timestampLowerBounds[] = (int) $opts['from_timestamp'];
+                }
+            }
+
+            // Load the feed between these two timestamps
+            if ($opts['from_timestamp'] && $opts['to_timestamp']) {
+                $timestampUpperBounds[] = (int) $opts['from_timestamp'];
+                $timestampLowerBounds[] = (int) $opts['to_timestamp'];
+            }
+
+            if (!$opts['to_timestamp']) {
+                if ($opts['future']) {
+                    $timestampLowerBounds[] = time() * 1000;
+                } else {
+                    $timestampUpperBounds[] = time() * 1000;
+                }
+            }
+
+            if ($timestampUpperBounds || $timestampLowerBounds) {
+                if (!isset($body['query']['function_score']['query']['bool']['must'])) {
+                    $body['query']['function_score']['query']['bool']['must'] = [];
+                }
+
+                $range = [];
+
+                if ($timestampUpperBounds) {
+                    $range['lte'] = min($timestampUpperBounds);
+                }
+
+                if ($timestampLowerBounds) {
+                    $range['gte'] = max($timestampLowerBounds);
+                }
+
+                $body['query']['function_score']['query']['bool']['must'][] = [
+                    'range' => [
+                        '@timestamp' => $range,
+                    ],
+                ];
+            }
         }
 
         //

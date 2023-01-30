@@ -11,8 +11,10 @@ namespace Minds\Controllers\Cli;
 
 use Minds\Cli;
 use Minds\Core\Blockchain\EthPrice;
+use Minds\Core\Blockchain\Events\BoostEvent;
 use Minds\Core\Blockchain\Services;
 use Minds\Core\Blockchain\Purchase\Delegates\EthRate;
+use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
@@ -277,6 +279,37 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
             $date = date('c', $unixTimestamp);
             $this->out("[$date]: Block Number: $blockNumber");
             sleep($interval);
+        }
+    }
+
+    /**
+     * Trigger a boost event.
+     * ! Only currently supports V3 boosts. !
+     * @param string eventType - resolve or fail.
+     * @param string boostGuid - guid of the boost - NOT entity GUID.
+     * @return void
+     */
+    public function triggerBoostEvent(): void
+    {
+        $eventType = $this->getOpt('eventType') ?? 'resolve';
+        $boostGuid = $this->getOpt('boostGuid') ?? false;
+
+        if (!$eventType || !$boostGuid) {
+            $this->out('Must supply valid event type and boostGuid');
+        }
+        
+        $boostEvent = new BoostEvent();
+
+        $transaction = (new Transaction())
+            ->setContract('boost')
+            ->setData(['guid' => $boostGuid]);
+
+        if ($eventType === 'fail') {
+            $boostEvent->boostFail(null, $transaction);
+        } elseif ($eventType === 'resolve') {
+            $boostEvent->boostSent(null, $transaction);
+        } else {
+            $this->out('Unsupported event type - only `fail` and `resolve` are currently supported');
         }
     }
 }

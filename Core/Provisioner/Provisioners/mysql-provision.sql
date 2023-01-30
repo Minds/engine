@@ -73,3 +73,86 @@ CREATE TABLE IF NOT EXISTS supermind_refunds
     tx_id                  varchar(32) NOT NULL,
     timestamp              timestamp   NOT NULL default CURRENT_TIMESTAMP
 ) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS user_verification
+(
+    user_guid bigint NOT NULL,
+    device_id varchar(64) NOT NULL,
+    device_token varchar(256) NOT NULL,
+    verification_code varchar(6) NOT NULL,
+    status int NOT NULL,
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp NULL DEFAULT NULL,
+    sensor_data json NULL DEFAULT NULL,
+    ip text NULL DEFAULT NULL,
+    geo_lat DECIMAL(10, 8) NULL DEFAULT NULL,
+    geo_lon DECIMAL(11, 8) NULL DEFAULT NULL,
+    PRIMARY KEY (user_guid, device_id, created_at)
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS user_configurations
+(
+    user_guid bigint PRIMARY KEY,
+    terms_accepted_at timestamp NULL DEFAULT NULL,
+    supermind_cash_min float(7, 2) NULL DEFAULT NULL,
+    supermind_offchain_tokens_min float(7, 2) NULL DEFAULT NULL,
+    created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
+    updated_at timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS boosts
+(
+    guid bigint PRIMARY KEY,
+    owner_guid bigint NOT NULL,
+    entity_guid bigint NOT NULL,
+    target_suitability int NOT NULL,
+    target_location int NOT NULL,
+    payment_method int NOT NULL,
+    payment_amount float NOT NULL,
+    payment_tx_id text NULL DEFAULT NULL,
+    daily_bid float NOT NULL,
+    duration_days int NOT NULL,
+    status int NOT NULL,
+    created_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp NULL DEFAULT NULL,
+    approved_timestamp timestamp NULL DEFAULT NULL,
+    INDEX (owner_guid),
+    INDEX (entity_guid),
+    INDEX (target_location),
+    INDEX (payment_method),
+    INDEX (created_timestamp)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS boost_summaries
+(
+    guid bigint,
+    date date NOT NULL,
+    views int NOT NULL,
+    PRIMARY KEY (guid, date)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS boost_rankings
+(
+    guid bigint PRIMARY KEY,
+    ranking_open float,
+    ranking_safe float,
+    last_updated timestamp
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS boost_estimates
+(
+    target_audience int NOT NULL,
+    target_location int NOT NULL,
+    payment_method int NOT NULL,
+    24h_bids int NOT NULL,
+    24h_views int NOT NULL,
+    PRIMARY KEY (target_audience, target_location, payment_method)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS entities_hidden
+(
+    user_guid bigint NOT NULL,
+    entity_guid bigint NOT NULL,
+    created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_guid, entity_guid)
+) ENGINE=InnoDB;

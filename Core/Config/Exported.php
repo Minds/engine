@@ -9,17 +9,18 @@
 namespace Minds\Core\Config;
 
 use Minds\Core\Blockchain\Manager as BlockchainManager;
+use Minds\Core\Boost\Network\Rates;
 use Minds\Core\Di\Di;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Core\I18n\Manager as I18nManager;
 use Minds\Core\Navigation\Manager as NavigationManager;
 use Minds\Core\Rewards\Contributions\ContributionValues;
 use Minds\Core\Session;
-use Minds\Core\ThirdPartyNetworks\Manager as ThirdPartyNetworksManager;
-use Minds\Core\Experiments;
 use Minds\Core\Supermind\Settings\Models\Settings as SupermindSettings;
-use Minds\Entities\User;
+use Minds\Core\ThirdPartyNetworks\Manager as ThirdPartyNetworksManager;
 use Minds\Core\Wire;
+use Minds\Entities\User;
 
 class Exported
 {
@@ -40,9 +41,6 @@ class Exported
 
     protected $proDomain;
 
-    /** @var Experiments\Manager */
-    protected $experimentsManager;
-
     /**
      * Exported constructor.
      *
@@ -51,6 +49,8 @@ class Exported
      * @param I18nManager               $i18n
      * @param BlockchainManager         $blockchain
      * @param FeaturesManager           $features
+     * @param ExperimentsManager        $experimentsManager
+     * @param Rates                     $boostRates
      */
     public function __construct(
         $config = null,
@@ -59,7 +59,8 @@ class Exported
         $blockchain = null,
         $proDomain = null,
         $features = null,
-        $experimentsManager = null
+        private ?ExperimentsManager $experimentsManager = null,
+        private ?Rates $boostRates = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
@@ -68,6 +69,7 @@ class Exported
         $this->proDomain = $proDomain ?: Di::_()->get('Pro\Domain');
         $this->features = $features ?: Di::_()->get('Features\Manager');
         $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
+        $this->boostRates ??= Di::_()->get('Boost\Network\Rates');
     }
 
     /**
@@ -125,7 +127,11 @@ class Exported
             'twitter' => [
                 'min_followers_for_sync' => $this->config->get('twitter')['min_followers_for_sync'] ?? 25000,
             ],
-            'vapid_key' => $this->config->get("webpush_vapid_details")['public_key']
+            'vapid_key' => $this->config->get("webpush_vapid_details")['public_key'],
+            'boost_rates' => [
+                'cash' => $this->boostRates->getUsdRate(),
+                'tokens' => $this->boostRates->getTokenRate()
+            ],
         ];
 
         if (Session::isLoggedIn()) {
@@ -168,6 +174,10 @@ class Exported
                 'min_offchain_tokens' => $defaultSupermindSettings->getMinOffchainTokens()
             ]
         ];
+
+        $boost = $this->config->get('boost');
+        unset($boost['offchain_wallet_guid']);
+        $exported['boost'] = $boost;
 
         return $exported;
     }

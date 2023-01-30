@@ -6,12 +6,11 @@ use Minds\Core;
 use Minds\Core\Blockchain\Transactions\Manager as BlockchainManager;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Config;
-use Minds\Core\Data\cache\Redis;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
-use Minds\Core\Queue\SQS\Client;
 use Minds\Core\Security\ACL;
 use Minds\Core\Wire\Repository;
-use Minds\Core\Wire\Subscriptions\Manager as SubscriptionsManager;
+use Minds\Core\Wire\SupportTiers\Manager as SupportTiersManager;
+use Minds\Core\Wire\SupportTiers\SupportTier;
 use Minds\Core\Wire\Wire as WireModel;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -58,6 +57,9 @@ class ManagerSpec extends ObjectBehavior
     /** @var ACL */
     protected $acl;
 
+    /** @var SupportTiersManager */
+    protected $supportTiersManager;
+
     public function let(
         Repository $repo,
         BlockchainManager $txManager,
@@ -73,7 +75,8 @@ class ManagerSpec extends ObjectBehavior
         Core\Blockchain\Wallets\OffChain\Transactions $offchainTxs,
         Core\Payments\Stripe\Intents\Manager $stripeIntentsManager,
         ACL $acl,
-        Core\Wire\Delegates\EventsDelegate $eventsDelegate
+        Core\Wire\Delegates\EventsDelegate $eventsDelegate,
+        SupportTiersManager $supportTiersManager = null
     ) {
         $this->beConstructedWith(
             $repo,
@@ -90,7 +93,8 @@ class ManagerSpec extends ObjectBehavior
             $offchainTxs,
             $stripeIntentsManager,
             $acl,
-            $eventsDelegate
+            $eventsDelegate,
+            $supportTiersManager
         );
 
         $this->cacheDelegate = $cacheDelegate;
@@ -107,6 +111,7 @@ class ManagerSpec extends ObjectBehavior
         $this->stripeIntentsManager = $stripeIntentsManager;
         $this->acl = $acl;
         $this->eventsDelegate = $eventsDelegate;
+        $this->supportTiersManager = $supportTiersManager;
     }
 
     public function it_is_initializable()
@@ -436,7 +441,71 @@ class ManagerSpec extends ObjectBehavior
         $intent->setId('123');
 
         $this->stripeIntentsManager->add(Argument::that(function ($arg) {
-            return $arg->getDescriptor() === 'Minds: Payment';
+            return $arg->getStatementDescriptor() === 'Minds: Tip';
+        }))
+            ->shouldBeCalled()
+            ->willReturn($intent);
+
+        $this->setSender($sender)
+            ->setEntity($receiver)
+            ->setPayload($payload)
+            ->setAmount(100001)
+            ->create()
+            ->shouldReturn(true);
+    }
+
+    public function it_should_create_a_cash_transaction_for_membership(SupportTier $supportTier)
+    {
+        $supportTierName = 'support_tier_name';
+        $receiverUsername = 'receiver_user';
+        $sender = new User();
+        $sender->guid = 123;
+
+        $receiver = new User();
+        $receiver->guid = 111;
+        $receiver->merchant = [
+            'id' => 'mock_id'
+        ];
+        $receiver->username = $receiverUsername;
+
+        $this->config->get('plus')
+            ->willReturn([
+                'handler' => 456
+            ]);
+
+        $this->config->get('pro')
+            ->willReturn([
+                'handler' => 789
+            ]);
+
+        $this->acl->write(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $payload = [
+            'method' => 'usd',
+            'paymentMethodId' => 'mockPaymentId',
+        ];
+
+        $supportTier->getName()
+            ->shouldBeCalled()
+            ->willReturn($supportTierName);
+
+        $this->supportTiersManager->getByWire(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($supportTier);
+
+        $this->repo->add(Argument::that(function ($wire) {
+            return !$wire->getTrialDays();
+        }))
+            ->shouldBeCalled();
+
+        $intent = new PaymentIntent();
+        $intent->setId('123');
+
+        $this->stripeIntentsManager->add(Argument::that(function ($arg) use ($receiverUsername, $supportTierName) {
+            return $arg->getStatementDescriptor() === 'Minds: Membership' &&
+                $arg->getDescription() === "@".$receiverUsername."'s ".$supportTierName." Membership";
         }))
             ->shouldBeCalled()
             ->willReturn($intent);
@@ -485,7 +554,8 @@ class ManagerSpec extends ObjectBehavior
         $intent->setId('123');
 
         $this->stripeIntentsManager->add(Argument::that(function ($arg) {
-            return $arg->getDescriptor() === 'Minds: Plus sub';
+            return $arg->getStatementDescriptor() === 'Minds: Plus sub' &&
+                $arg->getDescription() === 'Minds Plus';
         }))
             ->shouldBeCalled()
             ->willReturn($intent);
@@ -533,7 +603,8 @@ class ManagerSpec extends ObjectBehavior
         $intent->setId('123');
 
         $this->stripeIntentsManager->add(Argument::that(function ($arg) {
-            return $arg->getDescriptor() === 'Minds: Pro sub';
+            return $arg->getStatementDescriptor() === 'Minds: Pro sub' &&
+            $arg->getDescription() === 'Minds Pro';
         }))
             ->shouldBeCalled()
             ->willReturn($intent);

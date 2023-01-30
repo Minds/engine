@@ -146,7 +146,7 @@ Feature: Supermind
     When I accept the Supermind request for stored data "created_activity" with the following reply
       """json
       {
-        "message": "This is a test post for supermind request from integration tests",
+        "message": "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, ",
         "wire_threshold": null,
         "paywall": null,
         "time_created": null,
@@ -548,7 +548,7 @@ Feature: Supermind
       """json
         {
           "min_offchain_tokens": 1,
-          "min_cash": 10
+          "min_cash": 1
         }
       """
 

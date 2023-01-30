@@ -18,6 +18,7 @@ use Minds\Traits\MagicAttributes;
  * @method bool getIsMerchant()
  * @method SendGridContact setLastWire(int $lastWire)
  * @method int getLastWire()
+ * @method self setSubscribedTo(array $subscribedTo)
  */
 class SendGridContact
 {
@@ -59,6 +60,9 @@ class SendGridContact
     /** @var int */
     protected $lastActive30DayTs;
 
+    /** @var array */
+    protected $subscribedTo = [];
+
     /**
      * Export the sendgrid contact
      * @param array $extras
@@ -95,12 +99,18 @@ class SendGridContact
             $customFields['has_youtube_sync'] = 1;
         }
 
+        if ($this->subscribedTo) {
+            foreach ($this->subscribedTo as $subscribedTo) {
+                $customFields['is_subscribed_to_' . $subscribedTo] = 1;
+            }
+        }
+
         $customFields['username'] = $this->username;
         $customField['user_guid'] = (string) $this->userGuid;
 
         return [
             'email' => $this->email,
-            'first_name' => (string) $this->username,
+            'first_name' => substr((string) $this->username, 0, 50),
             'unique_name' => strtolower($this->username),
             'custom_fields' => $customFields,
         ];

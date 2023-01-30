@@ -20,13 +20,18 @@ class Routes extends ModuleRoutes
                 LoggedInMiddleware::class
             ])
             ->do(function (Route $route) {
-                $route->post(
+                $route->get(
                     'request-oauth-token',
                     Ref::_('Twitter\Controller', 'requestTwitterOAuthToken')
                 );
 
                 $route->get(
-                    'oauth',
+                    'redirect-oauth-token',
+                    Ref::_('Twitter\Controller', 'redirectToTwitterAuthUrl')
+                );
+
+                $route->get(
+                    'oauth-callback',
                     Ref::_('Twitter\Controller', 'generateTwitterOAuthAccessToken')
                 );
 
@@ -43,6 +48,10 @@ class Routes extends ModuleRoutes
                         $route->post(
                             'tweets',
                             Ref::_('Twitter\Controller', 'postTweet')
+                        );
+                        $route->get(
+                            'config',
+                            Ref::_('Twitter\Controller', 'getUserConfig')
                         );
                     });
             });

@@ -4,22 +4,37 @@ namespace Spec\Minds\Core\Blockchain\Events;
 
 use Minds\Core\Blockchain\Transactions\Repository;
 use Minds\Core\Blockchain\Transactions\Transaction;
+use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Core\Boost\V3\Manager as BoostManagerV3;
+use Minds\Core\Boost\V3\Models\Boost as BoostV3;
 use Minds\Core\Config;
 use Minds\Entities\Boost\Network;
 use PhpSpec\ObjectBehavior;
+use Prophecy\Argument;
 
 class BoostEventSpec extends ObjectBehavior
 {
     protected $txRepository;
     protected $boostRepository;
     protected $config;
+    protected $boostManagerV3;
 
-    public function let(Repository $txRepository, \Minds\Core\Boost\Repository $boostRepository, Config $config)
-    {
-        $this->beConstructedWith($txRepository, $boostRepository, $config);
+    public function let(
+        Repository $txRepository,
+        \Minds\Core\Boost\Repository $boostRepository,
+        BoostManagerV3 $boostManagerV3,
+        Config $config
+    ) {
+        $this->beConstructedWith(
+            $txRepository,
+            $boostRepository,
+            $boostManagerV3,
+            $config
+        );
 
         $this->txRepository = $txRepository;
         $this->boostRepository = $boostRepository;
+        $this->boostManagerV3 = $boostManagerV3;
         $this->config = $config;
 
         $this->config->get('blockchain')
@@ -50,6 +65,10 @@ class BoostEventSpec extends ObjectBehavior
 
     public function it_should_execute_a_boost_sent_event(Transaction $transaction, Network $boost)
     {
+        $this->boostManagerV3->getBoostByGuid(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $transaction->getData()
             ->shouldBeCalled()
             ->willReturn([
@@ -89,6 +108,10 @@ class BoostEventSpec extends ObjectBehavior
 
     public function it_should_execute_a_boost_sent_event_but_not_find_the_boost(Transaction $transaction)
     {
+        $this->boostManagerV3->getBoostByGuid(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $transaction->getData()
             ->shouldBeCalled()
             ->willReturn([
@@ -118,6 +141,10 @@ class BoostEventSpec extends ObjectBehavior
         Transaction $transaction,
         Network $boost
     ) {
+        $this->boostManagerV3->getBoostByGuid(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(null);
+    
         $transaction->getData()
             ->shouldBeCalled()
             ->willReturn([
@@ -149,6 +176,10 @@ class BoostEventSpec extends ObjectBehavior
 
     public function it_shoud_execute_a_boost_fail_event(Transaction $transaction, Network $boost)
     {
+        $this->boostManagerV3->getBoostByGuid(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(null);
+    
         $transaction->getContract()
             ->shouldBeCalled()
             ->willReturn('boost');
@@ -202,6 +233,10 @@ class BoostEventSpec extends ObjectBehavior
 
     public function it_should_execute_a_boost_fail_event_but_boost_isnt_found(Transaction $transaction)
     {
+        $this->boostManagerV3->getBoostByGuid(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $transaction->getContract()
             ->shouldBeCalled()
             ->willReturn('boost');
@@ -229,6 +264,10 @@ class BoostEventSpec extends ObjectBehavior
 
     public function it_should_execute_a_boost_fail_event_but_boost_already_processed(Transaction $transaction, Network $boost)
     {
+        $this->boostManagerV3->getBoostByGuid(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $transaction->getContract()
             ->shouldBeCalled()
             ->willReturn('boost');
@@ -261,6 +300,10 @@ class BoostEventSpec extends ObjectBehavior
     public function it_should_record_as_failed(
         Network $boost
     ) {
+        $this->boostManagerV3->getBoostByGuid(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $boost->getState()
             ->willReturn('pending');
 
@@ -293,6 +336,50 @@ class BoostEventSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->boostFail(['address' => '0xasd'], $transaction);
+    }
+
+    public function it_should_record_as_failed_for_v3_boosts(
+        BoostV3 $boost
+    ) {
+        $guid = '1234';
+        $this->boostManagerV3->getBoostByGuid($guid)
+            ->shouldBeCalled()
+            ->willReturn($boost);
+
+        $boost->getStatus()
+            ->shouldBeCalled()
+            ->willReturn(BoostStatus::PENDING_ONCHAIN_CONFIRMATION);
+
+        $transaction = new Transaction();
+        $transaction->setContract('boost')
+            ->setData([ 'guid' => $guid ]);
+
+        $this->boostManagerV3->updateStatus($guid, BoostStatus::FAILED)
+            ->shouldBeCalled();
+
+        $this->boostFail(['address' => '0xasd'], $transaction);
+    }
+
+    public function it_should_record_as_resolved_for_v3_boosts(
+        BoostV3 $boost
+    ) {
+        $guid = '1234';
+        $this->boostManagerV3->getBoostByGuid($guid)
+            ->shouldBeCalled()
+            ->willReturn($boost);
+
+        $boost->getStatus()
+            ->shouldBeCalled()
+            ->willReturn(BoostStatus::PENDING_ONCHAIN_CONFIRMATION);
+
+        $transaction = new Transaction();
+        $transaction->setContract('boost')
+            ->setData([ 'guid' => $guid ]);
+
+        $this->boostManagerV3->updateStatus($guid, BoostStatus::PENDING)
+            ->shouldBeCalled();
+
+        $this->boostSent(['address' => '0xasd'], $transaction);
     }
 
     public function it_should_fail_if_address_is_wrong(Transaction $transaction)

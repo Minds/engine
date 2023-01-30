@@ -29,6 +29,7 @@ use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use Prophecy\Argument;
 use Spec\Minds\Common\Traits\CommonMatchers;
 use Stripe\Exception\AuthenticationException;
 use Stripe\Exception\CardException;
@@ -1517,6 +1518,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($activityGuid);
 
+        $supermindRequest->getTwitterRequired()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $supermindRequest->getReceiverGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid);
@@ -1736,6 +1741,15 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequestId = '123';
         $activityGuid = '234';
         $receiverGuid = '345';
+
+        $this->paymentProcessor
+            ->setUser($receiver)
+            ->willReturn($this->paymentProcessor);
+
+        $this->setUser($receiver);
+
+        $this->acl->read(Argument::any(), Argument::any())
+            ->willReturn(true);
 
         $supermindRequest->getActivityGuid()
             ->shouldBeCalled()

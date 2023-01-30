@@ -20,7 +20,9 @@ class EmailStylesV2
             "font-size:24px;",
             "line-height:28px;",
             "text-decoration: none;",
-            "padding: 0;"
+            "padding: 0;",
+            "margin-left: auto;",
+            "margin-right: auto;"
         ],
         "m-mainContent__h1" => [
             "font-family: 'Inter', Arial, sans-serif;",
@@ -33,6 +35,13 @@ class EmailStylesV2
         ],
         "m-mainContent__mainArticle" => [
             "padding: 30px 0 50px;",
+        ],
+        "m-mainContent__paragraphSubject" => [
+            "font-family: 'Inter', Arial, sans-serif;",
+            "margin: 10px 20px 10px;",
+            "font-size: 18px;",
+            "line-height: 28px;",
+            "color: #0a080b;"
         ],
         "m-mainContent__paragraph" => [
             "font-family: 'Inter', Arial, sans-serif;",

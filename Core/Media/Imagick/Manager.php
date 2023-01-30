@@ -126,12 +126,6 @@ class Manager
      */
     public function annotate(int $width, string $text, string $username)
     {
-        echo $width;
-
-        echo $text;
-
-        echo $username;
-
         $this->annotate->annotate($width, $text, $username);
 
         return $this->annotate->getOutput();

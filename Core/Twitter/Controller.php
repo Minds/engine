@@ -6,7 +6,10 @@ namespace Minds\Core\Twitter;
 
 use Minds\Core\Di\Di;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\SimpleCache\InvalidArgumentException;
+use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Diactoros\Response\JsonResponse;
+use Zend\Diactoros\Response\RedirectResponse;
 
 /**
  * The controller for the Twitter module's endpoints
@@ -22,9 +25,13 @@ class Controller
     /**
      * @param ServerRequestInterface $request
      * @return JsonResponse
+     * @throws InvalidArgumentException
      */
     public function requestTwitterOAuthToken(ServerRequestInterface $request): JsonResponse
     {
+        $loggedInUser = $request->getAttribute('_user');
+        $this->manager->setUser($loggedInUser);
+
         $url = $this->manager->getRequestOAuthAuthorizationCodeUrl();
 
         return new JsonResponse(['authorization_url' => $url]);
@@ -32,20 +39,51 @@ class Controller
 
     /**
      * @param ServerRequestInterface $request
-     * @return JsonResponse
+     * @return RedirectResponse
+     * @throws InvalidArgumentException
      */
-    public function generateTwitterOAuthAccessToken(ServerRequestInterface $request): JsonResponse
+    public function redirectToTwitterAuthUrl(ServerRequestInterface $request): RedirectResponse
+    {
+        $loggedInUser = $request->getAttribute('_user');
+        $this->manager->setUser($loggedInUser);
+
+        $url = $this->manager->getRequestOAuthAuthorizationCodeUrl();
+
+        return new RedirectResponse($url);
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return HtmlResponse
+     * @throws InvalidArgumentException
+     */
+    public function generateTwitterOAuthAccessToken(ServerRequestInterface $request): HtmlResponse
     {
         $authorizationCode = $request->getQueryParams()['code'] ?? null;
 
         $loggedInUser = $request->getAttribute('_user');
         $this->manager->setUser($loggedInUser);
 
-        $this->manager->generateOAuthAccessToken($authorizationCode);
+        if ($authorizationCode) {
+            $this->manager->generateOAuthAccessToken($authorizationCode);
+        } else {
+            // Oops, there was a problem
+        }
 
-        return new JsonResponse([]);
+        return new HtmlResponse(
+            <<<HTML
+<script>window.close();</script>
+<p>Please close this window/tab.</p>
+HTML
+        );
     }
+    // Row 3: 991438404115763219
 
+    /**
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     * @throws Exceptions\TwitterDetailsNotFoundException
+     */
     public function postTweet(ServerRequestInterface $request): JsonResponse
     {
         $requestBody = $request->getParsedBody();
@@ -53,7 +91,21 @@ class Controller
         $loggedInUser = $request->getAttribute('_user');
         $this->manager->setUser($loggedInUser);
 
-        $response = $this->manager->postTweet($requestBody['tweet_text']);
+        $response = $this->manager->postTextTweet($requestBody['tweet_text']);
         return new JsonResponse($response);
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     */
+    public function getUserConfig(ServerRequestInterface $request): JsonResponse
+    {
+        $loggedInUser = $request->getAttribute('_user');
+
+        $this->manager->setUser($loggedInUser);
+
+        $response = $this->manager->getDetails();
+        return new JsonResponse($response->export());
     }
 }

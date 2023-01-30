@@ -56,6 +56,9 @@ class EntityExporterSpec extends ObjectBehavior
             ->willReturn([
             ]);
 
+        $this->managerMock->getNip26Delegate(Argument::any())
+            ->willReturn(null);
+
         $this->managerMock->getElasticNostrEvents(Argument::any(), 12)
             ->willReturn([
                 $nostrEvent1
@@ -81,6 +84,9 @@ class EntityExporterSpec extends ObjectBehavior
                 $nostrEvent1,
                 $nostrEvent1
             ]);
+
+        $this->managerMock->getNip26Delegate(Argument::any())
+            ->willReturn(null);
 
         $this->managerMock->getElasticNostrEvents(Argument::any(), Argument::any())
             ->shouldNotBeCalled();

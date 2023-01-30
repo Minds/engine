@@ -2,6 +2,8 @@
 
 namespace Minds\Core\Twitter;
 
+use Minds\Core\Config\Config as MindsConfig;
+use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\Twitter\Client\DTOs\TweetDTO;
 use Minds\Core\Twitter\Client\TwitterClient;
@@ -9,6 +11,7 @@ use Minds\Core\Twitter\Client\TwitterClientInterface;
 use Minds\Core\Twitter\Exceptions\TwitterDetailsNotFoundException;
 use Minds\Core\Twitter\Models\TwitterDetails;
 use Minds\Entities\User;
+use Psr\SimpleCache\InvalidArgumentException;
 
 class Manager
 {
@@ -16,10 +19,14 @@ class Manager
 
     public function __construct(
         private ?Repository $repository = null,
-        private ?TwitterClientInterface $twitterClient = null
+        private ?TwitterClientInterface $twitterClient = null,
+        private ?PsrWrapper $cache = null,
+        private ?MindsConfig $mindsConfig = null
     ) {
         $this->twitterClient ??= new TwitterClient();
         $this->repository ??= Di::_()->get('Twitter\Repository');
+        $this->cache ??= Di::_()->get('Cache\PsrWrapper');
+        $this->mindsConfig ??= Di::_()->get('Config');
     }
 
     public function setUser(User $user): self
@@ -48,7 +55,7 @@ class Manager
         $this->repository->storeOAuth2TokenInfo(
             userGuid: $this->user->getGuid(),
             accessToken: $accessToken,
-            accessTokenExpiry: $accessTokenExpiry,
+            accessTokenExpiry: (int) $accessTokenExpiry,
             refreshToken: $refreshToken
         );
     }
@@ -59,7 +66,7 @@ class Manager
      * @return bool
      * @throws TwitterDetailsNotFoundException
      */
-    public function postTweet(string $text): bool
+    public function postTextTweet(string $text): bool
     {
         $twitterDetails = $this->repository->getDetails($this->user->getGuid());
 
@@ -67,6 +74,8 @@ class Manager
             ->setText($text);
 
         $accessToken = $this->checkAndRefreshToken($twitterDetails);
+
+        error_log($accessToken);
 
         return $this->twitterClient->postTweet($tweet, $accessToken);
     }
@@ -78,14 +87,14 @@ class Manager
     private function checkAndRefreshToken(TwitterDetails $twitterDetails): string
     {
         $accessToken = $twitterDetails->getAccessToken();
-        if (time() >= $twitterDetails->getAccessTokenExpiry()) {
+        if (time() >= ($twitterDetails->getAccessTokenExpiry() / 1000)) {
             ['accessToken' => $accessToken, 'refreshToken' => $refreshToken, 'accessTokenExpiry' => $accessTokenExpiry] =
                 $this->twitterClient->refreshOAuthAccessToken($twitterDetails->getRefreshToken());
 
             $this->repository->storeOAuth2TokenInfo(
                 userGuid: $this->user->getGuid(),
                 accessToken: $accessToken,
-                accessTokenExpiry: $accessTokenExpiry,
+                accessTokenExpiry: (int) $accessTokenExpiry,
                 refreshToken: $refreshToken
             );
         }
@@ -95,10 +104,15 @@ class Manager
 
     /**
      * @return TwitterDetails
-     * @throws TwitterDetailsNotFoundException
      */
     public function getDetails(): TwitterDetails
     {
-        return $this->repository->getDetails($this->user->getGuid());
+        try {
+            $response = $this->repository->getDetails($this->user->getGuid());
+        } catch (TwitterDetailsNotFoundException $e) {
+            $response = (new TwitterDetails())->setUserGuid($this->user->getGuid());
+        }
+
+        return $response;
     }
 }
