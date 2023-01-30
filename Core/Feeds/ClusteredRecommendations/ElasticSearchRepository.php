@@ -8,6 +8,8 @@ use Minds\Core\Data\ElasticSearch\Client as ElasticSearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared\Search as PreparedSearch;
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Elastic\ScoredGuid;
+use Minds\Entities\User;
+use NotImplementedException;
 
 /**
  * ElasticSearchRepository class to fetch data from clustered recommendations index in ES
@@ -98,7 +100,7 @@ class ElasticSearchRepository implements RepositoryInterface
                                 ],
                             ],
                         ]
-                    
+
                     ],
                 ],
                 'sort' => [
@@ -124,5 +126,15 @@ class ElasticSearchRepository implements RepositoryInterface
         $preparedSearch->query($query);
 
         return $preparedSearch;
+    }
+
+    /**
+     * @param User $user
+     * @return void
+     * @throws NotImplementedException
+     */
+    public function setUser(User $user): void
+    {
+        throw new NotImplementedException();
     }
 }
