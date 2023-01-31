@@ -112,7 +112,7 @@ class Boost implements EntityInterface, ExportableInterface
         return 'urn:boost:' . $this->getGuid();
     }
 
-    public function getStatus(): int
+    public function getStatus(): ?int
     {
         return
             $this->getApprovedTimestamp() !== null &&
