@@ -5,8 +5,8 @@ namespace Minds\Core\Boost\V3;
 
 use Exception;
 use Minds\Common\Repository\Response;
-use Minds\Core\Boost\Checksum;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
+use Minds\Core\Boost\Checksum;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
@@ -115,6 +115,9 @@ class Manager
         }
 
         $this->repository->commitTransaction();
+
+        $this->actionEventDelegate->onCreate($boost);
+
         return true;
     }
 
