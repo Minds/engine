@@ -127,13 +127,16 @@ class Repository
             $values['status'] = $targetStatus;
 
             if ($targetStatus !== BoostStatus::COMPLETED) {
-                $statusWhereClause .= " AND :expired_timestamp < TIMESTAMPADD(DAY, duration_days, approved_timestamp)";
+                if (!$forApprovalQueue || $targetStatus !== BoostStatus::PENDING) {
+                    $statusWhereClause .= " AND (approved_timestamp IS NULL OR :expired_timestamp < TIMESTAMPADD(DAY, duration_days, approved_timestamp))";
+                    $values['expired_timestamp'] = date('c', time());
+                }
             } else {
-                $statusWhereClause .= " OR :expired_timestamp >= TIMESTAMPADD(DAY, duration_days, approved_timestamp)";
+                $statusWhereClause .= " OR (approved_timestamp IS NOT NULL AND :expired_timestamp >= TIMESTAMPADD(DAY, duration_days, approved_timestamp))";
+                $values['expired_timestamp'] = date('c', time());
             }
-            $values['expired_timestamp'] = date('c', time());
 
-            $statusWhereClause = ")";
+            $statusWhereClause .= ")";
             $whereClauses[] = $statusWhereClause;
         }
 
@@ -370,8 +373,21 @@ class Repository
         $values = [];
         $whereClauses = [];
 
-        $whereClauses[] = "status = :status";
+        $statusWhereClause = "(status = :status";
         $values['status'] = $targetStatus;
+
+        if ($targetStatus !== BoostStatus::COMPLETED) {
+            if ($targetStatus !== BoostStatus::PENDING) {
+                $statusWhereClause .= " AND (approved_timestamp IS NULL OR :expired_timestamp < TIMESTAMPADD(DAY, duration_days, approved_timestamp))";
+                $values['expired_timestamp'] = date('c', time());
+            }
+        } else {
+            $statusWhereClause .= " OR (approved_timestamp IS NOT NULL AND :expired_timestamp >= TIMESTAMPADD(DAY, duration_days, approved_timestamp))";
+            $values['expired_timestamp'] = date('c', time());
+        }
+
+        $statusWhereClause .= ")";
+        $whereClauses[] = $statusWhereClause;
 
         if ($targetLocation) {
             $whereClauses[] = "target_location = :target_location";
