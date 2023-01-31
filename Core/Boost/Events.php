@@ -29,6 +29,7 @@ class Events
             $event->setResponse($repository->getEntity('peer', $urn->getNss()));
         });
 
+        // @deprecated
         Dispatcher::register('boost:completed', 'boost', function ($event) {
             $campaign = new BoostComplete();
             $params = $event->getParameters();
