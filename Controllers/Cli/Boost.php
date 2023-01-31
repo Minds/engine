@@ -4,9 +4,9 @@ namespace Minds\Controllers\Cli;
 
 use DateTime;
 use Minds\Cli;
-use Minds\Core;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Security\ACL;
 use Minds\Exceptions\CliException;
@@ -127,12 +127,13 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
 
     /**
      * Trigger an action event for a given boost. Does NOT mark the boost states, just pushes to action event topic.
-     * @return void
-     * @throws CliException
+     * @param string boostGuid - guid of the boost.
      * @example
      * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='complete'
      * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='approve'
+     * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='create'
      * - php cli.php Boost triggerActionEvent --boostGuid=100000000000000000 --eventType='reject' --rejectionReason=3
+     * @return void
      */
     public function triggerActionEvent(): void
     {
@@ -162,6 +163,9 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
         $actionEventDelegate =  Di::_()->get(ActionEventDelegate::class);
 
         switch ($eventType) {
+            case 'create':
+                $actionEventDelegate->onCreate($boost);
+                break;
             case 'complete':
                 $actionEventDelegate->onComplete($boost);
                 break;
@@ -173,9 +177,9 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
                 $actionEventDelegate->onReject($boost, $rejectionReason);
                 break;
             default:
-                throw new CliException('Unknown event type provided. Must be: complete, accept or reject');
+                throw new CliException('Unknown event type provided. Must be: complete, accept, create or reject');
         }
-
+        
         $this->out("Completion notice dispatched for boost: $boostGuid");
     }
 }
