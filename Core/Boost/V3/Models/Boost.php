@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Boost\V3\Models;
 
 use Minds\Common\Access;
+use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\ExportableInterface;
 use Minds\Traits\MagicAttributes;
@@ -32,7 +33,6 @@ use Minds\Traits\MagicAttributes;
  * @method self setDurationDays(int $durationDays)
  * @method int getDurationDays()
  * @method self setStatus(int $status)
- * @method int getStatus()
  * @method self setCreatedTimestamp(int $createdTimestamp)
  * @method int getCreatedTimestamp()
  * @method self setUpdatedTimestamp(int|null $updatedTimestamp)
@@ -110,6 +110,15 @@ class Boost implements EntityInterface, ExportableInterface
     public function getUrn(): string
     {
         return 'urn:boost:' . $this->getGuid();
+    }
+
+    public function getStatus(): int
+    {
+        return
+            $this->getApprovedTimestamp() !== null &&
+            ($this->status === BoostStatus::COMPLETED || time() >= ($this->getApprovedTimestamp() + strtotime("1 day", 0))) ?
+                BoostStatus::COMPLETED :
+                $this->status;
     }
 
     /**
