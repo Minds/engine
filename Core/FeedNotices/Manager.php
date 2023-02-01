@@ -7,6 +7,7 @@ use Minds\Core\FeedNotices\Notices\BoostChannelNotice;
 use Minds\Core\FeedNotices\Notices\BuildYourAlgorithmNotice;
 use Minds\Core\FeedNotices\Notices\ConnectWalletNotice;
 use Minds\Core\FeedNotices\Notices\EnablePushNotificationsNotice;
+use Minds\Core\FeedNotices\Notices\InviteFriendsNotice;
 use Minds\Core\FeedNotices\Notices\InAppVerifyUniquenessNotice;
 use Minds\Core\FeedNotices\Notices\PlusUpgradeNotice;
 use Minds\Core\FeedNotices\Notices\SetupChannelNotice;
@@ -47,7 +48,8 @@ class Manager
         ConnectWalletNotice::class,
         EnablePushNotificationsNotice::class,
         BoostChannelNotice::class,
-        PlusUpgradeNotice::class
+        PlusUpgradeNotice::class,
+        InviteFriendsNotice::class
     ];
 
     /**
