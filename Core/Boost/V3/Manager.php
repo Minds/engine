@@ -5,8 +5,8 @@ namespace Minds\Core\Boost\V3;
 
 use Exception;
 use Minds\Common\Repository\Response;
-use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\Checksum;
+use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
@@ -269,8 +269,9 @@ class Manager
      * @param bool $forApprovalQueue
      * @param string|null $targetUserGuid
      * @param bool $orderByRanking
-     * @param int $targetAudience
+     * @param int|null $targetAudience
      * @param int|null $targetLocation
+     * @param int|null $paymentMethod
      * @param string|null $entityGuid
      * @return Response
      */
@@ -281,7 +282,7 @@ class Manager
         bool $forApprovalQueue = false,
         ?string $targetUserGuid = null,
         bool $orderByRanking = false,
-        int $targetAudience = BoostTargetAudiences::SAFE,
+        ?int $targetAudience = null,
         ?int $targetLocation = null,
         ?int $paymentMethod = null,
         ?string $entityGuid = null
