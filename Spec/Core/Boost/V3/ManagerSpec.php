@@ -164,6 +164,10 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->commitTransaction()
             ->shouldBeCalledOnce();
 
+        $this->paymentProcessor->captureBoostPayment(Argument::type(Boost::class))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $boostData = [
             'entity_guid' => '123',
             'target_location' => 1,

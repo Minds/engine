@@ -310,7 +310,7 @@ class Repository
             ->setEntity($entity);
     }
 
-    public function approveBoost(string $boostGuid, string $adminGuid): bool
+    public function approveBoost(string $boostGuid, ?string $adminGuid): bool
     {
         $query = "UPDATE boosts SET status = :status, approved_timestamp = :approved_timestamp, updated_timestamp = :updated_timestamp, admin_guid = :admin_guid WHERE guid = :guid";
         $values = [

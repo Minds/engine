@@ -440,7 +440,7 @@ class BoostEventSpec extends ObjectBehavior
         $transaction->setContract('boost')
             ->setData([ 'guid' => $guid ]);
 
-        $this->boostManagerV3->updateStatus($guid, BoostStatus::APPROVED)
+        $this->boostManagerV3->approveBoost($guid)
             ->shouldBeCalled();
 
         $this->boostSent(['address' => '0xasd'], $transaction);

@@ -110,11 +110,16 @@ class Manager
         }
 
         try {
-            if ($boost->getPaymentMethod() === BoostPaymentMethod::ONCHAIN_TOKENS) {
+            $isOnchainBoost = $boost->getPaymentMethod() === BoostPaymentMethod::ONCHAIN_TOKENS;
+            if ($isOnchainBoost) {
                 $boost->setStatus(BoostStatus::PENDING_ONCHAIN_CONFIRMATION)
                     ->setPaymentTxId($data['payment_tx_id']);
             } elseif (!$this->paymentProcessor->setupBoostPayment($boost)) {
                 throw new BoostPaymentSetupFailedException();
+            }
+
+            if ($preApproved && !$isOnchainBoost && !$this->paymentProcessor->captureBoostPayment($boost)) {
+                throw new BoostPaymentCaptureFailedException();
             }
 
             if (!$this->repository->createBoost($boost)) {
@@ -159,6 +164,7 @@ class Manager
 
     /**
      * @param string $boostGuid
+     * @param string|null $adminGuid
      * @return bool
      * @throws Exception
      * @throws Exceptions\BoostNotFoundException
@@ -169,7 +175,7 @@ class Manager
      * @throws UserErrorException
      * @throws ApiErrorException
      */
-    public function approveBoost(string $boostGuid, string $adminGuid): bool
+    public function approveBoost(string $boostGuid, string $adminGuid = null): bool
     {
         $this->repository->beginTransaction();
 
