@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Boost\V3\Models;
 
 use Minds\Common\Access;
+use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\ExportableInterface;
 use Minds\Traits\MagicAttributes;
@@ -32,9 +33,8 @@ use Minds\Traits\MagicAttributes;
  * @method self setDurationDays(int $durationDays)
  * @method int getDurationDays()
  * @method self setStatus(int $status)
- * @method int getStatus()
  * @method self setRejectionReason(int $rejectionStatus)
- * @method int getRejectionReason()
+ * @method int|null getRejectionReason()
  * @method self setCreatedTimestamp(int $createdTimestamp)
  * @method int getCreatedTimestamp()
  * @method self setUpdatedTimestamp(int|null $updatedTimestamp)
@@ -65,7 +65,8 @@ class Boost implements EntityInterface, ExportableInterface
         private ?int $createdTimestamp = null,
         private ?string $paymentTxId = null,
         private ?int $updatedTimestamp = null,
-        private ?int $approvedTimestamp = null
+        private ?int $approvedTimestamp = null,
+        private ?int $summaryViewsDelivered = 0
     ) {
     }
 
@@ -101,7 +102,7 @@ class Boost implements EntityInterface, ExportableInterface
         return '';
     }
 
-    /**
+    /**~
      * @inheritDoc
      */
     public function getAccessId(): string
@@ -112,6 +113,15 @@ class Boost implements EntityInterface, ExportableInterface
     public function getUrn(): string
     {
         return 'urn:boost:' . $this->getGuid();
+    }
+
+    public function getStatus(): ?int
+    {
+        return
+            $this->getApprovedTimestamp() !== null &&
+            ($this->status === BoostStatus::COMPLETED || time() >= ($this->getApprovedTimestamp() + strtotime("1 day", 0))) ?
+                BoostStatus::COMPLETED :
+                $this->status;
     }
 
     /**
@@ -128,6 +138,7 @@ class Boost implements EntityInterface, ExportableInterface
             'entity' => $this->entity?->export(),
             'target_location' => $this->getTargetLocation(),
             'target_suitability' => $this->getTargetSuitability(),
+            'payment_tx_id' => $this->getPaymentTxId(),
             'payment_method' => $this->getPaymentMethod(),
             'payment_amount' => $this->getPaymentAmount(),
             'daily_bid' => $this->getDailyBid(),
@@ -137,6 +148,9 @@ class Boost implements EntityInterface, ExportableInterface
             'created_timestamp' => $this->getCreatedTimestamp(),
             'updated_timestamp' => $this->getUpdatedTimestamp(),
             'approved_timestamp' => $this->getApprovedTimestamp(),
+            'summary' => [
+                'views_delivered' => $this->summaryViewsDelivered,
+            ],
         ];
     }
 }

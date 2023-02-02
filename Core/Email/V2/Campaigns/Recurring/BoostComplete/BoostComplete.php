@@ -10,6 +10,9 @@ use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 use Minds\Core\Email\Manager;
 use Minds\Core\Di\Di;
 
+/**
+ * @deprecated for BoostEmailer
+ */
 class BoostComplete extends EmailCampaign
 {
     // TODO code docs

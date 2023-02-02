@@ -39,7 +39,7 @@ class BoostConsoleUrlBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($siteUrl);
             
-        $this->build($boost)->shouldBe('https://www.minds.com/boost/boost-console?state=approved&location=newsfeed');
+        $this->build($boost)->shouldBe('https://www.minds.com/boost/boost-console?state=approved&location=feed');
     }
 
     public function it_should_build_a_a_url_with_extra_query_params(Boost $boost)

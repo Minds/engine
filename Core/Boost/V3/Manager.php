@@ -25,6 +25,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
+use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
@@ -37,6 +38,8 @@ class Manager
 {
     private ?User $user = null;
 
+    private ?Logger $logger = null;
+
     public function __construct(
         private ?Repository $repository = null,
         private ?PaymentProcessor $paymentProcessor = null,
@@ -47,6 +50,8 @@ class Manager
         $this->paymentProcessor ??= new PaymentProcessor();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->actionEventDelegate ??= Di::_()->get(ActionEventDelegate::class);
+
+        $this->logger = Di::_()->get("Logger");
     }
 
     /**
@@ -110,6 +115,9 @@ class Manager
         }
 
         $this->repository->commitTransaction();
+
+        $this->actionEventDelegate->onCreate($boost);
+
         return true;
     }
 
@@ -390,6 +398,41 @@ class Manager
             'guid' => $guid,
             'checksum' => $checksum
         ];
+    }
+
+    public function processExpiredApprovedBoosts(): void
+    {
+        $this->repository->beginTransaction();
+
+        foreach ($this->repository->getExpiredApprovedBoosts() as $boost) {
+            $this->repository->updateStatus($boost->getGuid(), BoostStatus::COMPLETED);
+
+            $this->actionEventDelegate->onComplete($boost);
+
+            echo "\n";
+            $this->logger->addInfo("Boost {$boost->getGuid()} has been marked as COMPLETED");
+            echo "\n";
+        }
+
+        $this->repository->commitTransaction();
+    }
+
+    /**
+     * Get admin stats from repository.
+     * @return Response admin stats as response.
+     */
+    public function getAdminStats(): Response
+    {
+        $globalPendingStats = $this->repository->getAdminStats(
+            targetStatus: BoostStatus::PENDING
+        );
+
+        return new Response([
+            'global_pending' => [
+                'safe_count' => (int) $globalPendingStats['safe_count'],
+                'controversial_count' => (int) $globalPendingStats['controversial_count']
+            ]
+        ]);
     }
 
     /**

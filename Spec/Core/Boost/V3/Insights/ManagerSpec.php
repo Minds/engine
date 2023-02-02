@@ -16,7 +16,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function let(Repository $repositoryMock)
     {
-        $this->beConstructedWith(null, $repositoryMock);
+        $this->beConstructedWith($repositoryMock);
         $this->repositoryMock = $repositoryMock;
     }
 

@@ -47,10 +47,11 @@ class BoostConsoleUrlBuilder
     private function getBoostStateParamValue($state): string
     {
         return match ($state) {
-            // BoostStatus::COMPLETED => 'completed',
+            BoostStatus::COMPLETED => 'completed',
             BoostStatus::APPROVED => 'approved',
             BoostStatus::PENDING => 'pending',
-            default => ''
+            BoostStatus::REJECTED => 'rejected',
+            default => '' // not yet implemented
         };
     }
 
@@ -61,9 +62,9 @@ class BoostConsoleUrlBuilder
     private function getBoostLocationParamValue(int $location): string
     {
         return match ($location) {
-            BoostTargetLocation::NEWSFEED => 'newsfeed',
+            BoostTargetLocation::NEWSFEED => 'feed',
             BoostTargetLocation::SIDEBAR => 'sidebar',
-            default => ''
+            default => '' // not yet implemented
         };
     }
 }

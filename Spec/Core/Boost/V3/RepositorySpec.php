@@ -124,7 +124,8 @@ class RepositorySpec extends ObjectBehavior
             'status' => 1,
             'reason' => null,
             'payment_tx_id' => null,
-            'created_timestamp' => date('c', time())
+            'created_timestamp' => date('c', time()),
+            'total_views' => 100
         ];
 
         $statement->execute()
@@ -166,7 +167,8 @@ class RepositorySpec extends ObjectBehavior
             'status' => 1,
             'reason' => null,
             'payment_tx_id' => null,
-            'created_timestamp' => date('c', time())
+            'created_timestamp' => date('c', time()),
+            'total_views' => 150
         ];
 
         $statement->execute()
@@ -210,7 +212,8 @@ class RepositorySpec extends ObjectBehavior
             'status' => 1,
             'reason' => null,
             'payment_tx_id' => null,
-            'created_timestamp' => date('c', time())
+            'created_timestamp' => date('c', time()),
+            'total_views' => 175
         ];
 
         $statement->execute()
@@ -255,7 +258,8 @@ class RepositorySpec extends ObjectBehavior
             'status' => 1,
             'reason' => null,
             'payment_tx_id' => null,
-            'created_timestamp' => date('c', time())
+            'created_timestamp' => date('c', time()),
+            'total_views' => 200
         ];
 
         $statement->execute()
@@ -301,7 +305,8 @@ class RepositorySpec extends ObjectBehavior
             'status' => 1,
             'reason' => null,
             'payment_tx_id' => null,
-            'created_timestamp' => date('c', time())
+            'created_timestamp' => date('c', time()),
+            'total_views' => 225
         ];
         $query = "SELECT * FROM boosts WHERE guid = :guid";
 
@@ -382,5 +387,40 @@ class RepositorySpec extends ObjectBehavior
 
         $this->updateStatus('123', BoostStatus::FAILED)
             ->shouldBeEqualTo(true);
+    }
+
+    public function it_should_get_admin_stats(PDOStatement $statement)
+    {
+        $expectedResponse = [
+            'safe_count' => 24,
+            'controversial_count' => 82
+        ];
+
+        $query = "SELECT
+            SUM(CASE WHEN boosts.target_suitability = :safe_audience THEN 1 ELSE 0 END) as safe_count,
+            SUM(CASE WHEN boosts.target_suitability = :controversial_audience THEN 1 ELSE 0 END) AS controversial_count
+            FROM boosts WHERE (status = :status)";
+
+        $this->mysqlClientReader->prepare(Argument::that(function ($prepared) use ($query) {
+            return $prepared === $query;
+        }))
+            ->shouldBeCalled()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::that(function ($values) {
+            return $values['status'] === 1 &&
+                $values['safe_audience'] === 1 &&
+                $values['controversial_audience'] === 2;
+        }))
+            ->shouldBeCalled();
+
+        $statement->execute()
+            ->shouldBeCalled();
+
+        $statement->fetch(PDO::FETCH_ASSOC)
+            ->shouldBeCalled()
+            ->willReturn($expectedResponse);
+
+        $this->getAdminStats()->shouldBe($expectedResponse);
     }
 }

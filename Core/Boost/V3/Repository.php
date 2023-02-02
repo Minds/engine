@@ -117,11 +117,28 @@ class Repository
         bool &$hasNext = false
     ): Iterator {
         $values = [];
+
+        $selectColumns = [
+            "boosts.*"
+        ];
         $whereClauses = [];
 
         if ($targetStatus) {
-            $whereClauses[] = "status = :status";
+            $statusWhereClause = "(status = :status";
             $values['status'] = $targetStatus;
+
+            if ($targetStatus !== BoostStatus::COMPLETED) {
+                if (!$forApprovalQueue || $targetStatus !== BoostStatus::PENDING) {
+                    $statusWhereClause .= " AND (approved_timestamp IS NULL OR :expired_timestamp < TIMESTAMPADD(DAY, duration_days, approved_timestamp))";
+                    $values['expired_timestamp'] = date('c', time());
+                }
+            } else {
+                $statusWhereClause .= " OR (approved_timestamp IS NOT NULL AND :expired_timestamp >= TIMESTAMPADD(DAY, duration_days, approved_timestamp))";
+                $values['expired_timestamp'] = date('c', time());
+            }
+
+            $statusWhereClause .= ")";
+            $whereClauses[] = $statusWhereClause;
         }
 
         if (!$forApprovalQueue && $targetUserGuid) {
@@ -176,12 +193,26 @@ class Repository
             $orderByClause = " ORDER BY boost_rankings.$orderByRankingAudience DESC, boosts.approved_timestamp ASC";
         }
 
+        /**
+         * Joins with the boost_summaries table to get total views
+         * Can be expanded later to get other aggregated statistics
+         */
+        $summariesJoin = " LEFT JOIN (
+                SELECT guid, SUM(views) as total_views FROM boost_summaries
+                GROUP BY 1
+            ) summary 
+            ON boosts.guid=summary.guid";
+        $selectColumns[] = "summary.total_views";
+
+
         $whereClause = '';
         if (count($whereClauses)) {
             $whereClause = 'WHERE '.implode(' AND ', $whereClauses);
         }
 
-        $query = "SELECT boosts.* FROM boosts $hiddenEntitiesJoin $orderByRankingJoin $whereClause $orderByClause LIMIT :offset, :limit";
+        $selectColumnsStr = implode(',', $selectColumns);
+
+        $query = "SELECT $selectColumnsStr FROM boosts $summariesJoin $hiddenEntitiesJoin $orderByRankingJoin $whereClause $orderByClause LIMIT :offset, :limit";
         $values['offset'] = $offset;
         $values['limit'] = $limit + 1;
 
@@ -212,7 +243,8 @@ class Repository
                     createdTimestamp: strtotime($boostData['created_timestamp']),
                     paymentTxId: $boostData['payment_tx_id'],
                     updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
-                    approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null
+                    approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
+                    summaryViewsDelivered: (int) $boostData['total_views'],
                 )
             )
                 ->setGuid($boostData['guid'])
@@ -298,12 +330,12 @@ class Repository
 
     public function cancelBoost(string $boostGuid, string $userGuid): bool
     {
-        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid AND user_guid = :user_guid";
+        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid AND owner_guid = :owner_guid";
         $values = [
             'status' => BoostStatus::CANCELLED,
             'updated_timestamp' => date('c', time()),
             'guid' => $boostGuid,
-            'user_guid' => $userGuid,
+            'owner_guid' => $userGuid,
         ];
 
         $statement = $this->mysqlClientWriter->prepare($query);
@@ -325,5 +357,107 @@ class Repository
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         return $statement->execute();
+    }
+
+
+
+    /**
+     * Get admin stats.
+     * @param int $targetStatus - target status to get stats for.
+     * @param int|null $targetLocation - target location to get stats for.
+     * @param int|null $paymentMethod - payment method to get stats for.
+     * @return array key value array with admin stats.
+     */
+    public function getAdminStats(
+        int $targetStatus = BoostStatus::PENDING,
+        ?int $targetLocation = null,
+        ?int $paymentMethod = null,
+    ): array {
+        $values = [];
+        $whereClauses = [];
+
+        $statusWhereClause = "(status = :status";
+        $values['status'] = $targetStatus;
+
+        if ($targetStatus !== BoostStatus::COMPLETED) {
+            if ($targetStatus !== BoostStatus::PENDING) {
+                $statusWhereClause .= " AND (approved_timestamp IS NULL OR :expired_timestamp < TIMESTAMPADD(DAY, duration_days, approved_timestamp))";
+                $values['expired_timestamp'] = date('c', time());
+            }
+        } else {
+            $statusWhereClause .= " OR (approved_timestamp IS NOT NULL AND :expired_timestamp >= TIMESTAMPADD(DAY, duration_days, approved_timestamp))";
+            $values['expired_timestamp'] = date('c', time());
+        }
+
+        $statusWhereClause .= ")";
+        $whereClauses[] = $statusWhereClause;
+
+        if ($targetLocation) {
+            $whereClauses[] = "target_location = :target_location";
+            $values['target_location'] = $targetLocation;
+        }
+
+        if ($paymentMethod) {
+            $whereClauses[] = "payment_method = :payment_method";
+            $values['payment_method'] = $paymentMethod;
+        }
+
+        $whereClause = '';
+        if (count($whereClauses)) {
+            $whereClause = 'WHERE ' . implode(' AND ', $whereClauses);
+        }
+
+        $query = "SELECT
+            SUM(CASE WHEN boosts.target_suitability = :safe_audience THEN 1 ELSE 0 END) as safe_count,
+            SUM(CASE WHEN boosts.target_suitability = :controversial_audience THEN 1 ELSE 0 END) AS controversial_count
+            FROM boosts $whereClause";
+
+        $values['safe_audience'] = BoostTargetAudiences::SAFE;
+        $values['controversial_audience'] = BoostTargetAudiences::CONTROVERSIAL;
+
+        $statement = $this->mysqlClientReader->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        $statement->execute();
+
+        return $statement->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * @return iterable<Boost>|null
+     */
+    public function getExpiredApprovedBoosts(): ?iterable
+    {
+        $query = "SELECT * FROM boosts WHERE status = :status AND :expired_timestamp > TIMESTAMPADD(DAY, duration_days, approved_timestamp)";
+        $values = [
+            "status" => BoostStatus::APPROVED,
+            "expired_timestamp" => date('c', time())
+        ];
+        $statement = $this->mysqlClientReader->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        $statement->execute();
+        if ($statement->rowCount() === 0) {
+            return null;
+        }
+
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $boostData) {
+            yield (new Boost(
+                entityGuid: $boostData['entity_guid'],
+                targetLocation: (int) $boostData['target_location'],
+                targetSuitability: (int) $boostData['target_suitability'],
+                paymentMethod: (int) $boostData['payment_method'],
+                paymentAmount: (float) $boostData['payment_amount'],
+                dailyBid: (int) $boostData['daily_bid'],
+                durationDays: (int) $boostData['duration_days'],
+                status: (int) $boostData['status'],
+                createdTimestamp: strtotime($boostData['created_timestamp']),
+                paymentTxId: $boostData['payment_tx_id'],
+                updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
+                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null
+            ))
+                ->setGuid($boostData['guid'])
+                ->setOwnerGuid($boostData['owner_guid']);
+        }
     }
 }

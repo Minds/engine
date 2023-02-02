@@ -249,7 +249,11 @@ class Manager
             return null;
         }
 
-        $guid = str_replace('urn:boost:newsfeed:', '', $campaign);
+        $guid = str_replace('urn:boost:', '', $campaign);
+
+        if (!is_numeric($guid)) {
+            return null; // Old style boost
+        }
 
         return $this->activeBoostsCache[$guid] ?? $this->repository->getBoostShareRatiosByGuid($guid);
     }
