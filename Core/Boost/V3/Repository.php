@@ -68,15 +68,15 @@ class Repository
                     VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
 
         $createdTimestamp = $boost->getCreatedTimestamp() ?
-            date("Y-m-d H:i:s", $boost->getCreatedTimestamp()) :
+            date("c", $boost->getCreatedTimestamp()) :
             date('c', time());
 
         $approvedTimestamp = $boost->getApprovedTimestamp() ?
-            date("Y-m-d H:i:s", $boost->getApprovedTimestamp()) :
+            date("c", $boost->getApprovedTimestamp()) :
             null;
 
         $updatedTimestamp = $boost->getUpdatedTimestamp() ?
-            date("Y-m-d H:i:s", $boost->getUpdatedTimestamp()) :
+            date("c", $boost->getUpdatedTimestamp()) :
             null;
 
         $values = [

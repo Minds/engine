@@ -338,10 +338,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($entity);
 
-        $this->preApprovalManager->shouldPreApprove($user)
-            ->shouldBeCalled()
-            ->willReturn(false);
-
         $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
             ->shouldNotBeCalled()
             ->willReturn(true);

@@ -101,25 +101,19 @@ class Manager
             ->setOwnerGuid($this->user->getGuid())
             ->setPaymentMethodId($data['payment_method_id'] ?? null);
 
-        if ($preApproved = $this->preApprovalManager->shouldPreApprove($this->user)) {
-            $presetTimestamp = strtotime(date('c', time()));
-            $boost->setStatus(BoostStatus::APPROVED)
-                ->setCreatedTimestamp($presetTimestamp)
-                ->setUpdatedTimestamp($presetTimestamp)
-                ->setApprovedTimestamp($presetTimestamp);
-        }
-
         try {
             $isOnchainBoost = $boost->getPaymentMethod() === BoostPaymentMethod::ONCHAIN_TOKENS;
+
+            if (!$isOnchainBoost && $this->preApprovalManager->shouldPreApprove($this->user)) {
+                $this->preApprove($boost);
+                return true;
+            }
+
             if ($isOnchainBoost) {
                 $boost->setStatus(BoostStatus::PENDING_ONCHAIN_CONFIRMATION)
                     ->setPaymentTxId($data['payment_tx_id']);
             } elseif (!$this->paymentProcessor->setupBoostPayment($boost)) {
                 throw new BoostPaymentSetupFailedException();
-            }
-
-            if ($preApproved && !$isOnchainBoost && !$this->paymentProcessor->captureBoostPayment($boost)) {
-                throw new BoostPaymentCaptureFailedException();
             }
 
             if (!$this->repository->createBoost($boost)) {
@@ -134,11 +128,41 @@ class Manager
 
         $this->actionEventDelegate->onCreate($boost);
 
-        if ($preApproved) {
-            $this->actionEventDelegate->onApprove($boost);
+        return true;
+    }
+
+    /**
+     * Takes a boost ready for creation and pre-approves it.
+     * @param Boost $boost - boost to pre-approve.
+     * @throws BoostPaymentSetupFailedException
+     * @throws BoostPaymentCaptureFailedException
+     * @throws ServerErrorException
+     * @return void
+     */
+    private function preApprove(Boost $boost): void
+    {
+        $presetTimestamp = strtotime(date('c', time()));
+        $boost->setStatus(BoostStatus::APPROVED)
+            ->setCreatedTimestamp($presetTimestamp)
+            ->setUpdatedTimestamp($presetTimestamp)
+            ->setApprovedTimestamp($presetTimestamp);
+
+        if (!$this->paymentProcessor->setupBoostPayment($boost)) {
+            throw new BoostPaymentSetupFailedException();
         }
 
-        return true;
+        if (!$this->paymentProcessor->captureBoostPayment($boost)) {
+            throw new BoostPaymentCaptureFailedException();
+        }
+
+        if (!$this->repository->createBoost($boost)) {
+            throw new ServerErrorException("An error occurred whilst creating the boost request");
+        }
+        
+        $this->repository->commitTransaction();
+
+        $this->actionEventDelegate->onCreate($boost);
+        $this->actionEventDelegate->onApprove($boost);
     }
 
     /**
