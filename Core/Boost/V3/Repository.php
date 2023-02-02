@@ -64,8 +64,21 @@ class Repository
      */
     public function createBoost(Boost $boost): bool
     {
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, payment_method, payment_amount, payment_tx_id, daily_bid, duration_days, status)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status)";
+        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, payment_method, payment_amount, payment_tx_id, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
+                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
+
+        $createdTimestamp = $boost->getCreatedTimestamp() ?
+            date("Y-m-d H:i:s", $boost->getCreatedTimestamp()) :
+            date('c', time());
+
+        $approvedTimestamp = $boost->getApprovedTimestamp() ?
+            date("Y-m-d H:i:s", $boost->getApprovedTimestamp()) :
+            null;
+
+        $updatedTimestamp = $boost->getUpdatedTimestamp() ?
+            date("Y-m-d H:i:s", $boost->getUpdatedTimestamp()) :
+            null;
+
         $values = [
             'guid' => $boost->getGuid(),
             'owner_guid' => $boost->getOwnerGuid(),
@@ -75,6 +88,9 @@ class Repository
             'payment_method' => $boost->getPaymentMethod(),
             'payment_amount' => $boost->getPaymentAmount(),
             'payment_tx_id' => $boost->getPaymentTxId(),
+            'created_timestamp' => $createdTimestamp,
+            'approved_timestamp' => $approvedTimestamp,
+            'updated_timestamp' => $updatedTimestamp,
             'daily_bid' => $boost->getDailyBid(),
             'duration_days' => $boost->getDurationDays(),
             'status' => $boost->getStatus() ?? BoostStatus::PENDING,
@@ -294,14 +310,15 @@ class Repository
             ->setEntity($entity);
     }
 
-    public function approveBoost(string $boostGuid): bool
+    public function approveBoost(string $boostGuid, string $adminGuid): bool
     {
-        $query = "UPDATE boosts SET status = :status, approved_timestamp = :approved_timestamp, updated_timestamp = :updated_timestamp WHERE guid = :guid";
+        $query = "UPDATE boosts SET status = :status, approved_timestamp = :approved_timestamp, updated_timestamp = :updated_timestamp, admin_guid = :admin_guid WHERE guid = :guid";
         $values = [
             'status' => BoostStatus::APPROVED,
             'approved_timestamp' => date('c', time()),
             'updated_timestamp' => date('c', time()),
-            'guid' => $boostGuid
+            'guid' => $boostGuid,
+            'admin_guid' => $adminGuid
         ];
 
         $statement = $this->mysqlClientWriter->prepare($query);
@@ -456,5 +473,60 @@ class Repository
                 ->setGuid($boostData['guid'])
                 ->setOwnerGuid($boostData['owner_guid']);
         }
+    }
+
+    /**
+     * Get a count of a users last boosts, matching one of a mixed array of statuses.
+     * @param string $targetUserGuid - target user to get statuses for.
+     * @param array $statuses - statuses to count.
+     * @param int $limit - limit of the max amount to count.
+     * @return array array with format `status => count`.
+     */
+    public function getBoostStatusCounts(
+        string $targetUserGuid = null,
+        array $statuses,
+        int $limit = 12,
+    ): array {
+        $values = [];
+        $whereClauses = [];
+
+        $whereClauses[] = "owner_guid = :owner_guid";
+        $values['owner_guid'] = $targetUserGuid;
+
+        $statusesString = "status = " . implode(' OR status = ', $statuses);
+        $whereClauses[] = "($statusesString)";
+
+        $whereClause = '';
+        if (count($whereClauses)) {
+            $whereClause = 'WHERE '.implode(' AND ', $whereClauses);
+        }
+
+        $query = "SELECT status, count(status) AS statusCount
+            FROM
+                (
+                    SELECT status
+                    FROM
+                        boosts
+                    $whereClause
+                    ORDER BY
+                        updated_timestamp DESC
+                    LIMIT :limit
+                ) as boostsStatuses
+            GROUP BY status";
+
+        $values['limit'] = $limit;
+
+        $statement = $this->mysqlClientReader->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        $statement->execute();
+        $countsResult = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        $formattedResult = [];
+        foreach ($countsResult as $countItem) {
+            $formattedResult[$countItem['status']] = $countItem['statusCount'];
+        }
+
+        return $formattedResult;
     }
 }

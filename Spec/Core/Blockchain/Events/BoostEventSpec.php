@@ -7,9 +7,13 @@ use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Manager as BoostManagerV3;
 use Minds\Core\Boost\V3\Models\Boost as BoostV3;
+use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Config;
 use Minds\Entities\Boost\Network;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class BoostEventSpec extends ObjectBehavior
@@ -18,23 +22,31 @@ class BoostEventSpec extends ObjectBehavior
     protected $boostRepository;
     protected $config;
     protected $boostManagerV3;
+    protected Collaborator $entitiesBuilder;
+    protected Collaborator $preApprovalManager;
 
     public function let(
         Repository $txRepository,
         \Minds\Core\Boost\Repository $boostRepository,
         BoostManagerV3 $boostManagerV3,
+        PreApprovalManager $preApprovalManager,
+        EntitiesBuilder $entitiesBuilder,
         Config $config
     ) {
         $this->beConstructedWith(
             $txRepository,
             $boostRepository,
             $boostManagerV3,
+            $preApprovalManager,
+            $entitiesBuilder,
             $config
         );
 
         $this->txRepository = $txRepository;
         $this->boostRepository = $boostRepository;
         $this->boostManagerV3 = $boostManagerV3;
+        $this->preApprovalManager = $preApprovalManager;
+        $this->entitiesBuilder = $entitiesBuilder;
         $this->config = $config;
 
         $this->config->get('blockchain')
@@ -360,10 +372,13 @@ class BoostEventSpec extends ObjectBehavior
         $this->boostFail(['address' => '0xasd'], $transaction);
     }
 
-    public function it_should_record_as_resolved_for_v3_boosts(
-        BoostV3 $boost
+    public function it_should_record_as_resolved_for_v3_boosts_that_should_not_be_preapproved(
+        BoostV3 $boost,
+        User $user
     ) {
         $guid = '1234';
+        $ownerGuid = '2345';
+
         $this->boostManagerV3->getBoostByGuid($guid)
             ->shouldBeCalled()
             ->willReturn($boost);
@@ -372,11 +387,60 @@ class BoostEventSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(BoostStatus::PENDING_ONCHAIN_CONFIRMATION);
 
+        $boost->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($ownerGuid);
+
+        $this->entitiesBuilder->single($ownerGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->preApprovalManager->shouldPreApprove($user)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $transaction = new Transaction();
         $transaction->setContract('boost')
             ->setData([ 'guid' => $guid ]);
 
         $this->boostManagerV3->updateStatus($guid, BoostStatus::PENDING)
+            ->shouldBeCalled();
+
+        $this->boostSent(['address' => '0xasd'], $transaction);
+    }
+
+    public function it_should_record_as_resolved_for_v3_boosts_that_should_be_preapproved(
+        BoostV3 $boost,
+        User $user
+    ) {
+        $guid = '1234';
+        $ownerGuid = '2345';
+
+        $this->boostManagerV3->getBoostByGuid($guid)
+            ->shouldBeCalled()
+            ->willReturn($boost);
+
+        $boost->getStatus()
+            ->shouldBeCalled()
+            ->willReturn(BoostStatus::PENDING_ONCHAIN_CONFIRMATION);
+
+        $boost->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($ownerGuid);
+
+        $this->entitiesBuilder->single($ownerGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->preApprovalManager->shouldPreApprove($user)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $transaction = new Transaction();
+        $transaction->setContract('boost')
+            ->setData([ 'guid' => $guid ]);
+
+        $this->boostManagerV3->updateStatus($guid, BoostStatus::APPROVED)
             ->shouldBeCalled();
 
         $this->boostSent(['address' => '0xasd'], $transaction);

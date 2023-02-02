@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS boosts
     daily_bid float NOT NULL,
     duration_days int NOT NULL,
     status int NOT NULL,
+    admin_guid bigint NULL DEFAULT NULL,
     created_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_timestamp timestamp NULL DEFAULT NULL,
     approved_timestamp timestamp NULL DEFAULT NULL,

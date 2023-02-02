@@ -12,6 +12,7 @@ use Minds\Core\Boost\V3\Exceptions\BoostPaymentSetupFailedException;
 use Minds\Core\Boost\V3\Exceptions\EntityTypeNotAllowedInLocationException;
 use Minds\Core\Boost\V3\Exceptions\IncorrectBoostStatusException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
+use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
 use Minds\Core\Boost\V3\Manager;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\PaymentProcessor;
@@ -34,23 +35,27 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $paymentProcessor;
     private Collaborator $entitiesBuilder;
     private Collaborator $actionEventDelegate;
+    private Collaborator $preApprovalManager;
 
     public function let(
         Repository $repository,
         PaymentProcessor $paymentProcessor,
         EntitiesBuilder $entitiesBuilder,
-        ActionEventDelegate $actionEventDelegate
+        ActionEventDelegate $actionEventDelegate,
+        PreApprovalManager $preApprovalManager
     ) {
         $this->repository = $repository;
         $this->paymentProcessor = $paymentProcessor;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->actionEventDelegate = $actionEventDelegate;
+        $this->preApprovalManager = $preApprovalManager;
 
         $this->beConstructedWith(
             $this->repository,
             $this->paymentProcessor,
             $this->entitiesBuilder,
-            $this->actionEventDelegate
+            $this->actionEventDelegate,
+            $this->preApprovalManager
         );
     }
 
@@ -87,6 +92,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn('activity');
 
+        $this->preApprovalManager->shouldPreApprove($user)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $this->entitiesBuilder->single(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($entity);
@@ -95,7 +104,60 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $this->repository->createBoost(Argument::type(Boost::class))
+        $this->repository->createBoost(Argument::that(function ($arg) {
+            return $arg->getStatus() === null;
+        }))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $boostData = [
+            'entity_guid' => '123',
+            'target_location' => 1,
+            'target_suitability' => 1,
+            'payment_method' => 1,
+            'daily_bid' => 10,
+            'duration_days' => 2
+        ];
+
+        $this->createBoost($boostData)
+            ->shouldBeEqualTo(true);
+    }
+
+    public function it_should_create_boost_when_pre_approved(
+        User $user,
+        Entity $entity
+    ): void {
+        $this->repository->beginTransaction()
+            ->shouldBeCalledOnce();
+
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $entity->getType()
+            ->shouldBeCalledOnce()
+            ->willReturn('activity');
+
+        $this->preApprovalManager->shouldPreApprove($user)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->entitiesBuilder->single(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($entity);
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->createBoost(Argument::that(function ($arg) {
+            return $arg->getStatus() === BoostStatus::APPROVED;
+        }))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -163,6 +225,10 @@ class ManagerSpec extends ObjectBehavior
         $this->entitiesBuilder->single(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($entity);
+        
+        $this->preApprovalManager->shouldPreApprove($user)
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
             ->shouldBeCalledOnce()
@@ -208,6 +274,10 @@ class ManagerSpec extends ObjectBehavior
         $this->entitiesBuilder->single(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($entity);
+
+        $this->preApprovalManager->shouldPreApprove($user)
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
             ->shouldBeCalledOnce()
@@ -264,6 +334,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($entity);
 
+        $this->preApprovalManager->shouldPreApprove($user)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
             ->shouldNotBeCalled()
             ->willReturn(true);
@@ -297,8 +371,11 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_approve_boost(
         Boost $boost
     ): void {
+        $adminGuid = '345';
+
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
+
         $this->repository->commitTransaction()
             ->shouldBeCalledOnce();
 
@@ -306,7 +383,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($boost);
 
-        $this->repository->approveBoost(Argument::type('string'))
+        $this->repository->approveBoost(Argument::type('string'), $adminGuid)
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -317,7 +394,7 @@ class ManagerSpec extends ObjectBehavior
         $this->actionEventDelegate->onApprove($boost)
             ->shouldBeCalled();
 
-        $this->approveBoost('123')
+        $this->approveBoost('123', $adminGuid)
             ->shouldBeEqualTo(true);
     }
 
@@ -341,7 +418,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
-        $this->shouldThrow(BoostPaymentCaptureFailedException::class)->during('approveBoost', ['123']);
+        $this->shouldThrow(BoostPaymentCaptureFailedException::class)->during('approveBoost', ['123', '234']);
     }
 
     /**
@@ -360,7 +437,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($boost);
 
-        $this->repository->approveBoost(Argument::type('string'))
+        $this->repository->approveBoost(Argument::type('string'), Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -368,7 +445,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $this->shouldThrow(ServerErrorException::class)->during('approveBoost', ['123']);
+        $this->shouldThrow(ServerErrorException::class)->during('approveBoost', ['123', '234']);
     }
 
     /**
@@ -385,7 +462,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willThrow(BoostNotFoundException::class);
 
-        $this->shouldThrow(BoostNotFoundException::class)->during('approveBoost', ['123']);
+        $this->shouldThrow(BoostNotFoundException::class)->during('approveBoost', ['123', '234']);
     }
 
     /**

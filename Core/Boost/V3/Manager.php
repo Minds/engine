@@ -7,6 +7,7 @@ use Exception;
 use Minds\Common\Repository\Response;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\Checksum;
+use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
@@ -44,12 +45,14 @@ class Manager
         private ?Repository $repository = null,
         private ?PaymentProcessor $paymentProcessor = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?ActionEventDelegate $actionEventDelegate = null
+        private ?ActionEventDelegate $actionEventDelegate = null,
+        private ?PreApprovalManager $preApprovalManager = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->actionEventDelegate ??= Di::_()->get(ActionEventDelegate::class);
+        $this->preApprovalManager ??= Di::_()->get(PreApprovalManager::class);
 
         $this->logger = Di::_()->get("Logger");
     }
@@ -98,6 +101,14 @@ class Manager
             ->setOwnerGuid($this->user->getGuid())
             ->setPaymentMethodId($data['payment_method_id'] ?? null);
 
+        if ($preApproved = $this->preApprovalManager->shouldPreApprove($this->user)) {
+            $presetTimestamp = strtotime(date('c', time()));
+            $boost->setStatus(BoostStatus::APPROVED)
+                ->setCreatedTimestamp($presetTimestamp)
+                ->setUpdatedTimestamp($presetTimestamp)
+                ->setApprovedTimestamp($presetTimestamp);
+        }
+
         try {
             if ($boost->getPaymentMethod() === BoostPaymentMethod::ONCHAIN_TOKENS) {
                 $boost->setStatus(BoostStatus::PENDING_ONCHAIN_CONFIRMATION)
@@ -117,6 +128,10 @@ class Manager
         $this->repository->commitTransaction();
 
         $this->actionEventDelegate->onCreate($boost);
+
+        if ($preApproved) {
+            $this->actionEventDelegate->onApprove($boost);
+        }
 
         return true;
     }
@@ -154,7 +169,7 @@ class Manager
      * @throws UserErrorException
      * @throws ApiErrorException
      */
-    public function approveBoost(string $boostGuid): bool
+    public function approveBoost(string $boostGuid, string $adminGuid): bool
     {
         $this->repository->beginTransaction();
 
@@ -165,7 +180,10 @@ class Manager
                 throw new BoostPaymentCaptureFailedException();
             }
 
-            if (!$this->repository->approveBoost($boostGuid)) {
+            if (!$this->repository->approveBoost(
+                boostGuid: $boostGuid,
+                adminGuid: $adminGuid
+            )) {
                 throw new ServerErrorException();
             }
         } catch (Exception $e) {
