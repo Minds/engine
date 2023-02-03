@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Spec\Minds\Core\Boost\V3;
 
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
+use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
@@ -121,6 +122,7 @@ class RepositorySpec extends ObjectBehavior
             'daily_bid' => 10,
             'duration_days' => 2,
             'status' => 1,
+            'reason' => null,
             'payment_tx_id' => null,
             'created_timestamp' => date('c', time()),
             'total_views' => 100
@@ -163,6 +165,7 @@ class RepositorySpec extends ObjectBehavior
             'daily_bid' => 10,
             'duration_days' => 2,
             'status' => 1,
+            'reason' => null,
             'payment_tx_id' => null,
             'created_timestamp' => date('c', time()),
             'total_views' => 150
@@ -207,6 +210,7 @@ class RepositorySpec extends ObjectBehavior
             'daily_bid' => 10,
             'duration_days' => 2,
             'status' => 1,
+            'reason' => null,
             'payment_tx_id' => null,
             'created_timestamp' => date('c', time()),
             'total_views' => 175
@@ -252,6 +256,7 @@ class RepositorySpec extends ObjectBehavior
             'daily_bid' => 10,
             'duration_days' => 2,
             'status' => 1,
+            'reason' => null,
             'payment_tx_id' => null,
             'created_timestamp' => date('c', time()),
             'total_views' => 200
@@ -298,6 +303,7 @@ class RepositorySpec extends ObjectBehavior
             'daily_bid' => 10,
             'duration_days' => 2,
             'status' => 1,
+            'reason' => null,
             'payment_tx_id' => null,
             'created_timestamp' => date('c', time()),
             'total_views' => 225
@@ -352,7 +358,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid";
+        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp, reason = :reason WHERE guid = :guid";
         $this->mysqlClientWriter->prepare($query)
             ->shouldBeCalledOnce()
             ->willReturn($statement);
@@ -360,7 +366,7 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
             ->shouldBeCalledOnce();
 
-        $this->rejectBoost('123')
+        $this->rejectBoost('123', BoostRejectionReason::WRONG_AUDIENCE)
             ->shouldBeEqualTo(true);
     }
 

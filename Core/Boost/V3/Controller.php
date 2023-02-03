@@ -5,10 +5,14 @@ namespace Minds\Core\Boost\V3;
 
 use Exception;
 use Minds\Api\Exportable;
+use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
+use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
+use Minds\Core\Boost\V3\Exceptions\BoostPaymentRefundFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentSetupFailedException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
+use Minds\Core\Boost\V3\Exceptions\InvalidRejectionReasonException;
 use Minds\Core\Boost\V3\Validators\BoostCreateRequestValidator;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
@@ -34,17 +38,9 @@ class Controller
     {
         $loggedInUser = $request->getAttribute('_user');
 
-        [
-            'limit' => $limit,
-            'offset' => $offset,
-            'audience' => $audience,
-            'location' => $targetLocation,
-            'show_boosts_after_x' => $showBoostsAfterX
-        ] = $request->getQueryParams();
+        $params = $request->getQueryParams();
 
-        if (!$audience && $loggedInUser->getBoostRating() !== BoostTargetAudiences::CONTROVERSIAL) {
-            $audience = BoostTargetAudiences::SAFE;
-        }
+        $showBoostsAfterX = $params['show_boosts_after_x'];
 
         if (!$this->shouldShowBoosts($loggedInUser, (int) $showBoostsAfterX)) {
             return new JsonResponse([
@@ -52,6 +48,19 @@ class Controller
                 'boosts' => []
             ]);
         }
+
+        $limit = $params['limit'] ?? 12;
+        $offset = $params['offset'] ?? 0;
+
+        $audience =
+            $params['audience'] ??
+            (
+                $loggedInUser->getBoostRating() !== BoostTargetAudiences::CONTROVERSIAL ?
+                    BoostTargetAudiences::SAFE :
+                    BoostTargetAudiences::CONTROVERSIAL
+            );
+
+        $targetLocation = $params['location'] ?? null;
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
@@ -61,7 +70,7 @@ class Controller
                 targetStatus: BoostStatus::APPROVED,
                 orderByRanking: true,
                 targetAudience: (int) $audience,
-                targetLocation: (int) $targetLocation
+                targetLocation: (int) $targetLocation ?: null
             );
 
         return new JsonResponse([
@@ -215,9 +224,10 @@ class Controller
      * @param ServerRequestInterface $request
      * @return JsonResponse
      * @throws ApiErrorException
-     * @throws Exceptions\BoostNotFoundException
-     * @throws Exceptions\BoostPaymentCaptureFailedException
+     * @throws BoostNotFoundException
+     * @throws BoostPaymentRefundFailedException
      * @throws InvalidBoostPaymentMethodException
+     * @throws InvalidRejectionReasonException
      * @throws KeyNotSetupException
      * @throws LockFailedException
      * @throws NotImplementedException
@@ -227,7 +237,13 @@ class Controller
     {
         $boostGuid = $request->getAttribute("parameters")["guid"];
 
-        $this->manager->rejectBoost((string) $boostGuid);
+        ['reason' => $reasonCode] = $request->getParsedBody();
+
+        if (!BoostRejectionReason::isValid($reasonCode)) {
+            throw new InvalidRejectionReasonException();
+        }
+
+        $this->manager->rejectBoost((string) $boostGuid, $reasonCode);
 
         return new JsonResponse([]);
     }

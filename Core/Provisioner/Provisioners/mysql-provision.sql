@@ -165,3 +165,7 @@ CREATE TABLE IF NOT EXISTS users_marketing_attributes
     updated_timestamp timestamp NOT NULL default CURRENT_TIMESTAMP,
     PRIMARY KEY (user_guid, attribute_key)
 ) ENGINE=InnoDB;
+
+ALTER TABLE boosts
+    ADD reason int NULL DEFAULT NULL
+    AFTER status;
