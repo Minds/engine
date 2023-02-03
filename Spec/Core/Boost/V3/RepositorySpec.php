@@ -124,14 +124,15 @@ class RepositorySpec extends ObjectBehavior
 
         $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, payment_method, payment_amount, payment_tx_id, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
                     VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
+
         $this->mysqlClientWriter->prepare($query)
             ->shouldBeCalledOnce()
             ->willReturn($statement);
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::that(function ($arg) {
-            return $arg["created_timestamp"] === "1970-01-01 00:00:01" &&
-                $arg["approved_timestamp"] === "1970-01-01 00:00:01" &&
-                $arg["updated_timestamp"] === "1970-01-01 00:00:01";
+            return $arg["created_timestamp"] === "1970-01-01T00:00:01+00:00" &&
+                $arg["approved_timestamp"] === "1970-01-01T00:00:01+00:00" &&
+                $arg["updated_timestamp"] === "1970-01-01T00:00:01+00:00";
         }))
             ->shouldBeCalledOnce();
 
