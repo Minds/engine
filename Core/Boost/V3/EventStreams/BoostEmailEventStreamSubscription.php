@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 namespace Minds\Core\Boost\V3\EventStreams;
 
+use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
@@ -71,6 +72,11 @@ class BoostEmailEventStreamSubscription implements SubscriptionInterface
 
         if (!$boost = $event->getEntity()) {
             $this->logger->error("Boost ({$boost->getGuid()}) provided to event stream with no entity");
+            return true;
+        }
+
+        if (!$boost instanceof Boost) {
+            $this->logger->warn("Non boost (entity guid: {$boost->getGuid()}) provided to event stream");
             return true;
         }
 
