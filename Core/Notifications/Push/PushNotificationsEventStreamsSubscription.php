@@ -5,11 +5,9 @@
 namespace Minds\Core\Notifications\Push;
 
 use Minds\Core\Di\Di;
-use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\NotificationEvent;
 use Minds\Core\EventStreams\SubscriptionInterface;
-use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\EventStreams\Topics\NotificationsTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
@@ -56,7 +54,7 @@ class PushNotificationsEventStreamsSubscription implements SubscriptionInterface
      * Called when there is a new notification
      * NOTE: the topic delays the delivery
      * @param EventInterface $event
-     * @return booo
+     * @return bool
      */
     public function consume(EventInterface $event): bool
     {
