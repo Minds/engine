@@ -10,6 +10,7 @@ namespace Minds\Core\Config;
 
 use Minds\Core\Blockchain\Manager as BlockchainManager;
 use Minds\Core\Boost\Network\Rates;
+use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Features\Manager as FeaturesManager;
@@ -178,6 +179,7 @@ class Exported
         $boost = $this->config->get('boost');
         unset($boost['offchain_wallet_guid']);
         $exported['boost'] = $boost;
+        $exported['boost']['rejection_reasons'] = BoostRejectionReason::rejectionReasonsWithLabels();
 
         return $exported;
     }
