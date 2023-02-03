@@ -719,7 +719,7 @@ class ManagerSpec extends ObjectBehavior
             Argument::type('bool'),
             null,
             Argument::type('bool'),
-            Argument::type('integer'),
+            null,
             null,
             null,
             null,
