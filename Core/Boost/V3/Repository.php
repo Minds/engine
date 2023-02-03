@@ -93,7 +93,7 @@ class Repository
      * @param bool $forApprovalQueue
      * @param string|null $targetUserGuid
      * @param bool $orderByRanking
-     * @param int $targetAudience
+     * @param int|null $targetAudience
      * @param int|null $targetLocation
      * @param int|null $paymentMethod
      * @param string|null $entityGuid
@@ -108,7 +108,7 @@ class Repository
         bool $forApprovalQueue = false,
         ?string $targetUserGuid = null,
         bool $orderByRanking = false,
-        int $targetAudience = BoostTargetAudiences::SAFE,
+        ?int $targetAudience = null,
         ?int $targetLocation = null,
         ?int $paymentMethod = null,
         ?string $entityGuid = null,
@@ -155,7 +155,6 @@ class Repository
             $values['payment_method'] = $paymentMethod;
         }
 
-        // NOTE: this check is doing nothing as the property checked will always have a value and we should never pass 0 (zero)
         if ($targetAudience) {
             $whereClauses[] = "target_suitability = :target_suitability";
             $values['target_suitability'] = $targetAudience;
