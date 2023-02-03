@@ -181,7 +181,13 @@ class Repository
         }
 
         $orderByRankingJoin = "";
-        $orderByClause = "";
+        $orderByClause = " ORDER BY created_timestamp DESC, updated_timestamp DESC, approved_timestamp DESC";
+
+        if ($forApprovalQueue) {
+            $orderByClause = " ORDER BY created_timestamp ASC";
+        }
+
+
         if ($orderByRanking) {
             $orderByRankingJoin = " LEFT JOIN boost_rankings ON boosts.guid = boost_rankings.guid";
 
@@ -212,7 +218,7 @@ class Repository
 
         $selectColumnsStr = implode(',', $selectColumns);
 
-        $query = "SELECT $selectColumnsStr FROM boosts $summariesJoin $hiddenEntitiesJoin $orderByRankingJoin $whereClause $orderByClause ORDER BY created_timestamp DESC, updated_timestamp DESC, approved_timestamp DESC LIMIT :offset, :limit";
+        $query = "SELECT $selectColumnsStr FROM boosts $summariesJoin $hiddenEntitiesJoin $orderByRankingJoin $whereClause $orderByClause LIMIT :offset, :limit";
         $values['offset'] = $offset;
         $values['limit'] = $limit + 1;
 
