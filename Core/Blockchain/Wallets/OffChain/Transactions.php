@@ -12,6 +12,7 @@ use Minds\Core\Blockchain\Transactions\Repository;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Data\Locks;
+use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\GuidBuilder;
@@ -81,8 +82,8 @@ class Transactions
 
     /**
      * @return Transaction
+     * @throws KeyNotSetupException
      * @throws LockFailedException
-     * @throws Locks\KeyNotSetupException
      * @throws OffchainWalletInsufficientFundsException
      */
     public function create()
@@ -134,6 +135,11 @@ class Transactions
             $this->locks->unlock();
 
             return $transaction;
+        } catch (OffchainWalletInsufficientFundsException $e) {
+            $this->locks
+                ->unlock();
+
+            throw $e;
         } catch (\Exception $e) {
             // Release the lock
             $this->locks->unlock();
@@ -147,7 +153,8 @@ class Transactions
      * @param User $sender
      * @return bool
      * @throws LockFailedException
-     * @throws Locks\KeyNotSetupException
+     * @throws KeyNotSetupException
+     * @throws OffchainWalletInsufficientFundsException
      */
     public function transferFrom(User $sender): bool
     {
@@ -205,7 +212,7 @@ class Transactions
             $balance = BigNumber::_($this->balance->setUser($sender)->get());
 
             if ($balance->add($senderAmount)->lt(0)) {
-                throw new \Exception('Not enough sender funds');
+                throw new OffchainWalletInsufficientFundsException();
             }
 
             // Receiver Transaction
@@ -261,6 +268,15 @@ class Transactions
             //
 
             return true;
+        } catch (OffchainWalletInsufficientFundsException $e) {
+            $this->locks
+                ->setKey($receiverLockKey)
+                ->unlock();
+
+            $this->locks
+                ->setKey($senderLockKey)
+                ->unlock();
+            throw $e;
         } catch (\Exception $e) {
             // Release the locks
 
