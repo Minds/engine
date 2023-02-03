@@ -156,3 +156,7 @@ CREATE TABLE IF NOT EXISTS entities_hidden
     created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
     PRIMARY KEY (user_guid, entity_guid)
 ) ENGINE=InnoDB;
+
+ALTER TABLE boosts
+    ADD reason int NULL DEFAULT NULL
+    AFTER status;

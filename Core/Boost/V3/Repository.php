@@ -97,6 +97,7 @@ class Repository
      * @param int|null $targetLocation
      * @param int|null $paymentMethod
      * @param string|null $entityGuid
+     * @param int|null $paymentMethod
      * @param User|null $loggedInUser
      * @param bool $hasNext
      * @return Iterator
@@ -110,8 +111,8 @@ class Repository
         bool $orderByRanking = false,
         int $targetAudience = BoostTargetAudiences::SAFE,
         ?int $targetLocation = null,
-        ?int $paymentMethod = null,
         ?string $entityGuid = null,
+        ?int $paymentMethod = null,
         ?User $loggedInUser = null,
         bool &$hasNext = false
     ): Iterator {
@@ -155,7 +156,6 @@ class Repository
             $values['payment_method'] = $paymentMethod;
         }
 
-        // NOTE: this check is doing nothing as the property checked will always have a value and we should never pass 0 (zero)
         if ($targetAudience) {
             $whereClauses[] = "target_suitability = :target_suitability";
             $values['target_suitability'] = $targetAudience;
@@ -239,6 +239,7 @@ class Repository
                     dailyBid: (int) $boostData['daily_bid'],
                     durationDays: (int) $boostData['duration_days'],
                     status: (int) $boostData['status'],
+                    rejectionReason: (int) $boostData['reason'] ?: null,
                     createdTimestamp: strtotime($boostData['created_timestamp']),
                     paymentTxId: $boostData['payment_tx_id'],
                     updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
@@ -283,6 +284,7 @@ class Repository
                 dailyBid: (float) $boostData['daily_bid'],
                 durationDays: (int) $boostData['duration_days'],
                 status: (int) $boostData['status'],
+                rejectionReason: (int) $boostData['reason'] ?: null,
                 createdTimestamp: strtotime($boostData['created_timestamp']),
                 paymentTxId: $boostData['payment_tx_id'],
                 updatedTimestamp: isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
@@ -310,12 +312,13 @@ class Repository
         return $statement->execute();
     }
 
-    public function rejectBoost(string $boostGuid): bool
+    public function rejectBoost(string $boostGuid, int $reasonCode): bool
     {
-        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid";
+        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp, reason = :reason WHERE guid = :guid";
         $values = [
             'status' => BoostStatus::REJECTED,
             'updated_timestamp' => date('c', time()),
+            'reason' => $reasonCode,
             'guid' => $boostGuid
         ];
 

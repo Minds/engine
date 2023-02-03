@@ -5,8 +5,8 @@ namespace Minds\Core\Boost\V3;
 
 use Exception;
 use Minds\Common\Repository\Response;
-use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\Checksum;
+use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
@@ -183,18 +183,19 @@ class Manager
 
     /**
      * @param string $boostGuid
+     * @param int $reasonCode
      * @return bool
      * @throws ApiErrorException
+     * @throws BoostNotFoundException
      * @throws BoostPaymentRefundFailedException
-     * @throws Exception
-     * @throws Exceptions\BoostNotFoundException
+     * @throws IncorrectBoostStatusException
      * @throws InvalidBoostPaymentMethodException
      * @throws KeyNotSetupException
      * @throws LockFailedException
      * @throws NotImplementedException
      * @throws ServerErrorException
      */
-    public function rejectBoost(string $boostGuid): bool
+    public function rejectBoost(string $boostGuid, int $reasonCode): bool
     {
         // Only process if status is Pending
         $boost = $this->repository->getBoostByGuid($boostGuid);
@@ -213,12 +214,11 @@ class Manager
         // Mark request as Refund_processed
         $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_PROCESSED);
 
-        if (!$this->repository->rejectBoost($boostGuid)) {
+        if (!$this->repository->rejectBoost($boostGuid, $reasonCode)) {
             throw new ServerErrorException();
         }
 
-        // TODO: Get rejection reason from boost when possible.
-        $this->actionEventDelegate->onReject($boost, 999);
+        $this->actionEventDelegate->onReject($boost, $reasonCode);
 
         return true;
     }
@@ -272,6 +272,7 @@ class Manager
      * @param int $targetAudience
      * @param int|null $targetLocation
      * @param string|null $entityGuid
+     * @param int|null $paymentMethod
      * @return Response
      */
     public function getBoosts(
@@ -283,8 +284,8 @@ class Manager
         bool $orderByRanking = false,
         int $targetAudience = BoostTargetAudiences::SAFE,
         ?int $targetLocation = null,
-        ?int $paymentMethod = null,
-        ?string $entityGuid = null
+        ?string $entityGuid = null,
+        ?int $paymentMethod = null
     ): Response {
         $hasNext = false;
         $boosts = $this->repository->getBoosts(
@@ -296,8 +297,8 @@ class Manager
             orderByRanking: $orderByRanking,
             targetAudience: $targetAudience,
             targetLocation: $targetLocation,
-            paymentMethod: $paymentMethod,
             entityGuid: $entityGuid,
+            paymentMethod: $paymentMethod,
             loggedInUser: $this->user,
             hasNext: $hasNext
         );
@@ -314,6 +315,7 @@ class Manager
      * @param string|null $targetUserGuid
      * @param bool $orderByRanking
      * @param int $targetAudience
+     * @param int|null $targetLocation
      * @return Response
      */
     public function getBoostFeed(
@@ -371,6 +373,8 @@ class Manager
      * Will prepare an onchain boost
      * @param string $entityGuid
      * @return array
+     * @throws ServerErrorException
+     * @throws UserErrorException
      */
     public function prepareOnchainBoost(string $entityGuid): array
     {
