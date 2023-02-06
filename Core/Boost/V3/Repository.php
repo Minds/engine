@@ -189,7 +189,7 @@ class Repository
 
 
         if ($orderByRanking) {
-            $orderByRankingJoin = " LEFT JOIN boost_rankings ON boosts.guid = boost_rankings.guid";
+            $orderByRankingJoin = " INNER JOIN boost_rankings ON boosts.guid = boost_rankings.guid";
 
             $orderByRankingAudience = 'ranking_safe';
             if ($targetAudience === BoostTargetAudiences::CONTROVERSIAL) {
