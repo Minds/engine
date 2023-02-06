@@ -5,6 +5,7 @@ namespace Minds\Core\Boost\V3;
 
 use Exception;
 use Minds\Common\Repository\Response;
+use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Boost\Checksum;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
@@ -68,12 +69,12 @@ class Manager
      * @param array $data
      * @return bool
      * @throws BoostPaymentSetupFailedException
-     * @throws Exception
+     * @throws EntityTypeNotAllowedInLocationException
      * @throws InvalidBoostPaymentMethodException
      * @throws KeyNotSetupException
      * @throws LockFailedException
-     * @throws NotImplementedException
      * @throws ServerErrorException
+     * @throws OffchainWalletInsufficientFundsException
      */
     public function createBoost(array $data): bool
     {
@@ -145,14 +146,13 @@ class Manager
     /**
      * @param string $boostGuid
      * @return bool
-     * @throws Exception
-     * @throws Exceptions\BoostNotFoundException
+     * @throws ApiErrorException
+     * @throws BoostNotFoundException
+     * @throws BoostPaymentCaptureFailedException
      * @throws InvalidBoostPaymentMethodException
-     * @throws NotImplementedException
      * @throws ServerErrorException
      * @throws StripeTransferFailedException
      * @throws UserErrorException
-     * @throws ApiErrorException
      */
     public function approveBoost(string $boostGuid): bool
     {
@@ -271,7 +271,6 @@ class Manager
      * @param bool $orderByRanking
      * @param int|null $targetAudience
      * @param int|null $targetLocation
-     * @param int|null $paymentMethod
      * @param string|null $entityGuid
      * @param int|null $paymentMethod
      * @return Response
