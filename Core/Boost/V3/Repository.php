@@ -290,7 +290,7 @@ class Repository
                 dailyBid: (float) $boostData['daily_bid'],
                 durationDays: (int) $boostData['duration_days'],
                 status: (int) $boostData['status'],
-                rejectionReason: (int) $boostData['reason'] ?: null,
+                rejectionReason: isset($boostData['reason']) ? (int) $boostData['reason'] : null,
                 createdTimestamp: strtotime($boostData['created_timestamp']),
                 paymentTxId: $boostData['payment_tx_id'],
                 updatedTimestamp: isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
