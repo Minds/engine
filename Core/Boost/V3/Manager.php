@@ -5,6 +5,8 @@ namespace Minds\Core\Boost\V3;
 
 use Exception;
 use Minds\Common\Repository\Response;
+use Minds\Core\Analytics\Views\View;
+use Minds\Core\Analytics\Views\Manager as ViewsManager;
 use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Boost\Checksum;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
@@ -45,12 +47,14 @@ class Manager
         private ?Repository $repository = null,
         private ?PaymentProcessor $paymentProcessor = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?ActionEventDelegate $actionEventDelegate = null
+        private ?ActionEventDelegate $actionEventDelegate = null,
+        private ?ViewsManager $viewsManager = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->actionEventDelegate ??= Di::_()->get(ActionEventDelegate::class);
+        $this->viewsManager ??= new ViewsManager();
 
         $this->logger = Di::_()->get("Logger");
     }
@@ -341,7 +345,17 @@ class Manager
             loggedInUser: $this->user,
             hasNext: $hasNext
         );
-        $feedSyncEntities = $this->castToFeedSyncEntities($boosts);
+
+        $boostsArray = iterator_to_array($boosts);
+
+        foreach ($boostsArray as $i => $boost) {
+            if ((int) $targetLocation === BoostTargetLocation::SIDEBAR) {
+                $this->recordSidebarView($boost, $i);
+            }
+        }
+
+        $feedSyncEntities = $this->castToFeedSyncEntities($boostsArray);
+
         return new Response($feedSyncEntities);
     }
 
@@ -436,12 +450,32 @@ class Manager
     }
 
     /**
+     * A temporary solution for being able to rank the sidebar boosts
+     * @param Boost $boost
+     * @return void
+     */
+    public function recordSidebarView(Boost $boost, int $position): void
+    {
+        $this->viewsManager->record(
+            (new View())
+                ->setEntityUrn($boost->getEntity()->getUrn())
+                ->setOwnerGuid((string) $boost->getEntity()->getOwnerGuid())
+                ->setClientMeta([
+                    'source' => 'feed/subscribed', // TODO: this should be the actual source
+                    'medium' => 'sidebar',
+                    'campaign' => $boost->getUrn(),
+                    'position' => $position,
+                ])
+        );
+    }
+
+    /**
      * Casts an array of boosts to feed sync entities from boost,
      * containing the exported boosted content.
-     * @param iterable $boosts - boosts to cast
+     * @param Boost[] $boosts - boosts to cast
      * @return array feed sync entities.
      */
-    private function castToFeedSyncEntities(iterable $boosts): array
+    private function castToFeedSyncEntities(array $boosts): array
     {
         $feedSyncEntities = [];
 
