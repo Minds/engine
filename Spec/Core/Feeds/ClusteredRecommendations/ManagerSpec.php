@@ -112,11 +112,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn("");
 
-        $this->entitiesBuilder->get(['guids' => ['123']])
+        $this->entitiesBuilder->single('123')
             ->shouldBeCalledOnce()
-            ->willReturn([
-                $entity
-            ]);
+            ->willReturn($entity);
 
         $this->getList(12, true)
             ->shouldContainAnInstanceOf(FeedSyncEntity::class);
@@ -178,11 +176,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn("");
 
-        $this->entitiesBuilder->get(['guids' => ['123']])
+        $this->entitiesBuilder->single('123')
             ->shouldBeCalledOnce()
-            ->willReturn([
-                $entity
-            ]);
+            ->willReturn($entity);
 
         $this->getList(12, true)
             ->shouldContainAnInstanceOf(FeedSyncEntity::class);
