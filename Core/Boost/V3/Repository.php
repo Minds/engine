@@ -203,12 +203,15 @@ class Repository
          * Joins with the boost_summaries table to get total views
          * Can be expanded later to get other aggregated statistics
          */
-        $summariesJoin = " LEFT JOIN (
-                SELECT guid, SUM(views) as total_views FROM boost_summaries
-                GROUP BY 1
-            ) summary 
-            ON boosts.guid=summary.guid";
-        $selectColumns[] = "summary.total_views";
+        $summariesJoin = "";
+        if ($targetUserGuid) {
+            $summariesJoin = " LEFT JOIN (
+                    SELECT guid, SUM(views) as total_views FROM boost_summaries
+                    GROUP BY 1
+                ) summary
+                ON boosts.guid=summary.guid";
+            $selectColumns[] = "summary.total_views";
+        }
 
 
         $whereClause = '';
