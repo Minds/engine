@@ -4,10 +4,12 @@ declare(strict_types=1);
 namespace Minds\Core\Boost\V3;
 
 use Exception;
+use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Blockchain\Wallets\OffChain\Transactions as OffchainTransactions;
 use Minds\Core\Boost\V3\Enums\BoostAdminAction;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
+use Minds\Core\Boost\V3\Exceptions\BoostCashPaymentSetupFailedException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\Onchain\AdminTransactionProcessor;
@@ -23,7 +25,6 @@ use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
-use NotImplementedException;
 use Stripe\Exception\ApiErrorException;
 
 class PaymentProcessor
@@ -50,7 +51,8 @@ class PaymentProcessor
      * @throws InvalidBoostPaymentMethodException
      * @throws KeyNotSetupException
      * @throws LockFailedException
-     * @throws NotImplementedException
+     * @throws OffchainWalletInsufficientFundsException
+     * @throws ServerErrorException
      * @throws Exception
      */
     public function setupBoostPayment(Boost $boost): bool
@@ -70,30 +72,34 @@ class PaymentProcessor
      */
     private function setupCashPaymentIntent(Boost $boost): bool
     {
-        $paymentIntent = (new PaymentIntent())
-            ->setUserGuid($boost->getOwnerGuid())
-            ->setAmount($boost->getPaymentAmount() * 100)
-            ->setPaymentMethod($boost->getPaymentMethodId()) // Reference to the users card.
-            ->setOffSession(true) // Needs to be off session.
-            ->setConfirm(false) // Do not immediately confirm the transaction.
-            ->setCaptureMethod('manual') // Hold funds rather than capturing immediately.
-            ->setMetadata([
-                'boost_guid' => $boost->getGuid(),
-                'boost_sender_guid' => $boost->getOwnerGuid(),
-                'boost_owner_guid' => $boost->getOwnerGuid(),
-                'boost_entity_guid' => $boost->getEntityGuid(),
-                'boost_location' => BoostTargetLocation::toString($boost->getTargetLocation()),
-                'is_manual_transfer' => false // transfer method, NOT capture method.
-            ])
-            ->setServiceFeePct(self::SERVICE_FEE_PERCENT)
-            ->setStatementDescriptor('Boost')
-            ->setDescription($this->getCashPaymentStatementDescription($boost->getOwnerGuid()));
+        try {
+            $paymentIntent = (new PaymentIntent())
+                ->setUserGuid($boost->getOwnerGuid())
+                ->setAmount($boost->getPaymentAmount() * 100)
+                ->setPaymentMethod($boost->getPaymentMethodId()) // Reference to the users card.
+                ->setOffSession(true) // Needs to be off session.
+                ->setConfirm(false) // Do not immediately confirm the transaction.
+                ->setCaptureMethod('manual') // Hold funds rather than capturing immediately.
+                ->setMetadata([
+                    'boost_guid' => $boost->getGuid(),
+                    'boost_sender_guid' => $boost->getOwnerGuid(),
+                    'boost_owner_guid' => $boost->getOwnerGuid(),
+                    'boost_entity_guid' => $boost->getEntityGuid(),
+                    'boost_location' => BoostTargetLocation::toString($boost->getTargetLocation()),
+                    'is_manual_transfer' => false // transfer method, NOT capture method.
+                ])
+                ->setServiceFeePct(self::SERVICE_FEE_PERCENT)
+                ->setStatementDescriptor('Boost')
+                ->setDescription($this->getCashPaymentStatementDescription($boost->getOwnerGuid()));
 
-        $intent = $this->intentsManager->add($paymentIntent);
+            $intent = $this->intentsManager->add($paymentIntent);
 
-        $boost->setPaymentTxId($intent->getId());
+            $boost->setPaymentTxId($intent->getId());
 
-        return true;
+            return true;
+        } catch (Exception $e) {
+            throw new BoostCashPaymentSetupFailedException();
+        }
     }
 
     private function getCashPaymentStatementDescription(string $userGuid): string
@@ -110,7 +116,7 @@ class PaymentProcessor
      * @return bool
      * @throws KeyNotSetupException
      * @throws LockFailedException
-     * @throws Exception
+     * @throws OffchainWalletInsufficientFundsException
      */
     private function setupOffchainTokensPayment(Boost $boost): bool
     {
@@ -172,6 +178,10 @@ class PaymentProcessor
         return $this->intentsManager->capturePaymentIntent($boost->getPaymentTxId());
     }
 
+    /**
+     * @param Boost $boost
+     * @return bool
+     */
     private function captureOffchainTokenPayment(Boost $boost): bool
     {
         // Nothing to do here as the tokens are transferred at request time and refunded if boost request is rejected
