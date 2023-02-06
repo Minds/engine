@@ -196,7 +196,7 @@ class Repository
                 $orderByRankingAudience = 'ranking_open';
             }
 
-            $orderByClause = " ORDER BY boost_rankings.$orderByRankingAudience DESC, boosts.approved_timestamp ASC";
+            $orderByClause = " ORDER BY boost_rankings.$orderByRankingAudience DESC";
         }
 
         /**
