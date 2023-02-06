@@ -237,7 +237,7 @@ class Repository
             if (++$i > $limit) {
                 break;
             }
-            $entity = $i <= 12 ? $this->entitiesBuilder->single($boostData['entity_guid']) : null;
+            $entity = $this->entitiesBuilder->single($boostData['entity_guid']);
             yield (
                 new Boost(
                     entityGuid: $boostData['entity_guid'],
