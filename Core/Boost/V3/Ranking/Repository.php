@@ -157,7 +157,6 @@ class Repository
         }
 
         return $this->mysqlClient->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
-    
     }
 
     /**
