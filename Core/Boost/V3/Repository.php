@@ -237,7 +237,7 @@ class Repository
             if (++$i > $limit) {
                 break;
             }
-            $entity = $this->entitiesBuilder->single($boostData['entity_guid']);
+            $entity = $this->entitiesBuilder->single($boostData['entity_guid'], [ 'cacheTtl' => 604800 ]);
             yield (
                 new Boost(
                     entityGuid: $boostData['entity_guid'],
