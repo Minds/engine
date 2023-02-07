@@ -76,9 +76,11 @@ class Manager
      */
     protected function saveToDb(): void
     {
+        $this->repository->beginTransaction();
         foreach ($this->boostViewsBuffer as $guid => $views) {
             $this->repository->add((string) $guid, $this->date, $views);
         }
+        $this->repository->commitTransaction();
     }
 
 
