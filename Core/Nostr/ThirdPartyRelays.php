@@ -74,7 +74,7 @@ class ThirdPartyRelays
         }
         $relays = $this->config->get('nostr')['relays'] ?? [
                 'wss://nostr-relay.untethr.me',
-                'wss://nostr.bitcoiner.social',
+                'wss://offchain.pub',
                 'wss://nostr-relay.wlvs.space',
                 'wss://nostr-pub.wellorder.net'
             ];
