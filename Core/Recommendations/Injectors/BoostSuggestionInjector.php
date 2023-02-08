@@ -59,7 +59,7 @@ class BoostSuggestionInjector
                 BoostTargetAudiences::SAFE :
                 BoostTargetAudiences::CONTROVERSIAL;
 
-        $entity = $this->boostManager->getBoosts(
+        $boost = $this->boostManager->getBoosts(
             limit: 1,
             targetStatus: BoostStatus::APPROVED,
             orderByRanking: true,
@@ -69,8 +69,8 @@ class BoostSuggestionInjector
 
         return (new Suggestion())
             ->setConfidenceScore(1)
-            ->setEntityGuid($entity->getGuid())
-            ->setEntity(new BoostEntityWrapper($entity))
-            ->setEntityType($entity->getEntity()->getType() ?? null);
+            ->setEntityGuid($boost->getGuid())
+            ->setEntity(new BoostEntityWrapper($boost))
+            ->setEntityType($boost->getEntity()->getType() ?? null);
     }
 }
