@@ -64,7 +64,9 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
             // $mem = memory_get_usage();
             // Di::_()->get('Logger')->info(round($mem/1048576, 2) . 'mb used');
 
-            sleep(1);
+            if ($sleep = $this->getOpt('sleep')) {
+                sleep($sleep);
+            }
         }
 
         $this->out('Done');

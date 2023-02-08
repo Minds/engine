@@ -67,6 +67,8 @@ class Manager
         /**
          * Loop through all of our active boosts(that we just built above) and collect their bid ration
          */
+
+        $this->repository->beginTransaction();
         foreach ($this->activeBoostsCache as $boost) {
             $targetAudiences = [
                 BoostTargetAudiences::CONTROVERSIAL => $boost->getTargetAudienceShare(BoostTargetAudiences::CONTROVERSIAL), // Will always go to open audience
@@ -100,6 +102,7 @@ class Manager
 
             $this->repository->addBoostRanking($ranking);
         }
+        $this->repository->commitTransaction();
     }
 
     /**

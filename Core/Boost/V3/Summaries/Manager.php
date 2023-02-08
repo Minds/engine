@@ -76,9 +76,11 @@ class Manager
      */
     protected function saveToDb(): void
     {
+        $this->repository->beginTransaction();
         foreach ($this->boostViewsBuffer as $guid => $views) {
             $this->repository->add((string) $guid, $this->date, $views);
         }
+        $this->repository->commitTransaction();
     }
 
 
@@ -89,7 +91,7 @@ class Manager
      */
     protected function getBoostByCampaign(string $campaign): ?Boost
     {
-        if (strpos($campaign, 'urn:boost:', 0) === false && count(explode(':', $campaign)) > 3) {
+        if (strpos($campaign, 'urn:boost:', 0) === false || count(explode(':', $campaign)) > 3) {
             return null;
         }
 
