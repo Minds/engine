@@ -152,7 +152,7 @@ class Controller
                             ->setUser($user)
                             ->getUserSettings();
                         if ($settings->isPlusDemonetized()) {
-                            throw new UserErrorException('You are not allowed to post to Plus');
+                            throw new UserErrorException('Your Plus account is demonetized and cannot post');
                         }
                     } catch (UserSettingsNotFoundException $e) {
                         // do nothing.
