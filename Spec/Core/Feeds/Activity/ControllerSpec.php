@@ -2,15 +2,18 @@
 
 namespace Spec\Minds\Core\Feeds\Activity;
 
+use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\Manager;
 use Minds\Core\Feeds\Activity\Controller;
 use Minds\Core\Feeds\Scheduled\EntityTimeCreated;
+use Minds\Core\Settings\Manager as UserSettingsManager;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 use Zend\Diactoros\ServerRequest;
 
@@ -28,23 +31,31 @@ class ControllerSpec extends ObjectBehavior
     /** @var EntityTimeCreated */
     private $entityTimeCreated;
 
+    private Collaborator $config;
+    private Collaborator $userSettingsManager;
 
     public function let(
         Manager $manager,
         EntitiesBuilder $entitiesBuilder,
         ACL $acl,
-        EntityTimeCreated $entityTimeCreated
+        EntityTimeCreated $entityTimeCreated,
+        Config $config,
+        UserSettingsManager $userSettingsManager
     ) {
         $this->manager = $manager;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->acl = $acl;
         $this->entityTimeCreated = $entityTimeCreated;
+        $this->config = $config;
+        $this->userSettingsManager = $userSettingsManager;
 
         $this->beConstructedWith(
             $manager,
             $entitiesBuilder,
             $acl,
-            $entityTimeCreated
+            $entityTimeCreated,
+            $config,
+            $userSettingsManager
         );
     }
 

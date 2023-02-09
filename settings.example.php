@@ -143,11 +143,16 @@ $CONFIG->set(
                 ['value' => 1, 'label' => 'Hacked account']
             ],
         ],
-        ['value' => 11,
+        [
+            'value' => 11,
             'label' => 'Another reason',
             'hasMore' => true,
         ],
-
+        [
+            'value' => 18,
+            'label' => 'Violates Premium Content policy',
+            'hasMore' => false,
+        ]
     ]
 );
 

@@ -20,7 +20,7 @@ class UserSettings implements ExportableInterface
     private ?int $termsAcceptedAt = null;
     private ?float $supermindCashMin = null;
     private ?float $supermindOffchainTokensMin = null;
-
+    private bool $plusDemonetized = false;
     private array $dirty = [];
 
     public function setUserGuid(string $userGuid): self
@@ -48,6 +48,27 @@ class UserSettings implements ExportableInterface
     {
         $this->supermindOffchainTokensMin = $supermindOffchainTokensMin;
         $this->markPropertyAsUpdated('supermind_offchain_tokens_min', $supermindOffchainTokensMin);
+        return $this;
+    }
+
+    /**
+     * Whether user is demonetized from plus.
+     * @return bool true if user is demonetized from plus.
+     */
+    public function isPlusDemonetized(): bool
+    {
+        return $this->plusDemonetized;
+    }
+
+    /**
+     * Set whether a user is demonetized from plus.
+     * @param boolean $plusDemonetized - whether a user is demonetized from plus.
+     * @return self
+     */
+    public function setPlusDemonetized(bool $plusDemonetized): self
+    {
+        $this->plusDemonetized = $plusDemonetized;
+        $this->markPropertyAsUpdated('plus_demonetized', $plusDemonetized);
         return $this;
     }
 
@@ -88,6 +109,10 @@ class UserSettings implements ExportableInterface
             );
         }
 
+        if (isset($data['plus_demonetized'])) {
+            $userSettings->setPlusDemonetized($data['plus_demonetized']);
+        }
+
         return $userSettings;
     }
 
@@ -108,6 +133,7 @@ class UserSettings implements ExportableInterface
             'terms_accepted_at' => $this->termsAcceptedAt,
             'supermind_cash_min' => $this->supermindCashMin,
             'supermind_offchain_tokens_min' => $this->supermindOffchainTokensMin,
+            'plus_demonetized' => $this->plusDemonetized,
         ];
     }
 }

@@ -1,0 +1,39 @@
+<?php
+declare(strict_types=1);
+
+namespace Minds\Core\Demonetization\Strategies;
+
+use Minds\Core\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
+use Minds\Core\Demonetization\Strategies\Interfaces\DemonetizationStrategyInterface;
+use Minds\Core\Entities\Actions\Save as SaveAction;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
+use Minds\Exceptions\ServerErrorException;
+
+/**
+ * Strategy to demonetize a post, by setting the wire threshold to empty,
+ * and paywall to false.
+ */
+class DemonetizePostStrategy implements DemonetizationStrategyInterface
+{
+    public function __construct(private ?SaveAction $saveAction = null)
+    {
+        $this->saveAction ??= new SaveAction();
+    }
+
+    /**
+     * Execute strategy to demonetize the given entity.
+     * @param DemonetizableEntityInterface $entity - entity to demonetize. - must be implement PaywallEntityInterface.
+     * @throws ServerErrorException if entity does not inherit PaywallEntityInterface.
+     * @return boolean true if successful.
+     */
+    public function execute(DemonetizableEntityInterface $entity): bool
+    {
+        if (!$entity instanceof PaywallEntityInterface) {
+            throw new ServerErrorException('Invalid entity passed to demonetize post strategy');
+        }
+        $entity->setWireThreshold([]);
+        $entity->setPaywall(false);
+        $this->saveAction->setEntity($entity)->save(true);
+        return true;
+    }
+}
