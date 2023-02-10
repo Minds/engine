@@ -107,19 +107,19 @@ class ACL
 
             // Owner not found
             if (!$ownerEntity) {
-                $this->logger->info("$entity->guid was requested but owner {$entity->getOwnerGuid()} was not found");
+                $this->logger->info("{$entity->getGuid()} was requested but owner {$entity->getOwnerGuid()} was not found");
                 return false;
             }
 
             // Owner is banned or disabled
             if ($ownerEntity->isBanned() || !$ownerEntity->isEnabled()) {
-                $this->logger->info("$entity->guid was requested but owner {$entity->getOwnerGuid()} {$ownerEntity->username}) is banned or disabled");
+                $this->logger->info("{$entity->getGuid()} was requested but owner {$entity->getOwnerGuid()} {$ownerEntity->username}) is banned or disabled");
                 return false;
             }
 
             // Owner passes other ACL rules (fallback)
             if ($this->read($ownerEntity, $user) !== true) {
-                $this->logger->info("$entity->guid was requested but owner {$entity->getOwnerGuid()} failed to pass its own ACL READ event");
+                $this->logger->info("{$entity->getGuid()} was requested but owner {$entity->getOwnerGuid()} failed to pass its own ACL READ event");
                 return false;
             }
         }
