@@ -34,7 +34,7 @@ class DemonetizePlusUserStrategySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->settingsManager);
 
-        $this->settingsManager->storeUserSettings(Argument::that(function($arg) {
+        $this->settingsManager->storeUserSettings(Argument::that(function ($arg) {
             return is_string($arg['plus_demonetized_ts']);
         }))
             ->shouldBeCalled();

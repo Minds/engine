@@ -72,7 +72,7 @@ class Demonetize extends Cli\Controller implements Interfaces\CliControllerInter
     /**
      * Check whether a user is Minds+ demonetized.
      * @example
-     * - php cli.php Demonetize isPlusDemonetized --guid='1470454736242085891'
+     * - php cli.php Demonetize isPlusUserDemonetized --guid='1470454736242085891'
      * @return void
      */
     public function isPlusUserDemonetized(): void
