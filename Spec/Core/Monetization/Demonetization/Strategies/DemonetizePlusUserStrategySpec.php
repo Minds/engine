@@ -10,6 +10,7 @@ use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 
 class DemonetizePlusUserStrategySpec extends ObjectBehavior
 {
@@ -33,7 +34,9 @@ class DemonetizePlusUserStrategySpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->settingsManager);
 
-        $this->settingsManager->storeUserSettings(['plus_demonetized' => true])
+        $this->settingsManager->storeUserSettings(Argument::that(function($arg) {
+            return is_string($arg['plus_demonetized_ts']);
+        }))
             ->shouldBeCalled();
 
         $this->execute($user)->shouldBe(true);

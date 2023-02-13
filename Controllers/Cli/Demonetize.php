@@ -75,7 +75,8 @@ class Demonetize extends Cli\Controller implements Interfaces\CliControllerInter
      * - php cli.php Demonetize isPlusDemonetized --guid='1470454736242085891'
      * @return void
      */
-    public function isPlusUserDemonetized(): void {
+    public function isPlusUserDemonetized(): void
+    {
         $guid = $this->getOpt('guid') ?? null;
 
         $user = $this->entitiesBuilder->single($guid);
@@ -90,7 +91,8 @@ class Demonetize extends Cli\Controller implements Interfaces\CliControllerInter
                 ->setUser($user)
                 ->getUserSettings();
             
-            $this->out($settings->isPlusDemonetized() ? 
+            $this->out(
+                $settings->isPlusDemonetized() ?
                 '[Demonetize CLI] User is Minds+ demonetized' :
                 '[Demonetize CLI] User is not Minds+ demonetized'
             );
