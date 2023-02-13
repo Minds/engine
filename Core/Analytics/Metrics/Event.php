@@ -37,6 +37,7 @@ use Minds\Entities\User;
  * @method Event setProReferrer(bool $proReferrer)
  * @method Event setIsRemind(bool $isRemind)
  * @method Event setProofOfWork(bool $proofOfWork)
+ * @method Event setClientMeta(array $clientMeta)
  */
 class Event
 {
@@ -93,7 +94,7 @@ class Event
 
         return $this;
     }
-    
+
     /**
      * Set the user entity and applies their guid to the data
      * @param User $user
@@ -116,6 +117,10 @@ class Event
             if ($this->data['action']) {
                 $this->data['account_quality_score'] = $this->getAccountQualityScore();
             }
+        }
+
+        if (isset($this->data['client_meta'])) {
+            $this->data['campaign'] = $this->data['client_meta']['campaign'];
         }
 
         $this->data['user_agent'] = $this->getUserAgent();
@@ -230,7 +235,8 @@ class Event
         $entityContext = new Snowplow\Contexts\SnowplowEntityContext();
         $sessionContext = new Snowplow\Contexts\SnowplowSessionContext();
         $proofOfWorkContext = new Snowplow\Contexts\SnowplowProofOfWorkContext();
-        $contexts = [ $entityContext, $sessionContext, $proofOfWorkContext ];
+        $clientMetaContext = new Snowplow\Contexts\SnowplowClientMetaContext();
+        $contexts = [ $entityContext, $sessionContext, $proofOfWorkContext, $clientMetaContext ];
 
         $event = new Snowplow\Events\SnowplowActionEvent();
 
@@ -239,7 +245,7 @@ class Event
         if ($this->data['entity_guid'] ?? null) {
             $entityContext->setEntityGuid($this->data['entity_guid']);
         }
-        
+
         if ($this->data['entity_type'] ?? null) {
             $entityContext->setEntityType($this->data['entity_type']);
         }
@@ -280,8 +286,21 @@ class Event
             $proofOfWorkContext->setSuccessful($this->data['proofOfWork']);
         }
 
+        if ($this->data['client_meta'] ?? null) {
+            $clientMetaContext->platform = $this->data['client_meta']['platform'];
+            $clientMetaContext->source = $this->data['client_meta']['source'];
+            $clientMetaContext->timestamp = $this->data['client_meta']['timestamp'];
+            $clientMetaContext->salt = $this->data['client_meta']['salt'];
+            $clientMetaContext->medium = $this->data['client_meta']['medium'];
+            $clientMetaContext->campaign = $this->data['client_meta']['campaign'];
+            $clientMetaContext->page_token = $this->data['client_meta']['page_token'];
+            $clientMetaContext->delta = $this->data['client_meta']['delta'];
+            $clientMetaContext->position = $this->data['client_meta']['position'] ?? 0;
+            $clientMetaContext->served_by_guid = $this->data['client_meta']['served_by_guid'] ?? "";
+        }
+
         // Rebuild the user, as we need the full entity
-        
+
         /** @var User */
         $user = $this->entitiesBuilder->single($this->data['user_guid']);
 

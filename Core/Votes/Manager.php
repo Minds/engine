@@ -115,6 +115,8 @@ class Manager
             $eventOptions['isFriendlyCaptchaPuzzleValid'] = $isPuzzleValid;
         }
 
+        $eventOptions['client_meta'] = $options['client_meta'];
+
         if ($done && $options['events']) {
             $this->eventsDispatcher->trigger('vote', $vote->getDirection(), $eventOptions);
 

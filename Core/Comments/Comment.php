@@ -2,16 +2,16 @@
 
 namespace Minds\Core\Comments;
 
+use Minds\Core\Di\Di;
 use Minds\Core\Guid;
 use Minds\Core\Luid;
 use Minds\Core\Security\ACL;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\RepositoryEntity;
 use Minds\Entities\User;
+use Minds\Helpers\Export;
 use Minds\Helpers\Flags;
 use Minds\Helpers\Unknown;
-use Minds\Helpers\Export;
-use Minds\Core\Di\Di;
-use Minds\Entities\EntityInterface;
 
 /**
  * Comment Entity
@@ -48,6 +48,8 @@ use Minds\Entities\EntityInterface;
  * @method Comment setVotesDown(array $value)
  * @method array getVotesDown()
  * @method Comment setEphemeral(bool $value)
+ * @method Comment setClientMeta(array $clientMeta)
+ * @method array getClientMeta()
  * @method bool isEphemeral()
  */
 class Comment extends RepositoryEntity implements EntityInterface
@@ -114,6 +116,8 @@ class Comment extends RepositoryEntity implements EntityInterface
 
     /** @var bool */
     protected $ephemeral = true;
+
+    private array $clientMeta = [];
 
     /**
      * Gets the entity guid for the comment.
