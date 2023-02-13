@@ -9,10 +9,12 @@ use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\Enums\BoostTargetSuitability;
+use Minds\Core\Boost\V3\Exceptions\BoostAccessForbiddenException;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\Repository;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Security\ACL;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOStatement;
@@ -29,6 +31,7 @@ class RepositorySpec extends ObjectBehavior
     private Collaborator $mysqlClientReader;
     private Collaborator $mysqlClientWriter;
     private Collaborator $entitiesBuilder;
+    private Collaborator $acl;
 
     /**
      * @param MySQLClient $mysqlHandler
@@ -42,7 +45,8 @@ class RepositorySpec extends ObjectBehavior
         MySQLClient $mysqlHandler,
         PDO    $mysqlClientReader,
         PDO    $mysqlClientWriter,
-        EntitiesBuilder $entitiesBuilder
+        EntitiesBuilder $entitiesBuilder,
+        ACL $acl
     ): void {
         $this->mysqlHandler = $mysqlHandler;
 
@@ -55,8 +59,9 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn($this->mysqlClientWriter);
 
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->acl = $acl;
 
-        $this->beConstructedWith($this->mysqlHandler, $this->entitiesBuilder);
+        $this->beConstructedWith($this->mysqlHandler, $this->entitiesBuilder, $this->acl);
     }
 
     public function it_is_initializable(): void
@@ -147,6 +152,9 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
             ->shouldBeCalledOnce();
 
+        $this->acl->read(Argument::type(Boost::class))
+            ->shouldBeCalled();
+            
         $this->getBoosts()
             ->shouldYieldAnInstanceOf(Boost::class);
     }
@@ -189,6 +197,9 @@ class RepositorySpec extends ObjectBehavior
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
             ->shouldBeCalledOnce();
+
+        $this->acl->read(Argument::type(Boost::class))
+            ->shouldBeCalled();
 
         $this->getBoosts(
             targetStatus: BoostStatus::PENDING
@@ -234,6 +245,9 @@ class RepositorySpec extends ObjectBehavior
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
             ->shouldBeCalledOnce();
+
+        $this->acl->read(Argument::type(Boost::class))
+            ->shouldBeCalled();
 
         $this->getBoosts(
             targetStatus: BoostStatus::PENDING,
@@ -281,6 +295,9 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
             ->shouldBeCalledOnce();
 
+        $this->acl->read(Argument::type(Boost::class))
+            ->shouldBeCalled();
+
         $this->getBoosts(
             targetStatus: BoostStatus::PENDING,
             orderByRanking: true,
@@ -327,9 +344,60 @@ class RepositorySpec extends ObjectBehavior
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
             ->shouldBeCalledOnce();
+        
+        $this->acl->read(Argument::type(Boost::class))
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->getBoostByGuid('123')
             ->shouldReturnAnInstanceOf(Boost::class);
+    }
+
+    public function it_should_throw_exception_on_get_boost_by_guid_if_acl_read_fails(
+        PDOStatement $statement
+    ): void {
+        $boostData = [
+            'guid' => '123',
+            'owner_guid' => '123',
+            'entity_guid' => '123',
+            'target_location' => 1,
+            'target_suitability' => 1,
+            'payment_method' => 1,
+            'payment_amount' => 20,
+            'daily_bid' => 10,
+            'duration_days' => 2,
+            'status' => 1,
+            'reason' => null,
+            'payment_tx_id' => null,
+            'created_timestamp' => date('c', time()),
+            'total_views' => 225
+        ];
+        $query = "SELECT * FROM boosts WHERE guid = :guid";
+
+        $statement->execute()
+            ->shouldBeCalledOnce();
+
+        $statement->rowCount()
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
+
+        $statement->fetch(Argument::type('integer'))
+            ->shouldBeCalledOnce()
+            ->willReturn($boostData);
+
+        $this->mysqlClientReader->prepare($query)
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
+            ->shouldBeCalledOnce();
+        
+        $this->acl->read(Argument::type(Boost::class))
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->shouldThrow(BoostAccessForbiddenException::class)
+            ->during('getBoostByGuid', ['123']);
     }
 
     public function it_should_approve_boost(

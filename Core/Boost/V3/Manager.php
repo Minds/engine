@@ -14,6 +14,7 @@ use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
+use Minds\Core\Boost\V3\Exceptions\BoostAccessForbiddenException;
 use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentRefundFailedException;
@@ -368,7 +369,7 @@ class Manager
     {
         try {
             return $this->repository->getBoostByGuid($boostGuid);
-        } catch (BoostNotFoundException $e) {
+        } catch (BoostNotFoundException|BoostAccessForbiddenException $e) {
             return null;
         }
     }

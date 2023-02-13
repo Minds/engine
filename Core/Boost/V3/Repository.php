@@ -6,11 +6,13 @@ namespace Minds\Core\Boost\V3;
 use Iterator;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
+use Minds\Core\Boost\V3\Exceptions\BoostAccessForbiddenException;
 use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
@@ -28,13 +30,15 @@ class Repository
      */
     public function __construct(
         private ?MySQLClient $mysqlHandler = null,
-        private ?EntitiesBuilder $entitiesBuilder = null
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?ACL $acl = null
     ) {
         $this->mysqlHandler ??= Di::_()->get("Database\MySQL\Client");
         $this->mysqlClientReader = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_REPLICA);
         $this->mysqlClientWriter = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_MASTER);
 
         $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
+        $this->acl ??= new ACL();
     }
 
     public function beginTransaction(): void
@@ -238,27 +242,32 @@ class Repository
                 break;
             }
             $entity = $this->entitiesBuilder->single($boostData['entity_guid']);
-            yield (
-                new Boost(
-                    entityGuid: $boostData['entity_guid'],
-                    targetLocation: (int) $boostData['target_location'],
-                    targetSuitability: (int) $boostData['target_suitability'],
-                    paymentMethod: (int) $boostData['payment_method'],
-                    paymentAmount: (float) $boostData['payment_amount'],
-                    dailyBid: (int) $boostData['daily_bid'],
-                    durationDays: (int) $boostData['duration_days'],
-                    status: (int) $boostData['status'],
-                    rejectionReason: (int) $boostData['reason'] ?: null,
-                    createdTimestamp: strtotime($boostData['created_timestamp']),
-                    paymentTxId: $boostData['payment_tx_id'],
-                    updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
-                    approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
-                    summaryViewsDelivered: (int) $boostData['total_views'],
-                )
-            )
+            
+            $boost = (new Boost(
+                entityGuid: $boostData['entity_guid'],
+                targetLocation: (int) $boostData['target_location'],
+                targetSuitability: (int) $boostData['target_suitability'],
+                paymentMethod: (int) $boostData['payment_method'],
+                paymentAmount: (float) $boostData['payment_amount'],
+                dailyBid: (int) $boostData['daily_bid'],
+                durationDays: (int) $boostData['duration_days'],
+                status: (int) $boostData['status'],
+                rejectionReason: (int) $boostData['reason'] ?: null,
+                createdTimestamp: strtotime($boostData['created_timestamp']),
+                paymentTxId: $boostData['payment_tx_id'],
+                updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
+                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
+                summaryViewsDelivered: (int) $boostData['total_views'],
+            ))
                 ->setGuid($boostData['guid'])
                 ->setOwnerGuid($boostData['owner_guid'])
                 ->setEntity($entity);
+
+            if (!$this->acl->read($boost)) {
+                continue;
+            }
+
+            yield $boost;
         }
     }
 
@@ -283,7 +292,7 @@ class Repository
 
         $boostData = $statement->fetch(PDO::FETCH_ASSOC);
         $entity = $this->entitiesBuilder->single($boostData['entity_guid']);
-        return (
+        $boost = (
             new Boost(
                 entityGuid: $boostData['entity_guid'],
                 targetLocation: (int) $boostData['target_location'],
@@ -303,6 +312,12 @@ class Repository
             ->setGuid($boostData['guid'])
             ->setOwnerGuid($boostData['owner_guid'])
             ->setEntity($entity);
+        
+        if (!$this->acl->read($boost)) {
+            throw new BoostAccessForbiddenException();
+        }
+
+        return $boost;
     }
 
     public function approveBoost(string $boostGuid): bool
