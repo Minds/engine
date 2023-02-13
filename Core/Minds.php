@@ -80,7 +80,7 @@ class Minds extends base
         Verification\Module::class,
         Settings\Module::class,
         Boost\V3\Module::class,
-        Demonetization\Module::class
+        Monetization\Module::class
     ];
 
     /**

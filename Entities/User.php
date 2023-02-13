@@ -7,7 +7,7 @@ use Minds\Core;
 use Minds\Core\Supermind\Settings\Models\Settings;
 use Minds\Helpers;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
-use Minds\Core\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
+use Minds\Core\Monetization\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
 
 /**
  * User Entity.

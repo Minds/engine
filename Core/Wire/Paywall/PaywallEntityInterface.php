@@ -1,7 +1,7 @@
 <?php
 namespace Minds\Core\Wire\Paywall;
 
-use Minds\Core\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
+use Minds\Core\Monetization\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
 
 interface PaywallEntityInterface extends DemonetizableEntityInterface
 {

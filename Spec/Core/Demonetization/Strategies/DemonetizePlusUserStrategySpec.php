@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Spec\Minds\Core\Demonetization\Strategies;
+namespace Spec\Minds\Core\Monetization\Demonetization\Strategies;
 
-use Minds\Core\Demonetization\Strategies\DemonetizePlusUserStrategy;
+use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePlusUserStrategy;
 use Minds\Core\Settings\Manager as SettingsManager;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Entities\User;

@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Spec\Minds\Core\Demonetization\Strategies;
+namespace Spec\Minds\Core\Monetization\Demonetization\Strategies;
 
 use Minds\Core\Blogs\Blog;
-use Minds\Core\Demonetization\Strategies\DemonetizePostStrategy;
+use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePostStrategy;
 use Minds\Core\Entities\Actions\Save as SaveAction;
 use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;

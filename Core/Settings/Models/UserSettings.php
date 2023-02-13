@@ -11,6 +11,7 @@ use Minds\Traits\MagicAttributes;
  * @method int|null getTermsAcceptedAt()
  * @method float|null getSupermindCashMin()
  * @method float|null getSupermindOffchainTokensMin()
+ * @method string|null getPlusDemonetizedTimestamp()
  */
 class UserSettings implements ExportableInterface
 {
@@ -20,7 +21,7 @@ class UserSettings implements ExportableInterface
     private ?int $termsAcceptedAt = null;
     private ?float $supermindCashMin = null;
     private ?float $supermindOffchainTokensMin = null;
-    private bool $plusDemonetized = false;
+    private ?string $plusDemonetizedTimestamp = null;
     private array $dirty = [];
 
     public function setUserGuid(string $userGuid): self
@@ -52,23 +53,24 @@ class UserSettings implements ExportableInterface
     }
 
     /**
-     * Whether user is demonetized from plus.
-     * @return bool true if user is demonetized from plus.
+     * Get whether a user has a plus demonetization timestamp.
+     * @param int $plusDemonetizedTimestamp - timestamp for a users plus demonetization.
+     * @return bool true if a user has a plus demonetization timestamp.
      */
     public function isPlusDemonetized(): bool
     {
-        return $this->plusDemonetized;
+        return (bool) $this->plusDemonetizedTimestamp;
     }
 
     /**
-     * Set whether a user is demonetized from plus.
-     * @param boolean $plusDemonetized - whether a user is demonetized from plus.
+     * Set a users plus demonetization timestamp.
+     * @param string|null $plusDemonetizedTimestamp - timestamp for a users plus demonetization.
      * @return self
      */
-    public function setPlusDemonetized(bool $plusDemonetized): self
+    public function setPlusDemonetizedTimestamp(?string $plusDemonetizedTimestamp): self
     {
-        $this->plusDemonetized = $plusDemonetized;
-        $this->markPropertyAsUpdated('plus_demonetized', $plusDemonetized);
+        $this->plusDemonetizedTimestamp = $plusDemonetizedTimestamp;
+        $this->markPropertyAsUpdated('plus_demonetized_ts', $plusDemonetizedTimestamp);
         return $this;
     }
 
@@ -109,8 +111,10 @@ class UserSettings implements ExportableInterface
             );
         }
 
-        if (isset($data['plus_demonetized'])) {
-            $userSettings->setPlusDemonetized($data['plus_demonetized']);
+        if (array_key_exists('plus_demonetized_ts', $data)) {
+            $userSettings->setPlusDemonetizedTimestamp(
+                $data['plus_demonetized_ts']
+            );
         }
 
         return $userSettings;
@@ -133,7 +137,7 @@ class UserSettings implements ExportableInterface
             'terms_accepted_at' => $this->termsAcceptedAt,
             'supermind_cash_min' => $this->supermindCashMin,
             'supermind_offchain_tokens_min' => $this->supermindOffchainTokensMin,
-            'plus_demonetized' => $this->plusDemonetized,
+            'plus_demonetized_ts' => $this->plusDemonetizedTimestamp,
         ];
     }
 }

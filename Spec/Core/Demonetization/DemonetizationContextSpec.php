@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Spec\Minds\Core\Demonetization;
+namespace Spec\Minds\Core\Monetization\Demonetization;
 
-use Minds\Core\Demonetization\DemonetizationContext;
-use Minds\Core\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
-use Minds\Core\Demonetization\Strategies\Interfaces\DemonetizationStrategyInterface;
+use Minds\Core\Monetization\Demonetization\DemonetizationContext;
+use Minds\Core\Monetization\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
+use Minds\Core\Monetization\Demonetization\Strategies\Interfaces\DemonetizationStrategyInterface;
 use PhpSpec\ObjectBehavior;
 
 class DemonetizationContextSpec extends ObjectBehavior
