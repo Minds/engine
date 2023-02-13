@@ -8,6 +8,7 @@ use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePostStrategy;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\Monetization\Demonetization\Validators\DemonetizedPlusValidator;
 
 class Provider extends DiProvider
 {
@@ -25,6 +26,9 @@ class Provider extends DiProvider
         });
         Di::_()->bind(DemonetizePlusUserStrategy::class, function ($di): DemonetizePlusUserStrategy {
             return new DemonetizePlusUserStrategy();
+        });
+        Di::_()->bind(DemonetizedPlusValidator::class, function ($di): DemonetizedPlusValidator {
+            return new DemonetizedPlusValidator();
         });
     }
 }

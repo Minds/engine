@@ -4,18 +4,16 @@ namespace Minds\Core\Feeds\Activity;
 
 use Minds\Common\EntityMutation;
 use Minds\Core\Blogs\Blog;
-use Minds\Core\Config\Config;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Settings\Manager as UserSettingsManager;
 use Minds\Core\Feeds\Activity\Exceptions\CreateActivityFailedException;
 use Minds\Core\Feeds\Scheduled\EntityTimeCreated;
+use Minds\Core\Monetization\Demonetization\Validators\DemonetizedPlusValidator;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
-use Minds\Core\Settings\Exceptions\UserSettingsNotFoundException;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentFailedException;
 use Minds\Entities\Activity;
@@ -36,15 +34,13 @@ class Controller
         protected ?EntitiesBuilder $entitiesBuilder = null,
         protected ?ACL $acl = null,
         protected ?EntityTimeCreated $entityTimeCreated = null,
-        protected ?Config $config = null,
-        protected ?UserSettingsManager $userSettingsManager = null
+        protected ?DemonetizedPlusValidator $demonetizedPlusValidator = null
     ) {
         $this->manager ??= new Manager();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->acl ??= Di::_()->get('Security\ACL');
         $this->entityTimeCreated ??= new EntityTimeCreated();
-        $this->config ??= Di::_()->get('Config');
-        $this->userSettingsManager ??= Di::_()->get('Settings\Manager');
+        $this->demonetizedPlusValidator ??= Di::_()->get(DemonetizedPlusValidator::class);
     }
 
     /**
@@ -144,20 +140,10 @@ class Controller
             }
 
             if (isset($payload['wire_threshold']['support_tier']['urn'])) {
-                $plusTierUrn = $this->config->get('plus')['support_tier_urn'];
-
-                if ($payload['wire_threshold']['support_tier']['urn'] === $plusTierUrn) {
-                    try {
-                        $settings = $this->userSettingsManager
-                            ->setUser($user)
-                            ->getUserSettings();
-                        if ($settings->isPlusDemonetized()) {
-                            throw new UserErrorException('Your Plus account is demonetized and cannot post');
-                        }
-                    } catch (UserSettingsNotFoundException $e) {
-                        // do nothing.
-                    }
-                }
+                $this->demonetizedPlusValidator->validateUrn(
+                    urn: $payload['wire_threshold']['support_tier']['urn'],
+                    user: $user
+                );
             }
 
             $activity->setWireThreshold($payload['wire_threshold']);

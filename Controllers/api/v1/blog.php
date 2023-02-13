@@ -17,7 +17,9 @@ use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Helpers;
 use Minds\Interfaces;
 use Minds\Core\Blogs\Delegates\CreateActivity;
+use Minds\Core\Monetization\Demonetization\Validators\DemonetizedPlusValidator;
 use Minds\Entities\User;
+use Minds\Exceptions\UserErrorException;
 
 class blog implements Interfaces\Api
 {
@@ -295,6 +297,20 @@ class blog implements Interfaces\Api
             $blog->markAsDirty('wireThreshold');
             $blog->markAsDirty('paywall');
             Di::_()->get('Wire\Paywall\Manager')->validateEntity($blog, true);
+
+            if (isset($threshold['support_tier']['urn'])) {
+                try {
+                    Di::_()->get(DemonetizedPlusValidator::class)->validateUrn(
+                        urn: $threshold['support_tier']['urn'],
+                        user: Core\Session::getLoggedInUser()
+                    );
+                } catch (UserErrorException $e) {
+                    return Factory::response([
+                        'status' => 'error',
+                        'message' => 'Your Plus account is demonetized and cannot post'
+                    ]);
+                }
+            }
         }
 
         if ((isset($_POST['nsfw']) && $_POST['nsfw'])
