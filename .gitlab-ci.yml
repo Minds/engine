@@ -209,7 +209,7 @@ review:stop:
   stage: review
   image: minds/oci-cli:latest
   script:
-    - <<:*oci_prepare
+    - *oci_prepare
     - helm del $CI_BUILD_REF_SLUG
   environment:
     name: review/$CI_COMMIT_REF_NAME
