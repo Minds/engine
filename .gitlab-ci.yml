@@ -150,11 +150,24 @@ container_scanning_runners:
 dependency_scanning:
   stage: scan
 
+.oci_prepare: &oci_prepare
+  - mkdir ~/.oci
+  - cp $OCI_CONFIG ~/.oci/config
+  - cp $OCI_KEY /tmp/oci-key.pem
+  - export OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING=True
+  - | 
+    oci ce cluster create-kubeconfig \
+      --cluster-id $OKE_CLUSTER_ID \
+      --file $KUBECONFIG \
+      --region us-ashburn-1 \
+      --token-version 2.0.0  \
+      --kube-endpoint PUBLIC_ENDPOINT
+
 review:start:
   stage: review
-  image: minds/aws-helm:latest
+  image: minds/oci-cli:latest
   script:
-    - aws eks --region us-east-1 update-kubeconfig --name sandbox --role-arn=$AWS_IAM_ROLE_ARN
+    - *oci_prepare
     # Download repo, use same branch name if exists
     - HELM_GIT_REPO=https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/helm-charts.git
     - git clone --branch=master $HELM_GIT_REPO
@@ -169,7 +182,8 @@ review:start:
     - echo "Setting to image ${CI_REGISTRY_IMAGE}"
     - "helm upgrade \
       --install \
-      --values ./minds/sandbox-values.yaml \
+      --namespace default \
+      --values ./minds/values-sandbox-oke.yaml \
       --reuse-values \
       --set engine.image.repository=$CI_REGISTRY_IMAGE/fpm \
       --set-string engine.image.tag=$CI_PIPELINE_ID \
@@ -195,7 +209,7 @@ review:stop:
   stage: review
   image: minds/aws-helm:latest
   script:
-    - aws eks --region us-east-1 update-kubeconfig --name sandbox --role-arn=$AWS_IAM_ROLE_ARN
+    - <<:*oci_prepare
     - helm del $CI_BUILD_REF_SLUG
   environment:
     name: review/$CI_COMMIT_REF_NAME
