@@ -6,6 +6,8 @@ use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Exceptions\ServerErrorException;
+use PDO;
+use PDOException;
 use PDOStatement;
 
 class Repository
@@ -13,6 +15,26 @@ class Repository
     public function __construct(private ?Client $mysqlClient = null)
     {
         $this->mysqlClient ??= new Client();
+    }
+
+    /**
+     * Start the transaction
+     */
+    public function beginTransaction(): void
+    {
+        if ($this->getMasterConnection()->inTransaction()) {
+            throw new PDOException("Cannot initiate transaction. Previously initiated transaction still in progress.");
+        }
+
+        $this->getMasterConnection()->beginTransaction();
+    }
+
+    /**
+     * Commit the transaction
+     */
+    public function commitTransaction(): void
+    {
+        $this->getMasterConnection()->commit();
     }
 
     /**
@@ -135,5 +157,14 @@ class Repository
         }
 
         return $this->mysqlClient->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
+    }
+
+    /**
+     * Returns the writer connection
+     * @return PDO
+     */
+    protected function getMasterConnection(): PDO
+    {
+        return $this->mysqlClient->getConnection(Client::CONNECTION_MASTER);
     }
 }

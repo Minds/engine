@@ -9,6 +9,7 @@ use Minds\Common\Urn;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Feeds\Elastic\ScoredGuid;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Feeds\Seen\Manager as SeenManager;
 use Minds\Core\Recommendations\UserRecommendationsCluster;
@@ -81,10 +82,9 @@ class Manager
         $seenEntitiesList = [];
 
         $entries = $this->repository->getList($clusterId, $limit, $seenEntitiesList, $unseen, $this->seenManager->getIdentifier());
-        $feedSyncEntities = $this->prepareFeedSyncEntities($entries);
-        $preparedEntities = $this->prepareEntities($feedSyncEntities);
+        $preparedEntities = $this->prepareEntities($entries);
 
-        $paginationToken = $this->getPaginationToken($feedSyncEntities);
+        $paginationToken = $this->getPaginationToken($preparedEntities);
 
         $response = new Response($preparedEntities);
         $response->setPagingToken($paginationToken ?: '');
@@ -94,63 +94,53 @@ class Manager
 
     /**
      * Parses response from repository and return an array of FeedSyncEntities
-     * @param Generator $entries
-     * @return FeedSyncEntity[]
+     * @param ScoredGuid $recommendation
+     * @return FeedSyncEntity
      * @throws Exception
      */
-    private function prepareFeedSyncEntities(Generator $entries): array
+    private function prepareFeedSyncEntity(ScoredGuid $recommendation): FeedSyncEntity
     {
-        $feedSyncEntities = [];
+        $ownerGuid = $recommendation->getOwnerGuid() ?: $recommendation->getGuid();
+        $entityType = $recommendation->getType() ?? 'entity';
 
-        foreach ($entries as $scoredGuid) {
-            $ownerGuid = $scoredGuid->getOwnerGuid() ?: $scoredGuid->getGuid();
-            $entityType = $scoredGuid->getType() ?? 'entity';
+        $urn = implode(':', [
+            'urn',
+            $entityType ?: 'entity',
+            $recommendation->getGuid()
+        ]);
 
-            $urn = implode(':', [
-                'urn',
-                $entityType ?: 'entity',
-                $scoredGuid->getGuid()
-            ]);
-
-            $feedSyncEntities[] = (new FeedSyncEntity())
-                ->setGuid((string) $scoredGuid->getGuid())
-                ->setOwnerGuid((string) $ownerGuid)
-                ->setUrn(new Urn($urn))
-                ->setTimestamp($scoredGuid->getTimestamp());
-        }
-
-        return $feedSyncEntities;
+        return (new FeedSyncEntity())
+            ->setGuid((string) $recommendation->getGuid())
+            ->setOwnerGuid((string) $ownerGuid)
+            ->setUrn(new Urn($urn))
+            ->setTimestamp($recommendation->getTimestamp());
     }
 
     /**
      * Prepares final array, hydrating the top 12 entities
-     * @param FeedSyncEntity[] $feedSyncEntities
-     * @return FeedSyncEntity[]
+     * @param Generator $recs
+     * @return array
+     * @throws Exception
      */
-    private function prepareEntities(array $feedSyncEntities): array
+    private function prepareEntities(Generator $recs): array
     {
-        if (count($feedSyncEntities) == 0) {
-            return [];
-        }
-
         $entities = [];
 
-        $hydrateGuids = array_map(function (FeedSyncEntity $feedSyncEntity) {
-            return $feedSyncEntity->getGuid();
-        }, array_slice($feedSyncEntities, 0, 12)); // hydrate the first 12
+        foreach ($recs as $rec) {
+            $feedSyncEntity = $this->prepareFeedSyncEntity($rec);
 
-        $hydratedEntities = $this->entitiesBuilder->get(['guids' => $hydrateGuids]);
+            if (count($entities) < 12) {
+                if ($entity = $this->entitiesBuilder->single($feedSyncEntity->getGuid())) {
+                    $entities[] = (new FeedSyncEntity)
+                        ->setGuid($entity->getGuid())
+                        ->setOwnerGuid($entity->getOwnerGuid())
+                        ->setUrn($entity->getUrn())
+                        ->setEntity($entity);
+                }
+                continue;
+            }
 
-        foreach ($hydratedEntities as $entity) {
-            $entities[] = (new FeedSyncEntity)
-                ->setGuid($entity->getGuid())
-                ->setOwnerGuid($entity->getOwnerGuid())
-                ->setUrn($entity->getUrn())
-                ->setEntity($entity);
-        }
-
-        foreach (array_slice($feedSyncEntities, 12) as $entity) {
-            $entities[] = $entity;
+            $entities[] = $feedSyncEntity;
         }
 
         return $entities;

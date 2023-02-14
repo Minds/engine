@@ -35,6 +35,9 @@ class Manager
     /** @var BoostShareRatio[] */
     protected array $activeBoostsCache = [];
 
+    /** @var bool - if true then we will not save to the database */
+    protected $dryRun = false;
+
     public function __construct(
         protected ?Repository $repository = null,
         protected ?Scroll $scroll = null,
@@ -43,6 +46,29 @@ class Manager
         $this->repository ??= Di::_()->get(Repository::class);
         $this->scroll ??= Di::_()->get('Database\Cassandra\Cql\Scroll');
         $this->logger ??= Di::_()->get('Logger');
+    }
+
+    /**
+     * Set to true if you don't want to save to the database
+     * @param bool $dryRun
+     * @return self
+     */
+    public function setDryRun(bool $dryRun): self
+    {
+        $this->dryRun = $dryRun;
+        return $this;
+    }
+
+    /**
+     * Set the base timestamp. Ideal for replaying ranking flow alongside `setDryRun(true)`
+     * @param int $unixTs
+     * @return self
+     */
+    public function setFromUnixTs(int $unixTs): self
+    {
+        $this->minScanUuid = new Timeuuid(($unixTs - self::TIME_WINDOW_SECS) * 1000);
+        $this->maxScanUuid = $this->minScanUuid;
+        return $this;
     }
 
     /**
@@ -67,6 +93,8 @@ class Manager
         /**
          * Loop through all of our active boosts(that we just built above) and collect their bid ration
          */
+
+        $this->repository->beginTransaction();
         foreach ($this->activeBoostsCache as $boost) {
             $targetAudiences = [
                 BoostTargetAudiences::CONTROVERSIAL => $boost->getTargetAudienceShare(BoostTargetAudiences::CONTROVERSIAL), // Will always go to open audience
@@ -98,8 +126,11 @@ class Manager
                 ]);
             }
 
-            $this->repository->addBoostRanking($ranking);
+            if (!$this->dryRun) {
+                $this->repository->addBoostRanking($ranking);
+            }
         }
+        $this->repository->commitTransaction();
     }
 
     /**
@@ -182,13 +213,31 @@ class Manager
         $statement .= 'year=? ';
         $values[] = (int) $dateTime->format('Y');
 
-        // Month
-        $statement .= 'AND month=? ';
-        $values[] = new \Cassandra\Tinyint((int) $dateTime->format('m'));
+        /**
+         * Months
+         * If we are on the last day of the month, include the next month
+         */
+        $months = [
+            new \Cassandra\Tinyint((int) $dateTime->format('m')),
+        ];
+        if ((int) $dateTime->format('t') === (int) $dateTime->format('d')) { // 't' = num days in month
+            $months[] = new \Cassandra\Tinyint((int) (clone $dateTime)->modify('+1 day')->format('m'));
+        }
+        $statement .= 'AND month IN (' . implode(', ', array_fill(0, count($months), '?')) . ') ';
+        $values = [...$values, ...$months];
 
-        // Day
-        $statement .= 'AND day=? ';
-        $values[] = new \Cassandra\Tinyint((int) $dateTime->format('d'));
+        /**
+         * Day
+         * If we are at 11pm, include tomorrow too
+         */
+        $days = [
+            new \Cassandra\Tinyint((int) $dateTime->format('d')),
+        ];
+        if ((int) $dateTime->format('H') >= 23) {
+            $days[] = new \Cassandra\Tinyint((int) (clone $dateTime)->modify('+1 hour')->format('d'));
+        }
+        $statement .= 'AND day IN (' . implode(', ', array_fill(0, count($days), '?')) . ') ';
+        $values = [...$values, ...$days];
         
         // Timeuuid
 

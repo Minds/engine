@@ -181,28 +181,37 @@ class Repository
         }
 
         $orderByRankingJoin = "";
-        $orderByClause = "";
+        $orderByClause = " ORDER BY created_timestamp DESC, updated_timestamp DESC, approved_timestamp DESC";
+
+        if ($forApprovalQueue) {
+            $orderByClause = " ORDER BY created_timestamp ASC";
+        }
+
+
         if ($orderByRanking) {
-            $orderByRankingJoin = " LEFT JOIN boost_rankings ON boosts.guid = boost_rankings.guid";
+            $orderByRankingJoin = " INNER JOIN boost_rankings ON boosts.guid = boost_rankings.guid";
 
             $orderByRankingAudience = 'ranking_safe';
             if ($targetAudience === BoostTargetAudiences::CONTROVERSIAL) {
                 $orderByRankingAudience = 'ranking_open';
             }
 
-            $orderByClause = " ORDER BY boost_rankings.$orderByRankingAudience DESC, boosts.approved_timestamp ASC";
+            $orderByClause = " ORDER BY boost_rankings.$orderByRankingAudience DESC";
         }
 
         /**
          * Joins with the boost_summaries table to get total views
          * Can be expanded later to get other aggregated statistics
          */
-        $summariesJoin = " LEFT JOIN (
-                SELECT guid, SUM(views) as total_views FROM boost_summaries
-                GROUP BY 1
-            ) summary 
-            ON boosts.guid=summary.guid";
-        $selectColumns[] = "summary.total_views";
+        $summariesJoin = "";
+        if ($targetUserGuid) {
+            $summariesJoin = " LEFT JOIN (
+                    SELECT guid, SUM(views) as total_views FROM boost_summaries
+                    GROUP BY 1
+                ) summary
+                ON boosts.guid=summary.guid";
+            $selectColumns[] = "summary.total_views";
+        }
 
 
         $whereClause = '';
@@ -284,7 +293,7 @@ class Repository
                 dailyBid: (float) $boostData['daily_bid'],
                 durationDays: (int) $boostData['duration_days'],
                 status: (int) $boostData['status'],
-                rejectionReason: (int) $boostData['reason'] ?: null,
+                rejectionReason: isset($boostData['reason']) ? (int) $boostData['reason'] : null,
                 createdTimestamp: strtotime($boostData['created_timestamp']),
                 paymentTxId: $boostData['payment_tx_id'],
                 updatedTimestamp: isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,

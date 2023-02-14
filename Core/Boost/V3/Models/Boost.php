@@ -120,7 +120,7 @@ class Boost implements EntityInterface, ExportableInterface
     {
         return
             $this->getApprovedTimestamp() !== null &&
-            ($this->status === BoostStatus::COMPLETED || time() >= ($this->getApprovedTimestamp() + strtotime("1 day", 0))) ?
+            ($this->status === BoostStatus::COMPLETED || time() >= ($this->getApprovedTimestamp() + strtotime("$this->durationDays day", 0))) ?
                 BoostStatus::COMPLETED :
                 $this->status;
     }

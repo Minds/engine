@@ -42,7 +42,7 @@ class Controller
 
         $showBoostsAfterX = $params['show_boosts_after_x'];
 
-        if (!$this->shouldShowBoosts($loggedInUser, (int) $showBoostsAfterX)) {
+        if (!$this->shouldShowBoosts($loggedInUser, (int) $showBoostsAfterX) && !($params['force_boost_enabled'] ?? false)) {
             return new JsonResponse([
                 'status' => 'success',
                 'boosts' => []
@@ -65,7 +65,7 @@ class Controller
         $boosts = $this->manager
             ->setUser($loggedInUser)
             ->getBoostFeed(
-                limit: (int) $limit,
+                limit: min((int) $limit, 12),
                 offset: (int) $offset,
                 targetStatus: BoostStatus::APPROVED,
                 orderByRanking: true,
@@ -280,6 +280,13 @@ class Controller
      */
     private function shouldShowBoosts(User $user, ?int $showBoostsAfterX = null): bool
     {
+        /**
+         * Do not show boosts if plus and disabled flag
+         */
+        if ($user->disabled_boost && $user->isPlus()) {
+            return false;
+        }
+
         $showBoostsAfterX = filter_var($showBoostsAfterX, FILTER_VALIDATE_INT, [
             'options' => [
                 'default' => 3600, // 1 day

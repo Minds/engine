@@ -512,7 +512,7 @@ class TransactionsSpec extends ObjectBehavior
             ->setUser($receiver)
             ->setAmount(8765)
             ->setData(['test' => true])
-            ->shouldThrow(new \Exception('Not enough sender funds'))
+            ->shouldThrow(OffchainWalletInsufficientFundsException::class)
             ->duringTransferFrom($sender);
     }
 }

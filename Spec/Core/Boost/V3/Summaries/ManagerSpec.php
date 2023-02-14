@@ -113,11 +113,15 @@ class ManagerSpec extends ObjectBehavior
                 ))->setGuid('456'),
             );
 
+        $this->repositoryMock->beginTransaction()->shouldBeCalled();
+
         $this->repositoryMock->add('123', Argument::type(DateTime::class), 4)
             ->shouldBeCalled();
 
         $this->repositoryMock->add('456', Argument::type(DateTime::class), 1)
             ->shouldBeCalled();
+
+        $this->repositoryMock->commitTransaction()->shouldBeCalled();
 
         $this->sync(new DateTime('midnight'));
     }
