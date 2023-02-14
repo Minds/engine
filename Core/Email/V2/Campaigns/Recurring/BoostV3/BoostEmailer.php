@@ -130,17 +130,19 @@ class BoostEmailer extends EmailCampaign
                 $ctaPath = $this->getConsoleUrl($trackingQueryParams);
                 break;
             case ActionEvent::ACTION_BOOST_REJECTED:
-                $headerText = 'Your Boost was rejected';
-                $preHeaderText = "Find out why.";
-                $contentPolicyHtml = '<a href="https://support.minds.com/hc/en-us/articles/11723536774292-Boost-Content-Policy" style="color: #4080D0; text-decoration: underline" target="_blank">content policy</a>';
+                $ctaPath = $this->getConsoleUrl($trackingQueryParams);
+
                 if ($this->boost->getTargetSuitability() === BoostTargetAudiences::SAFE) {
-                    $bodyText = "We’ve reviewed your Boost and determined the content does not meet the $contentPolicyHtml requirements for the selected audience. You have been refunded. If your content is suitable for another audience, you can select that audience and try again.";
-                    $ctaText = 'Try Again';
-                    $ctaPath = $this->getActivityPostUrl() . $trackingQueryString;
+                    $headerText = 'Your Boost needs attention';
+                    $preHeaderText = 'Please check the Boost console for more information.';
+                    $bodyText = 'Your Boost has been reviewed, but was not approved. Please check the Boost console for more information. If your Boost was rejected for targeting the wrong audience, you can re-submit your Boost to another audience for approval.';
+                    $ctaText = 'See Boost status';
                 } elseif ($this->boost->getTargetSuitability() === BoostTargetAudiences::CONTROVERSIAL) {
+                    $headerText = 'Your Boost was rejected';
+                    $preHeaderText = 'Find out why.';
+                    $contentPolicyHtml = '<a href="https://support.minds.com/hc/en-us/articles/11723536774292-Boost-Content-Policy" style="color: #4080D0; text-decoration: underline" target="_blank">content policy</a>';
                     $bodyText = "We’ve reviewed your Boost and determined the content does not meet the $contentPolicyHtml requirements for Boost. You have been refunded.";
-                    $ctaText = "View Results";
-                    $ctaPath = $this->getConsoleUrl($trackingQueryParams);
+                    $ctaText = 'View Results';
                 } else {
                     $this->logger->error("Unsupported target suitability when sending email for Boost {$this->boost->getGuid()}");
                     return null;

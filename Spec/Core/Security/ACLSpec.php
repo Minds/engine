@@ -88,6 +88,7 @@ class ACLSpec extends ObjectBehavior
 
         $entity->getType()->willReturn('object');
         $entity->get('guid')->willReturn(1);
+        $entity->getGuid()->willReturn(1);
         $entity->get('access_id')->willReturn(2);
         $entity->get('container_guid')->willReturn(123);
         $entity->get('owner_guid')->willReturn(123);
