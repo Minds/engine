@@ -207,7 +207,7 @@ review:start:
 
 review:stop:
   stage: review
-  image: minds/aws-helm:latest
+  image: minds/oci-cli:latest
   script:
     - <<:*oci_prepare
     - helm del $CI_BUILD_REF_SLUG
