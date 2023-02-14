@@ -14,7 +14,6 @@ use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
-use Minds\Core\Boost\V3\Exceptions\BoostAccessForbiddenException;
 use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentRefundFailedException;
@@ -31,6 +30,7 @@ use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
+use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -49,14 +49,15 @@ class Manager
         private ?PaymentProcessor $paymentProcessor = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?ActionEventDelegate $actionEventDelegate = null,
-        private ?ViewsManager $viewsManager = null
+        private ?ViewsManager $viewsManager = null,
+        private ?ACL $acl = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->actionEventDelegate ??= Di::_()->get(ActionEventDelegate::class);
         $this->viewsManager ??= new ViewsManager();
-
+        $this->acl ??= new ACL();
         $this->logger = Di::_()->get("Logger");
     }
 
@@ -308,7 +309,15 @@ class Manager
             hasNext: $hasNext
         );
 
-        return new Response(iterator_to_array($boosts), $hasNext);
+        $boostsArray = iterator_to_array($boosts);
+
+        foreach ($boostsArray as $i => $boost) {
+            if (!$this->acl->read($boost)) {
+                unset($boostsArray[$i]);
+            }
+        }
+
+        return new Response($boostsArray, $hasNext);
     }
 
     /**
@@ -350,6 +359,10 @@ class Manager
         $boostsArray = iterator_to_array($boosts);
 
         foreach ($boostsArray as $i => $boost) {
+            if (!$this->acl->read($boost)) {
+                unset($boostsArray[$i]);
+                continue;
+            }
             if ((int) $targetLocation === BoostTargetLocation::SIDEBAR) {
                 $this->recordSidebarView($boost, $i);
             }
@@ -368,8 +381,12 @@ class Manager
     public function getBoostByGuid(string $boostGuid): ?Boost
     {
         try {
-            return $this->repository->getBoostByGuid($boostGuid);
-        } catch (BoostNotFoundException|BoostAccessForbiddenException $e) {
+            $boost = $this->repository->getBoostByGuid($boostGuid);
+            if (!$boost || !$this->acl->read($boost)) {
+                return null;
+            }
+            return $boost;
+        } catch (BoostNotFoundException $e) {
             return null;
         }
     }

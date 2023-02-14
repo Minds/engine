@@ -13,6 +13,8 @@ use Minds\Core\Boost\V3\Exceptions\BoostPaymentSetupFailedException;
 use Minds\Core\Boost\V3\Exceptions\EntityTypeNotAllowedInLocationException;
 use Minds\Core\Boost\V3\Exceptions\IncorrectBoostStatusException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
+use Minds\Core\Analytics\Views\Manager as ViewsManager;
+use Minds\Core\Security\ACL;
 use Minds\Core\Boost\V3\Manager;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\PaymentProcessor;
@@ -35,23 +37,31 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $paymentProcessor;
     private Collaborator $entitiesBuilder;
     private Collaborator $actionEventDelegate;
+    private Collaborator $viewsManager;
+    private Collaborator $acl;
 
     public function let(
         Repository $repository,
         PaymentProcessor $paymentProcessor,
         EntitiesBuilder $entitiesBuilder,
-        ActionEventDelegate $actionEventDelegate
+        ActionEventDelegate $actionEventDelegate,
+        ViewsManager $viewsManager,
+        ACL $acl
     ) {
         $this->repository = $repository;
         $this->paymentProcessor = $paymentProcessor;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->actionEventDelegate = $actionEventDelegate;
+        $this->viewsManager = $viewsManager;
+        $this->acl = $acl;
 
         $this->beConstructedWith(
             $this->repository,
             $this->paymentProcessor,
             $this->entitiesBuilder,
-            $this->actionEventDelegate
+            $this->actionEventDelegate,
+            $this->viewsManager,
+            $this->acl
         );
     }
 
@@ -734,6 +744,41 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturnAnInstanceOf(Response::class);
     }
 
+    public function it_should_get_boosts_without_acl_filtered_boost(
+        Boost $boost1,
+        Boost $boost2
+    ): void {
+        $hasNext = false;
+
+        $this->acl->read($boost1)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->acl->read($boost2)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->repository->getBoosts(
+            Argument::type('integer'),
+            Argument::type('integer'),
+            null,
+            Argument::type('bool'),
+            null,
+            Argument::type('bool'),
+            null,
+            null,
+            null,
+            null,
+            null,
+            Argument::type('bool')
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost1, $boost2]);
+
+        $this->getBoosts()
+            ->shouldBeLike(new Response([$boost1], false));
+    }
+
     public function it_should_get_admin_stats()
     {
         $globalPendingStats = [
@@ -753,6 +798,50 @@ class ManagerSpec extends ObjectBehavior
                 'controversial_count' => $globalPendingStats['controversial_count']
             ]
         ]));
+    }
+
+    public function it_should_get_boost_by_guid(Boost $boost)
+    {
+        $boostGuid = '123';
+
+        $this->repository->getBoostByGuid($boostGuid)
+            ->shouldBeCalled()
+            ->willReturn($boost);
+
+        $this->acl->read($boost)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->getBoostByGuid($boostGuid)->shouldBe($boost);
+    }
+
+    public function it_should_return_null_when_no_boost_is_found_when_getting_boost_by_guid()
+    {
+        $boostGuid = '123';
+
+        $this->repository->getBoostByGuid($boostGuid)
+            ->shouldBeCalled()
+            ->willThrow(new BoostNotFoundException());
+
+        $this->acl->read(Argument::any())
+            ->shouldNotBeCalled();
+
+        $this->getBoostByGuid($boostGuid)->shouldBe(null);
+    }
+
+    public function it_should_return_null_when_acl_read_is_failed_when_getting_boost_by_guid(Boost $boost)
+    {
+        $boostGuid = '123';
+
+        $this->repository->getBoostByGuid($boostGuid)
+            ->shouldBeCalled()
+            ->willReturn($boost);
+
+        $this->acl->read($boost)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->getBoostByGuid($boostGuid)->shouldBe(null);
     }
 
     // public function it_should_get_boosts_as_feed_sync_entity(
