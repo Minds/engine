@@ -596,9 +596,10 @@ class BoostEmailerSpec extends ObjectBehavior
         $targetSuitability = BoostTargetSuitability::SAFE;
         $campaign = 'when';
         $tracking = "__e_ct_guid=$userGuid&campaign=when&topic=$topic";
-        $bodyText = 'We’ve reviewed your Boost and determined the content does not meet the <a href="https://support.minds.com/hc/en-us/articles/11723536774292-Boost-Content-Policy" style="color: #4080D0; text-decoration: underline" target="_blank">content policy</a> requirements for the selected audience. You have been refunded. If your content is suitable for another audience, you can select that audience and try again.';
-        $headerText = "Your Boost was rejected";
-        $preHeaderText = "Find out why.";
+        $bodyText = 'Your Boost has been reviewed, but was not approved. Please check the Boost console for more information. If your Boost was rejected for targeting the wrong audience, you can re-submit your Boost to another audience for approval.';
+        $headerText = "Your Boost needs attention";
+        $preHeaderText = "Please check the Boost console for more information.";
+        $url = '~url~';
 
         $boost->getOwnerGuid()
             ->shouldBeCalled()
@@ -607,10 +608,6 @@ class BoostEmailerSpec extends ObjectBehavior
         $boost->getTargetSuitability()
             ->shouldBeCalled()
             ->willReturn($targetSuitability);
-
-        $boost->getEntityGuid()
-            ->shouldBeCalled()
-            ->willReturn($entityGuid);
 
         $user->getGuid()
             ->shouldBeCalled()
@@ -641,7 +638,8 @@ class BoostEmailerSpec extends ObjectBehavior
             'campaign' => $campaign,
             'topic' => $topic,
         ])
-            ->shouldNotBeCalled();
+            ->shouldBeCalled()
+            ->willReturn($url);
 
         $this->template->setTemplate('default.v2.tpl')->shouldBeCalled();
         $this->template->setBody('./template.tpl')->shouldBeCalled();
