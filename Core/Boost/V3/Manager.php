@@ -9,6 +9,7 @@ use Minds\Core\Analytics\Views\View;
 use Minds\Core\Analytics\Views\Manager as ViewsManager;
 use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Boost\Checksum;
+use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
@@ -48,12 +49,14 @@ class Manager
         private ?PaymentProcessor $paymentProcessor = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?ActionEventDelegate $actionEventDelegate = null,
+        private ?PreApprovalManager $preApprovalManager = null,
         private ?ViewsManager $viewsManager = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->actionEventDelegate ??= Di::_()->get(ActionEventDelegate::class);
+        $this->preApprovalManager ??= Di::_()->get(PreApprovalManager::class);
         $this->viewsManager ??= new ViewsManager();
 
         $this->logger = Di::_()->get("Logger");
@@ -104,7 +107,14 @@ class Manager
             ->setPaymentMethodId($data['payment_method_id'] ?? null);
 
         try {
-            if ($boost->getPaymentMethod() === BoostPaymentMethod::ONCHAIN_TOKENS) {
+            $isOnchainBoost = $boost->getPaymentMethod() === BoostPaymentMethod::ONCHAIN_TOKENS;
+
+            if (!$isOnchainBoost && $this->preApprovalManager->shouldPreApprove($this->user)) {
+                $this->preApprove($boost);
+                return true;
+            }
+
+            if ($isOnchainBoost) {
                 $boost->setStatus(BoostStatus::PENDING_ONCHAIN_CONFIRMATION)
                     ->setPaymentTxId($data['payment_tx_id']);
             } elseif (!$this->paymentProcessor->setupBoostPayment($boost)) {
@@ -124,6 +134,40 @@ class Manager
         $this->actionEventDelegate->onCreate($boost);
 
         return true;
+    }
+
+    /**
+     * Takes a boost ready for creation and pre-approves it.
+     * @param Boost $boost - boost to pre-approve.
+     * @throws BoostPaymentSetupFailedException
+     * @throws BoostPaymentCaptureFailedException
+     * @throws ServerErrorException
+     * @return void
+     */
+    private function preApprove(Boost $boost): void
+    {
+        $presetTimestamp = strtotime(date('c', time()));
+        $boost->setStatus(BoostStatus::APPROVED)
+            ->setCreatedTimestamp($presetTimestamp)
+            ->setUpdatedTimestamp($presetTimestamp)
+            ->setApprovedTimestamp($presetTimestamp);
+
+        if (!$this->paymentProcessor->setupBoostPayment($boost)) {
+            throw new BoostPaymentSetupFailedException();
+        }
+
+        if (!$this->paymentProcessor->captureBoostPayment($boost)) {
+            throw new BoostPaymentCaptureFailedException();
+        }
+
+        if (!$this->repository->createBoost($boost)) {
+            throw new ServerErrorException("An error occurred whilst creating the boost request");
+        }
+        
+        $this->repository->commitTransaction();
+
+        $this->actionEventDelegate->onCreate($boost);
+        $this->actionEventDelegate->onApprove($boost);
     }
 
     /**
@@ -149,6 +193,7 @@ class Manager
 
     /**
      * @param string $boostGuid
+     * @param string|null $adminGuid
      * @return bool
      * @throws ApiErrorException
      * @throws BoostNotFoundException
@@ -158,7 +203,7 @@ class Manager
      * @throws StripeTransferFailedException
      * @throws UserErrorException
      */
-    public function approveBoost(string $boostGuid): bool
+    public function approveBoost(string $boostGuid, string $adminGuid = null): bool
     {
         $this->repository->beginTransaction();
 
@@ -169,7 +214,10 @@ class Manager
                 throw new BoostPaymentCaptureFailedException();
             }
 
-            if (!$this->repository->approveBoost($boostGuid)) {
+            if (!$this->repository->approveBoost(
+                boostGuid: $boostGuid,
+                adminGuid: $adminGuid
+            )) {
                 throw new ServerErrorException();
             }
         } catch (Exception $e) {
