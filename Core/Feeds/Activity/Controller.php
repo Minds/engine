@@ -235,6 +235,8 @@ class Controller
             $this->entityTimeCreated->validate($activity, $payload['time_created'] ?? $now, $now);
         }
 
+        $activity->setClientMeta($request->getParsedBody()['client_meta'] ?? []);
+
         /**
          * Save the activity
          */

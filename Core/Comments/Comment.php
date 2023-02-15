@@ -48,8 +48,6 @@ use Minds\Helpers\Unknown;
  * @method Comment setVotesDown(array $value)
  * @method array getVotesDown()
  * @method Comment setEphemeral(bool $value)
- * @method Comment setClientMeta(array $clientMeta)
- * @method array getClientMeta()
  * @method bool isEphemeral()
  */
 class Comment extends RepositoryEntity implements EntityInterface
@@ -372,6 +370,17 @@ class Comment extends RepositoryEntity implements EntityInterface
     public function getContainerEntity()
     {
         return null;
+    }
+
+    public function setClientMeta(array $clientMeta): self
+    {
+        $this->clientMeta = $clientMeta;
+        return $this;
+    }
+
+    public function getClientMeta(): array
+    {
+        return $this->clientMeta;
     }
 
     /**
