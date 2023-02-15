@@ -529,7 +529,9 @@ class Manager
 
         foreach ($boosts as $boost) {
             $exportedBoostEntity = $boost->export()['entity'];
-            if (!$exportedBoostEntity) { continue; }
+            if (!$exportedBoostEntity) {
+                continue;
+            }
             $exportedBoostEntity['boosted'] = true;
             $exportedBoostEntity['boosted_guid'] = $boost->getGuid();
             $exportedBoostEntity['urn'] = $boost->getUrn();
