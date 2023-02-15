@@ -118,6 +118,7 @@ class Controller
         }
 
         return new JsonResponse([
+            'status' => 'success',
             'boost' => $boost->export()
         ]);
     }
