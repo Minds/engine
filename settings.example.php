@@ -357,7 +357,8 @@ $CONFIG->set('boost', [
         'onchain_tokens' => [
             1, 5, 10, 20, 40, 100
         ]
-    ]
+    ],
+    'pre_approval_threshold' => 10
 ]);
 
 /* Maximum view per day */
