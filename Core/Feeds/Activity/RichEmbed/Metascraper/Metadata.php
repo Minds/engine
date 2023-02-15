@@ -11,6 +11,8 @@ use Minds\Traits\MagicAttributes;
  *
  * @method string|null getUrl()
  * @method self setUrl(string $url)
+ * @method string|null getCanonicalUrl()
+ * @method self setCanonicalUrl(string $canonicalUrl)
  * @method string|null getDescription()
  * @method self setDescription(string $description)
  * @method string|null getTitle()
@@ -30,6 +32,9 @@ class Metadata implements ExportableInterface, JsonSerializable
 
     /** @var string|null url of site. */
     protected ?string $url;
+
+    /** @var string|null canonical url of site. */
+    protected ?string $canonicalUrl;
 
     /** @var string|null description from metadata. */
     protected ?string $description;
@@ -52,11 +57,13 @@ class Metadata implements ExportableInterface, JsonSerializable
     /**
      * Build class from data provided by Metascraper Server.
      * @param array $data - data from Metascraper Server.
+     * @param string|null $url - url - if not set, exported URL will be the canonical URL.
      * @return self
      */
-    public function fromMetascraperData(array $data): self
+    public function fromMetascraperData(array $data, ?string $url = null): self
     {
-        $this->setUrl($data['url'] ?? '')
+        $this->setUrl($url ?? $data['url'] ?? '')
+            ->setCanonicalUrl($data['url'] ?? '')
             ->setDescription($data['description'] ?? '')
             ->setTitle($data['title'] ?? '')
             ->setAuthor($data['author'] ?? '')
@@ -87,7 +94,8 @@ class Metadata implements ExportableInterface, JsonSerializable
             'meta' => [
                 'description' => $this->description,
                 'title' => $this->title,
-                'author' => $this->author
+                'author' => $this->author,
+                'canonical_url' => $this->canonicalUrl
             ],
             'links' => [
                 'thumbnail' => [

@@ -5,8 +5,11 @@ namespace Minds\Core\Boost\V3;
 
 use Exception;
 use Minds\Common\Repository\Response;
-use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
+use Minds\Core\Analytics\Views\View;
+use Minds\Core\Analytics\Views\Manager as ViewsManager;
+use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Boost\Checksum;
+use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
@@ -44,12 +47,14 @@ class Manager
         private ?Repository $repository = null,
         private ?PaymentProcessor $paymentProcessor = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?ActionEventDelegate $actionEventDelegate = null
+        private ?ActionEventDelegate $actionEventDelegate = null,
+        private ?ViewsManager $viewsManager = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->actionEventDelegate ??= Di::_()->get(ActionEventDelegate::class);
+        $this->viewsManager ??= new ViewsManager();
 
         $this->logger = Di::_()->get("Logger");
     }
@@ -68,12 +73,12 @@ class Manager
      * @param array $data
      * @return bool
      * @throws BoostPaymentSetupFailedException
-     * @throws Exception
+     * @throws EntityTypeNotAllowedInLocationException
      * @throws InvalidBoostPaymentMethodException
      * @throws KeyNotSetupException
      * @throws LockFailedException
-     * @throws NotImplementedException
      * @throws ServerErrorException
+     * @throws OffchainWalletInsufficientFundsException
      */
     public function createBoost(array $data): bool
     {
@@ -145,14 +150,13 @@ class Manager
     /**
      * @param string $boostGuid
      * @return bool
-     * @throws Exception
-     * @throws Exceptions\BoostNotFoundException
+     * @throws ApiErrorException
+     * @throws BoostNotFoundException
+     * @throws BoostPaymentCaptureFailedException
      * @throws InvalidBoostPaymentMethodException
-     * @throws NotImplementedException
      * @throws ServerErrorException
      * @throws StripeTransferFailedException
      * @throws UserErrorException
-     * @throws ApiErrorException
      */
     public function approveBoost(string $boostGuid): bool
     {
@@ -183,18 +187,19 @@ class Manager
 
     /**
      * @param string $boostGuid
+     * @param int $reasonCode
      * @return bool
      * @throws ApiErrorException
+     * @throws BoostNotFoundException
      * @throws BoostPaymentRefundFailedException
-     * @throws Exception
-     * @throws Exceptions\BoostNotFoundException
+     * @throws IncorrectBoostStatusException
      * @throws InvalidBoostPaymentMethodException
      * @throws KeyNotSetupException
      * @throws LockFailedException
      * @throws NotImplementedException
      * @throws ServerErrorException
      */
-    public function rejectBoost(string $boostGuid): bool
+    public function rejectBoost(string $boostGuid, int $reasonCode): bool
     {
         // Only process if status is Pending
         $boost = $this->repository->getBoostByGuid($boostGuid);
@@ -213,12 +218,11 @@ class Manager
         // Mark request as Refund_processed
         $this->repository->updateStatus($boostGuid, BoostStatus::REFUND_PROCESSED);
 
-        if (!$this->repository->rejectBoost($boostGuid)) {
+        if (!$this->repository->rejectBoost($boostGuid, $reasonCode)) {
             throw new ServerErrorException();
         }
 
-        // TODO: Get rejection reason from boost when possible.
-        $this->actionEventDelegate->onReject($boost, 999);
+        $this->actionEventDelegate->onReject($boost, $reasonCode);
 
         return true;
     }
@@ -269,9 +273,10 @@ class Manager
      * @param bool $forApprovalQueue
      * @param string|null $targetUserGuid
      * @param bool $orderByRanking
-     * @param int $targetAudience
+     * @param int|null $targetAudience
      * @param int|null $targetLocation
      * @param string|null $entityGuid
+     * @param int|null $paymentMethod
      * @return Response
      */
     public function getBoosts(
@@ -281,10 +286,10 @@ class Manager
         bool $forApprovalQueue = false,
         ?string $targetUserGuid = null,
         bool $orderByRanking = false,
-        int $targetAudience = BoostTargetAudiences::SAFE,
+        ?int $targetAudience = null,
         ?int $targetLocation = null,
-        ?int $paymentMethod = null,
-        ?string $entityGuid = null
+        ?string $entityGuid = null,
+        ?int $paymentMethod = null
     ): Response {
         $hasNext = false;
         $boosts = $this->repository->getBoosts(
@@ -296,8 +301,8 @@ class Manager
             orderByRanking: $orderByRanking,
             targetAudience: $targetAudience,
             targetLocation: $targetLocation,
-            paymentMethod: $paymentMethod,
             entityGuid: $entityGuid,
+            paymentMethod: $paymentMethod,
             loggedInUser: $this->user,
             hasNext: $hasNext
         );
@@ -314,6 +319,7 @@ class Manager
      * @param string|null $targetUserGuid
      * @param bool $orderByRanking
      * @param int $targetAudience
+     * @param int|null $targetLocation
      * @return Response
      */
     public function getBoostFeed(
@@ -339,7 +345,17 @@ class Manager
             loggedInUser: $this->user,
             hasNext: $hasNext
         );
-        $feedSyncEntities = $this->castToFeedSyncEntities($boosts);
+
+        $boostsArray = iterator_to_array($boosts);
+
+        foreach ($boostsArray as $i => $boost) {
+            if ((int) $targetLocation === BoostTargetLocation::SIDEBAR) {
+                $this->recordSidebarView($boost, $i);
+            }
+        }
+
+        $feedSyncEntities = $this->castToFeedSyncEntities($boostsArray);
+
         return new Response($feedSyncEntities);
     }
 
@@ -371,6 +387,8 @@ class Manager
      * Will prepare an onchain boost
      * @param string $entityGuid
      * @return array
+     * @throws ServerErrorException
+     * @throws UserErrorException
      */
     public function prepareOnchainBoost(string $entityGuid): array
     {
@@ -432,12 +450,32 @@ class Manager
     }
 
     /**
+     * A temporary solution for being able to rank the sidebar boosts
+     * @param Boost $boost
+     * @return void
+     */
+    public function recordSidebarView(Boost $boost, int $position): void
+    {
+        $this->viewsManager->record(
+            (new View())
+                ->setEntityUrn($boost->getEntity()->getUrn())
+                ->setOwnerGuid((string) $boost->getEntity()->getOwnerGuid())
+                ->setClientMeta([
+                    'source' => 'feed/subscribed', // TODO: this should be the actual source
+                    'medium' => 'sidebar',
+                    'campaign' => $boost->getUrn(),
+                    'position' => $position,
+                ])
+        );
+    }
+
+    /**
      * Casts an array of boosts to feed sync entities from boost,
      * containing the exported boosted content.
-     * @param iterable $boosts - boosts to cast
+     * @param Boost[] $boosts - boosts to cast
      * @return array feed sync entities.
      */
-    private function castToFeedSyncEntities(iterable $boosts): array
+    private function castToFeedSyncEntities(array $boosts): array
     {
         $feedSyncEntities = [];
 

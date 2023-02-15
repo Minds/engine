@@ -57,6 +57,14 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
         /** @var Core\Boost\V3\Ranking\Manager */
         $rankingManager = Di::_()->get(Core\Boost\V3\Ranking\Manager::class);
 
+        if ($this->getOpt('dry-run')) {
+            $rankingManager->setDryRun(true);
+        }
+
+        if ($fromUnixTs = $this->getOpt('from-unix-ts')) {
+            $rankingManager->setFromUnixTs((int) $fromUnixTs);
+        }
+
         while (true) {
             $rankingManager->calculateRanks();
 
@@ -64,7 +72,9 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
             // $mem = memory_get_usage();
             // Di::_()->get('Logger')->info(round($mem/1048576, 2) . 'mb used');
 
-            sleep(1);
+            if ($sleep = $this->getOpt('sleep')) {
+                sleep($sleep);
+            }
         }
 
         $this->out('Done');
@@ -86,33 +96,6 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
         $summariesManager->sync(new DateTime('midnight'));
 
         $this->out('Done');
-    }
-
-    /**
-     * use for testing in your local environments only!
-     * `php cli.php Boost simulateViews`
-     */
-    protected function simulateViews()
-    {
-        $viewsManager = new Core\Analytics\Views\Manager();
-
-        /** @var Core\Boost\V3\Manager */
-        $boostManager =  Di::_()->get(Core\Boost\V3\Manager::class);
-
-        foreach ($boostManager->getBoosts(
-            targetStatus: BoostStatus::APPROVED,
-            limit: 1,
-            orderByRanking: true
-        ) as $boost) {
-            $viewsManager->record(
-                (new Core\Analytics\Views\View())
-                    ->setEntityUrn("urn:entity:" . $boost->getEntityGuid())
-                    ->setOwnerGuid((string) 0)
-                    ->setClientMeta([])
-                    ->setCampaign('urn:boost:newsfeed:' . $boost->getGuid())
-            );
-            //$this->out('View for ' . $boost->getGuid());
-        }
     }
 
     public function processExpired()

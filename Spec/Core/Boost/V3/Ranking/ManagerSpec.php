@@ -85,6 +85,8 @@ class ManagerSpec extends ObjectBehavior
 
             ]);
 
+        $this->repositoryMock->beginTransaction()->shouldBeCalled();
+
         // RANK saves for "1234"
         $this->repositoryMock->addBoostRanking(Argument::that(function ($boostRank) {
             return $boostRank->getGuid() === '1234'
@@ -102,6 +104,8 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->repositoryMock->commitTransaction()->shouldBeCalled();
 
         $this->calculateRanks();
     }
