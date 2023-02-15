@@ -72,8 +72,8 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, payment_method, payment_amount, payment_tx_id, daily_bid, duration_days, status)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status)";
+        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, payment_method, payment_amount, payment_tx_id, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
+                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
         $this->mysqlClientWriter->prepare($query)
             ->shouldBeCalledOnce()
             ->willReturn($statement);
@@ -103,6 +103,67 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn(1);
         $boost->getStatus()
             ->willReturn(BoostStatus::PENDING);
+        $boost->getCreatedTimestamp()
+            ->willReturn(null);
+        $boost->getApprovedTimestamp()
+            ->willReturn(null);
+        $boost->getUpdatedTimestamp()
+            ->willReturn(null);
+
+        $this->createBoost($boost)
+            ->shouldBeEqualTo(true);
+    }
+
+    public function it_should_create_boost_with_timestamps(
+        Boost $boost,
+        PDOStatement $statement
+    ): void {
+        $statement->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, payment_method, payment_amount, payment_tx_id, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
+                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
+
+        $this->mysqlClientWriter->prepare($query)
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::that(function ($arg) {
+            return $arg["created_timestamp"] === "1970-01-01T00:00:01+00:00" &&
+                $arg["approved_timestamp"] === "1970-01-01T00:00:01+00:00" &&
+                $arg["updated_timestamp"] === "1970-01-01T00:00:01+00:00";
+        }))
+            ->shouldBeCalledOnce();
+
+        $boost->getGuid()
+            ->willReturn('1234');
+        $boost->getOwnerGuid()
+            ->willReturn('1235');
+        $boost->getEntityGuid()
+            ->willReturn('1236');
+        $boost->getTargetSuitability()
+            ->willReturn(BoostTargetSuitability::SAFE);
+        $boost->getTargetLocation()
+            ->willReturn(BoostTargetLocation::NEWSFEED);
+        $boost->getPaymentMethod()
+            ->willReturn(BoostPaymentMethod::CASH);
+        $boost->getPaymentAmount()
+            ->willReturn(1.00);
+        $boost->getPaymentTxId()
+            ->willReturn('');
+        $boost->getDailyBid()
+            ->willReturn(1.00);
+        $boost->getDurationDays()
+            ->willReturn(1);
+        $boost->getStatus()
+            ->willReturn(BoostStatus::PENDING);
+        $boost->getCreatedTimestamp()
+            ->willReturn(1);
+        $boost->getApprovedTimestamp()
+            ->willReturn(1);
+        $boost->getUpdatedTimestamp()
+            ->willReturn(1);
 
         $this->createBoost($boost)
             ->shouldBeEqualTo(true);
@@ -335,11 +396,13 @@ class RepositorySpec extends ObjectBehavior
     public function it_should_approve_boost(
         PDOStatement $statement
     ): void {
+        $adminGuid = '234';
+
         $statement->execute()
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $query = "UPDATE boosts SET status = :status, approved_timestamp = :approved_timestamp, updated_timestamp = :updated_timestamp WHERE guid = :guid";
+        $query = "UPDATE boosts SET status = :status, approved_timestamp = :approved_timestamp, updated_timestamp = :updated_timestamp, admin_guid = :admin_guid WHERE guid = :guid";
         $this->mysqlClientWriter->prepare($query)
             ->shouldBeCalledOnce()
             ->willReturn($statement);
@@ -347,7 +410,7 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
             ->shouldBeCalledOnce();
 
-        $this->approveBoost('123')
+        $this->approveBoost('123', $adminGuid)
             ->shouldBeEqualTo(true);
     }
 
@@ -422,5 +485,67 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn($expectedResponse);
 
         $this->getAdminStats()->shouldBe($expectedResponse);
+    }
+
+    public function it_should_get_boost_status_counts(PDOStatement $statement)
+    {
+        $formattedReturnValue = [
+            BoostStatus::APPROVED => 22,
+            BoostStatus::CANCELLED => 2,
+            BoostStatus::REJECTED => 5
+        ];
+
+        $expectedResponse = [
+            ['status' => BoostStatus::APPROVED, 'statusCount' => 22],
+            ['status' => BoostStatus::CANCELLED, 'statusCount' => 2],
+            ['status' => BoostStatus::REJECTED, 'statusCount' => 5]
+        ];
+
+        $statuses = [
+            BoostStatus::APPROVED,
+            BoostStatus::CANCELLED,
+            BoostStatus::REJECTED
+        ];
+
+        $ownerGuid = '234';
+        $limit = 30;
+
+        $query = "SELECT status, count(status) AS statusCount
+            FROM
+                (
+                    SELECT status
+                    FROM
+                        boosts
+                    WHERE owner_guid = :owner_guid AND (status = 2 OR status = 10 OR status = 3)
+                    ORDER BY
+                        updated_timestamp DESC
+                    LIMIT :limit
+                ) as boostsStatuses
+            GROUP BY status";
+
+        $this->mysqlClientReader->prepare(Argument::that(function ($prepared) use ($query) {
+            return $prepared === $query;
+        }))
+            ->shouldBeCalled()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::that(function ($values) use ($ownerGuid, $limit) {
+            return $values['owner_guid'] === $ownerGuid &&
+                $values['limit'] === $limit;
+        }))
+            ->shouldBeCalled();
+
+        $statement->execute()
+            ->shouldBeCalled();
+
+        $statement->fetchAll(PDO::FETCH_ASSOC)
+            ->shouldBeCalled()
+            ->willReturn($expectedResponse);
+
+        $this->getBoostStatusCounts(
+            $ownerGuid,
+            $statuses,
+            $limit
+        )->shouldBe($formattedReturnValue);
     }
 }

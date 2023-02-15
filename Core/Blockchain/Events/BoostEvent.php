@@ -12,8 +12,11 @@ use Minds\Core\Blockchain\Transactions\Repository;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Manager as BoostManagerV3;
+use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
 use Minds\Core\Data;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
+use Minds\Entities\User;
 
 class BoostEvent implements BlockchainEventInterface
 {
@@ -38,11 +41,15 @@ class BoostEvent implements BlockchainEventInterface
         $txRepository = null,
         $boostRepository = null,
         private ?BoostManagerV3 $boostManagerV3 = null,
+        private ?PreApprovalManager $preApprovalManager = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
         $config = null
     ) {
         $this->txRepository = $txRepository ?: Di::_()->get('Blockchain\Transactions\Repository');
         $this->boostRepository = $boostRepository ?: Di::_()->get('Boost\Repository');
         $this->boostManagerV3 ??= Di::_()->get(BoostManagerV3::class);
+        $this->preApprovalManager ??= Di::_()->get(PreApprovalManager::class);
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->config = $config ?: Di::_()->get('Config');
     }
 
@@ -126,7 +133,19 @@ class BoostEvent implements BlockchainEventInterface
             if ($boostV3->getStatus() !== BoostStatus::PENDING_ONCHAIN_CONFIRMATION) {
                 throw new \Exception("Boost with guid {$boostGuid} is not pending onchain confirmation. Status: " . $boostV3->getStatus());
             }
-            $this->boostManagerV3->updateStatus($boostGuid, BoostStatus::PENDING);
+
+            $boostOwner = $this->entitiesBuilder->single($boostV3->getOwnerGuid());
+
+            if (!$boostOwner || !($boostOwner instanceof User)) {
+                throw new \Exception("Boost ({$boostGuid}) found without hydratable owner ({$boostV3->getOwnerGuid()}). Processing failed");
+            }
+
+            if ($this->preApprovalManager->shouldPreApprove($boostOwner)) {
+                $this->boostManagerV3->approveBoost($boostGuid);
+            } else {
+                $this->boostManagerV3->updateStatus($boostGuid, BoostStatus::PENDING);
+            }
+
             return;
         }
 
