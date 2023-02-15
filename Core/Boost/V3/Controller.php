@@ -14,6 +14,7 @@ use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
@@ -94,6 +95,30 @@ class Controller
         return new JsonResponse([
             'boosts' => Exportable::_($boosts),
             'has_more' => $boosts->getPagingToken(),
+        ]);
+    }
+
+    /**
+     * Get a single boost by boostGuid
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     */
+    public function getSingleBoost(ServerRequestInterface $request): JsonResponse
+    {
+        $boostGuid = $request->getAttribute("parameters")["boostGuid"];
+        $boost = $this->manager->getBoostByGuid($boostGuid);
+
+        /**
+         * TODO: actually use the ACL
+         */
+        $loggedInUser = $request->getAttribute('_user');
+
+        if ($boost->getOwnerGuid() !== $loggedInUser->getGuid()){
+            throw new ForbiddenException();
+        }
+
+        return new JsonResponse([
+            'boost' => $boost->export()
         ]);
     }
 
