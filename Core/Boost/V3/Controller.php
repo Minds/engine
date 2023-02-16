@@ -122,7 +122,7 @@ class Controller
          */
         $loggedInUser = $request->getAttribute('_user');
 
-        if ($boost->getOwnerGuid() !== $loggedInUser->getGuid()){
+        if ($boost->getOwnerGuid() !== $loggedInUser->getGuid()) {
             throw new ForbiddenException();
         }
 
