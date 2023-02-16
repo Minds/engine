@@ -17,6 +17,7 @@ use Minds\Traits\MagicAttributes;
  * @method self setEntityGuid(string $entityGuid)
  * @method string getEntityGuid()
  * @method self setTargetLocation(int $targetLocation)
+ * @method getEntity()
  * @method int getTargetLocation()
  * @method self setTargetSuitability(int $targetSuitability)
  * @method int getTargetSuitability()
