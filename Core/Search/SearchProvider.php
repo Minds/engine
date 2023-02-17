@@ -33,9 +33,5 @@ class SearchProvider extends Provider
         $this->di->bind('Search\Hashtags\Manager', function ($di) {
             return new Hashtags\Manager();
         }, ['useFactory' => true]);
-
-        $this->di->bind('Search\RetryQueue\Manager', function ($di) {
-            return new RetryQueue\Manager();
-        }, ['useFactory' => true]);
     }
 }
