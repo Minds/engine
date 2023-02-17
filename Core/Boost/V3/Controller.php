@@ -214,8 +214,12 @@ class Controller
     public function approveBoost(ServerRequestInterface $request): JsonResponse
     {
         $boostGuid = $request->getAttribute("parameters")["guid"];
+        $loggedInUser = $request->getAttribute('_user');
 
-        $this->manager->approveBoost((string) $boostGuid);
+        $this->manager->approveBoost(
+            boostGuid: (string) $boostGuid,
+            adminGuid: (string) $loggedInUser->getGuid()
+        );
 
         return new JsonResponse([]);
     }

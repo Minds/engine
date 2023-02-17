@@ -118,6 +118,10 @@ class Repository
     protected function prepareShareRatiosCalculationQuery(string $guid = null): PDOStatement
     {
         $status = BoostStatus::APPROVED;
+
+        $approveWindow = "AND approved_timestamp > DATE_SUB(approved_timestamp, INTERVAL `duration_days` DAY)
+            AND approved_timestamp < DATE_ADD(approved_timestamp, INTERVAL `duration_days` DAY)";
+
         $statement = "SELECT
             guid,
             boosts.target_location,
@@ -145,12 +149,12 @@ class Repository
                 SUM(CASE WHEN payment_method=2 THEN daily_bid ELSE 0 END) as token_bids_for_all
                 FROM boosts
                 WHERE status = $status
-                AND approved_timestamp > DATE_SUB(approved_timestamp, INTERVAL `duration_days` DAY)
-                AND approved_timestamp < DATE_ADD(approved_timestamp, INTERVAL `duration_days` DAY)
+                $approveWindow
                 GROUP BY target_location
             ) AS total_bids 
             ON boosts.target_location = total_bids.target_location
-        WHERE status = $status";
+        WHERE status = $status
+        $approveWindow";
 
         if ($guid) {
             $statement .= " AND guid=:guid";
