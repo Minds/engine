@@ -3,6 +3,7 @@
 namespace Minds\Core\Recommendations;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
 use Minds\Core\Recommendations\ResponseBuilders\GetRecommendationsResponseBuilder;
 use Minds\Core\Recommendations\Validators\GetRecommendationsRequestValidator;
 use Minds\Entities\User;
@@ -13,9 +14,11 @@ use Zend\Diactoros\Response\JsonResponse;
 class Controller
 {
     public function __construct(
-        private ?ManagerInterface $manager = null
+        private ?ManagerInterface $manager = null,
+        private ?BoostSuggestionInjector $boostSuggestionInjector = null
     ) {
         $this->manager = $this->manager ?? Di::_()->get("Recommendations\Manager");
+        $this->boostSuggestionInjector ??= Di::_()->get(BoostSuggestionInjector::class);
     }
 
     private function getLoggedInUserFromRequest(ServerRequestInterface $request): ?User
@@ -38,6 +41,12 @@ class Controller
         }
 
         $response = $this->manager->getRecommendations($user, $request->getQueryParams()["location"], $request->getQueryParams());
+
+        $response['entities'] = $this->boostSuggestionInjector->inject(
+            response: $response['entities'],
+            targetUser: $user,
+            index: 1
+        );
 
         return $responseBuilder->buildSuccessfulResponse($response);
     }

@@ -3,6 +3,7 @@
 namespace Minds\Core\Recommendations;
 
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
 
 class Provider extends DiProvider
 {
@@ -13,6 +14,9 @@ class Provider extends DiProvider
         });
         $this->di->bind('Recommendations\Controller', function ($di) {
             return new Controller();
+        });
+        $this->di->bind(BoostSuggestionInjector::class, function ($di): BoostSuggestionInjector {
+            return new BoostSuggestionInjector();
         });
     }
 }
