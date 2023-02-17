@@ -30,4 +30,6 @@ interface SubscriptionInterface
      * @return bool
      */
     public function consume(EventInterface $event): bool;
+
+    public function consumeBatch(array $messages): bool;
 }

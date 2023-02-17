@@ -8,7 +8,9 @@ namespace Minds\Core\Analytics\Views;
 
 use Exception;
 use Minds\Common\Urn;
+use Minds\Core\Analytics\Views\Delegates\ViewsDelegate;
 use Minds\Core\Feeds\Seen\Manager as FeedsSeenManager;
+use Minds\Entities\EntityInterface;
 
 class Manager
 {
@@ -25,18 +27,21 @@ class Manager
         $repository = null,
         $elasticRepository = null,
         $feedsSeenManager = null,
+        private ?ViewsDelegate $viewsDelegate = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->elasticRepository = $elasticRepository ?: new ElasticRepository();
         $this->feedsSeenManager = $feedsSeenManager ?: new FeedsSeenManager();
+        $this->viewsDelegate ??= new ViewsDelegate();
     }
 
     /**
      * @param View $view
+     * @param EntityInterface|null $entity
      * @return bool
      * @throws Exception
      */
-    public function record(View $view)
+    public function record(View $view, ?EntityInterface $entity = null)
     {
         // Reset time fields and use current timestamp
         $view
@@ -53,6 +58,8 @@ class Manager
         // Add to repository
         $this->repository->add($view);
 
+        $this->viewsDelegate->onRecordView($view, $entity);
+
         return true;
     }
 
@@ -60,6 +67,7 @@ class Manager
      * Synchronise views from cassandra to elastic
      * @param array $opts
      * @return void
+     * @throws Exception
      */
     public function syncToElastic($opts = [])
     {
@@ -72,7 +80,7 @@ class Manager
             'limit' => 1000,
             'offset' => '',
         ], $opts);
-        
+
         while (true) {
             $result = $this->repository->getList($opts);
 
