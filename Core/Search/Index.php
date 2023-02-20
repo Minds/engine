@@ -94,7 +94,7 @@ class Index
             $result = true; // Null was resolving as 'false' so setting to true
             $this->remove($entity);
         } catch (\Exception $e) {
-            $this->logger->error(self::LOG_PREFIX . ' ' . get_class($e) . ": {$e->getMessage()}");
+            $this->logger->error(self::LOG_PREFIX . " Error indexing '{$mapper->getId()}'"  . get_class($e) . ": {$e->getMessage()}");
             $result = false;
         }
 
@@ -129,7 +129,7 @@ class Index
             $prepared->query($query);
             $result = (bool) $this->client->request($prepared);
         } catch (\Exception $e) {
-            $this->logger->error(self::LOG_PREFIX . ' ' . get_class($e) . ": {$e->getMessage()}");
+            $this->logger->error(self::LOG_PREFIX . " Error removing '{$mapper->getId()}'" . get_class($e) . ": {$e->getMessage()}");
             print_r($e);
         }
 
