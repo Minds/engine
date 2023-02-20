@@ -107,11 +107,6 @@ class explicit implements Interfaces\Api
             }
         }
 
-        Dispatcher::trigger('search:index', 'all', [
-            'entity' => $entity
-        ]);
-
-
         $save = new Save();
         $saved = $save->setEntity($entity)
             ->save();

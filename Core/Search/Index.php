@@ -8,48 +8,33 @@
 
 namespace Minds\Core\Search;
 
-use Minds\Core;
+use Elasticsearch\Common\Exceptions\Missing404Exception;
+use Minds\Common\SystemUser;
 use Minds\Core\Data\ElasticSearch\Prepared;
+use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Di\Di;
+use Minds\Core\Log\Logger;
+use Minds\Core\Search\Hashtags\Manager;
 use Minds\Entities\Entity;
+use Minds\Entities\EntityInterface;
 use Minds\Exceptions\BannedException;
 
 class Index
 {
-    /** @var Core\Data\ElasticSearch\Client $client */
-    protected $client;
+    const LOG_PREFIX = "[Search/Index]";
 
-    /** @var string $esIndex */
-    protected $esIndex;
-
-    /** @var Core\EntitiesBuilder */
-    protected $entitiesBuilder;
-
-    /** @var Core\Search\Hashtags\Manager */
-    protected $hashtagsManager;
-
-    /** @var Cleanup */
-    protected $cleanup;
-
-    /**
-     * Index constructor.
-     * @param null $client
-     * @param null $index
-     * @param null $entitiesBuilder
-     * @param null $hashtagsManager
-     */
     public function __construct(
-        $client = null,
-        $index = null,
-        $entitiesBuilder = null,
-        $hashtagsManager = null,
-        $cleanup = null
+        protected ?Client $client = null,
+        protected ?string $indexPrefix = null,
+        protected ?Manager $hashtagsManager = null,
+        protected ?Logger $logger = null,
+        protected ?Mappings\Factory $mappingFactory = null
     ) {
-        $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
-        $this->esIndex = $index ?: Di::_()->get('Config')->get('elasticsearch')['indexes']['search_prefix'];
-        $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
-        $this->hashtagsManager = $hashtagsManager ?: Di::_()->get('Search\Hashtags\Manager');
-        $this->cleanup = $cleanup ?? new Cleanup();
+        $this->client ??= Di::_()->get('Database\ElasticSearch');
+        $this->indexPrefix ??= Di::_()->get('Config')->get('elasticsearch')['indexes']['search_prefix'];
+        $this->hashtagsManager ??= Di::_()->get('Search\Hashtags\Manager');
+        $this->logger ??= Di::_()->get('Logger');
+        $this->mappingFactory ??= Di::_()->get('Search\Mappings');
     }
 
     /**
@@ -57,25 +42,21 @@ class Index
      * @param $entity
      * @return bool
      */
-    public function index($entity)
+    public function index(EntityInterface $entity): bool
     {
         if (!$entity) {
-            error_log('[Search/Index] Cannot index an empty entity');
+            $this->logger->error(self::LOG_PREFIX . ' Cannot index an empty entity');
             return false;
         }
 
-        if (!is_object($entity)) {
-            $entity = $this->entitiesBuilder->build($entity, false);
-        }
-
-        if ($entity->guid == '100000000000000519') {
-            error_log('tried to index minds channel, but temporary aborting');
+        if ($entity->getGuid() == SystemUser::GUID) {
+            $this->logger->error(self::LOG_PREFIX . ' Tried to index minds channel, but temporary aborting');
             return true; // TRUE prevents retries
         }
 
         try {
             /** @var Mappings\MappingInterface $mapper */
-            $mapper = Di::_()->get('Search\Mappings')->build($entity);
+            $mapper = $this->mappingFactory->build($entity);
 
             $body = $mapper->map();
 
@@ -86,7 +67,7 @@ class Index
             }
 
             $query = [
-                'index' => $this->esIndex . '-' .$mapper->getType(),
+                'index' => $this->indexPrefix . '-' .$mapper->getType(),
                 'id' => $mapper->getId(),
                 'body' => [
                     'doc' => $body,
@@ -108,12 +89,12 @@ class Index
                     }
                 }
             }
-            error_log("Indexed {$mapper->getId()}");
+            $this->logger->info(self::LOG_PREFIX . " Indexed {$mapper->getId()}");
         } catch (BannedException $e) {
             $result = true; // Null was resolving as 'false' so setting to true
-            $this->cleanup->prune($entity);
+            $this->remove($entity);
         } catch (\Exception $e) {
-            error_log('[Search/Index] ' . get_class($e) . ": {$e->getMessage()}");
+            $this->logger->error(self::LOG_PREFIX . " Error indexing '{$mapper->getId()}'"  . get_class($e) . ": {$e->getMessage()}");
             $result = false;
         }
 
@@ -125,24 +106,21 @@ class Index
      * @param array $opts
      * @return bool
      */
-    public function update($entity, $opts)
+    public function update(EntityInterface $entity, array $opts): bool
     {
         if (!$entity) {
-            error_log("[Search/Index] Cannot update an empty entity's index");
+            $this->logger->error(self::LOG_PREFIX . " Cannot update an empty entity's index");
             return false;
         }
 
-        if (!is_object($entity)) {
-            $entity = $this->entitiesBuilder->build($entity, false);
-        }
         $result = false;
 
         try {
             /** @var Mappings\MappingInterface $mapper */
-            $mapper = Di::_()->get('Search\Mappings')->build($entity);
+            $mapper = $this->mappingFactory->build($entity);
 
             $query = [
-                'index' => $this->esIndex . '-' . $mapper->getType(),
+                'index' => $this->indexPrefix . '-' . $mapper->getType(),
                 'id' => $mapper->getId(),
                 'body' => ['doc' => $opts]
             ];
@@ -151,8 +129,45 @@ class Index
             $prepared->query($query);
             $result = (bool) $this->client->request($prepared);
         } catch (\Exception $e) {
-            error_log('[Search/Index] ' . get_class($e) . ": {$e->getMessage()}");
+            $this->logger->error(self::LOG_PREFIX . " Error removing '{$mapper->getId()}'" . get_class($e) . ": {$e->getMessage()}");
             print_r($e);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param EntityInterface $entity
+     * @return bool
+     */
+    public function remove(EntityInterface $entity): bool
+    {
+        if (!$entity) {
+            $this->logger->error(self::LOG_PREFIX . " Cannot cleanup an empty entity's index");
+            return false;
+        }
+
+        $result = false;
+
+        try {
+            /** @var Mappings\MappingInterface $mapper */
+            $mapper = $this->mappingFactory->build($entity);
+
+            $query = [
+                'index' => $this->indexPrefix . '-' . $mapper->getType(),
+                'id' => $mapper->getId(),
+            ];
+
+            $prepared = new Prepared\Delete();
+            $prepared->query($query);
+            $result = (bool) $this->client->request($prepared);
+
+            $this->logger->info(self::LOG_PREFIX . " Removed {$mapper->getId()}");
+        } catch (Missing404Exception $e) {
+            $result = true;
+            $this->logger->info(self::LOG_PREFIX . " Already deleted {$mapper->getId()}");
+        } catch (\Exception $e) {
+            $this->logger->error(self::LOG_PREFIX . ' ' . get_class($e) . ": {$e->getMessage()}");
         }
 
         return $result;
