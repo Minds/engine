@@ -7,6 +7,7 @@ use Minds\Core;
 use Minds\Core\Supermind\Settings\Models\Settings;
 use Minds\Helpers;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
+use Minds\Core\Monetization\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
 
 /**
  * User Entity.
@@ -72,7 +73,7 @@ use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
  * @property string $twofactor
  * @property string $briefdescription
  */
-class User extends \ElggUser
+class User extends \ElggUser implements DemonetizableEntityInterface
 {
     public $fullExport = true;
     public $exportCounts = false;

@@ -6,11 +6,13 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\Manager;
 use Minds\Core\Feeds\Activity\Controller;
 use Minds\Core\Feeds\Scheduled\EntityTimeCreated;
+use Minds\Core\Monetization\Demonetization\Validators\DemonetizedPlusValidator;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 use Zend\Diactoros\ServerRequest;
 
@@ -28,23 +30,27 @@ class ControllerSpec extends ObjectBehavior
     /** @var EntityTimeCreated */
     private $entityTimeCreated;
 
+    private Collaborator $demonetizedPlusValidator;
 
     public function let(
         Manager $manager,
         EntitiesBuilder $entitiesBuilder,
         ACL $acl,
-        EntityTimeCreated $entityTimeCreated
+        EntityTimeCreated $entityTimeCreated,
+        DemonetizedPlusValidator $demonetizedPlusValidator,
     ) {
         $this->manager = $manager;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->acl = $acl;
         $this->entityTimeCreated = $entityTimeCreated;
+        $this->demonetizedPlusValidator = $demonetizedPlusValidator;
 
         $this->beConstructedWith(
             $manager,
             $entitiesBuilder,
             $acl,
-            $entityTimeCreated
+            $entityTimeCreated,
+            $demonetizedPlusValidator,
         );
     }
 

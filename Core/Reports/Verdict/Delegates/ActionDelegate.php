@@ -8,6 +8,9 @@ use Minds\Core\Security\ACL;
 use Minds\Core\Reports\Verdict\Verdict;
 use Minds\Core\Di\Di;
 use Minds\Common\Urn;
+use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePostStrategy;
+use Minds\Core\Monetization\Demonetization\DemonetizationContext;
+use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePlusUserStrategy;
 use Minds\Core\Reports\Report;
 use Minds\Core\Reports\Strikes\Strike;
 use Minds\Core\Entities\Actions\Save as SaveAction;
@@ -58,7 +61,10 @@ class ActionDelegate
         $channelsBanManager = null,
         $plusManager = null,
         $commonSessionsManager = null,
-        $password = null
+        $password = null,
+        private ?DemonetizationContext $demonetizationContext = null,
+        private ?DemonetizePostStrategy $demonetizePostStrategy = null,
+        private ?DemonetizePlusUserStrategy $demonetizePlusUserStrategy = null
     ) {
         $this->entitiesBuilder = $entitiesBuilder  ?: Di::_()->get('EntitiesBuilder');
         $this->actions = $actions ?: Di::_()->get('Reports\Actions');
@@ -70,6 +76,9 @@ class ActionDelegate
         $this->plusManager = $plusManager ?? Di::_()->get('Plus\Manager');
         $this->commonSessionsManager = $commonSessionsManager ?? Di::_()->get('Sessions\CommonSessions\Manager');
         $this->password = $password ?? Di::_()->get('Security\Password');
+        $this->demonetizationContext ??= Di::_()->get(DemonetizationContext::class);
+        $this->demonetizePostStrategy ??= Di::_()->get(DemonetizePostStrategy::class);
+        $this->demonetizePlusUserStrategy ??= Di::_()->get(DemonetizePlusUserStrategy::class);
     }
 
     public function onAction(Verdict $verdict)
@@ -192,6 +201,11 @@ class ActionDelegate
             case 17: // Security
                 $this->applyHackDefense($report);
                 break;
+            case 18: // Security
+                $this->demonetizationContext->withStrategy($this->demonetizePostStrategy)
+                    ->execute($entity);
+                $this->applyStrike($report);
+                break;
         }
 
         // Enable ACL again
@@ -242,10 +256,14 @@ class ActionDelegate
             $this->strikesManager->add($strike);
         }
 
-        // If 3 or more strikes, ban or apply NSFW lock
+        // If 3 or more strikes, ban, demonetize for plus, or apply NSFW lock.
         if ($this->strikesManager->countStrikesInTimeWindow($strike, $this->strikesManager::STRIKE_RETENTION_WINDOW) >= 3) {
             if ($report->getReasonCode() === 2) {
                 $this->applyNsfwLock($report);
+            } elseif ($report->getReasonCode() === 18) {
+                $entityOwner = $this->entitiesBuilder->single($report->getEntityOwnerGuid());
+                $this->demonetizationContext->withStrategy($this->demonetizePlusUserStrategy)
+                    ->execute($entityOwner);
             } else {
                 $reasonCode = $report->getReasonCode();
                 $subReasonCode = $report->getSubReasonCode();
