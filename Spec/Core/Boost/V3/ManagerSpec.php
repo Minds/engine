@@ -960,4 +960,43 @@ class ManagerSpec extends ObjectBehavior
     //     $this->getBoostFeed()
     //         ->shouldReturnAnInstanceOf(Response::class);
     // }
+
+    public function it_should_force_reject_by_entity_guid_with_default_statuses()
+    {
+        $entityGuid = '123';
+        $reason = BoostRejectionReason::REPORT_UPHELD;
+        $statuses = [ BoostStatus::APPROVED, BoostStatus::PENDING ];
+
+        $this->repository->forceRejectByEntityGuid(
+            entityGuid: $entityGuid,
+            reason: $reason,
+            statuses: $statuses
+        )->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->forceRejectByEntityGuid(
+            entityGuid: $entityGuid,
+            reason: $reason
+        )->shouldBe(true);
+    }
+
+    public function it_should_force_reject_by_entity_guid_with_custom_statuses()
+    {
+        $entityGuid = '123';
+        $reason = BoostRejectionReason::REPORT_UPHELD;
+        $statuses = [ BoostStatus::REFUND_IN_PROGRESS ];
+
+        $this->repository->forceRejectByEntityGuid(
+            entityGuid: $entityGuid,
+            reason: $reason,
+            statuses: $statuses
+        )->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->forceRejectByEntityGuid(
+            entityGuid: $entityGuid,
+            reason: $reason,
+            statuses: $statuses
+        )->shouldBe(true);
+    }
 }

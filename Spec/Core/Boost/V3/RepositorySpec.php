@@ -452,6 +452,35 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeEqualTo(true);
     }
 
+    public function it_should_force_reject_by_entity_guid(
+        PDOStatement $statement
+    ): void {
+        $statement->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->mysqlClientWriter->prepare(Argument::that(function ($arg) {
+            return $arg === "UPDATE boosts
+            SET status = :status,
+                updated_timestamp = :updated_timestamp,
+                reason = :reason
+            WHERE entity_guid = :entity_guid AND (status = 2 OR status = 1)";
+        }))
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::that(function ($arg) {
+            return $arg['status'] = BoostStatus::REJECTED &&
+                is_string($arg['updated_timestamp']) &&
+                $arg['reason'] === BoostRejectionReason::REPORT_UPHELD &&
+                $arg['entity_guid'] === '123';
+        }))
+            ->shouldBeCalledOnce();
+
+        $this->forceRejectByEntityGuid('123', BoostRejectionReason::REPORT_UPHELD)
+            ->shouldBeEqualTo(true);
+    }
+
     public function it_should_get_admin_stats(PDOStatement $statement)
     {
         $expectedResponse = [
