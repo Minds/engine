@@ -61,10 +61,6 @@ class activity implements Interfaces\Api, Interfaces\ApiAdminPam
                     }
                 }
 
-                Dispatcher::trigger('search:index', 'all', [
-                  'entity' => $activity
-                ]);
-
                 // @todo: set user flag for mature content when
                 // stateless entity modifications are introduced
 
