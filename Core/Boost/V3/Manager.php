@@ -31,6 +31,7 @@ use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
+use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -50,7 +51,8 @@ class Manager
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?ActionEventDelegate $actionEventDelegate = null,
         private ?PreApprovalManager $preApprovalManager = null,
-        private ?ViewsManager $viewsManager = null
+        private ?ViewsManager $viewsManager = null,
+        private ?ACL $acl = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
@@ -58,7 +60,7 @@ class Manager
         $this->actionEventDelegate ??= Di::_()->get(ActionEventDelegate::class);
         $this->preApprovalManager ??= Di::_()->get(PreApprovalManager::class);
         $this->viewsManager ??= new ViewsManager();
-
+        $this->acl ??= new ACL();
         $this->logger = Di::_()->get("Logger");
     }
 
@@ -355,7 +357,15 @@ class Manager
             hasNext: $hasNext
         );
 
-        return new Response(iterator_to_array($boosts), $hasNext);
+        $boostsArray = iterator_to_array($boosts);
+
+        foreach ($boostsArray as $i => $boost) {
+            if (!$this->acl->read($boost)) {
+                unset($boostsArray[$i]);
+            }
+        }
+
+        return new Response($boostsArray, $hasNext);
     }
 
     /**
@@ -397,6 +407,10 @@ class Manager
         $boostsArray = iterator_to_array($boosts);
 
         foreach ($boostsArray as $i => $boost) {
+            if (!$this->acl->read($boost)) {
+                unset($boostsArray[$i]);
+                continue;
+            }
             if ((int) $targetLocation === BoostTargetLocation::SIDEBAR) {
                 $this->recordSidebarView($boost, $i);
             }
@@ -415,7 +429,11 @@ class Manager
     public function getBoostByGuid(string $boostGuid): ?Boost
     {
         try {
-            return $this->repository->getBoostByGuid($boostGuid);
+            $boost = $this->repository->getBoostByGuid($boostGuid);
+            if (!$boost || !$this->acl->read($boost)) {
+                return null;
+            }
+            return $boost;
         } catch (BoostNotFoundException $e) {
             return null;
         }
