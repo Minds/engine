@@ -312,5 +312,7 @@ class ProhibitedDomains
         '//sites.google.com/',
         '//UsaRealService.com/',
         '//smmseomarket.com/',
+        'www.interpol.int',
+        '/interpol.int',
     ];
 }
