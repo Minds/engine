@@ -3,9 +3,8 @@
 namespace Spec\Minds\Core\Search;
 
 use Minds\Core\Data\ElasticSearch\Client;
-use Minds\Core\Data\ElasticSearch\Prepared\Index;
 use Minds\Core\Data\ElasticSearch\Prepared\Update;
-use Minds\Core\Di\Di;
+use Minds\Core\Search\Hashtags\Manager;
 use Minds\Core\Search\Mappings\Factory;
 use Minds\Core\Search\Mappings\MappingInterface;
 use PhpSpec\ObjectBehavior;
@@ -13,22 +12,19 @@ use Prophecy\Argument;
 
 class IndexSpec extends ObjectBehavior
 {
-    protected $_client;
-    protected $_index = 'phpspec';
-    protected $_mappingsFactory;
+    protected $clientMock;
+    protected $indexPrefixMock = 'phpspec';
+    protected $mappingFactoryMock;
 
     public function let(
-        Client $client,
-        Factory $mappingsFactory
+        Client $clientMock,
+        Factory $mappingFactoryMock,
+        Manager $hashtagManagerMock,
     ) {
-        $this->_client = $client;
-        $this->_mappingsFactory = $mappingsFactory;
+        $this->clientMock = $clientMock;
+        $this->mappingFactoryMock = $mappingFactoryMock;
 
-        $this->beConstructedWith($client, $this->_index);
-
-        Di::_()->bind('Search\Mappings', function ($di) use ($mappingsFactory) {
-            return $mappingsFactory->getWrappedObject();
-        });
+        $this->beConstructedWith($clientMock, $this->indexPrefixMock, $hashtagManagerMock, null, $mappingFactoryMock);
     }
 
     public function it_is_initializable()
@@ -40,7 +36,7 @@ class IndexSpec extends ObjectBehavior
         \ElggEntity $entity,
         MappingInterface $mapper
     ) {
-        $this->_mappingsFactory->build($entity)
+        $this->mappingFactoryMock->build($entity)
             ->shouldBeCalled()
             ->willReturn($mapper);
 
@@ -65,7 +61,7 @@ class IndexSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('1000');
 
-        $this->_client->request(Argument::that(function ($prepared) {
+        $this->clientMock->request(Argument::that(function ($prepared) {
             if (!($prepared instanceof Update)) {
                 return false;
             }
@@ -73,7 +69,7 @@ class IndexSpec extends ObjectBehavior
             $query = $prepared->build();
 
             return
-                $query['index'] == $this->_index . '-test' &&
+                $query['index'] == $this->indexPrefixMock . '-test' &&
                 $query['id'] == '1000' &&
                 isset($query['body']) &&
                 $query['body']['doc']['guid'] == '1000' &&
@@ -87,12 +83,5 @@ class IndexSpec extends ObjectBehavior
         $this
             ->index($entity)
             ->shouldReturn(true);
-    }
-
-    public function it_should_return_false_during_index_if_no_entity()
-    {
-        $this
-            ->index(null)
-            ->shouldReturn(false);
     }
 }

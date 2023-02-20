@@ -209,12 +209,6 @@ class Manager
             ->setEmailConfirmedAt(time())
             ->save();
 
-        // re-index the user so email_confirmed_at gets updated in ElasticSearch
-        $this->eventsDispatcher->trigger('search:index', 'all', [
-            'entity' => $user,
-            'immediate' => true,
-        ]);
-
         $this->queue
             ->setQueue('WelcomeEmail')
             ->send([

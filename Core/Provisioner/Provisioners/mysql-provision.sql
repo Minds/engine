@@ -97,7 +97,8 @@ CREATE TABLE IF NOT EXISTS user_configurations
     supermind_cash_min float(7, 2) NULL DEFAULT NULL,
     supermind_offchain_tokens_min float(7, 2) NULL DEFAULT NULL,
     created_at timestamp NOT NULL default CURRENT_TIMESTAMP,
-    updated_at timestamp NULL DEFAULT NULL
+    updated_at timestamp NULL DEFAULT NULL,
+    plus_demonetized timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS boosts
@@ -113,6 +114,7 @@ CREATE TABLE IF NOT EXISTS boosts
     daily_bid float NOT NULL,
     duration_days int NOT NULL,
     status int NOT NULL,
+    admin_guid bigint NULL DEFAULT NULL,
     created_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_timestamp timestamp NULL DEFAULT NULL,
     approved_timestamp timestamp NULL DEFAULT NULL,

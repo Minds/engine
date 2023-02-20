@@ -53,16 +53,6 @@ class rating implements Interfaces\Api
         $save->setEntity($entity)
             ->save();
 
-        /** @var Core\Events\Dispatcher $dispatcher */
-        $dispatcher = Di::_()->get('EventsDispatcher');
-        $dispatcher->trigger('search:index', 'all', [
-            'entity' => $entity,
-            'immediate' => true
-        ]);
-
-        Queue\Client::Build()->setQueue("Trending")
-            ->send(['a']);
-
         return Factory::response([]);
     }
 
