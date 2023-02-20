@@ -55,7 +55,9 @@ class BoostGuidResolverDelegate implements ResolverDelegate
             $boost = $this->isLegacyUrn($urn) ?
                 $this->manager->get($urn, [ 'hydrate' => true ]) :
                 $this->getBoostManagerV3()->getBoostByGuid(end(explode(':', $urn)));
-            $entities[] = $boost;
+            if ($boost) {
+                $entities[] = $boost;
+            }
         }
 
         return $entities;
