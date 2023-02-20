@@ -54,10 +54,10 @@ class Index
             return true; // TRUE prevents retries
         }
 
-        try {
-            /** @var Mappings\MappingInterface $mapper */
-            $mapper = $this->mappingFactory->build($entity);
+        /** @var Mappings\MappingInterface $mapper */
+        $mapper = $this->mappingFactory->build($entity);
 
+        try {
             $body = $mapper->map();
 
             if ($suggest = $mapper->suggestMap()) {
@@ -115,10 +115,10 @@ class Index
 
         $result = false;
 
-        try {
-            /** @var Mappings\MappingInterface $mapper */
-            $mapper = $this->mappingFactory->build($entity);
+        /** @var Mappings\MappingInterface $mapper */
+        $mapper = $this->mappingFactory->build($entity);
 
+        try {
             $query = [
                 'index' => $this->indexPrefix . '-' . $mapper->getType(),
                 'id' => $mapper->getId(),
