@@ -33,9 +33,6 @@ class Manager
     /** @var Spam * */
     protected $spam;
 
-    /** @var Delegates\Search */
-    protected $search;
-
     /** @var PropagateProperties */
     protected $propagateProperties;
 
@@ -52,7 +49,6 @@ class Manager
      * @param null $slug
      * @param null $feeds
      * @param null $spam
-     * @param null $search
      * @param PropagateProperties $propagateProperties
      * @throws \Exception
      */
@@ -62,7 +58,6 @@ class Manager
         $slug = null,
         $feeds = null,
         $spam = null,
-        $search = null,
         PropagateProperties $propagateProperties = null,
         $signedUri = null,
         $config = null,
@@ -73,7 +68,6 @@ class Manager
         $this->slug = $slug ?: new Delegates\Slug();
         $this->feeds = $feeds ?: new Delegates\Feeds();
         $this->spam = $spam ?: Di::_()->get('Security\Spam');
-        $this->search = $search ?: new Delegates\Search();
         $this->propagateProperties = $propagateProperties ?? Di::_()->get('PropagateProperties');
         $this->signedUri = $signedUri ?? new SignedUri;
         $this->config = $config ?? Di::_()->get('Config');
@@ -150,7 +144,6 @@ class Manager
             if (!$blog->isDeleted()) {
                 $this->feeds->index($blog);
                 $this->feeds->dispatch($blog);
-                $this->search->index($blog);
             }
 
             $this->paywallReview->queue($blog);
@@ -184,16 +177,11 @@ class Manager
         $saved = $this->repository->update($blog);
 
         if ($saved) {
-            if (!$blog->isDeleted()) {
-                $this->search->index($blog);
-            }
-
             if ($shouldReindex) {
                 if (!$blog->isDeleted()) {
                     $this->feeds->index($blog);
                 } else {
                     $this->feeds->remove($blog);
-                    $this->search->prune($blog);
                 }
             }
 
@@ -220,7 +208,6 @@ class Manager
 
         if ($deleted) {
             $this->feeds->remove($blog);
-            $this->search->prune($blog);
 
             $this->eventsDispatcher->trigger('entities-ops', 'delete', [
                 'entityUrn' => $blog->getUrn(),

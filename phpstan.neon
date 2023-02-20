@@ -22,9 +22,6 @@ parameters:
     ignoreErrors:
         ## If you are running into Cassandra errors, ensure you are using the minds/php-tests docker container
         -
-            message: '#Result of static method Surge\\Messages\\Factory::build\(\) \(void\) is used.#'
-            path: %currentWorkingDirectory%
-        -
             message: '#Variable \$[a-zA-Z]+ on left side of \?\? is never defined.#'
             path: %currentWorkingDirectory%
         -

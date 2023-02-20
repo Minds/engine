@@ -44,9 +44,8 @@ class reindex implements Interfaces\Api, Interfaces\ApiAdminPam
         /** @var Core\Events\Dispatcher $dispatcher */
         $dispatcher = Di::_()->get('EventsDispatcher');
 
-        $dispatcher->trigger('search:index', 'all', [
-            'entity' => $entity,
-            'immediate' => true
+        $dispatcher->trigger('entities-ops', 'update', [
+            'entityUrn' => $entity->getUrn(),
         ]);
 
         return Factory::response([]);

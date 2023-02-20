@@ -56,14 +56,6 @@ class nsfw implements Interfaces\Api, Interfaces\ApiAdminPam
         $save->setEntity($entity)
           ->save();
 
-        /** @var Core\Events\Dispatcher $dispatcher */
-        $dispatcher = Di::_()->get('EventsDispatcher');
-
-        $dispatcher->trigger('search:index', 'all', [
-            'entity' => $entity,
-            'immediate' => true,
-        ]);
-
         if ($entity->entity_guid) {
             $child = Entities\Factory::build($entity->entity_guid);
             $child->setNsfw($_POST['nsfw']);
@@ -71,11 +63,6 @@ class nsfw implements Interfaces\Api, Interfaces\ApiAdminPam
 
             $save->setEntity($child)
                 ->save();
-
-            $dispatcher->trigger('search:index', 'all', [
-                'entity' => $child,
-                'immediate' => true,
-            ]);
         }
 
         // if this is a user and we are REMOVING their nsfw status.
