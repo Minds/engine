@@ -17,7 +17,7 @@ class InteractionsSync
 
     public function __construct($indexer = null)
     {
-        $this->indexer = $indexer ?: Di::_()->get('Search\Index');
+        $this->indexer = $indexer ?: Di::_()->get(Index::class);
     }
 
     /**

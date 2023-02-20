@@ -106,9 +106,5 @@ class MatureBatch implements Interfaces\QueueRunner
         $save = new Save();
         $saved = $save->setEntity($entity)
             ->save();
-
-        Core\Events\Dispatcher::trigger('search:index', 'all', [
-            'entity' => $entity
-        ]);
     }
 }
