@@ -35,6 +35,11 @@ class UserMapping extends EntityMapping implements MappingInterface
     {
         $map = parent::map($defaultValues);
 
+        if (isset($map['description'])) {
+            // Users should not have this mapping
+            unset($map['description']);
+        }
+
         //if (isset($map['tags'])) {
         //    unset($map['tags']);
         //}
