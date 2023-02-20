@@ -33,7 +33,6 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('name')->willReturn('PHPSpec Name');
         $user->get('title')->willReturn('PHPSpec Title');
         $user->get('blurb')->willReturn('PHPSpec Blurb');
-        $user->get('description')->willReturn('PHPSpec Description');
         $user->get('paywall')->willReturn(false);
         $user->getUsername()->willReturn('phpspec');
         $user->get('username')->willReturn('phpspec');
@@ -108,7 +107,6 @@ class UserMappingSpec extends ObjectBehavior
         $user->getName()->willReturn('PHPSpec Name');
         $user->get('title')->willReturn('PHPSpec Title');
         $user->get('blurb')->willReturn('PHPSpec Blurb');
-        $user->get('description')->willReturn('PHPSpec Description');
         $user->get('paywall')->willReturn(false);
         $user->getUsername()->willReturn('phpspec');
         $user->get('briefdescription')->willReturn('PHPSpec Brief Description #invalidhashtag');
