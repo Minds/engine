@@ -8,6 +8,7 @@
 
 namespace Minds\Core\Search;
 
+use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Minds\Common\SystemUser;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Data\ElasticSearch\Client;
@@ -162,6 +163,9 @@ class Index
             $result = (bool) $this->client->request($prepared);
 
             $this->logger->info(self::LOG_PREFIX . " Removed {$mapper->getId()}");
+        } catch (Missing404Exception $e) {
+            $result = true;
+            $this->logger->info(self::LOG_PREFIX . " Already deleted {$mapper->getId()}");
         } catch (\Exception $e) {
             $this->logger->error(self::LOG_PREFIX . ' ' . get_class($e) . ": {$e->getMessage()}");
         }
