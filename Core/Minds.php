@@ -79,7 +79,8 @@ class Minds extends base
         Payments\Module::class,
         Verification\Module::class,
         Settings\Module::class,
-        Boost\V3\Module::class
+        Boost\V3\Module::class,
+        Monetization\Module::class
     ];
 
     /**

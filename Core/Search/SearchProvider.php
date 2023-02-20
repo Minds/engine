@@ -14,16 +14,8 @@ class SearchProvider extends Provider
 {
     public function register()
     {
-        $this->di->bind('Search\Queue', function ($di) {
-            return new Queue();
-        }, ['useFactory' => true]);
-
-        $this->di->bind('Search\Index', function ($di) {
+        $this->di->bind(Index::class, function ($di) {
             return new Index();
-        }, ['useFactory' => true]);
-
-        $this->di->bind('Search\Cleanup', function ($di) {
-            return new Cleanup();
         }, ['useFactory' => true]);
 
         $this->di->bind('Search\Search', function ($di) {
@@ -40,10 +32,6 @@ class SearchProvider extends Provider
 
         $this->di->bind('Search\Hashtags\Manager', function ($di) {
             return new Hashtags\Manager();
-        }, ['useFactory' => true]);
-
-        $this->di->bind('Search\RetryQueue\Manager', function ($di) {
-            return new RetryQueue\Manager();
         }, ['useFactory' => true]);
     }
 }
