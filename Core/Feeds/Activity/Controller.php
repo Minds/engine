@@ -9,6 +9,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\Exceptions\CreateActivityFailedException;
 use Minds\Core\Feeds\Scheduled\EntityTimeCreated;
+use Minds\Core\Monetization\Demonetization\Validators\DemonetizedPlusValidator;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
@@ -32,12 +33,14 @@ class Controller
         protected ?Manager $manager = null,
         protected ?EntitiesBuilder $entitiesBuilder = null,
         protected ?ACL $acl = null,
-        protected ?EntityTimeCreated $entityTimeCreated = null
+        protected ?EntityTimeCreated $entityTimeCreated = null,
+        protected ?DemonetizedPlusValidator $demonetizedPlusValidator = null
     ) {
         $this->manager ??= new Manager();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->acl ??= Di::_()->get('Security\ACL');
         $this->entityTimeCreated ??= new EntityTimeCreated();
+        $this->demonetizedPlusValidator ??= Di::_()->get(DemonetizedPlusValidator::class);
     }
 
     /**
@@ -134,6 +137,13 @@ class Controller
             // don't allow paywalling a paywalled remind
             if ($remind?->getPaywall()) {
                 throw new UserErrorException("You can not monetize a remind or quote post");
+            }
+
+            if (isset($payload['wire_threshold']['support_tier']['urn'])) {
+                $this->demonetizedPlusValidator->validateUrn(
+                    urn: $payload['wire_threshold']['support_tier']['urn'],
+                    user: $user
+                );
             }
 
             $activity->setWireThreshold($payload['wire_threshold']);

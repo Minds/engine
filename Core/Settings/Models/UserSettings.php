@@ -11,6 +11,7 @@ use Minds\Traits\MagicAttributes;
  * @method int|null getTermsAcceptedAt()
  * @method float|null getSupermindCashMin()
  * @method float|null getSupermindOffchainTokensMin()
+ * @method string|null getPlusDemonetizedTimestamp()
  */
 class UserSettings implements ExportableInterface
 {
@@ -20,7 +21,7 @@ class UserSettings implements ExportableInterface
     private ?int $termsAcceptedAt = null;
     private ?float $supermindCashMin = null;
     private ?float $supermindOffchainTokensMin = null;
-
+    private ?string $plusDemonetizedTimestamp = null;
     private array $dirty = [];
 
     public function setUserGuid(string $userGuid): self
@@ -48,6 +49,28 @@ class UserSettings implements ExportableInterface
     {
         $this->supermindOffchainTokensMin = $supermindOffchainTokensMin;
         $this->markPropertyAsUpdated('supermind_offchain_tokens_min', $supermindOffchainTokensMin);
+        return $this;
+    }
+
+    /**
+     * Get whether a user has a plus demonetization timestamp.
+     * @param int $plusDemonetizedTimestamp - timestamp for a users plus demonetization.
+     * @return bool true if a user has a plus demonetization timestamp.
+     */
+    public function isPlusDemonetized(): bool
+    {
+        return (bool) $this->plusDemonetizedTimestamp;
+    }
+
+    /**
+     * Set a users plus demonetization timestamp.
+     * @param string|null $plusDemonetizedTimestamp - timestamp for a users plus demonetization.
+     * @return self
+     */
+    public function setPlusDemonetizedTimestamp(?string $plusDemonetizedTimestamp): self
+    {
+        $this->plusDemonetizedTimestamp = $plusDemonetizedTimestamp;
+        $this->markPropertyAsUpdated('plus_demonetized_ts', $plusDemonetizedTimestamp);
         return $this;
     }
 
@@ -88,6 +111,12 @@ class UserSettings implements ExportableInterface
             );
         }
 
+        if (array_key_exists('plus_demonetized_ts', $data)) {
+            $userSettings->setPlusDemonetizedTimestamp(
+                $data['plus_demonetized_ts']
+            );
+        }
+
         return $userSettings;
     }
 
@@ -108,6 +137,7 @@ class UserSettings implements ExportableInterface
             'terms_accepted_at' => $this->termsAcceptedAt,
             'supermind_cash_min' => $this->supermindCashMin,
             'supermind_offchain_tokens_min' => $this->supermindOffchainTokensMin,
+            'plus_demonetized_ts' => $this->plusDemonetizedTimestamp,
         ];
     }
 }
