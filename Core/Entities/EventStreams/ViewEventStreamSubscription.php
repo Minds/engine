@@ -2,11 +2,11 @@
 
 namespace Minds\Core\Entities\EventStreams;
 
+use Minds\Core\EventStreams\BatchSubscriptionInterface;
 use Minds\Core\EventStreams\EventInterface;
-use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\ViewsTopic;
 
-class ViewEventStreamSubscription implements SubscriptionInterface
+class ViewEventStreamSubscription implements BatchSubscriptionInterface
 {
     public function getSubscriptionId(): string
     {
