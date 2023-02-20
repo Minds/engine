@@ -8,6 +8,7 @@
 
 namespace Minds\Core\Search;
 
+use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Minds\Common\SystemUser;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Data\ElasticSearch\Client;
@@ -93,7 +94,7 @@ class Index
             $result = true; // Null was resolving as 'false' so setting to true
             $this->remove($entity);
         } catch (\Exception $e) {
-            $this->logger->error(self::LOG_PREFIX . ' ' . get_class($e) . ": {$e->getMessage()}");
+            $this->logger->error(self::LOG_PREFIX . " Error indexing '{$mapper->getId()}'"  . get_class($e) . ": {$e->getMessage()}");
             $result = false;
         }
 
@@ -128,7 +129,7 @@ class Index
             $prepared->query($query);
             $result = (bool) $this->client->request($prepared);
         } catch (\Exception $e) {
-            $this->logger->error(self::LOG_PREFIX . ' ' . get_class($e) . ": {$e->getMessage()}");
+            $this->logger->error(self::LOG_PREFIX . " Error removing '{$mapper->getId()}'" . get_class($e) . ": {$e->getMessage()}");
             print_r($e);
         }
 
@@ -162,6 +163,9 @@ class Index
             $result = (bool) $this->client->request($prepared);
 
             $this->logger->info(self::LOG_PREFIX . " Removed {$mapper->getId()}");
+        } catch (Missing404Exception $e) {
+            $result = true;
+            $this->logger->info(self::LOG_PREFIX . " Already deleted {$mapper->getId()}");
         } catch (\Exception $e) {
             $this->logger->error(self::LOG_PREFIX . ' ' . get_class($e) . ": {$e->getMessage()}");
         }
