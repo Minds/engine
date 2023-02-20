@@ -404,6 +404,36 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
     }
 
     /**
+     * Set the paywall threshold data (or support tier for v2)
+     * @param array $wireThreshold
+     * @return self
+     */
+    public function setWireThreshold($wireThreshold = []): self
+    {
+        if ($this->wire_threshold !== $wireThreshold) {
+            $this->markAsDirty('wire_threshold');
+        }
+
+        $this->wire_threshold = $wireThreshold;
+        return $this;
+    }
+
+    /**
+     * Set the entity as being paywalled
+     * @param bool $paywall
+     * @return self
+     */
+    public function setPayWall(bool $paywall)
+    {
+        if ($this->paywall !== $paywall) {
+            $this->markAsDirty('paywall');
+        }
+
+        $this->paywall = $paywall;
+        return $this;
+    }
+
+    /**
      * Sets the custom meta array
      * @param array $customMeta
      * @return $this
