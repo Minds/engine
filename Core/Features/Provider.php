@@ -19,7 +19,6 @@ class Provider extends DiProvider
     {
         $this->di->bind('Features\Keys', function () {
             return [
-                'psr7-router',
                 'es-feeds',
                 'helpdesk',
                 'top-feeds',
@@ -50,7 +49,6 @@ class Provider extends DiProvider
                 'channels',
                 'onboarding-reminder',
                 'boost-rotator',
-                'yt-importer',
                 'yt-importer-transfer-all',
                 'settings-referrals',
                 'channels-shop',
@@ -64,21 +62,15 @@ class Provider extends DiProvider
                 'subscriber-conversations',
                 'activity-modal',
                 'onboarding-october-2020',
-                'unique-onchain',
-                'wallet-v3',
-                'token-marketing-2021',
                 'cloudflare-streams',
                 'notifications-v3', // ojm wait for answer
                 'withdrawal-console',
                 'twilio-verify',
-                'twitter-sync',
                 'discovery-default-tags',
                 'skale',
                 'polygon',
-                'social-compass',
                 'content-settings-modal',
                 'top-feed',
-                'web3-service-withdrawals'
             ];
         });
 

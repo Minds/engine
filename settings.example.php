@@ -615,7 +615,6 @@ $CONFIG->set('max_video_length_plus', 1860);
 
 // You can find a list of all in use feature flags at Core/Features/Provider.php
 $CONFIG->set('features', [
-    'psr7-router' => true,
     'es-feeds' => false,
     'helpdesk' => true,
     'top-feeds' => true,
@@ -636,7 +635,6 @@ $CONFIG->set('features', [
     'discovery-default-tags' => true,
     'skale' => true,
     'polygon' => true,
-    'web3-service-withdrawals' => false,
 ]);
 
 $CONFIG->set('email', [

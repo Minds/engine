@@ -55,11 +55,6 @@ class Router
      */
     public function route(string $uri = null, string $method = null, string $host = null): void
     {
-        if (!$this->features->has('psr7-router')) {
-            $this->fallback->route();
-            return;
-        }
-
         if (!$uri) {
             $uri = strtok($_SERVER['REDIRECT_ORIG_URI'] ?? $_SERVER['REQUEST_URI'], '?');
         }
