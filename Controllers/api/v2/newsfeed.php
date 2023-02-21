@@ -393,7 +393,7 @@ class newsfeed implements Interfaces\Api
                             'message' => 'Remind not found',
                         ]);
             }
-                    
+
             // throw and error return response if acl interaction check fails.
             try {
                 if (!Di::_()->get('Security\ACL')->interact($remind, $user)) {
@@ -441,7 +441,7 @@ class newsfeed implements Interfaces\Api
                             'message' => 'You cannot monetize group posts',
                         ]);
             }
-                    
+
             $activity->container_guid = $_POST['container_guid'];
             if ($container = Entities\Factory::build($activity->container_guid)) {
                 $activity->containerObj = $container->export();
@@ -511,10 +511,7 @@ class newsfeed implements Interfaces\Api
 
             // if posting to permaweb
             try {
-                if (
-                    Di::_()->get('Features\Manager')->has('permaweb')
-                    && $_POST['post_to_permaweb']
-                ) {
+                if ($_POST['post_to_permaweb']) {
                     // get guid for linkback
                     $newsfeedGuid = $activity->custom_type === 'video' || $activity->custom_type === 'batch'
                                 ? $activity->entity_guid

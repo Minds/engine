@@ -57,8 +57,6 @@ class Manager
 
         if ($steps) {
             $this->steps = $steps;
-        //} elseif ($this->features->has('onboarding-october-2020')) {
-            // October 2020 - see getOnboardingGroup
         } else {
             $this->steps = [
                 'suggested_hashtags' => new Steps\SuggestedHashtagsStep(),
@@ -161,7 +159,7 @@ class Manager
 
             // Onboarding is actually completed, so lets now apply this tag to the user
             // so we don't ask them to do initial onboarding again
-            
+
             $this->setInitialOnboardingComplete(time());
 
             // TODO: Implement a delegate to notify user of reward to claim

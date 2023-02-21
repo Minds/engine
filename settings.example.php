@@ -633,7 +633,6 @@ $CONFIG->set('features', [
     'activity-modal' => false,
     'withdrawal-console' => true,
     'twilio-verify' => true,
-    'helpdesk-2021' => true,
     'discovery-default-tags' => true,
     'skale' => true,
     'polygon' => true,
