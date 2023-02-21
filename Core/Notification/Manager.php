@@ -9,7 +9,6 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
-use Minds\Core\Features\Manager as FeaturesManager;
 
 class Manager
 {
@@ -18,9 +17,6 @@ class Manager
 
     /** @var CassandraRepository $cassandraRepository */
     private $cassandraRepository;
-
-    /** @var FeaturesManager $features */
-    private $features;
 
     /** @var Counters $counters */
     private $counters;
@@ -31,12 +27,10 @@ class Manager
     public function __construct(
         $config = null,
         $cassandraRepository = null,
-        $features = null,
         $counters = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->cassandraRepository = $cassandraRepository ?: new CassandraRepository;
-        $this->features = $features ?: new FeaturesManager;
         $this->counters = $counters ?? new Counters;
     }
 

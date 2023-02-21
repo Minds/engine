@@ -5,23 +5,18 @@ namespace Minds\Core\Wire\Paywall;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
-use Minds\Core\Features;
 use Minds\Core\Events\Dispatcher;
 
 class Events
 {
-    /** @var Features\Managers */
-    private $featuresManager;
-
     /** @var SupportTier\Manager */
     private $supportTiersManager;
 
     /** @var Paywall\Manager */
     private $paywallManager;
 
-    public function __construct($featuresManager = null, $supportTiersManager = null, $paywallManager = null)
+    public function __construct($supportTiersManager = null, $paywallManager = null)
     {
-        $this->featuresManager = $featuresManager;
         $this->supportTiersManager = $supportTiersManager;
         $this->paywallManager = $paywallManager;
     }
@@ -32,10 +27,6 @@ class Events
          * Removes important export fields if marked as paywall
          */
         Dispatcher::register('export:extender', 'all', function ($event) {
-            if (!$this->featuresManager) { // Can not use DI in constructor due to init races
-                $this->featuresManager = Di::_()->get('Features\Manager');
-            }
-
             $params = $event->getParameters();
             $activity = $params['entity'];
 
@@ -81,14 +72,6 @@ class Events
                     $export['message'] = null;
                 }
 
-                if (!$this->featuresManager->has('paywall-2020')) {
-                    $export['custom_type'] = null;
-                    $export['custom_data'] = null;
-                    $export['thumbnail_src'] = null;
-                    $export['perma_url'] = null;
-                    $export['title'] = null;
-                }
-
                 $dirty = true;
             }
 
@@ -129,7 +112,7 @@ class Events
 
             try {
                 $isAllowed = Di::_()->get('Wire\Thresholds')->isAllowed($user, $entity);
-           
+
                 if ($isAllowed) {
                     return $event->setResponse(true);
                 }

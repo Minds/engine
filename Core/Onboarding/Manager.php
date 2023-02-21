@@ -4,8 +4,6 @@ namespace Minds\Core\Onboarding;
 
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
-use Minds\Core\Features\Exceptions\FeatureNotImplementedException;
-use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Entities\User;
 
 class Manager
@@ -19,9 +17,6 @@ class Manager
 
     /** @var Steps\OnboardingStepInterface[] */
     protected $steps;
-
-    /** @var FeaturesManager */
-    protected $features;
 
     /** @var Config */
     protected $config;
@@ -39,19 +34,15 @@ class Manager
      * Manager constructor.
      *
      * @param Steps\OnboardingStepInterface[] $steps
-     * @param FeaturesManager $features
      * @param Config $config
-     * @throws FeatureNotImplementedException
      */
     public function __construct(
         $steps = null,
-        $features = null,
         $config = null,
         $initialOnboarding = null,
         $ongoingOnboarding = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
-        $this->features = $features ?: Di::_()->get('Features\Manager');
         $this->initialOnboarding = $initialOnboarding ?? new OnboardingGroups\InitialOnboardingGroup();
         $this->ongoingOnboarding = $ongoingOnboarding ?? new OnboardingGroups\OngoingOnboardingGroup();
 
@@ -254,13 +245,11 @@ class Manager
     }
 
     /**
-     * Returns the currently enabled onboarding feature timestamp
+     * Returns the onboarding timestamp
      * @return int
-     * @throws FeatureNotImplementedException
      */
     private function getOnboardingFeatureTimestamp(): int
     {
-        $key = $this->features->has('ux-2020') ? 'onboarding_v2_timestamp' : 'onboarding_modal_timestamp';
-        return $this->config->get($key) ?: 0;
+        return $this->config->get('onboarding_v2_timestamp') ?: 0;
     }
 }

@@ -73,10 +73,6 @@ class Defaults
             }
 
             $allowedTags = '';
-            // if ($this->features->has('code-highlight')) {
-            //     $allowedTags = '<pre><code>';
-            // }
-
             if (isset($export['message'])) {
                 $export['message'] = strip_tags(
                     htmlspecialchars_decode($export['message']),

@@ -3,7 +3,6 @@
 namespace Spec\Minds\Core\Onboarding;
 
 use Minds\Core\Config;
-use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Core\Onboarding\Steps\OnboardingStepInterface;
 use Minds\Core\Onboarding\OnboardingGroups;
 use Minds\Core\Onboarding\Manager;
@@ -15,9 +14,6 @@ class ManagerSpec extends ObjectBehavior
     /** @var OnboardingDelegate[] */
     protected $delegates;
 
-    /** @var FeaturesManager */
-    protected $features;
-
     /** @var Config */
     protected $config;
 
@@ -25,7 +21,6 @@ class ManagerSpec extends ObjectBehavior
         OnboardingStepInterface $onboardingDelegate1,
         OnboardingStepInterface $onboardingDelegate2,
         OnboardingStepInterface $onboardingDelegate3,
-        FeaturesManager $features,
         Config $config
     ) {
         $this->delegates = [
@@ -34,11 +29,9 @@ class ManagerSpec extends ObjectBehavior
             'delegate3' => $onboardingDelegate3,
         ];
 
-        $this->features = $features;
-
         $this->config = $config;
 
-        $this->beConstructedWith($this->delegates, $this->features, $this->config);
+        $this->beConstructedWith($this->delegates, $this->config);
     }
 
     public function it_is_initializable()
@@ -138,7 +131,7 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_return_ongoing_onboarding(OnboardingGroups\InitialOnboardingGroup $initialOnboardingGroup, OnboardingGroups\OngoingOnboardingGroup $ongoingOnboardingGroup)
     {
         $this->beConstructedWith(null, null, null, $initialOnboardingGroup, $ongoingOnboardingGroup);
-    
+
         $user = new User();
 
         $initialOnboardingGroup->setUser($user)
