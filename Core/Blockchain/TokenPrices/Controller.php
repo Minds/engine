@@ -3,7 +3,6 @@ namespace Minds\Core\Blockchain\TokenPrices;
 
 use Minds\Entities\User;
 use Minds\Core\Di\Di;
-use Minds\Core\Features;
 use Exception;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
@@ -17,19 +16,14 @@ class Controller
     /** @var Manager */
     protected $manager;
 
-    /** @var Features\Manager */
-    protected $featuresManager;
-
     /**
      * Controller constructor.
      * @param null $manager
      */
     public function __construct(
-        $manager = null,
-        $featuresManager = null
+        $manager = null
     ) {
         $this->manager = $manager ?? new Manager();
-        $this->featuresManager = $featuresManager ?? Di::_()->get('Features\Manager');
     }
 
     /**

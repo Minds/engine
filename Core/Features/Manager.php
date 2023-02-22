@@ -1,5 +1,5 @@
 <?php
-
+// ojm remove file
 /**
  * Features Manager
  *
@@ -56,7 +56,7 @@ class Manager
             new Services\Cypress(),
         ];
         $this->activeSession = $activeSession ?: Di::_()->get('Sessions\ActiveSession');
-        $this->featureKeys = ($features ?? Di::_()->get('Features\Keys')) ?: [];
+        // $this->featureKeys = ($features ?? Di::_()->get('Features\Keys')) ?: []; ojm
     }
 
     /**

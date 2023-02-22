@@ -4,7 +4,6 @@ namespace Minds\Core\Rewards;
 use Brick\Math\BigDecimal;
 use Minds\Entities\User;
 use Minds\Core\Di\Di;
-use Minds\Core\Features;
 use Exception;
 use Minds\Api\Exportable;
 use Zend\Diactoros\Response\JsonResponse;
@@ -20,9 +19,6 @@ class Controller
     /** @var Manager */
     protected $manager;
 
-    /** @var Features\Manager */
-    protected $featuresManager;
-
     /** @var Rewards\Withdraw\Manager */
     protected $withdrawManager;
 
@@ -32,11 +28,9 @@ class Controller
      */
     public function __construct(
         $manager = null,
-        $featuresManager = null,
         $withdrawManager = null
     ) {
         $this->manager = $manager ?? new Manager();
-        $this->featuresManager = $featuresManager ?? Di::_()->get('Features\Manager');
         $this->withdrawManager = $withdrawManager ?? Di::_()->get('Rewards\Withdraw\Manager');
     }
 
@@ -59,7 +53,7 @@ class Controller
             ->setDateTs(strtotime($date));
 
         $rewardsSummary = $this->manager->getSummary($opts);
-         
+
         return new JsonResponse(array_merge([
             'status' => 'success',
         ], $rewardsSummary->export()));

@@ -1,4 +1,5 @@
 <?php
+// ojm remove this file??
 /**
  * Features
  *
@@ -9,7 +10,6 @@ namespace Minds\Controllers\Cli;
 
 use Minds\Cli;
 use Minds\Core\Di\Di;
-use Minds\Core\Features\Manager;
 use Minds\Exceptions\CliException;
 use Minds\Interfaces;
 
@@ -31,42 +31,43 @@ class Features extends Cli\Controller implements Interfaces\CliControllerInterfa
         return $this->help();
     }
 
-    public function sync()
-    {
-        /** @var Manager $manager */
-        $manager = Di::_()->get('Features\Manager');
+    // ojm commented this
+    // public function sync()
+    // {
+    //     /** @var Manager $manager */
+    //     $manager = Di::_()->get('Features\Manager');
 
-        $ttl = $this->getOpt('ttl') ?: 300;
-        $environmentList = array_filter(explode(',', $this->getOpt('environment') ?: ''));
+    //     $ttl = $this->getOpt('ttl') ?: 300;
+    //     $environmentList = array_filter(explode(',', $this->getOpt('environment') ?: ''));
 
-        if (!$environmentList) {
-            throw new CliException('Specify an environment');
-        }
+    //     if (!$environmentList) {
+    //         throw new CliException('Specify an environment');
+    //     }
 
-        while (true /* Forever running task */) {
-            foreach ($environmentList as $environment) {
-                $this->out([
-                    date('c'),
-                    "TTL: {$ttl}",
-                    "Environment: {$environment}"
-                ], static::OUTPUT_PRE);
+    //     while (true /* Forever running task */) {
+    //         foreach ($environmentList as $environment) {
+    //             $this->out([
+    //                 date('c'),
+    //                 "TTL: {$ttl}",
+    //                 "Environment: {$environment}"
+    //             ], static::OUTPUT_PRE);
 
 
-                $sync = $manager
-                    ->setEnvironment($environment)
-                    ->sync($ttl);
+    //             $sync = $manager
+    //                 ->setEnvironment($environment)
+    //                 ->sync($ttl);
 
-                foreach ($sync as $key => $output) {
-                    $this->out(sprintf("Sync %s: %s", $key, $output));
-                }
-            }
+    //             foreach ($sync as $key => $output) {
+    //                 $this->out(sprintf("Sync %s: %s", $key, $output));
+    //             }
+    //         }
 
-            if (!$this->getOpt('forever')) {
-                break;
-            }
+    //         if (!$this->getOpt('forever')) {
+    //             break;
+    //         }
 
-            $this->out("Done, sleeping {$ttl}s");
-            sleep($ttl);
-        }
-    }
+    //         $this->out("Done, sleeping {$ttl}s");
+    //         sleep($ttl);
+    //     }
+    // }
 }
