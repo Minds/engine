@@ -162,3 +162,12 @@ CREATE TABLE IF NOT EXISTS entities_hidden
 ALTER TABLE boosts
     ADD reason int NULL DEFAULT NULL
     AFTER status;
+
+CREATE TABLE IF NOT EXISTS boosts_partner_views
+(
+    served_by_user_guid bigint NOT NULL,
+    boost_guid bigint NOT NULL,
+    views int NOT NULL,
+    last_viewed_timestamp timestamp NOT NULL,
+    PRIMARY KEY (served_by_user_guid, boost_guid)
+) ENGINE=InnoDB;

@@ -6,12 +6,12 @@
  */
 namespace Minds\Core\Plus;
 
-use Minds\Core\Di\Di;
 use Minds\Core\Config;
-use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Data\Cassandra;
-use Minds\Core\Wire\Paywall\PaywallEntityInterface;
+use Minds\Core\Data\ElasticSearch;
+use Minds\Core\Di\Di;
 use Minds\Core\Rewards\Contributions\ContributionValues;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 
 class Manager
 {
@@ -155,10 +155,10 @@ class Manager
         try {
             $result = $this->db->request($query);
         } catch (\Exception $e) {
-            error_log(print_r($e, true));
+            error_log(print_r($e->getTraceAsString(), true));
             return 0;
         }
-        
+
         return (int) $result[0]['wei_sum'];
     }
 
@@ -233,7 +233,7 @@ class Manager
             'body' => $body,
             'size' => 0,
         ];
- 
+
         $prepared = new ElasticSearch\Prepared\Search();
         $prepared->query($query);
 

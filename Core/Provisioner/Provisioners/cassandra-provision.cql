@@ -1687,3 +1687,12 @@ ALTER TABLE minds.twitter_sync
 
 ALTER TABLE minds.twitter_sync
     ADD access_token_expiry timestamp;
+
+CREATE TABLE partner_earnings_ledger (
+    user_guid bigint,
+    timestamp timestamp,
+    item text,
+    amount_cents int,
+    amount_tokens bigint,
+    PRIMARY KEY (user_guid, timestamp, item)
+)

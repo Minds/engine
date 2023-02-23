@@ -64,7 +64,10 @@ class EventStreams extends Cli\Controller implements Interfaces\CliControllerInt
             },
             topicRegex: $subscription->getTopicRegex(),
             batchTotalAmount: $this->getOpt('batch_total_amount'),
-            execTimeoutInSeconds: $this->getOpt('exec_timeout_in_seconds')
+            execTimeoutInSeconds: $this->getOpt('exec_timeout_in_seconds'),
+            doneCallback: function () use ($subscription) {
+                $subscription->commitChanges();
+            }
         );
     }
 }

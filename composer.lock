@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dd88f0aa97e4a63a9fee26d572cf5211",
+    "content-hash": "25d16061119e38a368d23e4fd21b4484",
     "packages": [
         {
             "name": "Minds/Surge",
@@ -5092,6 +5092,56 @@
                 }
             ],
             "time": "2021-10-09T06:30:16+00:00"
+        },
+        {
+            "name": "selective/database",
+            "version": "3.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/selective-php/database.git",
+                "reference": "ec91735a538da1f05f906e6c1d793c101c34a551"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/selective-php/database/zipball/ec91735a538da1f05f906e6c1d793c101c34a551",
+                "reference": "ec91735a538da1f05f906e6c1d793c101c34a551",
+                "shasum": ""
+            },
+            "require": {
+                "ext-pdo": "*",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3",
+                "phpstan/phpstan": "^1",
+                "phpunit/phpunit": "^9 || ^10",
+                "squizlabs/php_codesniffer": "^3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Selective\\Database\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "SQL query builder",
+            "homepage": "https://github.com/selective-php/database",
+            "keywords": [
+                "builder",
+                "database",
+                "mysql",
+                "query",
+                "sql"
+            ],
+            "support": {
+                "issues": "https://github.com/selective-php/database/issues",
+                "source": "https://github.com/selective-php/database/tree/3.2.0"
+            },
+            "abandoned": "cakephp/database",
+            "time": "2022-11-26T11:49:07+00:00"
         },
         {
             "name": "sendgrid/php-http-client",

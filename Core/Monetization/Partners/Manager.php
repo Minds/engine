@@ -4,22 +4,28 @@
  */
 namespace Minds\Core\Monetization\Partners;
 
-use Minds\Core\Analytics\EntityCentric\Manager as EntityCentricManager;
-use Minds\Core\EntitiesBuilder;
 use Minds\Common\Repository\Response;
+use Minds\Core\Analytics\EntityCentric\Manager as EntityCentricManager;
+use Minds\Core\Boost\V3\Partners\Manager as BoostPartnersManager;
 use Minds\Core\Di\Di;
-use Minds\Core\Plus;
+use Minds\Core\Entities;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
+use Minds\Core\Monetization\Partners\Delegates\EmailDelegate;
+use Minds\Core\Monetization\Partners\Delegates\PayoutsDelegate;
 use Minds\Core\Payments\Stripe;
+use Minds\Core\Plus;
 use Minds\Core\Pro;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
-use Minds\Core\Entities;
-use DateTime;
 
 class Manager
 {
     /** @var int */
     const VIEWS_RPM_CENTS = 1000; // $10 USD
+
+    public const BOOST_PARTNER_CENTS = 100;
+
 
     /** @var int */
     const REFERRAL_CENTS = 10; // $0.10
@@ -33,53 +39,31 @@ class Manager
     /** @var int */
     const MIN_PAYOUT_CENTS = 10000; // $100 USD
 
-    /** @var Repository */
-    private $repository;
-
-    /** @var EntityCentricManager */
-    private $entityCentricManager;
-
-    /** @var EntitiesBuilder */
-    private $entitiesBuilder;
-
-    /** @var Plus\Manager */
-    private $plusManager;
-
-    /** @var Stripe\Connect\Manager */
-    private $connectManager;
-
-    /** @var Sums */
-    private $sums;
-
-    /** @var Pro\Manager */
-    private $proManager;
-
-    /** @var Delegates\PayoutsDelegate */
-    private $payoutsDelegate;
-
-    /** @var Delegates\EmailDelegate */
-    private $emailDelegate;
-
     public function __construct(
-        $repository = null,
-        $entityCentricManager = null,
-        $entitiesBuilder = null,
-        $plusManager = null,
-        $connectManager = null,
-        $sums = null,
-        $proManager = null,
-        $payoutsDelegate = null,
-        $emailDelegate = null
+        private ?Repository $repository = null,
+        private ?EntityCentricManager $entityCentricManager = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?Plus\Manager $plusManager = null,
+        private ?Stripe\Connect\Manager $connectManager = null,
+        private ?Sums $sums = null,
+        private ?Pro\Manager $proManager = null,
+        private ?PayoutsDelegate $payoutsDelegate = null,
+        private ?EmailDelegate $emailDelegate = null,
+        private ?BoostPartnersManager $boostPartnersManager = null,
+        private ?Logger $logger = null
     ) {
-        $this->repository = $repository ?? new Repository();
-        $this->entityCentricManager = $entityCentricManager ?? new EntityCentricManager();
-        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
-        $this->plusManager = $plusManager ?? Di::_()->get('Plus\Manager');
-        $this->connectManager = $connectManager ?? Di::_()->get('Stripe\Connect\Manager');
-        $this->sums = $sums ?? new Sums();
-        $this->proManager = $proManager ?? Di::_()->get('Pro\Manager');
-        $this->payoutsDelegate = $payoutsDelegate ?? new Delegates\PayoutsDelegate();
-        $this->emailDelegate = $emailDelegate ?? new Delegates\EmailDelegate();
+        $this->repository ??= new Repository();
+        $this->entityCentricManager ??= new EntityCentricManager();
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->plusManager ??= Di::_()->get('Plus\Manager');
+        $this->connectManager ??= Di::_()->get('Stripe\Connect\Manager');
+        $this->sums ??= new Sums();
+        $this->proManager ??= Di::_()->get('Pro\Manager');
+        $this->payoutsDelegate ??= new Delegates\PayoutsDelegate();
+        $this->emailDelegate ??= new Delegates\EmailDelegate();
+        $this->boostPartnersManager ??= Di::_()->get(BoostPartnersManager::class);
+
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -113,10 +97,22 @@ class Manager
             'from' => strtotime('midnight'),
         ], $opts);
 
+        var_dump($opts['dry-run']);
+
+        $this->logger->addInfo("Start processing wire deposits");
         yield from $this->issueWireReferralDeposits($opts);
+
+        $this->logger->addInfo("Start processing plus deposits");
         yield from $this->issuePlusDeposits($opts);
+
+        $this->logger->addInfo("Start processing pageview deposits");
         yield from $this->issuePageviewDeposits($opts);
+
+        $this->logger->addInfo("Start processing referral deposits");
         yield from $this->issueReferralDeposits($opts);
+
+        $this->logger->addInfo("Start processing boost partner deposits");
+        yield from $this->issueBoostPartnerDeposits($opts);
     }
 
     /**
@@ -167,7 +163,13 @@ class Manager
                 ->setAmountCents($cents)
                 ->setItem('wire_referral');
 
-            $this->repository->add($deposit);
+            if (!$opts['dry-run']) {
+                $this->repository->add($deposit);
+            } else {
+                $this->logger->addInfo('-------------- WIRE PAYOUT DEPOSIT ----------------');
+                $this->logger->addInfo('Deposit', $deposit->export());
+                $this->logger->addInfo('---------------------------------------------------');
+            }
 
             yield $deposit;
         }
@@ -182,7 +184,9 @@ class Manager
     {
         $revenueUsd = $this->plusManager->getDailyRevenue($opts['from']) * (self::PLUS_SHARE_PCT / 100);
         $revenueCents = round($revenueUsd * 100, 0);
+        $this->logger->addInfo('Fetched daily revenue');
 
+        $this->logger->addInfo('Processing deposits');
         foreach ($this->plusManager->getScores($opts['from']) as $unlock) {
             $shareCents = $revenueCents * $unlock['sharePct'];
             $deposit = new EarningsDeposit();
@@ -191,7 +195,13 @@ class Manager
                 ->setAmountCents($shareCents)
                 ->setItem('plus');
 
-            $this->repository->add($deposit);
+            if (!$opts['dry-run']) {
+                $this->repository->add($deposit);
+            } else {
+                $this->logger->addInfo('-------------- PLUS PAYOUT DEPOSIT ----------------');
+                $this->logger->addInfo('Deposit', $deposit->export());
+                $this->logger->addInfo('---------------------------------------------------');
+            }
 
             yield $deposit;
         }
@@ -244,7 +254,13 @@ class Manager
                 ->setAmountCents($amountCents)
                 ->setItem("views");
 
-            $this->repository->add($deposit);
+            if (!$opts['dry-run']) {
+                $this->repository->add($deposit);
+            } else {
+                $this->logger->addInfo('-------------- PAGEVIEW PAYOUT DEPOSIT ----------------');
+                $this->logger->addInfo('Deposit', $deposit->export());
+                $this->logger->addInfo('---------------------------------------------------');
+            }
 
             yield $deposit;
         }
@@ -280,7 +296,39 @@ class Manager
                 ->setAmountCents($amountCents)
                 ->setItem("referrals");
 
-            $this->repository->add($deposit);
+            if (!$opts['dry-run']) {
+                $this->repository->add($deposit);
+            } else {
+                $this->logger->addInfo('-------------- REFERRAL PAYOUT DEPOSIT ----------------');
+                $this->logger->addInfo('Deposit', $deposit->export());
+                $this->logger->addInfo('---------------------------------------------------');
+            }
+
+            yield $deposit;
+        }
+    }
+
+    /**
+     * @param array $opts
+     * @return iterable
+     */
+    public function issueBoostPartnerDeposits(array $opts): iterable
+    {
+        $timestamp = time();
+        foreach ($this->boostPartnersManager->getRevenueDetails($opts['from'], $opts['to'] ?? null) as $eCPM) {
+            $deposit = (new EarningsDeposit())
+                ->setTimestamp($timestamp)
+                ->setUserGuid($eCPM['served_by_user_guid'])
+                ->setAmountCents($eCPM['ecpm'] * self::BOOST_PARTNER_CENTS)
+                ->setItem('boost_partner');
+
+            if (!$opts['dry-run']) {
+                $this->repository->add($deposit);
+            } else {
+                $this->logger->addInfo('-------------- BOOST PARTNER PAYOUT DEPOSIT ----------------');
+                $this->logger->addInfo('Deposit', $deposit->export());
+                $this->logger->addInfo('---------------------------------------------------');
+            }
 
             yield $deposit;
         }
@@ -329,7 +377,7 @@ class Manager
 
             // Calculate the ratio of posts to earnings
             $ratio = $this->calculatePostsBalanceRatio($earningsBalance);
-            
+
             if ($this->calculatePostsBalanceRatio($earningsBalance) < 0.01 && $user->getPartnerRpm() > 100) {
                 //echo "\n do not payout $user->username ratio:$ratio";
                 continue;

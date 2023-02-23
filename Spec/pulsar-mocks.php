@@ -96,8 +96,9 @@ class PulsarMessageBuilderMock
 }
 class PulsarMessageMock
 {
-    public function getDataAsString()
+    public function getDataAsString(): string
     {
+        return "";
     }
 }
 class PulsarResultMock

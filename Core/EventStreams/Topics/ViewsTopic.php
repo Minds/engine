@@ -4,8 +4,10 @@ declare(strict_types=1);
 namespace Minds\Core\EventStreams\Topics;
 
 use Exception;
+use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\Events\ViewEvent;
+use Minds\Core\Log\Logger;
 use Minds\Helpers\MagicAttributes;
 use Pulsar\Consumer;
 use Pulsar\ConsumerConfiguration;
@@ -24,6 +26,11 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
     private static array $processedMessages = [];
 
     private static int $startTime = 0;
+
+    private function getLogger(): Logger
+    {
+        return Di::_()->get("Logger");
+    }
 
     /**
      * @inheritDoc
@@ -78,31 +85,46 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
     /**
      * @inheritDoc
      */
-    public function consume(string $subscriptionId, callable $callback, string $topicRegex = '*', int $batchTotalAmount = 1, int $execTimeoutInSeconds = 30): void
-    {
+    public function consume(
+        string $subscriptionId,
+        callable $callback,
+        string $topicRegex = '*',
+        int $batchTotalAmount = 1,
+        int $execTimeoutInSeconds = 30,
+        ?callable $doneCallback = null
+    ): void {
         $consumer = $this->getConsumer($subscriptionId);
+
+        $logger = $this->getLogger();
 
         while (true) {
             try {
-                if (count(self::$batchMessages) < $batchTotalAmount) {
-                    $message = $consumer->receive();
-                    self::$batchMessages[$this->getMessageId($message)] = $message;
-                }
-
-                if (self::$startTime === 0) {
-                    self::$startTime = time();
-                } elseif ((time() - self::$startTime) >= $execTimeoutInSeconds) {
-                    $this->acknowledgeProcessedMessages($consumer);
-                    self::$startTime = 0;
+                $message = $consumer->receive();
+                self::$batchMessages[$this->getMessageId($message)] = $message;
+                
+                if (
+                    count(self::$batchMessages) < $batchTotalAmount &&
+                    self::$startTime !== 0 &&
+                    time() - self::$startTime < $execTimeoutInSeconds
+                ) {
                     continue;
                 }
+                $logger->addInfo("Last start time loop: " . self::$startTime);
 
+                self::$startTime = time();
                 if (call_user_func($callback, self::$batchMessages) === true) {
                     $this->acknowledgeProcessedMessages($consumer);
+
+                    if ($doneCallback && $this->getTotalMessagesProcessedInBatch() > 0) {
+                        call_user_func($doneCallback);
+                    }
                     continue;
                 }
             } catch (Exception $e) {
                 $this->acknowledgeProcessedMessages($consumer);
+                if ($doneCallback && $this->getTotalMessagesProcessedInBatch() > 0) {
+                    call_user_func($doneCallback);
+                }
             }
         }
     }
@@ -117,17 +139,25 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
 
     private function getMessageId(Message $message): string
     {
-        return hash('md5', (string) $message->getDataAsString());
+        return hash('md5', $message->getDataAsString());
     }
 
-    private function resetProcessedMessages(): void
-    {
-        self::$processedMessages = [];
-    }
-
-    public function consumeBatch(string $subscriptionId, callable $callback, string $topicRegex = '*', int $batchTotalAmount = 10000, int $execTimeoutInSeconds = 30): void
-    {
-        $this->consume($subscriptionId, $callback, $topicRegex, $batchTotalAmount, $execTimeoutInSeconds);
+    public function consumeBatch(
+        string $subscriptionId,
+        callable $callback,
+        string $topicRegex = '*',
+        int $batchTotalAmount = 10000,
+        int $execTimeoutInSeconds = 30,
+        ?callable $doneCallback = null
+    ): void {
+        $this->consume(
+            subscriptionId: $subscriptionId,
+            callback: $callback,
+            topicRegex: $topicRegex,
+            batchTotalAmount: $batchTotalAmount,
+            execTimeoutInSeconds: $execTimeoutInSeconds,
+            doneCallback: $doneCallback
+        );
     }
 
     private function getConsumer(string $subscriptionId): Consumer
@@ -219,5 +249,10 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
     public function markMessageAsProcessed(Message $message): void
     {
         self::$processedMessages[] = $message;
+    }
+
+    public function getTotalMessagesProcessedInBatch(): int
+    {
+        return count(self::$processedMessages);
     }
 }
