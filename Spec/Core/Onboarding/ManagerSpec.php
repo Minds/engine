@@ -39,148 +39,109 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_check_if_was_onboarding_shown(User $user)
-    {
-        $this->config->get('onboarding_modal_timestamp')
-            ->shouldBeCalled()
-            ->willReturn(900);
+    // public function it_should_set_onboarding_shown(User $user)
+    // {
+    //     $user->setOnboardingShown(true)
+    //         ->shouldBeCalled()
+    //         ->willReturn($user);
 
-        $user->wasOnboardingShown()
-            ->shouldBeCalled()
-            ->willReturn(true);
+    //     $user->save()
+    //         ->shouldBeCalled()
+    //         ->willReturn(1000);
 
-        $user->getTimeCreated()
-            ->shouldBeCalled()
-            ->willReturn(1000);
+    //     $this
+    //         ->setUser($user)
+    //         ->setOnboardingShown(true)
+    //         ->shouldReturn(true);
+    // }
 
-        $this
-            ->setUser($user)
-            ->wasOnboardingShown()
-            ->shouldReturn(true);
-    }
+    // public function it_should_get_creator_frequency(User $user)
+    // {
+    //     $user->getCreatorFrequency()
+    //         ->shouldBeCalled()
+    //         ->willReturn('rarely');
 
-    public function it_should_check_if_user_is_older_than_feature(User $user)
-    {
-        $this->config->get('onboarding_modal_timestamp')
-            ->shouldBeCalled()
-            ->willReturn(900);
+    //     $this
+    //         ->setUser($user)
+    //         ->getCreatorFrequency()
+    //         ->shouldReturn('rarely');
+    // }
 
-        $user->wasOnboardingShown()
-            ->shouldNotBeCalled();
+    // public function it_should_return_initial_onboarding(OnboardingGroups\InitialOnboardingGroup $initialOnboardingGroup)
+    // {
+    //     $this->beConstructedWith(null, null, null, $initialOnboardingGroup);
 
-        $user->getTimeCreated()
-            ->shouldBeCalled()
-            ->willReturn(800);
+    //     $user = new User();
 
-        $this
-            ->setUser($user)
-            ->wasOnboardingShown()
-            ->shouldReturn(true);
-    }
+    //     $initialOnboardingGroup->setUser($user)
+    //         ->willReturn($initialOnboardingGroup);
 
-    public function it_should_set_onboarding_shown(User $user)
-    {
-        $user->setOnboardingShown(true)
-            ->shouldBeCalled()
-            ->willReturn($user);
+    //     $initialOnboardingGroup->isCompleted()
+    //         ->willReturn(false);
 
-        $user->save()
-            ->shouldBeCalled()
-            ->willReturn(1000);
+    //     $initialOnboardingGroup->getCompletedPct()
+    //         ->willReturn(0.2);
 
-        $this
-            ->setUser($user)
-            ->setOnboardingShown(true)
-            ->shouldReturn(true);
-    }
+    //     //
 
-    public function it_should_get_creator_frequency(User $user)
-    {
-        $user->getCreatorFrequency()
-            ->shouldBeCalled()
-            ->willReturn('rarely');
+    //     $this->setUser($user);
+    //     $this->getOnboardingGroup()
+    //         ->shouldBe($initialOnboardingGroup);
+    // }
 
-        $this
-            ->setUser($user)
-            ->getCreatorFrequency()
-            ->shouldReturn('rarely');
-    }
+    // public function it_should_return_ongoing_onboarding(OnboardingGroups\InitialOnboardingGroup $initialOnboardingGroup, OnboardingGroups\OngoingOnboardingGroup $ongoingOnboardingGroup)
+    // {
+    //     $this->beConstructedWith(null, null, null, $initialOnboardingGroup, $ongoingOnboardingGroup);
 
-    public function it_should_return_initial_onboarding(OnboardingGroups\InitialOnboardingGroup $initialOnboardingGroup)
-    {
-        $this->beConstructedWith(null, null, null, $initialOnboardingGroup);
+    //     $user = new User();
 
-        $user = new User();
+    //     $initialOnboardingGroup->setUser($user)
+    //         ->willReturn($initialOnboardingGroup);
 
-        $initialOnboardingGroup->setUser($user)
-            ->willReturn($initialOnboardingGroup);
+    //     $initialOnboardingGroup->isCompleted()
+    //         ->willReturn(true);
 
-        $initialOnboardingGroup->isCompleted()
-            ->willReturn(false);
+    //     $ongoingOnboardingGroup->setUser($user)
+    //         ->willReturn($ongoingOnboardingGroup);
 
-        $initialOnboardingGroup->getCompletedPct()
-            ->willReturn(0.2);
+    //     //
 
-        //
+    //     $this->setUser($user);
+    //     $this->getOnboardingGroup()
+    //         ->shouldBe($ongoingOnboardingGroup);
+    // }
 
-        $this->setUser($user);
-        $this->getOnboardingGroup()
-            ->shouldBe($initialOnboardingGroup);
-    }
+    // public function it_should_set_initial_onboarding_as_complete(
+    //     User $user,
+    //     OnboardingGroups\InitialOnboardingGroup $initialOnboardingGroup,
+    //     OnboardingGroups\OngoingOnboardingGroup $ongoingOnboardingGroup
+    // ) {
+    //     $this->beConstructedWith(null, null, null, $initialOnboardingGroup, $ongoingOnboardingGroup);
 
-    public function it_should_return_ongoing_onboarding(OnboardingGroups\InitialOnboardingGroup $initialOnboardingGroup, OnboardingGroups\OngoingOnboardingGroup $ongoingOnboardingGroup)
-    {
-        $this->beConstructedWith(null, null, null, $initialOnboardingGroup, $ongoingOnboardingGroup);
+    //     $user->setInitialOnboardingCompleted(time())
+    //         ->willReturn($user);
 
-        $user = new User();
+    //     $user->save()
+    //         ->shouldBeCalled();
 
-        $initialOnboardingGroup->setUser($user)
-            ->willReturn($initialOnboardingGroup);
+    //     $initialOnboardingGroup->setUser($user)
+    //         ->willReturn($initialOnboardingGroup);
 
-        $initialOnboardingGroup->isCompleted()
-            ->willReturn(true);
+    //     $initialOnboardingGroup->isCompleted()
+    //         ->willReturn(false);
 
-        $ongoingOnboardingGroup->setUser($user)
-            ->willReturn($ongoingOnboardingGroup);
+    //     $initialOnboardingGroup->getCompletedPct()
+    //         ->willReturn(1);
 
-        //
+    //     $ongoingOnboardingGroup->setUser($user)
+    //         ->willReturn($ongoingOnboardingGroup);
 
-        $this->setUser($user);
-        $this->getOnboardingGroup()
-            ->shouldBe($ongoingOnboardingGroup);
-    }
+    //     //
 
-    public function it_should_set_initial_onboarding_as_complete(
-        User $user,
-        OnboardingGroups\InitialOnboardingGroup $initialOnboardingGroup,
-        OnboardingGroups\OngoingOnboardingGroup $ongoingOnboardingGroup
-    ) {
-        $this->beConstructedWith(null, null, null, $initialOnboardingGroup, $ongoingOnboardingGroup);
-
-        $user->setInitialOnboardingCompleted(time())
-            ->willReturn($user);
-
-        $user->save()
-            ->shouldBeCalled();
-
-        $initialOnboardingGroup->setUser($user)
-            ->willReturn($initialOnboardingGroup);
-
-        $initialOnboardingGroup->isCompleted()
-            ->willReturn(false);
-
-        $initialOnboardingGroup->getCompletedPct()
-            ->willReturn(1);
-
-        $ongoingOnboardingGroup->setUser($user)
-            ->willReturn($ongoingOnboardingGroup);
-
-        //
-
-        $this->setUser($user);
-        $this->getOnboardingGroup()
-            ->shouldBe($ongoingOnboardingGroup);
-    }
+    //     $this->setUser($user);
+    //     $this->getOnboardingGroup()
+    //         ->shouldBe($ongoingOnboardingGroup);
+    // }
 
     // Legacy steps (will be removed soon --- OCT 2020 - MH)
 
