@@ -196,6 +196,15 @@ class Repository
             $whereClauses[] = 'entities_hidden.entity_guid IS NULL';
         }
 
+        // TODO: Not working - half way through development when we 
+        // realized this approach was not feasible as owner_guids in 
+        // the boost table are not neccesarily the post owners.
+        // This should probably use a "not in" query rather than a join anyway.
+        $blockedUsersJoin = " LEFT JOIN blocked_users, user_guid 
+            ON boosts.owner_guid = blocked_users.blocked_guid";
+
+        $whereClauses[] = "blocked_users.user_guid != :user_guid";
+
         $orderByRankingJoin = "";
         $orderByClause = " ORDER BY created_timestamp DESC, updated_timestamp DESC, approved_timestamp DESC";
 
@@ -229,7 +238,6 @@ class Repository
             $selectColumns[] = "summary.total_views";
         }
 
-
         $whereClause = '';
         if (count($whereClauses)) {
             $whereClause = 'WHERE '.implode(' AND ', $whereClauses);
@@ -237,7 +245,9 @@ class Repository
 
         $selectColumnsStr = implode(',', $selectColumns);
 
-        $query = "SELECT $selectColumnsStr FROM boosts $summariesJoin $hiddenEntitiesJoin $orderByRankingJoin $whereClause $orderByClause LIMIT :offset, :limit";
+        $query = "SELECT $selectColumnsStr FROM boosts $summariesJoin $hiddenEntitiesJoin $orderByRankingJoin $blockedUsersJoin $whereClause $orderByClause LIMIT :offset, :limit";
+
+        // $query = "SELECT $selectColumnsStr FROM boosts $summariesJoin $hiddenEntitiesJoin $orderByRankingJoin $blockedUsersJoin $whereClause $orderByClause LIMIT :offset, :limit";
         $values['offset'] = $offset;
         $values['limit'] = $limit + 1;
 

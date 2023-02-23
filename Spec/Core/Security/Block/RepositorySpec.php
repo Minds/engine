@@ -2,7 +2,7 @@
 
 namespace Spec\Minds\Core\Security\Block;
 
-use Minds\Core\Security\Block\Repository;
+use Minds\Core\Security\Block\Repositories\Repository;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 

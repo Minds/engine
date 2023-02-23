@@ -1,12 +1,14 @@
 <?php
-namespace Minds\Core\Security\Block;
+namespace Minds\Core\Security\Block\Repositories;
 
 use Minds\Common\Repository\Response;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared;
 use Minds\Core\Di\Di;
+use Minds\Core\Security\Block\BlockEntry;
+use Minds\Core\Security\Block\BlockListOpts;
 
-class Repository
+class CassandraRepository implements RepositoryInterface
 {
     /** @var Client */
     protected $db;
@@ -107,5 +109,19 @@ class Repository
         $result = $this->db->request($prepared);
 
         return (int) $result[0]['count'] ?? 0;
+    }
+
+    public function get(string $userGuid, string $blockedGuid): ?BlockEntry
+    {
+        $blockList = $this->getList(
+            (new BlockListOpts())
+                ->setUserGuid($userGuid)
+        )->toArray();
+
+        $blockEntries = array_filter($blockList, function ($blockEntry) use ($blockedGuid) {
+            return $blockedGuid === $blockEntry->getSubjectGuid();
+        });
+
+        return $blockEntries[0] ?? null;
     }
 }

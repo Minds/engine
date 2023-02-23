@@ -159,6 +159,14 @@ CREATE TABLE IF NOT EXISTS entities_hidden
     PRIMARY KEY (user_guid, entity_guid)
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS blocked_users
+(
+    user_guid bigint NOT NULL, # actor_guid
+    blocked_guid bigint NOT NULL, # subject_guid
+    timestamp timestamp NOT NULL default CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_guid, blocked_guid)
+) ENGINE=InnoDB;
+
 ALTER TABLE boosts
     ADD reason int NULL DEFAULT NULL
     AFTER status;

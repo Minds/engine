@@ -3,7 +3,7 @@
 namespace Spec\Minds\Core\Security\Block;
 
 use Minds\Core\Security\Block\Manager;
-use Minds\Core\Security\Block\Repository;
+use Minds\Core\Security\Block\Repositories\Repository;
 use Minds\Core\Security\Block\BlockEntry;
 use Minds\Core\Security\Block\BlockListOpts;
 use Minds\Core\Security\Block\Delegates;
