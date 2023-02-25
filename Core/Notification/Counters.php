@@ -14,13 +14,10 @@ class Counters
 {
     use \Minds\Traits\CurrentUser;
 
-    /** @var $sql */
-    private $sql;
-
     /** @var User $user */
     private $user;
 
-    public function __construct($sql = null, $features = null)
+    public function __construct()
     {
         $this->user = Core\Session::getLoggedInUser();
     }
