@@ -628,9 +628,6 @@ class Membership
         $user->context('search');
         $user->setGroupMembership(array_values($membership));
         $user->save();
-        Dispatcher::trigger('search:index', 'all', [
-            'entity' => $user
-        ]);
         $user->context('');
     }
 

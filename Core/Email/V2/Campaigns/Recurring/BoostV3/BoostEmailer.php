@@ -188,7 +188,7 @@ class BoostEmailer extends EmailCampaign
             $this->template->set('additionalCtaText', '');
             $this->template->set('additionalCtaPath', '');
         }
-        
+
         // Create action button
         $actionButton = (new ActionButtonV2())
             ->setLabel($ctaText)

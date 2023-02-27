@@ -42,7 +42,6 @@ class ManagerSpec extends ObjectBehavior
         Delegates\Slug $slug,
         Delegates\Feeds $feeds,
         Spam $spam,
-        Delegates\Search $search,
         PropagateProperties $propagateProperties
     ) {
         $this->beConstructedWith(
@@ -51,7 +50,6 @@ class ManagerSpec extends ObjectBehavior
             $slug,
             $feeds,
             $spam,
-            $search,
             $propagateProperties
         );
 
@@ -60,7 +58,6 @@ class ManagerSpec extends ObjectBehavior
         $this->slug = $slug;
         $this->feeds = $feeds;
         $this->spam = $spam;
-        $this->search = $search;
         $this->propagateProperties = $propagateProperties;
     }
 
@@ -205,10 +202,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->search->index($blog)
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this->paywallReview->queue($blog)
             ->shouldBeCalled()
             ->willReturn(true);
@@ -255,10 +248,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->search->index($blog)
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this->propagateProperties->from($blog)->shouldBeCalled();
         $this
             ->update($blog)
@@ -277,10 +266,6 @@ class ManagerSpec extends ObjectBehavior
         $this->feeds->remove($blog)
             ->shouldBeCalled()
             ->willReturn(null);
-
-        $this->search->prune($blog)
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $this
             ->delete($blog)

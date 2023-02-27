@@ -12,6 +12,8 @@ use Minds\Entities;
 use Minds\Entities\DenormalizedEntity;
 use Minds\Entities\NormalizedEntity;
 use Minds\Core\Reports\Manager as ReportsManager;
+use Minds\Core\Plus\Manager as PlusManager;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 
 class Manager
 {
@@ -31,12 +33,14 @@ class Manager
         $repository = null,
         $elasticRepository = null,
         $notificationDelegate = null,
-        $reportsManager = null
+        $reportsManager = null,
+        private ?PlusManager $plusManager = null
     ) {
         $this->repository = $repository ?: new Repository;
         $this->elasticRepository = $elasticRepository ?: new ElasticRepository;
         $this->notificationDelegate = $notificationDelegate ?: new Delegates\NotificationDelegate;
         $this->reportsManager = $reportsManager ?: Di::_()->get('Moderation\Manager');
+        $this->plusManager ??= new PlusManager();
     }
 
     /**
@@ -85,6 +89,14 @@ class Manager
             && in_array($report->getSubReasonCode(), $report->getEntity()->getNsfw(), false)
         ) {
             return true; // If the post is NSFW and tagged, do not allow report
+        }
+
+        // When there is a violation of Minds+ policy - validate that post is actually Minds+.
+        if ($report->getReasonCode() == 18) {
+            $entity = $report->getEntity();
+            if (!($entity instanceof PaywallEntityInterface && $this->plusManager->isPlusEntity($entity))) {
+                return true;
+            }
         }
 
         if ($report->getState() !== 'reported') {

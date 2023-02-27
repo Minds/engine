@@ -218,10 +218,5 @@ class ActionEventNsfwLockStreamsSubscription implements SubscriptionInterface
             echo $failedSaveMessage;
             return;
         }
-
-        // dispatch to be reindexed.
-        Dispatcher::trigger('search:index', 'all', [
-            'entity' => $entity
-        ]);
     }
 }
