@@ -2,16 +2,16 @@
 
 namespace Minds\Core\Comments;
 
+use Minds\Core\Di\Di;
 use Minds\Core\Guid;
 use Minds\Core\Luid;
 use Minds\Core\Security\ACL;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\RepositoryEntity;
 use Minds\Entities\User;
+use Minds\Helpers\Export;
 use Minds\Helpers\Flags;
 use Minds\Helpers\Unknown;
-use Minds\Helpers\Export;
-use Minds\Core\Di\Di;
-use Minds\Entities\EntityInterface;
 
 /**
  * Comment Entity
@@ -114,6 +114,8 @@ class Comment extends RepositoryEntity implements EntityInterface
 
     /** @var bool */
     protected $ephemeral = true;
+
+    private array $clientMeta = [];
 
     /**
      * Gets the entity guid for the comment.
@@ -368,6 +370,17 @@ class Comment extends RepositoryEntity implements EntityInterface
     public function getContainerEntity()
     {
         return null;
+    }
+
+    public function setClientMeta(array $clientMeta): self
+    {
+        $this->clientMeta = $clientMeta;
+        return $this;
+    }
+
+    public function getClientMeta(): array
+    {
+        return $this->clientMeta;
     }
 
     /**

@@ -23,47 +23,38 @@ class BoostConsoleUrlBuilderSpec extends ObjectBehavior
 
     public function it_should_build_a_a_url(Boost $boost)
     {
-        $status = BoostStatus::APPROVED;
-        $location = BoostTargetLocation::NEWSFEED;
+        $guid = '123';
         $siteUrl = 'https://www.minds.com/';
 
-        $boost->getStatus()
+        $boost->getGuid()
             ->shouldBeCalled()
-            ->willReturn($status);
-
-        $boost->getTargetLocation()
-            ->shouldBeCalled()
-            ->willReturn($location);
+            ->willReturn($guid);
 
         $this->config->get('site_url')
             ->shouldBeCalled()
             ->willReturn($siteUrl);
-            
-        $this->build($boost)->shouldBe('https://www.minds.com/boost/boost-console?state=approved&location=feed');
+
+        $this->build($boost)->shouldBe('https://www.minds.com/boost/boost-console?boostGuid=123');
     }
 
     public function it_should_build_a_a_url_with_extra_query_params(Boost $boost)
     {
-        $status = BoostStatus::PENDING;
-        $location = BoostTargetLocation::SIDEBAR;
+        $guid = '123';
         $siteUrl = 'https://www.minds.com/';
         $extraParams = [
             'queryParam1' => 1,
             'queryParam2' => '2'
         ];
 
-        $boost->getStatus()
+        $boost->getGuid()
             ->shouldBeCalled()
-            ->willReturn($status);
+            ->willReturn($guid);
 
-        $boost->getTargetLocation()
-            ->shouldBeCalled()
-            ->willReturn($location);
 
         $this->config->get('site_url')
             ->shouldBeCalled()
             ->willReturn($siteUrl);
 
-        $this->build($boost, $extraParams)->shouldBe('https://www.minds.com/boost/boost-console?state=pending&location=sidebar&queryParam1=1&queryParam2=2');
+        $this->build($boost, $extraParams)->shouldBe('https://www.minds.com/boost/boost-console?boostGuid=123&queryParam1=1&queryParam2=2');
     }
 }

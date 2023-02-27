@@ -44,6 +44,10 @@ class MetricsDelegate
                 ->setEntitySubtype((string) $remind->getSubtype())
                 ->setEntityOwnerGuid((string) $remind->getOwnerGuid());
 
+            if (!$activity->getSupermind()) {
+                $event->setClientMeta($activity->getClientMeta());
+            }
+
             if ($remind instanceof PaywallEntityInterface) {
                 $wireThreshold = $remind->getWireThreshold();
                 if ($wireThreshold['support_tier'] ?? null) {
