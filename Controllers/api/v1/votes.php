@@ -118,6 +118,8 @@ class votes implements Interfaces\Api
             $options['puzzleSolution'] = $puzzleSolution;
         }
 
+        $options['client_meta'] = $requestBody['client_meta'] ?? [];
+
         try {
             $manager->toggle($vote, $options);
         } catch (UnverifiedEmailException $e) {

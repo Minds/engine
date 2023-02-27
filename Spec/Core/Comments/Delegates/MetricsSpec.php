@@ -47,6 +47,10 @@ class MetricsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('~PHPSPEC');
 
+        $comment->getClientMeta()
+            ->shouldBeCalledOnce()
+            ->willReturn([]);
+
         $owner->get('guid')
             ->shouldBeCalled()
             ->willReturn(1000);
@@ -133,6 +137,10 @@ class MetricsSpec extends ObjectBehavior
 
         $this->metricsEvent->setCommentGuid('~PHPSPEC')
             ->shouldBeCalled()
+            ->willReturn($this->metricsEvent);
+
+        $this->metricsEvent->setClientMeta(Argument::type('array'))
+            ->shouldBeCalledOnce()
             ->willReturn($this->metricsEvent);
 
         $this->metricsEvent->setIsRemind(false)
