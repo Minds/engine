@@ -33,8 +33,7 @@ class BoostConsoleUrlBuilder
         $baseUrl = $this->config->get('site_url');
 
         $queryParams = http_build_query(array_merge([
-            'state' => $this->getBoostStateParamValue($boost->getStatus()),
-            'location' => $this->getBoostLocationParamValue($boost->getTargetLocation())
+            'boostGuid' => $boost->getGuid(),
         ], $extraQueryParams));
 
         return $baseUrl . 'boost/boost-console?' . $queryParams;
