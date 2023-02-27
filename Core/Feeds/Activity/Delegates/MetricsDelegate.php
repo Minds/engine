@@ -31,7 +31,6 @@ class MetricsDelegate
             $remind = $activity->getRemind();
 
             // Submit to events engine
-
             $event = new Event();
             $event->setType('action')
                 ->setAction('remind')
@@ -42,8 +41,11 @@ class MetricsDelegate
                 ->setEntityContainerGuid((string) $remind->getContainerGuid())
                 ->setEntityType($remind->getType())
                 ->setEntitySubtype((string) $remind->getSubtype())
-                ->setClientMeta($activity->getClientMeta())
                 ->setEntityOwnerGuid((string) $remind->getOwnerGuid());
+
+            if (!$activity->getSupermind()) {
+                $event->setClientMeta($activity->getClientMeta());
+            }
 
             if ($remind instanceof PaywallEntityInterface) {
                 $wireThreshold = $remind->getWireThreshold();

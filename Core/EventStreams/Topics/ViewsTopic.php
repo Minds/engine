@@ -3,10 +3,8 @@ declare(strict_types=1);
 
 namespace Minds\Core\EventStreams\Topics;
 
-use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\Events\ViewEvent;
-use Minds\Core\Log\Logger;
 use Minds\Helpers\MagicAttributes;
 use Pulsar\Consumer;
 use Pulsar\ConsumerConfiguration;
