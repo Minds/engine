@@ -42,6 +42,7 @@ class MetricsDelegate
                 ->setEntityContainerGuid((string) $remind->getContainerGuid())
                 ->setEntityType($remind->getType())
                 ->setEntitySubtype((string) $remind->getSubtype())
+                ->setClientMeta($activity->getClientMeta())
                 ->setEntityOwnerGuid((string) $remind->getOwnerGuid());
 
             if ($remind instanceof PaywallEntityInterface) {

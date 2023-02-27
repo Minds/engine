@@ -271,7 +271,7 @@ class PushNotification implements PushNotificationInterface
                 return $entity->getThumbnail();
             break;
         }
-            
+
         return null;
     }
 

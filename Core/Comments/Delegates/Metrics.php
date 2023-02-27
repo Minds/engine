@@ -58,6 +58,7 @@ class Metrics
             ->setEntitySubtype((string) $entity->subtype)
             ->setEntityOwnerGuid((string) $entity->owner_guid)
             ->setCommentGuid((string) $comment->getLuid())
+            ->setClientMeta($comment->getClientMeta())
             ->setIsRemind($entity->type == 'activity' && $entity->remind_object);
 
         if ($entity instanceof PaywallEntityInterface) {
@@ -66,7 +67,7 @@ class Metrics
                 $event->setSupportTierUrn($wireThreshold['support_tier']['urn']);
             }
         }
-        
+
         $event->push();
     }
 }
