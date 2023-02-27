@@ -258,6 +258,9 @@ class Manager
                         $this->logger->error($e);
                         throw new ServerErrorException('Unable to get rooms for this user');
                 }
+            } catch (\Exception $e) {
+                $this->logger->error($e);
+                throw new ServerErrorException('Unable to get rooms for this user');
             }
 
             $decodedResponse = json_decode($response->getBody(), true);
