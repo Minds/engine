@@ -6,6 +6,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Http;
 use Minds\Core\Blockchain\Services\BlockFinder;
 use Minds\Core\Config\Config;
+use Minds\Core\Log\Logger;
 use Minds\Exceptions\ServerErrorException;
 
 class Client
@@ -22,11 +23,12 @@ class Client
     /** @var string */
     protected $graphqlEndpoint = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2";
 
-    public function __construct($http = null, BlockFinder $blockFinder = null, ?Config $config = null)
+    public function __construct($http = null, BlockFinder $blockFinder = null, ?Config $config = null, private ?Logger $logger = null)
     {
         $this->http = $http ?: Di::_()->get('Http\Json');
         $this->blockFinder = $blockFinder ?? Di::_()->get('Blockchain\Services\BlockFinder');
         $this->config = $config ?? Di::_()->get('Config');
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -281,6 +283,7 @@ class Client
         );
 
         if (!$response || !$response['data'] ?? null) {
+            $this->logger->error('Could not get data from TheGraph', $response);
             throw new \Exception("Invalid response");
         }
 
