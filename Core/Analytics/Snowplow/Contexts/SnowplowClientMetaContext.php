@@ -10,7 +10,6 @@ class SnowplowClientMetaContext implements SnowplowContextInterface
 
     public string $platform = "";
     public string $source = "";
-    public int $timestamp = 0;
     public string $salt = "";
     public string $medium = "";
     public string $campaign = "";
@@ -34,7 +33,6 @@ class SnowplowClientMetaContext implements SnowplowContextInterface
         return array_filter([
             'platform' => $this->platform,
             'source' => $this->source,
-            'timestamp' => $this->timestamp,
             'salt' => $this->salt,
             'medium' => $this->medium,
             'campaign' => $this->campaign,

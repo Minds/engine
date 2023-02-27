@@ -289,7 +289,6 @@ class Event
         if ($this->data['client_meta'] ?? null) {
             $clientMetaContext->platform = $this->data['client_meta']['platform'];
             $clientMetaContext->source = $this->data['client_meta']['source'];
-            $clientMetaContext->timestamp = $this->data['client_meta']['timestamp'];
             $clientMetaContext->salt = $this->data['client_meta']['salt'];
             $clientMetaContext->medium = $this->data['client_meta']['medium'];
             $clientMetaContext->campaign = $this->data['client_meta']['campaign'];
