@@ -4,6 +4,7 @@
  */
 namespace Minds\Core\Matrix;
 
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
@@ -249,16 +250,11 @@ class Manager
                 $response = $this->client
                     ->setAccessToken($this->getServerAccessToken($user))
                     ->request('GET', "_matrix/client/r0/user/$matrixId/account_data/m.direct");
-            } catch (\GuzzleHttp\Exception\ClientException $e) {
-                switch ($e->getResponse()->getStatusCode()) {
-                    case 401:
-                        $this->logger->info($e);
-                        throw new ForbiddenException('Please login to Minds Chat');
-                    default:
-                        $this->logger->error($e);
-                        throw new ServerErrorException('Unable to get rooms for this user');
-                }
             } catch (\Exception $e) {
+                if ($e instanceof ClientException && $e->getResponse()->getStatusCode() === 401) {
+                    $this->logger->info($e);
+                    throw new ForbiddenException('Please login to Minds Chat');
+                }
                 $this->logger->error($e);
                 throw new ServerErrorException('Unable to get rooms for this user');
             }
