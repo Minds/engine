@@ -81,7 +81,7 @@ class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterf
             $isMessageProcessed = $this->manager->recordBoostPartnerView(
                 userGuid: $messageData->cm_served_by_guid,
                 boostGuid: $boostGuid,
-                eventTimestamp: $messageData->cm_timestamp
+                eventTimestamp: $message->getEventTimestamp()
             );
 
             $this->logger->addInfo("Done processing boost partner view event", (array) $messageData);

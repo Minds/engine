@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Boost\V3\Partners;
 
+use DateTime;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
@@ -75,7 +76,7 @@ class Repository
                 'served_by_user_guid' => new RawExp(':user_guid'),
                 'boost_guid' => new RawExp(':boost_guid'),
                 'views' => 1,
-                'view_date' => new RawExp(":last_viewed_timestamp")
+                'view_date' => new RawExp(":view_date")
             ])
             ->onDuplicateKeyUpdate([
                 'views' => new RawExp('views + 1')
@@ -87,7 +88,7 @@ class Repository
         $values = [
             'user_guid' => $userGuid,
             'boost_guid' => $boostGuid,
-            'view_date' => date('c', strtotime("d/M/Y", $lastViewedTimestamp)),
+            'view_date' => date('Y-m-d 00:00:00', $lastViewedTimestamp),
         ];
 
         $this->logger->addInfo("Binding insert query parameters");
@@ -117,38 +118,43 @@ class Repository
     public function getCPMs(int $fromTimestamp, ?int $toTimestamp = null): iterable
     {
         $values = [];
+        // Sub-query
+        $completedBoostsQuery = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'boosts.guid',
+                'boosts.payment_amount',
+                'total_views' => new RawExp('SUM(s.views)')
+            ])
+            ->from('boosts')
+            ->innerJoin(['s' => 'boost_summaries'], 's.guid', Operator::EQ, 'boosts.guid')
+            ->where('status', Operator::EQ, BoostStatus::COMPLETED)
+            ->where('completed_timestamp', Operator::GTE, new RawExp(':from_timestamp'))
+            ->groupBy('boosts.guid');
+
+        $values['from_timestamp'] = $fromTimestamp;
+
+        if ($toTimestamp) {
+            $completedBoostsQuery
+                ->where('completed_timestamp', Operator::LTE, new RawExp(':to_timestamp'));
+            $values['to_timestamp'] = $toTimestamp;
+        }
+
+        $completedBoostsQuery->alias('completed');
+
+        // Main query
         $query = $this->mysqlClientReaderHandler
             ->select()
             ->columns([
                 'served_by_user_guid',
-                'total_views_served' => new RawExp('SUM(views)'),
-                'ecpm' => new RawExp('SUM((payment_amount / cb.total_views) * 1000)'),
+                'total_views_served' => new RawExp('SUM(bpv.views)'),
+                'ecpm' => new RawExp('SUM((completed.payment_amount / completed.total_views) * 1000)'),
             ])
-            ->from('boosts_partner_views')
+            ->from(['bpv' => 'boosts_partner_views'])
             ->innerJoin(
-                function (SelectQuery $subQuery) use ($fromTimestamp, $toTimestamp, &$values) {
-                    $subQuery
-                        ->columns([
-                            'boosts.guid',
-                            'boosts.payment_amount',
-                            'total_views' => new RawExp('SUM(s.views)')
-                        ])
-                        ->from('boosts')
-                        ->innerJoin(['s' => 'boost_summaries'], 's.guid', Operator::EQ, 'boosts.guid')
-                        ->where('status', Operator::EQ, BoostStatus::COMPLETED)
-                        ->where('completed_timestamp', Operator::GTE, new RawExp(':from_timestamp'));
-
-                    $values['from_timestamp'] = $fromTimestamp;
-
-                    if ($toTimestamp) {
-                        $subQuery
-                            ->where('completed_timestamp', Operator::LTE, new RawExp(':to_timestamp'));
-                        $values['to_timestamp'] = $toTimestamp;
-                    }
-                },
-                'guid',
+                new RawExp(rtrim($completedBoostsQuery->build(), ';')),
+                'completed.guid',
                 Operator::EQ,
-                'boost_guid'
+                'bpv.boost_guid'
             );
 
         $query->groupBy('served_by_user_guid');
@@ -163,10 +169,15 @@ class Repository
             $this->logger->addInfo('Error when running query', [
                 'error' => $e->getMessage(),
                 'query' => $statement->queryString,
-                'params' => $statement->debugDumpParams()
+                'params' => $values
             ]);
-            return;
+            return [];
         }
+
+        $this->logger->addInfo("Entries found : {$statement->rowCount()} ", [
+            'query' => $statement->queryString,
+            'params' => $values
+        ]);
 
         foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $user_revenue) {
             yield $user_revenue;

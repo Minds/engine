@@ -131,7 +131,6 @@ abstract class AbstractTopic
                     if ($onBatchConsumed && $this->getTotalMessagesProcessedInBatch() > 0) {
                         call_user_func($onBatchConsumed);
                     }
-                    continue;
                 }
             } catch (Exception $e) {
                 $this->acknowledgeProcessedMessages($consumer);

@@ -171,3 +171,9 @@ CREATE TABLE IF NOT EXISTS boosts_partner_views
     view_date timestamp NOT NULL,
     PRIMARY KEY (served_by_user_guid, boost_guid, view_date)
 ) ENGINE=InnoDB;
+
+ALTER TABLE boosts
+    ADD completed_timestamp timestamp DEFAULT NULL
+    AFTER approved_timestamp;
+ALTER TABLE boosts
+ADD INDEX completed_timestamp (completed_timestamp) USING BTREE;

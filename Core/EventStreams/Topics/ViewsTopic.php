@@ -21,11 +21,6 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
 {
     public const TOPIC = "event-view";
 
-    private function getLogger(): Logger
-    {
-        return Di::_()->get("Logger");
-    }
-
     /**
      * @inheritDoc
      */
@@ -149,10 +144,6 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
                 ],
                 [
                     'name' => 'cm_source',
-                    'type' => 'string'
-                ],
-                [
-                    'name' => 'cm_timestamp',
                     'type' => 'string'
                 ],
                 [
