@@ -29,8 +29,7 @@ class ManagerSpec extends ObjectBehavior
         MatrixConfig $matrixConfig,
         EntitiesBuilder $entitiesBuilder,
         Logger $logger
-    )
-    {
+    ) {
         $this->client = $client;
         $this->matrixConfig = $matrixConfig;
         $this->entitiesBuilder = $entitiesBuilder;
@@ -93,7 +92,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willThrow(new ClientException(
                 'Invalid macaroon passed',
-                new Request('GET', 'url'), 
+                new Request('GET', 'url'),
                 new Response(
                     401,
                     [],
@@ -148,7 +147,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willThrow(new ClientException(
                 'Invalid macaroon passed',
-                new Request('GET', 'url'), 
+                new Request('GET', 'url'),
                 new Response(
                     500,
                     [],
