@@ -30,9 +30,16 @@ class Repository
             'attribute_key' => $attributeName,
             'attribute_value' => $attributeValue,
         ];
-
+        
         $stmt = $this->mysqlClient->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
-        return $stmt->execute($values);
+
+        try {
+            return $stmt->execute($values);
+        } catch (\PDOException $e) {
+            var_dump($values);
+            var_dump($e);
+            return false;
+        }
     }
 
     /**
@@ -60,7 +67,7 @@ class Repository
         }
 
         $statement .= " GROUP BY a.user_guid";
-        $statement .= " LIMIT :offset, 100000"; // Vitess has a max of 100k
+        $statement .= " LIMIT :offset, 100000";
 
         $values['offset'] = (int) $offset;
 
@@ -92,3 +99,4 @@ class Repository
         return implode(',', $columns);
     }
 }
+
