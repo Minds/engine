@@ -25,16 +25,17 @@ class ViewsDelegate
             ->setEntity($entity)
             ->setTimestamp($view->getTimestamp());
 
-        $viewEvent->cm_platform = $view->getPlatform();
-        $viewEvent->cm_source = $view->getSource();
-        $viewEvent->cm_timestamp = $view->getTimestamp();
-        $viewEvent->cm_salt = $view->getSalt();
-        $viewEvent->cm_medium = $view->getMedium();
-        $viewEvent->cm_campaign = $view->getCampaign();
-        $viewEvent->cm_page_token = $view->getPageToken();
-        $viewEvent->cm_delta = $view->getDelta();
-        $viewEvent->cm_position = $view->getPosition();
-        $viewEvent->cm_served_by_guid = $view->getServedByGuid();
+        $viewEvent->cmPlatform = $view->getPlatform();
+        $viewEvent->cmSource = $view->getSource();
+        $viewEvent->cmSalt = $view->getSalt();
+        $viewEvent->cmMedium = $view->getMedium();
+        $viewEvent->cmCampaign = $view->getCampaign();
+        $viewEvent->cmPageToken = $view->getPageToken();
+        $viewEvent->cmDelta = $view->getDelta();
+        $viewEvent->cmPosition = $view->getPosition();
+        $viewEvent->cmServedByGuid = $view->getServedByGuid();
+
+        $viewEvent->viewUUID = $view->getUuid();
 
         $this->viewsTopic->send($viewEvent);
     }

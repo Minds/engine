@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\EventStreams\Topics;
 
-use Exception;
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\Events\ViewEvent;
@@ -21,11 +20,6 @@ use Pulsar\SchemaType;
 class ViewsTopic extends AbstractTopic implements TopicInterface
 {
     public const TOPIC = "event-view";
-
-    private static array $batchMessages = [];
-    private static array $processedMessages = [];
-
-    private static int $startTime = 0;
 
     private function getLogger(): Logger
     {
@@ -67,16 +61,16 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
                     'entity_owner_guid' => (string) $event->getEntity()->getOwnerGuid(),
                     'entity_type' => MagicAttributes::getterExists($event->getEntity(), 'getType') ? (string) $event->getEntity()->getType() : '',
                     'entity_subtype' => MagicAttributes::getterExists($event->getEntity(), 'getSubtype') ? (string) $event->getEntity()->getSubtype() : '',
-                    'cm_platform' => $event->cm_platform,
-                    'cm_source' => $event->cm_source,
-                    'cm_timestamp' => $event->cm_timestamp,
-                    'cm_salt' => $event->cm_salt,
-                    'cm_medium' => $event->cm_medium,
-                    'cm_campaign' => $event->cm_campaign,
-                    'cm_page_token' => $event->cm_page_token,
-                    'cm_delta' => $event->cm_delta,
-                    'cm_position' => $event->cm_position,
-                    'cm_served_by_guid' => $event->cm_served_by_guid,
+                    'cm_platform' => $event->cmPlatform,
+                    'cm_source' => $event->cmSource,
+                    'cm_salt' => $event->cmSalt,
+                    'cm_medium' => $event->cmMedium,
+                    'cm_campaign' => $event->cmCampaign,
+                    'cm_page_token' => $event->cmPageToken,
+                    'cm_delta' => $event->cmDelta,
+                    'cm_position' => $event->cmPosition,
+                    'cm_served_by_guid' => $event->cmServedByGuid,
+                    'view_uuid' => $event->viewUUID,
                 ])
             )
             ->build();
@@ -89,76 +83,23 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
         string $subscriptionId,
         callable $callback,
         string $topicRegex = '*',
+        bool $isBatch = false,
         int $batchTotalAmount = 1,
         int $execTimeoutInSeconds = 30,
-        ?callable $doneCallback = null
+        ?callable $onBatchConsumed = null
     ): void {
         $consumer = $this->getConsumer($subscriptionId);
 
-        $logger = $this->getLogger();
-
-        while (true) {
-            try {
-                $message = $consumer->receive();
-                self::$batchMessages[$this->getMessageId($message)] = $message;
-                
-                if (
-                    count(self::$batchMessages) < $batchTotalAmount &&
-                    self::$startTime !== 0 &&
-                    time() - self::$startTime < $execTimeoutInSeconds
-                ) {
-                    continue;
-                }
-                $logger->addInfo("Last start time loop: " . self::$startTime);
-
-                self::$startTime = time();
-                if (call_user_func($callback, self::$batchMessages) === true) {
-                    $this->acknowledgeProcessedMessages($consumer);
-
-                    if ($doneCallback && $this->getTotalMessagesProcessedInBatch() > 0) {
-                        call_user_func($doneCallback);
-                    }
-                    continue;
-                }
-            } catch (Exception $e) {
-                $this->acknowledgeProcessedMessages($consumer);
-                if ($doneCallback && $this->getTotalMessagesProcessedInBatch() > 0) {
-                    call_user_func($doneCallback);
-                }
-            }
-        }
-    }
-
-    private function acknowledgeProcessedMessages(Consumer $consumer): void
-    {
-        foreach (self::$processedMessages as $message) {
-            $consumer->acknowledge($message);
-            unset(self::$batchMessages[$this->getMessageId($message)]);
-        }
-    }
-
-    private function getMessageId(Message $message): string
-    {
-        return hash('md5', $message->getDataAsString());
-    }
-
-    public function consumeBatch(
-        string $subscriptionId,
-        callable $callback,
-        string $topicRegex = '*',
-        int $batchTotalAmount = 10000,
-        int $execTimeoutInSeconds = 30,
-        ?callable $doneCallback = null
-    ): void {
-        $this->consume(
-            subscriptionId: $subscriptionId,
+        $this->processBatch(
+            consumer: $consumer,
             callback: $callback,
-            topicRegex: $topicRegex,
             batchTotalAmount: $batchTotalAmount,
             execTimeoutInSeconds: $execTimeoutInSeconds,
-            doneCallback: $doneCallback
+            onBatchConsumed: $onBatchConsumed
         );
     }
+
+
 
     private function getConsumer(string $subscriptionId): Consumer
     {
@@ -242,17 +183,11 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
                     'name' => 'cm_served_by_guid',
                     'type' => 'string'
                 ],
+                [
+                    'name' => 'view_uuid',
+                    'type' => 'string'
+                ],
             ]
         ]);
-    }
-
-    public function markMessageAsProcessed(Message $message): void
-    {
-        self::$processedMessages[] = $message;
-    }
-
-    public function getTotalMessagesProcessedInBatch(): int
-    {
-        return count(self::$processedMessages);
     }
 }

@@ -12,6 +12,7 @@ use PDOException;
 use Selective\Database\Connection;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
+use Selective\Database\SelectQuery;
 
 class Repository
 {
@@ -74,11 +75,10 @@ class Repository
                 'served_by_user_guid' => new RawExp(':user_guid'),
                 'boost_guid' => new RawExp(':boost_guid'),
                 'views' => 1,
-                'last_viewed_timestamp' => new RawExp(":last_viewed_timestamp")
+                'view_date' => new RawExp(":last_viewed_timestamp")
             ])
             ->onDuplicateKeyUpdate([
-                'views' => new RawExp('views + 1'),
-                'last_viewed_timestamp' => new RawExp(":last_viewed_timestamp")
+                'views' => new RawExp('views + 1')
             ])
             ->prepare();
 
@@ -87,7 +87,7 @@ class Repository
         $values = [
             'user_guid' => $userGuid,
             'boost_guid' => $boostGuid,
-            'last_viewed_timestamp' => date('c', $lastViewedTimestamp),
+            'view_date' => date('c', strtotime("d/M/Y", $lastViewedTimestamp)),
         ];
 
         $this->logger->addInfo("Binding insert query parameters");
@@ -116,27 +116,40 @@ class Repository
      */
     public function getCPMs(int $fromTimestamp, ?int $toTimestamp = null): iterable
     {
+        $values = [];
         $query = $this->mysqlClientReaderHandler
             ->select()
             ->columns([
                 'served_by_user_guid',
                 'total_views_served' => new RawExp('SUM(views)'),
-                'ecpm' => new RawExp('SUM((payment_amount / views) * 1000)'),
+                'ecpm' => new RawExp('SUM((payment_amount / cb.total_views) * 1000)'),
             ])
             ->from('boosts_partner_views')
-            ->innerJoin('boosts', 'guid', Operator::EQ, 'boost_guid')
-            ->where('updated_timestamp', Operator::GTE, new RawExp(':from_timestamp'))
-            ->where('status', Operator::EQ, BoostStatus::COMPLETED);
+            ->innerJoin(
+                function (SelectQuery $subQuery) use ($fromTimestamp, $toTimestamp, &$values) {
+                    $subQuery
+                        ->columns([
+                            'boosts.guid',
+                            'boosts.payment_amount',
+                            'total_views' => new RawExp('SUM(s.views)')
+                        ])
+                        ->from('boosts')
+                        ->innerJoin(['s' => 'boost_summaries'], 's.guid', Operator::EQ, 'boosts.guid')
+                        ->where('status', Operator::EQ, BoostStatus::COMPLETED)
+                        ->where('completed_timestamp', Operator::GTE, new RawExp(':from_timestamp'));
 
-        $values = [
-            'from_timestamp' => $fromTimestamp
-        ];
+                    $values['from_timestamp'] = $fromTimestamp;
 
-        if ($toTimestamp) {
-            $query
-                ->where('updated_timestamp', Operator::LTE, new RawExp(':to_timestamp'));
-            $values['to_timestamp'] = $toTimestamp;
-        }
+                    if ($toTimestamp) {
+                        $subQuery
+                            ->where('completed_timestamp', Operator::LTE, new RawExp(':to_timestamp'));
+                        $values['to_timestamp'] = $toTimestamp;
+                    }
+                },
+                'guid',
+                Operator::EQ,
+                'boost_guid'
+            );
 
         $query->groupBy('served_by_user_guid');
 

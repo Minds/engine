@@ -10,6 +10,7 @@ use Exception;
 use Minds\Common\Urn;
 use Minds\Core\Analytics\Views\Delegates\ViewsDelegate;
 use Minds\Core\Feeds\Seen\Manager as FeedsSeenManager;
+use Minds\Core\Guid;
 use Minds\Entities\EntityInterface;
 
 class Manager
@@ -48,7 +49,7 @@ class Manager
             ->setYear(null)
             ->setMonth(null)
             ->setDay(null)
-            ->setUuid(null)
+            ->setUuid(Guid::build())
             ->setTimestamp(time());
 
         // Mark the entity as 'seen'

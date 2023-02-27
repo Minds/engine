@@ -4,15 +4,23 @@
  */
 namespace Minds\Core\EventStreams\Topics;
 
+use Exception;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Pulsar\Client;
 use Pulsar\ClientConfiguration;
+use Pulsar\Consumer;
+use Pulsar\Message;
 
 abstract class AbstractTopic
 {
+    private static array $batchMessages = [];
+    private static array $processedMessages = [];
+
+    private static int $startTime = 0;
     /** @var Client */
     protected $client;
 
@@ -29,12 +37,15 @@ abstract class AbstractTopic
         Client $client = null,
         Config $config = null,
         EntitiesBuilder $entitiesBuilder = null,
-        Resolver $entitiesResolver = null
+        Resolver $entitiesResolver = null,
+        protected ?Logger $logger = null
     ) {
         $this->client = $client ?? null;
         $this->config = $config ?? Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->entitiesResolver = $entitiesResolver ?? new Resolver();
+
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -84,6 +95,69 @@ abstract class AbstractTopic
     protected function getPulsarNamespace(): string
     {
         return $this->config->get('pulsar')['namespace'] ?? 'engine';
+    }
+
+    protected function getMessageId(Message $message): string
+    {
+        return json_decode($message->getDataAsString())->view_uuid;
+    }
+
+    protected function processBatch(
+        Consumer $consumer,
+        callable $callback,
+        int $batchTotalAmount,
+        int $execTimeoutInSeconds,
+        callable $onBatchConsumed
+    ): void {
+        while (true) {
+            try {
+                $message = $consumer->receive();
+                self::$batchMessages[$this->getMessageId($message)] = $message;
+
+                // TODO: Add description for if statement
+                if (
+                    count(self::$batchMessages) < $batchTotalAmount &&
+                    self::$startTime !== 0 &&
+                    time() - self::$startTime < $execTimeoutInSeconds
+                ) {
+                    continue;
+                }
+                $this->logger->addInfo("Last start time loop: " . self::$startTime);
+
+                self::$startTime = time();
+                if (call_user_func($callback, self::$batchMessages) === true) {
+                    $this->acknowledgeProcessedMessages($consumer);
+
+                    if ($onBatchConsumed && $this->getTotalMessagesProcessedInBatch() > 0) {
+                        call_user_func($onBatchConsumed);
+                    }
+                    continue;
+                }
+            } catch (Exception $e) {
+                $this->acknowledgeProcessedMessages($consumer);
+                if ($onBatchConsumed && $this->getTotalMessagesProcessedInBatch() > 0) {
+                    call_user_func($onBatchConsumed);
+                }
+            }
+        }
+    }
+
+    private function acknowledgeProcessedMessages(Consumer $consumer): void
+    {
+        foreach (self::$processedMessages as $message) {
+            $consumer->acknowledge($message);
+            unset(self::$batchMessages[$this->getMessageId($message)]);
+        }
+    }
+
+    public function markMessageAsProcessed(Message $message): void
+    {
+        self::$processedMessages[] = $message;
+    }
+
+    public function getTotalMessagesProcessedInBatch(): int
+    {
+        return count(self::$processedMessages);
     }
 
     /**

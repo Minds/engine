@@ -15,4 +15,6 @@ class ViewEvent implements EventInterface
     use AcknowledgmentEventTrait;
     use TimebasedEventTrait;
     use ClientMetaEventTrait;
+
+    public string $viewUUID;
 }
