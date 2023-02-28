@@ -8,18 +8,17 @@
 namespace Minds\Controllers\api\v1;
 
 use Minds\Api\Exportable;
+use Minds\Api\Factory;
 use Minds\Core;
-use Minds\Core\Data;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
+use Minds\Core\Security\RateLimits\RateLimitExceededException;
+use Minds\Core\Sockets;
+use Minds\Core\Wire\Paywall\PaywallUserNotPaid;
 use Minds\Entities;
 use Minds\Exceptions\BlockedUserException;
-use Minds\Interfaces;
-use Minds\Api\Factory;
 use Minds\Helpers;
-use Minds\Core\Sockets;
-use Minds\Core\Security;
-use Minds\Core\Security\RateLimits\RateLimitExceededException;
-use Minds\Core\Wire\Paywall\PaywallUserNotPaid;
+use Minds\Interfaces;
+use Zend\Diactoros\ServerRequestFactory;
 
 class comments implements Interfaces\Api
 {
@@ -99,6 +98,8 @@ class comments implements Interfaces\Api
         $error = false;
         $emitToSocket = false;
 
+        $request = ServerRequestFactory::fromGlobals();
+
         switch ($pages[0]) {
           case "update":
             $comment = $manager->getByLuid($pages[1]);
@@ -142,6 +143,7 @@ class comments implements Interfaces\Api
 
             $comment->setTimeUpdated(time());
             $comment->setEdited(true);
+            $comment->setClientMeta($request->getParsedBody()['client_meta'] ?? []);
 
             try {
                 $saved = $manager->update($comment);
@@ -195,6 +197,7 @@ class comments implements Interfaces\Api
                 ->setContainerGuid(Core\Session::getLoggedInUserGuid())
                 ->setTimeCreated(time())
                 ->setTimeUpdated(time())
+                ->setClientMeta($request->getParsedBody()['client_meta'] ?? [])
                 ->setBody($_POST['comment']);
 
             if (isset($_POST['parentGuidL1'])) {

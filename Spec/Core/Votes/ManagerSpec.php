@@ -86,7 +86,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->cast($vote, ['events' => false, 'puzzleSolution' => 'puzzle'])
+        $this->cast($vote, ['events' => false, 'puzzleSolution' => 'puzzle', 'client_meta' => []])
             ->shouldReturn(true);
     }
 
@@ -120,11 +120,11 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->dispatcher->trigger('vote', 'up', ['vote' => $vote, 'isFriendlyCaptchaPuzzleValid' => true])
+        $this->dispatcher->trigger('vote', 'up', ['vote' => $vote, 'isFriendlyCaptchaPuzzleValid' => true, 'client_meta' => []])
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->cast($vote, ['events' => true, 'puzzleSolution' => 'puzzle'])
+        $this->cast($vote, ['events' => true, 'puzzleSolution' => 'puzzle', 'client_meta' => []])
             ->shouldReturn(true);
     }
 
@@ -286,7 +286,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->toggle($vote, ['events' => false, 'puzzleSolution' => 'puzzle'])
+        $this->toggle($vote, ['events' => false, 'puzzleSolution' => 'puzzle', 'client_meta' => []])
             ->shouldReturn(true);
     }
 

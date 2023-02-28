@@ -24,6 +24,10 @@ class Routes extends ModuleRoutes
                     Ref::_(Controller::class, 'getBoostFeed')
                 );
                 $route->get(
+                    ':boostGuid',
+                    Ref::_(Controller::class, 'getSingleBoost')
+                );
+                $route->get(
                     '',
                     Ref::_(Controller::class, 'getOwnBoosts')
                 );
