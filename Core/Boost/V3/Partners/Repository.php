@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Boost\V3\Partners;
 
-use DateTime;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
@@ -13,7 +12,6 @@ use PDOException;
 use Selective\Database\Connection;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
-use Selective\Database\SelectQuery;
 
 class Repository
 {
@@ -173,11 +171,6 @@ class Repository
             ]);
             return [];
         }
-
-        $this->logger->addInfo("Entries found : {$statement->rowCount()} ", [
-            'query' => $statement->queryString,
-            'params' => $values
-        ]);
 
         foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $user_revenue) {
             yield $user_revenue;

@@ -8,6 +8,8 @@ use Minds\Core\Log\Logger;
 
 class Manager
 {
+    public const REVENUE_SHARE_PCT = 50;
+
     public function __construct(
         private ?Repository $repository = null,
         private ?Logger $logger = null

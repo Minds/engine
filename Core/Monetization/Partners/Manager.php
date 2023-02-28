@@ -36,6 +36,8 @@ class Manager
     /** @var int */
     const WIRE_REFERRAL_SHARE_PCT = 50; // 50%
 
+    const BOOST_PARTNER_REVENUE_SHARE_PCT = BoostPartnersManager::REVENUE_SHARE_PCT; // 50%
+
     /** @var int */
     const MIN_PAYOUT_CENTS = 10000; // $100 USD
 
@@ -319,13 +321,14 @@ class Manager
             $deposit = (new EarningsDeposit())
                 ->setTimestamp($timestamp)
                 ->setUserGuid($eCPM['served_by_user_guid'])
-                ->setAmountCents($eCPM['ecpm'] * self::BOOST_PARTNER_CENTS)
+                ->setAmountCents(($eCPM['ecpm'] * ($eCPM['total_views_served'] / 1000)) * (self::BOOST_PARTNER_REVENUE_SHARE_PCT / 100))
                 ->setItem('boost_partner');
 
             if (!$opts['dry-run']) {
                 $this->repository->add($deposit);
             } else {
                 $this->logger->addInfo('-------------- BOOST PARTNER PAYOUT DEPOSIT ----------------');
+                $this->logger->addInfo('Boost revenue details', $eCPM);
                 $this->logger->addInfo('Deposit', $deposit->export());
                 $this->logger->addInfo('---------------------------------------------------');
             }
