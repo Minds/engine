@@ -140,4 +140,3 @@ class BoostedV2List implements SendGridListInterface
         $this->afterKey = $afterKey;
     }
 }
-

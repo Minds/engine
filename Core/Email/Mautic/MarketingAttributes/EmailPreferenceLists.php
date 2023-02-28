@@ -46,4 +46,3 @@ class EmailPreferenceLists
         return $result['data'];
     }
 }
-

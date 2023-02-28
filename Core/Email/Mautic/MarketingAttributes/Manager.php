@@ -118,4 +118,3 @@ class Manager
         return $this->repository->add($user_guid, $attributeName, $attributeValue);
     }
 }
-

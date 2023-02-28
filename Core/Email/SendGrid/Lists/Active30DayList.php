@@ -144,4 +144,3 @@ class Active30DayList implements SendGridListInterface
         $this->afterKey = $afterKey;
     }
 }
-

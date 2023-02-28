@@ -482,4 +482,3 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $mautic->sync(fromTs: $fromTs, offset: $offset);
     }
 }
-

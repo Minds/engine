@@ -99,4 +99,3 @@ class Repository
         return implode(',', $columns);
     }
 }
-
