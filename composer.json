@@ -56,7 +56,7 @@
         "minishlink/web-push": "^6.0",
         "textalk/websocket": "^1.5",
         "promphp/prometheus_client_php": "^2.6",
-        "selective/database": "^3.2"
+        "minds/mysql-fluent-interface": "dev-master"
     },
     "repositories": [
         {
@@ -78,6 +78,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/minds/oauth2-openid-connect-server.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/FaustoJohn/selective-database.git"
         }
     ],
     "autoload": {
