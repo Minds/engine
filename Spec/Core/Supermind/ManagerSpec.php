@@ -1851,6 +1851,7 @@ class ManagerSpec extends ObjectBehavior
         $txid1 = 'offchain:0x1';
         $txid2 = 'offchain:0x2';
         $paymentMethod = SupermindRequestPaymentMethod::OFFCHAIN_TOKEN;
+
         $supermindRequest1 = (new SupermindRequest())
             ->setGuid($supermindRequestId1)
             ->setPaymentMethod($paymentMethod);
