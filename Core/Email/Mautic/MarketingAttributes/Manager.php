@@ -59,6 +59,7 @@ class Manager
             $row['is_admin'] = ($user->admin == 'yes');
             $row['verified_email'] = $user->isTrusted();
             $row['is_enabled'] = $user->isEnabled();
+            $row['kite_state'] = $user->kite_state;
 
             // Construct email preference lists
             foreach ($this->emailPreferenceLists->getList($user->getGuid()) as $emailSubscription) {
