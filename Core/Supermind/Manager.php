@@ -12,6 +12,7 @@ use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
@@ -37,6 +38,7 @@ use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserCashSetupException;
 use Minds\Exceptions\UserErrorException;
+use Minds\Exceptions\UserNotFoundException;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
 
@@ -53,7 +55,8 @@ class Manager
         private ?EventsDelegate $eventsDelegate = null,
         private ?ACL $acl = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?TwitterEventsDelegate $twitterEventsDelegate = null
+        private ?TwitterEventsDelegate $twitterEventsDelegate = null,
+        private ?Logger $logger = null
     ) {
         $this->repository ??= Di::_()->get("Supermind\Repository");
         $this->paymentProcessor ??= new SupermindPaymentProcessor();
@@ -61,6 +64,7 @@ class Manager
         $this->acl ??= Di::_()->get('Security\ACL');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->twitterEventsDelegate ??= new TwitterEventsDelegate();
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -569,6 +573,9 @@ class Manager
                     $transactionId = $this->paymentProcessor->refundOffchainPayment($supermindRequest);
                     $this->repository->saveSupermindRefundTransaction($supermindRequest->getGuid(), $transactionId);
                 }
+            } catch (UserNotFoundException $e) {
+                $this->logger->warn("{$e->getMessage()} - skipping.");
+                continue;
             } catch (Exception $e) {
                 $this->repository->rollbackTransaction();
                 throw $e;

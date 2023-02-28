@@ -6,6 +6,7 @@ use ArrayIterator;
 use Minds\Common\Repository\Response;
 use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Supermind\Delegates\EventsDelegate;
@@ -28,6 +29,7 @@ use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
+use Minds\Exceptions\UserNotFoundException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Spec\Minds\Common\Traits\CommonMatchers;
@@ -53,19 +55,25 @@ class ManagerSpec extends ObjectBehavior
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
+    /** @var Logger */
+    private $logger;
+
     public function let(
         Repository $repository,
         SupermindPaymentProcessor $paymentProcessor,
         EventsDelegate $eventsDelegate,
         ACL $acl,
         EntitiesBuilder $entitiesBuilder,
+        Logger $logger
     ) {
         $this->beConstructedWith(
             $repository,
             $paymentProcessor,
             $eventsDelegate,
             $acl,
-            $entitiesBuilder
+            $entitiesBuilder,
+            null,
+            $logger
         );
 
         $this->repository = $repository;
@@ -73,6 +81,7 @@ class ManagerSpec extends ObjectBehavior
         $this->eventsDelegate = $eventsDelegate;
         $this->acl = $acl;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->logger = $logger;
     }
 
     public function it_is_initializable()
@@ -1826,6 +1835,67 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->saveSupermindRefundTransaction($supermindRequestId, $txId)
             ->shouldNotBeCalled();
+
+        $this->repository->commitTransaction()
+            ->shouldBeCalled();
+
+        $this->expireRequests()->shouldBe(true);
+    }
+
+    public function it_should_expire_requests_for_offchain_tokens_and_skip_refund_if_no_user_found()
+    {
+        $exceptionMessage = 'User not found';
+        $ids = [ '567', '678' ];
+        $supermindRequestId1 = '567';
+        $supermindRequestId2 = '678';
+        $txid1 = 'offchain:0x1';
+        $txid2 = 'offchain:0x2';
+        $paymentMethod = SupermindRequestPaymentMethod::OFFCHAIN_TOKEN;
+        $supermindRequest1 = (new SupermindRequest())
+            ->setGuid($supermindRequestId1)
+            ->setPaymentMethod($paymentMethod);
+
+        $supermindRequest2 = (new SupermindRequest())
+            ->setGuid($supermindRequestId2)
+            ->setPaymentMethod($paymentMethod);
+
+        $returnIterator = new ArrayIterator([
+            $supermindRequest1,
+            $supermindRequest2
+        ]);
+
+        $this->repository->beginTransaction()
+            ->shouldBeCalled();
+
+        $this->repository->expireSupermindRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD)
+            ->shouldBeCalled()
+            ->willReturn($ids);
+
+        $this->repository->getRequestsFromIds($ids)
+            ->shouldBeCalled()
+            ->willReturn($returnIterator);
+
+        $this->eventsDelegate->onExpireSupermindRequest($supermindRequest1)
+            ->shouldBeCalled();
+
+        $this->eventsDelegate->onExpireSupermindRequest($supermindRequest2)
+            ->shouldBeCalled();
+
+        $this->paymentProcessor->refundOffchainPayment($supermindRequest1)
+            ->shouldBeCalled()
+            ->willReturn($txid1);
+
+        $this->paymentProcessor->refundOffchainPayment($supermindRequest2)
+            ->shouldBeCalled()
+            ->willThrow(new UserNotFoundException($exceptionMessage));
+
+        $this->repository->saveSupermindRefundTransaction($supermindRequestId1, $txid1)
+            ->shouldBeCalled();
+
+        $this->repository->saveSupermindRefundTransaction($supermindRequestId2, $txid2)
+            ->shouldNotBeCalled();
+
+        $this->logger->warn("$exceptionMessage - skipping.");
 
         $this->repository->commitTransaction()
             ->shouldBeCalled();
