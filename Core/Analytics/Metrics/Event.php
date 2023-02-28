@@ -286,6 +286,7 @@ class Event
             $proofOfWorkContext->setSuccessful($this->data['proofOfWork']);
         }
 
+        // Setting the client meta context details for snowplow
         if ($this->data['client_meta'] ?? null) {
             $clientMetaContext->platform = $this->data['client_meta']['platform'] ?? "";
             $clientMetaContext->source = $this->data['client_meta']['source'] ?? "";
