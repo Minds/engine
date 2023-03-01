@@ -45,6 +45,7 @@ class WireUSDUsersList implements SendGridListInterface
             }
             $contact = new SendGridContact();
             $contact
+                ->setUser($user)
                 ->setUserGuid($user->getGuid())
                 ->setUsername($user->get('username'))
                 ->setEmail($user->getEmail())

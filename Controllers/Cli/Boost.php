@@ -4,9 +4,11 @@ namespace Minds\Controllers\Cli;
 
 use DateTime;
 use Minds\Cli;
+use Minds\Core\Boost\V3\Manager as BoostManager;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core;
+use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Di\Di;
 use Minds\Core\Security\ACL;
 use Minds\Exceptions\CliException;
@@ -15,8 +17,9 @@ use Monolog\Logger as MonologLogger;
 
 class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
 {
-    public function __construct()
+    public function __construct(private ?BoostManager $boostManager = null)
     {
+        $this->boostManager ??= Di::_()->get(BoostManager::class);
     }
 
     public function help($command = null)
@@ -100,12 +103,7 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
 
     public function processExpired()
     {
-        /**
-         * @var Core\Boost\V3\Manager $boostManager
-         */
-        $boostManager = Di::_()->get(Core\Boost\V3\Manager::class);
-
-        $boostManager->processExpiredApprovedBoosts();
+        $this->boostManager->processExpiredApprovedBoosts();
     }
 
     /**
@@ -134,10 +132,7 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
             return;
         }
 
-        /** @var Core\Boost\V3\Manager */
-        $boostManager =  Di::_()->get(Core\Boost\V3\Manager::class);
-
-        if (!$boost = $boostManager->getBoostByGuid($boostGuid)) {
+        if (!$boost = $this->boostManager->getBoostByGuid($boostGuid)) {
             $this->out('Boost not found');
             return;
         }
@@ -164,5 +159,34 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
         }
         
         $this->out("Completion notice dispatched for boost: $boostGuid");
+    }
+
+    /**
+     * Reject a boost by GUID
+     * @param string entityGuid - entity_guid of the boost.
+     * @param string status - numerical index of BoostStatus we want to update for.
+     * @example
+     * - php cli.php Boost forceRejectStateByEntityGuid --entityGuid=100000000000000000 --reason=5
+     * @return void
+     */
+    public function forceRejectByEntityGuid(): void
+    {
+        $entityGuid = $this->getOpt('entityGuid');
+        $reason = $this->getOpt('reason') ?? BoostRejectionReason::REPORT_UPHELD;
+
+        if (!$entityGuid) {
+            $this->out('Entity GUID must be provided');
+            return;
+        }
+
+        if ($this->boostManager->forceRejectByEntityGuid(
+            entityGuid: $entityGuid,
+            reason: $reason,
+            statuses: [BoostStatus::APPROVED, BoostStatus::PENDING]
+        )) {
+            $this->out("Updated status to rejected for any boosts with entity guid: $entityGuid");
+        } else {
+            $this->out("An error has occurred updating status to rejected for any boosts with entity guid: $entityGuid");
+        }
     }
 }
