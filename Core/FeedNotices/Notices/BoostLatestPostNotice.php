@@ -4,7 +4,7 @@ namespace Minds\Core\FeedNotices\Notices;
 
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
-use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
+use Minds\Core\Feeds\User\Manager as FeedsUserManager;
 
 /**
  * Feed notice to prompt a user to connect their wallet.
@@ -18,9 +18,9 @@ class BoostLatestPostNotice extends AbstractNotice
     private const KEY = 'boost-latest-post';
 
     public function __construct(
-        private ?EligibilityManager $eligibilityManager = null,
+        private ?FeedsUserManager $feedsUserManager = null,
     ) {
-        $this->eligibilityManager ??= Di::_()->get('Rewards\Eligibility\Manager');
+        $this->feedsUserManager ??= Di::_()->get('Feeds\User\Manager');
     }
 
     /**
@@ -49,6 +49,7 @@ class BoostLatestPostNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return true;
+        return $this->feedsUserManager->setUser($user)
+            ->hasMadePosts();
     }
 }
