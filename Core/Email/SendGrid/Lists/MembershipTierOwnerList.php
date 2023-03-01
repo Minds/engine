@@ -40,6 +40,7 @@ class MembershipTierOwnerList implements SendGridListInterface
 
             $contact = new SendGridContact();
             $contact
+                ->setUser($owner)
                 ->setUserGuid($owner->getGuid())
                 ->setUsername($owner->get('username'))
                 ->setEmail($owner->getEmail())

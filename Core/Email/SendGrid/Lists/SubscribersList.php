@@ -47,6 +47,7 @@ class SubscribersList implements SendGridListInterface
 
                     $contact = new SendGridContact();
                     $contact
+                        ->setUser($user)
                         ->setUserGuid($user->getGuid())
                         ->setUsername($user->getUsername())
                         ->setEmail($user->getEmail())

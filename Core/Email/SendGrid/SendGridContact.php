@@ -1,9 +1,12 @@
 <?php
 namespace Minds\Core\Email\SendGrid;
 
+use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
 /**
+ * @method SendGridContact setUser(User $user)
+ * @method User getUser()
  * @method SendGridContact setUserGuid(string $userGuid)
  * @method string getUserGuid()
  * @method SendGridContact setEmail(string $email)
@@ -23,6 +26,9 @@ use Minds\Traits\MagicAttributes;
 class SendGridContact
 {
     use MagicAttributes;
+
+    /** @var User */
+    protected $user;
 
     /** @var string */
     protected $userGuid;
@@ -101,7 +107,7 @@ class SendGridContact
 
         if ($this->subscribedTo) {
             foreach ($this->subscribedTo as $subscribedTo) {
-                $customFields['is_subscribed_to_' . $subscribedTo] = 1;
+                $customFields['sub_' . $subscribedTo] = 1;
             }
         }
 

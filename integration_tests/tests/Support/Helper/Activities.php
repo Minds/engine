@@ -20,6 +20,9 @@ class Activities extends Module
     private const ACTIVITY_CREATION_METHOD = 'PUT';
     private const ACTIVITY_CREATION_ENDPOINT = 'v3/newsfeed/activity';
 
+    private const ACTIVITY_VOTE_METHOD = "PUT";
+    private const ACTIVITY_VOTE_ENDPOINT = "v1/thumbs";
+
     /**
      * @param array $activityDetails
      * @param bool $checkResponse
@@ -46,5 +49,23 @@ class Activities extends Module
 
             Fixtures::add('created_activity', $activity);
         }
+    }
+
+    public function voteLastCreatedActivity(string $direction, array $clientMeta = []): void
+    {
+        $apiClient = $this->getModule("REST");
+
+        $activityDetails = Fixtures::get('created_activity');
+
+        if (count($clientMeta)) {
+            $clientMeta = ['client_meta' => $clientMeta];
+        }
+
+        $apiClient->haveHttpHeader('Content-Type', "application/json");
+        $apiClient->send(
+            self::ACTIVITY_VOTE_METHOD,
+            self::ACTIVITY_VOTE_ENDPOINT . "/$activityDetails->guid/$direction",
+            $clientMeta
+        );
     }
 }
