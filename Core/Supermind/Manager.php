@@ -552,9 +552,13 @@ class Manager
             throw new ForbiddenException();
         }
 
+        ini_set('display_errors', '1');
+        error_reporting(E_ALL);
+
         $this->repository->beginTransaction();
 
         try {
+            $this->logger->info('Getting expired supermind requests');
             $expiredSupermindRequests = $this->repository->expireSupermindRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD);
         } catch (Exception $e) {
             $this->repository->rollbackTransaction();
@@ -562,15 +566,17 @@ class Manager
         }
 
         if (count($expiredSupermindRequests) === 0) {
+            $this->logger->info('No expired supermind requests');
             $this->repository->rollbackTransaction();
             return true;
         }
 
-        foreach ($this->getSupermindRequestsFromIds($expiredSupermindRequests) as $supermindRequest) {
-            try {
-                $this->eventsDelegate->onExpireSupermindRequest($supermindRequest);
+        $requests = iterator_to_array($this->getSupermindRequestsFromIds($expiredSupermindRequests));
 
+        foreach ($requests as $supermindRequest) {
+            try {
                 if ($supermindRequest->getPaymentMethod() === SupermindRequestPaymentMethod::OFFCHAIN_TOKEN) {
+                    $this->logger->info('Refunding Supermind', [$supermindRequest->getGuid()]);
                     $transactionId = $this->paymentProcessor->refundOffchainPayment($supermindRequest);
                     $this->repository->saveSupermindRefundTransaction($supermindRequest->getGuid(), $transactionId);
                 }
@@ -578,12 +584,19 @@ class Manager
                 $this->logger->warn("{$e->getMessage()} - skipping.");
                 continue;
             } catch (Exception $e) {
+                $this->logger->info('Rolling back - an error occurred with Supermind', [$supermindRequest->getGuid()]);
                 $this->repository->rollbackTransaction();
                 throw $e;
             }
         }
 
         $this->repository->commitTransaction();
+
+        foreach ($requests as $supermindRequest) {
+            $this->logger->info('Firing to events delegate for Supermind', [$supermindRequest->getGuid()]);
+            $this->eventsDelegate->onExpireSupermindRequest($supermindRequest);
+        }
+
         return true;
     }
 

@@ -2003,9 +2003,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($returnIterator);
 
-        $this->eventsDelegate->onExpireSupermindRequest($supermindRequest)
-            ->shouldBeCalled();
-
         $this->paymentProcessor->refundOffchainPayment($supermindRequest)
             ->shouldBeCalled()
             ->willReturn($txId);
@@ -2014,8 +2011,14 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willThrow(new \Exception('error'));
 
+        $this->logger->info(Argument::type('string'), Argument::any())
+            ->shouldBeCalled();
+
         $this->repository->rollbackTransaction()
             ->shouldBeCalled();
+
+        $this->eventsDelegate->onExpireSupermindRequest($supermindRequest)
+            ->shouldNotBeCalled();
 
         $this->repository->commitTransaction()
             ->shouldNotBeCalled();
