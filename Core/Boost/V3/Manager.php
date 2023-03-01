@@ -440,6 +440,25 @@ class Manager
     }
 
     /**
+     * Force reject boosts in given statuses, by entity guid.
+     * @param string $entityGuid - entity guid for which to force boost status.
+     * @param int $reason - reason to be set as reject reason on update.
+     * @param array $statuses - array of statuses to update status for.
+     * @return bool true on success.
+     */
+    public function forceRejectByEntityGuid(
+        string $entityGuid,
+        int $reason,
+        array $statuses = [BoostStatus::APPROVED, BoostStatus::PENDING]
+    ): bool {
+        return $this->repository->forceRejectByEntityGuid(
+            entityGuid: $entityGuid,
+            reason: $reason,
+            statuses: $statuses,
+        );
+    }
+
+    /**
      * Update the status of a single boost.
      * @param string $boostGuid - guid of boost to update.
      * @return bool true if boost updated.
