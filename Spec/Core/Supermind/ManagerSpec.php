@@ -1976,6 +1976,9 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getRequestsFromIds($ids)
             ->shouldNotBeCalled();
 
+        $this->repository->rollbackTransaction()
+            ->shouldBeCalled();
+
         $this->expireRequests()->shouldBe(true);
     }
 

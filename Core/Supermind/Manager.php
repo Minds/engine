@@ -562,6 +562,7 @@ class Manager
         }
 
         if (count($expiredSupermindRequests) === 0) {
+            $this->repository->rollbackTransaction();
             return true;
         }
 
