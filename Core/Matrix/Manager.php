@@ -4,11 +4,15 @@
  */
 namespace Minds\Core\Matrix;
 
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Core\Matrix\MatrixAccount;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 
 class Manager
 {
@@ -24,11 +28,16 @@ class Manager
     /** @var array */
     protected $state = [];
 
-    public function __construct(Client $client = null, MatrixConfig $matrixConfig = null, EntitiesBuilder $entitiesBuilder = null)
-    {
+    public function __construct(
+        Client $client = null,
+        MatrixConfig $matrixConfig = null,
+        EntitiesBuilder $entitiesBuilder = null,
+        private ?Logger $logger = null
+    ) {
         $this->client = $client ?? new Client();
         $this->matrixConfig = $matrixConfig ?? new MatrixConfig();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -237,9 +246,18 @@ class Manager
     {
         try {
             $matrixId = $this->getMatrixId($user);
-            $response = $this->client
-            ->setAccessToken($this->getServerAccessToken($user))
-            ->request('GET', "_matrix/client/r0/user/$matrixId/account_data/m.direct");
+            try {
+                $response = $this->client
+                    ->setAccessToken($this->getServerAccessToken($user))
+                    ->request('GET', "_matrix/client/r0/user/$matrixId/account_data/m.direct");
+            } catch (\Exception $e) {
+                if ($e instanceof ClientException && $e->getResponse()->getStatusCode() === 401) {
+                    $this->logger->info($e);
+                    throw new ForbiddenException('Please login to Minds Chat');
+                }
+                $this->logger->error($e);
+                throw new ServerErrorException('Unable to get rooms for this user');
+            }
 
             $decodedResponse = json_decode($response->getBody(), true);
 
