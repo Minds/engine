@@ -51,6 +51,7 @@ class container implements Interfaces\Api
             ]);
         }
 
+        // override custom type.
         $custom_type = isset($_GET['custom_type']) && $_GET['custom_type'] ? [$_GET['custom_type']] : null;
 
         $type = '';
