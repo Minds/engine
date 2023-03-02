@@ -203,6 +203,9 @@ class Defaults
 
         // Activity Events
         (new Core\Feeds\Activity\Events())->register();
+
+        // Boost Events
+        (new Core\Boost\V3\Events\Events())->register();
     }
 
     public static function _()

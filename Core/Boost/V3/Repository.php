@@ -385,7 +385,40 @@ class Repository
         return $statement->execute();
     }
 
+    /**
+     * Force reject boosts in given statuses, by entity guid.
+     * @param string $entityGuid - entity guid for which to force boost status.
+     * @param int $reason - reason to be set as reject reason on update.
+     * @param array $statuses - array of statuses to update status for.
+     * @return bool true on success.
+     */
+    public function forceRejectByEntityGuid(
+        string $entityGuid,
+        int $reason,
+        array $statuses = [BoostStatus::APPROVED, BoostStatus::PENDING]
+    ): bool {
+        $query = "UPDATE boosts
+            SET status = :status,
+                updated_timestamp = :updated_timestamp,
+                reason = :reason
+            WHERE entity_guid = :entity_guid";
 
+        if (count($statuses)) {
+            $query .= " AND (status = " . implode(' OR status = ', $statuses) . ")";
+        }
+
+        $values = [
+            'status' => BoostStatus::REJECTED,
+            'updated_timestamp' => date('c', time()),
+            'reason' => $reason,
+            'entity_guid' => $entityGuid,
+        ];
+
+        $statement = $this->mysqlClientWriter->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        return $statement->execute();
+    }
 
     /**
      * Get admin stats.

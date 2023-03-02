@@ -120,7 +120,7 @@ class Event
         }
 
         if (isset($this->data['client_meta'])) {
-            $this->data['campaign'] = $this->data['client_meta']['campaign'];
+            $this->data['campaign'] = $this->data['client_meta']['campaign'] ?? "";
         }
 
         $this->data['user_agent'] = $this->getUserAgent();
@@ -286,14 +286,15 @@ class Event
             $proofOfWorkContext->setSuccessful($this->data['proofOfWork']);
         }
 
+        // Setting the client meta context details for snowplow
         if ($this->data['client_meta'] ?? null) {
-            $clientMetaContext->platform = $this->data['client_meta']['platform'];
-            $clientMetaContext->source = $this->data['client_meta']['source'];
-            $clientMetaContext->salt = $this->data['client_meta']['salt'];
-            $clientMetaContext->medium = $this->data['client_meta']['medium'];
-            $clientMetaContext->campaign = $this->data['client_meta']['campaign'];
-            $clientMetaContext->page_token = $this->data['client_meta']['page_token'];
-            $clientMetaContext->delta = $this->data['client_meta']['delta'];
+            $clientMetaContext->platform = $this->data['client_meta']['platform'] ?? "";
+            $clientMetaContext->source = $this->data['client_meta']['source'] ?? "";
+            $clientMetaContext->salt = $this->data['client_meta']['salt'] ?? "";
+            $clientMetaContext->medium = $this->data['client_meta']['medium'] ?? "";
+            $clientMetaContext->campaign = $this->data['client_meta']['campaign'] ?? "";
+            $clientMetaContext->page_token = $this->data['client_meta']['page_token'] ?? "";
+            $clientMetaContext->delta = $this->data['client_meta']['delta'] ?? 0;
             $clientMetaContext->position = $this->data['client_meta']['position'] ?? 0;
             $clientMetaContext->served_by_guid = $this->data['client_meta']['served_by_guid'] ?? "";
         }
