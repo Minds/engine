@@ -15,6 +15,7 @@ use Minds\Core\FeedNotices\Notices\SupermindPendingNotice;
 use Minds\Core\FeedNotices\Notices\UpdateTagsNotice;
 use Minds\Core\FeedNotices\Notices\VerifyEmailNotice;
 use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
+use Minds\Core\FeedNotices\Notices\BoostPartnersNotice;
 use Minds\Core\Log\Logger;
 use Minds\Entities\User;
 

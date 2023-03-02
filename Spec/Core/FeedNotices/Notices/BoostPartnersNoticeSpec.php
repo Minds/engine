@@ -48,6 +48,10 @@ class BoostPartnersNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $user->getPhoneNumberHash()
+            ->shouldBeCalled()
+            ->willReturn('abc');
+
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(true);
     }
@@ -62,6 +66,25 @@ class BoostPartnersNoticeSpec extends ObjectBehavior
         $this->experimentsManager->isOn('epic-303-boost-partners')
             ->shouldBeCalled()
             ->willReturn(false);
+
+        $this->callOnWrappedObject('shouldShow', [$user])
+            ->shouldBe(false);
+    }
+
+    public function it_should_determine_if_notice_should_NOT_show_because_user_has_not_verified_phone_number(
+        User $user,
+    ) {
+        $this->experimentsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->experimentsManager);
+
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $user->getPhoneNumberHash()
+            ->shouldBeCalled()
+            ->willReturn(null);
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);
@@ -82,6 +105,10 @@ class BoostPartnersNoticeSpec extends ObjectBehavior
         $this->experimentsManager->isOn('epic-303-boost-partners')
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $user->getPhoneNumberHash()
+            ->shouldBeCalled()
+            ->willReturn('abc');
 
         $this->setUser($user);
 

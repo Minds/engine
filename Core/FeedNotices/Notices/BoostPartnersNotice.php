@@ -43,11 +43,12 @@ class BoostPartnersNotice extends AbstractNotice
 
     /**
      * Whether notice should show in feed - true if the experiment is enabled
+     * and their phone number has been verified
      * @param User $user - user to check for.
      * @return boolean - true if notice should show.
      */
     public function shouldShow(User $user): bool
     {
-        return $this->experimentsManager->setUser($user)->isOn('epic-303-boost-partners');
+        return $this->experimentsManager->setUser($user)->isOn('epic-303-boost-partners') && $user->getPhoneNumberHash();
     }
 }
