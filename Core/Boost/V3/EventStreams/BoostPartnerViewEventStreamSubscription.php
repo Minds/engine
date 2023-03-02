@@ -11,6 +11,9 @@ use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\Topics\ViewsTopic;
 use Minds\Core\Log\Logger;
 
+/**
+ * Pulsar consumer subscription responsible to process boost partner activity views
+ */
 class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterface
 {
     private static ?ViewsTopic $topic = null;
@@ -56,6 +59,7 @@ class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterf
     }
 
     /**
+     * Process a batch of views
      * @param array $messages
      * @return bool
      * @throws Exception
@@ -101,6 +105,10 @@ class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterf
         return true;
     }
 
+    /**
+     * Commits the db transaction containing all the successfully processed views
+     * @return void
+     */
     public function commitChanges(): void
     {
         $this->manager->commitTransaction();

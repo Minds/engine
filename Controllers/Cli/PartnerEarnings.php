@@ -32,6 +32,8 @@ class PartnerEarnings extends Cli\Controller implements Interfaces\CliController
         $daysAgo = $this->getOpt('daysAgo') ?: 0;
         $from = $this->getOpt('from') ?: strtotime("midnight $daysAgo days ago");
         $to = $this->getOpt('to') ?? null;
+
+        // Dry Run option to test execution before applying changes
         $dryRun = (bool) $this->getOpt('dry-run') ?? false;
         $manager = new Manager();
 

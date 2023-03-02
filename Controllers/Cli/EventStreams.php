@@ -45,10 +45,14 @@ class EventStreams extends Cli\Controller implements Interfaces\CliControllerInt
         $batchTotalAmount = 1;
         $execTimeoutInSeconds = null;
 
+        // Check if we are running in batch mode
         $isBatch = (bool) $this->getOpt('batch') ?? false;
 
         if ($isBatch) {
+            // set the total amount of events to process for each iteration
             $batchTotalAmount = $this->getOpt('batch_total_amount') ?? self::DEFAULT_BATCH_AMOUNT;
+
+            // set the execution timeout to wait before in-between iterations - full wait only if the `batchTotalAmount` is not reached first
             $execTimeoutInSeconds = $this->getOpt('exec_timeout_in_seconds') ?? self::DEFAULT_EXEC_TIMEOUT_IN_SECONDS;
         }
 
@@ -67,6 +71,11 @@ class EventStreams extends Cli\Controller implements Interfaces\CliControllerInt
         );
     }
 
+    /**
+     * Callback function to use when process a single message
+     * @param SubscriptionInterface $subscription
+     * @return callable
+     */
     private function singleConsume(SubscriptionInterface $subscription): callable
     {
         return function (EventInterface $event) use ($subscription): bool {
@@ -74,6 +83,11 @@ class EventStreams extends Cli\Controller implements Interfaces\CliControllerInt
         };
     }
 
+    /**
+     * Callback function to use when running in batch mode
+     * @param BatchSubscriptionInterface $subscription
+     * @return callable
+     */
     private function batchConsume(BatchSubscriptionInterface $subscription): callable
     {
         return function (array $messages) use ($subscription): bool {
@@ -81,6 +95,12 @@ class EventStreams extends Cli\Controller implements Interfaces\CliControllerInt
         };
     }
 
+    /**
+     * Callback function to run when batch iteration is completed
+     * @param bool $isBatch
+     * @param BatchSubscriptionInterface $subscription
+     * @return callable|null
+     */
     private function onBatchConsumed(bool $isBatch, BatchSubscriptionInterface $subscription): ?callable
     {
         return match ($isBatch) {

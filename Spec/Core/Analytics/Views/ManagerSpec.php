@@ -60,7 +60,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($view);
 
-        $view->setUuid(null)
+        $view->setUuid(Argument::any())
             ->shouldBeCalled()
             ->willReturn($view);
 

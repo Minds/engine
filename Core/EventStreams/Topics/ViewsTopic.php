@@ -33,6 +33,10 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
         return $producer->send($this->createMessage($event)) === Result::ResultOk;
     }
 
+    /**
+     * Generates a producer
+     * @return Producer
+     */
     private function getProducer(): Producer
     {
         return $this->client()->createProducer(
@@ -42,6 +46,11 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
         );
     }
 
+    /**
+     * Generates a Pulsar message for a view event
+     * @param ViewEvent $event
+     * @return Message
+     */
     private function createMessage(ViewEvent $event): Message
     {
         return (new MessageBuilder())
@@ -70,7 +79,14 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
     }
 
     /**
-     * @inheritDoc
+     * @param string $subscriptionId
+     * @param callable $callback
+     * @param string $topicRegex
+     * @param bool $isBatch
+     * @param int $batchTotalAmount
+     * @param int $execTimeoutInSeconds
+     * @param callable|null $onBatchConsumed
+     * @return void
      */
     public function consume(
         string $subscriptionId,
@@ -93,7 +109,11 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
     }
 
 
-
+    /**
+     * Generates a Pulsar consumer
+     * @param string $subscriptionId
+     * @return Consumer
+     */
     private function getConsumer(string $subscriptionId): Consumer
     {
         return $this->client()->subscribeWithRegex(
@@ -105,6 +125,10 @@ class ViewsTopic extends AbstractTopic implements TopicInterface
         );
     }
 
+    /**
+     * Defines the topic's AVRO schema
+     * @return string
+     */
     private function getSchema(): string
     {
         return json_encode([

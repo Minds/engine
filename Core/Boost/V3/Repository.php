@@ -12,7 +12,6 @@ use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
-use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
 use Selective\Database\Connection;
@@ -24,21 +23,20 @@ class Repository
     private PDO $mysqlClientReader;
     private PDO $mysqlClientWriter;
 
-    private Connection $mysqlClientWriterHandler;
-
     /**
      * @param MySQLClient|null $mysqlHandler
      * @param EntitiesBuilder|null $entitiesBuilder
-     * @throws ServerErrorException
+     * @param Connection|null $mysqlClientWriterHandler
      */
     public function __construct(
         private ?MySQLClient $mysqlHandler = null,
-        private ?EntitiesBuilder $entitiesBuilder = null
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?Connection $mysqlClientWriterHandler = null
     ) {
         $this->mysqlHandler ??= Di::_()->get("Database\MySQL\Client");
         $this->mysqlClientReader = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_REPLICA);
         $this->mysqlClientWriter = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_MASTER);
-        $this->mysqlClientWriterHandler = new Connection($this->mysqlClientWriter);
+        $this->mysqlClientWriterHandler ??= new Connection($this->mysqlClientWriter);
 
         $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
     }
@@ -389,7 +387,7 @@ class Repository
             ])
             ->where('guid', Operator::EQ, new RawExp(':guid'))
             ->prepare();
-        
+
         $values = [
             'status' => $status,
             'timestamp' => date('c', time()),

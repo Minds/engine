@@ -21,6 +21,7 @@ abstract class AbstractTopic
     private static array $processedMessages = [];
 
     private static int $startTime = 0;
+    
     /** @var Client */
     protected $client;
 
@@ -97,11 +98,24 @@ abstract class AbstractTopic
         return $this->config->get('pulsar')['namespace'] ?? 'engine';
     }
 
-    protected function getMessageId(Message $message): string
+    /**
+     * @param Message $message
+     * @return string
+     */
+    protected function getBatchMessageId(Message $message): string
     {
         return json_decode($message->getDataAsString())->view_uuid;
     }
 
+    /**
+     * Processing a batch of messages
+     * @param Consumer $consumer
+     * @param callable $callback
+     * @param int $batchTotalAmount
+     * @param int $execTimeoutInSeconds
+     * @param callable $onBatchConsumed
+     * @return void
+     */
     protected function processBatch(
         Consumer $consumer,
         callable $callback,
@@ -112,9 +126,20 @@ abstract class AbstractTopic
         while (true) {
             try {
                 $message = $consumer->receive();
-                self::$batchMessages[$this->getMessageId($message)] = $message;
+                if (isset(self::$batchMessages[$this->getBatchMessageId($message)])) {
+                    continue;
+                }
 
-                // TODO: Add description for if statement
+                self::$batchMessages[$this->getBatchMessageId($message)] = $message;
+
+                /**
+                 * Check if either the total messages in the batch have reached the requested size
+                 * or
+                 * the time expired since the last iteration is greater than the provided timeout
+                 *
+                 * If either of those 2 conditions is true then process the messages in the batch
+                 * otherwise continue receiving messages until one of the 2 conditions above is met
+                 */
                 if (
                     count(self::$batchMessages) < $batchTotalAmount &&
                     self::$startTime !== 0 &&
@@ -141,19 +166,33 @@ abstract class AbstractTopic
         }
     }
 
+    /**
+     * Acknowledge successfully processed messages in a batch
+     * @param Consumer $consumer
+     * @return void
+     */
     private function acknowledgeProcessedMessages(Consumer $consumer): void
     {
         foreach (self::$processedMessages as $message) {
             $consumer->acknowledge($message);
-            unset(self::$batchMessages[$this->getMessageId($message)]);
+            unset(self::$batchMessages[$this->getBatchMessageId($message)]);
         }
     }
 
+    /**
+     * Adds a message to the list of processed messages
+     * @param Message $message
+     * @return void
+     */
     public function markMessageAsProcessed(Message $message): void
     {
         self::$processedMessages[] = $message;
     }
 
+    /**
+     * Gets the current total amount of messages successfully processed
+     * @return int
+     */
     public function getTotalMessagesProcessedInBatch(): int
     {
         return count(self::$processedMessages);

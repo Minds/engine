@@ -155,7 +155,7 @@ class Manager
         try {
             $result = $this->db->request($query);
         } catch (\Exception $e) {
-            error_log(print_r($e->getTraceAsString(), true));
+            error_log(print_r($e, true));
             return 0;
         }
 

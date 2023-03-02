@@ -10,6 +10,9 @@ use Minds\Core\EventStreams\Topics\ViewsTopic;
 use Minds\Core\Session;
 use Minds\Entities\EntityInterface;
 
+/**
+ * Responsible to handle actions that should be triggered when an activity's view is performed
+ */
 class ViewsDelegate
 {
     public function __construct(
@@ -18,6 +21,12 @@ class ViewsDelegate
         $this->viewsTopic ??= Di::_()->get(ViewsTopic::class);
     }
 
+    /**
+     * Called when am activity's view is recorded. Sends an event to a pulsar topic
+     * @param View $view
+     * @param EntityInterface $entity
+     * @return void
+     */
     public function onRecordView(View $view, EntityInterface $entity): void
     {
         $viewEvent = (new ViewEvent())

@@ -60,6 +60,13 @@ class Repository
         $this->mysqlClientWriter->commit();
     }
 
+    /**
+     * Add boost partner view entry in database
+     * @param string $userGuid
+     * @param string $boostGuid
+     * @param int|null $lastViewedTimestamp
+     * @return bool
+     */
     public function add(
         string $userGuid,
         string $boostGuid,
@@ -109,6 +116,7 @@ class Repository
     }
 
     /**
+     * Get revenue details for boost partners in the given time window
      * @param int $fromTimestamp
      * @param int|null $toTimestamp
      * @return iterable

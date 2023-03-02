@@ -99,8 +99,6 @@ class Manager
             'from' => strtotime('midnight'),
         ], $opts);
 
-        var_dump($opts['dry-run']);
-
         $this->logger->addInfo("Start processing wire deposits");
         yield from $this->issueWireReferralDeposits($opts);
 
@@ -165,7 +163,7 @@ class Manager
                 ->setAmountCents($cents)
                 ->setItem('wire_referral');
 
-            if (!$opts['dry-run']) {
+            if (!($opts['dry-run'] ?? false)) {
                 $this->repository->add($deposit);
             } else {
                 $this->logger->addInfo('-------------- WIRE PAYOUT DEPOSIT ----------------');
@@ -197,7 +195,7 @@ class Manager
                 ->setAmountCents($shareCents)
                 ->setItem('plus');
 
-            if (!$opts['dry-run']) {
+            if (!($opts['dry-run'] ?? false)) {
                 $this->repository->add($deposit);
             } else {
                 $this->logger->addInfo('-------------- PLUS PAYOUT DEPOSIT ----------------');
@@ -256,7 +254,7 @@ class Manager
                 ->setAmountCents($amountCents)
                 ->setItem("views");
 
-            if (!$opts['dry-run']) {
+            if (!($opts['dry-run'] ?? false)) {
                 $this->repository->add($deposit);
             } else {
                 $this->logger->addInfo('-------------- PAGEVIEW PAYOUT DEPOSIT ----------------');
@@ -298,7 +296,7 @@ class Manager
                 ->setAmountCents($amountCents)
                 ->setItem("referrals");
 
-            if (!$opts['dry-run']) {
+            if (!($opts['dry-run'] ?? false)) {
                 $this->repository->add($deposit);
             } else {
                 $this->logger->addInfo('-------------- REFERRAL PAYOUT DEPOSIT ----------------');
@@ -311,6 +309,7 @@ class Manager
     }
 
     /**
+     * Issue revenue share deposits for boost partners generated views
      * @param array $opts
      * @return iterable
      */
@@ -324,7 +323,7 @@ class Manager
                 ->setAmountCents(($eCPM['ecpm'] * ($eCPM['total_views_served'] / 1000)) * (self::BOOST_PARTNER_REVENUE_SHARE_PCT / 100))
                 ->setItem('boost_partner');
 
-            if (!$opts['dry-run']) {
+            if (!($opts['dry-run'] ?? false)) {
                 $this->repository->add($deposit);
             } else {
                 $this->logger->addInfo('-------------- BOOST PARTNER PAYOUT DEPOSIT ----------------');

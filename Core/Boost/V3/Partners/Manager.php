@@ -6,6 +6,9 @@ namespace Minds\Core\Boost\V3\Partners;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 
+/**
+ *
+ */
 class Manager
 {
     public const REVENUE_SHARE_PCT = 50;
@@ -29,6 +32,7 @@ class Manager
     }
 
     /**
+     * Records an activity's view served by the provided boost partner
      * @param string $userGuid
      * @param string $boostGuid
      * @param int $eventTimestamp
@@ -47,6 +51,8 @@ class Manager
     }
 
     /**
+     * Retrieves the revenue details to issue deposits related to the views served by each boost partner in the given
+     * time window.
      * @param int $fromTimestamp
      * @param int|null $toTimestamp
      * @return iterable
