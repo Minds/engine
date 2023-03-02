@@ -5,6 +5,7 @@ namespace Minds\Core\Entities\EventStreams;
 use Minds\Core\EventStreams\BatchSubscriptionInterface;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\Topics\ViewsTopic;
+use NotImplementedException;
 
 class ViewEventStreamSubscription implements BatchSubscriptionInterface
 {
@@ -36,5 +37,14 @@ class ViewEventStreamSubscription implements BatchSubscriptionInterface
         }
 
         return true; // Return true to awknowledge the batch from the stream
+    }
+
+    /**
+     * @return void
+     * @throws NotImplementedException
+     */
+    public function commitChanges(): void
+    {
+        throw new NotImplementedException();
     }
 }
