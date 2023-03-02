@@ -51,16 +51,24 @@ class container implements Interfaces\Api
             ]);
         }
 
+        $custom_type = isset($_GET['custom_type']) && $_GET['custom_type'] ? [$_GET['custom_type']] : null;
+
         $type = '';
         switch ($pages[1]) {
             case 'activities':
                 $type = 'activity';
                 break;
             case 'images':
-                $type = 'object-image';
+                $type = 'activity';
+                if (!$custom_type) {
+                    $custom_type = 'batch';
+                }
                 break;
             case 'videos':
-                $type = 'object-video';
+                $type = 'activity';
+                if (!$custom_type) {
+                    $custom_type = 'video';
+                }
                 break;
             case 'blogs':
                 $type = 'object-blog';
@@ -118,8 +126,6 @@ class container implements Interfaces\Api
         if (isset($_GET['query'])) {
             $query = $_GET['query'];
         }
-
-        $custom_type = isset($_GET['custom_type']) && $_GET['custom_type'] ? [$_GET['custom_type']] : null;
 
         /** @var Core\Feeds\Elastic\Manager $manager */
         $manager = Di::_()->get('Feeds\Elastic\Manager');
