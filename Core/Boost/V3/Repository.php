@@ -274,7 +274,7 @@ class Repository
             )
                 ->setGuid($boostData['guid'])
                 ->setOwnerGuid($boostData['owner_guid'])
-                ->setEntity($entity); //
+                ->setEntity($entity);
         }
     }
 
