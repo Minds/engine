@@ -418,7 +418,7 @@ class Manager
 
         $feedSyncEntities = $this->castToFeedSyncEntities($boostsArray);
 
-        return new Response($feedSyncEntities);
+        return new Response($feedSyncEntities, $hasNext);
     }
 
     /**
