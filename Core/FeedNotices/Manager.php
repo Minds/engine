@@ -50,7 +50,8 @@ class Manager
         EnablePushNotificationsNotice::class,
         BoostChannelNotice::class,
         PlusUpgradeNotice::class,
-        InviteFriendsNotice::class
+        InviteFriendsNotice::class,
+        BoostPartnersNotice::class
     ];
 
     /**
