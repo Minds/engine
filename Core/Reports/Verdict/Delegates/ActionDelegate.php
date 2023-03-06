@@ -8,12 +8,16 @@ use Minds\Core\Security\ACL;
 use Minds\Core\Reports\Verdict\Verdict;
 use Minds\Core\Di\Di;
 use Minds\Common\Urn;
+use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
+use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Core\Boost\V3\Manager as BoostManager;
 use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePostStrategy;
 use Minds\Core\Monetization\Demonetization\DemonetizationContext;
 use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePlusUserStrategy;
 use Minds\Core\Reports\Report;
 use Minds\Core\Reports\Strikes\Strike;
 use Minds\Core\Entities\Actions\Save as SaveAction;
+use Minds\Core\Log\Logger;
 use Minds\Core\Plus;
 use Minds\Core\Sessions;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
@@ -64,7 +68,9 @@ class ActionDelegate
         $password = null,
         private ?DemonetizationContext $demonetizationContext = null,
         private ?DemonetizePostStrategy $demonetizePostStrategy = null,
-        private ?DemonetizePlusUserStrategy $demonetizePlusUserStrategy = null
+        private ?DemonetizePlusUserStrategy $demonetizePlusUserStrategy = null,
+        private ?BoostManager $boostManager = null,
+        private ?Logger $logger = null
     ) {
         $this->entitiesBuilder = $entitiesBuilder  ?: Di::_()->get('EntitiesBuilder');
         $this->actions = $actions ?: Di::_()->get('Reports\Actions');
@@ -79,6 +85,8 @@ class ActionDelegate
         $this->demonetizationContext ??= Di::_()->get(DemonetizationContext::class);
         $this->demonetizePostStrategy ??= Di::_()->get(DemonetizePostStrategy::class);
         $this->demonetizePlusUserStrategy ??= Di::_()->get(DemonetizePlusUserStrategy::class);
+        $this->boostManager ??= Di::_()->get(BoostManager::class);
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     public function onAction(Verdict $verdict)
@@ -210,8 +218,9 @@ class ActionDelegate
 
         // Enable ACL again
         ACL::$ignore = false;
-    }
 
+        $this->rejectEntityBoosts($entity);
+    }
 
     /**
      * Apply hacked account defense mechanism
@@ -303,5 +312,24 @@ class ActionDelegate
             ->ban(implode('.', [ $report->getReasonCode(), $report->getSubReasonCode() ]));
 
         $this->emailDelegate->onBan($report);
+    }
+
+    /**
+     * Reject running / pending boosts for a given entity.
+     * @param mixed $entity - entity to reject boosts for.
+     * @return bool - true on success.
+     */
+    private function rejectEntityBoosts(mixed $entity): bool
+    {
+        try {
+            return $this->boostManager->forceRejectByEntityGuid(
+                entityGuid: $entity->getGuid(),
+                reason: BoostRejectionReason::REPORT_UPHELD,
+                statuses: [BoostStatus::APPROVED, BoostStatus::PENDING]
+            );
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+            return false;
+        }
     }
 }

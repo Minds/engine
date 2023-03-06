@@ -9,14 +9,12 @@ use Minds\Core\Data\ElasticSearch\Prepared\Search;
 use Minds\Entities\User;
 
 /**
- * Assembles list of users who have been active in last 30 days.
+ * Users who boosted prior to feb 2023
  */
-class Active30DayList implements SendGridListInterface
+class BoostedV2List implements SendGridListInterface
 {
     // composite query after key (aggs bucket paging token).
     private $afterKey = null;
-
-    private $maxTs;
 
     public function __construct(
         private ?EntitiesBuilder $entitiesBuilder = null,
@@ -24,7 +22,6 @@ class Active30DayList implements SendGridListInterface
     ) {
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
-        $this->maxTs = time() * 1000;
     }
 
     /**
@@ -34,7 +31,7 @@ class Active30DayList implements SendGridListInterface
     public function getContacts(): iterable
     {
         $query = [
-            'index' => 'minds-metrics-*',
+            'index' => 'minds-boost*',
             'body' => [
                 'query' => [
                     'bool' => [
@@ -42,8 +39,8 @@ class Active30DayList implements SendGridListInterface
                             'range' => [
                                 // last month
                                 '@timestamp' => [
-                                    'gte' => strtotime('midnight') * 1000,
-                                    'lt' => $this->maxTs,
+                                    'gt' => strtotime('midnight 1 year ago') * 1000,
+                                    'lt' => strtotime('midnight') * 1000,
                                     'format' => 'epoch_millis'
                                 ]
                             ]
@@ -63,14 +60,14 @@ class Active30DayList implements SendGridListInterface
                                     "user_guid" => [
                                         // distinct user_guids
                                         "terms" => [
-                                            "field" => "user_guid.keyword",
+                                            "field" => "owner_guid",
                                         ]
                                     ]
                                 ]
                             ]
                         ],
                         "aggregations" => [
-                            "last_active" => [
+                            "last_boost" => [
                                 "max" => [
                                     "field" => "@timestamp"
                                 ]
@@ -101,11 +98,10 @@ class Active30DayList implements SendGridListInterface
 
             $contact = new SendGridContact();
             $contact
-                ->setUser($owner)
                 ->setUserGuid($owner->getGuid())
                 ->setUsername($owner->get('username'))
                 ->setEmail($owner->getEmail())
-                ->setLastActive30DayTs($hit['last_active']['value'] / 1000);
+                ->setLastBoostedv2($hit['last_boost']['value'] / 1000);
 
             if (!$contact->getEmail()) {
                 continue;
@@ -115,7 +111,7 @@ class Active30DayList implements SendGridListInterface
         }
 
         // if no we're not out of hits in the buckets.
-        if (!empty($result["aggregations"]["unique_users"]["buckets"]) && isset($result["aggregations"]["unique_users"]["after_key"])) {
+        if (!empty($result["aggregations"]["unique_users"]["buckets"])) {
             // set after key again.
             $this->setAfterKey(
                 $result["aggregations"]["unique_users"]["after_key"] ?? null

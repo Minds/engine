@@ -5,6 +5,7 @@
 namespace Minds\Core\Security;
 
 use Minds\Core;
+use Minds\Core\Boost\V3\Models\Boost as BoostV3;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
@@ -165,6 +166,7 @@ class ACL
             && ($entity->owner_guid == $entity->container_guid
                 || $entity->container_guid == 0)
             && !($entity instanceof SupermindRequest)
+            && !($entity instanceof BoostV3)
         ) {
             return true;
         }

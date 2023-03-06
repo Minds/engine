@@ -9,12 +9,14 @@ class BoostRejectionReason
     public const AGAINST_MINDS_BOOST_POLICY = 2;
     public const AGAINST_STRIPE_TERMS_OF_SERVICE = 3;
     public const ONCHAIN_PAYMENT_FAILED = 4;
+    public const REPORT_UPHELD = 5;
 
     public const VALID_REJECTION_REASONS = [
         self::WRONG_AUDIENCE,
         self::AGAINST_MINDS_BOOST_POLICY,
         self::AGAINST_STRIPE_TERMS_OF_SERVICE,
         self::ONCHAIN_PAYMENT_FAILED,
+        self::REPORT_UPHELD
     ];
 
     public static function isValid(?int $rejectionReasonCode): bool
@@ -41,6 +43,10 @@ class BoostRejectionReason
                 'code' => self::ONCHAIN_PAYMENT_FAILED,
                 'label' => "Payment failed"
             ],
+            [
+                'code' => self::REPORT_UPHELD,
+                'label' => "Reported"
+            ]
         ];
     }
 }
