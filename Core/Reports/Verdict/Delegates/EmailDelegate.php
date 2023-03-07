@@ -137,7 +137,7 @@ class EmailDelegate
         $banReasons = Di::_()->get('Config')->get('report_reasons');
         $splitReason = preg_split("/\./", $reason);
 
-        // 14 is an internal reason for strike accumulation that is not available for users to report.
+        // 14 is an internal reason for strike accumulation and is not available for users to report.
         if ($splitReason[0] === "14") {
             return array_values(array_filter(
                 $banReasons,
