@@ -12,6 +12,7 @@ use Minds\Traits\MagicAttributes;
  * @method float|null getSupermindCashMin()
  * @method float|null getSupermindOffchainTokensMin()
  * @method string|null getPlusDemonetizedTimestamp()
+ * @method int|null getBoostPartnerSuitability()
  */
 class UserSettings implements ExportableInterface
 {
@@ -22,6 +23,7 @@ class UserSettings implements ExportableInterface
     private ?float $supermindCashMin = null;
     private ?float $supermindOffchainTokensMin = null;
     private ?string $plusDemonetizedTimestamp = null;
+    private ?int $boostPartnerSuitability = null;
     private array $dirty = [];
 
     public function setUserGuid(string $userGuid): self
@@ -75,6 +77,18 @@ class UserSettings implements ExportableInterface
     }
 
     /**
+     * Set user's preference for boost partner audience suitability.
+     * @param int $boostPartnerSuitability - e.g. disabled(1), safe(2)
+     * @return self
+     */
+    public function setBoostPartnerSuitability(?string $boostPartnerSuitability): self
+    {
+        $this->boostPartnerSuitability = $boostPartnerSuitability;
+        $this->markPropertyAsUpdated('boost_partner_suitability', $boostPartnerSuitability);
+        return $this;
+    }
+
+    /**
      * @param User $user
      * @return self
      */
@@ -117,6 +131,12 @@ class UserSettings implements ExportableInterface
             );
         }
 
+        if (array_key_exists('boost_partner_suitability', $data)) {
+            $userSettings->setBoostPartnerSuitability(
+                $data['boost_partner_suitability']
+            );
+        }
+
         return $userSettings;
     }
 
@@ -138,6 +158,7 @@ class UserSettings implements ExportableInterface
             'supermind_cash_min' => $this->supermindCashMin,
             'supermind_offchain_tokens_min' => $this->supermindOffchainTokensMin,
             'plus_demonetized_ts' => $this->plusDemonetizedTimestamp,
+            'boost_partner_suitability' =>$this->boostPartnerSuitability
         ];
     }
 }

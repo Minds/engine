@@ -32,6 +32,7 @@ use Minds\Core\Monetization\Demonetization\Strategies\Interfaces\DemonetizableEn
  * @property int $opted_in_hashtags
  * @property int $last_accepted_tos
  * @property array $supermind_settings
+ * @property array $boost_settings
  * @property int $creator_frequency
  * @property string $phone_number
  * @property string $phone_number_hash
@@ -145,6 +146,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface
         $this->attributes['dismissed_widgets'] = [];
         $this->attributes['liquidity_spot_opt_out'] = 0;
         $this->attributes['supermind_settings'] = [];
+        $this->attributes['boost_settings'] = [];
 
         parent::initializeAttributes();
     }
@@ -1112,6 +1114,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface
         $export['mature'] = (int) $this->getViewMature();
         $export['last_accepted_tos'] = (int) $this->getLastAcceptedTOS();
         $export['supermind_settings'] = $this->getSupermindSettings();
+        $export['boost_settings'] = $this->getBoostSettings();
         $export['opted_in_hashtags'] = (int) $this->getOptedInHashtags();
         $export['canary'] = (bool) $this->isCanary();
         $export['is_admin'] = $this->attributes['admin'] == 'yes';
@@ -1480,6 +1483,28 @@ class User extends \ElggUser implements DemonetizableEntityInterface
     }
 
     /**
+     * Getter for boost settings.
+     * @return array
+     */
+    public function getBoostSettings(): array
+    {
+        return $this->boost_settings && count($this->boost_settings) ?
+            $this->boost_settings :
+            (new Settings())->export(); // default settings.
+    }
+
+    /**
+     * Set boost settings.
+     * @param string $value
+     * @return $this
+     */
+    public function setBoostSettings($value)
+    {
+        $this->boost_settings = $value;
+        return $this;
+    }
+
+    /**
      * @return int
      */
     public function getOptedInHashtags()
@@ -1546,7 +1571,8 @@ class User extends \ElggUser implements DemonetizableEntityInterface
             'allow_unsubscribed_contact',
             'dismissed_widgets',
             'liquidity_spot_opt_out',
-            'supermind_settings'
+            'supermind_settings',
+            'boost_settings'
         ]);
     }
 
