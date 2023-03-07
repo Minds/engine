@@ -6,7 +6,6 @@ namespace Minds\Core\Reports\Strikes\Delegates;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Reports\Strikes\Strike;
-use Minds\Core\Events\EventsDispatcher;
 use Minds\Common\Urn;
 use Minds\Core\Email\V2\Campaigns\Custom\Custom;
 use Minds\Core\Plus;
@@ -66,8 +65,15 @@ class EmailDelegate
 
         $subject = 'Strike received';
 
+        $template = 'moderation-strike';
+        if ($entity instanceof PaywallEntityInterface && $this->plusManager->isPlusEntity($entity)) {
+            $template = 'moderation-strike-plus';
+        } elseif ($strike->getReasonCode() === 10) {
+            $template = 'moderation-strike-copyright';
+        }
+
         $this->campaign->setUser($owner);
-        $this->campaign->setTemplate($entity instanceof PaywallEntityInterface && $this->plusManager->isPlusEntity($entity) ? 'moderation-strike-plus' : 'moderation-strike');
+        $this->campaign->setTemplate($template);
         $this->campaign->setSubject($subject);
         $this->campaign->setTitle($subject);
         $this->campaign->setPreheader('You have received a strike');

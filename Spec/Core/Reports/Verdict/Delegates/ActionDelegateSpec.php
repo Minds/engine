@@ -436,4 +436,103 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->onAction($verdict);
     }
+
+    public function it_should_be_removed_and_apply_strike_if_intellectual_takedown_violation_for_non_users(Entity $entity)
+    {
+        $report = new Report;
+        $report->setEntityUrn('urn:activity:123')
+            ->setReasonCode(10);
+
+        $verdict = new Verdict;
+        $verdict->setReport($report)
+            ->setUphold(true)
+            ->setAction('10');
+
+        $entity->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $entity->get('type')
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
+        $this->entitiesBuilder->single(123)
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $this->actions->setDeletedFlag(Argument::type(Entity::class), true)
+            ->shouldBeCalled();
+
+        $this->saveAction->setEntity($entity)
+            ->willReturn($this->saveAction);
+        
+        $this->saveAction->save()
+            ->shouldBeCalled();
+
+        $this->strikesManager->countStrikesInTimeWindow(Argument::any(), Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(0);
+
+        $this->strikesManager->add(Argument::any())
+            ->shouldBeCalled();
+
+        $this->boostManager->forceRejectByEntityGuid(
+            entityGuid: '123',
+            reason: BoostRejectionReason::REPORT_UPHELD,
+            statuses: [BoostStatus::APPROVED, BoostStatus::PENDING]
+        )->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->onAction($verdict);
+    }
+
+
+    public function it_should_apply_strike_if_intellectual_takedown_violation_for_user(Entity $entity)
+    {
+        $report = new Report;
+        $report->setEntityUrn('urn:activity:123')
+            ->setReasonCode(10);
+
+        $verdict = new Verdict;
+        $verdict->setReport($report)
+            ->setUphold(true)
+            ->setAction('10');
+
+        $entity->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $entity->get('type')
+            ->shouldBeCalled()
+            ->willReturn('user');
+
+        $this->entitiesBuilder->single(123)
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $this->actions->setDeletedFlag(Argument::type(Entity::class), true)
+            ->shouldNotBeCalled();
+
+        $this->saveAction->setEntity($entity)
+            ->shouldNotBeCalled();
+        
+        $this->saveAction->save()
+            ->shouldNotBeCalled();
+
+        $this->strikesManager->countStrikesInTimeWindow(Argument::any(), Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(0);
+
+        $this->strikesManager->add(Argument::any())
+            ->shouldBeCalled();
+
+        $this->boostManager->forceRejectByEntityGuid(
+            entityGuid: '123',
+            reason: BoostRejectionReason::REPORT_UPHELD,
+            statuses: [BoostStatus::APPROVED, BoostStatus::PENDING]
+        )->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->onAction($verdict);
+    }
 }
