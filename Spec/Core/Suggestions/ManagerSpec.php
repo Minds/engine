@@ -8,7 +8,6 @@ use Minds\Core\Suggestions\Manager;
 use Minds\Core\Suggestions\Suggestion;
 use Minds\Core\Suggestions\Repository;
 use Minds\Core\Subscriptions\Manager as SubscriptionsManager;
-use Minds\Core\Features;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Security\RateLimits\InteractionsLimiter;
 use Minds\Core\Security\RateLimits\RateLimit;
@@ -31,17 +30,13 @@ class ManagerSpec extends ObjectBehavior
         EntitiesBuilder $entitiesBuilder,
         SubscriptionsManager $subscriptionsManager,
         InteractionsLimiter $interactionsLimiter,
-        Features\Manager $features
     ) {
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->interactionsLimiter = $interactionsLimiter;
         $this->subscriptionsManager = $subscriptionsManager;
 
-        $features->has('suggestions')
-            ->willReturn(true);
-
-        $this->beConstructedWith($repository, $entitiesBuilder, null, $subscriptionsManager, $interactionsLimiter, $features);
+        $this->beConstructedWith($repository, $entitiesBuilder, null, $subscriptionsManager, $interactionsLimiter);
     }
 
     public function it_is_initializable()

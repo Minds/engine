@@ -12,7 +12,6 @@ use Minds\Core\Email;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Email\V2\Campaigns\Recurring\UnreadNotifications\UnreadNotifications;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Features;
 use Minds\Entities\User;
 
 class Manager
@@ -26,9 +25,6 @@ class Manager
     /** @var UnreadNotifications */
     protected $unreadNotificationsEmail;
 
-    /** @var Features\Manager */
-    protected $featuresManager;
-
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
@@ -36,13 +32,11 @@ class Manager
         Repository $repository = null,
         Email\Repository $emailRepository = null,
         UnreadNotifications $unreadNotificationsEmail = null,
-        Features\Manager $featuresManager = null,
         EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->repository = $repository ?? new Repository();
         $this->emailRepository = $emailRepository ?? Di::_()->get('Email\Repository');
         $this->unreadNotificationsEmail = $unreadNotificationsEmail ?? new UnreadNotifications();
-        $this->featuresManager = $featuresManager ?? Di::_()->get('Features\Manager');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
 
@@ -54,11 +48,6 @@ class Manager
     {
         /** @var User */
         $toUser = $this->entitiesBuilder->single($marker->getToGuid());
-
-        // Only if the user allows the feature flag, should we send the email
-        if (!$this->featuresManager->setUser($toUser)->has('notifications-v3')) {
-            return;
-        }
 
         $this->unreadNotificationsEmail
             ->setUser($toUser)
@@ -112,7 +101,7 @@ class Manager
         } else {
             $emailSubscription = $result['data'][0];
         }
-        
+
         // Due to legacy loose-typing, we need to remap some values here
         switch ($emailSubscription->getValue()) {
             case 'daily':

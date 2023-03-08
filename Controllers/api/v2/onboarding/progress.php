@@ -24,17 +24,10 @@ class progress implements Interfaces\Api
         $manager = new Manager();
         $manager->setUser(Session::getLoggedInUser());
 
-        /** @var \Minds\Core\Features\Manager $manager */
-        $featuresManager = Di::_()->get('Features\Manager');
-
         $allItems = $manager->getAllItems();
         $completedItems = $manager->getCompletedItems();
 
-        if ($featuresManager->has('ux-2020')) {
-            $showOnboarding = !$manager->wasOnboardingShown();
-        } else {
-            $showOnboarding = !$manager->wasOnboardingShown() && count($allItems) > count($completedItems);
-        }
+        $showOnboarding = !$manager->wasOnboardingShown();
 
         return Factory::response([
             'show_onboarding' => $showOnboarding,
