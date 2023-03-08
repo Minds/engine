@@ -36,10 +36,13 @@ class Events
             $entity = $boost->getEntity();
             $user = $params['user'];
 
-            if ($entity) {
-                $canRead = $this->acl->read($entity, $user);
-                $event->setResponse($canRead);
+            if (!$entity) {
+                $event->setResponse(true);
+                return;
             }
+
+            $canRead = $this->acl->read($entity, $user);
+            $event->setResponse($canRead);
         });
     }
 }
