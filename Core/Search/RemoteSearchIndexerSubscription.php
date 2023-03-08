@@ -23,7 +23,6 @@ use Minds\Entities\Video;
 
 class RemoteSearchIndexerSubscription extends SearchSearchIndexerSubscription
 {
-   
     /**
      * @return string
      */
