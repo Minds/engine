@@ -23,6 +23,7 @@ use Minds\Core\Boost\V3\Exceptions\EntityTypeNotAllowedInLocationException;
 use Minds\Core\Boost\V3\Exceptions\IncorrectBoostStatusException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
 use Minds\Core\Boost\V3\Models\Boost;
+use Minds\Core\Boost\V3\Models\BoostEntityWrapper;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
@@ -565,20 +566,16 @@ class Manager
         $feedSyncEntities = [];
 
         foreach ($boosts as $boost) {
-            $exportedBoostEntity = $boost->export()['entity'];
-            if (!$exportedBoostEntity) {
-                continue;
-            }
-            $exportedBoostEntity['boosted'] = true;
-            $exportedBoostEntity['boosted_guid'] = $boost->getGuid();
-            $exportedBoostEntity['urn'] = $boost->getUrn();
-
             $feedSyncEntities[] = (new FeedSyncEntity())
                 ->setGuid($boost->getGuid())
                 ->setOwnerGuid($boost->getOwnerGuid())
                 ->setTimestamp($boost->getCreatedTimestamp())
                 ->setUrn($boost->getUrn())
-                ->setExportedEntity($exportedBoostEntity);
+                ->setEntity(
+                    $boost->getEntity() ?
+                    new BoostEntityWrapper($boost) :
+                    null
+                );
         }
 
         return $feedSyncEntities;
