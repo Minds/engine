@@ -172,7 +172,9 @@ class Repository
             $values['payment_method'] = $paymentMethod;
         }
 
-        if ($targetAudience === BoostTargetAudiences::SAFE) {
+        // if audience is safe, we want safe only, else we want all audiences.
+        // if this is for the approval queue, we want admins to be able to filter between options.
+        if ($targetAudience === BoostTargetAudiences::SAFE || $forApprovalQueue) {
             $whereClauses[] = "target_suitability = :target_suitability";
             $values['target_suitability'] = $targetAudience;
         }
