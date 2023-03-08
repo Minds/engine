@@ -9,7 +9,6 @@ use Imagick;
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Entities;
 use Minds\Helpers\File;
 use Minds\Interfaces;
@@ -53,8 +52,6 @@ class thumbnail extends Core\page implements Interfaces\page
             ]);
         }
 
-        $featuresManager = new FeaturesManager();
-
         /** @var Core\Media\Thumbnails $mediaThumbnails */
         $mediaThumbnails = Di::_()->get('Media\Thumbnails');
 
@@ -93,15 +90,15 @@ class thumbnail extends Core\page implements Interfaces\page
             if (!(str_contains($contentType, 'image/gif'))) {
                 $image = new Imagick();
                 $image->readImageBlob($contents);
-    
+
                 $profiles = $image->getImageProfiles("icc", true);
-    
+
                 $image->stripImage();
-    
+
                 if (!empty($profiles)) {
                     $image->profileImage("icc", $profiles['icc']);
                 }
-    
+
                 $contents = $image->getImageBlob();
             }
 

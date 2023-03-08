@@ -11,7 +11,6 @@ use Minds\Api\Factory;
 use Minds\Common;
 use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Entities;
 use Minds\Interfaces;
 
@@ -46,9 +45,7 @@ class thumbnails implements Interfaces\Api, Interfaces\ApiIgnorePam
             ]);
         }
 
-        $featuresManager = new FeaturesManager();
-
-        if ($entity->access_id !== Common\Access::PUBLIC && $featuresManager->has('cdn-jwt')) {
+        if ($entity->access_id !== Common\Access::PUBLIC) {
             error_log("{$_SERVER['REQUEST_URI']} was hit, and should not have been");
 
             return Factory::response([

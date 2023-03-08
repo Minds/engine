@@ -5,7 +5,6 @@ namespace Spec\Minds\Core\Onboarding;
 use Minds\Core\Onboarding\Controller;
 use Minds\Core\Onboarding\Manager;
 use Minds\Core\Onboarding\OnboardingGroups;
-use Minds\Core\Features;
 use Minds\Entities\User;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
@@ -17,12 +16,10 @@ class ControllerSpec extends ObjectBehavior
     /** @var Manager */
     protected $manager;
 
-    public function let(Manager $manager, Features\Manager $featuresManager)
+    public function let(Manager $manager)
     {
-        $this->beConstructedWith($manager, $featuresManager);
+        $this->beConstructedWith($manager);
         $this->manager = $manager;
-        $featuresManager->has('onboarding-october-2020')
-            ->willReturn(true);
     }
 
     public function it_is_initializable()
@@ -49,7 +46,7 @@ class ControllerSpec extends ObjectBehavior
                 'steps' => [],
             ]);
         //
-            
+
         $response = $this->getProgress($request);
         $json = $response->getBody()->getContents();
         $json->shouldBe(json_encode([
@@ -78,7 +75,7 @@ class ControllerSpec extends ObjectBehavior
                 'steps' => [],
             ]);
         //
-            
+
         $response = $this->getProgress($request);
         $json = $response->getBody()->getContents();
         $json->shouldBe(json_encode([
@@ -100,7 +97,7 @@ class ControllerSpec extends ObjectBehavior
 
         $this->manager->setOnboardingShown(Argument::any())
             ->willReturn(true);
-        
+
         //
 
         $response = $this->setSeen($request);
