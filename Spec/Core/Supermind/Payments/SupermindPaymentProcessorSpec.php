@@ -16,6 +16,7 @@ use Minds\Core\Supermind\Settings\Models\Settings;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
+use Minds\Exceptions\UserNotFoundException;
 use Prophecy\Argument;
 
 class SupermindPaymentProcessorSpec extends ObjectBehavior
@@ -385,6 +386,29 @@ class SupermindPaymentProcessorSpec extends ObjectBehavior
             ->willReturn($transaction);
 
         $this->refundOffchainPayment($request)->shouldBe($txId);
+    }
+
+    public function it_should_throw_user_not_found_exception_when_refunding_an_offchain_payment(
+        SupermindRequest $request
+    ) {
+        $guid = '123';
+        $senderGuid = '234';
+
+        $request->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($guid);
+
+        $request->getSenderGuid()
+            ->shouldBeCalled()
+            ->willReturn($senderGuid);
+
+        $this->entitiesBuilder->single($senderGuid)
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->shouldThrow(new UserNotFoundException(
+            'User (234) not found for Supermind with guid: 123'
+        ))->during('refundOffchainPayment', [$request]);
     }
 
     public function it_should_credit_an_offchain_payment(

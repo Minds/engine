@@ -49,9 +49,6 @@ class Manager
     /** @var ACL */
     protected $acl;
 
-    /** @var Features */
-    protected $features;
-
     /** @var TrendingHashtagManager */
     protected $trendingHashtagManager;
 
@@ -63,7 +60,6 @@ class Manager
         $elasticFeedsManager = null,
         $user = null,
         $acl = null,
-        $features = null,
         TrendingHashtagManager $trendingHashtagManager = null
     ) {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
@@ -74,7 +70,6 @@ class Manager
         $this->user = $user ?? Session::getLoggedInUser();
         $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'] ?? null;
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
-        $this->features = $features ?: Di::_()->get('Features\Manager');
         $this->trendingHashtagManager = $trendingHashtagManager ?? Di::_()->get('Hashtags\Trending\Manager');
     }
 
@@ -107,9 +102,6 @@ class Manager
         if ($opts['tag_cloud_override']) {
             $this->tagCloud = $opts['tag_cloud_override'];
         } elseif (empty($this->tagCloud) && $opts['plus'] === false) {
-            if (!$this->features->has('discovery-default-tags')) {
-                throw new NoTagsException();
-            }
             // fallback to defaults.
             $this->tagCloud = $this->config->get('tags') ?? [];
         }
@@ -341,7 +333,7 @@ class Manager
                     ]
                 ];
             }
-    
+
             // Match query
 
             if ($opts['plus'] === false) {
@@ -597,7 +589,7 @@ class Manager
             'reverse_sort' => true,
         ], $opts)));
     }
-    
+
     /**
      * Returns options for search list and count queries
      * @param string $query

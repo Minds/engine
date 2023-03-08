@@ -7,7 +7,6 @@ use Minds\Core\Notifications\EmailDigests\Repository;
 use Minds\Core\Email;
 use Minds\Core\Email\V2\Campaigns\Recurring\UnreadNotifications\UnreadNotifications;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Features;
 use Minds\Core\Notifications\Notification;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -23,9 +22,6 @@ class ManagerSpec extends ObjectBehavior
     /** @var UnreadNotifications */
     protected $unreadNotificationsEmail;
 
-    /** @var Features\Manager */
-    protected $featuresManager;
-
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
@@ -33,14 +29,12 @@ class ManagerSpec extends ObjectBehavior
         Repository $repository,
         Email\Repository $emailRepository,
         UnreadNotifications $unreadNotificationsEmail,
-        Features\Manager $featuresManager,
         EntitiesBuilder $entitiesBuilder
     ) {
-        $this->beConstructedWith($repository, $emailRepository, $unreadNotificationsEmail, $featuresManager, $entitiesBuilder);
+        $this->beConstructedWith($repository, $emailRepository, $unreadNotificationsEmail, $entitiesBuilder);
         $this->repository = $repository;
         $this->emailRepository = $emailRepository;
         $this->unreadNotificationsEmail = $unreadNotificationsEmail;
-        $this->featuresManager = $featuresManager;
         $this->entitiesBuilder = $entitiesBuilder;
     }
 

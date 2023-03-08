@@ -613,33 +613,6 @@ $CONFIG->set('max_video_length', 900);
 
 $CONFIG->set('max_video_length_plus', 1860);
 
-// You can find a list of all in use feature flags at Core/Features/Provider.php
-$CONFIG->set('features', [
-    'psr7-router' => true,
-    'es-feeds' => false,
-    'helpdesk' => true,
-    'top-feeds' => true,
-    'cassandra-notifications' => true,
-    'dark-mode' => true,
-    'allow-comments-toggle' => false,
-    'permissions' => false,
-    'pro' => false,
-    'webtorrent' => false,
-    'top-feeds-by-age' => true,
-    'ux-2020' => true,
-    'modal-pager' => true,
-    'wallet-upgrade' => true,
-    'subscriber-conversations' => true,
-    'activity-modal' => false,
-    'withdrawal-console' => true,
-    'twilio-verify' => true,
-    'helpdesk-2021' => true,
-    'discovery-default-tags' => true,
-    'skale' => true,
-    'polygon' => true,
-    'web3-service-withdrawals' => false,
-]);
-
 $CONFIG->set('email', [
     'sender' => [
         'email' => 'no-reply@minds.com',
