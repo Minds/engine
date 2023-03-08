@@ -3,7 +3,7 @@ include:
   - template: Security/Container-Scanning.gitlab-ci.yml
 
 stages:
-  - baseimage
+  # - baseimage
   - build
   - test
   - prepare
