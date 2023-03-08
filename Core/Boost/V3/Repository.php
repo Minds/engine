@@ -172,7 +172,7 @@ class Repository
             $values['payment_method'] = $paymentMethod;
         }
 
-        if ($targetAudience) {
+        if ($targetAudience === BoostTargetAudiences::SAFE) {
             $whereClauses[] = "target_suitability = :target_suitability";
             $values['target_suitability'] = $targetAudience;
         }
