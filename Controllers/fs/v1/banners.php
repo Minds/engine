@@ -11,7 +11,6 @@ use Minds\Core;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Helpers\File;
-use Minds\Core\Features\Manager as FeaturesManager;
 
 define('DEFAULT_BANNER_PATHS', [
     'Assets/banners/0.jpg',
@@ -63,12 +62,9 @@ class banners implements Interfaces\Fs
                     $content = $f->read();
                 }
             } else {
-                $featuresManager = new FeaturesManager;
-                if ($featuresManager->has('channels')) {
-                    $content = file_get_contents(
-                        Core\Config::build()->path . 'engine/' . $this->getSeededBannerPath($entity->guid)
-                    );
-                }
+                $content = file_get_contents(
+                    Core\Config::build()->path . 'engine/' . $this->getSeededBannerPath($entity->guid)
+                );
             }
             break;
           case "group":

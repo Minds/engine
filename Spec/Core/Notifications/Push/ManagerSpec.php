@@ -7,7 +7,6 @@ use Minds\Core\Notifications\Push\Manager;
 use Minds\Core\Notifications;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Notifications\Push\DeviceSubscriptions;
-use Minds\Core\Features;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
@@ -27,49 +26,26 @@ class ManagerSpec extends ObjectBehavior
 
     /** @var Settings\Manager */
     protected $settingsManager;
-    
+
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
-    
-    /** @var Features\Manager */
-    protected $featuresManager;
-    
+
     public function let(
         Notifications\Manager $notificationsManager,
         DeviceSubscriptions\Manager $deviceSubscriptionsManager,
         Settings\Manager $settingsManager,
-        EntitiesBuilder $entitiesBuilder,
-        Features\Manager $featuresManager
+        EntitiesBuilder $entitiesBuilder
     ) {
-        $this->beConstructedWith($notificationsManager, $deviceSubscriptionsManager, $settingsManager, $entitiesBuilder, $featuresManager);
+        $this->beConstructedWith($notificationsManager, $deviceSubscriptionsManager, $settingsManager, $entitiesBuilder);
         $this->notificationsManager = $notificationsManager;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->settingsManager = $settingsManager;
         $this->deviceSubscriptionsManager = $deviceSubscriptionsManager;
-        $this->featuresManager = $featuresManager;
     }
 
     public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
-    }
-
-    public function it_should_not_send_if_feature_flag_is_off()
-    {
-        $notification = new Notification();
-        $notification->setToGuid(123);
-
-        $toUser = new User();
-
-        $this->entitiesBuilder->single('123')
-            ->willReturn($toUser);
-
-        $this->featuresManager->setUser($toUser)
-            ->willReturn($this->featuresManager);
-        $this->featuresManager->has('notifications-v3')
-            ->willReturn(false);
-
-        $this->sendPushNotification($notification);
     }
 
     public function it_should_send_a_push_notifiction(ApnsService $apnsService)
@@ -90,11 +66,6 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(new ArrayIterator([
                 [$notification,'']
             ]));
-
-        $this->featuresManager->setUser($toUser)
-            ->willReturn($this->featuresManager);
-        $this->featuresManager->has('notifications-v3')
-            ->willReturn(true);
 
         $this->notificationsManager->getUnreadCount($toUser)
             ->willReturn(2);

@@ -5,7 +5,6 @@ namespace Minds\Core\Search\MetricsSync;
 use Minds\Core\Data\ElasticSearch\Client as ElasticsearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Di\Di;
-use Minds\Core\Features\Manager as Features;
 use Minds\Core\Search\SortingAlgorithms;
 use Minds\Helpers\Text;
 
