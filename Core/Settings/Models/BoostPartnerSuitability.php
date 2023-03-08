@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Minds\Core\Boost\V3\Settings;
+namespace Minds\Core\Settings\Models;
 
 /**
  * A user may specify what suitability (if any) they

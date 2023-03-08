@@ -23,7 +23,7 @@ class UserSettings implements ExportableInterface
     private ?float $supermindCashMin = null;
     private ?float $supermindOffchainTokensMin = null;
     private ?string $plusDemonetizedTimestamp = null;
-    private ?int $boostPartnerSuitability = null;
+    private int $boostPartnerSuitability = BoostPartnerSuitability::CONTROVERSIAL;
     private array $dirty = [];
 
     public function setUserGuid(string $userGuid): self
@@ -81,7 +81,7 @@ class UserSettings implements ExportableInterface
      * @param int $boostPartnerSuitability - e.g. disabled(1), safe(2)
      * @return self
      */
-    public function setBoostPartnerSuitability(?string $boostPartnerSuitability): self
+    public function setBoostPartnerSuitability(?int $boostPartnerSuitability): self
     {
         $this->boostPartnerSuitability = $boostPartnerSuitability;
         $this->markPropertyAsUpdated('boost_partner_suitability', $boostPartnerSuitability);
