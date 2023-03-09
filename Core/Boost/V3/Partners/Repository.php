@@ -76,7 +76,7 @@ class Repository
 
         $statement = $this->mysqlClientWriterHandler
             ->insert()
-            ->into('boosts_partner_views')
+            ->into('boost_partner_views')
             ->set([
                 'served_by_user_guid' => new RawExp(':user_guid'),
                 'boost_guid' => new RawExp(':boost_guid'),
@@ -155,7 +155,7 @@ class Repository
                 'total_views_served' => new RawExp('SUM(bpv.views)'),
                 'ecpm' => new RawExp('SUM((completed.payment_amount / completed.total_views) * 1000)'),
             ])
-            ->from(['bpv' => 'boosts_partner_views'])
+            ->from(['bpv' => 'boost_partner_views'])
             ->innerJoin(
                 new RawExp(rtrim($completedBoostsQuery->build(), ';')),
                 'completed.guid',
