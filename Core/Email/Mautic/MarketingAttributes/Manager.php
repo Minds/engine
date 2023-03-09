@@ -14,6 +14,7 @@ class Manager
 {
     /** @var SendGridListInterface[] */
     const DEFAULT_LISTS = [
+        Lists\LastPostedList::class,
         Lists\BoostedV3List::class,
         Lists\TokenBalances::class,
         Lists\WireUSDUsersList::class,
