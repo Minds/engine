@@ -52,6 +52,7 @@ class Controller
 
         $limit = $params['limit'] ?? 12;
         $offset = $params['offset'] ?? 0;
+        $servedByGuid = $params['served_by_guid'] ?? null;
 
         $audience =
             $params['audience'] ??
@@ -71,7 +72,8 @@ class Controller
                 targetStatus: BoostStatus::APPROVED,
                 orderByRanking: true,
                 targetAudience: (int) $audience,
-                targetLocation: (int) $targetLocation ?: null
+                targetLocation: (int) $targetLocation ?: null,
+                servedByGuid: $servedByGuid
             );
 
         return new JsonResponse([
