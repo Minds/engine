@@ -25,7 +25,9 @@ use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\FeedSyncEntity;
+use Minds\Entities\Activity;
 use Minds\Entities\Entity;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use NotImplementedException;
@@ -968,10 +970,6 @@ class ManagerSpec extends ObjectBehavior
         )
             ->shouldBeCalled()
             ->willYield([$boost]);
-
-        $this->acl->read($boost)
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $this->getBoostFeed()->toArray()->shouldBeLike([
             (new FeedSyncEntity())
