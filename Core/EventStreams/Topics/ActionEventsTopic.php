@@ -209,9 +209,4 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
             ]
         ]);
     }
-
-    public function close()
-    {
-
-    }
 }

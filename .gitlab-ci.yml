@@ -22,7 +22,7 @@ baseimage:prepare:
     - docker:dind
   script:
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-    - docker build -t $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID containers/php
+    - docker build -t $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID -f V2.Dockerfile containers/php
     - docker push $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID
   rules:
     - if: '$CI_PIPELINE_SOURCE != "push"'
