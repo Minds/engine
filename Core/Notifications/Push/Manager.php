@@ -8,7 +8,6 @@ use Minds\Core\Notifications;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\Services\PushServiceInterface;
-use Minds\Core\Features;
 use Minds\Entities\User;
 
 class Manager
@@ -25,9 +24,6 @@ class Manager
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    /** @var Features\Manager */
-    protected $featuresManager;
-
     /** @var Services\ApnsService */
     protected $apnsService;
 
@@ -41,14 +37,12 @@ class Manager
         Notifications\Manager $notificationsManager = null,
         DeviceSubscriptions\Manager $deviceSubscriptionsManager = null,
         Settings\Manager $settingsManager = null,
-        EntitiesBuilder $entitiesBuilder = null,
-        Features\Manager $featuresManager = null
+        EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->notificationsManager = $notificationsManager;
         $this->deviceSubscriptionsManager = $deviceSubscriptionsManager;
         $this->settingsManager = $settingsManager;
         $this->entitiesBuilder = $entitiesBuilder;
-        $this->featuresManager = $featuresManager;
     }
 
     /**
@@ -62,11 +56,6 @@ class Manager
         $toUser = $this->getEntitiesBuilder()->single($notification->getToGuid());
 
         if (!$toUser) {
-            return;
-        }
-
-        // Only if the user allows the feature flag, should we send a push notification
-        if (!$this->getFeaturesManager()->setUser($toUser)->has('notifications-v3')) {
             return;
         }
 
@@ -148,17 +137,6 @@ class Manager
             $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
         }
         return $this->entitiesBuilder;
-    }
-
-    /**
-     * @return Features\Manager
-     */
-    protected function getFeaturesManager(): Features\Manager
-    {
-        if (!$this->featuresManager) {
-            $this->featuresManager = Di::_()->get('Features\Manager');
-        }
-        return $this->featuresManager;
     }
 
     /**

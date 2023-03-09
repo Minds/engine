@@ -5,7 +5,6 @@ use Exception;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\Urn;
@@ -23,9 +22,6 @@ class Controller
     /** @var Config */
     protected $config;
 
-    /** @var FeaturesManager */
-    protected $features;
-
     /** @var Manager */
     protected $manager;
 
@@ -41,7 +37,6 @@ class Controller
     /**
      * Controller constructor.
      * @param $config
-     * @param $features
      * @param $manager
      * @param $entitiesBuilder
      * @param $currenciesDelegate
@@ -49,14 +44,12 @@ class Controller
      */
     public function __construct(
         $config = null,
-        $features = null,
         $manager = null,
         $entitiesBuilder = null,
         $currenciesDelegate = null,
         $members = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
-        $this->features = $features ?: Di::_()->get('Features\Manager');
         $this->manager = $manager ?: new Manager();
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->currenciesDelegate = $currenciesDelegate ?: new Delegates\CurrenciesDelegate();
@@ -95,13 +88,9 @@ class Controller
             throw new UserErrorException('No entity', 400);
         }
 
-        if (!$this->features->has('paywall-2020')) {
-            $supportTiers = [];
-        } else {
-            $supportTiers = $this->manager
-                ->setEntity($entity)
-                ->getAll();
-        }
+        $supportTiers = $this->manager
+            ->setEntity($entity)
+            ->getAll();
 
         return new JsonResponse([
             'status' => 'success',

@@ -6,7 +6,6 @@ use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Client as ElasticsearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Di\Di;
-use Minds\Core\Features\Manager as Features;
 use Minds\Core\Search\SortingAlgorithms;
 use Minds\Helpers\Text;
 
@@ -28,9 +27,6 @@ class Repository
     /** @var ElasticsearchClient */
     protected $client;
 
-    /** @var Features */
-    protected $features;
-
     /** @var string */
     protected $index;
 
@@ -42,13 +38,11 @@ class Repository
 
     private Config $config;
 
-    public function __construct($client = null, $config = null, $features = null)
+    public function __construct($client = null, $config = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
 
         $this->config = $config ?? Di::_()->get('Config');
-
-        $this->features = $features ?: Di::_()->get('Features\Manager');
 
         $this->index = $this->config->get('elasticsearch')['indexes']['search_prefix'];
 
@@ -228,14 +222,7 @@ class Repository
 
         switch ($opts['algorithm']) {
             case "top":
-                if ($this->features->has('top-feeds-by-age')) {
-                    $algorithm = new SortingAlgorithms\TopByPostAge();
-                } else {
-                    $algorithm = new SortingAlgorithms\Top();
-                }
-                if ($this->features->has('topv2-algo')) {
-                    $algorithm = new SortingAlgorithms\TopV2();
-                }
+                $algorithm = new SortingAlgorithms\TopV2();
                 break;
             case "topV2":
                 $algorithm = new SortingAlgorithms\TopV2();
@@ -244,10 +231,7 @@ class Repository
                 $algorithm = new SortingAlgorithms\Controversial();
                 break;
             case "hot":
-                $algorithm = new SortingAlgorithms\Hot();
-                if ($this->features->has('topv2-algo')) {
                     $algorithm = new SortingAlgorithms\TopV2();
-                }
                 break;
             case SortingAlgorithms\DigestFeed::class:
                 $algorithm = new SortingAlgorithms\DigestFeed();

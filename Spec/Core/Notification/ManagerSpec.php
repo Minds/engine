@@ -9,7 +9,6 @@ use Minds\Core\Notification\Notification;
 use Minds\Core\Notification\Repository;
 use Minds\Core\Notification\CassandraRepository;
 use Minds\Core\Notification\Counters;
-use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -22,20 +21,15 @@ class ManagerSpec extends ObjectBehavior
     /** @var CassandraRepository */
     private $cassandraRepository;
 
-    /** @var FeaturesManager */
-    private $features;
-
     public function let(
         Config $config,
         CassandraRepository $cassandraRepository,
-        FeaturesManager $features,
         Counters $counters
     ) {
         $this->config = $config;
         $this->cassandraRepository = $cassandraRepository;
-        $this->features = $features;
 
-        $this->beConstructedWith($config, $cassandraRepository, $features, $counters);
+        $this->beConstructedWith($config, $cassandraRepository, $counters);
     }
 
     public function it_is_initializable()
@@ -67,11 +61,8 @@ class ManagerSpec extends ObjectBehavior
         $this->getSingle('urn:notification:1234')->shouldReturn($notification);
     }
 
-    public function it_should_get_list_from_cassandra_if_feature_enabled(Notification $notification)
+    public function it_should_get_list_from_cassandra(Notification $notification)
     {
-        $this->features->has('cassandra-notifications')
-            ->willReturn(true);
-
         $this->cassandraRepository->getList(Argument::that(function ($opts) {
             return $opts['limit'] === 6;
         }))

@@ -5,7 +5,6 @@ namespace Spec\Minds\Core\Search\MetricsSync;
 use Minds\Core\Config;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared\Search;
-use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Core\Search\MetricsSync\MetricsSync;
 use Minds\Core\Search\MetricsSync\Repository;
 use PhpSpec\ObjectBehavior;
@@ -18,7 +17,7 @@ class RepositorySpec extends ObjectBehavior
 
     /** @var Config */
     protected $config;
-    
+
     public function let(Client $client, Config $config)
     {
         $this->client = $client;

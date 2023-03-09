@@ -22,6 +22,7 @@ use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
+use Minds\Exceptions\UserNotFoundException;
 use Stripe\Exception\ApiErrorException;
 
 class SupermindPaymentProcessor
@@ -127,9 +128,15 @@ class SupermindPaymentProcessor
         return $paymentIntent;
     }
 
-    private function buildUser(string $userGuid): User
+    /**
+     * Build user from user guid.
+     * @param string $guid - guid of the user.
+     * @return User|null user if one is found.
+     */
+    private function buildUser(string $guid): ?User
     {
-        return $this->entitiesBuilder->single($userGuid);
+        $user = $this->entitiesBuilder->single($guid);
+        return $user instanceof User ? $user : null;
     }
 
     /**
@@ -189,10 +196,16 @@ class SupermindPaymentProcessor
      */
     public function refundOffchainPayment(SupermindRequest $request): string
     {
+        $user = $this->buildUser($request->getSenderGuid());
+
+        if (!$user) {
+            throw new UserNotFoundException(
+                "User ({$request->getSenderGuid()}) not found for Supermind with guid: {$request->getGuid()}"
+            );
+        }
+
         $transaction = $this->offchainTransactions
-            ->setUser(
-                $this->buildUser($request->getSenderGuid())
-            )
+            ->setUser($user)
             ->setAmount((string) BigNumber::toPlain($request->getPaymentAmount(), 18))
             ->setType("supermind")
             ->setData([
