@@ -4,16 +4,17 @@
  */
 namespace Minds\Core\EventStreams\Topics;
 
+use Minds\Common\Pulsar\Client as PulsarClient;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
 use Minds\Core\EntitiesBuilder;
 use Pulsar\Client;
-use Pulsar\ClientConfiguration;
+use Pulsar\Exception\IOException;
 
 abstract class AbstractTopic
 {
-    /** @var Client */
+    /** @var PulsarClient */
     protected $client;
 
     /** @var Config */
@@ -39,31 +40,11 @@ abstract class AbstractTopic
 
     /**
      * Return the pulsar client
-     * @return Client
+     * @return PulsarClient
      */
-    protected function client(): Client
+    protected function client(): PulsarClient
     {
-        $pulsarConfig = $this->config->get('pulsar');
-        $pulsarHost = $pulsarConfig['host'] ?? 'pulsar';
-        $pulsarPort = $pulsarConfig['port'] ?? 6650;
-        $pulsarSchema = ($pulsarConfig['ssl'] ?? true) ? 'pulsar+ssl' : 'pulsar';
-
-        $clientConfig = new ClientConfiguration();
-
-        if ($pulsarConfig['ssl'] ?? true) {
-            $clientConfig->setUseTls(true)
-                ->setTlsAllowInsecureConnection($pulsarConfig['ssl_skip_verify'] ?? false)
-                ->setTlsTrustCertsFilePath($pulsarConfig['ssl_cert_path'] ?? '/var/secure/pulsar.crt');
-        }
-
-        if ($this->client) {
-            return $this->client;
-        }
-
-        $this->client = new Client();
-        $this->client->init("$pulsarSchema://$pulsarHost:$pulsarPort", $clientConfig);
-
-        return $this->client;
+        return $this->client = new PulsarClient();
     }
 
     /**
@@ -88,11 +69,10 @@ abstract class AbstractTopic
 
     /**
      * Close the connection
+     * @throws IOException
      */
     public function __destruct()
     {
-        if ($this->client) {
-            $this->client->close();
-        }
+        $this->client?->close();
     }
 }

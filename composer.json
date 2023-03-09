@@ -55,7 +55,8 @@
         "google/cloud-bigquery": "^1.23",
         "minishlink/web-push": "^6.0",
         "textalk/websocket": "^1.5",
-        "promphp/prometheus_client_php": "^2.6"
+        "promphp/prometheus_client_php": "^2.6",
+        "ikilobyte/pulsar-client-php": "^1.1"
     },
     "repositories": [
         {

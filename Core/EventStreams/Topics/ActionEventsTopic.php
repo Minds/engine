@@ -4,24 +4,31 @@
  */
 namespace Minds\Core\EventStreams\Topics;
 
+use Exception;
 use Minds\Common\Urn;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Entities\Entity;
 use Minds\Entities\User;
 use Minds\Helpers\MagicAttributes;
-use Pulsar\Consumer;
-use Pulsar\ConsumerConfiguration;
-use Pulsar\MessageBuilder;
-use Pulsar\ProducerConfiguration;
-use Pulsar\Result;
-use Pulsar\SchemaType;
+use Pulsar\ConsumerOptions;
+use Pulsar\Exception\IOException;
+use Pulsar\Exception\OptionsException;
+use Pulsar\Exception\RuntimeException;
+use Pulsar\MessageOptions;
+use Pulsar\ProducerOptions;
+use Pulsar\Schema\SchemaJson;
+use Pulsar\SubscriptionType;
 
 class ActionEventsTopic extends AbstractTopic implements TopicInterface
 {
     /**
      * Sends action events to our stream
      * @param EventInterface $event
+     * @return bool
+     * @throws OptionsException
+     * @throws IOException
+     * @throws RuntimeException
      */
     public function send(EventInterface $event): bool
     {
@@ -34,39 +41,45 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
         $topic = 'event-action-' . $event->getAction();
 
         // Build the config and include the schema
-
-        $config = new ProducerConfiguration();
-        $config->setSchema(SchemaType::AVRO, "action", $this->getSchema(), []);
+        $config = new ProducerOptions();
+        $config->setSchema(
+            new SchemaJson(
+                $this->getSchema(),
+                [
+                    'key' => 'value'
+                ]
+            )
+        );
 
         $producer = $this->client()->createProducer("persistent://$tenant/$namespace/$topic", $config);
 
         // Build the message
-
-        $builder = new MessageBuilder();
-        $message = $builder
-            //->setPartitionKey(0)
-            ->setEventTimestamp($event->getTimestamp() ?: time())
-            ->setContent(json_encode([
-                'action' => $event->getAction(),
-                'action_data' => $event->getActionData(),
-                'user_guid' => (string) $event->getUser()->getGuid(),
-                'entity_urn' => (string) $event->getEntity()->getUrn(),
-                'entity_guid' => (string) $event->getEntity()->getGuid(),
-                'entity_owner_guid' => (string) $event->getEntity()->getOwnerGuid(),
-                'entity_type' => MagicAttributes::getterExists($event->getEntity(), 'getType') ? (string) $event->getEntity()->getType() : '',
-                'entity_subtype' => MagicAttributes::getterExists($event->getEntity(), 'getSubtype') ? (string) $event->getEntity()->getSubtype() : '',
-            ]))
-            ->build();
+        $message = (object) [
+            'action' => $event->getAction(),
+            'action_data' => $event->getActionData(),
+            'user_guid' => (string) $event->getUser()->getGuid(),
+            'entity_urn' => (string) $event->getEntity()->getUrn(),
+            'entity_guid' => (string) $event->getEntity()->getGuid(),
+            'entity_owner_guid' => (string) $event->getEntity()->getOwnerGuid(),
+            'entity_type' => MagicAttributes::getterExists($event->getEntity(), 'getType') ? (string) $event->getEntity()->getType() : '',
+            'entity_subtype' => MagicAttributes::getterExists($event->getEntity(), 'getSubtype') ? (string) $event->getEntity()->getSubtype() : '',
+        ];
 
         // Send the event to the stream
+        try {
+            $producer->send(
+                payload: $message,
+                options: [
+                    MessageOptions::PROPERTIES => [
+                        'event_timestamp' => $event->getTimestamp() ?? time()
+                    ]
+                ]
+            );
 
-        $result = $producer->send($message);
-
-        if ($result != Result::ResultOk) {
+            return true;
+        } catch (Exception $e) {
             return false;
         }
-
-        return true;
     }
 
     /**
@@ -76,6 +89,8 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
      * @param callable $callback - the logic for the event
      * @param string $topicRegex - defaults to * (all topics will be returned)
      * @return void
+     * @throws OptionsException
+     * @throws Exception
      */
     public function consume(string $subscriptionId, callable $callback, string $topicRegex = '*'): void
     {
@@ -84,26 +99,35 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
         $topicRegex = 'event-action-' . $topicRegex;
         //$topicRegex = '.*';
 
-        $config = new ConsumerConfiguration();
-        $config->setConsumerType(Consumer::ConsumerShared);
-        $config->setSchema(SchemaType::AVRO, "action", $this->getSchema(), []);
+        $config = new ConsumerOptions();
+        $config->setSchema(
+            new SchemaJson(
+                $this->getSchema(),
+                [
+                    'key' => 'value'
+                ]
+            )
+        );
+        $config->setSubscriptionType(SubscriptionType::Shared);
 
         $consumer = $this->client()->subscribeWithRegex("persistent://$tenant/$namespace/$topicRegex", $subscriptionId, $config);
 
         while (true) {
+            $message = $consumer->receive();
             try {
-                $message = $consumer->receive();
-                $data = json_decode($message->getDataAsString(), true);
+                $message->getSchemaValue($data);
+                $data = (array) $data;
+
 
                 /** @var User */
                 $user = $this->entitiesBuilder->single($data['user_guid']);
 
                 // If no user, something went wrong, but still skip
                 if (!$user || !$user instanceof User) {
-                    $consumer->acknowledge($message);
+                    $consumer->ack($message);
                     continue;
                 }
-            
+
                 /** @var Entity */
                 $entity = $this->entitiesResolver->single(new Urn($data['entity_urn']));
 
@@ -111,7 +135,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                 if (!$entity) {
                     error_log('invalid entity ');
                     var_dump($data);
-                    $consumer->acknowledge($message);
+                    $consumer->ack($message);
                     continue;
                 }
 
@@ -120,19 +144,21 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                     ->setEntity($entity)
                     ->setAction($data['action'])
                     ->setActionData($data['action_data'])
-                    ->setTimestamp($message->getEventTimestamp());
+                    ->setTimestamp($message->getProperties()['event_timestamp']);
+
+
 
                 $event->onForceAcknowledge(function () use ($consumer, $message) {
-                    $consumer->acknowledge($message);
+                    $consumer->ack($message);
                 });
 
                 if (call_user_func($callback, $event, $message) === true) {
-                    $consumer->acknowledge($message);
+                    $consumer->ack($message);
                 } else {
-                    throw new \Exception("Failed to process message");
+                    throw new Exception("Failed to process message");
                 }
-            } catch (\Exception $e) {
-                $consumer->negativeAcknowledge($message);
+            } catch (Exception $e) {
+                $consumer->nack($message);
             }
         }
     }
@@ -182,5 +208,10 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                 ],
             ]
         ]);
+    }
+
+    public function close()
+    {
+
     }
 }
