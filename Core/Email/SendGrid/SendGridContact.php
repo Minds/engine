@@ -69,6 +69,21 @@ class SendGridContact
     /** @var array */
     protected $subscribedTo = [];
 
+    /** @var array */
+    protected $fields = [];
+
+    /**
+     * Helper function to set the fields array
+     * @param string $key
+     * @param mixed $value
+     * @return self
+     */
+    public function set(string $key, $value): self
+    {
+        $this->fields[$key] = $value;
+        return $this;
+    }
+
     /**
      * Export the sendgrid contact
      * @param array $extras
@@ -118,7 +133,7 @@ class SendGridContact
             'email' => $this->email,
             'first_name' => substr((string) $this->username, 0, 50),
             'unique_name' => strtolower($this->username),
-            'custom_fields' => $customFields,
+            'custom_fields' => array_merge($customFields, $this->fields),
         ];
     }
 }
