@@ -1482,5 +1482,5 @@ class ManagerSpec extends ObjectBehavior
             reason: $reason,
             statuses: $statuses
         )->shouldBe(true);
-    }//
+    }
 }
