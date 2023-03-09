@@ -63,5 +63,7 @@ class BoostedV3List implements SendGridListInterface
 
             yield $contact;
         }
+
+        return;
     }
 }
