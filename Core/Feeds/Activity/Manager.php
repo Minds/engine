@@ -11,12 +11,10 @@ use Exception;
 use Minds\Common\EntityMutation;
 use Minds\Common\Urn;
 use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
-use Minds\Core\Boost\Network\ElasticRepository as BoostElasticRepository;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Delete;
 use Minds\Core\Entities\Actions\Save;
-use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\Entities\PropagateProperties;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\Exceptions\CreateActivityFailedException;
@@ -107,9 +105,7 @@ class Manager
         $notificationsDelegate = null,
         $entitiesBuilder = null,
         private ?MessageLengthValidator $messageLengthValidator = null,
-        private ?TitleLengthValidator $titleLengthValidator = null,
-        private ?BoostElasticRepository $boostRepository = null,
-        private ?GuidLinkResolver $guidLinkResolver = null
+        private ?TitleLengthValidator $titleLengthValidator = null
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -125,8 +121,6 @@ class Manager
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->messageLengthValidator = $messageLengthValidator ?? new MessageLengthValidator();
         $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
-        $this->boostRepository ??= new BoostElasticRepository();
-        $this->guidLinkResolver ??= new GuidLinkResolver();
     }
 
     public function getSupermindManager(): SupermindManager
@@ -351,9 +345,14 @@ class Manager
      * Delete activity
      * @param Activity $activity
      * @return bool
+     * @throws Exception
      */
     public function delete(Activity $activity): bool
     {
+        if (!$activity->canEdit()) {
+            throw new Exception('Invalid permission to delete this activity post');
+        }
+
         $success = $this->delete->setEntity($activity)->delete();
 
         if ($success) {
@@ -366,7 +365,8 @@ class Manager
     /**
      * Get by urn
      * @param string $urn
-     * @return Activity
+     * @return Activity|null
+     * @throws Exception
      */
     public function getByUrn(string $urn): ?Activity
     {
@@ -392,10 +392,6 @@ class Manager
 
         $this->validateStringLengths($activity);
 
-        if ($this->isActivelyBoostedEntity($activityMutation->getOriginalEntity())) {
-            throw new UserErrorException('Sorry, you can not edit a post with a Boost in progress.');
-        }
-
         if ($activity->type !== 'activity' && in_array($activity->subtype, [
             'video', 'image'
         ], true)) {
@@ -408,7 +404,7 @@ class Manager
         }
 
         if (!$activity->canEdit()) {
-            throw new \Exception('Invalid permission to edit this activity post');
+            throw new Exception('Invalid permission to edit this activity post');
         }
 
         $activity->setEdited(true);
@@ -529,47 +525,5 @@ class Manager
         $this->messageLengthValidator->validate($activity->getMessage() ?? '', nameOverride: 'post');
         $this->titleLengthValidator->validate($activity->getTitle() ?? '');
         return true;
-    }
-
-    /**
-     * Checks whether an entity is currently actively boosted.
-     * @param Entity $entity - entity to check.
-     * @return boolean - true if the entity has an actively boosted state.
-     */
-    private function isActivelyBoostedEntity(Entity $entity): bool
-    {
-        $originalGuid = (string) $entity->getGuid();
-
-        if ($linkedGuid = $this->getLinkedGuid($entity)) {
-            $entityGuidArray = [
-                $originalGuid,
-                $linkedGuid,
-            ];
-        }
-
-        $results = $this->boostRepository->getList([
-            // can pass an array to do a terms query with multiple guids.
-            'entity_guid' => $entityGuidArray ?? $originalGuid,
-            'state' => 'approved'
-        ]);
-
-        return $results && count($results) > 0;
-    }
-
-    /**
-     * Gets a linked GUID for an entity. Passing an activity will
-     * give you the entity guid and vice-versa.
-     * @param Entity|Activity $entity - the entity to get the linked guid for.
-     * @return ?string - linked guid.
-     */
-    private function getLinkedGuid(Entity|Activity $entity): ?string
-    {
-        $originalGuid = (string) $entity->getGuid();
-        $entityGuid = (string) $entity->getEntityGuid() ?? false;
-
-        if ($entityGuid && $originalGuid !== $entityGuid) {
-            return $entityGuid;
-        }
-        return $this->guidLinkResolver->resolve($originalGuid);
     }
 }

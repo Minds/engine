@@ -3,6 +3,7 @@ include:
   - template: Security/Container-Scanning.gitlab-ci.yml
 
 stages:
+  - baseimage
   - build
   - test
   - prepare
@@ -13,6 +14,42 @@ stages:
   - deploy:canary
   - deploy:production
   - scan
+
+baseimage:prepare:
+  stage: baseimage
+  image: minds/ci:latest
+  services:
+    - docker:dind
+  script:
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
+    - docker build -t $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID containers/php
+    - docker push $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID
+  rules:
+    - if: '$CI_PIPELINE_SOURCE != "push"'
+      when: never
+    - changes:
+        - containers/php/*
+    - when: manual
+      allow_failure: true
+
+
+baseimage:deploy:
+  stage: baseimage
+  image: minds/ci:latest
+  services:
+    - docker:dind
+  script:
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
+    - docker build -t $CI_REGISTRY_IMAGE/php:pdo containers/php
+    - docker push $CI_REGISTRY_IMAGE/php:pdo
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      changes:
+        - containers/php/*
+    - if: '$CI_COMMIT_REF_NAME != "master"'
+      when: never
+    - when: manual
+      allow_failure: true
 
 build:
   stage: build
@@ -62,7 +99,7 @@ prepare:fpm:
         .
     - docker push $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
     - >
-      if [ $CI_COMMIT_BRANCH == "master" ]; then 
+      if [ $CI_COMMIT_BRANCH == "master" ]; then
         docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:latest &&
         docker push $CI_REGISTRY_IMAGE/fpm:latest
       fi
@@ -83,7 +120,7 @@ prepare:runners:
         .
     - docker push $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
     - >
-      if [ $CI_COMMIT_BRANCH == "master" ]; then 
+      if [ $CI_COMMIT_BRANCH == "master" ]; then
         docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:latest &&
         docker push $CI_REGISTRY_IMAGE/runners:latest
       fi
@@ -108,16 +145,29 @@ container_scanning_runners:
   extends: container_scanning
   stage: scan
   variables:
-    DOCKER_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
+    DOCKER_IMAGE: $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
 
 dependency_scanning:
   stage: scan
 
+.oci_prepare: &oci_prepare
+  - mkdir ~/.oci
+  - cp $OCI_CONFIG ~/.oci/config
+  - cp $OCI_KEY /tmp/oci-key.pem
+  - export OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING=True
+  - | 
+    oci ce cluster create-kubeconfig \
+      --cluster-id $OKE_CLUSTER_ID \
+      --file $KUBECONFIG \
+      --region us-ashburn-1 \
+      --token-version 2.0.0  \
+      --kube-endpoint PUBLIC_ENDPOINT
+
 review:start:
   stage: review
-  image: minds/aws-helm:latest
+  image: minds/oci-cli:latest
   script:
-    - aws eks --region us-east-1 update-kubeconfig --name sandbox --role-arn=$AWS_IAM_ROLE_ARN
+    - *oci_prepare
     # Download repo, use same branch name if exists
     - HELM_GIT_REPO=https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/minds/helm-charts.git
     - git clone --branch=master $HELM_GIT_REPO
@@ -132,7 +182,8 @@ review:start:
     - echo "Setting to image ${CI_REGISTRY_IMAGE}"
     - "helm upgrade \
       --install \
-      --values ./minds/sandbox-values.yaml \
+      --namespace default \
+      --values ./minds/values-sandbox-oke.yaml \
       --reuse-values \
       --set engine.image.repository=$CI_REGISTRY_IMAGE/fpm \
       --set-string engine.image.tag=$CI_PIPELINE_ID \
@@ -156,9 +207,9 @@ review:start:
 
 review:stop:
   stage: review
-  image: minds/aws-helm:latest
+  image: minds/oci-cli:latest
   script:
-    - aws eks --region us-east-1 update-kubeconfig --name sandbox --role-arn=$AWS_IAM_ROLE_ARN
+    - *oci_prepare
     - helm del $CI_BUILD_REF_SLUG
   environment:
     name: review/$CI_COMMIT_REF_NAME

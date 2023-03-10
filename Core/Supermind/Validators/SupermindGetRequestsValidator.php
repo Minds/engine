@@ -8,6 +8,7 @@ use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Interfaces\ValidatorInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 class SupermindGetRequestsValidator implements ValidatorInterface
 {
@@ -25,7 +26,7 @@ class SupermindGetRequestsValidator implements ValidatorInterface
     /**
      * @inheritDoc
      */
-    public function validate(array $dataToValidate): bool
+    public function validate(array|ServerRequestInterface $dataToValidate): bool
     {
         $this->resetErrors();
 

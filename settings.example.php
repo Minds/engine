@@ -143,11 +143,16 @@ $CONFIG->set(
                 ['value' => 1, 'label' => 'Hacked account']
             ],
         ],
-        ['value' => 11,
+        [
+            'value' => 11,
             'label' => 'Another reason',
             'hasMore' => true,
         ],
-
+        [
+            'value' => 18,
+            'label' => 'Violates Premium Content policy',
+            'hasMore' => false,
+        ]
     ]
 );
 
@@ -199,15 +204,17 @@ $CONFIG->elasticsearch = [
     ],
     'username' => null,
     'password' => null,
-    'cert' => '/var/secure/elasticsearch.crt',
+    'cert' => null,
 ];
 
-// Vitess (MySQL) configuration
+// MySQL configuration
 $CONFIG->mysql = [
-    'host' => 'vitess:15306',
+    'host' => 'mysql:3306',
     'db' => 'minds',
     'user' => 'user',
+    'password' => 'changeme',
     'ssl_skip_verify' => true,
+    'is_vitess' => false
 ];
 
 /*
@@ -308,6 +315,9 @@ $CONFIG->set('google', [
         'project_id' => '',
         'key_file_path' =>  __DIR__ . '/.auth/bigquery.json'
     ],
+    'vision' => [
+        'api_key' => '{{google-api-key}}'
+    ]
 ]);
 
 $CONFIG->set('apple', [
@@ -327,6 +337,33 @@ $CONFIG->set('boost', [
         'min' => 100,
         'max' => 5000000,
     ],
+    'offchain_wallet_guid' => "5926995457130554052",
+    'min' => [
+        'cash' => 2,
+        'offchain_tokens' => 1,
+        'onchain_tokens' => 1
+    ],
+    'max' => [
+        'cash' => 5000,
+        'offchain_tokens' => 1000,
+        'onchain_tokens' => 100
+    ],
+    'duration' => [ // in days
+        'min' => 1,
+        'max' => 30
+    ],
+    'bid_increments' => [
+        'cash' => [
+            2, 5, 10, 20, 40, 100, 250, 500, 1000, 1500, 2500, 3500, 5000
+        ],
+        'offchain_tokens' => [
+            1, 5, 10, 20, 40, 100, 250, 500, 750, 1000
+        ],
+        'onchain_tokens' => [
+            1, 5, 10, 20, 40, 100
+        ]
+    ],
+    'pre_approval_threshold' => 10
 ]);
 
 /* Maximum view per day */
@@ -578,33 +615,6 @@ $CONFIG->set('max_video_length', 900);
 
 $CONFIG->set('max_video_length_plus', 1860);
 
-// You can find a list of all in use feature flags at Core/Features/Provider.php
-$CONFIG->set('features', [
-    'psr7-router' => true,
-    'es-feeds' => false,
-    'helpdesk' => true,
-    'top-feeds' => true,
-    'cassandra-notifications' => true,
-    'dark-mode' => true,
-    'allow-comments-toggle' => false,
-    'permissions' => false,
-    'pro' => false,
-    'webtorrent' => false,
-    'top-feeds-by-age' => true,
-    'ux-2020' => true,
-    'modal-pager' => true,
-    'wallet-upgrade' => true,
-    'subscriber-conversations' => true,
-    'activity-modal' => false,
-    'withdrawal-console' => true,
-    'twilio-verify' => true,
-    'helpdesk-2021' => true,
-    'discovery-default-tags' => true,
-    'skale' => true,
-    'polygon' => true,
-    'web3-service-withdrawals' => false,
-]);
-
 $CONFIG->set('email', [
     'sender' => [
         'email' => 'no-reply@minds.com',
@@ -615,6 +625,11 @@ $CONFIG->set('email', [
         'username' => '',
         'password' => '',
         'port' => 465,
+    ],
+    'mautic' => [
+        'base_url' => 'https://mautic.minds.io/api',
+        'username' => '',
+        'password' => '',
     ],
 ]);
 
@@ -858,7 +873,17 @@ $CONFIG->set('jury', [
 
 $CONFIG->set('supermind', [
     'minimum_amount' => [
-        'usd' => 10.00,
+        'usd' => 1.00,
         'offchain_token' => 1.00
+    ]
+]);
+
+$CONFIG->set('nostr', [
+    'domain' => 'minds.io',
+    'relays' => [
+        'wss://nostr-relay.untethr.me',
+        'wss://nostr.bitcoiner.social',
+        'wss://nostr-relay.wlvs.space',
+        'wss://nostr-pub.wellorder.net'
     ]
 ]);

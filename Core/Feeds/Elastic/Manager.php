@@ -321,9 +321,8 @@ class Manager
 
             foreach ($hydratedEntities as $entity) {
                 if (Flags::shouldFail($entity) && false) {
-                    $this->eventsDispatcher->trigger('search:index', 'all', [
-                        'entity' => $entity,
-                        'immediate' => false
+                    $this->eventsDispatcher->trigger('entities-ops', 'update', [
+                        'entityUrn' => $entity->getUrn(),
                     ]);
                     continue;
                 }

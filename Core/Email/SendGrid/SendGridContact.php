@@ -1,9 +1,12 @@
 <?php
 namespace Minds\Core\Email\SendGrid;
 
+use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
 /**
+ * @method SendGridContact setUser(User $user)
+ * @method User getUser()
  * @method SendGridContact setUserGuid(string $userGuid)
  * @method string getUserGuid()
  * @method SendGridContact setEmail(string $email)
@@ -18,10 +21,14 @@ use Minds\Traits\MagicAttributes;
  * @method bool getIsMerchant()
  * @method SendGridContact setLastWire(int $lastWire)
  * @method int getLastWire()
+ * @method self setSubscribedTo(array $subscribedTo)
  */
 class SendGridContact
 {
     use MagicAttributes;
+
+    /** @var User */
+    protected $user;
 
     /** @var string */
     protected $userGuid;
@@ -59,6 +66,24 @@ class SendGridContact
     /** @var int */
     protected $lastActive30DayTs;
 
+    /** @var array */
+    protected $subscribedTo = [];
+
+    /** @var array */
+    protected $fields = [];
+
+    /**
+     * Helper function to set the fields array
+     * @param string $key
+     * @param mixed $value
+     * @return self
+     */
+    public function set(string $key, $value): self
+    {
+        $this->fields[$key] = $value;
+        return $this;
+    }
+
     /**
      * Export the sendgrid contact
      * @param array $extras
@@ -95,14 +120,20 @@ class SendGridContact
             $customFields['has_youtube_sync'] = 1;
         }
 
+        if ($this->subscribedTo) {
+            foreach ($this->subscribedTo as $subscribedTo) {
+                $customFields['sub_' . $subscribedTo] = 1;
+            }
+        }
+
         $customFields['username'] = $this->username;
         $customField['user_guid'] = (string) $this->userGuid;
 
         return [
             'email' => $this->email,
-            'first_name' => (string) $this->username,
+            'first_name' => substr((string) $this->username, 0, 50),
             'unique_name' => strtolower($this->username),
-            'custom_fields' => $customFields,
+            'custom_fields' => array_merge($customFields, $this->fields),
         ];
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Spec\Minds\Core\Reports\Verdict\Delegates;
 
+use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
+use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Reports\Verdict\Delegates\ActionDelegate;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Reports\Verdict\Verdict;
@@ -13,11 +15,17 @@ use Minds\Entities\Entity;
 use Minds\Entities\Activity;
 use Minds\Core\Entities\Actions\Save as SaveAction;
 use Minds\Core\Channels\Ban;
+use Minds\Core\Boost\V3\Manager as BoostManager;
+use Minds\Core\Log\Logger;
+use Minds\Core\Monetization\Demonetization\DemonetizationContext;
+use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePlusUserStrategy;
+use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePostStrategy;
+use Minds\Core\Monetization\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
 use Minds\Core\Security\Password;
-use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Core\Sessions;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ActionDelegateSpec extends ObjectBehavior
@@ -28,6 +36,11 @@ class ActionDelegateSpec extends ObjectBehavior
     private $saveAction;
     private $emailDelegate;
     private $channelsBanManager;
+    private Collaborator $demonetizationContext;
+    private Collaborator $demonetizePostStrategy;
+    private Collaborator $demonetizePlusUserStrategy;
+    private Collaborator $boostManager;
+    private Collaborator $logger;
 
     /** @var Sessions\CommonSessions\Manager */
     protected $commonSessionsManager;
@@ -43,7 +56,12 @@ class ActionDelegateSpec extends ObjectBehavior
         EmailDelegate $emailDelegate,
         Ban $channelsBanManager,
         Sessions\CommonSessions\Manager $commonSessionsManager,
-        Password $password
+        Password $password,
+        DemonetizationContext $demonetizationContext,
+        DemonetizePostStrategy $demonetizePostStrategy,
+        DemonetizePlusUserStrategy $demonetizePlusUserStrategy,
+        BoostManager $boostManager,
+        Logger $logger
     ) {
         $this->beConstructedWith(
             $entitiesBuilder,
@@ -55,7 +73,12 @@ class ActionDelegateSpec extends ObjectBehavior
             $channelsBanManager,
             null,
             $commonSessionsManager,
-            $password
+            $password,
+            $demonetizationContext,
+            $demonetizePostStrategy,
+            $demonetizePlusUserStrategy,
+            $boostManager,
+            $logger
         );
         $this->entitiesBuilder = $entitiesBuilder;
         $this->actions = $actions;
@@ -65,6 +88,11 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->channelsBanManager = $channelsBanManager;
         $this->commonSessionsManager = $commonSessionsManager;
         $this->password = $password;
+        $this->demonetizationContext = $demonetizationContext;
+        $this->demonetizePostStrategy = $demonetizePostStrategy;
+        $this->demonetizePlusUserStrategy = $demonetizePlusUserStrategy;
+        $this->boostManager = $boostManager;
+        $this->logger = $logger;
     }
 
     public function it_is_initializable()
@@ -91,6 +119,10 @@ class ActionDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([ 2 ]);
 
+        $entity->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
         $entity->setNsfw([ 1, 2 ])
             ->shouldBeCalled();
 
@@ -114,6 +146,13 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->strikesManager->add(Argument::any())
             ->shouldBeCalled();
 
+        $this->boostManager->forceRejectByEntityGuid(
+            entityGuid: '123',
+            reason: BoostRejectionReason::REPORT_UPHELD,
+            statuses: [BoostStatus::APPROVED, BoostStatus::PENDING]
+        )->shouldBeCalled()
+            ->willReturn(true);
+
         $this->onAction($verdict);
     }
 
@@ -128,6 +167,14 @@ class ActionDelegateSpec extends ObjectBehavior
         $verdict = new Verdict;
         $verdict->setReport($report)
             ->setUphold(true);
+
+        $entity->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $entity->get('type')
+            ->shouldBeCalled()
+            ->willReturn('activity');
 
         $this->entitiesBuilder->single(123)
             ->shouldBeCalled()
@@ -152,6 +199,13 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->saveAction->save()
             ->shouldBeCalled();
 
+        $this->boostManager->forceRejectByEntityGuid(
+            entityGuid: '123',
+            reason: BoostRejectionReason::REPORT_UPHELD,
+            statuses: [BoostStatus::APPROVED, BoostStatus::PENDING]
+        )->shouldBeCalled()
+            ->willReturn(true);
+    
         $this->onAction($verdict);
     }
 
@@ -166,6 +220,14 @@ class ActionDelegateSpec extends ObjectBehavior
             ->setUphold(true)
             ->setAction('4');
 
+        $entity->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $entity->get('type')
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
         $this->entitiesBuilder->single(123)
             ->shouldBeCalled()
             ->willReturn($entity);
@@ -178,6 +240,13 @@ class ActionDelegateSpec extends ObjectBehavior
         
         $this->saveAction->save()
             ->shouldBeCalled();
+
+        $this->boostManager->forceRejectByEntityGuid(
+            entityGuid: '123',
+            reason: BoostRejectionReason::REPORT_UPHELD,
+            statuses: [BoostStatus::APPROVED, BoostStatus::PENDING]
+        )->shouldBeCalled()
+            ->willReturn(true);
 
         $this->onAction($verdict);
     }
@@ -193,6 +262,10 @@ class ActionDelegateSpec extends ObjectBehavior
         $verdict = new Verdict;
         $verdict->setReport($report)
             ->setUphold(true);
+
+        $entity->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
 
         $this->entitiesBuilder->single(123)
             ->shouldBeCalled()
@@ -228,6 +301,13 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->saveAction->save()
             ->shouldBeCalled();
 
+        $this->boostManager->forceRejectByEntityGuid(
+            entityGuid: '123',
+            reason: BoostRejectionReason::REPORT_UPHELD,
+            statuses: [BoostStatus::APPROVED, BoostStatus::PENDING]
+        )->shouldBeCalled()
+            ->willReturn(true);
+
         $this->onAction($verdict);
     }
 
@@ -242,6 +322,10 @@ class ActionDelegateSpec extends ObjectBehavior
         $verdict = new Verdict;
         $verdict->setReport($report)
             ->setUphold(true);
+
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
 
         $this->entitiesBuilder->single(123)
             ->shouldBeCalled()
@@ -260,6 +344,95 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->emailDelegate->onHack($report)
             ->shouldBeCalled();
+
+        $this->boostManager->forceRejectByEntityGuid(
+            entityGuid: '123',
+            reason: BoostRejectionReason::REPORT_UPHELD,
+            statuses: [BoostStatus::APPROVED, BoostStatus::PENDING]
+        )->shouldBeCalled()
+                ->willReturn(true);
+
+        $this->onAction($verdict);
+    }
+
+    public function it_should_demonetize_plus_post_and_not_user_when_sub_3_strikes(
+        DemonetizableEntityInterface $entity
+    ) {
+        $report = new Report;
+        $report->setEntityUrn('urn:activity:123')
+            ->setReasonCode(18);
+
+        $verdict = new Verdict;
+        $verdict->setReport($report)
+            ->setUphold(true);
+
+        $this->entitiesBuilder->single(123)
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $this->saveAction->setEntity($entity)
+            ->willReturn($this->saveAction);
+        
+        $this->demonetizationContext->withStrategy($this->demonetizePostStrategy)
+            ->shouldBeCalled()
+            ->willReturn($this->demonetizationContext);
+
+        $this->demonetizationContext->execute($entity)
+            ->shouldBeCalled();
+
+        $this->strikesManager->countStrikesInTimeWindow(Argument::any(), Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(0);
+
+        $this->strikesManager->add(Argument::any())
+            ->shouldBeCalled();
+
+        $this->onAction($verdict);
+    }
+
+    public function it_should_demonetize_plus_post_and_user_when_at_3_strikes(
+        DemonetizableEntityInterface $entity,
+        DemonetizableEntityInterface $user
+    ) {
+        $report = new Report;
+        $report->setEntityUrn('urn:activity:123')
+            ->setReasonCode(18)
+            ->setEntityOwnerGuid(234);
+
+        $verdict = new Verdict;
+        $verdict->setReport($report)
+            ->setUphold(true);
+
+        $this->entitiesBuilder->single(123)
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $this->saveAction->setEntity($entity)
+            ->willReturn($this->saveAction);
+
+        $this->demonetizationContext->withStrategy($this->demonetizePostStrategy)
+            ->shouldBeCalled()
+            ->willReturn($this->demonetizationContext);
+
+        $this->demonetizationContext->execute($entity)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->strikesManager->countStrikesInTimeWindow(Argument::any(), Argument::any())
+            ->shouldBeCalledTimes(2)
+            ->willReturn(3);
+
+        $this->entitiesBuilder->single(234)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->demonetizationContext->withStrategy($this->demonetizePlusUserStrategy)
+            ->shouldBeCalled()
+            ->willReturn($this->demonetizationContext);
+
+        $this->demonetizationContext->execute($user)
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->onAction($verdict);
     }

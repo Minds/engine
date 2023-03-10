@@ -125,6 +125,16 @@ class Manager
     }
 
     /**
+     * Will return a delegate pubkey from a delegator public key
+     * @param string $delegator_pubkey
+     * @return string|null
+     */
+    public function getNip26Delegate(string $delegator_pubkey): ?string
+    {
+        return $this->repository->getNip26Delegate($delegator_pubkey);
+    }
+
+    /**
      * Will build a signed Nostr event
      * https://github.com/nostr-protocol/nips/blob/master/01.md#events-and-signatures
      * @param EntityInterface $entity
@@ -241,7 +251,7 @@ class Manager
     /**
      * @return string
      */
-    protected function getDomain(): string
+    public function getDomain(): string
     {
         return urlencode($this->config->get('nostr')['domain'] ?? '');
     }

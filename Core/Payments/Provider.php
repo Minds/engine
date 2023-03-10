@@ -13,5 +13,8 @@ class Provider extends DiProvider
         $this->di->bind('Payments\Controller', function ($di) {
             return new Controller();
         }, ['useFactory' => false]);
+        $this->di->bind(Manager::class, function ($di): Manager {
+            return new Manager();
+        });
     }
 }

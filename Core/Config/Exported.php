@@ -10,17 +10,17 @@ namespace Minds\Core\Config;
 
 use Minds\Core\Blockchain\Manager as BlockchainManager;
 use Minds\Core\Boost\Network\Rates;
+use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Di\Di;
-use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\I18n\Manager as I18nManager;
 use Minds\Core\Navigation\Manager as NavigationManager;
 use Minds\Core\Rewards\Contributions\ContributionValues;
 use Minds\Core\Session;
-use Minds\Core\ThirdPartyNetworks\Manager as ThirdPartyNetworksManager;
 use Minds\Core\Supermind\Settings\Models\Settings as SupermindSettings;
-use Minds\Entities\User;
+use Minds\Core\ThirdPartyNetworks\Manager as ThirdPartyNetworksManager;
 use Minds\Core\Wire;
+use Minds\Entities\User;
 
 class Exported
 {
@@ -32,9 +32,6 @@ class Exported
 
     /** @var I18nManager */
     protected $i18n;
-
-    /** @var FeaturesManager */
-    protected $features;
 
     /** @var BlockchainManager */
     protected $blockchain;
@@ -48,7 +45,6 @@ class Exported
      * @param ThirdPartyNetworksManager $thirdPartyNetworks
      * @param I18nManager               $i18n
      * @param BlockchainManager         $blockchain
-     * @param FeaturesManager           $features
      * @param ExperimentsManager        $experimentsManager
      * @param Rates                     $boostRates
      */
@@ -58,7 +54,6 @@ class Exported
         $i18n = null,
         $blockchain = null,
         $proDomain = null,
-        $features = null,
         private ?ExperimentsManager $experimentsManager = null,
         private ?Rates $boostRates = null
     ) {
@@ -67,7 +62,6 @@ class Exported
         $this->i18n = $i18n ?: Di::_()->get('I18n\Manager');
         $this->blockchain = $blockchain ?: Di::_()->get('Blockchain\Manager');
         $this->proDomain = $proDomain ?: Di::_()->get('Pro\Domain');
-        $this->features = $features ?: Di::_()->get('Features\Manager');
         $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
         $this->boostRates ??= Di::_()->get('Boost\Network\Rates');
     }
@@ -97,7 +91,6 @@ class Exported
             'max_video_length_plus' => $this->config->get('max_video_length_plus'),
             'max_video_file_size' => $this->config->get('max_video_file_size'),
             'max_name_length' => $this->config->get('max_name_length') ?? 50,
-            'features' => (object) ($this->features->export() ?: []),
             'blockchain' => (object) $this->blockchain->getPublicSettings(),
             'sale' => $this->config->get('blockchain')['sale'],
             'last_tos_update' => $this->config->get('last_tos_update') ?: time(),
@@ -174,6 +167,11 @@ class Exported
                 'min_offchain_tokens' => $defaultSupermindSettings->getMinOffchainTokens()
             ]
         ];
+
+        $boost = $this->config->get('boost');
+        unset($boost['offchain_wallet_guid']);
+        $exported['boost'] = $boost;
+        $exported['boost']['rejection_reasons'] = BoostRejectionReason::rejectionReasonsWithLabels();
 
         return $exported;
     }

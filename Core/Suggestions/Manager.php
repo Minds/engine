@@ -6,7 +6,6 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Features;
 use Minds\Entities\User;
 use Minds\Core\Security\Block;
 use Minds\Core\Security\RateLimits\InteractionsLimiter;
@@ -28,9 +27,6 @@ class Manager
     /** @var InteractionsLimiter */
     private $interactionsLimiter;
 
-    /** @var Features\Manager */
-    private $features;
-
     /** @var Block\Manager */
     private $blockManager;
 
@@ -46,7 +42,6 @@ class Manager
         $suggestedFeedsManager = null,
         $subscriptionsManager = null,
         $interactionsLimiter = null,
-        $features = null,
         Config $config = null
     ) {
         $this->repository = $repository ?: new Repository();
@@ -54,7 +49,6 @@ class Manager
         //$this->suggestedFeedsManager = $suggestedFeedsManager ?: Di::_()->get('Feeds\Suggested\Manager');
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Subscriptions\Manager');
         $this->interactionsLimiter = $interactionsLimiter ?: new InteractionsLimiter();
-        $this->features = $features ?? new Features\Manager();
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
         $this->config = $config ?? Di::_()->get('Config');
     }
@@ -96,10 +90,6 @@ class Manager
      */
     public function getList($opts = []): Response
     {
-        if (!$this->features->has('suggestions')) {
-            return new Response([]);
-        }
-
         $opts = array_merge([
             'limit' => 12,
             'paging-token' => '',

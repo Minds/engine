@@ -73,10 +73,6 @@ class Defaults
             }
 
             $allowedTags = '';
-            // if ($this->features->has('code-highlight')) {
-            //     $allowedTags = '<pre><code>';
-            // }
-
             if (isset($export['message'])) {
                 $export['message'] = strip_tags(
                     htmlspecialchars_decode($export['message']),
@@ -154,9 +150,6 @@ class Defaults
         // Notifications events
         Core\Notification\Events::registerEvents();
 
-        // Search events
-        (new Core\Search\Events())->register();
-
         (new Core\Events\Hooks\Register())->init();
 
         // Subscription Queue events
@@ -203,6 +196,12 @@ class Defaults
 
         // Supermind events
         (new Core\Supermind\Events\Events())->register();
+
+        // Activity Events
+        (new Core\Feeds\Activity\Events())->register();
+
+        // Boost Events
+        (new Core\Boost\V3\Events\Events())->register();
     }
 
     public static function _()

@@ -1,4 +1,6 @@
-FROM php:8.0-fpm-alpine3.15
+FROM php:8.0-fpm-alpine3.16
+
+RUN apk update # Update package lists before we install stuff
 
 RUN apk add --no-cache --update --virtual .php-deps make
 
@@ -149,8 +151,8 @@ RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && make install \
     && cd .. \
     # Pulsar CPP Client
-    && git clone --depth 1 https://github.com/apache/pulsar.git \
-    && cd pulsar/pulsar-client-cpp \
+    && git clone --depth 1 https://github.com/apache/pulsar-client-cpp.git \
+    && cd pulsar-client-cpp \
     && cmake . -DBUILD_TESTS=OFF \
     && make -j2 \
     && make install \

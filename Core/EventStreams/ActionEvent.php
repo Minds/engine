@@ -50,10 +50,16 @@ class ActionEvent implements EventInterface
     const ACTION_TAG = 'tag';
 
     /** @var string */
+    const ACTION_BOOST_CREATED = 'boost_created';
+
+    /** @var string */
     const ACTION_BOOST_REJECTED = 'boost_rejected';
 
     /** @var string */
     const ACTION_BOOST_ACCEPTED = 'boost_accepted';
+
+    /** @var string */
+    const ACTION_BOOST_COMPLETED = 'boost_completed';
 
     /** @var string */
     const ACTION_BOOST_PEER_REQUEST = 'boost_peer_request';
@@ -107,10 +113,13 @@ class ActionEvent implements EventInterface
     const ACTION_SUPERMIND_REQUEST_REJECT = 'supermind_request_reject';
 
     /** @var string */
+    const ACTION_SUPERMIND_REQUEST_EXPIRE = 'supermind_request_expire';
+
+    /** @var string */
     const ACTION_SUPERMIND_REQUEST_EXPIRING_SOON = 'supermind_request_expiring_soon';
 
     /** @var string */
-    const ACTION_SUPERMIND_REQUEST_EXPIRE = 'supermind_request_expire';
+    const ACTION_USER_VERIFICATION_PUSH_NOTIFICATION = 'user_verification_push_notification';
 
     /** @var string */
     protected $action;
@@ -175,7 +184,10 @@ class ActionEvent implements EventInterface
             case self::ACTION_BOOST_REJECTED:
                 $allowedKeys = [ 'boost_reject_reason' ];
                 break;
+            case self::ACTION_BOOST_CREATED:
             case self::ACTION_BOOST_ACCEPTED:
+            case self::ACTION_BOOST_COMPLETED:
+                break;
             case self::ACTION_BOOST_PEER_REQUEST:
             case self::ACTION_BOOST_PEER_ACCEPTED:
             case self::ACTION_BOOST_PEER_REJECTED:
@@ -205,6 +217,8 @@ class ActionEvent implements EventInterface
             case self::ACTION_SUPERMIND_REQUEST_REJECT:
             case self::ACTION_SUPERMIND_REQUEST_EXPIRING_SOON:
             case self::ACTION_SUPERMIND_REQUEST_EXPIRE:
+                break;
+            case self::ACTION_USER_VERIFICATION_PUSH_NOTIFICATION:
                 break;
             default:
                 throw new \Exception("Invalid action set. Ensure allowedKeys are set in ActionEvent model");

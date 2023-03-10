@@ -92,7 +92,7 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlClientWriter->inTransaction()
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $this->mysqlClientWriter->rollBack()
             ->shouldBeCalled();
 
@@ -104,7 +104,7 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlClientWriter->inTransaction()
             ->shouldBeCalled()
             ->willReturn(false);
-        
+
         $this->mysqlClientWriter->rollBack()
             ->shouldNotBeCalled();
 
@@ -135,7 +135,7 @@ class RepositorySpec extends ObjectBehavior
         $pdoStatement->execute()
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $pdoStatement->fetchAll(PDO::FETCH_ASSOC)
             ->shouldBeCalled()
             ->willReturn([]);
@@ -172,7 +172,7 @@ class RepositorySpec extends ObjectBehavior
         $pdoStatement->execute()
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $pdoStatement->fetchAll(PDO::FETCH_ASSOC)
             ->shouldBeCalled()
             ->willReturn([]);
@@ -180,7 +180,46 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlClientReader->prepare(Argument::that(function ($arg) {
             return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine(
                 "SELECT * FROM superminds
-                WHERE receiver_guid = :receiver_guid AND status != :excludedStatus AND status = :status 
+                WHERE receiver_guid = :receiver_guid AND status != :excludedStatus AND status = :status
+                ORDER BY created_timestamp DESC
+                LIMIT :offset, :limit"
+            );
+        }))
+            ->shouldBeCalled()
+            ->willReturn($pdoStatement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($pdoStatement, Argument::that(function ($arg) use ($receiverGuid, $status) {
+            return $arg['receiver_guid'] === $receiverGuid &&
+                $arg['offset'] === 12 &&
+                $arg['limit'] === 24 &&
+                $arg['status'] === $status;
+        }))->shouldBeCalled();
+
+        $this->getReceivedRequests($receiverGuid, $offset, $limit, $status)->shouldBeAGenerator([]);
+    }
+
+
+    public function it_should_exclude_expired_superminds_when_getting_received_requests_for_created_status(
+        PDOStatement $pdoStatement,
+    ) {
+        $receiverGuid = '567';
+        $status = 1; // CREATED
+        $receiverGuid = '123';
+        $offset = 12;
+        $limit = 24;
+
+        $pdoStatement->execute()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $pdoStatement->fetchAll(PDO::FETCH_ASSOC)
+            ->shouldBeCalled()
+            ->willReturn([]);
+
+        $this->mysqlClientReader->prepare(Argument::that(function ($arg) {
+            return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine(
+                "SELECT * FROM superminds
+                WHERE receiver_guid = :receiver_guid AND status != :excludedStatus AND status = :status AND created_timestamp >= :min_timestamp
                 ORDER BY created_timestamp DESC
                 LIMIT :offset, :limit"
             );
@@ -211,7 +250,7 @@ class RepositorySpec extends ObjectBehavior
         $pdoStatement->execute()
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $pdoStatement->fetchAll(PDO::FETCH_ASSOC)
             ->shouldBeCalled()
             ->willReturn([]);
@@ -247,7 +286,7 @@ class RepositorySpec extends ObjectBehavior
         $pdoStatement->execute()
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $pdoStatement->fetchAll(PDO::FETCH_ASSOC)
             ->shouldBeCalled()
             ->willReturn([]);
@@ -256,6 +295,43 @@ class RepositorySpec extends ObjectBehavior
             return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine(
                 "SELECT * FROM superminds
                 WHERE sender_guid = :sender_guid AND status != :excludedStatus AND status = :status
+                ORDER BY created_timestamp DESC
+                LIMIT :offset, :limit"
+            );
+        }))
+            ->shouldBeCalled()
+            ->willReturn($pdoStatement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($pdoStatement, Argument::that(function ($arg) use ($senderGuid, $status) {
+            return $arg['sender_guid'] === $senderGuid &&
+                $arg['offset'] === 12 &&
+                $arg['limit'] === 24 &&
+                $arg['status'] === $status;
+        }))->shouldBeCalled();
+
+        $this->getSentRequests($senderGuid, $offset, $limit, $status)->shouldBeAGenerator([]);
+    }
+
+    public function it_should_exclude_expired_superminds_when_getting_sent_requests_for_created_status(
+        PDOStatement $pdoStatement,
+    ) {
+        $status = 1; // CREATED
+        $senderGuid = '123';
+        $offset = 12;
+        $limit = 24;
+
+        $pdoStatement->execute()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $pdoStatement->fetchAll(PDO::FETCH_ASSOC)
+            ->shouldBeCalled()
+            ->willReturn([]);
+
+        $this->mysqlClientReader->prepare(Argument::that(function ($arg) {
+            return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine(
+                "SELECT * FROM superminds
+                WHERE sender_guid = :sender_guid AND status != :excludedStatus AND status = :status AND created_timestamp >= :min_timestamp
                 ORDER BY created_timestamp DESC
                 LIMIT :offset, :limit"
             );
@@ -285,7 +361,7 @@ class RepositorySpec extends ObjectBehavior
         $pdoStatement->execute()
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $pdoStatement->fetch(PDO::FETCH_ASSOC)
             ->shouldBeCalled()
             ->willReturn([
@@ -319,7 +395,7 @@ class RepositorySpec extends ObjectBehavior
         $pdoStatement->execute()
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $pdoStatement->fetch(PDO::FETCH_ASSOC)
             ->shouldBeCalled()
             ->willReturn([
@@ -354,7 +430,7 @@ class RepositorySpec extends ObjectBehavior
         $pdoStatement->execute()
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $pdoStatement->fetch(PDO::FETCH_ASSOC)
             ->shouldBeCalled()
             ->willReturn([
@@ -393,7 +469,7 @@ class RepositorySpec extends ObjectBehavior
         $pdoStatement->execute()
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $pdoStatement->fetch(PDO::FETCH_ASSOC)
             ->shouldBeCalled()
             ->willReturn([
@@ -426,7 +502,7 @@ class RepositorySpec extends ObjectBehavior
         $pdoStatement->execute()
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $pdoStatement->fetch(PDO::FETCH_ASSOC)
             ->shouldBeCalled()
             ->willReturn([
@@ -496,7 +572,7 @@ class RepositorySpec extends ObjectBehavior
         $supermindRequest->getReplyType()
             ->shouldBeCalled()
             ->willReturn($replyType);
- 
+
         $pdoStatement->execute()
             ->shouldBeCalled()
             ->willReturn(true);
@@ -533,7 +609,7 @@ class RepositorySpec extends ObjectBehavior
                 $arg['twitter_required'] === $twitterRequired &&
                 $arg['reply_type'] === $replyType;
         }))->shouldBeCalled();
-    
+
         $this->addSupermindRequest($supermindRequest)->shouldBe(true);
     }
 
@@ -543,7 +619,7 @@ class RepositorySpec extends ObjectBehavior
     {
         $status = SupermindRequestStatus::CREATED;
         $supermindRequestId = '123';
-    
+
         $this->mysqlClientWriter->prepare(Argument::that(function ($arg) {
             return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine("
                 UPDATE superminds SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid
@@ -920,7 +996,7 @@ class RepositorySpec extends ObjectBehavior
         $pdoStatement->execute()
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $pdoStatement->fetchAll(PDO::FETCH_ASSOC)
             ->shouldBeCalled()
             ->willReturn([]);

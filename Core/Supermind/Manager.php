@@ -12,6 +12,7 @@ use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
@@ -37,6 +38,7 @@ use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserCashSetupException;
 use Minds\Exceptions\UserErrorException;
+use Minds\Exceptions\UserNotFoundException;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
 
@@ -53,7 +55,8 @@ class Manager
         private ?EventsDelegate $eventsDelegate = null,
         private ?ACL $acl = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?TwitterEventsDelegate $twitterEventsDelegate = null
+        private ?TwitterEventsDelegate $twitterEventsDelegate = null,
+        private ?Logger $logger = null
     ) {
         $this->repository ??= Di::_()->get("Supermind\Repository");
         $this->paymentProcessor ??= new SupermindPaymentProcessor();
@@ -61,6 +64,7 @@ class Manager
         $this->acl ??= Di::_()->get('Security\ACL');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->twitterEventsDelegate ??= new TwitterEventsDelegate();
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -548,9 +552,13 @@ class Manager
             throw new ForbiddenException();
         }
 
+        ini_set('display_errors', '1');
+        error_reporting(E_ALL);
+
         $this->repository->beginTransaction();
 
         try {
+            $this->logger->info('Getting expired supermind requests');
             $expiredSupermindRequests = $this->repository->expireSupermindRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD);
         } catch (Exception $e) {
             $this->repository->rollbackTransaction();
@@ -558,24 +566,37 @@ class Manager
         }
 
         if (count($expiredSupermindRequests) === 0) {
+            $this->logger->info('No expired supermind requests');
+            $this->repository->rollbackTransaction();
             return true;
         }
 
-        foreach ($this->getSupermindRequestsFromIds($expiredSupermindRequests) as $supermindRequest) {
-            try {
-                $this->eventsDelegate->onExpireSupermindRequest($supermindRequest);
+        $requests = iterator_to_array($this->getSupermindRequestsFromIds($expiredSupermindRequests));
 
+        foreach ($requests as $supermindRequest) {
+            try {
                 if ($supermindRequest->getPaymentMethod() === SupermindRequestPaymentMethod::OFFCHAIN_TOKEN) {
+                    $this->logger->info('Refunding Supermind', [$supermindRequest->getGuid()]);
                     $transactionId = $this->paymentProcessor->refundOffchainPayment($supermindRequest);
                     $this->repository->saveSupermindRefundTransaction($supermindRequest->getGuid(), $transactionId);
                 }
+            } catch (UserNotFoundException $e) {
+                $this->logger->warn("{$e->getMessage()} - skipping.");
+                continue;
             } catch (Exception $e) {
+                $this->logger->info('Rolling back - an error occurred with Supermind', [$supermindRequest->getGuid()]);
                 $this->repository->rollbackTransaction();
                 throw $e;
             }
         }
 
         $this->repository->commitTransaction();
+
+        foreach ($requests as $supermindRequest) {
+            $this->logger->info('Firing to events delegate for Supermind', [$supermindRequest->getGuid()]);
+            $this->eventsDelegate->onExpireSupermindRequest($supermindRequest);
+        }
+
         return true;
     }
 

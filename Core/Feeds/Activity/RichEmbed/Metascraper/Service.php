@@ -78,7 +78,7 @@ class Service
             $responseData = json_decode($response->getBody()->getContents(), true);
 
             if ($responseData['status'] === 200 && $responseData['data']) {
-                $metadata = (new Metadata())->fromMetascraperData($responseData['data']);
+                $metadata = (new Metadata())->fromMetascraperData($responseData['data'], $url);
                 $this->cacheManager->set($url, $metadata);
                 return $metadata->export();
             }

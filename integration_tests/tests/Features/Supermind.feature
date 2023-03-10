@@ -168,6 +168,64 @@ Feature: Supermind
       {}
       """
 
+  Scenario: Accept Supermind request successfully with client meta context
+    Given I create a Supermind request with the following details
+      """json
+      {
+        "message": "This is a test post for supermind request from integration tests",
+        "wire_threshold": null,
+        "paywall": null,
+        "time_created": null,
+        "mature": false,
+        "nsfw": null,
+        "tags": [
+            "test_tag"
+        ],
+        "access_id": "2",
+        "license": "all-rights-reserved",
+        "post_to_permaweb": false,
+        "entity_guid_update": true,
+        "supermind_request": {
+            "receiver_guid": "",
+            "payment_options": {
+                "payment_type": 1,
+                "amount": 10.00
+            },
+            "reply_type": 0,
+            "twitter_required": false,
+            "terms_agreed": true
+        },
+        "client_meta": {
+          "campaign": ""
+        }
+      }
+      """
+    And I login to "receive" Supermind requests
+    When I accept the Supermind request for stored data "created_activity" with the following reply
+      """json
+      {
+        "message": "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, ",
+        "wire_threshold": null,
+        "paywall": null,
+        "time_created": null,
+        "mature": false,
+        "nsfw": [],
+        "tags": [
+            "test_tag"
+        ],
+        "access_id": "2",
+        "license": "all-rights-reserved",
+        "remind_guid": "",
+        "post_to_permaweb": false,
+        "entity_guid_update": true,
+        "supermind_reply_guid": ""
+      }
+      """
+    Then I get a 200 response containing
+      """json
+      {}
+      """
+
   Scenario: Accept Supermind request failed with validation errors
     Given I create a Supermind request with the following details
       """json
@@ -548,7 +606,7 @@ Feature: Supermind
       """json
         {
           "min_offchain_tokens": 1,
-          "min_cash": 10
+          "min_cash": 1
         }
       """
 

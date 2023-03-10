@@ -16,12 +16,15 @@ class Active30DayList implements SendGridListInterface
     // composite query after key (aggs bucket paging token).
     private $afterKey = null;
 
+    private $maxTs;
+
     public function __construct(
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?Client $client = null,
     ) {
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
+        $this->maxTs = time() * 1000;
     }
 
     /**
@@ -39,8 +42,8 @@ class Active30DayList implements SendGridListInterface
                             'range' => [
                                 // last month
                                 '@timestamp' => [
-                                    'gte' => strtotime('midnight -30 day') * 1000,
-                                    'lt' => strtotime('midnight') * 1000,
+                                    'gte' => strtotime('midnight') * 1000,
+                                    'lt' => $this->maxTs,
                                     'format' => 'epoch_millis'
                                 ]
                             ]
@@ -63,6 +66,13 @@ class Active30DayList implements SendGridListInterface
                                             "field" => "user_guid.keyword",
                                         ]
                                     ]
+                                ]
+                            ]
+                        ],
+                        "aggregations" => [
+                            "last_active" => [
+                                "max" => [
+                                    "field" => "@timestamp"
                                 ]
                             ]
                         ]
@@ -91,10 +101,11 @@ class Active30DayList implements SendGridListInterface
 
             $contact = new SendGridContact();
             $contact
+                ->setUser($owner)
                 ->setUserGuid($owner->getGuid())
                 ->setUsername($owner->get('username'))
                 ->setEmail($owner->getEmail())
-                ->setLastActive30DayTs(time());
+                ->setLastActive30DayTs($hit['last_active']['value'] / 1000);
 
             if (!$contact->getEmail()) {
                 continue;
@@ -104,7 +115,7 @@ class Active30DayList implements SendGridListInterface
         }
 
         // if no we're not out of hits in the buckets.
-        if (!empty($result["aggregations"]["unique_users"]["buckets"])) {
+        if (!empty($result["aggregations"]["unique_users"]["buckets"]) && isset($result["aggregations"]["unique_users"]["after_key"])) {
             // set after key again.
             $this->setAfterKey(
                 $result["aggregations"]["unique_users"]["after_key"] ?? null

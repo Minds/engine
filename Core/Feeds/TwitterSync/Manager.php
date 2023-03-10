@@ -14,6 +14,8 @@ use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
+use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service as MetascraperService;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 
 class Manager
 {
@@ -38,7 +40,9 @@ class Manager
         protected RichEmbed\Manager $richEmbedManager,
         protected ChannelLinksDelegate $channelLinksDelegate,
         protected Logger $logger,
-        protected ImageExtractor $imageExtractor
+        protected ImageExtractor $imageExtractor,
+        protected ?MetascraperService $metascraperService = null,
+        protected ?ExperimentsManager $experimentsManager = null
     ) {
     }
 
@@ -252,7 +256,9 @@ class Manager
                 if ($recentTweet->getUrls() && isset($recentTweet->getUrls()[0]) && !count($photos)) {
                     $url = $recentTweet->getUrls()[0];
                     try {
-                        $richEmbed = $this->richEmbedManager->getRichEmbed($url);
+                        $richEmbed = $this->experimentsManager->isOn('front-5815-metascraper-stage-2') ?
+                            $this->metascraperService->scrape($url) :
+                            $this->richEmbedManager->getRichEmbed($url);
                         $activity
                             ->setTitle($richEmbed['meta']['title'])
                             ->setBlurb($richEmbed['meta']['description'])

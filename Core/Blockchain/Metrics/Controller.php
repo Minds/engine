@@ -3,7 +3,6 @@ namespace Minds\Core\Blockchain\Metrics;
 
 use Minds\Entities\User;
 use Minds\Core\Di\Di;
-use Minds\Core\Features;
 use Exception;
 use Minds\Api;
 use Zend\Diactoros\Response\JsonResponse;
@@ -18,19 +17,14 @@ class Controller
     /** @var Manager */
     protected $manager;
 
-    /** @var Features\Manager */
-    protected $featuresManager;
-
     /**
      * Controller constructor.
      * @param null $manager
      */
     public function __construct(
-        $manager = null,
-        $featuresManager = null
+        $manager = null
     ) {
         $this->manager = $manager ?? new Manager();
-        $this->featuresManager = $featuresManager ?? Di::_()->get('Features\Manager');
     }
 
     /**
@@ -52,7 +46,7 @@ class Controller
         }, $this->manager
             ->setTimeBoundary($startTs, $endTs)
             ->getAll());
-         
+
         return new JsonResponse(array_merge([
             'status' => 'success',
             'metrics' => $metrics,

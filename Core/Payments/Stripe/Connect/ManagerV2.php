@@ -62,7 +62,10 @@ class ManagerV2
                         'delay_days' => 30,
                     ]
                 ]
-            ]
+            ],
+            'tos_acceptance' => [
+                'service_agreement' => 'full', // Required to support on_behalf_of
+            ],
         ]);
 
         /**

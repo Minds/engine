@@ -5,6 +5,7 @@
 namespace Minds\Core\Security;
 
 use Minds\Core;
+use Minds\Core\Boost\V3\Models\Boost as BoostV3;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
@@ -107,19 +108,19 @@ class ACL
 
             // Owner not found
             if (!$ownerEntity) {
-                $this->logger->info("$entity->guid was requested but owner {$entity->getOwnerGuid()} was not found");
+                $this->logger->info("{$entity->getGuid()} was requested but owner {$entity->getOwnerGuid()} was not found");
                 return false;
             }
 
             // Owner is banned or disabled
             if ($ownerEntity->isBanned() || !$ownerEntity->isEnabled()) {
-                $this->logger->info("$entity->guid was requested but owner {$entity->getOwnerGuid()} {$ownerEntity->username}) is banned or disabled");
+                $this->logger->info("{$entity->getGuid()} was requested but owner {$entity->getOwnerGuid()} {$ownerEntity->username}) is banned or disabled");
                 return false;
             }
 
             // Owner passes other ACL rules (fallback)
             if ($this->read($ownerEntity, $user) !== true) {
-                $this->logger->info("$entity->guid was requested but owner {$entity->getOwnerGuid()} failed to pass its own ACL READ event");
+                $this->logger->info("{$entity->getGuid()} was requested but owner {$entity->getOwnerGuid()} failed to pass its own ACL READ event");
                 return false;
             }
         }
@@ -165,6 +166,7 @@ class ACL
             && ($entity->owner_guid == $entity->container_guid
                 || $entity->container_guid == 0)
             && !($entity instanceof SupermindRequest)
+            && !($entity instanceof BoostV3)
         ) {
             return true;
         }
@@ -216,7 +218,14 @@ class ACL
             return true;
         }
 
+
         if (!$user) {
+            return false;
+        }
+
+        $type = method_exists($entity, 'getType') ? $entity->getType() ?? 'all' : 'all';
+        $type = property_exists($entity, 'type') ? $entity->type : $type;
+        if (Core\Events\Dispatcher::trigger('acl:write:blacklist', $type, ['entity' => $entity, 'user' => $user, 'additionalData' => $additionalData], false) === true) {
             return false;
         }
 
@@ -268,8 +277,6 @@ class ACL
         /**
          * Allow plugins to extend the ACL check
          */
-        $type = method_exists($entity, 'getType') ? $entity->getType() ?? 'all' : 'all';
-        $type = property_exists($entity, 'type') ? $entity->type : $type;
         if (Core\Events\Dispatcher::trigger('acl:write', $type, ['entity' => $entity, 'user' => $user, 'additionalData' => $additionalData], false) === true) {
             return true;
         }

@@ -3,9 +3,9 @@
 namespace Minds\Core\FeedNotices\Notices;
 
 use Minds\Core\Di\Di;
-use Minds\Entities\User;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
+use Minds\Entities\User;
 
 /**
  * Feed notice to prompt a user to join rewards and verify their uniqueness.
@@ -54,7 +54,8 @@ class VerifyUniquenessNotice extends AbstractNotice
     {
         return $this->experimentsManager->setUser($user)->isOn('minds-3131-onboarding-notices') &&
             !$user->getPhoneNumberHash() &&
-            $this->isEligibleForRewards($user);
+            $this->isEligibleForRewards($user) &&
+            !$this->experimentsManager->isOn('epic-275-in-app-verification');
     }
 
     /**
