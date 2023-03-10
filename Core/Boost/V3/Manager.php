@@ -26,6 +26,7 @@ use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
@@ -52,7 +53,8 @@ class Manager
         private ?ActionEventDelegate $actionEventDelegate = null,
         private ?PreApprovalManager $preApprovalManager = null,
         private ?ViewsManager $viewsManager = null,
-        private ?ACL $acl = null
+        private ?ACL $acl = null,
+        private ?GuidLinkResolver $guidLinkResolver = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
@@ -62,6 +64,7 @@ class Manager
         $this->viewsManager ??= new ViewsManager();
         $this->acl ??= new ACL();
         $this->logger = Di::_()->get("Logger");
+        $this->guidLinkResolver ??= Di::_()->get(GuidLinkResolver::class);
     }
 
     /**
@@ -87,7 +90,17 @@ class Manager
      */
     public function createBoost(array $data): bool
     {
-        if (!$this->isEntityTypeAllowed($data['entity_guid'], (int) $data['target_location'])) {
+        $entity = $this->entitiesBuilder->single($data['entity_guid']);
+
+        if ($entity && $entity->getType() !== 'activity' && $entity->getType() !== 'user') {
+            $activity = $this->guidLinkResolver->resolveActivityFromEntityGuid($data['entity_guid']);
+            if ($activity) {
+                $data['entity_guid'] = $activity->getGuid();
+                $entity = $activity;
+            }
+        }
+
+        if (!$this->isEntityTypeAllowed($entity, (int) $data['target_location'])) {
             throw new EntityTypeNotAllowedInLocationException();
         }
 
@@ -174,14 +187,12 @@ class Manager
 
     /**
      * Checks if the provided entity can be boosted.
-     * @param string $entityGuid
+     * @param mixed $entity
      * @param int $targetLocation
      * @return bool
      */
-    private function isEntityTypeAllowed(string $entityGuid, int $targetLocation): bool
+    private function isEntityTypeAllowed(mixed $entity, int $targetLocation): bool
     {
-        $entity = $this->entitiesBuilder->single($entityGuid);
-
         if (!$entity) {
             return false;
         }
