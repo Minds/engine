@@ -14,6 +14,9 @@ use Pulsar\Exception\RuntimeException;
 use Pulsar\Producer;
 use Pulsar\ProducerOptions;
 
+/**
+ * Minds Pulsar Client wrapper
+ */
 class Client
 {
     private ?Producer $producer = null;

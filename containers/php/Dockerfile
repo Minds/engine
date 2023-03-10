@@ -149,6 +149,5 @@ RUN export BUILD_DEPS=$'\
 # PHP INI
 COPY php.ini /usr/local/etc/php/
 COPY opcache.ini /usr/local/etc/php/conf.d/opcache-recommended.ini
-COPY pulsar.ini /usr/local/etc/php/conf.d/pulsar.ini
 
 WORKDIR /var/www/Minds

@@ -6,11 +6,9 @@ namespace Minds\Core\Entities\Ops;
 
 use Exception;
 use Minds\Core\Config\Config;
-use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\Topics\AbstractTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
-use Pulsar\Client;
 use Pulsar\Consumer;
 use Pulsar\ConsumerOptions;
 use Pulsar\Exception\IOException;
@@ -35,20 +33,17 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
     protected $producer;
 
     public function __construct(
-        Client $client = null,
         Config $config = null
     ) {
-        $this->client = $client ?? null;
-        $this->config = $config ?? Di::_()->get('Config');
+        parent::__construct(
+            config: $config
+        );
     }
 
     /**
      * Sends notifications events to our stream
      * @param EventInterface $event
      * @return bool
-     * @throws IOException
-     * @throws OptionsException
-     * @throws RuntimeException
      */
     public function send(EventInterface $event): bool
     {
@@ -99,9 +94,7 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
         while (true) {
             $message = $consumer->receive();
             try {
-
-                $message->getSchemaValue($data);
-                $data = (array) $data;
+                $data = json_decode($message->getPayload(), true);
 
                 $event = new EntitiesOpsEvent();
                 $event->setEntityUrn($data['entity_urn'])

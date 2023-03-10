@@ -1,11 +1,17 @@
 <?php
 namespace Minds\Core\Reports\AutomatedReportStreams;
 
+use Exception;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\Topics\AbstractTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Pulsar\Consumer;
-use Pulsar\ConsumerConfiguration;
+use Pulsar\ConsumerOptions;
+use Pulsar\Exception\IOException;
+use Pulsar\Exception\MessageNotFound;
+use Pulsar\Exception\OptionsException;
+use Pulsar\Exception\RuntimeException;
+use Pulsar\SubscriptionType;
 
 class AdminReportsTopic extends AbstractTopic implements TopicInterface
 {
@@ -19,48 +25,34 @@ class AdminReportsTopic extends AbstractTopic implements TopicInterface
     }
 
     /**
-     * @inheritDoc
+     * @param string $subscriptionId
+     * @param callable $callback
+     * @param string $topicRegex
+     * @throws IOException
+     * @throws MessageNotFound
+     * @throws OptionsException
+     * @throws RuntimeException
+     * @throws Exception
      */
     public function consume(string $subscriptionId, callable $callback, string $topicRegex = '*'): void
     {
+        $consumer = $this->getConsumer($subscriptionId, $topicRegex);
+
         $tenant = $this->getPulsarTenant();
         $namespace = $this->getPulsarNamespace();
-        $topicRegex = $topicRegex;
-   
-        $config = new ConsumerConfiguration();
-        $config->setConsumerType(Consumer::ConsumerShared);
-        // $config->setSchema(SchemaType::JSON, "SpamComment", '{
-        //     "type": "record",
-        //     "name": "SpamComment",
-        //     "fields": [
-        //         {"name": "comment_guid", "type": "long" },
-        //         {"name": "owner_guid", "type": "long" },
-        //         {"name": "entity_guid", "type": ["null", "long" ] },
-        //         {"name": "parent_guid_l1", "type": ["null", "long" ] },
-        //         {"name": "parent_guid_l2", "type": ["null", "long" ] },
-        //         {"name": "parent_guid_l3", "type": ["null", "long" ] },
-        //         {"name": "time_created", "type": "long" },
-        //         {"name": "spam_predict", "type": "double" },
-        //         {"name": "activity_views", "type": "int" },
-        //         {"name": "last_engagement", "type": "long" },
-        //         {"name": "score", "type": "double" }
-        //     ]
-        // }',[]);
 
-        $consumer = $this->client()->subscribeWithRegex("persistent://$tenant/$namespace/$topicRegex", $subscriptionId, $config);
-    
         while (true) {
+            $message = $consumer->receive(); // Will hang until received
             try {
-                $message = $consumer->receive(); // Will hang until received
-                $data = json_decode($message->getDataAsString(), true);
+                $data = json_decode($message->getPayload(), true);
 
                 if (!$data) {
                     // Upstream bad data
-                    $consumer->acknowledge($message);
+                    $consumer->ack($message);
                     continue;
                 }
 
-                $topicName = str_replace("persistent://$tenant/$namespace/", '', $message->getMessageId()->getTopicName());
+                $topicName = str_replace("persistent://$tenant/$namespace/", '', $message->getTopic());
 
                 $event = match ($topicName) {
                     Events\ScoreCommentsForSpamEvent::TOPIC_NAME => new Events\ScoreCommentsForSpamEvent($data),
@@ -70,13 +62,31 @@ class AdminReportsTopic extends AbstractTopic implements TopicInterface
                 };
 
                 if (call_user_func($callback, $event, $message) === true) {
-                    $consumer->acknowledge($message);
+                    $consumer->ack($message);
                 } else {
-                    throw new \Exception("Failed to process message");
+                    throw new Exception("Failed to process message");
                 }
-            } catch (\Exception $e) {
-                $consumer->negativeAcknowledge($message);
+            } catch (Exception $e) {
+                $consumer->nack($message);
             }
         }
+    }
+
+    /**
+     * @param string $subscriptionId
+     * @param string $topicRegex
+     * @return Consumer
+     * @throws IOException
+     * @throws OptionsException
+     */
+    private function getConsumer(string $subscriptionId, string $topicRegex): Consumer
+    {
+        $tenant = $this->getPulsarTenant();
+        $namespace = $this->getPulsarNamespace();
+
+        $config = new ConsumerOptions();
+        $config->setSubscriptionType(SubscriptionType::Shared);
+
+        return $this->client()->subscribeWithRegex("persistent://$tenant/$namespace/$topicRegex", $subscriptionId, $config);
     }
 }

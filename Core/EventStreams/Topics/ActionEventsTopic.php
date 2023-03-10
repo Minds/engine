@@ -115,8 +115,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
         while (true) {
             $message = $consumer->receive();
             try {
-                $message->getSchemaValue($data);
-                $data = (array) $data;
+                $data = json_decode($message->getPayload(), true);
 
 
                 /** @var User */

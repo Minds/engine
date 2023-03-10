@@ -89,6 +89,8 @@ class Minds extends base
     public function init()
     {
         $this->initProviders();
+
+        $this->loadConfigs();
         $this->initModules();
     }
 
@@ -169,7 +171,7 @@ class Minds extends base
     public function start()
     {
         $this->checkInstalled();
-        $this->loadConfigs();
+        // $this->loadConfigs();
         $this->loadLegacy();
         $this->loadEvents();
 

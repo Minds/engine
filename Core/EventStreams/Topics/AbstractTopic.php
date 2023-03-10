@@ -4,6 +4,7 @@
  */
 namespace Minds\Core\EventStreams\Topics;
 
+
 use Exception;
 use Minds\Common\Pulsar\Client as PulsarClient;
 use Minds\Core\Config\Config;
@@ -11,7 +12,6 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
-use Pulsar\Client;
 use Pulsar\Consumer;
 use Pulsar\Exception\IOException;
 use Pulsar\Message;
@@ -20,13 +20,9 @@ abstract class AbstractTopic
 {
     private static array $batchMessages = [];
     private static array $processedMessages = [];
-
     private static int $startTime = 0;
 
-    /** @var PulsarClient */
-
-    /** @var Client */
-    protected $client;
+    protected ?PulsarClient $client;
 
     /** @var Config */
     protected $config;
@@ -38,13 +34,13 @@ abstract class AbstractTopic
     protected $entitiesResolver;
 
     public function __construct(
-        Client $client = null,
-        Config $config = null,
-        EntitiesBuilder $entitiesBuilder = null,
-        Resolver $entitiesResolver = null,
+        PulsarClient      $client = null,
+        Config            $config = null,
+        EntitiesBuilder   $entitiesBuilder = null,
+        Resolver          $entitiesResolver = null,
         protected ?Logger $logger = null
     ) {
-        $this->client = $client ?? null;
+        $this->client ??= $client;
         $this->config = $config ?? Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->entitiesResolver = $entitiesResolver ?? new Resolver();
@@ -87,7 +83,7 @@ abstract class AbstractTopic
      */
     protected function getBatchMessageId(Message $message): string
     {
-        return json_decode($message->getDataAsString())->view_uuid;
+        return (json_decode($message->getPayload()))->view_uuid;
     }
 
     /**
@@ -107,9 +103,11 @@ abstract class AbstractTopic
         int $execTimeoutInSeconds,
         callable $onBatchConsumed
     ): void {
+        $this->logger->addInfo("ViewsTopic - processBatch");
         while (true) {
             try {
                 $message = $consumer->receive();
+                $this->logger->addInfo("Message", [$message->getMessageId()]);
                 if (isset(self::$batchMessages[$this->getBatchMessageId($message)])) {
                     continue;
                 }
