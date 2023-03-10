@@ -14,7 +14,9 @@ class Manager
 {
     /** @var SendGridListInterface[] */
     const DEFAULT_LISTS = [
-        Lists\BoostedV2List::class,
+        Lists\LastPostedList::class,
+        Lists\BoostedV3List::class,
+        Lists\TokenBalances::class,
         Lists\WireUSDUsersList::class,
         Lists\MonetizedUsersList::class,
         Lists\TwitterSyncList::class,
@@ -59,6 +61,7 @@ class Manager
             $row['is_admin'] = ($user->admin == 'yes');
             $row['verified_email'] = $user->isTrusted();
             $row['is_enabled'] = $user->isEnabled();
+            $row['kite_state'] = $user->kite_state;
 
             // Construct email preference lists
             foreach ($this->emailPreferenceLists->getList($user->getGuid()) as $emailSubscription) {
