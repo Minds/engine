@@ -1,12 +1,12 @@
 <?php
 namespace Minds\Core\Monetization\Partners;
 
-use Minds\Core\Data\Cassandra\Client;
-use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
-use Minds\Common\Repository\Response;
-use Minds\Core\Di\Di;
 use Cassandra\Bigint;
 use Cassandra\Timestamp;
+use Minds\Common\Repository\Response;
+use Minds\Core\Data\Cassandra\Client;
+use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
+use Minds\Core\Di\Di;
 
 class Repository
 {
@@ -136,6 +136,7 @@ class Repository
 
     /**
      * @param string $guid
+     * @param null $asOfTs
      * @return EarningsBalance
      */
     public function getBalance($guid, $asOfTs = null): EarningsBalance
@@ -155,7 +156,7 @@ class Repository
 
         $result = $this->db->request($prepared);
         $row = $result[0];
-        
+
         $balance = new EarningsBalance();
         $balance->setUserGuid($guid)
             ->setAmountCents($row['cents'])
