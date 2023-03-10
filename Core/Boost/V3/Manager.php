@@ -102,7 +102,7 @@ class Manager
 
         if (!$this->isEntityTypeAllowed($entity, (int) $data['target_location'])) {
             throw new EntityTypeNotAllowedInLocationException();
-        }
+        }//
 
         $this->repository->beginTransaction();
 
