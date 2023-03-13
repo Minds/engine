@@ -101,6 +101,10 @@ CREATE TABLE IF NOT EXISTS user_configurations
     plus_demonetized timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB;
 
+ALTER TABLE user_configurations
+    ADD boost_partner_suitability int NULL DEFAULT NULL
+    AFTER user_guid;
+
 CREATE TABLE IF NOT EXISTS boosts
 (
     guid bigint PRIMARY KEY,
