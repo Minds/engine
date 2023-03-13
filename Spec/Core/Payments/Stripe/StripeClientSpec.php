@@ -42,7 +42,7 @@ class StripeClientSpec extends ObjectBehavior
 
         $this->activeSessionMock->getUser()->willReturn($userMock);
 
-        $userMock->getEmail()->willReturn('phpspec@minds.local');
+        $userMock->getEmail()->willReturn('test+phpspec@minds.local');
         $userMock->isEmailConfirmed()->willReturn(true);
 
         $this->beConstructedWith(null, $this->configMock, $this->activeSessionMock);
@@ -50,7 +50,35 @@ class StripeClientSpec extends ObjectBehavior
         $this->getApiKey()->shouldBe('test_pk');
     }
 
-    public function it_should_use_the_live_creds_because_of_foregd_email(User $userMock)
+    public function it_should_use_the_live_creds_because_of_forged_email(User $userMock)
+    {
+        $this->mockConfig();
+
+        $this->activeSessionMock->getUser()->willReturn($userMock);
+
+        $userMock->getEmail()->willReturn('test+phpspec@minds.local');
+        $userMock->isEmailConfirmed()->willReturn(false);
+
+        $this->beConstructedWith(null, $this->configMock, $this->activeSessionMock);
+
+        $this->getApiKey()->shouldBe('live_pk');
+    }
+
+    public function it_should_use_the_live_creds_because_no_email_before_plus(User $userMock)
+    {
+        $this->mockConfig();
+
+        $this->activeSessionMock->getUser()->willReturn($userMock);
+
+        $userMock->getEmail()->willReturn('+phpspec@minds.local');
+        $userMock->isEmailConfirmed()->willReturn(false);
+
+        $this->beConstructedWith(null, $this->configMock, $this->activeSessionMock);
+
+        $this->getApiKey()->shouldBe('live_pk');
+    }
+
+    public function it_should_use_the_live_creds_because_no_prefix_used(User $userMock)
     {
         $this->mockConfig();
 
@@ -62,6 +90,16 @@ class StripeClientSpec extends ObjectBehavior
         $this->beConstructedWith(null, $this->configMock, $this->activeSessionMock);
 
         $this->getApiKey()->shouldBe('live_pk');
+    }
+
+    public function it_should_construct_a_new_instance_with_a_given_user(User $user)
+    {
+        $this->withUser($user, [])->shouldReturnAnInstanceOf(StripeClient::class);
+    }
+
+    public function it_should_construct_a_new_instance_with_a_null_given_user()
+    {
+        $this->withUser(null, [])->shouldReturnAnInstanceOf(StripeClient::class);
     }
 
     private function mockConfig(): void

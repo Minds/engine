@@ -134,18 +134,19 @@ class ManagerV2
 
     /**
      * @param string $paymentIntentId
+     * @param User $sender
      * @return bool
      * @throws ApiErrorException
      */
-    public function cancelPaymentIntent(string $paymentIntentId): bool
+    public function cancelPaymentIntent(string $paymentIntentId, User $sender = null): bool
     {
-        $paymentIntent = $this->stripeClient->paymentIntents->cancel($paymentIntentId);
-
+        $paymentIntent = $this->stripeClient->withUser($sender)->paymentIntents->cancel($paymentIntentId);
         return $paymentIntent->status === "canceled";
     }
 
     /**
      * @param string $paymentIntentId
+     * @param User $sender
      * @return bool
      * @throws ServerErrorException
      * @throws UserErrorException
@@ -153,7 +154,7 @@ class ManagerV2
      * @throws StripeTransferFailedException
      * @throws Exception
      */
-    public function capturePaymentIntent(string $paymentIntentId): bool
+    public function capturePaymentIntent(string $paymentIntentId, User $sender = null): bool
     {
         $paymentIntent = $this->stripeClient->paymentIntents->retrieve($paymentIntentId);
         
@@ -181,8 +182,8 @@ class ManagerV2
                 throw new UserErrorException("Stripe account not found. It may not be created yet");
             }
         }
-        
-        $paymentIntent = $this->stripeClient->paymentIntents->capture($paymentIntentId);
+
+        $paymentIntent = $this->stripeClient->withUser($sender)->paymentIntents->capture($paymentIntentId);
 
         if ($paymentIntent->status !== "succeeded") {
             return false;
@@ -191,7 +192,7 @@ class ManagerV2
         // Was there a transfer destination? If not
         if ($manualTransfer) {
             try {
-                $this->stripeClient->transfers->create([
+                $this->stripeClient->withUser($sender)->transfers->create([
                     'amount' => $paymentIntent->amount - $applicationFeeAmount,
                     'currency' => 'usd',
                     'destination' => $stripeFutureAccount?->getId(),

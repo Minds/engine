@@ -175,7 +175,11 @@ class PaymentProcessor
      */
     private function captureCashPaymentIntent(Boost $boost): bool
     {
-        return $this->intentsManager->capturePaymentIntent($boost->getPaymentTxId());
+        $boostOwner = $this->entitiesBuilder->single($boost->getOwnerGuid());
+        if (!$boostOwner || !$boostOwner instanceof User) {
+            $boostOwner = null;
+        }
+        return $this->intentsManager->capturePaymentIntent($boost->getPaymentTxId(), $boostOwner);
     }
 
     /**
@@ -229,7 +233,11 @@ class PaymentProcessor
      */
     private function refundCashPaymentIntent(Boost $boost): bool
     {
-        return $this->intentsManager->cancelPaymentIntent($boost->getPaymentTxId());
+        $boostOwner = $this->entitiesBuilder->single($boost->getOwnerGuid());
+        if (!$boostOwner || !$boostOwner instanceof User) {
+            $boostOwner = null;
+        }
+        return $this->intentsManager->cancelPaymentIntent($boost->getPaymentTxId(), $boostOwner);
     }
 
     /**
