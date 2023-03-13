@@ -53,6 +53,7 @@ class Controller
         $limit = $params['limit'] ?? 12;
         $offset = $params['offset'] ?? 0;
         $servedByGuid = $params['served_by_guid'] ?? null;
+        $source = $params['source'] ?? null;
 
         $audience =
             $params['audience'] ??
@@ -73,7 +74,8 @@ class Controller
                 orderByRanking: true,
                 targetAudience: (int) $audience,
                 targetLocation: (int) $targetLocation ?: null,
-                servedByGuid: $servedByGuid
+                servedByGuid: $servedByGuid,
+                source: $source
             );
 
         return new JsonResponse([
