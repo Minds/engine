@@ -34,6 +34,7 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
@@ -187,11 +188,11 @@ class Manager
 
     /**
      * Checks if the provided entity can be boosted.
-     * @param mixed $entity
+     * @param EntityInterface $entity
      * @param int $targetLocation
      * @return bool
      */
-    private function isEntityTypeAllowed(mixed $entity, int $targetLocation): bool
+    private function isEntityTypeAllowed(EntityInterface $entity, int $targetLocation): bool
     {
         if (!$entity) {
             return false;
