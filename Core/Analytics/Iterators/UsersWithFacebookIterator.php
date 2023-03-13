@@ -33,16 +33,17 @@ class UsersWithFacebookIterator implements \Iterator
         $this->entitiesBuilder = $entitiesBuilder ?: Core\Di\Di::_()->get('EntitiesBuilder');
         $this->position = 0;
     }
+
     /**
      * Sets the period to cycle through
-     * @param string $period
+     * @param string|null $period
      */
-    public function setPeriod($period = null)
+    public function setPeriod(?string $period = null): void
     {
         $this->period = $period;
         $this->getUsers();
     }
-    public function setOffset($offset = '')
+    public function setOffset(mixed $offset = ''): void
     {
         $this->offset = $offset;
         $this->getUsers();
@@ -51,7 +52,7 @@ class UsersWithFacebookIterator implements \Iterator
     /**
      * Fetch all the users who signup through facebook
      */
-    protected function getUsers()
+    protected function getUsers(): void
     {
         $query = new Data\Cassandra\Prepared\Custom;
         $query->query("SELECT key FROM entities WHERE column1='fb_uuid' ALLOW FILTERING", []);
@@ -82,11 +83,12 @@ class UsersWithFacebookIterator implements \Iterator
             $this->getUsers();
         }
     }
+
     /**
      * Rewind the array cursor
-     * @return null
+     * @return void
      */
-    public function rewind()
+    public function rewind(): void
     {
         if ($this->cursor >= 0) {
             $this->getUsers();
@@ -97,23 +99,24 @@ class UsersWithFacebookIterator implements \Iterator
      * Get the current cursor's data
      * @return mixed
      */
-    public function current()
+    public function current(): mixed
     {
         return $this->data[$this->cursor];
     }
     /**
      * Get cursor's key
-     * @return mixed
+     * @return int
      */
-    public function key()
+    public function key(): int
     {
         return $this->cursor;
     }
+
     /**
      * Goes to the next cursor
-     * @return null
+     * @return void
      */
-    public function next()
+    public function next(): void
     {
         $this->cursor++;
         if (!isset($this->data[$this->cursor])) {
@@ -124,7 +127,7 @@ class UsersWithFacebookIterator implements \Iterator
      * Checks if the cursor is valid
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->valid && isset($this->data[$this->cursor]);
     }

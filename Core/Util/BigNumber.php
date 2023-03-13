@@ -34,7 +34,7 @@ class BigNumber implements JsonSerializable
      * Magic casting to string.
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->toString();
     }
@@ -43,7 +43,7 @@ class BigNumber implements JsonSerializable
      * Returns the value as a string.
      * @return string
      */
-    public function toString()
+    public function toString(): string
     {
         return (string) $this->value;
     }
@@ -53,7 +53,7 @@ class BigNumber implements JsonSerializable
      * !!!WARNING!!! for really big numbers it might lose some precision
      * @return float
      */
-    public function toDouble()
+    public function toDouble(): float
     {
         return (double) $this->toString();
     }
@@ -61,9 +61,9 @@ class BigNumber implements JsonSerializable
     /**
      * Returns the value as a double/float.
      * !!!WARNING!!! for really big numbers it might lose some precision
-     * @return float
+     * @return int
      */
-    public function toInt()
+    public function toInt(): int
     {
         return (int) $this->toString();
     }
@@ -73,7 +73,7 @@ class BigNumber implements JsonSerializable
      * @param int $scale
      * @return BigNumber
      */
-    public function setScale($scale)
+    public function setScale(mixed $scale): self
     {
         $this->scale = (int) $scale;
         return $this;
@@ -83,51 +83,51 @@ class BigNumber implements JsonSerializable
      * Gets the current decimal scale.
      * @return int
      */
-    public function getScale()
+    public function getScale(): int
     {
         return $this->scale;
     }
 
     /**
      * Adds value to another.
-     * @param $rightOperand
+     * @param mixed $rightOperand
      * @return BigNumber
      * @throws \Exception
      */
-    public function add($rightOperand)
+    public function add(mixed $rightOperand): self
     {
         return $this->immutable(bcadd($this->value, $this->normalize($rightOperand), $this->scale));
     }
 
     /**
      * Subtracts value to another.
-     * @param $rightOperand
+     * @param mixed $rightOperand
      * @return BigNumber
      * @throws \Exception
      */
-    public function sub($rightOperand)
+    public function sub(mixed $rightOperand): self
     {
         return $this->immutable(bcsub($this->value, $this->normalize($rightOperand), $this->scale));
     }
 
     /**
      * Multiplies value to another.
-     * @param $rightOperand
+     * @param mixed $rightOperand
      * @return BigNumber
      * @throws \Exception
      */
-    public function mul($rightOperand)
+    public function mul(mixed $rightOperand): self
     {
         return $this->immutable(bcmul($this->value, $this->normalize($rightOperand), $this->scale));
     }
 
     /**
      * Divides value to another.
-     * @param $rightOperand
+     * @param mixed $rightOperand
      * @return BigNumber
      * @throws \Exception
      */
-    public function div($rightOperand)
+    public function div(mixed $rightOperand): self
     {
         return $this->immutable(bcdiv($this->value, $this->normalize($rightOperand), $this->scale));
     }

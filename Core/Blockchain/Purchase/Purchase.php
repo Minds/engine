@@ -69,7 +69,7 @@ class Purchase implements \JsonSerializable
      * @return BigNumber
      * @throws \Exception
      */
-    public function getUnissuedAmount()
+    public function getUnissuedAmount(): BigNumber
     {
         return BigNumber::_($this->requestedAmount)
             ->sub(BigNumber::_($this->issuedAmount));
@@ -81,7 +81,7 @@ class Purchase implements \JsonSerializable
      * @return array
      * @throws \Exception
      */
-    public function export($pii = false)
+    public function export(bool $pii = false): array
     {
         $export = [
             'user_guid' => $this->userGuid,
@@ -106,12 +106,12 @@ class Purchase implements \JsonSerializable
     /**
      * Specify data which should be serialized to JSON
      * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
-     * @return mixed data which can be serialized by <b>json_encode</b>,
+     * @return array data which can be serialized by <b>json_encode</b>,
      * which is a value of any type other than a resource.
      * @since 5.4.0
      * @throws \Exception
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->export(false);
     }

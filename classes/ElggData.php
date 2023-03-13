@@ -129,7 +129,7 @@ abstract class ElggData implements
 	 * @return bool
 	 */
 	abstract public function save();
-	
+
 	/**
 	 * Delete this data.
 	 *
@@ -147,7 +147,7 @@ abstract class ElggData implements
 	}
 
 	/**
-	 * Gets age of data by subtracting time created from the current time. 
+	 * Gets age of data by subtracting time created from the current time.
 	 * @return int - age of the data.
 	 */
 	public function getAge(): int
@@ -189,18 +189,19 @@ abstract class ElggData implements
 	 */
 	protected $valid = FALSE;
 
-	/** 
+	/**
 	 * Return in array for the object..
 	 */
-	public function toArray(){
+	public function toArray(): array
+    {
 		$attrs = array();
 		foreach($this->attributes as $k => $v){
 			if(is_null($v))
 				continue;
-			
+
 			if(is_array($v))
 				$v = json_encode($v);
-				
+
 			$attrs[$k] = $v;
 		}
 		return $attrs;
@@ -213,7 +214,8 @@ abstract class ElggData implements
 	 *
 	 * @return void
 	 */
-	public function rewind() {
+	public function rewind(): void
+    {
 		$this->valid = (FALSE !== reset($this->attributes));
 	}
 
@@ -222,20 +224,22 @@ abstract class ElggData implements
 	 *
 	 * @see Iterator::current()
 	 *
-	 * @return mixed
+	 * @return mixed|false
 	 */
-	public function current() {
+	public function current(): mixed
+    {
 		return current($this->attributes);
 	}
 
-	/**
-	 * Iterator interface
-	 *
-	 * @see Iterator::key()
-	 *
-	 * @return string
-	 */
-	public function key() {
+    /**
+     * Iterator interface
+     *
+     * @return int|string|null
+     * @see Iterator::key()
+     *
+     */
+	public function key(): int|string|null
+    {
 		return key($this->attributes);
 	}
 
@@ -246,7 +250,8 @@ abstract class ElggData implements
 	 *
 	 * @return void
 	 */
-	public function next() {
+	public function next(): void
+    {
 		$this->valid = (FALSE !== next($this->attributes));
 	}
 
@@ -257,7 +262,8 @@ abstract class ElggData implements
 	 *
 	 * @return bool
 	 */
-	public function valid() {
+	public function valid(): bool
+    {
 		return $this->valid;
 	}
 
@@ -270,19 +276,20 @@ abstract class ElggData implements
 	 * Example: http://www.sitepoint.com/print/php5-standard-library
 	 */
 
-	/**
-	 * Array access interface
-	 *
-	 * @see ArrayAccess::offsetSet()
-	 *
-	 * @param mixed $key   Name
-	 * @param mixed $value Value
-	 *
-	 * @return void
-	 */
-	public function offsetSet($key, $value) {
-		if (array_key_exists($key, $this->attributes)) {
-			$this->attributes[$key] = $value;
+    /**
+     * Array access interface
+     *
+     * @param mixed $offset Name
+     * @param mixed $value Value
+     *
+     * @return void
+     * @see ArrayAccess::offsetSet()
+     *
+     */
+	public function offsetSet(mixed $offset, mixed $value): void
+    {
+		if (array_key_exists($offset, $this->attributes)) {
+			$this->attributes[$offset] = $value;
 		}
 	}
 
@@ -291,13 +298,14 @@ abstract class ElggData implements
 	 *
 	 * @see ArrayAccess::offsetGet()
 	 *
-	 * @param mixed $key Name
+	 * @param mixed $offset Name
 	 *
 	 * @return mixed
 	 */
-	public function offsetGet($key) {
-		if (array_key_exists($key, $this->attributes)) {
-			return $this->attributes[$key];
+	public function offsetGet(mixed $offset): mixed
+    {
+		if (array_key_exists($offset, $this->attributes)) {
+			return $this->attributes[$offset];
 		}
 		return null;
 	}
@@ -307,14 +315,15 @@ abstract class ElggData implements
 	 *
 	 * @see ArrayAccess::offsetUnset()
 	 *
-	 * @param mixed $key Name
+	 * @param mixed $offset Name
 	 *
 	 * @return void
 	 */
-	public function offsetUnset($key) {
-		if (array_key_exists($key, $this->attributes)) {
+	public function offsetUnset(mixed $offset): void
+    {
+		if (array_key_exists($offset, $this->attributes)) {
 			// Full unsetting is dangerous for our objects
-			$this->attributes[$key] = "";
+			$this->attributes[$offset] = "";
 		}
 	}
 
@@ -323,11 +332,11 @@ abstract class ElggData implements
 	 *
 	 * @see ArrayAccess::offsetExists()
 	 *
-	 * @param int $offset Offset
+	 * @param mixed $offset Offset
 	 *
-	 * @return int
+	 * @return bool
 	 */
-	public function offsetExists($offset) {
+	public function offsetExists(mixed $offset): bool {
 		return array_key_exists($offset, $this->attributes);
 	}
 }
