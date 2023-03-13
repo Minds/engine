@@ -70,7 +70,7 @@ class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterf
         foreach ($messages as $message) {
             $messageData = json_decode($message->getDataAsString());
 
-            if ($messageData->cm_medium !== 'boost') {
+            if (!str_starts_with($messageData->cm_campaign, "urn:boost:")) {
                 continue;
             }
 
