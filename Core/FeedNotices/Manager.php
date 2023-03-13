@@ -15,6 +15,7 @@ use Minds\Core\FeedNotices\Notices\SupermindPendingNotice;
 use Minds\Core\FeedNotices\Notices\UpdateTagsNotice;
 use Minds\Core\FeedNotices\Notices\VerifyEmailNotice;
 use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
+use Minds\Core\FeedNotices\Notices\BoostLatestPostNotice;
 use Minds\Core\Log\Logger;
 use Minds\Entities\User;
 
@@ -49,7 +50,8 @@ class Manager
         EnablePushNotificationsNotice::class,
         BoostChannelNotice::class,
         PlusUpgradeNotice::class,
-        InviteFriendsNotice::class
+        InviteFriendsNotice::class,
+        BoostLatestPostNotice::class,
     ];
 
     /**
