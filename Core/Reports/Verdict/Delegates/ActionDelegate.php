@@ -252,7 +252,7 @@ class ActionDelegate
     private function applyStrike(Report $report)
     {
         $strike = new Strike;
-        $strike->setReport($report)//
+        $strike->setReport($report)
             ->setReportUrn($report->getUrn())
             ->setUserGuid($report->getEntityOwnerGuid())
             ->setReasonCode($report->getReasonCode())
