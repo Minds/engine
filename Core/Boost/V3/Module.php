@@ -14,7 +14,7 @@ class Module implements ModuleInterface
         Ranking\Module::class,
         Insights\Module::class,
     ];
-    
+
     /**
      * @return void
      * @throws ImmutableException
