@@ -285,9 +285,16 @@ class Repository
      */
     public function getBoostByGuid(string $boostGuid): Boost
     {
-        $query = "SELECT * FROM boosts WHERE guid = :guid";
-        $values = ['guid' => $boostGuid];
+        $selectColumnsStr = implode([ 'boosts.*', 'summary.total_views' ]);
+        $values = [ 'guid' => $boostGuid ];
 
+        $summariesJoin = "LEFT JOIN (
+                SELECT guid, SUM(views) as total_views FROM boost_summaries
+                GROUP BY 1
+            ) summary
+            ON boosts.guid=summary.guid";
+
+        $query = "SELECT $selectColumnsStr FROM boosts $summariesJoin WHERE boosts.guid = :guid";
         $statement = $this->mysqlClientReader->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
@@ -313,7 +320,8 @@ class Repository
                 createdTimestamp: strtotime($boostData['created_timestamp']),
                 paymentTxId: $boostData['payment_tx_id'],
                 updatedTimestamp: isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
-                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null
+                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
+                summaryViewsDelivered: (int) $boostData['total_views']
             )
         )
             ->setGuid($boostData['guid'])
