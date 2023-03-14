@@ -31,7 +31,6 @@ class MetricsDelegate
             $remind = $activity->getRemind();
 
             // Submit to events engine
-
             $event = new Event();
             $event->setType('action')
                 ->setAction('remind')
