@@ -31,11 +31,19 @@ class Manager
      * @throws UserSettingsNotFoundException
      * @throws ServerErrorException
      */
-    public function getUserSettings(): UserSettings
+    public function getUserSettings(bool $allowEmpty = false): UserSettings
     {
-        return $this->repository
+        try {
+            return $this->repository
             ->getUserSettings($this->user->getGuid())
             ->withUser($this->user);
+        } catch (UserSettingsNotFoundException $e) {
+            if (!$allowEmpty) {
+                throw $e;
+            }
+            return (new UserSettings())
+                ->withUser($this->user);
+        }
     }
 
     /**

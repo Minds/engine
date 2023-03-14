@@ -11,6 +11,7 @@ use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Confirmation\Manager as EmailConfirmation;
+use Minds\Core\Settings\Manager as SettingsManager;
 use Minds\Entities;
 use Minds\Exceptions\TwoFactorRequired;
 use Minds\Interfaces;
@@ -45,7 +46,7 @@ class settings implements Interfaces\Api
         $response['channel']['boost_rating'] = $user->getBoostRating();
         $response['channel']['disabled_emails'] = $user->disabled_emails;
         $response['channel']['toaster_notifications'] = $user->getToasterNotifications();
-        
+
         $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
         $response['channel']['has2fa'] = [
             'totp' => $twoFactorManager->isTwoFactorEnabled($user) && !$user->telno,
@@ -55,6 +56,17 @@ class settings implements Interfaces\Api
         $sessionsManager = Di::_()->get('Sessions\Manager');
         $sessionsManager->setUser($user);
         $response['channel']['open_sessions'] = $sessionsManager->getActiveCount();
+
+        // --------------------------
+        /** @var SettingsManager $settingsV3Manager */
+        $settingsV3Manager = Di::_()->get('Settings\Manager');
+
+        $settingsV3 = $settingsV3Manager
+            ->setUser($user)
+            ->getUserSettings(true);
+
+        $response['channel']['boost_partner_suitability'] = $settingsV3->getBoostPartnerSuitability();
+        // --------------------------
 
         return Factory::response($response);
     }
@@ -111,6 +123,16 @@ class settings implements Interfaces\Api
                 }
 
                 $user->setEmail(strtolower($_POST['email']));
+            }
+
+            if (isset($_POST['boost_partner_suitability'])) {
+
+                /** @var SettingsManager $settingsV3Manager */
+                $settingsV3Manager = Di::_()->get('Settings\Manager');
+
+                $settingsV3Manager
+                    ->setUser($user)
+                    ->storeUserSettings(['boost_partner_suitability' => (int)$_POST['boost_partner_suitability']]);
             }
 
             if (isset($_POST['boost_rating'])) {
