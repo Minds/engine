@@ -6,6 +6,7 @@ use Minds\Core\Blockchain\Events\TokenSaleEvent;
 use Minds\Core\Blockchain\Purchase;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Config;
+use Minds\Core\Util\BigNumber;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -62,8 +63,15 @@ class TokenSaleEventSpec extends ObjectBehavior
         );
     }
 
-    public function it_should_execute_a_token_purchase_event(Transaction $transaction, Purchase\Purchase $purchase)
-    {
+    /**
+     * @param Transaction $transaction
+     * @param Purchase\Purchase $purchase
+     * @return void
+     * @throws \Exception
+     */
+    public function it_should_execute_a_token_purchase_event(
+        Transaction $transaction, Purchase\Purchase $purchase
+    ): void {
         $log = [
             'address' => '0xasd',
             'data' => [
@@ -91,7 +99,7 @@ class TokenSaleEventSpec extends ObjectBehavior
 
         $purchase->getUnissuedAmount()
             ->shouldBeCalled()
-            ->willReturn(256);
+            ->willReturn(BigNumber::fromPlain(256, 0));
 
         $this->manager->getAutoIssueCap()
             ->shouldBeCalled()
@@ -158,6 +166,12 @@ class TokenSaleEventSpec extends ObjectBehavior
         $this->event('0xf4b351c7293f3c20fc9912c61adbe9823a6de3162bde18c98eb6feeae232f861', $log, $transaction);
     }
 
+    /**
+     * @param Transaction $transaction
+     * @param Purchase\Purchase $purchase
+     * @return void
+     * @throws \Exception
+     */
     public function it_shouldnt_execute_a_token_purchase_event_if_requested_more_that_can_be_issued(
         Transaction $transaction,
         Purchase\Purchase $purchase
@@ -189,7 +203,7 @@ class TokenSaleEventSpec extends ObjectBehavior
 
         $purchase->getUnissuedAmount()
             ->shouldBeCalled()
-            ->willReturn(254);
+            ->willReturn(BigNumber::fromPlain(254, 0));
 
         $this->manager->issue(Argument::type('Minds\Core\Blockchain\Purchase\Purchase'))
             ->shouldNotBeCalled();
@@ -228,7 +242,7 @@ class TokenSaleEventSpec extends ObjectBehavior
 
         $purchase->getUnissuedAmount()
             ->shouldBeCalled()
-            ->willReturn(254);
+            ->willReturn(BigNumber::fromPlain(254, 0));
 
         $this->manager->issue(Argument::type('Minds\Core\Blockchain\Purchase\Purchase'))
             ->shouldNotBeCalled();

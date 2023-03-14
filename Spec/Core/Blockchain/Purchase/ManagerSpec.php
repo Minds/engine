@@ -6,7 +6,7 @@ use Minds\Core\Blockchain\Purchase\Delegates;
 use Minds\Core\Blockchain\Purchase\Purchase;
 use Minds\Core\Blockchain\Purchase\Repository;
 use Minds\Core\Config\Config;
-use Minds\Core\Blockchain\Purchase\Delegates\EthRate;
+use Minds\Core\Util\BigNumber;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -167,7 +167,7 @@ class ManagerSpec extends ObjectBehavior
 
         $purchase->getUnissuedAmount()
             ->shouldBeCalled()
-            ->willReturn(100);
+            ->willReturn(BigNumber::_(100));
         $purchase->setIssuedAmount(100)
             ->shouldBeCalled();
         $purchase->setStatus('issued')

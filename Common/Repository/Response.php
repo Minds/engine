@@ -48,9 +48,9 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
 
     /**
      * Gets the paging token for this result set
-     * @return string
+     * @return string|null
      */
-    public function getPagingToken(): string
+    public function getPagingToken(): ?string
     {
         return $this->pagingToken;
     }
