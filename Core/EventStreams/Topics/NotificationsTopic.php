@@ -13,13 +13,13 @@ use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\NotificationEvent;
 use Minds\Core\Notifications;
-use Pulsar\MessageBuilder;
-use Pulsar\ProducerConfiguration;
-use Pulsar\ConsumerConfiguration;
 use Pulsar\Consumer;
+use Pulsar\ConsumerConfiguration;
+use Pulsar\MessageBuilder;
 use Pulsar\Producer;
-use Pulsar\SchemaType;
+use Pulsar\ProducerConfiguration;
 use Pulsar\Result;
+use Pulsar\SchemaType;
 
 class NotificationsTopic extends AbstractTopic implements TopicInterface
 {
@@ -31,7 +31,7 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
 
     /** @var Producer */
     protected $producer;
-    
+
     public function __construct(Notifications\Manager $notificationsManager = null, ...$deps)
     {
         parent::__construct(...$deps);
@@ -81,10 +81,21 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
      * @param string $subscriptionId
      * @param callable $callback - the logic for the event
      * @param string $topicRegex - defaults to * (all topics will be returned)
+     * @param bool $isBatch
+     * @param int $batchTotalAmount
+     * @param int $execTimeoutInSeconds
+     * @param callable|null $onBatchConsumed
      * @return void
      */
-    public function consume(string $subscriptionId, callable $callback, string $topicRegex = '*'): void
-    {
+    public function consume(
+        string $subscriptionId,
+        callable $callback,
+        string $topicRegex = '*',
+        bool $isBatch = false,
+        int $batchTotalAmount = 1,
+        int $execTimeoutInSeconds = 30,
+        ?callable $onBatchConsumed = null
+    ): void {
         $tenant = $this->getPulsarTenant();
         $namespace = $this->getPulsarNamespace();
         $topic = 'event-notification';
