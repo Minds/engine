@@ -55,8 +55,7 @@
         "google/cloud-bigquery": "^1.23",
         "minishlink/web-push": "^6.0",
         "textalk/websocket": "^1.5",
-        "promphp/prometheus_client_php": "^2.6",
-        "minds/mysql-fluent-interface": "dev-master"
+        "promphp/prometheus_client_php": "^2.6"
     },
     "repositories": [
         {
@@ -78,10 +77,6 @@
         {
             "type": "vcs",
             "url": "https://github.com/minds/oauth2-openid-connect-server.git"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/FaustoJohn/selective-database.git"
         }
     ],
     "autoload": {

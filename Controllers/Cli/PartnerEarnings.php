@@ -2,11 +2,13 @@
 
 namespace Minds\Controllers\Cli;
 
-use Minds\Cli;
-use Minds\Core\Di\Di;
+use Minds\Core;
 use Minds\Core\Monetization\Partners\Manager;
-use Minds\Entities;
+use Minds\Core\Di\Di;
+use Minds\Cli;
 use Minds\Interfaces;
+use Minds\Exceptions;
+use Minds\Entities;
 
 class PartnerEarnings extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -18,7 +20,7 @@ class PartnerEarnings extends Cli\Controller implements Interfaces\CliController
     {
         $this->out('TBD');
     }
-
+    
     public function exec()
     {
         $this->out('Missing subcommand');
@@ -31,14 +33,10 @@ class PartnerEarnings extends Cli\Controller implements Interfaces\CliController
 
         $daysAgo = $this->getOpt('daysAgo') ?: 0;
         $from = $this->getOpt('from') ?: strtotime("midnight $daysAgo days ago");
-        $to = $this->getOpt('to') ?? null;
-
-        // Dry Run option to test execution before applying changes
-        $dryRun = (bool) $this->getOpt('dry-run') ?? false;
         $manager = new Manager();
 
         $i = 0;
-        foreach ($manager->issueDeposits([ 'from' => $from, 'to' => $to, 'dry-run' => $dryRun ]) as $record) {
+        foreach ($manager->issueDeposits([ 'from' => $from ]) as $record) {
             ++$i;
             $usd = round($record->getAmountCents() / 100, 2);
             $this->out("[$i]: {$record->getItem()} $$usd");

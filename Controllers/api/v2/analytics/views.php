@@ -73,11 +73,10 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
                     // TODO: Ensure client_meta campaign matches this boost
 
                     $viewsManager->record(
-                        view: (new Core\Analytics\Views\View())
+                        (new Core\Analytics\Views\View())
                             ->setEntityUrn($boost->getEntity()->getUrn())
                             ->setOwnerGuid((string) $boost->getEntity()->getOwnerGuid())
-                            ->setClientMeta($_POST['client_meta'] ?? []),
-                        entity: $boost->getEntity()
+                            ->setClientMeta($_POST['client_meta'] ?? [])
                     );
                 } catch (\Exception $e) {
                     error_log($e);
@@ -125,11 +124,10 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
 
                 try {
                     $viewsManager->record(
-                        view: (new Core\Analytics\Views\View())
+                        (new Core\Analytics\Views\View())
                             ->setEntityUrn($entity->getUrn())
                             ->setOwnerGuid((string) $entity->getOwnerGuid())
-                            ->setClientMeta($_POST['client_meta'] ?? []),
-                        entity: $entity
+                            ->setClientMeta($_POST['client_meta'] ?? [])
                     );
                 } catch (\Exception $e) {
                     error_log($e);
