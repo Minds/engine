@@ -12,9 +12,11 @@ use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
-use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
+use Selective\Database\Connection;
+use Selective\Database\Operator;
+use Selective\Database\RawExp;
 
 class Repository
 {
@@ -24,15 +26,17 @@ class Repository
     /**
      * @param MySQLClient|null $mysqlHandler
      * @param EntitiesBuilder|null $entitiesBuilder
-     * @throws ServerErrorException
+     * @param Connection|null $mysqlClientWriterHandler
      */
     public function __construct(
         private ?MySQLClient $mysqlHandler = null,
-        private ?EntitiesBuilder $entitiesBuilder = null
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?Connection $mysqlClientWriterHandler = null
     ) {
         $this->mysqlHandler ??= Di::_()->get("Database\MySQL\Client");
         $this->mysqlClientReader = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_REPLICA);
         $this->mysqlClientWriter = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_MASTER);
+        $this->mysqlClientWriterHandler ??= new Connection($this->mysqlClientWriter);
 
         $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
     }
@@ -372,14 +376,24 @@ class Repository
 
     public function updateStatus(string $boostGuid, int $status): bool
     {
-        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid";
+        $isCompleted = $status === BoostStatus::COMPLETED;
+
+        $statement = $this->mysqlClientWriterHandler->update()
+            ->table('boosts')
+            ->set([
+                'status' => new RawExp(':status'),
+                'updated_timestamp' => $isCompleted ? new RawExp('updated_timestamp') : new RawExp(':timestamp'),
+                'completed_timestamp' => !$isCompleted ? new RawExp('completed_timestamp') : new RawExp(':timestamp'),
+            ])
+            ->where('guid', Operator::EQ, new RawExp(':guid'))
+            ->prepare();
+
         $values = [
             'status' => $status,
-            'updated_timestamp' => date('c', time()),
+            'timestamp' => date('c', time()),
             'guid' => $boostGuid
         ];
 
-        $statement = $this->mysqlClientWriter->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         return $statement->execute();
