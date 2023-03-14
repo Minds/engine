@@ -285,7 +285,7 @@ class Repository
      * @throws BoostNotFoundException when no matching Boost is found.
      */
     public function getBoostByGuid(string $boostGuid): Boost
-    {
+    {//
         $selectColumnsStr = implode(',', [ 'boosts.*', 'summary.total_views' ]);
         $values = [ 'guid' => $boostGuid ];
 
