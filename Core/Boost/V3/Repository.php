@@ -279,13 +279,14 @@ class Repository
     }
 
     /**
-     * @param string $boostGuid
-     * @return Boost
-     * @throws BoostNotFoundException
+     * Get a single Boost by GUID. Will link with summaries table.
+     * @param string $boostGuid - guid to get the Boost for.
+     * @return Boost requested boost.
+     * @throws BoostNotFoundException when no matching Boost is found.
      */
     public function getBoostByGuid(string $boostGuid): Boost
     {
-        $selectColumnsStr = implode([ 'boosts.*', 'summary.total_views' ]);
+        $selectColumnsStr = implode(',', [ 'boosts.*', 'summary.total_views' ]);
         $values = [ 'guid' => $boostGuid ];
 
         $summariesJoin = "LEFT JOIN (
