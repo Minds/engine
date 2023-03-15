@@ -98,11 +98,15 @@ class EventStreams extends Cli\Controller implements Interfaces\CliControllerInt
     /**
      * Callback function to run when batch iteration is completed
      * @param bool $isBatch
-     * @param BatchSubscriptionInterface $subscription
+     * @param BatchSubscriptionInterface|SubscriptionInterface $subscription
      * @return callable|null
      */
-    private function onBatchConsumed(bool $isBatch, BatchSubscriptionInterface $subscription): ?callable
+    private function onBatchConsumed(bool $isBatch, BatchSubscriptionInterface|SubscriptionInterface $subscription): ?callable
     {
+        if (!($subscription instanceof BatchSubscriptionInterface)) {
+            return null;
+        }
+
         return match ($isBatch) {
             true => function () use ($subscription): void {
                 $subscription->commitChanges();
