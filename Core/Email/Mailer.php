@@ -64,7 +64,7 @@ class Mailer
 
         if ($message->getReplyTo()) {
             $this->mailer->ClearReplyTos();
-            $this->mailer->addReplyTo(
+            $this->mailer->addReplyTo(//
                 $message->getReplyTo()['email'],
                 $message->getReplyTo()['name'] ?? 'Minds'
             );
