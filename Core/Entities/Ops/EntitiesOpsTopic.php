@@ -10,13 +10,13 @@ use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\Topics\AbstractTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Pulsar\Client;
-use Pulsar\MessageBuilder;
-use Pulsar\ProducerConfiguration;
-use Pulsar\ConsumerConfiguration;
 use Pulsar\Consumer;
+use Pulsar\ConsumerConfiguration;
+use Pulsar\MessageBuilder;
 use Pulsar\Producer;
-use Pulsar\SchemaType;
+use Pulsar\ProducerConfiguration;
 use Pulsar\Result;
+use Pulsar\SchemaType;
 
 class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
 {
@@ -76,10 +76,21 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
      * @param string $subscriptionId
      * @param callable $callback - the logic for the event
      * @param string $topicRegex - defaults to * (all topics will be returned)
+     * @param bool $isBatch
+     * @param int $batchTotalAmount
+     * @param int $execTimeoutInSeconds
+     * @param callable|null $onBatchConsumed
      * @return void
      */
-    public function consume(string $subscriptionId, callable $callback, string $topicRegex = '*'): void
-    {
+    public function consume(
+        string $subscriptionId,
+        callable $callback,
+        string $topicRegex = '*',
+        bool $isBatch = false,
+        int $batchTotalAmount = 1,
+        int $execTimeoutInSeconds = 30,
+        ?callable $onBatchConsumed = null
+    ): void {
         $tenant = $this->getPulsarTenant();
         $namespace = $this->getPulsarNamespace();
         $topic = static::TOPIC_NAME;
