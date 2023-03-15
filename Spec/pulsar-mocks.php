@@ -70,14 +70,6 @@ class PulsarConsumerMock
     {
         return new PulsarMessageMock();
     }
-
-    public function acknowledge(PulsarMessageMock $messageMock): void
-    {
-    }
-
-    public function negativeAcknowledge(PulsarMessageMock $messageMock): void
-    {
-    }
 }
 class PulsarMessageBuilderMock
 {
@@ -96,9 +88,8 @@ class PulsarMessageBuilderMock
 }
 class PulsarMessageMock
 {
-    public function getDataAsString(): string
+    public function getDataAsString()
     {
-        return "";
     }
 }
 class PulsarResultMock

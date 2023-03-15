@@ -2,18 +2,16 @@
 
 namespace Spec\Minds\Core\Monetization\Partners;
 
-use Minds\Core\Boost\V3\Partners\Manager as BoostPartnersManager;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Monetization\Partners\Delegates;
-use Minds\Core\Monetization\Partners\EarningsBalance;
-use Minds\Core\Monetization\Partners\EarningsDeposit;
 use Minds\Core\Monetization\Partners\Manager;
 use Minds\Core\Monetization\Partners\Repository;
-use Minds\Core\Payments\Stripe;
+use Minds\Core\Monetization\Partners\EarningsDeposit;
+use Minds\Core\Monetization\Partners\EarningsBalance;
+use Minds\Core\Monetization\Partners\Delegates;
 use Minds\Core\Plus;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Payments\Stripe;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
-use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
@@ -30,33 +28,18 @@ class ManagerSpec extends ObjectBehavior
     /** @var Stripe\Connect\Manager */
     protected $connectManager;
 
-    private Collaborator $boostPartnersManager;
-
     public function let(
         Repository $repository,
         EntitiesBuilder $entitiesBuilder,
         Plus\Manager $plusManager,
         Stripe\Connect\Manager $connectManager,
-        Delegates\EmailDelegate $emailDelegate,
-        BoostPartnersManager $boostPartnersManager
+        Delegates\EmailDelegate $emailDelegate
     ) {
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->plusManager = $plusManager;
         $this->connectManager = $connectManager;
-        $this->boostPartnersManager = $boostPartnersManager;
-        $this->beConstructedWith(
-            $this->repository,
-            null,
-            $entitiesBuilder,
-            $plusManager,
-            $connectManager,
-            null,
-            null,
-            null,
-            $emailDelegate,
-            $this->boostPartnersManager
-        );
+        $this->beConstructedWith($repository, null, $entitiesBuilder, $plusManager, $connectManager, null, null, null, $emailDelegate);
     }
 
     public function it_is_initializable()
@@ -173,7 +156,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $user->getGuid()
             ->willReturn(123);
-
+        
         $this->repository->getBalance("123", null)
             ->willReturn((new EarningsBalance)->setAmountCents(100));
 

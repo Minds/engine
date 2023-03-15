@@ -2,14 +2,11 @@
 
 namespace Spec\Minds\Core\Analytics\Views;
 
-use Minds\Core\Analytics\Views\Delegates\ViewsDelegate;
 use Minds\Core\Analytics\Views\Manager;
 use Minds\Core\Analytics\Views\Repository;
 use Minds\Core\Analytics\Views\View;
 use Minds\Core\Feeds\Seen\Manager as SeenManager;
-use Minds\Entities\EntityInterface;
 use PhpSpec\ObjectBehavior;
-use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
@@ -20,23 +17,13 @@ class ManagerSpec extends ObjectBehavior
     /** @var SeenManager */
     protected $seenManager;
 
-    private Collaborator $viewsDelegate;
-
     public function let(
         Repository $repository,
         SeenManager $seenManager,
-        ViewsDelegate $viewsDelegate
     ) {
+        $this->beConstructedWith($repository, null, $seenManager);
         $this->repository = $repository;
         $this->seenManager = $seenManager;
-        $this->viewsDelegate = $viewsDelegate;
-
-        $this->beConstructedWith(
-            $this->repository,
-            null,
-            $seenManager,
-            $this->viewsDelegate
-        );
     }
 
     public function it_is_initializable()
@@ -45,8 +32,7 @@ class ManagerSpec extends ObjectBehavior
     }
 
     public function it_should_record(
-        View $view,
-        EntityInterface $entity
+        View $view
     ) {
         $view->setYear(null)
             ->shouldBeCalled()
@@ -60,7 +46,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($view);
 
-        $view->setUuid(Argument::any())
+        $view->setUuid(null)
             ->shouldBeCalled()
             ->willReturn($view);
 
@@ -72,9 +58,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn("urn:activity:fakeguid");
 
-        $this->viewsDelegate->onRecordView($view, $entity)
-            ->shouldBeCalledOnce();
-
         $this->seenManager->seeEntities(["fakeguid"])
             ->shouldBeCalled();
 
@@ -83,7 +66,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this
-            ->record($view, $entity)
+            ->record($view)
             ->shouldReturn(true);
     }
 }
