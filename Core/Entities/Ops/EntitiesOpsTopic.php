@@ -90,7 +90,6 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
         int $batchTotalAmount = 1,
         int $execTimeoutInSeconds = 30,
         ?callable $onBatchConsumed = null
-
     ): void {
         $tenant = $this->getPulsarTenant();
         $namespace = $this->getPulsarNamespace();
