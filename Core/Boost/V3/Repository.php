@@ -172,7 +172,9 @@ class Repository
             $values['payment_method'] = $paymentMethod;
         }
 
-        if ($targetAudience) {
+        // if audience is safe, we want safe only, else we want all audiences.
+        // if this is for the approval queue, we want admins to be able to filter between options.
+        if ($targetAudience === BoostTargetAudiences::SAFE || $forApprovalQueue) {
             $whereClauses[] = "target_suitability = :target_suitability";
             $values['target_suitability'] = $targetAudience;
         }
@@ -253,7 +255,9 @@ class Repository
             if (++$i > $limit) {
                 break;
             }
-            $entity = $this->entitiesBuilder->single($boostData['entity_guid']);
+
+            $entity = $i <= 12 ? $this->entitiesBuilder->single($boostData['entity_guid']) : null;
+
             yield (
                 new Boost(
                     entityGuid: $boostData['entity_guid'],
