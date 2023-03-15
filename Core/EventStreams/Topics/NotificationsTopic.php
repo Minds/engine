@@ -77,7 +77,7 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
 
     /**
      * Consume stream events. Use a new $subscriptionId per service
-     * eg. push, emails
+     * e.g. push, emails
      * @param string $subscriptionId
      * @param callable $callback - the logic for the event
      * @param string $topicRegex - defaults to * (all topics will be returned)
