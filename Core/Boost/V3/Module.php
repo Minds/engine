@@ -13,6 +13,7 @@ class Module implements ModuleInterface
         Summaries\Module::class,
         Ranking\Module::class,
         Insights\Module::class,
+        Partners\Module::class,
     ];
 
     /**
