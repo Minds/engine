@@ -37,6 +37,10 @@ use Minds\Traits\MagicAttributes;
  * @method string getCampaign()
  * @method View setDelta(int $delta)
  * @method int getDelta()
+ * @method View setSalt(string $salt)
+ * @method string|null getSalt()
+ * @method View setServedByGuid(string $servedByGuid)
+ * @method string|null getServedByGuid()
  * @method View setTimestamp(int $timestamp)
  * @method int getTimestamp()
  */
@@ -86,6 +90,9 @@ class View
     /** @var int */
     protected $timestamp;
 
+    private ?string $salt = null;
+    private ?string $servedByGuid = null;
+
     /**
      * @param array $clientMeta
      * @return $this
@@ -99,6 +106,8 @@ class View
         $this->medium = $clientMeta['medium'] ?? null;
         $this->campaign = $clientMeta['campaign'] ?? null;
         $this->delta = $clientMeta['delta'] ?? null;
+        $this->salt = $clientMeta['salt'] ?? null;
+        $this->servedByGuid = $clientMeta['served_by_guid'] ?? null;
 
         return $this;
     }
