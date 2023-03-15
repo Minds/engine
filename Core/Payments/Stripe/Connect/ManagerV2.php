@@ -22,7 +22,7 @@ class ManagerV2
         private ?Save $save = null,
     ) {
         $this->config ??= Di::_()->get('Config');
-        $this->stripeClient ??= new StripeClient();
+        $this->stripeClient ??= Di::_()->get(StripeClient::class);
         $this->save ??= new Save();
     }
 

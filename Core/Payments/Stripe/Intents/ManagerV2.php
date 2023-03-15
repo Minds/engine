@@ -35,7 +35,7 @@ class ManagerV2
         private ?EntitiesBuilder        $entitiesBuilder = null
     ) {
         $this->mindsConfig ??= Di::_()->get('Config');
-        $this->stripeClient ??= new StripeClient();
+        $this->stripeClient ??= Di::_()->get(StripeClient::class);
         $this->stripeCustomersManager ??= new StripeCustomersManager();
         $this->stripeConnectManager ??= new StripeConnectManager();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
