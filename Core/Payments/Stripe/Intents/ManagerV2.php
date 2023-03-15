@@ -156,7 +156,8 @@ class ManagerV2
      */
     public function capturePaymentIntent(string $paymentIntentId, User $sender = null): bool
     {
-        $paymentIntent = $this->stripeClient->paymentIntents->retrieve($paymentIntentId);
+        $stripeClient = $this->stripeClient->withUser($sender);
+        $paymentIntent = $stripeClient->paymentIntents->retrieve($paymentIntentId);
         
         // is manual in this context refers to a manual transfer method rather than capture method.
         $manualTransfer = isset($paymentIntent->metadata?->is_manual_transfer) ?
@@ -183,7 +184,7 @@ class ManagerV2
             }
         }
 
-        $paymentIntent = $this->stripeClient->withUser($sender)->paymentIntents->capture($paymentIntentId);
+        $paymentIntent = $stripeClient->withUser($sender)->paymentIntents->capture($paymentIntentId);
 
         if ($paymentIntent->status !== "succeeded") {
             return false;
@@ -192,7 +193,7 @@ class ManagerV2
         // Was there a transfer destination? If not
         if ($manualTransfer) {
             try {
-                $this->stripeClient->withUser($sender)->transfers->create([
+                $stripeClient->withUser($sender)->transfers->create([
                     'amount' => $paymentIntent->amount - $applicationFeeAmount,
                     'currency' => 'usd',
                     'destination' => $stripeFutureAccount?->getId(),

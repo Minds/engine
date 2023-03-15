@@ -8,6 +8,9 @@ namespace Minds\Core\Payments;
 use Minds\Core;
 use Minds\Core\Data;
 use Minds\Core\Di\Provider;
+use Minds\Core\Payments\Stripe\StripeClient;
+use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
+use Minds\Entities\User;
 
 class PaymentsProvider extends Provider
 {
@@ -26,11 +29,24 @@ class PaymentsProvider extends Provider
             return new Stripe\Stripe($di->get('Config'));
         }, ['useFactory'=>true]);
 
-        $this->di->bind('StripeSDK', function ($di) {
-            $config = $di->get('Config');
-            \Stripe\Stripe::setApiKey($config->get('payments')['stripe']['api_key']);
+        $this->di->bind('StripeSDK', function ($di, $args) {
+            $stripeApiKeyConfig = $di->get(StripeApiKeyConfig::class);
+            $apiKey = $stripeApiKeyConfig->get(
+                isset($args['user']) && $args['user'] instanceof User ?
+                    $args['user'] :
+                    null
+            );
+            \Stripe\Stripe::setApiKey($apiKey);
             \Stripe\Stripe::setApiVersion('2020-03-02');
-        }, ['useFactory'=>true]);
+        }, ['useFactory' => false]);
+
+        $this->di->bind(StripeApiKeyConfig::class, function ($di) {
+            return new StripeApiKeyConfig();
+        });
+
+        $this->di->bind(StripeClient::class, function ($di) {
+            return new StripeClient();
+        });
 
         /**
          * Connect
