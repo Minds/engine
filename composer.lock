@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dd88f0aa97e4a63a9fee26d572cf5211",
+    "content-hash": "cd932229e128d0c8a90a741b42739831",
     "packages": [
         {
             "name": "Minds/Surge",
@@ -2857,6 +2857,90 @@
             },
             "description": "Minds PHP Web3",
             "time": "2021-09-17T18:05:28+00:00"
+        },
+        {
+            "name": "minds/mysql-fluent-interface",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/FaustoJohn/selective-database.git",
+                "reference": "d188dcc4bb3e865000a735045f322cc0e31110b1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/FaustoJohn/selective-database/zipball/d188dcc4bb3e865000a735045f322cc0e31110b1",
+                "reference": "d188dcc4bb3e865000a735045f322cc0e31110b1",
+                "shasum": ""
+            },
+            "require": {
+                "ext-pdo": "*",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3",
+                "phpstan/phpstan": "^1",
+                "phpunit/phpunit": "^9 || ^10",
+                "squizlabs/php_codesniffer": "^3"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Selective\\Database\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Selective\\Database\\Test\\": "tests/"
+                }
+            },
+            "scripts": {
+                "cs:check": [
+                    "php-cs-fixer fix --dry-run --format=txt --verbose --diff --config=.cs.php --ansi"
+                ],
+                "cs:fix": [
+                    "php-cs-fixer fix --config=.cs.php --ansi"
+                ],
+                "sniffer:check": [
+                    "phpcs --standard=phpcs.xml"
+                ],
+                "sniffer:fix": [
+                    "phpcbf --standard=phpcs.xml"
+                ],
+                "stan": [
+                    "phpstan analyse -c phpstan.neon --no-progress --ansi --xdebug"
+                ],
+                "test": [
+                    "phpunit --configuration phpunit.xml --do-not-cache-result --colors=always"
+                ],
+                "test:all": [
+                    "@cs:check",
+                    "@sniffer:check",
+                    "@stan",
+                    "@test"
+                ],
+                "test:coverage": [
+                    "php -d xdebug.mode=coverage -r \"require 'vendor/bin/phpunit';\" -- --configuration phpunit.xml --do-not-cache-result --colors=always --coverage-clover build/logs/clover.xml --coverage-html build/coverage"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "SQL query builder",
+            "homepage": "https://github.com/selective-php/database",
+            "keywords": [
+                "builder",
+                "database",
+                "fluent",
+                "minds",
+                "mysql",
+                "query",
+                "sql"
+            ],
+            "support": {
+                "source": "https://github.com/FaustoJohn/selective-database/tree/master"
+            },
+            "time": "2023-03-01T20:50:20+00:00"
         },
         {
             "name": "minds/oauth2-openid-connect-server",
@@ -9904,7 +9988,8 @@
         "tijsverkoyen/twitteroauth": 20,
         "vscn/cruftflake": 20,
         "minds/oauth2-openid-connect-server": 20,
-        "steverhoades/oauth2-openid-connect-server": 20
+        "steverhoades/oauth2-openid-connect-server": 20,
+        "minds/mysql-fluent-interface": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

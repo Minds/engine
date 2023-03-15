@@ -21,12 +21,19 @@ class AdminReportsTopic extends AbstractTopic implements TopicInterface
     /**
      * @inheritDoc
      */
-    public function consume(string $subscriptionId, callable $callback, string $topicRegex = '*'): void
-    {
+    public function consume(
+        string $subscriptionId,
+        callable $callback,
+        string $topicRegex = '*',
+        bool $isBatch = false,
+        int $batchTotalAmount = 1,
+        int $execTimeoutInSeconds = 30,
+        ?callable $onBatchConsumed = null
+    ): void {
         $tenant = $this->getPulsarTenant();
         $namespace = $this->getPulsarNamespace();
         $topicRegex = $topicRegex;
-   
+
         $config = new ConsumerConfiguration();
         $config->setConsumerType(Consumer::ConsumerShared);
         // $config->setSchema(SchemaType::JSON, "SpamComment", '{
@@ -48,7 +55,7 @@ class AdminReportsTopic extends AbstractTopic implements TopicInterface
         // }',[]);
 
         $consumer = $this->client()->subscribeWithRegex("persistent://$tenant/$namespace/$topicRegex", $subscriptionId, $config);
-    
+
         while (true) {
             try {
                 $message = $consumer->receive(); // Will hang until received
