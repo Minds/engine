@@ -75,10 +75,21 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
      * @param string $subscriptionId
      * @param callable $callback - the logic for the event
      * @param string $topicRegex - defaults to * (all topics will be returned)
+     * @param bool $isBatch
+     * @param int $batchTotalAmount
+     * @param int $execTimeoutInSeconds
+     * @param callable|null $onBatchConsumed
      * @return void
      */
-    public function consume(string $subscriptionId, callable $callback, string $topicRegex = '*'): void
-    {
+    public function consume(
+        string $subscriptionId,
+        callable $callback,
+        string $topicRegex = '*',
+        bool $isBatch = false,
+        int $batchTotalAmount = 1,
+        int $execTimeoutInSeconds = 30,
+        ?callable $onBatchConsumed = null
+    ): void {
         $tenant = $this->getPulsarTenant();
         $namespace = $this->getPulsarNamespace();
         $topicRegex = 'event-action-' . $topicRegex;
@@ -103,7 +114,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                     $consumer->acknowledge($message);
                     continue;
                 }
-            
+
                 /** @var Entity */
                 $entity = $this->entitiesResolver->single(new Urn($data['entity_urn']));
 
