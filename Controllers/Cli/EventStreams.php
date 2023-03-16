@@ -43,7 +43,7 @@ class EventStreams extends Cli\Controller implements Interfaces\CliControllerInt
         $topic = $subscription->getTopic();
 
         $batchTotalAmount = 1;
-        $execTimeoutInSeconds = null;
+        $execTimeoutInSeconds = self::DEFAULT_EXEC_TIMEOUT_IN_SECONDS;
 
         // Check if we are running in batch mode
         $isBatch = (bool) $this->getOpt('batch') ?? false;
@@ -98,11 +98,15 @@ class EventStreams extends Cli\Controller implements Interfaces\CliControllerInt
     /**
      * Callback function to run when batch iteration is completed
      * @param bool $isBatch
-     * @param BatchSubscriptionInterface $subscription
+     * @param BatchSubscriptionInterface|SubscriptionInterface $subscription
      * @return callable|null
      */
-    private function onBatchConsumed(bool $isBatch, BatchSubscriptionInterface $subscription): ?callable
+    private function onBatchConsumed(bool $isBatch, BatchSubscriptionInterface|SubscriptionInterface $subscription): ?callable
     {
+        if (!($subscription instanceof BatchSubscriptionInterface)) {
+            return null;
+        }
+
         return match ($isBatch) {
             true => function () use ($subscription): void {
                 $subscription->onBatchConsumed();

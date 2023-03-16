@@ -4,7 +4,6 @@
  */
 namespace Minds\Core\EventStreams\Topics;
 
-
 use Exception;
 use Minds\Common\Pulsar\Client as PulsarClient;
 use Minds\Core\Config\Config;
@@ -103,11 +102,11 @@ abstract class AbstractTopic
         int $execTimeoutInSeconds,
         callable $onBatchConsumed
     ): void {
-        $this->logger->addInfo("ViewsTopic - processBatch");
+        $this->logger->info("ViewsTopic - processBatch");
         while (true) {
             try {
                 $message = $consumer->receive();
-                $this->logger->addInfo("Message", [$message->getMessageId()]);
+                $this->logger->info("Message", [$message->getMessageId()]);
                 if (isset(self::$batchMessages[$this->getBatchMessageId($message)])) {
                     continue;
                 }
@@ -129,7 +128,7 @@ abstract class AbstractTopic
                 ) {
                     continue;
                 }
-                $this->logger->addInfo("Last start time loop: " . self::$startTime);
+                $this->logger->info("Last start time loop: " . self::$startTime);
 
                 self::$startTime = time();
                 if (call_user_func($callback, self::$batchMessages) === true) {

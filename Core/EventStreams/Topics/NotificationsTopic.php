@@ -80,10 +80,14 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
 
     /**
      * Consume stream events. Use a new $subscriptionId per service
-     * eg. push, emails
+     * e.g. push, emails
      * @param string $subscriptionId
      * @param callable $callback - the logic for the event
      * @param string $topicRegex - defaults to * (all topics will be returned)
+     * @param bool $isBatch
+     * @param int $batchTotalAmount
+     * @param int $execTimeoutInSeconds
+     * @param callable|null $onBatchConsumed
      * @return void
      * @throws IOException
      * @throws OptionsException
@@ -91,8 +95,15 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
      * @throws MessageNotFound
      * @throws Exception
      */
-    public function consume(string $subscriptionId, callable $callback, string $topicRegex = '*'): void
-    {
+    public function consume(
+        string $subscriptionId,
+        callable $callback,
+        string $topicRegex = '*',
+        bool $isBatch = false,
+        int $batchTotalAmount = 1,
+        int $execTimeoutInSeconds = 30,
+        ?callable $onBatchConsumed = null
+    ): void {
         $consumer = $this->getConsumer($subscriptionId);
 
         while (true) {

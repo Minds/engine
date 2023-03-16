@@ -80,6 +80,10 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
      * @param string $subscriptionId
      * @param callable $callback - the logic for the event
      * @param string $topicRegex - defaults to * (all topics will be returned)
+     * @param bool $isBatch
+     * @param int $batchTotalAmount
+     * @param int $execTimeoutInSeconds
+     * @param callable|null $onBatchConsumed
      * @return void
      * @throws IOException
      * @throws MessageNotFound

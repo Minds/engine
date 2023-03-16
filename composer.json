@@ -51,7 +51,7 @@
         "kornrunner/keccak": "^1.1",
         "growthbook/growthbook": "1.0.0",
         "league/csv": "^9.8",
-        "google/cloud-bigquery": "^1.23",
+        "google/cloud-bigquery": "^1.24",
         "minishlink/web-push": "^6.0",
         "textalk/websocket": "^1.5",
         "promphp/prometheus_client_php": "^2.6",

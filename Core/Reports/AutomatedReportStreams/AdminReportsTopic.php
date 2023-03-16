@@ -28,19 +28,28 @@ class AdminReportsTopic extends AbstractTopic implements TopicInterface
      * @param string $subscriptionId
      * @param callable $callback
      * @param string $topicRegex
+     * @param bool $isBatch
+     * @param int $batchTotalAmount
+     * @param int $execTimeoutInSeconds
+     * @param callable|null $onBatchConsumed
      * @throws IOException
      * @throws MessageNotFound
      * @throws OptionsException
      * @throws RuntimeException
-     * @throws Exception
      */
-    public function consume(string $subscriptionId, callable $callback, string $topicRegex = '*'): void
-    {
+    public function consume(
+        string $subscriptionId,
+        callable $callback,
+        string $topicRegex = '*',
+        bool $isBatch = false,
+        int $batchTotalAmount = 1,
+        int $execTimeoutInSeconds = 30,
+        ?callable $onBatchConsumed = null
+    ): void {
         $consumer = $this->getConsumer($subscriptionId, $topicRegex);
 
         $tenant = $this->getPulsarTenant();
         $namespace = $this->getPulsarNamespace();
-
         while (true) {
             $message = $consumer->receive(); // Will hang until received
             try {

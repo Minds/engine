@@ -1546,7 +1546,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface
             'allow_unsubscribed_contact',
             'dismissed_widgets',
             'liquidity_spot_opt_out',
-            'supermind_settings'
+            'supermind_settings',
         ]);
     }
 
