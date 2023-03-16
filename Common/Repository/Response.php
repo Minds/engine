@@ -37,10 +37,10 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
 
     /**
      * Sets the paging token for this result set
-     * @param string $pagingToken
+     * @param string|null $pagingToken
      * @return Response
      */
-    public function setPagingToken(string $pagingToken): self
+    public function setPagingToken(?string $pagingToken): self
     {
         $this->pagingToken = $pagingToken;
         return $this;

@@ -10,11 +10,12 @@ use Minds\Core\I18n\Translator;
 use Minds\Core\Pro;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ConfirmationSpec extends ObjectBehavior
 {
-    /** @var Template */
+    /** @var Collaborator */
     protected $template;
 
     /** @var Mailer */
@@ -28,11 +29,11 @@ class ConfirmationSpec extends ObjectBehavior
 
     public function let(Template $template, Mailer $mailer, ConfirmationUrl $confirmationUrl, Pro\Domain $proDomain)
     {
-        $this->beConstructedWith(null, $mailer, $confirmationUrl, $proDomain);
         $this->template = $template;
         $this->mailer = $mailer;
         $this->confirmationUrl = $confirmationUrl;
         $this->proDomain = $proDomain;
+        $this->beConstructedWith($this->template, $mailer, $confirmationUrl, $proDomain);
     }
 
     public function it_is_initializable()
@@ -40,8 +41,10 @@ class ConfirmationSpec extends ObjectBehavior
         $this->shouldHaveType(Confirmation::class);
     }
 
-    public function it_should_build_a_normal_confirmation_email(User $user)
-    {
+    public function it_should_build_a_normal_confirmation_email(
+        User $user,
+        Translator $translator
+    ): void {
         $user->getGUID()
             ->willReturn('123');
         $user->get('guid')
@@ -57,11 +60,26 @@ class ConfirmationSpec extends ObjectBehavior
 
         $this->setUser($user);
 
+        $translator->trans(Argument::type('string'))
+            ->willReturn("");
+
+        $this->template->getTranslator()
+            ->willReturn($translator);
+
+        $this->template->setTemplate(Argument::any())
+            ->willReturn($this->template);
+
+        $this->template->setBody(Argument::any())
+            ->willReturn($this->template);
+
+        $this->template->set(Argument::any(), Argument::any())
+            ->willReturn($this->template);
+
         $this->template->setLocale(Argument::any())
             ->willReturn($this->template);
 
-        $this->template->getTranslator()
-            ->willReturn(new Translator());
+        $this->template->render()
+            ->willReturn("Verify your email to get started");
 
         $this->proDomain->lookup('')
             ->willReturn(null);
@@ -73,7 +91,7 @@ class ConfirmationSpec extends ObjectBehavior
             ->willReturn('confirmation-url');
 
         $message = $this->build();
-        
+
         $html = $message->buildHtml();
         $html->shouldContain('Verify your email to get started');
     }

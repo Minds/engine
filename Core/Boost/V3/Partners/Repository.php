@@ -129,6 +129,7 @@ class Repository
             ->columns([
                 'boosts.guid',
                 'boosts.payment_amount',
+                'boosts.payment_method',
                 'total_views' => new RawExp('SUM(s.views)')
             ])
             ->from('boosts')
@@ -152,6 +153,7 @@ class Repository
             ->select()
             ->columns([
                 'served_by_user_guid',
+                'payment_method',
                 'total_views_served' => new RawExp('SUM(bpv.views)'),
                 'ecpm' => new RawExp('SUM((completed.payment_amount / completed.total_views) * 1000)'),
             ])
@@ -163,7 +165,7 @@ class Repository
                 'bpv.boost_guid'
             );
 
-        $query->groupBy('served_by_user_guid');
+        $query->groupBy('served_by_user_guid', 'payment_method');
 
         $statement = $query->prepare();
 

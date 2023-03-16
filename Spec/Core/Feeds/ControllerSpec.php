@@ -2,13 +2,14 @@
 
 namespace Spec\Minds\Core\Feeds;
 
-use \Minds\Core\Feeds\Controller;
+use Minds\Common\Repository\Response;
 use Minds\Core\Config;
 use Minds\Core\EntitiesBuilder;
-use \Minds\Core\Feeds\Elastic;
+use Minds\Core\Feeds\Controller;
+use Minds\Core\Feeds\Elastic;
 use PhpSpec\ObjectBehavior;
+use Prophecy\Argument;
 use Zend\Diactoros\ServerRequest;
-use Minds\Common\Repository\Response;
 
 class ControllerSpec extends ObjectBehavior
 {
@@ -42,6 +43,12 @@ class ControllerSpec extends ObjectBehavior
         $this->config->get('default_recommendations_user')
             ->shouldBeCalled()
             ->willReturn('1000');
+
+        $response->offsetExists(Argument::any())
+            ->willReturn(true);
+
+        $response->valid()
+            ->willReturn(true);
 
         $this->manager->getList([
             'cache_key' => '1000',

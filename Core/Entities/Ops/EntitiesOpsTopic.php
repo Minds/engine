@@ -91,8 +91,15 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
      * @throws RuntimeException
      * @throws Exception
      */
-    public function consume(string $subscriptionId, callable $callback, string $topicRegex = '*'): void
-    {
+    public function consume(
+        string $subscriptionId,
+        callable $callback,
+        string $topicRegex = '*',
+        bool $isBatch = false,
+        int $batchTotalAmount = 1,
+        int $execTimeoutInSeconds = 30,
+        ?callable $onBatchConsumed = null
+    ): void {
         $consumer = $this->getConsumer($subscriptionId);
 
         while (true) {

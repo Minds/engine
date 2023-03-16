@@ -2,8 +2,8 @@
 
 namespace Spec\Minds\Core\Boost\Network;
 
-use Minds\Core\Boost\Network\ElasticRepository;
 use Minds\Core\Boost\Network\Boost;
+use Minds\Core\Boost\Network\ElasticRepository;
 use Minds\Core\Data\ElasticSearch\Client as Elastic;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -26,6 +26,7 @@ class ElasticRepositorySpec extends ObjectBehavior
     public function it_should_add()
     {
         $boost = (new Boost())
+            ->setTransactionId("")
             ->setCreatedTimestamp(time() * 1000)
             ->setCompletedTimestamp(time() * 1000)
             ->setReviewedTimestamp(time() * 1000)
@@ -43,7 +44,7 @@ class ElasticRepositorySpec extends ObjectBehavior
 
         $this->es->request(Argument::that(function ($prepared) {
             $body = $prepared->build()['body'];
-            
+
             return round($body['doc']['@timestamp'], -5) === round(time() * 1000, -5)
                 && round($body['doc']['@completed'], -5) === round(time() * 1000, -5)
                 && round($body['doc']['@reviewed'], -5) === round(time() * 1000, -5)

@@ -7,13 +7,13 @@ use Minds\Core\Boost\Network\Boost;
 use Minds\Core\Boost\Network\ElasticRepository;
 use Minds\Core\Boost\Network\Manager;
 use Minds\Core\Boost\Network\Repository;
+use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\GuidBuilder;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use Minds\Core\Di\Di;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -465,7 +465,7 @@ class ManagerSpec extends ObjectBehavior
         ])
             ->shouldBeCalled()
             ->willReturn(new Response($existingBoosts, ''));
-        
+
         $this->repository->getList(Argument::any())
             ->shouldBeCalled()
             ->willReturn(new Response($existingBoosts));
@@ -473,15 +473,15 @@ class ManagerSpec extends ObjectBehavior
         $boost->getType()
             ->shouldBeCalled()
             ->willReturn('newsfeed');
-        
+
         $boost->isOnChain()
             ->shouldBeCalled()
             ->willReturn($onchain);
-        
+
         $boost->getOwnerGuid()
             ->shouldBeCalled()
             ->willReturn('123');
-        
+
         $boost->getImpressions()
             ->shouldBeCalled()
             ->willReturn(1000);

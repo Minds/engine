@@ -21,7 +21,7 @@ abstract class AbstractTopic
     private static array $processedMessages = [];
     private static int $startTime = 0;
 
-    protected ?PulsarClient $client;
+    protected ?PulsarClient $client = null;
 
     /** @var Config */
     protected $config;
