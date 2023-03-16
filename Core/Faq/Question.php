@@ -34,7 +34,7 @@ class Question implements \JsonSerializable
         return $this->answer;
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return [
             'question' => $this->getQuestion(),

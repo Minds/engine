@@ -31,7 +31,7 @@ class Category implements \JsonSerializable
         return $this->questions;
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return [
             'category' => $this->getCategory(),

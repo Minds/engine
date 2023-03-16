@@ -61,7 +61,7 @@ class Iterator implements \Iterator
      * @param string $offset
      * @return Iterator
      */
-    public function setOffset($offset)
+    public function setOffset(string $offset): self
     {
         $this->manualOffset = true;
         $this->offset = $offset;
@@ -71,7 +71,7 @@ class Iterator implements \Iterator
     /**
      * @return string
      */
-    public function getOffset()
+    public function getOffset(): string
     {
         return $this->offset;
     }
@@ -81,7 +81,7 @@ class Iterator implements \Iterator
      * @param array $repositoryOptions
      * @return Iterator
      */
-    public function setRepositoryOptions($repositoryOptions)
+    public function setRepositoryOptions(array $repositoryOptions): self
     {
         $this->repositoryOptions = $repositoryOptions;
         return $this;
@@ -129,7 +129,7 @@ class Iterator implements \Iterator
      * @return mixed Can return any type.
      * @since 5.0.0
      */
-    public function current()
+    public function current(): mixed
     {
         return $this->data[$this->cursor];
     }
@@ -141,7 +141,7 @@ class Iterator implements \Iterator
      * @since 5.0.0
      * @throws \Exception
      */
-    public function next()
+    public function next(): void
     {
         $this->cursor++;
 
@@ -153,10 +153,10 @@ class Iterator implements \Iterator
     /**
      * Return the key of the current element
      * @link http://php.net/manual/en/iterator.key.php
-     * @return mixed scalar on success, or null on failure.
+     * @return int scalar on success, or null on failure.
      * @since 5.0.0
      */
-    public function key()
+    public function key(): int
     {
         return $this->cursor;
     }
@@ -168,7 +168,7 @@ class Iterator implements \Iterator
      * Returns true on success or false on failure.
      * @since 5.0.0
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->valid && isset($this->data[$this->cursor]);
     }
@@ -180,7 +180,7 @@ class Iterator implements \Iterator
      * @since 5.0.0
      * @throws \Exception
      */
-    public function rewind()
+    public function rewind(): void
     {
         if (!$this->manualOffset) {
             $this->offset = '';
