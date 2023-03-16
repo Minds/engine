@@ -335,7 +335,7 @@ production:runners:
     - kubectl get deployments | grep minds-runner- | awk '{print $1}' | xargs kubectl rollout restart deployment
     # OKE: Rolling restart
     - *oci_prepare
-    - kubectl get deployments | grep minds-runner- | awk '{print $1}' | xargs kubectl rollout restart deployment
+    - kubectl get deployments | grep minds-runners- | awk '{print $1}' | xargs kubectl rollout restart deployment
   only:
     refs:
       - master
