@@ -551,8 +551,7 @@ class Manager
                     'medium' => 'sidebar',
                     'campaign' => $boost->getUrn(),
                     'position' => $position,
-                ]),
-            $boost->getEntity(),
+                ])
         );
     }
 
