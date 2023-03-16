@@ -412,7 +412,7 @@ class Manager
                 unset($boostsArray[$i]);
                 continue;
             }
-            if ((int) $targetLocation === BoostTargetLocation::SIDEBAR) {
+            if ((int) $targetLocation === BoostTargetLocation::SIDEBAR && $boost->getEntity()) {
                 $this->recordSidebarView($boost, $i);
             }
         }
