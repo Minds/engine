@@ -33,6 +33,9 @@ use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Security\ACL;
+use Minds\Core\Settings\Manager as UserSettingsManager;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Settings\Models\BoostPartnerSuitability;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -53,7 +56,9 @@ class Manager
         private ?ActionEventDelegate $actionEventDelegate = null,
         private ?PreApprovalManager $preApprovalManager = null,
         private ?ViewsManager $viewsManager = null,
-        private ?ACL $acl = null
+        private ?ACL $acl = null,
+        private ?UserSettingsManager $userSettingsManager = null,
+        private ?ExperimentsManager $experimentsManager = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
@@ -63,6 +68,8 @@ class Manager
         $this->viewsManager ??= new ViewsManager();
         $this->acl ??= new ACL();
         $this->logger = Di::_()->get("Logger");
+        $this->userSettingsManager ??= Di::_()->get('Settings\Manager');
+        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -389,9 +396,25 @@ class Manager
         ?string $targetUserGuid = null,
         bool $orderByRanking = false,
         int $targetAudience = BoostTargetAudiences::SAFE,
-        ?int $targetLocation = null
+        ?int $targetLocation = null,
+        ?string $servedByGuid = null
     ): Response {
         $hasNext = false;
+
+        if ($servedByGuid && $this->experimentsManager->isOn('epic-303-boost-partners')) {
+            $servedByTargetAudience = $this->getServedByTargetAudience($servedByGuid);
+
+            // if no audience, return null.
+            if (!$servedByTargetAudience) {
+                return new Response([]);
+            }
+
+            // if the users target audience is fixed to safe, respect it.
+            if ($servedByTargetAudience === BoostTargetAudiences::SAFE && $targetAudience !== BoostTargetAudiences::SAFE) {
+                $targetAudience = BoostTargetAudiences::SAFE;
+            }
+        }
+
         $boosts = $this->repository->getBoosts(
             limit: $limit,
             offset: $offset,
@@ -579,5 +602,28 @@ class Manager
         }
 
         return $feedSyncEntities;
+    }
+
+    /**
+     * Gets target audience for user belonging to the "served by" guid.
+     * @param string $servedByGuid - guid to get settings for.
+     * @return int|null target audience for given served by guid.
+     */
+    private function getServedByTargetAudience(string $servedByGuid): ?int
+    {
+        $servedByUser = $this->entitiesBuilder->single($servedByGuid);
+        if (!$servedByUser || !$servedByUser instanceof User) {
+            return BoostTargetAudiences::CONTROVERSIAL;
+        }
+
+        $userSettings = $this->userSettingsManager->setUser($servedByUser)
+            ->getUserSettings(allowEmpty: true);
+
+        return match ($userSettings->getBoostPartnerSuitability()) {
+            BoostPartnerSuitability::SAFE => BoostTargetAudiences::SAFE,
+            BoostPartnerSuitability::CONTROVERSIAL => BoostTargetAudiences::CONTROVERSIAL,
+            BoostPartnerSuitability::DISABLED => null,
+            default => BoostTargetAudiences::CONTROVERSIAL
+        };
     }
 }

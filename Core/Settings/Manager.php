@@ -35,8 +35,8 @@ class Manager
     {
         try {
             return $this->repository
-            ->getUserSettings($this->user->getGuid())
-            ->withUser($this->user);
+                ->getUserSettings($this->user->getGuid())
+                ->withUser($this->user);
         } catch (UserSettingsNotFoundException $e) {
             if (!$allowEmpty) {
                 throw $e;
