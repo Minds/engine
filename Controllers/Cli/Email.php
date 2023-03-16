@@ -11,7 +11,6 @@ use Minds\Core\Email\V2\Campaigns;
 use Minds\Core\Email\V2\Campaigns\Recurring\BoostComplete\BoostComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireSent\WireSent;
-use Minds\Core\Email\V2\Campaigns\Recurring\PostSignupSurvey\PostSignupSurvey;
 use Minds\Core\Email\V2\Delegates\ConfirmationSender;
 use Minds\Core\Email\V2\Delegates\DigestSender;
 use Minds\Core\Reports;
@@ -368,32 +367,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $digest->send($user);
 
         $this->out('Sent');
-    }
-
-    /**
-     * Test PostSignupSurvey email by dispatching an email to a specific
-     * user GUID.
-     *
-     * Usage:
-     *  - `php cli.php Email testPostSignupSurvey --userGuid={{guid}}`
-     *
-     * @return void
-     */
-    public function testPostSignupSurvey(): void
-    {
-        $userGuid = $this->getOpt('userGuid');
-
-        if (!$userGuid) {
-            $this->out('[Error] Missing --userGuid parameter.');
-            return;
-        }
-
-        $user = new User($userGuid);
-        $campaign = new PostSignupSurvey();
-        $campaign->setUser($user);
-        $campaign->send();
-
-        $this->out('Completed.');
     }
 
     public function testPlusTrial()
