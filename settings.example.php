@@ -112,7 +112,7 @@ $CONFIG->set(
         ],
         [
             'value' => 10,
-            'label' => 'Infringes my copyright',
+            'label' => 'Intellectual property violation',
             'hasMore' => true,
         ],
         [
