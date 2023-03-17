@@ -175,3 +175,18 @@ CREATE TABLE IF NOT EXISTS users_marketing_attributes
 ALTER TABLE boosts
     ADD reason int NULL DEFAULT NULL
     AFTER status;
+
+CREATE TABLE IF NOT EXISTS boost_partner_views
+(
+    served_by_user_guid bigint NOT NULL,
+    boost_guid bigint NOT NULL,
+    views int NOT NULL,
+    view_date timestamp NOT NULL,
+    PRIMARY KEY (served_by_user_guid, boost_guid, view_date)
+) ENGINE=InnoDB;
+
+ALTER TABLE boosts
+    ADD completed_timestamp timestamp DEFAULT NULL
+    AFTER approved_timestamp;
+ALTER TABLE boosts
+ADD INDEX completed_timestamp (completed_timestamp) USING BTREE;

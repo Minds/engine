@@ -83,7 +83,7 @@ class UserSettings implements ExportableInterface
      */
     public function setBoostPartnerSuitability(?int $boostPartnerSuitability): self
     {
-        $this->boostPartnerSuitability = $boostPartnerSuitability;
+        $this->boostPartnerSuitability = $boostPartnerSuitability ?? BoostPartnerSuitability::CONTROVERSIAL;
         $this->markPropertyAsUpdated('boost_partner_suitability', $boostPartnerSuitability);
         return $this;
     }

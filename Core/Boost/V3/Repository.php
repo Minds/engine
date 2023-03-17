@@ -12,9 +12,11 @@ use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
-use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
+use Selective\Database\Connection;
+use Selective\Database\Operator;
+use Selective\Database\RawExp;
 
 class Repository
 {
@@ -24,15 +26,17 @@ class Repository
     /**
      * @param MySQLClient|null $mysqlHandler
      * @param EntitiesBuilder|null $entitiesBuilder
-     * @throws ServerErrorException
+     * @param Connection|null $mysqlClientWriterHandler
      */
     public function __construct(
         private ?MySQLClient $mysqlHandler = null,
-        private ?EntitiesBuilder $entitiesBuilder = null
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?Connection $mysqlClientWriterHandler = null
     ) {
         $this->mysqlHandler ??= Di::_()->get("Database\MySQL\Client");
         $this->mysqlClientReader = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_REPLICA);
         $this->mysqlClientWriter = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_MASTER);
+        $this->mysqlClientWriterHandler ??= new Connection($this->mysqlClientWriter);
 
         $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
     }
@@ -172,7 +176,9 @@ class Repository
             $values['payment_method'] = $paymentMethod;
         }
 
-        if ($targetAudience) {
+        // if audience is safe, we want safe only, else we want all audiences.
+        // if this is for the approval queue, we want admins to be able to filter between options.
+        if ($targetAudience === BoostTargetAudiences::SAFE || $forApprovalQueue) {
             $whereClauses[] = "target_suitability = :target_suitability";
             $values['target_suitability'] = $targetAudience;
         }
@@ -253,7 +259,9 @@ class Repository
             if (++$i > $limit) {
                 break;
             }
-            $entity = $this->entitiesBuilder->single($boostData['entity_guid']);
+
+            $entity = $i <= 12 ? $this->entitiesBuilder->single($boostData['entity_guid']) : null;
+
             yield (
                 new Boost(
                     entityGuid: $boostData['entity_guid'],
@@ -279,15 +287,23 @@ class Repository
     }
 
     /**
-     * @param string $boostGuid
-     * @return Boost
-     * @throws BoostNotFoundException
+     * Get a single Boost by GUID. Will link with summaries table.
+     * @param string $boostGuid - guid to get the Boost for.
+     * @return Boost requested boost.
+     * @throws BoostNotFoundException when no matching Boost is found.
      */
     public function getBoostByGuid(string $boostGuid): Boost
     {
-        $query = "SELECT * FROM boosts WHERE guid = :guid";
-        $values = ['guid' => $boostGuid];
+        $selectColumnsStr = implode(',', [ 'boosts.*', 'summary.total_views' ]);
+        $values = [ 'guid' => $boostGuid ];
 
+        $summariesJoin = "LEFT JOIN (
+                SELECT guid, SUM(views) as total_views FROM boost_summaries
+                GROUP BY 1
+            ) summary
+            ON boosts.guid=summary.guid";
+
+        $query = "SELECT $selectColumnsStr FROM boosts $summariesJoin WHERE boosts.guid = :guid";
         $statement = $this->mysqlClientReader->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
@@ -313,7 +329,8 @@ class Repository
                 createdTimestamp: strtotime($boostData['created_timestamp']),
                 paymentTxId: $boostData['payment_tx_id'],
                 updatedTimestamp: isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
-                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null
+                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
+                summaryViewsDelivered: (int) $boostData['total_views']
             )
         )
             ->setGuid($boostData['guid'])
@@ -372,14 +389,24 @@ class Repository
 
     public function updateStatus(string $boostGuid, int $status): bool
     {
-        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid";
+        $isCompleted = $status === BoostStatus::COMPLETED;
+
+        $statement = $this->mysqlClientWriterHandler->update()
+            ->table('boosts')
+            ->set([
+                'status' => new RawExp(':status'),
+                'updated_timestamp' => $isCompleted ? new RawExp('updated_timestamp') : new RawExp(':timestamp'),
+                'completed_timestamp' => !$isCompleted ? new RawExp('completed_timestamp') : new RawExp(':timestamp'),
+            ])
+            ->where('guid', Operator::EQ, new RawExp(':guid'))
+            ->prepare();
+
         $values = [
             'status' => $status,
-            'updated_timestamp' => date('c', time()),
+            'timestamp' => date('c', time()),
             'guid' => $boostGuid
         ];
 
-        $statement = $this->mysqlClientWriter->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         return $statement->execute();

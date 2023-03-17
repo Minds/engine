@@ -22,12 +22,16 @@ use Minds\Core\Boost\V3\Manager;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\PaymentProcessor;
 use Minds\Core\Boost\V3\Repository;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Settings\Models\BoostPartnerSuitability;
 use Minds\Core\Settings\Models\UserSettings;
+use Minds\Core\Feeds\FeedSyncEntity;
+use Minds\Entities\Activity;
 use Minds\Entities\Entity;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use NotImplementedException;
@@ -46,6 +50,7 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $viewsManager;
     private Collaborator $acl;
     private Collaborator $userSettingsManager;
+    private Collaborator $experimentsManager;
 
     public function let(
         Repository $repository,
@@ -55,7 +60,8 @@ class ManagerSpec extends ObjectBehavior
         PreApprovalManager $preApprovalManager,
         ViewsManager $viewsManager,
         ACL $acl,
-        UserSettingsManager $userSettingsManager
+        UserSettingsManager $userSettingsManager,
+        ExperimentsManager $experimentsManager
     ) {
         $this->repository = $repository;
         $this->paymentProcessor = $paymentProcessor;
@@ -65,6 +71,7 @@ class ManagerSpec extends ObjectBehavior
         $this->viewsManager = $viewsManager;
         $this->acl = $acl;
         $this->userSettingsManager = $userSettingsManager;
+        $this->experimentsManager = $experimentsManager;
 
         $this->beConstructedWith(
             $this->repository,
@@ -74,7 +81,8 @@ class ManagerSpec extends ObjectBehavior
             $this->preApprovalManager,
             $this->viewsManager,
             $this->acl,
-            $this->userSettingsManager
+            $this->userSettingsManager,
+            $this->experimentsManager
         );
     }
 
@@ -929,45 +937,61 @@ class ManagerSpec extends ObjectBehavior
         $this->getBoostByGuid($boostGuid)->shouldBe(null);
     }
 
-    // public function it_should_get_boosts_as_feed_sync_entity(
-    //     Boost $boost
-    // ): void {
-    //     $boost = (new Boost(
-    //         '123',
-    //         1,
-    //         1,
-    //         1,
-    //         1,
-    //         1,
-    //         1,
-    //         1,
-    //         1,
-    //         1,
-    //         '123',
-    //         1,
-    //         1
-    //     ))->setOwnerGuid('123')
-    //         ->setGuid('234');
+    public function it_should_get_boosts_as_feed_sync_entity(
+        Boost $boost,
+        User $user
+    ): void {
+        $boostGuid = '234';
+        $ownerGuid = '123';
+        $createdTimestamp = 999999;
+        $boostUrn = "urn:boost:$boostGuid";
 
-    //     $this->repository->getBoosts(
-    //         limit: Argument::type('integer'),
-    //         offset: Argument::type('integer'),
-    //         targetStatus: null,
-    //         forApprovalQueue: Argument::type('bool'),
-    //         targetUserGuid: null,
-    //         orderByRanking: Argument::type('bool'),
-    //         targetAudience: Argument::type('integer'),
-    //         targetLocation: null,
-    //         paymentMethod: null,
-    //         loggedInUser: null,
-    //         hasNext: Argument::type('bool'),
-    //     )
-    //         ->shouldBeCalledOnce()
-    //         ->willYield([$boost]);
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid($ownerGuid)
+            ->setGuid($boostGuid)
+            ->setCreatedTimestamp($createdTimestamp);
 
-    //     $this->getBoostFeed()
-    //         ->shouldReturnAnInstanceOf(Response::class);
-    // }
+        $this->setUser($user);
+
+        $this->repository->getBoosts(
+            limit: 12,
+            offset: 0,
+            targetStatus: null,
+            forApprovalQueue: false,
+            targetUserGuid: null,
+            orderByRanking: false,
+            targetAudience: BoostTargetAudiences::SAFE,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: $user,
+            hasNext: false
+        )
+            ->shouldBeCalled()
+            ->willYield([$boost]);
+
+        $this->getBoostFeed()->toArray()->shouldBeLike([
+            (new FeedSyncEntity())
+                ->setGuid($boostGuid)
+                ->setOwnerGuid($ownerGuid)
+                ->setTimestamp($createdTimestamp)
+                ->setUrn($boostUrn)
+                ->setEntity(null)
+        ]);
+    }
 
     public function it_should_get_boosts_when_boost_serving_user_allows_only_safe_boosts_and_target_audience_is_safe(
         Boost $boost,
@@ -991,6 +1015,10 @@ class ManagerSpec extends ObjectBehavior
             1
         ))->setOwnerGuid('123')
             ->setGuid('234');
+
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
@@ -1052,6 +1080,10 @@ class ManagerSpec extends ObjectBehavior
         ))->setOwnerGuid('123')
             ->setGuid('234');
 
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
             offset: Argument::type('integer'),
@@ -1111,6 +1143,10 @@ class ManagerSpec extends ObjectBehavior
             1
         ))->setOwnerGuid('123')
             ->setGuid('234');
+
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
@@ -1172,6 +1208,10 @@ class ManagerSpec extends ObjectBehavior
         ))->setOwnerGuid('123')
             ->setGuid('234');
 
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
             offset: Argument::type('integer'),
@@ -1231,6 +1271,10 @@ class ManagerSpec extends ObjectBehavior
             1
         ))->setOwnerGuid('123')
             ->setGuid('234');
+
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
@@ -1292,6 +1336,10 @@ class ManagerSpec extends ObjectBehavior
         ))->setOwnerGuid('123')
             ->setGuid('234');
 
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
             offset: Argument::type('integer'),
@@ -1352,6 +1400,10 @@ class ManagerSpec extends ObjectBehavior
         ))->setOwnerGuid('123')
             ->setGuid('234');
 
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
             offset: Argument::type('integer'),
@@ -1410,6 +1462,10 @@ class ManagerSpec extends ObjectBehavior
             1
         ))->setOwnerGuid('123')
             ->setGuid('234');
+
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->repository->getBoosts(
             limit: Argument::type('integer'),

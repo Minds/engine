@@ -19,6 +19,10 @@ use PDOStatement;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use Selective\Database\Connection;
+use Selective\Database\Operator;
+use Selective\Database\RawExp;
+use Selective\Database\UpdateQuery;
 use Spec\Minds\Common\Traits\CommonMatchers;
 
 class RepositorySpec extends ObjectBehavior
@@ -28,6 +32,7 @@ class RepositorySpec extends ObjectBehavior
     private Collaborator $mysqlHandler;
     private Collaborator $mysqlClientReader;
     private Collaborator $mysqlClientWriter;
+    private Collaborator $mysqlClientWriterHandler;
     private Collaborator $entitiesBuilder;
 
     /**
@@ -42,6 +47,7 @@ class RepositorySpec extends ObjectBehavior
         MySQLClient $mysqlHandler,
         PDO    $mysqlClientReader,
         PDO    $mysqlClientWriter,
+        Connection $mysqlClientWriterHandler,
         EntitiesBuilder $entitiesBuilder
     ): void {
         $this->mysqlHandler = $mysqlHandler;
@@ -54,9 +60,12 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_MASTER)
             ->willReturn($this->mysqlClientWriter);
 
+        $mysqlClientWriterHandler->getPdo()->willReturn($this->mysqlClientWriter);
+        $this->mysqlClientWriterHandler = $mysqlClientWriterHandler;
+
         $this->entitiesBuilder = $entitiesBuilder;
 
-        $this->beConstructedWith($this->mysqlHandler, $this->entitiesBuilder);
+        $this->beConstructedWith($this->mysqlHandler, $this->entitiesBuilder, $this->mysqlClientWriterHandler);
     }
 
     public function it_is_initializable(): void
@@ -369,7 +378,11 @@ class RepositorySpec extends ObjectBehavior
             'created_timestamp' => date('c', time()),
             'total_views' => 225
         ];
-        $query = "SELECT * FROM boosts WHERE guid = :guid";
+        $query = "SELECT boosts.*,summary.total_views FROM boosts  LEFT JOIN (
+            SELECT guid, SUM(views) as total_views FROM boost_summaries
+            GROUP BY 1
+        ) summary
+        ON boosts.guid=summary.guid WHERE boosts.guid = :guid";
 
         $statement->execute()
             ->shouldBeCalledOnce();
@@ -382,7 +395,13 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($boostData);
 
-        $this->mysqlClientReader->prepare($query)
+        $this->mysqlClientReader->prepare(Argument::that(function ($arg) {
+            return $arg === "SELECT boosts.*,summary.total_views FROM boosts LEFT JOIN (
+                SELECT guid, SUM(views) as total_views FROM boost_summaries
+                GROUP BY 1
+            ) summary
+            ON boosts.guid=summary.guid WHERE boosts.guid = :guid";
+        }))
             ->shouldBeCalledOnce()
             ->willReturn($statement);
 
@@ -434,16 +453,35 @@ class RepositorySpec extends ObjectBehavior
     }
 
     public function it_should_update_boost_status(
-        PDOStatement $statement
+        PDOStatement $statement,
+        UpdateQuery $updateQuery
     ): void {
         $statement->execute()
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid";
-        $this->mysqlClientWriter->prepare($query)
+        $this->mysqlClientWriter->prepare(Argument::type('string'))
+            ->willReturn($statement);
+
+        $updateQuery->table('boosts')
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQuery);
+
+        $updateQuery->set(Argument::type('array'))
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQuery);
+
+        $updateQuery->where('guid', Operator::EQ, Argument::type(RawExp::class))
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQuery);
+
+        $updateQuery->prepare()
             ->shouldBeCalledOnce()
             ->willReturn($statement);
+
+        $this->mysqlClientWriterHandler->update()
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQuery);
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
             ->shouldBeCalledOnce();

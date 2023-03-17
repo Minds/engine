@@ -73,7 +73,7 @@ class EmailDelegateSpec extends ObjectBehavior
             ],
             [
                 'value' => 10,
-                'label' => 'Infringes my copyright',
+                'label' => 'Intellectual property violation',
                 'hasMore' => true,
             ],
             [
@@ -127,6 +127,12 @@ class EmailDelegateSpec extends ObjectBehavior
 
         $this->getBanReasons("8")
             ->shouldReturn("Spam");
+
+        $this->getBanReasons("14.10")
+            ->shouldReturn("Intellectual property violation");
+
+        $this->getBanReasons("14.999")
+            ->shouldReturn("Strikes");
 
         $this->getBanReasons("because reasons")
             ->shouldReturn("because reasons");

@@ -170,6 +170,13 @@ class ActionDelegate
                     $this->applyBan($report);
                 }
                 break;
+            case 10: // Intellectual Property Violation.
+                if ($entity->type !== 'user') {
+                    $this->actions->setDeletedFlag($entity, true);
+                    $this->saveAction->setEntity($entity)->save();
+                }
+                $this->applyStrike($report);
+                break;
             //case 12: // Incorrect use of hashtags
                 // De-index post
                 // Apply a strike to the owner
@@ -209,7 +216,7 @@ class ActionDelegate
             case 17: // Security
                 $this->applyHackDefense($report);
                 break;
-            case 18: // Security
+            case 18: // Plus violation
                 $this->demonetizationContext->withStrategy($this->demonetizePostStrategy)
                     ->execute($entity);
                 $this->applyStrike($report);

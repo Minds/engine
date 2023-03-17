@@ -68,7 +68,7 @@ class Controller
         $boosts = $this->manager
             ->setUser($loggedInUser)
             ->getBoostFeed(
-                limit: min((int) $limit, 12),
+                limit: (int) $limit,
                 offset: (int) $offset,
                 targetStatus: BoostStatus::APPROVED,
                 orderByRanking: true,

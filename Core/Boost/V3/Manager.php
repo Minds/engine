@@ -23,6 +23,7 @@ use Minds\Core\Boost\V3\Exceptions\EntityTypeNotAllowedInLocationException;
 use Minds\Core\Boost\V3\Exceptions\IncorrectBoostStatusException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
 use Minds\Core\Boost\V3\Models\Boost;
+use Minds\Core\Boost\V3\Models\BoostEntityWrapper;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
@@ -33,6 +34,7 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Settings\Manager as UserSettingsManager;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Settings\Models\BoostPartnerSuitability;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
@@ -55,7 +57,8 @@ class Manager
         private ?PreApprovalManager $preApprovalManager = null,
         private ?ViewsManager $viewsManager = null,
         private ?ACL $acl = null,
-        private ?UserSettingsManager $userSettingsManager = null
+        private ?UserSettingsManager $userSettingsManager = null,
+        private ?ExperimentsManager $experimentsManager = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
@@ -66,6 +69,7 @@ class Manager
         $this->acl ??= new ACL();
         $this->logger = Di::_()->get("Logger");
         $this->userSettingsManager ??= Di::_()->get('Settings\Manager');
+        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -364,7 +368,7 @@ class Manager
         $boostsArray = iterator_to_array($boosts);
 
         foreach ($boostsArray as $i => $boost) {
-            if (!$this->acl->read($boost)) {
+            if ($boost->getEntity() && !$this->acl->read($boost)) {
                 unset($boostsArray[$i]);
             }
         }
@@ -400,7 +404,7 @@ class Manager
     ): Response {
         $hasNext = false;
 
-        if ($servedByGuid) {
+        if ($servedByGuid && $this->experimentsManager->isOn('epic-303-boost-partners')) {
             $servedByTargetAudience = $this->getServedByTargetAudience($servedByGuid);
 
             // if no audience, return null.
@@ -430,11 +434,11 @@ class Manager
         $boostsArray = iterator_to_array($boosts);
 
         foreach ($boostsArray as $i => $boost) {
-            if (!$this->acl->read($boost)) {
+            if ($boost->getEntity() && !$this->acl->read($boost)) {
                 unset($boostsArray[$i]);
                 continue;
             }
-            if ((int) $targetLocation === BoostTargetLocation::SIDEBAR) {
+            if ((int) $targetLocation === BoostTargetLocation::SIDEBAR && $boost->getEntity()) {
                 $this->recordSidebarView($boost, $i, [
                     'source' => $source,
                     'served_by_guid' => $servedByGuid
@@ -444,7 +448,7 @@ class Manager
 
         $feedSyncEntities = $this->castToFeedSyncEntities($boostsArray);
 
-        return new Response($feedSyncEntities);
+        return new Response($feedSyncEntities, $hasNext);
     }
 
     /**
@@ -595,25 +599,26 @@ class Manager
         $feedSyncEntities = [];
 
         foreach ($boosts as $boost) {
-            $exportedBoostEntity = $boost->export()['entity'];
-            if (!$exportedBoostEntity) {
-                continue;
-            }
-            $exportedBoostEntity['boosted'] = true;
-            $exportedBoostEntity['boosted_guid'] = $boost->getGuid();
-            $exportedBoostEntity['urn'] = $boost->getUrn();
-
             $feedSyncEntities[] = (new FeedSyncEntity())
                 ->setGuid($boost->getGuid())
                 ->setOwnerGuid($boost->getOwnerGuid())
                 ->setTimestamp($boost->getCreatedTimestamp())
                 ->setUrn($boost->getUrn())
-                ->setExportedEntity($exportedBoostEntity);
+                ->setEntity(
+                    $boost->getEntity() ?
+                    new BoostEntityWrapper($boost) :
+                    null
+                );
         }
 
         return $feedSyncEntities;
     }
 
+    /**
+     * Gets target audience for user belonging to the "served by" guid.
+     * @param string $servedByGuid - guid to get settings for.
+     * @return int|null target audience for given served by guid.
+     */
     private function getServedByTargetAudience(string $servedByGuid): ?int
     {
         $servedByUser = $this->entitiesBuilder->single($servedByGuid);
