@@ -70,7 +70,8 @@ class TokenSaleEventSpec extends ObjectBehavior
      * @throws \Exception
      */
     public function it_should_execute_a_token_purchase_event(
-        Transaction $transaction, Purchase\Purchase $purchase
+        Transaction $transaction,
+        Purchase\Purchase $purchase
     ): void {
         $log = [
             'address' => '0xasd',

@@ -1,12 +1,11 @@
 <?php
 namespace Minds\Core\VideoChat\Leases;
 
-use Cassandra;
-use Cassandra\Varint;
 use Cassandra\Timestamp;
+use Cassandra\Varint;
+use Minds\Common\Repository\Response;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
-use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
 
 class Repository
@@ -64,7 +63,7 @@ class Repository
         $options = array_merge([
             'key' => null,
             'limit' => 1000,
-            'token' => null
+            'token' => ""
         ], $options);
 
 

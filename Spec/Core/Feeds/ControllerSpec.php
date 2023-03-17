@@ -8,7 +8,6 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Controller;
 use Minds\Core\Feeds\Elastic;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 use Zend\Diactoros\ServerRequest;
 
 class ControllerSpec extends ObjectBehavior
@@ -38,17 +37,11 @@ class ControllerSpec extends ObjectBehavior
         $this->shouldHaveType(Controller::class);
     }
 
-    public function it_should_get_feed_from_manager(ServerRequest $request, Response $response)
+    public function it_should_get_feed_from_manager(ServerRequest $request)
     {
         $this->config->get('default_recommendations_user')
             ->shouldBeCalled()
             ->willReturn('1000');
-
-        $response->offsetExists(Argument::any())
-            ->willReturn(true);
-
-        $response->valid()
-            ->willReturn(true);
 
         $this->manager->getList([
             'cache_key' => '1000',
@@ -63,7 +56,7 @@ class ControllerSpec extends ObjectBehavior
             'nsfw' => [],
             'unseen' => false
         ])->shouldBeCalled()
-          ->willReturn($response);
+          ->willReturn(new Response());
 
         $this->getDefaultFeed($request);
     }

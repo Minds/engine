@@ -581,7 +581,7 @@ class Manager
                     $this->repository->saveSupermindRefundTransaction($supermindRequest->getGuid(), $transactionId);
                 }
             } catch (UserNotFoundException $e) {
-                $this->logger->warn("{$e->getMessage()} - skipping.");
+                $this->logger->warning("{$e->getMessage()} - skipping.");
                 continue;
             } catch (Exception $e) {
                 $this->logger->info('Rolling back - an error occurred with Supermind', [$supermindRequest->getGuid()]);

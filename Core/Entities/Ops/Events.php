@@ -16,17 +16,12 @@ class Events
 
     public function __construct(
         private ?EventsDispatcher $eventsDispatcher = null,
-        private ?EntitiesOpsTopic $entitiesOpsTopic = null
     ) {
         $this->eventsDispatcher ??= Di::_()->get('EventsDispatcher');
     }
 
     public function register()
     {
-        if (!$this->entitiesOpsTopic) {
-            $this->entitiesOpsTopic = new EntitiesOpsTopic();
-        }
-
         /**
          * Creates an EntitiesOpsEvent from internal event call
          */
@@ -36,7 +31,9 @@ class Events
                 ->setEntityUrn($opts->getParameters()['entityUrn'])
                 ->setTimestamp(time());
 
-            $this->entitiesOpsTopic->send($event);
+            $entitiesOpsTopic = new EntitiesOpsTopic();
+
+            $entitiesOpsTopic->send($event);
         });
     }
 }

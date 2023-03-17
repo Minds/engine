@@ -6,17 +6,16 @@
 
 namespace Minds\Core\Data;
 
+use Minds\Core;
 use phpcassa\ColumnFamily;
 use phpcassa\ColumnSlice;
 use phpcassa\Connection\ConnectionPool;
-use phpcassa\SystemManager;
-use phpcassa\Schema\StrategyClass;
 use phpcassa\Index\IndexClause;
 use phpcassa\Index\IndexExpression;
 use phpcassa\Schema\DataType\LongType;
+use phpcassa\Schema\StrategyClass;
+use phpcassa\SystemManager;
 use phpcassa\UUID;
-use Minds\Core;
-use Minds\Core\Config;
 
 class Call
 {
@@ -37,10 +36,11 @@ class Call
         $servers = null,
         $cql = null
     ) {
-        global $CONFIG;
+        // global $CONFIG;
+        $config = Core\Di\Di::_()->get('Config');
 
-        $this->servers = $servers ?: $CONFIG->get('cassandra')['servers'];
-        $this->keyspace = $keyspace ?: $CONFIG->get('cassandra')['keyspace'];
+        $this->servers = $servers ?: $config->get('cassandra')['servers'];
+        $this->keyspace = $keyspace ?: $config->get('cassandra')['keyspace'];
         $this->cf_name = $cf;
         $this->client = $cql ?: Core\Di\Di::_()->get('Database\Cassandra\Cql');
     }

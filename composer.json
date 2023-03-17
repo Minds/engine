@@ -103,7 +103,7 @@
         "phpspec/phpspec": "^7.3",
         "friends-of-phpspec/phpspec-expect": "^4.0",
         "symfony/process": "^5.0",
-        "friendsofphp/php-cs-fixer": "^3.0",
+        "friendsofphp/php-cs-fixer": "^3.4",
         "phpstan/phpstan": "^1.7"
     },
     "provide": {

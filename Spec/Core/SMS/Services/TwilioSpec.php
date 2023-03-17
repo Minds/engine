@@ -2,12 +2,12 @@
 
 namespace Spec\Minds\Core\SMS\Services;
 
-use PhpSpec\ObjectBehavior;
 use Minds\Common\IpAddress;
 use Minds\Core\Config;
-use Twilio\Rest\Client as TwilioClient;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
+use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Twilio\Rest\Client as TwilioClient;
 
 class TwilioSpec extends ObjectBehavior
 {
@@ -67,7 +67,7 @@ class TwilioSpec extends ObjectBehavior
         $this->kvLimiter->setValue(Argument::type('string'))
             ->shouldBeCalledTimes(2)
             ->willReturn($this->kvLimiter);
-        
+
         $this->kvLimiter->setSeconds(86400)
             ->shouldBeCalledTimes(2)
             ->willReturn($this->kvLimiter);
@@ -83,10 +83,6 @@ class TwilioSpec extends ObjectBehavior
         $this->kvLimiter->checkAndIncrement()
             ->shouldBeCalledTimes(2)
             ->willReturn(true);
-
-        $this->config->get('twilio')
-            ->shouldBeCalled()
-            ->willReturn([]);
 
         $this->send($number, $message);
     }

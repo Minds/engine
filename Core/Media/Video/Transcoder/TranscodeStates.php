@@ -3,9 +3,9 @@ namespace Minds\Core\Media\Video\Transcoder;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
-use Minds\Entities\Video;
 use Minds\Core\Media\Video\CloudflareStreams;
 use Minds\Core\Security\ACL;
+use Minds\Entities\Video;
 
 class TranscodeStates
 {
@@ -74,7 +74,7 @@ class TranscodeStates
         if ($video->getTranscodingStatus() === TranscodeStates::COMPLETED) {
             return TranscodeStates::COMPLETED;
         }
-        
+
         // get video transcode status from cloudflare and save it in db
         $transcodeStatus = $this->cloudflareStreamsManager->getVideoTranscodeStatus($video);
 
@@ -85,7 +85,7 @@ class TranscodeStates
 
         // only saves on failed or success statuses
         $video->setTranscodingStatus($transcodeStatus->getState());
-        
+
         // disable acl and set it back to what it was after saving
         $ia = $this->acl->setIgnore(true);
         $this->save

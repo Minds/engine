@@ -1,6 +1,6 @@
 <?php
 
-ini_set('memory_limit', '256M');
+ini_set('memory_limit', '512M');
 
 # Redirect error_log output to blackhole
 ini_set('error_log', '/dev/null');
@@ -19,6 +19,7 @@ $minds = new Minds\Core\Minds();
 $CONFIG = Minds\Core\Di\Di::_()->get('Config');
 $CONFIG->default_access = 2;
 $CONFIG->site_guid = 0;
+$CONFIG->site_url = "";
 $CONFIG->cassandra = [
     'keyspace' => 'phpspec',
     'servers' => ['127.0.0.1'],

@@ -63,10 +63,12 @@ class PulsarProducerMock
     }
 
     public function connect(): void
-    {}
+    {
+    }
 
     public function close(): void
-    {}
+    {
+    }
 }
 class PulsarConsumerMock
 {
@@ -86,10 +88,12 @@ class PulsarConsumerMock
     }
 
     public function connect(): void
-    {}
+    {
+    }
 
     public function close(): void
-    {}
+    {
+    }
 }
 class PulsarMessageBuilderMock
 {
