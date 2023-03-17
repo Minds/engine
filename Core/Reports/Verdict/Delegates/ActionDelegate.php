@@ -209,7 +209,7 @@ class ActionDelegate
             case 17: // Security
                 $this->applyHackDefense($report);
                 break;
-            case 18: // Security
+            case 18: // Plus violation
                 $this->demonetizationContext->withStrategy($this->demonetizePostStrategy)
                     ->execute($entity);
                 $this->applyStrike($report);
