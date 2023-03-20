@@ -11,7 +11,6 @@ use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\Boost\V3\Summaries\Manager as SummariesManager;
-use Minds\Core\Log\Logger;
 
 /**
  * Subscribes to boost click events and calls to update Boost summary
