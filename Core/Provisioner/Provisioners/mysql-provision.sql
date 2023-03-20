@@ -134,6 +134,7 @@ CREATE TABLE IF NOT EXISTS boost_summaries
     guid bigint,
     date date NOT NULL,
     views int NOT NULL,
+    clicks int,
     PRIMARY KEY (guid, date)
 ) ENGINE=InnoDB;
 
@@ -188,5 +189,10 @@ CREATE TABLE IF NOT EXISTS boost_partner_views
 ALTER TABLE boosts
     ADD completed_timestamp timestamp DEFAULT NULL
     AFTER approved_timestamp;
+
 ALTER TABLE boosts
 ADD INDEX completed_timestamp (completed_timestamp) USING BTREE;
+
+ALTER TABLE boost_summaries
+    ADD clicks int
+    AFTER views;

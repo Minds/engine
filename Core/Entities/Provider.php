@@ -20,5 +20,9 @@ class Provider extends \Minds\Core\Di\Provider
                 return new Controller();
             }
         );
+
+        $this->di->bind(Resolver::class, function ($di) {
+            return new Resolver();
+        });
     }
 }
