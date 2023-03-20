@@ -41,5 +41,7 @@ class Controller
             user: $loggedInUser,
             clientMeta: $clientMeta
         );
+
+        return new JsonResponse([]);
     }
 }
