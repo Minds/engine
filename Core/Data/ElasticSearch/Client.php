@@ -32,6 +32,9 @@ class Client implements Interfaces\ClientInterface
             ->setBasicAuthentication($esConfig['username'] ?? '', $esConfig['password'] ?? '')
             ->setSSLVerification($esConfig['cert'] ?? false);
 
+        // If live thread, use SimpleConnectionPool
+        $builder->setConnectionPool('\Elasticsearch\ConnectionPool\SimpleConnectionPool', []);
+
         // If cli, ping first
         if (php_sapi_name() === 'cli') {
             $builder->setConnectionPool('\Elasticsearch\ConnectionPool\StaticConnectionPool', []);
