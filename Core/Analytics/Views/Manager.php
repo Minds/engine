@@ -59,7 +59,9 @@ class Manager
         // Add to repository
         $this->repository->add($view);
 
-        $this->viewsDelegate->onRecordView($view, $entity);
+        if ($entity) {
+            $this->viewsDelegate->onRecordView($view, $entity);
+        }
 
         return true;
     }
