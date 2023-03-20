@@ -6,7 +6,7 @@ use Minds\Common\PseudonymousIdentifier;
 use Minds\Core\Analytics\Graphs;
 use Minds\Core\Analytics\Clicks\Manager as ClicksManager;
 use Minds\Core\Analytics\Clicks\Delegates\ActionEventsDelegate as ClickActionEventsDelegate;
-use Minds\Core\Analytics\Clicks\Delegates\SnowplowDelegate;
+use Minds\Core\Analytics\Clicks\Delegates\SnowplowDelegate as ClickSnowplowDelegate;
 use Minds\Core\Di\Provider;
 
 class AnalyticsProvider extends Provider
@@ -45,8 +45,8 @@ class AnalyticsProvider extends Provider
             return new ClickActionEventsDelegate();
         }, ['useFactory' => true]);
 
-        $this->di->bind(SnowplowDelegate::class, function ($di) {
-            return new SnowplowDelegate();
+        $this->di->bind(ClickSnowplowDelegate::class, function ($di) {
+            return new ClickSnowplowDelegate();
         });
     }
 }

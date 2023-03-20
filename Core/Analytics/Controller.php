@@ -5,7 +5,6 @@ namespace Minds\Core\Analytics;
 
 use Minds\Core\Analytics\Clicks\Manager as ClicksManager;
 use Minds\Core\Di\Di;
-use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
 
