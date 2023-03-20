@@ -16,19 +16,23 @@ use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
 use Minds\Core\Analytics\Views\Manager as ViewsManager;
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
+use Minds\Core\Settings\Manager as UserSettingsManager;
 use Minds\Core\Security\ACL;
 use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
 use Minds\Core\Boost\V3\Manager;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\PaymentProcessor;
 use Minds\Core\Boost\V3\Repository;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Settings\Models\BoostPartnerSuitability;
+use Minds\Core\Settings\Models\UserSettings;
+use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Entities\Activity;
 use Minds\Entities\Entity;
-use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Entities\Image;
 use Minds\Entities\User;
 use Minds\Entities\Video;
@@ -49,6 +53,8 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $viewsManager;
     private Collaborator $acl;
     private Collaborator $guidLinkResolver;
+    private Collaborator $userSettingsManager;
+    private Collaborator $experimentsManager;
 
     public function let(
         Repository $repository,
@@ -58,7 +64,9 @@ class ManagerSpec extends ObjectBehavior
         PreApprovalManager $preApprovalManager,
         ViewsManager $viewsManager,
         ACL $acl,
-        GuidLinkResolver $guidLinkResolver
+        GuidLinkResolver $guidLinkResolver,
+        UserSettingsManager $userSettingsManager,
+        ExperimentsManager $experimentsManager
     ) {
         $this->repository = $repository;
         $this->paymentProcessor = $paymentProcessor;
@@ -68,6 +76,8 @@ class ManagerSpec extends ObjectBehavior
         $this->viewsManager = $viewsManager;
         $this->acl = $acl;
         $this->guidLinkResolver = $guidLinkResolver;
+        $this->userSettingsManager = $userSettingsManager;
+        $this->experimentsManager = $experimentsManager;
 
         $this->beConstructedWith(
             $this->repository,
@@ -77,7 +87,9 @@ class ManagerSpec extends ObjectBehavior
             $this->preApprovalManager,
             $this->viewsManager,
             $this->acl,
-            $this->guidLinkResolver
+            $this->guidLinkResolver,
+            $this->userSettingsManager,
+            $this->experimentsManager
         );
     }
 
@@ -1286,6 +1298,514 @@ class ManagerSpec extends ObjectBehavior
                 ->setUrn($boostUrn)
                 ->setEntity(null)
         ]);
+    }
+
+    public function it_should_get_boosts_when_boost_serving_user_allows_only_safe_boosts_and_target_audience_is_safe(
+        Boost $boost,
+        User $user,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: BoostTargetAudiences::SAFE,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->userSettingsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->userSettingsManager);
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldBeCalled()
+            ->willReturn(BoostPartnerSuitability::SAFE);
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldBeCalled()
+            ->willReturn($userSettings);
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::SAFE)
+                ->shouldReturnAnInstanceOf(Response::class);
+    }
+
+    public function it_should_get_boosts_when_boost_serving_user_allows_only_safe_boosts_and_target_audience_is_controversial(
+        Boost $boost,
+        User $user,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: BoostTargetAudiences::SAFE,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->userSettingsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->userSettingsManager);
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldBeCalled()
+            ->willReturn(BoostPartnerSuitability::SAFE);
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldBeCalled()
+            ->willReturn($userSettings);
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::CONTROVERSIAL)
+                ->shouldReturnAnInstanceOf(Response::class);
+    }
+
+    public function it_should_get_boosts_when_boost_serving_user_allows_controversial_boosts_and_target_audience_is_safe(
+        Boost $boost,
+        User $user,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: BoostTargetAudiences::SAFE,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->userSettingsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->userSettingsManager);
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldBeCalled()
+            ->willReturn(BoostPartnerSuitability::CONTROVERSIAL);
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldBeCalled()
+            ->willReturn($userSettings);
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::SAFE)
+                ->shouldReturnAnInstanceOf(Response::class);
+    }
+
+    public function it_should_get_boosts_when_boost_serving_user_allows_controversial_boosts_and_target_audience_is_controversial(
+        Boost $boost,
+        User $user,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: BoostTargetAudiences::CONTROVERSIAL,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->userSettingsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->userSettingsManager);
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldBeCalled()
+            ->willReturn(BoostPartnerSuitability::CONTROVERSIAL);
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldBeCalled()
+            ->willReturn($userSettings);
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::CONTROVERSIAL)
+                ->shouldReturnAnInstanceOf(Response::class);
+    }
+
+    public function it_should_get_boosts_when_boost_serving_user_has_no_boost_partner_settings_and_target_audience_is_safe(
+        Boost $boost,
+        User $user,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: BoostTargetAudiences::SAFE,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->userSettingsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->userSettingsManager);
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldBeCalled()
+            ->willReturn($userSettings);
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::SAFE)
+                ->shouldReturnAnInstanceOf(Response::class);
+    }
+
+    public function it_should_get_boosts_when_boost_serving_user_has_no_boost_partner_settings_and_target_audience_is_controversial(
+        Boost $boost,
+        User $user,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: BoostTargetAudiences::CONTROVERSIAL,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->userSettingsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->userSettingsManager);
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldBeCalled()
+            ->willReturn($userSettings);
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::CONTROVERSIAL)
+                ->shouldReturnAnInstanceOf(Response::class);
+    }
+
+    public function it_should_get_no_boosts_when_serving_user_has_boost_partner_settings_disabled(
+        Boost $boost,
+        User $user,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: Argument::any(),
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldNotBeCalled()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->userSettingsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->userSettingsManager);
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldBeCalled()
+            ->willReturn(BoostPartnerSuitability::DISABLED);
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldBeCalled()
+            ->willReturn($userSettings);
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::CONTROVERSIAL)
+                ->shouldBeLike(new Response([]));
+    }
+
+    public function it_should_get_boosts_when_no_serving_user_is_found_and_target_audience_is_controversial(
+        Boost $boost,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->experimentsManager->isOn('epic-303-boost-partners')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: BoostTargetAudiences::CONTROVERSIAL,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->userSettingsManager->setUser(Argument::any())
+            ->shouldNotBeCalled();
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldNotBeCalled();
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldNotBeCalled();
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::CONTROVERSIAL)
+                ->shouldReturnAnInstanceOf(Response::class);
     }
 
     public function it_should_force_reject_by_entity_guid_with_default_statuses()

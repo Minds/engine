@@ -165,7 +165,7 @@ dependency_scanning:
 
 review:start:
   stage: review
-  image: minds/oci-cli:latest
+  image: minds/ci:latest
   script:
     - *oci_prepare
     # Download repo, use same branch name if exists
@@ -207,7 +207,7 @@ review:start:
 
 review:stop:
   stage: review
-  image: minds/oci-cli:latest
+  image: minds/ci:latest
   script:
     - *oci_prepare
     - helm del $CI_BUILD_REF_SLUG
@@ -335,7 +335,7 @@ production:runners:
     - kubectl get deployments | grep minds-runner- | awk '{print $1}' | xargs kubectl rollout restart deployment
     # OKE: Rolling restart
     - *oci_prepare
-    - kubectl get deployments | grep minds-runner- | awk '{print $1}' | xargs kubectl rollout restart deployment
+    - kubectl get deployments | grep minds-runners- | awk '{print $1}' | xargs kubectl rollout restart deployment
   only:
     refs:
       - master
