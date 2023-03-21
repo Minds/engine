@@ -219,7 +219,7 @@ class Manager
 
         try {
             $boost = $this->repository->getBoostByGuid($boostGuid);
-
+//
             if ($boost->getStatus() !== BoostStatus::PENDING) {
                 throw new IncorrectBoostStatusException();
             }
