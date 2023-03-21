@@ -517,10 +517,15 @@ class Manager
      * Assert that the string lengths are within valid bounds.
      * @param Activity $activity - activity to check.
      * @throws StringLengthValidator - if the string lengths are invalid.
+     * @throws UserErrorException - if activity does not have a message or attachments.
      * @return boolean true if the string lengths are within valid bounds.
      */
     private function validateStringLengths(Activity $activity): bool
     {
+        // MUST have either a message OR attachments.
+        if (!$activity->isRemind() && !$activity->hasAttachments() && strlen($activity->getMessage()) < 1) {
+            throw new UserErrorException('Activities must have either an attachments or a message');
+        }
         // @throws StringLengthException
         $this->messageLengthValidator->validate($activity->getMessage() ?? '', nameOverride: 'post');
         $this->titleLengthValidator->validate($activity->getTitle() ?? '');
