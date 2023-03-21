@@ -313,6 +313,10 @@ class Manager
             );
         }
 
+        if (!$activity->isQuotedPost()) {
+            throw new UserErrorException('Supermind replies must contain content');
+        }
+
         $this->supermindManager->setUser(Session::getLoggedinUser());
 
         $isSupermindReplyProcessed = $this->supermindManager->acceptSupermindRequest($supermindDetails['supermind_reply_guid']);
@@ -522,7 +526,7 @@ class Manager
      */
     private function validateStringLengths(Activity $activity): bool
     {
-        // MUST have either a message OR attachments.
+        // If not a remind, MUST have either attachments OR a message.
         if (!$activity->isRemind() && !$activity->hasAttachments() && strlen($activity->getMessage()) < 1) {
             throw new UserErrorException('Activities must have either an attachments or a message');
         }
