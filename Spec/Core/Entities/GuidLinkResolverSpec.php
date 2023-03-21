@@ -86,4 +86,36 @@ class GuidLinkResolverSpec extends ObjectBehavior
 
         $this->resolve($activityGuid)->shouldBe(null);
     }
+
+    public function it_should_resolve_an_activity_from_entity_guid(
+        Activity $activity
+    ) {
+        $activityGuid = "123";
+        $entityGuid = "321";
+
+        $this->db->getRow("activity:entitylink:$entityGuid")
+            ->shouldBeCalled()
+            ->willReturn([$activityGuid]);
+
+        $this->entitiesBuilder->single($activityGuid)
+            ->shouldBeCalled()
+            ->willReturn($activity);
+
+        $this->resolveActivityFromEntityGuid($entityGuid)->shouldBe($activity);
+    }
+
+    public function it_should_NOT_resolve_an_activity_from_entity_guid_WHEN_no_linked_activity_is_found()
+    {
+        $activityGuid = "123";
+        $entityGuid = "321";
+
+        $this->db->getRow("activity:entitylink:$entityGuid")
+            ->shouldBeCalled()
+            ->willReturn([]);
+
+        $this->entitiesBuilder->single($activityGuid)
+            ->shouldNotBeCalled();
+
+        $this->resolveActivityFromEntityGuid($entityGuid)->shouldBe(null);
+    }
 }
