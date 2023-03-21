@@ -20,5 +20,9 @@ class Provider extends \Minds\Core\Di\Provider
                 return new Controller();
             }
         );
+
+        $this->di->bind(GuidLinkResolver::class, function ($di): GuidLinkResolver {
+            return new GuidLinkResolver();
+        });
     }
 }
