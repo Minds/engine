@@ -450,7 +450,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->rollbackTransaction()
             ->shouldBeCalled();
 
-        $this->shouldThrow(IncorrectBoostStatusException::class)->during('approveBoost', ['123', BoostRejectionReason::WRONG_AUDIENCE]);
+        $this->shouldThrow(IncorrectBoostStatusException::class)->during('approveBoost', ['123', '234']);
     }
 
     /**
