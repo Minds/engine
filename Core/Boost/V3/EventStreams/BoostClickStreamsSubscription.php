@@ -59,13 +59,13 @@ class BoostClickStreamsSubscription implements SubscriptionInterface
     public function consume(EventInterface $event): bool
     {
         if (!$event instanceof ActionEvent) {
-            return false;
+            return true;
         }
 
         $boost = $event->getEntity();
 
         if (!($boost instanceof Boost)) {
-            return false;
+            return true;
         }
 
         $this->summariesManager->incrementClicks(

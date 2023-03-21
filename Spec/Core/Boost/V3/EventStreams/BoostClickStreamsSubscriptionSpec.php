@@ -49,7 +49,7 @@ class BoostClickStreamsSubscriptionSpec extends ObjectBehavior
 
     public function it_should_not_consume_a_non_action_event(EventInterface $event)
     {
-        $this->consume($event)->shouldBe(false);
+        $this->consume($event)->shouldBe(true);
     }
 
     public function it_should_not_consume_an_event_with_an_attached_non_boost_entity(
@@ -59,7 +59,8 @@ class BoostClickStreamsSubscriptionSpec extends ObjectBehavior
         $event->getEntity()
             ->shouldBeCalled()
             ->willReturn($activity);
-        $this->consume($event)->shouldBe(false);
+
+        $this->consume($event)->shouldBe(true);
     }
 
     public function it_should_consume_and_handle_a_boost_created_event(
