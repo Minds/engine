@@ -530,5 +530,5 @@ class Manager
         $this->messageLengthValidator->validate($activity->getMessage() ?? '', nameOverride: 'post');
         $this->titleLengthValidator->validate($activity->getTitle() ?? '');
         return true;
-    }
+    }//
 }
