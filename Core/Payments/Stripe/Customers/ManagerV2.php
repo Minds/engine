@@ -5,8 +5,8 @@ namespace Minds\Core\Payments\Stripe\Customers;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\Cassandra\Thrift\Lookup;
 use Minds\Core\Di\Di;
+use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Entities\User;
-use Stripe\StripeClient;
 
 class ManagerV2
 {
@@ -17,7 +17,7 @@ class ManagerV2
     ) {
         $this->lookup = $lookup ?: Di::_()->get('Database\Cassandra\Lookup');
         $this->config ??= Di::_()->get('Config');
-        $this->stripeClient ??= new StripeClient($this->config->get('payments')['stripe']['api_key']);
+        $this->stripeClient ??= Di::_()->get(StripeClient::class);
     }
 
     /**

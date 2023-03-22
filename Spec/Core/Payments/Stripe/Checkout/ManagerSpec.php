@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Payments\Stripe\Checkout;
 use Minds\Core\Config\Config;
 use Minds\Core\Payments\Stripe\Checkout\Manager;
 use Minds\Core\Payments\Stripe\Customers;
+use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -18,7 +19,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function let(
         Config $config,
-        Stripe\StripeClient $stripeClient,
+        StripeClient $stripeClient,
         Customers\ManagerV2 $customerManager
     ) {
         $this->beConstructedWith($stripeClient, $customerManager, $config);
