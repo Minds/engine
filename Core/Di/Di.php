@@ -16,17 +16,17 @@ class Di
      * @param string $alias
      * @return mixed
      */
-    public function get($alias)
+    public function get($alias, $args = [])
     {
         if (isset($this->bindings[$alias])) {
             $binding = $this->bindings[$alias];
             if ($binding->isFactory()) {
                 if (!isset($this->factories[$alias])) {
-                    $this->factories[$alias] = call_user_func($binding->getFunction(), $this);
+                    $this->factories[$alias] = call_user_func($binding->getFunction(), $this, $args);
                 }
                 return $this->factories[$alias];
             } else {
-                return call_user_func($binding->getFunction(), $this);
+                return call_user_func($binding->getFunction(), $this, $args);
             }
         }
         return false;

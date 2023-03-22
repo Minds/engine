@@ -14,13 +14,13 @@ use Minds\Core\Payments\Models\GetPaymentsOpts;
 use Minds\Core\Payments\Stripe\Connect\Manager as StripeConnectManager;
 use Minds\Core\Payments\Stripe\Customers\Manager as StripeCustomersManager;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
+use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use Stripe\Exception\ApiErrorException;
 use Stripe\PaymentIntent as StripePaymentIntent;
 use Stripe\SetupIntent as StripeSetupIntent;
-use Stripe\StripeClient;
 
 /**
  * Manager for Stripe intents (Payment, Setup)
@@ -35,7 +35,7 @@ class ManagerV2
         private ?EntitiesBuilder        $entitiesBuilder = null
     ) {
         $this->mindsConfig ??= Di::_()->get('Config');
-        $this->stripeClient ??= new StripeClient($this->mindsConfig->get('payments')['stripe']['api_key']);
+        $this->stripeClient ??= Di::_()->get(StripeClient::class);
         $this->stripeCustomersManager ??= new StripeCustomersManager();
         $this->stripeConnectManager ??= new StripeConnectManager();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
@@ -134,18 +134,19 @@ class ManagerV2
 
     /**
      * @param string $paymentIntentId
+     * @param User $sender
      * @return bool
      * @throws ApiErrorException
      */
-    public function cancelPaymentIntent(string $paymentIntentId): bool
+    public function cancelPaymentIntent(string $paymentIntentId, User $sender = null): bool
     {
-        $paymentIntent = $this->stripeClient->paymentIntents->cancel($paymentIntentId);
-
+        $paymentIntent = $this->stripeClient->withUser($sender)->paymentIntents->cancel($paymentIntentId);
         return $paymentIntent->status === "canceled";
     }
 
     /**
      * @param string $paymentIntentId
+     * @param User $sender
      * @return bool
      * @throws ServerErrorException
      * @throws UserErrorException
@@ -153,9 +154,10 @@ class ManagerV2
      * @throws StripeTransferFailedException
      * @throws Exception
      */
-    public function capturePaymentIntent(string $paymentIntentId): bool
+    public function capturePaymentIntent(string $paymentIntentId, User $sender = null): bool
     {
-        $paymentIntent = $this->stripeClient->paymentIntents->retrieve($paymentIntentId);
+        $stripeClient = $this->stripeClient->withUser($sender);
+        $paymentIntent = $stripeClient->paymentIntents->retrieve($paymentIntentId);
         
         // is manual in this context refers to a manual transfer method rather than capture method.
         $manualTransfer = isset($paymentIntent->metadata?->is_manual_transfer) ?
@@ -181,8 +183,8 @@ class ManagerV2
                 throw new UserErrorException("Stripe account not found. It may not be created yet");
             }
         }
-        
-        $paymentIntent = $this->stripeClient->paymentIntents->capture($paymentIntentId);
+
+        $paymentIntent = $stripeClient->withUser($sender)->paymentIntents->capture($paymentIntentId);
 
         if ($paymentIntent->status !== "succeeded") {
             return false;
@@ -191,7 +193,7 @@ class ManagerV2
         // Was there a transfer destination? If not
         if ($manualTransfer) {
             try {
-                $this->stripeClient->transfers->create([
+                $stripeClient->withUser($sender)->transfers->create([
                     'amount' => $paymentIntent->amount - $applicationFeeAmount,
                     'currency' => 'usd',
                     'destination' => $stripeFutureAccount?->getId(),
