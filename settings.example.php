@@ -856,10 +856,6 @@ $CONFIG->set('webpush_vapid_details', [
 
 $CONFIG->set('seen-entities-weight', 0.01);
 
-$CONFIG->set('survey_links', [
-    'post_signup' => '',
-]);
-
 $CONFIG->set('metascraper', [
     'base_url' => 'metascraper:3334/',
     'ttl_seconds' => 86400,
