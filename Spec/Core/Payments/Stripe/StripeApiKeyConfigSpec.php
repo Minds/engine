@@ -161,5 +161,5 @@ class StripeApiKeyConfigSpec extends ObjectBehavior
                     'test_email' => 'phpspec@minds.local',
                 ]
             ]);
-    }//
+    }
 }
