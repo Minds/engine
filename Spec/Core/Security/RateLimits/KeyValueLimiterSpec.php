@@ -144,7 +144,7 @@ class KeyValueLimiterSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([ 'data' => time(), 'timestamp_ms' => time() * 1000 ]);
 
-        $this->redis->mget()
+        $this->redis->mget(Argument::type('array'))
             ->shouldNotBeCalled();
 
         $this->checkAndIncrement()->shouldReturn(true);
