@@ -16,7 +16,7 @@ stages:
   - scan
 
 variables:
-  default_php_image: registry.gitlab.com/minds/engine/php:801058280
+  default_php_image: registry.gitlab.com/minds/engine/php:814219793
 
 baseimage:prepare:
   stage: baseimage
