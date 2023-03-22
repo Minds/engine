@@ -225,7 +225,6 @@ class Event
     {
         if (
             !isset($this->data['action']) ||
-            !isset($this->data['user_guid']) ||
             $this->data['type'] !== 'action' ||
             $this->data['action'] === 'pageview'
         ) {
