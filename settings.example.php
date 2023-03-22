@@ -112,7 +112,7 @@ $CONFIG->set(
         ],
         [
             'value' => 10,
-            'label' => 'Infringes my copyright',
+            'label' => 'Intellectual property violation',
             'hasMore' => true,
         ],
         [
@@ -390,6 +390,8 @@ $CONFIG->set('payouts', [
 $CONFIG->set('payments', [
     'stripe' => [
         'api_key' => '',
+        'test_api_key' => '',
+        'test_email' => '',
         'transfers' => [
             'source_type' => 'bank_account',
         ],
@@ -853,10 +855,6 @@ $CONFIG->set('webpush_vapid_details', [
 ]);
 
 $CONFIG->set('seen-entities-weight', 0.01);
-
-$CONFIG->set('survey_links', [
-    'post_signup' => '',
-]);
 
 $CONFIG->set('metascraper', [
     'base_url' => 'metascraper:3334/',

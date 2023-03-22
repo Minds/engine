@@ -11,7 +11,6 @@ use Minds\Core\Analytics\UserStates\UserActivityBuckets;
 
 use Minds\Core\Email\V2\Delegates\ConfirmationSender;
 use Minds\Core\Email\V2\Delegates\DigestSender;
-use Minds\Core\Email\V2\Delegates\WelcomeSender;
 use Minds\Entities\User;
 use Minds\Interfaces\SenderInterface;
 
@@ -37,7 +36,6 @@ class Events
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_NEW, function ($opts) {
             error_log('user_state_change new');
-            // $this->sendCampaign(new Delegates\WelcomeSender(), $opts->getParameters());
         });
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_RESURRECTED, function ($opts) {
@@ -46,10 +44,6 @@ class Events
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_COLD, function ($opts) {
             $this->sendCampaign(new DigestSender(), $opts->getParameters());
-        });
-
-        Dispatcher::register('welcome_email', 'all', function ($opts) {
-            $this->sendCampaign(new WelcomeSender(), $opts->getParameters());
         });
 
         Dispatcher::register('confirmation_email', 'all', function ($opts) {

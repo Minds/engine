@@ -378,7 +378,11 @@ class RepositorySpec extends ObjectBehavior
             'created_timestamp' => date('c', time()),
             'total_views' => 225
         ];
-        $query = "SELECT * FROM boosts WHERE guid = :guid";
+        $query = "SELECT boosts.*,summary.total_views FROM boosts  LEFT JOIN (
+            SELECT guid, SUM(views) as total_views FROM boost_summaries
+            GROUP BY 1
+        ) summary
+        ON boosts.guid=summary.guid WHERE boosts.guid = :guid";
 
         $statement->execute()
             ->shouldBeCalledOnce();
@@ -391,7 +395,13 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($boostData);
 
-        $this->mysqlClientReader->prepare($query)
+        $this->mysqlClientReader->prepare(Argument::that(function ($arg) {
+            return $arg === "SELECT boosts.*,summary.total_views FROM boosts LEFT JOIN (
+                SELECT guid, SUM(views) as total_views FROM boost_summaries
+                GROUP BY 1
+            ) summary
+            ON boosts.guid=summary.guid WHERE boosts.guid = :guid";
+        }))
             ->shouldBeCalledOnce()
             ->willReturn($statement);
 

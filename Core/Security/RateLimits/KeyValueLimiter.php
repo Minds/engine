@@ -110,7 +110,7 @@ class KeyValueLimiter
             return false;
         }
         try {
-            $this->logger->warning('[KVLimiter]: Bypass cookie was used');
+            $this->logger->warn('[KVLimiter]: Bypass cookie was used');
 
             $decoded = $this->jwt->decode($_COOKIE['rate_limit_bypass']);
             $timeDiff = time() / ($decoded['timestamp_ms'] / 1000);
@@ -150,7 +150,7 @@ class KeyValueLimiter
 
         foreach ($rateLimits as $rateLimit) {
             if ($rateLimit->getRemaining() < 1) {
-                $this->logger->warning("[RateLimit]: {$rateLimit->getKey()} was hit with {$rateLimit->getMax()}");
+                $this->logger->warn("[RateLimit]: {$rateLimit->getKey()} was hit with {$rateLimit->getMax()}");
                 throw new RateLimitExceededException();
             }
         }
@@ -164,10 +164,14 @@ class KeyValueLimiter
     {
         foreach ($this->getRateLimits() as $rateLimit) {
             $recordKey = $this->getRecordKey($rateLimit);
-            $this->getRedis()->multi()
-                ->incr($recordKey)
-                ->expire($recordKey, $rateLimit->getSeconds())
-                ->exec();
+            try {
+                $this->getRedis()->multi()
+                    ->incr($recordKey)
+                    ->expire($recordKey, $rateLimit->getSeconds())
+                    ->exec();
+            } catch (\Exception $e) {
+                // Fail gracefully
+            }
         }
     }
 
@@ -205,8 +209,8 @@ class KeyValueLimiter
             if ($redisHa) {
                 $master = ($this->config->redis['master']['host']) ?? null;
                 $masterPort = ($this->config->redis['master']['port']) ?? null;
-
-                $this->redis->connect($master, $masterPort);
+                
+                $this->redis->connect($master, $masterPort, 0.5);
             } else {
                 $this->redis->connect($this->config->redis['master']);
             }

@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Payments\Stripe\Connect;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Config\Config;
 use Minds\Core\Payments\Stripe\Connect\ManagerV2;
+use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
@@ -24,7 +25,7 @@ class ManagerV2Spec extends ObjectBehavior
 
     public function let(
         Config $config,
-        Stripe\StripeClient $stripeClient,
+        StripeClient $stripeClient,
         Save $save,
         AccountService $accountService,
         AccountLinkService $accountLinkService,
