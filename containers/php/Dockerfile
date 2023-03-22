@@ -20,6 +20,7 @@ RUN apk add --virtual build-deps \
     icu-libs \
     libpng \
     libjpeg \
+    nodejs \
     # Install PHP extension
     && docker-php-ext-install -j$(nproc) bcmath \
     && docker-php-ext-install -j$(nproc) zip \
@@ -40,9 +41,9 @@ RUN apk add --virtual build-deps \
     && docker-php-ext-enable apcu \
     && docker-php-ext-enable imagick \
     # Cleanup
-    && apk del build-deps
-
-RUN export BUILD_DEPS=$'\
+    && apk del build-deps \
+    # starting libsecp256kq php extension compile
+    && export BUILD_DEPS=$'\
     cmake \
     pcre-dev \
     libuv-dev \
@@ -60,7 +61,6 @@ RUN export BUILD_DEPS=$'\
     automake' \
     # SECP256K1 signing
     && apk add --virtual build-deps $BUILD_DEPS $PHPIZE_DEPS \
-    # libsecp256kq
     && git clone https://github.com/bitcoin-core/secp256k1.git \
     && cd secp256k1 \
         && git checkout efad3506a8937162e8010f5839fdf3771dfcf516 \

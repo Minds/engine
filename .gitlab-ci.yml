@@ -68,7 +68,7 @@ build:
 
 test:
   stage: test
-  image: minds/php:pdo
+  image: "$default_php_image"
   script:
     - php -n -c Spec/php-test.ini bin/phpspec run
 
@@ -80,7 +80,7 @@ lint:
 
 static-analysis:
   stage: test
-  image: minds/php:pdo
+  image: "$default_php_image"
   script:
     - mv settings.example.php settings.php
     - bin/phpstan analyse --memory-limit=1G
