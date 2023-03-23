@@ -153,9 +153,10 @@ class Repository
             ->select()
             ->columns([
                 'served_by_user_guid',
-                'payment_method',
-                'total_views_served' => new RawExp('SUM(bpv.views)'),
-                'ecpm' => new RawExp('SUM((completed.payment_amount / completed.total_views) * 1000)'),
+                'cash_total_views_served' => new RawExp('SUM(CASE WHEN completed.payment_method = 1 THEN bpv.views ELSE 0 END)'),
+                'tokens_total_views_served' => new RawExp('SUM(CASE WHEN completed.payment_method = 2 THEN bpv.views ELSE 0 END)'),
+                'cash_ecpm' => new RawExp('SUM(CASE WHEN completed.payment_method = 1 THEN ((completed.payment_amount / completed.total_views) * 1000) ELSE 0 END)'),
+                'tokens_ecpm' => new RawExp('SUM(CASE WHEN completed.payment_method = 2 THEN ((completed.payment_amount / completed.total_views) * 1000) ELSE 0 END)'),
             ])
             ->from(['bpv' => 'boost_partner_views'])
             ->innerJoin(
@@ -165,7 +166,7 @@ class Repository
                 'bpv.boost_guid'
             );
 
-        $query->groupBy('served_by_user_guid', 'payment_method');
+        $query->groupBy('served_by_user_guid');
 
         $statement = $query->prepare();
 

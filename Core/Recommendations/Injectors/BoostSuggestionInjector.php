@@ -8,8 +8,8 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
-use Minds\Core\Boost\V3\Models\BoostEntityWrapper;
 use Minds\Core\Boost\V3\Manager as BoostManager;
+use Minds\Core\Boost\V3\Models\BoostEntityWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Core\Suggestions\Suggestion;
@@ -40,7 +40,11 @@ class BoostSuggestionInjector
         try {
             $entitiesArray = $response->toArray();
             $boost = $this->getInjectableBoostSuggestion($targetUser);
-            array_splice($entitiesArray, $index, 0, [$boost]);
+
+            if ($boost) {
+                array_splice($entitiesArray, $index, 0, [$boost]);
+            }
+            
             return new Response($entitiesArray);
         } catch (\Exception $e) {
             $this->logger->error($e);
@@ -51,9 +55,9 @@ class BoostSuggestionInjector
     /**
      * Gets in injectable boost wrapped in a suggestion.
      * @param User $targetUser - user the boost is targeted for.
-     * @return Suggestion - suggestion containing wrapped boost.
+     * @return Suggestion|null - suggestion containing wrapped boost.
      */
-    private function getInjectableBoostSuggestion(User $targetUser): Suggestion
+    private function getInjectableBoostSuggestion(User $targetUser): ?Suggestion
     {
         $targetAudience = $targetUser->getBoostRating() !== BoostTargetAudiences::CONTROVERSIAL ?
                 BoostTargetAudiences::SAFE :
@@ -63,9 +67,11 @@ class BoostSuggestionInjector
             limit: 1,
             targetStatus: BoostStatus::APPROVED,
             orderByRanking: true,
-            targetLocation: BoostTargetLocation::SIDEBAR,
-            targetAudience: $targetAudience
+            targetAudience: $targetAudience,
+            targetLocation: BoostTargetLocation::SIDEBAR
         )->first();
+
+        if (!$boost) return null;
 
         return (new Suggestion())
             ->setConfidenceScore(1)

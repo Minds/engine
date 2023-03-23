@@ -264,7 +264,7 @@ class Repository
 
             yield (
                 new Boost(
-                    entityGuid: $boostData['entity_guid'],
+                    entityGuid: (string) $boostData['entity_guid'],
                     targetLocation: (int) $boostData['target_location'],
                     targetSuitability: (int) $boostData['target_suitability'],
                     paymentMethod: (int) $boostData['payment_method'],

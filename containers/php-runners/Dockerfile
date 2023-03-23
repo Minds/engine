@@ -1,4 +1,4 @@
-FROM registry.gitlab.com/minds/engine/php:pdo
+FROM registry.gitlab.com/minds/engine/php:814219793
 
 # Copy our built the code
 
