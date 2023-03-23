@@ -315,7 +315,7 @@ class Manager
      */
     public function issueBoostPartnerDeposits(array $opts): iterable
     {
-        $timestamp = time();
+        $timestamp = $opts['from'];
         foreach ($this->boostPartnersManager->getRevenueDetails($opts['from'], $opts['to'] ?? null) as $eCPM) {
             $deposit = (new EarningsDeposit())
                 ->setTimestamp($timestamp)
