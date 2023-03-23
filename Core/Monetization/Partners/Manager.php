@@ -320,7 +320,8 @@ class Manager
             $deposit = (new EarningsDeposit())
                 ->setTimestamp($timestamp)
                 ->setUserGuid($eCPM['served_by_user_guid'])
-                ->setAmountCents(($eCPM['ecpm'] * ($eCPM['total_views_served'] / 1000)) * (self::BOOST_PARTNER_REVENUE_SHARE_PCT / 100))
+                ->setAmountCents(($eCPM['cash_ecpm'] * ($eCPM['cash_total_views_served'] / 1000)) * (self::BOOST_PARTNER_REVENUE_SHARE_PCT / 100))
+                ->setAmountTokens(($eCPM['tokens_ecpm'] * ($eCPM['tokens_total_views_served'] / 1000)) * (self::BOOST_PARTNER_REVENUE_SHARE_PCT / 100))
                 ->setItem('boost_partner');
 
             if (!($opts['dry-run'] ?? false)) {
