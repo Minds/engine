@@ -9,7 +9,7 @@ use Minds\Core;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Core\Session;
 use Minds\Entities;
@@ -30,7 +30,7 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
         switch ($pages[0]) {
             case 'boost':
                 if (!Session::getLoggedinUser()) {
-                    throw new UnauthorizedException();
+                    throw new ForbiddenException();
                 }
 
                 $expire = Di::_()->get('Boost\Network\Expire');
