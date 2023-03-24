@@ -398,6 +398,8 @@ class Manager
      * @param bool $orderByRanking
      * @param int $targetAudience
      * @param int|null $targetLocation
+     * @param string|null $servedByGuid - guid of the user serving the boost.
+     * @param string|null $source - source of the boost for client meta.
      * @return Response
      */
     public function getBoostFeed(
@@ -409,7 +411,8 @@ class Manager
         bool $orderByRanking = false,
         int $targetAudience = BoostTargetAudiences::SAFE,
         ?int $targetLocation = null,
-        ?string $servedByGuid = null
+        ?string $servedByGuid = null,
+        ?string $source = null
     ): Response {
         $hasNext = false;
 
@@ -448,7 +451,10 @@ class Manager
                 continue;
             }
             if (((int) $targetLocation === BoostTargetLocation::SIDEBAR) && $boost->getEntity()) {
-                $this->recordSidebarView($boost, $i);
+                $this->recordSidebarView($boost, $i, [
+                    'source' => $source,
+                    'served_by_guid' => $servedByGuid
+                ]);
             }
         }
 
@@ -572,21 +578,25 @@ class Manager
 
     /**
      * A temporary solution for being able to rank the sidebar boosts
-     * @param Boost $boost
+     * @param Boost $boost - boost to record for.
+     * @param int $position - position of the boost.
+     * @param array $clientMeta - array to be merged with default client meta.
      * @return void
      */
-    public function recordSidebarView(Boost $boost, int $position): void
+    public function recordSidebarView(Boost $boost, int $position, array $clientMeta = []): void
     {
+        $clientMeta = array_merge([
+            'source' => 'feed/subscribed', // TODO: this should be overridden with the actual source - minds#3873
+            'medium' => 'sidebar',
+            'campaign' => $boost->getUrn(),
+            'position' => $position,
+        ], $clientMeta);
+
         $this->viewsManager->record(
             (new View())
                 ->setEntityUrn($boost->getEntity()->getUrn())
                 ->setOwnerGuid((string) $boost->getEntity()->getOwnerGuid())
-                ->setClientMeta([
-                    'source' => 'feed/subscribed', // TODO: this should be the actual source
-                    'medium' => 'sidebar',
-                    'campaign' => $boost->getUrn(),
-                    'position' => $position,
-                ])
+                ->setClientMeta($clientMeta)
         );
     }
 
