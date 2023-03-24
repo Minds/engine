@@ -127,12 +127,17 @@ class Manager
         // Wire referrals
         $wireReferrals = $partnerEarningsItems['wire_referral'] ?? new EarningsItemModel();
         $wireReferrals->setId('wire_referral');
+
+        // Boost Partners
+        $boostPartners = $partnerEarningsItems['boost_partner'] ?? new EarningsItemModel();
+        $boostPartners->setId('boost_partner');
         
         $earnings->setItems([
             $pageViewEarnings,
             $referralEarnings,
             $plusEarnings,
             $wireReferrals,
+            $boostPartners,
         ]);
 
         return $earnings;

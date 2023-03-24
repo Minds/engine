@@ -8,5 +8,5 @@ use Minds\Exceptions\ServerErrorException;
 class IncorrectBoostStatusException extends ServerErrorException
 {
     protected $code = 500;
-    protected $message = "";
+    protected $message = "This Boost is not in the correct state to perform this action";
 }
