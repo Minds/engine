@@ -232,6 +232,10 @@ class Manager
         try {
             $boost = $this->repository->getBoostByGuid($boostGuid);
 
+            if ($boost->getStatus() !== BoostStatus::PENDING) {
+                throw new IncorrectBoostStatusException();
+            }
+            
             if (!$this->paymentProcessor->captureBoostPayment($boost)) {
                 throw new BoostPaymentCaptureFailedException();
             }
