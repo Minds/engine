@@ -31,6 +31,17 @@ class Manager
     }
 
     /**
+     * Increment clicks for a boost summary, for a given Boost and date.
+     * @param Boost $boost - given boost.
+     * @param DateTime $date - date to update for.
+     * @return bool - true on success.
+     */
+    public function incrementClicks(Boost $boost, DateTime $date): bool
+    {
+        return $this->repository->incrementClicks($boost->getGuid(), $date);
+    }
+
+    /**
      * Runs through views and
      * @param DateTime $date
      * @return void
