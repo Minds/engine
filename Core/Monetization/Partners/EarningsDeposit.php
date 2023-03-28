@@ -19,7 +19,7 @@ class EarningsDeposit
     /** @var string */
     private $item;
 
-    /** @var int */
+    /** @var float */
     private $amountCents;
 
     /** @var int */
@@ -36,8 +36,8 @@ class EarningsDeposit
             'user_guid' => $this->userGuid,
             'timestamp' => $this->timestamp,
             'item' => $this->item,
-            'amount_cents' => (int) $this->amountCents,
-            'amount_usd' => (int) $this->amountCents / 100,
+            'amount_cents' => (float) $this->amountCents,
+            'amount_usd' => round(((float) $this->amountCents) / 100, 2),
             'amount_tokens' => (string) $this->amountTokens,
         ];
     }

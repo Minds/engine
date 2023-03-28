@@ -28,6 +28,7 @@ class PartnerEarnings extends Cli\Controller implements Interfaces\CliController
     {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
+        Di::_()->get('Config')->set('min_log_level', 'INFO');
 
         $daysAgo = $this->getOpt('daysAgo') ?: 0;
         $from = $this->getOpt('from') ?: strtotime("midnight $daysAgo days ago");
