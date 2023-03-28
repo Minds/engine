@@ -50,7 +50,7 @@ class ReferralCookie
                 ->setValue($params['referrer'])
                 ->setExpire(time() + self::VALIDITY_WINDOW)
                 ->setPath('/')
-                ->create();                
+                ->create();
         }
     }
 }

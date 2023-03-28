@@ -39,7 +39,7 @@ class ReferralCookieSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->cookie);
 
-        $this->cookie->setExpire(Argument::that(function($arg) {
+        $this->cookie->setExpire(Argument::that(function ($arg) {
             return true;
         }))
             ->shouldBeCalled()

@@ -12,7 +12,8 @@ use Tests\Support\ApiTester;
 class ReferrerSteps extends ApiTester
 {
     #[Then('I should see a referrer cookie with the value :value')]
-    public function IShouldSeeAReferrerCookieWithTheValue(string $value) {
+    public function IShouldSeeAReferrerCookieWithTheValue(string $value): void
+    {
         $this->checkCookieValue('referrer', $value);
     }
 }
