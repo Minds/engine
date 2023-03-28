@@ -107,7 +107,7 @@ class Event
         return $this;
     }
 
-    public function push()
+    public function push(bool $shouldIndex = true)
     {
         $this->data['@timestamp'] = (int) microtime(true) * 1000;
 
@@ -142,6 +142,10 @@ class Event
         // Submit to snowplow
 
         $this->emitToSnowplow();
+
+        if (!$shouldIndex) {
+            return;
+        }
 
         // Submit to ES
 
