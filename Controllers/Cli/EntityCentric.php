@@ -30,13 +30,20 @@ class EntityCentric extends Cli\Controller implements Interfaces\CliControllerIn
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
 
+        $singleTask = $this->getOpt('task') ?? null;
+
+        $opts = [];
+        if ($singleTask) {
+            $opts['singleTask'] = $singleTask;
+        }
+
         $daysAgo = $this->getOpt('daysAgo') ?: 0;
         $from = $this->getOpt('from') ?: strtotime("midnight $daysAgo days ago");
         $manager = new Manager();
         $manager->setFrom($from);
 
         $i = 0;
-        foreach ($manager->sync() as $record) {
+        foreach ($manager->sync($opts) as $record) {
             $this->out(++$i .": {$record->getUrn()}");
         }
     }

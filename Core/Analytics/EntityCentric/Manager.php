@@ -58,7 +58,9 @@ class Manager
      */
     public function sync(array $opts = []): iterable
     {
-        foreach (Manager::SYNCHRONISERS as $synchroniserClass) {
+        $synchroniserClasses = $this->getSynchroniserClasses($opts);
+
+        foreach ($synchroniserClasses as $synchroniserClass) {
             $synchroniser = new $synchroniserClass;
             $date = (new DateTime())->setTimestamp($this->from);
             $synchroniser->setFrom($this->from);
@@ -99,5 +101,23 @@ class Manager
     public function getListAggregatedByOwner(array $opts = []): iterable
     {
         return $this->sums->getByOwner($opts);
+    }
+
+    /**
+     * Gets synchroniser classes that should be run through.*
+     * @param array $opts - opts object.
+     * @return array - array of synchroniser classes.
+     */
+    private function getSynchroniserClasses(array $opts): array
+    {
+        if ($opts['singleTask']) {
+            return array_filter(
+                Manager::SYNCHRONISERS,
+                function ($synchroniserClass) use ($opts) {
+                    return end(explode('\\', $synchroniserClass)) === $opts['singleTask'];
+                }
+            );
+        }
+        return  Manager::SYNCHRONISERS;
     }
 }
