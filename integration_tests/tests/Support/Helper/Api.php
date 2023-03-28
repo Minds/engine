@@ -51,6 +51,19 @@ class Api extends Module
     }
 
     /**
+     * Check a cookie has a given value.
+     * @param string $cookieKey - key/name of cookie.
+     * @param string $value - value to assert the cookie has.
+     * @return void
+     * @throws ModuleException
+     */
+    public function checkCookieValue(string $cookieKey, string $value): void
+    {
+        $cookie = $this->getCookie($cookieKey);
+        $this->assertTrue($cookie->getValue() === $value);
+    }
+
+    /**
      * @return void
      * @throws ModuleException
      */

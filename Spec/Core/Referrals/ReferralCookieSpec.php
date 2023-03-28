@@ -2,17 +2,25 @@
 
 namespace Spec\Minds\Core\Referrals;
 
+use Minds\Common\Cookie;
 use Minds\Core\Referrals\ReferralCookie;
-use Minds\Entities\User;
-use Minds\Entities\Activity;
 use Zend\Diactoros\ServerRequest;
-use Zend\Diactoros\ServerRequestFactory;
-use Zend\Diactoros\Uri;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ReferralCookieSpec extends ObjectBehavior
 {
+    /** @var Cookie */
+    private Collaborator $cookie;
+
+    public function let(
+        Cookie $cookie
+    ) {
+        $this->cookie = $cookie;
+        $this->beConstructedWith($this->cookie);
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(ReferralCookie::class);
@@ -20,72 +28,51 @@ class ReferralCookieSpec extends ObjectBehavior
 
     public function it_should_set_a_referral_cookie_from_a_referral_param()
     {
-        $request = (new ServerRequest())->withQueryParams(['referrer' => 'mark']);
-        $this->withRouterRequest($request);
-        $this->create();
+        $referrer = 'mark';
+        $_COOKIE['referrer'] = null;
 
-        expect($_COOKIE['referrer'])
-            ->toBe('mark');
+        $this->cookie->setName('referrer')
+            ->shouldBeCalled()
+            ->willReturn($this->cookie);
+
+        $this->cookie->setValue($referrer)
+            ->shouldBeCalled()
+            ->willReturn($this->cookie);
+
+        $this->cookie->setExpire(Argument::that(function($arg) {
+            return true;
+        }))
+            ->shouldBeCalled()
+            ->willReturn($this->cookie);
+
+        $this->cookie->setPath('/')
+            ->shouldBeCalled()
+            ->willReturn($this->cookie);
+
+        $this->cookie->create()
+            ->shouldBeCalled();
+
+        $this->withRouterRequest(
+            (new ServerRequest())
+                ->withQueryParams(['referrer' => $referrer])
+        )->create();
     }
 
-    public function it_should_not_set_cookie_if_already_present()
+    public function it_should_not_set_a_referral_cookie_when_no_request_is_set()
     {
-        $_COOKIE['referrer'] = 'bill';
-        $request = (new ServerRequest())
-            ->withCookieParams(['referrer' => 'mark']);
-        $this->withRouterRequest($request);
+        $this->cookie->setName('referrer')
+            ->shouldNotBeCalled();
+
         $this->create();
-
-        expect($_COOKIE['referrer'])
-            ->toBe('bill');
-    }
-    
-    public function it_should_not_allow_entity_to_override_param()
-    {
-        $activity = new Activity();
-        $activity->guid = 123;
-        $activity->owner_guid = 456;
-
-        $request = (new ServerRequest())
-            ->withQueryParams(['referrer' => 'mark']);
-        ;
-        $this->withRouterRequest($request);
-        $this->setEntity($activity);
-        $this->create();
-
-        expect($_COOKIE['referrer'])
-            ->toBe('mark');
     }
 
-    public function it_should_not_allow_entity_to_override_cookie()
+    public function it_should_not_set_cookie_if_no_param_is_present()
     {
-        $activity = new Activity();
-        $activity->guid = 123;
-        $activity->owner_guid = 456;
+        $this->cookie->setName('referrer')
+            ->shouldNotBeCalled();
 
-        $request = (new ServerRequest())
-            ->withCookieParams(['referrer' => 'mark']);
-        ;
-        $this->withRouterRequest($request);
-        $this->setEntity($activity);
+        $this->withRouterRequest((new ServerRequest()));
+
         $this->create();
-
-        expect($_COOKIE['referrer'])
-            ->toBe('mark');
-    }
-    
-    public function it_should_prefer_param_to_cookie()
-    {
-        $_COOKIE['referrer'] = 'bill';
-
-        $request = (new ServerRequest())
-            ->withQueryParams(['referrer' => 'mark'])
-            ->withCookieParams(['referrer' => 'bill']);
-        ;
-        $this->withRouterRequest($request);
-        $this->create();
-
-        expect($_COOKIE['referrer'])
-            ->toBe('mark');
     }
 }
