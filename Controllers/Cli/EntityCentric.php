@@ -25,6 +25,14 @@ class EntityCentric extends Cli\Controller implements Interfaces\CliControllerIn
         $this->out('Missing subcommand');
     }
 
+    /**
+     * Sync entity centric metrics. Without a given task will sync all.
+     * @param string task - task matching the class name of a synchroniser
+     * that is to be the exclusive synchroniser ran.
+     * @example
+     * - php cli.php EntityCentric sync
+     * - php cli.php EntityCentric sync --task=PartnerEarningsSynchroniser
+     */
     public function sync()
     {
         error_reporting(E_ALL);
