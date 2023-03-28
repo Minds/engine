@@ -6,7 +6,7 @@ namespace Minds\Core\Entities;
 
 use Minds\Core\Di\ImmutableException;
 
-class Provider extends \Minds\Core\Di\Provider    
+class Provider extends \Minds\Core\Di\Provider
 {
     /**
      * @return void
