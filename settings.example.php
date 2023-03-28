@@ -883,3 +883,5 @@ $CONFIG->set('nostr', [
         'wss://nostr-pub.wellorder.net'
     ]
 ]);
+
+$CONFIG->set('boost_view_rate_limit', 1);
