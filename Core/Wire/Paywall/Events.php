@@ -6,6 +6,7 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Core\Events\Dispatcher;
+use Minds\Entities\Activity;
 
 class Events
 {
@@ -220,6 +221,6 @@ class Events
 
     private function isStatusPost($activity)
     {
-        return !$activity->custom_type && !$activity->perma_url && !$activity->remind_object;
+        return !$activity->custom_type && !$activity->perma_url && !$activity->remind_object && !($activity instanceof Activity && $activity->hasAttachments());
     }
 }

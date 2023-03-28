@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Monetization\EarningsOverview;
 
+use Brick\Math\BigDecimal;
 use Minds\Entities\User;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments\Stripe;
@@ -204,7 +205,7 @@ class Manager
         foreach ($earningsDeposits as $earningsDeposit) {
             $earningsDepositItem = $groups[$earningsDeposit->getItem()] ?? new EarningsItemModel();
             $earningsDepositItem->setAmountCents($earningsDepositItem->getAmountCents() + $earningsDeposit->getAmountCents());
-            $earningsDepositItem->setAmountTokens($earningsDepositItem->getAmountTokens() + $earningsDeposit->getAmountTokens());
+            $earningsDepositItem->setAmountTokens(BigDecimal::sum($earningsDepositItem->getAmountTokens(), $earningsDeposit->getAmountTokens()));
             $earningsDepositItem->setCurrency('usd');
             $groups[$earningsDeposit->getItem()] = $earningsDepositItem;
         }

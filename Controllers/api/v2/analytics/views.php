@@ -9,6 +9,9 @@ use Minds\Core;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
+use Minds\Core\Router\Exceptions\ForbiddenException;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
+use Minds\Core\Session;
 use Minds\Entities;
 use Minds\Helpers\Counters;
 use Minds\Interfaces;
@@ -26,10 +29,23 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         switch ($pages[0]) {
             case 'boost':
+                if (!Session::getLoggedinUser()) {
+                    throw new ForbiddenException();
+                }
+
                 $expire = Di::_()->get('Boost\Network\Expire');
                 $metrics = Di::_()->get('Boost\Network\Metrics');
                 $manager = Di::_()->get('Boost\Network\Manager');
+                $keyValueLimiter = Di::_()->get('Security\RateLimits\KeyValueLimiter');
+                $config = Di::_()->get('Config');
                 $entityResolver = new Resolver();
+
+                $keyValueLimiter
+                    ->setKey('boost-view')
+                    ->setValue(md5(Session::getLoggedInUserGuid() . ":" . $pages[1]))
+                    ->setSeconds($config->get('boost_view_rate_limit') ?? 5)
+                    ->setMax(1)
+                    ->checkAndIncrement();
 
                 $urn = $_POST['client_meta']['campaign'] ?? "urn:boost:newsfeed:{$pages[1]}";
 
