@@ -126,7 +126,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 'invitecode' => "",
                 'referrer' => isset($_COOKIE['referrer']) ? $_COOKIE['referrer'] : '',
             ];
-
+//
             (new PseudonymousIdentifier())
                 ->setUser($user)
                 ->generateWithPassword($password);
