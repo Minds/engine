@@ -53,7 +53,7 @@ class Manager
 
     /**
      * Synchronise views from cassandra to elastic
-     * @param array $opts
+     * @param array $opts - if singleTask is provided, will run only the given synchroniser class.
      * @return iterable
      */
     public function sync(array $opts = []): iterable
@@ -105,7 +105,8 @@ class Manager
 
     /**
      * Gets synchroniser classes that should be run through.*
-     * @param array $opts - opts object.
+     * @param array $opts - opts object - if singleTask is provided and matches a known synchroniser class,
+     * will exclusively return that class in an array.
      * @return array - array of synchroniser classes.
      */
     private function getSynchroniserClasses(array $opts): array
