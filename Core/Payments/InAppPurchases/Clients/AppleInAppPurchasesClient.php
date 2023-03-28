@@ -5,5 +5,4 @@ namespace Minds\Core\Payments\InAppPurchases\Clients;
 
 class AppleInAppPurchasesClient implements InAppPurchaseClientInterface
 {
-
 }

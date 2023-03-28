@@ -13,7 +13,6 @@ use Minds\Entities\User;
 
 class GoogleInAppPurchasesClient implements InAppPurchaseClientInterface
 {
-
     private const PACKAGE_NAME = "com.minds.mobile";
     private const API_BASE_URI = "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/" . self::PACKAGE_NAME . "/purchases/subscriptions/";
 

@@ -38,7 +38,6 @@ class Manager
         $inAppPurchaseClient = $this->inAppPurchasesClientFactory->createClient($inAppPurchase->source);
 
         if (!$inAppPurchaseClient->acknowledgePurchase($inAppPurchase)) {
-
         }
 
         // TODO: potentially store user, subscriptionId and purchaseToken in a Vitess table for validation
