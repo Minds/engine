@@ -50,6 +50,7 @@ class StripeApiKeyConfig
         $testEmailRegex = '/^[A-Za-z]+\+'.$stripeConfig['test_email'].'$/';
 
         return $user &&
+            $user->getEmail() &&
             preg_match($testEmailRegex, $user->getEmail()) &&
             $user->isEmailConfirmed(); // Note this is not isTrusted as we want to require it is fully confirmed.
     }
