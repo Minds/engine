@@ -164,10 +164,14 @@ class KeyValueLimiter
     {
         foreach ($this->getRateLimits() as $rateLimit) {
             $recordKey = $this->getRecordKey($rateLimit);
-            $this->getRedis()->multi()
-                ->incr($recordKey)
-                ->expire($recordKey, $rateLimit->getSeconds())
-                ->exec();
+            try {
+                $this->getRedis()->multi()
+                    ->incr($recordKey)
+                    ->expire($recordKey, $rateLimit->getSeconds())
+                    ->exec();
+            } catch (\Exception $e) {
+                // Fail gracefully
+            }
         }
     }
 
@@ -206,7 +210,7 @@ class KeyValueLimiter
                 $master = ($this->config->redis['master']['host']) ?? null;
                 $masterPort = ($this->config->redis['master']['port']) ?? null;
                 
-                $this->redis->connect($master, $masterPort);
+                $this->redis->connect($master, $masterPort, 0.5);
             } else {
                 $this->redis->connect($this->config->redis['master']);
             }

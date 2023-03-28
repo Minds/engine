@@ -2,6 +2,7 @@
 namespace Minds\Core\Monetization\Partners;
 
 use Cassandra\Bigint;
+use Cassandra\Decimal;
 use Cassandra\Timestamp;
 use Minds\Common\Repository\Response;
 use Minds\Core\Data\Cassandra\Client;
@@ -109,7 +110,7 @@ class Repository
                 new Timestamp($deposit->getTimestamp(), 0),
                 $deposit->getItem(),
                 $deposit->getAmountCents() ? (int) $deposit->getAmountCents() : null,
-                $deposit->getAmountTokens() ? new Bigint($deposit->getAmountTokens()) : null,
+                $deposit->getAmountTokens() ? new Decimal($deposit->getAmountTokens()) : null,
             ]
         );
         return (bool) $this->db->request($prepared);

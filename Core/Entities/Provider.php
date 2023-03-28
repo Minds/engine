@@ -6,7 +6,7 @@ namespace Minds\Core\Entities;
 
 use Minds\Core\Di\ImmutableException;
 
-class Provider extends \Minds\Core\Di\Provider
+class Provider extends \Minds\Core\Di\Provider    
 {
     /**
      * @return void
@@ -23,6 +23,10 @@ class Provider extends \Minds\Core\Di\Provider
 
         $this->di->bind(Resolver::class, function ($di) {
             return new Resolver();
+        });
+
+        $this->di->bind(GuidLinkResolver::class, function ($di): GuidLinkResolver {
+            return new GuidLinkResolver();
         });
     }
 }

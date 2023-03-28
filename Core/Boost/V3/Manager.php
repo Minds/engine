@@ -27,6 +27,7 @@ use Minds\Core\Boost\V3\Models\BoostEntityWrapper;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
@@ -37,6 +38,7 @@ use Minds\Core\Settings\Manager as UserSettingsManager;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Settings\Models\BoostPartnerSuitability;
 use Minds\Entities\Activity;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
@@ -57,6 +59,7 @@ class Manager
         private ?PreApprovalManager $preApprovalManager = null,
         private ?ViewsManager $viewsManager = null,
         private ?ACL $acl = null,
+        private ?GuidLinkResolver $guidLinkResolver = null,
         private ?UserSettingsManager $userSettingsManager = null,
         private ?ExperimentsManager $experimentsManager = null
     ) {
@@ -68,6 +71,7 @@ class Manager
         $this->viewsManager ??= new ViewsManager();
         $this->acl ??= new ACL();
         $this->logger = Di::_()->get("Logger");
+        $this->guidLinkResolver ??= Di::_()->get(GuidLinkResolver::class);
         $this->userSettingsManager ??= Di::_()->get('Settings\Manager');
         $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
@@ -95,7 +99,17 @@ class Manager
      */
     public function createBoost(array $data): bool
     {
-        if (!$this->isEntityTypeAllowed($data['entity_guid'], (int) $data['target_location'])) {
+        $entity = $this->entitiesBuilder->single($data['entity_guid']);
+
+        if ($entity && $entity->getType() !== 'activity' && $entity->getType() !== 'user') {
+            $activity = $this->guidLinkResolver->resolveActivityFromEntityGuid($data['entity_guid']);
+            if ($activity) {
+                $data['entity_guid'] = $activity->getGuid();
+                $entity = $activity;
+            }
+        }
+
+        if (!$this->isEntityTypeAllowed($entity, (int) $data['target_location'])) {
             throw new EntityTypeNotAllowedInLocationException();
         }
 
@@ -182,14 +196,12 @@ class Manager
 
     /**
      * Checks if the provided entity can be boosted.
-     * @param string $entityGuid
+     * @param EntityInterface $entity
      * @param int $targetLocation
      * @return bool
      */
-    private function isEntityTypeAllowed(string $entityGuid, int $targetLocation): bool
+    private function isEntityTypeAllowed(EntityInterface $entity, int $targetLocation): bool
     {
-        $entity = $this->entitiesBuilder->single($entityGuid);
-
         if (!$entity) {
             return false;
         }
@@ -220,6 +232,10 @@ class Manager
         try {
             $boost = $this->repository->getBoostByGuid($boostGuid);
 
+            if ($boost->getStatus() !== BoostStatus::PENDING) {
+                throw new IncorrectBoostStatusException();
+            }
+            
             if (!$this->paymentProcessor->captureBoostPayment($boost)) {
                 throw new BoostPaymentCaptureFailedException();
             }
@@ -386,6 +402,8 @@ class Manager
      * @param bool $orderByRanking
      * @param int $targetAudience
      * @param int|null $targetLocation
+     * @param string|null $servedByGuid - guid of the user serving the boost.
+     * @param string|null $source - source of the boost for client meta.
      * @return Response
      */
     public function getBoostFeed(
@@ -397,7 +415,8 @@ class Manager
         bool $orderByRanking = false,
         int $targetAudience = BoostTargetAudiences::SAFE,
         ?int $targetLocation = null,
-        ?string $servedByGuid = null
+        ?string $servedByGuid = null,
+        ?string $source = null
     ): Response {
         $hasNext = false;
 
@@ -436,7 +455,10 @@ class Manager
                 continue;
             }
             if (((int) $targetLocation === BoostTargetLocation::SIDEBAR) && $boost->getEntity()) {
-                $this->recordSidebarView($boost, $i);
+                $this->recordSidebarView($boost, $i, [
+                    'source' => $source,
+                    'served_by_guid' => $servedByGuid
+                ]);
             }
         }
 
@@ -560,21 +582,25 @@ class Manager
 
     /**
      * A temporary solution for being able to rank the sidebar boosts
-     * @param Boost $boost
+     * @param Boost $boost - boost to record for.
+     * @param int $position - position of the boost.
+     * @param array $clientMeta - array to be merged with default client meta.
      * @return void
      */
-    public function recordSidebarView(Boost $boost, int $position): void
+    public function recordSidebarView(Boost $boost, int $position, array $clientMeta = []): void
     {
+        $clientMeta = array_merge([
+            'source' => 'feed/subscribed', // TODO: this should be overridden with the actual source - minds#3873
+            'medium' => 'sidebar',
+            'campaign' => $boost->getUrn(),
+            'position' => $position,
+        ], $clientMeta);
+
         $this->viewsManager->record(
             (new View())
                 ->setEntityUrn($boost->getEntity()->getUrn())
                 ->setOwnerGuid((string) $boost->getEntity()->getOwnerGuid())
-                ->setClientMeta([
-                    'source' => 'feed/subscribed', // TODO: this should be the actual source
-                    'medium' => 'sidebar',
-                    'campaign' => $boost->getUrn(),
-                    'position' => $position,
-                ])
+                ->setClientMeta($clientMeta)
         );
     }
 

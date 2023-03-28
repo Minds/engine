@@ -11,7 +11,6 @@ use Minds\Core\Email\V2\Campaigns;
 use Minds\Core\Email\V2\Campaigns\Recurring\BoostComplete\BoostComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireSent\WireSent;
-use Minds\Core\Email\V2\Campaigns\Recurring\PostSignupSurvey\PostSignupSurvey;
 use Minds\Core\Email\V2\Delegates\ConfirmationSender;
 use Minds\Core\Email\V2\Delegates\DigestSender;
 use Minds\Core\Reports;
@@ -370,32 +369,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->out('Sent');
     }
 
-    /**
-     * Test PostSignupSurvey email by dispatching an email to a specific
-     * user GUID.
-     *
-     * Usage:
-     *  - `php cli.php Email testPostSignupSurvey --userGuid={{guid}}`
-     *
-     * @return void
-     */
-    public function testPostSignupSurvey(): void
-    {
-        $userGuid = $this->getOpt('userGuid');
-
-        if (!$userGuid) {
-            $this->out('[Error] Missing --userGuid parameter.');
-            return;
-        }
-
-        $user = new User($userGuid);
-        $campaign = new PostSignupSurvey();
-        $campaign->setUser($user);
-        $campaign->send();
-
-        $this->out('Completed.');
-    }
-
     public function testPlusTrial()
     {
         $userGuid = $this->getOpt('userGuid');
@@ -459,6 +432,9 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 
     public function sync_marketing_attributes()
     {
+        ini_set('memory_limit', '2G');
+        Di::_()->get('Config')->set('min_log_level', 'INFO');
+
         $mautic = new Core\Email\Mautic\MarketingAttributes\Manager();
         $mautic->sync();
     }

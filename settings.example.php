@@ -390,6 +390,8 @@ $CONFIG->set('payouts', [
 $CONFIG->set('payments', [
     'stripe' => [
         'api_key' => '',
+        'test_api_key' => '',
+        'test_email' => '',
         'transfers' => [
             'source_type' => 'bank_account',
         ],
@@ -854,10 +856,6 @@ $CONFIG->set('webpush_vapid_details', [
 
 $CONFIG->set('seen-entities-weight', 0.01);
 
-$CONFIG->set('survey_links', [
-    'post_signup' => '',
-]);
-
 $CONFIG->set('metascraper', [
     'base_url' => 'metascraper:3334/',
     'ttl_seconds' => 86400,
@@ -885,3 +883,5 @@ $CONFIG->set('nostr', [
         'wss://nostr-pub.wellorder.net'
     ]
 ]);
+
+$CONFIG->set('boost_view_rate_limit', 1);
