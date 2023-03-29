@@ -102,6 +102,51 @@ class ManagerSpec extends ObjectBehavior
         $this->add($activity)->shouldBe(true);
     }
 
+    public function it_should_add_an_activity_with_no_message_but_a_title()
+    {
+        $activity = new Activity();
+        $activity->guid = 123;
+        $activity->title = 'hello world';
+        $activity->message = null;
+
+        $this->save->setEntity(Argument::that(function ($activity) {
+            return $activity->getGuid() === '123';
+        }))
+            ->shouldBeCalled()
+            ->willReturn($this->save);
+
+        $this->save->save()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        //
+
+        $this->add($activity)->shouldBe(true);
+    }
+
+    public function it_should_add_an_activity_with_no_message_or_title_but_a_thumbnail()
+    {
+        $activity = new Activity();
+        $activity->guid = 123;
+        $activity->title = null;
+        $activity->message = null;
+        $activity->thumbnail_src = '~thumbnail~';
+
+        $this->save->setEntity(Argument::that(function ($activity) {
+            return $activity->getGuid() === '123';
+        }))
+            ->shouldBeCalled()
+            ->willReturn($this->save);
+
+        $this->save->save()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        //
+
+        $this->add($activity)->shouldBe(true);
+    }
+
     public function it_should_apply_remind_delegates_and_nsfw(Activity $activity)
     {
         $this->save->setEntity(Argument::that(function ($activity) {
@@ -233,6 +278,8 @@ class ManagerSpec extends ObjectBehavior
         $activity = new Activity();
         $activity->guid = 123;
         $activity->message = null;
+        $activity->title = null;
+        $activity->thumbnail_src = null;
         $activity->attachments = null;
 
         $this->save->setEntity(Argument::any())
