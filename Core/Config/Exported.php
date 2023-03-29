@@ -127,8 +127,7 @@ class Exported
             ],
             'chatwoot' => [
                 'website_token' => $this->config->get('chatwoot')['website_token'],
-                'base_url' => $this->config->get('chatwoot')['base_url'],
-                'script_url' => $this->config->get('chatwoot')['script_url'],
+                'base_url' => $this->config->get('chatwoot')['base_url']
             ]
         ];
 
