@@ -520,7 +520,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
      * Gets the license
      * @return string
      */
-    public function getLicense(): string
+    public function getLicense(): string//
     {
         return $this->license;
     }
