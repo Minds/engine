@@ -33,5 +33,5 @@ class Manager
 
         $message = (string) $user->getGuid();
         return hash_hmac('sha256', $message, $key);
-    }//
+    }
 }
