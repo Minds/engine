@@ -49,20 +49,22 @@ class GoogleInAppPurchasesClient implements InAppPurchaseClientInterface
                 $inAppPurchase->purchaseToken,
             );
 
-            if ($subscriptionPurchase && $subscriptionPurchase->getAcknowledgementState() === 1) {
-                /**
-                 * Confirm the subscription hasn't expired
-                 */
-                if ($subscriptionPurchase->expiryTimeMillis < time() * 1000) {
-                    throw new UserErrorException("Subscription has expired");
-                }
+            if (!$subscriptionPurchase) {
+                throw new UserErrorException("Subscription not found");
+            }
 
-                /**
-                 * Confirm the user is the one we expect
-                 */
-                if ($subscriptionPurchase->getObfuscatedExternalAccountId() !== (string) $inAppPurchase->user->getGuid()) {
-                    throw new ForbiddenException("The subscription has already been consumed by another user.");
-                }
+            /**
+             * Confirm the subscription hasn't expired
+             */
+            if ($subscriptionPurchase->expiryTimeMillis < time() * 1000) {
+                throw new UserErrorException("Subscription has expired");
+            }
+
+            /**
+             * Confirm the user is the one we expect
+             */
+            if ($subscriptionPurchase->getObfuscatedExternalAccountId() !== (string) $inAppPurchase->user->getGuid()) {
+                throw new ForbiddenException("The subscription has already been consumed by another user.");
             }
 
             $androidPublisherService->purchases_subscriptions->acknowledge(
