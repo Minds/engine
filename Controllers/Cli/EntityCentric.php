@@ -25,10 +25,25 @@ class EntityCentric extends Cli\Controller implements Interfaces\CliControllerIn
         $this->out('Missing subcommand');
     }
 
+    /**
+     * Sync entity centric metrics. Without a given task will sync all.
+     * @param string task - task matching the class name of a synchroniser
+     * that is to be the exclusive synchroniser ran.
+     * @example
+     * - php cli.php EntityCentric sync
+     * - php cli.php EntityCentric sync --task=PartnerEarningsSynchroniser
+     */
     public function sync()
     {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
+
+        $singleTask = $this->getOpt('task') ?? null;
+
+        $opts = [];
+        if ($singleTask) {
+            $opts['singleTask'] = $singleTask;
+        }
 
         $daysAgo = $this->getOpt('daysAgo') ?: 0;
         $from = $this->getOpt('from') ?: strtotime("midnight $daysAgo days ago");
@@ -36,7 +51,7 @@ class EntityCentric extends Cli\Controller implements Interfaces\CliControllerIn
         $manager->setFrom($from);
 
         $i = 0;
-        foreach ($manager->sync() as $record) {
+        foreach ($manager->sync($opts) as $record) {
             $this->out(++$i .": {$record->getUrn()}");
         }
     }
