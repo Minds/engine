@@ -127,6 +127,14 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($entity);
         
+        $this->spam->check($comment)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->spam->check($entity)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->kvLimiterMock();
 
         /*$entity->get('guid')

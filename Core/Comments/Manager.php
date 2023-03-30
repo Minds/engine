@@ -195,6 +195,7 @@ class Manager
             ->checkAndIncrement();
 
         $this->spam->check($comment);
+        $this->spam->check($entity);
 
         if (
             !$comment->getOwnerGuid() ||

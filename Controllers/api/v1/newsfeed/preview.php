@@ -12,6 +12,7 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Di\Di;
+use Minds\Core\Security\Spam;
 
 class preview implements Interfaces\Api
 {
@@ -23,8 +24,13 @@ class preview implements Interfaces\Api
      */
     public function get($pages)
     {
+        $url = $_GET['url'];
+
+        /** @var Spam */
+        Di::_()->get('Security\Spam')->checkText($url);
+
         try {
-            $meta = $this->getMetadata($_GET['url']);
+            $meta = $this->getMetadata($url);
         } catch (\Exception $e) {
             return Factory::response([
                 'status' => 'error',

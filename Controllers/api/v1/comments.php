@@ -16,6 +16,7 @@ use Minds\Core\Sockets;
 use Minds\Core\Wire\Paywall\PaywallUserNotPaid;
 use Minds\Entities;
 use Minds\Exceptions\BlockedUserException;
+use Minds\Exceptions\ProhibitedDomainException;
 use Minds\Helpers;
 use Minds\Interfaces;
 use Zend\Diactoros\ServerRequestFactory;
@@ -231,6 +232,8 @@ class comments implements Interfaces\Api
                     throw new \Exception('The comment couldn\'t be saved');
                 }
             } catch (UnverifiedEmailException $e) {
+                throw $e;
+            } catch (ProhibitedDomainException $e) {
                 throw $e;
             } catch (BlockedUserException $e) {
                 $error = true;
