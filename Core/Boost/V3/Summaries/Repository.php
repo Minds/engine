@@ -55,6 +55,23 @@ class Repository
     }
 
     /**
+     * Increment clicks or insert new values for this timespan if none exist.
+     * @param string $guid - guid key.
+     * @param DateTime $date - date key.
+     * @return bool - true on success.
+     */
+    public function incrementClicks(string $guid, DateTime $date): bool
+    {
+        $statement = "INSERT INTO boost_summaries (guid, date, views, clicks) VALUES (:guid, :date, 0, 1) ON DUPLICATE KEY UPDATE clicks = clicks + 1";
+        $values = [
+            'guid' => $guid,
+            'date' => $date->format('c')
+        ];
+        $statement = $this->mysqlClient->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
+        return $statement->execute($values);
+    }
+
+    /**
      * Returns the writer connection
      * @return PDO
      */

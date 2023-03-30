@@ -9,7 +9,6 @@ use Minds\Entities\User;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Entities\PropagateProperties;
-use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\Session;
 use Minds\Core\Feeds\Activity\Delegates;
 use Minds\Exceptions\UserErrorException;
@@ -86,6 +85,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $activity = new Activity();
         $activity->guid = 123;
+        $activity->message = 'hello world';
 
         $this->save->setEntity(Argument::that(function ($activity) {
             return $activity->getGuid() === '123';
@@ -187,6 +187,7 @@ class ManagerSpec extends ObjectBehavior
         $activity->owner_guid = 123;
         $activity->type = 'object';
         $activity->subtype = 'video';
+        $activity->message = 'hello world';
 
         $activityMutation = new EntityMutation($activity);
 
@@ -214,7 +215,7 @@ class ManagerSpec extends ObjectBehavior
 
         $activity = new Activity();
         $activity->owner_guid = 123;
-
+        $activity->message = 'hello world';
         $activityMutation = new EntityMutation($activity);
 
         $activityMutation->setWireThreshold([
@@ -225,5 +226,25 @@ class ManagerSpec extends ObjectBehavior
         $activityMutation->setPaywall(true);
 
         $this->update($activityMutation);
+    }
+
+    public function it_should_not_add_an_activity_that_has_no_attachments_or_message()
+    {
+        $activity = new Activity();
+        $activity->guid = 123;
+        $activity->message = null;
+        $activity->attachments = null;
+
+        $this->save->setEntity(Argument::any())
+            ->shouldNotBeCalled();
+
+        $this->save->save()
+            ->shouldNotBeCalled();
+
+        //
+
+        $this->shouldThrow(new UserErrorException(
+            'Activities must have either an attachments or a message'
+        ))->during('add', [ $activity ]);
     }
 }

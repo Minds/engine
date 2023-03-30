@@ -432,6 +432,9 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 
     public function sync_marketing_attributes()
     {
+        ini_set('memory_limit', '2G');
+        Di::_()->get('Config')->set('min_log_level', 'INFO');
+
         $mautic = new Core\Email\Mautic\MarketingAttributes\Manager();
         $mautic->sync();
     }

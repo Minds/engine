@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Monetization\EarningsOverview;
 
+use Brick\Math\BigDecimal;
 use Minds\Entities\User;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments\Stripe;
@@ -127,12 +128,17 @@ class Manager
         // Wire referrals
         $wireReferrals = $partnerEarningsItems['wire_referral'] ?? new EarningsItemModel();
         $wireReferrals->setId('wire_referral');
+
+        // Boost Partners
+        $boostPartners = $partnerEarningsItems['boost_partner'] ?? new EarningsItemModel();
+        $boostPartners->setId('boost_partner');
         
         $earnings->setItems([
             $pageViewEarnings,
             $referralEarnings,
             $plusEarnings,
             $wireReferrals,
+            $boostPartners,
         ]);
 
         return $earnings;
@@ -199,7 +205,7 @@ class Manager
         foreach ($earningsDeposits as $earningsDeposit) {
             $earningsDepositItem = $groups[$earningsDeposit->getItem()] ?? new EarningsItemModel();
             $earningsDepositItem->setAmountCents($earningsDepositItem->getAmountCents() + $earningsDeposit->getAmountCents());
-            $earningsDepositItem->setAmountTokens($earningsDepositItem->getAmountTokens() + $earningsDeposit->getAmountTokens());
+            $earningsDepositItem->setAmountTokens(BigDecimal::sum($earningsDepositItem->getAmountTokens(), $earningsDeposit->getAmountTokens()));
             $earningsDepositItem->setCurrency('usd');
             $groups[$earningsDeposit->getItem()] = $earningsDepositItem;
         }

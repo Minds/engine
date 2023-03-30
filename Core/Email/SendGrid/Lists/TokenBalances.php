@@ -132,6 +132,8 @@ class TokenBalances implements SendGridListInterface
                 $result["aggregations"]["user_balances"]["after_key"] ?? null
             );
 
+            unset($result); // Fixes memory leak
+
             // recursively yield.
             yield from $this->getContacts();
         }

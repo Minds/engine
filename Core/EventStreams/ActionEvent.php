@@ -122,6 +122,9 @@ class ActionEvent implements EventInterface
     const ACTION_USER_VERIFICATION_PUSH_NOTIFICATION = 'user_verification_push_notification';
 
     /** @var string */
+    const ACTION_CLICK = 'click';
+
+    /** @var string */
     protected $action;
 
     /** @var string[] */
@@ -219,6 +222,8 @@ class ActionEvent implements EventInterface
             case self::ACTION_SUPERMIND_REQUEST_EXPIRE:
                 break;
             case self::ACTION_USER_VERIFICATION_PUSH_NOTIFICATION:
+                break;
+            case self::ACTION_CLICK:
                 break;
             default:
                 throw new \Exception("Invalid action set. Ensure allowedKeys are set in ActionEvent model");

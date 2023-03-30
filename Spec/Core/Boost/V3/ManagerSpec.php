@@ -710,6 +710,10 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
 
+        $boost->getStatus()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostStatus::PENDING);
+
         $this->repository->commitTransaction()
             ->shouldBeCalledOnce();
 
@@ -736,9 +740,37 @@ class ManagerSpec extends ObjectBehavior
      * @param Boost $boost
      * @return void
      */
+    public function it_should_try_approve_boost_and_throw_incorrect_status_exception(
+        Boost $boost
+    ): void {
+        $boost->getStatus()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostStatus::REFUND_IN_PROGRESS);
+
+        $this->repository->beginTransaction()
+            ->shouldBeCalled();
+
+        $this->repository->getBoostByGuid(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($boost);
+  
+        $this->repository->rollbackTransaction()
+            ->shouldBeCalled();
+
+        $this->shouldThrow(IncorrectBoostStatusException::class)->during('approveBoost', ['123', '234']);
+    }
+
+    /**
+     * @param Boost $boost
+     * @return void
+     */
     public function it_should_try_to_approve_boost_and_throw_payment_capture_failed_exception(
         Boost $boost
     ): void {
+        $boost->getStatus()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostStatus::PENDING);
+    
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
         $this->repository->rollbackTransaction()
@@ -762,6 +794,10 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_try_to_approve_boost_and_throw_server_error_exception(
         Boost $boost
     ): void {
+        $boost->getStatus()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostStatus::PENDING);
+
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
         $this->repository->rollbackTransaction()
