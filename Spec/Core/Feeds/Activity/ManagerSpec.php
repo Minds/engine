@@ -279,7 +279,7 @@ class ManagerSpec extends ObjectBehavior
         $activity->guid = 123;
         $activity->message = null;
         $activity->title = null;
-        $activity->thumbnail_src = null;
+        $activity->thumbnail_src = '';
         $activity->attachments = null;
 
         $this->save->setEntity(Argument::any())
@@ -291,7 +291,7 @@ class ManagerSpec extends ObjectBehavior
         //
 
         $this->shouldThrow(new UserErrorException(
-            'Activities must have either an attachments or a message'
+            'Activities must have either attachments, a thumbnail or a message'
         ))->during('add', [ $activity ]);
     }
 }
