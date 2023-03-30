@@ -15,7 +15,7 @@ class Spam
      * @return bool
      */
     public function check($entity): ?bool
-    {
+    {//
         $foundSpam = false;
 
         switch ($entity->getType()) {
