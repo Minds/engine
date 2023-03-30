@@ -21,5 +21,8 @@ class Provider extends DiProvider
         $this->di->bind(InAppPurchasesClientFactory::class, function (Di $di): InAppPurchasesClientFactory {
             return new InAppPurchasesClientFactory();
         }, ['factory' => true]);
+        $this->di->bind(Controller::class, function (Di $di): Controller {
+            return new Controller();
+        }, ['factory' => true]);
     }
 }

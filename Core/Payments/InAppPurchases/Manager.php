@@ -5,6 +5,8 @@ namespace Minds\Core\Payments\InAppPurchases;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
+use Minds\Core\Payments\InAppPurchases\Clients\AppleInAppPurchasesClient;
+use Minds\Core\Payments\InAppPurchases\Clients\GoogleInAppPurchasesClient;
 use Minds\Core\Payments\InAppPurchases\Clients\InAppPurchasesClientFactory;
 use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
 use Minds\Entities\User;
@@ -12,6 +14,9 @@ use NotImplementedException;
 
 class Manager
 {
+    const GOOGLE = 'google';
+    const APPLE = 'apple';
+
     private User $user;
 
     public function __construct(
@@ -33,15 +38,39 @@ class Manager
      * @return bool
      * @throws NotImplementedException
      */
-    public function acknowledgePurchase(InAppPurchase $inAppPurchase): bool
+    public function acknowledgeSubscription(InAppPurchase $inAppPurchase): bool
     {
         $inAppPurchaseClient = $this->inAppPurchasesClientFactory->createClient($inAppPurchase->source);
 
-        if (!$inAppPurchaseClient->acknowledgePurchase($inAppPurchase)) {
+        if (!$inAppPurchaseClient->acknowledgeSubscription($inAppPurchase)) {
+            return false;
         }
 
-        // TODO: potentially store user, subscriptionId and purchaseToken in a Vitess table for validation
-        //       if same token can be claimed on different Minds accounts
+        $method = match ($inAppPurchase->source) {
+            GoogleInAppPurchasesClient::class => 'iap_google',
+            AppleInAppPurchasesClient::class => 'iap_apple',
+        };
+
+        /**
+         * Not ideal, but short term solution
+         */
+        switch ($inAppPurchase->subscriptionId) {
+            case "plus.monthly.001":
+                $inAppPurchase->user->setPlusMethod($method);
+                $inAppPurchase->user->setPlusExpires(strtotime("32 days"));
+                break;
+            case "plus.yearly.001":
+                $inAppPurchase->user->setPlusMethod($method);
+                $inAppPurchase->user->setPlusExpires(strtotime("366 days"));
+                break;
+            case "pro.monthly.001":
+                $inAppPurchase->user->setProMethod($method);
+                $inAppPurchase->user->setProExpires(strtotime("32 days"));
+                break;
+        }
+
+        $inAppPurchase->user->save();
+
         return true;
     }
 }

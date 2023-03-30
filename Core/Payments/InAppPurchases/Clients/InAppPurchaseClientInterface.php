@@ -7,5 +7,5 @@ use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
 
 interface InAppPurchaseClientInterface
 {
-    public function acknowledgePurchase(InAppPurchase $inAppPurchase): bool;
+    public function acknowledgeSubscription(InAppPurchase $inAppPurchase): bool;
 }

@@ -10,7 +10,7 @@ class AppleInAppPurchasesClient implements InAppPurchaseClientInterface
     /**
      * TODO
      */
-    public function acknowledgePurchase(InAppPurchase $inAppPurchase): bool
+    public function acknowledgeSubscription(InAppPurchase $inAppPurchase): bool
     {
         return false;
     }
