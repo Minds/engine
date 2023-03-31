@@ -2,8 +2,8 @@
 namespace Minds\Core\Payments\InAppPurchases;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Payments\InAppPurchases\Clients\AppleInAppPurchasesClient;
-use Minds\Core\Payments\InAppPurchases\Clients\GoogleInAppPurchasesClient;
+use Minds\Core\Payments\InAppPurchases\Apple\AppleInAppPurchasesClient;
+use Minds\Core\Payments\InAppPurchases\Google\GoogleInAppPurchasesClient;
 use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;

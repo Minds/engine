@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\InAppPurchases\Clients;
 
+use Minds\Core\Payments\InAppPurchases\Apple\AppleInAppPurchasesClient;
+use Minds\Core\Payments\InAppPurchases\Google\GoogleInAppPurchasesClient;
 use NotImplementedException;
 
 /**

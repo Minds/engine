@@ -5,8 +5,8 @@ namespace Minds\Core\Payments\InAppPurchases;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
-use Minds\Core\Payments\InAppPurchases\Clients\AppleInAppPurchasesClient;
-use Minds\Core\Payments\InAppPurchases\Clients\GoogleInAppPurchasesClient;
+use Minds\Core\Payments\InAppPurchases\Apple\AppleInAppPurchasesClient;
+use Minds\Core\Payments\InAppPurchases\Google\GoogleInAppPurchasesClient;
 use Minds\Core\Payments\InAppPurchases\Clients\InAppPurchasesClientFactory;
 use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
 use Minds\Entities\User;
@@ -57,15 +57,15 @@ class Manager
         switch ($inAppPurchase->subscriptionId) {
             case "plus.monthly.001":
                 $inAppPurchase->user->setPlusMethod($method);
-                $inAppPurchase->user->setPlusExpires(strtotime("32 days"));
+                $inAppPurchase->user->setPlusExpires($inAppPurchase->expiresMillis / 1000);
                 break;
             case "plus.yearly.001":
                 $inAppPurchase->user->setPlusMethod($method);
-                $inAppPurchase->user->setPlusExpires(strtotime("366 days"));
+                $inAppPurchase->user->setPlusExpires($inAppPurchase->expiresMillis / 1000);
                 break;
             case "pro.monthly.001":
                 $inAppPurchase->user->setProMethod($method);
-                $inAppPurchase->user->setProExpires(strtotime("32 days"));
+                $inAppPurchase->user->setProExpires($inAppPurchase->expiresMillis / 1000);
                 break;
         }
 

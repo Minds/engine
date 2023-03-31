@@ -24,5 +24,8 @@ class Provider extends DiProvider
         $this->di->bind(Controller::class, function (Di $di): Controller {
             return new Controller();
         }, ['factory' => true]);
+        $this->di->bind(Google\GoogleInAppPurchasesPubSub::class, function (Di $di): Google\GoogleInAppPurchasesPubSub {
+            return new Google\GoogleInAppPurchasesPubSub();
+        }, ['factory' => true]);
     }
 }
