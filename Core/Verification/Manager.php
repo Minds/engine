@@ -6,6 +6,7 @@ namespace Minds\Core\Verification;
 use Exception;
 use ImagickException;
 use Minds\Core\Di\Di;
+use Minds\Core\Log\Logger;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\Services\ApnsService;
 use Minds\Core\Notifications\Push\Services\FcmService;
@@ -38,7 +39,8 @@ class Manager
         private ?MindsOCRInterface $ocrClient = null,
         private ?ImageProcessor $imageProcessor = null,
         private ?FcmService $fcmService = null,
-        private ?ApnsService $apnsService = null
+        private ?ApnsService $apnsService = null,
+        private ?Logger $logger = null
     ) {
         $this->repository ??= Di::_()->get('Verification\Repository');
         $this->ocrClient ??= Di::_()->get('Verification\Helpers\OCR\DefaultOCRClient');
@@ -47,6 +49,7 @@ class Manager
         // Push Notification services
         $this->fcmService ??= new FcmService();
         $this->apnsService ??= new ApnsService();
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     public function setUser(User $user): self
@@ -67,6 +70,39 @@ class Manager
             userGuid: $this->user->getGuid(),
             deviceId: $deviceId
         );
+    }
+
+    /**
+     * Get verification request by user set in state.
+     * @throws ServerErrorException
+     * @throws VerificationRequestNotFoundException
+     * @return VerificationRequest
+     */
+    public function getVerificationRequestByUser(): VerificationRequest
+    {
+        if (!$this->user) {
+            throw new ServerErrorException('Could not get verification request for null user');
+        }
+        return $this->repository->getVerificationRequestDetailsByUserGuid(
+            userGuid: (string) $this->user->getGuid()
+        );
+    }
+
+    /**
+     * Whether instance user is verified.
+     * @return bool true if instance user is verified.
+     */
+    public function isVerified(): bool
+    {
+        try {
+            $verificationRequest = $this->getVerificationRequestByUser();
+            return $verificationRequest->isVerified();
+        } catch (VerificationRequestNotFoundException $e) {
+            return false;
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+            return false;
+        }
     }
 
     /**
