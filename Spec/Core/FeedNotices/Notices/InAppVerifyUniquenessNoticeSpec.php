@@ -124,7 +124,7 @@ class InAppVerifyUniquenessNoticeSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->verificationManager->setUser($user)
-            ->shouldBeCalled()//
+            ->shouldBeCalled()
             ->willReturn($this->verificationManager);
 
         $this->verificationManager->isVerified()
