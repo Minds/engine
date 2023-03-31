@@ -244,6 +244,11 @@ class Manager
      */
     public function update(Comment $comment)
     {
+        $this->spam->check($comment);
+        if ($entity = $this->entitiesBuilder->single($comment->getEntityGuid())) {
+            $this->spam->check($entity);
+        }
+
         if ($this->legacyRepository->isFallbackEnabled()) {
             $this->legacyRepository->add($comment, $comment->getDirtyAttributes(), true);
         }

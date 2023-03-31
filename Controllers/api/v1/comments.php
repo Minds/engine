@@ -149,6 +149,8 @@ class comments implements Interfaces\Api
             try {
                 $saved = $manager->update($comment);
                 $error = !$saved;
+            } catch (ProhibitedDomainException $e) {
+                throw $e;
             } catch (\Exception $e) {
                 $error = true;
             }
