@@ -17,7 +17,7 @@ class Events
         Dispatcher::register('entities:map', 'all', function ($event) {
             $params = $event->getParameters();
 
-            if ($params['row']->type == 'object') {
+            if (property_exists($params['row'], 'type') && $params['row']->type == 'object') {
                 switch ($params['row']->subtype) {
                     case 'video':
                     case 'kaltura_video':

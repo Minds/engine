@@ -19,7 +19,7 @@ class Events
     public function register()
     {
         Dispatcher::register('entities_class_loader', "elgg/hook/all", function ($hook, $type, $return, $row) {
-            if ($row->type == 'group') {
+            if (property_exists($row, 'type') && $row->type == 'group') {
                 $entity = new GroupEntity();
                 $entity->loadFromArray((array) $row);
 
