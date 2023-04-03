@@ -151,10 +151,6 @@ class views implements Interfaces\Api, Interfaces\ApiIgnorePam
                     error_log($e);
                 }
 
-                Di::_()->get('Referrals\Cookie')
-                    ->setEntity($entity)
-                    ->create();
-
                 break;
         }
 
