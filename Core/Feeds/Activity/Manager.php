@@ -526,9 +526,10 @@ class Manager
      */
     private function validateStringLengths(Activity $activity): bool
     {
-        // If not a remind, MUST have either attachments OR a message.
-        if (!$activity->isRemind() && !$activity->hasAttachments() && strlen($activity->getMessage()) < 1) {
-            throw new UserErrorException('Activities must have either an attachments or a message');
+        // If not a remind, MUST have either attachments, thumbnail, a message or a title.
+        $hasText = strlen($activity->getMessage()) > 0 || strlen($activity->getTitle()) > 0;
+        if (!$activity->isRemind() && !$activity->hasAttachments() && !$activity->getThumbnail() && !$hasText) {
+            throw new UserErrorException('Activities must have either attachments, a thumbnail or a message');
         }
         // @throws StringLengthException
         $this->messageLengthValidator->validate($activity->getMessage() ?? '', nameOverride: 'post');
