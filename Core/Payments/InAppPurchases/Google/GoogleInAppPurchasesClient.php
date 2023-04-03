@@ -29,7 +29,7 @@ class GoogleInAppPurchasesClient implements InAppPurchaseClientInterface
         $this->googleClient->setScopes(['https://www.googleapis.com/auth/androidpublisher']);
         $this->googleClient->setAuthConfig($serviceAccountPath);
 
-        $this->androidPublisherService = new Google\Service\AndroidPublisher($this->googleClient);
+        $this->androidPublisherService ??= new Google\Service\AndroidPublisher($this->googleClient);
     }
 
     /**
@@ -40,8 +40,6 @@ class GoogleInAppPurchasesClient implements InAppPurchaseClientInterface
     public function acknowledgeSubscription(InAppPurchase $inAppPurchase): bool
     {
         try {
-            $androidPublisherService = new Google\Service\AndroidPublisher($this->googleClient);
-
             // Fetch the subscription
             $subscriptionPurchase = $this->getSubscription($inAppPurchase);
 
@@ -62,7 +60,7 @@ class GoogleInAppPurchasesClient implements InAppPurchaseClientInterface
                 throw new ForbiddenException("The subscription has already been consumed by another user.");
             }
 
-            $androidPublisherService->purchases_subscriptions->acknowledge(
+            $this->androidPublisherService->purchases_subscriptions->acknowledge(
                 self::PACKAGE_NAME,
                 $inAppPurchase->subscriptionId,
                 $inAppPurchase->purchaseToken,

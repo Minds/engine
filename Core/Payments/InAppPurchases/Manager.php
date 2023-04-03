@@ -17,20 +17,12 @@ class Manager
     const GOOGLE = 'google';
     const APPLE = 'apple';
 
-    private User $user;
-
     public function __construct(
         private ?InAppPurchasesClientFactory $inAppPurchasesClientFactory = null,
         private ?Logger $logger = null
     ) {
         $this->inAppPurchasesClientFactory ??= Di::_()->get(InAppPurchasesClientFactory::class);
         $this->logger ??= Di::_()->get('Logger');
-    }
-
-    public function setUser(User $user): self
-    {
-        $this->user = $user;
-        return $this;
     }
 
     /**
