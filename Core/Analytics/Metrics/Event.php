@@ -229,9 +229,9 @@ class Event
     {
         if (
             !isset($this->data['action']) ||
-            !isset($this->data['user_guid']) ||
             $this->data['type'] !== 'action' ||
-            $this->data['action'] === 'pageview'
+            $this->data['action'] === 'pageview' ||
+            (!isset($this->data['user_guid']) && $this->data['action'] !== 'create')
         ) {
             return; // We only want to submit actions and not legacy pageviews
         }
