@@ -81,6 +81,8 @@ class User extends \ElggUser implements DemonetizableEntityInterface
     public const PLUS_PRO_VALID_METHODS = [
         'tokens',
         'usd',
+        'iap_google',
+        'iap_apple',
     ];
 
     protected function initializeAttributes()

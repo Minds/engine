@@ -1,21 +1,18 @@
 <?php
-
 declare(strict_types=1);
 
-namespace Minds\Core\Payments;
+namespace Minds\Core\Payments\InAppPurchases;
 
+use Minds\Core\Di\ImmutableException;
 use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
 {
-    public array $submodules = [
-        InAppPurchases\Module::class
-    ];
-    
     /**
-     * OnInit.
+     * @return void
+     * @throws ImmutableException
      */
-    public function onInit()
+    public function onInit(): void
     {
         (new Provider())->register();
         (new Routes())->register();
