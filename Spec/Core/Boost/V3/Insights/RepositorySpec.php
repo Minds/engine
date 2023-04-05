@@ -44,13 +44,13 @@ class RepositorySpec extends ObjectBehavior
         $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
             ->willReturn([
                 [
-                    1.23,
+                    'cpm' => 1.23,
                 ],
                 [
-                    1.45,
+                    'cpm' => 1.45,
                 ],
                 [
-                    1.42
+                    'cpm' => 1.42
                 ]
             ]);
 

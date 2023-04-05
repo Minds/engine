@@ -76,7 +76,7 @@ class Repository
         $statement->execute();
 
         return array_map(function ($val) {
-            return (float) $val[0];
+            return (float) $val['cpm'];
         }, $statement->fetchAll(PDO::FETCH_ASSOC));
     }
 }
