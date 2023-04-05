@@ -64,7 +64,7 @@ class Manager
             'affiliateUserGuid' => $affiliateUserGuid,
             'paymentType' => PaymentType::BOOST_PAYMENT,
             'paymentMethod' => PaymentMethod::getValidatedPaymentMethod($boost->getPaymentMethod()),
-            'paymentAmountMillis' => $boost->getPaymentAmount() * 100 * 1000,
+            'paymentAmountMillis' => (int) ($boost->getPaymentAmount() * 100 * 1000),
             'paymentTxId' => $boost->getPaymentTxId(),
         ]);
 
