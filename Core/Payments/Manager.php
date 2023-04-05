@@ -40,7 +40,7 @@ class Manager
     protected $repository;
 
     public function __construct(
-                                  $repository = null,
+        $repository = null,
         private ?IntentsManagerV2 $intentsManager = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?Logger $logger = null

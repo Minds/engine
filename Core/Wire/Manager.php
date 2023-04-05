@@ -394,7 +394,7 @@ class Manager
                     $affiliateUserGuid = (int) $_COOKIE['referrer'] ?? null;
                     if (!$affiliateUserGuid) {
                         $affiliateUserGuid = (int) (
-                        $this->sender->referrer && (time() - $this->sender->time_created) < 365 * 86400
+                            $this->sender->referrer && (time() - $this->sender->time_created) < 365 * 86400
                             ? $this->sender->referrer
                             : null
                         );

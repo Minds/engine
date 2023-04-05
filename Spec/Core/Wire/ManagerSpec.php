@@ -80,8 +80,8 @@ class ManagerSpec extends ObjectBehavior
         Core\Payments\Stripe\Intents\Manager $stripeIntentsManager,
         ACL $acl,
         Core\Wire\Delegates\EventsDelegate $eventsDelegate,
+        PaymentsManager $paymentsManager,
         SupportTiersManager $supportTiersManager = null,
-        PaymentsManager $paymentsManager
     ) {
         $this->paymentsManager = $paymentsManager;
 

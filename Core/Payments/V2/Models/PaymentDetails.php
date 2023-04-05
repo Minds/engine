@@ -58,11 +58,11 @@ class PaymentDetails implements ExportableInterface
             throw new Exception("");
         }
 
-        if (in_array($name, self::READONLY_PROPS)) {
+        if (in_array($name, self::READONLY_PROPS, true)) {
             throw new Exception("Property $name cannot be updated");
         }
 
-        if (!in_array($name, $this->changedProps)) {
+        if (!in_array($name, $this->changedProps, true)) {
             $this->changedProps[] = $name;
         }
 

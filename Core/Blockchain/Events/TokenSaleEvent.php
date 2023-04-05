@@ -67,7 +67,6 @@ class TokenSaleEvent implements BlockchainEventInterface
         $amount = (string) BigNumber::fromHex($amount);
 
         if ($amount != (string) $transaction->getAmount()) {
-            echo "amount differs {$amount} {$transaction->getAmount()} \n";
             return; //backend amount does not equal event amount
         }
 
