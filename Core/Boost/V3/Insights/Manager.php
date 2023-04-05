@@ -51,18 +51,35 @@ class Manager
         int $dailyBid,
         int $duration = 1
     ): array {
-        $estimates = $this->repository->getEstimate($targetAudience, $targetLocation, $paymentMethod);
+        $historicCpms = $this->repository->getHistoricCpms($targetAudience, $targetLocation, $paymentMethod);
 
-        $minCpm = 1000 * $estimates['24h_bids'] / $estimates['24h_views']; // This is the min cpm we quote on
-        $maxCpm = $minCpm * 5; // This is max cpm we will quote on
+        $magnitude = 1;
+        $count = count($historicCpms);
+        $mean = array_sum($historicCpms) / $count;
 
-        $estimatedLow = round(min(1000 * ($dailyBid/$maxCpm), $estimates['24h_views']));
-        $estimatedHigh = round(min(1000 * ($dailyBid/$minCpm), $estimates['24h_views']));
+        // Calculate to standard deviate
+        $sd = sqrt(
+            array_sum(
+                array_map(
+                    function ($val, $mean) {
+                        return pow($val - $mean, 2);
+                    },
+                    $historicCpms,
+                    array_fill(0, $count, $mean)
+                )
+            ) / $count
+        ) * $magnitude;
 
-        // If the high estimate caps out, use a static value
-        if ($estimatedHigh === round($estimates['24h_views'])) {
-            $estimatedLow = $estimatedHigh / 5;
-        }
+        // Apply the standard deviation to remove outliers
+        $normalizedHistoricCpms = array_filter($historicCpms, function ($val) use ($mean, $sd) {
+            return ($val <= $mean + $sd && $val >= $mean - $sd);
+        });
+
+        $minCpm = min($normalizedHistoricCpms);
+        $maxCpm = max($normalizedHistoricCpms);
+
+        $estimatedLow = round(1000 * ($dailyBid/$maxCpm * 0.66), -2); // Reduce by 1/3rd. Round to nearest 100
+        $estimatedHigh = round(1000 * ($dailyBid/$minCpm), -2); // Round to nearest 100
 
         return [
             'views' => [

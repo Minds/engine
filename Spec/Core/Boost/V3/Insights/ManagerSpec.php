@@ -25,18 +25,35 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_calculate_estimate()
+    public function it_should_calculate_estimate_safe_newsfeed_cash()
     {
-        $this->repositoryMock->getEstimate(BoostTargetAudiences::SAFE, BoostTargetLocation::NEWSFEED, BoostPaymentMethod::CASH)
-            ->willReturn([
-                '24h_bids' => 10,
-                '24h_views' => 1000,
-            ]);
+        $data = array_map(function ($val) {
+            return (float) $val[0];
+        }, array_map('str_getcsv', file(dirname(__FILE__) . '/cash_newsfeed_safe.csv')));
+
+        $this->repositoryMock->getHistoricCpms(BoostTargetAudiences::SAFE, BoostTargetLocation::NEWSFEED, BoostPaymentMethod::CASH)
+            ->willReturn($data);
 
         $estimate = $this->getEstimate(BoostTargetAudiences::SAFE, BoostTargetLocation::NEWSFEED, BoostPaymentMethod::CASH, 10, 1);
         $estimate['views']->shouldBeLike([
+            'low' => 4000,
+            'high' => 8700,
+        ]);
+    }
+
+    public function it_should_calculate_estimate_safe_newsfeed_tokens()
+    {
+        $data = array_map(function ($val) {
+            return (float) $val[0];
+        }, array_map('str_getcsv', file(dirname(__FILE__) . '/token_newsfeed_safe.csv')));
+
+        $this->repositoryMock->getHistoricCpms(BoostTargetAudiences::SAFE, BoostTargetLocation::NEWSFEED, BoostPaymentMethod::CASH)
+            ->willReturn($data);
+
+        $estimate = $this->getEstimate(BoostTargetAudiences::SAFE, BoostTargetLocation::NEWSFEED, BoostPaymentMethod::CASH, 5, 1);
+        $estimate['views']->shouldBeLike([
             'low' => 200,
-            'high' => 1000,
+            'high' => 900,
         ]);
     }
 }
