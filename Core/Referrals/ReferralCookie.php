@@ -1,10 +1,9 @@
 <?php
 /**
- * Referral Cookie
+ * Referral Cookie wrapper.
  */
 namespace Minds\Core\Referrals;
 
-use Minds\Entities\User;
 use Minds\Common\Cookie;
 use Zend\Diactoros\ServerRequest;
 
@@ -13,30 +12,25 @@ class ReferralCookie
     /** @var Request */
     private $request;
 
-    /** @var Entity */
-    private $entity;
+    /** @var int window of validity for cookie (set exp to time() + self::VALIDITY_WINDOW). */
+    const VALIDITY_WINDOW = 259200; // 3 days.
 
-    /**
-     * Set the router request
-     * @param Request $request
-     * @param Response $response
-     * @return $this
-     */
-    public function withRouterRequest(ServerRequest $request): ReferralCookie
-    {
-        $this->request = $request;
-        return $this;
+    public function __construct(
+        private ?Cookie $cookie = null
+    ) {
+        $this->cookie ??= new Cookie();
     }
 
     /**
-     * Set Entity
-     * @param Entity|User $entity
-     * @return $this
+     * Set the router request and return a new cloned instance.
+     * @param Request $request - request to create with and derive potential cookie value from.
+     * @return ReferralCookie new cloned instance of $this.
      */
-    public function setEntity($entity): ReferralCookie
+    public function withRouterRequest(ServerRequest $request): ReferralCookie
     {
-        $this->entity = $entity;
-        return $this;
+        $referralCookie = clone $this;
+        $referralCookie->request = $request;
+        return $referralCookie;
     }
 
     /**
@@ -49,24 +43,14 @@ class ReferralCookie
             return;
         }
 
-        $cookies = $this->request->getCookieParams();
         $params = $this->request->getQueryParams();
-        $referrer = null; // guid or username
 
-        // always prefer the referrer in the param to the cookie we already have
         if (isset($params['referrer'])) {
-            $referrer = $params['referrer'];
-        }
-
-        if ($referrer) {
-            $cookie = new Cookie();
-            $cookie
-                ->setName('referrer')
-                ->setValue($referrer)
-                ->setExpire(time() + (60 * 60 * 24)) //valid for 24 hours
+            $this->cookie->setName('referrer')
+                ->setValue($params['referrer'])
+                ->setExpire(time() + self::VALIDITY_WINDOW)
                 ->setPath('/')
                 ->create();
-            $_COOKIE['referrer'] = $referrer; // TODO: replace with Response object later
         }
     }
 }

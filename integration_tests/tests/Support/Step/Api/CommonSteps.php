@@ -122,4 +122,10 @@ class CommonSteps extends ApiTester
     {
         $this->login();
     }
+
+    #[Given('I am logged out')]
+    public function givenIAmLoggedOut()
+    {
+        // noop
+    }
 }

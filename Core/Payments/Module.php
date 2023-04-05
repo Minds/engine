@@ -8,6 +8,10 @@ use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
 {
+    public array $submodules = [
+        InAppPurchases\Module::class
+    ];
+    
     /**
      * OnInit.
      */

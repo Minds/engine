@@ -40,7 +40,11 @@ class BoostSuggestionInjector
         try {
             $entitiesArray = $response->toArray();
             $boost = $this->getInjectableBoostSuggestion($targetUser);
-            array_splice($entitiesArray, $index, 0, [$boost]);
+
+            if ($boost) {
+                array_splice($entitiesArray, $index, 0, [$boost]);
+            }
+
             return new Response($entitiesArray);
         } catch (\Exception $e) {
             $this->logger->error($e);
@@ -51,9 +55,9 @@ class BoostSuggestionInjector
     /**
      * Gets in injectable boost wrapped in a suggestion.
      * @param User $targetUser - user the boost is targeted for.
-     * @return Suggestion - suggestion containing wrapped boost.
+     * @return Suggestion|null - suggestion containing wrapped boost.
      */
-    private function getInjectableBoostSuggestion(User $targetUser): Suggestion
+    private function getInjectableBoostSuggestion(User $targetUser): ?Suggestion
     {
         $targetAudience = $targetUser->getBoostRating() !== BoostTargetAudiences::CONTROVERSIAL ?
                 BoostTargetAudiences::SAFE :
@@ -66,6 +70,10 @@ class BoostSuggestionInjector
             targetLocation: BoostTargetLocation::SIDEBAR,
             targetAudience: $targetAudience
         )->first();
+
+        if (!$boost) {
+            return null;
+        }
 
         return (new Suggestion())
             ->setConfidenceScore(1)

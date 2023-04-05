@@ -13,6 +13,7 @@ use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequestFactory;
 use Minds\Core\Security;
 use Minds\Core\page;
+use Minds\Core\Referrals\ReferralCookie;
 use Minds\Core\Supermind\AutoSupermindRouterMiddleware;
 
 /**
@@ -127,7 +128,7 @@ class Router
         Di::_()->get('Email\RouterHooks')
             ->withRouterRequest($request);
 
-        Di::_()->get('Referrals\Cookie')
+        Di::_()->get(ReferralCookie::class)
             ->withRouterRequest($request)
             ->create();
 

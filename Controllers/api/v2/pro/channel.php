@@ -71,13 +71,6 @@ class channel implements Interfaces\Api
                 $exportedChannel = $channel->export();
                 $exportedChannel['pro_settings'] = $proSettings;
 
-                $origin = strtolower($this->request->getServerParams()['HTTP_X_MINDS_ORIGIN'] ?? '');
-                $domain = strtolower($proSettings->getDomain());
-
-                if ($domain === $origin) {
-                    Referrals::register($channel->username);
-                }
-
                 return Factory::response([
                     'channel' => $exportedChannel,
                     'me' => $currentUser ? $currentUser->export() : null,

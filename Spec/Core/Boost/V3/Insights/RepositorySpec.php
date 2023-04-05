@@ -18,18 +18,12 @@ class RepositorySpec extends ObjectBehavior
     protected $mysqlClientMock;
 
     /** @var PDO */
-    protected $mysqlMasterMock;
-
-    /** @var PDO */
     protected $mysqlReplicaMock;
 
     public function let(Client $mysqlClientMock, PDO $pdoMock)
     {
         $this->beConstructedWith($mysqlClientMock);
         $this->mysqlClientMock = $mysqlClientMock;
-
-        $mysqlClientMock->getConnection(Client::CONNECTION_MASTER)->willReturn($pdoMock);
-        $this->mysqlMasterMock = $pdoMock;
 
         $mysqlClientMock->getConnection(Client::CONNECTION_REPLICA)->willReturn($pdoMock);
         $this->mysqlReplicaMock = $pdoMock;
@@ -40,29 +34,40 @@ class RepositorySpec extends ObjectBehavior
         $this->shouldHaveType(Repository::class);
     }
 
-    public function it_should_return_estimate_from_db(PDOStatement $pdoStatementMock)
+    public function it_should_return_historic_cpms(PDOStatement $pdoStatementMock)
     {
         $this->mysqlReplicaMock->prepare(Argument::type('string'))->shouldBeCalled()
             ->willReturn($pdoStatementMock);
 
-        $pdoStatementMock->execute([
-            'target_audience' => 1,
-            'target_location' => 1,
-            'payment_method' => 1,
-        ])->shouldBeCalled();
+        $pdoStatementMock->execute()->shouldBeCalled();
         
-        $pdoStatementMock->fetchAll()
+        $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
             ->willReturn([
                 [
-                    '24h_bids' => 10,
-                    '24_views' => 1000,
+                    'cpm' => 1.23,
+                ],
+                [
+                    'cpm' => 1.45,
+                ],
+                [
+                    'cpm' => 1.42
                 ]
             ]);
 
-        $this->getEstimate(BoostTargetAudiences::SAFE, BoostTargetLocation::NEWSFEED, BoostPaymentMethod::CASH)
+        $this->mysqlClientMock->bindValuesToPreparedStatement(Argument::any(), [
+            'target_audience' => 1,
+            'target_location' => 1,
+            'payment_method' => 1,
+            'from_timestamp' => date('c', strtotime('3 days ago'))
+        
+        ])
+            ->shouldBeCalled();
+
+        $this->getHistoricCpms(BoostTargetAudiences::SAFE, BoostTargetLocation::NEWSFEED, BoostPaymentMethod::CASH)
             ->shouldBe([
-                '24h_bids' => 10,
-                '24_views' => 1000,
+                1.23,
+                1.45,
+                1.42
             ]);
     }
 }

@@ -17,6 +17,7 @@ use Minds\Api\Factory;
 use Minds\Helpers;
 use Minds\Core\Sockets;
 use Minds\Core\Security;
+use Minds\Exceptions\ProhibitedDomainException;
 
 class comments implements Interfaces\Api
 {
@@ -153,6 +154,8 @@ class comments implements Interfaces\Api
             try {
                 $saved = $manager->update($comment);
                 $error = !$saved;
+            } catch (ProhibitedDomainException $e) {
+                throw $e;
             } catch (\Exception $e) {
                 $error = true;
             }
@@ -228,6 +231,8 @@ class comments implements Interfaces\Api
                 } else {
                     throw new \Exception('The comment couldn\'t be saved');
                 }
+            } catch (ProhibitedDomainException $e) {
+                throw $e;
             } catch (BlockedUserException $e) {
                 $error = true;
 
