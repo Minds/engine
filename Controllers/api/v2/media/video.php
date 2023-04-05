@@ -49,7 +49,7 @@ class video implements Interfaces\Api, Interfaces\ApiIgnorePam
             'sources' => Factory::exportable($sources),
             'poster' => $video->getIconUrl(),
             'transcode_status' => $status,
-        ]);
+        ]);//
     }
 
     /**
