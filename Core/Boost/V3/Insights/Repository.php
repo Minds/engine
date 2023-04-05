@@ -46,14 +46,15 @@ class Repository
                 'total_views' => new RawExp('SUM(views)'),
             ])
             ->from(['boost_summaries'])
-            ->groupBy('guid');
+            ->groupBy('guid')
+            ->alias('boost_summaries');
 
         $query = $this->mysqlQueryBuilder
             ->select()
             ->columns([
                 'cpm' => new RawExp('MAX((daily_bid / (total_views / duration_days)) * 1000)'),
             ])
-            ->from(['boosts'])
+            ->from(['boosts' => 'boosts'])
             ->innerJoin(
                 new RawExp(rtrim($boostTotalViewsQuery->build(), ';')),
                 'boosts.guid',
@@ -66,7 +67,7 @@ class Repository
             ->where('target_location', Operator::EQ, new RawExp(':target_location'))
             ->where('target_suitability', Operator::GTE, new RawExp(':target_audience'))
             ->where('duration_days', Operator::LTE, new  RawExp((string) $numDays)) // Limiting to the duration that we look back to avoid skew
-            ->groupBy('guid');
+            ->groupBy('boosts.guid');
        
         $statement = $query->prepare();
 
