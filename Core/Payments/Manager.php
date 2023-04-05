@@ -15,6 +15,7 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Models\GetPaymentsOpts;
 use Minds\Core\Payments\Models\Payment;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
+use Minds\Core\Payments\V2\Repository;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
@@ -39,7 +40,7 @@ class Manager
     protected $repository;
 
     public function __construct(
-        $repository = null,
+                                  $repository = null,
         private ?IntentsManagerV2 $intentsManager = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?Logger $logger = null

@@ -196,3 +196,21 @@ ADD INDEX completed_timestamp (completed_timestamp) USING BTREE;
 ALTER TABLE boost_summaries
     ADD clicks int
     AFTER views;
+
+CREATE TABLE IF NOT EXISTS minds_payments
+(
+    payment_guid bigint NOT NULL PRIMARY KEY,
+    user_guid bigint NOT NULL,
+    affiliate_user_guid bigint DEFAULT NULL,
+    payment_type int NOT NULL,
+    payment_status int NOT NULL,
+    payment_method int NOT NULL,
+    payment_amount_millis int NOT NULL,
+    refunded_amount_millis int NULL,
+    is_captured bool DEFAULT FALSE, # Check stripe docs with different states
+    payment_tx_id text DEFAULT NULL,
+    created_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp NULL DEFAULT NULL,
+    INDEX user_guid_idx (user_guid),
+    INDEX affiliate_user_guid_idx (affiliate_user_guid)
+) ENGINE=InnoDB;

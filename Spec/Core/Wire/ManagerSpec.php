@@ -7,6 +7,7 @@ use Minds\Core\Blockchain\Transactions\Manager as BlockchainManager;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Config;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
+use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Security\ACL;
 use Minds\Core\Wire\Repository;
 use Minds\Core\Wire\SupportTiers\Manager as SupportTiersManager;
@@ -14,6 +15,7 @@ use Minds\Core\Wire\SupportTiers\SupportTier;
 use Minds\Core\Wire\Wire as WireModel;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
@@ -60,6 +62,8 @@ class ManagerSpec extends ObjectBehavior
     /** @var SupportTiersManager */
     protected $supportTiersManager;
 
+    private Collaborator $paymentsManager;
+
     public function let(
         Repository $repo,
         BlockchainManager $txManager,
@@ -76,8 +80,11 @@ class ManagerSpec extends ObjectBehavior
         Core\Payments\Stripe\Intents\Manager $stripeIntentsManager,
         ACL $acl,
         Core\Wire\Delegates\EventsDelegate $eventsDelegate,
-        SupportTiersManager $supportTiersManager = null
+        SupportTiersManager $supportTiersManager = null,
+        PaymentsManager $paymentsManager
     ) {
+        $this->paymentsManager = $paymentsManager;
+
         $this->beConstructedWith(
             $repo,
             $txManager,
@@ -94,7 +101,8 @@ class ManagerSpec extends ObjectBehavior
             $stripeIntentsManager,
             $acl,
             $eventsDelegate,
-            $supportTiersManager
+            $supportTiersManager,
+            $this->paymentsManager
         );
 
         $this->cacheDelegate = $cacheDelegate;
