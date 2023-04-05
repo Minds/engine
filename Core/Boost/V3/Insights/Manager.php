@@ -78,7 +78,7 @@ class Manager
         $minCpm = min($normalizedHistoricCpms);
         $maxCpm = max($normalizedHistoricCpms);
 
-        $estimatedLow = round(1000 * ($dailyBid/$maxCpm * 0.66), -2); // Reduce by 1/3rd. Round to nearest 100
+        $estimatedLow = max(round(1000 * ($dailyBid/$maxCpm * 0.66), -2), 25); // Reduce by 1/3rd. Round to nearest 100. Always show at least 25
         $estimatedHigh = round(1000 * ($dailyBid/$minCpm), -2); // Round to nearest 100
 
         return [
