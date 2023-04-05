@@ -5,6 +5,7 @@ namespace Minds\Core\Payments\V2;
 
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\V2\Enums\PaymentMethod;
 use Minds\Core\Payments\V2\Enums\PaymentType;
@@ -19,9 +20,11 @@ class Manager
 
     public function __construct(
         private ?Repository $repository = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
         private ?Logger $logger = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
 
         $this->logger ??= Di::_()->get('Logger');
     }
@@ -51,7 +54,8 @@ class Manager
      */
     public function createPaymentFromBoost(Boost $boost): void
     {
-        $affiliateUserGuid = isset($_COOKIE['referrer']) ? (int) $_COOKIE['referrer'] : null;
+        $affiliateUser = isset($_COOKIE['referrer']) ? $this->entitiesBuilder->getByUserByIndex($_COOKIE['referrer']) : null;
+        $affiliateUserGuid = (int) $affiliateUser?->getGuid() ?? null;
         if (!$affiliateUserGuid && $this->user->getGuid() === $boost->getOwnerGuid()) {
             $affiliateUserGuid =
                 $this->user->referrer && (time() - $this->user->time_created) < 365 * 86400

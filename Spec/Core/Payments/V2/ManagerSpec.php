@@ -6,6 +6,7 @@ namespace Spec\Minds\Core\Payments\V2;
 use Minds\Common\Cookie;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Models\Boost;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\V2\Manager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
@@ -19,16 +20,23 @@ use Prophecy\Argument;
 class ManagerSpec extends ObjectBehavior
 {
     private Collaborator $repositoryMock;
+    private Collaborator $entitiesBuilderMock;
     private Collaborator $loggerMock;
 
     public function let(
         Repository $repository,
+        EntitiesBuilder $entitiesBuilder,
         Logger $logger
     ): void {
         $this->repositoryMock = $repository;
+        $this->entitiesBuilderMock = $entitiesBuilder;
         $this->loggerMock = $logger;
 
-        $this->beConstructedWith($this->repositoryMock, $this->loggerMock);
+        $this->beConstructedWith(
+            $this->repositoryMock,
+            $this->entitiesBuilderMock,
+            $this->loggerMock
+        );
     }
 
     public function it_is_initializable(): void
@@ -52,11 +60,20 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_create_payment_from_boost_with_referrer_cookie(
         Boost $boost,
+        User $user
     ): void {
         (new Cookie())
             ->setName('referrer')
             ->setValue('456')
             ->create();
+
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('456');
+
+        $this->entitiesBuilderMock->getByUserByIndex('456')
+            ->shouldBeCalledOnce()
+            ->willReturn($user);
 
         $boost->getOwnerGuid()
             ->shouldBeCalledOnce()
@@ -69,6 +86,50 @@ class ManagerSpec extends ObjectBehavior
         $boost->getPaymentAmount()
             ->shouldBeCalledOnce()
             ->willReturn(1);
+
+        $boost->getPaymentTxId()
+            ->shouldBeCalledOnce()
+            ->willReturn("123");
+
+        $this->repositoryMock->createPayment(
+            Argument::that(
+                function (PaymentDetails $paymentDetails): bool {
+                    return $paymentDetails->affiliateUserGuid === 456;
+                }
+            )
+        )->shouldBeCalledOnce();
+
+        $this->createPaymentFromBoost($boost);
+    }
+
+    public function it_should_create_payment_from_boost_with_decimal_payment_amount_with_referrer_cookie(
+        Boost $boost,
+        User $user
+    ): void {
+        (new Cookie())
+            ->setName('referrer')
+            ->setValue('456')
+            ->create();
+
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('456');
+
+        $this->entitiesBuilderMock->getByUserByIndex('456')
+            ->shouldBeCalledOnce()
+            ->willReturn($user);
+
+        $boost->getOwnerGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $boost->getPaymentMethod()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostPaymentMethod::CASH);
+
+        $boost->getPaymentAmount()
+            ->shouldBeCalledOnce()
+            ->willReturn(1.23);
 
         $boost->getPaymentTxId()
             ->shouldBeCalledOnce()

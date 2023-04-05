@@ -5,6 +5,7 @@ namespace Minds\Core\Payments\V2\Models;
 
 use Exception;
 use Minds\Core\Guid;
+use Minds\Core\Payments\V2\Enums\PaymentStatus;
 use Minds\Entities\ExportableInterface;
 
 class PaymentDetails implements ExportableInterface
@@ -13,7 +14,7 @@ class PaymentDetails implements ExportableInterface
     public int $userGuid;
     public ?int $affiliateUserGuid = null;
     public int $paymentType;
-    public int $paymentStatus;
+    public ?int $paymentStatus = PaymentStatus::NOT_APPLICABLE;
     public int $paymentMethod;
     public int $paymentAmountMillis;
     public ?int $refundedAmountMillis = null;
@@ -81,7 +82,7 @@ class PaymentDetails implements ExportableInterface
             'user_guid' => $this->userGuid,
             'affiliate_user_guid' => $this->affiliateUserGuid,
             'payment_type' => $this->paymentType,
-            'payment_status' => $this->paymentStatus,
+            'payment_status' => $this->paymentStatus ?? PaymentStatus::NOT_APPLICABLE,
             'payment_method' => $this->paymentMethod,
             'payment_amount_millis' => $this->paymentAmountMillis,
             'refunded_amount_millis' => $this->refundedAmountMillis,
