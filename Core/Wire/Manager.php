@@ -12,10 +12,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Guid;
 use Minds\Core\Payments\Stripe\Intents\Manager as StripeIntentsManager;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
-use Minds\Core\Payments\V2\Enums\PaymentMethod;
-use Minds\Core\Payments\V2\Enums\PaymentType;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
-use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Util\BigNumber;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;
 use Minds\Core\Wire\SupportTiers\Manager as SupportTiersManager;
@@ -390,26 +387,7 @@ class Manager
                 $this->repository->add($wire);
 
                 // Add to Minds payments table
-                if ($isPlusPayment || $isProPayment) {
-                    $affiliateUserGuid = (int) $_COOKIE['referrer'] ?? null;
-                    if (!$affiliateUserGuid) {
-                        $affiliateUserGuid = (int) (
-                            $this->sender->referrer && (time() - $this->sender->time_created) < 365 * 86400
-                            ? $this->sender->referrer
-                            : null
-                        );
-                    }
-                    $paymentDetails = new PaymentDetails([
-                        'userGuid' => (int) $this->sender->getGuid(),
-                        'affiliateUserGuid' => $affiliateUserGuid,
-                        'paymentType' => PaymentType::BOOST_PAYMENT,
-                        'paymentMethod' => PaymentMethod::getValidatedPaymentMethod(PaymentMethod::CASH),
-                        'paymentAmountMillis' => $this->amount * 100 * 1000,
-                        'paymentTxId' => $intent->getId(),
-                    ]);
-
-                    $this->paymentsManager->createPayment($paymentDetails);
-                }
+                $this->paymentsManager->createPaymentFromWire($wire, $intent->getId(), $isPlusPayment, $isProPayment);
 
                 // Notify plus/pro
                 $this->upgradesDelegate

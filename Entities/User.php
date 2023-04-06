@@ -84,7 +84,6 @@ class User extends \ElggUser implements DemonetizableEntityInterface
         'iap_google',
         'iap_apple',
     ];
-    public ?int $referrer = null;
 
     protected function initializeAttributes()
     {

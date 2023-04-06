@@ -153,12 +153,14 @@ class ManagerSpec extends ObjectBehavior
         $_COOKIE = [];
 
         $user
+            ->get('referrer')
+            ->willReturn('123');
+        $user
             ->get('time_created')
             ->willReturn(time());
         $user->getGuid()
             ->shouldBeCalledOnce()
             ->willReturn('123');
-        $user->referrer = 123;
 
         $this->setUser($user);
 
@@ -195,6 +197,9 @@ class ManagerSpec extends ObjectBehavior
     ): void {
         $_COOKIE = [];
 
+        $user
+            ->get('referrer')
+            ->willReturn(null);
         $user
             ->get('time_created')
             ->willReturn(time());
