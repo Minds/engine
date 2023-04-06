@@ -58,6 +58,32 @@ class Repository
     }
 
     /**
+     * Get verification request details by user guid.
+     * @param string $userGuid - user guid.
+     * @throws ServerErrorException
+     * @throws VerificationRequestNotFoundException
+     * @return VerificationRequest
+     */
+    public function getVerificationRequestDetailsByUserGuid(string $userGuid): VerificationRequest
+    {
+        $query = "SELECT * FROM user_verification WHERE user_guid = :user_guid ORDER BY created_at desc limit 1";
+        $values = [ 'user_guid' => $userGuid ];
+
+        $statement = $this->mysqlClientReader->prepare($query);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        if (!$statement->execute()) {
+            throw new ServerErrorException();
+        }
+
+        if ($statement->rowCount() === 0) {
+            throw new VerificationRequestNotFoundException();
+        }
+
+        return new VerificationRequest($statement->fetch(PDO::FETCH_ASSOC));
+    }
+
+    /**
      * @param VerificationRequest $verificationRequest
      * @return bool
      */
