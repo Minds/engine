@@ -8,6 +8,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Interfaces;
 use Minds\Core\Media\Video\CloudflareStreams\Webhooks;
+use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Entities\Video;
@@ -86,8 +87,9 @@ class Cloudflare extends Cli\Controller implements Interfaces\CliControllerInter
         $activity->attachments = [$firstAttachment];
         (new Save())->setEntity($activity)->save();
 
-        // update the cloudflare id of the video to that of the stream id.
+        // update the cloudflare id of the video to that of the stream id and set transcoded status to completed.
         $video->setCloudflareId($streamId);
+        $video->setTranscodingStatus(TranscodeStates::COMPLETED);
         (new Save())->setEntity($video)->save();
 
         // set ACL state back once done saving.
