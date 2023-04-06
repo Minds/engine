@@ -5,16 +5,16 @@ namespace Minds\Core\Payments\V2;
 
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
-use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\V2\Enums\PaymentMethod;
 use Minds\Core\Payments\V2\Enums\PaymentType;
 use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
+use Minds\Core\Referrals\ReferralCookie;
 use Minds\Core\Wire\Wire;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
-use Psr\Http\Message\ServerRequestInterface;
+use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\ServerRequestFactory;
 
 class Manager
@@ -23,11 +23,12 @@ class Manager
 
     public function __construct(
         private ?Repository $repository = null,
-        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?ReferralCookie $referralCookie = null,
         private ?Logger $logger = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
-        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+
+        $this->referralCookie ??= new ReferralCookie();
 
         $this->logger ??= Di::_()->get('Logger');
     }
@@ -57,9 +58,7 @@ class Manager
      */
     public function createPaymentFromBoost(Boost $boost): void
     {
-        $request = $this->getServerRequest();
-        $affiliateUser = isset($request->getCookieParams()['referrer']) ? $this->entitiesBuilder->getByUserByIndex($request->getCookieParams()['referrer']) : null;
-        $affiliateUserGuid = (int) $affiliateUser?->getGuid() ?? null;
+        $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
         if (!$affiliateUserGuid && $this->user->getGuid() === $boost->getOwnerGuid()) {
             $affiliateUserGuid =
                 $this->user->referrer && (time() - $this->user->time_created) < 365 * 86400
@@ -94,9 +93,7 @@ class Manager
         bool $isPlus = false,
         bool $isPro = false
     ): void {
-        $request = $this->getServerRequest();
-        $affiliateUser = isset($request->getCookieParams()['referrer']) ? $this->entitiesBuilder->getByUserByIndex($request->getCookieParams()['referrer']) : null;
-        $affiliateUserGuid = (int) $affiliateUser?->getGuid() ?? null;
+        $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
         if (!$affiliateUserGuid) {
             $affiliateUserGuid = (int) (
                 $wire->getSender()->referrer && (time() - $wire->getSender()->time_created) < 365 * 86400
@@ -113,7 +110,6 @@ class Manager
             $paymentType = PaymentType::MINDS_PRO_PAYMENT;
         }
 
-
         $paymentDetails = new PaymentDetails([
             'userGuid' => (int) $wire->getSender()->getGuid(),
             'affiliateUserGuid' => $affiliateUserGuid,
@@ -127,9 +123,9 @@ class Manager
     }
 
     /**
-     * @return ServerRequestInterface
+     * @return ServerRequest
      */
-    private function getServerRequest(): ServerRequestInterface
+    private function getServerRequest(): ServerRequest
     {
         return ServerRequestFactory::fromGlobals();
     }
