@@ -89,6 +89,53 @@ class RepositorySpec extends ObjectBehavior
         $this->shouldThrow(VerificationRequestNotFoundException::class)->during('getVerificationRequestDetails', ['123', '123']);
     }
 
+    public function it_should_successfully_get_verification_request_details_by_user_guid(
+        PDOStatement $statement
+    ): void {
+        $statement->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $statement->rowCount()
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
+
+        $statement->fetch(Argument::type('integer'))
+            ->shouldBeCalledOnce()
+            ->willReturn([]);
+
+        $this->mysqlClientReader->prepare(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
+            ->shouldBeCalledOnce();
+
+        $this->getVerificationRequestDetailsByUserGuid('123')
+            ->shouldBeAnInstanceOf(VerificationRequest::class);
+    }
+
+    public function it_should_try_to_get_verification_request_by_user_guid_details_and_throw_request_not_found_exception(
+        PDOStatement $statement
+    ): void {
+        $statement->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $statement->rowCount()
+            ->shouldBeCalledOnce()
+            ->willReturn(0);
+
+        $this->mysqlClientReader->prepare(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
+            ->shouldBeCalledOnce();
+
+        $this->shouldThrow(VerificationRequestNotFoundException::class)->during('getVerificationRequestDetailsByUserGuid', ['123']);
+    }
+
     public function it_should_successfully_create_verification_request(
         PDOStatement $statement,
         VerificationRequest $verificationRequest
