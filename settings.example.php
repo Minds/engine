@@ -601,6 +601,10 @@ $CONFIG->set('tags_v2', [
     'Animals', 'Anime', 'Art', 'Comedy', 'Crypto', 'Food', 'Freedom', 'Gaming', 'Literature', 'Memes', 'Movies', 'Music', 'Nature', 'NSFW', 'News', 'Outdoors', 'Photography', 'Politics', 'Religion', 'Sports', 'Technology', 'Travel'
 ]);
 
+$CONFIG->set('tags_v3', [
+    'technology', 'crypto', 'nature', 'travel', 'outdoors', 'animals', 'memes', 'erotica', 'news', 'politics', 'spirituality', 'health', 'education', 'business', 'sports', 'comedy', 'fashion', 'anime', 'gaming', 'art', 'music', 'photography'
+]);
+
 $CONFIG->set('steward_guid', '');
 $CONFIG->set('steward_autoconfirm', false);
 $CONFIG->set('development_mode', '{{development_mode}}');

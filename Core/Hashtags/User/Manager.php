@@ -126,9 +126,9 @@ class Manager
         $defaults = [];
 
         if ($opts['defaults']) {
-            $v2Tags = $this->config->get('tags_v2') ?? false;
-            $defaults = $this->isDefaultTagsV2ExperimentActive() && $v2Tags
-                ? $v2Tags
+            $v3Tags = $this->config->get('tags_v3');
+            $defaults = $v3Tags
+                ? $v3Tags
                 : $this->config->get('tags');
         }
 
@@ -256,20 +256,9 @@ class Manager
     public function hasSetHashtags(): bool
     {
         $userHashtags = $this->get(['limit' => 1]);
-        
+
         return $userHashtags &&
             count($userHashtags) > 0 &&
             $userHashtags[0]['selected'];
-    }
-    
-    /**
-     * Whether default tags v2 experiment is active.
-     * @return bool true if default tags v2 experiment is active.
-     */
-    private function isDefaultTagsV2ExperimentActive(): bool
-    {
-        return $this->experimentsManager
-            ->setUser($this->user)
-            ->isOn('minds-3216-default-tags-v2');
     }
 }
