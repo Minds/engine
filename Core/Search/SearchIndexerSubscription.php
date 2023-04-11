@@ -7,7 +7,6 @@ namespace Minds\Core\Search;
 
 use Minds\Common\Urn;
 use Minds\Core\Blogs\Blog;
-use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Ops\EntitiesOpsEvent;
 use Minds\Core\Entities\Ops\EntitiesOpsTopic;
@@ -32,14 +31,12 @@ class SearchIndexerSubscription implements SubscriptionInterface
         protected ?Resolver $entitiesResolver = null,
         protected ?EntitiesBuilder $entitiesBuilder = null,
         protected ?FeedsUserManager $feedUserManager = null,
-        protected ?PsrWrapper $cache = null,
         protected ?Logger $logger = null
     ) {
         $this->index ??= Di::_()->get(Index::class);
         $this->entitiesResolver ??= new Resolver();
         $this->entitiesBuilder ??= new EntitiesBuilder();
         $this->feedUserManager ??= Di::_()->get('Feeds\User\Manager');
-        $this->cache ??= Di::_()->get('Cache\PsrWrapper');
         $this->logger ??= Di::_()->get('Logger');
     }
 
@@ -88,11 +85,11 @@ class SearchIndexerSubscription implements SubscriptionInterface
         // We are only concerned to index the following
         switch (get_class($entity)) {
             case Activity::class:
+                $this->patchActivity($entity, $event->getOp());
+                break;
             case Image::class:
             case Blog::class:
             case Video::class:
-                $this->patchPostEntity($entity, $event->getOp());
-                break;
             case User::class:
             case Group::class:
                 break;
@@ -114,21 +111,21 @@ class SearchIndexerSubscription implements SubscriptionInterface
     }
 
     /**
-     * Applies patches to 'post' entities.
-     * @param Activity|Image|Video|Blog $entity - supported entities.
-     * @param string $opsEventType - entity operation string.
+     * Applies patches activities.
+     * @param Activity $activity - activity to patch.
+     * @param string $opsEventType - entity operation string e.g. `EntitiesOpsEvent::OP_CREATE`.
      * @return void
      */
-    private function patchPostEntity(Activity|Image|Video|Blog &$entity, string $opsEventType): void
+    private function patchActivity(Activity &$activity, string $opsEventType): void
     {
         try {
             if (
                 $opsEventType === EntitiesOpsEvent::OP_CREATE &&
-                !$this->hasMadePosts($entity->getOwnerGuid())
+                !$this->hasMadeActivityPosts($activity->getOwnerGuid())
             ) {
-                $tags = $entity->getTags() ?? [];
+                $tags = $activity->getTags() ?? [];
                 $tags[] = 'hellominds';
-                $entity->setTags($tags);
+                $activity->setTags($tags);
             }
         } catch (\Exception $e) {
             $this->logger->error($e);
@@ -136,13 +133,13 @@ class SearchIndexerSubscription implements SubscriptionInterface
     }
 
     /**
-     * Whether user has made a single post.
+     * Whether user has made a single activity post.
      * @param string $ownerGuid - guid of the owner.
-     * @return boolean - true if user has made a single post.
+     * @return bool - true if user has made a single activity post.
      */
-    private function hasMadePosts(string $ownerGuid): bool
+    private function hasMadeActivityPosts(string $ownerGuid): bool
     {
-        if ($this->cache->get("$ownerGuid:posted")) {
+        if ($this->feedUserManager->getHasMadePostsFromCache($ownerGuid)) {
             return true;
         }
 
@@ -151,11 +148,11 @@ class SearchIndexerSubscription implements SubscriptionInterface
             throw new ServerErrorException("No user found for owner guid: $ownerGuid");
         }
 
-        // Set to true because if the user hasn't made posts,
-        // they will have after this process has completed.
-        $this->cache->set("$ownerGuid:posted", true);
-
-        return $this->feedUserManager->setUser($owner)
+        $hasMadePosts = $this->feedUserManager->setUser($owner)
             ->hasMadePosts();
+
+        $this->feedUserManager->setHasMadePostsInCache($ownerGuid);
+
+        return $hasMadePosts;
     }
 }
