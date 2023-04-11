@@ -125,6 +125,10 @@ class Exported
                 'cash' => $this->boostRates->getUsdRate(),
                 'tokens' => $this->boostRates->getTokenRate()
             ],
+            'chatwoot' => [
+                'website_token' => $this->config->get('chatwoot')['website_token'],
+                'base_url' => $this->config->get('chatwoot')['base_url']
+            ]
         ];
 
         if (Session::isLoggedIn()) {

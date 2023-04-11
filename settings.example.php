@@ -885,3 +885,9 @@ $CONFIG->set('nostr', [
 ]);
 
 $CONFIG->set('boost_view_rate_limit', 1);
+
+$CONFIG->set('chatwoot', [
+    'website_token' => '',
+    'base_url' => '',
+    'signing_key' => ''
+]);
