@@ -135,6 +135,7 @@ class SearchIndexerSubscription implements SubscriptionInterface
     /**
      * Whether user has made a single activity post.
      * @param string $ownerGuid - guid of the owner.
+     * @throws ServerErrorException - if no user is found.
      * @return bool - true if user has made a single activity post.
      */
     private function hasMadeActivityPosts(string $ownerGuid): bool
