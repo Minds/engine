@@ -111,7 +111,7 @@ class SearchIndexerSubscription implements SubscriptionInterface
     }
 
     /**
-     * Applies patches activities.
+     * Applies patches to activity.
      * @param Activity $activity - activity to patch.
      * @param string $opsEventType - entity operation string e.g. `EntitiesOpsEvent::OP_CREATE`.
      * @return void
