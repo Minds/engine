@@ -90,7 +90,7 @@ class MySQLRepository implements RepositoryInterface
                 'recs_activities.channel_guid',
                 'adjusted_score' => new RawExp("CASE WHEN pseudo_seen_entities.entity_guid IS NULL THEN recs_activities.score ELSE recs_activities.score * :score_multiplier END")
             ])
-            ->from(function(SelectQuery $subQuery) use (&$values, $tags, $pseudoId): void {
+            ->from(function (SelectQuery $subQuery) use (&$values, $tags, $pseudoId): void {
                 $subQuery
                     ->columns([
                         'cluster_id' => new RawExp('COALESCE(user_cluster_id, tag_cluster_id, default_cluster_id)'),
