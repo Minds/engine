@@ -113,10 +113,6 @@ class MySQLRepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($selectQuery);
 
-        // $this->mysqlClientReader->prepare(Argument::type('string'))
-        //     ->shouldBeCalledOnce()
-        //     ->willReturn($statement);
-
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
             ->shouldBeCalledOnce();
 
