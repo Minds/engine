@@ -105,6 +105,13 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
     {
         $this->boostManager->processExpiredApprovedBoosts();
     }
+    
+    public function processOnchain()
+    {
+        /** @var Core\Boost\V3\Onchain\OnchainBoostBackgroundJob */
+        $job = Di::_()->get(Core\Boost\V3\Onchain\OnchainBoostBackgroundJob::class);
+        $job->run();
+    }
 
     /**
      * Trigger an action event for a given boost. Does NOT mark the boost states, just pushes to action event topic.

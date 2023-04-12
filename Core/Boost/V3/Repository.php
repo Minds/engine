@@ -120,7 +120,7 @@ class Repository
      * @param int|null $paymentMethod
      * @param User|null $loggedInUser
      * @param bool $hasNext
-     * @return Iterator
+     * @return iterable<Boost>
      */
     public function getBoosts(
         int $limit = 12,
@@ -135,7 +135,7 @@ class Repository
         ?int $paymentMethod = null,
         ?User $loggedInUser = null,
         bool &$hasNext = false
-    ): Iterator {
+    ): iterable {
         $values = [];
 
         $selectColumns = [
@@ -277,7 +277,7 @@ class Repository
                     paymentTxId: $boostData['payment_tx_id'],
                     updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
                     approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
-                    summaryViewsDelivered: (int) $boostData['total_views'],
+                    summaryViewsDelivered: (int) ($boostData['total_views'] ?? 0),
                 )
             )
                 ->setGuid($boostData['guid'])

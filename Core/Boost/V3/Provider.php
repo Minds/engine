@@ -40,5 +40,8 @@ class Provider extends DiProvider
         Di::_()->bind(BoostReceiptUrlBuilder::class, function ($di): BoostReceiptUrlBuilder {
             return new BoostReceiptUrlBuilder();
         });
+        Di::_()->bind(Onchain\OnchainBoostBackgroundJob::class, function ($di): Onchain\OnchainBoostBackgroundJob {
+            return new Onchain\OnchainBoostBackgroundJob();
+        });
     }
 }
