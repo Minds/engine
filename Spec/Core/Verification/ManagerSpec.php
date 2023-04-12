@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Verification;
 
+use Minds\Core\Log\Logger;
 use Minds\Core\Notifications\Push\Services\ApnsService;
 use Minds\Core\Notifications\Push\Services\FcmService;
 use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
@@ -31,26 +32,30 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $imageProcessor;
     private Collaborator $fcmService;
     private Collaborator $apnsService;
+    private Collaborator $logger;
 
     public function let(
         Repository $repository,
         MindsOCRInterface $ocrClient,
         ImageProcessor $imageProcessor,
         FcmService $fcmService,
-        ApnsService $apnsService
+        ApnsService $apnsService,
+        Logger $logger
     ) {
         $this->repository = $repository;
         $this->ocrClient = $ocrClient;
         $this->imageProcessor = $imageProcessor;
         $this->fcmService = $fcmService;
         $this->apnsService = $apnsService;
+        $this->logger = $logger;
 
         $this->beConstructedWith(
             $this->repository,
             $this->ocrClient,
             $this->imageProcessor,
             $this->fcmService,
-            $this->apnsService
+            $this->apnsService,
+            $this->logger
         );
     }
 
@@ -104,6 +109,113 @@ class ManagerSpec extends ObjectBehavior
             ->willThrow(new VerificationRequestNotFoundException());
 
         $this->shouldThrow(VerificationRequestNotFoundException::class)->during('getVerificationRequest', ['123']);
+    }
+
+    public function it_successfully_gets_verification_request_by_user(
+        User $user
+    ): void {
+        $user->getGuid()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $this->repository->getVerificationRequestDetailsByUserGuid(
+            '123'
+        )
+            ->willReturn(new VerificationRequest());
+
+        $this->getVerificationRequestByUser()
+            ->shouldBeAnInstanceOf(VerificationRequest::class);
+    }
+
+    public function it_successfully_gets_verification_request_by_user_and_throw_exception_when_no_request_is_found(
+        User $user
+    ): void {
+        $user->getGuid()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $this->repository->getVerificationRequestDetailsByUserGuid(
+            '123'
+        )
+            ->willThrow(new VerificationRequestNotFoundException());
+
+        $this->shouldThrow(VerificationRequestNotFoundException::class)->during('getVerificationRequestByUser', []);
+    }
+
+    public function it_checks_a_user_is_verified_successfully(
+        User $user,
+        VerificationRequest $verificationRequest
+    ): void {
+        $user->getGuid()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $verificationRequest->isVerified()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->repository->getVerificationRequestDetailsByUserGuid(
+            '123'
+        )
+            ->willReturn($verificationRequest);
+
+        $this->isVerified()->shouldBe(true);
+    }
+
+    public function it_checks_a_user_is_not_verified_fully(
+        User $user,
+        VerificationRequest $verificationRequest
+    ): void {
+        $user->getGuid()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $verificationRequest->isVerified()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->repository->getVerificationRequestDetailsByUserGuid(
+            '123'
+        )
+            ->willReturn($verificationRequest);
+
+        $this->isVerified()->shouldBe(false);
+    }
+
+    public function it_checks_a_user_is_has_no_verification_request_pending(
+        User $user
+    ): void {
+        $user->getGuid()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $this->repository->getVerificationRequestDetailsByUserGuid(
+            '123'
+        )
+            ->willThrow(new VerificationRequestNotFoundException());
+
+        $this->isVerified()->shouldBe(false);
+    }
+
+    public function it_represents_a_user_as_unverified_on_other_exception_on_check(
+        User $user
+    ): void {
+        $user->getGuid()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $this->repository->getVerificationRequestDetailsByUserGuid(
+            '123'
+        )
+            ->willThrow(new ServerErrorException());
+
+        $this->isVerified()->shouldBe(false);
     }
 
     public function it_should_create_verification_request(

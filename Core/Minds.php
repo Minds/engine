@@ -61,7 +61,7 @@ class Minds extends base
         Register\Module::class,
         Notifications\Module::class,
         Votes\Module::class,
-        Helpdesk\Zendesk\Module::class,
+        Helpdesk\Module::class,
         SocialCompass\Module::class,
         AccountQuality\Module::class,
         Recommendations\Module::class,
