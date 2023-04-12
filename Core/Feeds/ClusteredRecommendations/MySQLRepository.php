@@ -12,6 +12,10 @@ use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOStatement;
+use Selective\Database\Connection;
+use Selective\Database\Operator;
+use Selective\Database\RawExp;
+use Selective\Database\SelectQuery;
 
 class MySQLRepository implements RepositoryInterface
 {
@@ -29,11 +33,13 @@ class MySQLRepository implements RepositoryInterface
      */
     public function __construct(
         private ?MySQLClient $mysqlHandler = null,
-        private ?MindsConfig $mindsConfig = null
+        private ?MindsConfig $mindsConfig = null,
+        private ?Connection $mysqlReaderHandler = null
     ) {
         $this->mysqlHandler ??= Di::_()->get("Database\MySQL\Client");
 
         $this->mysqlClient = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_REPLICA);
+        $this->mysqlReaderHandler ??= new Connection($this->mysqlClient);
 
         $this->mindsConfig ??= Di::_()->get("Config");
     }
@@ -51,9 +57,9 @@ class MySQLRepository implements RepositoryInterface
      * @param string|null $pseudoId
      * @return Generator
      */
-    public function getList(int $clusterId, int $limit, array $exclude = [], bool $demote = false, ?string $pseudoId = null): Generator
+    public function getList(int $clusterId, int $limit, array $exclude = [], bool $demote = false, ?string $pseudoId = null, ?array $tags = null): Generator
     {
-        $statement = $this->buildQuery($limit, $pseudoId, $demote);
+        $statement = $this->buildQuery($limit, $pseudoId, $demote, $tags);
         $statement->execute();
 
         foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
@@ -71,49 +77,95 @@ class MySQLRepository implements RepositoryInterface
      * @param int $limit
      * @param string $pseudoId
      * @param bool $demote
+     * @param array|null $tags
      * @return PDOStatement
      */
-    private function buildQuery(int $limit, string $pseudoId, bool $demote): PDOStatement
+    private function buildQuery(int $limit, string $pseudoId, bool $demote, ?array $tags = null): PDOStatement
     {
         $values = [];
 
-        $query = "select
-                        recs_activities.activity_guid, recs_activities.channel_guid";
+        $statement = $this->mysqlReaderHandler->select()
+            ->columns([
+                'recs_activities.activity_guid',
+                'recs_activities.channel_guid',
+                'adjusted_score' => new RawExp("CASE WHEN pseudo_seen_entities.entity_guid IS NULL THEN recs_activities.score ELSE recs_activities.score * :score_multiplier END")
+            ])
+            ->from(function(SelectQuery $subQuery) use (&$values, $tags, $pseudoId): void {
+                $subQuery
+                    ->columns([
+                        'cluster_id' => new RawExp('COALESCE(user_cluster_id, tag_cluster_id, default_cluster_id)'),
+                        'user_param.pseudo_id',
+                        'user_param.user_id'
+                    ])
+                    ->from(function (SelectQuery $subQuery) use (&$values, $pseudoId): void {
+                        $subQuery
+                            ->columns([
+                                'user_id' => new RawExp(":user_id"),
+                                'pseudo_id' => new RawExp(":pseudo_id")
+                            ])
+                            ->alias('user_param');
+                        $values['user_id'] = $this->user->getGuid();
+                        $values['pseudo_id'] = $pseudoId;
+                    })
+                    ->leftJoinRaw(
+                        function (SelectQuery $subQuery): void {
+                            $subQuery
+                                ->columns([
+                                    'default_cluster_id' => 'cluster_id'
+                                ])
+                                ->from('recommendations_latest_user_clusters')
+                                ->where('user_id', Operator::EQ, self::DEFAULT_RECS_USER_ID)
+                                ->alias('default_cluster');
+                        },
+                        'true',
+                    )
+                    ->leftJoinRaw(
+                        function (SelectQuery $subQuery) use (&$values, $tags): void {
+                            $subQuery
+                                ->columns([
+                                    'tag_cluster_id' => 'cluster_id',
+                                    'score' => new RawExp('SUM(CASE WHEN locate(interest_tag, :user_interest_tags) > 0 THEN relative_ratio ELSE -relative_ratio END)')
+                                ])
+                                ->from('recommendations_latest_cluster_tags')
+                                ->groupBy('cluster_id')
+                                ->having('score', Operator::GT, 0)
+                                ->orderBy('score desc')
+                                ->alias('tag_cluster');
+                            $values['user_interest_tags'] = implode(' ', $tags ?? []);
+                        },
+                        'true'
+                    )
+                    ->leftJoin(
+                        function (SelectQuery $subQuery): void {
+                            $subQuery
+                                ->columns([
+                                    'user_cluster_id' => 'cluster_id',
+                                    'user_id'
+                                ])
+                                ->from('recommendations_latest_user_clusters')
+                                ->alias('user_cluster');
+                        },
+                        'user_cluster.user_id',
+                        Operator::EQ,
+                        'user_param.user_id'
+                    )
+                    ->alias('cluster');
+            })
+            ->joinRaw(
+                new RawExp('recommendations_latest_cluster_activities as recs_activities'),
+                "cluster.cluster_id = recs_activities.cluster_id AND (cluster.user_id IS NULL OR cluster.user_id <> recs_activities.channel_guid)"
+            )
+            ->leftJoinRaw(
+                'pseudo_seen_entities',
+                'pseudo_seen_entities.pseudo_id = cluster.pseudo_id and pseudo_seen_entities.entity_guid = recs_activities.activity_guid'
+            )
+            ->orderBy('adjusted_score desc')
+            ->limit($limit)
+            ->prepare();
 
-        if ($demote) {
-            $query .= ", IF(se.entity_guid IS NULL, recs_activities.score, recs_activities.score * :score_multiplier) as adjusted_score ";
-            $values['score_multiplier'] = $this->mindsConfig->get('seen-entities-weight') ?? self::SEEN_ENTITIES_WEIGHT;
-        } else {
-            $query .= ", recs_activities.score as adjusted_score ";
-        }
-        $query .= " from
-                        minds.recommendations_user_cluster_map as recs_cluster
-                        inner join minds.recommendations_cluster_activity_map as recs_activities on
-                            recs_cluster.cluster_id = recs_activities.cluster_id
-                            and recs_cluster.user_id <> recs_activities.channel_guid";
+        $values['score_multiplier'] = self::SEEN_ENTITIES_WEIGHT;
 
-        if ($demote) {
-            $query .= " LEFT JOIN
-                pseudo_seen_entities as se
-                ON
-                    se.pseudo_id = :pseudo_id AND se.entity_guid = recs_activities.activity_guid ";
-            $values['pseudo_id'] = $pseudoId;
-        }
-
-        $query .= " where
-                        user_id = :user_id or user_id = :default_recs_user_id
-                    order by
-                        user_id desc,
-                        adjusted_score desc
-                    limit :limit
-                    ";
-        $values['user_id'] = $this->user->getGuid();
-        $values['default_recs_user_id'] = self::DEFAULT_RECS_USER_ID;
-        $values['limit'] = $limit;
-
-        $statement = $this->mysqlClient->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
-
         return $statement;
     }
 }

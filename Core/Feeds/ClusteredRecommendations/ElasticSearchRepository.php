@@ -34,7 +34,7 @@ class ElasticSearchRepository implements RepositoryInterface
      * @param int $limit
      * @return Generator
      */
-    public function getList(int $clusterId, int $limit, array $exclude = [], bool $demote = false, ?string $pseudoId = null): Generator
+    public function getList(int $clusterId, int $limit, array $exclude = [], bool $demote = false, ?string $pseudoId = null, ?array $tags = null): Generator
     {
         $preparedSearch = $this->buildQuery($clusterId, $limit, $exclude, $demote);
         $results = $this->elasticSearchClient->request($preparedSearch);
