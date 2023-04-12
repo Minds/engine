@@ -108,6 +108,7 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
     
     public function processOnchain()
     {
+        Di::_()->get('Config')->set('min_log_level', MonologLogger::INFO);
         /** @var Core\Boost\V3\Onchain\OnchainBoostBackgroundJob */
         $job = Di::_()->get(Core\Boost\V3\Onchain\OnchainBoostBackgroundJob::class);
         $job->run();
