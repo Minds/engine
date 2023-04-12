@@ -43,7 +43,7 @@ class AdminTransactionProcessor
                 'from' => $config['wallet_address'],
                 'to' => $config['contract_address'],
                 'gasLimit' => BigNumber::_($gasLimit)->toHex(true),
-                'gasPrice' => $this->ethereumService->getCurrentGasPrice(),
+                'gasPrice' => BigNumber::_($this->config->get('blockchain')['server_gas_price'] * 1000000000)->toHex(true),
                 'data' => $this->ethereumService->encodeContractMethod(
                     contractMethodDeclaration: $this->getContractMethodDeclaration($action),
                     params: [ BigNumber::_($boost->getGuid())->toHex(true) ]
