@@ -1695,4 +1695,6 @@ CREATE TABLE partner_earnings_ledger (
     amount_cents int,
     amount_tokens bigint,
     PRIMARY KEY (user_guid, timestamp, item)
-)
+);
+
+ALTER TABLE minds.wire ADD payment_guid bigint;

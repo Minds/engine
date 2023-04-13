@@ -214,3 +214,7 @@ CREATE TABLE IF NOT EXISTS minds_payments
     INDEX user_guid_idx (user_guid),
     INDEX affiliate_user_guid_idx (affiliate_user_guid)
 ) ENGINE=InnoDB;
+
+ALTER TABLE boosts
+    ADD payment_guid bigint DEFAULT NULL
+    AFTER payment_method;

@@ -195,7 +195,8 @@ class RepositorySpec extends ObjectBehavior
             'reason' => null,
             'payment_tx_id' => null,
             'created_timestamp' => date('c', time()),
-            'total_views' => 100
+            'total_views' => 100,
+            'payment_guid' => null
         ];
 
         $statement->execute()
@@ -238,7 +239,8 @@ class RepositorySpec extends ObjectBehavior
             'reason' => null,
             'payment_tx_id' => null,
             'created_timestamp' => date('c', time()),
-            'total_views' => 150
+            'total_views' => 150,
+            'payment_guid' => null
         ];
 
         $statement->execute()
@@ -283,7 +285,8 @@ class RepositorySpec extends ObjectBehavior
             'reason' => null,
             'payment_tx_id' => null,
             'created_timestamp' => date('c', time()),
-            'total_views' => 175
+            'total_views' => 175,
+            'payment_guid' => null
         ];
 
         $statement->execute()
@@ -329,7 +332,8 @@ class RepositorySpec extends ObjectBehavior
             'reason' => null,
             'payment_tx_id' => null,
             'created_timestamp' => date('c', time()),
-            'total_views' => 200
+            'total_views' => 200,
+            'payment_guid' => null
         ];
 
         $statement->execute()

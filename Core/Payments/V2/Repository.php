@@ -60,6 +60,7 @@ class Repository
                 'payment_method' => new RawExp(':payment_method'),
                 'payment_amount_millis' => new RawExp(':payment_amount_millis'),
                 'payment_tx_id' => new RawExp(':payment_tx_id'),
+                'is_captured' => new RawExp(':is_captured')
             ])
             ->prepare();
 
@@ -70,7 +71,8 @@ class Repository
             'payment_type' => $paymentDetails->paymentType,
             'payment_method' => $paymentDetails->paymentMethod,
             'payment_amount_millis' => $paymentDetails->paymentAmountMillis,
-            'payment_tx_id' => $paymentDetails->paymentTxId
+            'payment_tx_id' => $paymentDetails->paymentTxId,
+            'is_captured' => (int) $paymentDetails->isCaptured
         ];
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
@@ -110,6 +112,49 @@ class Repository
 
         $values = [
             'payment_status' => $paymentDetails->paymentStatus
+        ];
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        try {
+            $statement->execute();
+        } catch (PDOException $e) {
+            $this->logger->error(
+                "An issue was encountered whilst updating the payment information",
+                [
+                    'query' => $statement->queryString,
+                    'values' => $values,
+                    'paymentDetails' => $paymentDetails->export(),
+                    'errorMessage' => $e->getMessage(),
+                    'stackTrace' => $e->getTraceAsString(),
+                ]
+            );
+            throw new ServerErrorException("An issue was encountered whilst updating the payment information");
+        }
+    }
+
+    /**
+     * @param int $paymentGuid
+     * @param int $paymentStatus
+     * @param bool $isCaptured
+     * @return void
+     * @throws ServerErrorException
+     */
+    public function updatePaymentStatus(int $paymentGuid, int $paymentStatus, bool $isCaptured = false): void
+    {
+        $statement = $this->mysqlClientWriterHandler->update()
+            ->table('minds_payments')
+            ->set([
+                'payment_status' => new RawExp(':payment_status'),
+                'is_captured' => new RawExp(':is_captured'),
+                'updated_timestamp' => time(),
+            ])
+            ->where('payment_guid', Operator::EQ, $paymentGuid)
+            ->prepare();
+
+        $values = [
+            'payment_status' => $paymentStatus,
+            'is_captured' => (int) $isCaptured,
         ];
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);

@@ -35,7 +35,6 @@ use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
-use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Security\ACL;
 use Minds\Core\Settings\Manager as UserSettingsManager;
 use Minds\Core\Settings\Models\BoostPartnerSuitability;
@@ -64,7 +63,6 @@ class Manager
         private ?GuidLinkResolver    $guidLinkResolver = null,
         private ?UserSettingsManager $userSettingsManager = null,
         private ?ExperimentsManager  $experimentsManager = null,
-        private ?PaymentsManager     $paymentsManager = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
@@ -77,7 +75,6 @@ class Manager
         $this->guidLinkResolver ??= Di::_()->get(GuidLinkResolver::class);
         $this->userSettingsManager ??= Di::_()->get('Settings\Manager');
         $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
-        $this->paymentsManager ??= Di::_()->get(PaymentsManager::class);
     }
 
     /**
@@ -150,13 +147,9 @@ class Manager
             if ($isOnchainBoost) {
                 $boost->setStatus(BoostStatus::PENDING_ONCHAIN_CONFIRMATION)
                     ->setPaymentTxId($data['payment_tx_id']);
-            } elseif (!$this->paymentProcessor->setupBoostPayment($boost)) {
+            } elseif (!$this->paymentProcessor->setupBoostPayment($boost, $this->user)) {
                 throw new BoostPaymentSetupFailedException();
             }
-
-            $this->paymentsManager
-                ->setUser($this->user)
-                ->createPaymentFromBoost($boost);
 
             if (!$this->repository->createBoost($boost)) {
                 throw new ServerErrorException("An error occurred whilst creating the boost request");
@@ -198,17 +191,13 @@ class Manager
             ->setUpdatedTimestamp($presetTimestamp)
             ->setApprovedTimestamp($presetTimestamp);
 
-        if (!$this->paymentProcessor->setupBoostPayment($boost)) {
+        if (!$this->paymentProcessor->setupBoostPayment($boost, $this->user)) {
             throw new BoostPaymentSetupFailedException();
         }
 
         if (!$this->paymentProcessor->captureBoostPayment($boost)) {
             throw new BoostPaymentCaptureFailedException();
         }
-
-        $this->paymentsManager
-            ->setUser($this->user)
-            ->createPaymentFromBoost($boost);
 
         if (!$this->repository->createBoost($boost)) {
             throw new ServerErrorException("An error occurred whilst creating the boost request");

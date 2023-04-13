@@ -53,11 +53,11 @@ class Manager
 
     /**
      * @param Boost $boost
-     * @return void
+     * @return PaymentDetails
      * @throws InvalidPaymentMethodException
      * @throws ServerErrorException
      */
-    public function createPaymentFromBoost(Boost $boost): void
+    public function createPaymentFromBoost(Boost $boost): PaymentDetails
     {
         $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
         if (!$affiliateUserGuid && $this->user->getGuid() === $boost->getOwnerGuid()) {
@@ -77,6 +77,8 @@ class Manager
         ]);
 
         $this->createPayment($paymentDetails);
+
+        return $paymentDetails;
     }
 
     /**
@@ -95,7 +97,7 @@ class Manager
         bool $isPlus = false,
         bool $isPro = false,
         ?Activity $sourceActivity = null
-    ): void {
+    ): PaymentDetails {
         $affiliateUserGuid = null;
         $paymentType = PaymentType::WIRE_PAYMENT;
 
@@ -128,9 +130,28 @@ class Manager
             'paymentMethod' => PaymentMethod::getValidatedPaymentMethod(PaymentMethod::CASH),
             'paymentAmountMillis' => (int) ($wire->getAmount() * 100 * 1000),
             'paymentTxId' => $paymentTxId,
+            'isCaptured' => true
         ]);
 
         $this->createPayment($paymentDetails);
+
+        return $paymentDetails;
+    }
+
+    /**
+     * @param int $paymentGuid
+     * @param int $paymentStatus
+     * @param bool $isCaptured
+     * @return void
+     * @throws ServerErrorException
+     */
+    public function updatePaymentStatus(int $paymentGuid, int $paymentStatus, bool $isCaptured = false): void
+    {
+        $this->repository->updatePaymentStatus(
+            paymentGuid: $paymentGuid,
+            paymentStatus: $paymentStatus,
+            isCaptured: $isCaptured
+        );
     }
 
     /**

@@ -5,13 +5,13 @@
 
 namespace Minds\Core\Wire;
 
-use Minds\Core;
-use Minds\Core\Di\Di;
-use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Cassandra;
-use Cassandra\Varint;
 use Cassandra\Timestamp;
+use Cassandra\Varint;
 use Minds\Common\Urn;
+use Minds\Core;
+use Minds\Core\Data\Cassandra\Prepared\Custom;
+use Minds\Core\Di\Di;
 
 class Repository
 {
@@ -29,7 +29,7 @@ class Repository
     /**
      * Inserts wires to the database.
      *
-     * @param array[Wire] $wires
+     * @param Wire[]|Wire $wires
      */
     public function add($wires)
     {
@@ -39,8 +39,8 @@ class Repository
 
         $requests = [];
         $template = 'INSERT INTO wire
-            (receiver_guid, sender_guid, method, timestamp, entity_guid, wire_guid, wei, recurring, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+            (receiver_guid, sender_guid, method, timestamp, entity_guid, wire_guid, wei, recurring, status, payment_guid)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
         foreach ($wires as $wire) {
             $requests[] = [
@@ -55,6 +55,7 @@ class Repository
                     new Cassandra\Varint($wire->getAmount()),
                     (bool) $wire->isRecurring(),
                     'success',
+                    $wire->getPaymentGuid()
                 ],
             ];
         }
