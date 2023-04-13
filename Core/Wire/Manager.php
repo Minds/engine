@@ -17,6 +17,7 @@ use Minds\Core\Util\BigNumber;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;
 use Minds\Core\Wire\SupportTiers\Manager as SupportTiersManager;
 use Minds\Entities;
+use Minds\Entities\Activity;
 use Minds\Entities\User;
 
 class Manager
@@ -50,6 +51,8 @@ class Manager
 
     /** @var array $payload */
     protected $payload;
+
+    private ?Activity $sourceEntity = null;
 
     /** @var Core\Config */
     protected $config;
@@ -176,6 +179,12 @@ class Manager
 
         $this->entity = $entity;
 
+        return $this;
+    }
+
+    public function setSourceEntity(Activity $activity): self
+    {
+        $this->sourceEntity = $activity;
         return $this;
     }
 
@@ -387,7 +396,7 @@ class Manager
                 $this->repository->add($wire);
 
                 // Add to Minds payments table
-                $this->paymentsManager->createPaymentFromWire($wire, $intent->getId(), $isPlusPayment, $isProPayment);
+                $this->paymentsManager->createPaymentFromWire($wire, $intent->getId(), $isPlusPayment, $isProPayment, $this->sourceEntity);
 
                 // Notify plus/pro
                 $this->upgradesDelegate

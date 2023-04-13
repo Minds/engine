@@ -10,6 +10,7 @@ use Minds\Core\Payments\V2\Manager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Payments\V2\Repository;
 use Minds\Core\Referrals\ReferralCookie;
+use Minds\Core\Wire\Wire;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use PhpSpec\ObjectBehavior;
@@ -236,5 +237,185 @@ class ManagerSpec extends ObjectBehavior
         )->shouldBeCalledOnce();
 
         $this->createPaymentFromBoost($boost);
+    }
+
+    public function it_should_create_payment_from_wire_with_referrer_cookie(
+        Wire $wire,
+        User $user
+    ): void {
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->referralCookieMock->getAffiliateGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn(456);
+
+        $this->referralCookieMock->withRouterRequest(Argument::type(ServerRequest::class))
+            ->shouldBeCalledOnce()
+            ->willReturn($this->referralCookieMock);
+
+        $wire->getSender()
+            ->shouldBeCalledOnce()
+            ->willReturn($user);
+
+        $wire->getAmount()
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
+
+        $this->repositoryMock->createPayment(
+            Argument::that(
+                function (PaymentDetails $paymentDetails): bool {
+                    return $paymentDetails->affiliateUserGuid === 456;
+                }
+            )
+        )->shouldBeCalledOnce();
+
+        $this->createPaymentFromWire(
+            $wire,
+            "",
+            true,
+            false,
+            null
+        );
+    }
+
+    public function it_should_create_payment_from_wire_with_decimal_payment_amount_with_referrer_cookie(
+        Wire $wire,
+        User $user
+    ): void {
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->referralCookieMock->getAffiliateGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn(456);
+
+        $this->referralCookieMock->withRouterRequest(Argument::type(ServerRequest::class))
+            ->shouldBeCalledOnce()
+            ->willReturn($this->referralCookieMock);
+
+        $wire->getSender()
+            ->shouldBeCalledOnce()
+            ->willReturn($user);
+
+        $wire->getAmount()
+            ->shouldBeCalledOnce()
+            ->willReturn(1.23);
+
+        $this->repositoryMock->createPayment(
+            Argument::that(
+                function (PaymentDetails $paymentDetails): bool {
+                    return $paymentDetails->affiliateUserGuid === 456;
+                }
+            )
+        )->shouldBeCalledOnce();
+
+        $this->createPaymentFromWire(
+            $wire,
+            "",
+            true,
+            false,
+            null
+        );
+    }
+
+    public function it_should_create_payment_from_wire_without_referrer_cookie_with_referrer(
+        Wire $wire,
+        User $user
+    ): void {
+        $this->referralCookieMock->getAffiliateGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn(null);
+
+        $this->referralCookieMock->withRouterRequest(Argument::type(ServerRequest::class))
+            ->shouldBeCalledOnce()
+            ->willReturn($this->referralCookieMock);
+
+        $user
+            ->get('referrer')
+            ->willReturn('123');
+        $user
+            ->get('time_created')
+            ->willReturn(time());
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $wire->getSender()
+            ->shouldBeCalledTimes(4)
+            ->willReturn($user);
+
+        $wire->getAmount()
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
+
+        $this->repositoryMock->createPayment(
+            Argument::that(
+                function (PaymentDetails $paymentDetails): bool {
+                    return $paymentDetails->affiliateUserGuid === 123;
+                }
+            )
+        )->shouldBeCalledOnce();
+
+        $this->createPaymentFromWire(
+            $wire,
+            "",
+            true,
+            false,
+            null
+        );
+    }
+
+    public function it_should_create_payment_from_wire_without_referrer_cookie_without_referrer(
+        Wire $wire,
+        User $user
+    ): void {
+        $this->referralCookieMock->getAffiliateGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn(null);
+
+        $this->referralCookieMock->withRouterRequest(Argument::type(ServerRequest::class))
+            ->shouldBeCalledOnce()
+            ->willReturn($this->referralCookieMock);
+
+        $user
+            ->get('referrer')
+            ->willReturn(null);
+        $user
+            ->get('time_created')
+            ->willReturn(time());
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $wire->getSender()
+            ->shouldBeCalledTimes(2)
+            ->willReturn($user);
+
+        $wire->getAmount()
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
+
+        $this->repositoryMock->createPayment(
+            Argument::that(
+                function (PaymentDetails $paymentDetails): bool {
+                    return $paymentDetails->affiliateUserGuid === null;
+                }
+            )
+        )->shouldBeCalledOnce();
+
+        $this->createPaymentFromWire(
+            $wire,
+            "",
+            true,
+            false,
+            null
+        );
     }
 }

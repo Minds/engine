@@ -12,6 +12,7 @@ use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Referrals\ReferralCookie;
 use Minds\Core\Wire\Wire;
+use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Zend\Diactoros\ServerRequest;
@@ -83,6 +84,7 @@ class Manager
      * @param string $paymentTxId
      * @param bool $isPlus
      * @param bool $isPro
+     * @param Activity|null $sourceActivity
      * @return void
      * @throws InvalidPaymentMethodException
      * @throws ServerErrorException
@@ -91,23 +93,32 @@ class Manager
         Wire $wire,
         string $paymentTxId,
         bool $isPlus = false,
-        bool $isPro = false
+        bool $isPro = false,
+        ?Activity $sourceActivity = null
     ): void {
-        $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
-        if (!$affiliateUserGuid) {
-            $affiliateUserGuid = (int) (
-                $wire->getSender()->referrer && (time() - $wire->getSender()->time_created) < 365 * 86400
-                ? (int) $wire->getSender()->referrer
-                : null
-            );
-        }
-
+        $affiliateUserGuid = null;
         $paymentType = PaymentType::WIRE_PAYMENT;
-        if ($isPlus) {
-            $paymentType = PaymentType::MINDS_PLUS_PAYMENT;
-        }
-        if ($isPro) {
-            $paymentType = PaymentType::MINDS_PRO_PAYMENT;
+
+        if ($isPlus || $isPro) {
+            if ($sourceActivity) {
+                $affiliateUserGuid = ((int) $sourceActivity->getOwnerGuid()) ?? null;
+            } else {
+                $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
+                if (!$affiliateUserGuid) {
+                    $affiliateUserGuid = (
+                        $wire->getSender()->referrer && (time() - $wire->getSender()->time_created) < 365 * 86400
+                        ? (int) $wire->getSender()->referrer
+                        : null
+                    );
+                }
+            }
+
+            if ($isPlus) {
+                $paymentType = PaymentType::MINDS_PLUS_PAYMENT;
+            }
+            if ($isPro) {
+                $paymentType = PaymentType::MINDS_PRO_PAYMENT;
+            }
         }
 
         $paymentDetails = new PaymentDetails([
@@ -115,7 +126,7 @@ class Manager
             'affiliateUserGuid' => $affiliateUserGuid,
             'paymentType' => $paymentType,
             'paymentMethod' => PaymentMethod::getValidatedPaymentMethod(PaymentMethod::CASH),
-            'paymentAmountMillis' => $wire->getAmount() * 100 * 1000,
+            'paymentAmountMillis' => (int) ($wire->getAmount() * 100 * 1000),
             'paymentTxId' => $paymentTxId,
         ]);
 
