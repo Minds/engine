@@ -129,12 +129,12 @@ class Repository
             (CASE 
                 WHEN target_suitability=2 THEN 0 
                 WHEN payment_method=1 THEN (daily_bid/total_bids.cash_bids_for_safe) * IF(token_bids_for_safe = 0, 1, 0.67)
-                WHEN payment_method=2 THEN (daily_bid/total_bids.token_bids_for_safe) * IF(cash_bids_for_safe = 0, 1, 0.33)
+                WHEN payment_method>=2 THEN (daily_bid/total_bids.token_bids_for_safe) * IF(cash_bids_for_safe = 0, 1, 0.33)
                 ELSE 0 END
             ) AS share_ratio_safe_audience,
             (CASE 
                 WHEN payment_method=1 THEN (daily_bid/total_bids.cash_bids_for_all) * IF(token_bids_for_all = 0, 1, 0.67)
-                WHEN payment_method=2 THEN (daily_bid/total_bids.token_bids_for_all) * IF(cash_bids_for_all = 0, 1, 0.33)
+                WHEN payment_method>=2 THEN (daily_bid/total_bids.token_bids_for_all) * IF(cash_bids_for_all = 0, 1, 0.33)
                 ELSE 0 END
             ) AS share_ratio_open_audience
         FROM boosts
@@ -144,9 +144,9 @@ class Repository
                 SUM(CASE WHEN payment_method=1 AND target_suitability=1 THEN daily_bid ELSE 0 END) as cash_bids_for_safe,
                 SUM(CASE WHEN payment_method=1 AND target_suitability=2 THEN daily_bid ELSE 0 END) as cash_bids_for_open,
                 SUM(CASE WHEN payment_method=1 THEN daily_bid ELSE 0 END) as cash_bids_for_all,
-                SUM(CASE WHEN payment_method=2 AND target_suitability=1 THEN daily_bid ELSE 0 END) as token_bids_for_safe,
-                SUM(CASE WHEN payment_method=2 AND target_suitability=2 THEN daily_bid ELSE 0 END) as token_bids_for_open,
-                SUM(CASE WHEN payment_method=2 THEN daily_bid ELSE 0 END) as token_bids_for_all
+                SUM(CASE WHEN payment_method>=2 AND target_suitability=1 THEN daily_bid ELSE 0 END) as token_bids_for_safe,
+                SUM(CASE WHEN payment_method>=2 AND target_suitability=2 THEN daily_bid ELSE 0 END) as token_bids_for_open,
+                SUM(CASE WHEN payment_method>=2 THEN daily_bid ELSE 0 END) as token_bids_for_all
                 FROM boosts
                 WHERE status = $status
                 $approveWindow
