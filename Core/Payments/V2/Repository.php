@@ -6,6 +6,7 @@ namespace Minds\Core\Payments\V2;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
+use Minds\Core\Payments\V2\Enums\PaymentStatus;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
@@ -60,7 +61,8 @@ class Repository
                 'payment_method' => new RawExp(':payment_method'),
                 'payment_amount_millis' => new RawExp(':payment_amount_millis'),
                 'payment_tx_id' => new RawExp(':payment_tx_id'),
-                'is_captured' => new RawExp(':is_captured')
+                'is_captured' => new RawExp(':is_captured'),
+                'payment_status' => PaymentStatus::PENDING
             ])
             ->prepare();
 
@@ -167,7 +169,6 @@ class Repository
                 [
                     'query' => $statement->queryString,
                     'values' => $values,
-                    'paymentDetails' => $paymentDetails->export(),
                     'errorMessage' => $e->getMessage(),
                     'stackTrace' => $e->getTraceAsString(),
                 ]
