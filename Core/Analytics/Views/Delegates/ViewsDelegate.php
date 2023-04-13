@@ -29,8 +29,16 @@ class ViewsDelegate
      */
     public function onRecordView(View $view, EntityInterface $entity): void
     {
+        $user = Session::getLoggedinUser();
+
+        if (!$user) {
+            // TODO; https://gitlab.com/minds/engine/-/issues/2567
+            // Bypass sending through to Pulsar for now
+            return;
+        }
+
         $viewEvent = (new ViewEvent())
-            ->setUser(Session::getLoggedinUser())
+            ->setUser($user)
             ->setEntity($entity)
             ->setTimestamp($view->getTimestamp());
 
