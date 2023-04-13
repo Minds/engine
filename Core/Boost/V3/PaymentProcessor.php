@@ -231,12 +231,14 @@ class PaymentProcessor
      */
     public function refundBoostPayment(Boost $boost): bool
     {
-        return match ($boost->getPaymentMethod()) {
+        $result = match ($boost->getPaymentMethod()) {
             BoostPaymentMethod::CASH => $this->refundCashPaymentIntent($boost),
             BoostPaymentMethod::OFFCHAIN_TOKENS => $this->refundOffchainTokensPayment($boost),
             BoostPaymentMethod::ONCHAIN_TOKENS => $this->refundOnchainTokensPayment($boost),
             default => throw new InvalidBoostPaymentMethodException()
         };
+        $this->paymentsManager->updatePaymentStatus($boost->getPaymentGuid(), PaymentStatus::REFUNDED, false);
+        return $result;
     }
 
     /**
