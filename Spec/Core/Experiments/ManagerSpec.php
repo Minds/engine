@@ -15,7 +15,7 @@ use Minds\Core\Data\cache\PsrWrapper;
 class ManagerSpec extends ObjectBehavior
 {
     protected $growthbook;
-    protected $cookieManager;//
+    protected $cookieManager;
     protected $httpClient;
     protected $config;
     protected $psrCache;
