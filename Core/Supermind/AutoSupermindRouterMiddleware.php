@@ -6,7 +6,6 @@ use Minds\Core\Di\Di;
 use Minds\Core\Email\V2\Campaigns\Recurring\SupermindBulkIncentive\SupermindBulkIncentive;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
-use Minds\Core\Payments\Models\GetPaymentsOpts;
 use Minds\Core\Router\PrePsr7\Middleware\RouterMiddleware;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Payments\Stripe\PaymentMethods;
@@ -118,7 +117,7 @@ class AutoSupermindRouterMiddleware implements RouterMiddleware
          * If a CASH method, get the default card
          */
         if ($paymentMethod == SupermindRequestPaymentMethod::CASH) {
-            $paymentMethods = $this->getPaymentMethodsManager()->getList($activityOwner->getOwnerGuid(), new GetPaymentsOpts());
+            $paymentMethods = $this->getPaymentMethodsManager()->getList([ 'user_guid' => $activityOwner->getOwnerGuid() ]);
             if (!$paymentMethods) {
                 return false;
             }
