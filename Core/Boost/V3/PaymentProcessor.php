@@ -73,6 +73,9 @@ class PaymentProcessor
         $paymentDetails = $this->paymentsManager
             ->setUser($user)
             ->createPaymentFromBoost($boost);
+
+        $boost->setPaymentGuid($paymentDetails->paymentGuid);
+        
         return $result;
     }
 
