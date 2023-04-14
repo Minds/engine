@@ -22,7 +22,6 @@ class Repository
     private Connection $mysqlClientWriterHandler;
     private Connection $mysqlClientReaderHandler;
 
-
     /**
      * @param MySQLClient|null $mysqlHandler
      * @param Logger|null $logger
@@ -107,7 +106,7 @@ class Repository
             ->table('minds_payments')
             ->set([
                 'payment_status' => new RawExp(':payment_status'),
-                'updated_timestamp' => time(),
+                'updated_timestamp' => date('c', time()),
             ])
             ->where('payment_guid', Operator::EQ, $paymentDetails->paymentGuid)
             ->prepare();
@@ -149,7 +148,7 @@ class Repository
             ->set([
                 'payment_status' => new RawExp(':payment_status'),
                 'is_captured' => new RawExp(':is_captured'),
-                'updated_timestamp' => time(),
+                'updated_timestamp' => date('c', time()),
             ])
             ->where('payment_guid', Operator::EQ, $paymentGuid)
             ->prepare();
