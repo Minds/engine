@@ -9,7 +9,7 @@ use Minds\Core\Guid;
 use Minds\Core\Payments\Models\GetPaymentsOpts;
 use Minds\Core\Router\PrePsr7\Middleware\RouterMiddleware;
 use Minds\Core\Supermind\Models\SupermindRequest;
-use Minds\Core\Payments\Stripe\Intents;
+use Minds\Core\Payments\Stripe\PaymentMethods;
 use Minds\Entities\User;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
@@ -24,7 +24,7 @@ class AutoSupermindRouterMiddleware implements RouterMiddleware
         protected ?SupermindBulkIncentive $supermindBulkIncentiveEmailCampaign = null,
         protected ?EntitiesBuilder $entitiesBuilder = null,
         protected ?Call $db = null,
-        protected ?Intents\ManagerV2 $paymentIntentsManager = null
+        protected ?PaymentMethods\Manager $paymentMethodsManager = null
     ) {
         // Do not construct here, avoid circular dependencies and initialising classes that may never be used
     }
@@ -118,11 +118,11 @@ class AutoSupermindRouterMiddleware implements RouterMiddleware
          * If a CASH method, get the default card
          */
         if ($paymentMethod == SupermindRequestPaymentMethod::CASH) {
-            $paymentIntents = $this->getPaymentIntentsManager()->getPaymentIntentsByUserGuid($activityOwner->getOwnerGuid(), new GetPaymentsOpts());
-            if (!$paymentIntents) {
+            $paymentMethods = $this->getPaymentMethodsManager()->getList($activityOwner->getOwnerGuid(), new GetPaymentsOpts());
+            if (!$paymentMethods) {
                 return false;
             }
-            $paymentMethodId = $paymentIntents['data'][0]['id'];
+            $paymentMethodId = $paymentMethods[0]->getId();
         }
 
         $this->getSupermindManager()->setUser($activityOwner);
@@ -167,10 +167,10 @@ class AutoSupermindRouterMiddleware implements RouterMiddleware
     }
 
     /**
-     * @return Intents\ManagerV2
+     * @return PaymentMethods\Manager
      */
-    protected function getPaymentIntentsManager(): Intents\ManagerV2
+    protected function getPaymentMethodsManager(): PaymentMethods\Manager
     {
-        return $this->paymentIntentsManager ??= new Intents\ManagerV2();
+        return $this->paymentMethodsManager ??= new PaymentMethods\Manager();
     }
 }
