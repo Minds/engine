@@ -116,7 +116,8 @@ class subscribed implements Interfaces\Api
             'nsfw' => $nsfw,
             'single_owner_threshold' => 0,
             'portrait' => isset($_GET['portrait']),
-            'hide_own_posts' => isset($_GET['hide_own_posts'])
+            'hide_own_posts' => isset($_GET['hide_own_posts']),
+            'pinned_guids' => [ "1492941237248856069" ], // Temp for event
         ];
 
         $opts['include_group_posts'] = (bool) $_GET['include_group_posts'] ?? false;
