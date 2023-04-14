@@ -122,7 +122,7 @@ class AutoSupermindRouterMiddleware implements RouterMiddleware
             if (!$paymentIntents) {
                 return false;
             }
-            $paymentMethodId = $paymentIntents[0]->id;
+            $paymentMethodId = $paymentIntents[0]['id'];
         }
 
         $this->getSupermindManager()->setUser($activityOwner);
