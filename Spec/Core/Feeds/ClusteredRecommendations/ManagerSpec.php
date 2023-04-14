@@ -13,11 +13,13 @@ use Minds\Core\Feeds\ClusteredRecommendations\RepositoryFactory;
 use Minds\Core\Feeds\Elastic\ScoredGuid;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Feeds\Seen\Manager as SeenManager;
+use Minds\Core\Hashtags\User\Manager as HashtagsManager;
 use Minds\Core\Recommendations\UserRecommendationsCluster;
 use Minds\Entities\Entity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 use Spec\Minds\Common\Traits\CommonMatchers;
 
 class ManagerSpec extends ObjectBehavior
@@ -29,19 +31,22 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $seenManager;
     private Collaborator $repositoryFactory;
     private Collaborator $experimentsManager;
+    private Collaborator $hashtagsManager;
 
     public function let(
         UserRecommendationsCluster $userRecommendationsCluster,
         SeenManager $seenManager,
         EntitiesBuilder $entitiesBuilder,
         RepositoryFactory $repositoryFactory,
-        ExperimentsManager $experimentsManager
+        ExperimentsManager $experimentsManager,
+        HashtagsManager $hashtagsManager
     ) {
         $this->entitiesBuilder = $entitiesBuilder;
         $this->userRecommendationsCluster = $userRecommendationsCluster;
         $this->seenManager = $seenManager;
         $this->repositoryFactory = $repositoryFactory;
         $this->experimentsManager = $experimentsManager;
+        $this->hashtagsManager = $hashtagsManager;
 
         $this->beConstructedWith(
             null,
@@ -49,7 +54,8 @@ class ManagerSpec extends ObjectBehavior
             $this->userRecommendationsCluster,
             $this->seenManager,
             $this->repositoryFactory,
-            $this->experimentsManager
+            $this->experimentsManager,
+            $this->hashtagsManager
         );
     }
 
@@ -79,11 +85,17 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->hashtagsManager->setUser($user)
+            ->shouldBeCalledOnce();
+        $this->hashtagsManager->get(Argument::type('array'))
+            ->shouldBeCalledOnce()
+            ->willReturn([]);
+
         $this->seenManager->getIdentifier()
             ->shouldBeCalledOnce()
             ->willReturn("");
 
-        $repository->getList(0, 12, [], true, "")
+        $repository->getList(0, 12, [], true, "", [])
             ->shouldBeCalledOnce()
             ->willYield([
                 (new ScoredGuid())
@@ -149,7 +161,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(0);
 
-        $repository->getList(0, 12, [], true, "")
+        $repository->getList(0, 12, [], true, "", null)
             ->shouldBeCalledOnce()
             ->willYield([
                 (new ScoredGuid())
