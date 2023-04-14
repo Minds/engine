@@ -33,7 +33,7 @@ composer.phar
 settings.php-*.bak
 !/.gitattributes
 
-test_results.html
+test_results.*
 
 **/.DS_Store
 **/.editorconfig

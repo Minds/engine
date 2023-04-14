@@ -3,7 +3,6 @@ namespace Minds\Core\Boost\V3\Insights;
 
 use Minds\Core\Data\MySQL\Client;
 use PDO;
-use PDOException;
 use Selective\Database\Connection;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
@@ -45,7 +44,7 @@ class Repository
                 'guid',
                 'total_views' => new RawExp('SUM(views)'),
             ])
-            ->from(['boost_summaries'])
+            ->from('boost_summaries')
             ->groupBy('guid')
             ->alias('boost_summaries');
 
@@ -54,7 +53,7 @@ class Repository
             ->columns([
                 'cpm' => new RawExp('MAX((daily_bid / (total_views / duration_days)) * 1000)'),
             ])
-            ->from(['boosts' => 'boosts'])
+            ->from('boosts')
             ->innerJoin(
                 new RawExp(rtrim($boostTotalViewsQuery->build(), ';')),
                 'boosts.guid',
@@ -68,7 +67,7 @@ class Repository
             ->where('target_suitability', Operator::GTE, new RawExp(':target_audience'))
             ->where('duration_days', Operator::LTE, new  RawExp((string) $numDays)) // Limiting to the duration that we look back to avoid skew
             ->groupBy('boosts.guid');
-       
+
         $statement = $query->prepare();
 
         $this->mysqlClient->bindValuesToPreparedStatement($statement, $values);

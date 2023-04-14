@@ -12,6 +12,7 @@ use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\Elastic\ScoredGuid;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Feeds\Seen\Manager as SeenManager;
+use Minds\Core\Hashtags\User\Manager as HashtagsManager;
 use Minds\Core\Recommendations\UserRecommendationsCluster;
 use Minds\Entities\User;
 
@@ -28,13 +29,15 @@ class Manager
         private ?UserRecommendationsCluster $userRecommendationsCluster = null,
         private ?SeenManager $seenManager = null,
         private ?RepositoryFactory $repositoryFactory = null,
-        private ?ExperimentsManager $experimentsManager = null
+        private ?ExperimentsManager $experimentsManager = null,
+        private ?HashtagsManager $hashtagsManager = null
     ) {
         $this->entitiesBuilder ??= new EntitiesBuilder();
         $this->userRecommendationsCluster ??= new UserRecommendationsCluster();
         $this->seenManager = $seenManager ?? Di::_()->get('Feeds\Seen\Manager');
         $this->repositoryFactory ??= new RepositoryFactory();
         $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
+        $this->hashtagsManager ??= Di::_()->get('Hashtags\User\Manager');
     }
 
     /**
@@ -73,15 +76,25 @@ class Manager
         $this->repository ??= $this->getRepository();
 
         $clusterId = 0;
+        $tags = null;
         if (!$this->experimentsManager->isOn('engine-2494-clustered-recs-v2')) {
             $clusterId = $this->userRecommendationsCluster->calculateUserRecommendationsClusterId($this->user);
         } else {
             $this->repository->setUser($this->user);
+            $this->hashtagsManager->setUser($this->user);
+            $tags = $this->hashtagsManager->get([]);
         }
 
         $seenEntitiesList = [];
 
-        $entries = $this->repository->getList($clusterId, $limit, $seenEntitiesList, $unseen, $this->seenManager->getIdentifier());
+        $entries = $this->repository->getList(
+            clusterId: $clusterId,
+            limit: $limit,
+            exclude: $seenEntitiesList,
+            demote: $unseen,
+            pseudoId: $this->seenManager->getIdentifier(),
+            tags: $tags
+        );
         $preparedEntities = $this->prepareEntities($entries);
 
         $paginationToken = $this->getPaginationToken($preparedEntities);

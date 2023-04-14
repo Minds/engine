@@ -11,5 +11,5 @@ use Minds\Entities\User;
 interface RepositoryInterface
 {
     public function setUser(User $user): void;
-    public function getList(int $clusterId, int $limit, array $exclude = [], bool $demote = false, ?string $pseudoId = null): Generator;
+    public function getList(int $clusterId, int $limit, array $exclude = [], bool $demote = false, ?string $pseudoId = null, ?array $tags = null): Generator;
 }
