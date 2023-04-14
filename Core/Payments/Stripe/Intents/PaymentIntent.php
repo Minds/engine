@@ -70,7 +70,7 @@ class PaymentIntent extends Intent
      */
     public function getServiceFee(): int
     {
-        return round($this->amount * ($this->serviceFeePct / 100));
+        return (int) round($this->amount * ($this->serviceFeePct / 100));
     }
 
     /**
