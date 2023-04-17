@@ -4,7 +4,6 @@ namespace Minds\Core\Suggestions;
 
 use Minds\Common\Repository\Response;
 use Minds\Core\Config;
-use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
