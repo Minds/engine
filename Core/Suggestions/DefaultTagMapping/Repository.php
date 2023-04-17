@@ -33,9 +33,13 @@ class Repository
      */
     public function getList(
         string $entityType,
-        array $tags = ['default'],
+        ?array $tags = null,
         int $limit = 12
     ): Iterator {
+        if (count($tags) < 1) {
+            $tags[] = 'default';
+        }
+
         $values = [
             'type' => $entityType
         ];

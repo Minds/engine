@@ -223,6 +223,7 @@ class Manager
     private function getDefaultTagBasedSuggestions($opts): array
     {
         $opts = array_merge([
+            'type' => 'group',
             'tags' => $this->user ? $this->user->getTags() : []
         ], $opts);
 
