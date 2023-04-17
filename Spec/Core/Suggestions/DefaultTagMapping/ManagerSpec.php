@@ -40,7 +40,8 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_get_suggestions_from_repository(): void {
+    public function it_should_get_suggestions_from_repository(): void
+    {
         $suggestion1 = new Suggestion();
         $suggestion2 = new Suggestion();
 
@@ -63,7 +64,8 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_fallback_get_suggestions_from_repository_when_no_results(): void {
+    public function it_should_fallback_get_suggestions_from_repository_when_no_results(): void
+    {
         $suggestion1 = new Suggestion();
         $suggestion2 = new Suggestion();
 
@@ -99,7 +101,8 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_fallback_get_suggestions_from_repository_on_exception(): void {
+    public function it_should_fallback_get_suggestions_from_repository_on_exception(): void
+    {
         $suggestion1 = new Suggestion();
         $suggestion2 = new Suggestion();
 
@@ -138,7 +141,8 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_fallback_get_suggestions_from_cache(): void {
+    public function it_should_fallback_get_suggestions_from_cache(): void
+    {
         $suggestion1 = new Suggestion();
         $suggestion2 = new Suggestion();
 

@@ -79,7 +79,7 @@ class Client
     {
         foreach ($values as $key => $value) {
             if (is_array($value)) {
-                foreach($value as $arrayIndex => $arrayItem) {
+                foreach ($value as $arrayIndex => $arrayItem) {
                     if (is_array($arrayItem)) {
                         throw new ServerErrorException('Nested arrays are not supported');
                     }

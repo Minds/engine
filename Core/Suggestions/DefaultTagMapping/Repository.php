@@ -47,6 +47,8 @@ class Repository
         ];
 
         $query = $this->mysqlQueryBuilder->select()
+            ->distinct()
+            ->columns(['entity_guid'])
             ->from('minds_default_tag_mapping')
             ->whereWithNamedParameters(
                 leftField: 'tag_name',
@@ -65,7 +67,7 @@ class Repository
         foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $suggestionData) {
             yield (new Suggestion())
                 ->setEntityGuid($suggestionData['entity_guid'])
-                ->setEntityType($suggestionData['entity_type']);
+                ->setEntityType($entityType);
         }
     }
 }

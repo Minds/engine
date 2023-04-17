@@ -53,7 +53,15 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlQueryBuilder->select()
             ->shouldBeCalled()
             ->willReturn($selectQuery);
-        
+
+        $selectQuery->distinct()
+            ->shouldBeCalled()
+            ->willReturn($selectQuery);
+
+        $selectQuery->columns(['entity_guid'])
+            ->shouldBeCalled()
+            ->willReturn($selectQuery);
+
         $selectQuery->from('minds_default_tag_mapping')
             ->shouldBeCalled()
             ->willReturn($selectQuery);
@@ -80,10 +88,10 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn($statement);
 
         $this->mysqlClient->bindValuesToPreparedStatement(
-            Argument::that(function($arg) {
+            Argument::that(function ($arg) {
                 return $arg instanceof PDOStatement;
             }),
-            Argument::that(function($arg) use ($entityType, $tags) {
+            Argument::that(function ($arg) use ($entityType, $tags) {
                 return $arg === [
                     'type' => $entityType,
                     'tags' => $tags
@@ -114,7 +122,7 @@ class RepositorySpec extends ObjectBehavior
             (new Suggestion())
                 ->setEntityGuid('234')
                 ->setEntityType('group')
-        ]);    
+        ]);
     }
 
     public function it_should_get_list_when_NO_tags_provided(
@@ -128,7 +136,15 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlQueryBuilder->select()
             ->shouldBeCalled()
             ->willReturn($selectQuery);
-        
+
+        $selectQuery->distinct()
+            ->shouldBeCalled()
+            ->willReturn($selectQuery);
+
+        $selectQuery->columns(['entity_guid'])
+            ->shouldBeCalled()
+            ->willReturn($selectQuery);
+
         $selectQuery->from('minds_default_tag_mapping')
             ->shouldBeCalled()
             ->willReturn($selectQuery);
@@ -155,10 +171,10 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn($statement);
 
         $this->mysqlClient->bindValuesToPreparedStatement(
-            Argument::that(function($arg) {
+            Argument::that(function ($arg) {
                 return $arg instanceof PDOStatement;
             }),
-            Argument::that(function($arg) use ($entityType, $tags) {
+            Argument::that(function ($arg) use ($entityType, $tags) {
                 return $arg === [
                     'type' => $entityType,
                     'tags' => ['default']
@@ -189,6 +205,6 @@ class RepositorySpec extends ObjectBehavior
             (new Suggestion())
                 ->setEntityGuid('234')
                 ->setEntityType('group')
-        ]);    
+        ]);
     }
 }
