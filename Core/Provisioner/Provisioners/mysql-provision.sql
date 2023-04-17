@@ -196,3 +196,10 @@ ADD INDEX completed_timestamp (completed_timestamp) USING BTREE;
 ALTER TABLE boost_summaries
     ADD clicks int
     AFTER views;
+
+CREATE TABLE IF NOT EXISTS minds_default_tag_mapping (
+	entity_guid bigint NOT NULL PRIMARY KEY,
+	tag_name varchar(100) NOT NULL PRIMARY KEY,
+	entity_type varchar(100) NOT NULL,
+	PRIMARY KEY (entity_guid, tag_name)
+) ENGINE=InnoDB
