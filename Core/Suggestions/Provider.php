@@ -27,6 +27,10 @@ class Provider extends DiProvider
             return new Pass\Repository();
         }, ['useFactory' => true]);
 
+        $this->di->bind(DefaultTagMapping\Manager::class, function ($di) {
+            return new DefaultTagMapping\Manager();
+        }, ['useFactory' => true]);
+
         $this->di->bind(DefaultTagMapping\Repository::class, function ($di) {
             return new DefaultTagMapping\Repository();
         }, ['useFactory' => true]);

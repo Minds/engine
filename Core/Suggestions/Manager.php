@@ -11,7 +11,7 @@ use Minds\Core\Log\Logger;
 use Minds\Entities\User;
 use Minds\Core\Security\Block;
 use Minds\Core\Security\RateLimits\InteractionsLimiter;
-use Minds\Core\Suggestions\DefaultTagMapping\Repository as DefaultTagMappingRepository;
+use Minds\Core\Suggestions\DefaultTagMapping\Manager as DefaultTagMappingManager;
 
 class Manager
 {
@@ -46,9 +46,8 @@ class Manager
         $subscriptionsManager = null,
         $interactionsLimiter = null,
         Config $config = null,
-        private ?DefaultTagMappingRepository $defaultTagMappingRepository = null,
-        private ?Logger $logger = null,
-        private ?PsrWrapper $cache = null
+        private ?DefaultTagMappingManager $defaultTagMappingManager = null,
+        private ?Logger $logger = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder();
@@ -57,9 +56,8 @@ class Manager
         $this->interactionsLimiter = $interactionsLimiter ?: new InteractionsLimiter();
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
         $this->config = $config ?? Di::_()->get('Config');
-        $this->defaultTagMappingRepository ??= Di::_()->get(defaultTagMappingRepository::class);
+        $this->defaultTagMappingManager ??= Di::_()->get(DefaultTagMappingManager::class);
         $this->logger ??= Di::_()->get('Logger');
-        $this->cache ??= Di::_()->get('Cache\PsrWrapper');
     }
 
     /**
@@ -207,62 +205,31 @@ class Manager
             return $user;
         }, $users->toArray());
 
-        return $this->repository->getList($opts)
-            ->prependToArray($this->getDefaultTagBasedSuggestions($opts));
+        $response = $this->repository->getList($opts);
+        
+        if ($defaultTagBasedSuggestions = $this->getDefaultTagBasedSuggestions($opts['type'])) {
+            $response->prependToArray($defaultTagBasedSuggestions);
+        }
+        
+        return $response;
     }
 
     /**
      * Get default suggestions based upon a users tags.
-     * @param array $opts - options - should contain type key referencing entity type.
-     * @throws \Exception - on error.
+     * @param string $entityType - type of entity to get suggestions of.
      * @return array suggestions.
      */
-    private function getDefaultTagBasedSuggestions($opts): array
+    private function getDefaultTagBasedSuggestions(string $entityType = 'group'): array
     {
-        $opts = array_merge([
-            'type' => 'group',
-            'tags' => $this->user ? $this->user->getTags() : []
-        ], $opts);
-
-        $suggestions = [];
-
         try {
-            $suggestions = iterator_to_array($this->defaultTagMappingRepository->getList(
-                entityType: $opts['type'],
-                tags: $opts['tags']
-            ));
+            return $this->defaultTagMappingManager->getSuggestions(
+                entityType: $entityType,
+                tags: $this->user ? $this->user->getTags() : []
+            );
         } catch (\Exception $e) {
-            $this->logger->error($e); // fallback to default fallback tag list on error.
+            $this->logger->error($e);
+            return [];
         }
-
-        if (!count($suggestions)) {
-            try {
-                $suggestions = $this->getDefaultTagBasedFallbackSuggestions($opts['type']);
-            } catch (\Exception $e) {
-                $this->logger->error($e);
-            }
-        }
-
-        shuffle($suggestions);
-        return $suggestions;
-    }
-
-    /**
-     * Get default suggestion fallbacks for users with no tags, or to be shown on error.
-     * @param string $entityType - type of the entities we are requestion suggestions of.
-     * @throws \Exception - on error.
-     * @return array suggestions.
-     */
-    private function getDefaultTagBasedFallbackSuggestions(string $entityType): array {
-        $cacheKey = 'fallback_default_tag_suggestions:' . $entityType;
-        $suggestions = unserialize($this->cache->get($cacheKey));
-        if (!$suggestions) {
-            $suggestions = iterator_to_array($this->defaultTagMappingRepository->getList(
-                entityType: $entityType
-            ));
-            $this->cache->set($cacheKey, serialize($suggestions));
-        }
-        return $suggestions;
     }
 
     /**
