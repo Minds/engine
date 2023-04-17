@@ -4,6 +4,7 @@ namespace Minds\Core\Suggestions;
 
 use Minds\Common\Repository\Response;
 use Minds\Core\Config;
+use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
@@ -46,7 +47,8 @@ class Manager
         $interactionsLimiter = null,
         Config $config = null,
         private ?DefaultTagMappingRepository $defaultTagMappingRepository = null,
-        private ?Logger $logger = null
+        private ?Logger $logger = null,
+        private ?PsrWrapper $cache = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder();
@@ -57,6 +59,7 @@ class Manager
         $this->config = $config ?? Di::_()->get('Config');
         $this->defaultTagMappingRepository ??= Di::_()->get(defaultTagMappingRepository::class);
         $this->logger ??= Di::_()->get('Logger');
+        $this->cache ??= Di::_()->get('Cache\PsrWrapper');
     }
 
     /**
@@ -233,9 +236,14 @@ class Manager
         ));
 
         if (!count($suggestions)) {
-            $suggestions = iterator_to_array($this->defaultTagMappingRepository->getList(
-                entityType: $opts['type']
-            ));
+            $cacheKey = 'fallback_default_tag_suggestions:' . $opts['type'];
+            $suggestions = unserialize($this->cache->get($cacheKey));
+            if (!$suggestions) {
+                $suggestions = iterator_to_array($this->defaultTagMappingRepository->getList(
+                    entityType: $opts['type']
+                ));
+                $this->cache->set($cacheKey, serialize($suggestions));
+            }
         }
 
         shuffle($suggestions);
