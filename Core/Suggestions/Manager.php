@@ -207,15 +207,8 @@ class Manager
             return $user;
         }, $users->toArray());
 
-        $defaultTagBasedSuggestions = [];
-        try {
-            $defaultTagBasedSuggestions = $this->getDefaultTagBasedSuggestions($opts);
-        } catch (\Exception $e) {
-            $this->logger->error($e);
-        }
-
         return $this->repository->getList($opts)
-            ->prependToArray($defaultTagBasedSuggestions);
+            ->prependToArray($this->getDefaultTagBasedSuggestions($opts));
     }
 
     /**
@@ -243,17 +236,32 @@ class Manager
         }
 
         if (!count($suggestions)) {
-            $cacheKey = 'fallback_default_tag_suggestions:' . $opts['type'];
-            $suggestions = unserialize($this->cache->get($cacheKey));
-            if (!$suggestions) {
-                $suggestions = iterator_to_array($this->defaultTagMappingRepository->getList(
-                    entityType: $opts['type']
-                ));
-                $this->cache->set($cacheKey, serialize($suggestions));
+            try {
+                $suggestions = $this->getDefaultTagBasedFallbackSuggestions($opts['type']);
+            } catch (\Exception $e) {
+                $this->logger->error($e);
             }
         }
 
         shuffle($suggestions);
+        return $suggestions;
+    }
+
+    /**
+     * Get default suggestion fallbacks for users with no tags, or to be shown on error.
+     * @param string $entityType - type of the entities we are requestion suggestions of.
+     * @throws \Exception - on error.
+     * @return array suggestions.
+     */
+    private function getDefaultTagBasedFallbackSuggestions(string $entityType): array {
+        $cacheKey = 'fallback_default_tag_suggestions:' . $entityType;
+        $suggestions = unserialize($this->cache->get($cacheKey));
+        if (!$suggestions) {
+            $suggestions = iterator_to_array($this->defaultTagMappingRepository->getList(
+                entityType: $entityType
+            ));
+            $this->cache->set($cacheKey, serialize($suggestions));
+        }
         return $suggestions;
     }
 
