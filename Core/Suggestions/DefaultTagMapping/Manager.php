@@ -63,13 +63,17 @@ class Manager
      */
     private function getFallbackSuggestions(string $entityType): array
     {
+        // try get get existing value from cache.
         $cacheKey = 'fallback_default_tag_suggestions:' . $entityType;
-        $suggestions = unserialize($this->cache->get($cacheKey));
+        $cachedSuggestions = $this->cache->get($cacheKey);
+        $suggestions = $cachedSuggestions ? unserialize($this->cache->get($cacheKey)) : null;
+        
+        // if not cached, get from DB and store in cache.
         if (!$suggestions) {
             $suggestions = iterator_to_array($this->repository->getList(
                 entityType: $entityType
             ));
-            $this->cache->set($cacheKey, serialize($suggestions));
+            $this->cache->set($cacheKey, serialize($suggestions), 86400);
         }
         return $suggestions;
     }
