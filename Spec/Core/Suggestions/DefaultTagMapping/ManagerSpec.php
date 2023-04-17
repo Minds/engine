@@ -12,7 +12,6 @@ use Minds\Core\Suggestions\Suggestion;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
-use Spec\Minds\Common\Traits\CommonMatchers;
 
 class ManagerSpec extends ObjectBehavior
 {
