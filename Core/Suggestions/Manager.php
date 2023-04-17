@@ -221,6 +221,7 @@ class Manager
     /**
      * Get default suggestions based upon a users tags.
      * @param array $opts - options - should contain type key referencing entity type.
+     * @throws \Exception - on error.
      * @return array suggestions.
      */
     private function getDefaultTagBasedSuggestions($opts): array
@@ -230,10 +231,16 @@ class Manager
             'tags' => $this->user ? $this->user->getTags() : []
         ], $opts);
 
-        $suggestions = iterator_to_array($this->defaultTagMappingRepository->getList(
-            entityType: $opts['type'],
-            tags: $opts['tags']
-        ));
+        $suggestions = [];
+
+        try {
+            $suggestions = iterator_to_array($this->defaultTagMappingRepository->getList(
+                entityType: $opts['type'],
+                tags: $opts['tags']
+            ));
+        } catch (\Exception $e) {
+            $this->logger->error($e); // fallback to default fallback tag list on error.
+        }
 
         if (!count($suggestions)) {
             $cacheKey = 'fallback_default_tag_suggestions:' . $opts['type'];
