@@ -27,13 +27,13 @@ class Repository
     /**
      * Return a list of recommendations by given tags.
      * @param array $entityType - type of entity.
-     * @param array $tags - tags to get recommendations for - defaults to 'default'.
+     * @param ?array $tags - tags to get recommendations for - defaults to 'default'.
      * @param array $limit - limit of results to return.
      * @return Iterator yielded results.
      */
     public function getList(
         string $entityType,
-        ?array $tags = null,
+        ?array $tags = [],
         int $limit = 12
     ): Iterator {
         if (count($tags) < 1) {
