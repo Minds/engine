@@ -67,7 +67,7 @@ class Manager
         $cacheKey = 'fallback_default_tag_suggestions:' . $entityType;
         $cachedSuggestions = $this->cache->get($cacheKey);
         $suggestions = $cachedSuggestions ? unserialize($this->cache->get($cacheKey)) : null;
-        
+
         // if not cached, get from DB and store in cache.
         if (!$suggestions) {
             $suggestions = iterator_to_array($this->repository->getList(

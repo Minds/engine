@@ -78,11 +78,24 @@ class Client
     public function bindValuesToPreparedStatement(PDOStatement $statement, array $values): void
     {
         foreach ($values as $key => $value) {
-            $statement->bindValue(
-                $key,
-                $value,
-                $this->getParameterType($value)
-            );
+            if (is_array($value)) {
+                foreach($value as $arrayIndex => $arrayItem) {
+                    if (is_array($arrayItem)) {
+                        throw new ServerErrorException('Nested arrays are not supported');
+                    }
+                    $statement->bindValue(
+                        $key.$arrayIndex,
+                        $arrayItem,
+                        $this->getParameterType($arrayItem)
+                    );
+                }
+            } else {
+                $statement->bindValue(
+                    $key,
+                    $value,
+                    $this->getParameterType($value)
+                );
+            }
         }
     }
 
