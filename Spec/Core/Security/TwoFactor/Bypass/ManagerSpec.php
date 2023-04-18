@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 
 namespace Spec\Minds\Core\Security\TwoFactor\Bypass;
 
