@@ -6,6 +6,7 @@
 namespace Minds\Core\Wire;
 
 use Cassandra;
+use Cassandra\Bigint;
 use Cassandra\Timestamp;
 use Cassandra\Varint;
 use Minds\Common\Urn;
@@ -55,7 +56,7 @@ class Repository
                     new Cassandra\Varint($wire->getAmount()),
                     (bool) $wire->isRecurring(),
                     'success',
-                    $wire->getPaymentGuid()
+                    $wire->getPaymentGuid() ? new Bigint($wire->getPaymentGuid()) : null
                 ],
             ];
         }
