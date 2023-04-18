@@ -198,8 +198,8 @@ ALTER TABLE boost_summaries
     AFTER views;
 
 CREATE TABLE IF NOT EXISTS minds_default_tag_mapping (
-	entity_guid bigint NOT NULL PRIMARY KEY,
-	tag_name varchar(100) NOT NULL PRIMARY KEY,
+	entity_guid bigint NOT NULL,
+	tag_name varchar(100) NOT NULL,
 	entity_type varchar(100) NOT NULL,
 	PRIMARY KEY (entity_guid, tag_name)
 ) ENGINE=InnoDB
