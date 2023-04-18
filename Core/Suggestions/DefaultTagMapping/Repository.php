@@ -43,7 +43,7 @@ class Repository
 
         $values = [
             'type' => $entityType,
-            'tags' => $tags
+            'tags' => array_map('strtolower', $tags)
         ];
 
         $query = $this->mysqlQueryBuilder->select()
