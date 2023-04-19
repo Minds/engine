@@ -378,18 +378,10 @@ class Manager
                 continue;
             }
 
-            // Calculate the ratio of posts to earnings
-            $ratio = $this->calculatePostsBalanceRatio($earningsBalance);
-
-            if ($this->calculatePostsBalanceRatio($earningsBalance) < 0.01 && $user->getPartnerRpm() > 100) {
-                //echo "\n do not payout $user->username ratio:$ratio";
-                continue;
-            }
-
             $proSettings = $this->proManager->setUser($user)->get();
             $payoutMethod = $proSettings->getPayoutMethod();
 
-            if (!$this->proManager->setUser($user)->isActive()) {
+            if (!$user->isPlus()) {
                 //echo "\n do not payout $user->username, they are no longer pro";
                 continue;
             }
@@ -399,7 +391,7 @@ class Manager
                 continue;
             }
 
-            if (in_array($user->guid, ['100000000000035825', '100000000000000519', '240489236636110848', '1110292844016312335', '100000000000000341', '1107553086722809873' ], true)) {
+            if (in_array($user->guid, ['100000000000035825', '100000000000000519', '240489236636110848', '1110292844016312335', '1107553086722809873' ], true)) {
                 //echo "\n skipping $user->username";
                 continue;
             }
