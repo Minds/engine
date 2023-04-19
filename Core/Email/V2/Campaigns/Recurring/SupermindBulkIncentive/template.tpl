@@ -5,15 +5,7 @@
 
 <!--BODY TEXT-->
 <p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?> >
-    Supermind is a new way to crowdfund reactions and feedback from people all over the world.
-</p>
-
-<p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?> >
-    To show you how easy it is, we'd like to send you a 5 token Supermind offer to answer the question "What is something you've created that you want to share with the world?"
-</p>
-
-<p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?> >
-    You can answer with text, image or a video and use the tokens to Boost your content, or send a Supermind to someone on Minds and pay it forward.
+    As a Minds+ / Pro subscriber, you are eligible to receive cash Supermind offers from various brands on Minds. Baste Records is offering you $5 to answer a question for them. Give them a sub if you want more from them in the future!
 </p>
 
 <!--ACTION BUTTON-->

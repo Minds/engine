@@ -55,7 +55,7 @@ class PartnerEarnings extends Cli\Controller implements Interfaces\CliController
         $manager = new Manager();
 
         $opts = [
-            'to' => strtotime('midnight last day of month') * 1000,
+            'to' => strtotime('midnight last day of last month') * 1000,
             'dryRun' => true,
         ];
 
@@ -64,7 +64,7 @@ class PartnerEarnings extends Cli\Controller implements Interfaces\CliController
             ++$i;
             $user = Di::_()->get('EntitiesBuilder')->single($earningsPayout->getUserGuid());
             $usd = ($earningsPayout->getAmountCents() / 100) ?: 0;
-            echo "\n $i, {$earningsPayout->getUserGuid()}, {$usd}, {$earningsPayout->getMethod()}, $user->username";
+            echo "\n $i, {$earningsPayout->getUserGuid()},  $user->username, , {$usd}, {$earningsPayout->getMethod()}, {$user->getPlusMethod()}, {$user->getProMethod()}";
         }
         echo "\nDone";
     }

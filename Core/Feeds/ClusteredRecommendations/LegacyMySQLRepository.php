@@ -43,7 +43,7 @@ class LegacyMySQLRepository implements RepositoryInterface
      * @param string|null $pseudoId
      * @return Generator
      */
-    public function getList(int $clusterId, int $limit, array $exclude = [], bool $demote = false, ?string $pseudoId = null): Generator
+    public function getList(int $clusterId, int $limit, array $exclude = [], bool $demote = false, ?string $pseudoId = null, ?array $tags = null): Generator
     {
         $statement = $this->buildQuery($clusterId, $limit, $pseudoId, $demote);
         $statement->execute();
