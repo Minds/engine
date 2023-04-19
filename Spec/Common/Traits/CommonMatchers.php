@@ -27,6 +27,15 @@ trait CommonMatchers
 
                 return true;
             },
+            'beAGeneratorWithValues' => function ($subject, $items) {
+                $subjectItems = iterator_to_array($subject);
+
+                if (serialize($subjectItems) !== serialize($items)) {
+                    throw new FailureException(sprintf("Subject should be a traversable containing %s, but got %s.", serialize($items), serialize($subjectItems)));
+                }
+
+                return true;
+            },
             'containAnInstanceOf' => function (Iterator $subject, string $className): bool {
                 foreach ($subject as $item) {
                     if (!($item instanceof $className)) {
