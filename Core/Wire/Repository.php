@@ -11,18 +11,19 @@ use Cassandra\Timestamp;
 use Cassandra\Varint;
 use Minds\Common\Urn;
 use Minds\Core;
+use Minds\Core\Data\Cassandra\Client as CassandraClient;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
 
 class Repository
 {
-    private $db;
+    private CassandraClient $db;
     private $config;
     private $entitiesBuilder;
 
     public function __construct($db = null, $config = null, $entitiesBuilder = null)
     {
-        $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
+        $this->db = $db ?? Di::_()->get('Database\Cassandra\Cql');
         $this->config = $config ?: Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
     }

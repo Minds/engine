@@ -88,7 +88,7 @@ class PaymentDetails implements ExportableInterface
             'refunded_amount_millis' => $this->refundedAmountMillis,
             'is_captured' => $this->isCaptured,
             'payment_tx_id' => $this->paymentTxId,
-            'created_timestamp' => $this->createdTimestamp,
+            'created_timestamp' => $this->createdTimestamp ?? null,
             'updated_timestamp' => $this->updatedTimestamp
         ];
     }
