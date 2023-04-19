@@ -14,7 +14,6 @@ use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Security;
 use Minds\Entities;
 use Minds\Entities\Activity;
-use Minds\Exceptions\AlreadyPublishedException;
 use Minds\Helpers;
 use Minds\Interfaces;
 

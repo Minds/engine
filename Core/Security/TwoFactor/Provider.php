@@ -18,9 +18,5 @@ class Provider extends DiProvider
         $this->di->bind('Security\TwoFactor\Manager', function ($di) {
             return new Manager();
         }, ['useFactory' => false]);
-
-        $this->di->bind(Bypass\Manager::class, function ($di) {
-            return new Bypass\Manager();
-        }, ['useFactory' => false]);
     }
 }
