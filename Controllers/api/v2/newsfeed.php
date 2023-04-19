@@ -14,6 +14,7 @@ use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Security;
 use Minds\Entities;
 use Minds\Entities\Activity;
+use Minds\Exceptions\AlreadyPublishedException;
 use Minds\Helpers;
 use Minds\Interfaces;
 
@@ -362,6 +363,8 @@ class newsfeed implements Interfaces\Api
         try {
             $timeCreatedDelegate = new Core\Feeds\Activity\Delegates\TimeCreatedDelegate();
             $timeCreatedDelegate->beforeAdd($activity, $_POST['time_created'] ?? $now, $now);
+        } catch(AlreadyPublishedException $e) {
+            // soft fail.
         } catch (\Exception $e) {
             return Factory::response([
                 'status' => 'error',

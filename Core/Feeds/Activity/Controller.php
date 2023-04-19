@@ -9,6 +9,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\Exceptions\CreateActivityFailedException;
 use Minds\Core\Feeds\Scheduled\EntityTimeCreated;
+use Minds\Core\Log\Logger;
 use Minds\Core\Monetization\Demonetization\Validators\DemonetizedPlusValidator;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
@@ -20,6 +21,7 @@ use Minds\Entities\Activity;
 use Minds\Entities\Image;
 use Minds\Entities\User;
 use Minds\Entities\Video;
+use Minds\Exceptions\AlreadyPublishedException;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserErrorException;
@@ -34,13 +36,15 @@ class Controller
         protected ?EntitiesBuilder $entitiesBuilder = null,
         protected ?ACL $acl = null,
         protected ?EntityTimeCreated $entityTimeCreated = null,
-        protected ?DemonetizedPlusValidator $demonetizedPlusValidator = null
+        protected ?DemonetizedPlusValidator $demonetizedPlusValidator = null,
+        protected ?Logger $logger = null
     ) {
         $this->manager ??= new Manager();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->acl ??= Di::_()->get('Security\ACL');
         $this->entityTimeCreated ??= new EntityTimeCreated();
         $this->demonetizedPlusValidator ??= Di::_()->get(DemonetizedPlusValidator::class);
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -361,7 +365,18 @@ class Controller
          */
         if (isset($payload['time_created'])) {
             $now = time();
-            $this->entityTimeCreated->validate($mutatedActivity, $payload['time_created'] ?? $now, $now);
+            try {
+                $this->entityTimeCreated->validate(
+                    entity: $activity,
+                    time_created: $payload['time_created'] ?? $now,
+                    time_sent: $now,
+                    action: $this->entityTimeCreated::UPDATE_ACTION
+                );
+                $mutatedActivity->setTimeCreated($payload['time_created']);
+            } catch(AlreadyPublishedException $e) {
+                // soft fail.
+                $this->logger->warn($e->getMessage());
+            }
         }
 
         /**

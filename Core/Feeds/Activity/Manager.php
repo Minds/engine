@@ -43,6 +43,7 @@ use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
+use Minds\Exceptions\AlreadyPublishedException;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserCashSetupException;
@@ -418,7 +419,11 @@ class Manager
         $this->translationsDelegate->onUpdate($activity);
 
         if ($activityMutation->hasMutated('timeCreated')) {
-            $this->timeCreatedDelegate->onUpdate($activityMutation->getOriginalEntity(), $activity->getTimeCreated(), $activity->getTimeSent());
+            try {
+                $this->timeCreatedDelegate->onUpdate($activityMutation->getOriginalEntity(), $activity->getTimeCreated(), $activity->getTimeSent());
+            } catch(AlreadyPublishedException $e) {
+                // do nothing.
+            }
         }
 
         // - Attachment
