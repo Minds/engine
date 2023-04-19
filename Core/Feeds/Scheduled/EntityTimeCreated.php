@@ -65,7 +65,8 @@ class EntityTimeCreated
      * @param Entity $entity - entity to check.
      * @return boolean true if entity is scheduled.
      */
-    private function isScheduled(Entity $entity): bool {
+    private function isScheduled(Entity $entity): bool
+    {
         return $entity->getTimeCreated() > time();
     }
 }

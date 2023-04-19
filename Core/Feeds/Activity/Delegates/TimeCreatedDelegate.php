@@ -11,16 +11,9 @@ use Minds\Exceptions\AlreadyPublishedException;
 
 class TimeCreatedDelegate
 {
-    /** @var Core\Feeds\Scheduled\EntityTimeCreated $entityTimeCreated */
-    protected $entityTimeCreated;
-
-    /**
-     * TimeCreatedDelegate constructor.
-     * @param Save $save
-     */
-    public function __construct()
+    public function __construct(private ?EntityTimeCreated $entityTimeCreated = null)
     {
-        $this->entityTimeCreated = new EntityTimeCreated();
+        $this->entityTimeCreated ??= new EntityTimeCreated();
     }
 
     /**
@@ -50,7 +43,7 @@ class TimeCreatedDelegate
                 time_sent: $time_sent,
                 action: $this->entityTimeCreated::UPDATE_ACTION
             );
-        } catch(AlreadyPublishedException $e) {
+        } catch (AlreadyPublishedException $e) {
             // soft fail.
         }
         return true;

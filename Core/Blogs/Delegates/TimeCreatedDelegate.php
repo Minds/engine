@@ -50,7 +50,7 @@ class TimeCreatedDelegate
                 time_sent: $time_sent,
                 action: $this->entityTimeCreated::UPDATE_ACTION
             );
-        } catch(AlreadyPublishedException $e) {
+        } catch (AlreadyPublishedException $e) {
             // soft fail.
         }
         return true;

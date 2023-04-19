@@ -373,7 +373,7 @@ class Controller
                     action: $this->entityTimeCreated::UPDATE_ACTION
                 );
                 $mutatedActivity->setTimeCreated($payload['time_created']);
-            } catch(AlreadyPublishedException $e) {
+            } catch (AlreadyPublishedException $e) {
                 // soft fail.
                 $this->logger->warn($e->getMessage());
             }
