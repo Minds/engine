@@ -53,6 +53,6 @@ class TimeCreatedDelegate
         } catch(AlreadyPublishedException $e) {
             // soft fail.
         }
-        return true;
+        return true;//
     }
 }
