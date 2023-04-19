@@ -419,11 +419,7 @@ class Manager
         $this->translationsDelegate->onUpdate($activity);
 
         if ($activityMutation->hasMutated('timeCreated')) {
-            try {
-                $this->timeCreatedDelegate->onUpdate($activityMutation->getOriginalEntity(), $activity->getTimeCreated(), $activity->getTimeSent());
-            } catch(AlreadyPublishedException $e) {
-                // do nothing.
-            }
+            $this->timeCreatedDelegate->onUpdate($activityMutation->getOriginalEntity(), $activity->getTimeCreated(), $activity->getTimeSent());
         }
 
         // - Attachment
