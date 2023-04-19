@@ -6,9 +6,11 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Entities\User;
 use Minds\Core\Security\Block;
 use Minds\Core\Security\RateLimits\InteractionsLimiter;
+use Minds\Core\Suggestions\DefaultTagMapping\Manager as DefaultTagMappingManager;
 
 class Manager
 {
@@ -42,7 +44,9 @@ class Manager
         $suggestedFeedsManager = null,
         $subscriptionsManager = null,
         $interactionsLimiter = null,
-        Config $config = null
+        Config $config = null,
+        private ?DefaultTagMappingManager $defaultTagMappingManager = null,
+        private ?Logger $logger = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder();
@@ -51,6 +55,8 @@ class Manager
         $this->interactionsLimiter = $interactionsLimiter ?: new InteractionsLimiter();
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
         $this->config = $config ?? Di::_()->get('Config');
+        $this->defaultTagMappingManager ??= Di::_()->get(DefaultTagMappingManager::class);
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -178,7 +184,7 @@ class Manager
         return $response;
     }
 
-    private function getFallbackSuggested($opts = [])
+    private function getFallbackSuggested($opts = []): Response
     {
         $opts = array_merge([
             'user_guid' => $this->user ? $this->user->getGuid() : '',
@@ -198,7 +204,31 @@ class Manager
             return $user;
         }, $users->toArray());
 
-        return $this->repository->getList($opts);
+        $response = $this->repository->getList($opts);
+        
+        if ($defaultTagBasedSuggestions = $this->getDefaultTagBasedSuggestions($opts['type'])) {
+            $response->prependToArray($defaultTagBasedSuggestions);
+        }
+        
+        return $response;
+    }
+
+    /**
+     * Get default suggestions based upon a users tags.
+     * @param string $entityType - type of entity to get suggestions of.
+     * @return array suggestions.
+     */
+    private function getDefaultTagBasedSuggestions(string $entityType = 'group'): array
+    {
+        try {
+            return $this->defaultTagMappingManager->getSuggestions(
+                entityType: $entityType,
+                tags: $this->user ? $this->user->getTags() : []
+            );
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+            return [];
+        }
     }
 
     /**

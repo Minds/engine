@@ -70,14 +70,16 @@ class Repository
                 'action.keyword' => 'join',
             ];
 
-            // Remove groups we are in
-            $must_not[]['terms'] = [
-                'entity_guid.keyword' => [
-                    'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-user',
-                    'id' => $opts['user_guid'],
-                    'path' => 'group_membership',
-                ],
-            ];
+            if ($opts['user_guid']) {
+                // Remove groups we are in
+                $must_not[]['terms'] = [
+                    'entity_guid.keyword' => [
+                        'index' => $this->config->get('elasticsearch')['indexes']['search_prefix'] . '-user',
+                        'id' => $opts['user_guid'],
+                        'path' => 'group_membership',
+                    ],
+                ];
+            }
         }
 
         if ($opts['type'] === 'user') {
