@@ -270,6 +270,18 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
     }
 
     /**
+     * Prepend items to the start of an array.
+     * @param array $data
+     * @return self
+     */
+    public function prependToArray(array $data): self
+    {
+        $this->data = [...$data, ...$this->data];
+        return $this;
+    }
+
+
+    /**
      * Exports the data array
      * @return array
      */
