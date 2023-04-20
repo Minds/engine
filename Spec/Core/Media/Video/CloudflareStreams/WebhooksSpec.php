@@ -117,7 +117,7 @@ class WebhooksSpec extends ObjectBehavior
 
         $requestBody = json_encode([
                 'meta' => [
-                    'guid' => '123'//
+                    'guid' => '123'
                 ],
                 'input' => [
                     'width' => 1280,
