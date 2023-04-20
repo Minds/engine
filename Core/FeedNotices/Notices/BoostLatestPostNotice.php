@@ -49,7 +49,11 @@ class BoostLatestPostNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return $this->feedsUserManager->setUser($user)
-            ->hasMadePosts();
+        try {
+            return $this->feedsUserManager->setUser($user)
+                ->hasMadePosts();
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }
