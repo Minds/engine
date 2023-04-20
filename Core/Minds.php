@@ -81,7 +81,8 @@ class Minds extends base
         Settings\Module::class,
         Boost\V3\Module::class,
         Monetization\Module::class,
-        Analytics\Module::class
+        Analytics\Module::class,
+        Payments\V2\Module::class
     ];
 
     /**
