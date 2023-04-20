@@ -2,13 +2,13 @@
 
 namespace Spec\Minds\Core\Subscriptions;
 
+use Minds\Common\Repository\Response;
+use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Subscriptions\Repository;
 use Minds\Core\Subscriptions\Subscription;
-use Minds\Core\Data\Cassandra\Client;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Spec\Minds\Mocks\Cassandra\Rows;
-use Minds\Common\Repository\Response;
 
 class RepositorySpec extends ObjectBehavior
 {
@@ -68,8 +68,6 @@ class RepositorySpec extends ObjectBehavior
     public function it_should_get_subscribers()
     {
         $this->client->request(Argument::that(function ($prepared) {
-            var_dump($prepared->getTemplate());
-
             return $prepared->getTemplate() === "SELECT * FROM friendsof WHERE key = ?";
         }))
             ->shouldBeCalled()
