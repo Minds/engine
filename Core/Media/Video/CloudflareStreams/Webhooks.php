@@ -83,9 +83,11 @@ class Webhooks
      * @param ServerRequest $request
      * @return JsonResponse
      */
-    public function onWebhook(ServerRequest $request): JsonResponse
+    public function onWebhook(ServerRequest $request, bool $bypassAuthentication = false): JsonResponse
     {
-        $this->verifyWebhookAuthenticity($request);
+        if (!$bypassAuthentication) {
+            $this->verifyWebhookAuthenticity($request);
+        }
         
         $body = $request->getParsedBody();
         $guid = $body['meta']['guid'];

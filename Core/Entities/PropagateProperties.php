@@ -123,7 +123,7 @@ class PropagateProperties
      */
     protected function toActivities($entity): void
     {
-        $activities = $this->getActivitiesForEntity($entity->getGuid());
+        $activities = $this->getActivitiesForEntity($entity);
         foreach ($activities as $activity) {
             $this->propagateToActivity($entity, $activity);
             if ($this->changed) {
@@ -133,15 +133,24 @@ class PropagateProperties
     }
 
     /**
-     * Get activities for an entity
-     * @param string $entityGuid
+     * Get activities for an entity.
+     * @param mixed $entity -entity to get activities for.
      * @return Activity[]
      */
-    private function getActivitiesForEntity(string $entityGuid): array
+    private function getActivitiesForEntity(mixed $entity): array
     {
         $activities = [];
 
-        foreach ($this->db->getRow("activity:entitylink:{$entityGuid}") as $activityGuid => $ts) {
+        if (method_exists($entity, 'getContainerGuid')) {
+            $activity = $this->entitiesBuilder->single($entity->getContainerGuid());
+            
+            // if its an activity, return it, else fallback to try legacy system.
+            if ($activity instanceof Activity) {
+                return [ $activity ];
+            }
+        }
+
+        foreach ($this->db->getRow("activity:entitylink:{$entity->getGuid()}") as $activityGuid => $ts) {
             $activities[] = $this->entitiesBuilder->single($activityGuid);
         }
 
