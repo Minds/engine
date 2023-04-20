@@ -5,11 +5,10 @@ namespace Minds\Core\Boost\V3;
 
 use Exception;
 use Minds\Common\Repository\Response;
-use Minds\Core\Analytics\Views\View;
 use Minds\Core\Analytics\Views\Manager as ViewsManager;
+use Minds\Core\Analytics\Views\View;
 use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Boost\Checksum;
-use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
@@ -24,18 +23,20 @@ use Minds\Core\Boost\V3\Exceptions\IncorrectBoostStatusException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\Models\BoostEntityWrapper;
+use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
+use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Settings\Manager as UserSettingsManager;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Settings\Models\BoostPartnerSuitability;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
@@ -52,16 +53,16 @@ class Manager
     private ?Logger $logger = null;
 
     public function __construct(
-        private ?Repository $repository = null,
-        private ?PaymentProcessor $paymentProcessor = null,
-        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?Repository          $repository = null,
+        private ?PaymentProcessor    $paymentProcessor = null,
+        private ?EntitiesBuilder     $entitiesBuilder = null,
         private ?ActionEventDelegate $actionEventDelegate = null,
-        private ?PreApprovalManager $preApprovalManager = null,
-        private ?ViewsManager $viewsManager = null,
-        private ?ACL $acl = null,
-        private ?GuidLinkResolver $guidLinkResolver = null,
+        private ?PreApprovalManager  $preApprovalManager = null,
+        private ?ViewsManager        $viewsManager = null,
+        private ?ACL                 $acl = null,
+        private ?GuidLinkResolver    $guidLinkResolver = null,
         private ?UserSettingsManager $userSettingsManager = null,
-        private ?ExperimentsManager $experimentsManager = null
+        private ?ExperimentsManager  $experimentsManager = null,
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
@@ -89,13 +90,18 @@ class Manager
     /**
      * @param array $data
      * @return bool
+     * @throws ApiErrorException
+     * @throws BoostPaymentCaptureFailedException
      * @throws BoostPaymentSetupFailedException
      * @throws EntityTypeNotAllowedInLocationException
      * @throws InvalidBoostPaymentMethodException
+     * @throws InvalidPaymentMethodException
      * @throws KeyNotSetupException
      * @throws LockFailedException
-     * @throws ServerErrorException
      * @throws OffchainWalletInsufficientFundsException
+     * @throws ServerErrorException
+     * @throws StripeTransferFailedException
+     * @throws UserErrorException
      */
     public function createBoost(array $data): bool
     {
@@ -141,7 +147,7 @@ class Manager
             if ($isOnchainBoost) {
                 $boost->setStatus(BoostStatus::PENDING_ONCHAIN_CONFIRMATION)
                     ->setPaymentTxId($data['payment_tx_id']);
-            } elseif (!$this->paymentProcessor->setupBoostPayment($boost)) {
+            } elseif (!$this->paymentProcessor->setupBoostPayment($boost, $this->user)) {
                 throw new BoostPaymentSetupFailedException();
             }
 
@@ -149,6 +155,7 @@ class Manager
                 throw new ServerErrorException("An error occurred whilst creating the boost request");
             }
         } catch (Exception $e) {
+            // TODO: refund payment if already processed
             $this->repository->rollbackTransaction();
             throw $e;
         }
@@ -163,10 +170,18 @@ class Manager
     /**
      * Takes a boost ready for creation and pre-approves it.
      * @param Boost $boost - boost to pre-approve.
-     * @throws BoostPaymentSetupFailedException
-     * @throws BoostPaymentCaptureFailedException
-     * @throws ServerErrorException
      * @return void
+     * @throws ApiErrorException
+     * @throws BoostPaymentCaptureFailedException
+     * @throws BoostPaymentSetupFailedException
+     * @throws InvalidBoostPaymentMethodException
+     * @throws KeyNotSetupException
+     * @throws LockFailedException
+     * @throws OffchainWalletInsufficientFundsException
+     * @throws ServerErrorException
+     * @throws StripeTransferFailedException
+     * @throws UserErrorException
+     * @throws InvalidPaymentMethodException
      */
     private function preApprove(Boost $boost): void
     {
@@ -176,7 +191,7 @@ class Manager
             ->setUpdatedTimestamp($presetTimestamp)
             ->setApprovedTimestamp($presetTimestamp);
 
-        if (!$this->paymentProcessor->setupBoostPayment($boost)) {
+        if (!$this->paymentProcessor->setupBoostPayment($boost, $this->user)) {
             throw new BoostPaymentSetupFailedException();
         }
 
@@ -187,7 +202,7 @@ class Manager
         if (!$this->repository->createBoost($boost)) {
             throw new ServerErrorException("An error occurred whilst creating the boost request");
         }
-        
+
         $this->repository->commitTransaction();
 
         $this->actionEventDelegate->onCreate($boost);
@@ -235,7 +250,7 @@ class Manager
             if ($boost->getStatus() !== BoostStatus::PENDING) {
                 throw new IncorrectBoostStatusException();
             }
-            
+
             if (!$this->paymentProcessor->captureBoostPayment($boost)) {
                 throw new BoostPaymentCaptureFailedException();
             }
