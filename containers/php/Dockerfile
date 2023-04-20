@@ -64,8 +64,9 @@ ENV BUILD_DEPS \
 
 RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && apk add --no-cache libuv gmp \
-    && git clone --branch=v1.3.x https://github.com/nano-interactive/php-driver.git $INSTALL_DIR \
+    && git clone --branch=v1.3.x https://github.com/he4rt/scylladb-php-driver.git $INSTALL_DIR \
     && cd $INSTALL_DIR \
+    && git checkout 7f871a5be0a21d22cf7754b6b0281ab0b0c92999 \
     && git submodule update --init \
     # Install CPP Driver
     && cd $INSTALL_DIR/lib/cpp-driver \
@@ -136,7 +137,7 @@ ENV BUILD_DEPS \
     zlib-dev \
     boost-dev \
     py3-setuptools \
-    python3-dev \ 
+    python3-dev \
     protobuf-dev \
     curl-dev \
     gtest-dev gmock \

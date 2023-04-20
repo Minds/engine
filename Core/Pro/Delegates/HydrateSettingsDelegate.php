@@ -101,7 +101,7 @@ class HydrateSettingsDelegate
                 $settings->setFeaturedContent($featuredContent);
             }
         } catch (\Exception $e) {
-            error_log($e);
+            // error_log($e);
         }
 
         $settings->setPublished($user->isProPublished());

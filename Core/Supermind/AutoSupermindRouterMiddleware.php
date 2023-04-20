@@ -8,6 +8,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
 use Minds\Core\Router\PrePsr7\Middleware\RouterMiddleware;
 use Minds\Core\Supermind\Models\SupermindRequest;
+use Minds\Core\Payments\Stripe\PaymentMethods;
 use Minds\Entities\User;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
@@ -21,7 +22,8 @@ class AutoSupermindRouterMiddleware implements RouterMiddleware
         protected ?Manager $supermindManager = null,
         protected ?SupermindBulkIncentive $supermindBulkIncentiveEmailCampaign = null,
         protected ?EntitiesBuilder $entitiesBuilder = null,
-        protected ?Call $db = null
+        protected ?Call $db = null,
+        protected ?PaymentMethods\Manager $paymentMethodsManager = null
     ) {
         // Do not construct here, avoid circular dependencies and initialising classes that may never be used
     }
@@ -62,10 +64,14 @@ class AutoSupermindRouterMiddleware implements RouterMiddleware
         $validatorTokenProvided = $queryParams['validator'] ?? '';
         $activityGuid = $queryParams['activity_guid'] ?? '';
         $replyType = $queryParams['reply_type'] ?? SupermindRequestReplyType::TEXT;
+        $paymentMethod = $queryParams['payment_method'] ?? SupermindRequestPaymentMethod::OFFCHAIN_TOKEN;
+        $paymentAmount = $queryParams['payment_amount'] ?? 5;
         $validatorTokenExpected = $this
             ->getSupermindBulkIncentiveEmailCampaign()
             ->withActivityGuid($activityGuid)
             ->withReplyType((int) $replyType)
+            ->withPaymentMethod($paymentMethod)
+            ->withPaymentAmount($paymentAmount)
             ->setUser($receiverUser)->getValidatorToken();
         
         if ($validatorTokenProvided !== $validatorTokenExpected) {
@@ -102,11 +108,24 @@ class AutoSupermindRouterMiddleware implements RouterMiddleware
             ->setReceiverGuid((string) $receiverUser->getGuid())
             ->setReplyType($replyType)
             ->setTwitterRequired(false)
-            ->setPaymentAmount(5)
-            ->setPaymentMethod(SupermindRequestPaymentMethod::OFFCHAIN_TOKEN);
+            ->setPaymentAmount($paymentAmount)
+            ->setPaymentMethod($paymentMethod);
+
+        $paymentMethodId = null;
+
+        /**
+         * If a CASH method, get the default card
+         */
+        if ($paymentMethod == SupermindRequestPaymentMethod::CASH) {
+            $paymentMethods = $this->getPaymentMethodsManager()->getList([ 'user_guid' => $activityOwner->getOwnerGuid() ]);
+            if (!$paymentMethods) {
+                return false;
+            }
+            $paymentMethodId = $paymentMethods[0]->getId();
+        }
 
         $this->getSupermindManager()->setUser($activityOwner);
-        $this->getSupermindManager()->addSupermindRequest($supermindRequest, null);
+        $this->getSupermindManager()->addSupermindRequest($supermindRequest, $paymentMethodId);
 
         // Mutli phased commit, add the activity column
         $this->getSupermindManager()->completeSupermindRequestCreation($supermindRequest->getGuid(), $activity->getGuid());
@@ -144,5 +163,13 @@ class AutoSupermindRouterMiddleware implements RouterMiddleware
     protected function getDb(): Call
     {
         return $this->db ??= new Call('entities_by_time');
+    }
+
+    /**
+     * @return PaymentMethods\Manager
+     */
+    protected function getPaymentMethodsManager(): PaymentMethods\Manager
+    {
+        return $this->paymentMethodsManager ??= new PaymentMethods\Manager();
     }
 }
