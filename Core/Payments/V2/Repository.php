@@ -73,7 +73,7 @@ class Repository
             'payment_method' => $paymentDetails->paymentMethod,
             'payment_amount_millis' => $paymentDetails->paymentAmountMillis,
             'payment_tx_id' => $paymentDetails->paymentTxId,
-            'is_captured' => (int) $paymentDetails->isCaptured
+            'is_captured' => $paymentDetails->isCaptured
         ];
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
@@ -155,7 +155,7 @@ class Repository
 
         $values = [
             'payment_status' => $paymentStatus,
-            'is_captured' => (int) $isCaptured,
+            'is_captured' => $isCaptured,
         ];
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
