@@ -111,13 +111,13 @@ class Client
 
         $uniswapUser->setMints(array_map(function ($mint) {
             return UniswapMintEntity::build($mint);
-        }, $response['mints']));
+        }, $response['mints'] ?? []));
 
         // Burns
 
         $uniswapUser->setBurns(array_map(function ($mint) {
             return UniswapBurnEntity::build($mint);
-        }, $response['burns']));
+        }, $response['burns'] ?? []));
         
         return $uniswapUser;
     }

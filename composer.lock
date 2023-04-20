@@ -3251,12 +3251,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/FaustoJohn/selective-database.git",
-                "reference": "1235e0c64544e9ab3c6b83f57986416d8a671197"
+                "reference": "84abc9d1aa6ebbc39fa9e9d0f905d004f975823d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/FaustoJohn/selective-database/zipball/1235e0c64544e9ab3c6b83f57986416d8a671197",
-                "reference": "1235e0c64544e9ab3c6b83f57986416d8a671197",
+                "url": "https://api.github.com/repos/FaustoJohn/selective-database/zipball/84abc9d1aa6ebbc39fa9e9d0f905d004f975823d",
+                "reference": "84abc9d1aa6ebbc39fa9e9d0f905d004f975823d",
                 "shasum": ""
             },
             "require": {
@@ -3327,7 +3327,7 @@
             "support": {
                 "source": "https://github.com/FaustoJohn/selective-database/tree/master"
             },
-            "time": "2023-04-11T16:10:06+00:00"
+            "time": "2023-04-17T17:59:50+00:00"
         },
         {
             "name": "minds/oauth2-openid-connect-server",
@@ -10418,5 +10418,5 @@
         "ext-redis": "~5.1.1"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.1.0"
 }
