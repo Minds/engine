@@ -45,19 +45,14 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(123);
 
-        $response->count()
-            ->shouldBeCalled()
-            ->willReturn(1);
-
-        $this->elasticManager->getList([
+        $this->elasticManager->getCount([
             'container_guid' => 123,
-            'limit' => 1,
             'algorithm' => 'latest',
             'period' => '1y',
             'type' => 'activity'
-        ])
+        ], false)
             ->shouldBeCalled()
-            ->willReturn($response);
+            ->willReturn(1);
 
         $this->setUser($user);
 
@@ -66,8 +61,7 @@ class ManagerSpec extends ObjectBehavior
     }
 
     public function it_should_see_if_user_has_made_posts_because_value_is_in_cache(
-        User $user,
-        Response $response
+        User $user
     ) {
         $user->getGuid()
             ->shouldBeCalled()
@@ -77,16 +71,13 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $response->count()
-            ->shouldNotBeCalled();
 
-        $this->elasticManager->getList([
+        $this->elasticManager->getCount([
             'container_guid' => 123,
-            'limit' => 1,
             'algorithm' => 'latest',
             'period' => '1y',
             'type' => 'activity'
-        ])
+        ], false)
             ->shouldNotBeCalled();
 
         $this->setUser($user);
@@ -96,26 +87,20 @@ class ManagerSpec extends ObjectBehavior
     }
 
     public function it_should_see_if_user_has_NOT_made_posts(
-        User $user,
-        Response $response
+        User $user
     ) {
         $user->getGuid()
             ->shouldBeCalled()
             ->willReturn(123);
 
-        $response->count()
-            ->shouldBeCalled()
-            ->willReturn(0);
-
-        $this->elasticManager->getList([
+        $this->elasticManager->getCount([
             'container_guid' => 123,
-            'limit' => 1,
             'algorithm' => 'latest',
             'period' => '1y',
             'type' => 'activity'
-        ])
+        ], false)
             ->shouldBeCalled()
-            ->willReturn($response);
+            ->willReturn(0);
 
         $this->setUser($user);
 
