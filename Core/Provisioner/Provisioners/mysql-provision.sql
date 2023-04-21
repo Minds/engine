@@ -193,11 +193,16 @@ ALTER TABLE boosts
 ALTER TABLE boosts
 ADD INDEX completed_timestamp (completed_timestamp) USING BTREE;
 
+ALTER TABLE boosts
+    ADD goal int NULL DEFAULT NULL
+    ADD goal_button_text int NULL DEFAULT NULL
+    ADD goal_button_url int NULL DEFAULT NULL
+    AFTER target_location;
+
 ALTER TABLE boost_summaries
     ADD clicks int
     AFTER views;
 
-<<<<<<< HEAD
 CREATE TABLE IF NOT EXISTS minds_payments
 (
     payment_guid bigint NOT NULL PRIMARY KEY,
