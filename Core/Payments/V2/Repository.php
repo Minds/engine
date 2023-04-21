@@ -7,6 +7,7 @@ use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\V2\Enums\PaymentStatus;
+use Minds\Core\Payments\V2\Exceptions\PaymentNotFoundException;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
@@ -99,6 +100,7 @@ class Repository
      * @param PaymentDetails $paymentDetails
      * @return void
      * @throws ServerErrorException
+     * @throws PaymentNotFoundException
      */
     public function updatePayment(PaymentDetails $paymentDetails): void
     {
@@ -119,6 +121,10 @@ class Repository
 
         try {
             $statement->execute();
+
+            if ($statement->rowCount() === 0) {
+                throw new PaymentNotFoundException();
+            }
         } catch (PDOException $e) {
             $this->logger->error(
                 "An issue was encountered whilst updating the payment information",
@@ -139,6 +145,7 @@ class Repository
      * @param int $paymentStatus
      * @param bool $isCaptured
      * @return void
+     * @throws PaymentNotFoundException
      * @throws ServerErrorException
      */
     public function updatePaymentStatus(int $paymentGuid, int $paymentStatus, bool $isCaptured = false): void
@@ -162,6 +169,10 @@ class Repository
 
         try {
             $statement->execute();
+
+            if ($statement->rowCount() === 0) {
+                throw new PaymentNotFoundException();
+            }
         } catch (PDOException $e) {
             $this->logger->error(
                 "An issue was encountered whilst updating the payment information",
