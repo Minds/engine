@@ -12,10 +12,12 @@ use Minds\Core\Di\Di;
 use Minds\Core\Guid;
 use Minds\Core\Payments\Stripe\Intents\Manager as StripeIntentsManager;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
+use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Util\BigNumber;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;
 use Minds\Core\Wire\SupportTiers\Manager as SupportTiersManager;
 use Minds\Entities;
+use Minds\Entities\Activity;
 use Minds\Entities\User;
 
 class Manager
@@ -49,6 +51,8 @@ class Manager
 
     /** @var array $payload */
     protected $payload;
+
+    private ?Activity $sourceEntity = null;
 
     /** @var Core\Config */
     protected $config;
@@ -111,7 +115,8 @@ class Manager
         $stripeIntentsManager = null,
         $acl = null,
         $eventsDelegate = null,
-        private ?SupportTiersManager $supportTiersManager = null
+        private ?SupportTiersManager $supportTiersManager = null,
+        private ?PaymentsManager $paymentsManager = null
     ) {
         $this->repository = $repository ?: Di::_()->get('Wire\Repository');
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
@@ -129,6 +134,7 @@ class Manager
         $this->acl = $acl ?: Core\Security\ACL::_();
         $this->eventsDelegate = $eventsDelegate ?? new Delegates\EventsDelegate();
         $this->supportTiersManager ??= Di::_()->get('Wire\SupportTiers\Manager');
+        $this->paymentsManager ??= Di::_()->get(PaymentsManager::class);
     }
 
     /**
@@ -173,6 +179,12 @@ class Manager
 
         $this->entity = $entity;
 
+        return $this;
+    }
+
+    public function setSourceEntity(Activity $activity): self
+    {
+        $this->sourceEntity = $activity;
         return $this;
     }
 
@@ -242,10 +254,12 @@ class Manager
         // If receiver is handler for Minds+/Pro, bypass the ACL
         $bypassAcl = false;
         if ($this->isPlusReceiver((string) $this->receiver->getGuid())) {
+            $isPlusPayment = true;
             $bypassAcl = true;
         }
 
         if ($this->isProReceiver((string) $this->receiver->getGuid())) {
+            $isProPayment = true;
             $bypassAcl = true;
         }
 
@@ -377,8 +391,11 @@ class Manager
                 if (!$intent->getId()) {
                     throw new \Exception("Payment failed");
                 }
+                // Add to Minds payments table
+                $paymentDetails = $this->paymentsManager->createPaymentFromWire($wire, $intent->getId(), $isPlusPayment, $isProPayment, $this->sourceEntity);
 
                 // Save the wire to the Repository
+                $wire->setPaymentGuid($paymentDetails->paymentGuid);
                 $this->repository->add($wire);
 
                 // Notify plus/pro

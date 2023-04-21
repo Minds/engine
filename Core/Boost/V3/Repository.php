@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\Boost\V3;
 
-use Iterator;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
@@ -12,6 +11,7 @@ use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
 use Selective\Database\Connection;
@@ -27,6 +27,7 @@ class Repository
      * @param MySQLClient|null $mysqlHandler
      * @param EntitiesBuilder|null $entitiesBuilder
      * @param Connection|null $mysqlClientWriterHandler
+     * @throws ServerErrorException
      */
     public function __construct(
         private ?MySQLClient $mysqlHandler = null,
@@ -278,6 +279,7 @@ class Repository
                     updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
                     approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
                     summaryViewsDelivered: (int) ($boostData['total_views'] ?? 0),
+                    paymentGuid: (int) $boostData['payment_guid'] ?: null
                 )
             )
                 ->setGuid($boostData['guid'])

@@ -23,6 +23,8 @@ use Minds\Traits\MagicAttributes;
  * @method int getTargetSuitability()
  * @method self setPaymentMethod(int $paymentMethod)
  * @method int getPaymentMethod()
+ * @method self setPaymentGuid(int $paymentGuid)
+ * @method int getPaymentGuid()
  * @method self setPaymentMethodId(string|null $paymentMethodId)
  * @method string|null getPaymentMethodId()
  * @method self setPaymentAmount(float $paymentAmount)
@@ -67,7 +69,8 @@ class Boost implements EntityInterface, ExportableInterface
         private ?string $paymentTxId = null,
         private ?int $updatedTimestamp = null,
         private ?int $approvedTimestamp = null,
-        private ?int $summaryViewsDelivered = 0
+        private ?int $summaryViewsDelivered = 0,
+        private ?int $paymentGuid = null
     ) {
     }
 

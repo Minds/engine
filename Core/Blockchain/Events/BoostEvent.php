@@ -13,7 +13,6 @@ use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Manager as BoostManagerV3;
 use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
-use Minds\Core\Data;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
@@ -33,7 +32,7 @@ class BoostEvent implements BlockchainEventInterface
 
     /** @var \Minds\Core\Boost\Repository $boostRepository */
     protected $boostRepository;
-    
+
     /** @var Config $config */
     protected $config;
 
@@ -163,7 +162,6 @@ class BoostEvent implements BlockchainEventInterface
 
         $boost->setState('created')
             ->save();
-        echo "{$boost->getGuid()} now marked completed";
     }
 
     public function boostAccepted($log)
