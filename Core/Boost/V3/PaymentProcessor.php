@@ -179,7 +179,9 @@ class PaymentProcessor
             default => throw new InvalidBoostPaymentMethodException()
         };
         try {
-            $this->paymentsManager->updatePaymentStatus($boost->getPaymentGuid(), PaymentStatus::COMPLETED, true);
+            if ($boost->getPaymentGuid()) {
+                $this->paymentsManager->updatePaymentStatus($boost->getPaymentGuid(), PaymentStatus::COMPLETED, true);
+            }
         } catch (PaymentNotFoundException $e) {
             // Do nothing! continue with successful path
         }
@@ -247,11 +249,13 @@ class PaymentProcessor
         };
 
         try {
-            $this->paymentsManager->updatePaymentStatus($boost->getPaymentGuid(), PaymentStatus::REFUNDED, false);
+            if ($boost->getPaymentGuid()) {
+                $this->paymentsManager->updatePaymentStatus($boost->getPaymentGuid(), PaymentStatus::REFUNDED, false);
+            }
         } catch (PaymentNotFoundException $e) {
             // Do nothing! continue with successful path
         }
-        
+
         return $result;
     }
 
