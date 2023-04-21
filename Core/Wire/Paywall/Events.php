@@ -21,7 +21,6 @@ class Events
     {
         $this->supportTiersManager = $supportTiersManager;
         $this->paywallManager = $paywallManager;
-        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 
     public function register()
@@ -68,7 +67,7 @@ class Events
             if ($activity->isPaywall() && $activity->owner_guid != $currentUser) {
                 $export['blurb'] = $this->extractTeaser($activity->blurb);
 
-                $paywallContextExperimentOn = $this->experimentsManager
+                $paywallContextExperimentOn = $this->getExperimentsManager()
                     ->setUser(Session::getLoggedInUser())
                     ->isOn('minds-3857-paywall-context');
 
@@ -228,5 +227,10 @@ class Events
     private function isStatusPost($activity)
     {
         return !$activity->custom_type && !$activity->perma_url && !$activity->remind_object && (!($activity instanceof Activity && $activity->hasAttachments()));
+    }
+
+    private function getExperimentsManager(): ExperimentsManager
+    {
+        return $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 }
