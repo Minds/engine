@@ -21,6 +21,7 @@ class Events
     {
         $this->supportTiersManager = $supportTiersManager;
         $this->paywallManager = $paywallManager;
+        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 
     public function register()
