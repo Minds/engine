@@ -257,4 +257,16 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([$entity1, $entity2]);
     }
+
+    public function it_should_get_count(): void
+    {
+        $opts = ['limit' => 1];
+        $count = 8;
+        
+        $this->repository->getCount($opts, true)
+            ->shouldBeCalled()
+            ->willReturn($count);
+
+        $this->getCount($opts, true)->shouldBe($count);
+    }
 }

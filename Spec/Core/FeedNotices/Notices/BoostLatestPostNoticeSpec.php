@@ -66,6 +66,21 @@ class BoostLatestPostNoticeSpec extends ObjectBehavior
             ->shouldBe(false);
     }
 
+    public function it_should_determine_that_notice_should_not_show_because_an_exception_was_thrown(
+        User $user,
+    ) {
+        $this->feedsUserManager->hasMadePosts()
+            ->shouldBeCalled()
+            ->willThrow(new \Exception());
+
+        $this->feedsUserManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->feedsUserManager);
+
+        $this->callOnWrappedObject('shouldShow', [$user])
+            ->shouldBe(false);
+    }
+
     public function it_should_return_instance_after_setting_user(User $user)
     {
         $this->setUser($user)
