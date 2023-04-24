@@ -70,13 +70,14 @@ class PaymentProcessor
             BoostPaymentMethod::ONCHAIN_TOKENS => throw new ServerErrorException("Onchain transactions are processed client-side"),
             default => throw new InvalidBoostPaymentMethodException()
         };
+        $paymentFee = $result instanceof PaymentIntent ? $result->getServiceFee() : 0;
         $paymentDetails = $this->paymentsManager
             ->setUser($user)
-            ->createPaymentFromBoost($boost);
+            ->createPaymentFromBoost($boost, $paymentFee);
 
         $boost->setPaymentGuid($paymentDetails->paymentGuid);
-        
-        return $result;
+
+        return (bool) $result;
     }
 
     /**
@@ -84,7 +85,7 @@ class PaymentProcessor
      * @return bool
      * @throws Exception
      */
-    private function setupCashPaymentIntent(Boost $boost): bool
+    private function setupCashPaymentIntent(Boost $boost): PaymentIntent
     {
         try {
             $paymentIntent = (new PaymentIntent())
@@ -110,7 +111,7 @@ class PaymentProcessor
 
             $boost->setPaymentTxId($intent->getId());
 
-            return true;
+            return $paymentIntent;
         } catch (Exception $e) {
             throw new BoostCashPaymentSetupFailedException();
         }

@@ -14,6 +14,11 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Monetization\Partners\Delegates\EmailDelegate;
 use Minds\Core\Monetization\Partners\Delegates\PayoutsDelegate;
 use Minds\Core\Payments\Stripe;
+use Minds\Core\Payments\V2\Enums\PaymentMethod;
+use Minds\Core\Payments\V2\Enums\PaymentStatus;
+use Minds\Core\Payments\V2\Enums\PaymentType;
+use Minds\Core\Payments\V2\Manager as PaymentsManager;
+use Minds\Core\Payments\V2\PaymentOptions;
 use Minds\Core\Plus;
 use Minds\Core\Pro;
 use Minds\Core\Util\BigNumber;
@@ -52,6 +57,7 @@ class Manager
         private ?PayoutsDelegate $payoutsDelegate = null,
         private ?EmailDelegate $emailDelegate = null,
         private ?BoostPartnersManager $boostPartnersManager = null,
+        private ?PaymentsManager $paymentsManager = null,
         private ?Logger $logger = null
     ) {
         $this->repository ??= new Repository();
@@ -64,6 +70,7 @@ class Manager
         $this->payoutsDelegate ??= new Delegates\PayoutsDelegate();
         $this->emailDelegate ??= new Delegates\EmailDelegate();
         $this->boostPartnersManager ??= Di::_()->get(BoostPartnersManager::class);
+        $this->paymentsManager ??= Di::_()->get(PaymentsManager::class);
 
         $this->logger ??= Di::_()->get('Logger');
     }
@@ -113,6 +120,9 @@ class Manager
 
         $this->logger->addInfo("Start processing boost partner deposits");
         yield from $this->issueBoostPartnerDeposits($opts);
+
+        $this->logger->addInfo("Start processing affiliate deposits");
+        yield from $this->issueAffiliateDeposits($opts);
     }
 
     /**
@@ -337,6 +347,61 @@ class Manager
         }
     }
 
+    public function issueAffiliateDeposits(array $opts): iterable
+    {
+        $timestamp = $opts['from'];
+
+        $paymentOptions = (new PaymentOptions())
+            ->setWithAffiliate(true)
+            ->setFromTimestamp($opts['from'])
+            ->setToTimestamp($opts['to'] ?? null)
+            ->setPaymentTypes([
+                PaymentType::MINDS_PRO_PAYMENT,
+                PaymentType::BOOST_PAYMENT,
+                PaymentType::MINDS_PLUS_PAYMENT
+            ])
+            ->setPaymentStatus(PaymentStatus::COMPLETED)
+            ->setPaymentMethod(PaymentMethod::CASH);
+
+        $deposits = [];
+
+        $referrersDeposits = [];
+
+        foreach ($this->paymentsManager->getPaymentsAffiliatesEarnings($paymentOptions) as $item) {
+            $deposit = (new EarningsDeposit())
+                ->setTimestamp($opts['from'])
+                ->setUserGuid($item['affiliate_user_guid'])
+                ->setAmountCents($item['total_earnings_millis'] / 1000)
+                ->setItem('affiliate');
+
+            $this->repository->add($deposit);
+
+            $affiliateUser = $this->entitiesBuilder->single($item['affiliate_user_guid']);
+
+            if ($affiliateUser instanceof User && !empty($affiliateUser->referrer) && ((time() - $affiliateUser->time_created) < 365 * 86400)) {
+                if (!isset($referrersDeposits[$affiliateUser->referrer])) {
+                    $referrersDeposits[$affiliateUser->getGuid()] = 0;
+                }
+
+                $referrersDeposits[$affiliateUser->referrer] += $item['total_earnings_millis'] * 0.05;
+            }
+
+            yield $deposit;
+        }
+
+        foreach ($referrersDeposits as $referrerGuid => $referrersDepositAmountMillis) {
+            $deposit = (new EarningsDeposit())
+                ->setTimestamp($opts['from'])
+                ->setUserGuid($referrerGuid)
+                ->setAmountCents($referrersDepositAmountMillis / 1000)
+                ->setItem('affiliate_referrer');
+
+            $this->repository->add($deposit);
+
+            yield $deposit;
+        }
+    }
+
     /**
      * Return balance for a user
      * @param User $user
@@ -346,6 +411,18 @@ class Manager
     public function getBalance(User $user, $asOfTs = null): EarningsBalance
     {
         return $this->repository->getBalance((string) $user->getGuid(), $asOfTs);
+    }
+
+    /**
+     * Returns user's balance for a specific item
+     * @param User $user
+     * @param array $items
+     * @param int|null $asOfTs
+     * @return EarningsBalance
+     */
+    public function getBalanceByItem(User $user, array $items, ?int $asOfTs = null): EarningsBalance
+    {
+        return $this->repository->getBalanceByItem((string) $user->getGuid(), $items, $asOfTs);
     }
 
     /**

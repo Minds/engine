@@ -197,7 +197,6 @@ ALTER TABLE boost_summaries
     ADD clicks int
     AFTER views;
 
-<<<<<<< HEAD
 CREATE TABLE IF NOT EXISTS minds_payments
 (
     payment_guid bigint NOT NULL PRIMARY KEY,

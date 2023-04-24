@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\V2;
 
+use Iterator;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
@@ -53,11 +54,12 @@ class Manager
 
     /**
      * @param Boost $boost
+     * @param float $paymentFee
      * @return PaymentDetails
      * @throws InvalidPaymentMethodException
      * @throws ServerErrorException
      */
-    public function createPaymentFromBoost(Boost $boost): PaymentDetails
+    public function createPaymentFromBoost(Boost $boost, float $paymentFee): PaymentDetails
     {
         $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
         if (!$affiliateUserGuid && $this->user->getGuid() === $boost->getOwnerGuid()) {
@@ -73,6 +75,7 @@ class Manager
             'paymentType' => PaymentType::BOOST_PAYMENT,
             'paymentMethod' => PaymentMethod::getValidatedPaymentMethod($boost->getPaymentMethod()),
             'paymentAmountMillis' => (int) ($boost->getPaymentAmount() * 100 * 1000),
+            'paymentFeeMillis' => (int) ($paymentFee * 100 * 1000),
             'paymentTxId' => $boost->getPaymentTxId(),
         ]);
 
@@ -84,16 +87,18 @@ class Manager
     /**
      * @param Wire $wire
      * @param string $paymentTxId
+     * @param float $paymentFee
      * @param bool $isPlus
      * @param bool $isPro
      * @param Activity|null $sourceActivity
-     * @return void
+     * @return PaymentDetails
      * @throws InvalidPaymentMethodException
      * @throws ServerErrorException
      */
     public function createPaymentFromWire(
         Wire $wire,
         string $paymentTxId,
+        float $paymentFee,
         bool $isPlus = false,
         bool $isPro = false,
         ?Activity $sourceActivity = null
@@ -129,6 +134,7 @@ class Manager
             'paymentType' => $paymentType,
             'paymentMethod' => PaymentMethod::getValidatedPaymentMethod(PaymentMethod::CASH),
             'paymentAmountMillis' => (int) ($wire->getAmount() * 100 * 1000),
+            'paymentFeeMillis' => (int) ($paymentFee * 100 * 1000),
             'paymentTxId' => $paymentTxId,
             'isCaptured' => true
         ]);
@@ -160,5 +166,16 @@ class Manager
     private function getServerRequest(): ServerRequest
     {
         return ServerRequestFactory::fromGlobals();
+    }
+
+    /**
+     * @param PaymentOptions $paymentOptions
+     * @return Iterator
+     * @throws ServerErrorException
+     */
+    public function getPaymentsAffiliatesEarnings(
+        PaymentOptions $paymentOptions
+    ): Iterator {
+        return $this->repository->getPaymentsAffiliatesEarnings($paymentOptions);
     }
 }

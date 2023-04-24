@@ -385,14 +385,24 @@ class Manager
                     ->setStatementDescriptor($statementDescriptor)
                     ->setDescription($description);
 
+                $paymentFee = $intent->getServiceFee();
+
                 // Charge stripe
                 $intent = $this->stripeIntentsManager->add($intent);
 
                 if (!$intent->getId()) {
                     throw new \Exception("Payment failed");
                 }
+                
                 // Add to Minds payments table
-                $paymentDetails = $this->paymentsManager->createPaymentFromWire($wire, $intent->getId(), $isPlusPayment, $isProPayment, $this->sourceEntity);
+                $paymentDetails = $this->paymentsManager->createPaymentFromWire(
+                    wire: $wire,
+                    paymentTxId: $intent->getId(),
+                    paymentFee: $paymentFee,
+                    isPlus: $isPlusPayment,
+                    isPro: $isProPayment,
+                    sourceActivity: $this->sourceEntity
+                );
 
                 // Save the wire to the Repository
                 $wire->setPaymentGuid($paymentDetails->paymentGuid);
