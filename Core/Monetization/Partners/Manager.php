@@ -11,6 +11,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
+use Minds\Core\Monetization\Partners\Delegates\DepositsDelegate;
 use Minds\Core\Monetization\Partners\Delegates\EmailDelegate;
 use Minds\Core\Monetization\Partners\Delegates\PayoutsDelegate;
 use Minds\Core\Payments\Stripe;
@@ -58,6 +59,7 @@ class Manager
         private ?EmailDelegate $emailDelegate = null,
         private ?BoostPartnersManager $boostPartnersManager = null,
         private ?PaymentsManager $paymentsManager = null,
+        private ?DepositsDelegate $depositsDelegate = null,
         private ?Logger $logger = null
     ) {
         $this->repository ??= new Repository();
@@ -71,6 +73,7 @@ class Manager
         $this->emailDelegate ??= new Delegates\EmailDelegate();
         $this->boostPartnersManager ??= Di::_()->get(BoostPartnersManager::class);
         $this->paymentsManager ??= Di::_()->get(PaymentsManager::class);
+        $this->depositsDelegate ??= new DepositsDelegate();
 
         $this->logger ??= Di::_()->get('Logger');
     }
@@ -387,6 +390,13 @@ class Manager
             }
 
             yield $deposit;
+
+            if (!($affiliateUser instanceof User)) {
+                continue;
+            }
+
+
+            $this->depositsDelegate->onIssueAffiliateDeposit($affiliateUser);
         }
 
         foreach ($referrersDeposits as $referrerGuid => $referrersDepositAmountMillis) {
@@ -399,6 +409,15 @@ class Manager
             $this->repository->add($deposit);
 
             yield $deposit;
+
+            $referrer = $this->entitiesBuilder->single($referrerGuid);
+
+            if (!($referrer instanceof User)) {
+                continue;
+            }
+
+
+            $this->depositsDelegate->onIssueAffiliateReferrerDeposit($referrer);
         }
     }
 
