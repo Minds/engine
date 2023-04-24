@@ -221,6 +221,11 @@ class ActionDelegate
                     ->execute($entity);
                 $this->applyStrike($report);
                 break;
+            case 19:
+                // Boost policy violation - no strikes, just send email
+                // and reject Boost below to stop it running.
+                $this->emailDelegate->onBoostPolicyViolation($report);
+                break;
         }
 
         // Enable ACL again

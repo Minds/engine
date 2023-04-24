@@ -116,6 +116,11 @@ $CONFIG->set(
             'hasMore' => true,
         ],
         [
+            'value' => 11,
+            'label' => 'Another reason',
+            'hasMore' => true,
+        ],
+        [
             'value' => 12,
             'label' => 'Incorrect use of hashtags',
             'hasMore' => false,
@@ -144,13 +149,13 @@ $CONFIG->set(
             ],
         ],
         [
-            'value' => 11,
-            'label' => 'Another reason',
-            'hasMore' => true,
-        ],
-        [
             'value' => 18,
             'label' => 'Violates Premium Content policy',
+            'hasMore' => false,
+        ],
+        [
+            'value' => 19,
+            'label' => 'Violates Boost content policy',
             'hasMore' => false,
         ]
     ]

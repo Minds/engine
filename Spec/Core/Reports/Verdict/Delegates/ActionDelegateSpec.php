@@ -535,4 +535,43 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->onAction($verdict);
     }
+
+    public function it_should_send_email_and_reject_boosts_on_boost_policy_violation(
+        Activity $entity
+    ) {
+        $report = new Report;
+        $report->setEntityUrn('urn:activity:123')
+            ->setReasonCode(19);
+
+        $verdict = new Verdict;
+        $verdict->setReport($report)
+            ->setUphold(true)
+            ->setAction('19');
+
+        $this->entitiesBuilder->single('123')
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $this->emailDelegate->onBoostPolicyViolation($report)
+            ->shouldBeCalled();
+
+        $entity->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $this->strikesManager->countStrikesInTimeWindow(Argument::any(), Argument::any())
+            ->shouldNotBeCalled();
+
+        $this->strikesManager->add(Argument::any())
+            ->shouldNotBeCalled();
+
+        $this->boostManager->forceRejectByEntityGuid(
+            entityGuid: '123',
+            reason: BoostRejectionReason::REPORT_UPHELD,
+            statuses: [BoostStatus::APPROVED, BoostStatus::PENDING]
+        )->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->onAction($verdict);
+    }
 }
