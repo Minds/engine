@@ -225,3 +225,7 @@ CREATE TABLE IF NOT EXISTS minds_default_tag_mapping (
 	entity_type varchar(100) NOT NULL,
 	PRIMARY KEY (entity_guid, tag_name)
 ) ENGINE=InnoDB;
+
+ALTER TABLE minds_payments
+    ADD payment_fee_millis int NOT NULL
+    AFTER payment_amount_millis;

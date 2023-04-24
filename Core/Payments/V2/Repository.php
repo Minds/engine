@@ -60,6 +60,7 @@ class Repository
                 'payment_type' => new RawExp(':payment_type'),
                 'payment_method' => new RawExp(':payment_method'),
                 'payment_amount_millis' => new RawExp(':payment_amount_millis'),
+                'payment_fee_millis' => new RawExp(':payment_fee_millis'),
                 'payment_tx_id' => new RawExp(':payment_tx_id'),
                 'is_captured' => new RawExp(':is_captured'),
                 'payment_status' => PaymentStatus::PENDING
@@ -73,6 +74,7 @@ class Repository
             'payment_type' => $paymentDetails->paymentType,
             'payment_method' => $paymentDetails->paymentMethod,
             'payment_amount_millis' => $paymentDetails->paymentAmountMillis,
+            'payment_fee_millis' => $paymentDetails->paymentFeeMillis,
             'payment_tx_id' => $paymentDetails->paymentTxId,
             'is_captured' => $paymentDetails->isCaptured
         ];
@@ -187,7 +189,7 @@ class Repository
             ->columns([
                 'user_guid',
                 'affiliate_user_guid',
-                'total_earnings_millis' => new RawExp('SUM((payment_amount_millis - payment_fees_millis) * 0.45)')
+                'total_earnings_millis' => new RawExp('SUM((payment_amount_millis - payment_fee_millis) * 0.45)')
             ])
             ->from('minds_payments')
             ->where('updated_timestamp', Operator::GTE, date('c', $options->getFromTimestamp()));
