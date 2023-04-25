@@ -23,6 +23,7 @@ use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
 use Minds\Core\Payments\V2\Enums\PaymentStatus;
 use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
+use Minds\Core\Payments\V2\Exceptions\PaymentNotFoundException;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
@@ -178,7 +179,13 @@ class PaymentProcessor
             BoostPaymentMethod::ONCHAIN_TOKENS => $this->captureOnchainBoostPayment($boost),
             default => throw new InvalidBoostPaymentMethodException()
         };
-        $this->paymentsManager->updatePaymentStatus($boost->getPaymentGuid(), PaymentStatus::COMPLETED, true);
+        try {
+            if ($boost->getPaymentGuid()) {
+                $this->paymentsManager->updatePaymentStatus($boost->getPaymentGuid(), PaymentStatus::COMPLETED, true);
+            }
+        } catch (PaymentNotFoundException $e) {
+            // Do nothing! continue with successful path
+        }
         return $result;
     }
 
@@ -241,7 +248,15 @@ class PaymentProcessor
             BoostPaymentMethod::ONCHAIN_TOKENS => $this->refundOnchainTokensPayment($boost),
             default => throw new InvalidBoostPaymentMethodException()
         };
-        $this->paymentsManager->updatePaymentStatus($boost->getPaymentGuid(), PaymentStatus::REFUNDED, false);
+
+        try {
+            if ($boost->getPaymentGuid()) {
+                $this->paymentsManager->updatePaymentStatus($boost->getPaymentGuid(), PaymentStatus::REFUNDED, false);
+            }
+        } catch (PaymentNotFoundException $e) {
+            // Do nothing! continue with successful path
+        }
+
         return $result;
     }
 

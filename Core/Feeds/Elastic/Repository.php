@@ -6,6 +6,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Client as ElasticsearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Di\Di;
+use Minds\Core\Log\Logger;
 use Minds\Core\Search\SortingAlgorithms;
 use Minds\Helpers\Text;
 
@@ -38,11 +39,14 @@ class Repository
 
     private Config $config;
 
-    public function __construct($client = null, $config = null)
-    {
+    public function __construct(
+        $client = null,
+        $config = null,
+        private ?Logger $logger = null
+    ) {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
-
         $this->config = $config ?? Di::_()->get('Config');
+        $this->logger ??= Di::_()->get('Logger');
 
         $this->index = $this->config->get('elasticsearch')['indexes']['search_prefix'];
 
@@ -129,31 +133,38 @@ class Repository
 
     /**
      * Returns a count of the query
-     * @param array $opts
-     * @return
+     * @param array $opts - opts for query.
+     * @param bool $handleExceptions - true if exceptions should be thrown out,
+     * if false 0 will be returned.
+     * @throws Exception - if handle exceptions is false.
+     * @return int count
      */
-    public function getCount(array $opts = []): int
+    public function getCount(array $opts = [], bool $handleExceptions = true): int
     {
-        $built = $this->buildQuery($opts);
-
-        // Using an typed object would be nice
-        // but don't have time
-        $query = $built['query'];
-        unset($query['size']);
-        unset($query['from']);
-        unset($query['body']['_source']);
-        unset($query['body']['sort']);
-
-        $prepared = new Prepared\Count();
-        $prepared->query($query);
-
         try {
-            $response = $this->client->request($prepared);
+            $built = $this->buildQuery($opts);
 
+            // Using an typed object would be nice
+            // but don't have time
+            $query = $built['query'];
+            unset($query['size']);
+            unset($query['from']);
+            unset($query['body']['_source']);
+            unset($query['body']['sort']);
+
+            $prepared = new Prepared\Count();
+            $prepared->query($query);
+
+            $response = $this->client->request($prepared);
             return $response['count'];
         } catch (\Exception $e) {
+            $this->logger->error($e);
+
+            if (!$handleExceptions) {
+                throw $e;
+            }
+
             return 0;
-            // TODO: Log this error, why did it fail
         }
     }
 

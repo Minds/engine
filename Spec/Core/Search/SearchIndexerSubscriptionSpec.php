@@ -288,4 +288,94 @@ class SearchIndexerSubscriptionSpec extends ObjectBehavior
 
         $this->consume($event)->shouldBe(true);
     }
+
+    public function it_should_index_an_activity_WITHOUT_patched_tags_when_a_user_has_posted_already(
+        User $user
+    ) {
+        $entityUrn = 'urn:activity:123';
+        $ownerGuid = '234';
+
+        $event = new EntitiesOpsEvent();
+        $event->setOp(EntitiesOpsEvent::OP_CREATE)
+            ->setEntityUrn($entityUrn);
+
+        $entity = new Activity();
+        $entity->owner_guid = $ownerGuid;
+
+        $this->entitiesResolver->single(new Urn($entityUrn))
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $this->feedUserManager->getHasMadePostsFromCache($ownerGuid)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->entitiesBuilder->single($ownerGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+        
+        $this->feedUserManager->setHasMadePostsInCache($ownerGuid)
+            ->shouldBeCalled();
+
+        $this->feedUserManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->feedUserManager);
+
+        $this->feedUserManager->hasMadePosts()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->indexMock->index(Argument::that(function ($arg) {
+            return $arg->getTags() === [];
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->consume($event)->shouldBe(true);
+    }
+
+    public function it_should_index_an_activity_WITHOUT_patched_tags_when_a_user_has_not_yet_posted_but_cannot_check_has_made_posts(
+        User $user
+    ) {
+        $entityUrn = 'urn:activity:123';
+        $ownerGuid = '234';
+
+        $event = new EntitiesOpsEvent();
+        $event->setOp(EntitiesOpsEvent::OP_CREATE)
+            ->setEntityUrn($entityUrn);
+
+        $entity = new Activity();
+        $entity->owner_guid = $ownerGuid;
+
+        $this->entitiesResolver->single(new Urn($entityUrn))
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $this->feedUserManager->getHasMadePostsFromCache($ownerGuid)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->entitiesBuilder->single($ownerGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+        
+        $this->feedUserManager->setHasMadePostsInCache($ownerGuid)
+            ->shouldNotBeCalled();
+
+        $this->feedUserManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->feedUserManager);
+
+        $this->feedUserManager->hasMadePosts()
+            ->shouldBeCalled()
+            ->willThrow(new \Exception());
+
+        $this->indexMock->index(Argument::that(function ($arg) {
+            return $arg->getTags() === [];
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->consume($event)->shouldBe(true);
+    }
 }

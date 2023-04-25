@@ -158,7 +158,7 @@ class ManagerV2
     {
         $stripeClient = $this->stripeClient->withUser($sender);
         $paymentIntent = $stripeClient->paymentIntents->retrieve($paymentIntentId);
-        
+
         // is manual in this context refers to a manual transfer method rather than capture method.
         $manualTransfer = isset($paymentIntent->metadata?->is_manual_transfer) ?
             $paymentIntent->metadata?->is_manual_transfer !== 'false' :
@@ -184,10 +184,17 @@ class ManagerV2
             }
         }
 
-        $paymentIntent = $stripeClient->withUser($sender)->paymentIntents->capture($paymentIntentId);
+        try {
+            $paymentIntent = $stripeClient->withUser($sender)->paymentIntents->capture($paymentIntentId);
 
-        if ($paymentIntent->status !== "succeeded") {
-            return false;
+            if ($paymentIntent->status !== "succeeded") {
+                return false;
+            }
+        } catch (ApiErrorException $e) {
+            if ($e->getError()->payment_intent->status === 'succeeded') {
+                return true;
+            }
+            throw $e;
         }
 
         // Was there a transfer destination? If not
