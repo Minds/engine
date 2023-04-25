@@ -40,6 +40,25 @@ class BoostConsoleUrlBuilder
     }
 
     /**
+     * Build a URL to direct users to the console with specific filters.
+     * @param int $boostStatus - BoostStatus to navigate to.
+     * @param int $boostLocation BoostTargetLocation to navigate to.
+     * @param array $extraQueryParams - extra query params to append to URL.
+     * @return string built url.
+     */
+    public function buildWithFilters(int $boostStatus, int $boostLocation, array $extraQueryParams = []): string
+    {
+        $baseUrl = $this->config->get('site_url');
+
+        $queryParams = http_build_query(array_merge([
+            'state' => $this->getBoostStateParamValue($boostStatus),
+            'location' => $this->getBoostLocationParamValue($boostLocation)
+        ], $extraQueryParams));
+
+        return $baseUrl . 'boost/boost-console?' . $queryParams;
+    }
+
+    /**
      * Gets boost state query param value.
      * @return string boost state query param value.
      */

@@ -6,6 +6,7 @@
 namespace Minds\Core\Email;
 
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\Email\V2\Campaigns\Recurring\BoostPolicyViolationEmailer\BoostPolicyViolationEmailer;
 
 class Provider extends DiProvider
 {
@@ -64,6 +65,10 @@ class Provider extends DiProvider
 
         $this->di->bind('Email\Confirmation\Url', function ($di) {
             return new Confirmation\Url();
+        }, ['useFactory' => true]);
+
+        $this->di->bind(BoostPolicyViolationEmailer::class, function ($di) {
+            return new BoostPolicyViolationEmailer();
         }, ['useFactory' => true]);
 
         // SendGrid

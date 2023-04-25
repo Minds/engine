@@ -57,4 +57,21 @@ class BoostConsoleUrlBuilderSpec extends ObjectBehavior
 
         $this->build($boost, $extraParams)->shouldBe('https://www.minds.com/boost/boost-console?boostGuid=123&queryParam1=1&queryParam2=2');
     }
+
+    public function it_should_build_a_a_url_with_filters_with_extra_query_params()
+    {
+        $status = BoostStatus::REJECTED;
+        $location = BoostTargetLocation::NEWSFEED;
+
+        $extraParams = [
+            'queryParam1' => 1,
+            'queryParam2' => '2'
+        ];
+
+        $this->config->get('site_url')
+            ->shouldBeCalled()
+            ->willReturn('https://www.minds.com/');
+
+        $this->buildWithFilters($status, $location, $extraParams)->shouldBe('https://www.minds.com/boost/boost-console?state=rejected&location=feed&queryParam1=1&queryParam2=2');
+    }
 }

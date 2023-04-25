@@ -11,7 +11,9 @@ use Minds\Core\Reports\Report;
 use Minds\Common\Urn;
 use Minds\Core\Email\V2\Campaigns\Custom\Custom;
 use Minds\Core\Config;
+use Minds\Core\Email\V2\Campaigns\Recurring\BoostPolicyViolationEmailer\BoostPolicyViolationEmailer;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 
 class EmailDelegate
 {
@@ -27,12 +29,18 @@ class EmailDelegate
     /** @var Config */
     protected $config;
 
-    public function __construct($campaign = null, $entitiesBuilder = null, $urn = null, $config = null)
-    {
+    public function __construct(
+        $campaign = null,
+        $entitiesBuilder = null,
+        $urn = null,
+        $config = null,
+        private ?BoostPolicyViolationEmailer $boostPolicyViolationEmailer = null
+    ) {
         $this->campaign = $campaign ?: new Custom;
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->urn = $urn ?: new Urn;
         $this->config = $config ?: Di::_()->get('Config');
+        $this->boostPolicyViolationEmailer ??= Di::_()->get(BoostPolicyViolationEmailer::class);
     }
 
 
@@ -72,25 +80,22 @@ class EmailDelegate
      */
     public function onBoostPolicyViolation(Report $report)
     {
-        // TODO: Do email logic
         $entityUrn = $report->getEntityUrn();
         $entityGuid = $this->urn->setUrn($entityUrn)->getNss();
 
         $entity = $this->entitiesBuilder->single($entityGuid);
-        $owner = $entity->type === 'user' ? $entity : $this->entitiesBuilder->single($entity->getOwnerGuid());
 
-        $template = 'hacked-account';
+        $owner = $entity instanceof User ?
+            $entity :
+            $this->entitiesBuilder->single($entity->getOwnerGuid());
 
-        $subject = 'Your Boost has been removed';
+        if (!($owner instanceof User)) {
+            throw new ServerErrorException('Tried to send email to non User entity');
+        }
 
-        $this->campaign->setUser($owner);
-        $this->campaign->setTemplate($template);
-        $this->campaign->setSubject($subject);
-        $this->campaign->setTitle($subject);
-        $this->campaign->setPreheader('Your account security has been compromised');
-        $this->campaign->setHideDownloadLinks(true);
-
-        $this->campaign->send();
+        $this->boostPolicyViolationEmailer->setEntity($entity)
+            ->setUser($owner)
+            ->queue();
     }
 
     /**
