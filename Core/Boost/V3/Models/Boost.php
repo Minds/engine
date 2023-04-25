@@ -151,7 +151,7 @@ class Boost implements EntityInterface, ExportableInterface
             'entity' => $this->entity?->export(),
             'target_location' => $this->getTargetLocation(),
             'target_suitability' => $this->getTargetSuitability(),
-            'goal' => $this->getGoal(),
+            'goal' => $this->getGoal(), // ojm ben says check that these are ok with null vals
             'goal_button_text' => $this->getGoalButtonText(),
             'goal_button_url' =>$this->getGoalButtonUrl(),
             'payment_tx_id' => $this->getPaymentTxId(),

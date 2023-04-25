@@ -45,6 +45,7 @@ use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use NotImplementedException;
 use Stripe\Exception\ApiErrorException;
+use Minds\Core\Session;
 
 class Manager
 {
@@ -121,6 +122,8 @@ class Manager
 
         $this->repository->beginTransaction();
 
+        $goalFeatureEnabled = $this->goalFeatureEnabled();
+
         $boost = (
             new Boost(
                 entityGuid: $data['entity_guid'],
@@ -130,6 +133,9 @@ class Manager
                 paymentAmount: (float) ($data['daily_bid'] * $data['duration_days']),
                 dailyBid: (float) $data['daily_bid'],
                 durationDays: (int) $data['duration_days'],
+                goal: $goalFeatureEnabled && isset($data['goal']) ? (int) $data['goal'] : null,
+                goalButtonText: $goalFeatureEnabled && isset($data['goal_button_text']) ? (int) $data['goal_button_text'] : null,
+                goalButtonUrl: $goalFeatureEnabled && isset($data['goal_button_url']) ? (string) $data['goal_button_url'] : null,
             )
         )
             ->setGuid($data['guid'] ?? Guid::build())
@@ -666,5 +672,16 @@ class Manager
             BoostPartnerSuitability::DISABLED => null,
             default => BoostTargetAudiences::CONTROVERSIAL
         };
+    }
+
+
+    /**
+     * True if feature that allows users to set goals for boosted posts is enabled
+     * @return boolean - true if feature is enabled.
+     */
+    private function goalFeatureEnabled(): bool
+    {
+        return $this->experimentsManager->setUser(Session::getLoggedinUser())
+            ->isOn('minds-3952-boost-goals');
     }
 }

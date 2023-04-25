@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace Minds\Core\Boost\V3\Enums;
 
-// If the boost has a custom CTA button, what does the button say?
+/**
+ * If the boost has a custom CTA button, what does the button say?
+ * */
 class BoostGoalButtonText
 {
     public const SUBSCRIBE_TO_MY_CHANNEL = 1;

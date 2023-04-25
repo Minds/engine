@@ -195,9 +195,15 @@ ADD INDEX completed_timestamp (completed_timestamp) USING BTREE;
 
 ALTER TABLE boosts
     ADD goal int NULL DEFAULT NULL
-    ADD goal_button_text int NULL DEFAULT NULL
-    ADD goal_button_url int NULL DEFAULT NULL
     AFTER target_location;
+
+ALTER TABLE boosts
+    ADD goal_button_text int NULL DEFAULT NULL
+    AFTER goal;
+
+ALTER TABLE boosts
+    ADD goal_button_url text NULL DEFAULT NULL
+    AFTER goal_button_text;
 
 ALTER TABLE boost_summaries
     ADD clicks int

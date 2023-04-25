@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace Minds\Core\Boost\V3\Enums;
 
-// The user's stated goal for the boost
+/**
+ * The user's stated goal for the boost
+ */
 class BoostGoal
 {
     public const VIEWS = 1;
