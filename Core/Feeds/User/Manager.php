@@ -40,22 +40,27 @@ class Manager
 
     /**
      * Whether user has made at least one post.
+     * @param string $period - period to check, defaults to 1y.
+     * @throws \Exception - on error.
      * @return bool true if user has made at least one post.
      */
-    public function hasMadePosts(): bool
+    public function hasMadePosts(string $period = '1y'): bool
     {
         if ($this->getHasMadePostsFromCache($this->user->getGuid())) {
             return true;
         }
+
         $opts = [
             'container_guid' => $this->user->getGuid(),
-            'limit' => 1,
             'algorithm' => 'latest',
-            'period' => '1y',
+            'period' => $period,
             'type' => 'activity'
         ];
-        $result = $this->feedManager->getList($opts);
-        return $result->count() > 0;
+
+        return $this->feedManager->getCount(
+            opts: $opts,
+            handleExceptions: false
+        ) > 0;
     }
 
     /**

@@ -81,7 +81,11 @@ class Manager
      */
     private function hasMadePosts(): bool
     {
-        return $this->feedUserManager->setUser($this->user)
-            ->hasMadePosts();
+        try {
+            return $this->feedUserManager->setUser($this->user)
+                ->hasMadePosts();
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }
