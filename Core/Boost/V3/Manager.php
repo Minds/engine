@@ -45,7 +45,6 @@ use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use NotImplementedException;
 use Stripe\Exception\ApiErrorException;
-use Minds\Core\Session;
 
 class Manager
 {
@@ -122,7 +121,8 @@ class Manager
 
         $this->repository->beginTransaction();
 
-        $goalFeatureEnabled = $this->goalFeatureEnabled();
+        $goalFeatureEnabled = $this->experimentsManager
+            ->isOn('minds-3952-boost-goals');
 
         $boost = (
             new Boost(
@@ -672,16 +672,5 @@ class Manager
             BoostPartnerSuitability::DISABLED => null,
             default => BoostTargetAudiences::CONTROVERSIAL
         };
-    }
-
-
-    /**
-     * True if feature that allows users to set goals for boosted posts is enabled
-     * @return boolean - true if feature is enabled.
-     */
-    private function goalFeatureEnabled(): bool
-    {
-        return $this->experimentsManager->setUser(Session::getLoggedinUser())
-            ->isOn('minds-3952-boost-goals');
     }
 }

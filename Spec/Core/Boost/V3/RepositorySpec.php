@@ -81,8 +81,8 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, payment_method, payment_amount, payment_tx_id, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
+        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
+                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
         $this->mysqlClientWriter->prepare($query)
             ->shouldBeCalledOnce()
             ->willReturn($statement);
@@ -100,6 +100,12 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn(BoostTargetSuitability::SAFE);
         $boost->getTargetLocation()
             ->willReturn(BoostTargetLocation::NEWSFEED);
+        $boost->getGoal()
+            ->willReturn(null);
+        $boost->getGoalButtonText()
+            ->willReturn(null);
+        $boost->getGoalButtonUrl()
+            ->willReturn(null);
         $boost->getPaymentMethod()
             ->willReturn(BoostPaymentMethod::CASH);
         $boost->getPaymentAmount()
@@ -131,8 +137,8 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, payment_method, payment_amount, payment_tx_id, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
+        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
+                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
 
         $this->mysqlClientWriter->prepare($query)
             ->shouldBeCalledOnce()
@@ -155,6 +161,13 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn(BoostTargetSuitability::SAFE);
         $boost->getTargetLocation()
             ->willReturn(BoostTargetLocation::NEWSFEED);
+        $boost->getGoal()
+            ->willReturn(null);
+        $boost->getGoalButtonText()
+            ->willReturn(null);
+        $boost->getGoalButtonUrl()
+            ->willReturn(null);
+
         $boost->getPaymentMethod()
             ->willReturn(BoostPaymentMethod::CASH);
         $boost->getPaymentAmount()

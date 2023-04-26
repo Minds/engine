@@ -356,7 +356,6 @@ class BoostCreateRequestValidator implements ValidatorInterface
                                 'Button url references a domain name linked to spam'
                             ));
                         } elseif (!preg_match('#^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$#i', $dataToValidate['goal_button_url'])) {
-                            // ojm make this better. just copied from emi's torrentfile is_url
                             $this->errors->add(new ValidationError(
                                 'goal_button_url',
                                 'Button url is not in valid url format'
@@ -382,14 +381,13 @@ class BoostCreateRequestValidator implements ValidatorInterface
      * @param array|ServerRequestInterface $dataToValidate
      * @return EntityInterface entity - the entity being boosted
      */
-    private function getBoostedEntity($dataToValidate): EntityInterface
+    private function getBoostedEntity($dataToValidate): ?EntityInterface
     {
         $boostedEntity = null;
 
         if (isset($dataToValidate['entity_guid'])) {
             $boostedEntity = $this->entitiesBuilder->single($dataToValidate['entity_guid']);
         }
-
         return $boostedEntity;
     }
 
