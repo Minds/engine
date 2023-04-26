@@ -67,9 +67,6 @@ class preview implements Interfaces\Api
      */
     private function getMetadata(string $url): array
     {
-        if (Di::_()->get('Experiments\Manager')->isOn('front-5392-metascraper-previews')) {
-            return Di::_()->get('Metascraper\Service')->scrape($url);
-        }
-        return Di::_()->get('Feeds\Activity\RichEmbed\Manager')->getRichEmbed($url);
+        return Di::_()->get('Metascraper\Service')->scrape($url);
     }
 }
