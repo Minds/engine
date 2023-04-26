@@ -12,9 +12,7 @@ use Minds\Core\Payments;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\Boost\Peer;
 use Minds\Entities\User;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Data\Locks\LockFailedException;
-use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 
 class Payment
@@ -48,8 +46,7 @@ class Payment
         $config = null,
         $locks = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?CashPaymentProcessor $cashPaymentProcessor = null,
-        private ?ExperimentsManager $experimentsManager = null
+        private ?CashPaymentProcessor $cashPaymentProcessor = null
     ) {
         $this->stripePayments = $stripePayments ?: Di::_()->get('StripePayments');
         $this->eth = $eth ?: Di::_()->get('Blockchain\Services\Ethereum');
@@ -59,7 +56,6 @@ class Payment
         $this->locks = $locks ?: Di::_()->get('Database\Locks');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->cashPaymentProcessor ??= new CashPaymentProcessor();
-        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -90,10 +86,6 @@ class Payment
 
                 if ($handler === 'peer' || $boost instanceof Peer) {
                     throw new \Exception('USD boost offers are not supported');
-                }
-
-                if (!$this->experimentsManager->isOn('engine-2462-cash-boosts')) {
-                    throw new ServerErrorException('Cash boost feature is not enabled');
                 }
 
                 if (!isset($payload['payment_method_id'])) {

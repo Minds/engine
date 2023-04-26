@@ -10,24 +10,19 @@ use Minds\Core\Blockchain\Wallets\OffChain\Cap;
 use Minds\Core\Blockchain\Wallets\OffChain\Transactions;
 use Minds\Core\Blockchain\Services\Ethereum;
 use Minds\Core\Blockchain\Wallets\OffChain\Withholding\Repository as WithholdingRepository;
-use Minds\Core\Blockchain\Wallets\OffChain\Withholding\Withholding;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\Cassandra\Thrift\Lookup;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
-use Minds\Core\Payments\Customer;
-use Minds\Core\Payments\Sale;
 use Minds\Core\Payments\Stripe\Stripe;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\Boost\Network;
 use Minds\Entities\Boost\Peer;
 use Minds\Entities\User;
 use Minds\Core\Data\Locks\Redis as Locks;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Boost\CashPaymentProcessor;
 use Minds\Core\Boost\Network\Boost as NetworkBoost;
 use Minds\Core\EntitiesBuilder;
-use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -70,9 +65,6 @@ class PaymentSpec extends ObjectBehavior
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    /** @var ExperimentsManager */
-    protected $experimentsManager;
-
     /** @var CashPaymentProcessor */
     protected $cashPaymentProcessor;
 
@@ -89,8 +81,7 @@ class PaymentSpec extends ObjectBehavior
         RatesInterface $rates,
         WithholdingRepository $withholding,
         EntitiesBuilder $entitiesBuilder,
-        CashPaymentProcessor $cashPaymentProcessor,
-        ExperimentsManager $experimentsManager
+        CashPaymentProcessor $cashPaymentProcessor
     ) {
         $this->offchainTransactions = $offchainTransactions;
         $this->stripePayments = $stripePayments;
@@ -105,7 +96,6 @@ class PaymentSpec extends ObjectBehavior
         $this->withholding = $withholding;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->cashPaymentProcessor = $cashPaymentProcessor;
-        $this->experimentsManager = $experimentsManager;
 
         $this->beConstructedWith(
             $this->stripePayments,
@@ -116,7 +106,6 @@ class PaymentSpec extends ObjectBehavior
             $this->locks,
             $this->entitiesBuilder,
             $this->cashPaymentProcessor,
-            $this->experimentsManager
         );
 
         Di::_()->bind('Blockchain\Wallets\OffChain\Transactions', function () use ($offchainTransactions) {
@@ -158,10 +147,6 @@ class PaymentSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('cash');
 
-        $this->experimentsManager->isOn('engine-2462-cash-boosts')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this->cashPaymentProcessor->setupNetworkBoostStripePayment(
             $paymentMethodId,
             $boost
@@ -189,32 +174,12 @@ class PaymentSpec extends ObjectBehavior
             ->duringPay($boost, '~Stripe');
     }
 
-    public function it_should_throw_if_experiment_not_enabled_during_pay_with_money(
-        NetworkBoost $boost
-    ) {
-        $boost->getBidType()
-            ->shouldBeCalled()
-            ->willReturn('cash');
-
-        $this->experimentsManager->isOn('engine-2462-cash-boosts')
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $this
-            ->shouldThrow(new ServerErrorException('Cash boost feature is not enabled'))
-            ->duringPay($boost, '~Stripe');
-    }
-
     public function it_should_throw_if_no_payment_method_id_in_payload_during_pay_with_money(
         NetworkBoost $boost
     ) {
         $boost->getBidType()
             ->shouldBeCalled()
             ->willReturn('cash');
-
-        $this->experimentsManager->isOn('engine-2462-cash-boosts')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $this
             ->shouldThrow(new UserErrorException('Payment method ID must be supplied'))
