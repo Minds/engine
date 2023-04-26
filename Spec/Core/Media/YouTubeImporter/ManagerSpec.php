@@ -20,8 +20,6 @@ use Minds\Core\Media\YouTubeImporter\TranscoderBridge;
 use Minds\Core\Media\YouTubeImporter\YTVideo;
 use Minds\Core\Media\YouTubeImporter\YTClient;
 use Minds\Core\Media\YouTubeImporter\YTApi;
-use Minds\Core\Feeds\Activity\RichEmbed\Manager as RichEmbedManager;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service as MetascraperService;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Entities\User;
@@ -101,9 +99,7 @@ class ManagerSpec extends ObjectBehavior
         TranscoderBridge $transcoderBridge,
         PsrWrapper $cache = null,
         KeyValueLimiter $kvLimiter = null,
-        RichEmbedManager $richEmbedManager = null,
         MetascraperService $metascraperService = null,
-        ExperimentsManager $experimentsManager = null
     ) {
         $this->repository = $repository;
         $this->mediaRepository = $mediaRepository;
@@ -119,9 +115,7 @@ class ManagerSpec extends ObjectBehavior
         $this->transcoderBridge = $transcoderBridge;
         $this->cache = $cache;
         $this->kvLimiter = $kvLimiter;
-        $this->richEmbedManager = $richEmbedManager;
         $this->metascraperService = $metascraperService;
-        $this->experimentsManager = $experimentsManager;
 
         $this->beConstructedWith(
             $repository,
@@ -138,9 +132,7 @@ class ManagerSpec extends ObjectBehavior
             $transcoderBridge,
             $cache,
             $kvLimiter,
-            $richEmbedManager,
             $metascraperService,
-            $experimentsManager
         );
     }
 
@@ -263,61 +255,6 @@ class ManagerSpec extends ObjectBehavior
         $this->onQueue($video);
     }
 
-    public function it_should_import_a_video_and_post_as_rich_embed_using_legacy_iframe_provider(
-        YTVideo $ytVideo,
-        User $user
-    ) {
-        $videoId = 'videoId';
-        $channelId = 'channelId';
-        $ownerGuid = 'ownerGuid';
-
-        $ytVideo->getOwner()->shouldBeCalled()->willReturn($user);
-        $ytVideo->getChannelId()->shouldBeCalled()->willReturn($channelId);
-
-        $user->getYouTubeChannels()->shouldBeCalled()->willReturn([
-            [
-                'id' => $channelId,
-            ],
-        ]);
-
-        $user->getGuid()->shouldBeCalled()->willReturn($ownerGuid);
-
-        $ytVideo->getOwnerGuid()->shouldBeCalled()->willReturn($ownerGuid);
-
-        $ytVideo->getVideoId()->shouldBeCalled()->willReturn($videoId);
-
-        $ytVideo->setOwnerGuid($ownerGuid)->shouldBeCalled();
-
-        $this->entitiesBuilder->single($ownerGuid)->shouldBeCalled()->willReturn($user);
-
-        $this->experimentsManager->isOn('front-5815-metascraper-stage-2')
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $this->richEmbedManager->getRichEmbed('https://www.youtube.com/watch?v=' . $videoId)
-            ->shouldBeCalled()
-            ->willReturn([
-                'meta' => [
-                    'title' => 'title',
-                    'description' => 'description',
-                ],
-                'links' => [
-                    'thumbnail' => [
-                        0 => [ 'href' => 'thumbnail' ],
-                    ]
-                ],
-            ]);
-
-        $user->export()->shouldBeCalled()->willReturn([
-            'guid' => $ownerGuid,
-        ]);
-
-        $this->save->setEntity(Argument::any())->shouldBeCalled()->willReturn($this->save);
-        $this->save->save()->shouldBeCalled();
-            
-        $this->import($ytVideo, false);
-    }
-
     public function it_should_import_a_video_and_post_as_rich_embed_using_metascraper_as_iframe_provider(
         YTVideo $ytVideo,
         User $user
@@ -344,10 +281,6 @@ class ManagerSpec extends ObjectBehavior
         $ytVideo->setOwnerGuid($ownerGuid)->shouldBeCalled();
 
         $this->entitiesBuilder->single($ownerGuid)->shouldBeCalled()->willReturn($user);
-
-        $this->experimentsManager->isOn('front-5815-metascraper-stage-2')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $this->metascraperService->scrape('https://www.youtube.com/watch?v=' . $videoId)
             ->shouldBeCalled()
