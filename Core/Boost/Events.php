@@ -16,19 +16,6 @@ class Events
 {
     public function register()
     {
-        // Urn resolve
-        Dispatcher::register('urn:resolve', 'all', function (Event $event) {
-            $urn = $event->getParameters()['urn'];
-
-            if ($urn->getNid() !== 'peer-boost') {
-                return;
-            }
-            
-            /** @var Repository */
-            $repository = Di::_()->get('Boost\Repository');
-            $event->setResponse($repository->getEntity('peer', $urn->getNss()));
-        });
-
         // @deprecated
         Dispatcher::register('boost:completed', 'boost', function ($event) {
             $campaign = new BoostComplete();

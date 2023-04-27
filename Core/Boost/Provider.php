@@ -15,11 +15,6 @@ class Provider extends Di\Provider
      */
     public function register()
     {
-        $this->di->bind('Boost\Repository', function ($di) {
-            return new Repository();
-        }, ['useFactory' => true]);
-
-        //
         $this->di->bind('Boost\LiquiditySpot\Manager', function ($di) {
             return new LiquiditySpot\Manager();
         });

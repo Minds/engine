@@ -4,7 +4,6 @@ namespace Spec\Minds\Core\Notifications;
 
 use Minds\Common\SystemUser;
 use Minds\Core\Boost\Network\Boost;
-use Minds\Entities\Boost\Peer;
 use Minds\Core\Config;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\Notifications\Manager;
