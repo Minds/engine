@@ -8,7 +8,6 @@ use Minds\Interfaces;
 use Minds\Entities\User;
 use Minds\Core\Email\EmailSubscribersIterator;
 use Minds\Core\Email\V2\Campaigns;
-use Minds\Core\Email\V2\Campaigns\Recurring\BoostComplete\BoostComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireSent\WireSent;
 use Minds\Core\Email\V2\Delegates\DigestSender;
