@@ -38,10 +38,6 @@ class Provider extends Di\Provider
             return new Network\Expire();
         }, ['useFactory' => false]);
 
-        $this->di->bind('Boost\Payment', function ($di) {
-            return new Payment();
-        }, ['useFactory' => true]);
-
         //
         $this->di->bind('Boost\LiquiditySpot\Manager', function ($di) {
             return new LiquiditySpot\Manager();
