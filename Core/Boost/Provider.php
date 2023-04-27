@@ -50,12 +50,6 @@ class Provider extends Di\Provider
             return new Content(Client::build('MongoDB'));
         }, ['useFactory' => true]);
 
-        $this->di->bind('Boost\Peer\Metrics', function ($di) {
-            return new Peer\Metrics(Client::build('MongoDB'));
-        }, ['useFactory' => false]);
-        $this->di->bind('Boost\Peer\Review', function ($di) {
-            return new Peer\Review();
-        }, ['useFactory' => false]);
         $this->di->bind('Boost\Payment', function ($di) {
             return new Payment();
         }, ['useFactory' => true]);
