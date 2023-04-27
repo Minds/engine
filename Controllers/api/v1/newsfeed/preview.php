@@ -61,7 +61,7 @@ class preview implements Interfaces\Api
     }
 
     /**
-     * Get Metadata from either metascraper or iframely.
+     * Get Metadata from metascraper.
      * @param string $url - url to get metadata for.
      * @return array - response ready array.
      */
