@@ -59,7 +59,7 @@ class Manager
      * @throws InvalidPaymentMethodException
      * @throws ServerErrorException
      */
-    public function createPaymentFromBoost(Boost $boost, float $paymentFee): PaymentDetails
+    public function createPaymentFromBoost(Boost $boost, float $paymentFee = 0): PaymentDetails
     {
         $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
         if (!$affiliateUserGuid && $this->user->getGuid() === $boost->getOwnerGuid()) {
@@ -98,7 +98,7 @@ class Manager
     public function createPaymentFromWire(
         Wire $wire,
         string $paymentTxId,
-        float $paymentFee,
+        float $paymentFee = 0,
         bool $isPlus = false,
         bool $isPro = false,
         ?Activity $sourceActivity = null
