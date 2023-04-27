@@ -166,46 +166,6 @@ class newsfeed implements Interfaces\Api
 
         $loadPrevious = $activity ? (string) current($activity)->guid : '';
 
-        if ($this->shouldPrependBoosts($pages)) {
-            try {
-                $limit = isset($_GET['access_token']) && $_GET['offset'] ? 2 : 1;
-                //$limit = 2;
-                $cacher = Core\Data\cache\factory::build('Redis');
-                $offset =  $cacher->get(Core\Session::getLoggedinUser()->guid . ':boost-offset:newsfeed');
-
-                /** @var Core\Boost\Network\Iterator $iterator */
-                $iterator = Core\Di\Di::_()->get('Boost\Network\Iterator');
-                $iterator->setPriority(!get_input('offset', ''))
-                    ->setType('newsfeed')
-                    ->setLimit($limit)
-                    ->setOffset($offset)
-                    //->setRating(0)
-                    ->setQuality(0)
-                    ->setIncrement(false);
-
-
-                foreach ($iterator as $guid => $boost) {
-                    $boost->boosted = true;
-                    $boost->boosted_guid = (string) $guid;
-                    array_unshift($activity, $boost);
-                    //if (get_input('offset')) {
-                    //bug: sometimes views weren't being calculated on scroll down
-                    //Counters::increment($boost->guid, "impression");
-                    //Counters::increment($boost->owner_guid, "impression");
-                    //}
-                }
-                $cacher->set(Core\Session::getLoggedinUser()->guid . ':boost-offset:newsfeed', $iterator->getOffset(), (3600 / 2));
-            } catch (\Exception $e) {
-            }
-
-            if (isset($_GET['thumb_guids'])) {
-                foreach ($activity as $id => $object) {
-                    unset($activity[$id]['thumbs:up:user_guids']);
-                    unset($activity[$id]['thumbs:down:user_guid']);
-                }
-            }
-        }
-
         if ($activity) {
             if (!$loadNext) {
                 $loadNext = (string) end($activity)->guid;
@@ -621,41 +581,5 @@ class newsfeed implements Interfaces\Api
         }
 
         return Factory::response(['status' => 'error', 'message' => 'could not delete']);
-    }
-
-    /**
-     * To show boosts or not
-     * @param array $pages
-     * @return bool
-     */
-    protected function shouldPrependBoosts($pages = [])
-    {
-        //Plus Users -> NO
-        $disabledBoost = Core\Session::getLoggedinUser()->plus && Core\Session::getLoggedinUser()->disabled_boost;
-        if ($disabledBoost) {
-            return false;
-        }
-
-        //Prepending posts -> NO
-        if (isset($_GET['prepend'])) {
-            return false;
-        }
-
-        //Not a network feed -> NO
-        if ($pages[0] != 'network') {
-            return false;
-        }
-
-        //Offset - YES
-        if (isset($_GET['offset']) && $_GET['offset']) {
-            return true;
-        }
-
-        //Mobile - YES
-        if (isset($_GET['access_token'])) {
-            return true;
-        }
-
-        return false;
     }
 }
