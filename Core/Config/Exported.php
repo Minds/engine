@@ -9,7 +9,6 @@
 namespace Minds\Core\Config;
 
 use Minds\Core\Blockchain\Manager as BlockchainManager;
-use Minds\Core\Boost\Network\Rates;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
@@ -46,7 +45,6 @@ class Exported
      * @param I18nManager               $i18n
      * @param BlockchainManager         $blockchain
      * @param ExperimentsManager        $experimentsManager
-     * @param Rates                     $boostRates
      */
     public function __construct(
         $config = null,
@@ -55,7 +53,6 @@ class Exported
         $blockchain = null,
         $proDomain = null,
         private ?ExperimentsManager $experimentsManager = null,
-        private ?Rates $boostRates = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
@@ -63,7 +60,6 @@ class Exported
         $this->blockchain = $blockchain ?: Di::_()->get('Blockchain\Manager');
         $this->proDomain = $proDomain ?: Di::_()->get('Pro\Domain');
         $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
-        $this->boostRates ??= Di::_()->get('Boost\Network\Rates');
     }
 
     /**
@@ -121,10 +117,6 @@ class Exported
                 'min_followers_for_sync' => $this->config->get('twitter')['min_followers_for_sync'] ?? 25000,
             ],
             'vapid_key' => $this->config->get("webpush_vapid_details")['public_key'],
-            'boost_rates' => [
-                'cash' => $this->boostRates->getUsdRate(),
-                'tokens' => $this->boostRates->getTokenRate()
-            ],
             'chatwoot' => [
                 'website_token' => $this->config->get('chatwoot')['website_token'],
                 'base_url' => $this->config->get('chatwoot')['base_url']
