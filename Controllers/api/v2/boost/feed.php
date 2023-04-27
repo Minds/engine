@@ -12,6 +12,9 @@ namespace Minds\Controllers\api\v2\boost;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 
+/**
+ * @deprecated
+ */
 class feed implements Interfaces\Api
 {
     /**
