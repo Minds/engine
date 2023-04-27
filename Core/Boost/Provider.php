@@ -28,9 +28,6 @@ class Provider extends Di\Provider
         $this->di->bind('Boost\Network\Manager', function ($di) {
             return new Network\Manager;
         }, ['useFactory' => false]);
-        $this->di->bind('Boost\Network\Metrics', function ($di) {
-            return new Network\Metrics();
-        }, ['useFactory' => false]);
 
         //
         $this->di->bind('Boost\LiquiditySpot\Manager', function ($di) {
