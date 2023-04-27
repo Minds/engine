@@ -2,9 +2,6 @@
 
 namespace Minds\Core\Boost;
 
-use Minds\Core\Boost\Network;
-use Minds\Core\Data;
-use Minds\Core\Data\Client;
 use Minds\Core\Di;
 
 /**
@@ -20,10 +17,6 @@ class Provider extends Di\Provider
     {
         $this->di->bind('Boost\Repository', function ($di) {
             return new Repository();
-        }, ['useFactory' => true]);
-
-        $this->di->bind('Boost\Network', function ($di) {
-            return new Network(Client::build('MongoDB'));
         }, ['useFactory' => true]);
 
         //
