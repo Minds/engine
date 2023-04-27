@@ -37,6 +37,7 @@ class GuidLinkResolver
     public function resolve(string $guid): ?string
     {
         // Lookup entity link so an entity guid should return a linked Activity guid.
+        // Note: entities made post multi-image will have their activity stored as their container guid.
         $linkedActivities = $this->db->getRow("activity:entitylink:{$guid}");
 
         if (count($linkedActivities)) {

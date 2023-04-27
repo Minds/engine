@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Core\Events\Dispatcher;
 use Minds\Entities\Activity;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 
 class Events
 {
@@ -16,7 +17,7 @@ class Events
     /** @var Paywall\Manager */
     private $paywallManager;
 
-    public function __construct($supportTiersManager = null, $paywallManager = null)
+    public function __construct($supportTiersManager = null, $paywallManager = null, private ?ExperimentsManager $experimentsManager = null)
     {
         $this->supportTiersManager = $supportTiersManager;
         $this->paywallManager = $paywallManager;
@@ -66,8 +67,12 @@ class Events
             if ($activity->isPaywall() && $activity->owner_guid != $currentUser) {
                 $export['blurb'] = $this->extractTeaser($activity->blurb);
 
-                // don't export teaser for status posts
-                if (!$this->isStatusPost($activity)) {
+                $paywallContextExperimentOn = $this->getExperimentsManager()
+                    ->setUser(Session::getLoggedInUser())
+                    ->isOn('minds-3857-paywall-context');
+
+                // Only export teaser for non-status posts and users in the experiment
+                if (!$this->isStatusPost($activity) && $paywallContextExperimentOn) {
                     $export['message'] = $this->extractTeaser($activity->message);
                 } else {
                     $export['message'] = null;
@@ -221,6 +226,11 @@ class Events
 
     private function isStatusPost($activity)
     {
-        return !$activity->custom_type && !$activity->perma_url && !$activity->remind_object && !($activity instanceof Activity && $activity->hasAttachments());
+        return !$activity->custom_type && !$activity->perma_url && !$activity->remind_object && (!($activity instanceof Activity && $activity->hasAttachments()));
+    }
+
+    private function getExperimentsManager(): ExperimentsManager
+    {
+        return $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 }
