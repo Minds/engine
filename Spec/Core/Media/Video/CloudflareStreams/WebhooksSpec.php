@@ -69,7 +69,7 @@ class WebhooksSpec extends ObjectBehavior
             ->shouldBe('cf-secret');
     }
 
-    public function it_should_list_to_webhook_hit(ServerRequest $request)
+    public function it_should_listen_to_webhook_hit(ServerRequest $request)
     {
         $this->config->get('cloudflare')
             ->willReturn(['webhook_secret' => 'cf-signature']);
@@ -108,5 +108,45 @@ class WebhooksSpec extends ObjectBehavior
         $this->acl->setIgnore(null)->shouldBeCalled();
 
         $this->onWebhook($request);
+    }
+
+    public function it_should_listen_to_webhook_hit_and_bypass_auth_if_specified(ServerRequest $request)
+    {
+        $this->config->get('cloudflare')
+            ->shouldNotBeCalled();
+
+        $requestBody = json_encode([
+                'meta' => [
+                    'guid' => '123'
+                ],
+                'input' => [
+                    'width' => 1280,
+                    'height' => 1960
+                ],
+                'status' => [
+                    'state' => 'ready',
+                ]
+            ]);
+
+        $request->getBody()->willReturn($requestBody);
+
+        $request->getParsedBody()->willReturn(json_decode($requestBody, true));
+
+     
+        $request->getHeader('Webhook-Signature')
+            ->shouldNotBeCalled();
+
+        $this->entitiesBuilder->single('123')
+            ->willReturn(new Video());
+
+        $this->save->setEntity(Argument::type(Video::class))
+            ->willReturn($this->save);
+
+        $this->save->save()->shouldBeCalled();
+
+        $this->acl->setIgnore(true)->shouldBeCalled();
+        $this->acl->setIgnore(null)->shouldBeCalled();
+
+        $this->onWebhook($request, true);
     }
 }
