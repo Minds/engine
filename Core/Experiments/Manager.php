@@ -186,27 +186,16 @@ class Manager
     }
 
     /**
-     * Gets User ID for experiments. Will get either the users logged in guid, the experimentsId via cookie,
-     * or generate a unique ID and store it in a cookie.
-     * @return string - user id for experiments.
+     * Gets User ID for experiments. Will get either the users logged in guid,
+     * a present experiment cookie value, or generate a unique ID and store it
+     * in the experiment cookie.
+     * @return string|null - user id for experiments.
      */
-    public function getUserId(): string
+    public function getUserId(): ?string
     {
-        if ($this->getUser()) {
-            return $this->getUser()->getGuid();
-        }
-
-        // if cookie exists, return it's value as the id.
-        $experimentsIdCookie = $this->cookieManager->get();
-
-        if ($experimentsIdCookie) {
-            return $experimentsIdCookie;
-        }
-
-        // else if no user - generate an ID, store it in a cookie.
-        $id = uniqid('exp-', true);
-        $this->cookieManager->set($id);
-        return $id;
+        return $this->getUser() ?
+            $this->getUser()->getGuid() :
+            null;
     }
 
     /**
@@ -235,15 +224,14 @@ class Manager
     }
 
     /**
-     * Gets key for cache such that it is unique to a user and the experiment being ran.
+     * Gets key for cache such that it is unique to an experiment cookie value and the experiment being ran.
      * @param string $experimentId - id of the experiment.
-     * @param User|null $user - user we are running experiment for.
      * @return string - cache key.
      */
     private function getTrackingCacheKey(string $experimentId): string
     {
-        $userId = $this->getUserId();
-        return 'growthbook-experiment-view::'.$userId.'::'.$experimentId;
+        $experimentCookieValue = $this->getExperimentCookieValue();
+        return 'growthbook-experiment-view::'.$experimentCookieValue.'::'.$experimentId;
     }
 
     /**
@@ -270,6 +258,7 @@ class Manager
     {
         $attributes = [
             'id' => $this->getUserId(),
+            'deviceId' => $this->getExperimentCookieValue(),
             'loggedIn' => !!$this->getUser(),
             'route' => $_SERVER['HTTP_REFERER'] ?? '',
             'api_path' => strtok($_SERVER['REQUEST_URI'] ?? '', '?') ?? '',
@@ -281,6 +270,25 @@ class Manager
         }
 
         return $attributes;
+    }
+
+    /**
+     * Gets value of experiment cookie or generates a new one if
+     * one is not present.
+     * @return string value of experiments cookie.
+     */
+    private function getExperimentCookieValue(): string
+    {
+        // if cookie exists, return it's value as the id.
+        $experimentsIdCookie = $this->cookieManager->get();
+        if ($experimentsIdCookie) {
+            return $experimentsIdCookie;
+        }
+
+        // else if no user - generate an ID, store it in a cookie.
+        $id = uniqid('exp-', true);
+        $this->cookieManager->set($id);
+        return $id;
     }
 
     /**
