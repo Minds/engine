@@ -180,49 +180,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         }
     }
 
-    public function testBoostComplete()
-    {
-        $output = $this->getOpt('output');
-        $entityGuid = $this->getOpt('guid');
-        $boostType = $this->getOpt('type');
-        $send = $this->getOpt('send');
-
-        $manager = Di::_()->get('Boost\Network\Manager');
-
-        if (!$entityGuid) {
-            $this->out('--guid=boost guid required');
-            exit;
-        }
-
-        if (!$boostType) {
-            $this->out('--type=boost type required');
-            exit;
-        }
-
-        $boost = $manager->get("urn:boost:{$boostType}:{$entityGuid}", ['hydrate' => true]);
-
-        if (!$boost) {
-            $this->out('Boost not found');
-            exit;
-        }
-
-        $campaign = (new BoostComplete())
-            ->setUser($boost->getOwner())
-            ->setBoost($boost->export());
-
-        $message = $campaign->build();
-
-        if ($send) {
-            Core\Events\Dispatcher::trigger('boost:completed', 'boost', ['boost' => $boost]);
-        }
-
-        if ($output) {
-            file_put_contents($output, $message->buildHtml());
-        } else {
-            $this->out($message->buildHtml());
-        }
-    }
-
     /**
      * Example usage:
      *  php cli.php Email testModerationBanned

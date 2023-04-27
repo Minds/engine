@@ -16,21 +16,12 @@ use Minds\Entities\Boost\BoostEntityInterface;
 class BoostGuidResolverDelegate implements ResolverDelegate
 {
     /**
-     * @var Manager
-     */
-    protected $manager;
-
-    /**
      * BoostGuidResolverDelegate constructor.
-     * @param Manager $manager
      * @param BoostManagerV3 $managerV3
      */
     public function __construct(
-        $manager = null,
         private ?BoostManagerV3 $managerV3 = null,
-    ) {
-        $this->manager = $manager ?: Di::_()->get('Boost\Network\Manager');
-    }
+    ) {}
 
     /**
      * @param Urn $urn
@@ -52,9 +43,8 @@ class BoostGuidResolverDelegate implements ResolverDelegate
 
         foreach ($urns as $urn) {
             /** @var BoostEntityInterface $boost */
-            $boost = $this->isLegacyUrn($urn) ?
-                $this->manager->get($urn, [ 'hydrate' => true ]) :
-                $this->getBoostManagerV3()->getBoostByGuid(end(explode(':', $urn)));
+            $boost = $this->getBoostManagerV3()->getBoostByGuid(end(explode(':', $urn)));
+
             if ($boost) {
                 $entities[] = $boost;
             }

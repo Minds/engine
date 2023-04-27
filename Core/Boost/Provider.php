@@ -25,9 +25,6 @@ class Provider extends Di\Provider
         $this->di->bind('Boost\Network', function ($di) {
             return new Network(Client::build('MongoDB'));
         }, ['useFactory' => true]);
-        $this->di->bind('Boost\Network\Manager', function ($di) {
-            return new Network\Manager;
-        }, ['useFactory' => false]);
 
         //
         $this->di->bind('Boost\LiquiditySpot\Manager', function ($di) {
