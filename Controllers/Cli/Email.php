@@ -11,7 +11,6 @@ use Minds\Core\Email\V2\Campaigns;
 use Minds\Core\Email\V2\Campaigns\Recurring\BoostComplete\BoostComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireSent\WireSent;
-use Minds\Core\Email\V2\Delegates\ConfirmationSender;
 use Minds\Core\Email\V2\Delegates\DigestSender;
 use Minds\Core\Reports;
 use Minds\Core\Blockchain\Purchase\Delegates\IssuedTokenEmail;
@@ -222,19 +221,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         } else {
             $this->out($message->buildHtml());
         }
-    }
-
-    public function testConfirmationEmail()
-    {
-        $userGuid = $this->getOpt('guid');
-        // $output = $this->getOpt('output');
-        // $send = $this->getOpt('send');
-
-        $user = new User($userGuid);
-        $sender = new ConfirmationSender();
-        $sender->send($user);
-
-        $this->out('sent');
     }
 
     /**

@@ -80,7 +80,7 @@ class Register
                 $emailConfirmation = Di::_()->get('Email\Confirmation');
                 $emailConfirmation
                     ->setUser($params['user'])
-                    ->sendEmail();
+                    ->generateConfirmationToken();
             } catch (\Exception $e) {
                 error_log((string) $e);
             }
