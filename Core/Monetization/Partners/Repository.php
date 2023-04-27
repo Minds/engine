@@ -184,7 +184,7 @@ class Repository
         ];
 
         $items = array_map(
-            function(string $value) use (&$values): string {
+            function (string $value) use (&$values): string {
                 $values[] = $value;
                 return "item = ?";
             },

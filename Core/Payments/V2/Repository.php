@@ -249,7 +249,7 @@ class Repository
             foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $affiliate) {
                 yield $affiliate;
             }
-        } catch(PDOException $e) {
+        } catch (PDOException $e) {
             throw new ServerErrorException("An error occurred whilst retrieving affiliates earnings");
         }
     }

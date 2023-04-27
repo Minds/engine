@@ -12,7 +12,7 @@ class Provider extends DiProvider
 {
     public function register(): void
     {
-        $this->di->bind(Controller::class, function(Di $di): Controller {
+        $this->di->bind(Controller::class, function (Di $di): Controller {
             return new Controller();
         });
 

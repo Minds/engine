@@ -10,7 +10,6 @@ use Minds\Core\Router\Route;
 
 class Routes extends ModuleRoutes
 {
-
     public function register(): void
     {
         $this->route
