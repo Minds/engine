@@ -1,10 +1,9 @@
 <?php
 /**
  * Boost Fetch
- *
  * @version 2
  * @author emi
- *
+ * @deprecated
  */
 
 namespace Minds\Controllers\api\v2\boost;
@@ -12,9 +11,6 @@ namespace Minds\Controllers\api\v2\boost;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 
-/**
- * @deprecated
- */
 class fetch implements Interfaces\Api
 {
     /**

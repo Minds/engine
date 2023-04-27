@@ -1,18 +1,12 @@
 <?php
 /**
  * Minds Boost Api endpoint
- *
  * @version 1
  * @author Mark Harding
  * @deprecated
  */
 namespace Minds\Controllers\api\v2\boost;
 
-use Minds\Core;
-use Minds\Core\Di\Di;
-use Minds\Core\Util\BigNumber;
-use Minds\Helpers;
-use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 
