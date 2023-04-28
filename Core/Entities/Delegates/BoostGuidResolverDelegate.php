@@ -21,7 +21,8 @@ class BoostGuidResolverDelegate implements ResolverDelegate
      */
     public function __construct(
         private ?BoostManagerV3 $managerV3 = null,
-    ) {}
+    ) {
+    }
 
     /**
      * @param Urn $urn

@@ -4,7 +4,7 @@
  *
  * @version 2
  * @author Mark Harding
- * @deprecated 
+ * @deprecated
  */
 
 namespace Minds\Controllers\api\v2;
@@ -44,7 +44,7 @@ class boost implements Interfaces\Api
      * @param array $pages
      */
     public function delete($pages)
-    {           
+    {
         return Factory::response([]);
     }
 }

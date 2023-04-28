@@ -23,7 +23,7 @@ class feed implements Interfaces\Api
     {
         return Factory::response([
             'boosts' => [],
-        ]);     
+        ]);
     }
 
     /**
