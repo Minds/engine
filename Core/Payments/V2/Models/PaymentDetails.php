@@ -17,7 +17,6 @@ class PaymentDetails implements ExportableInterface
     public ?int $paymentStatus = PaymentStatus::NOT_APPLICABLE;
     public int $paymentMethod;
     public int $paymentAmountMillis;
-    public int $paymentFeeMillis;
     public ?int $refundedAmountMillis = null;
     public ?bool $isCaptured = false;
     public ?string $paymentTxId = null;
@@ -86,7 +85,6 @@ class PaymentDetails implements ExportableInterface
             'payment_status' => $this->paymentStatus ?? PaymentStatus::NOT_APPLICABLE,
             'payment_method' => $this->paymentMethod,
             'payment_amount_millis' => $this->paymentAmountMillis,
-            'payment_fee_millis' => $this->paymentFeeMillis,
             'refunded_amount_millis' => $this->refundedAmountMillis,
             'is_captured' => $this->isCaptured,
             'payment_tx_id' => $this->paymentTxId,

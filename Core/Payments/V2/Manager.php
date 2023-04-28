@@ -54,12 +54,11 @@ class Manager
 
     /**
      * @param Boost $boost
-     * @param float $paymentFee
      * @return PaymentDetails
      * @throws InvalidPaymentMethodException
      * @throws ServerErrorException
      */
-    public function createPaymentFromBoost(Boost $boost, float $paymentFee = 0): PaymentDetails
+    public function createPaymentFromBoost(Boost $boost): PaymentDetails
     {
         $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
         if (!$affiliateUserGuid && $this->user->getGuid() === $boost->getOwnerGuid()) {
@@ -75,7 +74,6 @@ class Manager
             'paymentType' => PaymentType::BOOST_PAYMENT,
             'paymentMethod' => PaymentMethod::getValidatedPaymentMethod($boost->getPaymentMethod()),
             'paymentAmountMillis' => (int) ($boost->getPaymentAmount() * 1000), // In dollars, so multiply by 1000
-            'paymentFeeMillis' => (int) ($paymentFee * 1000),
             'paymentTxId' => $boost->getPaymentTxId(),
         ]);
 
@@ -87,7 +85,6 @@ class Manager
     /**
      * @param Wire $wire
      * @param string $paymentTxId
-     * @param float $paymentFee
      * @param bool $isPlus
      * @param bool $isPro
      * @param Activity|null $sourceActivity
@@ -98,7 +95,6 @@ class Manager
     public function createPaymentFromWire(
         Wire $wire,
         string $paymentTxId,
-        float $paymentFee = 0,
         bool $isPlus = false,
         bool $isPro = false,
         ?Activity $sourceActivity = null
@@ -134,7 +130,6 @@ class Manager
             'paymentType' => $paymentType,
             'paymentMethod' => PaymentMethod::getValidatedPaymentMethod(PaymentMethod::CASH),
             'paymentAmountMillis' => (int) ($wire->getAmount() * 10), // Already in cents, so multiply by 10
-            'paymentFeeMillis' => (int) ($paymentFee * 10),
             'paymentTxId' => $paymentTxId,
             'isCaptured' => true
         ]);

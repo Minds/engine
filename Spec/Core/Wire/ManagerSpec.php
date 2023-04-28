@@ -317,7 +317,6 @@ class ManagerSpec extends ObjectBehavior
         $this->paymentsManager->createPaymentFromWire(
             wire: Argument::type(WireModel::class),
             paymentTxId: "trial-id",
-            paymentFee: Argument::any(),
             isPlus: true,
             isPro: false,
             sourceActivity: null
@@ -376,7 +375,6 @@ class ManagerSpec extends ObjectBehavior
         $this->paymentsManager->createPaymentFromWire(
             wire: Argument::type(WireModel::class),
             paymentTxId: "trial-id",
-            paymentFee: Argument::any(),
             isPlus: true,
             isPro: false,
             sourceActivity: null
@@ -437,7 +435,6 @@ class ManagerSpec extends ObjectBehavior
         $this->paymentsManager->createPaymentFromWire(
             wire: Argument::type(WireModel::class),
             paymentTxId: "123",
-            paymentFee: Argument::any(),
             isPlus: true,
             isPro: false,
             sourceActivity: null
@@ -503,7 +500,6 @@ class ManagerSpec extends ObjectBehavior
         $this->paymentsManager->createPaymentFromWire(
             wire: Argument::type(WireModel::class),
             paymentTxId: "123",
-            paymentFee: Argument::any(),
             isPlus: false,
             isPro: false,
             sourceActivity: null
@@ -582,7 +578,6 @@ class ManagerSpec extends ObjectBehavior
         $this->paymentsManager->createPaymentFromWire(
             wire: Argument::type(WireModel::class),
             paymentTxId: "123",
-            paymentFee: Argument::any(),
             isPlus: false,
             isPro: false,
             sourceActivity: null
@@ -646,7 +641,6 @@ class ManagerSpec extends ObjectBehavior
         $this->paymentsManager->createPaymentFromWire(
             wire: Argument::type(WireModel::class),
             paymentTxId: "123",
-            paymentFee: Argument::any(),
             isPlus: true,
             isPro: false,
             sourceActivity: null
@@ -709,7 +703,6 @@ class ManagerSpec extends ObjectBehavior
         $this->paymentsManager->createPaymentFromWire(
             wire: Argument::type(WireModel::class),
             paymentTxId: "123",
-            paymentFee: Argument::any(),
             isPlus: false,
             isPro: true,
             sourceActivity: null

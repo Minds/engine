@@ -19,6 +19,9 @@ use Selective\Database\RawExp;
 
 class Repository
 {
+    /** @var int */
+    const AFFILIATE_SHARE_PCT = 45; // 45%
+
     private PDO $mysqlClientReader;
     private PDO $mysqlClientWriter;
     private Connection $mysqlClientWriterHandler;
@@ -61,7 +64,6 @@ class Repository
                 'payment_type' => new RawExp(':payment_type'),
                 'payment_method' => new RawExp(':payment_method'),
                 'payment_amount_millis' => new RawExp(':payment_amount_millis'),
-                'payment_fee_millis' => new RawExp(':payment_fee_millis'),
                 'payment_tx_id' => new RawExp(':payment_tx_id'),
                 'is_captured' => new RawExp(':is_captured'),
                 'payment_status' => PaymentStatus::PENDING
@@ -75,7 +77,6 @@ class Repository
             'payment_type' => $paymentDetails->paymentType,
             'payment_method' => $paymentDetails->paymentMethod,
             'payment_amount_millis' => $paymentDetails->paymentAmountMillis,
-            'payment_fee_millis' => $paymentDetails->paymentFeeMillis,
             'payment_tx_id' => $paymentDetails->paymentTxId,
             'is_captured' => $paymentDetails->isCaptured
         ];
@@ -191,16 +192,21 @@ class Repository
     }
 
     /**
+     * Returns affiliates earnings
      * @throws ServerErrorException
      */
     public function getPaymentsAffiliatesEarnings(PaymentOptions $options): Iterator
     {
+        $sharePct = self::AFFILIATE_SHARE_PCT / 100;
+    
+        $paymentFeePct = 0.029; // 2.9%
+        $paymentFeeMillis = 300; // $0.30
+
         $values = [];
         $statement = $this->mysqlClientReaderHandler->select()
             ->columns([
-                'user_guid',
                 'affiliate_user_guid',
-                'total_earnings_millis' => new RawExp('SUM((payment_amount_millis - payment_fee_millis) * 0.45)')
+                'total_earnings_millis' => new RawExp("SUM((payment_amount_millis - ((payment_amount_millis * $paymentFeePct) - $paymentFeeMillis)) * $sharePct)")
             ])
             ->from('minds_payments')
             ->where('updated_timestamp', Operator::GTE, date('c', $options->getFromTimestamp()));

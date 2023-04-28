@@ -42,7 +42,11 @@ class Manager
     /** @var int */
     const WIRE_REFERRAL_SHARE_PCT = 50; // 50%
 
+    /** @var int */
     const BOOST_PARTNER_REVENUE_SHARE_PCT = BoostPartnersManager::REVENUE_SHARE_PCT; // 50%
+
+    /** @var int */
+    const AFFILIATE_REFERRER_SHARE_PCT = 5; // 5%
 
     /** @var int */
     const MIN_PAYOUT_CENTS = 10000; // $100 USD
@@ -350,10 +354,14 @@ class Manager
         }
     }
 
+    /**
+     * Calculates and issues affilite earnings
+     * Cash only.
+     * @param array $opts
+     * @return iterable
+     */
     public function issueAffiliateDeposits(array $opts): iterable
     {
-        $timestamp = $opts['from'];
-
         $paymentOptions = (new PaymentOptions())
             ->setWithAffiliate(true)
             ->setFromTimestamp($opts['from'])
@@ -370,23 +378,29 @@ class Manager
 
         $referrersDeposits = [];
 
+        /**
+         * Iterate through sum of affiliate earnings for time period and deposit
+         * Builds in memory $referrersDeposits
+         */
         foreach ($this->paymentsManager->getPaymentsAffiliatesEarnings($paymentOptions) as $item) {
             $deposit = (new EarningsDeposit())
                 ->setTimestamp($opts['from'])
                 ->setUserGuid($item['affiliate_user_guid'])
-                ->setAmountCents($item['total_earnings_millis'] / 1000)
+                ->setAmountCents($item['total_earnings_millis'] / 10)
                 ->setItem('affiliate');
 
+            // Save the deposit
             $this->repository->add($deposit);
 
+            // Build the affiliate to see if they have a referrer themselves
             $affiliateUser = $this->entitiesBuilder->single($item['affiliate_user_guid']);
 
-            if ($affiliateUser instanceof User && !empty($affiliateUser->referrer) && ((time() - $affiliateUser->time_created) < 365 * 86400)) {
+            if ($affiliateUser instanceof User && !empty($affiliateUser->referrer) && ((time() - $affiliateUser->time_created) < 3650 * 86400)) {
                 if (!isset($referrersDeposits[$affiliateUser->referrer])) {
                     $referrersDeposits[$affiliateUser->getGuid()] = 0;
                 }
 
-                $referrersDeposits[$affiliateUser->referrer] += $item['total_earnings_millis'] * 0.05;
+                $referrersDeposits[$affiliateUser->referrer] += $item['total_earnings_millis'] * (self::AFFILIATE_REFERRER_SHARE_PCT / 100);
             }
 
             yield $deposit;
@@ -395,17 +409,21 @@ class Manager
                 continue;
             }
 
-
+            // Emit event
             $this->depositsDelegate->onIssueAffiliateDeposit($affiliateUser);
         }
 
+        /**
+         * Iterate through in memory $referrersDeposits and issue the deposit
+         */
         foreach ($referrersDeposits as $referrerGuid => $referrersDepositAmountMillis) {
             $deposit = (new EarningsDeposit())
                 ->setTimestamp($opts['from'])
                 ->setUserGuid($referrerGuid)
-                ->setAmountCents($referrersDepositAmountMillis / 1000)
+                ->setAmountCents($referrersDepositAmountMillis / 10)
                 ->setItem('affiliate_referrer');
 
+            // Save the deposit
             $this->repository->add($deposit);
 
             yield $deposit;
@@ -416,7 +434,7 @@ class Manager
                 continue;
             }
 
-
+            // Emit event
             $this->depositsDelegate->onIssueAffiliateReferrerDeposit($referrer);
         }
     }

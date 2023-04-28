@@ -274,7 +274,6 @@ class ManagerSpec extends ObjectBehavior
         $this->createPaymentFromWire(
             wire: $wire,
             paymentTxId: "",
-            paymentFee: 0,
             isPlus: true,
             isPro: false,
             sourceActivity: null
@@ -316,7 +315,6 @@ class ManagerSpec extends ObjectBehavior
         $this->createPaymentFromWire(
             wire: $wire,
             paymentTxId: "",
-            paymentFee: 0,
             isPlus: true,
             isPro: false,
             sourceActivity: null
@@ -366,7 +364,6 @@ class ManagerSpec extends ObjectBehavior
         $this->createPaymentFromWire(
             wire: $wire,
             paymentTxId: "",
-            paymentFee: 0,
             isPlus: true,
             isPro: false,
             sourceActivity: null
@@ -416,7 +413,6 @@ class ManagerSpec extends ObjectBehavior
         $this->createPaymentFromWire(
             wire: $wire,
             paymentTxId: "",
-            paymentFee: 0,
             isPlus: true,
             isPro: false,
             sourceActivity: null

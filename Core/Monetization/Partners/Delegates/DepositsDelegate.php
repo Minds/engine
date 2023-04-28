@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Monetization\Partners\Delegates;
 
+use Minds\Common\SystemUser;
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
@@ -24,7 +25,8 @@ class DepositsDelegate
     public function onIssueAffiliateDeposit(User $affiliate) : void
     {
         $event = (new ActionEvent())
-            ->setUser($affiliate)
+            ->setUser(new SystemUser)
+            ->setEntity($affiliate)
             ->setAction(ActionEvent::ACTION_AFFILIATE_EARNINGS_DEPOSITED)
             ->setTimestamp(time());
 
@@ -39,7 +41,8 @@ class DepositsDelegate
     public function onIssueAffiliateReferrerDeposit(User $referrer) : void
     {
         $event = (new ActionEvent())
-            ->setUser($referrer)
+            ->setUser(new SystemUser)
+            ->setEntity($referrer)
             ->setAction(ActionEvent::ACTION_REFERRER_AFFILIATE_EARNINGS_DEPOSITED)
             ->setTimestamp(time());
 

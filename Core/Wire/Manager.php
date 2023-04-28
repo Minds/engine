@@ -385,8 +385,6 @@ class Manager
                     ->setStatementDescriptor($statementDescriptor)
                     ->setDescription($description);
 
-                $paymentFee = $intent->getServiceFee();
-
                 // Charge stripe
                 $intent = $this->stripeIntentsManager->add($intent);
 
@@ -398,7 +396,6 @@ class Manager
                 $paymentDetails = $this->paymentsManager->createPaymentFromWire(
                     wire: $wire,
                     paymentTxId: $intent->getId(),
-                    paymentFee: $paymentFee,
                     isPlus: $isPlusPayment,
                     isPro: $isProPayment,
                     sourceActivity: $this->sourceEntity

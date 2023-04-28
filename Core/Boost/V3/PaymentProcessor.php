@@ -71,10 +71,9 @@ class PaymentProcessor
             BoostPaymentMethod::ONCHAIN_TOKENS => throw new ServerErrorException("Onchain transactions are processed client-side"),
             default => throw new InvalidBoostPaymentMethodException()
         };
-        $paymentFee = $result instanceof PaymentIntent ? $result->getServiceFee() : 0;
         $paymentDetails = $this->paymentsManager
             ->setUser($user)
-            ->createPaymentFromBoost($boost, $paymentFee);
+            ->createPaymentFromBoost($boost);
 
         $boost->setPaymentGuid($paymentDetails->paymentGuid);
 
