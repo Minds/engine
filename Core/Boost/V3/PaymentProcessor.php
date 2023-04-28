@@ -85,7 +85,7 @@ class PaymentProcessor
      * @return bool
      * @throws Exception
      */
-    private function setupCashPaymentIntent(Boost $boost): PaymentIntent
+    private function setupCashPaymentIntent(Boost $boost): bool
     {
         try {
             $paymentIntent = (new PaymentIntent())
@@ -111,7 +111,7 @@ class PaymentProcessor
 
             $boost->setPaymentTxId($intent->getId());
 
-            return $paymentIntent;
+            return true;
         } catch (Exception $e) {
             throw new BoostCashPaymentSetupFailedException();
         }
