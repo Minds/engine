@@ -7,6 +7,7 @@ use Minds\Core\Email\Confirmation\Manager as EmailConfirmationManager;
 use Minds\Core\Email\V2\Campaigns\Recurring\TwoFactor\TwoFactor as TwoFactorEmail;
 use Minds\Core\Log\Logger;
 use Minds\Core\Security\TwoFactor as TwoFactorService;
+use Minds\Core\Security\TwoFactor\Bypass\Manager as BypassManager;
 use Minds\Core\Security\TwoFactor\Store\TwoFactorSecret;
 use Minds\Core\Security\TwoFactor\Store\TwoFactorSecretStore;
 use Minds\Core\Security\TwoFactor\Store\TwoFactoSecretStoreInterface;
@@ -33,13 +34,15 @@ class EmailDelegate implements TwoFactorDelegateInterface
         private ?Logger $logger = null,
         private ?TwoFactorEmail $twoFactorEmail = null,
         private ?TwoFactoSecretStoreInterface $twoFactorSecretStore = null,
-        private ?EmailConfirmationManager $emailConfirmation = null
+        private ?EmailConfirmationManager $emailConfirmation = null,
+        private ?BypassManager $bypassManager = null
     ) {
         $this->twoFactorService ??= new TwoFactorService();
         $this->logger ??= Di::_()->get('Logger');
         $this->twoFactorEmail ??= new TwoFactorEmail();
         $this->twoFactorSecretStore ??= new TwoFactorSecretStore();
         $this->emailConfirmation ??= Di::_()->get('Email\Confirmation');
+        $this->bypassManager ??= Di::_()->get(BypassManager::class);
     }
 
     /**
@@ -95,7 +98,15 @@ class EmailDelegate implements TwoFactorDelegateInterface
     {
         $request = ServerRequestFactory::fromGlobals();
         $key = $request->getHeader('X-MINDS-EMAIL-2FA-KEY')[0] ?? '';
-        
+
+        if ($this->bypassManager->canBypass($code)) {
+            if (!$user->isTrusted()) {
+                $this->emailConfirmation->approveConfirmation($user);
+            }
+            $this->twoFactorSecretStore->delete($key);
+            return;
+        }
+
         /** @var TwoFactorSecret */
         $storedSecretObject = $this->twoFactorSecretStore->getByKey($key);
 
