@@ -37,6 +37,7 @@ class preview implements Interfaces\Api
         try {
             $meta = $this->getMetadata($url);
         } catch (\Exception $e) {
+            Di::_()->get('Logger')->error($e);
             return Factory::response([
                 'status' => 'error',
                 'message' => 'An unknown error has occurred'
