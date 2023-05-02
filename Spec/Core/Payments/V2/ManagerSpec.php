@@ -263,6 +263,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(1);
 
+        $wire->getTrialDays()
+            ->willReturn(0);
+
         $this->repositoryMock->createPayment(
             Argument::that(
                 function (PaymentDetails $paymentDetails): bool {
@@ -272,11 +275,11 @@ class ManagerSpec extends ObjectBehavior
         )->shouldBeCalledOnce();
 
         $this->createPaymentFromWire(
-            $wire,
-            "",
-            true,
-            false,
-            null
+            wire: $wire,
+            paymentTxId: "",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
         );
     }
 
@@ -304,6 +307,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(1.23);
 
+        $wire->getTrialDays()
+            ->willReturn(0);
+
         $this->repositoryMock->createPayment(
             Argument::that(
                 function (PaymentDetails $paymentDetails): bool {
@@ -313,11 +319,11 @@ class ManagerSpec extends ObjectBehavior
         )->shouldBeCalledOnce();
 
         $this->createPaymentFromWire(
-            $wire,
-            "",
-            true,
-            false,
-            null
+            wire: $wire,
+            paymentTxId: "",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
         );
     }
 
@@ -353,6 +359,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(1);
 
+        $wire->getTrialDays()
+            ->willReturn(0);
+
         $this->repositoryMock->createPayment(
             Argument::that(
                 function (PaymentDetails $paymentDetails): bool {
@@ -362,11 +371,11 @@ class ManagerSpec extends ObjectBehavior
         )->shouldBeCalledOnce();
 
         $this->createPaymentFromWire(
-            $wire,
-            "",
-            true,
-            false,
-            null
+            wire: $wire,
+            paymentTxId: "",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
         );
     }
 
@@ -402,6 +411,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(1);
 
+        $wire->getTrialDays()
+            ->willReturn(0);
+
         $this->repositoryMock->createPayment(
             Argument::that(
                 function (PaymentDetails $paymentDetails): bool {
@@ -411,11 +423,11 @@ class ManagerSpec extends ObjectBehavior
         )->shouldBeCalledOnce();
 
         $this->createPaymentFromWire(
-            $wire,
-            "",
-            true,
-            false,
-            null
+            wire: $wire,
+            paymentTxId: "",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
         );
     }
 }

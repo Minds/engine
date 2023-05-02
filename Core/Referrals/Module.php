@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Referrals module
  */
@@ -12,9 +13,10 @@ class Module implements ModuleInterface
     /**
      * OnInit.
      */
-    public function onInit()
+    public function onInit(): void
     {
         $provider = new Provider();
         $provider->register();
+        (new Routes())->register();
     }
 }

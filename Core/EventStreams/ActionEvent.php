@@ -124,6 +124,9 @@ class ActionEvent implements EventInterface
     /** @var string */
     const ACTION_CLICK = 'click';
 
+    public const ACTION_AFFILIATE_EARNINGS_DEPOSITED = "affiliate_earnings_deposited";
+    public const ACTION_REFERRER_AFFILIATE_EARNINGS_DEPOSITED = "referrer_affiliate_earnings_deposited";
+
     /** @var string */
     protected $action;
 
@@ -224,6 +227,9 @@ class ActionEvent implements EventInterface
             case self::ACTION_USER_VERIFICATION_PUSH_NOTIFICATION:
                 break;
             case self::ACTION_CLICK:
+                break;
+            case self::ACTION_AFFILIATE_EARNINGS_DEPOSITED:
+            case self::ACTION_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
                 break;
             default:
                 throw new \Exception("Invalid action set. Ensure allowedKeys are set in ActionEvent model");
