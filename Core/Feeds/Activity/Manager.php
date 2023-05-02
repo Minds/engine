@@ -313,6 +313,10 @@ class Manager
             );
         }
 
+        if (!$activity->isQuotedPost()) {
+            throw new UserErrorException('Supermind replies must contain content');
+        }
+
         $this->supermindManager->setUser(Session::getLoggedinUser());
 
         $isSupermindReplyProcessed = $this->supermindManager->acceptSupermindRequest($supermindDetails['supermind_reply_guid']);
@@ -517,10 +521,16 @@ class Manager
      * Assert that the string lengths are within valid bounds.
      * @param Activity $activity - activity to check.
      * @throws StringLengthValidator - if the string lengths are invalid.
+     * @throws UserErrorException - if activity does not have a message or attachments.
      * @return boolean true if the string lengths are within valid bounds.
      */
     private function validateStringLengths(Activity $activity): bool
     {
+        // If not a remind, MUST have either attachments, thumbnail, a message or a title.
+        $hasText = strlen($activity->getMessage()) > 0 || strlen($activity->getTitle()) > 0;
+        if (!$activity->isRemind() && !$activity->hasAttachments() && !$activity->getThumbnail() && !$hasText) {
+            throw new UserErrorException('Activities must have either attachments, a thumbnail or a message');
+        }
         // @throws StringLengthException
         $this->messageLengthValidator->validate($activity->getMessage() ?? '', nameOverride: 'post');
         $this->titleLengthValidator->validate($activity->getTitle() ?? '');

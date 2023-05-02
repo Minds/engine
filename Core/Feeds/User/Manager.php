@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Feeds\User;
 
+use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Entities\User;
@@ -19,9 +20,11 @@ class Manager
      * @param ElasticManager|null $feedManager - feed manager.
      */
     public function __construct(
-        private ?ElasticManager $feedManager = null
+        private ?ElasticManager $feedManager = null,
+        private ?PsrWrapper $cache = null,
     ) {
         $this->feedManager ??= Di::_()->get('Feeds\Elastic\Manager');
+        $this->cache ??= Di::_()->get('Cache\PsrWrapper');
     }
 
     /**
@@ -37,18 +40,47 @@ class Manager
 
     /**
      * Whether user has made at least one post.
+     * @param string $period - period to check, defaults to 1y.
+     * @throws \Exception - on error.
      * @return bool true if user has made at least one post.
      */
-    public function hasMadePosts(): bool
+    public function hasMadePosts(string $period = '1y'): bool
     {
+        if ($this->getHasMadePostsFromCache($this->user->getGuid())) {
+            return true;
+        }
+
         $opts = [
             'container_guid' => $this->user->getGuid(),
-            'limit' => 1,
             'algorithm' => 'latest',
-            'period' => '1y',
+            'period' => $period,
             'type' => 'activity'
         ];
-        $result = $this->feedManager->getList($opts);
-        return $result->count() > 0;
+
+        return $this->feedManager->getCount(
+            opts: $opts,
+            handleExceptions: false
+        ) > 0;
+    }
+
+    /**
+     * Get whether a user has made posts from the cache.
+     * @param string $userGuid - the users guid.
+     * @return bool true if we have stored in the cache that a user has made posts.
+     */
+    public function getHasMadePostsFromCache(string $userGuid): bool
+    {
+        return (bool) $this->cache->get("$userGuid:posted");
+    }
+
+    /**
+     * Set that a user has made posts in cache.
+     * @param string $userGuid - user guid to set for.
+     * @return self
+     */
+    public function setHasMadePostsInCache(string $userGuid): self
+    {
+        $this->cache->set("$userGuid:posted", true);
+        return $this;
     }
 }

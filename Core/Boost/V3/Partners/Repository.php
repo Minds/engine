@@ -128,6 +128,7 @@ class Repository
         $completedBoostsQuery = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'boosts.guid',
+                'boosts.payment_method',
                 'boosts.payment_amount',
                 'boosts.payment_method',
                 'total_views' => new RawExp('SUM(s.views)')
@@ -138,12 +139,12 @@ class Repository
             ->where('completed_timestamp', Operator::GTE, new RawExp(':from_timestamp'))
             ->groupBy('boosts.guid');
 
-        $values['from_timestamp'] = $fromTimestamp;
+        $values['from_timestamp'] = date('c', $fromTimestamp);
 
         if ($toTimestamp) {
             $completedBoostsQuery
                 ->where('completed_timestamp', Operator::LTE, new RawExp(':to_timestamp'));
-            $values['to_timestamp'] = $toTimestamp;
+            $values['to_timestamp'] = date('c', $toTimestamp);
         }
 
         $completedBoostsQuery->alias('completed');
@@ -158,7 +159,7 @@ class Repository
                 'cash_ecpm' => new RawExp('SUM(CASE WHEN completed.payment_method = 1 THEN ((completed.payment_amount / completed.total_views) * 1000) ELSE 0 END)'),
                 'tokens_ecpm' => new RawExp('SUM(CASE WHEN completed.payment_method = 2 THEN ((completed.payment_amount / completed.total_views) * 1000) ELSE 0 END)'),
             ])
-            ->from(['bpv' => 'boost_partner_views'])
+            ->from(new RawExp('boost_partner_views as bpv'))
             ->innerJoin(
                 new RawExp(rtrim($completedBoostsQuery->build(), ';')),
                 'completed.guid',

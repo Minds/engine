@@ -68,10 +68,12 @@ class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterf
     public function consumeBatch(array $messages): bool
     {
         $this->manager->beginTransaction();
+
         foreach ($messages as $message) {
             $messageData = json_decode($message->getPayload());
 
             if (!str_starts_with($messageData->cm_campaign, "urn:boost:") || $messageData->cm_served_by_guid === null) {
+                $this->getTopic()->markMessageAsProcessed($message);
                 continue;
             }
 
@@ -99,6 +101,7 @@ class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterf
             $this->logger->addInfo("Marked boost partner view event as processed", (array) $messageData);
             $this->logger->addInfo("--------------------");
         }
+
         if ($this->getTopic()->getTotalMessagesProcessedInBatch() === 0) {
             $this->manager->rollbackTransaction();
         }

@@ -15,6 +15,7 @@ use Minds\Core\Luid;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Core\Security\Spam;
+use Minds\Entities\Activity;
 use Minds\Entities\Entity;
 use Minds\Entities\User;
 use Minds\Exceptions\BlockedUserException;
@@ -127,6 +128,14 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($entity);
         
+        $this->spam->check($comment)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->spam->check($entity)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->kvLimiterMock();
 
         /*$entity->get('guid')
@@ -246,7 +255,8 @@ class ManagerSpec extends ObjectBehavior
     }
 
     public function it_should_update(
-        Comment $comment
+        Comment $comment,
+        Activity $entity
     ) {
         $comment->getDirtyAttributes()
             ->shouldBeCalled()
@@ -254,6 +264,21 @@ class ManagerSpec extends ObjectBehavior
 
         $comment->getUrn()
             ->willReturn('urn:comment:fake');
+
+        $comment->getEntityGuid()
+            ->willReturn('234');
+
+        $this->entitiesBuilder->single('234')
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $this->spam->check($comment)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->spam->check($entity)
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->legacyRepository->isFallbackEnabled()
             ->shouldBeCalled()

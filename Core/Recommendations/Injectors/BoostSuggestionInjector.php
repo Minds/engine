@@ -44,7 +44,6 @@ class BoostSuggestionInjector
             if ($boost) {
                 array_splice($entitiesArray, $index, 0, [$boost]);
             }
-            
             return new Response($entitiesArray);
         } catch (\Exception $e) {
             $this->logger->error($e);

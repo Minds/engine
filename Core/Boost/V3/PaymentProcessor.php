@@ -21,6 +21,10 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
+use Minds\Core\Payments\V2\Enums\PaymentStatus;
+use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
+use Minds\Core\Payments\V2\Exceptions\PaymentNotFoundException;
+use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -36,33 +40,44 @@ class PaymentProcessor
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?OffchainTransactions $offchainTransactions = null,
         private ?MindsConfig $mindsConfig = null,
-        private ?AdminTransactionProcessor $onchainAdminTransactionProcessor = null
+        private ?AdminTransactionProcessor $onchainAdminTransactionProcessor = null,
+        private ?PaymentsManager $paymentsManager = null
     ) {
         $this->intentsManager ??= new IntentsManagerV2();
         $this->mindsConfig ??= Di::_()->get("Config");
         $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
         $this->offchainTransactions ??= new OffchainTransactions();
         $this->onchainAdminTransactionProcessor ??= new AdminTransactionProcessor();
+        $this->paymentsManager ??= Di::_()->get(PaymentsManager::class);
     }
 
     /**
      * @param Boost $boost
+     * @param User $user
      * @return bool
      * @throws InvalidBoostPaymentMethodException
      * @throws KeyNotSetupException
      * @throws LockFailedException
      * @throws OffchainWalletInsufficientFundsException
      * @throws ServerErrorException
+     * @throws InvalidPaymentMethodException
      * @throws Exception
      */
-    public function setupBoostPayment(Boost $boost): bool
+    public function setupBoostPayment(Boost $boost, User $user): bool
     {
-        return match ($boost->getPaymentMethod()) {
+        $result = match ($boost->getPaymentMethod()) {
             BoostPaymentMethod::CASH => $this->setupCashPaymentIntent($boost),
             BoostPaymentMethod::OFFCHAIN_TOKENS => $this->setupOffchainTokensPayment($boost),
             BoostPaymentMethod::ONCHAIN_TOKENS => throw new ServerErrorException("Onchain transactions are processed client-side"),
             default => throw new InvalidBoostPaymentMethodException()
         };
+        $paymentDetails = $this->paymentsManager
+            ->setUser($user)
+            ->createPaymentFromBoost($boost);
+
+        $boost->setPaymentGuid($paymentDetails->paymentGuid);
+
+        return (bool) $result;
     }
 
     /**
@@ -157,12 +172,20 @@ class PaymentProcessor
      */
     public function captureBoostPayment(Boost $boost): bool
     {
-        return match ($boost->getPaymentMethod()) {
+        $result = match ($boost->getPaymentMethod()) {
             BoostPaymentMethod::CASH => $this->captureCashPaymentIntent($boost),
             BoostPaymentMethod::OFFCHAIN_TOKENS => $this->captureOffchainTokenPayment($boost),
             BoostPaymentMethod::ONCHAIN_TOKENS => $this->captureOnchainBoostPayment($boost),
             default => throw new InvalidBoostPaymentMethodException()
         };
+        try {
+            if ($boost->getPaymentGuid()) {
+                $this->paymentsManager->updatePaymentStatus($boost->getPaymentGuid(), PaymentStatus::COMPLETED, true);
+            }
+        } catch (PaymentNotFoundException $e) {
+            // Do nothing! continue with successful path
+        }
+        return $result;
     }
 
     /**
@@ -218,12 +241,22 @@ class PaymentProcessor
      */
     public function refundBoostPayment(Boost $boost): bool
     {
-        return match ($boost->getPaymentMethod()) {
+        $result = match ($boost->getPaymentMethod()) {
             BoostPaymentMethod::CASH => $this->refundCashPaymentIntent($boost),
             BoostPaymentMethod::OFFCHAIN_TOKENS => $this->refundOffchainTokensPayment($boost),
             BoostPaymentMethod::ONCHAIN_TOKENS => $this->refundOnchainTokensPayment($boost),
             default => throw new InvalidBoostPaymentMethodException()
         };
+
+        try {
+            if ($boost->getPaymentGuid()) {
+                $this->paymentsManager->updatePaymentStatus($boost->getPaymentGuid(), PaymentStatus::REFUNDED, false);
+            }
+        } catch (PaymentNotFoundException $e) {
+            // Do nothing! continue with successful path
+        }
+
+        return $result;
     }
 
     /**

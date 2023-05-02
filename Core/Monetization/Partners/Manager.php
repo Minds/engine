@@ -11,9 +11,15 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
+use Minds\Core\Monetization\Partners\Delegates\DepositsDelegate;
 use Minds\Core\Monetization\Partners\Delegates\EmailDelegate;
 use Minds\Core\Monetization\Partners\Delegates\PayoutsDelegate;
 use Minds\Core\Payments\Stripe;
+use Minds\Core\Payments\V2\Enums\PaymentMethod;
+use Minds\Core\Payments\V2\Enums\PaymentStatus;
+use Minds\Core\Payments\V2\Enums\PaymentType;
+use Minds\Core\Payments\V2\Manager as PaymentsManager;
+use Minds\Core\Payments\V2\PaymentOptions;
 use Minds\Core\Plus;
 use Minds\Core\Pro;
 use Minds\Core\Util\BigNumber;
@@ -36,7 +42,11 @@ class Manager
     /** @var int */
     const WIRE_REFERRAL_SHARE_PCT = 50; // 50%
 
+    /** @var int */
     const BOOST_PARTNER_REVENUE_SHARE_PCT = BoostPartnersManager::REVENUE_SHARE_PCT; // 50%
+
+    /** @var int */
+    const AFFILIATE_REFERRER_SHARE_PCT = 5; // 5%
 
     /** @var int */
     const MIN_PAYOUT_CENTS = 10000; // $100 USD
@@ -52,6 +62,8 @@ class Manager
         private ?PayoutsDelegate $payoutsDelegate = null,
         private ?EmailDelegate $emailDelegate = null,
         private ?BoostPartnersManager $boostPartnersManager = null,
+        private ?PaymentsManager $paymentsManager = null,
+        private ?DepositsDelegate $depositsDelegate = null,
         private ?Logger $logger = null
     ) {
         $this->repository ??= new Repository();
@@ -64,6 +76,8 @@ class Manager
         $this->payoutsDelegate ??= new Delegates\PayoutsDelegate();
         $this->emailDelegate ??= new Delegates\EmailDelegate();
         $this->boostPartnersManager ??= Di::_()->get(BoostPartnersManager::class);
+        $this->paymentsManager ??= Di::_()->get(PaymentsManager::class);
+        $this->depositsDelegate ??= new DepositsDelegate();
 
         $this->logger ??= Di::_()->get('Logger');
     }
@@ -113,6 +127,9 @@ class Manager
 
         $this->logger->info("Start processing boost partner deposits");
         yield from $this->issueBoostPartnerDeposits($opts);
+
+        $this->logger->addInfo("Start processing affiliate deposits");
+        yield from $this->issueAffiliateDeposits($opts);
     }
 
     /**
@@ -315,12 +332,13 @@ class Manager
      */
     public function issueBoostPartnerDeposits(array $opts): iterable
     {
-        $timestamp = time();
+        $timestamp = $opts['from'];
         foreach ($this->boostPartnersManager->getRevenueDetails($opts['from'], $opts['to'] ?? null) as $eCPM) {
             $deposit = (new EarningsDeposit())
                 ->setTimestamp($timestamp)
                 ->setUserGuid($eCPM['served_by_user_guid'])
-                ->setAmountCents(($eCPM['ecpm'] * ($eCPM['total_views_served'] / 1000)) * (self::BOOST_PARTNER_REVENUE_SHARE_PCT / 100))
+                ->setAmountCents((($eCPM['cash_ecpm'] * ($eCPM['cash_total_views_served'] / 1000)) * (self::BOOST_PARTNER_REVENUE_SHARE_PCT / 100)) * 100)
+                ->setAmountTokens(($eCPM['tokens_ecpm'] * ($eCPM['tokens_total_views_served'] / 1000)) * (self::BOOST_PARTNER_REVENUE_SHARE_PCT / 100))
                 ->setItem('boost_partner');
 
             if (!($opts['dry-run'] ?? false)) {
@@ -337,6 +355,91 @@ class Manager
     }
 
     /**
+     * Calculates and issues affilite earnings
+     * Cash only.
+     * @param array $opts
+     * @return iterable
+     */
+    public function issueAffiliateDeposits(array $opts): iterable
+    {
+        $paymentOptions = (new PaymentOptions())
+            ->setWithAffiliate(true)
+            ->setFromTimestamp($opts['from'])
+            ->setToTimestamp($opts['to'] ?? null)
+            ->setPaymentTypes([
+                PaymentType::MINDS_PRO_PAYMENT,
+                PaymentType::BOOST_PAYMENT,
+                PaymentType::MINDS_PLUS_PAYMENT
+            ])
+            ->setPaymentStatus(PaymentStatus::COMPLETED)
+            ->setPaymentMethod(PaymentMethod::CASH);
+
+        $deposits = [];
+
+        $referrersDeposits = [];
+
+        /**
+         * Iterate through sum of affiliate earnings for time period and deposit
+         * Builds in memory $referrersDeposits
+         */
+        foreach ($this->paymentsManager->getPaymentsAffiliatesEarnings($paymentOptions) as $item) {
+            $deposit = (new EarningsDeposit())
+                ->setTimestamp($opts['from'])
+                ->setUserGuid($item['affiliate_user_guid'])
+                ->setAmountCents($item['total_earnings_millis'] / 10)
+                ->setItem('affiliate');
+
+            // Save the deposit
+            $this->repository->add($deposit);
+
+            // Build the affiliate to see if they have a referrer themselves
+            $affiliateUser = $this->entitiesBuilder->single($item['affiliate_user_guid']);
+
+            if ($affiliateUser instanceof User && !empty($affiliateUser->referrer) && ((time() - $affiliateUser->time_created) < 3650 * 86400)) {
+                if (!isset($referrersDeposits[$affiliateUser->referrer])) {
+                    $referrersDeposits[$affiliateUser->getGuid()] = 0;
+                }
+
+                $referrersDeposits[$affiliateUser->referrer] += $item['total_earnings_millis'] * (self::AFFILIATE_REFERRER_SHARE_PCT / 100);
+            }
+
+            yield $deposit;
+
+            if (!($affiliateUser instanceof User)) {
+                continue;
+            }
+
+            // Emit event
+            $this->depositsDelegate->onIssueAffiliateDeposit($affiliateUser);
+        }
+
+        /**
+         * Iterate through in memory $referrersDeposits and issue the deposit
+         */
+        foreach ($referrersDeposits as $referrerGuid => $referrersDepositAmountMillis) {
+            $deposit = (new EarningsDeposit())
+                ->setTimestamp($opts['from'])
+                ->setUserGuid($referrerGuid)
+                ->setAmountCents($referrersDepositAmountMillis / 10)
+                ->setItem('affiliate_referrer');
+
+            // Save the deposit
+            $this->repository->add($deposit);
+
+            yield $deposit;
+
+            $referrer = $this->entitiesBuilder->single($referrerGuid);
+
+            if (!($referrer instanceof User)) {
+                continue;
+            }
+
+            // Emit event
+            $this->depositsDelegate->onIssueAffiliateReferrerDeposit($referrer);
+        }
+    }
+
+    /**
      * Return balance for a user
      * @param User $user
      * @param int $asOfTs
@@ -345,6 +448,18 @@ class Manager
     public function getBalance(User $user, $asOfTs = null): EarningsBalance
     {
         return $this->repository->getBalance((string) $user->getGuid(), $asOfTs);
+    }
+
+    /**
+     * Returns user's balance for a specific item
+     * @param User $user
+     * @param array $items
+     * @param int|null $asOfTs
+     * @return EarningsBalance
+     */
+    public function getBalanceByItem(User $user, array $items, ?int $asOfTs = null): EarningsBalance
+    {
+        return $this->repository->getBalanceByItem((string) $user->getGuid(), $items, $asOfTs);
     }
 
     /**
@@ -377,18 +492,10 @@ class Manager
                 continue;
             }
 
-            // Calculate the ratio of posts to earnings
-            $ratio = $this->calculatePostsBalanceRatio($earningsBalance);
-
-            if ($this->calculatePostsBalanceRatio($earningsBalance) < 0.01 && $user->getPartnerRpm() > 100) {
-                //echo "\n do not payout $user->username ratio:$ratio";
-                continue;
-            }
-
             $proSettings = $this->proManager->setUser($user)->get();
             $payoutMethod = $proSettings->getPayoutMethod();
 
-            if (!$this->proManager->setUser($user)->isActive()) {
+            if (!$user->isPlus()) {
                 //echo "\n do not payout $user->username, they are no longer pro";
                 continue;
             }
@@ -398,7 +505,7 @@ class Manager
                 continue;
             }
 
-            if (in_array($user->guid, ['100000000000035825', '100000000000000519', '240489236636110848', '1110292844016312335', '100000000000000341', '1107553086722809873' ], true)) {
+            if (in_array($user->guid, ['100000000000035825', '100000000000000519', '240489236636110848', '1110292844016312335', '1107553086722809873' ], true)) {
                 //echo "\n skipping $user->username";
                 continue;
             }

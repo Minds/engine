@@ -2,6 +2,7 @@
 namespace Minds\Core\Monetization\Partners;
 
 use Cassandra\Bigint;
+use Cassandra\Decimal;
 use Cassandra\Timestamp;
 use Minds\Common\Repository\Response;
 use Minds\Core\Data\Cassandra\Client;
@@ -109,7 +110,7 @@ class Repository
                 new Timestamp($deposit->getTimestamp(), 0),
                 $deposit->getItem(),
                 $deposit->getAmountCents() ? (int) $deposit->getAmountCents() : null,
-                $deposit->getAmountTokens() ? new Bigint($deposit->getAmountTokens()) : null,
+                $deposit->getAmountTokens() ? new Decimal($deposit->getAmountTokens()) : null,
             ]
         );
         return (bool) $this->db->request($prepared);
@@ -161,6 +162,47 @@ class Repository
         $balance->setUserGuid($guid)
             ->setAmountCents($row['cents'])
             ->setAmountTokens($row['tokens']->value());
+        return $balance;
+    }
+
+    /**
+     * @param string $userGuid
+     * @param array $items
+     * @param int|null $asOfTs
+     * @return EarningsBalance
+     */
+    public function getBalanceByItem(string $userGuid, array $items, ?int $asOfTs = null): EarningsBalance
+    {
+        $statement = "SELECT SUM(amount_cents) as cents, SUM(amount_tokens) as tokens
+            FROM partner_earnings_ledger
+            WHERE user_guid = ?
+            AND timestamp <= ?";
+
+        $values = [
+            new Bigint($userGuid),
+            new Timestamp($asOfTs ?? time(), 0),
+        ];
+
+        $items = array_map(
+            function (string $value) use (&$values): string {
+                $values[] = $value;
+                return "item = ?";
+            },
+            $items
+        );
+
+        $statement .= " AND (" . implode(' OR ', $items) . ")";
+        
+        $prepared = (new Prepared())
+            ->query($statement, $values);
+
+        $result = $this->db->request($prepared);
+        $row = $result->first();
+
+        $balance = new EarningsBalance();
+        $balance->setUserGuid($userGuid)
+            ->setAmountCents($row['cents'])
+            ->setAmountTokens($row['tokens']->toInt());
         return $balance;
     }
 }

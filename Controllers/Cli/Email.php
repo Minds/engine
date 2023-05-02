@@ -91,7 +91,9 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             if ($campaign instanceof SupermindBulkIncentive) {
                 $campaign = $campaign
                     ->withActivityGuid($this->getOpt('activity-guid'))
-                    ->withReplyType((int) $this->getOpt('reply-type'));
+                    ->withReplyType((int) $this->getOpt('reply-type'))
+                    ->withPaymentMethod((int) $this->getOpt('payment-method'))
+                    ->withPaymentAmount((int) $this->getOpt('payment-amount'));
             }
 
             $campaign->setUser($user);
@@ -432,6 +434,9 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 
     public function sync_marketing_attributes()
     {
+        ini_set('memory_limit', '2G');
+        Di::_()->get('Config')->set('min_log_level', 'INFO');
+
         $mautic = new Core\Email\Mautic\MarketingAttributes\Manager();
         $mautic->sync();
     }

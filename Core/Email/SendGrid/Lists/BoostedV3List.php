@@ -28,10 +28,10 @@ class BoostedV3List implements SendGridListInterface
      */
     public function getContacts(): iterable
     {
-        $statement = "SELECT owner_guid, payment_method, count(*) as num_boosts, max(created_timestamp) as last_boosted_ts
+        $statement = "SELECT owner_guid, payment_method, count(*) as num_boosts, max(completed_timestamp) as last_boosted_ts
             FROM boosts
-            WHERE created_timestamp > :fromTs
-            AND status IN (2,9)
+            WHERE completed_timestamp > :fromTs
+            AND status IN (9)
             GROUP BY 1,2";
         $values = [
             'fromTs' => date('c', strtotime('90 days ago')),
@@ -47,7 +47,7 @@ class BoostedV3List implements SendGridListInterface
                 continue;
             }
 
-            $boostPaymentMethod = match ($row['payment_method']) {
+            $boostPaymentMethod = match ((int) $row['payment_method']) {
                 BoostPaymentMethod::CASH => 'cash',
                 BoostPaymentMethod::OFFCHAIN_TOKENS => 'tokens',
                 BoostPaymentMethod::ONCHAIN_TOKENS => 'onchain'

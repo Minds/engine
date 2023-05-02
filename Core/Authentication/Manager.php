@@ -12,7 +12,6 @@ use Minds\Core\Analytics\Metrics\Event;
 use Minds\Core\Authentication\Exceptions\AuthenticationAttemptsExceededException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Experiments\Cookie\Manager as ExperimentsCookieManager;
 use Minds\Core\Features\Canary;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security\Exceptions\PasswordRequiresHashUpgradeException;
@@ -38,7 +37,6 @@ class Manager
         private ?LoginAttempts $loginAttempts = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?Canary $canary = null,
-        private ?ExperimentsCookieManager $experimentsCookieManager = null,
         private ?SessionsManager $sessionsManager = null,
         private ?TwoFactorManager $twoFactorManager = null
     ) {
@@ -46,7 +44,6 @@ class Manager
         $this->loginAttempts ??= Di::_()->get('Security\LoginAttempts');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->canary ??= Di::_()->get('Features\Canary');
-        $this->experimentsCookieManager ??= Di::_()->get('Experiments\Cookie\Manager');
         $this->sessionsManager ??= Di::_()->get('Sessions\Manager');
         $this->twoFactorManager ??= Di::_()->get('Security\TwoFactor\Manager');
     }
@@ -116,8 +113,6 @@ class Manager
 
         $this->canary
             ->setCookie($user->isCanary());
-
-        $this->experimentsCookieManager->delete();
 
         (new PseudonymousIdentifier())
             ->setUser($user)

@@ -28,7 +28,7 @@ class ManagerSpec extends ObjectBehavior
         MatrixConfig $matrixConfig,
         EntitiesBuilder $entitiesBuilder,
         Logger $logger,
-        Client $client = null,
+        Client $client = null
     ) {
         $this->client = $client;
         $this->matrixConfig = $matrixConfig;

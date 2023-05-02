@@ -61,7 +61,7 @@ class Minds extends base
         Register\Module::class,
         Notifications\Module::class,
         Votes\Module::class,
-        Helpdesk\Zendesk\Module::class,
+        Helpdesk\Module::class,
         SocialCompass\Module::class,
         AccountQuality\Module::class,
         Recommendations\Module::class,
@@ -80,7 +80,9 @@ class Minds extends base
         Verification\Module::class,
         Settings\Module::class,
         Boost\V3\Module::class,
-        Monetization\Module::class
+        Monetization\Module::class,
+        Analytics\Module::class,
+        Payments\V2\Module::class
     ];
 
     /**
@@ -158,7 +160,6 @@ class Minds extends base
         (new Plus\PlusProvider())->register();
         (new Pro\ProProvider())->register();
         (new Hashtags\HashtagsProvider())->register();
-        (new Analytics\AnalyticsProvider())->register();
         (new Channels\ChannelsProvider())->register();
         (new Blogs\BlogsProvider())->register();
         (new Permaweb\PermawebProvider())->register();

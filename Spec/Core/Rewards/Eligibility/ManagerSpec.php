@@ -172,6 +172,36 @@ class ManagerSpec extends ObjectBehavior
         $this->isEligible()->shouldBe(false);
     }
 
+    public function it_should_fail_if_exception_if_thrown_when_checking_if_user_has_made_posts(User $user)
+    {
+        $user->isTrusted()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $user->getAge()
+            ->shouldBeCalled()
+            ->willReturn(259201);
+        
+        $user->getName()
+            ->shouldBeCalled()
+            ->willReturn('name');
+
+        $user->get('briefdescription')
+            ->shouldBeCalled()
+            ->willReturn('desc');
+
+        $this->feedUserManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->feedUserManager);
+
+        $this->feedUserManager->hasMadePosts()
+            ->shouldBeCalled()
+            ->willThrow(new \Exception());
+
+        $this->setUser($user);
+        $this->isEligible()->shouldBe(false);
+    }
+
     public function it_should_fail_if_user_has_not_set_hashtags(User $user)
     {
         $user->isTrusted()

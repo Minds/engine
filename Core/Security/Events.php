@@ -27,6 +27,7 @@ class Events
     {
         Dispatcher::register('create', 'elgg/event/object', [$this, 'onCreateHook']);
         Dispatcher::register('create', 'elgg/event/activity', [$this, 'onCreateHook']);
+        Dispatcher::register('update', 'elgg/event/activity', [$this, 'onCreateHook']);
         Dispatcher::register('update', 'elgg/event/object', [$this, 'onCreateHook']);
     }
 

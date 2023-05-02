@@ -6,6 +6,7 @@ use PhpSpec\ObjectBehavior;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Email\V2\Campaigns\Recurring\TwoFactor\TwoFactor as TwoFactorEmail;
 use Minds\Core\Security\TwoFactor as TwoFactorService;
+use Minds\Core\Security\TwoFactor\Bypass\Manager as BypassManager;
 use Minds\Core\Email\Confirmation\Manager as EmailConfirmationManager;
 use Minds\Core\Log\Logger;
 use Minds\Core\Security\TwoFactor\Delegates\EmailDelegate;
@@ -33,19 +34,24 @@ class EmailDelegateSpec extends ObjectBehavior
     /** @var EmailConfirmationManager */
     protected $emailConfirmation;
 
+    /** @var BypassManager */
+    protected $bypassManager;
+
     public function let(
         TwoFactorService $twoFactorService,
         Logger $logger,
         TwoFactorEmail $twoFactorEmail,
         TwoFactorSecretStore $twoFactorSecretStore,
-        EmailConfirmationManager $emailConfirmation
+        EmailConfirmationManager $emailConfirmation,
+        BypassManager $bypassManager
     ) {
         $this->beConstructedWith(
             $twoFactorService,
             $logger,
             $twoFactorEmail,
             $twoFactorSecretStore,
-            $emailConfirmation
+            $emailConfirmation,
+            $bypassManager
         );
 
         $this->twoFactorService = $twoFactorService;
@@ -53,6 +59,7 @@ class EmailDelegateSpec extends ObjectBehavior
         $this->twoFactorEmail = $twoFactorEmail;
         $this->twoFactorSecretStore = $twoFactorSecretStore;
         $this->emailConfirmation = $emailConfirmation;
+        $this->bypassManager = $bypassManager;
     }
 
     public function it_is_initializable()
@@ -142,6 +149,10 @@ class EmailDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
+        $this->bypassManager->canBypass('~code~')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $this->shouldThrow(TwoFactorInvalidCodeException::class)
             ->during('onAuthenticateTwoFactor', [ $user, '~code~']);
     }
@@ -157,6 +168,10 @@ class EmailDelegateSpec extends ObjectBehavior
         $twoFactorSecret->getTimestamp()
             ->shouldBeCalled()
             ->willReturn(1);
+
+        $this->bypassManager->canBypass('~code~')
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $this->twoFactorSecretStore->getByKey('')
             ->shouldBeCalled()
@@ -194,6 +209,10 @@ class EmailDelegateSpec extends ObjectBehavior
         $twoFactorSecret->getTimestamp()
             ->shouldBeCalled()
             ->willReturn(999999999999999999);
+
+        $this->bypassManager->canBypass('~code~')
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $this->twoFactorSecretStore->getByKey('')
             ->shouldBeCalled()
@@ -234,6 +253,10 @@ class EmailDelegateSpec extends ObjectBehavior
         $twoFactorSecret->getSecret()
             ->shouldBeCalled()
             ->willReturn('~secret~');
+
+        $this->bypassManager->canBypass('~code~')
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $this->twoFactorSecretStore->getByKey('')
             ->shouldBeCalled()
@@ -280,6 +303,10 @@ class EmailDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('~secret~');
 
+        $this->bypassManager->canBypass('~code~')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $this->twoFactorSecretStore->getByKey('')
             ->shouldBeCalled()
             ->willReturn($twoFactorSecret);
@@ -297,6 +324,48 @@ class EmailDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->twoFactorSecretStore->delete('')
+            ->shouldBeCalled();
+
+        $this->shouldNotThrow(TwoFactorInvalidCodeException::class)
+            ->during('onAuthenticateTwoFactor', [ $user, '~code~']);
+    }
+
+    public function it_should_allow_bypass_for_authorized_user(
+        User $user,
+    ) {
+        $user->isTrusted()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->bypassManager->canBypass('~code~')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->emailConfirmation->approveConfirmation($user)
+            ->shouldNotBeCalled();
+        
+        $this->twoFactorSecretStore->delete('')
+            ->shouldBeCalled();
+
+        $this->shouldNotThrow(TwoFactorInvalidCodeException::class)
+            ->during('onAuthenticateTwoFactor', [ $user, '~code~']);
+    }
+
+    public function it_should_allow_bypass_for_authorized_user_and_verify_email_when_untrusted(
+        User $user,
+    ) {
+        $user->isTrusted()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->bypassManager->canBypass('~code~')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->emailConfirmation->approveConfirmation($user)
+            ->shouldBeCalled();
+        
         $this->twoFactorSecretStore->delete('')
             ->shouldBeCalled();
 
@@ -327,6 +396,10 @@ class EmailDelegateSpec extends ObjectBehavior
         $twoFactorSecret->getSecret()
             ->shouldBeCalled()
             ->willReturn('~secret~');
+
+        $this->bypassManager->canBypass('~code~')
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $this->twoFactorSecretStore->getByKey('')
             ->shouldBeCalled()

@@ -105,6 +105,33 @@ class Boost extends Cli\Controller implements Interfaces\CliControllerInterface
     {
         $this->boostManager->processExpiredApprovedBoosts();
     }
+    
+    /**
+     * To be run as a cronjob periodically.
+     * Will scan through onchain boosts and mark as pending (or approve)
+     * @example
+     * - `php cli.php Boost processOnchain`
+     * @return void
+     */
+    public function processOnchain()
+    {
+        Di::_()->get('Config')->set('min_log_level', MonologLogger::INFO);
+        /** @var Core\Boost\V3\Onchain\OnchainBoostBackgroundJob */
+        $job = Di::_()->get(Core\Boost\V3\Onchain\OnchainBoostBackgroundJob::class);
+        $job->run();
+    }
+
+    /**
+     * Manually approve a payment
+     * @example
+     * - php cli.php Boost approveBoost --boostGuid=100000000000000000
+     * @return void
+     */
+    public function approveBoost()
+    {
+        $boostGuid = $this->getOpt('boostGuid');
+        $this->boostManager->approveBoost($boostGuid);
+    }
 
     /**
      * Trigger an action event for a given boost. Does NOT mark the boost states, just pushes to action event topic.

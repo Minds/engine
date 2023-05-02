@@ -264,12 +264,16 @@ class Manager
     }
 
     /**
-     * @param array $opts
-     * @return int
+     * Returns a count of the query.
+     * @param array $opts - opts for query.
+     * @param bool $handleExceptions - true if exceptions should be thrown out,
+     * if false 0 will be returned.
+     * @throws Exception - if handle exceptions is false.
+     * @return int count.
      */
-    public function getCount(array $opts = [])
+    public function getCount(array $opts = [], bool $handleExceptions = true): int
     {
-        return $this->repository->getCount($opts);
+        return $this->repository->getCount($opts, $handleExceptions);
     }
 
     /**

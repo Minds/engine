@@ -7,6 +7,8 @@ use Minds\Core\Blockchain\Transactions\Manager as BlockchainManager;
 use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Config;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
+use Minds\Core\Payments\V2\Manager as PaymentsManager;
+use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Security\ACL;
 use Minds\Core\Wire\Repository;
 use Minds\Core\Wire\SupportTiers\Manager as SupportTiersManager;
@@ -14,6 +16,7 @@ use Minds\Core\Wire\SupportTiers\SupportTier;
 use Minds\Core\Wire\Wire as WireModel;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
@@ -60,6 +63,8 @@ class ManagerSpec extends ObjectBehavior
     /** @var SupportTiersManager */
     protected $supportTiersManager;
 
+    private Collaborator $paymentsManager;
+
     public function let(
         Repository $repo,
         BlockchainManager $txManager,
@@ -76,8 +81,11 @@ class ManagerSpec extends ObjectBehavior
         Core\Payments\Stripe\Intents\Manager $stripeIntentsManager,
         ACL $acl,
         Core\Wire\Delegates\EventsDelegate $eventsDelegate,
-        SupportTiersManager $supportTiersManager = null
+        PaymentsManager $paymentsManager,
+        SupportTiersManager $supportTiersManager = null,
     ) {
+        $this->paymentsManager = $paymentsManager;
+
         $this->beConstructedWith(
             $repo,
             $txManager,
@@ -94,7 +102,8 @@ class ManagerSpec extends ObjectBehavior
             $stripeIntentsManager,
             $acl,
             $eventsDelegate,
-            $supportTiersManager
+            $supportTiersManager,
+            $this->paymentsManager
         );
 
         $this->cacheDelegate = $cacheDelegate;
@@ -265,8 +274,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_award_trial_to_plus_wire()
-    {
+    public function it_should_award_trial_to_plus_wire(
+        PaymentDetails $paymentDetailsMock
+    ): void {
         $sender = new User();
         $sender->guid = 123;
 
@@ -302,6 +312,18 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->willReturn((new PaymentIntent())->setId('trial-id'));
 
+        $paymentDetailsMock->paymentGuid = 123;
+
+        $this->paymentsManager->createPaymentFromWire(
+            wire: Argument::type(WireModel::class),
+            paymentTxId: "trial-id",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($paymentDetailsMock);
+
         $this->setSender($sender)
             ->setEntity($receiver)
             ->setPayload($payload)
@@ -310,8 +332,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_award_trial_to_plus_wire_older_than_90_days()
-    {
+    public function it_should_award_trial_to_plus_wire_older_than_90_days(
+        PaymentDetails $paymentDetailsMock
+    ): void {
         $sender = new User();
         $sender->guid = 123;
         $sender->plus_expires = strtotime('91 days ago'); // We had plus 91 days ago, so we are allowed to have it again
@@ -347,6 +370,18 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->willReturn((new PaymentIntent())->setId('trial-id'));
 
+        $paymentDetailsMock->paymentGuid = 123;
+
+        $this->paymentsManager->createPaymentFromWire(
+            wire: Argument::type(WireModel::class),
+            paymentTxId: "trial-id",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($paymentDetailsMock);
+
         $this->setSender($sender)
             ->setEntity($receiver)
             ->setPayload($payload)
@@ -355,8 +390,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_NOT_award_trial_to_plus_wire()
-    {
+    public function it_should_NOT_award_trial_to_plus_wire(
+        PaymentDetails $paymentDetailsMock
+    ): void {
         $sender = new User();
         $sender->guid = 123;
         $sender->plus_expires = strtotime('30 days ago'); // We had plus 30 days ago, so we cant have it again
@@ -394,6 +430,18 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($intent);
 
+        $paymentDetailsMock->paymentGuid = 123;
+
+        $this->paymentsManager->createPaymentFromWire(
+            wire: Argument::type(WireModel::class),
+            paymentTxId: "123",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($paymentDetailsMock);
+
         $this->setSender($sender)
             ->setEntity($receiver)
             ->setPayload($payload)
@@ -402,8 +450,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_create_a_cash_transaction_with_default_descriptor()
-    {
+    public function it_should_create_a_cash_transaction_with_default_descriptor(
+        PaymentDetails $paymentDetailsMock
+    ): void {
         $sender = new User();
         $sender->guid = 123;
 
@@ -446,6 +495,18 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($intent);
 
+        $paymentDetailsMock->paymentGuid = 123;
+
+        $this->paymentsManager->createPaymentFromWire(
+            wire: Argument::type(WireModel::class),
+            paymentTxId: "123",
+            isPlus: false,
+            isPro: false,
+            sourceActivity: null
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($paymentDetailsMock);
+
         $this->setSender($sender)
             ->setEntity($receiver)
             ->setPayload($payload)
@@ -454,8 +515,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_create_a_cash_transaction_for_membership(SupportTier $supportTier)
-    {
+    public function it_should_create_a_cash_transaction_for_membership(
+        SupportTier $supportTier,
+        PaymentDetails $paymentDetailsMock
+    ): void {
         $supportTierName = 'support_tier_name';
         $receiverUsername = 'receiver_user';
         $sender = new User();
@@ -510,6 +573,18 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($intent);
 
+        $paymentDetailsMock->paymentGuid = 123;
+
+        $this->paymentsManager->createPaymentFromWire(
+            wire: Argument::type(WireModel::class),
+            paymentTxId: "123",
+            isPlus: false,
+            isPro: false,
+            sourceActivity: null
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($paymentDetailsMock);
+
         $this->setSender($sender)
             ->setEntity($receiver)
             ->setPayload($payload)
@@ -518,8 +593,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_create_a_cash_transaction_with_plus_sub_descriptor()
-    {
+    public function it_should_create_a_cash_transaction_with_plus_sub_descriptor(
+        PaymentDetails $paymentDetailsMock
+    ): void {
         $sender = new User();
         $sender->guid = 123;
         $sender->plus_expires = strtotime('30 days ago'); // We had plus 30 days ago, so we cant have it again
@@ -560,6 +636,18 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($intent);
 
+        $paymentDetailsMock->paymentGuid = 123;
+
+        $this->paymentsManager->createPaymentFromWire(
+            wire: Argument::type(WireModel::class),
+            paymentTxId: "123",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($paymentDetailsMock);
+
         $this->setSender($sender)
             ->setEntity($receiver)
             ->setPayload($payload)
@@ -568,8 +656,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(true);
     }
 
-    public function it_should_create_a_cash_transaction_with_pro_sub_descriptor()
-    {
+    public function it_should_create_a_cash_transaction_with_pro_sub_descriptor(
+        PaymentDetails $paymentDetailsMock
+    ): void {
         $sender = new User();
         $sender->guid = 123;
 
@@ -608,6 +697,18 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->shouldBeCalled()
             ->willReturn($intent);
+
+        $paymentDetailsMock->paymentGuid = 123;
+
+        $this->paymentsManager->createPaymentFromWire(
+            wire: Argument::type(WireModel::class),
+            paymentTxId: "123",
+            isPlus: false,
+            isPro: true,
+            sourceActivity: null
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($paymentDetailsMock);
 
         $this->setSender($sender)
             ->setEntity($receiver)

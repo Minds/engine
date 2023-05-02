@@ -15,6 +15,7 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Models\GetPaymentsOpts;
 use Minds\Core\Payments\Models\Payment;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
+use Minds\Core\Payments\V2\Repository;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;

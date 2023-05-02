@@ -8,8 +8,8 @@ use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Manager as BoostManagerV3;
 use Minds\Core\Boost\V3\Models\Boost as BoostV3;
 use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
-use Minds\Core\EntitiesBuilder;
 use Minds\Core\Config;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Boost\Network;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -107,10 +107,6 @@ class BoostEventSpec extends ObjectBehavior
         $boost->save()
             ->shouldBeCalled();
 
-        $boost->getGuid()
-            ->shouldBeCalled()
-            ->willReturn('456');
-
         $this->event(
             '0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040',
             ['address' => '0xasd'],
@@ -156,7 +152,7 @@ class BoostEventSpec extends ObjectBehavior
         $this->boostManagerV3->getBoostByGuid(Argument::any())
             ->shouldBeCalled()
             ->willReturn(null);
-    
+
         $transaction->getData()
             ->shouldBeCalled()
             ->willReturn([
@@ -191,7 +187,7 @@ class BoostEventSpec extends ObjectBehavior
         $this->boostManagerV3->getBoostByGuid(Argument::any())
             ->shouldBeCalled()
             ->willReturn(null);
-    
+
         $transaction->getContract()
             ->shouldBeCalled()
             ->willReturn('boost');

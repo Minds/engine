@@ -35,6 +35,8 @@ use Minds\Traits\MagicAttributes;
  * @method Wire setTimestamp(int $value)
  * @method int getTrialDays()
  * @method Wire setTrialDays(int $value)
+ * @method int|null getPaymentGuid()
+ * @method Wire setPaymentGuid(int $paymentGuid)
  */
 class Wire implements EntityInterface
 {
@@ -72,6 +74,8 @@ class Wire implements EntityInterface
 
     /** @var int $trialDays */
     private $trialDays;
+
+    private ?int $paymentGuid = null;
 
     public function getGuid(): string
     {

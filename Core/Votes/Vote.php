@@ -91,8 +91,14 @@ class Vote implements ExportableInterface
      * Returns the direction of the vote
      * @return string (up/down)
      */
-    public function getDirection()
+    public function getDirection(bool $asEnum = false)
     {
+        if ($asEnum) {
+            return match ($this->direction) {
+                'up' => Enums\VoteDirectionEnum::UP,
+                'down' => Enums\VoteDirectionEnum::DOWN,
+            };
+        }
         return $this->direction;
     }
 
