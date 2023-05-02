@@ -47,7 +47,8 @@ class Manager
         $acl = null,
         $eventsDispatcher = null,
         private ?FriendlyCaptchaManager $friendlyCaptchaManager = null,
-        private ?ExperimentsManager $experimentsManager = null
+        private ?ExperimentsManager $experimentsManager = null,
+        private ?MySqlRepository $mySqlRepository = null,
     ) {
         $this->counters = $counters ?: Di::_()->get('Votes\Counters');
         $this->indexes = $indexes ?: Di::_()->get('Votes\Indexes');
@@ -55,6 +56,7 @@ class Manager
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->friendlyCaptchaManager ??= Di::_()->get('FriendlyCaptcha\Manager');
         $this->experimentsManager ??= new ExperimentsManager();
+        $this->mySqlRepository ??= Di::_()->get(MySqlRepository::class);
     }
 
     public function setUser(User $user): self
@@ -97,6 +99,9 @@ class Manager
             //update indexes
             $done = $this->indexes->insert($vote);
         }
+
+        // Save to MySQL
+        $done = $this->mySqlRepository->add($vote) && $done;
 
         $this->experimentsManager->setUser($this->user);
         $eventOptions = [
@@ -153,6 +158,9 @@ class Manager
             //update indexes
             $done = $this->indexes->remove($vote);
         }
+        
+        // Save to MySQL
+        $done = $this->mySqlRepository->delete($vote) && $done;
 
         if ($done && $options['events']) {
             $this->eventsDispatcher->trigger('vote:cancel', $vote->getDirection(), [
@@ -176,6 +184,7 @@ class Manager
         ], null);
 
         if ($value === null) {
+            // First, check MySQL if the vote exists. If not then check against Cassandra
             $value = $this->indexes->exists($vote);
         }
 
