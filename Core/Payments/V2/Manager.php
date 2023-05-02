@@ -132,8 +132,8 @@ class Manager
             'paymentMethod' => PaymentMethod::getValidatedPaymentMethod(PaymentMethod::CASH),
             'paymentAmountMillis' => (int) ($wire->getAmount() * 10), // Already in cents, so multiply by 10
             'paymentTxId' => $paymentTxId,
-            'paymentStatus' => PaymentStatus::COMPLETED,
-            'isCaptured' => true,
+            'paymentStatus' => !$wire->getTrialDays() ? PaymentStatus::COMPLETED : PaymentStatus::PENDING,
+            'isCaptured' => !$wire->getTrialDays() ? true : false, // Do not capture trial wires
         ]);
 
         $this->createPayment($paymentDetails);

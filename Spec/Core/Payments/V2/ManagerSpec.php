@@ -263,6 +263,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(1);
 
+        $wire->getTrialDays()
+            ->willReturn(0);
+
         $this->repositoryMock->createPayment(
             Argument::that(
                 function (PaymentDetails $paymentDetails): bool {
@@ -303,6 +306,9 @@ class ManagerSpec extends ObjectBehavior
         $wire->getAmount()
             ->shouldBeCalledOnce()
             ->willReturn(1.23);
+
+        $wire->getTrialDays()
+            ->willReturn(0);
 
         $this->repositoryMock->createPayment(
             Argument::that(
@@ -353,6 +359,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(1);
 
+        $wire->getTrialDays()
+            ->willReturn(0);
+
         $this->repositoryMock->createPayment(
             Argument::that(
                 function (PaymentDetails $paymentDetails): bool {
@@ -401,6 +410,9 @@ class ManagerSpec extends ObjectBehavior
         $wire->getAmount()
             ->shouldBeCalledOnce()
             ->willReturn(1);
+
+        $wire->getTrialDays()
+            ->willReturn(0);
 
         $this->repositoryMock->createPayment(
             Argument::that(
