@@ -31,7 +31,7 @@ class PropagateProperties extends Properties
         }
 
         if ($this->valueHasChanged($from->tags, $to->getTags())) {
-            $to->setTags($from->tags ?? []);
+            $to->setTags($from->tags);
         }
 
         $fromData = $from->getActivityParameters();
