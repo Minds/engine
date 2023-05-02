@@ -315,11 +315,11 @@ class ManagerSpec extends ObjectBehavior
         $paymentDetailsMock->paymentGuid = 123;
 
         $this->paymentsManager->createPaymentFromWire(
-            Argument::type(WireModel::class),
-            "trial-id",
-            true,
-            false,
-            null
+            wire: Argument::type(WireModel::class),
+            paymentTxId: "trial-id",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
         )
             ->shouldBeCalledOnce()
             ->willReturn($paymentDetailsMock);
@@ -373,11 +373,11 @@ class ManagerSpec extends ObjectBehavior
         $paymentDetailsMock->paymentGuid = 123;
 
         $this->paymentsManager->createPaymentFromWire(
-            Argument::type(WireModel::class),
-            "trial-id",
-            true,
-            false,
-            null
+            wire: Argument::type(WireModel::class),
+            paymentTxId: "trial-id",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
         )
             ->shouldBeCalledOnce()
             ->willReturn($paymentDetailsMock);
@@ -433,11 +433,11 @@ class ManagerSpec extends ObjectBehavior
         $paymentDetailsMock->paymentGuid = 123;
 
         $this->paymentsManager->createPaymentFromWire(
-            Argument::type(WireModel::class),
-            "123",
-            true,
-            false,
-            null
+            wire: Argument::type(WireModel::class),
+            paymentTxId: "123",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
         )
             ->shouldBeCalledOnce()
             ->willReturn($paymentDetailsMock);
@@ -498,11 +498,11 @@ class ManagerSpec extends ObjectBehavior
         $paymentDetailsMock->paymentGuid = 123;
 
         $this->paymentsManager->createPaymentFromWire(
-            Argument::type(WireModel::class),
-            "123",
-            false,
-            false,
-            null
+            wire: Argument::type(WireModel::class),
+            paymentTxId: "123",
+            isPlus: false,
+            isPro: false,
+            sourceActivity: null
         )
             ->shouldBeCalledOnce()
             ->willReturn($paymentDetailsMock);
@@ -576,11 +576,11 @@ class ManagerSpec extends ObjectBehavior
         $paymentDetailsMock->paymentGuid = 123;
 
         $this->paymentsManager->createPaymentFromWire(
-            Argument::type(WireModel::class),
-            "123",
-            false,
-            false,
-            null
+            wire: Argument::type(WireModel::class),
+            paymentTxId: "123",
+            isPlus: false,
+            isPro: false,
+            sourceActivity: null
         )
             ->shouldBeCalledOnce()
             ->willReturn($paymentDetailsMock);
@@ -639,11 +639,11 @@ class ManagerSpec extends ObjectBehavior
         $paymentDetailsMock->paymentGuid = 123;
 
         $this->paymentsManager->createPaymentFromWire(
-            Argument::type(WireModel::class),
-            "123",
-            true,
-            false,
-            null
+            wire: Argument::type(WireModel::class),
+            paymentTxId: "123",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
         )
             ->shouldBeCalledOnce()
             ->willReturn($paymentDetailsMock);
@@ -701,11 +701,11 @@ class ManagerSpec extends ObjectBehavior
         $paymentDetailsMock->paymentGuid = 123;
 
         $this->paymentsManager->createPaymentFromWire(
-            Argument::type(WireModel::class),
-            "123",
-            false,
-            true,
-            null
+            wire: Argument::type(WireModel::class),
+            paymentTxId: "123",
+            isPlus: false,
+            isPro: true,
+            sourceActivity: null
         )
             ->shouldBeCalledOnce()
             ->willReturn($paymentDetailsMock);

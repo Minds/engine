@@ -9,6 +9,7 @@ use Minds\Core\Monetization\Partners\EarningsBalance;
 use Minds\Core\Monetization\Partners\EarningsDeposit;
 use Minds\Core\Monetization\Partners\Manager;
 use Minds\Core\Monetization\Partners\Repository;
+use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Payments\Stripe;
 use Minds\Core\Plus;
 use Minds\Entities\User;
@@ -38,7 +39,8 @@ class ManagerSpec extends ObjectBehavior
         Plus\Manager $plusManager,
         Stripe\Connect\Manager $connectManager,
         Delegates\EmailDelegate $emailDelegate,
-        BoostPartnersManager $boostPartnersManager
+        BoostPartnersManager $boostPartnersManager,
+        PaymentsManager $paymentsManager,
     ) {
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
@@ -55,7 +57,8 @@ class ManagerSpec extends ObjectBehavior
             null,
             null,
             $emailDelegate,
-            $this->boostPartnersManager
+            $this->boostPartnersManager,
+            $paymentsManager,
         );
     }
 

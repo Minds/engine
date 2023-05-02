@@ -272,11 +272,11 @@ class ManagerSpec extends ObjectBehavior
         )->shouldBeCalledOnce();
 
         $this->createPaymentFromWire(
-            $wire,
-            "",
-            true,
-            false,
-            null
+            wire: $wire,
+            paymentTxId: "",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
         );
     }
 
@@ -313,11 +313,11 @@ class ManagerSpec extends ObjectBehavior
         )->shouldBeCalledOnce();
 
         $this->createPaymentFromWire(
-            $wire,
-            "",
-            true,
-            false,
-            null
+            wire: $wire,
+            paymentTxId: "",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
         );
     }
 
@@ -362,11 +362,11 @@ class ManagerSpec extends ObjectBehavior
         )->shouldBeCalledOnce();
 
         $this->createPaymentFromWire(
-            $wire,
-            "",
-            true,
-            false,
-            null
+            wire: $wire,
+            paymentTxId: "",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
         );
     }
 
@@ -411,11 +411,11 @@ class ManagerSpec extends ObjectBehavior
         )->shouldBeCalledOnce();
 
         $this->createPaymentFromWire(
-            $wire,
-            "",
-            true,
-            false,
-            null
+            wire: $wire,
+            paymentTxId: "",
+            isPlus: true,
+            isPro: false,
+            sourceActivity: null
         );
     }
 }

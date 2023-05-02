@@ -391,8 +391,15 @@ class Manager
                 if (!$intent->getId()) {
                     throw new \Exception("Payment failed");
                 }
+                
                 // Add to Minds payments table
-                $paymentDetails = $this->paymentsManager->createPaymentFromWire($wire, $intent->getId(), $isPlusPayment, $isProPayment, $this->sourceEntity);
+                $paymentDetails = $this->paymentsManager->createPaymentFromWire(
+                    wire: $wire,
+                    paymentTxId: $intent->getId(),
+                    isPlus: $isPlusPayment,
+                    isPro: $isProPayment,
+                    sourceActivity: $this->sourceEntity
+                );
 
                 // Save the wire to the Repository
                 $wire->setPaymentGuid($paymentDetails->paymentGuid);
