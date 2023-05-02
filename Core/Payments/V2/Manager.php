@@ -72,7 +72,7 @@ class Manager
             'affiliateUserGuid' => $affiliateUserGuid,
             'paymentType' => PaymentType::BOOST_PAYMENT,
             'paymentMethod' => PaymentMethod::getValidatedPaymentMethod($boost->getPaymentMethod()),
-            'paymentAmountMillis' => (int) ($boost->getPaymentAmount() * 100 * 1000),
+            'paymentAmountMillis' => (int) ($boost->getPaymentAmount() * 1000), // In dollars, so multiply by 1000
             'paymentTxId' => $boost->getPaymentTxId(),
         ]);
 
@@ -128,7 +128,7 @@ class Manager
             'affiliateUserGuid' => $affiliateUserGuid,
             'paymentType' => $paymentType,
             'paymentMethod' => PaymentMethod::getValidatedPaymentMethod(PaymentMethod::CASH),
-            'paymentAmountMillis' => (int) ($wire->getAmount() * 100 * 1000),
+            'paymentAmountMillis' => (int) ($wire->getAmount() * 10), // Already in cents, so multiply by 10
             'paymentTxId' => $paymentTxId,
             'isCaptured' => true
         ]);
