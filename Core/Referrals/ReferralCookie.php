@@ -5,10 +5,14 @@
 namespace Minds\Core\Referrals;
 
 use Minds\Common\Cookie;
+use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Zend\Diactoros\ServerRequest;
 
 class ReferralCookie
 {
+    private const COOKIE_NAME = "referrer";
+
     /** @var Request */
     private $request;
 
@@ -16,9 +20,11 @@ class ReferralCookie
     const VALIDITY_WINDOW = 259200; // 3 days.
 
     public function __construct(
-        private ?Cookie $cookie = null
+        private ?Cookie $cookie = null,
+        private ?EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->cookie ??= new Cookie();
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
     }
 
     /**
@@ -46,11 +52,18 @@ class ReferralCookie
         $params = $this->request->getQueryParams();
 
         if (isset($params['referrer'])) {
-            $this->cookie->setName('referrer')
+            $this->cookie->setName(self::COOKIE_NAME)
                 ->setValue($params['referrer'])
                 ->setExpire(time() + self::VALIDITY_WINDOW)
                 ->setPath('/')
                 ->create();
         }
+    }
+
+    public function getAffiliateGuid(): ?int
+    {
+        $request = $this->request;
+        $affiliateUser = isset($request->getCookieParams()[self::COOKIE_NAME]) ? $this->entitiesBuilder->getByUserByIndex($request->getCookieParams()[self::COOKIE_NAME]) : null;
+        return (int) $affiliateUser?->getGuid() ?? null;
     }
 }

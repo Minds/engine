@@ -89,7 +89,7 @@ class ManagerSpec extends ObjectBehavior
             $this->acl,
             $this->guidLinkResolver,
             $this->userSettingsManager,
-            $this->experimentsManager
+            $this->experimentsManager,
         );
     }
 
@@ -134,7 +134,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($entity);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -201,7 +201,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -268,7 +268,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -335,7 +335,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -485,7 +485,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($entity);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -568,7 +568,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -621,7 +621,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()
             ->willReturn(true);
 

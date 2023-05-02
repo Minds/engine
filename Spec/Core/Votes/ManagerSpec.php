@@ -9,6 +9,7 @@ use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Votes\Counters;
 use Minds\Core\Votes\Indexes;
+use Minds\Core\Votes\MySqlRepository;
 use Minds\Core\Votes\Vote;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
@@ -29,13 +30,17 @@ class ManagerSpec extends ObjectBehavior
     private $friendlyCaptchaManager;
     private $experimentsManager;
 
+    /** @var MySqlRepository */
+    private $mySqlRepositoryMock;
+
     public function let(
         ACL $acl,
         Counters $counters,
         Indexes $indexes,
         EventsDispatcher $dispatcher,
         FriendlyCaptchaManager $friendlyCaptchaManager,
-        ExperimentsManager $experimentsManager
+        ExperimentsManager $experimentsManager,
+        MySqlRepository $mySqlRepositoryMock,
     ) {
         $this->acl = $acl;
         $this->counters = $counters;
@@ -43,8 +48,9 @@ class ManagerSpec extends ObjectBehavior
         $this->dispatcher = $dispatcher;
         $this->friendlyCaptchaManager = $friendlyCaptchaManager;
         $this->experimentsManager = $experimentsManager;
+        $this->mySqlRepositoryMock = $mySqlRepositoryMock;
 
-        $this->beConstructedWith($counters, $indexes, $acl, $dispatcher, $this->friendlyCaptchaManager, $this->experimentsManager);
+        $this->beConstructedWith($counters, $indexes, $acl, $dispatcher, $this->friendlyCaptchaManager, $this->experimentsManager, $this->mySqlRepositoryMock);
     }
 
     public function it_is_initializable()
@@ -86,6 +92,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->mySqlRepositoryMock->add($vote)
+            ->willReturn(true);
+
         $this->cast($vote, ['events' => false, 'puzzleSolution' => 'puzzle', 'client_meta' => []])
             ->shouldReturn(true);
     }
@@ -122,6 +131,9 @@ class ManagerSpec extends ObjectBehavior
 
         $this->dispatcher->trigger('vote', 'up', ['vote' => $vote, 'isFriendlyCaptchaPuzzleValid' => true, 'client_meta' => []])
             ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->mySqlRepositoryMock->add($vote)
             ->willReturn(true);
 
         $this->cast($vote, ['events' => true, 'puzzleSolution' => 'puzzle', 'client_meta' => []])
@@ -191,6 +203,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->mySqlRepositoryMock->delete($vote)
+            ->willReturn(true);
+
         $this->cancel($vote, ['events' => false])
             ->shouldReturn(true);
     }
@@ -210,6 +225,9 @@ class ManagerSpec extends ObjectBehavior
 
         $this->dispatcher->trigger('vote:cancel', Argument::any(), ['vote' => $vote], null)
             ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->mySqlRepositoryMock->delete($vote)
             ->willReturn(true);
 
         $this->cancel($vote, ['events' => true])
@@ -286,6 +304,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->mySqlRepositoryMock->add($vote)
+            ->willReturn(true);
+
         $this->toggle($vote, ['events' => false, 'puzzleSolution' => 'puzzle', 'client_meta' => []])
             ->shouldReturn(true);
     }
@@ -312,6 +333,9 @@ class ManagerSpec extends ObjectBehavior
 
         $this->indexes->remove($vote)
             ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->mySqlRepositoryMock->delete($vote)
             ->willReturn(true);
 
         $this->toggle($vote, ['events' => false])

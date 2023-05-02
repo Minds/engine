@@ -149,11 +149,16 @@ class SearchIndexerSubscription implements SubscriptionInterface
             throw new ServerErrorException("No user found for owner guid: $ownerGuid");
         }
 
-        $hasMadePosts = $this->feedUserManager->setUser($owner)
-            ->hasMadePosts();
+        try {
+            $hasMadePosts = $this->feedUserManager->setUser($owner)
+                ->hasMadePosts();
 
-        $this->feedUserManager->setHasMadePostsInCache($ownerGuid);
+            $this->feedUserManager->setHasMadePostsInCache($ownerGuid);
 
-        return $hasMadePosts;
+            return $hasMadePosts;
+        } catch (\Exception $e) {
+            // presume true so we don't wrongly index a users post who already has other posts.
+            return true;
+        };
     }
 }
