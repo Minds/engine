@@ -197,7 +197,6 @@ ALTER TABLE boost_summaries
     ADD clicks int
     AFTER views;
 
-<<<<<<< HEAD
 CREATE TABLE IF NOT EXISTS minds_payments
 (
     payment_guid bigint NOT NULL PRIMARY KEY,
@@ -225,4 +224,17 @@ CREATE TABLE IF NOT EXISTS minds_default_tag_mapping (
 	tag_name varchar(100) NOT NULL,
 	entity_type varchar(100) NOT NULL,
 	PRIMARY KEY (entity_guid, tag_name)
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS minds_votes
+(
+    user_guid bigint NOT NULL,
+    entity_guid bigint NOT NULL,
+    entity_type text NOT NULL,
+    direction int NOT NULL,
+    deleted boolean NOT NULL DEFAULT FALSE,
+    created_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_guid, entity_guid, direction)
 ) ENGINE=InnoDB;

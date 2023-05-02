@@ -29,5 +29,9 @@ class Provider extends Di\Provider
         $this->di->bind('Votes\Controller', function () {
             return new Controller();
         }, [ 'useFactory' => true ]);
+
+        $this->di->bind(MySqlRepository::class, function () {
+            return new MySqlRepository();
+        }, [ 'useFactory' => true ]);
     }
 }
