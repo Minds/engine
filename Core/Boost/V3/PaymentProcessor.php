@@ -77,7 +77,7 @@ class PaymentProcessor
 
         $boost->setPaymentGuid($paymentDetails->paymentGuid);
 
-        return $result;
+        return (bool) $result;
     }
 
     /**

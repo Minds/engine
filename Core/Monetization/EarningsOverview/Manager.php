@@ -132,6 +132,14 @@ class Manager
         // Boost Partners
         $boostPartners = $partnerEarningsItems['boost_partner'] ?? new EarningsItemModel();
         $boostPartners->setId('boost_partner');
+
+        // Affiliates
+        $affiliateEarnings = $partnerEarningsItems['affiliate'] ?? new EarningsItemModel();
+        $affiliateEarnings->setId('affiliate');
+
+        // Affiliate referrals
+        $affiliateReferrerEarnings = $partnerEarningsItems['affiliate_referrer'] ?? new EarningsItemModel();
+        $affiliateReferrerEarnings->setId('affiliate_referrer');
         
         $earnings->setItems([
             $pageViewEarnings,
@@ -139,6 +147,8 @@ class Manager
             $plusEarnings,
             $wireReferrals,
             $boostPartners,
+            $affiliateEarnings,
+            $affiliateReferrerEarnings,
         ]);
 
         return $earnings;

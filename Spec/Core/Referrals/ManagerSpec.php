@@ -10,6 +10,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
+use Minds\Core\Monetization\Partners\Manager as PartnersManager;
 
 use PhpSpec\ObjectBehavior;
 
@@ -18,16 +19,19 @@ class ManagerSpec extends ObjectBehavior
     private $repository;
     private $notificationDelegate;
     private $entitiesBuilder;
+    private $partnersManager;
 
     public function let(
         Repository $repository,
         NotificationDelegate $notificationDelegate,
-        EntitiesBuilder $entitiesBuilder
+        EntitiesBuilder $entitiesBuilder,
+        PartnersManager $partnersManager,
     ) {
-        $this->beConstructedWith($repository, $notificationDelegate, $entitiesBuilder);
+        $this->beConstructedWith($repository, $notificationDelegate, $entitiesBuilder, $partnersManager);
         $this->repository = $repository;
         $this->notificationDelegate = $notificationDelegate;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->partnersManager = $partnersManager;
     }
 
     public function it_is_initializable()
