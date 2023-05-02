@@ -66,7 +66,7 @@ class Repository
                 'payment_amount_millis' => new RawExp(':payment_amount_millis'),
                 'payment_tx_id' => new RawExp(':payment_tx_id'),
                 'is_captured' => new RawExp(':is_captured'),
-                'payment_status' => PaymentStatus::PENDING
+                'payment_status' => new RawExp(':payment_status'),
             ])
             ->prepare();
 
@@ -78,6 +78,7 @@ class Repository
             'payment_method' => $paymentDetails->paymentMethod,
             'payment_amount_millis' => $paymentDetails->paymentAmountMillis,
             'payment_tx_id' => $paymentDetails->paymentTxId,
+            'payment_status' => $paymentDetails->paymentStatus ?: PaymentStatus::PENDING,
             'is_captured' => $paymentDetails->isCaptured
         ];
 
