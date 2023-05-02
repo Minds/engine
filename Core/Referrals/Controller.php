@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\Referrals;
 
-use Minds\Api\Exportable;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Entities\User;
@@ -40,11 +39,11 @@ class Controller
          * @type User $user
          */
         $user = $request->getAttribute('_user');
-        
+
         $response = $this->manager->getMetrics(
             user: $user
         );
 
-        return new JsonResponse(Exportable::_($response));
+        return new JsonResponse($response->export());
     }
 }
