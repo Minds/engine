@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Referrals;
 
+use Minds\Api\Exportable;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Entities\User;
@@ -44,6 +45,6 @@ class Controller
             user: $user
         );
 
-        return new JsonResponse($response);
+        return new JsonResponse(Exportable::_($response));
     }
 }

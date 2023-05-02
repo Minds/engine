@@ -175,24 +175,23 @@ class Repository
     {
         $statement = "SELECT SUM(amount_cents) as cents, SUM(amount_tokens) as tokens
             FROM partner_earnings_ledger
-            WHERE user_guid = ?
-            AND timestamp <= ?";
+            WHERE user_guid = ?";
 
         $values = [
             new Bigint($userGuid),
-            new Timestamp($asOfTs ?? time(), 0),
+            // new Timestamp($asOfTs ?? time(), 0),
         ];
 
-        $items = array_map(
-            function (string $value) use (&$values): string {
-                $values[] = $value;
-                return "item = ?";
-            },
-            $items
-        );
+        // $items = array_map(
+        //     function (string $value) use (&$values): string {
+        //         $values[] = $value;
+        //         return "item = ?";
+        //     },
+        //     $items
+        // );
 
-        $statement .= " AND (" . implode(' OR ', $items) . ")";
-        
+        // $statement .= " AND (" . implode(' OR ', $items) . ")";
+
         $prepared = (new Prepared())
             ->query($statement, $values);
 
