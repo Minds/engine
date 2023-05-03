@@ -219,6 +219,7 @@ class Repository
             } else {
                 $statement->where('affiliate_user_guid', Operator::IS_NOT, null);
             }
+            $statement->where('affiliate_user_guid', Operator::IS_NOT, 'user_guid'); // Do not allow affiliate to be the spender
         }
 
         if ($options->getPaymentMethod()) {
