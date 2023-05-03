@@ -197,7 +197,7 @@ class Repository
          * @var $deposit
          */
         foreach ($result as $deposit) {
-            if (!in_array($deposit['item'], $items)) {
+            if (!in_array($deposit['item'], $items, true)) {
                 continue;
             }
 
