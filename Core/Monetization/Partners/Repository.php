@@ -186,8 +186,6 @@ class Repository
             $values[] = new Timestamp($asOfTs, 0);
         }
 
-        // $statement .= " AND (" . implode(' OR ', $items) . ")";
-
         $prepared = (new Prepared())
             ->query($statement, $values);
 
