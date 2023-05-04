@@ -30,6 +30,7 @@ class Repository
             'to' => null,
             'user_guid' => null,
             'allow_filtering' => false,
+            'offset' => '',
         ], $opts);
 
         $statement = "SELECT * FROM partner_earnings_ledger";
@@ -63,6 +64,9 @@ class Repository
 
         $prepared = new Prepared();
         $prepared->query($statement, $values);
+        $prepared->setOpts([
+            'paging_state_token' => $opts['offset'],
+        ]);
 
         $result = $this->db->request($prepared);
 
@@ -78,11 +82,12 @@ class Repository
                 ->setItem($row['item'])
                 ->setUserGuid((string) $row['user_guid'])
                 ->setAmountCents($row['amount_cents'])
-                ->setAmountTokens($row['amount_tokens'] ? $row['amount_tokens']->value() : 0);
+                ->setAmountTokens(isset($row['amount_tokens']) ? $row['amount_tokens']->value() : 0);
             $response[] = $deposit;
         }
 
         $response->setLastPage($result->isLastPage());
+        $response->setPagingToken($result->pagingStateToken());
         return $response;
     }
 
