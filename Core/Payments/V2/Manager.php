@@ -11,6 +11,7 @@ use Minds\Core\Payments\V2\Enums\PaymentMethod;
 use Minds\Core\Payments\V2\Enums\PaymentStatus;
 use Minds\Core\Payments\V2\Enums\PaymentType;
 use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
+use Minds\Core\Payments\V2\Exceptions\PaymentNotFoundException;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Referrals\ReferralCookie;
 use Minds\Core\Wire\Wire;
@@ -62,7 +63,7 @@ class Manager
     public function createPaymentFromBoost(Boost $boost): PaymentDetails
     {
         $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
-        if (!$affiliateUserGuid && $this->user->getGuid() === $boost->getOwnerGuid()) {
+        if (!$affiliateUserGuid || (int) $this->user->getGuid() === (int) $boost->getOwnerGuid()) {
             $affiliateUserGuid =
                 $this->user->referrer && (time() - $this->user->time_created) < 365 * 86400
                     ? (int) $this->user->referrer
@@ -108,7 +109,7 @@ class Manager
                 $affiliateUserGuid = ((int) $sourceActivity->getOwnerGuid()) ?? null;
             } else {
                 $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
-                if (!$affiliateUserGuid) {
+                if (!$affiliateUserGuid || $affiliateUserGuid === (int) $wire->getSender()->getGuid()) {
                     $affiliateUserGuid = (
                         $wire->getSender()->referrer && (time() - $wire->getSender()->time_created) < 365 * 86400
                         ? (int) $wire->getSender()->referrer
@@ -133,7 +134,7 @@ class Manager
             'paymentAmountMillis' => (int) ($wire->getAmount() * 10), // Already in cents, so multiply by 10
             'paymentTxId' => $paymentTxId,
             'paymentStatus' => !$wire->getTrialDays() ? PaymentStatus::COMPLETED : PaymentStatus::PENDING,
-            'isCaptured' => !$wire->getTrialDays() ? true : false, // Do not capture trial wires
+            'isCaptured' => !$wire->getTrialDays(), // Do not capture trial wires
         ]);
 
         $this->createPayment($paymentDetails);
@@ -146,6 +147,7 @@ class Manager
      * @param int $paymentStatus
      * @param bool $isCaptured
      * @return void
+     * @throws PaymentNotFoundException
      * @throws ServerErrorException
      */
     public function updatePaymentStatus(int $paymentGuid, int $paymentStatus, bool $isCaptured = false): void
