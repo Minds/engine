@@ -238,3 +238,7 @@ CREATE TABLE IF NOT EXISTS minds_votes
     updated_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_guid, entity_guid, direction)
 ) ENGINE=InnoDB;
+
+ALTER TABLE minds_payments
+    ADD affiliate_type int DEFAULT NULL
+    AFTER affiliate_user_guid;
