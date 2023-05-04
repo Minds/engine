@@ -63,7 +63,7 @@ class Manager
     public function createPaymentFromBoost(Boost $boost): PaymentDetails
     {
         $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
-        if (!$affiliateUserGuid || (int) $this->user->getGuid() === (int) $boost->getOwnerGuid()) {
+        if (!$affiliateUserGuid || $affiliateUserGuid === (int) $this->user->getGuid()) {
             $affiliateUserGuid =
                 $this->user->referrer && (time() - $this->user->time_created) < 365 * 86400
                     ? (int) $this->user->referrer
