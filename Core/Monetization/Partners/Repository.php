@@ -78,7 +78,7 @@ class Repository
                 ->setItem($row['item'])
                 ->setUserGuid((string) $row['user_guid'])
                 ->setAmountCents($row['amount_cents'])
-                ->setAmountTokens($row['amount_tokens'] ? $row['amount_tokens']->value() : 0);
+                ->setAmountTokens($row['amount_tokens'] !== null ? $row['amount_tokens']->value() : 0);
             $response[] = $deposit;
         }
 
@@ -192,7 +192,7 @@ class Repository
         );
 
         $statement .= " AND (" . implode(' OR ', $items) . ")";
-        
+
         $prepared = (new Prepared())
             ->query($statement, $values);
 
