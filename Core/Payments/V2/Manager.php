@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\V2;
 
+use Iterator;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\V2\Enums\PaymentMethod;
+use Minds\Core\Payments\V2\Enums\PaymentStatus;
 use Minds\Core\Payments\V2\Enums\PaymentType;
 use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
@@ -72,7 +74,7 @@ class Manager
             'affiliateUserGuid' => $affiliateUserGuid,
             'paymentType' => PaymentType::BOOST_PAYMENT,
             'paymentMethod' => PaymentMethod::getValidatedPaymentMethod($boost->getPaymentMethod()),
-            'paymentAmountMillis' => (int) ($boost->getPaymentAmount() * 100 * 1000),
+            'paymentAmountMillis' => (int) ($boost->getPaymentAmount() * 1000), // In dollars, so multiply by 1000
             'paymentTxId' => $boost->getPaymentTxId(),
         ]);
 
@@ -87,7 +89,7 @@ class Manager
      * @param bool $isPlus
      * @param bool $isPro
      * @param Activity|null $sourceActivity
-     * @return void
+     * @return PaymentDetails
      * @throws InvalidPaymentMethodException
      * @throws ServerErrorException
      */
@@ -128,9 +130,10 @@ class Manager
             'affiliateUserGuid' => $affiliateUserGuid,
             'paymentType' => $paymentType,
             'paymentMethod' => PaymentMethod::getValidatedPaymentMethod(PaymentMethod::CASH),
-            'paymentAmountMillis' => (int) ($wire->getAmount() * 100 * 1000),
+            'paymentAmountMillis' => (int) ($wire->getAmount() * 10), // Already in cents, so multiply by 10
             'paymentTxId' => $paymentTxId,
-            'isCaptured' => true
+            'paymentStatus' => !$wire->getTrialDays() ? PaymentStatus::COMPLETED : PaymentStatus::PENDING,
+            'isCaptured' => !$wire->getTrialDays() ? true : false, // Do not capture trial wires
         ]);
 
         $this->createPayment($paymentDetails);
@@ -160,5 +163,16 @@ class Manager
     private function getServerRequest(): ServerRequest
     {
         return ServerRequestFactory::fromGlobals();
+    }
+
+    /**
+     * @param PaymentOptions $paymentOptions
+     * @return Iterator
+     * @throws ServerErrorException
+     */
+    public function getPaymentsAffiliatesEarnings(
+        PaymentOptions $paymentOptions
+    ): Iterator {
+        return $this->repository->getPaymentsAffiliatesEarnings($paymentOptions);
     }
 }

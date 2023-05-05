@@ -2,7 +2,6 @@
 
 namespace Spec\Minds\Core\Boost\V3;
 
-use Google\Service\Analytics\Experiment;
 use Minds\Common\Repository\Response;
 use Minds\Core\Analytics\Views\Manager as ViewsManager;
 use Minds\Core\Blogs\Blog;
@@ -67,7 +66,7 @@ class ManagerSpec extends ObjectBehavior
         ACL $acl,
         GuidLinkResolver $guidLinkResolver,
         UserSettingsManager $userSettingsManager,
-        ExperimentsManager $experimentsManager
+        ExperimentsManager $experimentsManager,
     ) {
         $this->repository = $repository;
         $this->paymentProcessor = $paymentProcessor;
@@ -600,6 +599,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
+        $this->paymentProcessor->refundBoostPayment(Argument::type(Boost::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
         $this->repository->rollbackTransaction()
             ->shouldBeCalledOnce();
 
@@ -650,6 +653,10 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(false);
 
         $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->paymentProcessor->refundBoostPayment(Argument::type(Boost::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -1395,10 +1402,6 @@ class ManagerSpec extends ObjectBehavior
         ))->setOwnerGuid('123')
             ->setGuid('234');
 
-        $this->experimentsManager->isOn('epic-303-boost-partners')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
             offset: Argument::type('integer'),
@@ -1458,10 +1461,6 @@ class ManagerSpec extends ObjectBehavior
             1
         ))->setOwnerGuid('123')
             ->setGuid('234');
-
-        $this->experimentsManager->isOn('epic-303-boost-partners')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
@@ -1523,10 +1522,6 @@ class ManagerSpec extends ObjectBehavior
         ))->setOwnerGuid('123')
             ->setGuid('234');
 
-        $this->experimentsManager->isOn('epic-303-boost-partners')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
             offset: Argument::type('integer'),
@@ -1586,10 +1581,6 @@ class ManagerSpec extends ObjectBehavior
             1
         ))->setOwnerGuid('123')
             ->setGuid('234');
-
-        $this->experimentsManager->isOn('epic-303-boost-partners')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
@@ -1651,10 +1642,6 @@ class ManagerSpec extends ObjectBehavior
         ))->setOwnerGuid('123')
             ->setGuid('234');
 
-        $this->experimentsManager->isOn('epic-303-boost-partners')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
             offset: Argument::type('integer'),
@@ -1714,10 +1701,6 @@ class ManagerSpec extends ObjectBehavior
             1
         ))->setOwnerGuid('123')
             ->setGuid('234');
-
-        $this->experimentsManager->isOn('epic-303-boost-partners')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
@@ -1779,10 +1762,6 @@ class ManagerSpec extends ObjectBehavior
         ))->setOwnerGuid('123')
             ->setGuid('234');
 
-        $this->experimentsManager->isOn('epic-303-boost-partners')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this->repository->getBoosts(
             limit: Argument::type('integer'),
             offset: Argument::type('integer'),
@@ -1841,10 +1820,6 @@ class ManagerSpec extends ObjectBehavior
             1
         ))->setOwnerGuid('123')
             ->setGuid('234');
-
-        $this->experimentsManager->isOn('epic-303-boost-partners')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $this->repository->getBoosts(
             limit: Argument::type('integer'),

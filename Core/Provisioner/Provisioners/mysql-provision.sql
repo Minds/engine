@@ -237,3 +237,16 @@ CREATE TABLE IF NOT EXISTS minds_default_tag_mapping (
 	entity_type varchar(100) NOT NULL,
 	PRIMARY KEY (entity_guid, tag_name)
 ) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS minds_votes
+(
+    user_guid bigint NOT NULL,
+    entity_guid bigint NOT NULL,
+    entity_type text NOT NULL,
+    direction int NOT NULL,
+    deleted boolean NOT NULL DEFAULT FALSE,
+    created_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_guid, entity_guid, direction)
+) ENGINE=InnoDB;

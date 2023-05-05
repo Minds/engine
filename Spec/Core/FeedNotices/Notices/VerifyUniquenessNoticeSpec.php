@@ -63,31 +63,12 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->experimentsManager);
 
-        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this->experimentsManager->isOn('epic-275-in-app-verification')
             ->shouldBeCalled()
             ->willReturn(false);
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(true);
-    }
-
-    public function it_should_determine_if_notice_should_NOT_show_when_experiment_is_off(
-        User $user,
-    ) {
-        $this->experimentsManager->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->experimentsManager);
-
-        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $this->callOnWrappedObject('shouldShow', [$user])
-            ->shouldBe(false);
     }
 
     public function it_should_determine_if_notice_should_NOT_show_when_no_user_phone_hash(
@@ -97,29 +78,6 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('123');
 
-        $this->experimentsManager->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->experimentsManager);
-
-        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->callOnWrappedObject('shouldShow', [$user])
-            ->shouldBe(false);
-    }
-
-    public function it_should_determine_if_notice_should_NOT_show_because_experiment_is_off(
-        User $user
-    ) {
-        $this->experimentsManager->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->experimentsManager);
-        
-        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
-            ->shouldBeCalled()
-            ->willReturn(false);
-
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);
     }
@@ -127,14 +85,6 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_NOT_show_because_user_is_not_eligible_for_rewards(
         User $user
     ) {
-        $this->experimentsManager->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->experimentsManager);
-        
-        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $user->getPhoneNumberHash()
             ->shouldBeCalled()
             ->willReturn('123');
@@ -146,14 +96,6 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_NOT_show_because_user_already_has_a_phone_hash_set(
         User $user
     ) {
-        $this->experimentsManager->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->experimentsManager);
-        
-        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $user->getPhoneNumberHash()
             ->shouldBeCalled()
             ->willReturn('');
@@ -180,11 +122,11 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
     {
         $this->setUser($user);
 
-        $this->experimentsManager->setUser($user)
+        $this->eligibilityManager->setUser($user)
             ->shouldBeCalled()
-            ->willReturn($this->experimentsManager);
+            ->willReturn($this->eligibilityManager);
 
-        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
+        $this->eligibilityManager->isEligible()
             ->shouldBeCalled()
             ->willReturn(false);
 

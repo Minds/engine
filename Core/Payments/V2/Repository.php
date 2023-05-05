@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\V2;
 
+use Iterator;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
@@ -18,6 +19,9 @@ use Selective\Database\RawExp;
 
 class Repository
 {
+    /** @var int */
+    const AFFILIATE_SHARE_PCT = 45; // 45%
+
     private PDO $mysqlClientReader;
     private PDO $mysqlClientWriter;
     private Connection $mysqlClientWriterHandler;
@@ -62,7 +66,7 @@ class Repository
                 'payment_amount_millis' => new RawExp(':payment_amount_millis'),
                 'payment_tx_id' => new RawExp(':payment_tx_id'),
                 'is_captured' => new RawExp(':is_captured'),
-                'payment_status' => PaymentStatus::PENDING
+                'payment_status' => new RawExp(':payment_status'),
             ])
             ->prepare();
 
@@ -74,6 +78,7 @@ class Repository
             'payment_method' => $paymentDetails->paymentMethod,
             'payment_amount_millis' => $paymentDetails->paymentAmountMillis,
             'payment_tx_id' => $paymentDetails->paymentTxId,
+            'payment_status' => $paymentDetails->paymentStatus ?: PaymentStatus::PENDING,
             'is_captured' => $paymentDetails->isCaptured
         ];
 
@@ -184,6 +189,76 @@ class Repository
                 ]
             );
             throw new ServerErrorException("An issue was encountered whilst updating the payment information");
+        }
+    }
+
+    /**
+     * Returns affiliates earnings
+     * @throws ServerErrorException
+     */
+    public function getPaymentsAffiliatesEarnings(PaymentOptions $options): Iterator
+    {
+        $sharePct = self::AFFILIATE_SHARE_PCT / 100;
+    
+        $paymentFeePct = 0.029; // 2.9%
+        $paymentFeeMillis = 300; // $0.30
+
+        $values = [];
+        $statement = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'affiliate_user_guid',
+                'total_earnings_millis' => new RawExp("SUM((payment_amount_millis - ((payment_amount_millis * $paymentFeePct) - $paymentFeeMillis)) * $sharePct)")
+            ])
+            ->from('minds_payments')
+            ->where('updated_timestamp', Operator::GTE, date('c', $options->getFromTimestamp()));
+
+        if ($options->getWithAffiliate()) {
+            if ($options->getAffiliateGuid()) {
+                $statement->where('affiliate_user_guid', Operator::EQ, new RawExp(':affiliate_user_guid'));
+                $values['affiliate_user_guid'] = $options->getAffiliateGuid();
+            } else {
+                $statement->where('affiliate_user_guid', Operator::IS_NOT, null);
+            }
+            $statement->where('affiliate_user_guid', Operator::NOT_EQ, new RawExp('user_guid')); // Do not allow affiliate to be the spender
+        }
+
+        if ($options->getPaymentMethod()) {
+            $statement->where('payment_method', Operator::EQ, new RawExp(':payment_method'));
+            $values['payment_method'] = $options->getPaymentMethod();
+        }
+
+        if ($options->getPaymentStatus()) {
+            $statement->where('payment_status', Operator::EQ, new RawExp(':payment_status'));
+            $values['payment_status'] = $options->getPaymentStatus();
+        }
+
+        if (count($options->getPaymentTypes()) > 0) {
+            $statement->whereWithNamedParameters(
+                leftField: 'payment_type',
+                operator: Operator::IN,
+                parameterName: 'payment_type',
+                totalParameters: count($options->getPaymentTypes())
+            );
+            $values['payment_type'] = $options->getPaymentTypes();
+        }
+
+        if ($options->getToTimestamp()) {
+            $statement->where('updated_timestamp', Operator::LTE, date('c', $options->getToTimestamp()));
+        }
+
+        $statement = $statement->groupBy('affiliate_user_guid')
+            ->prepare();
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        try {
+            $statement->execute();
+
+            foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $affiliate) {
+                yield $affiliate;
+            }
+        } catch (PDOException $e) {
+            throw new ServerErrorException("An error occurred whilst retrieving affiliates earnings");
         }
     }
 }

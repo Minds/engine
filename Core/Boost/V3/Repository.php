@@ -69,8 +69,8 @@ class Repository
      */
     public function createBoost(Boost $boost): bool
     {
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
+        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, payment_guid, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
+                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :payment_guid, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
 
         $createdTimestamp = $boost->getCreatedTimestamp() ?
             date("c", $boost->getCreatedTimestamp()) :
@@ -96,6 +96,7 @@ class Repository
             'payment_method' => $boost->getPaymentMethod(),
             'payment_amount' => $boost->getPaymentAmount(),
             'payment_tx_id' => $boost->getPaymentTxId(),
+            'payment_guid' => $boost->getPaymentGuid(),
             'created_timestamp' => $createdTimestamp,
             'approved_timestamp' => $approvedTimestamp,
             'updated_timestamp' => $updatedTimestamp,
@@ -339,6 +340,7 @@ class Repository
                 rejectionReason: isset($boostData['reason']) ? (int) $boostData['reason'] : null,
                 createdTimestamp: strtotime($boostData['created_timestamp']),
                 paymentTxId: $boostData['payment_tx_id'],
+                paymentGuid: (int) $boostData['payment_guid'] ?: null,
                 updatedTimestamp: isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
                 approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
                 summaryViewsDelivered: (int) $boostData['total_views']
