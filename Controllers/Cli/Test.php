@@ -2,11 +2,10 @@
 
 namespace Minds\Controllers\Cli;
 
-use Minds\Core;
 use Minds\Cli;
+use Minds\Core;
+use Minds\Core\EventStreams\Topics\TestEventsTopic;
 use Minds\Interfaces;
-use Minds\Exceptions;
-use Minds\Exceptions\ProvisionException;
 
 class Test extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -29,5 +28,11 @@ class Test extends Cli\Controller implements Interfaces\CliControllerInterface
         ]);
 
         $this->out($namespace);
+    }
+
+    public function pulsar_php_80_send_message(): void
+    {
+        $topic = new TestEventsTopic();
+        $topic->send(null);
     }
 }

@@ -1,1 +1,3 @@
 FROM pulsar_php80:latest
+
+COPY ./ /var/www/Minds/engine/
