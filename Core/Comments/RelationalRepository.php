@@ -10,9 +10,12 @@ use Minds\Entities\User;
 use PDO;
 use PDOStatement;
 
-use Selective\Database\Connection;
-use Minds\Core\Log\Logger;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
+use Selective\Database\Connection;
+use Selective\Database\RawExp;
+
+use Minds\Core\Log\Logger;
+
 
 class RelationalRepository
 {
@@ -98,6 +101,28 @@ class RelationalRepository
         $statement = $this->mysqlClientWriterHandler->insert()
         ->into('minds_comments')
         ->set([
+            'guid' => new RawExp(':guid'),
+            'entity_guid' => new RawExp(':entity_guid'),
+            'owner_guid' => new RawExp(':owner_guid'),
+            'container_guid' => new RawExp(':container_guid'),
+            'parent_guid' => new RawExp(':parent_guid'),
+            'parent_depth' => new RawExp(':parent_depth'),
+            'body' => new RawExp(':body'),
+            'attachments' => new RawExp(':attachments'),
+            'mature' => new RawExp(":mature"),
+            'edited' => new RawExp(':edited'),
+            'spam' => new RawExp(':spam'),
+            'deleted' => new RawExp(':deleted'),
+            'enabled' => new RawExp(':is_enabled'),
+            'group_conversation' => new RawExp(':group_conversation'),
+            'access_id' => new RawExp(':access_id'),
+            'time_created' => new RawExp(':time_created'),
+        ])
+        ->prepare();
+
+        $this->logger->addInfo("Finished preparing insert query", [$statement->queryString]);
+
+        $values = [
             'guid' => $comment->getGuid(),
             'entity_guid' => $comment->getEntityGuid(),
             'owner_guid' => $comment->getOwnerGuid(),
@@ -110,14 +135,13 @@ class RelationalRepository
             'edited' => !!$comment->isEdited(),
             'spam' => !!$comment->isSpam(),
             'deleted' => !!$comment->isDeleted(),
-            'enabled' => true, // TODO enable,
+            'is_enabled' => true, // TODO enable,
             'group_conversation' => !!$comment->isGroupConversation(),
             'access_id' => $comment->getAccessId(),
             'time_created' => $comment->getTimeCreated(),
-        ])
-        ->prepare();
+        ];
 
-        $this->logger->addInfo("Finished preparing insert query", [$statement->queryString]);
+        $this->mysqlClient->bindValuesToPreparedStatement($statement, $values);
 
         try {
             $statement->execute();
