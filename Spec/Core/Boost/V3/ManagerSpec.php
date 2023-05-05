@@ -25,6 +25,7 @@ use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Security\ACL;
 use Minds\Core\Settings\Manager as UserSettingsManager;
@@ -53,6 +54,7 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $acl;
     private Collaborator $guidLinkResolver;
     private Collaborator $userSettingsManager;
+    private Collaborator $experimentsManager;
 
     public function let(
         Repository $repository,
@@ -64,6 +66,7 @@ class ManagerSpec extends ObjectBehavior
         ACL $acl,
         GuidLinkResolver $guidLinkResolver,
         UserSettingsManager $userSettingsManager,
+        ExperimentsManager $experimentsManager,
     ) {
         $this->repository = $repository;
         $this->paymentProcessor = $paymentProcessor;
@@ -74,6 +77,7 @@ class ManagerSpec extends ObjectBehavior
         $this->acl = $acl;
         $this->guidLinkResolver = $guidLinkResolver;
         $this->userSettingsManager = $userSettingsManager;
+        $this->experimentsManager = $experimentsManager;
 
         $this->beConstructedWith(
             $this->repository,
@@ -85,6 +89,7 @@ class ManagerSpec extends ObjectBehavior
             $this->acl,
             $this->guidLinkResolver,
             $this->userSettingsManager,
+            $this->experimentsManager,
         );
     }
 
@@ -121,6 +126,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledTimes(2)
             ->willReturn('activity');
 
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->preApprovalManager->shouldPreApprove($user)
             ->shouldBeCalled()
             ->willReturn(false);
@@ -148,7 +157,10 @@ class ManagerSpec extends ObjectBehavior
             'target_suitability' => 1,
             'payment_method' => 1,
             'daily_bid' => 10,
-            'duration_days' => 2
+            'duration_days' => 2,
+            'goal' => 1,
+            'goal_button_text' => null,
+            'goal_button_url' => null
         ];
 
         $this->createBoost($boostData)
@@ -185,6 +197,10 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
+
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $user->getGuid()
             ->shouldBeCalledOnce()
@@ -253,6 +269,10 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
 
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $user->getGuid()
             ->shouldBeCalledOnce()
             ->willReturn('123');
@@ -319,6 +339,10 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
+
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $user->getGuid()
             ->shouldBeCalledOnce()
@@ -462,6 +486,10 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
 
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $user->getGuid()
             ->shouldBeCalledOnce()
             ->willReturn('123');
@@ -545,6 +573,10 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
 
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $user->getGuid()
             ->shouldBeCalledOnce()
             ->willReturn('123');
@@ -597,6 +629,10 @@ class ManagerSpec extends ObjectBehavior
     ): void {
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
+
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $user->getGuid()
             ->shouldBeCalledOnce()
@@ -660,6 +696,10 @@ class ManagerSpec extends ObjectBehavior
     ): void {
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
+
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $user->getGuid()
             ->shouldBeCalledOnce()
