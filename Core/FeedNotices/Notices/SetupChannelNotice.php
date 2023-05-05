@@ -3,8 +3,6 @@
 namespace Minds\Core\FeedNotices\Notices;
 
 use Minds\Entities\User;
-use Minds\Core\Di\Di;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 
 /**
  * Feed notice to prompt a user to set up their channel.
@@ -16,11 +14,6 @@ class SetupChannelNotice extends AbstractNotice
 
     // notice key / identifier.
     private const KEY = 'setup-channel';
-
-    public function __construct(private ?ExperimentsManager $experimentsManager = null)
-    {
-        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
-    }
 
     /**
      * Get location of notice in feed.
@@ -48,7 +41,6 @@ class SetupChannelNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return $this->experimentsManager->setUser($user)->isOn('minds-3131-onboarding-notices') &&
-            !($user->getName() && $user->briefdescription);
+        return !($user->getName() && $user->briefdescription);
     }
 }

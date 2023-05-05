@@ -1,10 +1,9 @@
 <?php
-/**
- * Manager
- *
- * @author edgebal
- */
 
+/**
+ * Manager for email confirmation.
+ * Confirmation emails are SENT as MFA emails, not here.
+ */
 namespace Minds\Core\Email\Confirmation;
 
 use Exception;
@@ -15,7 +14,6 @@ use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared\Search;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
-use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Queue\Client as QueueClientFactory;
 use Minds\Core\Queue\Interfaces\QueueClient;
 use Minds\Entities\User;
@@ -46,14 +44,8 @@ class Manager
     /** @var Resolver */
     protected $resolver;
 
-    /** @var EventsDispatcher */
-    protected $eventsDispatcher;
-
     /** @var User */
     protected $user;
-
-    /** @var KeyValueLimiter */
-    protected $kvLimiter;
 
     /**
      * Manager constructor.
@@ -63,7 +55,6 @@ class Manager
      * @param Client $elasticsearch
      * @param UserFactory $userFactory
      * @param Resolver $resolver
-     * @param EventsDispatcher $eventsDispatcher
      * @throws Exception
      */
     public function __construct(
@@ -73,8 +64,6 @@ class Manager
         $elasticsearch = null,
         $userFactory = null,
         $resolver = null,
-        $eventsDispatcher = null,
-        $kvLimiter = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->jwt = $jwt ?: new Jwt();
@@ -82,8 +71,6 @@ class Manager
         $this->es = $elasticsearch ?: Di::_()->get('Database\ElasticSearch');
         $this->userFactory = $userFactory ?: new UserFactory();
         $this->resolver = $resolver ?: new Resolver();
-        $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
-        $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
     }
 
     /**
@@ -94,35 +81,6 @@ class Manager
     {
         $this->user = $user;
         return $this;
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function sendEmail(): void
-    {
-        if (!$this->user) {
-            throw new Exception('User not set');
-        }
-
-        if ($this->user->isEmailConfirmed()) {
-            throw new Exception('User email was already confirmed');
-        }
-
-        // Can throw RateLimitException.
-        $this->kvLimiter
-            ->setKey('email-confirmation')
-            ->setValue($this->user->getGuid())
-            ->setSeconds(self::RATE_LIMIT_TIMESPAN)
-            ->setMax(self::RATE_LIMIT_MAX)
-            ->checkAndIncrement();
-
-        $this->generateConfirmationToken();
-
-        $this->eventsDispatcher->trigger('confirmation_email', 'all', [
-            'user_guid' => (string) $this->user->guid,
-            'cache' => false,
-        ]);
     }
 
     /**
@@ -141,59 +99,6 @@ class Manager
 
         return (bool) $this->user
             ->save();
-    }
-
-    /**
-     * @param string $jwt
-     * @return bool
-     * @throws Exception
-     */
-    public function confirm(string $jwt): bool
-    {
-        $config = $this->config->get('email_confirmation');
-
-        if ($this->user) {
-            throw new Exception('Confirmation user is inferred from JWT');
-        }
-
-        $confirmation = $this->jwt
-            ->setKey($config['signing_key'])
-            ->decode($jwt); // Should throw if expired
-
-        if (
-            !$confirmation ||
-            !$confirmation['user_guid'] ||
-            !$confirmation['code']
-        ) {
-            throw new Exception('Invalid JWT');
-        }
-
-        if ($confirmation['exp'] < new \DateTime()) {
-            throw new Exception('Confirmation token expired');
-        }
-
-        $user = $this->userFactory->build($confirmation['user_guid'], false);
-
-        if (!$user || !$user->guid) {
-            throw new Exception('Invalid user');
-        } elseif ($user->isEmailConfirmed()) {
-            throw new Exception('User email was already confirmed');
-        }
-
-        $data = $this->jwt
-            ->setKey($config['signing_key'])
-            ->decode($user->getEmailConfirmationToken());
-
-        if (
-            $data['user_guid'] !== $confirmation['user_guid'] ||
-            $data['code'] !== $confirmation['code']
-        ) {
-            throw new Exception('Invalid confirmation token data');
-        }
-
-        $this->approveConfirmation($user);
-
-        return true;
     }
 
     /**
@@ -282,8 +187,12 @@ class Manager
      * or returns an existing cached token.
      * @return self
      */
-    private function generateConfirmationToken(): self
+    public function generateConfirmationToken(): self
     {
+        if (!$this->user) {
+            throw new Exception('User not set');
+        }
+
         $existingToken = $this->user->getEmailConfirmationToken();
 
         // if existing token is valid, we do not need to generate a new one.
