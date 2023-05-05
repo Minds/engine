@@ -35,25 +35,15 @@ class Routes extends ModuleRoutes
                     Ref::_('Twitter\Controller', 'generateTwitterOAuthAccessToken')
                 );
 
-                $route
-                    ->withMiddleware([
-                        [
-                            'class' => FeatureFlagMiddleware::class,
-                            'args' => [
-                                'twitter-v2-integration'
-                            ]
-                        ]
-                    ])
-                    ->do(function (Route $route) {
-                        $route->post(
-                            'tweets',
-                            Ref::_('Twitter\Controller', 'postTweet')
-                        );
-                        $route->get(
-                            'config',
-                            Ref::_('Twitter\Controller', 'getUserConfig')
-                        );
-                    });
+                $route->post(
+                    'tweets',
+                    Ref::_('Twitter\Controller', 'postTweet')
+                );
+
+                $route->get(
+                    'config',
+                    Ref::_('Twitter\Controller', 'getUserConfig')
+                );
             });
     }
 }

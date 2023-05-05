@@ -232,8 +232,7 @@ class settings implements Interfaces\Api
                 ->reset();
 
                 if ($reset) {
-                    $emailConfirmation
-                    ->sendEmail();
+                    $emailConfirmation->generateConfirmationToken();
                 } else {
                     error_log('Cannot reset email confirmation for ' . $user->guid);
                 }
