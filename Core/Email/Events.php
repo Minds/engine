@@ -8,8 +8,6 @@ namespace Minds\Core\Email;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Analytics\UserStates\UserActivityBuckets;
-
-use Minds\Core\Email\V2\Delegates\ConfirmationSender;
 use Minds\Core\Email\V2\Delegates\DigestSender;
 use Minds\Entities\User;
 use Minds\Interfaces\SenderInterface;
@@ -44,10 +42,6 @@ class Events
 
         Dispatcher::register('user_state_change', UserActivityBuckets::STATE_COLD, function ($opts) {
             $this->sendCampaign(new DigestSender(), $opts->getParameters());
-        });
-
-        Dispatcher::register('confirmation_email', 'all', function ($opts) {
-            $this->sendCampaign(new ConfirmationSender(), $opts->getParameters());
         });
     }
 

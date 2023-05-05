@@ -34,18 +34,6 @@ class RouterHooks
         $action = 'email:clicks';
         if (strpos($path, '/emails/unsubscribe') !== false) {
             $action = 'email:unsubscribe';
-        } elseif (isset($queryParams['__e_cnf_token'])) {
-            $cnfToken = rtrim($queryParams['__e_cnf_token'], '?');
-            try {
-                $this->confirmationManager
-                    ->confirm($cnfToken);
-            } catch (Exception $e) {
-                // Do not continue processing.
-                // TODO: Log?
-                return;
-            }
-
-            $action = 'email:confirm';
         }
         $platform = isset($queryParams['cb']) ? 'mobile' : 'browser';
         if (isset($queryParams['platform'])) {

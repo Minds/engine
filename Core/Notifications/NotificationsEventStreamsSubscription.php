@@ -14,7 +14,6 @@ use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
 use Minds\Core\Wire\Wire;
 use Minds\Entities\User;
-use Minds\Entities\Boost\Peer;
 use Minds\Core\Config;
 use Minds\Core\Supermind\Models\SupermindRequest;
 
@@ -79,7 +78,6 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
 
         if ($entity->getOwnerGuid() == $user->getGuid()
             && !$entity instanceof Wire // Wire owners are the senders
-            && !$entity instanceof Peer // Peer boosters are the senders
             && !$entity instanceof SupermindRequest // Supermind entity owners are the senders
             && $event->getAction() !== ActionEvent::ACTION_GROUP_QUEUE_ADD // Actor is post owner
         ) {
@@ -170,37 +168,6 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
             case ActionEvent::ACTION_BOOST_COMPLETED:
                 $notification->setType(NotificationTypes::TYPE_BOOST_COMPLETED);
                 $notification->setFromGuid(SystemUser::GUID);
-                break;
-            case ActionEvent::ACTION_BOOST_PEER_REQUEST:
-                /** @var Peer */
-                $peerBoost = $entity;
-
-                $notification->setType(NotificationTypes::TYPE_BOOST_PEER_REQUEST);
-                // Send notification to the intended recipient, not entity owner
-                $notification->setToGuid($peerBoost->getDestination()->getGuid());
-
-                $notification->setData([
-                    'bid' => $peerBoost->getBid(),
-                    'type' => $peerBoost->getType(),
-                ]);
-                break;
-            case ActionEvent::ACTION_BOOST_PEER_ACCEPTED:
-                /** @var Peer */
-                $peerBoost = $entity;
-                $notification->setType(NotificationTypes::TYPE_BOOST_PEER_ACCEPTED);
-                $notification->setData([
-                    'bid' => $peerBoost->getBid(),
-                    'type' => $peerBoost->getType(),
-                ]);
-                break;
-            case ActionEvent::ACTION_BOOST_PEER_REJECTED:
-                /** @var Peer */
-                $peerBoost = $entity;
-                $notification->setType(NotificationTypes::TYPE_BOOST_PEER_REJECTED);
-                $notification->setData([
-                    'bid' => $peerBoost->getBid(),
-                    'type' => $peerBoost->getType(),
-                ]);
                 break;
             case ActionEvent::ACTION_TOKEN_WITHDRAW_ACCEPTED:
                 $notification->setType(NotificationTypes::TYPE_TOKEN_WITHDRAW_ACCEPTED);

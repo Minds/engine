@@ -8,7 +8,7 @@ Feature: User Registration
         "username": "",
         "password": "Pa$$w0rd!@",
         "email": "fausto@minds.com",
-        "captcha": "{\"clientText\": \"captcha_bypass\"}",
+        "captcha": "captcha_bypass",
         "parentId": ""
       }
       """
@@ -27,7 +27,7 @@ Feature: User Registration
         "username": "",
         "password": "",
         "email": "",
-        "captcha": "{\"clientText\": \"captcha_bypass\"}",
+        "captcha": "captcha_bypass",
         "parentId": ""
       }
       """

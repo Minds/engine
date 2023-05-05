@@ -29,7 +29,6 @@ use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
@@ -62,7 +61,6 @@ class Manager
         private ?ACL                 $acl = null,
         private ?GuidLinkResolver    $guidLinkResolver = null,
         private ?UserSettingsManager $userSettingsManager = null,
-        private ?ExperimentsManager  $experimentsManager = null,
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
@@ -74,7 +72,6 @@ class Manager
         $this->logger = Di::_()->get("Logger");
         $this->guidLinkResolver ??= Di::_()->get(GuidLinkResolver::class);
         $this->userSettingsManager ??= Di::_()->get('Settings\Manager');
-        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -435,7 +432,7 @@ class Manager
     ): Response {
         $hasNext = false;
 
-        if ($servedByGuid && $this->experimentsManager->isOn('epic-303-boost-partners')) {
+        if ($servedByGuid) {
             $servedByTargetAudience = $this->getServedByTargetAudience($servedByGuid);
 
             // if no audience, return null.

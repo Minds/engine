@@ -10,7 +10,6 @@ use Minds\Exceptions;
 use Minds\Entities;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Analytics\Iterators\SignupsOffsetIterator;
-use Minds\Core\Boost\Network\Manager;
 use Minds\Core\Util\BigNumber;
 use Minds\Helpers\Counters;
 
