@@ -43,61 +43,20 @@ class RelationalRepository
      * @param Comment $comment
      * @return bool
      */
-    public function addComment(Comment $comment): bool
-    {
-        $statement = "INSERT minds_comments
-        (
-            guid,
-            entity_guid,
-            owner_guid,
-            container_guid,
-            parent_guid,
-            parent_depth,
-            body,
-            attachments,
-            mature,
-            edited,
-            spam,
-            deleted,
-            `enabled`,
-            group_conversation,
-            access_id,
-            time_created
-        )
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-        ON DUPLICATE KEY UPDATE id=id";
-
-        $values = [
-            $comment->getGuid(),
-            $comment->getEntityGuid(),
-            $comment->getOwnerGuid(),
-            null, // TODO container guid
-            null, // TODO parent guid
-            null, // TODO parent depth
-            $comment->getBody(),
-            json_encode($comment->getAttachments()),
-            $comment->isMature(),
-            $comment->isEdited(),
-            $comment->isSpam(),
-            $comment->isDeleted(),
-            true, // TODO enabled
-            $comment->isGroupConversation(),
-            $comment->getAccessId(),
-            $comment->getTimeCreated()
-        ];
-
-        $prepared = $this->mysqlClient->getConnection(MySQL\Client::CONNECTION_MASTER)->prepare($statement);
-        return $prepared->execute($values);
-    }
-
-    /**
-     * Adds Comment to a relational database
-     * @param Comment $comment
-     * @return bool
-     */
     public function add(Comment $comment): bool
     {
         $this->logger->addInfo("Preparing insert query");
+
+        // Set date
+        $date = date('Y-m-d H:i:s', $comment->getTimeCreated());
+
+        // Set Parent GUID
+        $parentGuid = null;
+        if ($comment->getParentGuidL2() > 0) {
+            $parentGuid = $comment->getParentGuidL2();
+        } else if ($comment->getParentGuidL1() > 0) {
+            $parentGuid = $comment->getParentGuidL1();
+        }
 
         $statement = $this->mysqlClientWriterHandler->insert()
         ->into('minds_comments')
@@ -122,17 +81,6 @@ class RelationalRepository
         ->prepare();
 
         $this->logger->addInfo("Finished preparing insert query", [$statement->queryString]);
-
-        // Set date
-        $date = date('Y-m-d H:i:s', $comment->getTimeCreated());
-
-        // Set Parent GUID
-        $parentGuid = null;
-        if ($comment->getParentGuidL2() > 0) {
-            $parentGuid = $comment->getParentGuidL2();
-        } else if ($comment->getParentGuidL1() > 0) {
-            $parentGuid = $comment->getParentGuidL1();
-        }
 
         $values = [
             'guid' => $comment->getGuid(),
