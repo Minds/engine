@@ -76,7 +76,6 @@ class CommentOpsEventStreamsSubscription implements SubscriptionInterface
         }
 
         $this->repository->add($comment); // Add comment to relational database
-        error_log("Done");
         return true; // Acknowledge the event
     }
 }
