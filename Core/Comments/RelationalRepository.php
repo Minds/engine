@@ -15,6 +15,7 @@ use Selective\Database\Connection;
 use Selective\Database\RawExp;
 
 use Minds\Core\Log\Logger;
+use DateTimeImmutable;
 
 
 class RelationalRepository
@@ -122,13 +123,24 @@ class RelationalRepository
 
         $this->logger->addInfo("Finished preparing insert query", [$statement->queryString]);
 
+        // Set date
+        $date = date('Y-m-d H:i:s', $comment->getTimeCreated());
+
+        // Set Parent GUID
+        $parentGuid = null;
+        if ($comment->getParentGuidL2() > 0) {
+            $parentGuid = $comment->getParentGuidL2();
+        } else if ($comment->getParentGuidL1() > 0) {
+            $parentGuid = $comment->getParentGuidL1();
+        }
+
         $values = [
             'guid' => $comment->getGuid(),
             'entity_guid' => $comment->getEntityGuid(),
             'owner_guid' => $comment->getOwnerGuid(),
             'container_guid' => null, // TODO container gui,
-            'parent_guid' => null, // TODO parent gui,
-            'parent_depth' => null, // TODO parent dept,
+            'parent_guid' => $parentGuid,
+            'parent_depth' => null, // TODO parent depth,
             'body' => $comment->getBody(),
             'attachments' => json_encode($comment->getAttachments()),
             'mature' => !!$comment->isMature(),
@@ -138,14 +150,14 @@ class RelationalRepository
             'is_enabled' => true, // TODO enable,
             'group_conversation' => !!$comment->isGroupConversation(),
             'access_id' => $comment->getAccessId(),
-            'time_created' => $comment->getTimeCreated(),
+            'time_created' => $date
         ];
 
         $this->mysqlClient->bindValuesToPreparedStatement($statement, $values);
 
         try {
-            $statement->execute();
-            $this->logger->addInfo("Done.");
+            $this->logger->addInfo("Executing query.");
+            return $statement->execute();
         } catch (PDOException $e) {
             $this->logger->addError("Query error details: ", $statement->errorInfo());
             return false;
