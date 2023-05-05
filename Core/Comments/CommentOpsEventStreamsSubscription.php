@@ -19,10 +19,15 @@ class CommentOpsEventStreamsSubscription implements SubscriptionInterface
     /** @var Manager */
     protected $manager;
 
+    /** @var RelationalRepository */
+    private $repository;
+
     public function __construct(
         Manager $manager = null,
+        RelationalRepository $repository = null
     ) {
         $this->manager = $manager ?? Di::_()->get('Comments\Manager');
+        $this->repository ??= new RelationalRepository();
     }
 
     /**
@@ -56,15 +61,22 @@ class CommentOpsEventStreamsSubscription implements SubscriptionInterface
      */
     public function consume(EventInterface $event): bool
     {
-        if (!$event instanceof EntitiesOpsEvent || !str_contains($event->getEntityUrn(), "urn:comment")) {
+        if (
+            !$event instanceof EntitiesOpsEvent || // If not an an entity op event
+            !str_contains($event->getEntityUrn(), "urn:comment") // Or not a comment
+        ) {
             return false;
         }
 
         /** @var Comment **/
         $comment = $this->manager->getByUrn($event->getEntityUrn());
 
-        error_log(print_r($comment->getBody(), true));
-       
-        return true;
+        if (!$comment) {
+            return false;
+        }
+
+        $this->repository->add($comment); // Add comment to relational database
+        error_log("Done");
+        return true; // Acknowledge the event
     }
 }
