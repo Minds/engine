@@ -83,6 +83,7 @@ class SearchRepository
                     'enabled' => true,
                     'group_conversation' => (bool) $comment->isGroupConversation(),
                     'access_id' => $comment->getAccessId(),
+                    'updated_at' => date('c'),
                     '@timestamp' => $date
                 ],
                 'doc_as_upsert' => true,
