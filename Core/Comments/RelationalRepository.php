@@ -67,11 +67,6 @@ class RelationalRepository
             'time_created' => new RawExp(':time_created'),
         ])
         ->onDuplicateKeyUpdate([
-            'guid' => new RawExp(':guid'),
-            'entity_guid' => new RawExp(':entity_guid'),
-            'owner_guid' => new RawExp(':owner_guid'),
-            'parent_guid' => new RawExp(':parent_guid'),
-            'parent_depth' => new RawExp(':parent_depth'),
             'body' => new RawExp(':body'),
             'attachments' => new RawExp(':attachments'),
             'mature' => new RawExp(":mature"),
@@ -79,9 +74,7 @@ class RelationalRepository
             'spam' => new RawExp(':spam'),
             'deleted' => new RawExp(':deleted'),
             'enabled' => new RawExp(':is_enabled'),
-            'group_conversation' => new RawExp(':group_conversation'),
             'access_id' => new RawExp(':access_id'),
-            'time_created' => new RawExp(':time_created'),
             'time_updated' => date('c')
         ])
         ->prepare();
