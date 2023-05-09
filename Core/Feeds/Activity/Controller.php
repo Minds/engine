@@ -172,10 +172,10 @@ class Controller
                 "activity:network:$activity->owner_guid"
             ];
 
-            // Core\Events\Dispatcher::trigger('activity:container:prepare', $container->type, [
-            //     'container' => $container,
-            //     'activity' => $activity,
-            // ]);
+            \Minds\Core\Events\Dispatcher::trigger('activity:container:prepare', $container->type, [
+                'container' => $container,
+                'activity' => $activity,
+            ]);
         }
 
         /**
@@ -260,6 +260,13 @@ class Controller
             $this->manager->addSupermindReply($payload, $activity);
         } elseif (!$this->manager->add($activity)) {
             throw new ServerErrorException("The post could not be saved.");
+        }
+
+        if ($container) {
+            \Minds\Core\Events\Dispatcher::trigger('activity:container', $container->type, [
+                'container' => $container,
+                'activity' => $activity,
+            ]);
         }
 
         /**
