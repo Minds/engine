@@ -197,7 +197,7 @@ class Repository
         );
 
         $statement .= " AND (" . implode(' OR ', $items) . ")";
-        
+
         $prepared = (new Prepared())
             ->query($statement, $values);
 
