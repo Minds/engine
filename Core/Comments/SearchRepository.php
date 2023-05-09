@@ -31,19 +31,19 @@ class SearchRepository
     public function add(
         Comment $comment,
         string $date,
-        ?string $parentGuid,
+        ?string $parentGuid = null,
         int $depth
     ): bool {
         try {
-            $this->logger->addInfo('Preparing Elasticsearch update query');
+            $this->logger->info('Preparing Elasticsearch update query');
 
             $query = $this->prepareQuery($comment, $date, $parentGuid, $depth);
             $response = $this->client->request($query);
 
-            $this->logger->addInfo('Elasticsearch query finished.');
+            $this->logger->info('Elasticsearch query finished.');
             return true;
         } catch (Exception $e) {
-            $this->logger->addError("Elasticsearch query failed $e");
+            $this->logger->error("Elasticsearch query failed $e");
 
             return false;
         }
@@ -60,7 +60,7 @@ class SearchRepository
     private function prepareQuery(
         Comment $comment,
         string $date,
-        ?string $parentGuid,
+        ?string $parentGuid = null,
         int $depth
     ): PreparedUpdate {
         $query = [
@@ -73,7 +73,6 @@ class SearchRepository
                     'entity_guid' => $comment->getEntityGuid(),
                     'owner_guid' => $comment->getOwnerGuid(),
                     'parent_guid' => $parentGuid ?? -1,
-                    'container_guid' => null, // TODO container guid
                     'parent_depth' => $depth,
                     'body' => $comment->getBody(),
                     'attachments' => json_encode($comment->getAttachments()),

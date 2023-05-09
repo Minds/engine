@@ -42,10 +42,10 @@ class RelationalRepository
     public function add(
         Comment $comment,
         string $date,
-        ?string $parentGuid,
-        ?int $depth
+        ?string $parentGuid = null,
+        int $depth
     ): bool {
-        $this->logger->addInfo("Preparing insert query");
+        $this->logger->info("Preparing insert query");
 
         $statement = $this->mysqlClientWriterHandler->insert()
         ->into('minds_comments')
@@ -86,7 +86,7 @@ class RelationalRepository
         ])
         ->prepare();
 
-        $this->logger->addInfo("Finished preparing insert query", [$statement->queryString]);
+        $this->logger->info("Finished preparing insert query", [$statement->queryString]);
 
         $values = [
             'guid' => $comment->getGuid(),
@@ -109,10 +109,10 @@ class RelationalRepository
         $this->mysqlClient->bindValuesToPreparedStatement($statement, $values);
 
         try {
-            $this->logger->addInfo("Executing query.");
+            $this->logger->info("Executing query.");
             return $statement->execute();
         } catch (PDOException $e) {
-            $this->logger->addError("Query error details: ", $statement->errorInfo());
+            $this->logger->error("Query error details: ", $statement->errorInfo());
             return false;
         }
     }
