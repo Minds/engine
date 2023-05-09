@@ -69,7 +69,7 @@ class CommentOpsEventStreamsSubscription implements SubscriptionInterface
         }
 
         /** @var Comment **/
-        $comment = $manager->getByUrn($event->getEntityUrn());
+        $comment = $this->manager->getByUrn($event->getEntityUrn(), true);
 
         // If comment not found
         if (!$comment) {

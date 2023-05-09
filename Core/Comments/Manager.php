@@ -358,10 +358,11 @@ class Manager
 
     /**
      * @param string|Urn $urn
+     * @param bool $skipCache
      * @return Comment|null
      * @throws \Exception
      */
-    public function getByUrn($urn)
+    public function getByUrn($urn, $skipCache = false)
     {
         if (is_string($urn)) {
             $urn = new Urn($urn);
@@ -387,7 +388,12 @@ class Manager
         }
 
         $comment = $this->repository->get($entityGuid, $parentPath, $guid);
-        $this->tmpCacheByUrn[(string) $urn] = $comment;
+
+        // Populate the cache only if we're not skipping it
+        if (!$skipCache) {
+            $this->tmpCacheByUrn[(string) $urn] = $comment;
+        }
+
         return $comment;
     }
 
