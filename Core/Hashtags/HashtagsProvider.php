@@ -27,5 +27,9 @@ class HashtagsProvider extends Provider
         $this->di->bind('Hashtags\Trending\Cache', function ($di) {
             return new Trending\Cache();
         });
+
+        $this->di->bind(WelcomeTag\Manager::class, function ($di) {
+            return new WelcomeTag\Manager();
+        });
     }
 }

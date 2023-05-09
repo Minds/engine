@@ -11,33 +11,29 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\Ops\EntitiesOpsEvent;
 use Minds\Core\Entities\Ops\EntitiesOpsTopic;
 use Minds\Core\Entities\Resolver;
-use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\TopicInterface;
-use Minds\Core\Feeds\User\Manager as FeedsUserManager;
+use Minds\Core\Hashtags\WelcomeTag\Manager as WelcomeTagManager;
 use Minds\Core\Log\Logger;
 use Minds\Entities\Activity;
 use Minds\Entities\Group;
 use Minds\Entities\Image;
 use Minds\Entities\User;
 use Minds\Entities\Video;
-use Minds\Exceptions\ServerErrorException;
 
 class SearchIndexerSubscription implements SubscriptionInterface
 {
     public function __construct(
         protected ?Index $index = null,
         protected ?Resolver $entitiesResolver = null,
-        protected ?EntitiesBuilder $entitiesBuilder = null,
-        protected ?FeedsUserManager $feedUserManager = null,
-        protected ?Logger $logger = null
+        protected ?Logger $logger = null,
+        protected ?WelcomeTagManager $welcomeTagManager = null
     ) {
         $this->index ??= Di::_()->get(Index::class);
         $this->entitiesResolver ??= new Resolver();
-        $this->entitiesBuilder ??= new EntitiesBuilder();
-        $this->feedUserManager ??= Di::_()->get('Feeds\User\Manager');
         $this->logger ??= Di::_()->get('Logger');
+        $this->welcomeTagManager ??= Di::_()->get(WelcomeTagManager::class);
     }
 
     /**
@@ -121,46 +117,17 @@ class SearchIndexerSubscription implements SubscriptionInterface
     private function patchActivity(Activity &$activity, string $opsEventType): void
     {
         try {
+            // strip any existing tags - do not allow users to manually set.
+            $activity = $this->welcomeTagManager->strip($activity);
+
             if (
                 $opsEventType === EntitiesOpsEvent::OP_CREATE &&
-                !$this->hasMadeActivityPosts($activity->getOwnerGuid())
+                $this->welcomeTagManager->shouldAppend($activity)
             ) {
-                $tags = $activity->getTags() ?? [];
-                $tags[] = 'hellominds';
-                $activity->setTags($tags);
+                $activity = $this->welcomeTagManager->append($activity);
             }
         } catch (\Exception $e) {
             $this->logger->error($e);
         }
-    }
-
-    /**
-     * Whether user has made a single activity post.
-     * @param string $ownerGuid - guid of the owner.
-     * @throws ServerErrorException - if no user is found.
-     * @return bool - true if user has made a single activity post.
-     */
-    private function hasMadeActivityPosts(string $ownerGuid): bool
-    {
-        if ($this->feedUserManager->getHasMadePostsFromCache($ownerGuid)) {
-            return true;
-        }
-
-        $owner = $this->entitiesBuilder->single($ownerGuid);
-        if (!$owner || !($owner instanceof User)) {
-            throw new ServerErrorException("No user found for owner guid: $ownerGuid");
-        }
-
-        try {
-            $hasMadePosts = $this->feedUserManager->setUser($owner)
-                ->hasMadePosts();
-
-            $this->feedUserManager->setHasMadePostsInCache($ownerGuid);
-
-            return $hasMadePosts;
-        } catch (\Exception $e) {
-            // presume true so we don't wrongly index a users post who already has other posts.
-            return true;
-        };
     }
 }
