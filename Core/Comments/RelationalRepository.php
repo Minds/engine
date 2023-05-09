@@ -6,6 +6,7 @@ use Minds\Core\Data\MySQL;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use PDO;
+use PDOException;
 
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Selective\Database\Connection;
@@ -13,14 +14,13 @@ use Selective\Database\RawExp;
 
 class RelationalRepository
 {
-    private PDO $mysqlClientReader;
     private PDO $mysqlClientWriter;
     private Connection $mysqlClientWriterHandler;
-    private Connection $mysqlClientReaderHandler;
 
     public function __construct(
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?MySQL\Client $mysqlClient = null,
+        private ?\Minds\Core\Log\Logger $logger = null
     ) {
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
 

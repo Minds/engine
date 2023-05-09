@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Comments;
 
+use Exception;
 use Minds\Core\Di\Di;
 
 use Minds\Core\Data\ElasticSearch\Client;
