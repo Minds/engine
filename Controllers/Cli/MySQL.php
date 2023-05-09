@@ -26,4 +26,14 @@ class MySQL extends Cli\Controller implements Interfaces\CliControllerInterface
         $row = $statement->fetch(PDO::FETCH_ASSOC);
         var_dump($row);
     }
+
+    public function prune()
+    {
+        // Seen entities
+        $mysqlClient = Core\Di\Di::_()->get('Database\MySQL\Client');
+        $pdo = $mysqlClient->getConnection();
+        $statement = $pdo->prepare("DELETE FROM pseudo_seen_entities WHERE last_seen_timestamp < :timestamp");
+        $result = $statement->execute([ 'timestamp' => date('c', strtotime('21 days ago'))]);
+        var_dump($result);
+    }
 }

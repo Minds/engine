@@ -594,7 +594,7 @@ Feature: Supermind
         "username": "",
         "password": "Pa$$w0rd",
         "email": "noreply@minds.com",
-        "captcha": "{\"clientText\": \"captcha_bypass\"}",
+        "captcha": "captcha_bypass",
         "parentId": ""
       }
       """
@@ -617,7 +617,7 @@ Feature: Supermind
         "username": "",
         "password": "Pa$$w0rd",
         "email": "noreply@minds.com",
-        "captcha": "{\"clientText\": \"captcha_bypass\"}",
+        "captcha": "captcha_bypass",
         "parentId": ""
       }
       """
@@ -641,7 +641,7 @@ Feature: Supermind
         "username": "",
         "password": "Pa$$w0rd",
         "email": "noreply@minds.com",
-        "captcha": "{\"clientText\": \"captcha_bypass\"}",
+        "captcha": "captcha_bypass",
         "parentId": ""
       }
       """
@@ -662,7 +662,7 @@ Feature: Supermind
         "username": "",
         "password": "Pa$$w0rd",
         "email": "noreply@minds.com",
-        "captcha": "{\"clientText\": \"captcha_bypass\"}",
+        "captcha": "captcha_bypass",
         "parentId": ""
       }
       """
@@ -686,7 +686,7 @@ Feature: Supermind
         "username": "",
         "password": "Pa$$w0rd",
         "email": "noreply@minds.com",
-        "captcha": "{\"clientText\": \"captcha_bypass\"}",
+        "captcha": "captcha_bypass",
         "parentId": ""
       }
       """

@@ -2,12 +2,13 @@
 namespace Minds\Core\Monetization\EarningsOverview;
 
 use Brick\Math\BigDecimal;
-use Minds\Entities\User;
-use Minds\Core\Di\Di;
-use Minds\Core\Payments\Stripe;
-use Minds\Core\Monetization\Partners;
-use Minds\Core\Wire;
 use Minds\Core\Config;
+use Minds\Core\Di\Di;
+use Minds\Core\Monetization\Partners;
+use Minds\Core\Payments\Stripe;
+use Minds\Core\Util\BigNumber;
+use Minds\Core\Wire;
+use Minds\Entities\User;
 
 class Manager
 {
@@ -61,7 +62,7 @@ class Manager
     public function getOverview(int $from, int $to): OverviewModel
     {
         $overview = new OverviewModel();
-        
+
         $overview->setEarnings([
             $this->getPartnerEarnings($from, $to),
             $this->getWireEarnings($from, $to),
@@ -134,13 +135,13 @@ class Manager
         $boostPartners->setId('boost_partner');
 
         // Affiliates
-        $affiliateEarnings = $partnerEarningsItems['affiliate'] ?? new EarningsItemModel();
+        $affiliateEarnings = $partnerEarningsItems['affiliate_earnings'] ?? new EarningsItemModel();
         $affiliateEarnings->setId('affiliate');
 
         // Affiliate referrals
-        $affiliateReferrerEarnings = $partnerEarningsItems['affiliate_referrer'] ?? new EarningsItemModel();
+        $affiliateReferrerEarnings = $partnerEarningsItems['referrer_affiliate_earnings'] ?? new EarningsItemModel();
         $affiliateReferrerEarnings->setId('affiliate_referrer');
-        
+
         $earnings->setItems([
             $pageViewEarnings,
             $referralEarnings,
@@ -215,7 +216,7 @@ class Manager
         foreach ($earningsDeposits as $earningsDeposit) {
             $earningsDepositItem = $groups[$earningsDeposit->getItem()] ?? new EarningsItemModel();
             $earningsDepositItem->setAmountCents($earningsDepositItem->getAmountCents() + $earningsDeposit->getAmountCents());
-            $earningsDepositItem->setAmountTokens(BigDecimal::sum($earningsDepositItem->getAmountTokens(), $earningsDeposit->getAmountTokens()));
+            $earningsDepositItem->setAmountTokens(BigNumber::toPlain(BigDecimal::sum($earningsDepositItem->getAmountTokens(), $earningsDeposit->getAmountTokens())->toFloat(), 18));
             $earningsDepositItem->setCurrency('usd');
             $groups[$earningsDeposit->getItem()] = $earningsDepositItem;
         }

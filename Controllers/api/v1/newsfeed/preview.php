@@ -61,15 +61,12 @@ class preview implements Interfaces\Api
     }
 
     /**
-     * Get Metadata from either metascraper or iframely.
+     * Get Metadata from metascraper.
      * @param string $url - url to get metadata for.
      * @return array - response ready array.
      */
     private function getMetadata(string $url): array
     {
-        if (Di::_()->get('Experiments\Manager')->isOn('front-5392-metascraper-previews')) {
-            return Di::_()->get('Metascraper\Service')->scrape($url);
-        }
-        return Di::_()->get('Feeds\Activity\RichEmbed\Manager')->getRichEmbed($url);
+        return Di::_()->get('Metascraper\Service')->scrape($url);
     }
 }

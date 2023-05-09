@@ -21,6 +21,8 @@ class BoostEntityWrapperSpec extends ObjectBehavior
         $exportedEntity = [ 'guid' => $entityGuid ];
         $boostGuid = '234';
         $boostUrn = 'boost:urn:345';
+        $goalButtonText = null;
+        $goalButtonUrl = null;
 
         $entity->export()
             ->shouldBeCalled()
@@ -38,12 +40,22 @@ class BoostEntityWrapperSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($boostUrn);
 
+        $boost->getGoalButtonText()
+        ->shouldBeCalled()
+        ->willReturn($goalButtonText);
+
+        $boost->getGoalButtonUrl()
+        ->shouldBeCalled()
+        ->willReturn($goalButtonUrl);
+
         $this->beConstructedWith($boost);
         $this->export()->shouldBe([
             'guid' => $entityGuid,
             'boosted' => true,
             'boosted_guid' => $boostGuid,
-            'urn' => $boostUrn
+            'urn' => $boostUrn,
+            'goal_button_text' => null,
+            'goal_button_url' => null
         ]);
     }
 }

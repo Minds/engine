@@ -10,6 +10,7 @@ namespace Minds\Core\Groups;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Entities;
 use Minds\Core\Groups\Delegates\PropagateRejectionDelegate;
 use Minds\Core\EventStreams\ActionEvent;
@@ -44,13 +45,20 @@ class Feeds
      * Feeds constructor.
      * @param null $entitiesBuilder
      */
-    public function __construct($entitiesBuilder = null, $propagateRejectionDelegate = null, ActionEventsTopic $actionEventsTopic = null, NotificationsManager $notificationsManager = null, Logger $logger = null)
-    {
+    public function __construct(
+        $entitiesBuilder = null,
+        $propagateRejectionDelegate = null,
+        ActionEventsTopic $actionEventsTopic = null,
+        NotificationsManager $notificationsManager = null,
+        Logger $logger = null,
+        private ?Save $save = null
+    ) {
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->propagateRejectionDelegate = $propagateRejectionDelegate ?? new PropagateRejectionDelegate();
         $this->actionEventsTopic = $actionEventsTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
         $this->notificationsManager = $notificationsManager ?? Di::_()->get('Notifications\Manager');
         $this->logger = $logger ?? Di::_()->get('Logger');
+        $this->save ??= new Save();
     }
 
     /**
@@ -184,14 +192,15 @@ class Feeds
         ];
 
         $activity->setPending(false);
-        $activity->save(true);
+
+        $this->save->setEntity($activity)->save(true);
 
         if ($activity->entity_guid) {
             $attachment = $this->entitiesBuilder->single($activity->entity_guid);
 
             if ($attachment && ($attachment->subtype == 'image' || $attachment->subtype == 'video') && !$attachment->getWireThreshold()) {
                 $attachment->access_id = 2;
-                $attachment->save();
+                $this->save->setEntity($attachment)->save(true);
             }
         }
 

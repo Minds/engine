@@ -121,6 +121,9 @@ class Manager
 
         $this->repository->beginTransaction();
 
+        $goalFeatureEnabled = $this->experimentsManager
+            ->isOn('minds-3952-boost-goals');
+
         $boost = (
             new Boost(
                 entityGuid: $data['entity_guid'],
@@ -130,6 +133,9 @@ class Manager
                 paymentAmount: (float) ($data['daily_bid'] * $data['duration_days']),
                 dailyBid: (float) $data['daily_bid'],
                 durationDays: (int) $data['duration_days'],
+                goal: $goalFeatureEnabled && isset($data['goal']) ? (int) $data['goal'] : null,
+                goalButtonText: $goalFeatureEnabled && isset($data['goal_button_text']) ? (int) $data['goal_button_text'] : null,
+                goalButtonUrl: $goalFeatureEnabled && isset($data['goal_button_url']) ? (string) $data['goal_button_url'] : null,
             )
         )
             ->setGuid($data['guid'] ?? Guid::build())
@@ -435,7 +441,7 @@ class Manager
     ): Response {
         $hasNext = false;
 
-        if ($servedByGuid && $this->experimentsManager->isOn('epic-303-boost-partners')) {
+        if ($servedByGuid) {
             $servedByTargetAudience = $this->getServedByTargetAudience($servedByGuid);
 
             // if no audience, return null.

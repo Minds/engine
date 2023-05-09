@@ -3,8 +3,6 @@
 namespace Spec\Minds\Core\FeedNotices\Notices;
 
 use Minds\Core\FeedNotices\Notices\ConnectWalletNotice;
-use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -14,19 +12,13 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
     /** @var EligibilityManager */
     protected $eligibilityManager;
 
-    /** @var ExperimentsManager */
-    protected $experimentsManager;
-
     public function let(
         EligibilityManager $eligibilityManager,
-        ExperimentsManager $experimentsManager
     ) {
         $this->eligibilityManager = $eligibilityManager;
-        $this->experimentsManager = $experimentsManager;
 
         $this->beConstructedWith(
             $eligibilityManager,
-            $experimentsManager
         );
     }
 
@@ -48,14 +40,6 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_show(
         User $user,
     ) {
-        $this->experimentsManager->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->experimentsManager);
-
-        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $user->getEthWallet()
             ->shouldBeCalled()
             ->willReturn(null);
@@ -72,35 +56,12 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    public function it_should_determine_if_notice_should_NOT_show_because_experiment_is_off(
-        User $user,
-    ) {
-        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $this->experimentsManager->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->experimentsManager);
-
-        $this->callOnWrappedObject('shouldShow', [$user])
-            ->shouldBe(false);
-    }
-
     public function it_should_determine_if_notice_should_NOT_show_because_user_has_no_eth_wallet(
         User $user,
     ) {
         $user->getEthWallet()
             ->shouldBeCalled()
             ->willReturn('123');
-
-        $this->experimentsManager->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->experimentsManager);
-
-        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);
@@ -112,14 +73,6 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
         $user->getEthWallet()
             ->shouldBeCalled()
             ->willReturn();
-
-        $this->experimentsManager->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->experimentsManager);
-
-        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $this->eligibilityManager->setUser($user)
             ->shouldBeCalled()
@@ -144,14 +97,6 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
         $user->getEthWallet()
             ->shouldBeCalled()
             ->willReturn();
-
-        $this->experimentsManager->setUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->experimentsManager);
-
-        $this->experimentsManager->isOn('minds-3131-onboarding-notices')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $this->eligibilityManager->setUser($user)
             ->shouldBeCalled()
