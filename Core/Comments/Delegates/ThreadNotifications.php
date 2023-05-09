@@ -62,7 +62,7 @@ class ThreadNotifications
     {
         $isReply = $comment->getPartitionPath() !== '0:0:0';
         $subscribers = [];
-    
+
         $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
         if (!$entity || ($entity->type === 'group' && !$isReply)) {
             return;

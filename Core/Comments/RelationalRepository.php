@@ -5,18 +5,11 @@ namespace Minds\Core\Comments;
 use Minds\Core\Data\MySQL;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
-use Minds\Entities\Activity;
-use Minds\Entities\User;
 use PDO;
-use PDOStatement;
 
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Selective\Database\Connection;
 use Selective\Database\RawExp;
-
-use Minds\Core\Log\Logger;
-use DateTimeImmutable;
-
 
 class RelationalRepository
 {
@@ -41,22 +34,18 @@ class RelationalRepository
     /**
      * Adds Comment to a relational database
      * @param Comment $comment
+     * @param string $date
+     * @param string $parentGuid
+     * @param int $depth
      * @return bool
      */
-    public function add(Comment $comment): bool
-    {
+    public function add(
+        Comment $comment,
+        string $date,
+        ?string $parentGuid,
+        ?int $depth
+    ): bool {
         $this->logger->addInfo("Preparing insert query");
-
-        // Set date
-        $date = date('Y-m-d H:i:s', $comment->getTimeCreated());
-
-        // Set Parent GUID
-        $parentGuid = null;
-        if ($comment->getParentGuidL2() > 0) {
-            $parentGuid = $comment->getParentGuidL2();
-        } else if ($comment->getParentGuidL1() > 0) {
-            $parentGuid = $comment->getParentGuidL1();
-        }
 
         $statement = $this->mysqlClientWriterHandler->insert()
         ->into('minds_comments')
@@ -64,7 +53,6 @@ class RelationalRepository
             'guid' => new RawExp(':guid'),
             'entity_guid' => new RawExp(':entity_guid'),
             'owner_guid' => new RawExp(':owner_guid'),
-            'container_guid' => new RawExp(':container_guid'),
             'parent_guid' => new RawExp(':parent_guid'),
             'parent_depth' => new RawExp(':parent_depth'),
             'body' => new RawExp(':body'),
@@ -78,6 +66,24 @@ class RelationalRepository
             'access_id' => new RawExp(':access_id'),
             'time_created' => new RawExp(':time_created'),
         ])
+        ->onDuplicateKeyUpdate([
+            'guid' => new RawExp(':guid'),
+            'entity_guid' => new RawExp(':entity_guid'),
+            'owner_guid' => new RawExp(':owner_guid'),
+            'parent_guid' => new RawExp(':parent_guid'),
+            'parent_depth' => new RawExp(':parent_depth'),
+            'body' => new RawExp(':body'),
+            'attachments' => new RawExp(':attachments'),
+            'mature' => new RawExp(":mature"),
+            'edited' => new RawExp(':edited'),
+            'spam' => new RawExp(':spam'),
+            'deleted' => new RawExp(':deleted'),
+            'enabled' => new RawExp(':is_enabled'),
+            'group_conversation' => new RawExp(':group_conversation'),
+            'access_id' => new RawExp(':access_id'),
+            'time_created' => new RawExp(':time_created'),
+            'time_updated' => date('c')
+        ])
         ->prepare();
 
         $this->logger->addInfo("Finished preparing insert query", [$statement->queryString]);
@@ -87,16 +93,15 @@ class RelationalRepository
             'entity_guid' => $comment->getEntityGuid(),
             'owner_guid' => $comment->getOwnerGuid(),
             'parent_guid' => $parentGuid,
-            'container_guid' => null, // TODO container guid
-            'parent_depth' => null, // TODO parent depth
+            'parent_depth' => $depth,
             'body' => $comment->getBody(),
             'attachments' => json_encode($comment->getAttachments()),
-            'mature' => !!$comment->isMature(),
-            'edited' => !!$comment->isEdited(),
-            'spam' => !!$comment->isSpam(),
-            'deleted' => !!$comment->isDeleted(),
+            'mature' => (bool) $comment->isMature(),
+            'edited' => (bool) $comment->isEdited(),
+            'spam' => (bool) $comment->isSpam(),
+            'deleted' => (bool) $comment->isDeleted(),
             'is_enabled' => true,
-            'group_conversation' => !!$comment->isGroupConversation(),
+            'group_conversation' => (bool) $comment->isGroupConversation(),
             'access_id' => $comment->getAccessId(),
             'time_created' => $date
         ];

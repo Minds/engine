@@ -63,7 +63,7 @@ class Events
         $this->eventsDispatcher->register('vote:action:cast', 'comment', function (Event $event) {
             $vote = $event->getParameters()['vote'];
             $comment = $vote->getEntity();
-            
+
             (new Sockets\Events())
                 ->setRoom("comments:{$comment->getEntityGuid()}:{$comment->getParentPath()}")
                 ->emit(

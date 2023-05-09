@@ -243,7 +243,6 @@ CREATE TABLE IF NOT EXISTS minds_comments (
     guid bigint,
     entity_guid bigint,
     owner_guid bigint,
-    container_guid bigint,
     parent_guid bigint REFERENCES minds_comment(guid),
     parent_depth int,
     body text,

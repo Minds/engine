@@ -23,10 +23,10 @@ use Minds\Core\Events\EventsDispatcher;
 class Manager
 {
     // timespan to check rate limit.
-    const RATE_LIMIT_TIMESPAN = 5;
+    public const RATE_LIMIT_TIMESPAN = 5;
 
     // max amount of occurrence in timespan.
-    const RATE_LIMIT_MAX = 1;
+    public const RATE_LIMIT_MAX = 1;
 
     /** @var Repository */
     protected $repository;
@@ -126,12 +126,12 @@ class Manager
                 'descending' => !$opts['descending'],
                 'include_offset' => false,
             ]));
-            
+
             $newResponse = $this->filterResponse($earlier->reverse());
             foreach ($response as $comment) {
                 $newResponse[] = $comment;
             }
-            
+
             $newResponse->setPagingToken($response->getPagingToken());
             $newResponse->setLastPage($response->isLastPage());
             return $newResponse;

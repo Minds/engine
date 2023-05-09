@@ -1,9 +1,9 @@
 <?php
 /**
- * This subscription is only used for testing purposes.
- * Make a new one with a unique subscription id if you wish to use this topic
- * You can test by running `php cli.php EventStreams --subscription=Core\\Entities\\Ops\\TestEntitiesOpsEventStreamsSubscription`
+ * This subscription will sync comments to a relational DB and Elasticsearch/OpenSearch
+ * You can test by running `php cli.php EventStreams --subscription=Core\\Comments\\CommentOpsEventStreamsSubscription`
  */
+
 namespace Minds\Core\Comments;
 
 use Minds\Core\Di\Di;
@@ -16,17 +16,17 @@ use Minds\Core\Entities\Ops\EntitiesOpsEvent;
 
 class CommentOpsEventStreamsSubscription implements SubscriptionInterface
 {
-    /** @var Manager */
-    protected $manager;
-
-    /** @var RelationalRepository */
-    private $repository;
+    protected Manager $manager;
+    private SearchRepository $searchRepository;
+    private RelationalRepository $repository;
 
     public function __construct(
         Manager $manager = null,
-        RelationalRepository $repository = null
+        RelationalRepository $repository = null,
+        SearchRepository $es = null
     ) {
         $this->manager = $manager ?? Di::_()->get('Comments\Manager');
+        $this->searchRepository ??= new SearchRepository();
         $this->repository ??= new RelationalRepository();
     }
 
@@ -65,17 +65,32 @@ class CommentOpsEventStreamsSubscription implements SubscriptionInterface
             !$event instanceof EntitiesOpsEvent || // If not an an entity op event
             !str_contains($event->getEntityUrn(), "urn:comment") // Or not a comment
         ) {
-            return false;
+            return true; // Ack
         }
 
         /** @var Comment **/
-        $comment = $this->manager->getByUrn($event->getEntityUrn());
+        $comment = $manager->getByUrn($event->getEntityUrn());
 
+        // If comment not found
         if (!$comment) {
-            return false;
+            return true; // Ack
         }
 
-        $this->repository->add($comment); // Add comment to relational database
-        return true; // Acknowledge the event
+        // Set date
+        $date = date('c', $comment->getTimeCreated());
+
+        // Set Parent GUID
+        $depth = 0;
+        $parentGuid = null;
+        if ($comment->getParentGuidL2() > 0) {
+            $depth = 2;
+            $parentGuid = $comment->getParentGuidL2();
+        } elseif ($comment->getParentGuidL1() > 0) {
+            $depth = 1;
+            $parentGuid = $comment->getParentGuidL1();
+        }
+
+        return $this->repository->add($comment, $date, $parentGuid, $depth) // Add comment to relational database
+            && $this->searchRepository->add($comment, $date, $parentGuid, $depth); // Add comment to Elasticsearch
     }
 }
