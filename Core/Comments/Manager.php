@@ -23,10 +23,10 @@ use Minds\Core\Events\EventsDispatcher;
 class Manager
 {
     // timespan to check rate limit.
-    public const RATE_LIMIT_TIMESPAN = 5;
+    const RATE_LIMIT_TIMESPAN = 5;
 
     // max amount of occurrence in timespan.
-    public const RATE_LIMIT_MAX = 1;
+    const RATE_LIMIT_MAX = 1;
 
     /** @var Repository */
     protected $repository;
