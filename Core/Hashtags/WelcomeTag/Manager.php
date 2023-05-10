@@ -8,13 +8,12 @@ use Minds\Core\Entities\Resolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\User\Manager as FeedsUserManager;
 use Minds\Core\Log\Logger;
-use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 
 /**
- * Manager that handles the appending and stripping of "welcome" tags
- * intended to flag new users posts to give them more discoverability.
+ * Manager that handles the appending and removal of "welcome" tags
+ * intended to be used to flag new users posts to give them more discoverability.
  */
 class Manager
 {
@@ -34,45 +33,47 @@ class Manager
     }
 
     /**
-     * Append welcome tag to an activities tags.
-     * @param Activity $activity - activity to apply tag to.
-     * @return Activity changed activity.
+     * Append welcome tag to an array of tags.
+     * @param array $tags - array to append tag to.
+     * @return array $tags changed array.
      */
-    public function append(Activity $activity): Activity
+    public function append(array $tags): array
     {
-        $tags = $activity->getTags() ?? [];
-        $tags[] = self::WELCOME_TAG;
-        $activity->setTags($tags);
-        return $activity;
-    }
-
-    /**
-     * Strip existing welcome tags from an activities tags array.
-     * @param Activity $activity - activity to strip of any welcome tag.
-     * @return Activity changed activity.
-     */
-    public function strip(Activity $activity): Activity
-    {
-        $tags = $activity->getTags();
-        $tagIndex = array_search(self::WELCOME_TAG, array_map('strtolower', $tags), true);
-
-        if ($tagIndex !== false) {
-            unset($tags[$tagIndex]);
-            $tags = array_values($tags);
-            $activity->setTags($tags);
+        // do not append if tag already present.
+        if (array_search(self::WELCOME_TAG, array_map('strtolower', $tags), true)) {
+            return $tags;
         }
 
-        return $activity;
+        $tags[] = self::WELCOME_TAG;
+        return $tags;
     }
 
     /**
-     * Whether welcome tag should be appended.
-     * @param Activity $activity - activity to check for.
+     * Remove existing welcome tags from an array of tags.
+     * @param array $tags - array of tags to remove from.
+     * @return array changed array.
+     */
+    public function remove(array $tags): array
+    {
+        $tagsCount = count($tags);
+
+        for ($i = 0; $i < $tagsCount; $i ++) {
+            if (strtolower($tags[$i]) === self::WELCOME_TAG) {
+                unset($tags[$i]);
+            }
+        }
+
+        return array_values($tags);
+    }
+
+    /**
+     * Whether welcome tag should be appended to a tags array.
+     * @param string $ownerGuid - owner to apply tag to.
      * @return bool true if welcome tag should be appended.
      */
-    public function shouldAppend(Activity $activity): bool
+    public function shouldAppend(string $ownerGuid): bool
     {
-        return !$this->hasMadeActivityPosts((string) $activity->getOwnerGuid());
+        return !$this->hasMadeActivityPosts($ownerGuid);
     }
 
     /**
@@ -81,7 +82,7 @@ class Manager
      * @throws ServerErrorException - if no user is found.
      * @return bool - true if user has made a single activity post.
      */
-    public function hasMadeActivityPosts(string $ownerGuid): bool
+    private function hasMadeActivityPosts(string $ownerGuid): bool
     {
         if ($this->feedUserManager->getHasMadePostsFromCache($ownerGuid)) {
             return true;

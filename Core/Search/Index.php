@@ -13,8 +13,10 @@ use Minds\Common\SystemUser;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Di\Di;
+use Minds\Core\Hashtags\WelcomeTag\Manager as WelcomeTagManager;
 use Minds\Core\Log\Logger;
 use Minds\Core\Search\Hashtags\Manager;
+use Minds\Entities\Activity;
 use Minds\Entities\Entity;
 use Minds\Entities\EntityInterface;
 use Minds\Exceptions\BannedException;
@@ -28,13 +30,15 @@ class Index
         protected ?string $indexPrefix = null,
         protected ?Manager $hashtagsManager = null,
         protected ?Logger $logger = null,
-        protected ?Mappings\Factory $mappingFactory = null
+        protected ?Mappings\Factory $mappingFactory = null,
+        protected ?WelcomeTagManager $welcomeTagManager = null
     ) {
         $this->client ??= Di::_()->get('Database\ElasticSearch');
         $this->indexPrefix ??= Di::_()->get('Config')->get('elasticsearch')['indexes']['search_prefix'];
         $this->hashtagsManager ??= Di::_()->get('Search\Hashtags\Manager');
         $this->logger ??= Di::_()->get('Logger');
         $this->mappingFactory ??= Di::_()->get('Search\Mappings');
+        $this->welcomeTagManager ??= Di::_()->get(WelcomeTagManager::class);
     }
 
     /**
@@ -59,6 +63,22 @@ class Index
 
         try {
             $body = $mapper->map();
+
+            try {
+                /**
+                 * Here we strip any manually set "welcome tag" on activities to prevent abuse.
+                 * If the entity SHOULD have a welcome tag, then we append one.
+                 */
+                if ($entity instanceof Activity && isset($body['tags']) && is_array($body['tags'])) {
+                    $body['tags'] = $this->welcomeTagManager->remove($body['tags']);
+
+                    if (isset($body['owner_guid']) && $this->welcomeTagManager->shouldAppend($body['owner_guid'])) {
+                        $body['tags'] = $this->welcomeTagManager->append($body['tags']);
+                    }
+                }
+            } catch (\Exception $e) {
+                $this->logger->error($e);
+            }
 
             if ($suggest = $mapper->suggestMap()) {
                 $body = array_merge($body, [

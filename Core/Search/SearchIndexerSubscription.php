@@ -14,8 +14,6 @@ use Minds\Core\Entities\Resolver;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\TopicInterface;
-use Minds\Core\Hashtags\WelcomeTag\Manager as WelcomeTagManager;
-use Minds\Core\Log\Logger;
 use Minds\Entities\Activity;
 use Minds\Entities\Group;
 use Minds\Entities\Image;
@@ -27,13 +25,9 @@ class SearchIndexerSubscription implements SubscriptionInterface
     public function __construct(
         protected ?Index $index = null,
         protected ?Resolver $entitiesResolver = null,
-        protected ?Logger $logger = null,
-        protected ?WelcomeTagManager $welcomeTagManager = null
     ) {
         $this->index ??= Di::_()->get(Index::class);
         $this->entitiesResolver ??= new Resolver();
-        $this->logger ??= Di::_()->get('Logger');
-        $this->welcomeTagManager ??= Di::_()->get(WelcomeTagManager::class);
     }
 
     /**
@@ -83,8 +77,6 @@ class SearchIndexerSubscription implements SubscriptionInterface
         // We are only concerned to index the following
         switch (get_class($entity)) {
             case Activity::class:
-                $this->patchActivity($entity, $event->getOp());
-                break;
             case Image::class:
             case Blog::class:
             case Video::class:
@@ -106,28 +98,5 @@ class SearchIndexerSubscription implements SubscriptionInterface
         }
        
         return true; // Return true to acknowledge the event from the stream (stop it being redelivered)
-    }
-
-    /**
-     * Applies patches to activity.
-     * @param Activity $activity - activity to patch.
-     * @param string $opsEventType - entity operation string e.g. `EntitiesOpsEvent::OP_CREATE`.
-     * @return void
-     */
-    private function patchActivity(Activity &$activity, string $opsEventType): void
-    {
-        try {
-            // strip any existing tags - do not allow users to manually set.
-            $activity = $this->welcomeTagManager->strip($activity);
-
-            if (
-                $opsEventType === EntitiesOpsEvent::OP_CREATE &&
-                $this->welcomeTagManager->shouldAppend($activity)
-            ) {
-                $activity = $this->welcomeTagManager->append($activity);
-            }
-        } catch (\Exception $e) {
-            $this->logger->error($e);
-        }
     }
 }

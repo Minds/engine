@@ -8,7 +8,6 @@ use Minds\Core\Entities\Resolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\User\Manager as FeedsUserManager;
 use Minds\Core\Log\Logger;
-use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -39,78 +38,54 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_append_welcome_tag_to_activity(Activity $activity): void
+    public function it_should_append_welcome_tag_to_activity(): void
     {
-        $activity->getTags()
-            ->willReturn([]);
-
-        $activity->setTags(['hellominds'])->shouldBeCalled();
-        
-        $this->append($activity)->shouldBeAnInstanceOf(Activity::class);
+        $this->append([])->shouldBe(['hellominds']);
     }
 
-    public function it_should_append_welcome_tag_to_activity_when_tags_already_exist(Activity $activity): void
+    public function it_should_append_welcome_tag_to_activity_when_tags_already_exist(): void
     {
-        $activity->getTags()
-            ->willReturn(['mindshello']);
-
-        $activity->setTags(['mindshello', 'hellominds'])
-            ->shouldBeCalled();
-        
-        $this->append($activity)->shouldBeAnInstanceOf(Activity::class);
+        $this->append(['mindshello'])->shouldBe(['mindshello', 'hellominds']);
     }
 
-    public function it_should_strip_welcome_tag_from_activity_when_there_is_a_single_tag(Activity $activity): void
+    public function it_should_NOT_append_welcome_tag_to_activity_when_welcome_tag_already_exist(): void
     {
-        $activity->getTags()
-            ->willReturn(['hellominds']);
-
-        $activity->setTags([])
-            ->shouldBeCalled();
-
-        $this->strip($activity)->shouldBeAnInstanceOf(Activity::class);
+        $this->append(['mindshello', 'hellominds'])->shouldBe(['mindshello', 'hellominds']);
     }
 
-    public function it_should_strip_nothing_from_activity_when_there_is_no_tags(Activity $activity): void
+    public function it_should_remove_welcome_tag_from_activity_when_there_is_a_single_tag(): void
     {
-        $activity->getTags()
-            ->willReturn([]);
-
-        $activity->setTags([])
-            ->shouldNotBeCalled();
-
-        $this->strip($activity)->shouldBeAnInstanceOf(Activity::class);
+        $this->remove(['hellominds'])->shouldBe([]);
     }
 
-    public function it_should_strip_nothing_from_activity_when_there_is_no_matching_tags(Activity $activity): void
+    public function it_should_remove_welcome_tag_from_activity_when_there_is_a_single_tag_in_varied_case(): void
     {
-        $activity->getTags()
-            ->willReturn(['mindshello', 'test']);
-
-        $activity->setTags(['mindshello', 'test'])
-            ->shouldNotBeCalled();
-
-        $this->strip($activity)->shouldBeAnInstanceOf(Activity::class);
+        $this->remove(['heLlOmInDS'])->shouldBe([]);
     }
 
-    public function it_should_strip_welcome_tag_from_activity_when_there_are_multiple_tags(Activity $activity): void
+    public function it_should_remove_nothing_from_activity_when_there_is_no_tags(): void
     {
-        $activity->getTags()
-            ->willReturn(['mindshello', 'hellominds']);
-
-        $activity->setTags(['mindshello'])
-            ->shouldBeCalled();
-
-        $this->strip($activity)->shouldBeAnInstanceOf(Activity::class);
+        $this->remove([])->shouldBe([]);
     }
 
-    public function it_should_check_if_welcome_tag_should_be_appended(Activity $activity, User $user, FeedsUserManager $feedsUserManager): void
+    public function it_should_remove_nothing_from_activity_when_there_is_no_matching_tags(): void
+    {
+        $this->remove(['mindshello', 'test'])->shouldBe(['mindshello', 'test']);
+    }
+
+    public function it_should_remove_welcome_tag_from_activity_when_there_are_multiple_tags(): void
+    {
+        $this->remove(['mindshello', 'hellominds'])->shouldBe(['mindshello']);
+    }
+
+    public function it_should_remove_welcome_tag_from_activity_when_there_are_multiple_welcome_tags(): void
+    {
+        $this->remove(['hellominds', 'mindshello', 'hellominds'])->shouldBe(['mindshello']);
+    }
+
+    public function it_should_check_if_a_tag_should_be_appended(User $user, FeedsUserManager $feedsUserManager): void
     {
         $ownerGuid = '123';
-
-        $activity->getOwnerGuid()
-            ->shouldBeCalled()
-            ->willReturn($ownerGuid);
 
         $feedsUserManager->getHasMadePostsFromCache($ownerGuid)
             ->shouldBeCalled()
@@ -127,14 +102,14 @@ class ManagerSpec extends ObjectBehavior
         $feedsUserManager->hasMadePosts()
             ->shouldBeCalled()
             ->willReturn(false);
-        
+
         $feedsUserManager->setHasMadePostsInCache($ownerGuid)
             ->shouldBeCalled();
-        
-        $this->callOnWrappedObject('shouldAppend', [$activity])->shouldReturn(true);
+
+        $this->callOnWrappedObject('shouldAppend', [$ownerGuid])->shouldReturn(true);
     }
 
-    public function it_should_check_if_user_has_made_activity_posts(User $user, FeedsUserManager $feedsUserManager): void
+    public function it_should_check_if_a_tag_should_not_be_appended(User $user, FeedsUserManager $feedsUserManager): void
     {
         $ownerGuid = '123';
 
@@ -157,10 +132,10 @@ class ManagerSpec extends ObjectBehavior
         $feedsUserManager->setHasMadePostsInCache($ownerGuid)
             ->shouldBeCalled();
 
-        $this->hasMadeActivityPosts($ownerGuid)->shouldReturn(true);
+        $this->callOnWrappedObject('shouldAppend', [$ownerGuid])->shouldReturn(false);
     }
 
-    public function it_should_check_if_user_has_made_activity_posts_when_cached(User $user, FeedsUserManager $feedsUserManager): void
+    public function it_should_check_if_a_tag_should_not_be_appended_when_cached(FeedsUserManager $feedsUserManager): void
     {
         $ownerGuid = '123';
 
@@ -171,6 +146,6 @@ class ManagerSpec extends ObjectBehavior
         $feedsUserManager->hasMadePosts()
             ->shouldNotBeCalled();
 
-        $this->hasMadeActivityPosts($ownerGuid)->shouldReturn(true);
+        $this->callOnWrappedObject('shouldAppend', [$ownerGuid])->shouldReturn(false);
     }
 }

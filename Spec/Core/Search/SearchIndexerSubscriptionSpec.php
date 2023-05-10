@@ -86,14 +86,6 @@ class SearchIndexerSubscriptionSpec extends ObjectBehavior
 
         $this->entitiesResolver->single(new Urn('urn:user:123'))->willReturn($activity);
 
-        $this->welcomeTagManager->strip($activity)
-            ->shouldBeCalled()
-            ->willReturn($activity);
-
-        $this->welcomeTagManager->shouldAppend($activity)
-            ->shouldBeCalled()
-            ->willReturn(false);
-
         $this->indexMock->index($activity)
             ->shouldBeCalled()
             ->willReturn(true);
@@ -116,10 +108,6 @@ class SearchIndexerSubscriptionSpec extends ObjectBehavior
             ->willReturn($this->entitiesResolver);
 
         $this->entitiesResolver->single(new Urn('urn:activity:123'))->willReturn($activity);
-
-        $this->welcomeTagManager->strip($activity)
-            ->shouldBeCalled()
-            ->willReturn($activity);
 
         $this->indexMock->remove($activity)
             ->shouldBeCalled()
@@ -148,40 +136,5 @@ class SearchIndexerSubscriptionSpec extends ObjectBehavior
             ->shouldNotBeCalled();
 
         $this->consume($event)->shouldBe(true); // True because we don't want to see again
-    }
-
-    public function it_should_index_an_activity_with_patched_tags_when_should_append_is_true()
-    {
-        $event = new EntitiesOpsEvent();
-        $event->setOp(EntitiesOpsEvent::OP_CREATE)
-            ->setEntityUrn('urn:user:123');
-
-        $activity = new Activity();
-
-        $this->entitiesResolver->setOpts([
-            'cache' => false
-        ])
-            ->shouldBeCalled()
-            ->willReturn($this->entitiesResolver);
-
-        $this->entitiesResolver->single(new Urn('urn:user:123'))->willReturn($activity);
-
-        $this->welcomeTagManager->strip($activity)
-            ->shouldBeCalled()
-            ->willReturn($activity);
-
-        $this->welcomeTagManager->shouldAppend($activity)
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->welcomeTagManager->append($activity)
-            ->shouldBeCalled()
-            ->willReturn($activity);
-
-        $this->indexMock->index($activity)
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->consume($event)->shouldBe(true);
     }
 }
