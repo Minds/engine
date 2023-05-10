@@ -68,6 +68,15 @@ class CommentOpsEventStreamsSubscription implements SubscriptionInterface
             return true; // Ack
         }
 
+        // If delete op, then remove from MySQL and ES
+        if ($event->getOp() == EntitiesOpsEvent::OP_DELETE) {
+            $urn = explode(':', $event->getEntityUrn()); // Split by ':'
+            $guid = $urn[sizeof($urn) - 1]; // GUID is last element
+
+            return $this->repository->delete($guid)
+                && $this->searchRepository->delete($guid);
+        }
+
         /** @var Comment **/
         $comment = $this->manager->getByUrn($event->getEntityUrn(), true);
 

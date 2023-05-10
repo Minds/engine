@@ -32,6 +32,35 @@ class RelationalRepository
     }
 
     /**
+     * Delete Comment from a relational database
+     * @param string $guid
+     * @return bool
+    */
+    public function delete(string $guid): bool
+    {
+        $this->logger->info("Preparing DELETE query");
+
+        $statement = $this->mysqlClientWriterHandler->delete()
+            ->from('minds_comments')
+            ->where('guid', '=', new RawExp(':guid'))
+            ->prepare();
+
+        $this->logger->info("Finished preparing DELETE query", [$statement->queryString]);
+
+        $values = ['guid' => $guid];
+
+        $this->mysqlClient->bindValuesToPreparedStatement($statement, $values);
+
+        try {
+            $this->logger->info("Executing DELETE query.");
+            return $statement->execute();
+        } catch (PDOException $e) {
+            $this->logger->error("Query error details: ", $statement->errorInfo());
+            return false;
+        }
+    }
+
+    /**
      * Adds Comment to a relational database
      * @param Comment $comment
      * @param string $date
@@ -45,7 +74,7 @@ class RelationalRepository
         ?string $parentGuid = null,
         int $depth
     ): bool {
-        $this->logger->info("Preparing insert query");
+        $this->logger->info("Preparing INSERT query");
 
         $statement = $this->mysqlClientWriterHandler->insert()
         ->into('minds_comments')
@@ -79,7 +108,7 @@ class RelationalRepository
         ])
         ->prepare();
 
-        $this->logger->info("Finished preparing insert query", [$statement->queryString]);
+        $this->logger->info("Finished preparing INSERT query", [$statement->queryString]);
 
         $values = [
             'guid' => $comment->getGuid(),

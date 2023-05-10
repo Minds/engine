@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared\Update as PreparedUpdate;
+use Minds\Core\Data\ElasticSearch\Prepared\Delete as PreparedDelete;
 
 use Minds\Core\Log\Logger;
 
@@ -18,6 +19,28 @@ class SearchRepository
     ) {
         $this->client ??= Di::_()->get('Database\ElasticSearch');
         $this->logger = Di::_()->get('Logger');
+    }
+
+    /**
+     * Deletes Comment from Elasticsearch
+     * @param string $guid
+     * @return bool
+     */
+    public function delete(string $guid)
+    {
+        try {
+            $this->logger->info('Preparing Elasticsearch delete query');
+
+            $query = $this->prepareDelete($guid);
+            $response = $this->client->request($query);
+
+            $this->logger->info('Elasticsearch query finished.');
+            return true;
+        } catch (Exception $e) {
+            $this->logger->error("Elasticsearch query failed $e");
+
+            return false;
+        }
     }
 
     /**
@@ -47,6 +70,23 @@ class SearchRepository
 
             return false;
         }
+    }
+
+    /**
+     * Delete Comment from Elasticsearch
+     * @param string $guid
+     * @return PreparedDelete
+     */
+    private function prepareDelete(string $guid): PreparedDelete
+    {
+        $query = [
+            'index' => 'minds-comments',
+            'type' => '_doc',
+            'id' => $guid,
+        ];
+        $delete = new PreparedDelete();
+        $delete->query($query);
+        return $delete;
     }
 
     /**
