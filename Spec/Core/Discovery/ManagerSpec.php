@@ -2,16 +2,16 @@
 
 namespace Spec\Minds\Core\Discovery;
 
-use Minds\Core\Session;
-use Minds\Core;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Config;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Hashtags\User\Manager as HashtagManager;
+use Minds\Core\Hashtags\Trending\Manager as TrendingHashtagManager;
+use Minds\Core\Hashtags\WelcomeTag\Manager as WelcomeTagManager;
 use Minds\Core\Feeds\Elastic\Manager as ElasticFeedsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Common\Repository\Response;
 use Minds\Core\Discovery\Manager;
+use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -34,17 +34,48 @@ class ManagerSpec extends ObjectBehavior
     /** @var User */
     private $user;
 
-    public function let(ElasticSearch\Client $es, EntitiesBuilder $entitiesBuilder, HashtagManager $hashtagManager, ElasticFeedsManager $elasticFeedsManager, User $user)
-    {
-        $this->beConstructedWith($es, $entitiesBuilder, null, $hashtagManager, $elasticFeedsManager, $user);
+    /** @var ACL */
+    private $acl;
+
+    /** @var TrendingHashtagManager */
+    private $trendingHashtagManager;
+
+    /** @var WelcomeTagManager*/
+    private $welcomeTagManager;
+
+    public function let(
+        ElasticSearch\Client $es,
+        EntitiesBuilder $entitiesBuilder,
+        HashtagManager $hashtagManager,
+        ElasticFeedsManager $elasticFeedsManager,
+        User $user,
+        ACL $acl,
+        TrendingHashtagManager $trendingHashtagManager,
+        WelcomeTagManager $welcomeTagManager
+    ): void {
+        $this->beConstructedWith(
+            $es,
+            $entitiesBuilder,
+            null,
+            $hashtagManager,
+            $elasticFeedsManager,
+            $user,
+            null, // acl
+            $trendingHashtagManager,
+            $welcomeTagManager
+        );
         $this->es = $es;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->hashtagManager = $hashtagManager;
         $this->hashtagManager
             ->setUser(Argument::any())
             ->willReturn($this->hashtagManager);
+
         $this->elasticFeedsManager = $elasticFeedsManager;
         $this->user = $user;
+        $this->acl = $acl;
+        $this->trendingHashtagManager = $trendingHashtagManager;
+        $this->welcomeTagManager = $welcomeTagManager;
     }
 
     public function it_is_initializable()
@@ -197,7 +228,32 @@ class ManagerSpec extends ObjectBehavior
                 (new FeedSyncEntity())
             ]));
 
+
+        $this->welcomeTagManager->hasTag(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(false);
+
         $entities = $this->getSearch('hello world', 'top');
+        $entities->shouldHaveCount(2);
+    }
+
+    public function it_should_return_search_with_only_hashtag_search_when_welcome_tag_is_present()
+    {
+        $this->elasticFeedsManager
+            ->getList(Argument::that(function ($arg) {
+                return $arg['hashtag_only_search'] &&
+                    $arg['hashtags'] === ['hellominds'];
+            }))
+            ->willReturn(new Response([
+                (new FeedSyncEntity()),
+                (new FeedSyncEntity())
+            ]));
+
+        $this->welcomeTagManager->hasTag(['hellominds'])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $entities = $this->getSearch('#hellominds', 'top');
         $entities->shouldHaveCount(2);
     }
 
@@ -246,6 +302,10 @@ class ManagerSpec extends ObjectBehavior
         $this->elasticFeedsManager
             ->getCount(Argument::any())
             ->willReturn(5);
+
+        $this->welcomeTagManager->hasTag(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn(false);
 
         $entities = $this->getSearchCount('test search count', 'latest');
         $entities->shouldBe(5);

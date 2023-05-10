@@ -40,7 +40,7 @@ class Manager
     public function append(array $tags): array
     {
         // do not append if tag already present.
-        if (array_search(self::WELCOME_TAG, array_map('strtolower', $tags), true)) {
+        if ($this->hasTag($tags)) {
             return $tags;
         }
 
@@ -74,6 +74,16 @@ class Manager
     public function shouldAppend(string $ownerGuid): bool
     {
         return !$this->hasMadeActivityPosts($ownerGuid);
+    }
+
+    /**
+     * Whether an array has the welcome tag in it.
+     * @param array $tags - tags to check.
+     * @return bool true if array has welcome tag in it.
+     */
+    public function hasTag(array $tags): bool
+    {
+        return array_search(self::WELCOME_TAG, array_map('strtolower', $tags), true) !== false;
     }
 
     /**

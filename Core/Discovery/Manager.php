@@ -9,6 +9,7 @@ use Minds\Core\Config;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Hashtags\User\Manager as HashtagManager;
 use Minds\Core\Hashtags\Trending\Manager as TrendingHashtagManager;
+use Minds\Core\Hashtags\WelcomeTag\Manager as WelcomeTagManager;
 use Minds\Core\Hashtags\HashtagEntity;
 use Minds\Common\Repository\Response;
 use Minds\Core\Feeds\Elastic\Manager as ElasticFeedsManager;
@@ -16,6 +17,7 @@ use Minds\Core\Search\SortingAlgorithms;
 use Minds\Core\Security\ACL;
 use Minds\Entities;
 use Minds\Entities\User;
+use Minds\Helpers\Text;
 
 class Manager
 {
@@ -60,7 +62,8 @@ class Manager
         $elasticFeedsManager = null,
         $user = null,
         $acl = null,
-        TrendingHashtagManager $trendingHashtagManager = null
+        TrendingHashtagManager $trendingHashtagManager = null,
+        private ?WelcomeTagManager $welcomeTagManager = null
     ) {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
@@ -68,9 +71,10 @@ class Manager
         $this->hashtagManager = $hashtagManager ?? Di::_()->get('Hashtags\User\Manager');
         $this->elasticFeedsManager = $elasticFeedsManager ?? Di::_()->get('Feeds\Elastic\Manager');
         $this->user = $user ?? Session::getLoggedInUser();
-        $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'] ?? null;
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
         $this->trendingHashtagManager = $trendingHashtagManager ?? Di::_()->get('Hashtags\Trending\Manager');
+        $this->welcomeTagManager ??= Di::_()->get(WelcomeTagManager::class);
+        $this->plusSupportTierUrn = $this->config->get('plus')['support_tier_urn'] ?? null;
     }
 
     /**
@@ -637,6 +641,18 @@ class Manager
                 break;
         }
 
+        $opts['hashtag_only_search'] = false;
+
+        if (!isset($opts['hashtags'])) {
+            $hashtags = Text::getHashtags($query);
+            // if we are requesting a welcome tag.
+            if ($this->welcomeTagManager->hasTag($hashtags)) {
+                // only search hashtags - not text inside posts.
+                $opts['hashtag_only_search'] = true;
+                $opts['hashtags'] = $hashtags;
+            }
+        }
+
         return array_merge([
             'cache_key' => $this->user ? $this->user->getGuid() : null,
             'access_id' => 2,
@@ -654,6 +670,8 @@ class Manager
             'reverse_sort' => $opts['reverse_sort'],
             'use_legacy_time_ranges' => $opts['use_legacy_time_ranges'],
             'exclude_scheduled' => $opts['exclude_scheduled'],
+            'hashtags' => $opts['hashtags'] ?? null,
+            'hashtag_only_search' => $opts['hashtag_only_search'] ?? false
         ]);
     }
 

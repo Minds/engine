@@ -584,9 +584,9 @@ class Repository
             }
         }
 
-        //
+        $hashtagOnlySearch = isset($opts['hashtag_only_search']) && $opts['hashtag_only_search'];
 
-        if ($opts['query']) {
+        if ($opts['query'] && !$hashtagOnlySearch) {
             $words = explode(' ', $opts['query']);
 
             if (count($words) === 1) {
@@ -616,14 +616,16 @@ class Repository
                     'boost' => 1, // hashtags are 10x more valuable then non-hashtags
                 ],
             ];
-            $body['query']['function_score']['query']['bool']['should'][] = [
-                'multi_match' => [
-                    'query' => implode(' ', $opts['hashtags']),
-                    'fields' => ['title', 'message', 'description'],
-                    'operator' => 'or',
-                    'boost' => 0.1
-                ],
-            ];
+            if (!$hashtagOnlySearch) {
+                $body['query']['function_score']['query']['bool']['should'][] = [
+                    'multi_match' => [
+                        'query' => implode(' ', $opts['hashtags']),
+                        'fields' => ['title', 'message', 'description'],
+                        'operator' => 'or',
+                        'boost' => 0.1
+                    ],
+                ];
+            }
             $body['query']['function_score']['query']['bool']['minimum_should_match'] = 1;
         }
 

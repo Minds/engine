@@ -30,6 +30,6 @@ class HashtagsProvider extends Provider
 
         $this->di->bind(WelcomeTag\Manager::class, function ($di) {
             return new WelcomeTag\Manager();
-        });
+        }, ['useFactory' => true]);
     }
 }
