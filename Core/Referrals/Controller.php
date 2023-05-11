@@ -39,11 +39,11 @@ class Controller
          * @type User $user
          */
         $user = $request->getAttribute('_user');
-        
+
         $response = $this->manager->getMetrics(
             user: $user
         );
 
-        return new JsonResponse($response);
+        return new JsonResponse($response->export());
     }
 }
