@@ -283,7 +283,9 @@ class BoostCreateRequestValidator implements ValidatorInterface
                         )
                     );
                 }
+                return; // we do not need to validate goal data as it is not there.
             }
+
             // ---------------------------------------------------------
             // THIS IS THE OWNER OF THE BOOSTED POST. Continue validating...
             if (!isset($dataToValidate['goal'])) {
