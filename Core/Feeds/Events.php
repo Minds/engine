@@ -15,7 +15,6 @@ use Minds\Core\Events\Event;
 use Minds\Core\Security\Block;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Feeds\Activity\InteractionCounters;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 
 class Events
 {
@@ -30,7 +29,7 @@ class Events
      * @param Dispatcher $eventsDispatcher
      * @param Block\Manager $blockManager
      */
-    public function __construct($eventsDispatcher = null, $blockManager = null, protected ?ExperimentsManager $experimentsManager = null)
+    public function __construct($eventsDispatcher = null, $blockManager = null)
     {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
@@ -79,23 +78,12 @@ class Events
             $activity = $params['entity'];
             $export = $event->response() ?: [];
 
-            if ($this->getExperimentsManager()->isOn('front-5673-quote-counts')) {
-                /** @var InteractionCounters */
-                $interactionCounters = Di::_()->get('Feeds\Activity\InteractionCounters');
-            
-                $export['quotes'] = $interactionCounters->setCounter(InteractionCounters::COUNTER_QUOTES)->get($activity);
+            /** @var InteractionCounters */
+            $interactionCounters = Di::_()->get('Feeds\Activity\InteractionCounters');
+        
+            $export['quotes'] = $interactionCounters->setCounter(InteractionCounters::COUNTER_QUOTES)->get($activity);
 
-                $event->setResponse($export);
-            }
+            $event->setResponse($export);
         });
-    }
-
-    /**
-     * @return ExperimentsManager
-     */
-    protected function getExperimentsManager(): ExperimentsManager
-    {
-        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
-        return $this->experimentsManager;
     }
 }

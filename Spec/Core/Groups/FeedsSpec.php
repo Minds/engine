@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\Groups;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Groups\AdminQueue;
 use Minds\Entities;
 use Minds\Entities\Activity;
@@ -24,6 +25,7 @@ class FeedsSpec extends ObjectBehavior
     protected $_entitiesBuilder;
     protected $_actionEventsTopic;
     protected $_notificationsManager;
+    protected $save;
 
     public function let(
         AdminQueue $adminQueue,
@@ -32,7 +34,8 @@ class FeedsSpec extends ObjectBehavior
         Core\EntitiesBuilder $entitiesBuilder,
         PropagateRejectionDelegate $propagateRejectionDelegate,
         ActionEventsTopic $actionEventsTopic,
-        NotificationsManager $notificationsManager
+        NotificationsManager $notificationsManager,
+        Save $save
     ) {
         // AdminQueue
 
@@ -66,8 +69,9 @@ class FeedsSpec extends ObjectBehavior
         $this->_actionEventsTopic = $actionEventsTopic;
 
         $this->_notificationsManager = $notificationsManager;
+        $this->save = $save;
 
-        $this->beConstructedWith($entitiesBuilder, $propagateRejectionDelegate, $actionEventsTopic, $notificationsManager);
+        $this->beConstructedWith($entitiesBuilder, $propagateRejectionDelegate, $actionEventsTopic, $notificationsManager, null, $save);
     }
 
     public function it_is_initializable()
@@ -254,7 +258,11 @@ class FeedsSpec extends ObjectBehavior
         $activity->setPending(false)
             ->shouldBeCalled();
 
-        $activity->save(true)
+        $this->save->setEntity($activity)
+            ->shouldBeCalled()
+            ->willReturn($this->save);
+
+        $this->save->save(true)
             ->shouldBeCalled();
 
         $this->_adminQueue->delete($group, $activity)
@@ -277,9 +285,12 @@ class FeedsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $attachment->save()
+        $this->save->setEntity($attachment)
             ->shouldBeCalled()
-            ->willReturn(true);
+            ->willReturn($this->save);
+
+        $this->save->save(true)
+            ->shouldBeCalled();
 
         $this
             ->setGroup($group)
@@ -441,9 +452,12 @@ class FeedsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $attachment_1->save()
+        $this->save->setEntity($attachment_1)
             ->shouldBeCalled()
-            ->willReturn(true);
+            ->willReturn($this->save);
+
+        $this->save->save(true)
+            ->shouldBeCalled();
 
         $this->_adminQueue->getAll($group)
             ->shouldBeCalled()
@@ -465,13 +479,21 @@ class FeedsSpec extends ObjectBehavior
         $activity_1->setPending(false)
             ->shouldBeCalled();
 
-        $activity_1->save(true)
+        $this->save->setEntity($activity_1)
+            ->shouldBeCalled()
+            ->willReturn($this->save);
+
+        $this->save->save(true)
             ->shouldBeCalled();
 
         $activity_2->setPending(false)
             ->shouldBeCalled();
 
-        $activity_2->save(true)
+        $this->save->setEntity($activity_2)
+            ->shouldBeCalled()
+            ->willReturn($this->save);
+
+        $this->save->save(true)
             ->shouldBeCalled();
 
         $this->_adminQueue->delete($group, Argument::type(Activity::class))

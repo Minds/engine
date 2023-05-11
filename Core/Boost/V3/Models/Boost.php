@@ -21,6 +21,12 @@ use Minds\Traits\MagicAttributes;
  * @method int getTargetLocation()
  * @method self setTargetSuitability(int $targetSuitability)
  * @method int getTargetSuitability()
+ * @method self setGoal(int $goal)
+ * @method int getGoal()
+ * @method self setGoalButtonText(int $goalButtonText)
+ * @method int getGoalButtonText()
+ * @method self setGoalButtonUrl(string $goalButtonUrl)
+ * @method string getGoalButtonUrl()
  * @method self setPaymentMethod(int $paymentMethod)
  * @method int getPaymentMethod()
  * @method self setPaymentGuid(int $paymentGuid)
@@ -59,6 +65,9 @@ class Boost implements EntityInterface, ExportableInterface
         private string $entityGuid,
         private int $targetLocation,
         private int $targetSuitability,
+        private ?int $goal = null,
+        private ?int $goalButtonText = null,
+        private ?string $goalButtonUrl = null,
         private int $paymentMethod,
         private float $paymentAmount,
         private float $dailyBid,
@@ -142,6 +151,9 @@ class Boost implements EntityInterface, ExportableInterface
             'entity' => $this->entity?->export(),
             'target_location' => $this->getTargetLocation(),
             'target_suitability' => $this->getTargetSuitability(),
+            'goal' => $this->getGoal(),
+            'goal_button_text' => $this->getGoalButtonText(),
+            'goal_button_url' =>$this->getGoalButtonUrl(),
             'payment_tx_id' => $this->getPaymentTxId(),
             'payment_method' => $this->getPaymentMethod(),
             'payment_amount' => $this->getPaymentAmount(),

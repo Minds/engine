@@ -10,7 +10,6 @@ use Minds\Core\Boost\V3\Models\Boost as BoostV3;
 use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
 use Minds\Core\Config;
 use Minds\Core\EntitiesBuilder;
-use Minds\Entities\Boost\Network;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -19,7 +18,6 @@ use Prophecy\Argument;
 class BoostEventSpec extends ObjectBehavior
 {
     protected $txRepository;
-    protected $boostRepository;
     protected $config;
     protected $boostManagerV3;
     protected Collaborator $entitiesBuilder;
@@ -27,7 +25,6 @@ class BoostEventSpec extends ObjectBehavior
 
     public function let(
         Repository $txRepository,
-        \Minds\Core\Boost\Repository $boostRepository,
         BoostManagerV3 $boostManagerV3,
         PreApprovalManager $preApprovalManager,
         EntitiesBuilder $entitiesBuilder,
@@ -35,7 +32,6 @@ class BoostEventSpec extends ObjectBehavior
     ) {
         $this->beConstructedWith(
             $txRepository,
-            $boostRepository,
             $boostManagerV3,
             $preApprovalManager,
             $entitiesBuilder,
@@ -43,7 +39,6 @@ class BoostEventSpec extends ObjectBehavior
         );
 
         $this->txRepository = $txRepository;
-        $this->boostRepository = $boostRepository;
         $this->boostManagerV3 = $boostManagerV3;
         $this->preApprovalManager = $preApprovalManager;
         $this->entitiesBuilder = $entitiesBuilder;
@@ -75,158 +70,6 @@ class BoostEventSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_execute_a_boost_sent_event(Transaction $transaction, Network $boost)
-    {
-        $this->boostManagerV3->getBoostByGuid(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $transaction->getData()
-            ->shouldBeCalled()
-            ->willReturn([
-                'handler' => 'newsfeed',
-                'guid' => '1234'
-            ]);
-
-        $transaction->getTx()
-            ->shouldBeCalled()
-            ->willReturn('0x123123asdasd');
-
-        $this->boostRepository->getEntity('newsfeed', '1234')
-            ->shouldBeCalled()
-            ->willReturn($boost);
-
-        $boost->getState()
-            ->shouldBeCalled()
-            ->willReturn('pending');
-
-        $boost->setState('created')
-            ->shouldBeCalled()
-            ->willReturn($boost);
-
-        $boost->save()
-            ->shouldBeCalled();
-
-        $this->event(
-            '0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040',
-            ['address' => '0xasd'],
-            $transaction
-        );
-    }
-
-    public function it_should_execute_a_boost_sent_event_but_not_find_the_boost(Transaction $transaction)
-    {
-        $this->boostManagerV3->getBoostByGuid(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $transaction->getData()
-            ->shouldBeCalled()
-            ->willReturn([
-                'handler' => 'newsfeed',
-                'guid' => '1234'
-            ]);
-
-        $transaction->getTx()
-            ->shouldBeCalled()
-            ->willReturn('0x123123asdasd');
-
-        $this->boostRepository->getEntity('newsfeed', '1234')
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $this->shouldThrow(new \Exception("No boost with hash 0x123123asdasd"))->during(
-            'event',
-            [
-                '0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040',
-                ['address' => '0xasd'],
-                $transaction
-            ]
-        );
-    }
-
-    public function it_should_execute_a_boost_sent_event_but_boost_has_been_processed_already(
-        Transaction $transaction,
-        Network $boost
-    ) {
-        $this->boostManagerV3->getBoostByGuid(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $transaction->getData()
-            ->shouldBeCalled()
-            ->willReturn([
-                'handler' => 'newsfeed',
-                'guid' => '1234'
-            ]);
-
-        $transaction->getTx()
-            ->shouldBeCalled()
-            ->willReturn('0x123123asdasd');
-
-        $this->boostRepository->getEntity('newsfeed', '1234')
-            ->shouldBeCalled()
-            ->willReturn($boost);
-
-        $boost->getState()
-            ->shouldBeCalled()
-            ->willReturn('created');
-
-        $this->shouldThrow(new \Exception("Boost with hash 0x123123asdasd already processed. State: created"))->during(
-            'event',
-            [
-                '0x68170a430a4e2c3743702c7f839f5230244aca61ed306ec622a5f393f9559040',
-                ['address' => '0xasd'],
-                $transaction
-            ]
-        );
-    }
-
-    public function it_shoud_execute_a_boost_fail_event(Transaction $transaction, Network $boost)
-    {
-        $this->boostManagerV3->getBoostByGuid(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $transaction->getContract()
-            ->shouldBeCalled()
-            ->willReturn('boost');
-
-        $transaction->getData()
-            ->shouldBeCalled()
-            ->willReturn([
-                'handler' => 'newsfeed',
-                'guid' => '1234'
-            ]);
-
-        $this->boostRepository->getEntity('newsfeed', '1234')
-            ->shouldBeCalled()
-            ->willReturn($boost);
-
-        $transaction->getTx()
-            ->shouldBeCalled()
-            ->willReturn('0x123123asdasd');
-
-        $boost->getState()
-            ->shouldBeCalled()
-            ->willReturn('pending');
-
-        $transaction->setFailed(true)
-            ->shouldBeCalled();
-
-        $this->txRepository->update($transaction, ['failed'])
-            ->shouldBeCalled();
-
-        $boost->setState('failed')
-            ->shouldBeCalled()
-            ->willReturn($boost);
-
-        $boost->save()
-            ->shouldBeCalled();
-
-        $this->event('blockchain:fail', ['address' => '0xasd'], $transaction);
-    }
-
     public function it_should_execute_a_boost_fail_event_but_not_a_boost(Transaction $transaction)
     {
         $transaction->getContract()
@@ -237,113 +80,6 @@ class BoostEventSpec extends ObjectBehavior
             'event',
             ['blockchain:fail', ['address' => '0xasd'], $transaction]
         );
-    }
-
-    public function it_should_execute_a_boost_fail_event_but_boost_isnt_found(Transaction $transaction)
-    {
-        $this->boostManagerV3->getBoostByGuid(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $transaction->getContract()
-            ->shouldBeCalled()
-            ->willReturn('boost');
-
-        $transaction->getData()
-            ->shouldBeCalled()
-            ->willReturn([
-                'handler' => 'newsfeed',
-                'guid' => '1234'
-            ]);
-
-        $this->boostRepository->getEntity('newsfeed', '1234')
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $transaction->getTx()
-            ->shouldBeCalled()
-            ->willReturn('0x123123asdasd');
-
-        $this->shouldThrow(new \Exception("No boost with hash 0x123123asdasd"))->during(
-            'event',
-            ['blockchain:fail', ['address' => '0xasd'], $transaction]
-        );
-    }
-
-    public function it_should_execute_a_boost_fail_event_but_boost_already_processed(Transaction $transaction, Network $boost)
-    {
-        $this->boostManagerV3->getBoostByGuid(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $transaction->getContract()
-            ->shouldBeCalled()
-            ->willReturn('boost');
-
-        $transaction->getData()
-            ->shouldBeCalled()
-            ->willReturn([
-                'handler' => 'newsfeed',
-                'guid' => '1234'
-            ]);
-
-        $this->boostRepository->getEntity('newsfeed', '1234')
-            ->shouldBeCalled()
-            ->willReturn($boost);
-
-        $transaction->getTx()
-            ->shouldBeCalled()
-            ->willReturn('0x123123asdasd');
-
-        $boost->getState()
-            ->shouldBeCalled()
-            ->willReturn('created');
-
-        $this->shouldThrow(new \Exception("Boost with hash 0x123123asdasd already processed. State: created"))->during(
-            'event',
-            ['blockchain:fail', ['address' => '0xasd'], $transaction]
-        );
-    }
-
-    public function it_should_record_as_failed(
-        Network $boost
-    ) {
-        $this->boostManagerV3->getBoostByGuid(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $boost->getState()
-            ->willReturn('pending');
-
-        $boost->getId()
-            ->willReturn('boostID');
-
-        $boost->setState('failed')
-            ->shouldBeCalled()
-            ->willReturn($boost);
-
-        $boost->save()
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->boostRepository->getEntity('newsfeed', '123')
-            ->shouldBeCalled()
-            ->willReturn($boost);
-
-
-        $transaction = new Transaction();
-        $transaction->setTx('testTX')
-            ->setContract('boost')
-            ->setFailed(false)
-            ->setData([
-                'handler' => 'newsfeed',
-                'guid' => '123',
-            ]);
-
-        $this->txRepository->update($transaction, ['failed'])
-            ->shouldBeCalled();
-
-        $this->boostFail(['address' => '0xasd'], $transaction);
     }
 
     public function it_should_record_as_failed_for_v3_boosts(

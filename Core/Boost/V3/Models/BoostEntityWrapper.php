@@ -32,6 +32,8 @@ class BoostEntityWrapper implements ExportableInterface
         $export['boosted'] = true;
         $export['boosted_guid'] = $this->boost->getGuid();
         $export['urn'] = $this->boost->getUrn();
+        $export['goal_button_text'] = $this->boost->getGoalButtonText();
+        $export['goal_button_url'] = $this->boost->getGoalButtonUrl();
 
         return count($extras) ? [
             ...$export,

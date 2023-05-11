@@ -36,9 +36,6 @@ class ManagerSpec extends ObjectBehavior
     /** @var Resolver */
     protected $resolver;
 
-    /** @var EventsDispatcher */
-    protected $eventsDispatcher;
-
     public function let(
         Config $config,
         Jwt $jwt,
@@ -46,7 +43,6 @@ class ManagerSpec extends ObjectBehavior
         Client $es,
         UserFactory $userFactory,
         Resolver $resolver,
-        EventsDispatcher $eventsDispatcher
     ) {
         $this->config = $config;
         $this->jwt = $jwt;
@@ -54,7 +50,6 @@ class ManagerSpec extends ObjectBehavior
         $this->es = $es;
         $this->userFactory = $userFactory;
         $this->resolver = $resolver;
-        $this->eventsDispatcher = $eventsDispatcher;
 
         $this->config->get('email_confirmation')
             ->willReturn([
@@ -70,7 +65,7 @@ class ManagerSpec extends ObjectBehavior
             ]);
 
 
-        $this->beConstructedWith($config, $jwt, $queue, $es, $userFactory, $resolver, $eventsDispatcher);
+        $this->beConstructedWith($config, $jwt, $queue, $es, $userFactory, $resolver);
     }
 
     public function it_is_initializable()
@@ -78,19 +73,12 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_send_email(
+    public function it_should_generate_a_token(
         User $user
     ) {
         $user->getEmailConfirmationToken()
             ->shouldBeCalled()
             ->willReturn(false);
-
-        $user->isEmailConfirmed()
-            ->shouldBeCalled()
-            ->willReturn(false);
-        $user->getGuid()
-            ->shouldBeCalled()
-            ->willReturn('123');
         
         $this->jwt->setKey('~key~')
             ->shouldBeCalled()
@@ -119,20 +107,13 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->eventsDispatcher->trigger('confirmation_email', 'all', [
-            'user_guid' => '1000',
-            'cache' => false,
-        ])
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this
             ->setUser($user)
             ->shouldNotThrow(Exception::class)
-            ->duringSendEmail();
+            ->duringGenerateConfirmationToken();
     }
 
-    public function it_should_send_email_with_existing_token_if_one_exists(
+    public function it_should_return_existing_token_on_generate_token_if_one_exists(
         User $user
     ) {
         $user->getEmailConfirmationToken()
@@ -148,38 +129,19 @@ class ManagerSpec extends ObjectBehavior
                 'code' => '~random~',
                 'exp' => $expTime,
             ]);
-            
-        $user->isEmailConfirmed()
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $user->getGuid()
-            ->shouldBeCalled()
-            ->willReturn('123');
         
         $this->jwt->setKey('~key~')
             ->shouldBeCalled()
             ->willReturn($this->jwt);
 
-        $user->get('guid')
-            ->shouldBeCalled()
-            ->willReturn(1000);
-
-        $this->eventsDispatcher->trigger('confirmation_email', 'all', [
-            'user_guid' => '1000',
-            'cache' => false,
-        ])
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this
             ->setUser($user)
             ->shouldNotThrow(Exception::class)
-            ->duringSendEmail();
+            ->duringGenerateConfirmationToken();
     }
 
 
-    public function it_should_send_email_with_new_token_if_a_token_exists_but_is_expired(
+    public function it_should_return_new_token_during_generate_token_if_a_token_exists_but_is_expired(
         User $user
     ) {
         $user->getEmailConfirmationToken()
@@ -199,14 +161,6 @@ class ManagerSpec extends ObjectBehavior
                 'code' => '~random~',
                 'exp' => $expTime,
             ]);
-
-        $user->isEmailConfirmed()
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $user->getGuid()
-            ->shouldBeCalled()
-            ->willReturn('123');
         
         $this->jwt->setKey('~key~')
             ->shouldBeCalled()
@@ -235,40 +189,17 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->eventsDispatcher->trigger('confirmation_email', 'all', [
-            'user_guid' => '1000',
-            'cache' => false,
-        ])
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this
             ->setUser($user)
             ->shouldNotThrow(Exception::class)
-            ->duringSendEmail();
+            ->duringGenerateConfirmationToken();
     }
 
-    public function it_should_throw_if_no_user_during_send_email()
+    public function it_should_throw_if_no_user_during_generate_token()
     {
         $this
             ->shouldThrow(new Exception('User not set'))
-            ->duringSendEmail();
-    }
-
-    public function it_should_throw_if_email_is_confirmed_during_send_email(
-        User $user
-    ) {
-        $user->isEmailConfirmed()
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $user->save()
-            ->shouldNotBeCalled();
-
-        $this
-            ->setUser($user)
-            ->shouldThrow(new Exception('User email was already confirmed'))
-            ->duringSendEmail();
+            ->duringGenerateConfirmationToken();
     }
 
     public function it_should_reset(
@@ -297,192 +228,6 @@ class ManagerSpec extends ObjectBehavior
         $this
             ->shouldThrow(new Exception('User not set'))
             ->duringReset();
-    }
-
-    public function it_should_confirm(
-        User $user
-    ) {
-        $this->jwt->setKey('~key~')
-            ->shouldBeCalledTimes(2)
-            ->willReturn($this->jwt);
-
-        $this->jwt->decode('~token~')
-            ->shouldBeCalledTimes(2)
-            ->willReturn([
-                'user_guid' => '1000',
-                'code' => 'phpspec',
-                'exp' => new \DateTimeImmutable('+1 day')
-            ]);
-
-        $this->userFactory->build('1000', false)
-            ->shouldBeCalled()
-            ->willReturn($user);
-
-        $user->get('guid')
-            ->shouldBeCalled()
-            ->willReturn(1000);
-
-        $user->isEmailConfirmed()
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $user->getEmailConfirmationToken()
-            ->shouldBeCalled()
-            ->willReturn('~token~');
-
-        $user->setEmailConfirmationToken('')
-            ->shouldBeCalled()
-            ->willReturn($user);
-
-        $user->setEmailConfirmedAt(Argument::type('int'))
-            ->shouldBeCalled()
-            ->willReturn($user);
-
-        $user->save()
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->queue->setQueue('WelcomeEmail')
-            ->shouldBeCalled()
-            ->willReturn($this->queue);
-
-        $this->queue->send([
-            'user_guid' => '1000',
-        ])
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this
-            ->confirm('~token~')
-            ->shouldReturn(true);
-    }
-
-    public function it_should_throw_if_user_is_set_during_confirm(
-        User $user
-    ) {
-        $this
-            ->setUser($user)
-            ->shouldThrow(new Exception('Confirmation user is inferred from JWT'))
-            ->duringConfirm('~token~');
-    }
-
-    public function it_should_throw_if_jwt_is_invalid_during_confirm()
-    {
-        $this->jwt->setKey('~key~')
-            ->shouldBeCalled()
-            ->willReturn($this->jwt);
-
-        $this->jwt->decode('~token~')
-            ->shouldBeCalled()
-            ->willReturn([
-            ]);
-
-        $this
-            ->shouldThrow(new Exception('Invalid JWT'))
-            ->duringConfirm('~token~');
-    }
-
-    public function it_should_throw_if_invalid_user_during_confirm(
-        User $user
-    ) {
-        $this->jwt->setKey('~key~')
-            ->shouldBeCalled()
-            ->willReturn($this->jwt);
-
-        $this->jwt->decode('~token~')
-            ->shouldBeCalled()
-            ->willReturn([
-                'user_guid' => '1000',
-                'code' => 'phpspec',
-                'exp' => new \DateTimeImmutable('+1 day')
-            ]);
-
-        $this->userFactory->build('1000', false)
-            ->shouldBeCalled()
-            ->willReturn($user);
-
-        $user->get('guid')
-            ->shouldBeCalled()
-            ->willReturn(null);
-
-        $this
-            ->shouldThrow(new Exception('Invalid user'))
-            ->duringConfirm('~token~');
-    }
-
-    public function it_should_throw_if_email_is_confirmed_during_confirm(
-        User $user
-    ) {
-        $this->jwt->setKey('~key~')
-            ->shouldBeCalled()
-            ->willReturn($this->jwt);
-
-        $this->jwt->decode('~token~')
-            ->shouldBeCalled()
-            ->willReturn([
-                'user_guid' => '1000',
-                'code' => 'phpspec',
-                'exp' => new \DateTimeImmutable('+1 day')
-            ]);
-
-        $this->userFactory->build('1000', false)
-            ->shouldBeCalled()
-            ->willReturn($user);
-
-        $user->get('guid')
-            ->shouldBeCalled()
-            ->willReturn($user);
-
-        $user->isEmailConfirmed()
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this
-            ->shouldThrow(new Exception('User email was already confirmed'))
-            ->duringConfirm('~token~');
-    }
-
-    public function it_should_throw_if_invalid_token_data_during_confirm(
-        User $user
-    ) {
-        $this->jwt->setKey('~key~')
-            ->shouldBeCalledTimes(2)
-            ->willReturn($this->jwt);
-
-        $this->jwt->decode('~token~')
-            ->shouldBeCalled()
-            ->willReturn([
-                'user_guid' => '1000',
-                'code' => 'phpspec',
-                'exp' => new \DateTimeImmutable('+1 day')
-            ]);
-
-        $this->userFactory->build('1000', false)
-            ->shouldBeCalled()
-            ->willReturn($user);
-
-        $user->get('guid')
-            ->shouldBeCalled()
-            ->willReturn($user);
-
-        $user->isEmailConfirmed()
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $user->getEmailConfirmationToken()
-            ->shouldBeCalled()
-            ->willReturn('~token.2~');
-
-        $this->jwt->decode('~token.2~')
-            ->shouldBeCalled()
-            ->willReturn([
-                'user_guid' => '1001',
-                'code' => 'phpspec_fail',
-            ]);
-
-        $this
-            ->shouldThrow(new Exception('Invalid confirmation token data'))
-            ->duringConfirm('~token~');
     }
 
     public function it_should_fetch_unverified_users(User $user1, User $user2)

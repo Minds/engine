@@ -30,6 +30,7 @@ class Repository
             'to' => null,
             'user_guid' => null,
             'allow_filtering' => false,
+            'offset' => '',
         ], $opts);
 
         $statement = "SELECT * FROM partner_earnings_ledger";
@@ -63,6 +64,9 @@ class Repository
 
         $prepared = new Prepared();
         $prepared->query($statement, $values);
+        $prepared->setOpts([
+            'paging_state_token' => $opts['offset'],
+        ]);
 
         $result = $this->db->request($prepared);
 
@@ -78,11 +82,12 @@ class Repository
                 ->setItem($row['item'])
                 ->setUserGuid((string) $row['user_guid'])
                 ->setAmountCents($row['amount_cents'])
-                ->setAmountTokens($row['amount_tokens'] ? $row['amount_tokens']->value() : 0);
+                ->setAmountTokens(isset($row['amount_tokens']) ? $row['amount_tokens']->value() : 0);
             $response[] = $deposit;
         }
 
         $response->setLastPage($result->isLastPage());
+        $response->setPagingToken($result->pagingStateToken());
         return $response;
     }
 
@@ -173,36 +178,42 @@ class Repository
      */
     public function getBalanceByItem(string $userGuid, array $items, ?int $asOfTs = null): EarningsBalance
     {
-        $statement = "SELECT SUM(amount_cents) as cents, SUM(amount_tokens) as tokens
+        $statement = "SELECT amount_cents as cents, amount_tokens as tokens, item
             FROM partner_earnings_ledger
-            WHERE user_guid = ?
-            AND timestamp <= ?";
+            WHERE user_guid = ?";
 
         $values = [
-            new Bigint($userGuid),
-            new Timestamp($asOfTs ?? time(), 0),
+            new Bigint($userGuid)
         ];
 
-        $items = array_map(
-            function (string $value) use (&$values): string {
-                $values[] = $value;
-                return "item = ?";
-            },
-            $items
-        );
+        if ($asOfTs) {
+            $statement .= " AND timestamp <= ?";
+            $values[] = new Timestamp($asOfTs, 0);
+        }
 
-        $statement .= " AND (" . implode(' OR ', $items) . ")";
-        
         $prepared = (new Prepared())
             ->query($statement, $values);
 
         $result = $this->db->request($prepared);
-        $row = $result->first();
+
+        $totalCents = $totalTokens = 0;
+
+        /**
+         * @var $deposit
+         */
+        foreach ($result as $deposit) {
+            if (!in_array($deposit['item'], $items, true)) {
+                continue;
+            }
+
+            $totalCents += $deposit['cents'];
+            $totalTokens += $deposit['tokens']->toInt();
+        }
 
         $balance = new EarningsBalance();
         $balance->setUserGuid($userGuid)
-            ->setAmountCents($row['cents'])
-            ->setAmountTokens($row['tokens']->toInt());
+            ->setAmountCents($totalCents)
+            ->setAmountTokens($totalTokens);
         return $balance;
     }
 }

@@ -64,6 +64,12 @@ class SearchIndexerSubscriptionSpec extends ObjectBehavior
 
         $user = new User();
 
+        $this->entitiesResolver->setOpts([
+            'cache' => false
+        ])
+            ->shouldBeCalled()
+            ->willReturn($this->entitiesResolver);
+
         $this->entitiesResolver->single(new Urn('urn:user:123'))->willReturn($user);
 
         $this->indexMock->index($user)
@@ -81,6 +87,12 @@ class SearchIndexerSubscriptionSpec extends ObjectBehavior
 
         $activity = new Activity();
 
+        $this->entitiesResolver->setOpts([
+            'cache' => false
+        ])
+            ->shouldBeCalled()
+            ->willReturn($this->entitiesResolver);
+
         $this->entitiesResolver->single(new Urn('urn:activity:123'))->willReturn($activity);
 
         $this->indexMock->remove($activity)
@@ -97,6 +109,12 @@ class SearchIndexerSubscriptionSpec extends ObjectBehavior
             ->setEntityUrn('urn:comment:1473261181828337672:0:0:0:1473273068037083150');
 
         $comment = new Comment();
+
+        $this->entitiesResolver->setOpts([
+            'cache' => false
+        ])
+            ->shouldBeCalled()
+            ->willReturn($this->entitiesResolver);
 
         $this->entitiesResolver->single(new Urn('urn:comment:1473261181828337672:0:0:0:1473273068037083150'))->willReturn($comment);
 
@@ -120,6 +138,12 @@ class SearchIndexerSubscriptionSpec extends ObjectBehavior
 
         $entity = new Activity();
         $entity->owner_guid = $ownerGuid;
+
+        $this->entitiesResolver->setOpts([
+            'cache' => false
+        ])
+            ->shouldBeCalled()
+            ->willReturn($this->entitiesResolver);
 
         $this->entitiesResolver->single(new Urn($entityUrn))
             ->shouldBeCalled()
@@ -167,6 +191,12 @@ class SearchIndexerSubscriptionSpec extends ObjectBehavior
         $entity->owner_guid = $ownerGuid;
         $entity->setTags(['tag1']);
 
+        $this->entitiesResolver->setOpts([
+            'cache' => false
+        ])
+            ->shouldBeCalled()
+            ->willReturn($this->entitiesResolver);
+
         $this->entitiesResolver->single(new Urn($entityUrn))
             ->shouldBeCalled()
             ->willReturn($entity);
@@ -212,6 +242,12 @@ class SearchIndexerSubscriptionSpec extends ObjectBehavior
         $entity = new Activity();
         $entity->owner_guid = $ownerGuid;
         $entity->setTags(['tag1']);
+
+        $this->entitiesResolver->setOpts([
+            'cache' => false
+        ])
+            ->shouldBeCalled()
+            ->willReturn($this->entitiesResolver);
 
         $this->entitiesResolver->single(new Urn($entityUrn))
             ->shouldBeCalled()
@@ -260,6 +296,12 @@ class SearchIndexerSubscriptionSpec extends ObjectBehavior
         $entity->owner_guid = $ownerGuid;
         $entity->setTags(['tag1']);
 
+        $this->entitiesResolver->setOpts([
+            'cache' => false
+        ])
+            ->shouldBeCalled()
+            ->willReturn($this->entitiesResolver);
+
         $this->entitiesResolver->single(new Urn($entityUrn))
             ->shouldBeCalled()
             ->willReturn($entity);
@@ -301,6 +343,12 @@ class SearchIndexerSubscriptionSpec extends ObjectBehavior
 
         $entity = new Activity();
         $entity->owner_guid = $ownerGuid;
+
+        $this->entitiesResolver->setOpts([
+            'cache' => false
+        ])
+            ->shouldBeCalled()
+            ->willReturn($this->entitiesResolver);
 
         $this->entitiesResolver->single(new Urn($entityUrn))
             ->shouldBeCalled()
@@ -346,6 +394,12 @@ class SearchIndexerSubscriptionSpec extends ObjectBehavior
 
         $entity = new Activity();
         $entity->owner_guid = $ownerGuid;
+
+        $this->entitiesResolver->setOpts([
+            'cache' => false
+        ])
+            ->shouldBeCalled()
+            ->willReturn($this->entitiesResolver);
 
         $this->entitiesResolver->single(new Urn($entityUrn))
             ->shouldBeCalled()
