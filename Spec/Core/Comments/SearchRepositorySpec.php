@@ -15,7 +15,8 @@ class SearchRepositorySpec extends ObjectBehavior
 {
     protected $client;
 
-    public function let(Client $client) {
+    public function let(Client $client)
+    {
         $this->beConstructedWith($client);
         $this->client = $client;
         $this->beConstructedWith($this->client);
@@ -31,7 +32,7 @@ class SearchRepositorySpec extends ObjectBehavior
         $this->client->request(Argument::any())
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $this->delete('guid')->shouldReturn(true);
     }
 
@@ -101,7 +102,7 @@ class SearchRepositorySpec extends ObjectBehavior
         ];
         $preparedUpdate = new PreparedUpdate();
         $preparedUpdate->query($query);
-        
+
         $this->client->request($preparedUpdate)
             ->shouldBeCalled()
             ->willReturn(true);

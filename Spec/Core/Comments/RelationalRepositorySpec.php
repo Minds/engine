@@ -45,8 +45,8 @@ class RelationalRepositorySpec extends ObjectBehavior
     }
 
     public function it_should_add(
-        Comment $comment, 
-        PDOStatement $statement, 
+        Comment $comment,
+        PDOStatement $statement,
         InsertQuery $insertQuery
     ) {
         // Comment

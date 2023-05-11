@@ -27,13 +27,12 @@ class CommentOpsEventStreamsSubscriptionSpec extends ObjectBehavior
         RelationalRepository $relationalRepository,
         SearchRepository $searchRepository
     ) {
-        
         $this->manager = $manager;
         $this->relationalRepository = $relationalRepository;
         $this->searchRepository = $searchRepository;
         $this->beConstructedWith($manager, $relationalRepository, $searchRepository);
     }
-    
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(CommentOpsEventStreamsSubscription::class);
@@ -78,7 +77,7 @@ class CommentOpsEventStreamsSubscriptionSpec extends ObjectBehavior
         $event->getEntityUrn()->shouldBeCalled()->willReturn('urn:comment:123');
         $event->getOp()->shouldBeCalled()->willReturn('update');
         $this->manager->getByUrn('urn:comment:123', true)->shouldBeCalled()->willReturn($comment);
-        
+
         $comment->getTimeCreated()->shouldBeCalled()->willReturn(123);
         $comment->getParentGuidL1()->shouldBeCalled()->willReturn(0);
         $comment->getParentGuidL2()->shouldBeCalled()->willReturn(0);
@@ -100,7 +99,7 @@ class CommentOpsEventStreamsSubscriptionSpec extends ObjectBehavior
         $event->getEntityUrn()->shouldBeCalled()->willReturn('urn:comment:123');
         $event->getOp()->shouldBeCalled()->willReturn('update');
         $this->manager->getByUrn('urn:comment:123', true)->shouldBeCalled()->willReturn($comment);
-        
+
         $comment->getTimeCreated()->shouldBeCalled()->willReturn(123);
         $comment->getParentGuidL1()->shouldBeCalled()->willReturn('456');
         $comment->getParentGuidL2()->shouldBeCalled()->willReturn(0);
@@ -122,7 +121,7 @@ class CommentOpsEventStreamsSubscriptionSpec extends ObjectBehavior
         $event->getEntityUrn()->shouldBeCalled()->willReturn('urn:comment:123');
         $event->getOp()->shouldBeCalled()->willReturn('update');
         $this->manager->getByUrn('urn:comment:123', true)->shouldBeCalled()->willReturn($comment);
-        
+
         $comment->getTimeCreated()->shouldBeCalled()->willReturn(123);
         $comment->getParentGuidL2()->shouldBeCalled()->willReturn('768');
 
