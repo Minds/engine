@@ -26,8 +26,8 @@ class CommentOpsEventStreamsSubscription implements SubscriptionInterface
         SearchRepository $searchRepository = null
     ) {
         $this->manager = $manager ?? Di::_()->get('Comments\Manager');
-        $this->searchRepository = $repository ?? new SearchRepository();
-        $this->repository = $searchRepository ?? new RelationalRepository();
+        $this->searchRepository = $searchRepository ?? new SearchRepository();
+        $this->repository = $repository ?? new RelationalRepository();
     }
 
     /**
@@ -86,7 +86,8 @@ class CommentOpsEventStreamsSubscription implements SubscriptionInterface
         }
 
         // Set date
-        $date = date('c', $comment->getTimeCreated());
+        $timeCreated = date('c', $comment->getTimeCreated());
+        $timeUpdated = date('c');
 
         // Set Parent GUID
         $depth = 0;
@@ -99,7 +100,9 @@ class CommentOpsEventStreamsSubscription implements SubscriptionInterface
             $parentGuid = $comment->getParentGuidL1();
         }
 
-        return $this->repository->add($comment, $date, $parentGuid, $depth) // Add comment to relational database
-            && $this->searchRepository->add($comment, $date, $parentGuid, $depth); // Add comment to Elasticsearch
+        return $this->repository
+            ->add($comment, $timeCreated, $timeUpdated, $parentGuid, $depth) // Add comment to relational database
+            && $this->searchRepository
+                ->add($comment, $timeCreated, $timeUpdated, $parentGuid, $depth); // Add comment to Elasticsearch
     }
 }

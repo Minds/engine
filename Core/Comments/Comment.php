@@ -49,6 +49,8 @@ use Minds\Helpers\Unknown;
  * @method array getVotesDown()
  * @method Comment setEphemeral(bool $value)
  * @method bool isEphemeral()
+ * @method Comment setGroupConversation(bool $value)
+ * @method bool isGroupConversation()
  */
 class Comment extends RepositoryEntity implements EntityInterface
 {

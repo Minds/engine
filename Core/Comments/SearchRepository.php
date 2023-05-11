@@ -46,21 +46,23 @@ class SearchRepository
     /**
      * Adds Comment to Elasticsearch
      * @param Comment $comment
-     * @param string $date
+     * @param string $timeCreated
+     * @param string $timeUpdated
      * @param string $parentGuid
      * @param int $depth
      * @return bool
      */
     public function add(
         Comment $comment,
-        string $date,
+        string $timeCreated,
+        string $timeUpdated,
         ?string $parentGuid = null,
         int $depth
     ): bool {
         try {
             $this->logger->info('Preparing Elasticsearch update query');
 
-            $query = $this->prepareQuery($comment, $date, $parentGuid, $depth);
+            $query = $this->prepareUpdate($comment, $timeCreated, $timeUpdated, $parentGuid, $depth);
             $response = $this->client->request($query);
 
             $this->logger->info('Elasticsearch query finished.');
@@ -92,14 +94,16 @@ class SearchRepository
     /**
      * Prepare ES update request
      * @param Comment $comment
-     * @param string $date
+     * @param string $timeCreated
+     * @param string $timeUpdated
      * @param string $parentGuid
      * @param int $depth
      * @return PreparedUpdate
      */
-    private function prepareQuery(
+    private function prepareUpdate(
         Comment $comment,
-        string $date,
+        string $timeCreated,
+        string $timeUpdated,
         ?string $parentGuid = null,
         int $depth
     ): PreparedUpdate {
@@ -123,8 +127,8 @@ class SearchRepository
                     'enabled' => true,
                     'group_conversation' => (bool) $comment->isGroupConversation(),
                     'access_id' => $comment->getAccessId(),
-                    'updated_at' => date('c'),
-                    '@timestamp' => $date
+                    'updated_at' => $timeUpdated,
+                    '@timestamp' => $timeCreated
                 ],
                 'doc_as_upsert' => true,
             ],

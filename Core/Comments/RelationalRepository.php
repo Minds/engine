@@ -4,7 +4,6 @@ namespace Minds\Core\Comments;
 
 use Minds\Core\Data\MySQL;
 use Minds\Core\Di\Di;
-use Minds\Core\EntitiesBuilder;
 use PDO;
 use PDOException;
 
@@ -15,18 +14,15 @@ use Selective\Database\RawExp;
 class RelationalRepository
 {
     private PDO $mysqlClientWriter;
-    private Connection $mysqlClientWriterHandler;
 
     public function __construct(
-        private ?EntitiesBuilder $entitiesBuilder = null,
         private ?MySQL\Client $mysqlClient = null,
+        private ?Connection $mysqlClientWriterHandler = null,
         private ?\Minds\Core\Log\Logger $logger = null
     ) {
-        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
-
         $this->mysqlClient ??= Di::_()->get("Database\MySQL\Client");
         $this->mysqlClientWriter = $this->mysqlClient->getConnection(MySQLClient::CONNECTION_MASTER);
-        $this->mysqlClientWriterHandler = new Connection($this->mysqlClientWriter);
+        $this->mysqlClientWriterHandler ??= new Connection($this->mysqlClientWriter);
 
         $this->logger = Di::_()->get('Logger');
     }
@@ -63,14 +59,16 @@ class RelationalRepository
     /**
      * Adds Comment to a relational database
      * @param Comment $comment
-     * @param string $date
+     * @param string $timeCreated
+     * @param string $timeUpdated
      * @param string $parentGuid
      * @param int $depth
      * @return bool
      */
     public function add(
         Comment $comment,
-        string $date,
+        string $timeCreated,
+        string $timeUpdated,
         ?string $parentGuid = null,
         int $depth
     ): bool {
@@ -94,6 +92,7 @@ class RelationalRepository
             'group_conversation' => new RawExp(':group_conversation'),
             'access_id' => new RawExp(':access_id'),
             'time_created' => new RawExp(':time_created'),
+            'time_updated' => new RawExp(':time_updated')
         ])
         ->onDuplicateKeyUpdate([
             'body' => new RawExp(':body'),
@@ -104,7 +103,7 @@ class RelationalRepository
             'deleted' => new RawExp(':deleted'),
             'enabled' => new RawExp(':is_enabled'),
             'access_id' => new RawExp(':access_id'),
-            'time_updated' => date('c')
+            'time_updated' => $timeUpdated
         ])
         ->prepare();
 
@@ -125,7 +124,8 @@ class RelationalRepository
             'is_enabled' => true,
             'group_conversation' => (bool) $comment->isGroupConversation(),
             'access_id' => $comment->getAccessId(),
-            'time_created' => $date
+            'time_created' => $timeCreated,
+            'time_updated' => $timeUpdated
         ];
 
         $this->mysqlClient->bindValuesToPreparedStatement($statement, $values);
