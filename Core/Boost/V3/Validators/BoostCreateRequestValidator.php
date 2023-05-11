@@ -246,11 +246,11 @@ class BoostCreateRequestValidator implements ValidatorInterface
             // GOALS AREN'T ALLOWED FOR CHANNEL BOOSTS OR FOR BOOSTING SOMEONE ELSE'S POST
             $boostedEntity = $this->getBoostedEntity($dataToValidate);
 
-            if (!$boostedEntity || $boostedEntity instanceof User) {
+            if (!$boostedEntity) {
                 $this->errors->add(
                     new ValidationError(
                         'entity_guid',
-                        'You can only set a boost goal for an existing activity post'
+                        'You can only set a boost goal for an existing activity post or user'
                     )
                 );
             }
