@@ -886,3 +886,7 @@ $CONFIG->set('chatwoot', [
     'base_url' => '',
     'signing_key' => ''
 ]);
+
+$CONFIG->set('strapi', [
+    'url' => 'http://localhost:1337'
+]);

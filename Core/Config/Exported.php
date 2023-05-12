@@ -120,7 +120,10 @@ class Exported
             'chatwoot' => [
                 'website_token' => $this->config->get('chatwoot')['website_token'],
                 'base_url' => $this->config->get('chatwoot')['base_url']
-            ]
+            ],
+            'strapi' => [
+                'url' => $this->config->get('strapi')['url'],
+            ],
         ];
 
         if (Session::isLoggedIn()) {
