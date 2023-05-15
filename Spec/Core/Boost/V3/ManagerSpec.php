@@ -599,10 +599,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
-        $this->paymentProcessor->refundBoostPayment(Argument::type(Boost::class))
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
-
         $this->repository->rollbackTransaction()
             ->shouldBeCalledOnce();
 
@@ -653,10 +649,6 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(false);
 
         $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
-
-        $this->paymentProcessor->refundBoostPayment(Argument::type(Boost::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
