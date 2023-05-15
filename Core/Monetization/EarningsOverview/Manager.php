@@ -2,6 +2,7 @@
 namespace Minds\Core\Monetization\EarningsOverview;
 
 use Brick\Math\BigDecimal;
+use Minds\Common\Repository\Response;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Monetization\Partners;
@@ -206,21 +207,30 @@ class Manager
     }
 
     /**
-     * @param array $earningsDeposits
+     * @param array|Response $earningsDeposits
      * @return EarningsGroupModel[]
      */
-    protected function buildPartnerEarningsItemModels($earningsDeposits = []): array
+    protected function buildPartnerEarningsItemModels(array|Response $earningsDeposits = []): array
     {
         $groups = [];
 
         foreach ($earningsDeposits as $earningsDeposit) {
             $earningsDepositItem = $groups[$earningsDeposit->getItem()] ?? new EarningsItemModel();
             $earningsDepositItem->setAmountCents($earningsDepositItem->getAmountCents() + $earningsDeposit->getAmountCents());
-            $earningsDepositItem->setAmountTokens(BigNumber::toPlain(BigDecimal::sum($earningsDepositItem->getAmountTokens(), $earningsDeposit->getAmountTokens())->toFloat(), 18));
+            $earningsDepositItem->setAmountTokens(BigDecimal::sum($earningsDepositItem->getAmountTokens(), $earningsDeposit->getAmountTokens())->toFloat());
             $earningsDepositItem->setCurrency('usd');
             $groups[$earningsDeposit->getItem()] = $earningsDepositItem;
         }
 
+        $this->fixPartnerEarningsItemsTokens($groups);
+
         return $groups;
+    }
+
+    private function fixPartnerEarningsItemsTokens(array &$groups): void
+    {
+        foreach ($groups as $group) {
+            $group->setAmountTokens(BigNumber::toPlain($group->getAmountTokens(), 18));
+        }
     }
 }
