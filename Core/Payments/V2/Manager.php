@@ -65,7 +65,7 @@ class Manager
     {
         $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
         $affiliateType = PaymentAffiliateType::REFERRAL_COOKIE;
-        if (!$affiliateUserGuid && $this->user->getGuid() === $boost->getOwnerGuid()) {
+        if (!$affiliateUserGuid || $affiliateUserGuid === (int) $this->user->getGuid()) {
             $affiliateUserGuid =
                 $this->user->referrer && (time() - $this->user->time_created) < 365 * 86400
                     ? (int) $this->user->referrer
@@ -115,7 +115,7 @@ class Manager
             } else {
                 $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
                 $affiliateType = PaymentAffiliateType::REFERRAL_COOKIE;
-                if (!$affiliateUserGuid) {
+                if (!$affiliateUserGuid || $affiliateUserGuid === (int) $wire->getSender()->getGuid()) {
                     $affiliateUserGuid =
                         $wire->getSender()->referrer && (time() - $wire->getSender()->time_created) < 365 * 86400
                         ? (int) $wire->getSender()->referrer

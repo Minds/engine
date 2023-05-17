@@ -7,6 +7,7 @@ namespace Minds\Core\Referrals;
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Monetization\Partners\EarningsBalance;
 use Minds\Core\Monetization\Partners\Enums\PartnerEarningsItemType;
 use Minds\Core\Monetization\Partners\Manager as PartnersManager;
 use Minds\Entities\User;
@@ -125,17 +126,15 @@ class Manager
      * @param User $user
      * @return Response
      */
-    public function getMetrics(User $user): Response
+    public function getMetrics(User $user): EarningsBalance
     {
-        return new Response([
-            $this->partnersManager->getBalanceByItem(
-                $user,
-                [
-                    PartnerEarningsItemType::AFFILIATE_EARNINGS,
-                    PartnerEarningsItemType::REFERRER_AFFILIATE_EARNINGS,
-                ],
-                time()
-            )
-        ]);
+        return $this->partnersManager->getBalanceByItem(
+            $user,
+            [
+                PartnerEarningsItemType::AFFILIATE_EARNINGS,
+                PartnerEarningsItemType::REFERRER_AFFILIATE_EARNINGS,
+            ],
+            time()
+        );
     }
 }

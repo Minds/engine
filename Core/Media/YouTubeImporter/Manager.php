@@ -22,8 +22,6 @@ use Minds\Entities\Video;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Minds\Core\Data\cache\PsrWrapper;
-use Minds\Core\Feeds\Activity\RichEmbed\Manager as RichEmbedManager;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service as MetascraperService;
 use Minds\Entities\Activity;
 
@@ -77,9 +75,6 @@ class Manager
     /** @var KeyValueLimiter */
     protected $kvLimiter;
 
-    /** @var RichEmbedManager */
-    protected $richEmbedManager;
-
     public function __construct(
         $repository = null,
         $mediaRepository = null,
@@ -95,9 +90,7 @@ class Manager
         $transcoderBridge = null,
         $cache = null,
         $kvLimiter = null,
-        RichEmbedManager $richEmbedManager = null,
         private ?MetascraperService $metascraperService = null,
-        private ?ExperimentsManager $experimentsManager = null
     ) {
         $this->repository = $repository ?: Di::_()->get('Media\YouTubeImporter\Repository');
         $this->mediaRepository = $mediaRepository ?: Di::_()->get('Media\Repository');
@@ -113,9 +106,7 @@ class Manager
         $this->transcoderBridge = $transcoderBridge ?? new TranscoderBridge();
         $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
         $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
-        $this->richEmbedManager = $richEmbedManager ?? Di::_()->get('Feeds\Activity\RichEmbed\Manager');
         $this->metascraperService ??= Di::_()->get('Metascraper\Service');
-        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -563,9 +554,7 @@ class Manager
         $url = 'https://www.youtube.com/watch?v='.$videoId;
 
         try {
-            $richEmbed = $this->experimentsManager->isOn('front-5815-metascraper-stage-2') ?
-                $this->metascraperService->scrape($url) :
-                $this->richEmbedManager->getRichEmbed($url);
+            $richEmbed = $this->metascraperService->scrape($url);
         } catch (\Exception $e) {
             $this->logger->error($e);
             return;

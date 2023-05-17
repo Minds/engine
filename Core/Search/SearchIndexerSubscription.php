@@ -75,7 +75,9 @@ class SearchIndexerSubscription implements SubscriptionInterface
             return false;
         }
 
-        $entity = $this->entitiesResolver->single(new Urn($event->getEntityUrn()));
+        $entity = $this->entitiesResolver->setOpts([
+            'cache' => false
+        ])->single(new Urn($event->getEntityUrn()));
 
         if (!$entity) {
             // Entity not found

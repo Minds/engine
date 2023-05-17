@@ -7,6 +7,8 @@ use Exception;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\Enums\BoostTargetSuitability;
+use Minds\Core\Boost\V3\Enums\BoostGoal;
+use Minds\Core\Boost\V3\Enums\BoostGoalButtonText;
 use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments\Stripe\PaymentMethods\Manager as PaymentMethodsManager;
@@ -15,6 +17,13 @@ use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Interfaces\ValidatorInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Helpers\Text;
+use Minds\Core\Security\ProhibitedDomains;
+use Minds\Core\EntitiesBuilder;
+use Minds\Entities\Activity;
+use Minds\Entities\User;
+use Minds\Entities\EntityInterface;
 
 class BoostCreateRequestValidator implements ValidatorInterface
 {
@@ -22,10 +31,14 @@ class BoostCreateRequestValidator implements ValidatorInterface
 
     public function __construct(
         private ?PaymentMethodsManager $paymentMethodsManager = null,
-        private ?MindsConfig $mindsConfig = null
+        private ?MindsConfig $mindsConfig = null,
+        private ?ExperimentsManager $experiments = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null,
     ) {
         $this->paymentMethodsManager ??= Di::_()->get('Stripe\PaymentMethods\Manager');
         $this->mindsConfig ??= Di::_()->get('Config');
+        $this->experiments ??= Di::_()->get('Experiments\Manager');
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
     }
 
     private function resetErrors(): void
@@ -130,6 +143,7 @@ class BoostCreateRequestValidator implements ValidatorInterface
 
         $this->checkDailyBid($dataToValidate);
         $this->checkDurationDays($dataToValidate);
+        $this->checkGoals($dataToValidate);
 
         return $this->errors->count() === 0;
     }
@@ -218,6 +232,165 @@ class BoostCreateRequestValidator implements ValidatorInterface
                 )
             );
         }
+    }
+
+    /**
+     * Validate goals for boosted posts, and other fields associated with goals
+     * (a.k.a. goal_button_text, goal_button_url)
+     * @param array $dataToValidate
+     * @return void
+     */
+    private function checkGoals(array $dataToValidate): void
+    {
+        if ($this->goalFeatureEnabled()) {
+            // GOALS AREN'T ALLOWED FOR CHANNEL BOOSTS OR FOR BOOSTING SOMEONE ELSE'S POST
+            $boostedEntity = $this->getBoostedEntity($dataToValidate);
+
+            if (!$boostedEntity) {
+                $this->errors->add(
+                    new ValidationError(
+                        'entity_guid',
+                        'You can only set a boost goal for an existing activity post or user'
+                    )
+                );
+            }
+
+            $boostedEntityOwnerGuid = ($boostedEntity instanceof Activity) ? $boostedEntity->getOwnerGuid() : '';
+
+            if ($boostedEntityOwnerGuid !== $this->getLoggedInUserGuid()) {
+                // Either it's a channel boost or it's not the post owner - all invalid
+                if (isset($dataToValidate['goal'])) {
+                    $this->errors->add(
+                        new ValidationError(
+                            'goal',
+                            'You can only set a boost goal when boosting your own post'
+                        )
+                    );
+                }
+                if (isset($dataToValidate['goal_button_text'])) {
+                    $this->errors->add(
+                        new ValidationError(
+                            'goal_button_text',
+                            'You can only set button text when boosting your own post'
+                        )
+                    );
+                }
+                if (isset($dataToValidate['goal_button_url'])) {
+                    $this->errors->add(
+                        new ValidationError(
+                            'goal_button_text',
+                            'You can only set a button url when boosting your own post'
+                        )
+                    );
+                }
+                return; // we do not need to validate goal data as it is not there.
+            }
+
+            // ---------------------------------------------------------
+            // THIS IS THE OWNER OF THE BOOSTED POST. Continue validating...
+            if (!isset($dataToValidate['goal'])) {
+                $this->errors->add(
+                    new ValidationError(
+                        'goal',
+                        'Boost goal must be provided'
+                    )
+                );
+            } elseif (!in_array((int) $dataToValidate['goal'], BoostGoal::VALID, true)) {
+                $this->errors->add(
+                    new ValidationError(
+                        'goal',
+                        'Boost goal must be one of the valid options'
+                    )
+                );
+            } else {
+                // ---------------------------------------------------------
+                // Validate GOAL_BUTTON_TEXT
+
+                if (!in_array((int) $dataToValidate['goal'], BoostGoal::GOALS_REQUIRING_GOAL_BUTTON_TEXT, true)) {
+                    if (isset($dataToValidate['goal_button_text'])) {
+                        $this->errors->add(new ValidationError(
+                            'goal_button_text',
+                            'Button text is not allowed for the selected boost goal'
+                        ));
+                    }
+                } else {
+                    if (!isset($dataToValidate['goal_button_text'])) {
+                        $this->errors->add(new ValidationError(
+                            'goal_button_text',
+                            'Button text must be provided for the selected goal'
+                        ));
+                    } else {
+                        // goal_button_text must be valid for the goals that require it
+                        $invalidButtonTextForSubscriberGoal = (int) $dataToValidate['goal'] === BoostGoal::SUBSCRIBERS && !in_array($dataToValidate['goal_button_text'], BoostGoalButtonText::VALID_GOAL_BUTTON_TEXTS_WHEN_GOAL_IS_SUBSCRIBERS, true);
+
+
+                        // (!in_array($dataToValidate['target_suitability'], BoostTargetSuitability::VALID, true))
+
+                        $invalidButtonTextForClickGoal = (int) $dataToValidate['goal'] === BoostGoal::CLICKS && !in_array($dataToValidate['goal_button_text'], BoostGoalButtonText::VALID_GOAL_BUTTON_TEXTS_WHEN_GOAL_IS_CLICKS, true);
+
+                        if ($invalidButtonTextForSubscriberGoal || $invalidButtonTextForClickGoal) {
+                            $this->errors->add(new ValidationError(
+                                'goal_button_text',
+                                'Button text must be a valid option for the selected goal'
+                            ));
+                        }
+                    }
+                }
+                // ---------------------------------------------------------
+                // Validate GOAL_BUTTON_URL
+                if (!in_array((int) $dataToValidate['goal'], BoostGoal::GOALS_REQUIRING_GOAL_BUTTON_URL, true)) {
+                    if (isset($dataToValidate['goal_button_url'])) {
+                        $this->errors->add(new ValidationError(
+                            'goal_button_url',
+                            'Button url is not a valid field for the selected goal'
+                        ));
+                    }
+                } else {
+                    if (!isset($dataToValidate['goal_button_url'])) {
+                        $this->errors->add(new ValidationError(
+                            'goal_button_url',
+                            'Button url must be provided'
+                        ));
+                    } else {
+                        if (Text::strposa($dataToValidate['goal_button_url'], ProhibitedDomains::DOMAINS)) {
+                            $this->errors->add(new ValidationError(
+                                'goal_button_url',
+                                'Button url references a domain name linked to spam'
+                            ));
+                        } elseif (!preg_match('#^http(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$#i', $dataToValidate['goal_button_url'])) {
+                            $this->errors->add(new ValidationError(
+                                'goal_button_url',
+                                'Button url is not in valid url format'
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * True if feature that allows users to set goals for boosted posts is enabled
+     * @return boolean - true if feature is enabled.
+     */
+    private function goalFeatureEnabled(): bool
+    {
+        return $this->experiments->setUser(Session::getLoggedinUser())
+            ->isOn('minds-3952-boost-goals');
+    }
+
+    /**
+     * @param array|ServerRequestInterface $dataToValidate
+     * @return EntityInterface entity - the entity being boosted
+     */
+    private function getBoostedEntity($dataToValidate): ?EntityInterface
+    {
+        $boostedEntity = null;
+
+        if (isset($dataToValidate['entity_guid'])) {
+            $boostedEntity = $this->entitiesBuilder->single($dataToValidate['entity_guid']);
+        }
+        return $boostedEntity;
     }
 
     private function getLoggedInUserGuid(): string

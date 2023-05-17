@@ -4,7 +4,6 @@ namespace Minds\Controllers\Cli;
 
 use Minds\Core;
 use Minds\Cli;
-use Minds\Core\Boost\CashPaymentProcessor as BoostCashPaymentProcessor;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Interfaces;
@@ -23,7 +22,6 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?IntentsManagerV2 $intentsManager = null,
         private ?SupermindPaymentProcessor $supermindPaymentProcessor = null,
-        private ?BoostCashPaymentProcessor $boostCashPaymentProcessor = null,
         private ?WireManager $wireManager = null
     ) {
         error_reporting(E_ALL);
@@ -31,7 +29,6 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->intentsManager ??= new IntentsManagerV2();
         $this->supermindPaymentProcessor ??= new SupermindPaymentProcessor();
-        $this->boostCashPaymentProcessor ??= new BoostCashPaymentProcessor();
         $this->wireManager ??= Di::_()->get('Wire\Manager');
     }
 
@@ -214,7 +211,7 @@ class Stripe extends Cli\Controller implements Interfaces\CliControllerInterface
                     if (!$boostSender || !$boostSender instanceof User) {
                         $description = "Boost from {$metadata['boost_sender_guid']}";
                     } else {
-                        $description = $this->boostCashPaymentProcessor->getDescription($boostSender);
+                        $description = "Boost from unknown";
                     }
                 } elseif (isset($metadata['receiver_guid'])) {
                     $receiver = $this->entitiesBuilder->single($metadata['receiver_guid']);
