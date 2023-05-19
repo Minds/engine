@@ -361,6 +361,18 @@ class Repository
                 ];
             }
 
+            if ($opts['group_posts_for_user_guid']) {
+                $should[] = [
+                    'terms' => [
+                        'container_guid' => [
+                            'index' => $this->index.'-user',
+                            'id' => (string) $opts['group_posts_for_user_guid'],
+                            'path' => 'group_membership',
+                        ],
+                    ]
+                ];
+            }
+
             // Will return own posts if requested
             if ($opts['hide_own_posts']) {
                 if (!isset($body['query']['function_score']['query']['bool']['must_not'])) {

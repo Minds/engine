@@ -121,6 +121,12 @@ class subscribed implements Interfaces\Api
 
         $opts['include_group_posts'] = (bool) $_GET['include_group_posts'] ?? false;
 
+        $opts['group_posts_for_user_guid'] = (string) $_GET['group_posts_for_user_guid'] ?? false;
+
+        if ($opts['group_posts_for_user_guid']) {
+            $opts['subscribed'] = null;
+        }
+
         if ($_GET['to_timestamp'] ?? null) {
             // Fixes 4.17 build of app
             if (isset($_SERVER['HTTP_APP_VERSION']) && Comparator::lessThan($_SERVER['HTTP_APP_VERSION'], '4.18.0')) {
