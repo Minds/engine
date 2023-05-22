@@ -215,6 +215,7 @@ class Repository
             'supermind' => false,
             'use_legacy_time_ranges' => true,
             'exclude_scheduled' => false,
+            'group_posts_for_user_guid' => null,
         ], $opts);
 
         if (!$opts['type']) {
