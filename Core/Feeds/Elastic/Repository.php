@@ -6,6 +6,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Client as ElasticsearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Di\Di;
+use Minds\Core\Groups\Membership;
 use Minds\Core\Log\Logger;
 use Minds\Core\Search\SortingAlgorithms;
 use Minds\Helpers\Text;
@@ -42,10 +43,12 @@ class Repository
     public function __construct(
         $client = null,
         $config = null,
+        private ?Membership $groupsMembership = null,
         private ?Logger $logger = null
     ) {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
         $this->config = $config ?? Di::_()->get('Config');
+        $this->groupsMembership ??= Di::_()->get(Membership::class);
         $this->logger ??= Di::_()->get('Logger');
 
         $this->index = $this->config->get('elasticsearch')['indexes']['search_prefix'];
@@ -364,11 +367,12 @@ class Repository
             if ($opts['group_posts_for_user_guid']) {
                 $should[] = [
                     'terms' => [
-                        'container_guid' => [
-                            'index' => $this->index.'-user',
-                            'id' => (string) $opts['group_posts_for_user_guid'],
-                            'path' => 'group_membership',
-                        ],
+                        'container_guid' =>
+                            array_map(function ($guid) {
+                                return (string) $guid;
+                            }, $this->groupsMembership->getGroupGuidsByMember([
+                                'user_guid' => $opts['group_posts_for_user_guid'],
+                            ])),
                     ]
                 ];
             }
@@ -459,7 +463,11 @@ class Repository
             ];
         }
 
-        if ($type !== 'group' && $opts['access_id'] !== null && !$opts['include_group_posts']) {
+        if ($type !== 'group'
+            && $opts['access_id'] !== null
+            && !$opts['include_group_posts']
+            && !$opts['group_posts_for_user_guid']
+        ) {
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'terms' => [
                     'access_id' => Text::buildArray($opts['access_id']),

@@ -125,6 +125,7 @@ class subscribed implements Interfaces\Api
 
         if ($opts['group_posts_for_user_guid']) {
             $opts['subscribed'] = null;
+            $opts['hide_own_posts'] = true;
         }
 
         if ($_GET['to_timestamp'] ?? null) {
