@@ -271,11 +271,11 @@ class Group extends NormalizedEntity implements EntityInterface
 
     /**
      * Gets `name`
-     * @return mixed
+     * @return string
      */
     public function getName()
     {
-        return $this->name;
+        return (string) $this->name;
     }
 
     /**
@@ -911,7 +911,7 @@ class Group extends NormalizedEntity implements EntityInterface
         $export = parent::export($keys);
 
         foreach ($export as $key => $value) {
-            if (is_numeric($value) && strlen($value) < 16) {
+            if (is_numeric($value) && strlen($value) < 16 && !in_array($key, ['name', 'brief_description'], true)) {
                 $export[$key] = (int) $value;
             }
         }
