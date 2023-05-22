@@ -65,8 +65,11 @@ class SearchRepository
             $query = $this->prepareUpdate($comment, $timeCreated, $timeUpdated, $parentGuid, $depth);
             $response = $this->client->request($query);
 
-            $this->logger->info('Elasticsearch query finished.');
-            return true;
+            $result = $response['result'];
+            $successful = $result === 'created' || $result === 'updated';
+
+            $this->logger->info("Elasticsearch query finished with status: $successful");
+            return $successful;
         } catch (Exception $e) {
             $this->logger->error("Elasticsearch query failed $e");
 
