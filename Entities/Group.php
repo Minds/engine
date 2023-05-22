@@ -271,11 +271,11 @@ class Group extends NormalizedEntity implements EntityInterface
 
     /**
      * Gets `name`
-     * @return string
+     * @return mixed
      */
     public function getName()
     {
-        return (string) $this->name;
+        return $this->name;
     }
 
     /**
