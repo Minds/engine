@@ -364,19 +364,6 @@ class Repository
                 ];
             }
 
-            if ($opts['group_posts_for_user_guid']) {
-                $should[] = [
-                    'terms' => [
-                        'container_guid' =>
-                            array_map(function ($guid) {
-                                return (string) $guid;
-                            }, $this->groupsMembership->getGroupGuidsByMember([
-                                'user_guid' => $opts['group_posts_for_user_guid'],
-                            ])),
-                    ]
-                ];
-            }
-
             // Will return own posts if requested
             if ($opts['hide_own_posts']) {
                 if (!isset($body['query']['function_score']['query']['bool']['must_not'])) {
@@ -399,6 +386,22 @@ class Repository
                 'bool' => [
                     'should' => $should,
                 ],
+            ];
+        }
+
+        /**
+         * Group only feed
+         */
+        if ($opts['group_posts_for_user_guid']) {
+            $body['query']['function_score']['query']['bool']['must'][] = [
+                'terms' => [
+                    'container_guid' =>
+                        array_map(function ($guid) {
+                            return (string) $guid;
+                        }, $this->groupsMembership->getGroupGuidsByMember([
+                            'user_guid' => $opts['group_posts_for_user_guid'],
+                        ])),
+                ]
             ];
         }
 
