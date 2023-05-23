@@ -254,3 +254,23 @@ CREATE TABLE IF NOT EXISTS minds_votes
 ALTER TABLE minds_payments
     ADD affiliate_type int DEFAULT NULL
     AFTER affiliate_user_guid;
+
+CREATE TABLE IF NOT EXISTS minds_comments (
+    guid bigint,
+    entity_guid bigint,
+    owner_guid bigint,
+    parent_guid bigint REFERENCES minds_comment(guid),
+    parent_depth int,
+    body text,
+    attachments json,
+    mature boolean,
+    edited boolean,
+    spam boolean,
+    deleted boolean,
+    `enabled` boolean,
+    group_conversation boolean,
+    access_id bigint,
+    time_created timestamp DEFAULT CURRENT_TIMESTAMP,
+    time_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (guid)
+) ENGINE = InnoDB;
