@@ -44,7 +44,7 @@ class Repository
         $field = "votes_{$vote->getDirection()}";
         $set = new Set(Type::varint());
         $set->add(new Varint($vote->getActor()->guid));
-        
+
         $cql = "UPDATE comments
             SET {$field} = {$field} + ?
             WHERE entity_guid = ?
@@ -61,7 +61,7 @@ class Repository
             new Varint(0),
             new Varint($comment->getGuid()),
         ];
-        
+
         $prepared = new Custom();
         $prepared->query($cql, $values);
 
