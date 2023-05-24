@@ -214,10 +214,12 @@ class Manager
     {
         $groups = [];
 
+        $iteration = 0;
         foreach ($earningsDeposits as $earningsDeposit) {
+            // var_dump($earningsDeposit->getAmountTokens());
             $earningsDepositItem = $groups[$earningsDeposit->getItem()] ?? new EarningsItemModel();
             $earningsDepositItem->setAmountCents($earningsDepositItem->getAmountCents() + $earningsDeposit->getAmountCents());
-            $earningsDepositItem->setAmountTokens(BigDecimal::sum($earningsDepositItem->getAmountTokens(), $earningsDeposit->getAmountTokens())->toFloat());
+            $earningsDepositItem->setAmountTokens(BigDecimal::sum($earningsDepositItem->getAmountTokens(), $earningsDeposit->getAmountTokens()));
             $earningsDepositItem->setCurrency('usd');
             $groups[$earningsDeposit->getItem()] = $earningsDepositItem;
         }
