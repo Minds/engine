@@ -161,7 +161,7 @@ class Manager
                 throw new ServerErrorException("An error occurred whilst creating the boost request");
             }
         } catch (Exception $e) {
-            $this->paymentProcessor->refundBoostPayment($boost);
+            // TODO: refund payment if already processed
             $this->repository->rollbackTransaction();
             throw $e;
         }
@@ -201,14 +201,14 @@ class Manager
             throw new BoostPaymentSetupFailedException();
         }
 
+        if (!$this->paymentProcessor->captureBoostPayment($boost)) {
+            throw new BoostPaymentCaptureFailedException();
+        }
+
         if (!$this->repository->createBoost($boost)) {
             throw new ServerErrorException("An error occurred whilst creating the boost request");
         }
 
-        if (!$this->paymentProcessor->captureBoostPayment($boost)) {
-            throw new BoostPaymentCaptureFailedException();
-        }
-        
         $this->repository->commitTransaction();
 
         $this->actionEventDelegate->onCreate($boost);

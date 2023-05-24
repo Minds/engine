@@ -170,7 +170,7 @@ class comments implements Interfaces\Api
             if (method_exists($entity, 'getAllowComments') && !$entity->getAllowComments()) {
                 return Factory::response([
                     'status' => 'error',
-                    'message' => 'Comments are disabled for this post'
+                    'message' => 'This user has disabled comments on their post'
                 ]);
             }
 
