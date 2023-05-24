@@ -242,7 +242,7 @@ class BoostCreateRequestValidator implements ValidatorInterface
      */
     private function checkGoals(array $dataToValidate): void
     {
-        if ($this->goalFeatureEnabled()) {
+        if ($this->goalFeatureEnabled() && !isset($_SERVER['HTTP_APP_VERSION'])) {
             // GOALS AREN'T ALLOWED FOR CHANNEL BOOSTS OR FOR BOOSTING SOMEONE ELSE'S POST
             $boostedEntity = $this->getBoostedEntity($dataToValidate);
 
