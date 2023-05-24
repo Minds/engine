@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\Comments;
 
 use Minds\Core\Di;

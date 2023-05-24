@@ -456,6 +456,21 @@ class ManagerSpec extends ObjectBehavior
             ->shouldReturn(null);
     }
 
+    public function it_should_skip_cache(Comment $comment)
+    {
+        $this->repository->get('5000', '6000:0:0', '7000')
+            ->shouldBeCalledTimes(2)
+            ->willReturn($comment);
+
+        $this
+            ->getByUrn("urn:comment:5000:6000:0:0:7000", true) // skip_cache=true
+            ->shouldReturn($comment);
+
+        $this
+            ->getByUrn("urn:comment:5000:6000:0:0:7000")
+            ->shouldReturn($comment);
+    }
+
     public function it_should_count()
     {
         $this->repository->count(5000, 0)
