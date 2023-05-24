@@ -21,6 +21,12 @@ use Minds\Traits\MagicAttributes;
  * @method int getTargetLocation()
  * @method self setTargetSuitability(int $targetSuitability)
  * @method int getTargetSuitability()
+ * @method self setTargetPlatformWeb(bool $targetPlatformWeb)
+ * @method bool getTargetPlatformWeb()
+ * @method self setTargetPlatformAndroid(bool $targetPlatformAndroid)
+ * @method bool getTargetPlatformAndroid()
+ * @method self setTargetPlatformIos(bool $targetPlatformIos)
+ * @method bool getTargetPlatformIos()
  * @method self setGoal(int $goal)
  * @method int getGoal()
  * @method self setGoalButtonText(int $goalButtonText)
@@ -65,6 +71,9 @@ class Boost implements EntityInterface, ExportableInterface
         private string $entityGuid,
         private int $targetLocation,
         private int $targetSuitability,
+        private ?bool $targetPlatformWeb = null,
+        private ?bool $targetPlatformAndroid = null,
+        private ?bool $targetPlatformIos = null,
         private ?int $goal = null,
         private ?int $goalButtonText = null,
         private ?string $goalButtonUrl = null,
@@ -151,6 +160,9 @@ class Boost implements EntityInterface, ExportableInterface
             'entity' => $this->entity?->export(),
             'target_location' => $this->getTargetLocation(),
             'target_suitability' => $this->getTargetSuitability(),
+            'target_platform_web' =>$this->getTargetPlatformWeb(),
+            'target_platform_android' =>$this->getTargetPlatformAndroid(),
+            'target_platform_ios' =>$this->getTargetPlatformIos(),
             'goal' => $this->getGoal(),
             'goal_button_text' => $this->getGoalButtonText(),
             'goal_button_url' =>$this->getGoalButtonUrl(),

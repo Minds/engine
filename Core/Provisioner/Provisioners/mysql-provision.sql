@@ -194,6 +194,18 @@ ALTER TABLE boosts
 ADD INDEX completed_timestamp (completed_timestamp) USING BTREE;
 
 ALTER TABLE boosts
+    ADD target_platform_web boolean DEFAULT true
+    AFTER target_suitability;
+
+ALTER TABLE boosts
+    ADD target_platform_android boolean DEFAULT true
+    AFTER target_platform_web;
+
+ALTER TABLE boosts
+    ADD target_platform_ios boolean DEFAULT true
+    AFTER target_platform_android;
+
+ALTER TABLE boosts
     ADD goal int NULL DEFAULT NULL
     AFTER target_location;
 
