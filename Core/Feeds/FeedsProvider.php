@@ -69,5 +69,11 @@ class FeedsProvider extends Provider
         $this->di->bind('Feeds\User\Manager', function ($di) {
             return new User\Manager();
         });
+
+        // V2
+
+        $this->di->bind(Elastic\V2\Manager::class, function ($di) {
+            return new Elastic\V2\Manager($di->get('Database\ElasticSearch'), $di->get('Feeds\ClusteredRecommendations\Manager'), $di->get('EntitiesBuilder'));
+        });
     }
 }

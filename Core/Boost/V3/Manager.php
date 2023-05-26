@@ -437,7 +437,8 @@ class Manager
         int $targetAudience = BoostTargetAudiences::SAFE,
         ?int $targetLocation = null,
         ?string $servedByGuid = null,
-        ?string $source = null
+        ?string $source = null,
+        bool $castToFeedSyncEntities = true,
     ): Response {
         $hasNext = false;
 
@@ -483,9 +484,13 @@ class Manager
             }
         }
 
-        $feedSyncEntities = $this->castToFeedSyncEntities($boostsArray);
+        if ($castToFeedSyncEntities) {
+            $feedSyncEntities = $this->castToFeedSyncEntities($boostsArray);
 
-        return new Response($feedSyncEntities, $hasNext);
+            return new Response($feedSyncEntities, $hasNext);
+        } else {
+            return new Response($boostsArray, $hasNext);
+        }
     }
 
     /**
