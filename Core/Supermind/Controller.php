@@ -339,6 +339,7 @@ class Controller
 //    )]
     public function createBulkSupermindRequest(ServerRequestInterface $request): JsonResponse
     {
+        error_log("Bulk supermind offer request body: " . $request->getBody()->getContents());
         $this->manager->createBulkSupermindRequest($request->getParsedBody());
         return new JsonResponse([]);
     }
