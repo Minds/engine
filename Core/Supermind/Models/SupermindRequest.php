@@ -37,7 +37,7 @@ use Minds\Traits\MagicAttributes;
  * @method bool getTwitterRequired()
  * @method self setTwitterRequired(bool $twitterRequired)
  * @method bool getReplyType()
- * @method self setReplyType(bool $twitterRequired)
+ * @method self setReplyType(int $replyType)
  * @method null|EntityInterface getEntity()
  * @method self setEntity(EntityInterface $entity)
  * @method null|EntityInterface getReceiverEntity()

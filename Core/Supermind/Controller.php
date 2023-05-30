@@ -325,4 +325,21 @@ class Controller
             ->getRequest((string) $supermindRequestID);
         return new JsonResponse(Exportable::_([$response]));
     }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     */
+//    #[OA\Post(
+//        path: '/api/v3/supermind/bulk',
+//        responses: [
+//            new OA\Response(response: 200, description: "Ok"),
+//            new OA\Response(response: 403, description: "Forbidden"),
+//        ]
+//    )]
+    public function createBulkSupermindRequest(ServerRequestInterface $request): JsonResponse
+    {
+        $this->manager->createBulkSupermindRequest($request->getParsedBody());
+        return new JsonResponse([]);
+    }
 }
