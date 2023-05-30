@@ -8,11 +8,15 @@ use Minds\Core\Guid;
 use Minds\Core\Payments\V2\Enums\PaymentStatus;
 use Minds\Entities\ExportableInterface;
 
+/**
+ * PaymentDetails model
+ */
 class PaymentDetails implements ExportableInterface
 {
     public int $paymentGuid;
     public int $userGuid;
     public ?int $affiliateUserGuid = null;
+    public ?int $affiliateType = null;
     public int $paymentType;
     public ?int $paymentStatus = PaymentStatus::NOT_APPLICABLE;
     public int $paymentMethod;
@@ -81,6 +85,7 @@ class PaymentDetails implements ExportableInterface
             'payment_guid' => $this->paymentGuid,
             'user_guid' => $this->userGuid,
             'affiliate_user_guid' => $this->affiliateUserGuid,
+            'affiliate_type' => $this->affiliateType,
             'payment_type' => $this->paymentType,
             'payment_status' => $this->paymentStatus ?? PaymentStatus::NOT_APPLICABLE,
             'payment_method' => $this->paymentMethod,
