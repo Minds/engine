@@ -18,6 +18,7 @@ use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\Stripe\PaymentMethods\Manager as StripePaymentMethodsManager;
+use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
@@ -644,19 +645,20 @@ class Manager
      * @throws SupermindOffchainPaymentFailedException
      * @throws SupermindPaymentIntentFailedException
      * @throws SupermindRequestCreationCompletionException
+     * @throws UserNotFoundException
      * @throws UnverifiedEmailException
      */
     public function createBulkSupermindRequest($bulkSupermindRequestDetails): bool
     {
         $receiverUser = $this->entitiesBuilder->single($bulkSupermindRequestDetails['receiver_guid']);
         if (!$receiverUser instanceof User) {
-            return false; // invalid user
+            throw new UserNotFoundException("User " . $bulkSupermindRequestDetails['receiver_guid'] . " not found");
         }
 
         $activityGuid = $bulkSupermindRequestDetails['source_activity'] ?? '';
         $replyType = (int) $bulkSupermindRequestDetails['reply_type'] ?? SupermindRequestReplyType::TEXT;
         $paymentMethod = (int) $bulkSupermindRequestDetails['payment_type'] ?? SupermindRequestPaymentMethod::OFFCHAIN_TOKEN;
-        $paymentAmount = (int) $bulkSupermindRequestDetails['payment_amount'] ?? 5;
+        $paymentAmount = (float) $bulkSupermindRequestDetails['payment_amount'] ?? 5;
 
         $validatorToken = $this->getBulkSupermindRequestValidatorToken(
             $receiverUser,
@@ -666,8 +668,8 @@ class Manager
             $paymentAmount
         );
 
-        if (!$this->checkAndStoreUserOfferClaim($receiverUser->getGuid(), $validatorToken)) {
-            return false; // user has already claimed the offer
+        if (!$this->checkAndStoreUserOfferClaim((string) $receiverUser->getGuid(), $validatorToken)) {
+            throw new Exception("Offer already claimed"); // user has already claimed the offer
         }
 
         $activity = $this->entitiesBuilder->single($activityGuid);
@@ -689,7 +691,7 @@ class Manager
         if ($paymentMethod == SupermindRequestPaymentMethod::CASH) {
             $paymentMethods = (new StripePaymentMethodsManager())->getList([ 'user_guid' => $activityOwner->getOwnerGuid() ]);
             if (count($paymentMethods) === 0) {
-                return false;
+                throw new InvalidPaymentMethodException("No valid payment methods were found for user {$activityOwner->getOwnerGuid()}");
             }
             $paymentMethodId = $paymentMethods[0]->getId();
         }

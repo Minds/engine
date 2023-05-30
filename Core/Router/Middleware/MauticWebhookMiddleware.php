@@ -29,8 +29,10 @@ class MauticWebhookMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        if (count($request->getHeader(self::MAUTIC_SHARED_SECRET_HEADER)) === 0 || $request->getHeader(self::MAUTIC_SHARED_SECRET_HEADER)[0] !== $this->config->get('email')['mautic']['shared_key']) {
+        if (count($request->getHeader(self::MAUTIC_SHARED_SECRET_HEADER)) === 0) {
             throw new ForbiddenException('Mautic shared secret header is missing');
+        } elseif ($request->getHeader(self::MAUTIC_SHARED_SECRET_HEADER)[0] !== $this->config->get('email')['mautic']['shared_key']) {
+            throw new ForbiddenException('Mautic shared secret header value mismatch');
         }
 
         return $handler->handle($request);
