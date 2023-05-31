@@ -71,6 +71,15 @@ class NewsfeedController
                     loadBefore: $loadBefore,
                 );
                 break;
+            case "groups":
+                $activities = $this->feedsManager->getLatestGroups(
+                    user: $loggedInUser,
+                    limit: $limit,
+                    hasMore: $hasMore,
+                    loadAfter: $loadAfter,
+                    loadBefore: $loadBefore,
+                );
+                break;
             case "top":
                 $activities = $this->feedsManager->getTopSubscribed(
                     user: $loggedInUser,
@@ -81,7 +90,7 @@ class NewsfeedController
                 );
                 break;
             case "for-you":
-                $activities = $this->feedsManager->getClustedRecs(
+                $activities = $this->feedsManager->getClusteredRecs(
                     user: $loggedInUser,
                     limit: $limit,
                     hasMore: $hasMore,

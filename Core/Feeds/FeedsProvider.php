@@ -3,6 +3,8 @@
 namespace Minds\Core\Feeds;
 
 use Minds\Core\Di\Provider;
+use Minds\Core\Feeds\ClusteredRecommendations\MySQLRepository;
+use Minds\Core\Groups\Membership;
 
 class FeedsProvider extends Provider
 {
@@ -73,7 +75,7 @@ class FeedsProvider extends Provider
         // V2
 
         $this->di->bind(Elastic\V2\Manager::class, function ($di) {
-            return new Elastic\V2\Manager($di->get('Database\ElasticSearch'), $di->get('Feeds\ClusteredRecommendations\Manager'), $di->get('EntitiesBuilder'));
+            return new Elastic\V2\Manager($di->get('Database\ElasticSearch'), new MySQLRepository(), $di->get('Feeds\Seen\Manager'), $di->get('EntitiesBuilder'), $di->get(Membership::class));
         });
     }
 }

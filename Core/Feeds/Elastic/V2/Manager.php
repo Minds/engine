@@ -7,6 +7,8 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
 use Minds\Core\Search\SortingAlgorithms\TopV2;
 use Minds\Core\Feeds\ClusteredRecommendations;
+use Minds\Core\Feeds\Seen\Manager as SeenManager;
+use Minds\Core\Groups\Membership;
 use Minds\Entities\Activity;
 use Minds\Exceptions\ServerErrorException;
 
@@ -14,8 +16,10 @@ class Manager
 {
     public function __construct(
         protected ElasticSearch\Client $esClient,
-        protected ClusteredRecommendations\Manager $clusteredRecsManager,
+        protected ClusteredRecommendations\MySQLRepository $clusteredRecsRepository,
+        protected SeenManager $seenManager,
         protected EntitiesBuilder $entitiesBuilder,
+        protected Membership $groupsMembership,
     ) {
     }
 
@@ -30,21 +34,6 @@ class Manager
         string &$loadBefore = null,
         bool &$hasMore = null
     ): iterable {
-        $must = [];
-        $should = [];
-
-        $must[] = [
-            'range' => [
-                '@timestamp' => [
-                    'lte' => time() * 1000, // Never show posts that are in the future
-                ]
-            ]
-        ];
-
-        if ($loadAfter && $loadBefore) {
-            throw new ServerErrorException("Two cursors, loadAfter and loadBefore were provided. Only one can be provided.");
-        }
-
         // Posts from subscriptions
         $should[] = [
             'terms' => [
@@ -63,68 +52,49 @@ class Manager
             ],
         ];
 
-        $body = [
-            '_source' => false,
-            'query' => [
-                'bool' => [
-                    'must' => $must,
-                    'should' => $should,
-                ],
-            ],
-            'sort' => [
-                [
-                    'guid' => $loadBefore ? 'asc' : 'desc', // Top/newer posts are queried in ascending order
-                ]
-            ],
+        yield from $this->getLatest(
+            must: [],
+            should: $should,
+            limit: $limit,
+            loadAfter: $loadAfter,
+            loadBefore: $loadBefore,
+            hasMore: $hasMore,
+        );
+    }
+
+    /**
+     * Returns the latest group posts the user is a member of
+     * @return iterable<Activity>
+     */
+    public function getLatestGroups(
+        User $user,
+        int $limit = 12,
+        string &$loadAfter = null,
+        string &$loadBefore = null,
+        bool &$hasMore = null
+    ): iterable {
+        $must = [];
+
+        // Posts from groups user is member of
+        $must[] = [
+            'terms' => [
+                'container_guid' =>
+                    array_map(function ($guid) {
+                        return (string) $guid;
+                    }, $this->groupsMembership->getGroupGuidsByMember([
+                        'user_guid' => $user->getGuid(),
+                    ])),
+            ]
         ];
 
-        if ($loadAfter || $loadBefore) {
-            $body['search_after'] = $this->decodeSort($loadAfter ?: $loadBefore);
-        }
-
-        $query = [
-            'index' => 'minds-search-activity',
-            'body' => $body,
-            'size' => $limit + 1,
-        ];
-
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-
-        $response = $this->esClient->request($prepared);
-
-        // If paginating backwards (top/newer), reverse the array as we do an ascending sort
-        $hits = $loadBefore ? array_reverse($response['hits']['hits']) : $response['hits']['hits'];
-
-        // The 'load newer' will be first items sort key OR a new GUID if no posts are returned
-        $loadBefore = isset($hits[0]) ? $this->encodeSort($hits[0]['sort']) : $this->encodeSort([Guid::build()]);
-
-
-        // We return +1 $limit, so if we have more than our limit returned, we know there is another pagr
-        if (count($response['hits']['hits']) > $limit) {
-            $hasMore = true;
-        } else {
-            $hasMore = false;
-        }
-
-        $i = 0;
-        foreach ($hits as $hit) {
-            $entity = $this->entitiesBuilder->single($hit['_id']);
-    
-            if (!$entity instanceof Activity) {
-                continue;
-            }
-
-            // pass to reference before we yield to support with Cursor based pagination
-            $loadAfter = $this->encodeSort($hit['sort']);
-
-            yield $entity;
-
-            // Dont provide more than the limit (we request + 1 to do pagination)
-            if (++$i > $limit) {
-                break;
-            }
-        }
+        yield from $this->getLatest(
+            must: $must,
+            should: [],
+            limit: $limit,
+            loadAfter: $loadAfter,
+            loadBefore: $loadBefore,
+            hasMore: $hasMore,
+        );
     }
 
     /**
@@ -263,29 +233,160 @@ class Manager
     }
 
     /**
-     * Returns the latest subscribed posts
+     * Returns the clustered recs for a user
+     * NOTE: Will only support forward pagination at this time
      * @return iterable<Activity>
      */
-    public function getClustedRecs(
+    public function getClusteredRecs(
         User $user,
         int $limit = 12,
         string &$loadAfter = null,
         string &$loadBefore = null,
         bool &$hasMore = null
     ): iterable {
-        $result = $this->clusteredRecsManager->setUser($user)->getList(limit: $limit, unseen: true);
+        if ($loadAfter && $loadBefore) {
+            throw new ServerErrorException("Two cursors, loadAfter and loadBefore were provided. Only one can be provided.");
+        }
+
+        $offset = 0;
+        $refFirstSeenTimestamp = time();
+
+        if ($loadAfter || $loadBefore) {
+            $cursorData = $this->decodeSort($loadAfter ?: $loadBefore);
+            $offset = $cursorData[0];
+            $refFirstSeenTimestamp = $cursorData[1];
+        }
+
+        $this->clusteredRecsRepository
+            ->setUser($user);
+
+        $result = $this->clusteredRecsRepository
+            ->getList(
+                clusterId: 0,
+                limit: $limit + 1,
+                demote: true,
+                pseudoId: $this->seenManager->getIdentifier(),
+                tags: [],
+                offset: $offset,
+                refFirstSeenTimestamp: $refFirstSeenTimestamp,
+            );
         
-        foreach ($result as $scoredGuid) {
+        // Get all the results to aid with pagination
+        $allResults = iterator_to_array($result);
+
+        if (count($allResults) > $limit) {
+            $hasMore = true;
+        } else {
+            $hasMore = false;
+        }
+
+        $i = 0;
+        foreach ($allResults as $scoredGuid) {
             $entity = $this->entitiesBuilder->single($scoredGuid->getGuid());
     
             if (!$entity instanceof Activity) {
                 continue;
             }
 
+            $loadAfter = $this->encodeSort([
+                ++$offset,
+                $refFirstSeenTimestamp,
+                $scoredGuid->getScore()
+            ]);
+
             yield $entity;
+
+            // Dont provide more than the limit (we request + 1 to do pagination)
+            if (++$i > $limit) {
+                break;
+            }
         }
     }
 
+    protected function getLatest(
+        array $must,
+        array $should,
+        int $limit = 12,
+        string &$loadAfter = null,
+        string &$loadBefore = null,
+        bool &$hasMore = null
+    ): iterable {
+        $must[] = [
+            'range' => [
+                '@timestamp' => [
+                    'lte' => time() * 1000, // Never show posts that are in the future
+                ]
+            ]
+        ];
+
+        if ($loadAfter && $loadBefore) {
+            throw new ServerErrorException("Two cursors, loadAfter and loadBefore were provided. Only one can be provided.");
+        }
+
+        $body = [
+            '_source' => false,
+            'query' => [
+                'bool' => [
+                    'must' => $must,
+                    'should' => $should,
+                ],
+            ],
+            'sort' => [
+                [
+                    'guid' => $loadBefore ? 'asc' : 'desc', // Top/newer posts are queried in ascending order
+                ]
+            ],
+        ];
+
+        if ($loadAfter || $loadBefore) {
+            $body['search_after'] = $this->decodeSort($loadAfter ?: $loadBefore);
+        }
+
+        $query = [
+            'index' => 'minds-search-activity',
+            'body' => $body,
+            'size' => $limit + 1,
+        ];
+
+        $prepared = new ElasticSearch\Prepared\Search();
+        $prepared->query($query);
+
+        $response = $this->esClient->request($prepared);
+
+        // If paginating backwards (top/newer), reverse the array as we do an ascending sort
+        $hits = $loadBefore ? array_reverse($response['hits']['hits']) : $response['hits']['hits'];
+
+        // The 'load newer' will be first items sort key OR a new GUID if no posts are returned
+        $loadBefore = isset($hits[0]) ? $this->encodeSort($hits[0]['sort']) : $this->encodeSort([Guid::build()]);
+
+
+        // We return +1 $limit, so if we have more than our limit returned, we know there is another pagr
+        if (count($response['hits']['hits']) > $limit) {
+            $hasMore = true;
+        } else {
+            $hasMore = false;
+        }
+
+        $i = 0;
+        foreach ($hits as $hit) {
+            $entity = $this->entitiesBuilder->single($hit['_id']);
+    
+            if (!$entity instanceof Activity) {
+                continue;
+            }
+
+            // pass to reference before we yield to support with Cursor based pagination
+            $loadAfter = $this->encodeSort($hit['sort']);
+
+            yield $entity;
+
+            // Dont provide more than the limit (we request + 1 to do pagination)
+            if (++$i > $limit) {
+                break;
+            }
+        }
+    }
+    
     /**
      * Encodes the sort to base64
      */
