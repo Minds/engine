@@ -251,6 +251,10 @@ CREATE TABLE IF NOT EXISTS minds_votes
     PRIMARY KEY (user_guid, entity_guid, direction)
 ) ENGINE=InnoDB;
 
+ALTER TABLE minds_payments
+    ADD affiliate_type int DEFAULT NULL
+    AFTER affiliate_user_guid;
+
 CREATE TABLE IF NOT EXISTS minds_comments (
     guid bigint,
     entity_guid bigint,
