@@ -144,7 +144,6 @@ class BoostCreateRequestValidator implements ValidatorInterface
         $this->checkDailyBid($dataToValidate);
         $this->checkDurationDays($dataToValidate);
         $this->checkGoals($dataToValidate);
-        $this->checkTargetPlatform($dataToValidate);
 
         return $this->errors->count() === 0;
     }
@@ -368,78 +367,6 @@ class BoostCreateRequestValidator implements ValidatorInterface
                 }
             }
         }
-    }
-
-    /**
-     * Validate that the platform targets are set and
-     * at least one is selected
-     * (e.g. web/android/ios)
-     * @param array $dataToValidate
-     * @return void
-     */
-    private function checkTargetPlatform(array $dataToValidate): void
-    {
-        $valueRequiredMessage = 'A value must be provided for each target platform';
-
-        if ($this->targetPlatformFeatureEnabled()) {
-            $targetPlatformWeb = false;
-            $targetPlatformAndroid = false;
-            $targetPlatformIos = false;
-
-            // Each of the possible platforms should have a value
-            if (!isset($dataToValidate['target_platform_web'])) {
-                $this->errors->add(
-                    new ValidationError(
-                        'target_platform_web',
-                        $valueRequiredMessage
-                    )
-                );
-            } else {
-                $targetPlatformWeb = $dataToValidate['target_platform_web'];
-            }
-
-            if (!isset($dataToValidate['target_platform_android'])) {
-                $this->errors->add(
-                    new ValidationError(
-                        'target_platform_android',
-                        $valueRequiredMessage
-                    )
-                );
-            } else {
-                $targetPlatformAndroid = $dataToValidate['target_platform_android'];
-            }
-
-            if (!isset($dataToValidate['target_platform_ios'])) {
-                $this->errors->add(
-                    new ValidationError(
-                        'target_platform_ios',
-                        $valueRequiredMessage
-                    )
-                );
-            } else {
-                $targetPlatformIos = $dataToValidate['target_platform_ios'];
-            }
-
-            // At least one of the values must be true
-            if (!$targetPlatformWeb && !$targetPlatformAndroid && !$targetPlatformIos) {
-                $this->errors->add(
-                    new ValidationError(
-                        'target_platform',
-                        'At least one target platform must be selected'
-                    )
-                );
-            }
-        }
-    }
-
-    /**
-     * True if feature that allows users to set audience platform targets
-     * @return boolean - true if feature is enabled.
-     */
-    private function targetPlatformFeatureEnabled(): bool
-    {
-        return $this->experiments->setUser(Session::getLoggedinUser())
-            ->isOn('minds-4030-boost-platform-targeting');
     }
 
     /**
