@@ -144,6 +144,7 @@ class BoostCreateRequestValidator implements ValidatorInterface
         $this->checkDailyBid($dataToValidate);
         $this->checkDurationDays($dataToValidate);
         $this->checkGoals($dataToValidate);
+        $this->checkTargetPlatform($dataToValidate);
 
         return $this->errors->count() === 0;
     }
@@ -367,6 +368,37 @@ class BoostCreateRequestValidator implements ValidatorInterface
                 }
             }
         }
+    }
+
+    /**
+     * If platform targets are set,
+     * ensure at least one is true
+     * (e.g. web/android/ios)
+     * @param array $dataToValidate
+     * @return void
+     */
+    private function checkTargetPlatform(array $dataToValidate): void
+    {
+        if ($this->targetPlatformFeatureEnabled() && isset($dataToValidate['target_platform_web']) && isset($dataToValidate['target_platform_android']) && isset($dataToValidate['target_platform_ios'])) {
+            if (!$dataToValidate['target_platform_web'] && !$dataToValidate['target_platform_android'] && !$dataToValidate['target_platform_ios']) {
+                $this->errors->add(
+                    new ValidationError(
+                        'target_platform',
+                        'At least one target platform must be selected'
+                    )
+                );
+            }
+        }
+    }
+
+    /**
+     * True if feature that allows users to set audience platform targets
+     * @return boolean - true if feature is enabled.
+     */
+    private function targetPlatformFeatureEnabled(): bool
+    {
+        return $this->experiments->setUser(Session::getLoggedinUser())
+            ->isOn('minds-4030-boost-platform-targeting');
     }
 
     /**
