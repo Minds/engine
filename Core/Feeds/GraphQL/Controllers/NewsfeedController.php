@@ -15,7 +15,9 @@ use Minds\Core\Session;
 use Minds\Core\FeedNotices;
 use Minds\Core\FeedNotices\GraphQL\Types\FeedNoticeEdge;
 use Minds\Core\Feeds\GraphQL\Types\Edges\ActivityNode;
-use Minds\Core\Feeds\GraphQL\Types\PageInfo;
+use Minds\Core\Feeds\GraphQL\Types\Edges\FeedHighlightsConnection;
+use Minds\Core\Feeds\GraphQL\Types\Edges\FeedHighlightsEdge;
+use Minds\Core\Feeds\GraphQL\Types\Edges\FeedHiglightsEdge;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\Query;
 
@@ -121,6 +123,17 @@ class NewsfeedController
                     $edges[] = $priorityNotices[0];
                 }
             }
+
+            /**
+             * Show top highlights on the first page load
+             */
+            if ($i === 6 && $algorithm === 'latest' && !($after || $before)) {
+                $topHighlightsEdge = $this->buildFeedHighlights($loggedInUser, $cursor);
+                if ($topHighlightsEdge) {
+                    $edges[] = $topHighlightsEdge;
+                }
+            }
+
             if ($i === 6) { // Show in the 6th spot
                 $inlineNotice = $this->getInFeedNotices(
                     loggedInUser: $loggedInUser,
@@ -136,7 +149,7 @@ class NewsfeedController
                 $boosts = $this->boostManager->getBoostFeed(
                     limit: 1,
                     targetStatus: BoostStatus::APPROVED,
-                    //orderByRanking: true,
+                    orderByRanking: true,
                     targetAudience: $loggedInUser->getBoostRating(),
                     targetLocation: BoostTargetLocation::NEWSFEED,
                     castToFeedSyncEntities: false,
@@ -194,5 +207,44 @@ class NewsfeedController
         }
 
         return $edges;
+    }
+
+    /**
+     * Will attempt to build feed highlights, if there any available
+     * @return FeedHighlightsEdge|null
+     */
+    protected function buildFeedHighlights(User $loggedInUser, string $cursor): ?FeedHighlightsEdge
+    {
+        $activities = $this->feedsManager->getTopSubscribed(
+            user: $loggedInUser,
+            limit: 3,
+            hasMore: $hasMore,
+            loadAfter: $loadAfter,
+            loadBefore: $loadBefore,
+        );
+
+        $edges = [];
+
+        foreach ($activities as $activity) {
+            $cursor = $loadAfter;
+            $edges[] = new ActivityEdge($activity, $cursor);
+        }
+
+        if (empty($edges)) {
+            return null; // Do not return FeedHighlightsEdge if its empty
+        }
+
+        $pageInfo = new Types\PageInfo(
+            hasPreviousPage: false,
+            hasNextPage: $hasMore,
+            startCursor: $loadBefore,
+            endCursor: $loadAfter,
+        );
+
+        $connection = new FeedHighlightsConnection();
+        $connection->setEdges($edges);
+        $connection->setPageInfo($pageInfo);
+
+        return new FeedHighlightsEdge($connection, $cursor);
     }
 }

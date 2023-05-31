@@ -13,6 +13,8 @@ class GraphQLMappings extends AbstractGraphQLMappings
             Types\Edges\ActivityEdge::class,
             Types\Edges\ActivityNode::class,
             Types\Edges\UserNode::class,
+            Types\Edges\FeedHighlightsEdge::class,
+            Types\Edges\FeedHighlightsConnection::class,
         ]));
     }
 }

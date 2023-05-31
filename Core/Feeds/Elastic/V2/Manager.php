@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Feeds\Elastic\V2;
 
+use Minds\Common\Access;
 use Minds\Entities\User;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\EntitiesBuilder;
@@ -34,6 +35,17 @@ class Manager
         string &$loadBefore = null,
         bool &$hasMore = null
     ): iterable {
+        $must = [];
+        
+        // Only public posts
+        $must[] = [
+            'terms' => [
+                'access_id' => [Access::PUBLIC],
+            ],
+        ];
+
+        $should = [];
+
         // Posts from subscriptions
         $should[] = [
             'terms' => [
@@ -53,7 +65,7 @@ class Manager
         ];
 
         yield from $this->getLatest(
-            must: [],
+            must: $must,
             should: $should,
             limit: $limit,
             loadAfter: $loadAfter,
@@ -111,6 +123,14 @@ class Manager
         $must = [];
         $should = [];
 
+        // Only public posts
+        $must[] = [
+            'terms' => [
+                'access_id' => [Access::PUBLIC],
+            ],
+        ];
+
+        // Min 1 vote
         $must[] = [
             'range' => [
                 'votes:up' => [
@@ -226,7 +246,7 @@ class Manager
             yield $entity;
 
             // Dont provide more than the limit (we request + 1 to do pagination)
-            if (++$i > $limit) {
+            if (++$i >= $limit) {
                 break;
             }
         }
@@ -303,6 +323,10 @@ class Manager
         }
     }
 
+    /**
+     * Reusable query to return 'latest' activity posts
+     * @return iterable<Activity>
+     */
     protected function getLatest(
         array $must,
         array $should,
