@@ -7,5 +7,4 @@ use TheCodingMachine\GraphQLite\Annotations\Type;
 #[Type]
 class NewsfeedConnection extends Connection
 {
-
 }

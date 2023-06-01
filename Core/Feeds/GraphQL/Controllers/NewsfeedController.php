@@ -289,7 +289,7 @@ class NewsfeedController
             if ($entity instanceof Suggestion) {
                 $edges[] = new BoostEdge($entity->getEntity()->boost, $cursor);
             }
-        } 
+        }
 
         // Inject a boosted channel into here too
 
