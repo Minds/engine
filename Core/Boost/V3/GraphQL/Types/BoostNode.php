@@ -23,7 +23,6 @@ class BoostNode implements NodeInterface
         protected Boost $boost,
         protected ?User $loggedInUser = null,
     ) {
-        $this->entity = $boost;  // Pass 'entity' through to abstract lower layer
         $this->loggedInUser ??= Session::getLoggedinUser();
     }
 
