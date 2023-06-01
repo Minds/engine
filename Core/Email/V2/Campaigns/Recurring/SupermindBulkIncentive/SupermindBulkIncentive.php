@@ -8,9 +8,9 @@ namespace Minds\Core\Email\V2\Campaigns\Recurring\SupermindBulkIncentive;
 use Exception;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
-use Minds\Core\Email\Manager;
 use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\Mailer;
+use Minds\Core\Email\Manager;
 use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
@@ -39,7 +39,7 @@ class SupermindBulkIncentive extends EmailCampaign
     /** @var int */
     private $paymentMethod = SupermindRequestPaymentMethod::OFFCHAIN_TOKEN;
 
-    /** @var int */
+    /** @var int|float */
     private $paymentAmount = 5;
 
     /** @var User */
@@ -120,7 +120,7 @@ class SupermindBulkIncentive extends EmailCampaign
     /**
      * @return SupermindBulkIncentive
      */
-    public function withPaymentAmount(int $paymentAmount): SupermindBulkIncentive
+    public function withPaymentAmount(float|int $paymentAmount): SupermindBulkIncentive
     {
         $instance = clone $this;
 
