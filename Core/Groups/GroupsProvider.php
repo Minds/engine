@@ -24,5 +24,9 @@ class GroupsProvider extends Provider
         $this->di->bind('Groups\Ownership', function ($di) {
             return new Ownership();
         }, [ 'useFactory'=> true ]);
+
+        $this->di->bind(Membership::class, function ($di) {
+            return new Membership();
+        });
     }
 }

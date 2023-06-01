@@ -7,6 +7,7 @@ use Iterator;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
+use Minds\Core\Payments\V2\Enums\PaymentAffiliateType;
 use Minds\Core\Payments\V2\Enums\PaymentMethod;
 use Minds\Core\Payments\V2\Enums\PaymentStatus;
 use Minds\Core\Payments\V2\Enums\PaymentType;
@@ -63,16 +64,19 @@ class Manager
     public function createPaymentFromBoost(Boost $boost): PaymentDetails
     {
         $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
+        $affiliateType = PaymentAffiliateType::REFERRAL_COOKIE;
         if (!$affiliateUserGuid || $affiliateUserGuid === (int) $this->user->getGuid()) {
             $affiliateUserGuid =
                 $this->user->referrer && (time() - $this->user->time_created) < 365 * 86400
                     ? (int) $this->user->referrer
                     : null;
+            $affiliateType = $affiliateUserGuid ? PaymentAffiliateType::SIGNUP : null;
         }
 
         $paymentDetails = new PaymentDetails([
             'userGuid' => (int) $boost->getOwnerGuid(),
             'affiliateUserGuid' => $affiliateUserGuid,
+            'affiliateType' => $affiliateType ?? null, // Only set if it's a valid type, otherwise 'null' is fine
             'paymentType' => PaymentType::BOOST_PAYMENT,
             'paymentMethod' => PaymentMethod::getValidatedPaymentMethod($boost->getPaymentMethod()),
             'paymentAmountMillis' => (int) ($boost->getPaymentAmount() * 1000), // In dollars, so multiply by 1000
@@ -107,14 +111,16 @@ class Manager
         if ($isPlus || $isPro) {
             if ($sourceActivity) {
                 $affiliateUserGuid = ((int) $sourceActivity->getOwnerGuid()) ?? null;
+                $affiliateType = $affiliateUserGuid ? PaymentAffiliateType::MINDS_PLUS_POST : null;
             } else {
                 $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
+                $affiliateType = PaymentAffiliateType::REFERRAL_COOKIE;
                 if (!$affiliateUserGuid || $affiliateUserGuid === (int) $wire->getSender()->getGuid()) {
-                    $affiliateUserGuid = (
+                    $affiliateUserGuid =
                         $wire->getSender()->referrer && (time() - $wire->getSender()->time_created) < 365 * 86400
                         ? (int) $wire->getSender()->referrer
-                        : null
-                    );
+                        : null;
+                    $affiliateType = $affiliateUserGuid ? PaymentAffiliateType::SIGNUP : null;
                 }
             }
 
@@ -129,6 +135,7 @@ class Manager
         $paymentDetails = new PaymentDetails([
             'userGuid' => (int) $wire->getSender()->getGuid(),
             'affiliateUserGuid' => $affiliateUserGuid,
+            'affiliateType' => $affiliateType ?? null, // Only set if it's a valid type, otherwise 'null' is fine
             'paymentType' => $paymentType,
             'paymentMethod' => PaymentMethod::getValidatedPaymentMethod(PaymentMethod::CASH),
             'paymentAmountMillis' => (int) ($wire->getAmount() * 10), // Already in cents, so multiply by 10
