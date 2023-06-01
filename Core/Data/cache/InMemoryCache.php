@@ -39,7 +39,7 @@ class InMemoryCache implements CacheInterface
      */
     public function clear()
     {
-        throw new NotImplementedException();
+        $this->kvCache = [];
     }
 
     /**
