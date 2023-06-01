@@ -718,7 +718,7 @@ class Manager
         string $activityGuid,
         int $replyType,
         int $paymentMethod,
-        int $paymentAmount
+        float $paymentAmount
     ): string {
         return (new SupermindBulkIncentive())
             ->setUser($receiverUser)
