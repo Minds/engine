@@ -49,7 +49,8 @@ class RelationalRepository
 
         try {
             $this->logger->info("Executing DELETE query.");
-            return $statement->execute();
+            $statement->execute();
+            return $statement->closeCursor();
         } catch (PDOException $e) {
             $this->logger->error("Query error details: ", $statement->errorInfo());
             return false;
@@ -132,7 +133,8 @@ class RelationalRepository
 
         try {
             $this->logger->info("Executing query.");
-            return $statement->execute();
+            $statement->execute();
+            return $statement->closeCursor();
         } catch (PDOException $e) {
             $this->logger->error("Query error details: ", $statement->errorInfo());
             return false;
