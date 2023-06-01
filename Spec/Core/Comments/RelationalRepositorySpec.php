@@ -88,6 +88,10 @@ class RelationalRepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
+        $statement->closeCursor()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
         $insertQuery->into('minds_comments')
             ->shouldBeCalledOnce()
             ->willReturn($insertQuery);
