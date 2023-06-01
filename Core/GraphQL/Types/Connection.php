@@ -7,8 +7,8 @@ use TheCodingMachine\GraphQLite\Annotations\Field;
 /**
  * Connection type, following the Cursor Connection Spec (https://relay.dev/graphql/connections.htm)
  */
-#[Type]
-class Connection
+#[Type(name: 'Connection')]
+abstract class Connection
 {
     /** @var EdgeInterface[] */
     protected array $edges = [];

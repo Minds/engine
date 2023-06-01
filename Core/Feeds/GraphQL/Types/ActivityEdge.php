@@ -1,8 +1,7 @@
 <?php
-namespace Minds\Core\Feeds\GraphQL\Types\Edges;
+namespace Minds\Core\Feeds\GraphQL\Types;
 
 use Minds\Core\GraphQL\Types\EdgeInterface;
-use Minds\Core\GraphQL\Types\NodeInterface;
 use Minds\Entities\Activity;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 use TheCodingMachine\GraphQLite\Annotations\Field;

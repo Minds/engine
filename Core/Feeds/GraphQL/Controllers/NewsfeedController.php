@@ -5,34 +5,37 @@ use GraphQL\Error\UserError;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\GraphQL\Types\BoostEdge;
-use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 use Minds\Core\GraphQL\Types;
-use Minds\Core\Feeds\GraphQL\Types\Edges\ActivityEdge;
+use Minds\Core\Feeds\GraphQL\Types\ActivityEdge;
 use Minds\Core\Boost\V3\Manager as BoostManager;
 use Minds\Core\Session;
 use Minds\Core\FeedNotices;
 use Minds\Core\FeedNotices\GraphQL\Types\FeedNoticeEdge;
-use Minds\Core\Feeds\GraphQL\Types\Edges\ActivityNode;
-use Minds\Core\Feeds\GraphQL\Types\Edges\FeedHighlightsConnection;
-use Minds\Core\Feeds\GraphQL\Types\Edges\FeedHighlightsEdge;
-use Minds\Core\Feeds\GraphQL\Types\Edges\FeedHiglightsEdge;
+use Minds\Core\Feeds\GraphQL\Types\ActivityNode;
+use Minds\Core\Feeds\GraphQL\Types\FeedHighlightsConnection;
+use Minds\Core\Feeds\GraphQL\Types\FeedHighlightsEdge;
+use Minds\Core\Feeds\GraphQL\Types\NewsfeedConnection;
+use Minds\Core\Feeds\GraphQL\Types\PublisherRecsConnection;
+use Minds\Core\Feeds\GraphQL\Types\PublisherRecsEdge;
+use Minds\Core\Feeds\GraphQL\Types\UserEdge;
+use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
+use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
+use Minds\Core\Suggestions\Suggestion;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\Query;
 
 class NewsfeedController
 {
     public function __construct(
-        protected ?FeedsManager $feedsManager = null,
-        protected ?EntitiesBuilder $entitiesBuilder = null,
-        protected ?FeedNotices\Manager $feedNoticesManager = null,
-        protected ?BoostManager $boostManager = null
+        protected FeedsManager $feedsManager,
+        protected EntitiesBuilder $entitiesBuilder,
+        protected FeedNotices\Manager $feedNoticesManager,
+        protected BoostManager $boostManager,
+        protected SuggestedChannelsRecommendationsAlgorithm $suggestedChannelsRecommendationsAlgorithm,
+        protected BoostSuggestionInjector $boostSuggestionInjector,
     ) {
-        $this->feedsManager ??= Di::_()->get(FeedsManager::class);
-        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
-        $this->feedNoticesManager ??= Di::_()->get(FeedNotices\Manager::class);
-        $this->boostManager ??= Di::_()->get(BoostManager::class);
     }
 
     #[Query]
@@ -42,7 +45,7 @@ class NewsfeedController
         ?string $after = null,
         ?int $last = null,
         ?string $before = null,
-    ): Types\Connection {
+    ): NewsfeedConnection {
         if ($first && $last) {
             throw new UserError("first and last supplied, can only paginate in one direction");
         }
@@ -145,6 +148,14 @@ class NewsfeedController
                     $edges[] = $inlineNotice[0];
                 }
             }
+
+            if ($i === 3 && !($after || $before)) {
+                $channelRecs = $this->buildChannelRecs($loggedInUser, $cursor);
+                if ($channelRecs) {
+                    $edges[] = $channelRecs;
+                }
+            }
+
             if ($i === 3) { // Show a boost in the 3rd slot
                 $boosts = $this->boostManager->getBoostFeed(
                     limit: 1,
@@ -155,9 +166,10 @@ class NewsfeedController
                     castToFeedSyncEntities: false,
                 );
                 if ($boosts && isset($boosts[0])) {
-                    $edges[] = new BoostEdge($boosts[0]);
+                    $edges[] = new BoostEdge($boosts[0], $cursor);
                 }
             }
+
             $edges[] = new ActivityEdge($activity, $cursor);
         }
 
@@ -168,7 +180,7 @@ class NewsfeedController
             endCursor: $loadAfter,
         );
 
-        $connection = new Types\Connection();
+        $connection = new NewsfeedConnection();
         $connection->setEdges($edges);
         $connection->setPageInfo($pageInfo);
 
@@ -246,5 +258,52 @@ class NewsfeedController
         $connection->setPageInfo($pageInfo);
 
         return new FeedHighlightsEdge($connection, $cursor);
+    }
+
+    /**
+     * Builds out channel recommendations, and includes a boost slot too
+     * @return PublisherRecsEdge
+     */
+    protected function buildChannelRecs(User $loggedInUser, string $cursor): PublisherRecsEdge
+    {
+        $result = $this->suggestedChannelsRecommendationsAlgorithm
+            ->setUser($loggedInUser)
+            ->getRecommendations([
+                'limit' => 3
+            ]);
+
+        // Inject a boosted channel
+        $result = $this->boostSuggestionInjector->inject(
+            response: $result,
+            targetUser: $loggedInUser,
+            index: 1
+        );
+
+        $edges = [ ];
+
+        foreach ($result as $i => $entity) {
+            $cursor = base64_encode($i);
+            if ($entity instanceof User) {
+                $edges[] = new UserEdge($entity, $cursor);
+            }
+            if ($entity instanceof Suggestion) {
+                $edges[] = new BoostEdge($entity->getEntity()->boost, $cursor);
+            }
+        } 
+
+        // Inject a boosted channel into here too
+
+        $pageInfo = new Types\PageInfo(
+            hasPreviousPage: false,
+            hasNextPage: false,
+            startCursor: null,
+            endCursor: null,
+        );
+
+        $connection = new PublisherRecsConnection();
+        $connection->setEdges($edges);
+        $connection->setPageInfo($pageInfo);
+
+        return new PublisherRecsEdge($connection, $cursor);
     }
 }

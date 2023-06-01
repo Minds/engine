@@ -1,5 +1,5 @@
 <?php
-namespace Minds\Core\Feeds\GraphQL\Types\Edges;
+namespace Minds\Core\Feeds\GraphQL\Types;
 
 use Minds\Core\Session;
 use Minds\Entities\User;

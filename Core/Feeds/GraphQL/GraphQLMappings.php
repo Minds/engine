@@ -10,11 +10,15 @@ class GraphQLMappings extends AbstractGraphQLMappings
     {
         $this->schemaFactory->addControllerNamespace('Minds\Core\Feeds\GraphQL\Controllers');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
-            Types\Edges\ActivityEdge::class,
-            Types\Edges\ActivityNode::class,
-            Types\Edges\UserNode::class,
-            Types\Edges\FeedHighlightsEdge::class,
-            Types\Edges\FeedHighlightsConnection::class,
+            Types\NewsfeedConnection::class,
+            Types\ActivityEdge::class,
+            Types\ActivityNode::class,
+            Types\UserEdge::class,
+            Types\UserNode::class,
+            Types\FeedHighlightsEdge::class,
+            Types\FeedHighlightsConnection::class,
+            Types\PublisherRecsEdge::class,
+            Types\PublisherRecsConnection::class,
         ]));
     }
 }

@@ -1,5 +1,5 @@
 <?php
-namespace Minds\Core\Feeds\GraphQL\Types\Edges;
+namespace Minds\Core\Feeds\GraphQL\Types;
 
 use Minds\Core\GraphQL\Types\NodeInterface;
 use Minds\Core\Session;
@@ -38,6 +38,16 @@ abstract class AbstractEntityNode implements NodeInterface
     public function getUrn(): string
     {
         return $this->entity->getUrn();
+    }
+
+    /**
+     * @return string
+     */
+    #[Field]
+    public function getLegacy(): string
+    {
+        // Oh no.. These should support ExportableInterface!
+        return json_encode(method_exists($this->entity, 'export') ? $this->entity->export() : [], JSON_UNESCAPED_SLASHES);
     }
 
     /**

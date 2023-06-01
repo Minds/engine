@@ -16,7 +16,7 @@ class BoostEdge implements EdgeInterface
 {
     protected Boost $boost;
 
-    public function __construct(Boost $boost)
+    public function __construct(Boost $boost, protected string $cursor)
     {
         $this->boost = $boost;
     }
@@ -42,6 +42,6 @@ class BoostEdge implements EdgeInterface
     #[Field]
     public function getCursor(): string
     {
-        return '';
+        return $this->cursor;
     }
 }

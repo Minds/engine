@@ -3,7 +3,7 @@ namespace Minds\Core\Boost\V3\GraphQL\Types;
 
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\Models\BoostEntityWrapper;
-use Minds\Core\Feeds\GraphQL\Types\Edges\ActivityNode;
+use Minds\Core\Feeds\GraphQL\Types\ActivityNode;
 use Minds\Core\GraphQL\Types\NodeInterface;
 use Minds\Core\Session;
 use Minds\Entities\User;

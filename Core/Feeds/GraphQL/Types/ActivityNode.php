@@ -1,5 +1,5 @@
 <?php
-namespace Minds\Core\Feeds\GraphQL\Types\Edges;
+namespace Minds\Core\Feeds\GraphQL\Types;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
@@ -23,15 +23,6 @@ class ActivityNode extends AbstractEntityNode
         $this->entity = $activity;  // Pass 'entity' through to abstract lower layer
         $this->loggedInUser ??= Session::getLoggedinUser();
         $this->votesManager ??= Di::_()->get('Votes\Manager');
-    }
-
-    /**
-     * @return string
-     */
-    #[Field]
-    public function getLegacy(): string
-    {
-        return json_encode($this->activity->export(), JSON_UNESCAPED_SLASHES);
     }
 
     #[Field]
