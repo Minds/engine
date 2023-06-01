@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Minds\Core\Supermind;
 
+use Exception;
 use Minds\Api\Exportable;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
+use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Exceptions\SupermindRequestExpiredException;
@@ -22,9 +24,11 @@ use Zend\Diactoros\Response\JsonResponse;
 class Controller
 {
     public function __construct(
-        private ?Manager $manager = null
+        private ?Manager $manager = null,
+        private ?Logger $logger = null
     ) {
         $this->manager ??= Di::_()->get("Supermind\Manager");
+        $this->logger ??= Di::_()->get("Logger");
     }
 
     /**
@@ -339,10 +343,18 @@ class Controller
 //    )]
     public function createBulkSupermindRequest(ServerRequestInterface $request): JsonResponse
     {
-        error_log("Bulk supermind offer request headers: " . json_encode($request->getHeaders()));
-        error_log("Bulk supermind offer request body from object: " . json_encode($request->getBody()->getContents()));
-        error_log("Bulk supermind offer request body from object: " . json_encode($_POST));
-        $this->manager->createBulkSupermindRequest($request->getParsedBody());
+        try {
+            $this->manager->createBulkSupermindRequest($request->getParsedBody());
+        } catch (Exception $e) {
+            // Catch any exception thrown and continue to the next action
+            $this->logger->error($e->getMessage(), [
+                'code' => $e->getCode(),
+                'trace' => $e->getTrace(),
+                'trace_string' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+        }
         return new JsonResponse([]);
     }
 }
