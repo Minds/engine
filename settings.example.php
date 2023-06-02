@@ -661,6 +661,13 @@ $CONFIG->set('aws', [
     ],
 ]);
 
+$CONFIG->set('oci', [
+    'oss_s3_client' => [
+        'key' => '',
+        'secret' => ''
+    ]
+]);
+
 $CONFIG->set('transcode', [
     //'free_threshold' => 900, // 15 minutes
     'free_threshold' => 2,
@@ -671,6 +678,8 @@ $CONFIG->set('transcode', [
 $CONFIG->set('transcoder', [
     'threads' => 4,
     'dir' => 'cinemr_dev',
+    'primary_bucket' => 'aws',
+    'use_oracle_oss' => false,
     'presets' => [
         [
             'width' => 640,
