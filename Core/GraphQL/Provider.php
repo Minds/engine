@@ -29,6 +29,7 @@ class Provider extends DiProvider
         }, [ 'useFactory' => true ]);
 
         $this->di->bind(Schema::class, function (Di $di): Schema {
+            /** @var SchemaFactory */
             $factory = $di->get(SchemaFactory::class);
 
             /**
@@ -38,7 +39,9 @@ class Provider extends DiProvider
                     ->addTypeNamespace('Minds\\Core\\GraphQL\\Types');
 
             // Prod mode?
-            // $factory->setProdMode();
+            if (!$di->get('Config')->minds_debug) {
+                $factory->prodMode();
+            }
 
             return $factory->createSchema();
         }, [ 'useFactory' => true ]);
