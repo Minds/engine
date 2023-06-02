@@ -22,10 +22,9 @@ class S3Storage implements TranscodeStorageInterface
         $this->config = $config ?? Di::_()->get('Config');
         $this->dir = $this->config->get('transcoder')['dir'] ?? '';
         
+        // AWS client
         $awsConfig = $this->config->get('aws');
-        $opts = [
-            'region' => $awsConfig['region'] ?? 'us-east-1',
-        ];
+        $opts = ['region' => $awsConfig['region'] ?? 'us-east-1'];
 
         if (!isset($awsConfig['useRoles']) || !$awsConfig['useRoles']) {
             $opts['credentials'] = [
@@ -34,7 +33,22 @@ class S3Storage implements TranscodeStorageInterface
             ];
         }
 
-        $this->s3 = $s3 ?: new S3Client(array_merge(['version' => '2006-03-01'], $opts));
+        // OSS client (S3 compat)
+        $ociConfig = $this->config->get('oci')['oss_s3_client'];
+        $ociOpts = [
+            'region' => $awsConfig['region'] ?? 'us-east-1',
+            'credentials' => [
+                'key' => $ociConfig['key'] ?? null,
+                'secret' => $ociConfig['secret'] ?? null,
+            ],
+        ];
+
+        // Set primary and secondary clients
+        $primaryOpts = $this->config->get('transcoder')['use_oracle_oss'] ? $ociOpts : $opts;
+        $secondaryOpts = $this->config->get('transcoder')['use_oracle_oss'] ? $opts : $ociOpts;
+
+        $this->s3 = $s3 ?: new S3Client(array_merge(['version' => '2006-03-01'], $primaryOpts));
+        $this->secondaryS3 = $s3 ?: new S3Client(array_merge(['version' => '2006-03-01'], $secondaryOpts));
     }
 
     /**
@@ -78,12 +92,25 @@ class S3Storage implements TranscodeStorageInterface
         // Create a temporary file where our source file will go
         $sourcePath = tempnam(sys_get_temp_dir(), "{$transcode->getGuid()}-{$transcode->getProfile()->getStorageName()}");
 
-        // Grab from S3
-        $this->s3->getObject([
-            'Bucket' => 'cinemr',
-            'Key' => "$this->dir/{$transcode->getGuid()}/{$transcode->getProfile()->getStorageName()}",
-            'SaveAs' => $sourcePath,
-        ]);
+        try {
+            // Attempt to grap from Primary S3
+            $this->s3->getObject([
+                'Bucket' => 'cinemr',
+                'Key' => "$this->dir/{$transcode->getGuid()}/{$transcode->getProfile()->getStorageName()}",
+                'SaveAs' => $sourcePath,
+            ]);
+        } catch (Aws\S3\Exception\S3Exception $e) {
+            if ($e->getAwsErrorCode() == 'NoSuchKey') {
+                // If does not exist, check Secondary S3
+                $this->secondaryS3->getObject([
+                    'Bucket' => 'cinemr',
+                    'Key' => "$this->dir/{$transcode->getGuid()}/{$transcode->getProfile()->getStorageName()}",
+                    'SaveAs' => $sourcePath,
+                ]);
+            } else {
+                throw $e;
+            }
+        }
 
         return $sourcePath;
     }
