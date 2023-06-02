@@ -353,6 +353,7 @@ class Manager
                 'bool' => [
                     'must' => $must,
                     'should' => $should,
+                    'minimum_should_match' => count($should) > 0 ? 1 : 0,
                 ],
             ],
             'sort' => [
