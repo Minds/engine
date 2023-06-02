@@ -357,7 +357,8 @@ class Manager
             ],
             'sort' => [
                 [
-                    'guid' => $loadBefore ? 'asc' : 'desc', // Top/newer posts are queried in ascending order
+                    '@timestamp' => $loadBefore ? 'asc' : 'desc', // Top/newer posts are queried in ascending order
+                    'guid' => $loadBefore ? 'asc' : 'desc', // Tie breaker
                 ]
             ],
         ];
@@ -381,7 +382,7 @@ class Manager
         $hits = $loadBefore ? array_reverse($response['hits']['hits']) : $response['hits']['hits'];
 
         // The 'load newer' will be first items sort key OR a new GUID if no posts are returned
-        $loadBefore = isset($hits[0]) ? $this->encodeSort($hits[0]['sort']) : $this->encodeSort([Guid::build()]);
+        $loadBefore = isset($hits[0]) ? $this->encodeSort($hits[0]['sort']) : $this->encodeSort([time() * 1000, Guid::build()]);
 
 
         // We return +1 $limit, so if we have more than our limit returned, we know there is another pagr
