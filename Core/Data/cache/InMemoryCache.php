@@ -35,11 +35,11 @@ class InMemoryCache implements CacheInterface
 
     /**
      * @inheritDoc
-     * @throws NotImplementedException
      */
     public function clear()
     {
         $this->kvCache = [];
+        return true;
     }
 
     /**
