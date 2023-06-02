@@ -10,6 +10,7 @@ use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 use Minds\Core\GraphQL\Types;
 use Minds\Core\Feeds\GraphQL\Types\ActivityEdge;
 use Minds\Core\Boost\V3\Manager as BoostManager;
+use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Session;
 use Minds\Core\FeedNotices;
 use Minds\Core\FeedNotices\GraphQL\Types\FeedNoticeEdge;
@@ -286,7 +287,7 @@ class NewsfeedController
             if ($entity instanceof User) {
                 $edges[] = new UserEdge($entity, $cursor);
             }
-            if ($entity instanceof Suggestion) {
+            if ($entity instanceof Suggestion && $entity->getEntity()->boost instanceof Boost) {
                 $edges[] = new BoostEdge($entity->getEntity()->boost, $cursor);
             }
         }
