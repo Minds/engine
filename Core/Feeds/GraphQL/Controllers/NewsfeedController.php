@@ -23,6 +23,7 @@ use Minds\Core\Feeds\GraphQL\Types\PublisherRecsEdge;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Suggestions\Suggestion;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\Query;
@@ -39,6 +40,9 @@ class NewsfeedController
     ) {
     }
 
+    /**
+     * @param string[]|null $inFeedNoticesDelivered
+     */
     #[Query]
     public function getNewsfeed(
         string $algorithm,
@@ -46,6 +50,7 @@ class NewsfeedController
         ?string $after = null,
         ?int $last = null,
         ?string $before = null,
+        ?array $inFeedNoticesDelivered = [],
     ): NewsfeedConnection {
         if ($first && $last) {
             throw new UserError("first and last supplied, can only paginate in one direction");
@@ -64,6 +69,10 @@ class NewsfeedController
         $limit = min($first ?: $last, 12); // MAX 12
 
         $loggedInUser =  Session::getLoggedInUser();
+
+        if (!$loggedInUser) {
+            throw new UserError("You must be logged in", 403);
+        }
 
         $edges = [];
 
@@ -117,14 +126,16 @@ class NewsfeedController
             }
 
             if ($i === 0) { // Priority notice is always at the top
-                $priorityNotices = $this->getInFeedNotices(
+                $priorityNotices = $this->buildInFeedNotices(
                     loggedInUser: $loggedInUser,
                     location: ($after ||$before) ? 'inline' : 'top',
                     limit: 1,
-                    cursor: $cursor
+                    cursor: $cursor,
+                    inFeedNoticesDelivered: $inFeedNoticesDelivered
                 );
                 if ($priorityNotices && isset($priorityNotices[0])) {
                     $edges[] = $priorityNotices[0];
+                    $inFeedNoticesDelivered[] = $priorityNotices[0]->getNode()->getKey();
                 }
             }
 
@@ -139,11 +150,12 @@ class NewsfeedController
             }
 
             if ($i === 6) { // Show in the 6th spot
-                $inlineNotice = $this->getInFeedNotices(
+                $inlineNotice = $this->buildInFeedNotices(
                     loggedInUser: $loggedInUser,
                     location: 'inline',
                     limit: 1,
-                    cursor: $cursor
+                    cursor: $cursor,
+                    inFeedNoticesDelivered: $inFeedNoticesDelivered,
                 );
                 if ($inlineNotice && isset($inlineNotice[0])) {
                     $edges[] = $inlineNotice[0];
@@ -198,17 +210,26 @@ class NewsfeedController
 
     /**
      * Add in feed notices
-     * @return FeedNoticeEntry[]
+     * @return FeedNoticeEdge[]
      */
-    protected function getInFeedNotices(User $loggedInUser, string $cursor, string $location = 'inline', int $limit = 1): array
-    {
+    protected function buildInFeedNotices(
+        User $loggedInUser,
+        string $cursor,
+        array $inFeedNoticesDelivered,
+        string $location = 'inline',
+        int $limit = 1
+    ): array {
         $edges = [];
 
         $feedNotices = $this->feedNoticesManager->getNotices($loggedInUser);
         $i = 0;
         foreach ($feedNotices as $feedNotice) {
             try {
-                if ($feedNotice->getLocation() !== $location || !$feedNotice->shouldShow($loggedInUser)) {
+                if (
+                    in_array($feedNotice->getKey(), $inFeedNoticesDelivered, true)
+                    || $feedNotice->getLocation() !== $location
+                    || !$feedNotice->shouldShow($loggedInUser)
+                ) {
                     continue;
                 }
             } catch (\Exception $e) {
