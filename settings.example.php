@@ -865,7 +865,7 @@ $CONFIG->set('jury', [
 $CONFIG->set('supermind', [
     'minimum_amount' => [
         'usd' => 1.00,
-        'offchain_token' => 1.00
+        'offchain_token' => 0.01
     ]
 ]);
 
