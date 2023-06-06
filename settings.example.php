@@ -3,6 +3,7 @@
 $CONFIG = Minds\Core\Di\Di::_()->get('Config');
 
 $CONFIG->minds_debug = true;
+$CONFIG->system_user = "";
 
 /*
  * Cassandra configuration

@@ -1,6 +1,8 @@
 <?php
 namespace Minds\Common;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Entities\User;
 
 class SystemUser extends User
@@ -8,13 +10,18 @@ class SystemUser extends User
     /** @var string */
     const GUID = '100000000000000519';
 
-    public function __construct()
-    {
+    public function __construct(
+        private ?Config $mindsConfig = null
+    ) {
         $this->initializeAttributes();
 
-        $this->guid = $this->getGUID();
+        $this->mindsConfig ??= Di::_()->get('Config');
+
+        $this->guid = $this->mindsConfig->get('system_user') ?: $this->getGUID();
         $this->name = $this->getName();
         $this->username = $this->getUsername();
+
+        parent::__construct();
     }
 
     /**
@@ -22,7 +29,7 @@ class SystemUser extends User
      */
     public function getGUID(): string
     {
-        return self::GUID;
+        return $this->guid ?: self::GUID;
     }
 
     /**
