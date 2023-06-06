@@ -10,6 +10,7 @@ use Minds\Entities\Group as GroupEntity;
 use Minds\Entities\Activity;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Core\Session;
+use Minds\Entities\EntityInterface;
 
 class Events
 {
@@ -30,7 +31,13 @@ class Events
         Dispatcher::register('acl:read', 'all', function ($e) {
             $params = $e->getParameters();
             $entity = $params['entity'];
-            $access_id = $entity->access_id;
+
+
+            if (!$entity instanceof EntityInterface) {
+                return;
+            }
+        
+            $access_id = $entity->getAccessId();
             $user = $params['user'];
 
             if (!method_exists($entity, 'getContainerEntity')) {
