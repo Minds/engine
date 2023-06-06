@@ -68,6 +68,37 @@ class Manager
                 'secret' => $awsConfig['secret'] ?? null,
             ];
         }
+
+        // Set primary client
+        $useOss = $this->config->get('transcoder')['use_oracle_oss'] ?? false;
+        if ($useOss) {
+            // OSS client (S3 compat)
+            $ociConfig = $this->config->get('oci')['oss_s3_client'] ?? null;
+            $opts = [
+                'region' => $ociConfig['region'] ?? 'us-east-1', // us-east-1 defaults to current OCI region
+                'endpoint' => $ociConfig['endpoint'] ?? null,
+                'use_path_style_endpoint' => true, // Required for OSS
+                'credentials' => [
+                    'key' => $ociConfig['key'] ?? null,
+                    'secret' => $ociConfig['secret'] ?? null,
+                ]
+            ];
+        } else {
+            // AWS
+            $awsConfig = $this->config->get('aws');
+            $opts = [
+                'region' => $awsConfig['region'] ?? 'us-east-1',
+            ];
+            if (!isset($awsConfig['useRoles']) || !$awsConfig['useRoles']) {
+                $opts['credentials'] = [
+                    'key' => $awsConfig['key'] ?? null,
+                    'secret' => $awsConfig['secret'] ?? null,
+                ];
+            }
+        }
+        
+        // $primaryOpts = $useOss ? $ociOpts : $opts;
+
         $this->s3 = $s3 ?: new S3Client(array_merge(['version' => '2006-03-01'], $opts));
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->transcoderManager = $transcoderManager ?? Di::_()->get('Media\Video\Transcoder\Manager');

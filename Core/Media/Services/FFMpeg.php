@@ -76,6 +76,7 @@ class FFMpeg implements ServiceInterface
         $ociOpts = [
             'region' => $ociConfig['region'] ?? 'us-east-1', // us-east-1 defaults to current OCI region
             'endpoint' => $ociConfig['endpoint'],
+            'use_path_style_endpoint' => true, // Required for OSS
             'credentials' => [
                 'key' => $ociConfig['key'] ?? null,
                 'secret' => $ociConfig['secret'] ?? null,
