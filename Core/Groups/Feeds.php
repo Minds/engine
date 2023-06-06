@@ -73,11 +73,11 @@ class Feeds
     }
 
     /**
+     * Returns posts that need to be moderation
      * @param array $options
-     * @return array - data | next
      * @throws \Exception
      */
-    public function getAll(array $options = [])
+    public function getAll(array $options, &$loadNext = null): array
     {
         if (!$this->group) {
             throw new \Exception('Group not set');
@@ -86,31 +86,9 @@ class Feeds
         /** @var AdminQueue $adminQueue */
         $adminQueue = Di::_()->get('Groups\AdminQueue');
 
-        $rows = $adminQueue->getAll($this->group, $options);
+        $entities = iterator_to_array($adminQueue->getAll($this->group, $options, $loadNext));
 
-        if (!$rows) {
-            return [
-                'data' => [],
-                'next' => ''
-            ];
-        }
-
-        $guids = [];
-
-        foreach ($rows as $row) {
-            $guids[] = $row['value'];
-        }
-
-        $data = [];
-
-        if ($guids) {
-            $data = Di::_()->get('Entities')->get([ 'guids' => $guids ]);
-        }
-
-        return [
-            'data' => $data,
-            'next' => base64_encode($rows->pagingStateToken())
-        ];
+        return $entities;
     }
 
     public function count()
@@ -296,11 +274,8 @@ class Feeds
 
         /** @var AdminQueue $adminQueue */
         $adminQueue = Di::_()->get('Groups\AdminQueue');
-        $rows = $adminQueue->getAll($this->group);
 
-        foreach ($rows as $row) {
-            $activity = Di::_()->get('Entities\Factory')->build($row['value']);
-
+        foreach ($adminQueue->getAll($this->group, []) as $activity) {
             $results[$activity->guid] =
                 $this->approve($activity, [ 'notification' => false ]);
         }
