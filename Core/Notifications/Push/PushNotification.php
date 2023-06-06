@@ -376,6 +376,8 @@ class PushNotification implements PushNotificationInterface
             case NotificationTypes::TYPE_BOOST_ACCEPTED:
             case NotificationTypes::TYPE_BOOST_REJECTED:
             case NotificationTypes::TYPE_BOOST_COMPLETED:
+            case NotificationTypes::TYPE_AFFILIATE_EARNINGS_DEPOSITED:
+            case NotificationTypes::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
                 return true;
         }
         return false;
