@@ -217,12 +217,19 @@ class PushNotification implements PushNotificationInterface
      */
     public function getUri(): string
     {
+        if (!str_contains('minds.io', $this->config->get('site_url')) && !str_contains('minds.com', $this->config->get('site_url'))) {
+            return "";
+        }
+
         switch ($this->notification->getType()) {
             case NotificationTypes::TYPE_SUBSCRIBE:
                 return $this->config->get('site_url') . 'notifications';
             case NotificationTypes::TYPE_BOOST_ACCEPTED:
             case NotificationTypes::TYPE_BOOST_COMPLETED:
                 return $this->getBoostConsoleUrl();
+            case NotificationTypes::TYPE_AFFILIATE_EARNINGS_DEPOSITED:
+            case NotificationTypes::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
+                return $this->config->get('site_url') . 'wallet/cash/earnings';
         }
 
         $entity = $this->notification->getEntity();
@@ -254,6 +261,10 @@ class PushNotification implements PushNotificationInterface
      */
     public function getIcon(): string
     {
+        if (!str_contains('minds.io', $this->config->get('site_url')) && !str_contains('minds.com', $this->config->get('site_url'))) {
+            return "";
+        }
+        
         return $this->notification->getFrom()->getIconURL('large');
     }
 
