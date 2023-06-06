@@ -382,7 +382,7 @@ class Controller
                 $mutatedActivity->setTimeCreated($payload['time_created']);
             } catch (AlreadyPublishedException $e) {
                 // soft fail.
-                $this->logger->warn($e->getMessage());
+                $this->logger->warning($e->getMessage());
             }
         }
 

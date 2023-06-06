@@ -46,7 +46,7 @@ class BypassManager
 
         $inputted = $decoded['data'];
 
-        $this->logger->warn('[Captcha]: Bypass cookie was used');
+        $this->logger->warning('[Captcha]: Bypass cookie was used');
 
         return $inputted == $captchaText;
     }

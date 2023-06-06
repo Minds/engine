@@ -41,7 +41,7 @@ class Manager
 
         $inputted = $decoded['data'];
 
-        $this->logger->warn('[2FA]: Bypass cookie was used');
+        $this->logger->warning('[2FA]: Bypass cookie was used');
 
         return $inputted == $code;
     }

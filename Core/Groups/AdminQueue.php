@@ -81,7 +81,7 @@ class AdminQueue
         $i = 0;
         foreach ($this->scroll->request($query, $pagingToken) as $row) {
             $guid = $row['value'];
-            $loadNext = base64_encode($pagingToken);
+            $loadNext = base64_encode((string) $pagingToken);
 
             // Build the entity
             $entity = $this->entitiesBuilder->single($guid);

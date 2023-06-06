@@ -81,7 +81,7 @@ class Translator
             $file = dirname(dirname(dirname(__FILE__))) . "/translations/messages.{$language}.xliff";
 
             if (!file_exists($file)) {
-                $this->logger->warn("Localization resource not found ({$file})");
+                $this->logger->warning("Localization resource not found ({$file})");
                 continue;
             }
 
