@@ -70,7 +70,9 @@ class BoostSuggestionInjector
             targetLocation: BoostTargetLocation::SIDEBAR
         )->first();
 
-        if (!$boost) return null;
+        if (!$boost) {
+            return null;
+        }
 
         return (new Suggestion())
             ->setConfidenceScore(1)
