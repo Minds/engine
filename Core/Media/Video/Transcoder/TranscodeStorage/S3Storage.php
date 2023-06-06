@@ -35,10 +35,13 @@ class S3Storage implements TranscodeStorageInterface
 
         // OSS client (S3 compat)
         $ociConfig = $this->config->get('oci')['oss_s3_client'];
-        $ociOpts = ['region' => $awsConfig['region'] ?? 'us-east-1'];
-        $ociOpts['credentials'] = [
-            'key' => $ociConfig['key'] ?? null,
-            'secret' => $ociConfig['secret'] ?? null,
+        $ociOpts = [
+            'region' => $ociConfig['region'] ?? 'us-east-1', // us-east-1 defaults to current OCI region
+            'endpoint' => $ociConfig['endpoint'],
+            'credentials' => [
+                'key' => $ociConfig['key'] ?? null,
+                'secret' => $ociConfig['secret'] ?? null,
+            ]
         ];
 
         // Set primary and secondary clients

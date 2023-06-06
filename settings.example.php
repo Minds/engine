@@ -663,6 +663,7 @@ $CONFIG->set('aws', [
 
 $CONFIG->set('oci', [
     'oss_s3_client' => [
+        'endpoint' => '',
         'key' => '',
         'secret' => ''
     ]
