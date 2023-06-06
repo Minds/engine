@@ -63,6 +63,12 @@ class ManagerSpec extends ObjectBehavior
         Boost $boost,
         User $user
     ): void {
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
         $this->referralCookieMock->getAffiliateGuid()
             ->shouldBeCalledOnce()
             ->willReturn(456);
@@ -102,6 +108,12 @@ class ManagerSpec extends ObjectBehavior
         Boost $boost,
         User $user
     ): void {
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
         $this->referralCookieMock->getAffiliateGuid()
             ->shouldBeCalledOnce()
             ->willReturn(456);
@@ -155,14 +167,11 @@ class ManagerSpec extends ObjectBehavior
         $user
             ->get('time_created')
             ->willReturn(time());
-        $user->getGuid()
-            ->shouldBeCalledOnce()
-            ->willReturn('123');
 
         $this->setUser($user);
 
         $boost->getOwnerGuid()
-            ->shouldBeCalledTimes(2)
+            ->shouldBeCalledOnce()
             ->willReturn('123');
 
         $boost->getPaymentMethod()
@@ -206,14 +215,11 @@ class ManagerSpec extends ObjectBehavior
         $user
             ->get('time_created')
             ->willReturn(time());
-        $user->getGuid()
-            ->shouldBeCalledOnce()
-            ->willReturn('123');
 
         $this->setUser($user);
 
         $boost->getOwnerGuid()
-            ->shouldBeCalledTimes(2)
+            ->shouldBeCalledOnce()
             ->willReturn('123');
 
         $boost->getPaymentMethod()
@@ -244,7 +250,7 @@ class ManagerSpec extends ObjectBehavior
         User $user
     ): void {
         $user->getGuid()
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(2)
             ->willReturn('123');
 
         $this->referralCookieMock->getAffiliateGuid()
@@ -256,7 +262,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($this->referralCookieMock);
 
         $wire->getSender()
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(2)
             ->willReturn($user);
 
         $wire->getAmount()
@@ -288,7 +294,7 @@ class ManagerSpec extends ObjectBehavior
         User $user
     ): void {
         $user->getGuid()
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(2)
             ->willReturn('123');
 
         $this->referralCookieMock->getAffiliateGuid()
@@ -300,7 +306,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($this->referralCookieMock);
 
         $wire->getSender()
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(2)
             ->willReturn($user);
 
         $wire->getAmount()

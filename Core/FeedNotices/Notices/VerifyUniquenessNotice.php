@@ -52,10 +52,9 @@ class VerifyUniquenessNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return $this->experimentsManager->setUser($user)->isOn('minds-3131-onboarding-notices') &&
-            !$user->getPhoneNumberHash() &&
+        return !$user->getPhoneNumberHash() &&
             $this->isEligibleForRewards($user) &&
-            !$this->experimentsManager->isOn('epic-275-in-app-verification');
+            !$this->experimentsManager->setUser($user)->isOn('epic-275-in-app-verification');
     }
 
     /**

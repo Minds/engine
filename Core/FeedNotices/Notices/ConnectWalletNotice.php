@@ -4,7 +4,6 @@ namespace Minds\Core\FeedNotices\Notices;
 
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
 
 /**
@@ -19,11 +18,9 @@ class ConnectWalletNotice extends AbstractNotice
     private const KEY = 'connect-wallet';
 
     public function __construct(
-        private ?EligibilityManager $eligibilityManager = null,
-        private ?ExperimentsManager $experimentsManager = null
+        private ?EligibilityManager $eligibilityManager = null
     ) {
         $this->eligibilityManager ??= Di::_()->get('Rewards\Eligibility\Manager');
-        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -52,8 +49,7 @@ class ConnectWalletNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return $this->experimentsManager->setUser($user)->isOn('minds-3131-onboarding-notices') &&
-            !$user->getEthWallet() &&
+        return !$user->getEthWallet() &&
             $this->isEligibleForRewards($user);
     }
 

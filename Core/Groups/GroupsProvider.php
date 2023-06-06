@@ -14,7 +14,12 @@ class GroupsProvider extends Provider
     public function register()
     {
         $this->di->bind('Groups\AdminQueue', function ($di) {
-            return new AdminQueue();
+            return new AdminQueue(
+                client: $di->get('Database\Cassandra\Cql'),
+                scroll: $di->get('Database\Cassandra\Cql\Scroll'),
+                entitiesBuilder: $di->get('EntitiesBuilder'),
+                acl: $di->get('Security\ACL'),
+            );
         }, [ 'useFactory'=> true ]);
 
         $this->di->bind('Groups\Feeds', function ($di) {
@@ -24,5 +29,9 @@ class GroupsProvider extends Provider
         $this->di->bind('Groups\Ownership', function ($di) {
             return new Ownership();
         }, [ 'useFactory'=> true ]);
+
+        $this->di->bind(Membership::class, function ($di) {
+            return new Membership();
+        });
     }
 }

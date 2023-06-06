@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Channels\Groups\Repository;
 
+use Minds\Core\Groups\Membership;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 
@@ -10,12 +11,12 @@ use Minds\Core\Di\Di;
  */
 class ElasticSearchQuery
 {
-    /** @var Config */
-    protected $config;
-
-    public function __construct(Config $config = null)
-    {
+    public function __construct(
+        protected ?Config $config = null,
+        protected ?Membership $groupsMembership = null,
+    ) {
         $this->config = $config ?? Di::_()->get('Config');
+        $this->groupsMembership ??= Di::_()->get(Membership::class);
     }
 
     /**
@@ -41,11 +42,11 @@ class ElasticSearchQuery
                             ],
                             [
                                 'terms' => [
-                                    'guid' => [
-                                        'index' => $indexPrefix . '-user',
-                                        'id' => $userGuid,
-                                        'path' => 'group_membership',
-                                    ],
+                                    'guid' => array_map(function ($guid) {
+                                        return (string) $guid;
+                                    }, $this->groupsMembership->getGroupGuidsByMember([
+                                        'user_guid' => $userGuid,
+                                    ]))
                                 ]
                             ]
                         ]

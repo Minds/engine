@@ -122,6 +122,7 @@ class Manager
             'hide_reminds' => $hide_reminds,
             'wire_support_tier_only' => false,
             'include_group_posts' => false,
+            'group_posts_for_user_guid' => false,
             'unseen' => false,
             'demoted' => false,
             'supermind' => false
@@ -186,7 +187,7 @@ class Manager
 
             $feedSyncEntities[] = (new FeedSyncEntity())
                 ->setGuid((string) $scoredGuid->getGuid())
-    
+
                  ->setOwnerGuid((string) $ownerGuid)
                 ->setUrn(new Urn($urn))
                 ->setTimestamp($scoredGuid->getTimestamp());

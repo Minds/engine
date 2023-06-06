@@ -43,7 +43,6 @@ class PaymentProcessor
         private ?AdminTransactionProcessor $onchainAdminTransactionProcessor = null,
         private ?PaymentsManager $paymentsManager = null
     ) {
-        $this->intentsManager ??= new IntentsManagerV2();
         $this->mindsConfig ??= Di::_()->get("Config");
         $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
         $this->offchainTransactions ??= new OffchainTransactions();
@@ -107,7 +106,7 @@ class PaymentProcessor
                 ->setStatementDescriptor('Boost')
                 ->setDescription($this->getCashPaymentStatementDescription($boost->getOwnerGuid()));
 
-            $intent = $this->intentsManager->add($paymentIntent);
+            $intent = $this->getIntentsManager()->add($paymentIntent);
 
             $boost->setPaymentTxId($intent->getId());
 
@@ -202,7 +201,7 @@ class PaymentProcessor
         if (!$boostOwner || !$boostOwner instanceof User) {
             $boostOwner = null;
         }
-        return $this->intentsManager->capturePaymentIntent($boost->getPaymentTxId(), $boostOwner);
+        return $this->getIntentsManager()->capturePaymentIntent($boost->getPaymentTxId(), $boostOwner);
     }
 
     /**
@@ -270,7 +269,7 @@ class PaymentProcessor
         if (!$boostOwner || !$boostOwner instanceof User) {
             $boostOwner = null;
         }
-        return $this->intentsManager->cancelPaymentIntent($boost->getPaymentTxId(), $boostOwner);
+        return $this->getIntentsManager()->cancelPaymentIntent($boost->getPaymentTxId(), $boostOwner);
     }
 
     /**
@@ -320,5 +319,16 @@ class PaymentProcessor
             boost: $boost,
             action: BoostAdminAction::REJECT,
         );
+    }
+
+    /**
+     * Improves performance as IntentsManager tries to decrypt active sessions email
+     */
+    private function getIntentsManager(): IntentsManagerV2
+    {
+        if (!$this->intentsManager) {
+            $this->intentsManager = new IntentsManagerV2();
+        }
+        return $this->intentsManager;
     }
 }

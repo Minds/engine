@@ -16,12 +16,10 @@ class Provider extends Di\Provider
                 $di->get('Config'),
                 $di->get('EntitiesBuilder'),
                 new Save(),
-                $di->get('Feeds\Activity\RichEmbed\Manager'),
                 new Delegates\ChannelLinksDelegate($di->get('EntitiesBuilder')),
                 $di->get('Logger'),
                 $di->get('Feeds\TwitterSync\ImageExtractor'),
-                $di->get('Metascraper\Service'),
-                $di->get('Experiments\Manager')
+                $di->get('Metascraper\Service')
             );
         });
         $this->di->bind('Feeds\TwitterSync\Repository', function ($di) {

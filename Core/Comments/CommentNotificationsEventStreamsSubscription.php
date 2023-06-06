@@ -2,6 +2,7 @@
 /**
  * This subscription will build notifications from stream events
  */
+
 namespace Minds\Core\Comments;
 
 use Minds\Core\Di\Di;
@@ -100,7 +101,7 @@ class CommentNotificationsEventStreamsSubscription implements SubscriptionInterf
             // Don't notify for event older than 1 hour, here
             return true;
         }
-    
+
         /** @var User */
         $user = $event->getUser();
 

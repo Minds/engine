@@ -69,8 +69,8 @@ class Repository
      */
     public function createBoost(Boost $boost): bool
     {
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, payment_method, payment_amount, payment_tx_id, payment_guid, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :payment_method, :payment_amount, :payment_tx_id, :payment_guid, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
+        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, payment_guid, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
+                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :payment_guid, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
 
         $createdTimestamp = $boost->getCreatedTimestamp() ?
             date("c", $boost->getCreatedTimestamp()) :
@@ -90,6 +90,9 @@ class Repository
             'entity_guid' => $boost->getEntityGuid(),
             'target_suitability' => $boost->getTargetSuitability(),
             'target_location' => $boost->getTargetLocation(),
+            'goal' => $boost->getGoal(),
+            'goal_button_text' => $boost->getGoalButtonText(),
+            'goal_button_url' => $boost->getGoalButtonUrl(),
             'payment_method' => $boost->getPaymentMethod(),
             'payment_amount' => $boost->getPaymentAmount(),
             'payment_tx_id' => $boost->getPaymentTxId(),
@@ -193,7 +196,7 @@ class Repository
         $hiddenEntitiesJoin = "";
 
         /**
-         * Hide entities if a user has aid they don't want to see them
+         * Hide entities if a user has said they don't want to see them
          */
         if (!$forApprovalQueue && $loggedInUser) {
             $hiddenEntitiesJoin = " LEFT JOIN entities_hidden
@@ -269,6 +272,9 @@ class Repository
                     entityGuid: (string) $boostData['entity_guid'],
                     targetLocation: (int) $boostData['target_location'],
                     targetSuitability: (int) $boostData['target_suitability'],
+                    goal: isset($boostData['goal']) ? (int) $boostData['goal'] : null,
+                    goalButtonText: isset($boostData['goal_button_text']) ? (int) $boostData['goal_button_text'] : null,
+                    goalButtonUrl: isset($boostData['goal_button_url']) ? (string) $boostData['goal_button_url'] : null,
                     paymentMethod: (int) $boostData['payment_method'],
                     paymentAmount: (float) $boostData['payment_amount'],
                     dailyBid: (int) $boostData['daily_bid'],
@@ -323,6 +329,9 @@ class Repository
                 entityGuid: $boostData['entity_guid'],
                 targetLocation: (int) $boostData['target_location'],
                 targetSuitability: (int) $boostData['target_suitability'],
+                goal: isset($boostData['goal']) ? (int) $boostData['goal'] : null,
+                goalButtonText: isset($boostData['goal_button_text']) ? (int) $boostData['goal_button_text'] : null,
+                goalButtonUrl: isset($boostData['goal_button_url']) ? (string) $boostData['goal_button_url'] : null,
                 paymentMethod: (int) $boostData['payment_method'],
                 paymentAmount: (float) $boostData['payment_amount'],
                 dailyBid: (float) $boostData['daily_bid'],
@@ -536,6 +545,9 @@ class Repository
                 entityGuid: $boostData['entity_guid'],
                 targetLocation: (int) $boostData['target_location'],
                 targetSuitability: (int) $boostData['target_suitability'],
+                goal: isset($boostData['goal']) ? (int) $boostData['goal'] : null,
+                goalButtonText: isset($boostData['goal_button_text']) ? (int) $boostData['goal_button_text'] : null,
+                goalButtonUrl: isset($boostData['goal_button_url']) ? (string) $boostData['goal_button_url'] : null,
                 paymentMethod: (int) $boostData['payment_method'],
                 paymentAmount: (float) $boostData['payment_amount'],
                 dailyBid: (int) $boostData['daily_bid'],

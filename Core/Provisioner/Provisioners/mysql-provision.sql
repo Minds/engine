@@ -193,6 +193,18 @@ ALTER TABLE boosts
 ALTER TABLE boosts
 ADD INDEX completed_timestamp (completed_timestamp) USING BTREE;
 
+ALTER TABLE boosts
+    ADD goal int NULL DEFAULT NULL
+    AFTER target_location;
+
+ALTER TABLE boosts
+    ADD goal_button_text int NULL DEFAULT NULL
+    AFTER goal;
+
+ALTER TABLE boosts
+    ADD goal_button_url text NULL DEFAULT NULL
+    AFTER goal_button_text;
+
 ALTER TABLE boost_summaries
     ADD clicks int
     AFTER views;
@@ -238,3 +250,27 @@ CREATE TABLE IF NOT EXISTS minds_votes
     updated_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_guid, entity_guid, direction)
 ) ENGINE=InnoDB;
+
+ALTER TABLE minds_payments
+    ADD affiliate_type int DEFAULT NULL
+    AFTER affiliate_user_guid;
+
+CREATE TABLE IF NOT EXISTS minds_comments (
+    guid bigint,
+    entity_guid bigint,
+    owner_guid bigint,
+    parent_guid bigint REFERENCES minds_comment(guid),
+    parent_depth int,
+    body text,
+    attachments json,
+    mature boolean,
+    edited boolean,
+    spam boolean,
+    deleted boolean,
+    `enabled` boolean,
+    group_conversation boolean,
+    access_id bigint,
+    time_created timestamp DEFAULT CURRENT_TIMESTAMP,
+    time_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (guid)
+) ENGINE = InnoDB;

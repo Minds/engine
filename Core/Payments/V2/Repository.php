@@ -61,6 +61,7 @@ class Repository
                 'payment_guid' => new RawExp(':payment_guid'),
                 'user_guid' => new RawExp(':user_guid'),
                 'affiliate_user_guid' => new RawExp(':affiliate_user_guid'),
+                'affiliate_type' => new RawExp(':affiliate_type'),
                 'payment_type' => new RawExp(':payment_type'),
                 'payment_method' => new RawExp(':payment_method'),
                 'payment_amount_millis' => new RawExp(':payment_amount_millis'),
@@ -74,6 +75,7 @@ class Repository
             'payment_guid' => $paymentDetails->paymentGuid,
             'user_guid' => $paymentDetails->userGuid,
             'affiliate_user_guid' => $paymentDetails->affiliateUserGuid,
+            'affiliate_type' => $paymentDetails->affiliateType,
             'payment_type' => $paymentDetails->paymentType,
             'payment_method' => $paymentDetails->paymentMethod,
             'payment_amount_millis' => $paymentDetails->paymentAmountMillis,
@@ -199,7 +201,7 @@ class Repository
     public function getPaymentsAffiliatesEarnings(PaymentOptions $options): Iterator
     {
         $sharePct = self::AFFILIATE_SHARE_PCT / 100;
-    
+
         $paymentFeePct = 0.029; // 2.9%
         $paymentFeeMillis = 300; // $0.30
 
@@ -219,6 +221,7 @@ class Repository
             } else {
                 $statement->where('affiliate_user_guid', Operator::IS_NOT, null);
             }
+            $statement->where('affiliate_user_guid', Operator::NOT_EQ, new RawExp('user_guid')); // Do not allow affiliate to be the spender
         }
 
         if ($options->getPaymentMethod()) {
