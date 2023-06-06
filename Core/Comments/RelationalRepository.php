@@ -73,7 +73,6 @@ class RelationalRepository
         ?string $parentGuid = null,
         int $depth= 0
     ): bool {
-
         $statement = $this->mysqlClientWriterHandler->insert()
         ->into('minds_comments')
         ->set([

@@ -537,4 +537,3 @@ class Manager
         return true;
     }
 }
-
