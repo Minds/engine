@@ -16,7 +16,7 @@ class SystemUserSpec extends ObjectBehavior
 
     public function it_should_use_default_guid_when_no_config_override_available(): void
     {
-        $this->getGUID()->shouldReturn(SystemUser::GUID);
+        $this->getGUID()->shouldReturn(SystemUser::DEFAULT_GUID);
     }
 
     public function it_should_use_config_system_user_guid_when_config_override_available(
@@ -27,7 +27,7 @@ class SystemUserSpec extends ObjectBehavior
             ->willReturn('123');
 
         $this->beConstructedWith($mindsConfig);
-        
+
         $this->getGUID()->shouldReturn('123');
     }
 }
