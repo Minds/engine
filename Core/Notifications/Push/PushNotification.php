@@ -144,6 +144,10 @@ class PushNotification implements PushNotificationInterface
                 break;
             case NotificationTypes::TYPE_BOOST_COMPLETED:
                 return 'Your Boost is complete';
+            case NotificationTypes::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
+            case NotificationTypes::TYPE_AFFILIATE_EARNINGS_DEPOSITED:
+                $data = $this->notification->getData();
+                return 'You earned $' . $data['amount_usd'] . ' from the Minds Affiliate Program';
             default:
                 throw new UndeliverableException("Invalid type");
         }

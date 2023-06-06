@@ -5,6 +5,7 @@
 namespace Minds\Core\Notifications;
 
 use Minds\Common\SystemUser;
+use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
@@ -12,10 +13,9 @@ use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
+use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Wire\Wire;
 use Minds\Entities\User;
-use Minds\Core\Config;
-use Minds\Core\Supermind\Models\SupermindRequest;
 
 class NotificationsEventStreamsSubscription implements SubscriptionInterface
 {
@@ -67,8 +67,11 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
     public function consume(EventInterface $event): bool
     {
         if (!$event instanceof ActionEvent) {
+            $this->logger->info('Skipping as not an action event');
             return false;
         }
+
+        $this->logger->info('Action event type: ' . $event->getAction());
 
         /** @var User */
         $user = $event->getUser();
@@ -250,12 +253,33 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 $notification->setFromGuid(SystemUser::GUID);
                 $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON);
                 break;
+            case ActionEvent::ACTION_AFFILIATE_EARNINGS_DEPOSITED:
+                /**
+                 * @type User $affiliateUser
+                 */
+                $affiliateUser = $entity;
+                $notification->setToGuid($affiliateUser->getGuid());
+                $notification->setFromGuid(SystemUser::GUID);
+                $notification->setType(NotificationTypes::TYPE_AFFILIATE_EARNINGS_DEPOSITED);
+                $notification->setData($event->getActionData());
+                break;
+            case ActionEvent::ACTION_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
+                /**
+                 * @type User $affiliateUser
+                 */
+                $affiliateUser = $entity;
+                $notification->setToGuid($affiliateUser->getGuid());
+                $notification->setFromGuid(SystemUser::GUID);
+                $notification->setType(NotificationTypes::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED);
+                $notification->setData($event->getActionData());
+                break;
             // case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
             //     $notification->setToGuid($entity->getSenderGuid());
             //     $notification->setFromGuid($entity->getReceiverGuid());
             //     $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE);
             //     break;
             default:
+                $this->logger->info("{$event->getAction()} is not a valid action for notifications");
                 return true; // We will not make a notification from this
         }
 

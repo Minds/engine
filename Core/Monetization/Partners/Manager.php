@@ -410,7 +410,7 @@ class Manager
             }
 
             // Emit event
-            $this->depositsDelegate->onIssueAffiliateDeposit($affiliateUser);
+            $this->depositsDelegate->onIssueAffiliateDeposit($affiliateUser, $deposit);
         }
 
         /**
@@ -435,7 +435,7 @@ class Manager
             }
 
             // Emit event
-            $this->depositsDelegate->onIssueAffiliateReferrerDeposit($referrer);
+            $this->depositsDelegate->onIssueAffiliateReferrerDeposit($referrer, $deposit);
         }
     }
 
