@@ -7,7 +7,7 @@ use Minds\Entities\User;
 class SystemUser extends User
 {
     /** @var string */
-    const GUID = '100000000000000519';
+    const DEFAULT_GUID = '100000000000000519';
 
     public function __construct()
     {
@@ -25,7 +25,7 @@ class SystemUser extends User
      */
     public function getGUID(): string
     {
-        return $this->guid ?: self::GUID;
+        return $this->guid ?: self::DEFAULT_GUID;
     }
 
     /**
