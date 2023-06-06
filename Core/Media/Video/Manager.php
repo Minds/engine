@@ -96,8 +96,6 @@ class Manager
                 ];
             }
         }
-        
-        // $primaryOpts = $useOss ? $ociOpts : $opts;
 
         $this->s3 = $s3 ?: new S3Client(array_merge(['version' => '2006-03-01'], $opts));
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
