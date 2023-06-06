@@ -177,7 +177,7 @@ class Entities implements \Iterator
      * Rewind the array cursor
      * @throws \Exception
      */
-    public function rewind()
+    public function rewind(): void
     {
         if (!$this->forcedOffset) {
             $this->offset = '';
@@ -210,7 +210,7 @@ class Entities implements \Iterator
      * Goes to the next cursor
      * @throws \Exception
      */
-    public function next()
+    public function next(): void
     {
         $this->cursor++;
         $this->i++;
@@ -224,7 +224,7 @@ class Entities implements \Iterator
      * Checks if the cursor is valid
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->valid && isset($this->data[$this->cursor]);
     }

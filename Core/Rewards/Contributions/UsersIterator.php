@@ -181,9 +181,9 @@ class UsersIterator implements \Iterator
 
     /**
      * Rewind the array cursor
-     * @return null
+     * @inheritDoc
      */
-    public function rewind()
+    public function rewind(): void
     {
         if ($this->cursor >= 0) {
             $this->getUsers();
@@ -211,9 +211,9 @@ class UsersIterator implements \Iterator
 
     /**
      * Goes to the next cursor
-     * @return null
+     * @return void
      */
-    public function next()
+    public function next(): void
     {
         $this->cursor++;
         if (!isset($this->data[$this->cursor])) {
@@ -225,7 +225,7 @@ class UsersIterator implements \Iterator
      * Checks if the cursor is valid
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->valid && isset($this->data[$this->cursor]);
     }
