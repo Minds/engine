@@ -105,6 +105,10 @@ class MySQLRepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($selectQuery);
 
+        $selectQuery->offset(Argument::type('integer'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQuery);
+
         $selectQuery->prepare()
             ->shouldBeCalledOnce()
             ->willReturn($statement);

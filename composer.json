@@ -57,7 +57,9 @@
         "promphp/prometheus_client_php": "^2.6",
         "minds/mysql-fluent-interface": "dev-master",
         "tia/pulsar-client-php": "dev-main",
-        "google/cloud-pubsub": "^1.41"
+        "thecodingmachine/graphqlite": "6.1.0",
+        "symfony/cache": "v5.4.23",
+        "symfony/expression-language": "v5.4.21"
     },
     "repositories": [
         {
