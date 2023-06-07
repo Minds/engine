@@ -310,7 +310,7 @@ class NewsfeedController
                 $edges[] = new UserEdge($entity, $cursor);
             }
             if ($entity->boost instanceof Boost) {
-                $edges[] = new BoostEdge($entity->getEntity()->boost, $cursor);
+                $edges[] = new BoostEdge($entity->boost, $cursor);
             }
         }
 
