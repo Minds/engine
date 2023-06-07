@@ -83,6 +83,16 @@ class Manager
                     'secret' => $ociConfig['secret'] ?? null,
                 ]
             ];
+
+            // API Auth
+            $oci_api_config = [
+                'tenantId' => $this->config->get('oci')['api_auth']['tenant_id'],
+                'userId' => $this->config->get('oci')['api_auth']['user_id'],
+                'keyFingerprint' => $this->config->get('oci')['api_auth']['key_fingerprint'],
+                'privateKey' => $this->config->get('oci')['api_auth']['private_key'],
+                'region' => 'us-ashburn-1',
+                'service' => 'objectstorage'
+            ];
         } else {
             // AWS
             $awsConfig = $this->config->get('aws');

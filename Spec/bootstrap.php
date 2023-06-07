@@ -33,6 +33,12 @@ $CONFIG->set('oci', [
         'endpoint' => '',
         'key' => '',
         'secret' => ''
+    ],
+    'api_auth' => [
+        'private_key' => '',
+        'tenant_id' => '',
+        'user_id' => '',
+        'key_fingerprint' => ''
     ]
 ]);
 
