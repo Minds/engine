@@ -30,18 +30,16 @@ class Manager
 
     /**
      * Get default suggestions based upon a users tags.
-     * @param string $entityType - type of the entities we are requestion suggestions of.
      * @param User $user - user to get tags for.
+     * @param string $entityType - type of the entities we are requestion suggestions of.
      * @return array suggestions.
      */
-    public function getSuggestions(string $entityType = 'group', User $user = null): array
+    public function getSuggestions(User $user, string $entityType = 'group'): array
     {
         $suggestions = [];
         $userTags = [];
         
-        if ($user) {
-            $userTags = $this->getUserDiscoveryTags($user);
-        }
+        $userTags = $this->getUserDiscoveryTags($user);
         
         try {
             $suggestions = iterator_to_array($this->repository->getList(

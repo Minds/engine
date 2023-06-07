@@ -77,7 +77,7 @@ class ManagerSpec extends ObjectBehavior
                 $suggestion2
             ]));
         
-        $this->getSuggestions($entityType, $user)->shouldBeLike([
+        $this->getSuggestions($user, $entityType)->shouldBeLike([
             $suggestion1,
             $suggestion2
         ]);
@@ -127,7 +127,7 @@ class ManagerSpec extends ObjectBehavior
         $this->cache->set('fallback_default_tag_suggestions:group', Argument::type('string'), 86400)
             ->shouldBeCalled();
     
-        $this->getSuggestions($entityType, $user)->shouldBeLike([
+        $this->getSuggestions($user, $entityType)->shouldBeLike([
             $suggestion1,
             $suggestion2
         ]);
@@ -180,7 +180,7 @@ class ManagerSpec extends ObjectBehavior
         $this->cache->set('fallback_default_tag_suggestions:group', Argument::type('string'), 86400)
             ->shouldBeCalled();
 
-        $this->getSuggestions($entityType, $user)->shouldBeLike([
+        $this->getSuggestions($user, $entityType)->shouldBeLike([
             $suggestion1,
             $suggestion2
         ]);
@@ -229,7 +229,7 @@ class ManagerSpec extends ObjectBehavior
         )
             ->shouldNotBeCalled();
 
-        $this->getSuggestions($entityType, $user)->shouldBeLike([
+        $this->getSuggestions($user, $entityType)->shouldBeLike([
             $suggestion1,
             $suggestion2
         ]);
