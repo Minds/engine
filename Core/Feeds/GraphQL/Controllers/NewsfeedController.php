@@ -303,12 +303,13 @@ class NewsfeedController
 
         $edges = [ ];
 
-        foreach ($result as $i => $entity) {
+        foreach ($result as $i => $suggestion) {
             $cursor = base64_encode($i);
+            $entity = $suggestion->getEntity();
             if ($entity instanceof User) {
                 $edges[] = new UserEdge($entity, $cursor);
             }
-            if ($entity instanceof Suggestion && $entity->getEntity()->boost instanceof Boost) {
+            if ($entity->boost instanceof Boost) {
                 $edges[] = new BoostEdge($entity->getEntity()->boost, $cursor);
             }
         }
