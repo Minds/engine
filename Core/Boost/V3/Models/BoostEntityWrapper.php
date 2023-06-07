@@ -15,7 +15,7 @@ use Minds\Entities\ExportableInterface;
 class BoostEntityWrapper implements ExportableInterface
 {
     public function __construct(
-        private Boost $boost
+        public Boost $boost
     ) {
         $this->boost = $boost;
     }

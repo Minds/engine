@@ -19,6 +19,10 @@ class Provider extends Di\Provider
             return new Manager();
         });
 
+        $this->di->bind(Manager::class, function ($di) {
+            return new Manager();
+        });
+
         $this->di->bind('FeedNotices\Controller', function ($di) {
             return new Controller();
         });
