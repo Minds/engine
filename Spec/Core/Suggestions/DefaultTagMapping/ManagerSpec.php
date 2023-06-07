@@ -5,10 +5,12 @@ namespace Spec\Minds\Core\Suggestions\DefaultTagMapping;
 
 use ArrayIterator;
 use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\Hashtags\User\Manager as UserHashtagsManager;
 use Minds\Core\Suggestions\DefaultTagMapping\Manager;
 use Minds\Core\Suggestions\DefaultTagMapping\Repository;
 use Minds\Core\Log\Logger;
 use Minds\Core\Suggestions\Suggestion;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
@@ -18,18 +20,22 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $repository;
     private Collaborator $logger;
     private Collaborator $cache;
+    private Collaborator $hashtagManager;
 
     public function let(
         Repository $repository,
         Logger $logger,
-        PsrWrapper $cache
+        PsrWrapper $cache,
+        UserHashtagsManager $hashtagManager
     ) {
         $this->repository = $repository;
         $this->logger = $logger;
         $this->cache = $cache;
+        $this->hashtagManager = $hashtagManager;
 
         $this->beConstructedWith(
             $repository,
+            $hashtagManager,
             $logger,
             $cache
         );
@@ -40,13 +46,26 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_get_suggestions_from_repository(): void
+    public function it_should_get_suggestions_from_repository(User $user): void
     {
         $suggestion1 = new Suggestion();
         $suggestion2 = new Suggestion();
 
         $entityType = 'group';
         $tags = ['minds'];
+
+        $this->hashtagManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->hashtagManager);
+        
+        $this->hashtagManager->get([
+            'trending' => false,
+            'defaults' => false
+        ])
+            ->shouldBeCalled()
+            ->willReturn(array_map(function($tagName) {
+                return [ 'value' => $tagName ];
+            }, $tags));
 
         $this->repository->getList(
             entityType: $entityType,
@@ -58,19 +77,32 @@ class ManagerSpec extends ObjectBehavior
                 $suggestion2
             ]));
         
-        $this->getSuggestions($entityType, $tags)->shouldBeLike([
+        $this->getSuggestions($entityType, $user)->shouldBeLike([
             $suggestion1,
             $suggestion2
         ]);
     }
 
-    public function it_should_fallback_get_suggestions_from_repository_when_no_results(): void
+    public function it_should_fallback_get_suggestions_from_repository_when_no_results(User $user): void
     {
         $suggestion1 = new Suggestion();
         $suggestion2 = new Suggestion();
 
         $entityType = 'group';
         $tags = ['minds'];
+
+        $this->hashtagManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->hashtagManager);
+    
+        $this->hashtagManager->get([
+            'trending' => false,
+            'defaults' => false
+        ])
+            ->shouldBeCalled()
+            ->willReturn(array_map(function($tagName) {
+                return [ 'value' => $tagName ];
+            }, $tags));
 
         $this->repository->getList(
             entityType: $entityType,
@@ -95,19 +127,32 @@ class ManagerSpec extends ObjectBehavior
         $this->cache->set('fallback_default_tag_suggestions:group', Argument::type('string'), 86400)
             ->shouldBeCalled();
     
-        $this->getSuggestions($entityType, $tags)->shouldBeLike([
+        $this->getSuggestions($entityType, $user)->shouldBeLike([
             $suggestion1,
             $suggestion2
         ]);
     }
 
-    public function it_should_fallback_get_suggestions_from_repository_on_exception(): void
+    public function it_should_fallback_get_suggestions_from_repository_on_exception(User $user): void
     {
         $suggestion1 = new Suggestion();
         $suggestion2 = new Suggestion();
 
         $entityType = 'group';
         $tags = ['minds'];
+
+        $this->hashtagManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->hashtagManager);
+    
+        $this->hashtagManager->get([
+            'trending' => false,
+            'defaults' => false
+        ])
+            ->shouldBeCalled()
+            ->willReturn(array_map(function($tagName) {
+                return [ 'value' => $tagName ];
+            }, $tags));
 
         $this->repository->getList(
             entityType: $entityType,
@@ -135,19 +180,32 @@ class ManagerSpec extends ObjectBehavior
         $this->cache->set('fallback_default_tag_suggestions:group', Argument::type('string'), 86400)
             ->shouldBeCalled();
 
-        $this->getSuggestions($entityType, $tags)->shouldBeLike([
+        $this->getSuggestions($entityType, $user)->shouldBeLike([
             $suggestion1,
             $suggestion2
         ]);
     }
 
-    public function it_should_fallback_get_suggestions_from_cache(): void
+    public function it_should_fallback_get_suggestions_from_cache(User $user): void
     {
         $suggestion1 = new Suggestion();
         $suggestion2 = new Suggestion();
 
         $entityType = 'group';
         $tags = ['minds'];
+
+        $this->hashtagManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->hashtagManager);
+        
+        $this->hashtagManager->get([
+            'trending' => false,
+            'defaults' => false
+        ])
+            ->shouldBeCalled()
+            ->willReturn(array_map(function($tagName) {
+                return [ 'value' => $tagName ];
+            }, $tags));
 
         $this->repository->getList(
             entityType: $entityType,
@@ -171,7 +229,7 @@ class ManagerSpec extends ObjectBehavior
         )
             ->shouldNotBeCalled();
 
-        $this->getSuggestions($entityType, $tags)->shouldBeLike([
+        $this->getSuggestions($entityType, $user)->shouldBeLike([
             $suggestion1,
             $suggestion2
         ]);

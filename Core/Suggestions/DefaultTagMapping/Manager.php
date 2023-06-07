@@ -5,8 +5,10 @@ namespace Minds\Core\Suggestions\DefaultTagMapping;
 
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
+use Minds\Core\Hashtags\User\Manager as UserHashtagsManager;
 use Minds\Core\Log\Logger;
 use Minds\Core\Suggestions\DefaultTagMapping\Repository;
+use Minds\Entities\User;
 
 /*
  * Manager for getting defaulted suggestions relevant specified tags.
@@ -16,10 +18,12 @@ class Manager
 {
     public function __construct(
         private ?Repository $repository = null,
+        private ?UserHashtagsManager $hashtagManager = null,
         private ?Logger $logger = null,
         private ?PsrWrapper $cache = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
+        $this->hashtagManager ??= Di::_()->get('Hashtags\User\Manager');
         $this->logger ??= Di::_()->get('Logger');
         $this->cache ??= Di::_()->get('Cache\PsrWrapper');
     }
@@ -27,17 +31,22 @@ class Manager
     /**
      * Get default suggestions based upon a users tags.
      * @param string $entityType - type of the entities we are requestion suggestions of.
-     * @param array $tags - tags we want to get suggestions for.
+     * @param User $user - user to get tags for.
      * @return array suggestions.
      */
-    public function getSuggestions(string $entityType = 'group', array $tags = []): array
+    public function getSuggestions(string $entityType = 'group', User $user = null): array
     {
         $suggestions = [];
-
+        $userTags = [];
+        
+        if ($user) {
+            $userTags = $this->getUserDiscoveryTags($user);
+        }
+        
         try {
             $suggestions = iterator_to_array($this->repository->getList(
                 entityType: $entityType,
-                tags: $tags
+                tags: $userTags
             ));
         } catch (\Exception $e) {
             $this->logger->error($e); // fallback to default fallback tag list on error.
@@ -76,5 +85,26 @@ class Manager
             $this->cache->set($cacheKey, serialize($suggestions), 86400);
         }
         return $suggestions;
+    }
+
+    /**
+     * Gets a users discovery tags.
+     * @param array $user - user to get tags for.
+     * @return array string array of tags.
+     */
+    private function getUserDiscoveryTags($user): array
+    {
+        $tags = $this->hashtagManager->setUser($user)->get([
+            'trending' => false,
+            'defaults' => false
+        ]);
+
+        if (!$tags) {
+            return [];
+        }
+
+        return array_map(function ($tag) {
+            return strtolower($tag['value']);
+        }, $tags);
     }
 }

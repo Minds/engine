@@ -223,7 +223,7 @@ class Manager
         try {
             return $this->defaultTagMappingManager->getSuggestions(
                 entityType: $entityType,
-                tags: $this->user ? $this->user->getTags() : []
+                user: $this->user
             );
         } catch (\Exception $e) {
             $this->logger->error($e);
