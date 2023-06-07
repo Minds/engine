@@ -78,7 +78,6 @@ class Exported
             'site_url' => $this->config->get('site_url'),
             'cinemr_url' => $this->config->get('cinemr_url'),
             'socket_server' => $this->config->get('sockets')['server_uri'] ?: 'ha-socket-io-us-east-1.minds.com:3030',
-            'navigation' => NavigationManager::export(),
             'language' => $this->i18n->getLanguage(),
             'languages' => $this->i18n->getLanguages(),
             'categories' => $this->config->get('categories') ?: [],
