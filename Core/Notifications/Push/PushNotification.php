@@ -217,19 +217,15 @@ class PushNotification implements PushNotificationInterface
      */
     public function getUri(): string
     {
-        if (!str_contains('minds.io', $this->config->get('site_url')) && !str_contains('minds.com', $this->config->get('site_url'))) {
-            return "";
-        }
-
         switch ($this->notification->getType()) {
             case NotificationTypes::TYPE_SUBSCRIBE:
-                return $this->config->get('site_url') . 'notifications';
+                return $this->getEnvBasedUri('notifications');
             case NotificationTypes::TYPE_BOOST_ACCEPTED:
             case NotificationTypes::TYPE_BOOST_COMPLETED:
                 return $this->getBoostConsoleUrl();
             case NotificationTypes::TYPE_AFFILIATE_EARNINGS_DEPOSITED:
             case NotificationTypes::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
-                return $this->config->get('site_url') . 'wallet/cash/earnings';
+                return $this->getEnvBasedUri('wallet/cash/earnings');
         }
 
         $entity = $this->notification->getEntity();
@@ -240,20 +236,28 @@ class PushNotification implements PushNotificationInterface
 
         switch ($entity->getType()) {
             case 'user':
-                return $this->config->get('site_url') . $entity->getUsername();
+                return $this->getEnvBasedUri($entity->getUsername());
             case 'comment':
-                return $this->config->get('site_url') . 'newsfeed/' . $entity->getEntityGuid() . '?focusedCommentUrn=' . $entity->getUrn();
+                return $this->getEnvBasedUri('newsfeed/' . $entity->getEntityGuid() . '?focusedCommentUrn=' . $entity->getUrn());
             case 'supermind':
                 if ($entity instanceof SupermindRequest && $entity->getStatus() === SupermindRequestStatus::ACCEPTED) {
-                    return $this->config->get('site_url') . 'newsfeed/' . $entity->getReplyActivityGuid();
+                    return $this->getEnvBasedUri('newsfeed/' . $entity->getReplyActivityGuid());
                 }
-                return $this->config->get('site_url') . 'supermind/' . $entity->getGuid();
+                return $this->getEnvBasedUri('supermind/' . $entity->getGuid());
             case 'activity':
             case 'object':
-                return $this->config->get('site_url') . 'newsfeed/' . $entity->getGuid();
+                return $this->getEnvBasedUri('newsfeed/' . $entity->getGuid());
             default:
                 return '';
         }
+    }
+
+    private function getEnvBasedUri(string $route): string
+    {
+        if (!str_contains($this->config->get('site_url'), 'minds.io') && !str_contains($this->config->get('site_url'), 'minds.com')) {
+            return "";
+        }
+        return $this->config->get('site_url') . $route;
     }
 
     /**
@@ -261,10 +265,10 @@ class PushNotification implements PushNotificationInterface
      */
     public function getIcon(): string
     {
-        if (!str_contains('minds.io', $this->config->get('site_url')) && !str_contains('minds.com', $this->config->get('site_url'))) {
+        if (!str_contains($this->notification->getFrom()->getIconURL('large'), 'minds.io') && !str_contains($this->notification->getFrom()->getIconURL('large'), 'minds.com')) {
             return "";
         }
-        
+
         return $this->notification->getFrom()->getIconURL('large');
     }
 
