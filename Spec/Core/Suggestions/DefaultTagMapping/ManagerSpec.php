@@ -63,7 +63,7 @@ class ManagerSpec extends ObjectBehavior
             'defaults' => false
         ])
             ->shouldBeCalled()
-            ->willReturn(array_map(function($tagName) {
+            ->willReturn(array_map(function ($tagName) {
                 return [ 'value' => $tagName ];
             }, $tags));
 
@@ -100,7 +100,7 @@ class ManagerSpec extends ObjectBehavior
             'defaults' => false
         ])
             ->shouldBeCalled()
-            ->willReturn(array_map(function($tagName) {
+            ->willReturn(array_map(function ($tagName) {
                 return [ 'value' => $tagName ];
             }, $tags));
 
@@ -150,7 +150,7 @@ class ManagerSpec extends ObjectBehavior
             'defaults' => false
         ])
             ->shouldBeCalled()
-            ->willReturn(array_map(function($tagName) {
+            ->willReturn(array_map(function ($tagName) {
                 return [ 'value' => $tagName ];
             }, $tags));
 
@@ -203,7 +203,7 @@ class ManagerSpec extends ObjectBehavior
             'defaults' => false
         ])
             ->shouldBeCalled()
-            ->willReturn(array_map(function($tagName) {
+            ->willReturn(array_map(function ($tagName) {
                 return [ 'value' => $tagName ];
             }, $tags));
 
