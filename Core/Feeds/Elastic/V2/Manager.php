@@ -12,6 +12,7 @@ use Minds\Core\Feeds\Seen\Manager as SeenManager;
 use Minds\Core\Groups\Membership;
 use Minds\Entities\Activity;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Helpers\Text;
 
 class Manager
 {
@@ -120,8 +121,11 @@ class Manager
         string &$loadBefore = null,
         bool &$hasMore = null
     ): iterable {
+        $topAlgo = new TopV2();
+
         $must = [];
         $should = [];
+        $functionScores = $topAlgo->getFunctionScores();
 
         // Only public posts
         $must[] = [
@@ -176,7 +180,18 @@ class Manager
             ]
         ];
 
-        $topAlgo = new TopV2();
+        // Demote posts we've already seen
+        $seenEntities = $this->seenManager->listSeenEntities();
+        if (count($seenEntities) > 0) {
+            $functionScores[] = [
+                'filter' => [
+                    'terms' => [
+                        'guid' => Text::buildArray($seenEntities),
+                    ]
+                ],
+                'weight' => 0.01
+            ];
+        }
 
         $body = [
             '_source' => false,
@@ -188,7 +203,7 @@ class Manager
                             'must' => $must,
                         ],
                     ],
-                    'functions' => $topAlgo->getFunctionScores()
+                    'functions' => $functionScores,
                 ]
             ],
             'sort' => [
