@@ -39,7 +39,7 @@ class SearchRepository
         } catch (Exception $e) {
 
             // If the comment was already deleted, we ack the delete
-            if ($e instanceof \Elasticsearch\Common\Exceptions\BadRequest400Exception) {
+            if ($e instanceof \Elasticsearch\Common\Exceptions\Missing404Exception) {
                 $this->logger->info("Elasticsearch returned a 404, comment already deleted.");
                 return true;
             }
