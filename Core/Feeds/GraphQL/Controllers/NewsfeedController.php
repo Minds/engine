@@ -41,7 +41,7 @@ class NewsfeedController
     }
 
     /**
-     * @param string[] $inFeedNoticesDelivered
+     * @param string[]|null $inFeedNoticesDelivered
      */
     #[Query]
     public function getNewsfeed(
