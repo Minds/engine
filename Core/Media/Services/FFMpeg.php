@@ -132,7 +132,7 @@ class FFMpeg implements ServiceInterface
             'bucketNamespace' => $this->config->get('oci')['api_auth']['bucket_namespace']
         ];
 
-        $privateKey = openssl_get_privatekey(file_get_contents($oci_api_config['privateKey']));
+        $privateKey = base64_decode($oci_api_config['privateKey']);
         if (!$privateKey) {
             throw new \Exception('Unable to load private key');
         }
@@ -175,8 +175,8 @@ class FFMpeg implements ServiceInterface
                 'body' => json_encode($data),
             ]);
             $result = json_decode($response->getBody(), true);
-            echo "Pre-authenticated request created with name {$result['name']}\n";
-            echo "Upload URL: {$result['accessUri']}\n";
+            error_log("Pre-authenticated request created with name {$result['name']}\n");
+            error_log("Upload URL: {$result['accessUri']}\n");
 
             return $result['accessUri'];
         } catch (Exception $e) {
@@ -191,10 +191,10 @@ class FFMpeg implements ServiceInterface
     public function getPresignedUrl()
     {
         if ($this->config->get('transcoder')['use_oracle_oss']) {
-            echo "Using OCI Presigned URL\n";
+            error_log("Using OCI Presigned URL\n");
             $signedUrl = $this->getOciPresignedUrl("$this->dir/$this->key/source");
         } else {
-            echo "Using AWS Presigned URL\n";
+            error_log("Using AWS Presigned URL\n");
             $cmd = $this->s3->getCommand('PutObject', [
                 'Bucket' => 'cinemr',
                 'Key' => "$this->dir/$this->key/source",

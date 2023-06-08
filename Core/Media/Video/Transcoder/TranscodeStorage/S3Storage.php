@@ -97,7 +97,7 @@ class S3Storage implements TranscodeStorageInterface
             'bucketNamespace' => $this->config->get('oci')['api_auth']['bucket_namespace']
         ];
 
-        $privateKey = openssl_get_privatekey(file_get_contents($oci_api_config['privateKey']));
+        $privateKey = base64_decode($oci_api_config['privateKey']);
         if (!$privateKey) {
             throw new \Exception('Unable to load private key');
         }
@@ -140,8 +140,8 @@ class S3Storage implements TranscodeStorageInterface
                 'body' => json_encode($data),
             ]);
             $result = json_decode($response->getBody(), true);
-            echo "Pre-authenticated request created with name {$result['name']}\n";
-            echo "Upload URL: {$result['accessUri']}\n";
+            error_log("Pre-authenticated request created with name {$result['name']}\n");
+            error_log("Upload URL: {$result['accessUri']}\n");
 
             return $result['accessUri'];
         } catch (Exception $e) {
@@ -158,10 +158,10 @@ class S3Storage implements TranscodeStorageInterface
     public function getClientSideUploadUrl(Transcode $transcode): string
     {
         if ($this->config->get('transcoder')['use_oracle_oss']) {
-            echo "Using OCI Presigned URL\n";
+            error_log("Using OCI Presigned URL\n");
             $signedUrl = $this->getOciPresignedUrl("$this->dir/{$transcode->getGuid()}/{$transcode->getProfile()->getStorageName()}");
         } else {
-            echo "Using AWS Presigned URL\n";
+            error_log("Using AWS Presigned URL\n");
             $cmd = $this->s3->getCommand('PutObject', [
                 'Bucket' => 'cinemr',
                 'Key' => "$this->dir/{$transcode->getGuid()}/{$transcode->getProfile()->getStorageName()}",
