@@ -136,7 +136,7 @@ class S3Storage implements TranscodeStorageInterface
         $headers['Authorization'] = 'Signature version="1",headers="(request-target) date content-type x-content-sha256",keyId="' . $apiKey . '",algorithm="rsa-sha256",signature="' . $signature . '"';
 
         try {
-            $response = $client->request('POST', "/n/$namespace/b/$bucketName/p/", [
+            $response = $client->request('POST', "/n/{$oci_api_config['bucketNamespace']}/b/{$oci_api_config['bucketName']}/p/", [
                 'headers' => $headers,
                 'body' => json_encode($data),
             ]);
