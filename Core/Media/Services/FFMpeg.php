@@ -83,16 +83,6 @@ class FFMpeg implements ServiceInterface
             ]
         ];
 
-        // API Auth
-        $oci_api_config = [
-            'tenantId' => $this->config->get('oci')['api_auth']['tenant_id'],
-            'userId' => $this->config->get('oci')['api_auth']['user_id'],
-            'keyFingerprint' => $this->config->get('oci')['api_auth']['key_fingerprint'],
-            'privateKey' => $this->config->get('oci')['api_auth']['private_key'],
-            'region' => 'us-ashburn-1',
-            'service' => 'objectstorage'
-        ];
-
         // Set primary and secondary clients
         $primaryOpts = $this->config->get('transcoder')['use_oracle_oss'] ? $ociOpts : $opts;
         $secondaryOpts = $this->config->get('transcoder')['use_oracle_oss'] ? $opts : $ociOpts;
@@ -125,17 +115,95 @@ class FFMpeg implements ServiceInterface
     }
 
     /**
+     * Create a PresignedUrl for client based uploads
+     * @param string $key
+     * @return string
+     */
+    private function getOciPresignedUrl(string $key): string
+    {
+        $oci_api_config = [
+            'tenantId' => $this->config->get('oci')['api_auth']['tenant_id'],
+            'userId' => $this->config->get('oci')['api_auth']['user_id'],
+            'keyFingerprint' => $this->config->get('oci')['api_auth']['key_fingerprint'],
+            'privateKey' => $this->config->get('oci')['api_auth']['private_key'],
+            'region' => 'us-ashburn-1',
+            'service' => 'objectstorage',
+            'bucketName' => 'cinemr',
+            'bucketNamespace' => $this->config->get('oci')['api_auth']['bucket_namespace']
+        ];
+
+        $privateKey = openssl_get_privatekey(file_get_contents($oci_api_config['privateKey']));
+        if (!$privateKey) {
+            throw new \Exception('Unable to load private key');
+        }
+
+        // Create Guzzle client
+        $client = new Client(['base_uri' => "https://objectstorage.{$oci_api_config['region']}.oraclecloud.com"]);
+
+        // Create pre-authenticated request
+        $data = [
+            'name' => $key,
+            'objectName' => $key,
+            'accessType' => 'ObjectWrite',
+        ];
+        $headers = [
+            'Content-Type' => 'application/json',
+            'x-content-sha256' => base64_encode(hash('sha256', json_encode($data), true)),
+            'date' => gmdate('D, d M Y G:i:s T'),
+        ];
+        $requestTarget = "(request-target): post /n/{$oci_api_config['bucketNamespace']}/b/{$oci_api_config['bucketName']}/p/";
+
+        // Create the signing string
+        $signingString = implode("\n", [
+            $requestTarget,
+            'date: ' . $headers['date'],
+            'content-type: ' . $headers['Content-Type'],
+            'x-content-sha256: ' . $headers['x-content-sha256'],
+        ]);
+
+        // Create the signature
+        openssl_sign($signingString, $signature, $privateKey, OPENSSL_ALGO_SHA256);
+        $signature = base64_encode($signature);
+
+        // Add Authorization header
+        $apiKey = $tenancyId . '/' . $userId . '/' . $keyFingerprint;
+        $headers['Authorization'] = 'Signature version="1",headers="(request-target) date content-type x-content-sha256",keyId="' . $apiKey . '",algorithm="rsa-sha256",signature="' . $signature . '"';
+
+        try {
+            $response = $client->request('POST', "/n/$namespace/b/$bucketName/p/", [
+                'headers' => $headers,
+                'body' => json_encode($data),
+            ]);
+            $result = json_decode($response->getBody(), true);
+            echo "Pre-authenticated request created with name {$result['name']}\n";
+            echo "Upload URL: {$result['accessUri']}\n";
+
+            return $result['accessUri'];
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+        }
+    }
+
+    /**
      * Create a PresignedUr for client based uploads
      * @return string
      */
     public function getPresignedUrl()
     {
-        $cmd = $this->s3->getCommand('PutObject', [
-            'Bucket' => 'cinemr',
-            'Key' => "$this->dir/$this->key/source",
-        ]);
+        if ($this->config->get('transcoder')['use_oracle_oss']) {
+            echo "Using OCI Presigned URL\n";
+            $signedUrl = $this->getOciPresignedUrl("$this->dir/$this->key/source");       
+        } else {
+            echo "Using AWS Presigned URL\n";
+            $cmd = $this->s3->getCommand('PutObject', [
+                'Bucket' => 'cinemr',
+                'Key' => "$this->dir/$this->key/source",
+            ]);
 
-        return (string) $this->s3->createPresignedRequest($cmd, '+20 minutes')->getUri();
+            $signedUrl = $this->s3->createPresignedRequest($cmd, '+20 minutes')->getUri();
+        }
+
+        return (string) $signedUrl;
     }
 
     public function saveToFilestore($file)
