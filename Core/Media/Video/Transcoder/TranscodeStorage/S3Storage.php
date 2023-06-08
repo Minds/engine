@@ -97,7 +97,7 @@ class S3Storage implements TranscodeStorageInterface
             'bucketNamespace' => $this->config->get('oci')['api_auth']['bucket_namespace']
         ];
 
-        $privateKey = base64_decode($this->config->get('oci')['api_auth']['private_key']);
+        $privateKey = base64_decode($this->config->get('oci')['api_auth']['private_key'], true);
         if (!$privateKey) {
             throw new \Exception('Unable to load private key');
         }
