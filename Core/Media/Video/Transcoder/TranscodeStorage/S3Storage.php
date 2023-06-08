@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Media\Video\Transcoder\TranscodeStorage;
 
+use GuzzleHttp\Client as HttpClient;
 use Aws\S3\S3Client;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
@@ -103,7 +104,7 @@ class S3Storage implements TranscodeStorageInterface
         }
 
         // Create Guzzle client
-        $client = new Client(['base_uri' => "https://objectstorage.{$oci_api_config['region']}.oraclecloud.com"]);
+        $client = new HttpClient(['base_uri' => "https://objectstorage.{$oci_api_config['region']}.oraclecloud.com"]);
 
         // Create pre-authenticated request
         $data = [

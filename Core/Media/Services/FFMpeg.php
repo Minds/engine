@@ -5,6 +5,7 @@
 
 namespace Minds\Core\Media\Services;
 
+use GuzzleHttp\Client as HttpClient;
 use Aws\S3\S3Client;
 use FFMpeg\FFMpeg as FFMpegClient;
 use FFMpeg\FFProbe as FFProbeClient;
