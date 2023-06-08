@@ -167,7 +167,7 @@ class FFMpeg implements ServiceInterface
         $signature = base64_encode($signature);
 
         // Add Authorization header
-        $apiKey = $tenancyId . '/' . $userId . '/' . $keyFingerprint;
+        $apiKey = $oci_api_config['tenantId'] . '/' . $oci_api_config['userId'] . '/' . $oci_api_config['keyFingerprint'];
         $headers['Authorization'] = 'Signature version="1",headers="(request-target) date content-type x-content-sha256",keyId="' . $apiKey . '",algorithm="rsa-sha256",signature="' . $signature . '"';
 
         try {
