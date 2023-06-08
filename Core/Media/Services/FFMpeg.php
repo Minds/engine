@@ -132,7 +132,7 @@ class FFMpeg implements ServiceInterface
             'bucketNamespace' => $this->config->get('oci')['api_auth']['bucket_namespace']
         ];
 
-        $privateKey = base64_decode($oci_api_config['privateKey']);
+        $privateKey = base64_decode($this->config->get('oci')['api_auth']['private_key']);
         if (!$privateKey) {
             throw new \Exception('Unable to load private key');
         }
