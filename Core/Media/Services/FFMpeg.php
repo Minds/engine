@@ -192,7 +192,7 @@ class FFMpeg implements ServiceInterface
     {
         if ($this->config->get('transcoder')['use_oracle_oss']) {
             echo "Using OCI Presigned URL\n";
-            $signedUrl = $this->getOciPresignedUrl("$this->dir/$this->key/source");       
+            $signedUrl = $this->getOciPresignedUrl("$this->dir/$this->key/source");
         } else {
             echo "Using AWS Presigned URL\n";
             $cmd = $this->s3->getCommand('PutObject', [

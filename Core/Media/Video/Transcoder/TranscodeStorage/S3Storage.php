@@ -159,7 +159,7 @@ class S3Storage implements TranscodeStorageInterface
     {
         if ($this->config->get('transcoder')['use_oracle_oss']) {
             echo "Using OCI Presigned URL\n";
-            $signedUrl = $this->getOciPresignedUrl("$this->dir/{$transcode->getGuid()}/{$transcode->getProfile()->getStorageName()}");       
+            $signedUrl = $this->getOciPresignedUrl("$this->dir/{$transcode->getGuid()}/{$transcode->getProfile()->getStorageName()}");
         } else {
             echo "Using AWS Presigned URL\n";
             $cmd = $this->s3->getCommand('PutObject', [
