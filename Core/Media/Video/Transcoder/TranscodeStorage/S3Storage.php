@@ -111,6 +111,7 @@ class S3Storage implements TranscodeStorageInterface
             'name' => $key,
             'objectName' => $key,
             'accessType' => 'ObjectWrite',
+            'timeExpires' => gmdate('Y-m-d\TH:i:s\Z', strtotime('+20 minutes')),
         ];
         $headers = [
             'Content-Type' => 'application/json',
