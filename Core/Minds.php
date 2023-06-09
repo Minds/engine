@@ -20,6 +20,7 @@ class Minds extends base
     private $modules = [
         Log\Module::class,
         Events\Module::class,
+        GraphQL\Module::class,
         EventStreams\Module::class,
         Security\Module::class,
         OAuth\Module::class,
@@ -82,7 +83,7 @@ class Minds extends base
         Boost\V3\Module::class,
         Monetization\Module::class,
         Analytics\Module::class,
-        Payments\V2\Module::class
+        Payments\V2\Module::class,
     ];
 
     /**
@@ -134,7 +135,6 @@ class Minds extends base
         (new Router\RouterProvider())->register();
         (new Data\DataProvider())->register();
         //(new Core\Notification\NotificationProvider())->register();
-        (new Pages\PagesProvider())->register();
         (new Payments\PaymentsProvider())->register();
         (new Queue\QueueProvider())->register();
         (new Http\HttpProvider())->register();
