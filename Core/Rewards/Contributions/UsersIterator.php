@@ -195,7 +195,7 @@ class UsersIterator implements \Iterator
      * Get the current cursor's data
      * @return mixed
      */
-    public function current()
+    public function current(): mixed
     {
         return $this->data[$this->cursor];
     }
@@ -204,7 +204,7 @@ class UsersIterator implements \Iterator
      * Get cursor's key
      * @return mixed
      */
-    public function key()
+    public function key(): mixed
     {
         return $this->cursor;
     }
