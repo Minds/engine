@@ -137,7 +137,6 @@ class Minds extends base
         (new Router\RouterProvider())->register();
         (new Data\DataProvider())->register();
         //(new Core\Notification\NotificationProvider())->register();
-        (new Pages\PagesProvider())->register();
         (new Payments\PaymentsProvider())->register();
         (new Queue\QueueProvider())->register();
         (new Http\HttpProvider())->register();
