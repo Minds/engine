@@ -617,7 +617,7 @@ class Repository
                 $body['query']['function_score']['query']['bool']['must'][] = [
                     'multi_match' => [
                         'query' => $opts['query'],
-                        'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^12'],
+                        'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^12', 'auto_caption^12'],
                     ],
                 ];
             } else {
@@ -625,7 +625,7 @@ class Repository
                     'multi_match' => [
                         'query' => $opts['query'],
                         'type' => 'phrase',
-                        'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^16'],
+                        'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^16', 'auto_caption^12'],
                     ],
                 ];
             }
@@ -643,7 +643,7 @@ class Repository
             $body['query']['function_score']['query']['bool']['should'][] = [
                 'multi_match' => [
                     'query' => implode(' ', $opts['hashtags']),
-                    'fields' => ['title', 'message', 'description'],
+                    'fields' => ['title', 'message', 'description', 'auto_caption'],
                     'operator' => 'or',
                     'boost' => 0.1
                 ],
