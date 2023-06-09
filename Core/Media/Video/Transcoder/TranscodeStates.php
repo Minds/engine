@@ -59,7 +59,7 @@ class TranscodeStates
                 return $this->getCloudflareTranscodeStatus($video);
             case \Minds\Core\Media\Video\Manager::TRANSCODER_MINDS:
             default:
-                 return $this->getMindsTranscoderStatus($video);
+                return $this->getMindsTranscoderStatus($video);
         }
     }
 

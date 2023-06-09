@@ -9,30 +9,28 @@
  */
 namespace Minds\Core\EventStreams\Topics;
 
-use Exception;
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\NotificationEvent;
 use Minds\Core\Notifications;
 use Pulsar\Consumer;
-use Pulsar\ConsumerOptions;
-use Pulsar\Exception\IOException;
-use Pulsar\Exception\MessageNotFound;
-use Pulsar\Exception\OptionsException;
-use Pulsar\Exception\RuntimeException;
-use Pulsar\MessageOptions;
+use Pulsar\ConsumerConfiguration;
+use Pulsar\MessageBuilder;
 use Pulsar\Producer;
-use Pulsar\ProducerOptions;
-use Pulsar\Schema\SchemaJson;
-use Pulsar\SubscriptionType;
+use Pulsar\ProducerConfiguration;
+use Pulsar\Result;
+use Pulsar\SchemaType;
 
 class NotificationsTopic extends AbstractTopic implements TopicInterface
 {
     /** @var int */
-    const DELAY_SECONDS = 30; // 30 second delay
+    const DELAY_MS = 30000; // 30 second delay
 
     /** @var Notifications\Manager */
     protected $notificationsManager;
+
+    /** @var Producer */
+    protected $producer;
 
     public function __construct(Notifications\Manager $notificationsManager = null, ...$deps)
     {
@@ -43,7 +41,6 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
     /**
      * Sends notifications events to our stream
      * @param EventInterface $event
-     * @return bool
      */
     public function send(EventInterface $event): bool
     {
@@ -52,30 +49,30 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
         }
 
         // Build the message
-        $message = (object) [
-            'uuid' => $event->getNotification()->getUuid(),
-            'urn' => $event->getNotification()->getUrn(),
-            'to_guid' => $event->getNotification()->getToGuid(),
-            'from_guid' => $event->getNotification()->getFromGuid(),
-            'entity_urn' => $event->getNotification()->getEntityUrn(),
-        ];
+
+        $builder = new MessageBuilder();
+        $message = $builder
+            ->setDeliverAfter(static::DELAY_MS) // Wait 30 seconds before consumers will see this
+            //->setPartitionKey(0)
+            ->setEventTimestamp($event->getTimestamp() ?: time())
+            ->setContent(json_encode([
+                'uuid' => $event->getNotification()->getUuid(),
+                'urn' => $event->getNotification()->getUrn(),
+                'to_guid' => $event->getNotification()->getToGuid(),
+                'from_guid' => $event->getNotification()->getFromGuid(),
+                'entity_urn' => $event->getNotification()->getEntityUrn(),
+            ]))
+            ->build();
 
         // Send the event to the stream
-        try {
-            $this->getProducer()->send(
-                payload: $message,
-                options: [
-                    MessageOptions::DELAY_SECONDS => static::DELAY_SECONDS,
-                    MessageOptions::PROPERTIES => [
-                        'event_timestamp' => $event->getTimestamp() ?? time()
-                    ]
-                ]
-            );
 
-            return true;
-        } catch (Exception $e) {
+        $result = $this->getProducer()->send($message);
+
+        if ($result != Result::ResultOk) {
             return false;
         }
+
+        return true;
     }
 
     /**
@@ -89,11 +86,6 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
      * @param int $execTimeoutInSeconds
      * @param callable|null $onBatchConsumed
      * @return void
-     * @throws IOException
-     * @throws OptionsException
-     * @throws RuntimeException
-     * @throws MessageNotFound
-     * @throws Exception
      */
     public function consume(
         string $subscriptionId,
@@ -104,84 +96,60 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
         int $execTimeoutInSeconds = 30,
         ?callable $onBatchConsumed = null
     ): void {
-        $consumer = $this->getConsumer($subscriptionId);
+        $tenant = $this->getPulsarTenant();
+        $namespace = $this->getPulsarNamespace();
+        $topic = 'event-notification';
+
+        $config = new ConsumerConfiguration();
+        $config->setConsumerType(Consumer::ConsumerShared);
+        $config->setSchema(SchemaType::AVRO, "notification", $this->getSchema(), []);
+
+        $consumer = $this->client()->subscribe("persistent://$tenant/$namespace/$topic", $subscriptionId, $config);
 
         while (true) {
-            $message = $consumer->receive();
             try {
-                $data = json_decode($message->getPayload(), true);
+                $message = $consumer->receive();
+                $data = json_decode($message->getDataAsString(), true);
 
                 $notification = $this->notificationsManager->getByUrn($data['urn']);
 
                 if (!$notification) {
                     // Not found, it may already have been merged
-                    $consumer->ack($message);
+                    $consumer->acknowledge($message);
                     continue;
                 }
 
                 $event = new NotificationEvent();
                 $event->setNotification($notification)
-                    ->setTimestamp($message->getProperties()['event_timestamp']);
+                    ->setTimestamp($message->getEventTimestamp());
 
                 if (call_user_func($callback, $event, $message) === true) {
-                    $consumer->ack($message);
+                    $consumer->acknowledge($message);
                 }
-            } catch (Exception $e) {
-                $consumer->nack($message);
+            } catch (\Exception $e) {
             }
         }
     }
 
     /**
      * @return Producer
-     * @throws IOException
-     * @throws OptionsException
-     * @throws RuntimeException
      */
-    private function getProducer(): Producer
+    protected function getProducer(): Producer
     {
+        if ($this->producer) {
+            return $this->producer;
+        }
+
         $tenant = $this->getPulsarTenant();
         $namespace = $this->getPulsarNamespace();
         $topic = 'event-notification';
 
         // Build the config and include the schema
-        $config = new ProducerOptions();
-        $config->setSchema(
-            new SchemaJson(
-                $this->getSchema(),
-                [
-                    'key' => 'value'
-                ]
-            )
-        );
 
-        return $this->client()->createProducer("persistent://$tenant/$namespace/$topic", $config);
-    }
+        $config = new ProducerConfiguration();
+        $config->setSchema(SchemaType::AVRO, "notification", $this->getSchema(), []);
 
-    /**
-     * @param string $subscriptionId
-     * @return Consumer
-     * @throws IOException
-     * @throws OptionsException
-     */
-    private function getConsumer(string $subscriptionId): Consumer
-    {
-        $tenant = $this->getPulsarTenant();
-        $namespace = $this->getPulsarNamespace();
-        $topic = 'event-notification';
-
-        $config = new ConsumerOptions();
-        $config->setSchema(
-            new SchemaJson(
-                $this->getSchema(),
-                [
-                    'key' => 'value'
-                ]
-            )
-        );
-        $config->setSubscriptionType(SubscriptionType::Shared);
-
-        return $this->client()->subscribeWithRegex("persistent://$tenant/$namespace/$topic", $subscriptionId, $config);
+        return $this->producer = $this->client()->createProducer("persistent://$tenant/$namespace/$topic", $config);
     }
 
     /**

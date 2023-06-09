@@ -16,7 +16,7 @@ class ManagerSpec extends ObjectBehavior
         Config $config
     ) {
         $this->config = $config;
-        $this->config->get('zendesk')->shouldBeCalled()->willReturn(['private_key' => '123']);
+        $this->config->get('zendesk')->shouldBeCalled()->willReturn(['private_key' => md5('1234abc')]);
 
         $this->beConstructedWith($config);
     }

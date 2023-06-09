@@ -127,7 +127,6 @@ class Join
      */
     public function verify()
     {
-
         // Limit a single account to 3 attempts per day
         $this->kvLimiter
             ->setKey('rewards-verify')

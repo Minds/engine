@@ -4,22 +4,19 @@
  */
 namespace Minds\Core\Entities\Ops;
 
-use Exception;
 use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\Topics\AbstractTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
+use Pulsar\Client;
 use Pulsar\Consumer;
-use Pulsar\ConsumerOptions;
-use Pulsar\Exception\IOException;
-use Pulsar\Exception\MessageNotFound;
-use Pulsar\Exception\OptionsException;
-use Pulsar\Exception\RuntimeException;
-use Pulsar\MessageOptions;
+use Pulsar\ConsumerConfiguration;
+use Pulsar\MessageBuilder;
 use Pulsar\Producer;
-use Pulsar\ProducerOptions;
-use Pulsar\Schema\SchemaJson;
-use Pulsar\SubscriptionType;
+use Pulsar\ProducerConfiguration;
+use Pulsar\Result;
+use Pulsar\SchemaType;
 
 class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
 {
@@ -33,17 +30,16 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
     protected $producer;
 
     public function __construct(
+        Client $client = null,
         Config $config = null
     ) {
-        parent::__construct(
-            config: $config
-        );
+        $this->client = $client ?? null;
+        $this->config = $config ?? Di::_()->get('Config');
     }
 
     /**
      * Sends notifications events to our stream
      * @param EventInterface $event
-     * @return bool
      */
     public function send(EventInterface $event): bool
     {
@@ -52,26 +48,26 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
         }
 
         // Build the message
-        $message = (object) [
-            'op' => $event->getOp(),
-            'entity_urn' => $event->getEntityUrn(),
-        ];
 
-        try {
-            // Send the event to the stream
-            $this->getProducer()->send(
-                payload: $message,
-                options: [
-                    MessageOptions::PROPERTIES => [
-                        'event_timestamp' => $event->getTimestamp() ?? time()
-                    ]
-                ]
-            );
+        $builder = new MessageBuilder();
+        $message = $builder
+            //->setPartitionKey(0)
+            ->setEventTimestamp($event->getTimestamp() ?: time())
+            ->setContent(json_encode([
+                'op' => $event->getOp(),
+                'entity_urn' => $event->getEntityUrn(),
+            ]))
+            ->build();
 
-            return true;
-        } catch (Exception $e) {
+        // Send the event to the stream
+
+        $result = $this->getProducer()->send($message);
+
+        if ($result != Result::ResultOk) {
             return false;
         }
+
+        return true;
     }
 
     /**
@@ -85,11 +81,6 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
      * @param int $execTimeoutInSeconds
      * @param callable|null $onBatchConsumed
      * @return void
-     * @throws IOException
-     * @throws MessageNotFound
-     * @throws OptionsException
-     * @throws RuntimeException
-     * @throws Exception
      */
     public function consume(
         string $subscriptionId,
@@ -100,32 +91,36 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
         int $execTimeoutInSeconds = 30,
         ?callable $onBatchConsumed = null
     ): void {
-        $consumer = $this->getConsumer($subscriptionId);
+        $tenant = $this->getPulsarTenant();
+        $namespace = $this->getPulsarNamespace();
+        $topic = static::TOPIC_NAME;
+
+        $config = new ConsumerConfiguration();
+        $config->setConsumerType(Consumer::ConsumerShared);
+        $config->setSchema(SchemaType::AVRO, static::SCHEMA_NAME, $this->getSchema(), []);
+
+        $consumer = $this->client()->subscribe("persistent://$tenant/$namespace/$topic", $subscriptionId, $config);
 
         while (true) {
-            $message = $consumer->receive();
             try {
-                $data = json_decode($message->getPayload(), true);
+                $message = $consumer->receive();
+                $data = json_decode($message->getDataAsString(), true);
 
                 $event = new EntitiesOpsEvent();
                 $event->setEntityUrn($data['entity_urn'])
                     ->setOp($data['op'])
-                    ->setTimestamp($message->getProperties()['event_timestamp']);
+                    ->setTimestamp($message->getEventTimestamp());
 
                 if (call_user_func($callback, $event, $message) === true) {
-                    $consumer->ack($message);
+                    $consumer->acknowledge($message);
                 }
-            } catch (Exception $e) {
-                $consumer->nack($message);
+            } catch (\Exception $e) {
             }
         }
     }
 
     /**
      * @return Producer
-     * @throws IOException
-     * @throws OptionsException
-     * @throws RuntimeException
      */
     protected function getProducer(): Producer
     {
@@ -138,43 +133,11 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
         $topic = static::TOPIC_NAME;
 
         // Build the config and include the schema
-        $config = new ProducerOptions();
-        $config->setSchema(
-            new SchemaJson(
-                $this->getSchema(),
-                [
-                    'key' => 'value'
-                ]
-            )
-        );
+
+        $config = new ProducerConfiguration();
+        $config->setSchema(SchemaType::AVRO, static::SCHEMA_NAME, $this->getSchema(), []);
 
         return $this->producer = $this->client()->createProducer("persistent://$tenant/$namespace/$topic", $config);
-    }
-
-    /**
-     * @param string $subscriptionId
-     * @return Consumer
-     * @throws IOException
-     * @throws OptionsException
-     */
-    private function getConsumer(string $subscriptionId): Consumer
-    {
-        $tenant = $this->getPulsarTenant();
-        $namespace = $this->getPulsarNamespace();
-        $topicRegex = static::TOPIC_NAME;
-
-        $config = new ConsumerOptions();
-        $config->setSchema(
-            new SchemaJson(
-                $this->getSchema(),
-                [
-                    'key' => 'value'
-                ]
-            )
-        );
-        $config->setSubscriptionType(SubscriptionType::Shared);
-
-        return $this->client()->subscribeWithRegex("persistent://$tenant/$namespace/$topicRegex", $subscriptionId, $config);
     }
 
     /**

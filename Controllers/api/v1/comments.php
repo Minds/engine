@@ -102,182 +102,182 @@ class comments implements Interfaces\Api
         $request = ServerRequestFactory::fromGlobals();
 
         switch ($pages[0]) {
-          case "update":
-            $comment = $manager->getByLuid($pages[1]);
+            case "update":
+                $comment = $manager->getByLuid($pages[1]);
 
-            if ($comment) {
-                $canEdit = $comment->canEdit();
+                if ($comment) {
+                    $canEdit = $comment->canEdit();
 
-                if ($canEdit && $comment->getOwnerGuid() != Core\Session::getLoggedInUserGuid()) {
-                    $canEdit = false;
+                    if ($canEdit && $comment->getOwnerGuid() != Core\Session::getLoggedInUserGuid()) {
+                        $canEdit = false;
+                    }
                 }
-            }
 
-            if (!$comment || !$canEdit) {
-                $response = ['status' => 'error', 'message' => 'This comment can not be edited'];
-                break;
-            }
+                if (!$comment || !$canEdit) {
+                    $response = ['status' => 'error', 'message' => 'This comment can not be edited'];
+                    break;
+                }
 
-            $content = $_POST['comment'];
+                $content = $_POST['comment'];
 
-            // Odd fallback so we don't break mobile apps editing
-            if (!$_POST['title'] && $_POST['description']) {
-                $content = $_POST['description'];
-            }
+                // Odd fallback so we don't break mobile apps editing
+                if (!$_POST['title'] && $_POST['description']) {
+                    $content = $_POST['description'];
+                }
 
-            if (!$content && !$_POST['attachment_guid']) {
-                return Factory::response([
-                'status' => 'error',
-                'message' => 'You must enter a message'
-              ]);
-            }
-
-            $comment->setBody($content);
-
-            if (!$_POST['attachment_guid']) {
-                $comment->removeAttachments();
-            }
-
-            if (isset($_POST['mature'])) {
-                $comment->setMature(!!$_POST['mature']);
-            }
-
-            $comment->setTimeUpdated(time());
-            $comment->setEdited(true);
-            $comment->setClientMeta($request->getParsedBody()['client_meta'] ?? []);
-
-            try {
-                $saved = $manager->update($comment);
-                $error = !$saved;
-            } catch (ProhibitedDomainException $e) {
-                throw $e;
-            } catch (\Exception $e) {
-                $error = true;
-            }
-
-            break;
-          case is_numeric($pages[0]):
-          default:
-            $entity = Core\Di\Di::_()->get('EntitiesBuilder')->single($pages[0]);
-
-            if (!$pages[0] || !$entity || $entity->type == 'comment') {
-                return Factory::response([
-                  'status' => 'error',
-                  'message' => 'We could not find that post'
-                ]);
-            }
-
-            if (method_exists($entity, 'getAllowComments') && !$entity->getAllowComments()) {
-                return Factory::response([
-                    'status' => 'error',
-                    'message' => 'This user has disabled comments on their post'
-                ]);
-            }
-
-            if (!$_POST['comment'] && !$_POST['attachment_guid']) {
-                return Factory::response([
-                  'status' => 'error',
-                  'message' => 'You must enter a message'
-                ]);
-            }
-
-            /*if (!Security\ACL::_()->write($entity)) {
-                return Factory::response([
-                    'status' => 'error',
-                    'message' => 'You do not have permission to comment on this post'
-                ]);
-            }*/
-
-            $parent_guids = explode(':', $_POST['parent_path'] ?? '0:0:0');
-
-            $comment = new Core\Comments\Comment();
-            $comment
-                ->setEntityGuid($entity->guid)
-                ->setParentGuidL1($parent_guids[0] ?? 0)
-                ->setParentGuidL2($parent_guids[1] ?? 0)
-                ->setMature(isset($_POST['mature']) && $_POST['mature'])
-                ->setOwnerObj(Core\Session::getLoggedInUser())
-                ->setContainerGuid(Core\Session::getLoggedInUserGuid())
-                ->setTimeCreated(time())
-                ->setTimeUpdated(time())
-                ->setClientMeta($request->getParsedBody()['client_meta'] ?? [])
-                ->setBody($_POST['comment']);
-
-            if (isset($_POST['parentGuidL1'])) {
-                $comment->setParentGuidL1($_POST['parentGuidL1']);
-            }
-
-            if (isset($_POST['parentGuidL2'])) {
-                $comment->setParentGuidL2($_POST['parentGuidL2']);
-            }
-
-            if ($entity instanceof Entities\Group) {
-                if ($entity->isConversationDisabled()) {
+                if (!$content && !$_POST['attachment_guid']) {
                     return Factory::response([
-                        'status' => 'error',
-                        'message' => 'Conversation has been disabled for this group',
+                    'status' => 'error',
+                    'message' => 'You must enter a message'
+              ]);
+                }
+
+                $comment->setBody($content);
+
+                if (!$_POST['attachment_guid']) {
+                    $comment->removeAttachments();
+                }
+
+                if (isset($_POST['mature'])) {
+                    $comment->setMature(!!$_POST['mature']);
+                }
+
+                $comment->setTimeUpdated(time());
+                $comment->setEdited(true);
+                $comment->setClientMeta($request->getParsedBody()['client_meta'] ?? []);
+
+                try {
+                    $saved = $manager->update($comment);
+                    $error = !$saved;
+                } catch (ProhibitedDomainException $e) {
+                    throw $e;
+                } catch (\Exception $e) {
+                    $error = true;
+                }
+
+                break;
+            case is_numeric($pages[0]):
+            default:
+                $entity = Core\Di\Di::_()->get('EntitiesBuilder')->single($pages[0]);
+
+                if (!$pages[0] || !$entity || $entity->type == 'comment') {
+                    return Factory::response([
+                      'status' => 'error',
+                      'message' => 'We could not find that post'
                     ]);
                 }
-                $comment->setGroupConversation(true);
-            }
 
-            // TODO: setHasChildren (for threaded)
-            try {
-                $saved = $manager->add($comment);
-
-                if ($saved) {
-                    // Defer emitting after processing attachments
-                    $comment->setEphemeral(false);
-                    $emitToSocket = true;
-                    $response['comment'] = $comment->export();
-                } else {
-                    throw new \Exception('The comment couldn\'t be saved');
-                }
-            } catch (UnverifiedEmailException $e) {
-                throw $e;
-            } catch (ProhibitedDomainException $e) {
-                throw $e;
-            } catch (BlockedUserException $e) {
-                $error = true;
-
-                $parentOwnerUsername = '';
-
-                if (isset($entity->ownerObj['username'])) {
-                    $parentOwnerUsername = "@{$entity->ownerObj['username']}";
+                if (method_exists($entity, 'getAllowComments') && !$entity->getAllowComments()) {
+                    return Factory::response([
+                        'status' => 'error',
+                        'message' => 'This user has disabled comments on their post'
+                    ]);
                 }
 
-                $reason = "The comment couldn't be saved because you can't interact with the post.";
-
-                // Is a reply
-                if ($comment->getPartitionPath() !== '0:0:0') {
-                    $reason = "The comment couldn't be saved because you can't interact with the comment and/or post.";
+                if (!$_POST['comment'] && !$_POST['attachment_guid']) {
+                    return Factory::response([
+                      'status' => 'error',
+                      'message' => 'You must enter a message'
+                    ]);
                 }
 
-                $response = [
-                    'status' => 'error',
-                    'message' => $reason,
-                ];
-            } catch (PaywallUserNotPaid $e) {
-                $error = true;
+                /*if (!Security\ACL::_()->write($entity)) {
+                    return Factory::response([
+                        'status' => 'error',
+                        'message' => 'You do not have permission to comment on this post'
+                    ]);
+                }*/
 
-                $response = [
-                    'status' => 'error',
-                    'message' => "You do not meet the subscription tier requirements to comment on this activity."
-                ];
-            } catch (RateLimitExceededException $e) {
-                $response = [
-                    'status' => 'error',
-                    'message' => "Please wait before making another comment."
-                ];
-            } catch (\Exception $e) {
-                error_log($e);
-                $error = true;
+                $parent_guids = explode(':', $_POST['parent_path'] ?? '0:0:0');
 
-                $response = [
-                    'status' => 'error',
-                    'message' => "The comment couldn't be saved"
-                ];
-            }
+                $comment = new Core\Comments\Comment();
+                $comment
+                    ->setEntityGuid($entity->guid)
+                    ->setParentGuidL1($parent_guids[0] ?? 0)
+                    ->setParentGuidL2($parent_guids[1] ?? 0)
+                    ->setMature(isset($_POST['mature']) && $_POST['mature'])
+                    ->setOwnerObj(Core\Session::getLoggedInUser())
+                    ->setContainerGuid(Core\Session::getLoggedInUserGuid())
+                    ->setTimeCreated(time())
+                    ->setTimeUpdated(time())
+                    ->setClientMeta($request->getParsedBody()['client_meta'] ?? [])
+                    ->setBody($_POST['comment']);
+
+                if (isset($_POST['parentGuidL1'])) {
+                    $comment->setParentGuidL1($_POST['parentGuidL1']);
+                }
+
+                if (isset($_POST['parentGuidL2'])) {
+                    $comment->setParentGuidL2($_POST['parentGuidL2']);
+                }
+
+                if ($entity instanceof Entities\Group) {
+                    if ($entity->isConversationDisabled()) {
+                        return Factory::response([
+                            'status' => 'error',
+                            'message' => 'Conversation has been disabled for this group',
+                        ]);
+                    }
+                    $comment->setGroupConversation(true);
+                }
+
+                // TODO: setHasChildren (for threaded)
+                try {
+                    $saved = $manager->add($comment);
+
+                    if ($saved) {
+                        // Defer emitting after processing attachments
+                        $comment->setEphemeral(false);
+                        $emitToSocket = true;
+                        $response['comment'] = $comment->export();
+                    } else {
+                        throw new \Exception('The comment couldn\'t be saved');
+                    }
+                } catch (UnverifiedEmailException $e) {
+                    throw $e;
+                } catch (ProhibitedDomainException $e) {
+                    throw $e;
+                } catch (BlockedUserException $e) {
+                    $error = true;
+
+                    $parentOwnerUsername = '';
+
+                    if (isset($entity->ownerObj['username'])) {
+                        $parentOwnerUsername = "@{$entity->ownerObj['username']}";
+                    }
+
+                    $reason = "The comment couldn't be saved because you can't interact with the post.";
+
+                    // Is a reply
+                    if ($comment->getPartitionPath() !== '0:0:0') {
+                        $reason = "The comment couldn't be saved because you can't interact with the comment and/or post.";
+                    }
+
+                    $response = [
+                        'status' => 'error',
+                        'message' => $reason,
+                    ];
+                } catch (PaywallUserNotPaid $e) {
+                    $error = true;
+
+                    $response = [
+                        'status' => 'error',
+                        'message' => "You do not meet the subscription tier requirements to comment on this activity."
+                    ];
+                } catch (RateLimitExceededException $e) {
+                    $response = [
+                        'status' => 'error',
+                        'message' => "Please wait before making another comment."
+                    ];
+                } catch (\Exception $e) {
+                    error_log($e);
+                    $error = true;
+
+                    $response = [
+                        'status' => 'error',
+                        'message' => "The comment couldn't be saved"
+                    ];
+                }
         }
 
         $modified = false;

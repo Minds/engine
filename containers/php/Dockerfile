@@ -1,4 +1,4 @@
-FROM php:8.1-fpm-alpine3.17
+FROM php:8.1-fpm-alpine3.18
 
 # Install AWS CLI
 RUN apk update \
@@ -145,10 +145,62 @@ RUN apk add --virtual build-deps \
     && make install \
     && docker-php-ext-enable zmq \
     && rm -rf $INSTALL_DIR \
-    && apk del build-deps
+    && cd .. \
+    && apk del build-deps \
+    # Pulsar build deps
+    && apk add --no-cache --virtual build-deps \
+    bash \
+    cmake \
+    autoconf \
+    g++ \
+    gcc \
+    make \
+    pcre-dev \
+    libuv-dev \
+    git \
+    gmp-dev \
+    autoconf \
+    libtool \
+    openssl-dev \
+    zlib-dev \
+    boost-dev \
+    py3-setuptools \
+    python3-dev \
+    protobuf-dev \
+    curl-dev \
+    gtest-dev gmock \
+    $PHPIZE_DEPS \
+    # PHP CPP
+    && export INSTALL_DIR=/usr/src/php-cpp \
+    && git clone https://github.com/fast-debug/PHP-CPP.git $INSTALL_DIR \
+    && cd $INSTALL_DIR \
+    && make -j4 \
+    && make install \
+    && rm -rf $INSTALL_DIR \
+    && cd .. \
+    # Pulsar CPP Client
+    && export INSTALL_DIR=/usr/src/pulsar-client-cpp \
+    && git clone --depth 1 https://github.com/apache/pulsar-client-cpp.git $INSTALL_DIR \
+    && echo "cloned" \
+    && cd $INSTALL_DIR \
+    && cmake . -DBUILD_TESTS=OFF \
+    && make -j2 \
+    && make install \
+    && rm -rf $INSTALL_DIR \
+    && cd .. \
+    # Pulsar PHP Client
+    && export INSTALL_DIR=/usr/src/pulsar-php-client \
+    && git clone https://gitlab.com/minds/pulsar-php-client $INSTALL_DIR \
+    && cd $INSTALL_DIR \
+    && make -j4 \
+    && cp output/pulsar.so $(php-config --extension-dir)/pulsar.so \
+    && rm -rf $INSTALL_DIR \
+    && apk del build-deps \
+    && apk add protobuf-dev
 
 # PHP INI
 COPY php.ini /usr/local/etc/php/
 COPY opcache.ini /usr/local/etc/php/conf.d/opcache-recommended.ini
+COPY pulsar.ini /usr/local/etc/php/conf.d/pulsar.ini
 
 WORKDIR /var/www/Minds

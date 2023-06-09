@@ -9,8 +9,8 @@ class Factory
     public static function build($handler, $opts = [])
     {
         switch (ucfirst($handler)) {
-          default:
-            throw new \Exception("Service not found");
+            default:
+                throw new \Exception("Service not found");
         }
     }
 }

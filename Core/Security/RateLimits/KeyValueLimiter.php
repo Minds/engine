@@ -62,7 +62,7 @@ class KeyValueLimiter
         $this->redis = $redis ?: new RedisServer();
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->jwt = $jwt ?? new Jwt();
-        $this->jwt->setKey($this->config->get('cypress')['shared_key'] ?? '');
+        $this->jwt->setKey($this->config->get('cypress')['shared_key'] ?? hash('sha256', 'setmeup'));
     }
 
     /**
@@ -203,7 +203,6 @@ class KeyValueLimiter
     private function getRedis(): RedisServer
     {
         if (!$this->redisIsConnected && $this->config->redis) {
-
             // TODO fully move to Redis HA
             $redisHa = ($this->config->redis['ha']) ?? null;
             if ($redisHa) {

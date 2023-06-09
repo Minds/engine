@@ -35,7 +35,7 @@
         "psr/http-server-middleware": "1.0.1",
         "monolog/monolog": "^2.5",
         "psr/simple-cache": "1.0.1",
-        "icamys/php-sitemap-generator": "^4.3",
+        "icamys/php-sitemap-generator": "^4.4.1",
         "sentry/sdk": "^3.1",
         "vlucas/phpdotenv": "^4.3",
         "sendgrid/sendgrid": "^7.4",
@@ -56,10 +56,10 @@
         "textalk/websocket": "^1.5",
         "promphp/prometheus_client_php": "^2.6",
         "minds/mysql-fluent-interface": "dev-master",
-        "tia/pulsar-client-php": "dev-main",
         "thecodingmachine/graphqlite": "6.1.0",
         "symfony/cache": "v5.4.23",
-        "symfony/expression-language": "v5.4.21"
+        "symfony/expression-language": "v5.4.21",
+        "google/cloud-pubsub": "^1.43"
     },
     "repositories": [
         {
@@ -85,10 +85,6 @@
         {
             "type": "vcs",
             "url": "https://github.com/FaustoJohn/selective-database.git"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/FaustoJohn/pulsar-client-php.git"
         }
     ],
     "autoload": {

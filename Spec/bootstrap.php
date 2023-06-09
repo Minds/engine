@@ -45,7 +45,7 @@ $CONFIG->payments = [
 ];
 
 $CONFIG->cypress = [
-    'shared_key' => 'random-key',
+    'shared_key' => base64_encode(openssl_random_pseudo_bytes(256)),
 ];
 
 $CONFIG->pro = [

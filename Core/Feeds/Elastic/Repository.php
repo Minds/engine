@@ -246,7 +246,7 @@ class Repository
                 $algorithm = new SortingAlgorithms\Controversial();
                 break;
             case "hot":
-                    $algorithm = new SortingAlgorithms\TopV2();
+                $algorithm = new SortingAlgorithms\TopV2();
                 break;
             case SortingAlgorithms\DigestFeed::class:
                 $algorithm = new SortingAlgorithms\DigestFeed();

@@ -5,7 +5,7 @@
 namespace Minds\Core\EventStreams\Topics;
 
 use Exception;
-use Minds\Common\Pulsar\Client as PulsarClient;
+use Pulsar\Client as PulsarClient;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
@@ -21,8 +21,6 @@ abstract class AbstractTopic
     private static array $processedMessages = [];
     private static int $startTime = 0;
 
-    protected ?PulsarClient $client = null;
-
     /** @var Config */
     protected $config;
 
@@ -33,13 +31,12 @@ abstract class AbstractTopic
     protected $entitiesResolver;
 
     public function __construct(
-        PulsarClient      $client = null,
+        private ?PulsarClient      $client = null,
         Config            $config = null,
         EntitiesBuilder   $entitiesBuilder = null,
         Resolver          $entitiesResolver = null,
         protected ?Logger $logger = null
     ) {
-        $this->client ??= $client;
         $this->config = $config ?? Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->entitiesResolver = $entitiesResolver ?? new Resolver();
@@ -53,7 +50,7 @@ abstract class AbstractTopic
      */
     protected function client(): PulsarClient
     {
-        return $this->client = new PulsarClient();
+        return $this->client ??= Di::_()->get(PulsarClient::class);
     }
 
     /**
@@ -82,7 +79,7 @@ abstract class AbstractTopic
      */
     protected function getBatchMessageId(Message $message): string
     {
-        return (json_decode($message->getPayload()))->view_uuid;
+        return (json_decode($message->getDataAsString()))->view_uuid;
     }
 
     /**
@@ -156,7 +153,7 @@ abstract class AbstractTopic
     private function acknowledgeProcessedMessages(Consumer $consumer): void
     {
         foreach (self::$processedMessages as $message) {
-            $consumer->ack($message);
+            $consumer->acknowledge($message);
             unset(self::$batchMessages[$this->getBatchMessageId($message)]);
         }
     }
@@ -178,14 +175,5 @@ abstract class AbstractTopic
     public function getTotalMessagesProcessedInBatch(): int
     {
         return count(self::$processedMessages);
-    }
-
-    /**
-     * Close the connection
-     * @throws IOException
-     */
-    public function __destruct()
-    {
-        $this->client?->close();
     }
 }

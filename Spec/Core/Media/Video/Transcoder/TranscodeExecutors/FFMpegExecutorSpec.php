@@ -41,7 +41,6 @@ class FFMpegExecutorSpec extends ObjectBehavior
         \FFMpeg\FFProbe\DataMapping\Format $ffprobeFormat,
         \FFMpeg\Media\Frame $ffmpegFrame
     ) {
-
         // $this->imageHelper->getimagesize('/tmp/fake-path-for-source-thumbnails/thumbnail-00000.png')
         //     ->shouldBeCalled()
         //     ->willReturn([100,200]);

@@ -126,7 +126,6 @@ class settings implements Interfaces\Api
             }
 
             if (isset($_POST['boost_partner_suitability'])) {
-
                 /** @var SettingsManager $settingsV3Manager */
                 $settingsV3Manager = Di::_()->get('Settings\Manager');
 

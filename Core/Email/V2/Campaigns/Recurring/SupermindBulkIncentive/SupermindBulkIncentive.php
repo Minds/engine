@@ -210,7 +210,7 @@ class SupermindBulkIncentive extends EmailCampaign
         $actionButton = (new ActionButtonV2())
             ->setLabel("Let's do it")
             ->setPath($actionButtonPath)
-            ;
+        ;
 
         $this->template->set('actionButton', $actionButton->build());
 

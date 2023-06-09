@@ -194,7 +194,6 @@ class Controller
          * Attachments
          */
         if (isset($payload['attachment_guids']) && count($payload['attachment_guids']) > 0) {
-
             /**
              * Build out the attachment entities
              */
