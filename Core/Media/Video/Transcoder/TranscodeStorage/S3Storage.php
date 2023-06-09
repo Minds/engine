@@ -132,6 +132,8 @@ class S3Storage implements TranscodeStorageInterface
                 'body' => json_encode($data),
             ]);
             $result = json_decode($response->getBody(), true);
+
+            // TODO remove these
             error_log("Pre-authenticated request created with name {$result['name']}\n");
             error_log("Upload URL: {$result['accessUri']}\n");
 
