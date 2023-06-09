@@ -46,16 +46,6 @@ class S3Storage implements TranscodeStorageInterface
             ]
         ];
 
-        // API Auth
-        $oci_api_config = [
-            'tenantId' => $this->config->get('oci')['api_auth']['tenant_id'],
-            'userId' => $this->config->get('oci')['api_auth']['user_id'],
-            'keyFingerprint' => $this->config->get('oci')['api_auth']['key_fingerprint'],
-            'privateKey' => $this->config->get('oci')['api_auth']['private_key'],
-            'region' => 'us-ashburn-1',
-            'service' => 'objectstorage'
-        ];
-
         // Set primary and secondary clients
         $primaryOpts = $this->config->get('transcoder')['use_oracle_oss'] ? $ociOpts : $opts;
         $secondaryOpts = $this->config->get('transcoder')['use_oracle_oss'] ? $opts : $ociOpts;
