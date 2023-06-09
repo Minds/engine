@@ -139,7 +139,7 @@ class FFMpeg implements ServiceInterface
         }
 
         // Create Guzzle client
-        $client = new Client(['base_uri' => "https://objectstorage.{$oci_api_config['region']}.oraclecloud.com"]);
+        $client = new HttpClient(['base_uri' => "https://objectstorage.{$oci_api_config['region']}.oraclecloud.com"]);
 
         // Create pre-authenticated request
         $data = [
