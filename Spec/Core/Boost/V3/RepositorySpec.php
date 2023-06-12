@@ -81,8 +81,8 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, payment_guid, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :payment_guid, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
+        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_platform_web, target_platform_android, target_platform_ios, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, payment_guid, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
+                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_platform_web, :target_platform_android, :target_platform_ios, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :payment_guid, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
 
         $this->mysqlClientWriter->prepare($query)
             ->shouldBeCalledOnce()
@@ -99,6 +99,12 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn('1236');
         $boost->getTargetSuitability()
             ->willReturn(BoostTargetSuitability::SAFE);
+        $boost->getTargetPlatformWeb()
+            ->willReturn(true);
+        $boost->getTargetPlatformAndroid()
+            ->willReturn(true);
+        $boost->getTargetPlatformIos()
+            ->willReturn(true);
         $boost->getTargetLocation()
             ->willReturn(BoostTargetLocation::NEWSFEED);
         $boost->getGoal()
@@ -140,8 +146,8 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, payment_guid, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :payment_guid, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
+        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_platform_web, target_platform_android, target_platform_ios, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, payment_guid, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
+                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_platform_web, :target_platform_android, :target_platform_ios, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :payment_guid, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
 
         $this->mysqlClientWriter->prepare($query)
             ->shouldBeCalledOnce()
@@ -162,6 +168,12 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn('1236');
         $boost->getTargetSuitability()
             ->willReturn(BoostTargetSuitability::SAFE);
+        $boost->getTargetPlatformWeb()
+            ->willReturn(true);
+        $boost->getTargetPlatformAndroid()
+            ->willReturn(true);
+        $boost->getTargetPlatformIos()
+            ->willReturn(true);
         $boost->getTargetLocation()
             ->willReturn(BoostTargetLocation::NEWSFEED);
         $boost->getGoal()
@@ -170,7 +182,6 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn(null);
         $boost->getGoalButtonUrl()
             ->willReturn(null);
-
         $boost->getPaymentMethod()
             ->willReturn(BoostPaymentMethod::CASH);
         $boost->getPaymentAmount()
@@ -390,6 +401,9 @@ class RepositorySpec extends ObjectBehavior
             'entity_guid' => '123',
             'target_location' => 1,
             'target_suitability' => 1,
+            'target_platform_web' => true,
+            'target_platform_android' => true,
+            'target_platform_ios' => true,
             'payment_method' => 1,
             'payment_amount' => 20,
             'payment_guid' => '123',

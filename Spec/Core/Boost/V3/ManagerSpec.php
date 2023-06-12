@@ -126,6 +126,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledTimes(2)
             ->willReturn('activity');
 
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->experimentsManager->isOn('minds-3952-boost-goals')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -155,6 +159,9 @@ class ManagerSpec extends ObjectBehavior
             'entity_guid' => '123',
             'target_location' => 1,
             'target_suitability' => 1,
+            'target_platform_web' => true,
+            'target_platform_android' => true,
+            'target_platform_ios' => true,
             'payment_method' => 1,
             'daily_bid' => 10,
             'duration_days' => 2,
@@ -197,6 +204,10 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
+
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->experimentsManager->isOn('minds-3952-boost-goals')
             ->shouldBeCalled()
@@ -269,6 +280,11 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
 
+
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->experimentsManager->isOn('minds-3952-boost-goals')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -339,6 +355,10 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
+
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->experimentsManager->isOn('minds-3952-boost-goals')
             ->shouldBeCalled()
@@ -486,6 +506,10 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
 
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->experimentsManager->isOn('minds-3952-boost-goals')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -573,6 +597,10 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
 
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->experimentsManager->isOn('minds-3952-boost-goals')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -625,6 +653,10 @@ class ManagerSpec extends ObjectBehavior
     ): void {
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
+
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->experimentsManager->isOn('minds-3952-boost-goals')
             ->shouldBeCalled()
@@ -688,6 +720,10 @@ class ManagerSpec extends ObjectBehavior
     ): void {
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
+
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->experimentsManager->isOn('minds-3952-boost-goals')
             ->shouldBeCalled()
