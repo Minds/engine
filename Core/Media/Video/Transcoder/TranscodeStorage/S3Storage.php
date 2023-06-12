@@ -101,12 +101,12 @@ class S3Storage implements TranscodeStorageInterface
             'name' => $key,
             'objectName' => $key,
             'accessType' => 'ObjectWrite',
-            'timeExpires' => gmdate('D, d M Y G:i:s T', strtotime('+20 minutes')),
+            'timeExpires' => gmdate('D M d G:i:s T Y', strtotime('+20 minutes')),
         ];
         $headers = [
             'Content-Type' => 'application/json',
             'x-content-sha256' => base64_encode(hash('sha256', json_encode($data), true)),
-            'date' => gmdate('D M d G:i:s T Y'),
+            'date' => gmdate('D, d M Y G:i:s T'),
         ];
         $requestTarget = "(request-target): post /n/{$oci_api_config['bucketNamespace']}/b/{$oci_api_config['bucketName']}/p/";
 
