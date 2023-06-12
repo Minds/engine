@@ -45,7 +45,6 @@ class FcmService extends AbstractService implements PushServiceInterface
             ],
         ];
 
-        error_log(json_encode($body));
         try {
             $this->request($body);
         } catch (\Exception $e) {
@@ -73,9 +72,6 @@ class FcmService extends AbstractService implements PushServiceInterface
         $json = $httpClient->request('POST', "https://fcm.googleapis.com/v1/projects/$projectId/messages:send", [
                     'json' => $body
                 ]);
-
-        error_log($json->getStatusCode());
-        error_log($json->getBody()->getContents());
         
         return $json;
     }

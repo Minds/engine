@@ -252,6 +252,12 @@ class PushNotification implements PushNotificationInterface
         }
     }
 
+    /**
+     * Needed to allow push notifications to be sent from dev environments
+     * Note: Push notifications' deep links are not supported on dev environments
+     * @param string $route
+     * @return string
+     */
     private function getEnvBasedUri(string $route): string
     {
         if (!str_contains($this->config->get('site_url'), 'minds.io') && !str_contains($this->config->get('site_url'), 'minds.com')) {
@@ -265,7 +271,7 @@ class PushNotification implements PushNotificationInterface
      */
     public function getIcon(): string
     {
-        if (!str_contains($this->notification->getFrom()->getIconURL('large'), 'minds.io') && !str_contains($this->notification->getFrom()->getIconURL('large'), 'minds.com')) {
+        if ($this->getEnvBasedUri("") === "") {
             return "";
         }
 
