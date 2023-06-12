@@ -106,7 +106,7 @@ class S3Storage implements TranscodeStorageInterface
         $headers = [
             'Content-Type' => 'application/json',
             'x-content-sha256' => base64_encode(hash('sha256', json_encode($data), true)),
-            'date' => gmdate('D, d M Y G:i:s T'),
+            'date' => gmdate('D M d G:i:s T Y'),
         ];
         $requestTarget = "(request-target): post /n/{$oci_api_config['bucketNamespace']}/b/{$oci_api_config['bucketName']}/p/";
 
