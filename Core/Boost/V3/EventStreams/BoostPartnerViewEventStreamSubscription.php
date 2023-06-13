@@ -78,8 +78,8 @@ class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterf
 
             $boostGuid = Urn::_($messageData->cm_campaign)->getNss();
 
-            $this->logger->addInfo("--------------------");
-            $this->logger->addInfo(
+            $this->logger->info("--------------------");
+            $this->logger->info(
                 "Start processing boost partner view event served by $messageData->cm_served_by_guid for boost $boostGuid",
                 (array) $messageData
             );
@@ -90,15 +90,15 @@ class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterf
                 eventTimestamp: $message->getEventTimestamp()
             );
 
-            $this->logger->addInfo("Done processing boost partner view event", (array) $messageData);
+            $this->logger->info("Done processing boost partner view event", (array) $messageData);
 
             if (!$isMessageProcessed) {
                 continue;
             }
 
             $this->getTopic()->markMessageAsProcessed($message);
-            $this->logger->addInfo("Marked boost partner view event as processed", (array) $messageData);
-            $this->logger->addInfo("--------------------");
+            $this->logger->info("Marked boost partner view event as processed", (array) $messageData);
+            $this->logger->info("--------------------");
         }
 
         if ($this->getTopic()->getTotalMessagesProcessedInBatch() === 0) {
