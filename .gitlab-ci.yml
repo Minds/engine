@@ -269,10 +269,6 @@ integration_testing:
     # Push to Gitlab registry
     - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
     - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
-    # Update EKS role
-    - aws eks --region us-east-1 update-kubeconfig --name $AWS_EKS_CLUSTER_NAME --role-arn=$AWS_IAM_ROLE_ARN
-    # EKS: Rolling restart
-    - kubectl rollout restart deployment minds-engine-$IMAGE_LABEL
     # OKE: Rolling restart
     - *oci_prepare
     - kubectl rollout restart deployment minds-engine-$IMAGE_LABEL
@@ -327,15 +323,11 @@ production:runners:
     - docker:dind
   script:
     - IMAGE_LABEL="production"
-    - $(aws ecr get-login --no-include-email --region us-east-1)
     - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
     - docker pull $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
     # Push gitlab registry
     - docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
     - docker push $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
-    # Restart all runners
-    - aws eks --region us-east-1 update-kubeconfig --name $AWS_EKS_CLUSTER_NAME --role-arn=$AWS_IAM_ROLE_ARN
-    - kubectl get deployments | grep minds-runner- | awk '{print $1}' | xargs kubectl rollout restart deployment
     # OKE: Rolling restart
     - *oci_prepare
     - kubectl get deployments | grep minds-runners- | awk '{print $1}' | xargs kubectl rollout restart deployment
