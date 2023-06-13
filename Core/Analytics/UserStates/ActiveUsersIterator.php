@@ -4,7 +4,6 @@ namespace Minds\Core\Analytics\UserStates;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Core\Data;
 
 /*
 * Iterator that loops through users and counts their action.active entries for the past N days
@@ -40,7 +39,7 @@ class ActiveUsersIterator implements \Iterator
     }
 
     //Sets the last day for the iterator (ie, today)
-    public function setReferenceDate($referenceDate)
+    public function setReferenceDate(mixed $referenceDate): self
     {
         $this->referenceDate = $referenceDate;
 
@@ -48,7 +47,7 @@ class ActiveUsersIterator implements \Iterator
     }
 
     //Sets the number of days to look backwards
-    public function setRangeOffset($rangeOffset)
+    public function setRangeOffset(mixed $rangeOffset): self
     {
         $this->rangeOffset = $rangeOffset;
 
@@ -62,7 +61,7 @@ class ActiveUsersIterator implements \Iterator
     }
 
     //Builds up a sub aggregate that counts the days for a bucket with the same name
-    private function buildBucketCountAggregation($name)
+    private function buildBucketCountAggregation(string $name): array
     {
         return [
             'sum_bucket' => [
@@ -72,7 +71,7 @@ class ActiveUsersIterator implements \Iterator
     }
 
     //Builds up a sub aggregate that splits a user's activity into days
-    private function buildBucketAggregation($name, $dayOffset)
+    private function buildBucketAggregation(string $name, int $dayOffset): array
     {
         $toOffset = $dayOffset - 1;
         //Set times to midnight of the current day until midnight of the next day(end of day);
@@ -229,7 +228,7 @@ class ActiveUsersIterator implements \Iterator
     /**
      * Rewind the array cursor.
      */
-    public function rewind()
+    public function rewind(): void
     {
         if ($this->cursor >= 0) {
             $this->get();
@@ -242,7 +241,7 @@ class ActiveUsersIterator implements \Iterator
      *
      * @return mixed
      */
-    public function current()
+    public function current(): mixed
     {
         return $this->data[$this->cursor];
     }
@@ -250,9 +249,9 @@ class ActiveUsersIterator implements \Iterator
     /**
      * Get cursor's key.
      *
-     * @return mixed
+     * @return int
      */
-    public function key()
+    public function key(): int
     {
         return $this->cursor;
     }
@@ -260,7 +259,7 @@ class ActiveUsersIterator implements \Iterator
     /**
      * Goes to the next cursor.
      */
-    public function next()
+    public function next(): void
     {
         ++$this->cursor;
         if (!isset($this->data[$this->cursor])) {
@@ -273,7 +272,7 @@ class ActiveUsersIterator implements \Iterator
      *
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->valid && isset($this->data[$this->cursor]);
     }

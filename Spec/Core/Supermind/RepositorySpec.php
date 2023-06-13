@@ -620,6 +620,9 @@ class RepositorySpec extends ObjectBehavior
         $status = SupermindRequestStatus::CREATED;
         $supermindRequestId = '123';
 
+        $pdoStatement->execute()
+            ->willReturn(true);
+
         $this->mysqlClientWriter->prepare(Argument::that(function ($arg) {
             return $this->forceStringSingleLine($arg) === $this->forceStringSingleLine("
                 UPDATE superminds SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid

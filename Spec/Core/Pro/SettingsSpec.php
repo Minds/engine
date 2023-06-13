@@ -4,7 +4,6 @@ namespace Spec\Minds\Core\Pro;
 
 use Minds\Core\Pro\Settings;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 
 class SettingsSpec extends ObjectBehavior
 {
@@ -33,6 +32,7 @@ class SettingsSpec extends ObjectBehavior
 
     public function it_should_export()
     {
+        $this->setHeadline("This is a headline.\nOther line");
         $this
             ->export()
             ->shouldBeArray();
@@ -53,28 +53,28 @@ class SettingsSpec extends ObjectBehavior
         $this
             ->calcTileRatioPercentage()
             ->shouldReturn(100.0);
-        
+
         $this
             ->setTileRatio('4:3');
 
         $this
             ->calcTileRatioPercentage()
             ->shouldReturn(75.0);
-        
+
         $this
             ->setTileRatio('16:10');
 
         $this
             ->calcTileRatioPercentage()
             ->shouldReturn(62.5);
-        
+
         $this
             ->setTileRatio('16:9');
 
         $this
             ->calcTileRatioPercentage()
             ->shouldReturn(56.25);
-        
+
         $this
             ->setTileRatio('');
 

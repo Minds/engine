@@ -28,7 +28,7 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
                 $this->out('--from=<entity guid> Entity notification is from (defaults to system user)');
                 $this->out('--view=<view> Notification view');
                 $this->out('--params=<params> JSON payload data');
-            // no break
+                // no break
             default:
                 $this->out('Syntax usage: cli notification <cmd>');
                 $this->displayCommandHelp();

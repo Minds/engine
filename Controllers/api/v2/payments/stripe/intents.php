@@ -44,9 +44,10 @@ class intents implements Interfaces\Api
 
                 $customersManager->updatePaymentMethod($customer);
 
-                var_dump($customer); exit;
+                var_dump($customer);
+                exit;
 
-            break;
+                break;
         }
 
         return Factory::response([]);

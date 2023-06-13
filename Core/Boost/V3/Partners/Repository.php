@@ -130,6 +130,7 @@ class Repository
                 'boosts.guid',
                 'boosts.payment_method',
                 'boosts.payment_amount',
+                'boosts.payment_method',
                 'total_views' => new RawExp('SUM(s.views)')
             ])
             ->from('boosts')

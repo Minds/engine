@@ -63,7 +63,7 @@ class SearchRepository
         string $timeCreated,
         string $timeUpdated,
         ?string $parentGuid = null,
-        int $depth
+        int $depth = 0
     ): bool {
         try {
             $this->logger->info('Preparing Elasticsearch update query');
@@ -113,7 +113,7 @@ class SearchRepository
         string $timeCreated,
         string $timeUpdated,
         ?string $parentGuid = null,
-        int $depth
+        int $depth = 0
     ): PreparedUpdate {
         $query = [
             'index' => 'minds-comments',

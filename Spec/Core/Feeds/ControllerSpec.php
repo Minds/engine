@@ -2,13 +2,13 @@
 
 namespace Spec\Minds\Core\Feeds;
 
-use \Minds\Core\Feeds\Controller;
+use Minds\Common\Repository\Response;
 use Minds\Core\Config;
 use Minds\Core\EntitiesBuilder;
-use \Minds\Core\Feeds\Elastic;
+use Minds\Core\Feeds\Controller;
+use Minds\Core\Feeds\Elastic;
 use PhpSpec\ObjectBehavior;
 use Zend\Diactoros\ServerRequest;
-use Minds\Common\Repository\Response;
 
 class ControllerSpec extends ObjectBehavior
 {
@@ -37,7 +37,7 @@ class ControllerSpec extends ObjectBehavior
         $this->shouldHaveType(Controller::class);
     }
 
-    public function it_should_get_feed_from_manager(ServerRequest $request, Response $response)
+    public function it_should_get_feed_from_manager(ServerRequest $request)
     {
         $this->config->get('default_recommendations_user')
             ->shouldBeCalled()
@@ -56,7 +56,7 @@ class ControllerSpec extends ObjectBehavior
             'nsfw' => [],
             'unseen' => false
         ])->shouldBeCalled()
-          ->willReturn($response);
+          ->willReturn(new Response());
 
         $this->getDefaultFeed($request);
     }

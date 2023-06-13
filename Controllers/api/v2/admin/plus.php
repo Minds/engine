@@ -45,15 +45,15 @@ class plus implements Interfaces\Api, Interfaces\ApiAdminPam
             'minLogLevel' => Logger::DEBUG,
         ]);
 
-        $logger->warn('AdminPlus | endpoint being hit');
+        $logger->warning('AdminPlus | endpoint being hit');
      
         $userGuid = $pages[0] ?? false;
         $action = $pages[1] ?? false;
         $timespan = $pages[2] ?? false;
 
-        $logger->warn('AdminPlus | userGuid: '.$userGuid);
-        $logger->warn('AdminPlus | timespan: '.$timespan);
-        $logger->warn('AdminPlus | action: '.$action);
+        $logger->warning('AdminPlus | userGuid: '.$userGuid);
+        $logger->warning('AdminPlus | timespan: '.$timespan);
+        $logger->warning('AdminPlus | action: '.$action);
 
         if (!$action || !$userGuid) {
             return Factory::response([
@@ -66,7 +66,7 @@ class plus implements Interfaces\Api, Interfaces\ApiAdminPam
             'cache' => false,
         ]);
 
-        $logger->warn('AdminPlus | target username: '.$target->getUsername());
+        $logger->warning('AdminPlus | target username: '.$target->getUsername());
 
         // Manually flush the cache.
         $channelsManager = Di::_()->get('Channels\Manager');
@@ -103,28 +103,28 @@ class plus implements Interfaces\Api, Interfaces\ApiAdminPam
         }
 
         if ($action === 'remove') {
-            $logger->warn('AdminPlus | plus_expires on target is currently '.$target->getPlusExpires());
-            $logger->warn('AdminPlus | setting plus expires to '.time());
+            $logger->warning('AdminPlus | plus_expires on target is currently '.$target->getPlusExpires());
+            $logger->warning('AdminPlus | setting plus expires to '.time());
 
             $target->setPlusExpires(time());
 
-            $logger->warn('AdminPlus | plus_expires set to '.$target->getPlusExpires());
+            $logger->warning('AdminPlus | plus_expires set to '.$target->getPlusExpires());
 
             try {
                 (new PlusSubscription())
                     ->setUser($target)
                     ->cancel();
 
-                $logger->warn('AdminPlus | cancelled subscription');
+                $logger->warning('AdminPlus | cancelled subscription');
             } catch (\Exception $e) {
-                $logger->warn('AdminPlus | caught error cancelling subscription');
+                $logger->warning('AdminPlus | caught error cancelling subscription');
                 Di::_()->get('Logger')->error($e);
             }
         }
 
         $isAllowed = ACL::_()->setIgnore(true); // store previous state.
 
-        $logger->warn('AdminPlus | saving...');
+        $logger->warning('AdminPlus | saving...');
         
         $success = $target->save();
         ACL::_()->setIgnore($isAllowed); // set back to previous state.
@@ -136,7 +136,7 @@ class plus implements Interfaces\Api, Interfaces\ApiAdminPam
             ]);
         }
 
-        $logger->warn('AdminPlus | saved, new plus_expires: '.$target->getPlusExpires());
+        $logger->warning('AdminPlus | saved, new plus_expires: '.$target->getPlusExpires());
 
         return Factory::response([]);
     }

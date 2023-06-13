@@ -86,21 +86,21 @@ class Analytics
             $ts = time();
         }
         switch ($reference) {
-          case "hour":
-            return $ts - ($ts % 3600);
-            break;
-          case "day":
-            $reference = "midnight";
-            break;
-          case "yesterday":
-            $reference = "yesterday";
-            break;
-          case "month":
-            $reference = "midnight first day of this month";
-            break;
-          case "last-month":
-            $reference = "midnight first day of last month";
-            break;
+            case "hour":
+                return $ts - ($ts % 3600);
+                break;
+            case "day":
+                $reference = "midnight";
+                break;
+            case "yesterday":
+                $reference = "yesterday";
+                break;
+            case "month":
+                $reference = "midnight first day of this month";
+                break;
+            case "last-month":
+                $reference = "midnight first day of last month";
+                break;
         }
         return strtotime($reference, $ts);
     }

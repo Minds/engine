@@ -86,7 +86,7 @@ class Summons implements JsonSerializable
     /**
      * @return array
      */
-    public function export()
+    public function export(): array
     {
         return [
             'report_urn' => $this->reportUrn,
@@ -100,11 +100,11 @@ class Summons implements JsonSerializable
     /**
      * Specify data which should be serialized to JSON
      * @link https://php.net/manual/en/jsonserializable.jsonserialize.php
-     * @return mixed data which can be serialized by <b>json_encode</b>,
+     * @return array data which can be serialized by <b>json_encode</b>,
      * which is a value of any type other than a resource.
      * @since 5.4.0
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->export();
     }

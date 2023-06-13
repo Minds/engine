@@ -42,7 +42,7 @@ class PostSubscription implements \JsonSerializable
      * Exports the entity
      * @return array
      */
-    public function export()
+    public function export(): array
     {
         return [
             'entity_guid' => (string) $this->entityGuid,
@@ -54,11 +54,11 @@ class PostSubscription implements \JsonSerializable
     /**
      * Specify data which should be serialized to JSON
      * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
-     * @return mixed data which can be serialized by <b>json_encode</b>,
+     * @return array data which can be serialized by <b>json_encode</b>,
      * which is a value of any type other than a resource.
      * @since 5.4.0
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->export();
     }

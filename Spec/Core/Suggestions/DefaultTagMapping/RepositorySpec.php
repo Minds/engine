@@ -102,7 +102,7 @@ class RepositorySpec extends ObjectBehavior
 
         $statement->execute()
             ->shouldBeCalled()
-            ->willReturn($statement);
+            ->willReturn(true);
 
         $statement->fetchAll(PDO::FETCH_ASSOC)
             ->shouldBeCalled()
@@ -185,7 +185,7 @@ class RepositorySpec extends ObjectBehavior
 
         $statement->execute()
             ->shouldBeCalled()
-            ->willReturn($statement);
+            ->willReturn(true);
 
         $statement->fetchAll(PDO::FETCH_ASSOC)
             ->shouldBeCalled()

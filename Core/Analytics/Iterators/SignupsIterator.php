@@ -2,9 +2,8 @@
 namespace Minds\Core\Analytics\Iterators;
 
 use Minds\Core;
-use Minds\Core\Entities;
-use Minds\Core\Data;
 use Minds\Core\Analytics\Timestamps;
+use Minds\Core\Data;
 
 /**
  * Iterator that loops through all signups
@@ -36,9 +35,9 @@ class SignupsIterator implements \Iterator
 
     /**
      * Sets the period to cycle through
-     * @param string $period
+     * @param string|null $period
      */
-    public function setPeriod($period = null)
+    public function setPeriod(?string $period = null): void
     {
         $this->period = $period;
         $this->getUsers();
@@ -47,7 +46,7 @@ class SignupsIterator implements \Iterator
     /**
      * Fetch all the users who signed up
      */
-    protected function getUsers()
+    protected function getUsers(): void
     {
         //$this->cursor = -1;
         //$this->item = null;
@@ -81,9 +80,9 @@ class SignupsIterator implements \Iterator
 
     /**
      * Rewind the array cursor
-     * @return null
+     * @return void
      */
-    public function rewind()
+    public function rewind(): void
     {
         if ($this->cursor >= 0) {
             $this->getUsers();
@@ -95,25 +94,25 @@ class SignupsIterator implements \Iterator
      * Get the current cursor's data
      * @return mixed
      */
-    public function current()
+    public function current(): mixed
     {
         return $this->data[$this->cursor];
     }
 
     /**
      * Get cursor's key
-     * @return mixed
+     * @return int
      */
-    public function key()
+    public function key(): int
     {
         return $this->cursor;
     }
 
     /**
      * Goes to the next cursor
-     * @return null
+     * @return void
      */
-    public function next()
+    public function next(): void
     {
         $this->cursor++;
         if (!isset($this->data[$this->cursor])) {
@@ -125,7 +124,7 @@ class SignupsIterator implements \Iterator
      * Checks if the cursor is valid
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->valid && isset($this->data[$this->cursor]);
     }

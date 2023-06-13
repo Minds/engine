@@ -189,7 +189,6 @@ class Manager
            ->setDateTs(strtotime('midnight', $opts->getDateTs()));
 
         foreach ($this->contributions->getSummaries($contributionsOpts) as $i => $contributionSummary) {
-
             /** @var User */
             $user = $this->entitiesBuilder->single($contributionSummary->getUserGuid());
             if (!$user) {
@@ -268,7 +267,6 @@ class Manager
         if ($opts->isRecalculate()) {
             $blockNumber = $this->blockFinder->getBlockByTimestamp($opts->getDateTs());
             foreach ($this->uniqueOnChainManager->getAll() as $i => $uniqueOnChain) {
-
                 /** @var User */
                 $user = $this->entitiesBuilder->single($uniqueOnChain->getUserGuid());
                 if (!$user || !$user instanceof User) {
@@ -321,7 +319,6 @@ class Manager
         ////
 
         foreach ($this->repository->getIterator($opts) as $i => $rewardEntry) {
-
             // Confirm the wallet address is still connected
             if (in_array($rewardEntry->getRewardType(), [static::REWARD_TYPE_LIQUIDITY, static::REWARD_TYPE_HOLDING], false)) {
                 /** @var User */

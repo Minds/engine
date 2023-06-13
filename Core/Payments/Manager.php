@@ -223,11 +223,11 @@ class Manager
                 opts: $opts
             );
             if (!count($paymentIntents['data'])) {
-                $this->logger->warn("Customer not found: {$this->user_guid}");
+                $this->logger->warning("Customer not found: {$this->user_guid}");
                 return [];
             }
         } catch (UserErrorException $e) {
-            $this->logger->warn($e->getMessage());
+            $this->logger->warning($e->getMessage());
             return [];
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());

@@ -56,7 +56,7 @@ class MsgPack
             // uint64
             if ($input > 0 && $input <= 0xFFFFFFFFFFFFFFFF) {
                 // pack() does not support 64-bit ints, so pack into two 32-bits
-                $h = ($input & 0xFFFFFFFF00000000) >> 32;
+                $h = ($input & (int) 0xFFFFFFFF00000000) >> 32;
                 $l = $input & 0xFFFFFFFF;
                 return $this->bigendian ? pack('CNN', 0xCF, $l, $h) : pack('CNN', 0xCF, $h, $l);
             }

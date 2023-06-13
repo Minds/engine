@@ -194,7 +194,6 @@ class Controller
          * Attachments
          */
         if (isset($payload['attachment_guids']) && count($payload['attachment_guids']) > 0) {
-
             /**
              * Build out the attachment entities
              */
@@ -382,7 +381,7 @@ class Controller
                 $mutatedActivity->setTimeCreated($payload['time_created']);
             } catch (AlreadyPublishedException $e) {
                 // soft fail.
-                $this->logger->warn($e->getMessage());
+                $this->logger->warning($e->getMessage());
             }
         }
 

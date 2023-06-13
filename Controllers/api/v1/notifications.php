@@ -54,7 +54,6 @@ class notifications implements Interfaces\Api
         $counters = new Notification\Counters();
 
         switch ($pages[0]) {
-
             case 'count':
                 $response['count'] = $counters->getCount();
                 break;
@@ -115,7 +114,6 @@ class notifications implements Interfaces\Api
                 //$response['load-previous'] = (string) key($notifications)->getGuid();
 
                 break;
-
         }
 
         return Factory::response($response);

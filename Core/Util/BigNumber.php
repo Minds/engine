@@ -34,7 +34,7 @@ class BigNumber implements JsonSerializable
      * Magic casting to string.
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->toString();
     }
@@ -43,7 +43,7 @@ class BigNumber implements JsonSerializable
      * Returns the value as a string.
      * @return string
      */
-    public function toString()
+    public function toString(): string
     {
         return (string) $this->value;
     }
@@ -53,17 +53,17 @@ class BigNumber implements JsonSerializable
      * !!!WARNING!!! for really big numbers it might lose some precision
      * @return float
      */
-    public function toDouble()
+    public function toDouble(): float
     {
         return (double) $this->toString();
     }
 
     /**
-     * Returns the value as a double/float.
+     * Returns the value as an integer.
      * !!!WARNING!!! for really big numbers it might lose some precision
-     * @return float
+     * @return int
      */
-    public function toInt()
+    public function toInt(): int
     {
         return (int) $this->toString();
     }
@@ -73,7 +73,7 @@ class BigNumber implements JsonSerializable
      * @param int $scale
      * @return BigNumber
      */
-    public function setScale($scale)
+    public function setScale(mixed $scale): self
     {
         $this->scale = (int) $scale;
         return $this;
@@ -83,62 +83,62 @@ class BigNumber implements JsonSerializable
      * Gets the current decimal scale.
      * @return int
      */
-    public function getScale()
+    public function getScale(): int
     {
         return $this->scale;
     }
 
     /**
      * Adds value to another.
-     * @param $rightOperand
+     * @param mixed $rightOperand
      * @return BigNumber
      * @throws \Exception
      */
-    public function add($rightOperand)
+    public function add(mixed $rightOperand): self
     {
         return $this->immutable(bcadd($this->value, $this->normalize($rightOperand), $this->scale));
     }
 
     /**
      * Subtracts value to another.
-     * @param $rightOperand
+     * @param mixed $rightOperand
      * @return BigNumber
      * @throws \Exception
      */
-    public function sub($rightOperand)
+    public function sub(mixed $rightOperand): self
     {
         return $this->immutable(bcsub($this->value, $this->normalize($rightOperand), $this->scale));
     }
 
     /**
      * Multiplies value to another.
-     * @param $rightOperand
+     * @param mixed $rightOperand
      * @return BigNumber
      * @throws \Exception
      */
-    public function mul($rightOperand)
+    public function mul(mixed $rightOperand): self
     {
         return $this->immutable(bcmul($this->value, $this->normalize($rightOperand), $this->scale));
     }
 
     /**
      * Divides value to another.
-     * @param $rightOperand
+     * @param mixed $rightOperand
      * @return BigNumber
      * @throws \Exception
      */
-    public function div($rightOperand)
+    public function div(mixed $rightOperand): self
     {
         return $this->immutable(bcdiv($this->value, $this->normalize($rightOperand), $this->scale));
     }
 
     /**
      * Raises value to another.
-     * @param $rightOperand
+     * @param mixed $rightOperand
      * @return BigNumber
      * @throws \Exception
      */
-    public function pow($rightOperand)
+    public function pow(mixed $rightOperand): self
     {
         return $this->immutable(bcpow($this->value, $this->normalize($rightOperand), $this->scale));
     }
@@ -148,7 +148,7 @@ class BigNumber implements JsonSerializable
      * @return BigNumber
      * @throws \Exception
      */
-    public function sqrt()
+    public function sqrt(): self
     {
         return $this->immutable(bcsqrt($this->value, $this->scale));
     }
@@ -158,7 +158,7 @@ class BigNumber implements JsonSerializable
      * @return BigNumber
      * @throws \Exception
      */
-    public function neg()
+    public function neg(): self
     {
         return $this->mul(-1);
     }
@@ -166,11 +166,11 @@ class BigNumber implements JsonSerializable
     /**
      * Compares value to another, returning true if equal.
      * Equivalent to ===.
-     * @param $rightOperand
+     * @param mixed $rightOperand
      * @return bool
      * @throws \Exception
      */
-    public function eq($rightOperand)
+    public function eq(mixed $rightOperand): bool
     {
         return bccomp($this->value, $this->normalize($rightOperand), $this->scale) === 0;
     }
@@ -178,11 +178,11 @@ class BigNumber implements JsonSerializable
     /**
      * Compares value to another, returning true if value is less than another.
      * Equivalent to <.
-     * @param $rightOperand
+     * @param mixed $rightOperand
      * @return bool
      * @throws \Exception
      */
-    public function lt($rightOperand)
+    public function lt(mixed $rightOperand): bool
     {
         return bccomp($this->value, $this->normalize($rightOperand), $this->scale) === -1;
     }
@@ -190,11 +190,11 @@ class BigNumber implements JsonSerializable
     /**
      * Compares value to another, returning true if value is less than or equal to another.
      * Equivalent to <=.
-     * @param $rightOperand
+     * @param mixed $rightOperand
      * @return bool
      * @throws \Exception
      */
-    public function lte($rightOperand)
+    public function lte(mixed $rightOperand): bool
     {
         return bccomp($this->value, $this->normalize($rightOperand), $this->scale) <= 0;
     }
@@ -202,11 +202,11 @@ class BigNumber implements JsonSerializable
     /**
      * Compares value to another, returning true if value is greater than another.
      * Equivalent to >.
-     * @param $rightOperand
+     * @param mixed $rightOperand
      * @return bool
      * @throws \Exception
      */
-    public function gt($rightOperand)
+    public function gt(mixed $rightOperand): bool
     {
         return bccomp($this->value, $this->normalize($rightOperand), $this->scale) === 1;
     }
@@ -214,11 +214,11 @@ class BigNumber implements JsonSerializable
     /**
      * Compares value to another, returning true if value is greater than or equal to another.
      * Equivalent to >=.
-     * @param $rightOperand
+     * @param mixed $rightOperand
      * @return bool
      * @throws \Exception
      */
-    public function gte($rightOperand)
+    public function gte(mixed $rightOperand): bool
     {
         return bccomp($this->value, $this->normalize($rightOperand), $this->scale) >= 0;
     }
@@ -229,7 +229,7 @@ class BigNumber implements JsonSerializable
      * @return string
      * @throws \Exception
      */
-    public function toBase($base)
+    public function toBase(int $base): string
     {
         if ($base < 2 || $base > 36) {
             throw new \Exception('Invalid base');
@@ -250,22 +250,23 @@ class BigNumber implements JsonSerializable
 
     /**
      * Converts the value to hexadecimal.
+     * @param bool $prefix
      * @return string
      * @throws \Exception
      */
-    public function toHex($prefix = false)
+    public function toHex(bool $prefix = false): string
     {
         return ($prefix ? '0x' : '') . $this->toBase(16);
     }
 
     /**
      * Creates a new instance using a value represented in another base.
-     * @param $based
-     * @param $base
-     * @return static
+     * @param string $based
+     * @param int $base
+     * @return self
      * @throws \Exception
      */
-    public static function fromBase($based, $base)
+    public static function fromBase(string $based, int $base): self
     {
         if ($base < 2 || $base > 36) {
             throw new \Exception('Invalid base');
@@ -292,11 +293,11 @@ class BigNumber implements JsonSerializable
 
     /**
      * Creates a new instance using an hexadecimal value.
-     * @param $value
+     * @param string $value
      * @return BigNumber
      * @throws \Exception
      */
-    public static function fromHex($value)
+    public static function fromHex(string $value): self
     {
         if (stripos($value, '0x') === 0) {
             $value = substr($value, 2);
@@ -307,12 +308,12 @@ class BigNumber implements JsonSerializable
 
     /**
      * Creates a new instance with the value converted to plain decimals (used by Eth). (x)
-     * @param $value
+     * @param mixed $value
      * @param int $decimalPlaces
      * @return static
      * @throws \Exception
      */
-    public static function toPlain($value, $decimalPlaces)
+    public static function toPlain(mixed $value, int $decimalPlaces): self
     {
         $decimal = (new BigNumber(10))->pow((int) $decimalPlaces);
         return (new BigNumber($value))->mul($decimal);
@@ -320,12 +321,12 @@ class BigNumber implements JsonSerializable
 
     /**
      * Creates a new instance with the value converted from plain decimals (used by Eth). (/)
-     * @param $value
+     * @param mixed $value
      * @param int $decimalPlaces
      * @return static
      * @throws \Exception
      */
-    public static function fromPlain($value, $decimalPlaces)
+    public static function fromPlain(mixed $value, int $decimalPlaces): self
     {
         $decimal = (new BigNumber(10))->pow((int) $decimalPlaces);
         return (new BigNumber($value, $decimalPlaces))->div($decimal);
@@ -333,22 +334,23 @@ class BigNumber implements JsonSerializable
 
     /**
      * Factory method.
-     * @param $value
+     * @param mixed $value
      * @param int $base
-     * @return static
+     * @return self
+     * @throws \Exception
      */
-    public static function _($value, $base = 0)
+    public static function _(mixed $value, int $base = 0): self
     {
         return new BigNumber($value, $base);
     }
 
     /**
      * Creates a new instance of BigNumber with the provided value.
-     * @param $value
+     * @param mixed $value
      * @return static
      * @throws \Exception
      */
-    protected function immutable($value)
+    protected function immutable(mixed $value): self
     {
         return new BigNumber($value, $this->scale);
     }
@@ -356,11 +358,11 @@ class BigNumber implements JsonSerializable
     /**
      * Normalizes a value.
      * Accepts Cassandra types, exp notation and any numeric value.
-     * @param $value
+     * @param mixed $value
      * @return string
      * @throws \Exception
      */
-    protected function normalize($value)
+    protected function normalize(mixed $value): string
     {
         if (
             is_object($value) &&
@@ -391,11 +393,11 @@ class BigNumber implements JsonSerializable
     /**
      * Specify data which should be serialized to JSON
      * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
-     * @return mixed data which can be serialized by <b>json_encode</b>,
+     * @return string data which can be serialized by <b>json_encode</b>,
      * which is a value of any type other than a resource.
      * @since 5.4.0
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): string
     {
         return $this->toString();
     }
