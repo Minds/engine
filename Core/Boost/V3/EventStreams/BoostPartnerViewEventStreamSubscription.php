@@ -112,7 +112,7 @@ class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterf
      * Commits the db transaction containing all the successfully processed views
      * @return void
      */
-    public function commitChanges(): void
+    public function onBatchConsumed(): void
     {
         $this->manager->commitTransaction();
     }
