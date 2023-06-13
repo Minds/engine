@@ -38,8 +38,8 @@ class AccountVerificationRequestValidator implements \Minds\Interfaces\Validator
             );
         }
 
-        $this->logger->addInfo($dataToValidate->getHeader('Content-Type'));
-        $this->logger->addInfo("Verification request body content: " . $dataToValidate->getBody()->getContents());
+        $this->logger->info($dataToValidate->getHeader('Content-Type'));
+        $this->logger->info("Verification request body content: " . $dataToValidate->getBody()->getContents());
 
         if (!array_key_exists('device_type', $dataToValidate->getParsedBody())) {
             $this->errors->add(

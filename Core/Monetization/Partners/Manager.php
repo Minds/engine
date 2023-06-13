@@ -128,7 +128,7 @@ class Manager
         $this->logger->info("Start processing boost partner deposits");
         yield from $this->issueBoostPartnerDeposits($opts);
 
-        $this->logger->addInfo("Start processing affiliate deposits");
+        $this->logger->info("Start processing affiliate deposits");
         yield from $this->issueAffiliateDeposits($opts);
     }
 
