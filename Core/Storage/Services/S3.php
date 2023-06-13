@@ -2,9 +2,12 @@
 
 namespace Minds\Core\Storage\Services;
 
+use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
-use Minds\Core\Config;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Media\Services\AwsS3Client;
+use Minds\Core\Media\Services\OciS3Client;
 use Minds\Helpers\File;
 
 class S3 implements ServiceInterface
@@ -16,10 +19,18 @@ class S3 implements ServiceInterface
 
     private $modes = [
       'read',
-      'read-uri',
-      'redirect',
       'write'
     ];
+
+    public function __construct(
+        protected ?S3Client $awsS3Client = null,
+        protected ?S3Client $ociS3Client = null,
+        protected ?Config $config = null
+    ) {
+        $this->awsS3Client ??= Di::_()->get(AwsS3Client::class);
+        $this->ociS3Client ??= Di::_()->get(OciS3Client::class);
+        $this->config ??= Di::_()->get('Config');
+    }
 
     public function open($path, $mode)
     {
@@ -28,26 +39,6 @@ class S3 implements ServiceInterface
         }
 
         $this->mode = $mode;
-
-        $awsConfig = Di::_()->get('Config')->get('aws');
-        $opts = [
-            'region' => 'us-east-1',
-            'version' => 'latest',
-            'http' => [
-                'connect_timeout' => 1, //if we don't connect in 1 second
-                'timeout' => 120 //if the request takes longer than 2 minutes (120 seconds)
-            ],
-            'use_accelerate_endpoint' => true,
-        ];
-
-        if (!isset($awsConfig['useRoles']) || !$awsConfig['useRoles']) {
-            $opts['credentials'] = [
-                'key' => $awsConfig['key'],
-                'secret' => $awsConfig['secret'],
-            ];
-        }
-        
-        $this->s3 = new S3Client($opts);
 
         if (substr($path, 0, 1) === '/') {
             $path = substr($path, 1);
@@ -66,56 +57,44 @@ class S3 implements ServiceInterface
     {
         $mimeType = File::getMimeType($data);
 
-        $write =  $this->s3->putObject([
+        $useOci = $this->config->get('storage')['oci_primary'] ?? false;
+
+        $s3 = $useOci ? $this->ociS3Client : $this->awsS3Client;
+
+        $bucketName = $useOci ? $this->config->get('storage')['oci_bucket_name'] : $this->config->get('aws')['bucket'];
+
+        $write =  $s3->putObject([
           // 'ACL' => 'public-read',
-          'Bucket' => Config::_()->aws['bucket'],
+          'Bucket' => $bucketName,
           'Key' => $this->filepath,
           'ContentType' => $mimeType,
           'ContentLength' => strlen($data),
           'Body' => $data,
         ]);
 
-        return true;
+        return !!$write;
     }
 
     public function read($length = 0)
     {
         switch ($this->mode) {
-            case "read-uri":
-                $url = $this->s3->getObjectUrl(Config::_()->aws['bucket'], $this->filepath, "+15 minutes");
-                return $url;
-                break;
             case "read":
+            default:
                 try {
-                    $result = $this->s3->getObject([
-                        'Bucket' => Config::_()->aws['bucket'],
+                    $result = $this->ociS3Client->getObject([
+                        'Bucket' => $this->config->get('storage')['oci_bucket_name'],
                         'Key' => $this->filepath
                     ]);
                     return $result['Body'];
-                } catch (\Exception $e) {
-                    return "";
+                } catch (S3Exception $e) {
+                    $result = $this->awsS3Client->getObject([
+                        'Bucket' => $this->config->get('aws')['bucket'],
+                        'Key' => $this->filepath
+                    ]);
+                    return $result['Body'];
                 }
                 break;
-            case "redirect":
-            default:
-                $url = $this->s3->getObjectUrl(Config::_()->aws['bucket'], $this->filepath, "+15 minutes");
-                header("Location: $url");
-                exit;
         }
-    }
-
-    /**
-     * Return a signed url
-     * @return string
-     */
-    public function getSignedUrl(): string
-    {
-        $cmd = $this->s3->getCommand('GetObject', [
-           'Bucket' => Config::_()->aws['bucket'],
-           'Key' => $this->filepath,
-        ]);
-        $request = $this->s3->createPresignedRequest($cmd, '+20 minutes');
-        return (string) $request->getUri();
     }
 
     public function seek($offset = 0)

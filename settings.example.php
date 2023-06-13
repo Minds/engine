@@ -637,6 +637,12 @@ $CONFIG->set('max_video_length_plus', 1860);
 /* Maximum video file size, in bytes */
 $CONFIG->set('max_video_file_size', 3900000000);
 
+$CONFIG->set('storage', [
+    'engine' => 'Disk',
+    'oci_primary' => false,
+    'oci_bucket_name' => 'mindsfs',
+]);
+
 $CONFIG->set('aws', [
     'key' => '',
     'secret' => '',
@@ -683,10 +689,11 @@ $CONFIG->set('transcode', [
 ]);
 
 $CONFIG->set('transcoder', [
+    'oci_primary' => false,
+    'oci_bucket_name' => 'cinemr',
     'threads' => 4,
     'dir' => 'cinemr_dev',
     'primary_bucket' => 'aws',
-    'use_oracle_oss' => false,
     'presets' => [
         [
             'width' => 640,

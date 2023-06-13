@@ -57,7 +57,8 @@
         "textalk/websocket": "^1.5",
         "promphp/prometheus_client_php": "^2.6",
         "minds/mysql-fluent-interface": "dev-master",
-        "google/cloud-pubsub": "^1.41"
+        "google/cloud-pubsub": "^1.41",
+        "oracle/oci-php-sdk": "^0.1.0"
     },
     "repositories": [
         {
