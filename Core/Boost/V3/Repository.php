@@ -326,7 +326,7 @@ class Repository
         $entity = $this->entitiesBuilder->single($boostData['entity_guid']);
         return (
             new Boost(
-                entityGuid: $boostData['entity_guid'],
+                entityGuid: (string) $boostData['entity_guid'],
                 targetLocation: (int) $boostData['target_location'],
                 targetSuitability: (int) $boostData['target_suitability'],
                 goal: isset($boostData['goal']) ? (int) $boostData['goal'] : null,
@@ -346,8 +346,8 @@ class Repository
                 summaryViewsDelivered: (int) $boostData['total_views']
             )
         )
-            ->setGuid($boostData['guid'])
-            ->setOwnerGuid($boostData['owner_guid'])
+            ->setGuid((string) $boostData['guid'])
+            ->setOwnerGuid((string) $boostData['owner_guid'])
             ->setEntity($entity);
     }
 
