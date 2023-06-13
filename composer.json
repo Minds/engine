@@ -58,7 +58,7 @@
         "promphp/prometheus_client_php": "^2.6",
         "minds/mysql-fluent-interface": "dev-master",
         "google/cloud-pubsub": "^1.41",
-        "oracle/oci-php-sdk": "^0.1.0"
+        "oracle/oci-php-sdk": "dev-fix/deprecated-optional-params"
     },
     "repositories": [
         {
@@ -84,6 +84,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/FaustoJohn/selective-database.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Minds/oci-php-sdk.git"
         }
     ],
     "autoload": {

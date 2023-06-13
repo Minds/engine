@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2700934dba5ddf0c4e1f0c6b7d6d367e",
+    "content-hash": "601d05b18429dadf8745fd2c2d2459d4",
     "packages": [
         {
             "name": "Minds/Surge",
@@ -3887,16 +3887,16 @@
         },
         {
             "name": "oracle/oci-php-sdk",
-            "version": "0.1.0",
+            "version": "dev-fix/deprecated-optional-params",
             "source": {
                 "type": "git",
-                "url": "https://github.com/oracle/oci-php-sdk.git",
-                "reference": "a88eccdd236479a8520e8ae3b8e0778c1a43dbe0"
+                "url": "https://github.com/Minds/oci-php-sdk.git",
+                "reference": "c2fd5bdedfc1087384af099ef39aca5c8c5777b7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oracle/oci-php-sdk/zipball/a88eccdd236479a8520e8ae3b8e0778c1a43dbe0",
-                "reference": "a88eccdd236479a8520e8ae3b8e0778c1a43dbe0",
+                "url": "https://api.github.com/repos/Minds/oci-php-sdk/zipball/c2fd5bdedfc1087384af099ef39aca5c8c5777b7",
+                "reference": "c2fd5bdedfc1087384af099ef39aca5c8c5777b7",
                 "shasum": ""
             },
             "require": {
@@ -3911,14 +3911,18 @@
             },
             "type": "library",
             "autoload": {
-                "files": [
-                    "src/Oracle/Oci/Common/Utils.php"
-                ],
                 "classmap": [
                     "src/"
+                ],
+                "files": [
+                    "src/Oracle/Oci/Common/Utils.php"
                 ]
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "classmap": [
+                    "tests/"
+                ]
+            },
             "license": [
                 "Apache-2.0"
             ],
@@ -3939,9 +3943,9 @@
             "support": {
                 "forum": "https://community.oracle.com/tech/developers",
                 "issues": "https://community.oracle.com/mosc/",
-                "source": "https://github.com/oracle/oci-php-sdk/tree/v0.1.0"
+                "source": "https://github.com/Minds/oci-php-sdk/tree/fix/deprecated-optional-params"
             },
-            "time": "2023-04-10T19:16:12+00:00"
+            "time": "2023-06-13T08:37:55+00:00"
         },
         {
             "name": "paragonie/random_compat",
@@ -10590,7 +10594,8 @@
         "vscn/cruftflake": 20,
         "minds/oauth2-openid-connect-server": 20,
         "steverhoades/oauth2-openid-connect-server": 20,
-        "minds/mysql-fluent-interface": 20
+        "minds/mysql-fluent-interface": 20,
+        "oracle/oci-php-sdk": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
