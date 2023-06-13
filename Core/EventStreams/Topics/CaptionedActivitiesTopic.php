@@ -15,7 +15,7 @@ use Pulsar\SchemaType;
 
 class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
 {
-    private const TOPIC = "captioned-activity";
+    private const TOPIC = "captioned_activity";
 
     /**
      * @param EventInterface $event
@@ -23,7 +23,7 @@ class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
      */
     public function send(EventInterface $event): bool
     {
-        if (php_sapi_name() === 'cli') {
+        if (php_sapi_name() !== 'cli') {
             return false;
         }
 
@@ -33,7 +33,7 @@ class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
 
         $producer = $this->getProducer();
 
-        $producer->send(
+        $result = $producer->send(
             (new MessageBuilder())
                 ->setEventTimestamp($event->getTimestamp() ?: time())
                 ->setContent(json_encode([
@@ -44,7 +44,7 @@ class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
                 ]))
         );
 
-        return true;
+        return (bool) $result;
     }
 
     private function getProducer(): Producer
@@ -52,7 +52,7 @@ class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
         return $this->client()->createProducer(
             "persistent://{$this->getPulsarTenant()}/{$this->getPulsarNamespace()}/" . self::TOPIC,
             (new ProducerConfiguration())
-                ->setSchema(SchemaType::AVRO, "captioned-activity", $this->getSchema())
+                ->setSchema(SchemaType::AVRO, "captioned_activity", $this->getSchema())
         );
     }
 
@@ -93,20 +93,29 @@ class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
                 $captionedActivity->setActivityUrn($data->activity_urn);
                 $captionedActivity->setGuid($data->guid);
                 $captionedActivity->setType($data->type);
-                $captionedActivity->setContainerGuid($data->container_guid);
-                $captionedActivity->setOwnerGuid($data->owner_guid);
-                $captionedActivity->setAccessId($data->access_id);
-                $captionedActivity->setTimeCreated($data->time_created);
-                $captionedActivity->setTimePublished($data->time_published);
-                $captionedActivity->setTags($data->tags);
-                $captionedActivity->setMessage($data->message);
+                $captionedActivity->setContainerGuid($data->container_guid ?: null);
+                $captionedActivity->setOwnerGuid($data->owner_guid ?: null);
+                $captionedActivity->setAccessId($data->access_id ?: null);
+                $captionedActivity->setTimeCreated($data->time_created ?: null);
+                $captionedActivity->setTimePublished($data->time_published ?: null);
+                $captionedActivity->setTags($data->tags ?: null);
+                $captionedActivity->setMessage($data->message ?: null);
                 $captionedActivity->setCaption($data->caption);
 
+                $this->logger->info("", [
+                    'activity_urn' => $captionedActivity->getActivityUrn(),
+                    'guid' => $captionedActivity->getGuid(),
+                    'type' => $captionedActivity->getType(),
+                    'caption' => $captionedActivity->getCaption(),
+                ]);
 
-                if (call_user_func($callback, $message) === false) {
+
+                if (call_user_func($callback, $captionedActivity) === false) {
+                    $this->logger->info("Negative acknowledging message");
                     $consumer->negativeAcknowledge($message);
                     continue;
                 }
+                $this->logger->info("Acknowledging message");
                 $consumer->acknowledge($message);
             } catch (Exception $e) {
                 $consumer->negativeAcknowledge($message);
@@ -114,14 +123,18 @@ class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
         }
     }
 
+    /**
+     * @param string $subscriptionId
+     * @return Consumer
+     */
     private function getConsumer(string $subscriptionId): Consumer
     {
-        return $this->client->subscribeWithRegex(
+        return $this->client()->subscribeWithRegex(
             "persistent://{$this->getPulsarTenant()}/{$this->getPulsarNamespace()}/" . self::TOPIC,
             $subscriptionId,
             (new ConsumerConfiguration())
                 ->setConsumerType(Consumer::ConsumerShared)
-                ->setSchema(SchemaType::AVRO, "captioned-activity", $this->getSchema(), [])
+                ->setSchema(SchemaType::AVRO, "captioned_activity", $this->getSchema(), [])
         );
     }
 
@@ -132,7 +145,7 @@ class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
     {
         return json_encode([
             'type' => 'record',
-            'name' => 'captioned-activity',
+            'name' => 'captioned_activity',
             'namespace' => $this->getPulsarNamespace(),
             'fields' => [
                 [

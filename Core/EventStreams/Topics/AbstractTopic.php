@@ -55,6 +55,10 @@ abstract class AbstractTopic
      */
     protected function client(): Client
     {
+        if ($this->client) {
+            return $this->client;
+        }
+        
         $pulsarConfig = $this->config->get('pulsar');
         $pulsarHost = $pulsarConfig['host'] ?? 'pulsar';
         $pulsarPort = $pulsarConfig['port'] ?? 6650;
@@ -66,10 +70,6 @@ abstract class AbstractTopic
             $clientConfig->setUseTls(true)
                 ->setTlsAllowInsecureConnection($pulsarConfig['ssl_skip_verify'] ?? false)
                 ->setTlsTrustCertsFilePath($pulsarConfig['ssl_cert_path'] ?? '/var/secure/pulsar.crt');
-        }
-
-        if ($this->client) {
-            return $this->client;
         }
 
         $this->client = new Client();

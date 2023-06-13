@@ -31,12 +31,15 @@ class Generate extends CliController implements CliControllerInterface
      */
     public function exec(): void
     {
-        [$activity_urn, $guid, $type, $caption] = $this->getOpts([
-            'activity_urn',
-            'guid',
-            'type',
-            'caption'
-        ]);
+        [
+            'activity_urn' => $activity_urn,
+            'guid' => $guid,
+            'type' => $type,
+            'caption' => $caption
+        ] = $this->getAllOpts();
+
+
+        $this->logger->warning('Validating arguments...');
 
         if (!$activity_urn || !$guid || !$type) {
             $this->logger->error('Missing required arguments');
@@ -50,6 +53,15 @@ class Generate extends CliController implements CliControllerInterface
             ->setType($type)
             ->setCaption($caption ?: 'test caption');
 
-        $pulsarTopic->send($event);
+        $this->logger->warning("", [
+            'activity_urn' => $event->getActivityUrn(),
+            'guid' => $event->getGuid(),
+            'type' => $event->getType(),
+            'caption' => $event->getCaption(),
+        ]);
+
+        $this->logger->warning('Sending event to pulsar');
+        $result = $pulsarTopic->send($event);
+        $this->logger->warning('Event sent to pulsar', ['result' => $result]);
     }
 }

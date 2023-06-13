@@ -33,7 +33,7 @@ use Minds\Helpers\StringLengthValidators\DescriptionLengthValidator;
  * @property string $auto_caption
  */
 
-class Image extends File
+class Image extends File implements MutatableEntityInterface
 {
     private const THUMBNAILS_SIZES = [
         'xlarge' => [

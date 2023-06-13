@@ -9,7 +9,6 @@ use Minds\Common\Urn;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
-use Minds\Core\Entities\Resolver;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\EventInterface;
@@ -37,7 +36,7 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
         private ?PsrWrapper       $cache = null,
         private ?Logger           $logger = null
     ) {
-        $this->entitiesResolver ??= new Resolver();
+        $this->entitiesResolver ??= new EntitiesResolver();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->saveAction ??= new Save();
         $this->cache ??= Di::_()->get('Cache\PsrWrapper');
@@ -56,7 +55,7 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
 
     public function getTopicRegex(): string
     {
-        return 'captioned-activity';
+        return 'captioned-activity-subscription';
     }
 
     /**
@@ -76,6 +75,7 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
         }
 
         if ($this->cache->get("captioned-activity-{$event->getActivityUrn()}")) {
+            $this->logger->info("Skipping captioned activity {$event->getActivityUrn()} as it is already being processed");
             return false;
         }
 
