@@ -37,8 +37,14 @@ class SearchRepository
             $this->logger->info('Elasticsearch query finished.');
             return true;
         } catch (Exception $e) {
-            $this->logger->error("Elasticsearch query failed $e");
 
+            // If the comment was already deleted, we ack the delete
+            if ($e instanceof \Elasticsearch\Common\Exceptions\Missing404Exception) {
+                $this->logger->info("Elasticsearch returned a 404, comment already deleted.");
+                return true;
+            }
+
+            $this->logger->error("Elasticsearch query failed $e");
             return false;
         }
     }
@@ -72,7 +78,6 @@ class SearchRepository
             return $successful;
         } catch (Exception $e) {
             $this->logger->error("Elasticsearch query failed $e");
-
             return false;
         }
     }
