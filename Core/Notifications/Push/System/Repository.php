@@ -180,7 +180,7 @@ class Repository
                 ]
             );
 
-        $this->logger->addWarning("Fetching request by Uuid: " . $requestUuid);
+        $this->logger->warning("Fetching request by Uuid: " . $requestUuid);
 
         $rows = $this->cassandraClient->request($query);
 

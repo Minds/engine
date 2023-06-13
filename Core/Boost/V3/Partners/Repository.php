@@ -105,7 +105,7 @@ class Repository
         try {
             $statement->execute();
         } catch (PDOException $e) {
-            $this->logger->addError("Query error details: ", $statement->errorInfo());
+            $this->logger->error("Query error details: ", $statement->errorInfo());
             return false;
         }
 
