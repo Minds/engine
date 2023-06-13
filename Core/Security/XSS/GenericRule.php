@@ -152,7 +152,6 @@ class GenericRule implements Interfaces\XSSRule
         $elements = $xpath->evaluate("//*");
 
         foreach ($elements as $element) {
-
             //check what we are allowed and store an internal pointer
             $safe = [];
             foreach ($this->allowedAttributes as $a) {

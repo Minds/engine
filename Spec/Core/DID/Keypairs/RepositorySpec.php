@@ -24,6 +24,13 @@ class RepositorySpec extends ObjectBehavior
 
     public function it_should_add_keypair_to_database(DIDKeypair $keypair)
     {
+        $keypair->getUserGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn("");
+        $keypair->getKeypair()
+            ->shouldBeCalledOnce()
+            ->willReturn("");
+
         $this->add($keypair);
     }
 

@@ -9,29 +9,29 @@ class Answer implements \JsonSerializable
     protected $answer = '';
     protected $question;
 
-    public function setQuestion(Question $question)
+    public function setQuestion(Question $question): self
     {
         $this->question = $question;
         return $this;
     }
 
-    public function getQuestion()
+    public function getQuestion(): Question
     {
         return $this->question;
     }
 
-    public function setAnswer(string $answer)
+    public function setAnswer(string $answer): self
     {
         $this->answer = $answer;
         return $this;
     }
 
-    public function getAnswer()
+    public function getAnswer(): string
     {
         return $this->answer;
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): string
     {
         return $this->getAnswer();
     }

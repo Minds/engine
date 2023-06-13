@@ -39,36 +39,36 @@ class groups implements Interfaces\Api
         ];
 
         switch ($pages[0]) {
-          case "top":
-          case "featured":
-            $guids = $indexDb->get('group:featured', $opts);
-            end($guids); //get last in array
-            $response['load-next'] =  (string) key($guids);
-            break;
-          case "member":
-            Factory::isLoggedIn();
+            case "top":
+            case "featured":
+                $guids = $indexDb->get('group:featured', $opts);
+                end($guids); //get last in array
+                $response['load-next'] =  (string) key($guids);
+                break;
+            case "member":
+                Factory::isLoggedIn();
 
-            $manager = new Membership();
-            $guids = $manager->getGroupsByMember([
-                'user_guid' => $user->guid,
-                'offset' => (int) $_GET['offset'],
-            ]);
+                $manager = new Membership();
+                $guids = $manager->getGroupsByMember([
+                    'user_guid' => $user->guid,
+                    'offset' => (int) $_GET['offset'],
+                ]);
 
-            // if (!($_GET['offset'] || 0)) {
+                // if (!($_GET['offset'] || 0)) {
             //     array_unshift($guids, 100000000000000681); // Help & Support group
-            // } else {
+                // } else {
             //     // remove Help & Support group from subsequent calls
             //     $guids = array_filter($guids, function ($guid) {
             //         return $guid != 100000000000000681;
             //     });
-            // }
+                // }
 
-            $response['load-next'] = count($guids) + (int) $_GET['offset'];
-            break;
-          case "all":
-          default:
-            $guids = $indexDb->get('group', $opts);
-            break;
+                $response['load-next'] = count($guids) + (int) $_GET['offset'];
+                break;
+            case "all":
+            default:
+                $guids = $indexDb->get('group', $opts);
+                break;
         }
 
         if (!$guids) {

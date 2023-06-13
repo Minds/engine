@@ -76,7 +76,7 @@ class BoostEmailEventStreamSubscription implements SubscriptionInterface
         }
 
         if (!$boost instanceof Boost) {
-            $this->logger->warn("Non boost (entity guid: {$boost->getGuid()}) provided to event stream");
+            $this->logger->warning("Non boost (entity guid: {$boost->getGuid()}) provided to event stream");
             return true;
         }
 

@@ -10,6 +10,7 @@ use Minds\Core\EventStreams\BatchSubscriptionInterface;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\Topics\ViewsTopic;
 use Minds\Core\Log\Logger;
+use Pulsar\Message;
 
 /**
  * Pulsar consumer subscription responsible to process boost partner activity views
@@ -60,7 +61,7 @@ class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterf
 
     /**
      * Process a batch of views
-     * @param array $messages
+     * @param Message[] $messages
      * @return bool
      * @throws Exception
      */
@@ -69,7 +70,7 @@ class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterf
         $this->manager->beginTransaction();
 
         foreach ($messages as $message) {
-            $messageData = json_decode($message->getDataAsString());
+            $messageData = json_decode($message->getPayload());
 
             if (!str_starts_with($messageData->cm_campaign, "urn:boost:") || $messageData->cm_served_by_guid === null) {
                 $this->getTopic()->markMessageAsProcessed($message);
@@ -87,7 +88,7 @@ class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterf
             $isMessageProcessed = $this->manager->recordBoostPartnerView(
                 userGuid: $messageData->cm_served_by_guid,
                 boostGuid: $boostGuid,
-                eventTimestamp: $message->getEventTimestamp()
+                eventTimestamp: $message->getProperties()['event_timestamp']
             );
 
             $this->logger->addInfo("Done processing boost partner view event", (array) $messageData);
@@ -112,7 +113,7 @@ class BoostPartnerViewEventStreamSubscription implements BatchSubscriptionInterf
      * Commits the db transaction containing all the successfully processed views
      * @return void
      */
-    public function commitChanges(): void
+    public function onBatchConsumed(): void
     {
         $this->manager->commitTransaction();
     }

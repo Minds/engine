@@ -3,9 +3,6 @@ namespace Minds\Core\Analytics\Iterators;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Core\Entities;
-use Minds\Core\Data;
-use Minds\Core\Analytics\Timestamps;
 
 /**
  * Iterator that loops through all signups after a set period
@@ -40,13 +37,13 @@ class EventsIterator implements \Iterator
         $this->position = 0;
     }
 
-    public function setType($type)
+    public function setType(mixed $type): self
     {
         $this->type = $type;
         return $this;
     }
 
-    public function setTerms($terms)
+    public function setTerms(mixed $terms): self
     {
         $this->terms = $terms;
         return $this;
@@ -54,9 +51,9 @@ class EventsIterator implements \Iterator
 
     /**
      * Sets the period to cycle through
-     * @param string $period
+     * @param string|null $period
      */
-    public function setPeriod($period = null)
+    public function setPeriod(?string $period = null): void
     {
         $this->period = $period;
     }
@@ -65,7 +62,7 @@ class EventsIterator implements \Iterator
      * Fetch all the users who signed up in a certain period
      * @return array
      */
-    protected function getList()
+    protected function getList(): array
     {
         $body = [
             'query' => [
@@ -88,7 +85,7 @@ class EventsIterator implements \Iterator
             }
         }
 
-        
+
         $prepared = new Core\Data\ElasticSearch\Prepared\Search();
         $prepared->query([
             'body' => $body,
@@ -119,9 +116,9 @@ class EventsIterator implements \Iterator
 
     /**
      * Rewind the array cursor
-     * @return null
+     * @return void
      */
-    public function rewind()
+    public function rewind(): void
     {
         if ($this->cursor >= 0) {
             $this->getList();
@@ -133,25 +130,25 @@ class EventsIterator implements \Iterator
      * Get the current cursor's data
      * @return mixed
      */
-    public function current()
+    public function current(): mixed
     {
         return $this->data[$this->cursor];
     }
 
     /**
      * Get cursor's key
-     * @return mixed
+     * @return int
      */
-    public function key()
+    public function key(): int
     {
         return $this->cursor;
     }
 
     /**
      * Goes to the next cursor
-     * @return null
+     * @return void
      */
-    public function next()
+    public function next(): void
     {
         $this->cursor++;
         if (!isset($this->data[$this->cursor]) && !($this->data && $this->terms)) {
@@ -163,7 +160,7 @@ class EventsIterator implements \Iterator
      * Checks if the cursor is valid
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->valid && isset($this->data[$this->cursor]);
     }

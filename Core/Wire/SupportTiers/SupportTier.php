@@ -104,7 +104,7 @@ class SupportTier implements JsonSerializable
     /**
      * @inheritDoc
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->export();
     }

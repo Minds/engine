@@ -59,7 +59,6 @@ class Config
      */
     public function set($key, $value = null, $opts = [])
     {
-
         //legacy nasty fallback
         if (property_exists($this, $key)) {
             $this->$key = $value;

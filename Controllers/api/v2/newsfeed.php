@@ -457,7 +457,7 @@ class newsfeed implements Interfaces\Api
                             ->setThumbnail($_POST['thumbnail']);
             } else {
                 // TODO: Handle immutable embeds (like blogs, which have an entity_guid and a URL)
-                        // These should not appear naturally when creating, but might be implemented in the future.
+                // These should not appear naturally when creating, but might be implemented in the future.
             }
 
             // TODO: Move this to Core/Feeds/Activity/Manager

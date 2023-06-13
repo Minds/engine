@@ -186,21 +186,29 @@ class ACLSpec extends ObjectBehavior
         $this->interact($entity)->shouldReturn(false);
     }
 
-    public function it_should_allow_interaction(Entity $entity)
+    public function it_should_allow_interaction(): void
     {
         $this->mock_session(true);
+
+        $entity = new Entity();
+        $entity->type = "activity";
 
         $this->interact($entity)->shouldReturn(true);
         $this->mock_session(false);
     }
 
-    public function it_should_return_false_on_acl_interact_event(Entity $entity)
+    public function it_should_return_false_on_acl_interact_event()
     {
         $this->mock_session(true);
 
+        $entity = new Entity();
+        $entity->type = "activity";
+        $entity->owner_guid = "";
+        $entity->container_guid = "";
+
         Core\Events\Dispatcher::register('acl:interact', 'all', function ($event) {
             $event->setResponse(false);
-        });
+        }, );
 
         $this->interact($entity)->shouldReturn(false);
         $this->mock_session(false);

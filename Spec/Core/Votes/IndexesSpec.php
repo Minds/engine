@@ -2,7 +2,6 @@
 
 namespace Spec\Minds\Core\Votes;
 
-use Minds\Common\Repository\IterableEntity;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\EntitiesBuilder;
@@ -386,8 +385,9 @@ class IndexesSpec extends ObjectBehavior
         $opts = new VoteListOpts();
         $opts->setEntityGuid('123')
             ->setDirection('up')
+            ->setPagingToken("")
             ->setLimit(10);
-    
+
         $this->cql->request(Argument::that(function ($prepared) {
             return true;
         }))

@@ -6,5 +6,5 @@ interface BatchSubscriptionInterface extends SubscriptionInterface
 {
     public function consumeBatch(array $messages): bool;
 
-    public function commitChanges(): void;
+    public function onBatchConsumed(): void;
 }

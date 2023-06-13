@@ -2,8 +2,8 @@
 namespace Minds\Core\Trending;
 
 use Cassandra;
-use Cassandra\Varint;
 use Cassandra\Tinyint;
+use Cassandra\Varint;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
@@ -42,7 +42,7 @@ class Repository
             'type' => '',
             'rating' => 1,
             'limit' => 12,
-            'offset' => null
+            'offset' => ""
         ], $options);
 
 
