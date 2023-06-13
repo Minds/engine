@@ -37,7 +37,6 @@ class SearchRepository
             $this->logger->info('Elasticsearch query finished.');
             return true;
         } catch (Exception $e) {
-
             // If the comment was already deleted, we ack the delete
             if ($e instanceof \Elasticsearch\Common\Exceptions\Missing404Exception) {
                 $this->logger->info("Elasticsearch returned a 404, comment already deleted.");
