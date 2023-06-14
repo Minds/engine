@@ -319,23 +319,23 @@ class conversations implements Interfaces\Api
                 break;
 
             case 'call':
-               \Minds\Core\Queue\Client::build()->setExchange("mindsqueue")
-                                                ->setQueue("Push")
-                                                ->send([
-                                                     "user_guid"=>$pages[1],
-                                                    "message"=> \Minds\Core\Session::getLoggedInUser()->name . " is calling you.",
-                                                    "uri" => 'call',
-                                                    "sound" => 'ringing-1.m4a',
-                                                    "json" => json_encode([
-                                                        "from_guid"=>\Minds\Core\Session::getLoggedInUser()->guid,
-                                                        "from_name"=>\Minds\Core\Session::getLoggedInUser()->name
-                                                    ])
-                                                ]);
+                \Minds\Core\Queue\Client::build()->setExchange("mindsqueue")
+                                                 ->setQueue("Push")
+                                                 ->send([
+                                                      "user_guid"=>$pages[1],
+                                                     "message"=> \Minds\Core\Session::getLoggedInUser()->name . " is calling you.",
+                                                     "uri" => 'call',
+                                                     "sound" => 'ringing-1.m4a',
+                                                     "json" => json_encode([
+                                                         "from_guid"=>\Minds\Core\Session::getLoggedInUser()->guid,
+                                                         "from_name"=>\Minds\Core\Session::getLoggedInUser()->name
+                                                     ])
+                                                 ]);
                 break;
             case 'no-answer':
-              break;
+                break;
             case 'ended':
-              break;
+                break;
         }
 
         return Factory::response([]);

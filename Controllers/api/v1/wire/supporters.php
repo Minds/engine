@@ -57,10 +57,10 @@ class supporters implements Interfaces\Api
                 break;
 
             default:
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'Unknown type'
-            ]);
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => 'Unknown type'
+                ]);
         }
 
         $response['wires'] = Factory::exportable($result['wires']);

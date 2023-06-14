@@ -203,8 +203,8 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                     'group_urn' => $event->getActionData()['group_urn']
                 ]);
                 break;
-            // Doesn't work bc post gets deleted immediately when rejected
-            // case ActionEvent::ACTION_GROUP_QUEUE_REJECT:
+                // Doesn't work bc post gets deleted immediately when rejected
+                // case ActionEvent::ACTION_GROUP_QUEUE_REJECT:
             //     $notification->setType(NotificationTypes::TYPE_GROUP_QUEUE_REJECT);
             //     $notification->setData([
             //         'group_urn' => $event->getActionData()['group_urn']
@@ -250,7 +250,7 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 $notification->setFromGuid(SystemUser::GUID);
                 $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON);
                 break;
-            // case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
+                // case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
             //     $notification->setToGuid($entity->getSenderGuid());
             //     $notification->setFromGuid($entity->getReceiverGuid());
             //     $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE);
@@ -261,7 +261,6 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
 
         // Save and submit
         if ($this->manager->add($notification)) {
-
             // Some logging
             $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
 

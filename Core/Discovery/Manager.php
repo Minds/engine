@@ -610,15 +610,19 @@ class Manager
             'exclude_scheduled' => false,
         ], $opts);
 
+
+        $customType = null;
         switch ($type) {
             case 'blogs':
                 $type = 'object-blog';
                 break;
             case 'images':
-                $type = 'object-image';
+                $type = 'activity';
+                $customType = 'batch';
                 break;
             case 'videos':
-                $type = 'object-video';
+                $type = 'activity';
+                $customType = 'video';
                 break;
             default:
                 $type = 'activity';
@@ -644,6 +648,7 @@ class Manager
             //'offset' => $offset,
             'nsfw' => $opts['nsfw'],
             'type' => $type,
+            'custom_type' => $customType,
             'algorithm' => $algorithm,
             'period' => '1y',
             'query' => $query,

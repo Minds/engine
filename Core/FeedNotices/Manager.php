@@ -57,7 +57,7 @@ class Manager
     /**
      * Get exported notices that can be consumed by the front-end.
      * @param User $user - user to get notices for.
-     * @return array notices.
+     * @return Notices\AbstractNotice[]
      */
     public function getNotices(User $user): array
     {
@@ -68,7 +68,7 @@ class Manager
             try {
                 $notice = (new $noticeClass())
                     ->setUser($user);
-                array_push($noticeExports, $notice->export());
+                array_push($noticeExports, $notice);
             } catch (\Exception $e) {
                 // log error and skip over this notice.
                 $this->logger->error($e);

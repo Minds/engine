@@ -24,14 +24,14 @@ class Timestamps
         foreach ($periods as $period) {
             switch ($period) {
                 case "day":
-                $ref =  "midnight";
-                break;
+                    $ref =  "midnight";
+                    break;
                 case "month":
-                $ref = "midnight first day of this month";
-                break;
+                    $ref = "midnight first day of this month";
+                    break;
                 case "year":
-                $ref = "year";
-                break;
+                    $ref = "year";
+                    break;
                 default:
                     throw new \Exception("Invalid period provided");
             }
@@ -58,13 +58,13 @@ class Timestamps
 
         switch ($unit) {
             case "day":
-            $time = (new DateTime('midnight'))->modify("-$span days");
-            break;
+                $time = (new DateTime('midnight'))->modify("-$span days");
+                break;
             case "month":
-            $time = (new DateTime('midnight first day of this month'))->modify("-$span months");
-            break;
+                $time = (new DateTime('midnight first day of this month'))->modify("-$span months");
+                break;
             default:
-            throw new \Exception("$unit is not an accepted unit");
+                throw new \Exception("$unit is not an accepted unit");
         }
 
         $clone = clone $time;

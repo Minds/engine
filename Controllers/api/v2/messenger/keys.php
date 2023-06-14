@@ -123,21 +123,21 @@ class keys implements Interfaces\Api
                 }
 
 
-              //patch for legacy private key
-              /*if(helpers\openssl::verify($pub, $priv, $unlock_password) === FALSE){ //hint: this should fail if pswd is set
-                $priv = helpers\openssl::temporaryPrivateKey($priv, $unlock_password, $unlock_password);
-                \elgg_set_plugin_user_setting('privatekey', $priv, elgg_get_logged_in_user_guid(), 'gatherings');
-              }
+                //patch for legacy private key
+                /*if(helpers\openssl::verify($pub, $priv, $unlock_password) === FALSE){ //hint: this should fail if pswd is set
+                  $priv = helpers\openssl::temporaryPrivateKey($priv, $unlock_password, $unlock_password);
+                  \elgg_set_plugin_user_setting('privatekey', $priv, elgg_get_logged_in_user_guid(), 'gatherings');
+                }
 
-              if(!isset($_POST['download']) || (isset($_POST['download']) && $_POST['download'] === 'true')){
-                $tmp = helpers\openssl::temporaryPrivateKey(\elgg_get_plugin_user_setting('privatekey', elgg_get_logged_in_user_guid(), 'gatherings'), $unlock_password, NULL);
-                $response['key'] = $tmp;
-              } else {
-                $new_pswd = base64_encode(openssl_random_pseudo_bytes(128));
-                $tmp = helpers\openssl::temporaryPrivateKey($priv, $unlock_password, $new_pswd);
-                $_SESSION['tmp_privatekey'] = $tmp;
-                $response['password'] = $new_pswd;
-              }*/
+                if(!isset($_POST['download']) || (isset($_POST['download']) && $_POST['download'] === 'true')){
+                  $tmp = helpers\openssl::temporaryPrivateKey(\elgg_get_plugin_user_setting('privatekey', elgg_get_logged_in_user_guid(), 'gatherings'), $unlock_password, NULL);
+                  $response['key'] = $tmp;
+                } else {
+                  $new_pswd = base64_encode(openssl_random_pseudo_bytes(128));
+                  $tmp = helpers\openssl::temporaryPrivateKey($priv, $unlock_password, $new_pswd);
+                  $_SESSION['tmp_privatekey'] = $tmp;
+                  $response['password'] = $new_pswd;
+                }*/
         }
 
         return Factory::response($response);

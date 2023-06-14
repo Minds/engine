@@ -2,6 +2,7 @@
 
 namespace Minds\Core\FeedNotices;
 
+use Minds\Core\FeedNotices\GraphQL\GraphQLMappings;
 use Minds\Interfaces\ModuleInterface;
 
 /**
@@ -16,5 +17,6 @@ class Module implements ModuleInterface
     {
         (new Provider())->register();
         (new Routes())->register();
+        (new GraphQLMappings())->register();
     }
 }

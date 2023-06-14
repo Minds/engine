@@ -3,7 +3,7 @@
  * Tags Rule
  */
 
- namespace Minds\Core\Security\XSS;
+namespace Minds\Core\Security\XSS;
 
 use Minds\Interfaces;
 

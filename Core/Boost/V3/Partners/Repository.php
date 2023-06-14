@@ -72,7 +72,7 @@ class Repository
         string $boostGuid,
         ?int $lastViewedTimestamp = null
     ): bool {
-        $this->logger->addInfo("Preparing insert query");
+        $this->logger->info("Preparing insert query");
 
         $statement = $this->mysqlClientWriterHandler
             ->insert()
@@ -88,7 +88,7 @@ class Repository
             ])
             ->prepare();
 
-        $this->logger->addInfo("Finished preparing insert query", [$statement->queryString]);
+        $this->logger->info("Finished preparing insert query", [$statement->queryString]);
 
         $values = [
             'user_guid' => $userGuid,
@@ -96,20 +96,20 @@ class Repository
             'view_date' => date('Y-m-d 00:00:00', $lastViewedTimestamp),
         ];
 
-        $this->logger->addInfo("Binding insert query parameters");
+        $this->logger->info("Binding insert query parameters");
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
-        $this->logger->addInfo("Completed binding insert query parameters");
+        $this->logger->info("Completed binding insert query parameters");
 
         try {
             $statement->execute();
         } catch (PDOException $e) {
-            $this->logger->addError("Query error details: ", $statement->errorInfo());
+            $this->logger->error("Query error details: ", $statement->errorInfo());
             return false;
         }
 
-        $this->logger->addInfo("Completed running insert query");
+        $this->logger->info("Completed running insert query");
 
 
         return true;
@@ -130,6 +130,7 @@ class Repository
                 'boosts.guid',
                 'boosts.payment_method',
                 'boosts.payment_amount',
+                'boosts.payment_method',
                 'total_views' => new RawExp('SUM(s.views)')
             ])
             ->from('boosts')
@@ -175,7 +176,7 @@ class Repository
         try {
             $statement->execute();
         } catch (PDOException $e) {
-            $this->logger->addInfo('Error when running query', [
+            $this->logger->info('Error when running query', [
                 'error' => $e->getMessage(),
                 'query' => $statement->queryString,
                 'params' => $values

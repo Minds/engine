@@ -41,7 +41,6 @@ class SupermindPaymentProcessor
         private ?MindsConfig $mindsConfig = null,
         private ?SettingsManager $settingsManager = null
     ) {
-        $this->intentsManager ??= new IntentsManagerV2();
         $this->mindsConfig ??= Di::_()->get("Config");
         $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
         $this->offchainTransactions ??= new OffchainTransactions();#
@@ -89,7 +88,7 @@ class SupermindPaymentProcessor
     {
         $paymentIntent = $this->preparePaymentIntent($paymentMethodId, $request);
 
-        $intent = $this->intentsManager->add($paymentIntent);
+        $intent = $this->getIntentsManager()->add($paymentIntent);
 
         return $intent->getId();
     }
@@ -149,7 +148,7 @@ class SupermindPaymentProcessor
      */
     public function capturePaymentIntent(string $paymentIntentId): bool
     {
-        return $this->intentsManager->capturePaymentIntent($paymentIntentId);
+        return $this->getIntentsManager()->capturePaymentIntent($paymentIntentId);
     }
 
     /**
@@ -159,7 +158,7 @@ class SupermindPaymentProcessor
      */
     public function cancelPaymentIntent(string $paymentIntentId): bool
     {
-        return $this->intentsManager->cancelPaymentIntent($paymentIntentId);
+        return $this->getIntentsManager()->cancelPaymentIntent($paymentIntentId);
     }
 
     /**
@@ -256,5 +255,17 @@ class SupermindPaymentProcessor
     public function getDescription(User $receiver): string
     {
         return "Supermind to @{$receiver->getUsername()}";
+    }
+
+    /**
+     * We provide the dependency via this function as in the contructor it is very slow, futher
+     * down the tree it attempts to decrypt emails for Stripe dev mode
+     */
+    private function getIntentsManager()
+    {
+        if (!$this->intentsManager) {
+            $this->intentsManager = new IntentsManagerV2();
+        }
+        return $this->intentsManager;
     }
 }

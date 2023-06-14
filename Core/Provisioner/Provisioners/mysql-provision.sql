@@ -194,6 +194,18 @@ ALTER TABLE boosts
 ADD INDEX completed_timestamp (completed_timestamp) USING BTREE;
 
 ALTER TABLE boosts
+    ADD target_platform_web boolean DEFAULT true
+    AFTER target_suitability;
+
+ALTER TABLE boosts
+    ADD target_platform_android boolean DEFAULT true
+    AFTER target_platform_web;
+
+ALTER TABLE boosts
+    ADD target_platform_ios boolean DEFAULT true
+    AFTER target_platform_android;
+
+ALTER TABLE boosts
     ADD goal int NULL DEFAULT NULL
     AFTER target_location;
 
@@ -274,3 +286,31 @@ CREATE TABLE IF NOT EXISTS minds_comments (
     time_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (guid)
 ) ENGINE = InnoDB;
+
+-- For local environment --
+CREATE TABLE IF NOT EXISTS recommendations_latest_cluster_activities (
+  cluster_id int,
+  activity_guid bigint,
+  channel_guid bigint,
+  score float,
+  PRIMARY KEY (cluster_id, activity_guid)
+);
+
+-- For local environment --
+CREATE TABLE IF NOT EXISTS recommendations_latest_cluster_tags (
+  cluster_id int,
+  interest_tag varchar(255),
+  relative_ratio float,
+  PRIMARY KEY (cluster_id, interest_tag)
+);
+
+-- For local environment --
+CREATE TABLE IF NOT EXISTS recommendations_latest_user_clusters (
+  user_id bigint PRIMARY KEY,
+  cluster_id int
+);
+
+ALTER TABLE pseudo_seen_entities
+    ADD first_seen_timestamp timestamp DEFAULT CURRENT_TIMESTAMP
+        AFTER entity_guid;
+

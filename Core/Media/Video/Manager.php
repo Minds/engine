@@ -145,7 +145,7 @@ class Manager
                 return $this->getCloudflareSources($guid);
             case self::TRANSCODER_MINDS:
             default:
-                 return $this->getMindsTranscoderSources($guid);
+                return $this->getMindsTranscoderSources($guid);
         }
     }
 

@@ -3,14 +3,13 @@
 namespace Minds\Core\Blockchain\Skale;
 
 use Minds\Core\Blockchain\Services\Skale;
-use Minds\Core\Blockchain\Skale\Keys;
+use Minds\Core\Blockchain\Skale\Transaction\Manager as TransactionManager;
 use Minds\Core\Blockchain\Wallets\Skale\Balance;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
-use Minds\Core\Blockchain\Skale\Transaction\Manager as TransactionManager;
-use Minds\Core\Config\Config;
-use Minds\Core\EntitiesBuilder;
 
 /**
  * Tools for SKALE network to get balances and send transactions.
@@ -58,7 +57,7 @@ class Tools
         if (!($user xor $address)) {
             throw new ServerErrorException('Must provide user or address, but not both');
         }
-        
+
         if ($user) {
             $address = $this->getCustodialWalletAddress($user);
         }
@@ -85,7 +84,7 @@ class Tools
         if (!($user xor $address)) {
             throw new ServerErrorException('Must provide user or address, but not both');
         }
-        
+
         if ($user) {
             $address = $this->getCustodialWalletAddress($user);
         }
@@ -148,7 +147,7 @@ class Tools
         User $sender,
         ?User $receiver = null,
         ?string $receiverAddress = null,
-        string $amountWei
+        string $amountWei = "0"
     ): ?string {
         if (!($receiver xor $receiverAddress)) {
             throw new ServerErrorException('Must provide receiver or receiver address, but not both');

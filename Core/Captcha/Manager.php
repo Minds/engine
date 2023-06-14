@@ -39,7 +39,7 @@ class Manager
         $this->imageGenerator = $imageGenerator ?? new ImageGenerator;
         $this->jwt = $jwt ?? new Jwt();
         $this->config = $config ?? Di::_()->get('Config');
-        $this->secret = $this->config->get('captcha') ? $this->config->get('captcha')['jwt_secret'] : 'todo';
+        $this->secret = $this->config->get('captcha') ? $this->config->get('captcha')['jwt_secret'] : base64_encode(openssl_random_pseudo_bytes(256));
         $this->jwt->setKey($this->secret);
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->keyValueLimiter = $keyValueLimiter ?? Di::_()->get('Security\RateLimits\KeyValueLimiter');

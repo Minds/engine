@@ -113,7 +113,7 @@ class entities implements Interfaces\Api
                 case "video":
                     $type = "object";
                     $subtype = "video";
-              }
+            }
         }
 
         //the allowed, plus default, options

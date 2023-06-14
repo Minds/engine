@@ -8,16 +8,32 @@ use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Spec\Minds\Mocks;
 use Minds\Core\Data\Cassandra;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Security\ACL;
 
 class AdminQueueSpec extends ObjectBehavior
 {
-    protected $_client;
+    protected $clientMock;
+    protected $scrollMock;
+    protected $entitiesBuilderMock;
+    protected $aclMock;
 
     public function let(
-        Cassandra\Client $client
+        Cassandra\Client $client,
+        Cassandra\Scroll $scroll,
+        EntitiesBuilder $entitiesBuilder,
+        ACL $acl,
     ) {
-        $this->beConstructedWith($client);
-        $this->_client = $client;
+        $this->beConstructedWith(
+            $client,
+            $scroll,
+            $entitiesBuilder,
+            $acl,
+        );
+        $this->clientMock = $client;
+        $this->scrollMock = $scroll;
+        $this->entitiesBuilderMock = $entitiesBuilder;
+        $this->aclMock = $acl;
     }
 
     public function it_is_initializable()
@@ -30,29 +46,145 @@ class AdminQueueSpec extends ObjectBehavior
     public function it_should_get_all(
         Group $group
     ) {
-        $rows = new Mocks\Cassandra\Rows([], '');
+        $activity1 = new Activity();
+        $activity2 = new Activity();
+
+        $entities = [
+            $activity1,
+            $activity2,
+        ];
 
         $group->getGuid()->willReturn(1000);
 
-        $this->_client->request(Argument::that(function ($query) {
+        $this->scrollMock->request(Argument::that(function ($query) {
             return $query->build()['values'][0] == 'group:adminqueue:1000';
-        }))
+        }), Argument::any())
             ->shouldBeCalled()
-            ->willReturn($rows);
+            ->willYield([
+                [
+                    'key' => 'group:adminqueue:1000',
+                    'column1' => '123',
+                    'value' => '123',
+                ],
+                [
+                    'key' => 'group:adminqueue:1000',
+                    'column1' => '456',
+                    'value' => '456',
+                ]
+            ]);
+
+        $this->entitiesBuilderMock->single(123)->shouldBeCalledOnce()->willReturn($activity1);
+        $this->entitiesBuilderMock->single(456)->shouldBeCalledOnce()->willReturn($activity2);
+
+        $this->aclMock->read(Argument::type(Activity::class))->willReturn(true);
 
         $this
-            ->getAll($group)
-            ->shouldReturn($rows);
+            ->getAll($group, [])
+            ->shouldYield(new \ArrayIterator($entities));
     }
 
-    public function it_should_throw_during_get_all_if_no_group()
-    {
-        $this->_client->request(Argument::cetera())
-            ->shouldNotBeCalled();
+    public function it_should_delete_from_queue_if_entity_not_found(
+        Group $group
+    ) {
+        $activity1 = new Activity();
+
+        $entities = [
+            $activity1,
+        ];
+
+        $group->getGuid()->willReturn(1000);
+
+        $this->scrollMock->request(Argument::that(function ($query) {
+            return $query->build()['values'][0] == 'group:adminqueue:1000';
+        }), Argument::any())
+            ->shouldBeCalled()
+            ->willYield([
+                [
+                    'key' => 'group:adminqueue:1000',
+                    'column1' => '123',
+                    'value' => '123',
+                ],
+                [
+                    'key' => 'group:adminqueue:1000',
+                    'column1' => '456',
+                    'value' => '456',
+                ]
+            ]);
+
+        $this->entitiesBuilderMock->single(123)->shouldBeCalledOnce()->willReturn($activity1);
+        $this->entitiesBuilderMock->single(456)->shouldBeCalledOnce()->willReturn(null);
+
+        $this->aclMock->read(Argument::type(Activity::class))->willReturn(true);
+
+        $this->clientMock
+            ->request(Argument::that(function ($query) {
+                $prepared = $query->build();
+                return
+                    strpos($prepared['string'], 'DELETE FROM', 0) === 0 &&
+                    $prepared['values'][0] == 'group:adminqueue:1000' &&
+                    $prepared['values'][1] == '456';
+            }))
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this
-            ->shouldThrow(\Exception::class)
-            ->duringGetAll(null);
+            ->getAll($group, [])
+            ->shouldYield(new \ArrayIterator($entities));
+    }
+
+    public function it_should_delete_from_queue_if_acl_fails(
+        Group $group
+    ) {
+        $activity1 = (new Activity())->set('guid', '123');
+        $activity2 = (new Activity())->set('guid', '456');
+
+        $entities = [
+            $activity1
+        ];
+
+        $group->getGuid()->willReturn(1000);
+
+        $this->scrollMock->request(Argument::that(function ($query) {
+            return $query->build()['values'][0] == 'group:adminqueue:1000';
+        }), Argument::any())
+            ->shouldBeCalled()
+            ->willYield([
+                [
+                    'key' => 'group:adminqueue:1000',
+                    'column1' => '123',
+                    'value' => '123',
+                ],
+                [
+                    'key' => 'group:adminqueue:1000',
+                    'column1' => '456',
+                    'value' => '456',
+                ]
+            ]);
+
+        $this->entitiesBuilderMock->single('123')->shouldBeCalledOnce()->willReturn($activity1);
+        $this->entitiesBuilderMock->single('456')->shouldBeCalledOnce()->willReturn($activity2);
+
+        $this->aclMock->read($activity1)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+        $this->aclMock->read($activity2)
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
+        $this->clientMock
+            ->request(Argument::that(function ($query) {
+                $prepared = $query->build();
+                return
+                    strpos($prepared['string'], 'DELETE FROM', 0) === 0 &&
+                    $prepared['values'][0] == 'group:adminqueue:1000' &&
+                    $prepared['values'][1] == '456';
+            }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this
+            ->getAll($group, [])
+            ->shouldYield(new \ArrayIterator($entities));
     }
 
     // count()
@@ -64,7 +196,7 @@ class AdminQueueSpec extends ObjectBehavior
 
         $group->getGuid()->willReturn(1000);
 
-        $this->_client->request(Argument::that(function ($query) {
+        $this->clientMock->request(Argument::that(function ($query) {
             return $query->build()['values'][0] == 'group:adminqueue:1000';
         }))
             ->shouldBeCalled()
@@ -77,7 +209,7 @@ class AdminQueueSpec extends ObjectBehavior
 
     public function it_should_throw_during_count_if_no_group()
     {
-        $this->_client->request(Argument::cetera())
+        $this->clientMock->request(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this
@@ -95,7 +227,7 @@ class AdminQueueSpec extends ObjectBehavior
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1000);
 
-        $this->_client->request(Argument::that(function ($query) {
+        $this->clientMock->request(Argument::that(function ($query) {
             return $query->build()['values'][0] == 'group:adminqueue:1000';
         }))
             ->shouldBeCalled()
@@ -112,7 +244,7 @@ class AdminQueueSpec extends ObjectBehavior
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1000);
 
-        $this->_client->request(Argument::cetera())
+        $this->clientMock->request(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this
@@ -127,7 +259,7 @@ class AdminQueueSpec extends ObjectBehavior
         $group->getGuid()->willReturn(1000);
         $activity->get('guid')->willReturn('');
 
-        $this->_client->request(Argument::cetera())
+        $this->clientMock->request(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this
@@ -143,7 +275,7 @@ class AdminQueueSpec extends ObjectBehavior
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1001);
 
-        $this->_client->request(Argument::cetera())
+        $this->clientMock->request(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this
@@ -161,7 +293,7 @@ class AdminQueueSpec extends ObjectBehavior
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1000);
 
-        $this->_client->request(Argument::that(function ($query) {
+        $this->clientMock->request(Argument::that(function ($query) {
             return $query->build()['values'][0] == 'group:adminqueue:1000';
         }))
             ->shouldBeCalled()
@@ -178,7 +310,7 @@ class AdminQueueSpec extends ObjectBehavior
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1000);
 
-        $this->_client->request(Argument::cetera())
+        $this->clientMock->request(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this
@@ -193,7 +325,7 @@ class AdminQueueSpec extends ObjectBehavior
         $group->getGuid()->willReturn(1000);
         $activity->get('guid')->willReturn('');
 
-        $this->_client->request(Argument::cetera())
+        $this->clientMock->request(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this
@@ -209,7 +341,7 @@ class AdminQueueSpec extends ObjectBehavior
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1001);
 
-        $this->_client->request(Argument::cetera())
+        $this->clientMock->request(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this

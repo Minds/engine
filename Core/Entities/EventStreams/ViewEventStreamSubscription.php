@@ -43,7 +43,7 @@ class ViewEventStreamSubscription implements BatchSubscriptionInterface
      * @return void
      * @throws NotImplementedException
      */
-    public function commitChanges(): void
+    public function onBatchConsumed(): void
     {
         throw new NotImplementedException();
     }

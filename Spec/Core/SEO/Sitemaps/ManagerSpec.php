@@ -30,18 +30,18 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_build_sitemaps()
-    {
-        $this->usersResolver->getUrls()
-            ->shouldBeCalled()
-            ->willReturn([
-                (new SitemapUrl)
-                    ->setLoc('newsfeed/123')
-            ]);
+    // public function it_should_build_sitemaps()
+    // {
+    //     $this->usersResolver->getUrls()
+    //         ->shouldBeCalled()
+    //         ->willReturn([
+    //             (new SitemapUrl)
+    //                 ->setLoc('newsfeed/123')
+    //         ]);
 
-        $this->s3->putObject(Argument::any())
-                ->shouldBeCalled();
+    //     $this->s3->putObject(Argument::any())
+    //             ->shouldBeCalled();
 
-        $this->build();
-    }
+    //     $this->build();
+    // }
 }

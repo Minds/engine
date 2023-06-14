@@ -10,6 +10,7 @@ use Minds\Core\Log;
 use Minds\Core\Media\Feeds;
 use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Core\Security\ACL;
+use Minds\Entities\Activity;
 use Minds\Entities\Video;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\JsonResponse;
@@ -43,7 +44,6 @@ class Webhooks
         $config = null,
         $entitiesBuilder = null,
         $save = null,
-        ?Feeds $feeds = null,
         ?ACL $acl = null
     ) {
         $this->client = $client ?? new Client();
@@ -52,7 +52,6 @@ class Webhooks
         $this->save = $save ?? new Save();
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
-        $this->feeds = $feeds ?? Di::_()->get('Media\Feeds');
     }
 
     /**
@@ -81,12 +80,15 @@ class Webhooks
 
     /**
      * @param ServerRequest $request
+     * @param bool $bypassAuthentication - allows bypass for testing via CLI.
      * @return JsonResponse
      */
-    public function onWebhook(ServerRequest $request): JsonResponse
+    public function onWebhook(ServerRequest $request, bool $bypassAuthentication = false): JsonResponse
     {
-        $this->verifyWebhookAuthenticity($request);
-        
+        if (!$bypassAuthentication) {
+            $this->verifyWebhookAuthenticity($request);
+        }
+
         $body = $request->getParsedBody();
         $guid = $body['meta']['guid'];
         $transcodingState = $body['status']['state'];
@@ -114,8 +116,7 @@ class Webhooks
             ->setEntity($video)
             ->save();
 
-        // propagate properties from video to activity.
-        $this->feeds->setEntity($video)->updateActivities();
+        $this->patchLinkedActivity($video);
 
         $this->acl->setIgnore($ia); // Set the ignore state back to what it was
     
@@ -151,5 +152,31 @@ class Webhooks
         }
 
         $this->logger->info('CloudflareWebhook - signature ok');
+    }
+
+    /**
+     * Patch linked activity with height and width from video.
+     * @param Video $video - video to patch from.
+     * @return void
+     */
+    private function patchLinkedActivity(Video $video): void
+    {
+        $activity = $this->entitiesBuilder->single($video->getContainerGuid());
+        
+        if (!$activity) {
+            $this->logger->error('No linked activity found for video with GUID: ' . $video->getGuid());
+            return;
+        }
+
+        if (!($activity instanceof Activity)) {
+            $this->logger->error('Non activity entity found linked to video with GUID: ' . $video->getGuid());
+            return;
+        }
+
+        $activity->setAttachments([$video]);
+
+        $this->save
+            ->setEntity($activity)
+            ->save();
     }
 }

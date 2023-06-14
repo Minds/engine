@@ -184,21 +184,21 @@ class Group extends NormalizedEntity implements EntityInterface
     public function __get($name)
     {
         switch ($name) {
-          case 'guid':
-            return $this->getGuid();
-            break;
-          case 'type':
-            return $this->getType();
-            break;
-          case 'container_guid':
-            return null;
-            break;
-          case 'owner_guid':
-            return $this->getOwnerObj() ? $this->getOwnerObj()->guid : $this->owner_guid;
-            break;
-          case 'access_id':
-            return $this->access_id;
-            break;
+            case 'guid':
+                return $this->getGuid();
+                break;
+            case 'type':
+                return $this->getType();
+                break;
+            case 'container_guid':
+                return null;
+                break;
+            case 'owner_guid':
+                return $this->getOwnerObj() ? $this->getOwnerObj()->guid : $this->owner_guid;
+                break;
+            case 'access_id':
+                return $this->access_id;
+                break;
         }
 
         return null;

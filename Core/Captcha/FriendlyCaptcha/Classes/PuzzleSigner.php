@@ -26,7 +26,7 @@ class PuzzleSigner
         $config ??= Di::_()->get('Config');
 
         if (!$this->secret = $config->get('captcha')['friendly_captcha']['signing_secret'] ?? false) {
-            throw new MisconfigurationException('FriendlyCaptcha secret not set');
+            Di::_()->get('Logger')->error('FriendlyCaptcha secret not set');
         }
     }
 
