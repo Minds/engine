@@ -273,7 +273,7 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 $notification->setType(NotificationTypes::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED);
                 $notification->setData($event->getActionData());
                 break;
-            // case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
+                // case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
             //     $notification->setToGuid($entity->getSenderGuid());
             //     $notification->setFromGuid($entity->getReceiverGuid());
             //     $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE);
