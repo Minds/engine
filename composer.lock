@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1f1a0664063a0e060c5dbf4a869b6725",
+    "content-hash": "a89ac4b4db4be5493212fa0b5843d4a3",
     "packages": [
         {
             "name": "Minds/Surge",
@@ -3881,6 +3881,68 @@
             "time": "2021-06-14T00:11:39+00:00"
         },
         {
+            "name": "oracle/oci-php-sdk",
+            "version": "dev-minds-fixes",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Minds/oci-php-sdk.git",
+                "reference": "6b66d635ed73b47108b6f03624307ed82f288b15"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Minds/oci-php-sdk/zipball/6b66d635ed73b47108b6f03624307ed82f288b15",
+                "reference": "6b66d635ed73b47108b6f03624307ed82f288b15",
+                "shasum": ""
+            },
+            "require": {
+                "cache/adapter-common": "^1.2",
+                "guzzlehttp/guzzle": "^6.5 || ^7",
+                "php": ">=5.6"
+            },
+            "require-dev": {
+                "cache/filesystem-adapter": "^1.1",
+                "overtrue/phplint": "^3.0",
+                "phpunit/phpunit": ">=5.7"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ],
+                "files": [
+                    "src/Oracle/Oci/Common/Utils.php"
+                ]
+            },
+            "autoload-dev": {
+                "classmap": [
+                    "tests/"
+                ]
+            },
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Oracle",
+                    "homepage": "https://www.oracle.com"
+                }
+            ],
+            "description": "OCI SDK for PHP - Oracle Cloud Infrastructure services in your PHP project",
+            "homepage": "https://docs.oracle.com/en-us/iaas/Content/API/Concepts/devtoolslanding.htm",
+            "keywords": [
+                "objectstorage",
+                "oci",
+                "oracle",
+                "sdk"
+            ],
+            "support": {
+                "forum": "https://community.oracle.com/tech/developers",
+                "issues": "https://community.oracle.com/mosc/",
+                "source": "https://github.com/Minds/oci-php-sdk/tree/minds-fixes"
+            },
+            "time": "2023-06-14T07:19:16+00:00"
+        },
+        {
             "name": "paragonie/constant_time_encoding",
             "version": "v2.6.3",
             "source": {
@@ -3946,68 +4008,6 @@
                 "source": "https://github.com/paragonie/constant_time_encoding"
             },
             "time": "2022-06-14T06:56:20+00:00"
-        },
-        {
-            "name": "oracle/oci-php-sdk",
-            "version": "dev-fix/deprecated-optional-params",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Minds/oci-php-sdk.git",
-                "reference": "c2fd5bdedfc1087384af099ef39aca5c8c5777b7"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Minds/oci-php-sdk/zipball/c2fd5bdedfc1087384af099ef39aca5c8c5777b7",
-                "reference": "c2fd5bdedfc1087384af099ef39aca5c8c5777b7",
-                "shasum": ""
-            },
-            "require": {
-                "cache/adapter-common": "^1.2",
-                "guzzlehttp/guzzle": "^6.5",
-                "php": ">=5.6"
-            },
-            "require-dev": {
-                "cache/filesystem-adapter": "^1.1",
-                "overtrue/phplint": "^3.0",
-                "phpunit/phpunit": ">=5.7"
-            },
-            "type": "library",
-            "autoload": {
-                "classmap": [
-                    "src/"
-                ],
-                "files": [
-                    "src/Oracle/Oci/Common/Utils.php"
-                ]
-            },
-            "autoload-dev": {
-                "classmap": [
-                    "tests/"
-                ]
-            },
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "Oracle",
-                    "homepage": "https://www.oracle.com"
-                }
-            ],
-            "description": "OCI SDK for PHP - Oracle Cloud Infrastructure services in your PHP project",
-            "homepage": "https://docs.oracle.com/en-us/iaas/Content/API/Concepts/devtoolslanding.htm",
-            "keywords": [
-                "objectstorage",
-                "oci",
-                "oracle",
-                "sdk"
-            ],
-            "support": {
-                "forum": "https://community.oracle.com/tech/developers",
-                "issues": "https://community.oracle.com/mosc/",
-                "source": "https://github.com/Minds/oci-php-sdk/tree/fix/deprecated-optional-params"
-            },
-            "time": "2023-06-13T08:37:55+00:00"
         },
         {
             "name": "paragonie/random_compat",

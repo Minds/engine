@@ -60,7 +60,7 @@
         "symfony/cache": "v5.4.23",
         "symfony/expression-language": "v5.4.21",
         "google/cloud-pubsub": "^1.43",
-        "oracle/oci-php-sdk": "dev-fix/deprecated-optional-params"
+        "oracle/oci-php-sdk": "dev-minds-fixes"
     },
     "repositories": [
         {
