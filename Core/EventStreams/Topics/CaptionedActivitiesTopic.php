@@ -93,13 +93,13 @@ class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
                 $captionedActivity->setActivityUrn($data->activity_urn);
                 $captionedActivity->setGuid($data->guid);
                 $captionedActivity->setType($data->type);
-                $captionedActivity->setContainerGuid($data->container_guid ?: null);
-                $captionedActivity->setOwnerGuid($data->owner_guid ?: null);
-                $captionedActivity->setAccessId($data->access_id ?: null);
-                $captionedActivity->setTimeCreated($data->time_created ?: null);
-                $captionedActivity->setTimePublished($data->time_published ?: null);
-                $captionedActivity->setTags($data->tags ?: null);
-                $captionedActivity->setMessage($data->message ?: null);
+                $captionedActivity->setContainerGuid(property_exists($data, 'container_guid') ? $data->container_guid : null);
+                $captionedActivity->setOwnerGuid(property_exists($data, 'owner_guid') ? $data->owner_guid : null);
+                $captionedActivity->setAccessId(property_exists($data, 'access_id') ? $data->access_id : null);
+                $captionedActivity->setTimeCreated(property_exists($data, 'time_created') ? $data->time_created : null);
+                $captionedActivity->setTimePublished(property_exists($data, 'time_published') ? $data->time_published : null);
+                $captionedActivity->setTags(property_exists($data, 'tags') ? $data->tags : null);
+                $captionedActivity->setMessage(property_exists($data, 'message') ? $data->message : null);
                 $captionedActivity->setCaption($data->caption);
 
                 $this->logger->info("", [
