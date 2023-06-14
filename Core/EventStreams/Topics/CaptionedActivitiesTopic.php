@@ -15,7 +15,7 @@ use Pulsar\SchemaType;
 
 class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
 {
-    private const TOPIC = "captioned_activity";
+    private const TOPIC = "captioned-activities";
 
     /**
      * @param EventInterface $event
@@ -44,7 +44,7 @@ class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
                 ]))
         );
 
-        return (bool) $result;
+        return !$result;
     }
 
     private function getProducer(): Producer
@@ -52,7 +52,7 @@ class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
         return $this->client()->createProducer(
             "persistent://{$this->getPulsarTenant()}/{$this->getPulsarNamespace()}/" . self::TOPIC,
             (new ProducerConfiguration())
-                ->setSchema(SchemaType::AVRO, "captioned_activity", $this->getSchema())
+                ->setSchema(SchemaType::JSON, "captioned-activities", $this->getSchema())
         );
     }
 
@@ -134,7 +134,7 @@ class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
             $subscriptionId,
             (new ConsumerConfiguration())
                 ->setConsumerType(Consumer::ConsumerShared)
-                ->setSchema(SchemaType::AVRO, "captioned_activity", $this->getSchema(), [])
+                ->setSchema(SchemaType::JSON, "captioned-activities", $this->getSchema(), [])
         );
     }
 
@@ -145,7 +145,7 @@ class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
     {
         return json_encode([
             'type' => 'record',
-            'name' => 'captioned_activity',
+            'name' => 'ImageCaption',
             'namespace' => $this->getPulsarNamespace(),
             'fields' => [
                 [
@@ -154,7 +154,7 @@ class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
                 ],
                 [
                     'name' => 'guid',
-                    'type' => 'int'
+                    'type' => 'long'
                 ],
                 [
                     'name' => 'type',
@@ -162,15 +162,15 @@ class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
                 ],
                 [
                     'name' => 'container_guid',
-                    'type' => 'int'
+                    'type' => 'long'
                 ],
                 [
                     'name' => 'owner_guid',
-                    'type' => 'int'
+                    'type' => 'long'
                 ],
                 [
                     'name' => 'access_id',
-                    'type' => 'int'
+                    'type' => 'long'
                 ],
                 [
                     'name' => 'time_published',

@@ -45,7 +45,7 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
 
     public function getSubscriptionId(): string
     {
-        return 'captioned-activity';
+        return 'captioned-activity-subscription';
     }
 
     public function getTopic(): TopicInterface
@@ -55,7 +55,7 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
 
     public function getTopicRegex(): string
     {
-        return 'captioned-activity-subscription';
+        return 'captioned-activities';
     }
 
     /**
