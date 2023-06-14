@@ -138,9 +138,9 @@ class EmailSubscribersIterator implements \Iterator
 
     /**
      * Rewind the array cursor
-     * @return null
+     * @return void
      */
-    public function rewind()
+    public function rewind(): void
     {
         if ($this->cursor >= 0) {
             $this->getSubscribers();
@@ -152,7 +152,7 @@ class EmailSubscribersIterator implements \Iterator
      * Get the current cursor's data
      * @return mixed
      */
-    public function current()
+    public function current(): mixed
     {
         return $this->data[$this->cursor];
     }
@@ -161,16 +161,16 @@ class EmailSubscribersIterator implements \Iterator
      * Get cursor's key
      * @return mixed
      */
-    public function key()
+    public function key(): mixed
     {
         return $this->cursor;
     }
 
     /**
      * Goes to the next cursor
-     * @return null
+     * @return void
      */
-    public function next()
+    public function next(): void
     {
         $this->cursor++;
         if (!isset($this->data[$this->cursor])) {
@@ -182,7 +182,7 @@ class EmailSubscribersIterator implements \Iterator
      * Checks if the cursor is valid
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->valid && isset($this->data[$this->cursor]);
     }

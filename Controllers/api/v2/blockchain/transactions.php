@@ -154,7 +154,7 @@ class transactions implements Interfaces\Api
                     $response = ['status' => 'error', 'code' => $e->getCode() ?? 500, 'message' => $e->getMessage()];
                 }
                 break;
-            // case 'spend':
+                // case 'spend':
             //     if (!$_POST['type']) {
             //         return Factory::response([
             //             'status' => 'error',

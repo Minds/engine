@@ -2,44 +2,65 @@
 
 namespace Spec\Minds\Core\Media\Services;
 
-use Minds\Core\Media\Services\FFMpeg;
+use Aws\CommandInterface;
+use Aws\S3\S3Client;
 use FFMpeg\FFMpeg as FFMpegClient;
 use FFMpeg\FFProbe as FFProbeClient;
+use Minds\Core\Media\Services\FFMpeg;
 use Minds\Core\Queue\Interfaces\QueueClient;
-use Psr\Http\Message\RequestInterface;
-use Aws\S3\S3Client;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Psr\Http\Message\RequestInterface;
 
 class FFMpegSpec extends ObjectBehavior
 {
+    private $s3;
+    private $ffmpeg;
+    private $ffprobe;
+    private $queue;
+
+    public function let(
+        QueueClient $queueClient,
+        FFMpegClient $ffmpeg,
+        FFProbeClient $ffprobe,
+        S3Client $s3,
+    ): void {
+        $this->ffmpeg = $ffmpeg;
+        $this->ffprobe = $ffprobe;
+        $this->queue = $queueClient;
+        $this->s3 = $s3;
+
+        $this->beConstructedWith(
+            $this->queue,
+            $this->ffmpeg,
+            $this->ffprobe,
+            $this->s3,
+            null
+        );
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(FFMpeg::class);
     }
 
     public function it_should_get_a_presigned_urn(
-        QueueClient $queue,
-        FFMpegClient $ffmpeg,
-        FFProbeClient $ffprobe,
-        S3Client $s3,
-        \Aws\CommandInterface $cmd,
+        CommandInterface $cmd,
         RequestInterface $request
     ) {
-        $this->beConstructedWith($queue, $ffmpeg, $ffprobe, $s3);
-
-        $s3->getCommand('PutObject', [
+        $this->s3->getCommand('PutObject', [
             'Bucket' => 'cinemr',
             'Key' => "/123/source",
         ])
             ->shouldBeCalled()
             ->willReturn($cmd);
-        
-        $s3->createPresignedRequest(Argument::any(), Argument::any())
-            ->willReturn($request);
-            
+
         $request->getUri()
             ->willReturn('aws-signed-url');
+
+        $this->s3->createPresignedRequest($cmd, Argument::any())
+            ->willReturn($request);
+
 
         $this->setKey(123);
 

@@ -31,7 +31,7 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
                 $this->out('Prints the counts of a user');
                 $this->out('--from={timestamp in milliseconds} the day to start count. Default is yesterday');
                 $this->out('--guid={user guid} REQUIRED the user to aggregate');
-            // no break
+                // no break
             default:
                 $this->out('Syntax usage: cli analytics <type>');
                 $this->displayCommandHelp();

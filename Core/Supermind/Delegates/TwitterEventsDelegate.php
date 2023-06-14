@@ -49,7 +49,7 @@ class TwitterEventsDelegate
         $content .= strlen($activityPost->getMessage()) > 253 ? '...' : ' ';
         $content .= $activityMindsUrl;
 
-        $this->logger->addInfo("tweet message length: " . strlen($content));
+        $this->logger->info("tweet message length: " . strlen($content));
 
         $this->twitterManager
             ->setUser($this->buildUser($supermindRequest->getReceiverGuid()))

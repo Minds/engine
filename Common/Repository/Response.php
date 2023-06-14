@@ -37,10 +37,10 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
 
     /**
      * Sets the paging token for this result set
-     * @param string $pagingToken
+     * @param string|null $pagingToken
      * @return Response
      */
-    public function setPagingToken($pagingToken)
+    public function setPagingToken(?string $pagingToken): self
     {
         $this->pagingToken = $pagingToken;
         return $this;
@@ -48,9 +48,9 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
 
     /**
      * Gets the paging token for this result set
-     * @return string
+     * @return string|null
      */
-    public function getPagingToken()
+    public function getPagingToken(): ?string
     {
         return $this->pagingToken;
     }
@@ -60,7 +60,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @param Exception $exception
      * @return Response
      */
-    public function setException($exception)
+    public function setException(Exception $exception): self
     {
         $this->exception = $exception;
         return $this;
@@ -70,7 +70,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * Gets the exception for a faulty result set
      * @return Exception
      */
-    public function getException()
+    public function getException(): Exception
     {
         return $this->exception;
     }
@@ -80,7 +80,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @param bool $lastPage
      * @return Response
      */
-    public function setLastPage($lastPage)
+    public function setLastPage(bool $lastPage): self
     {
         $this->lastPage = $lastPage;
         return $this;
@@ -90,16 +90,16 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * Returns if it's the last page of a response
      * @return bool
      */
-    public function isLastPage()
+    public function isLastPage(): bool
     {
         return !!$this->lastPage;
     }
 
     /**
-     * Returns if the result set is fauly
+     * Returns if the result set is faulty
      * @return bool
      */
-    public function hasFailed()
+    public function hasFailed(): bool
     {
         return !!$this->exception;
     }
@@ -110,7 +110,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @return mixed Can return any type.
      * @since 5.0.0
      */
-    public function current()
+    public function current(): mixed
     {
         return current($this->data);
     }
@@ -121,7 +121,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @return void Any returned value is ignored.
      * @since 5.0.0
      */
-    public function next()
+    public function next(): void
     {
         next($this->data);
     }
@@ -132,7 +132,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @return mixed scalar on success, or null on failure.
      * @since 5.0.0
      */
-    public function key()
+    public function key(): mixed
     {
         return key($this->data);
     }
@@ -140,11 +140,11 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
     /**
      * Checks if current position is valid
      * @link http://php.net/manual/en/iterator.valid.php
-     * @return boolean The return value will be casted to boolean and then evaluated.
+     * @return bool The return value will be casted to boolean and then evaluated.
      * Returns true on success or false on failure.
      * @since 5.0.0
      */
-    public function valid()
+    public function valid(): bool
     {
         return key($this->data) !== null;
     }
@@ -155,7 +155,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @return void Any returned value is ignored.
      * @since 5.0.0
      */
-    public function rewind()
+    public function rewind(): void
     {
         reset($this->data);
     }
@@ -164,7 +164,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * Rewinds the Iterator to the first element and returns its value
      * @return mixed
      */
-    public function reset()
+    public function reset(): mixed
     {
         return reset($this->data);
     }
@@ -173,7 +173,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * Sets the pointer onto the last Iterator element and returns its value
      * @return mixed
      */
-    public function end()
+    public function end(): mixed
     {
         return end($this->data);
     }
@@ -184,13 +184,13 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @param mixed $offset <p>
      * An offset to check for.
      * </p>
-     * @return boolean true on success or false on failure.
+     * @return bool true on success or false on failure.
      * </p>
      * <p>
-     * The return value will be casted to boolean if non-boolean was returned.
+     * The return value will be cast to boolean if non-boolean was returned.
      * @since 5.0.0
      */
-    public function offsetExists($offset)
+    public function offsetExists(mixed $offset): bool
     {
         return isset($this->data[$offset]);
     }
@@ -204,7 +204,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @return mixed Can return all value types.
      * @since 5.0.0
      */
-    public function offsetGet($offset)
+    public function offsetGet(mixed $offset): mixed
     {
         return $this->data[$offset];
     }
@@ -221,7 +221,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @return void
      * @since 5.0.0
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         if ($offset === null) {
             $this->data[] = $value;
@@ -240,7 +240,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @return void
      * @since 5.0.0
      */
-    public function offsetUnset($offset)
+    public function offsetUnset(mixed $offset): void
     {
         unset($this->data[$offset]);
     }
@@ -254,7 +254,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * The return value is cast to an integer.
      * @since 5.1.0
      */
-    public function count()
+    public function count(): int
     {
         return count($this->data);
     }
@@ -263,7 +263,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @param array $data
      * @return Response
      */
-    public function pushArray(array $data)
+    public function pushArray(array $data): self
     {
         array_push($this->data, ...$data);
         return $this;
@@ -285,7 +285,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * Exports the data array
      * @return array
      */
-    public function toArray()
+    public function toArray(): array
     {
         return $this->data ?: [];
     }
@@ -293,20 +293,21 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
     /**
      * Specify data which should be serialized to JSON
      * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
-     * @return mixed data which can be serialized by <b>json_encode</b>,
+     * @return array data which can be serialized by <b>json_encode</b>,
      * which is a value of any type other than a resource.
      * @since 5.4.0
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->toArray();
     }
 
     /**
      * Returns a clone of this response with the inverse order
+     * @param bool $preserveKeys
      * @return Response
      */
-    public function reverse($preserveKeys = false)
+    public function reverse(bool $preserveKeys = false): self
     {
         return new self(array_reverse($this->data, $preserveKeys), $this->pagingToken);
     }
@@ -319,7 +320,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @param bool $preserveKeys
      * @return Response
      */
-    public function filter($callback, $preserveKeys = false)
+    public function filter(callable $callback, bool $preserveKeys = false): self
     {
         $filtered = array_filter($this->data, $callback, ARRAY_FILTER_USE_BOTH);
 
@@ -335,7 +336,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @param callable $callback
      * @return Response
      */
-    public function map($callback)
+    public function map(callable $callback): self
     {
         return new self(array_map($callback, $this->data), $this->pagingToken);
     }
@@ -346,7 +347,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * @param mixed $initialValue
      * @return mixed
      */
-    public function reduce($callback, $initialValue = null)
+    public function reduce(callable $callback, mixed $initialValue = null): mixed
     {
         return array_reduce($this->data, $callback, $initialValue);
     }
@@ -367,7 +368,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * Returns the first element of the Response, or null if empty
      * @return mixed|null
      */
-    public function first()
+    public function first(): mixed
     {
         return $this->data[0] ?? null;
     }
@@ -376,7 +377,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      * Returns the last element
      * @return mixed | null
      */
-    public function last()
+    public function last(): mixed
     {
         $count = count($this->data);
         return $this->data[$count - 1] ?? null;

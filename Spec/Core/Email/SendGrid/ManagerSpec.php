@@ -2,9 +2,9 @@
 
 namespace Spec\Minds\Core\Email\SendGrid;
 
+use Minds\Core\Email\SendGrid\Lists\SendGridListInterface;
 use Minds\Core\Email\SendGrid\Manager;
 use Minds\Core\Email\SendGrid\SendGridContact;
-use Minds\Core\Email\SendGrid\Lists\SendGridListInterface;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -67,6 +67,7 @@ class ManagerSpec extends ObjectBehavior
                 (new SendGridContact)
                     ->setEmail('mark@minds.com')
                     ->setProExpires(time())
+                    ->setUsername("")
             ]);
 
         $this->syncContactLists([ $list ]);

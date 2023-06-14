@@ -27,28 +27,28 @@ class stripe implements Interfaces\Api
         $response = [];
 
         switch ($pages[0]) {
-        case "token":
-          $response['token'] = Core\Config::_()->get('payments')['stripe']['public_key'];
-          break;
-        case "cards":
-          $stripe = Core\Di\Di::_()->get('StripePayments');
-          $cards = [];
+            case "token":
+                $response['token'] = Core\Config::_()->get('payments')['stripe']['public_key'];
+                break;
+            case "cards":
+                $stripe = Core\Di\Di::_()->get('StripePayments');
+                $cards = [];
 
-          try {
-              $customer = (new Customer())->setUser(Core\Session::getLoggedInUser());
-              $customerObj = $stripe->getCustomer($customer);
-              if ($customerObj) {
-                  $cards = $customerObj->getPaymentMethods();
-              }
-          } catch (\Exception $e) {
-              return Factory::response([
-                'status' => 'error',
+                try {
+                    $customer = (new Customer())->setUser(Core\Session::getLoggedInUser());
+                    $customerObj = $stripe->getCustomer($customer);
+                    if ($customerObj) {
+                        $cards = $customerObj->getPaymentMethods();
+                    }
+                } catch (\Exception $e) {
+                    return Factory::response([
+                      'status' => 'error',
             ]);
-          }
+                }
 
-          $response['cards'] = $cards ?: [];
-          break;
-      }
+                $response['cards'] = $cards ?: [];
+                break;
+        }
 
         return Factory::response($response);
     }
@@ -65,31 +65,31 @@ class stripe implements Interfaces\Api
         $response = [];
 
         switch ($pages[0]) {
-          case "card":
-            $stripe = Core\Di\Di::_()->get('StripePayments');
+            case "card":
+                $stripe = Core\Di\Di::_()->get('StripePayments');
 
-            $customer = (new Customer())->setUser(Core\Session::getLoggedInUser());
+                $customer = (new Customer())->setUser(Core\Session::getLoggedInUser());
 
-            if (!$stripe->getCustomer($customer) || !$customer->getId()) {
-                //create the customer on stripe
-                try {
-                    $customer->setPaymentToken($pages[1]);
-                    $stripe->createCustomer($customer);
-                } catch (\Exception $e) {
-                    return Factory::response([
-                        'status' => 'error',
-                        'message' => $e->getMessage()
-                      ]);
+                if (!$stripe->getCustomer($customer) || !$customer->getId()) {
+                    //create the customer on stripe
+                    try {
+                        $customer->setPaymentToken($pages[1]);
+                        $stripe->createCustomer($customer);
+                    } catch (\Exception $e) {
+                        return Factory::response([
+                            'status' => 'error',
+                            'message' => $e->getMessage()
+                          ]);
+                    }
+                } else {
+                    try {
+                        $stripe->addCardToCustomer($customer, $pages[1]);
+                    } catch (\Exception $e) {
+                        $response['status'] = 'error';
+                        $response['message'] = $e->getMessage();
+                    }
                 }
-            } else {
-                try {
-                    $stripe->addCardToCustomer($customer, $pages[1]);
-                } catch (\Exception $e) {
-                    $response['status'] = 'error';
-                    $response['message'] = $e->getMessage();
-                }
-            }
-            break;
+                break;
         }
         return Factory::response($response);
     }
@@ -99,14 +99,14 @@ class stripe implements Interfaces\Api
         $response = [];
 
         switch ($pages[0]) {
-          case "card":
-            $stripe = Core\Di\Di::_()->get('StripePayments');
+            case "card":
+                $stripe = Core\Di\Di::_()->get('StripePayments');
 
-            $customer = (new Customer())->setUser(Core\Session::getLoggedInUser());
-            if (!$stripe->removeCardFromCustomer($customer, $pages[1])) {
-                $response['status'] = 'error';
-            }
-            break;
+                $customer = (new Customer())->setUser(Core\Session::getLoggedInUser());
+                if (!$stripe->removeCardFromCustomer($customer, $pages[1])) {
+                    $response['status'] = 'error';
+                }
+                break;
         }
 
         return Factory::response($response);

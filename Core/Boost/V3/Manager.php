@@ -124,11 +124,17 @@ class Manager
         $goalFeatureEnabled = $this->experimentsManager
             ->isOn('minds-3952-boost-goals');
 
+        $targetPlatformFeatureEnabled = $this->experimentsManager
+            ->isOn('minds-4030-boost-platform-targeting');
+
         $boost = (
             new Boost(
                 entityGuid: $data['entity_guid'],
                 targetLocation: (int) $data['target_location'],
                 targetSuitability: (int) $data['target_suitability'],
+                targetPlatformWeb: $targetPlatformFeatureEnabled && isset($data['target_platform_web']) ? (boolean) $data['target_platform_web'] : true,
+                targetPlatformAndroid: $targetPlatformFeatureEnabled && isset($data['target_platform_android']) ? (boolean) $data['target_platform_android'] : true,
+                targetPlatformIos: $targetPlatformFeatureEnabled && isset($data['target_platform_ios']) ? (boolean) $data['target_platform_ios'] : true,
                 paymentMethod: (int) $data['payment_method'],
                 paymentAmount: (float) ($data['daily_bid'] * $data['duration_days']),
                 dailyBid: (float) $data['daily_bid'],
@@ -581,7 +587,7 @@ class Manager
             $this->actionEventDelegate->onComplete($boost);
 
             echo "\n";
-            $this->logger->addInfo("Boost {$boost->getGuid()} has been marked as COMPLETED");
+            $this->logger->info("Boost {$boost->getGuid()} has been marked as COMPLETED");
             echo "\n";
         }
 

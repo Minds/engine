@@ -58,7 +58,7 @@ class Sums
             );
         // $query->setOpts([
             //     'consistency' => \Cassandra::CONSISTENCY_ALL
-            // ]);
+        // ]);
         } else {
             //$query->query("SELECT SUM(amount) as balance from rewards");
         }
@@ -140,7 +140,7 @@ class Sums
             );
         // $query->setOpts([
             //     'consistency' => \Cassandra::CONSISTENCY_ALL
-            // ]);
+        // ]);
         } else {
             return 0;
         }

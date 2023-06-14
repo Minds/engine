@@ -79,12 +79,12 @@ class TokenSaleEvent implements BlockchainEventInterface
 
         error_log(print_r($log, true));
         //is the requested amount below what has already been recorded
-        if ($transaction->getAmount() > $purchase->getUnissuedAmount()) {
+        if ($transaction->getAmount() > $purchase->getUnissuedAmount()->toInt()) {
             return; //requested more than can issue
         }
 
         //is the request below the threshold?
-        if ($purchase->getUnissuedAmount() > $this->manager->getAutoIssueCap()) {
+        if ($purchase->getUnissuedAmount()->toInt() > $this->manager->getAutoIssueCap()) {
             return; //mark as failed
         }
 

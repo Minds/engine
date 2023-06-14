@@ -68,18 +68,18 @@ class Stripe implements SubscriptionPaymentServiceInterface
         $source = $sale->getSource();
         switch (substr($source, 0, 3)) {
             case "src":
-              $opts['source'] = $source;
-              break;
+                $opts['source'] = $source;
+                break;
             case "tok":
-              $opts['source'] = $source;
-              break;
+                $opts['source'] = $source;
+                break;
             case "car":
-              $opts['customer'] = $sale->getCustomer()->getId();
-              $opts['card'] = $source;
-              break;
+                $opts['customer'] = $sale->getCustomer()->getId();
+                $opts['card'] = $source;
+                break;
             case "cus":
-              $opts['customer'] = $source;
-              break;
+                $opts['customer'] = $source;
+                break;
         }
 
         $extra = [];

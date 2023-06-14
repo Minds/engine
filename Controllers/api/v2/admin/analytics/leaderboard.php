@@ -46,21 +46,21 @@ class leaderboard implements Interfaces\Api, Interfaces\ApiAdminPam
             ->setMetric($metric);
 
             switch ($type) {
-            case 'actors':
-                $manager->setTerm('user_guid')
-                    ->useUniques(false);
-                break;
-            case 'beneficiaries':
-                switch ($metric) {
-                    case "subscribe":
-                    case "referral":
-                        $manager->setTerm('entity_guid');
-                        break;
-                    default:
-                        $manager->setTerm('entity_owner_guid');
-                }
-                break;
-        }
+                case 'actors':
+                    $manager->setTerm('user_guid')
+                        ->useUniques(false);
+                    break;
+                case 'beneficiaries':
+                    switch ($metric) {
+                        case "subscribe":
+                        case "referral":
+                            $manager->setTerm('entity_guid');
+                            break;
+                        default:
+                            $manager->setTerm('entity_owner_guid');
+                    }
+                    break;
+            }
             $result = $manager->getTopCounts();
         } else {
             // Offchain

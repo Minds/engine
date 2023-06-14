@@ -158,7 +158,7 @@ class All extends Cli\Controller implements Interfaces\CliControllerInterface
             case '':
                 break;
             default:
-                 throw new CliException('Metric not supported');
+                throw new CliException('Metric not supported');
         }
 
         error_reporting(E_ALL);

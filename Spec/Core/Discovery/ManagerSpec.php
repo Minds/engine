@@ -78,37 +78,37 @@ class ManagerSpec extends ObjectBehavior
                     ]
                 ]
             ],
-            // 2nd call will return below
-            [
-                'aggregations' => [
-                    'tags' => [
-                        'buckets' => [
-                            [
-                                'key' => 'technology',
-                                'doc_count' => 100
-                            ],
+                // 2nd call will return below
+                [
+                    'aggregations' => [
+                        'tags' => [
+                            'buckets' => [
+                                [
+                                    'key' => 'technology',
+                                    'doc_count' => 100
+                                ],
 
+                            ]
+                        ]
+                    ]
+                ],
+                // 3rd
+                [
+                    'aggregations' => [
+                        'tags' => [
+                            'buckets' => [
+                                [
+                                    'key' => 'animation',
+                                    'doc_count' => 100
+                                ],
+                                [
+                                    'key' => 'phpspec',
+                                    'doc_count' => 100
+                                ],
+                            ]
                         ]
                     ]
                 ]
-            ],
-            // 3rd
-            [
-                'aggregations' => [
-                    'tags' => [
-                        'buckets' => [
-                            [
-                                'key' => 'animation',
-                                'doc_count' => 100
-                            ],
-                            [
-                                'key' => 'phpspec',
-                                'doc_count' => 100
-                            ],
-                        ]
-                    ]
-                ]
-            ]
             );
 
         $tagTrends = $this->getTagTrends();

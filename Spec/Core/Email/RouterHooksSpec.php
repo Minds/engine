@@ -2,10 +2,10 @@
 
 namespace Spec\Minds\Core\Email;
 
+use Minds\Core\Analytics\Metrics\Event;
 use Minds\Core\Email\Confirmation\Manager as ConfirmationManager;
 use Minds\Core\Email\RouterHooks;
 use PhpSpec\ObjectBehavior;
-use Minds\Core\Analytics\Metrics\Event;
 use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\Uri;
 
@@ -33,6 +33,10 @@ class RouterHooksSpec extends ObjectBehavior
         $queryParams = [
             '__e_ct_guid' => $userGuid,
         ];
+
+        $uri->getPath()
+            ->shouldBeCalledOnce()
+            ->willReturn("");
 
         $request->getUri()
             ->shouldBeCalled()
@@ -92,6 +96,10 @@ class RouterHooksSpec extends ObjectBehavior
             'state' => $state,
         ];
 
+        $uri->getPath()
+            ->shouldBeCalledOnce()
+            ->willReturn("");
+
         $request->getUri()
             ->shouldBeCalled()
             ->willReturn($uri);
@@ -149,6 +157,10 @@ class RouterHooksSpec extends ObjectBehavior
             'topic' => $topic,
             'state' => $state,
         ];
+
+        $uri->getPath()
+            ->shouldBeCalledOnce()
+            ->willReturn("");
 
         $request->getUri()
             ->shouldBeCalled()

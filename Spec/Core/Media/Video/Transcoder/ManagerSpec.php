@@ -7,8 +7,6 @@ use Minds\Core\Media\Video\Transcoder\Repository;
 use Minds\Core\Media\Video\Transcoder\Delegates\QueueDelegate;
 use Minds\Core\Media\Video\Transcoder\TranscodeProfiles;
 use Minds\Core\Media\Video\Transcoder\TranscodeStorage\TranscodeStorageInterface;
-use Minds\Core\Media\Video\Transcoder\TranscodeExecutors\TranscodeExecutorInterface;
-use Minds\Core\Media\Video\Transcoder\TranscodeExecutors\FailedTranscodeException;
 use Minds\Core\Media\Video\Transcoder\Transcode;
 use Minds\Core\Media\Video\Transcoder\Delegates\NotificationDelegate;
 use Minds\Entities\Video;
@@ -22,16 +20,14 @@ class ManagerSpec extends ObjectBehavior
     private $repository;
     private $queueDelegate;
     private $transcodeStorage;
-    private $transcodeExecutor;
     private $notificationDelegate;
 
-    public function let(Repository $repository, QueueDelegate $queueDelegate, TranscodeStorageInterface $transcodeStorage, TranscodeExecutorInterface $transcodeExecutor, NotificationDelegate $notificationDelegate)
+    public function let(Repository $repository, QueueDelegate $queueDelegate, TranscodeStorageInterface $transcodeStorage, NotificationDelegate $notificationDelegate)
     {
-        $this->beConstructedWith($repository, $queueDelegate, $transcodeStorage, $transcodeExecutor, $notificationDelegate);
+        $this->beConstructedWith($repository, $queueDelegate, $transcodeStorage, $notificationDelegate);
         $this->repository = $repository;
         $this->queueDelegate = $queueDelegate;
         $this->transcodeStorage = $transcodeStorage;
-        $this->transcodeExecutor = $transcodeExecutor;
         $this->notificationDelegate = $notificationDelegate;
     }
 
@@ -128,62 +124,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->update($transcode, [ 'status' ]);
-    }
-
-    public function it_should_execute_the_transcode()
-    {
-        $transcode = new Transcode();
-        $transcode->setGuid('123');
-        $transcode->setProfile(new TranscodeProfiles\X264_720p());
-    
-        $this->repository->update(Argument::that(function ($transcode) {
-            return $transcode->getStatus() === 'transcoding';
-        }), [ 'status' ])
-            ->shouldBeCalled();
-
-        $this->transcodeExecutor->transcode($transcode, Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->repository->update(Argument::that(function ($transcode) {
-            return $transcode->getStatus() === 'completed'
-                && $transcode->getFailureReason() === null;
-        }), [ 'progress', 'status', 'failureReason' ])
-            ->shouldBeCalled();
-
-        // Check for future transcodes is called
-        $this->notificationDelegate->onTranscodeCompleted($transcode)
-            ->shouldBeCalled();
-
-        $this->transcode($transcode);
-    }
-
-    public function it_should_record_failure_reason()
-    {
-        $transcode = new Transcode();
-        $transcode->setGuid('123');
-        $transcode->setProfile(new TranscodeProfiles\X264_720p());
-    
-        $this->repository->update(Argument::that(function ($transcode) {
-            return $transcode->getStatus() === 'transcoding';
-        }), [ 'status' ])
-            ->shouldBeCalled();
-
-        $this->transcodeExecutor->transcode($transcode, Argument::any())
-            ->shouldBeCalled()
-            ->willThrow(new FailedTranscodeException("Custom error message here"));
-
-        $this->repository->update(Argument::that(function ($transcode) {
-            return $transcode->getStatus() === 'failed'
-                && $transcode->getFailureReason() === "Custom error message here";
-        }), [ 'progress', 'status', 'failureReason' ])
-            ->shouldBeCalled();
-
-        // Check for future transcodes is called
-        $this->notificationDelegate->onTranscodeCompleted($transcode)
-            ->shouldBeCalled();
-
-        $this->transcode($transcode);
     }
 
     public function it_should_get_legacy_files()

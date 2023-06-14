@@ -90,7 +90,6 @@ class Manager
                 $mergeKey = $notification->getMergeKey();
 
                 if (isset($mergeKeysToNotification[$mergeKey]) && $mergeableWith = $mergeKeysToNotification[$mergeKey]) {
-
                     // First, check for duplication, we don't want 'sillysealion and sillysealion' vote up...
                     if ($mergeableWith->getFromGuid() === $notification->getFromGuid()) {
                         continue;
