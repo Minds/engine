@@ -49,7 +49,7 @@ class upload implements Interfaces\Api
                 return Factory::response([
                     'lease' => $lease->export(),
                 ]);
-            break;
+                break;
             case 'complete':
                 $mediaType = $pages[1] ?? 'not-set';
                 $guid = $pages[2] ?? null;
@@ -60,7 +60,7 @@ class upload implements Interfaces\Api
                     ->setMediaType($mediaType);
 
                 $manager->complete($lease);
-            break;
+                break;
         }
         return Factory::response([]);
     }

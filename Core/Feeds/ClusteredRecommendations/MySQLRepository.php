@@ -55,11 +55,29 @@ class MySQLRepository implements RepositoryInterface
      * @param array<int, string> $exclude
      * @param bool $demote
      * @param string|null $pseudoId
+     * @param int $offset
+     * @param int $refFirstSeenTimestamp - unix timestamp
      * @return Generator
      */
-    public function getList(int $clusterId, int $limit, array $exclude = [], bool $demote = false, ?string $pseudoId = null, ?array $tags = null): Generator
-    {
-        $statement = $this->buildQuery($limit, $pseudoId, $demote, $tags);
+    public function getList(
+        int $clusterId,
+        int $limit,
+        array $exclude = [],
+        bool $demote = false,
+        ?string $pseudoId = null,
+        ?array $tags = null,
+        ?int $offset = 0,
+        ?int $refFirstSeenTimestamp = null
+    ): Generator {
+        /**
+         * Use current time if not supplied.
+         * This value is used to snapshot the scrolling offset and to minimise duplicates that may appear with scores changing mid scoll
+         */
+        if (!$refFirstSeenTimestamp) {
+            $refFirstSeenTimestamp = time();
+        }
+
+        $statement = $this->buildQuery($limit, $offset, $pseudoId, $refFirstSeenTimestamp, $tags);
         $statement->execute();
 
         foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
@@ -76,12 +94,18 @@ class MySQLRepository implements RepositoryInterface
      * Builds the prepared MySQL statement to execute
      * @param int $limit
      * @param string $pseudoId
-     * @param bool $demote
+     * @param int $refFirstSeenTimestamp - unix timestamp
      * @param array|null $tags
+     * @param int $offset
      * @return PDOStatement
      */
-    private function buildQuery(int $limit, string $pseudoId, bool $demote, ?array $tags = null): PDOStatement
-    {
+    private function buildQuery(
+        int $limit,
+        int $offset,
+        string $pseudoId,
+        int $refFirstSeenTimestamp = null,
+        ?array $tags = null
+    ): PDOStatement {
         $values = [];
 
         $statement = $this->mysqlReaderHandler->select()
@@ -157,13 +181,15 @@ class MySQLRepository implements RepositoryInterface
             )
             ->leftJoinRaw(
                 'pseudo_seen_entities',
-                'pseudo_seen_entities.pseudo_id = cluster.pseudo_id and pseudo_seen_entities.entity_guid = recs_activities.activity_guid'
+                'pseudo_seen_entities.pseudo_id = cluster.pseudo_id and pseudo_seen_entities.entity_guid = recs_activities.activity_guid AND pseudo_seen_entities.first_seen_timestamp <= :ref_seen_timestamp'
             )
             ->orderBy('adjusted_score desc')
             ->limit($limit)
+            ->offset($offset)
             ->prepare();
 
         $values['score_multiplier'] = self::SEEN_ENTITIES_WEIGHT;
+        $values['ref_seen_timestamp'] = date('c', $refFirstSeenTimestamp);
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
         return $statement;

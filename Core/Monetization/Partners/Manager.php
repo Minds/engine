@@ -113,22 +113,22 @@ class Manager
             'from' => strtotime('midnight'),
         ], $opts);
 
-        $this->logger->addInfo("Start processing wire deposits");
+        $this->logger->info("Start processing wire deposits");
         yield from $this->issueWireReferralDeposits($opts);
 
-        $this->logger->addInfo("Start processing plus deposits");
+        $this->logger->info("Start processing plus deposits");
         yield from $this->issuePlusDeposits($opts);
 
-        $this->logger->addInfo("Start processing pageview deposits");
+        $this->logger->info("Start processing pageview deposits");
         yield from $this->issuePageviewDeposits($opts);
 
-        $this->logger->addInfo("Start processing referral deposits");
+        $this->logger->info("Start processing referral deposits");
         yield from $this->issueReferralDeposits($opts);
 
-        $this->logger->addInfo("Start processing boost partner deposits");
+        $this->logger->info("Start processing boost partner deposits");
         yield from $this->issueBoostPartnerDeposits($opts);
 
-        $this->logger->addInfo("Start processing affiliate deposits");
+        $this->logger->info("Start processing affiliate deposits");
         yield from $this->issueAffiliateDeposits($opts);
     }
 
@@ -183,9 +183,9 @@ class Manager
             if (!($opts['dry-run'] ?? false)) {
                 $this->repository->add($deposit);
             } else {
-                $this->logger->addInfo('-------------- WIRE PAYOUT DEPOSIT ----------------');
-                $this->logger->addInfo('Deposit', $deposit->export());
-                $this->logger->addInfo('---------------------------------------------------');
+                $this->logger->info('-------------- WIRE PAYOUT DEPOSIT ----------------');
+                $this->logger->info('Deposit', $deposit->export());
+                $this->logger->info('---------------------------------------------------');
             }
 
             yield $deposit;
@@ -201,9 +201,9 @@ class Manager
     {
         $revenueUsd = $this->plusManager->getDailyRevenue($opts['from']) * (self::PLUS_SHARE_PCT / 100);
         $revenueCents = round($revenueUsd * 100, 0);
-        $this->logger->addInfo('Fetched daily revenue');
+        $this->logger->info('Fetched daily revenue');
 
-        $this->logger->addInfo('Processing deposits');
+        $this->logger->info('Processing deposits');
         foreach ($this->plusManager->getScores($opts['from']) as $unlock) {
             $shareCents = $revenueCents * $unlock['sharePct'];
             $deposit = new EarningsDeposit();
@@ -215,9 +215,9 @@ class Manager
             if (!($opts['dry-run'] ?? false)) {
                 $this->repository->add($deposit);
             } else {
-                $this->logger->addInfo('-------------- PLUS PAYOUT DEPOSIT ----------------');
-                $this->logger->addInfo('Deposit', $deposit->export());
-                $this->logger->addInfo('---------------------------------------------------');
+                $this->logger->info('-------------- PLUS PAYOUT DEPOSIT ----------------');
+                $this->logger->info('Deposit', $deposit->export());
+                $this->logger->info('---------------------------------------------------');
             }
 
             yield $deposit;
@@ -274,9 +274,9 @@ class Manager
             if (!($opts['dry-run'] ?? false)) {
                 $this->repository->add($deposit);
             } else {
-                $this->logger->addInfo('-------------- PAGEVIEW PAYOUT DEPOSIT ----------------');
-                $this->logger->addInfo('Deposit', $deposit->export());
-                $this->logger->addInfo('---------------------------------------------------');
+                $this->logger->info('-------------- PAGEVIEW PAYOUT DEPOSIT ----------------');
+                $this->logger->info('Deposit', $deposit->export());
+                $this->logger->info('---------------------------------------------------');
             }
 
             yield $deposit;
@@ -316,9 +316,9 @@ class Manager
             if (!($opts['dry-run'] ?? false)) {
                 $this->repository->add($deposit);
             } else {
-                $this->logger->addInfo('-------------- REFERRAL PAYOUT DEPOSIT ----------------');
-                $this->logger->addInfo('Deposit', $deposit->export());
-                $this->logger->addInfo('---------------------------------------------------');
+                $this->logger->info('-------------- REFERRAL PAYOUT DEPOSIT ----------------');
+                $this->logger->info('Deposit', $deposit->export());
+                $this->logger->info('---------------------------------------------------');
             }
 
             yield $deposit;
@@ -344,10 +344,10 @@ class Manager
             if (!($opts['dry-run'] ?? false)) {
                 $this->repository->add($deposit);
             } else {
-                $this->logger->addInfo('-------------- BOOST PARTNER PAYOUT DEPOSIT ----------------');
-                $this->logger->addInfo('Boost revenue details', $eCPM);
-                $this->logger->addInfo('Deposit', $deposit->export());
-                $this->logger->addInfo('---------------------------------------------------');
+                $this->logger->info('-------------- BOOST PARTNER PAYOUT DEPOSIT ----------------');
+                $this->logger->info('Boost revenue details', $eCPM);
+                $this->logger->info('Deposit', $deposit->export());
+                $this->logger->info('---------------------------------------------------');
             }
 
             yield $deposit;

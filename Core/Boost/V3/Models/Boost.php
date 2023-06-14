@@ -21,12 +21,6 @@ use Minds\Traits\MagicAttributes;
  * @method int getTargetLocation()
  * @method self setTargetSuitability(int $targetSuitability)
  * @method int getTargetSuitability()
- * @method self setGoal(int $goal)
- * @method int getGoal()
- * @method self setGoalButtonText(int $goalButtonText)
- * @method int getGoalButtonText()
- * @method self setGoalButtonUrl(string $goalButtonUrl)
- * @method string getGoalButtonUrl()
  * @method self setPaymentMethod(int $paymentMethod)
  * @method int getPaymentMethod()
  * @method self setPaymentGuid(int $paymentGuid)
@@ -51,6 +45,18 @@ use Minds\Traits\MagicAttributes;
  * @method self setApprovedTimestamp(int|null $approvedTimestamp)
  * @method int|null getApprovedTimestamp()
  * @method self setEntity(EntityInterface $entity)
+ * @method self setTargetPlatformWeb(bool $targetPlatformWeb)
+ * @method bool getTargetPlatformWeb()
+ * @method self setTargetPlatformAndroid(bool $targetPlatformAndroid)
+ * @method bool getTargetPlatformAndroid()
+ * @method self setTargetPlatformIos(bool $targetPlatformIos)
+ * @method bool getTargetPlatformIos()
+ * @method self setGoal(int $goal)
+ * @method int getGoal()
+ * @method self setGoalButtonText(int $goalButtonText)
+ * @method int getGoalButtonText()
+ * @method self setGoalButtonUrl(string $goalButtonUrl)
+ * @method string getGoalButtonUrl()
  */
 class Boost implements EntityInterface, ExportableInterface
 {
@@ -60,18 +66,17 @@ class Boost implements EntityInterface, ExportableInterface
     private string $ownerGuid;
     private ?EntityInterface $entity = null;
 
-
     public function __construct(
         private string $entityGuid,
         private int $targetLocation,
         private int $targetSuitability,
-        private ?int $goal = null,
-        private ?int $goalButtonText = null,
-        private ?string $goalButtonUrl = null,
         private int $paymentMethod,
         private float $paymentAmount,
         private float $dailyBid,
         private int $durationDays,
+        private ?int $goal = null,
+        private ?int $goalButtonText = null,
+        private ?string $goalButtonUrl = null,
         private ?int $status = null,
         private ?int $rejectionReason = null,
         private ?int $createdTimestamp = null,
@@ -79,7 +84,10 @@ class Boost implements EntityInterface, ExportableInterface
         private ?int $updatedTimestamp = null,
         private ?int $approvedTimestamp = null,
         private ?int $summaryViewsDelivered = 0,
-        private ?int $paymentGuid = null
+        private ?int $paymentGuid = null,
+        private ?bool $targetPlatformWeb = true,
+        private ?bool $targetPlatformAndroid = true,
+        private ?bool $targetPlatformIos = true,
     ) {
     }
 
@@ -151,6 +159,9 @@ class Boost implements EntityInterface, ExportableInterface
             'entity' => $this->entity?->export(),
             'target_location' => $this->getTargetLocation(),
             'target_suitability' => $this->getTargetSuitability(),
+            'target_platform_web' =>$this->getTargetPlatformWeb(),
+            'target_platform_android' =>$this->getTargetPlatformAndroid(),
+            'target_platform_ios' =>$this->getTargetPlatformIos(),
             'goal' => $this->getGoal(),
             'goal_button_text' => $this->getGoalButtonText(),
             'goal_button_url' =>$this->getGoalButtonUrl(),

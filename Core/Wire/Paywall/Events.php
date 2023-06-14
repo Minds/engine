@@ -53,7 +53,6 @@ class Events
             }
 
             if ($activity->isPayWallUnlocked()) {
-
                 // append description if paywall is unlocked.
                 if ($activity->getSubtype() === 'blog') {
                     $export['description'] = $activity->getBody();

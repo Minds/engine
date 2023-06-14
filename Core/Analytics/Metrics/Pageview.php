@@ -129,7 +129,7 @@ class Pageview implements AnalyticsMetric
             $timestamp = $count['key'] / 1000;
             $data[] = [
                 'timestamp' => $timestamp,
-                'date' => $date = date('d-m-Y', $timestamp),
+                'date' => $date = date('d-m-Y', (int) $timestamp),
                 'unique' => (int) $count['uniques']['value'],
                 'total' => (int) $count['doc_count']
             ];

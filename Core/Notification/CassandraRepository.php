@@ -5,14 +5,14 @@
 
 namespace Minds\Core\Notification;
 
-use Minds\Core\Data\Cassandra\Client;
-use Minds\Core\Di\Di;
-use Minds\Common\Repository\Response;
 use Cassandra\Bigint;
-use Cassandra\Timeuuid;
 use Cassandra\Timestamp;
+use Cassandra\Timeuuid;
+use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
+use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared;
+use Minds\Core\Di\Di;
 
 class CassandraRepository
 {
@@ -69,7 +69,7 @@ class CassandraRepository
         $query->query($statement, $values);
         $query->setOpts([
             'page_size' => $opts['limit'],
-            'paging_state_token' => base64_decode($opts['offset'], true),
+            'paging_state_token' => $opts['offset'] !== null ? base64_decode($opts['offset'], true) : null,
         ]);
 
         try {

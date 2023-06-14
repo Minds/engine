@@ -5,25 +5,21 @@
 namespace Minds\Core\EventStreams\Topics;
 
 use Exception;
+use Pulsar\Client as PulsarClient;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
-use Pulsar\Client;
-use Pulsar\ClientConfiguration;
 use Pulsar\Consumer;
+use Pulsar\Exception\IOException;
 use Pulsar\Message;
 
 abstract class AbstractTopic
 {
     private static array $batchMessages = [];
     private static array $processedMessages = [];
-
     private static int $startTime = 0;
-    
-    /** @var Client */
-    protected $client;
 
     /** @var Config */
     protected $config;
@@ -35,13 +31,12 @@ abstract class AbstractTopic
     protected $entitiesResolver;
 
     public function __construct(
-        Client $client = null,
-        Config $config = null,
-        EntitiesBuilder $entitiesBuilder = null,
-        Resolver $entitiesResolver = null,
+        private ?PulsarClient      $client = null,
+        Config            $config = null,
+        EntitiesBuilder   $entitiesBuilder = null,
+        Resolver          $entitiesResolver = null,
         protected ?Logger $logger = null
     ) {
-        $this->client = $client ?? null;
         $this->config = $config ?? Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->entitiesResolver = $entitiesResolver ?? new Resolver();
@@ -51,31 +46,11 @@ abstract class AbstractTopic
 
     /**
      * Return the pulsar client
-     * @return Client
+     * @return PulsarClient
      */
-    protected function client(): Client
+    protected function client(): PulsarClient
     {
-        $pulsarConfig = $this->config->get('pulsar');
-        $pulsarHost = $pulsarConfig['host'] ?? 'pulsar';
-        $pulsarPort = $pulsarConfig['port'] ?? 6650;
-        $pulsarSchema = ($pulsarConfig['ssl'] ?? true) ? 'pulsar+ssl' : 'pulsar';
-
-        $clientConfig = new ClientConfiguration();
-
-        if ($pulsarConfig['ssl'] ?? true) {
-            $clientConfig->setUseTls(true)
-                ->setTlsAllowInsecureConnection($pulsarConfig['ssl_skip_verify'] ?? false)
-                ->setTlsTrustCertsFilePath($pulsarConfig['ssl_cert_path'] ?? '/var/secure/pulsar.crt');
-        }
-
-        if ($this->client) {
-            return $this->client;
-        }
-
-        $this->client = new Client();
-        $this->client->init("$pulsarSchema://$pulsarHost:$pulsarPort", $clientConfig);
-
-        return $this->client;
+        return $this->client ??= Di::_()->get(PulsarClient::class);
     }
 
     /**
@@ -104,7 +79,7 @@ abstract class AbstractTopic
      */
     protected function getBatchMessageId(Message $message): string
     {
-        return json_decode($message->getDataAsString())->view_uuid;
+        return (json_decode($message->getDataAsString()))->view_uuid;
     }
 
     /**
@@ -115,6 +90,7 @@ abstract class AbstractTopic
      * @param int $execTimeoutInSeconds
      * @param callable $onBatchConsumed
      * @return void
+     * @throws Exception
      */
     protected function processBatch(
         Consumer $consumer,
@@ -123,9 +99,11 @@ abstract class AbstractTopic
         int $execTimeoutInSeconds,
         callable $onBatchConsumed
     ): void {
+        $this->logger->info("ViewsTopic - processBatch");
         while (true) {
             try {
                 $message = $consumer->receive();
+                $this->logger->info("Message", [$message->getMessageId()]);
                 if (isset(self::$batchMessages[$this->getBatchMessageId($message)])) {
                     continue;
                 }
@@ -147,7 +125,7 @@ abstract class AbstractTopic
                 ) {
                     continue;
                 }
-                $this->logger->addInfo("Last start time loop: " . self::$startTime);
+                $this->logger->info("Last start time loop: " . self::$startTime);
 
                 self::$startTime = time();
                 if (call_user_func($callback, self::$batchMessages) === true) {
@@ -170,6 +148,7 @@ abstract class AbstractTopic
      * Acknowledge successfully processed messages in a batch
      * @param Consumer $consumer
      * @return void
+     * @throws Exception
      */
     private function acknowledgeProcessedMessages(Consumer $consumer): void
     {
@@ -196,15 +175,5 @@ abstract class AbstractTopic
     public function getTotalMessagesProcessedInBatch(): int
     {
         return count(self::$processedMessages);
-    }
-
-    /**
-     * Close the connection
-     */
-    public function __destruct()
-    {
-        if ($this->client) {
-            $this->client->close();
-        }
     }
 }

@@ -12,15 +12,18 @@ use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Entities\Video;
+use Zend\Diactoros\ServerRequest;
 
 class Cloudflare extends Cli\Controller implements Interfaces\CliControllerInterface
 {
     public function __construct(
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?ACL $acl = null
+        private ?ACL $acl = null,
+        private ?Webhooks $cloudflareStreamsWebhooks = null
     ) {
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->acl ??= Di::_()->get('Security\ACL');
+        $this->cloudflareStreamsWebhooks ??= Di::_()->get('Media\Video\CloudflareStreams\Webhooks');
     }
 
     public function help($command = null)
@@ -37,12 +40,46 @@ class Cloudflare extends Cli\Controller implements Interfaces\CliControllerInter
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
 
-        /** @var Webhooks */
-        $cloudflareStreamsWebhooks = Di::_()->get('Media\Video\CloudflareStreams\Webhooks');
-
-        $secret = $cloudflareStreamsWebhooks->registerWebhook();
+        $secret = $this->cloudflareStreamsWebhooks->registerWebhook();
 
         $this->out('Your secret is ' . $secret . ' - Save this to settings.php');
+    }
+    
+    /**
+     * Manually call Cloudflare webhook. Useful for testing or manually altering a videos state / dimensions.
+     * @param string videoGuid - guid of video to process.
+     * @param string height - video height.
+     * @param string width - video width.
+     * @param string state - state of video, defaults to ready.
+     * @example
+     * -  php cli.php Cloudflare onWebhookOverride --videoGuid=1234567890 --height=400 --width=300 --state=ready
+     * -  php cli.php Cloudflare onWebhookOverride --videoGuid=1234567890 --height=400 --width=300
+     * @return void
+     */
+    public function onWebhookOverride(): void
+    {
+        $videoGuid = $this->getOpt('videoGuid') ?? null;
+        $height = $this->getOpt('height') ?? null;
+        $width = $this->getOpt('width') ?? null;
+        $state = $this->getOpt('state') ?? 'ready';
+
+        if (!$videoGuid || !$height || !$width) {
+            $this->out('Missing required params - calls must include videoGuid, height and width');
+            return;
+        }
+
+        $this->cloudflareStreamsWebhooks->onWebhook(
+            request: (new ServerRequest())
+                ->withParsedBody([
+                    'status' => ['state' => $state ],
+                    'meta' => [ 'guid' => $videoGuid ],
+                    'input' => [
+                        'width' => $width,
+                        'height' => $height
+                    ]
+                ]),
+            bypassAuthentication: true
+        );
     }
 
     /**

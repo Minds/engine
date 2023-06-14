@@ -40,7 +40,7 @@ class AccessTokenRepositorySpec extends ObjectBehavior
                 //&& $values[2] === new Varint(123)
                 //&& $values[3] === new Timestamp(strtotime('25th December 2018'))
                 //&& $values[4] === new Timestamp(time())
-                ;
+            ;
             //&& $values[5] === new Set();
         }))
             ->shouldBeCalled();

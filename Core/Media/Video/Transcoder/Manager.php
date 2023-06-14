@@ -11,6 +11,7 @@ use Minds\Entities\Video;
 use Minds\Traits\MagicAttributes;
 use Minds\Common\Repository\Response;
 use Minds\Core\Media\Video\Source;
+use Minds\Exceptions\DeprecatedException;
 
 class Manager
 {
@@ -37,21 +38,17 @@ class Manager
     /** @var TranscodeStorage\TranscodeStorageInterface */
     private $transcodeStorage;
 
-    /** @var TranscodeExecutors\TranscodeExecutorInterface */
-    private $transcodeExecutor;
-
     /** @var NotificationDelegate */
     private $notificationDelegate;
 
     /** @var MetadataDelegate */
     private $metadataDelegate;
 
-    public function __construct($repository = null, $queueDelegate = null, $transcodeStorage = null, $transcodeExecutor = null, $notificationDelegate = null, $metadataDelegate = null)
+    public function __construct($repository = null, $queueDelegate = null, $transcodeStorage = null, $notificationDelegate = null, $metadataDelegate = null)
     {
         $this->repository = $repository ?? new Repository();
         $this->queueDelegate = $queueDelegate ?? new QueueDelegate();
         $this->transcodeStorage = $transcodeStorage ?? new TranscodeStorage\S3Storage();
-        $this->transcodeExecutor = $transcodeExecutor ?? new TranscodeExecutors\FFMpegExecutor();
         $this->notificationDelegate = $notificationDelegate ?? new NotificationDelegate();
         $this->metadataDelegate = $metadataDelegate ?? new MetadataDelegate();
     }
@@ -201,39 +198,13 @@ class Manager
     }
 
     /**
+     * @deprecated
      * Run the transcoder (this is called from Core\QueueRunner\Transcode hook)
      * @param Transcode $transcode
      * @return void
      */
     public function transcode(Transcode $transcode): void
     {
-        // Update the background so everyone knows this is inprogress
-        $transcode->setStatus(TranscodeStates::TRANSCODING);
-        $this->update($transcode, [ 'status' ]);
-
-        // Perform the transcode
-        try {
-            $success = $this->transcodeExecutor->transcode($transcode, function ($progress) use ($transcode) {
-                $transcode->setProgress($progress);
-                $this->update($transcode, [ 'progress' ]);
-            });
-            if (!$success) { // This is actually unkown as an exception should have been thrown
-                throw new TranscodeExecutors\FailedTranscodeException();
-            }
-
-            if ($transcode->getProfile() instanceof TranscodeProfiles\Thumbnails) {
-                $this->metadataDelegate->onThumbnailsCompleted($transcode);
-            }
-
-            $transcode->setProgress(100); // If completed should be assumed 100%
-            $transcode->setStatus(TranscodeStates::COMPLETED);
-        } catch (TranscodeExecutors\FailedTranscodeException $e) {
-            $transcode->setStatus(TranscodeStates::FAILED);
-            $transcode->setFailureReason($e->getMessage());
-        } finally {
-            $this->update($transcode, [ 'progress', 'status', 'failureReason' ]);
-        }
-
-        $this->notificationDelegate->onTranscodeCompleted($transcode);
+        throw new DeprecatedException();
     }
 }

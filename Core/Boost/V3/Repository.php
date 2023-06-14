@@ -69,8 +69,8 @@ class Repository
      */
     public function createBoost(Boost $boost): bool
     {
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, payment_guid, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :payment_guid, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
+        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_platform_web, target_platform_android, target_platform_ios, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, payment_guid, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
+                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_platform_web, :target_platform_android, :target_platform_ios, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :payment_guid, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
 
         $createdTimestamp = $boost->getCreatedTimestamp() ?
             date("c", $boost->getCreatedTimestamp()) :
@@ -89,6 +89,9 @@ class Repository
             'owner_guid' => $boost->getOwnerGuid(),
             'entity_guid' => $boost->getEntityGuid(),
             'target_suitability' => $boost->getTargetSuitability(),
+            'target_platform_web' => $boost->getTargetPlatformWeb(),
+            'target_platform_android' => $boost->getTargetPlatformAndroid(),
+            'target_platform_ios' => $boost->getTargetPlatformIos(),
             'target_location' => $boost->getTargetLocation(),
             'goal' => $boost->getGoal(),
             'goal_button_text' => $boost->getGoalButtonText(),
@@ -269,9 +272,12 @@ class Repository
 
             yield (
                 new Boost(
-                    entityGuid: $boostData['entity_guid'],
+                    entityGuid: (string) $boostData['entity_guid'],
                     targetLocation: (int) $boostData['target_location'],
                     targetSuitability: (int) $boostData['target_suitability'],
+                    targetPlatformWeb: isset($boostData['target_platform_web']) ? (bool) $boostData['target_platform_web'] : true,
+                    targetPlatformAndroid: isset($boostData['target_platform_android']) ? (bool) $boostData['target_platform_android'] : true,
+                    targetPlatformIos: isset($boostData['target_platform_ios']) ? (bool) $boostData['target_platform_ios'] : true,
                     goal: isset($boostData['goal']) ? (int) $boostData['goal'] : null,
                     goalButtonText: isset($boostData['goal_button_text']) ? (int) $boostData['goal_button_text'] : null,
                     goalButtonUrl: isset($boostData['goal_button_url']) ? (string) $boostData['goal_button_url'] : null,
@@ -326,9 +332,12 @@ class Repository
         $entity = $this->entitiesBuilder->single($boostData['entity_guid']);
         return (
             new Boost(
-                entityGuid: $boostData['entity_guid'],
+                entityGuid: (string) $boostData['entity_guid'],
                 targetLocation: (int) $boostData['target_location'],
                 targetSuitability: (int) $boostData['target_suitability'],
+                targetPlatformWeb: isset($boostData['target_platform_web']) ? (bool) $boostData['target_platform_web'] : true,
+                targetPlatformAndroid: isset($boostData['target_platform_android']) ? (bool) $boostData['target_platform_android'] : true,
+                targetPlatformIos: isset($boostData['target_platform_ios']) ? (bool) $boostData['target_platform_ios'] : true,
                 goal: isset($boostData['goal']) ? (int) $boostData['goal'] : null,
                 goalButtonText: isset($boostData['goal_button_text']) ? (int) $boostData['goal_button_text'] : null,
                 goalButtonUrl: isset($boostData['goal_button_url']) ? (string) $boostData['goal_button_url'] : null,
@@ -346,8 +355,8 @@ class Repository
                 summaryViewsDelivered: (int) $boostData['total_views']
             )
         )
-            ->setGuid($boostData['guid'])
-            ->setOwnerGuid($boostData['owner_guid'])
+            ->setGuid((string) $boostData['guid'])
+            ->setOwnerGuid((string) $boostData['owner_guid'])
             ->setEntity($entity);
     }
 
@@ -545,6 +554,9 @@ class Repository
                 entityGuid: $boostData['entity_guid'],
                 targetLocation: (int) $boostData['target_location'],
                 targetSuitability: (int) $boostData['target_suitability'],
+                targetPlatformWeb: isset($boostData['target_platform_web']) ? (bool) $boostData['target_platform_web'] : true,
+                targetPlatformAndroid: isset($boostData['target_platform_android']) ? (bool) $boostData['target_platform_android'] : true,
+                targetPlatformIos: isset($boostData['target_platform_ios']) ? (bool) $boostData['target_platform_ios'] : true,
                 goal: isset($boostData['goal']) ? (int) $boostData['goal'] : null,
                 goalButtonText: isset($boostData['goal_button_text']) ? (int) $boostData['goal_button_text'] : null,
                 goalButtonUrl: isset($boostData['goal_button_url']) ? (string) $boostData['goal_button_url'] : null,

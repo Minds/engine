@@ -129,7 +129,7 @@ class PushNotification implements PushNotificationInterface
             case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON:
                 return "Don't forget to review {$from->getName()}'s Supermind offer";
                 break;
-            // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
+                // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
             //     $verb = 'missed';
             //     $pronoun = 'your';
             //     $noun = 'Supermind Offer';
@@ -291,10 +291,10 @@ class PushNotification implements PushNotificationInterface
         switch ($entity->getType()) {
             case 'object':
                 return $entity->getIconUrl('xlarge');
-            break;
+                break;
             case 'activity':
                 return $entity->getThumbnail();
-            break;
+                break;
         }
 
         return null;
@@ -392,7 +392,7 @@ class PushNotification implements PushNotificationInterface
             case NotificationTypes::TYPE_SUPERMIND_REQUEST_ACCEPT:
             case NotificationTypes::TYPE_SUPERMIND_REQUEST_REJECT:
             case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON:
-            // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
+                // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
             case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
             case NotificationTypes::TYPE_BOOST_ACCEPTED:
             case NotificationTypes::TYPE_BOOST_REJECTED:

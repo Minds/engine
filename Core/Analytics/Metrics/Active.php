@@ -3,10 +3,8 @@
 namespace Minds\Core\Analytics\Metrics;
 
 use DateTime;
-use Minds\Core\Di\Di;
-use Minds\Helpers;
 use Minds\Core;
-use Minds\Core\Analytics\Timestamps;
+use Minds\Core\Di\Di;
 use Minds\Interfaces\AnalyticsMetric;
 
 /**
@@ -145,7 +143,7 @@ class Active implements AnalyticsMetric
         foreach ($result['aggregations']['counts']['buckets'] as $count) {
             $data[] = [
                 'timestamp' => $count['key'] / 1000,
-                'date' => date('d-m-Y', $count['key'] / 1000),
+                'date' => date('d-m-Y', (int) ($count['key'] / 1000)),
                 'total' => (int) $count['uniques']['value']
             ];
         }

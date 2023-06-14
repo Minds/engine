@@ -109,7 +109,7 @@ class EventStreams extends Cli\Controller implements Interfaces\CliControllerInt
 
         return match ($isBatch) {
             true => function () use ($subscription): void {
-                $subscription->commitChanges();
+                $subscription->onBatchConsumed();
             },
             default => null
         };

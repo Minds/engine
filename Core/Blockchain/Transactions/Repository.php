@@ -5,9 +5,8 @@
 namespace Minds\Core\Blockchain\Transactions;
 
 use Cassandra;
-use Cassandra\Varint;
-use Cassandra\Decimal;
 use Cassandra\Timestamp;
+use Cassandra\Varint;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
@@ -146,7 +145,7 @@ class Repository
         $query->query($cql, $values);
         $query->setOpts([
             'page_size' => (int) $options['limit'],
-            'paging_state_token' => base64_decode($options['offset'], true),
+            'paging_state_token' => base64_decode($options['offset'] ?? "", true),
             // 'consistency' => \Cassandra::CONSISTENCY_ALL,
             'retry_policy' => new \Cassandra\RetryPolicy\Logging(new \Cassandra\RetryPolicy\DowngradingConsistency())
         ]);
@@ -176,10 +175,10 @@ class Repository
                 ->setCompleted((bool) $row['completed'])
                 ->setFailed((bool) $row['failed'])
                 ->setData(json_decode($row['data'], true));
-                
+
             $transactions[] = $transaction;
         }
-        
+
         return [
             'transactions' => $transactions,
             'token' => $rows->pagingStateToken()
@@ -218,7 +217,7 @@ class Repository
             ->setCompleted((bool) $row['completed'])
             ->setFailed((bool) $row['failed'])
             ->setData(json_decode($row['data'], true));
-            
+
         return $transaction;
     }
 

@@ -2,6 +2,7 @@
 
 namespace Minds\Core\FeedNotices;
 
+use Minds\Api\Exportable;
 use Minds\Core\Di\Di;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
@@ -34,7 +35,7 @@ class Controller
 
         return new JsonResponse([
             'status' => 'success',
-            'notices' => $notices
+            'notices' => Exportable::_($notices),
         ]);
     }
 }

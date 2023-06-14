@@ -71,10 +71,8 @@ class RelationalRepository
         string $timeCreated,
         string $timeUpdated,
         ?string $parentGuid = null,
-        int $depth
+        int $depth= 0
     ): bool {
-        $this->logger->info("Preparing INSERT query");
-
         $statement = $this->mysqlClientWriterHandler->insert()
         ->into('minds_comments')
         ->set([
@@ -108,8 +106,6 @@ class RelationalRepository
         ])
         ->prepare();
 
-        $this->logger->info("Finished preparing INSERT query", [$statement->queryString]);
-
         $values = [
             'guid' => $comment->getGuid(),
             'entity_guid' => $comment->getEntityGuid(),
@@ -132,7 +128,6 @@ class RelationalRepository
         $this->mysqlClient->bindValuesToPreparedStatement($statement, $values);
 
         try {
-            $this->logger->info("Executing query.");
             $statement->execute();
             return $statement->closeCursor();
         } catch (PDOException $e) {

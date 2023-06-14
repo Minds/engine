@@ -57,9 +57,17 @@ class PulsarClientConfigurationMock
 }
 class PulsarProducerMock
 {
-    public function send($message): int
+    public function send($payload, $options = []): int
     {
         return 1;
+    }
+
+    public function connect(): void
+    {
+    }
+
+    public function close(): void
+    {
     }
 }
 class PulsarConsumerMock
@@ -76,6 +84,14 @@ class PulsarConsumerMock
     }
 
     public function negativeAcknowledge(PulsarMessageMock $messageMock): void
+    {
+    }
+
+    public function connect(): void
+    {
+    }
+
+    public function close(): void
     {
     }
 }

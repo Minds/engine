@@ -7,10 +7,11 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Media\Video\CloudflareStreams\Client;
 use Minds\Core\Media\Video\CloudflareStreams\Webhooks;
+use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Core\Security\ACL;
+use Minds\Entities\Activity;
 use Minds\Entities\Video;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -38,7 +39,7 @@ class WebhooksSpec extends ObjectBehavior
         Save $save,
         ACL $acl
     ) {
-        $this->beConstructedWith($client, $config, $entitiesBuilder, $save, null, $acl);
+        $this->beConstructedWith($client, $config, $entitiesBuilder, $save, $acl);
         $this->client = $client;
         $this->config = $config;
         $this->entitiesBuilder = $entitiesBuilder;
@@ -69,8 +70,11 @@ class WebhooksSpec extends ObjectBehavior
             ->shouldBe('cf-secret');
     }
 
-    public function it_should_list_to_webhook_hit(ServerRequest $request)
-    {
+    public function it_should_list_to_webhook_hit(
+        ServerRequest $request,
+        Activity $activity,
+        Video $video
+    ) {
         $this->config->get('cloudflare')
             ->willReturn(['webhook_secret' => 'cf-signature']);
 
@@ -96,13 +100,42 @@ class WebhooksSpec extends ObjectBehavior
         $request->getHeader('Webhook-Signature')
             ->willReturn(["time=$ts,sig1=$sig1"]);
 
-        $this->entitiesBuilder->single('123')
-            ->willReturn(new Video());
+        $video->set('width', 1280)->shouldBeCalled();
+        $video->set('height', 1960)->shouldBeCalled();
 
-        $this->save->setEntity(Argument::type(Video::class))
+        $video->get('width')
+            ->shouldBeCalled()
+            ->willReturn(1280);
+
+        $video->get('height')
+            ->shouldBeCalled()
+            ->willReturn(1960);
+
+        $video->getContainerGuid()
+            ->shouldBeCalled()
+            ->willReturn('234');
+
+        $video->setTranscodingStatus(TranscodeStates::COMPLETED)
+            ->shouldBeCalled()
+            ->willReturn($video);
+
+        $this->entitiesBuilder->single('123')
+            ->willReturn($video);
+
+        $this->save->setEntity($video)
             ->willReturn($this->save);
 
-        $this->save->save()->shouldBeCalled();
+        $this->entitiesBuilder->single('234')
+            ->shouldBeCalled()
+            ->willReturn($activity);
+
+        $activity->setAttachments([$video])
+            ->shouldBeCalled();
+
+        $this->save->setEntity($activity)
+            ->willReturn($this->save);
+
+        $this->save->save()->shouldBeCalledTimes(2);
 
         $this->acl->setIgnore(true)->shouldBeCalled();
         $this->acl->setIgnore(null)->shouldBeCalled();

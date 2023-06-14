@@ -5,6 +5,7 @@ namespace Minds\Controllers\Cli;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Cli;
+use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Interfaces;
 use Minds\Entities;
 
@@ -67,5 +68,25 @@ class Search extends Cli\Controller implements Interfaces\CliControllerInterface
         $entity = @Entities\Factory::build($this->getOpt('guid'));
         $sync = new Core\Search\InteractionsSync();
         $sync->sync($entity);
+    }
+
+    /**
+     * Will restore pulsar state
+     */
+    public function sync_from_entities_by_time()
+    {
+        $statement = "SELECT * FROM entities_by_time  where key = 'activity' and column1>'1503960793568847892'";
+        $scroll = Di::_()->get('Database\Cassandra\Cql\Scroll');
+
+        $prepared = new Custom();
+        $prepared->query($statement);
+
+        foreach ($scroll->request($prepared) as $row) {
+            $urn = 'urn:activity:' . $row['value'];
+            \Minds\Core\Events\Dispatcher::trigger('entities-ops', 'create', [
+                'entityUrn' => $urn
+            ]);
+            $this->out($urn);
+        }
     }
 }

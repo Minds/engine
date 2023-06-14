@@ -3,7 +3,7 @@
  * Simple Sums
  */
 
- namespace Minds\Core\Security\Captcha;
+namespace Minds\Core\Security\Captcha;
 
 class SimpleSums implements QuestionsInterface
 {

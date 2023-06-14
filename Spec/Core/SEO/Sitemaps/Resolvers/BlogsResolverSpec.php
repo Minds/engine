@@ -2,11 +2,10 @@
 
 namespace Spec\Minds\Core\SEO\Sitemaps\Resolvers;
 
+use Minds\Core\Blogs\Blog;
 use Minds\Core\Data\ElasticSearch\Scroll;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\SEO\Sitemaps\SitemapUrl;
 use Minds\Core\SEO\Sitemaps\Resolvers\BlogsResolver;
-use Minds\Core\Blogs\Blog;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -26,7 +25,7 @@ class BlogsResolverSpec extends ObjectBehavior
         $this->shouldHaveType(BlogsResolver::class);
     }
 
-    public function it_should_return_iterable_of_users()
+    public function it_should_return_iterable_of_users(): void
     {
         $this->scroll->request(Argument::any())
             ->shouldBeCalled()
@@ -47,12 +46,12 @@ class BlogsResolverSpec extends ObjectBehavior
 
         $this->entitiesBuilder->single('123')
             ->shouldBeCalled()
-            ->willReturn(new Blog);
-            
+            ->willReturn((new Blog)->setTimeCreated(1));
+
         $this->entitiesBuilder->single('456')
             ->shouldBeCalled()
-            ->willReturn(new Blog);
-        
+            ->willReturn((new Blog)->setTimeCreated(2));
+
         $this->getUrls()->shouldHaveCount(2);
     }
 }

@@ -16,6 +16,7 @@ use Minds\Core\Votes\Vote;
 use Minds\Core\Sockets;
 use Minds\Core\Session;
 use Minds\Core\Security\ACL;
+use Minds\Entities\EntityInterface;
 
 class Events
 {
@@ -122,7 +123,11 @@ class Events
             $entity = $params['entity'];
             $user = $params['user'];
 
-            $container = EntitiesFactory::build($entity->container_guid);
+            if (!method_exists($entity, 'getContainerGuid')) {
+                return;
+            }
+
+            $container = EntitiesFactory::build($entity->getContainerGuid());
 
             // If the container container_guid is the same as the the container owner
             if ($container

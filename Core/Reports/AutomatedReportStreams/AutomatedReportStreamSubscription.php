@@ -118,12 +118,12 @@ class AutomatedReportStreamSubscription implements SubscriptionInterface
         }
   
         if (!$entity) {
-            $this->logger->warn("Unable to find entity. Awknowledging.");
+            $this->logger->warning("Unable to find entity. Awknowledging.");
             return true; // No entity found, but return true to awknowledge
         }
 
         if (!$this->acl->read($entity)) {
-            $this->logger->warn("Unable to read entity ({$entity->getUrn()} so we will not report. Awknowledging.");
+            $this->logger->warning("Unable to read entity ({$entity->getUrn()} so we will not report. Awknowledging.");
             return true; // No entity found, but return true to awknowledge
         }
 

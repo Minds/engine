@@ -36,9 +36,9 @@ class RefreshTokenRepositorySpec extends ObjectBehavior
             $values = $query['values'];
 
             return $values[0] === 'id_1'
-                ;
+            ;
             //&& $values[1] === 'access_token_1'
-                //&& $values[2] === new Timestamp(strtotime('25th December 2018'));
+            //&& $values[2] === new Timestamp(strtotime('25th December 2018'));
         }))
             ->shouldBeCalled();
 

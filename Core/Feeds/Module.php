@@ -15,6 +15,7 @@ class Module implements ModuleInterface
         TwitterSync\Module::class,
         Activity\RichEmbed\Module::class,
         HideEntities\Module::class,
+        GraphQL\Module::class,
     ];
 
     /**

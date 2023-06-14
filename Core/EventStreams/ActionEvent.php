@@ -180,7 +180,7 @@ class ActionEvent implements EventInterface
             case self::ACTION_REFERRAL_PING:
             case self::ACTION_REFERRAL_PENDING:
             case self::ACTION_REFERRAL_COMPLETE:
-            break;
+                break;
             case self::ACTION_SUBSCRIBE:
             case self::ACTION_UNSUBSCRIBE:
                 break;

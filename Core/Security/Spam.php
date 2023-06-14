@@ -43,7 +43,7 @@ class Spam
                 break;
             default:
                 error_log("[spam-check]: $entity->type:$entity->subtype not supported");
-         }
+        }
 
         if ($foundSpam) {
             throw new ProhibitedDomainException("Sorry, you included a reference to a domain name linked to spam (${foundSpam})");
