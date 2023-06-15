@@ -15,7 +15,6 @@ class Webhook implements HookInterface
     public function onCharged($subscription)
     {
         if ($subscription->getPlanId() == 'plus') {
-            
             //save the plus flag to the user
             $user = $subscription->getCustomer()->getUser();
             $user->setPlusExpires(strtotime('+30 days', time()));

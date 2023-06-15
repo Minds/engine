@@ -94,7 +94,7 @@ class Dispatcher
                 $calls[] = self::$events[$ns][$event];
             }
         }
-
+        
         $calls = array_unique($calls, SORT_REGULAR);
 
         // New event format, expects event object

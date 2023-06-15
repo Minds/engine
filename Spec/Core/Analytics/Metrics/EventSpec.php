@@ -68,7 +68,6 @@ class EventSpec extends ObjectBehavior
 
     public function it_should_push(Index $prepared)
     {
-
         /*$prepared->query([
             'body' => $this->getData(),
             'index' => "minds-metrics-" . date('m-Y', time()),

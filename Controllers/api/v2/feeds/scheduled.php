@@ -85,7 +85,6 @@ class scheduled implements Interfaces\Api
                     'status' => 'error',
                     'message' => 'Invalid type',
                 ]);
-            
         }
 
         $hardLimit = 5000;

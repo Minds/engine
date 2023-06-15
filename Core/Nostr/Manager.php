@@ -266,7 +266,6 @@ class Manager
      */
     public function getElasticNostrEvents(array $filters, int $limit): array
     {
-
         // If we're requesting kind 0 without specifying "authors", then query for internal pubkeys
         if (
             in_array(0, $filters['kinds'], true) &&

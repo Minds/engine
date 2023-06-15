@@ -48,12 +48,12 @@ class review implements Interfaces\Api
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 12;
         $offset = isset($_GET['offset']) ? $_GET['offset'] : '';
 
-        $result = $feeds->getAll([ 'limit' => $limit, 'offset' => $offset ]);
+        $result = $feeds->getAll([ 'limit' => $limit, 'offset' => $offset ], $loadNext);
 
         return Factory::response([
-            'activity' => Factory::exportable($result['data']),
+            'activity' => Factory::exportable($result),
             'adminqueue:count' => $count,
-            'load-next' => $result['next']
+            'load-next' => $loadNext,
         ]);
     }
 

@@ -37,7 +37,6 @@ class Routes extends ModuleRoutes
                         LoggedInMiddleware::class,
                     ])
                     ->do(function (Route $route) {
-
                         // Requests OAuth token
                         $route->post(
                             'account/connect',

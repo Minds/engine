@@ -202,6 +202,7 @@ class Controller
         $targetStatus = $queryParams['status'] ?? null;
         $targetAudience = $queryParams['audience'] ?? null;
         $paymentMethod = $queryParams['payment_method'] ?? null;
+        $remoteUserGuid = $queryParams['remote_user_guid'] ?? null;
 
         $boosts = $this->manager
             ->setUser($loggedInUser)
@@ -209,10 +210,11 @@ class Controller
                 limit: (int) $limit,
                 offset: (int) $offset,
                 targetStatus: (int) $targetStatus ?: null,
-                forApprovalQueue: true,
+                forApprovalQueue: is_numeric($remoteUserGuid) ? false : true,
                 targetAudience: (int) $targetAudience,
                 targetLocation: (int) $targetLocation ?: null,
-                paymentMethod: (int) $paymentMethod ?: null
+                paymentMethod: (int) $paymentMethod ?: null,
+                targetUserGuid: $remoteUserGuid ?: null
             );
         return new JsonResponse([
             'boosts' => Exportable::_($boosts),

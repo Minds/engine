@@ -33,6 +33,10 @@ class TrendingSpec extends ObjectBehavior
 
     public function it_should_get_list(Response $response)
     {
+        $response->setPagingToken(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($response);
+        
         $this->trendingRepository->getList([
             'phpspec' => true,
             'type' => 'blogs',

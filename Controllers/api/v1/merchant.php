@@ -29,124 +29,124 @@ class merchant implements Interfaces\Api
         $response = [];
 
         switch ($pages[0]) {
-        case "status":
-            $merchants = Core\Di\Di::_()->get('Monetization\Merchants');
-            $merchants->setUser(Core\Sandbox::user(Core\Session::getLoggedInUser(), 'merchant'));
+            case "status":
+                $merchants = Core\Di\Di::_()->get('Monetization\Merchants');
+                $merchants->setUser(Core\Sandbox::user(Core\Session::getLoggedInUser(), 'merchant'));
 
-            $isMerchant = (bool) $merchants->getId();
-            $canBecomeMerchant = !$merchants->isBanned();
+                $isMerchant = (bool) $merchants->getId();
+                $canBecomeMerchant = !$merchants->isBanned();
 
-            return Factory::response([
-                'isMerchant' => $isMerchant,
-                'canBecomeMerchant' => $canBecomeMerchant,
-            ]);
-            break;
-
-        case "sales":
-          $merchant = (new Payments\Merchant)
-            ->setId(Core\Session::getLoggedInUser()->getMerchant()['id']);
-
-          $guid = Core\Session::getLoggedInUser()->guid;
-          $stripe = Core\Di\Di::_()->get('StripePayments');
-
-          try {
-              $sales = $stripe->getSales($merchant);
-
-              foreach ($sales as $sale) {
-                  $response['sales'][] = [
-                    'id' => $sale->getId(),
-                    'status' => $sale->getStatus(),
-                    'amount' => $sale->getAmount(),
-                    'fee' => $sale->getFee(),
-                    'orderId' => $sale->getOrderId(),
-                    'customerId' => $sale->getCustomerId()
-                  ];
-              }
-          } catch (\Exception $e) {
-              $response['status'] = 'error';
-          }
-
-          break;
-        case "export":
-           $merchant = (new Payments\Merchant)
-            ->setId(Core\Session::getLoggedInUser()->getMerchant()['id']);
-
-            $guid = Core\Session::getLoggedInUser()->guid;
-            $stripe = Core\Di\Di::_()->get('StripePayments');
-
-            $out = fopen('php://output', 'w');
-
-            try {
-                $balance = $stripe->getBalance($merchant, ['limit' => 100]);
-
-                fputcsv($out, [
-                  'id',
-                  'type',
-                  'status',
-                  'description',
-                  'created',
-                  'amount',
-                  'currency',
-                  'available'
+                return Factory::response([
+                    'isMerchant' => $isMerchant,
+                    'canBecomeMerchant' => $canBecomeMerchant,
                 ]);
+                break;
 
-                foreach ($balance->data as $record) {
-                    // Get the required charge information and assign to variables
-                    $id = $record->id;
-                    $type = $record->type;
-                    $status = $record->status;
-                    $description = $record->description;
-                    $created = gmdate('Y-m-d H:i', $record->created); // Format the time
-                    $amount = $record->amount/100; // Convert amount from cents to dollars
-                    $currency = $record->currency;
-                    $available = gmdate('Y-m-d H:i', $record->available_on);
+            case "sales":
+                $merchant = (new Payments\Merchant)
+                  ->setId(Core\Session::getLoggedInUser()->getMerchant()['id']);
 
-                    // Create an array of the above charge information
-                    $report = [
-                                $id,
-                                $type,
-                                $status,
-                                $description,
-                                $created,
-                                $amount,
-                                $currency,
-                                $available
-                      ];
+                $guid = Core\Session::getLoggedInUser()->guid;
+                $stripe = Core\Di\Di::_()->get('StripePayments');
 
+                try {
+                    $sales = $stripe->getSales($merchant);
 
-                    fputcsv($out, $report);
+                    foreach ($sales as $sale) {
+                        $response['sales'][] = [
+                          'id' => $sale->getId(),
+                          'status' => $sale->getStatus(),
+                          'amount' => $sale->getAmount(),
+                          'fee' => $sale->getFee(),
+                          'orderId' => $sale->getOrderId(),
+                          'customerId' => $sale->getCustomerId()
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    $response['status'] = 'error';
                 }
-            } catch (\Exception $e) {
-            }
 
-            fclose($out);
+                break;
+            case "export":
+                $merchant = (new Payments\Merchant)
+                 ->setId(Core\Session::getLoggedInUser()->getMerchant()['id']);
 
-            exit;
-            break;
-        case "balance":
-          break;
-        case "settings":
+                $guid = Core\Session::getLoggedInUser()->guid;
+                $stripe = Core\Di\Di::_()->get('StripePayments');
 
-          $stripe = Core\Di\Di::_()->get('StripePayments');
-          try {
-              $merchant = $stripe->getMerchant(Core\Session::getLoggedInUser()->getMerchant()['id']);
-          } catch (\Exception $e) {
-              return Factory::response([
-                'status' => 'error',
-                'message' => $e->getMessage()
-              ]);
-          }
+                $out = fopen('php://output', 'w');
 
-          if (!$merchant) {
-              return Factory::response([
-                'status' => 'error',
-                'message' => 'Not a merchant account'
-              ]);
-          }
+                try {
+                    $balance = $stripe->getBalance($merchant, ['limit' => 100]);
 
-          $response['merchant'] = $merchant->export();
+                    fputcsv($out, [
+                      'id',
+                      'type',
+                      'status',
+                      'description',
+                      'created',
+                      'amount',
+                      'currency',
+                      'available'
+                    ]);
 
-          break;
+                    foreach ($balance->data as $record) {
+                        // Get the required charge information and assign to variables
+                        $id = $record->id;
+                        $type = $record->type;
+                        $status = $record->status;
+                        $description = $record->description;
+                        $created = gmdate('Y-m-d H:i', $record->created); // Format the time
+                        $amount = $record->amount/100; // Convert amount from cents to dollars
+                        $currency = $record->currency;
+                        $available = gmdate('Y-m-d H:i', $record->available_on);
+
+                        // Create an array of the above charge information
+                        $report = [
+                                    $id,
+                                    $type,
+                                    $status,
+                                    $description,
+                                    $created,
+                                    $amount,
+                                    $currency,
+                                    $available
+                          ];
+
+
+                        fputcsv($out, $report);
+                    }
+                } catch (\Exception $e) {
+                }
+
+                fclose($out);
+
+                exit;
+                break;
+            case "balance":
+                break;
+            case "settings":
+
+                $stripe = Core\Di\Di::_()->get('StripePayments');
+                try {
+                    $merchant = $stripe->getMerchant(Core\Session::getLoggedInUser()->getMerchant()['id']);
+                } catch (\Exception $e) {
+                    return Factory::response([
+                      'status' => 'error',
+                      'message' => $e->getMessage()
+                    ]);
+                }
+
+                if (!$merchant) {
+                    return Factory::response([
+                      'status' => 'error',
+                      'message' => 'Not a merchant account'
+                    ]);
+                }
+
+                $response['merchant'] = $merchant->export();
+
+                break;
         }
 
         return Factory::response($response);
@@ -159,146 +159,146 @@ class merchant implements Interfaces\Api
         $response = [];
 
         switch ($pages[0]) {
-          case "onboard":
-            $merchant = (new Payments\Merchant())
-              ->setGuid(Core\Session::getLoggedInUser()->guid)
-              ->setDestination('bank')
-              ->setCountry($_POST['country'])
-              ->setSSN($_POST['ssn'] ? str_pad((string) $_POST['ssn'], 4, '0', STR_PAD_LEFT) : '')
-              ->setPersonalIdNumber($_POST['personalIdNumber'])
-              ->setFirstName($_POST['firstName'])
-              ->setLastName($_POST['lastName'])
-              ->setGender($_POST['gender'])
-              ->setDateOfBirth($_POST['dob'])
-              ->setStreet($_POST['street'])
-              ->setCity($_POST['city'])
-              ->setState($_POST['state'])
-              ->setPostCode($_POST['postCode'])
-              ->setPhoneNumber($_POST['phoneNumber']);
+            case "onboard":
+                $merchant = (new Payments\Merchant())
+                  ->setGuid(Core\Session::getLoggedInUser()->guid)
+                  ->setDestination('bank')
+                  ->setCountry($_POST['country'])
+                  ->setSSN($_POST['ssn'] ? str_pad((string) $_POST['ssn'], 4, '0', STR_PAD_LEFT) : '')
+                  ->setPersonalIdNumber($_POST['personalIdNumber'])
+                  ->setFirstName($_POST['firstName'])
+                  ->setLastName($_POST['lastName'])
+                  ->setGender($_POST['gender'])
+                  ->setDateOfBirth($_POST['dob'])
+                  ->setStreet($_POST['street'])
+                  ->setCity($_POST['city'])
+                  ->setState($_POST['state'])
+                  ->setPostCode($_POST['postCode'])
+                  ->setPhoneNumber($_POST['phoneNumber']);
 
-            try {
-                $stripe = Core\Di\Di::_()->get('StripePayments');
-                $result = $stripe->addMerchant($merchant);
-                $response['id'] = $result->id;
+                try {
+                    $stripe = Core\Di\Di::_()->get('StripePayments');
+                    $result = $stripe->addMerchant($merchant);
+                    $response['id'] = $result->id;
 
+                    $user = Core\Session::getLoggedInUser();
+                    $user->merchant = [
+                      'service' => 'stripe',
+                      'id' => $result->id
+                    ];
+
+                    //save public and private keys in lookup
+                    $lu = Core\Di\Di::_()->get('Database\Cassandra\Lookup');
+                    $guid = Core\Session::getLoggedInUser()->guid;
+                    $lu->set("{$guid}:stripe", [
+                      'public' => $result->keys['publishable'],
+                      'secret' => $result->keys['secret']
+                    ]);
+
+                    //now setup exclusive
+                    $stripe->createPlan((object) [
+                      'id' => "exclusive",
+                      'amount' => 10 * 100,
+                      'merchantId' => $result->id
+                    ]);
+
+                    $merchant = $user->merchant;
+                    $merchant['exclusive'] = [
+                      'enabled' => true,
+                      'amount' => 10
+                    ];
+                    $user->setMerchant($merchant); //because double assoc array doesn't work
+
+                    $programs = Core\Di\Di::_()->get('Programs\Manager');
+                    $programs->setUser($user)
+                        ->applyAndAccept('affiliate');
+
+                    Core\Events\Dispatcher::trigger('notification', 'program', [
+                        'to'=> [ $user->guid ],
+                        'from' => 100000000000000519,
+                        'notification_view' => 'program_accepted',
+                        'params' => [  'program' => 'monetization' ]
+                    ]);
+
+                    $user->save();
+                } catch (\Exception $e) {
+                    $response['status'] = "error";
+                    $response['message'] = $e->getMessage();
+                }
+
+                break;
+            case "verification":
+
+                try {
+                    $stripe = Core\Di\Di::_()->get('StripePayments');
+                    $stripe->verifyMerchant(Core\Session::getLoggedInUser()->getMerchant()['id'], $_FILES['file']);
+                } catch (\Exception $e) {
+                    $response['status'] = "error";
+                    $response['message'] = $e->getMessage();
+                }
+                break;
+            case "update":
+                $merchant = (new Payments\Merchant())
+                  ->setId(Core\Session::getLoggedInUser()->getMerchant()['id'])
+                  ->setFirstName($_POST['firstName'])
+                  ->setLastName($_POST['lastName'])
+                  ->setGender($_POST['gender'])
+                  ->setDateOfBirth($_POST['dob'])
+                  ->setStreet($_POST['street'])
+                  ->setCity($_POST['city'])
+                  ->setState($_POST['state'])
+                  ->setPostCode($_POST['postCode'])
+                  ->setPhoneNumber($_POST['phoneNumber']);
+
+                if ($_POST['ssn']) {
+                    $merchant->setSSN($_POST['ssn'] ? str_pad((string) $_POST['ssn'], 4, '0', STR_PAD_LEFT) : '');
+                }
+
+                if ($_POST['personalIdNumber']) {
+                    $merchant->setPersonalIdNumber($_POST['personalIdNumber']);
+                }
+
+                if ($_POST['accountNumber']) {
+                    $merchant->setAccountNumber($_POST['accountNumber']);
+                }
+
+                if ($_POST['routingNumber']) {
+                    $merchant->setRoutingNumber($_POST['routingNumber']);
+                }
+
+                try {
+                    $stripe = Core\Di\Di::_()->get('StripePayments');
+                    $result = $stripe->updateMerchant($merchant);
+                } catch (\Exception $e) {
+                    $response['status'] = "error";
+                    $response['message'] = $e->getMessage();
+                }
+                break;
+            case "exclusive":
                 $user = Core\Session::getLoggedInUser();
-                $user->merchant = [
-                  'service' => 'stripe',
-                  'id' => $result->id
-                ];
 
-                //save public and private keys in lookup
-                $lu = Core\Di\Di::_()->get('Database\Cassandra\Lookup');
-                $guid = Core\Session::getLoggedInUser()->guid;
-                $lu->set("{$guid}:stripe", [
-                  'public' => $result->keys['publishable'],
-                  'secret' => $result->keys['secret']
-                ]);
-
-                //now setup exclusive
-                $stripe->createPlan((object) [
-                  'id' => "exclusive",
-                  'amount' => 10 * 100,
-                  'merchantId' => $result->id
-                ]);
-
-                $merchant = $user->merchant;
+                $merchant = $user->getMerchant() ?: [];
                 $merchant['exclusive'] = [
-                  'enabled' => true,
-                  'amount' => 10
+                    'background' => (int) $_POST['background'],
+                    'intro' => $_POST['intro'] ?: ''
                 ];
-                $user->setMerchant($merchant); //because double assoc array doesn't work
 
-                $programs = Core\Di\Di::_()->get('Programs\Manager');
-                $programs->setUser($user)
-                    ->applyAndAccept('affiliate');
-
-                Core\Events\Dispatcher::trigger('notification', 'program', [
-                    'to'=> [ $user->guid ],
-                    'from' => 100000000000000519,
-                    'notification_view' => 'program_accepted',
-                    'params' => [  'program' => 'monetization' ]
-                ]);
-
+                $user->setMerchant($merchant);
                 $user->save();
-            } catch (\Exception $e) {
-                $response['status'] = "error";
-                $response['message'] = $e->getMessage();
-            }
+                break;
+            case "exclusive-preview":
+                $user = Core\Session::getLoggedInUser();
+                if (is_uploaded_file($_FILES['file']['tmp_name'])) {
+                    $file = new Entities\File();
+                    $file->owner_guid = $user->guid;
+                    $file->setFilename("paywall-preview.jpg");
+                    $file->open('write');
+                    $file->write(file_get_contents($_FILES['file']['tmp_name']));
+                    $file->close();
 
-            break;
-          case "verification":
-
-              try {
-                  $stripe = Core\Di\Di::_()->get('StripePayments');
-                  $stripe->verifyMerchant(Core\Session::getLoggedInUser()->getMerchant()['id'], $_FILES['file']);
-              } catch (\Exception $e) {
-                  $response['status'] = "error";
-                  $response['message'] = $e->getMessage();
-              }
-              break;
-          case "update":
-            $merchant = (new Payments\Merchant())
-              ->setId(Core\Session::getLoggedInUser()->getMerchant()['id'])
-              ->setFirstName($_POST['firstName'])
-              ->setLastName($_POST['lastName'])
-              ->setGender($_POST['gender'])
-              ->setDateOfBirth($_POST['dob'])
-              ->setStreet($_POST['street'])
-              ->setCity($_POST['city'])
-              ->setState($_POST['state'])
-              ->setPostCode($_POST['postCode'])
-              ->setPhoneNumber($_POST['phoneNumber']);
-
-              if ($_POST['ssn']) {
-                  $merchant->setSSN($_POST['ssn'] ? str_pad((string) $_POST['ssn'], 4, '0', STR_PAD_LEFT) : '');
-              }
-
-              if ($_POST['personalIdNumber']) {
-                  $merchant->setPersonalIdNumber($_POST['personalIdNumber']);
-              }
-
-              if ($_POST['accountNumber']) {
-                  $merchant->setAccountNumber($_POST['accountNumber']);
-              }
-
-              if ($_POST['routingNumber']) {
-                  $merchant->setRoutingNumber($_POST['routingNumber']);
-              }
-
-            try {
-                $stripe = Core\Di\Di::_()->get('StripePayments');
-                $result = $stripe->updateMerchant($merchant);
-            } catch (\Exception $e) {
-                $response['status'] = "error";
-                $response['message'] = $e->getMessage();
-            }
-            break;
-          case "exclusive":
-            $user = Core\Session::getLoggedInUser();
-
-            $merchant = $user->getMerchant() ?: [];
-            $merchant['exclusive'] = [
-                'background' => (int) $_POST['background'],
-                'intro' => $_POST['intro'] ?: ''
-            ];
-
-            $user->setMerchant($merchant);
-            $user->save();
-            break;
-          case "exclusive-preview":
-              $user = Core\Session::getLoggedInUser();
-              if (is_uploaded_file($_FILES['file']['tmp_name'])) {
-                  $file = new Entities\File();
-                  $file->owner_guid = $user->guid;
-                  $file->setFilename("paywall-preview.jpg");
-                  $file->open('write');
-                  $file->write(file_get_contents($_FILES['file']['tmp_name']));
-                  $file->close();
-
-                  $response['uploaded'] = true;
-              }
-              break;
+                    $response['uploaded'] = true;
+                }
+                break;
         }
 
         return Factory::response($response);

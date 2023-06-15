@@ -12,6 +12,16 @@ class Di
     private $factories = [];
 
     /**
+     * Return if a binding exists
+     * @param string $alias
+     * @return bool
+     */
+    public function has($alias): bool
+    {
+        return isset($this->bindings[$alias]);
+    }
+
+    /**
      * Return the binding for an alias
      * @param string $alias
      * @return mixed

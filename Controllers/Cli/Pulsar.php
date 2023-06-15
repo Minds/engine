@@ -12,6 +12,10 @@ use Minds\Interfaces;
 
 class Pulsar extends Cli\Controller implements Interfaces\CliControllerInterface
 {
+    public function __construct()
+    {
+        error_reporting(E_ALL);
+    }
     public function help($command = null)
     {
         $this->out('Syntax usage: cli trending <type>');
@@ -21,17 +25,27 @@ class Pulsar extends Cli\Controller implements Interfaces\CliControllerInterface
     {
     }
 
-    public function consumeActions()
+    public function pong()
     {
         $actionsEventsTopic = new ActionEventsTopic();
-        $actionsEventsTopic->consume($this->getOpt('id'), function ($message) {
-            var_dump($message->getDataAsString());
-            return true;
-        });
+        $actionsEventsTopic->consume(
+            subscriptionId: 'ping-pong',
+            callback: function ($message) {
+                echo "new Message";
+                var_dump($message->getDataAsString());
+                return true;
+            },
+            topicRegex: 'ping',
+            isBatch: false,
+            batchTotalAmount: 1,
+            execTimeoutInSeconds: 30,
+            onBatchConsumed: function ($abc) {
+            }
+        );
     }
 
 
-    public function produceActions()
+    public function ping()
     {
         while (true) {
             $event = new ActionEvent();
@@ -47,53 +61,6 @@ class Pulsar extends Cli\Controller implements Interfaces\CliControllerInterface
                 $this->out('failed');
             }
             sleep(10);
-        }
-    }
-    //
-
-    public function listen()
-    {
-        error_reporting(E_ALL);
-        ini_set('display_errors', 1);
-
-        $client = new \Pulsar\Client("pulsar://pulsar:6650");
-        $config = new \Pulsar\ConsumerConfiguration();
-        $config->setConsumerType(\Pulsar\Consumer::ConsumerShared);
-
-        $consumer = $client->subscribe("persistent://prop/r1/ns1/test-topic", "consumer-1", $config);
-
-        while (true) {
-            $message = $consumer->receive();
-            //var_dump($message);
-            var_dump($message->getDataAsString());
-            $consumer->acknowledge($message);
-        }
-    }
-
-    public function ping()
-    {
-        error_reporting(E_ALL);
-        ini_set('display_errors', 1);
-
-        $client = new \Pulsar\Client("pulsar://pulsar:6650");
-        $producer = $client->createProducer("persistent://prop/r1/ns1/test-topic");
-
-        $prop = [
-            "a" => 1,
-        ];
-
-        while (true) {
-            $prop = [
-                "hello" => 'world',
-            ];
-
-            $builder = new \Pulsar\MessageBuilder();
-            $builder->setContent("Ping/Pong " . time())
-                    ->setProperties($prop);
-
-            $message = $builder->setDeliverAfter(1)->build();
-            $producer->send($message);
-            sleep(5);
         }
     }
 }

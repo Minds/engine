@@ -15,6 +15,9 @@ stages:
   - deploy:production
   - scan
 
+variables:
+  default_php_image: minds/php:8.1
+
 baseimage:prepare:
   stage: baseimage
   image: minds/ci:latest
@@ -53,7 +56,7 @@ baseimage:deploy:
 
 build:
   stage: build
-  image: minds/php:pdo
+  image: "$default_php_image"
   script:
     - apk add --no-cache git
     - sh tools/setup.sh production
@@ -65,19 +68,19 @@ build:
 
 test:
   stage: test
-  image: minds/php:pdo
+  image: "$default_php_image"
   script:
     - php -n -c Spec/php-test.ini bin/phpspec run
 
 lint:
   stage: test
-  image: minds/php:pdo
+  image: "$default_php_image"
   script:
     - bin/php-cs-fixer fix --allow-risky=yes --verbose --dry-run
 
 static-analysis:
   stage: test
-  image: minds/php:pdo
+  image: "$default_php_image"
   script:
     - mv settings.example.php settings.php
     - bin/phpstan analyse --memory-limit=1G
@@ -266,10 +269,6 @@ integration_testing:
     # Push to Gitlab registry
     - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
     - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
-    # Update EKS role
-    - aws eks --region us-east-1 update-kubeconfig --name $AWS_EKS_CLUSTER_NAME --role-arn=$AWS_IAM_ROLE_ARN
-    # EKS: Rolling restart
-    - kubectl rollout restart deployment minds-engine-$IMAGE_LABEL
     # OKE: Rolling restart
     - *oci_prepare
     - kubectl rollout restart deployment minds-engine-$IMAGE_LABEL
@@ -324,15 +323,11 @@ production:runners:
     - docker:dind
   script:
     - IMAGE_LABEL="production"
-    - $(aws ecr get-login --no-include-email --region us-east-1)
     - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
     - docker pull $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
     # Push gitlab registry
     - docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
     - docker push $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
-    # Restart all runners
-    - aws eks --region us-east-1 update-kubeconfig --name $AWS_EKS_CLUSTER_NAME --role-arn=$AWS_IAM_ROLE_ARN
-    - kubectl get deployments | grep minds-runner- | awk '{print $1}' | xargs kubectl rollout restart deployment
     # OKE: Rolling restart
     - *oci_prepare
     - kubectl get deployments | grep minds-runners- | awk '{print $1}' | xargs kubectl rollout restart deployment

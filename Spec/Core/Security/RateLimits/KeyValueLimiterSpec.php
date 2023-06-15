@@ -5,13 +5,13 @@ namespace Spec\Minds\Core\Security\RateLimits;
 use Exception;
 use Minds\Common\Jwt;
 use Minds\Core\Config\Config;
+use Minds\Core\Data\Redis\Client as RedisServer;
 use Minds\Core\Log\Logger;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Core\Security\RateLimits\RateLimit;
+use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use Minds\Core\Data\Redis\Client as RedisServer;
-use Minds\Core\Security\RateLimits\RateLimitExceededException;
 
 class KeyValueLimiterSpec extends ObjectBehavior
 {
@@ -87,7 +87,7 @@ class KeyValueLimiterSpec extends ObjectBehavior
          * set a higher max so the rate limit won't get hit
          */
         $rateLimit = (new RateLimit())->setKey('key')->setMax(20)->setSeconds(500);
-        
+
         $this->mockRateLimitCounts([10]);
         $this->setKey('key')
             ->setValue(self::FAKE_VALUE)
@@ -115,8 +115,8 @@ class KeyValueLimiterSpec extends ObjectBehavior
     public function it_should_not_bypass_with_a_non_decodable_cookie()
     {
         $_COOKIE['rate_limit_bypass'] = '123';
-        
-        $this->logger->warn(Argument::any())
+
+        $this->logger->warning(Argument::any())
             ->shouldBeCalled();
 
         $this->jwt->decode('123')
@@ -136,15 +136,15 @@ class KeyValueLimiterSpec extends ObjectBehavior
     public function it_should_bypass_with_a_decodable_cookie()
     {
         $_COOKIE['rate_limit_bypass'] = '123';
-        
-        $this->logger->warn(Argument::any())
+
+        $this->logger->warning(Argument::any())
             ->shouldBeCalled();
 
         $this->jwt->decode('123')
             ->shouldBeCalled()
             ->willReturn([ 'data' => time(), 'timestamp_ms' => time() * 1000 ]);
 
-        $this->redis->mget()
+        $this->redis->mget(Argument::type('array'))
             ->shouldNotBeCalled();
 
         $this->checkAndIncrement()->shouldReturn(true);

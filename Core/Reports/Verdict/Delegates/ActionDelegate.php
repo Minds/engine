@@ -106,7 +106,7 @@ class ActionDelegate
         $entity = $this->entitiesBuilder->single($entityGuid);
 
         switch ($report->getReasonCode()) {
-           case 1: // Illegal (not appealable)
+            case 1: // Illegal (not appealable)
                 if ($entity->type !== 'user') {
                     $this->actions->setDeletedFlag($entity, true);
                     $this->saveAction->setEntity($entity)->save();

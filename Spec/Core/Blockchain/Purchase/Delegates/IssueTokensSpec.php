@@ -61,7 +61,7 @@ class IssueTokensSpec extends ObjectBehavior
 
         $purchase->getUnissuedAmount()
             ->shouldBeCalled()
-            ->willReturn(100);
+            ->willReturn(BigNumber::_(100));
 
         $this->client->encodeContractMethod('issue(address,uint256)', [
             '0xADDRESS',
@@ -108,7 +108,7 @@ class IssueTokensSpec extends ObjectBehavior
 
         $purchase->getUnissuedAmount()
             ->shouldBeCalled()
-            ->willReturn(100);
+            ->willReturn(BigNumber::_(100));
 
         $this->client->encodeContractMethod('issue(address,uint256)', [
             '0xADDRESS',

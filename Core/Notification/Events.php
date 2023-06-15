@@ -26,7 +26,6 @@ class Events
      */
     public static function registerEvents()
     {
-
         /**
          * Create a notification upon @mentioning on activities or comments
          */
