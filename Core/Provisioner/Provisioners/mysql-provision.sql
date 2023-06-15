@@ -314,3 +314,22 @@ ALTER TABLE pseudo_seen_entities
     ADD first_seen_timestamp timestamp DEFAULT CURRENT_TIMESTAMP
         AFTER entity_guid;
 
+CREATE TABLE IF NOT EXISTS minds_gift_cards (
+    guid bigint PRIMARY KEY,
+    product_id tinyint NOT NULL,
+    amount float(2) NOT NULL,
+    issued_by_guid bigint NOT NULL,
+    issued_at timestamp NOT NULL,
+    claim_code text NOT NULL,
+    expires_at timestamp NOT NULL,
+    claimed_by_guid bigint DEFAULT NULL,
+    claimed_at timestamp DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS minds_gift_card_transactions (
+    guid bigint NOT NULL,
+    gift_card_guid bigint NOT NULL,
+    amount float(2) NOT NULL,
+    created_at timestamp NOT NULL,
+    PRIMARY KEY (guid, gift_card_guid)
+);
