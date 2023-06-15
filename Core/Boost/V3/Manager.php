@@ -14,6 +14,7 @@ use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
+use Minds\Core\Boost\V3\Exceptions\BoostCreationFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentRefundFailedException;
@@ -132,9 +133,6 @@ class Manager
                 entityGuid: $data['entity_guid'],
                 targetLocation: (int) $data['target_location'],
                 targetSuitability: (int) $data['target_suitability'],
-                targetPlatformWeb: $targetPlatformFeatureEnabled && isset($data['target_platform_web']) ? (boolean) $data['target_platform_web'] : true,
-                targetPlatformAndroid: $targetPlatformFeatureEnabled && isset($data['target_platform_android']) ? (boolean) $data['target_platform_android'] : true,
-                targetPlatformIos: $targetPlatformFeatureEnabled && isset($data['target_platform_ios']) ? (boolean) $data['target_platform_ios'] : true,
                 paymentMethod: (int) $data['payment_method'],
                 paymentAmount: (float) ($data['daily_bid'] * $data['duration_days']),
                 dailyBid: (float) $data['daily_bid'],
@@ -142,6 +140,9 @@ class Manager
                 goal: $goalFeatureEnabled && isset($data['goal']) ? (int) $data['goal'] : null,
                 goalButtonText: $goalFeatureEnabled && isset($data['goal_button_text']) ? (int) $data['goal_button_text'] : null,
                 goalButtonUrl: $goalFeatureEnabled && isset($data['goal_button_url']) ? (string) $data['goal_button_url'] : null,
+                targetPlatformWeb: !($targetPlatformFeatureEnabled && isset($data['target_platform_web'])) || $data['target_platform_web'],
+                targetPlatformAndroid: !($targetPlatformFeatureEnabled && isset($data['target_platform_android'])) || $data['target_platform_android'],
+                targetPlatformIos: !($targetPlatformFeatureEnabled && isset($data['target_platform_ios'])) || $data['target_platform_ios'],
             )
         )
             ->setGuid($data['guid'] ?? Guid::build())
@@ -164,10 +165,14 @@ class Manager
             }
 
             if (!$this->repository->createBoost($boost)) {
-                throw new ServerErrorException("An error occurred whilst creating the boost request");
+                throw new BoostCreationFailedException();
             }
+        } catch (BoostCreationFailedException $e) {
+            $this->paymentProcessor->refundBoostPayment($boost);
+            $this->repository->rollbackTransaction();
+
+            throw $e;
         } catch (Exception $e) {
-            // TODO: refund payment if already processed
             $this->repository->rollbackTransaction();
             throw $e;
         }
@@ -184,16 +189,17 @@ class Manager
      * @param Boost $boost - boost to pre-approve.
      * @return void
      * @throws ApiErrorException
+     * @throws BoostCreationFailedException
      * @throws BoostPaymentCaptureFailedException
      * @throws BoostPaymentSetupFailedException
      * @throws InvalidBoostPaymentMethodException
+     * @throws InvalidPaymentMethodException
      * @throws KeyNotSetupException
      * @throws LockFailedException
      * @throws OffchainWalletInsufficientFundsException
      * @throws ServerErrorException
      * @throws StripeTransferFailedException
      * @throws UserErrorException
-     * @throws InvalidPaymentMethodException
      */
     private function preApprove(Boost $boost): void
     {
@@ -212,7 +218,7 @@ class Manager
         }
 
         if (!$this->repository->createBoost($boost)) {
-            throw new ServerErrorException("An error occurred whilst creating the boost request");
+            throw new BoostCreationFailedException();
         }
 
         $this->repository->commitTransaction();
