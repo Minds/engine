@@ -183,4 +183,40 @@ class SearchRepositorySpec extends ObjectBehavior
 
         $this->add($comment, '2019-01-01 00:00:00', '2019-01-01 00:00:00', null, 0)->shouldReturn(true);
     }
+
+    public function it_should_not_ack_on_exception()
+    {
+        // PreparedDelete
+        $query = [
+            'index' => 'minds-comments',
+            'type' => '_doc',
+            'id' => '1000',
+        ];
+        $preparedDelete = new PreparedDelete();
+        $preparedDelete->query($query);
+
+        $this->client->request($preparedDelete)
+            ->shouldBeCalled()
+            ->willThrow(new \Exception());
+
+        $this->delete('1000')->shouldReturn(false);
+    }
+
+    public function it_should_ack_on_404()
+    {
+        // PreparedDelete
+        $query = [
+            'index' => 'minds-comments',
+            'type' => '_doc',
+            'id' => '1000',
+        ];
+        $preparedDelete = new PreparedDelete();
+        $preparedDelete->query($query);
+
+        $this->client->request($preparedDelete)
+            ->shouldBeCalled()
+            ->willThrow(new \Elasticsearch\Common\Exceptions\Missing404Exception());
+
+        $this->delete('1000')->shouldReturn(true);
+    }
 }

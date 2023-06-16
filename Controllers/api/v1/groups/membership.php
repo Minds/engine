@@ -140,7 +140,7 @@ class membership implements Interfaces\Api
                         $response['members'][$i]['is:awaiting'] = false;
                     }
                 }
-            break;
+                break;
             case "owners":
                 if (!$membership->canActorRead($group)) {
                     return Factory::response([]);
@@ -201,35 +201,35 @@ class membership implements Interfaces\Api
         $response = [];
         try {
             switch ($pages[1]) {
-              case 'cancel':
-                  $response['done'] = $membership->cancelRequest($actor);
-                  break;
-              case 'kick':
-                  $user = $_POST['user'];
+                case 'cancel':
+                    $response['done'] = $membership->cancelRequest($actor);
+                    break;
+                case 'kick':
+                    $user = $_POST['user'];
 
-                  if (!$user) {
-                      break;
-                  }
-                  $response['done'] = $membership->kick($user);
-                break;
-              case 'ban':
-                  $user = $_POST['user'];
+                    if (!$user) {
+                        break;
+                    }
+                    $response['done'] = $membership->kick($user);
+                    break;
+                case 'ban':
+                    $user = $_POST['user'];
 
-                  if (!$user) {
-                      break;
-                  }
+                    if (!$user) {
+                        break;
+                    }
 
-                  $response['done'] = $membership->ban($user);
-                  break;
-              case 'unban':
-                  $user = $_POST['user'];
+                    $response['done'] = $membership->ban($user);
+                    break;
+                case 'unban':
+                    $user = $_POST['user'];
 
-                  if (!$user) {
-                      break;
-                  }
+                    if (!$user) {
+                        break;
+                    }
 
-                  $response['done'] = $membership->unban($user);
-                  break;
+                    $response['done'] = $membership->unban($user);
+                    break;
             }
 
             return Factory::response($response);

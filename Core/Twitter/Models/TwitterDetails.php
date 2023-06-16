@@ -66,11 +66,11 @@ class TwitterDetails implements ExportableInterface, EntityInterface
         }
 
         if (isset($data['last_imported_tweet_id'])) {
-            $twitterDetails->setLastImportedTweetId($data['last_imported_tweet_id']);
+            $twitterDetails->setLastImportedTweetId((int) $data['last_imported_tweet_id']);
         }
 
         if (isset($data['last_sync_ts'])) {
-            $twitterDetails->setLastSyncTimestamp($data['last_sync_ts']);
+            $twitterDetails->setLastSyncTimestamp($data['last_sync_ts']->time());
         }
 
         if (isset($data['twitter_followers_count'])) {
@@ -78,7 +78,7 @@ class TwitterDetails implements ExportableInterface, EntityInterface
         }
 
         if (isset($data['twitter_user_id'])) {
-            $twitterDetails->setTwitterUserId($data['twitter_user_id']);
+            $twitterDetails->setTwitterUserId((int) $data['twitter_user_id']);
         }
 
         if (isset($data['twitter_username'])) {

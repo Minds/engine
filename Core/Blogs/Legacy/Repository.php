@@ -16,7 +16,6 @@ use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\Legacy\Repository as FeedsRepository;
-use Minds\Core\Feeds\FeedItem;
 use Minds\Core\Security\ACL;
 
 class Repository
@@ -71,8 +70,8 @@ class Repository
 
         if (!$opts['guids']) {
             $response = $this->feedsRepo->getList($opts);
-            
-            $pagingToken = base64_encode($response->getPagingToken());
+
+            $pagingToken = base64_encode($response->getPagingToken() ?? "");
 
             $guids = [];
             foreach ($response as $item) {

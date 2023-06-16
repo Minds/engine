@@ -163,13 +163,7 @@ class Webhooks
     {
         $activity = $this->entitiesBuilder->single($video->getContainerGuid());
         
-        if (!$activity) {
-            $this->logger->error('No linked activity found for video with GUID: ' . $video->getGuid());
-            return;
-        }
-
-        if (!($activity instanceof Activity)) {
-            $this->logger->error('Non activity entity found linked to video with GUID: ' . $video->getGuid());
+        if (!$activity || !($activity instanceof Activity)) {
             return;
         }
 

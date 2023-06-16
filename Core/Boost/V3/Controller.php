@@ -210,7 +210,7 @@ class Controller
                 limit: (int) $limit,
                 offset: (int) $offset,
                 targetStatus: (int) $targetStatus ?: null,
-                forApprovalQueue: $remoteUserGuid ? false : true,
+                forApprovalQueue: is_numeric($remoteUserGuid) ? false : true,
                 targetAudience: (int) $targetAudience,
                 targetLocation: (int) $targetLocation ?: null,
                 paymentMethod: (int) $paymentMethod ?: null,

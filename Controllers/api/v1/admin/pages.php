@@ -66,55 +66,55 @@ class pages extends Controller implements Interfaces\Api, Interfaces\ApiIgnorePa
 
         switch ($pages[1]) {
             case "header":
-              try {
-                  $page = (new Entities\Page())->loadFromGuid($pages[0]);
-              } catch (\Exception $e) {
-                  return Factory::response([
-                  'status' => 'error',
-                  'message' => 'page not found'
+                try {
+                    $page = (new Entities\Page())->loadFromGuid($pages[0]);
+                } catch (\Exception $e) {
+                    return Factory::response([
+                    'status' => 'error',
+                    'message' => 'page not found'
                 ]);
-              }
+                }
 
-              if (is_uploaded_file($_FILES['file']['tmp_name'])) {
-                  $fs = Di::_()->get('Storage');
-                  $dir = Di::_()->get('Config')->get('staticStorageFolder') ?: 'pages';
-                  /** @var Core\Media\Imagick\Manager $manager */
-                  $manager = Core\Di\Di::_()->get('Media\Imagick\Manager');
+                if (is_uploaded_file($_FILES['file']['tmp_name'])) {
+                    $fs = Di::_()->get('Storage');
+                    $dir = Di::_()->get('Config')->get('staticStorageFolder') ?: 'pages';
+                    /** @var Core\Media\Imagick\Manager $manager */
+                    $manager = Core\Di\Di::_()->get('Media\Imagick\Manager');
 
-                  $manager->setImage($_FILES['file']['tmp_name'])
-                      ->autorotate()
-                      ->resize(2000, 10000);
+                    $manager->setImage($_FILES['file']['tmp_name'])
+                        ->autorotate()
+                        ->resize(2000, 10000);
 
-                  $fs->open("$dir/page_banners/{$page->getPath()}.jpg", '');
-                  $fs->write($manager->getJpeg());
-              }
+                    $fs->open("$dir/page_banners/{$page->getPath()}.jpg", '');
+                    $fs->write($manager->getJpeg());
+                }
 
-              $page->setHeader(true)
-                ->setHeaderTop($_POST['headerTop']);
+                $page->setHeader(true)
+                  ->setHeaderTop($_POST['headerTop']);
 
-              $saved = $page->save();
+                $saved = $page->save();
 
-              return Factory::response(compact('saved'));
-              break;
+                return Factory::response(compact('saved'));
+                break;
             case "update":
             case "add":
             default:
-              $subtype = 'page';
+                $subtype = 'page';
 
-              if (isset($_POST['subtype'])) {
-                  $subtype = $_POST['subtype'];
-              }
+                if (isset($_POST['subtype'])) {
+                    $subtype = $_POST['subtype'];
+                }
 
-              $page = (new Entities\Page())
-                ->setTitle($_POST['title'])
-                ->setBody($_POST['body'])
-                ->setMenuContainer($_POST['menuContainer'])
-                ->setPath($_POST['path'])
-                ->setSubtype($subtype);
+                $page = (new Entities\Page())
+                  ->setTitle($_POST['title'])
+                  ->setBody($_POST['body'])
+                  ->setMenuContainer($_POST['menuContainer'])
+                  ->setPath($_POST['path'])
+                  ->setSubtype($subtype);
 
-              $saved = (bool) $page->save();
+                $saved = (bool) $page->save();
 
-              return Factory::response(compact('saved'));
+                return Factory::response(compact('saved'));
         }
 
         return Factory::response([]);

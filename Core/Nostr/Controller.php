@@ -93,7 +93,6 @@ class Controller
     */
     public function getReq(ServerRequestInterface $request): JsonResponse
     {
-
         // ?filters = base64_encode(
         //   {
         //     "ids": <a list of event ids or prefixes>,
@@ -129,7 +128,6 @@ class Controller
     */
     public function putEvent(ServerRequestInterface $request): JsonResponse
     {
-
         // Request body should be
 
         // {

@@ -74,6 +74,9 @@ class Boost implements EntityInterface, ExportableInterface
         private float $paymentAmount,
         private float $dailyBid,
         private int $durationDays,
+        private ?int $goal = null,
+        private ?int $goalButtonText = null,
+        private ?string $goalButtonUrl = null,
         private ?int $status = null,
         private ?int $rejectionReason = null,
         private ?int $createdTimestamp = null,
@@ -85,9 +88,6 @@ class Boost implements EntityInterface, ExportableInterface
         private ?bool $targetPlatformWeb = true,
         private ?bool $targetPlatformAndroid = true,
         private ?bool $targetPlatformIos = true,
-        private ?int $goal = null,
-        private ?int $goalButtonText = null,
-        private ?string $goalButtonUrl = null,
     ) {
     }
 

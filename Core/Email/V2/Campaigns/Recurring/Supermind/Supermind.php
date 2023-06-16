@@ -111,9 +111,9 @@ class Supermind extends EmailCampaign
                 $ctaPath = $singleSupermindPagePath;
                 break;
 
-            // `supermind_request_received` is currently grouped with `wire_received`
-            // until we make a large refactor to our email system that allows us
-            // to add new subscription settings without a large regression scope.
+                // `supermind_request_received` is currently grouped with `wire_received`
+                // until we make a large refactor to our email system that allows us
+                // to add new subscription settings without a large regression scope.
             case 'supermind_request_received':
             case 'wire_received':
                 $this->user = $receiver;
@@ -199,7 +199,7 @@ class Supermind extends EmailCampaign
         $actionButton = (new ActionButtonV2())
             ->setLabel($ctaText)
             ->setPath($actionButtonPath)
-            ;
+        ;
 
         $this->template->set('actionButton', $actionButton->build());
 

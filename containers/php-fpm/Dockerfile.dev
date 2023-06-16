@@ -1,4 +1,4 @@
-FROM minds/php:pdo
+FROM minds/php:8.1
 
 RUN echo 'zend_extension=opcache.so' > /usr/local/etc/php/conf.d/opcache.ini \
     && mkdir --parents --mode=0777 /tmp/minds-cache/ \
@@ -7,7 +7,7 @@ RUN echo 'zend_extension=opcache.so' > /usr/local/etc/php/conf.d/opcache.ini \
 RUN apk add --update linux-headers
 
 # Install xdebug
-RUN apk add --no-cache $PHPIZE_DEPS \
+RUN apk add --virtual .bdeps $PHPIZE_DEPS \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug
 

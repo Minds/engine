@@ -527,7 +527,7 @@ class Manager
     private function validateStringLengths(Activity $activity): bool
     {
         // If not a remind, MUST have either attachments, thumbnail, a message or a title.
-        $hasText = strlen($activity->getMessage()) > 0 || strlen($activity->getTitle()) > 0;
+        $hasText = strlen((string) $activity->getMessage()) > 0 || strlen((string) $activity->getTitle()) > 0;
         if (!$activity->isRemind() && !$activity->hasAttachments() && !$activity->getThumbnail() && !$hasText) {
             throw new UserErrorException('Activities must have either attachments, a thumbnail or a message');
         }

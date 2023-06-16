@@ -48,7 +48,7 @@ class PageviewSpec extends ObjectBehavior
         $this->get()->shouldReturn([
             [
                 'timestamp' => 1529581013443 / 1000,
-                'date' => date('d-m-Y', 1529581013443 / 1000),
+                'date' => date('d-m-Y', (int)(1529581013443 / 1000)),
                 'unique' => 50,
                 'total' => 50
             ]

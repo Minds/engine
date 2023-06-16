@@ -587,7 +587,7 @@ class Manager
             $this->actionEventDelegate->onComplete($boost);
 
             echo "\n";
-            $this->logger->addInfo("Boost {$boost->getGuid()} has been marked as COMPLETED");
+            $this->logger->info("Boost {$boost->getGuid()} has been marked as COMPLETED");
             echo "\n";
         }
 

@@ -2,21 +2,21 @@
 
 namespace Spec\Minds\Core\Rewards\Restrictions\Blockchain\Ofac;
 
-use PhpSpec\ObjectBehavior;
-use Minds\Core\Rewards\Restrictions\Blockchain\Ofac\Manager;
 use Minds\Core\Log\Logger;
 use Minds\Core\Rewards\Restrictions\Blockchain\Manager as RestrictionsManager;
 use Minds\Core\Rewards\Restrictions\Blockchain\Ofac\Client;
+use Minds\Core\Rewards\Restrictions\Blockchain\Ofac\Manager;
 use Minds\Core\Rewards\Restrictions\Blockchain\Restriction;
+use PhpSpec\ObjectBehavior;
 
 class ManagerSpec extends ObjectBehavior
 {
     /** @var Client */
     private $client;
-    
+
     /** @var RestrictionsManager */
     private $restrictionsManager;
-    
+
     /** @var Logger */
     private $logger;
 
@@ -28,7 +28,7 @@ class ManagerSpec extends ObjectBehavior
         $this->client = $client;
         $this->restrictionsManager = $restrictionsManager;
         $this->logger = $logger;
-        
+
         $this->beConstructedWith(
             $client,
             $restrictionsManager,
@@ -53,7 +53,7 @@ class ManagerSpec extends ObjectBehavior
                 [ 'network' => 'ETH', 'address' => '0x00' ],
                 [ 'network' => 'ETH', 'address' => '0x01' ],
             ]);
-        
+
         $this->restrictionsManager->add(
             (new Restriction())
                 ->setAddress('0x00')
@@ -84,7 +84,7 @@ class ManagerSpec extends ObjectBehavior
                 [ 'network' => 'ETH', 'address' => '0x01' ],
             ]);
 
-        $this->logger->warn("Unsupported network: LTC for address: L000")
+        $this->logger->warning("Unsupported network: LTC for address: L000")
             ->shouldBeCalled();
 
         $this->restrictionsManager->add(

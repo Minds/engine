@@ -93,6 +93,8 @@ class Minds extends base
     public function init()
     {
         $this->initProviders();
+
+        // $this->loadConfigs();
         $this->initModules();
     }
 
