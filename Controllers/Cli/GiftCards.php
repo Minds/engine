@@ -61,4 +61,13 @@ class GiftCards extends Cli\Controller implements Interfaces\CliControllerInterf
 
         var_dump($giftCard);
     }
+
+    public function getGiftCard()
+    {
+        $guid = $this->getOpt('guid');
+
+        $giftCard = $this->giftCardsManager->getGiftCard($guid);
+
+        var_dump($giftCard);
+    }
 }

@@ -13,8 +13,8 @@ class GiftCard
         public readonly int $issuedAt,
         public readonly string $claimCode,
         public readonly int $expiresAt,
-        public readonly ?int $claimedByGuid = null,
-        public readonly ?int $claimedAt = null
+        public ?int $claimedByGuid = null,
+        public ?int $claimedAt = null
     ) {
     }
 
