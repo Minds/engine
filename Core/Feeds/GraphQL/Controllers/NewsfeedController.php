@@ -21,12 +21,15 @@ use Minds\Core\Feeds\GraphQL\Types\NewsfeedConnection;
 use Minds\Core\Feeds\GraphQL\Types\PublisherRecsConnection;
 use Minds\Core\Feeds\GraphQL\Types\PublisherRecsEdge;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
+use Minds\Core\Groups\GraphQL\Types\GroupEdge;
 use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
 use Minds\Core\Router\Exceptions\ForbiddenException;
-use Minds\Core\Suggestions\Suggestion;
+use Minds\Core\Suggestions\Manager as SuggestionsManager;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\Query;
+use Minds\Entities\Group;
+use Minds\Core\FeedNotices\Notices\NoGroupsNotice;
 
 class NewsfeedController
 {
@@ -37,6 +40,7 @@ class NewsfeedController
         protected BoostManager $boostManager,
         protected SuggestedChannelsRecommendationsAlgorithm $suggestedChannelsRecommendationsAlgorithm,
         protected BoostSuggestionInjector $boostSuggestionInjector,
+        protected SuggestionsManager $suggestionsManager
     ) {
     }
 
@@ -119,7 +123,7 @@ class NewsfeedController
 
         foreach ($activities as $i => $activity) {
             $cursor = $loadAfter;
-    
+
             // Do not return more than the limit
             if (count($edges) >= $limit) {
                 break;
@@ -131,7 +135,8 @@ class NewsfeedController
                     location: ($after ||$before) ? 'inline' : 'top',
                     limit: 1,
                     cursor: $cursor,
-                    inFeedNoticesDelivered: $inFeedNoticesDelivered
+                    inFeedNoticesDelivered: $inFeedNoticesDelivered,
+                    algorithm: $algorithm
                 );
                 if ($priorityNotices && isset($priorityNotices[0])) {
                     $edges[] = $priorityNotices[0];
@@ -156,16 +161,28 @@ class NewsfeedController
                     limit: 1,
                     cursor: $cursor,
                     inFeedNoticesDelivered: $inFeedNoticesDelivered,
+                    algorithm: $algorithm
                 );
                 if ($inlineNotice && isset($inlineNotice[0])) {
                     $edges[] = $inlineNotice[0];
                 }
             }
-
+            /**
+             * Publisher recommendations
+             * On first load, randomly show either channel/group recs
+             * Unless we're on the group feed, where we always show group recs
+             */
             if ($i === 3 && !($after || $before)) {
-                $channelRecs = $this->buildChannelRecs($loggedInUser, $cursor);
-                if ($channelRecs) {
-                    $edges[] = $channelRecs;
+                if (mt_rand(0, 1) || $algorithm === 'groups') {
+                    $groupRecs = $this->buildGroupRecs($loggedInUser, $cursor, 3);
+                    if ($groupRecs) {
+                        $edges[] = $groupRecs;
+                    }
+                } else {
+                    $channelRecs = $this->buildChannelRecs($loggedInUser, $cursor);
+                    if ($channelRecs) {
+                        $edges[] = $channelRecs;
+                    }
                 }
             }
 
@@ -186,6 +203,15 @@ class NewsfeedController
             $edges[] = new ActivityEdge($activity, $cursor);
         }
 
+        if (empty($edges)) {
+            // Show suggested groups if the group feed is empty
+            if ($algorithm === 'groups') {
+                $groupRecs = $this->buildGroupRecs($loggedInUser, $loadAfter, 5);
+                if ($groupRecs) {
+                    $edges[] = $groupRecs;
+                }
+            }
+        }
         $pageInfo = new Types\PageInfo(
             hasPreviousPage: $algorithm === 'latest' || ($after && $loadBefore) ? true : false, // Always will be newer data on latest or if we are paging forward
             hasNextPage: $hasMore,
@@ -216,6 +242,7 @@ class NewsfeedController
         User $loggedInUser,
         string $cursor,
         array $inFeedNoticesDelivered,
+        string $algorithm,
         string $location = 'inline',
         int $limit = 1
     ): array {
@@ -223,6 +250,18 @@ class NewsfeedController
 
         $feedNotices = $this->feedNoticesManager->getNotices($loggedInUser);
         $i = 0;
+
+        // On the groups tab, the no-groups notice is highest priority (if applicable)
+        if ($algorithm === 'groups') {
+            $noGroupsNotice = new NoGroupsNotice;
+
+            if (!in_array($noGroupsNotice->getKey(), $inFeedNoticesDelivered, true) && $noGroupsNotice->shouldShow($loggedInUser)) {
+                $edges[] = new FeedNoticeEdge($noGroupsNotice, $cursor);
+
+                return $edges;
+            }
+        }
+
         foreach ($feedNotices as $feedNotice) {
             try {
                 if (
@@ -234,6 +273,7 @@ class NewsfeedController
                 }
             } catch (\Exception $e) {
             }
+
             $edges[] = new FeedNoticeEdge($feedNotice, $cursor);
             if (++$i >= $limit) {
                 break;
@@ -315,6 +355,41 @@ class NewsfeedController
         }
 
         // Inject a boosted channel into here too
+
+        $pageInfo = new Types\PageInfo(
+            hasPreviousPage: false,
+            hasNextPage: false,
+            startCursor: null,
+            endCursor: null,
+        );
+
+        $connection = new PublisherRecsConnection();
+        $connection->setEdges($edges);
+        $connection->setPageInfo($pageInfo);
+
+        return new PublisherRecsEdge($connection, $cursor);
+    }
+
+    /**
+     * Builds out group recommendations
+     * @return PublisherRecsEdge
+     */
+    protected function buildGroupRecs(User $loggedInUser, string $cursor = null, int $listSize = 3): PublisherRecsEdge
+    {
+        $result = $this->suggestionsManager
+            ->setUser($loggedInUser)
+            ->setType('group')
+            ->getList([
+                'limit' => $listSize
+            ]);
+
+        $edges = [ ];
+
+        foreach ($result as $i => $suggestion) {
+            $cursor = base64_encode($i);
+            $entity = $suggestion->getEntity();
+            $edges[] = new GroupEdge($entity, $cursor);
+        }
 
         $pageInfo = new Types\PageInfo(
             hasPreviousPage: false,

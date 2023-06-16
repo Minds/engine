@@ -84,6 +84,7 @@ class Minds extends base
         Monetization\Module::class,
         Analytics\Module::class,
         Payments\V2\Module::class,
+        Groups\V2\Module::class,
     ];
 
     /**
