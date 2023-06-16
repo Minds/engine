@@ -80,18 +80,22 @@ class S3 implements ServiceInterface
         switch ($this->mode) {
             case "read":
             default:
-                try {
+                try { // to read object from OCI OSS bucket
                     $result = $this->ociS3Client->getObject([
                         'Bucket' => $this->config->get('storage')['oci_bucket_name'],
                         'Key' => $this->filepath
                     ]);
                     return $result['Body'];
                 } catch (S3Exception $e) {
-                    $result = $this->awsS3Client->getObject([
-                        'Bucket' => $this->config->get('aws')['bucket'],
-                        'Key' => $this->filepath
-                    ]);
-                    return $result['Body'];
+                    try { // to read object from AWS S3 bucket on failure
+                        $result = $this->awsS3Client->getObject([
+                            'Bucket' => $this->config->get('aws')['bucket'],
+                            'Key' => $this->filepath
+                        ]);
+                        return $result['Body'];
+                    } catch (Exception $e) {
+                        return "";
+                    }
                 }
                 break;
         }
