@@ -15,8 +15,7 @@ class Manager
     public function __construct(
         protected Repository $repository,
         protected PaymentsManager $paymentsManager
-    )
-    {
+    ) {
     }
 
     /**
@@ -41,7 +40,7 @@ class Manager
             'paymentAmountMillis' => (int) round($amount * 1000),
             'userGuid' => (int) $issuer->getGuid(),
             'paymentType' => 0,
-            'paymentMethod' => 0, 
+            'paymentMethod' => 0,
         ]);
         $this->paymentsManager->createPayment($paymentDetails);
 
@@ -64,7 +63,7 @@ class Manager
 
         // Create the initial deposit on to the gift card
         $giftCardTransaction = new GiftCardTransaction(
-            paymentGuid: $paymentDetails->paymentGuid, 
+            paymentGuid: $paymentDetails->paymentGuid,
             giftCardGuid: $giftCard->guid,
             amount: $amount,
             createdAt: time(),
@@ -119,8 +118,7 @@ class Manager
         User $user,
         GiftCardProductIdEnum $productId,
         PaymentDetails $payment,
-    )
-    {
+    ) {
         // Collect the balances of available gift cards
 
         // Find the oldest gift card, deduct the remainder from $amount

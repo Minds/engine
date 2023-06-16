@@ -20,7 +20,8 @@ class RepositorySpec extends ObjectBehavior
     private $mysqlMasterMock;
     private $mysqlReplicaMock;
 
-    function let(MySQLClient $mysqlClient, PDO $mysqlMasterMock, PDO $mysqlReplicaMock) {
+    public function let(MySQLClient $mysqlClient, PDO $mysqlMasterMock, PDO $mysqlReplicaMock)
+    {
         $this->beConstructedWith($mysqlClient, Di::_()->get('Logger'));
         $this->mysqlClientMock = $mysqlClient;
 
@@ -33,19 +34,19 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlReplicaMock = $mysqlReplicaMock;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Repository::class);
     }
 
-    function it_should_add_gift_card_to_database(PDOStatement $pdoStatementMock)
+    public function it_should_add_gift_card_to_database(PDOStatement $pdoStatementMock)
     {
         $refTime = time();
         $giftCard = new GiftCard(1244987032468459522, GiftCardProductIdEnum::BOOST, 10, 1244987032468459522, $refTime, 'change-me', strtotime('+1 year', $refTime));
 
         // Confirm our values are correctly cast
         $this->mysqlMasterMock->quote(Argument::that(function ($value) use ($refTime) {
-            return match($value) {
+            return match ($value) {
                 "1244987032468459522" => true,
                 (string) GiftCardProductIdEnum::BOOST->value => true,
                 "10" => true,
@@ -54,7 +55,8 @@ class RepositorySpec extends ObjectBehavior
                 'change-me' => true,
                 date('c', strtotime('+1 year', $refTime)) => true,
             };
-        }))->shouldBeCalled();;
+        }))->shouldBeCalled();
+        ;
 
         $this->mysqlMasterMock->prepare(Argument::type('string'))->shouldBeCalled()->willReturn($pdoStatementMock);
         $pdoStatementMock->execute()->shouldBeCalled()->willReturn(true);
@@ -63,7 +65,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    function it_should_return_an_unclaimed_gift_card(PDOStatement $pdoStatementMock)
+    public function it_should_return_an_unclaimed_gift_card(PDOStatement $pdoStatementMock)
     {
         $refTime = time();
 
@@ -99,7 +101,7 @@ class RepositorySpec extends ObjectBehavior
         $giftCard->claimedAt->shouldBe(null);
     }
 
-    function it_should_return_an_claimed_gift_card(PDOStatement $pdoStatementMock)
+    public function it_should_return_an_claimed_gift_card(PDOStatement $pdoStatementMock)
     {
         $refTime = time();
 
@@ -135,19 +137,20 @@ class RepositorySpec extends ObjectBehavior
         $giftCard->claimedAt->shouldBe($refTime);
     }
 
-    function it_should_update_claimed_giftCard(PDOStatement $pdoStatementMock)
+    public function it_should_update_claimed_giftCard(PDOStatement $pdoStatementMock)
     {
         $refTime = time();
         $giftCard = new GiftCard(1244987032468459522, GiftCardProductIdEnum::BOOST, 10, 1244987032468459522, $refTime, 'change-me', strtotime('+1 year', $refTime), 1244987032468459523, $refTime);
 
         // Confirm our values are correctly cast
         $this->mysqlMasterMock->quote(Argument::that(function ($value) use ($refTime) {
-            return match($value) {
+            return match ($value) {
                 "1244987032468459522" => true,
                 "1244987032468459523" => true,
                 date('c', $refTime) => true,
             };
-        }))->shouldBeCalled();;
+        }))->shouldBeCalled();
+        ;
 
         $this->mysqlMasterMock->prepare(Argument::type('string'))->shouldBeCalled()->willReturn($pdoStatementMock);
         $pdoStatementMock->execute()->shouldBeCalled()->willReturn(true);
@@ -156,20 +159,21 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    function it_should_add_gift_card_transaction(PDOStatement $pdoStatementMock)
+    public function it_should_add_gift_card_transaction(PDOStatement $pdoStatementMock)
     {
         $refTime = time();
         $giftCardTx = new GiftCardTransaction(1244987032468459524, 1244987032468459522, 9.99, $refTime);
 
         // Confirm our values are correctly cast
         $this->mysqlMasterMock->quote(Argument::that(function ($value) use ($refTime) {
-            return match($value) {
+            return match ($value) {
                 "1244987032468459524" => true,
                 "1244987032468459522" => true,
                 "9.99" => true,
                 date('c', $refTime) => true,
             };
-        }))->shouldBeCalled();;
+        }))->shouldBeCalled();
+        ;
 
         $this->mysqlMasterMock->prepare(Argument::type('string'))->shouldBeCalled()->willReturn($pdoStatementMock);
         $pdoStatementMock->execute()->shouldBeCalled()->willReturn(true);

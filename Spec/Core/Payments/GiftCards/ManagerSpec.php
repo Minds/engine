@@ -16,19 +16,19 @@ class ManagerSpec extends ObjectBehavior
     private $repositoryMock;
     private $paymentsManagerMock;
 
-    function let(Repository $repositoryMock, PaymentsManager $paymentsManagerMock)
+    public function let(Repository $repositoryMock, PaymentsManager $paymentsManagerMock)
     {
         $this->beConstructedWith($repositoryMock, $paymentsManagerMock);
         $this->repositoryMock = $repositoryMock;
         $this->paymentsManagerMock = $paymentsManagerMock;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
     }
 
-    function it_should_create_gift_card(User $issuer)
+    public function it_should_create_gift_card(User $issuer)
     {
         $expiresAt = strtotime('+90 days');
 
@@ -47,13 +47,13 @@ class ManagerSpec extends ObjectBehavior
         $this->createGiftCard($issuer, GiftCardProductIdEnum::BOOST, 9.99, $expiresAt);
     }
 
-    function it_should_return_a_gift_card(GiftCard $giftCard)
+    public function it_should_return_a_gift_card(GiftCard $giftCard)
     {
         $this->repositoryMock->getGiftCard(1244987032468459522)->willReturn($giftCard);
         $this->getGiftCard(1244987032468459522)->shouldReturn($giftCard);
     }
 
-    function it_should_claim_a_gift_card(User $claimer)
+    public function it_should_claim_a_gift_card(User $claimer)
     {
         $refTime = time();
         $giftCard = new GiftCard(1244987032468459522, GiftCardProductIdEnum::BOOST, 10, 1244987032468459522, $refTime, 'claim-me', strtotime('+1 year', $refTime));
