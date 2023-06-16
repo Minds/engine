@@ -60,7 +60,6 @@ class Client
                 $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = !($config['ssl_skip_verify'] ?? false);
             }
             if (php_sapi_name() === 'cli') {
-                
             }
             $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
             $this->connections[$connectionType->value] = new PDO($dsn, $user, $pass, $options);

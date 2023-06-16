@@ -20,8 +20,7 @@ class GiftCards extends Cli\Controller implements Interfaces\CliControllerInterf
     private EntitiesBuilder $entitiesBuilder;
 
     public function __construct(
-    )
-    {
+    ) {
         $this->giftCardsManager = Di::_()->get(Manager::class);
         $this->paymentsManager = Di::_()->get(PaymentsManager::class);
         $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
