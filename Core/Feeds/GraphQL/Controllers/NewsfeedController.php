@@ -21,7 +21,7 @@ use Minds\Core\Feeds\GraphQL\Types\NewsfeedConnection;
 use Minds\Core\Feeds\GraphQL\Types\PublisherRecsConnection;
 use Minds\Core\Feeds\GraphQL\Types\PublisherRecsEdge;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
-use Minds\Core\Groups\GraphQL\Types\GroupEdge;
+use Minds\Core\Groups\V2\GraphQL\Types\GroupEdge;
 use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
 use Minds\Core\Router\Exceptions\ForbiddenException;
