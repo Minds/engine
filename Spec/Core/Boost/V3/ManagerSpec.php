@@ -9,6 +9,7 @@ use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
+use Minds\Core\Boost\V3\Exceptions\BoostCreationFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentRefundFailedException;
@@ -647,7 +648,7 @@ class ManagerSpec extends ObjectBehavior
      * @param Entity $entity
      * @return void
      */
-    public function it_should_try_to_create_boost_and_throw_server_error_exception(
+    public function it_should_try_to_create_boost_and_throw_boost_creation_failed_exception(
         User $user,
         Entity $entity
     ): void {
@@ -684,6 +685,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
+        $this->paymentProcessor->refundBoostPayment(Argument::type(Boost::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
         $this->repository->createBoost(Argument::type(Boost::class))
             ->shouldBeCalledOnce()
             ->willReturn(false);
@@ -700,7 +705,7 @@ class ManagerSpec extends ObjectBehavior
             'duration_days' => 2
         ];
 
-        $this->shouldThrow(ServerErrorException::class)->during('createBoost', [$boostData]);
+        $this->shouldThrow(BoostCreationFailedException::class)->during('createBoost', [$boostData]);
     }
 
     /**
