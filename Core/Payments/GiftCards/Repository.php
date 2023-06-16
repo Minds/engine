@@ -21,15 +21,13 @@ class Repository extends AbstractRepository
             ->into('minds_gift_cards')
             ->set([
                 'guid' => $giftCard->guid,
-                'product_id' => (int) $giftCard->productId,
+                'product_id' => $giftCard->productId->value,
                 'amount' => $giftCard->amount,
                 'issued_by_guid' => $giftCard->issuedByGuid,
                 'issued_at' => date('c', $giftCard->issuedAt),
                 'claim_code' => $giftCard->claimCode,
                 'expires_at' => date('c', $giftCard->expiresAt),
             ]);
-        
-        $statement->prepare();
 
         return $statement->execute();
     }
@@ -39,7 +37,7 @@ class Repository extends AbstractRepository
      */
     public function getGiftCard(int $guid): GiftCard
     {
-        $statement = $this->mysqlClientWriterHandler
+        $statement = $this->mysqlClientReaderHandler
             ->select()
             ->columns($this->buildGiftCardColumns())
             ->from('minds_gift_cards')
@@ -81,7 +79,7 @@ class Repository extends AbstractRepository
             ->insert()
             ->into('minds_gift_card_transactions')
             ->set([
-                'guid' => $giftCardTransaction->guid,
+                'payment_guid' => $giftCardTransaction->paymentGuid,
                 'gift_card_guid' => $giftCardTransaction->giftCardGuid,
                 'amount' => $giftCardTransaction->amount,
                 'created_at' => date('c', $giftCardTransaction->createdAt),
@@ -149,7 +147,7 @@ class Repository extends AbstractRepository
     {
         return new GiftCard(
             guid: $row['guid'],
-            productId: $row['product_id'],
+            productId: GiftCardProductIdEnum::from($row['product_id']),
             amount: $row['amount'],
             issuedByGuid: $row['issued_by_guid'],
             issuedAt: strtotime($row['issued_at']),

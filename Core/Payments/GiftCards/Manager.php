@@ -1,7 +1,6 @@
 <?php
 namespace Minds\Core\Payments\GiftCards;
 
-use Minds\Core\Di\Di;
 use Minds\Core\Guid;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
@@ -13,7 +12,10 @@ use Minds\Entities\User;
 
 class Manager
 {
-    public function __construct(protected Repository $repository)
+    public function __construct(
+        protected Repository $repository,
+        protected PaymentsManager $paymentsManager
+    )
     {
     }
 
@@ -41,9 +43,7 @@ class Manager
             'paymentType' => 0,
             'paymentMethod' => 0, 
         ]);
-        /** @var PaymentsManager */
-        $paymentsManager = Di::_()->get(PaymentsManager::class);
-        $paymentsManager->createPayment($paymentDetails);
+        $this->paymentsManager->createPayment($paymentDetails);
 
         // Construct the gift card
         $giftCard = new GiftCard(
@@ -64,7 +64,7 @@ class Manager
 
         // Create the initial deposit on to the gift card
         $giftCardTransaction = new GiftCardTransaction(
-            guid: $paymentDetails->paymentGuid, 
+            paymentGuid: $paymentDetails->paymentGuid, 
             giftCardGuid: $giftCard->guid,
             amount: $amount,
             createdAt: time(),
@@ -75,6 +75,14 @@ class Manager
         $this->repository->commitTransaction();
 
         return $giftCard;
+    }
+
+    /**
+     * Returns a single GiftCard
+     */
+    public function getGiftCard(int $guid): GiftCard
+    {
+        return $this->repository->getGiftCard($guid);
     }
 
     /**
@@ -130,7 +138,7 @@ class Manager
         // Psuedo code for testing
         // Create a transaction and debit
         $giftCardTransaction = new GiftCardTransaction(
-            guid: $payment->paymentGuid,
+            paymentGuid: $payment->paymentGuid,
             giftCardGuid: $giftCards[0]->guid,
             amount: round($payment->paymentAmountMillis / 1000, 2),
             createdAt: time(),

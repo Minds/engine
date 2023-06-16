@@ -6,6 +6,7 @@ namespace Minds\Core\Payments\GiftCards;
 use Minds\Core\Data\MySQL;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\Payments\V2\Manager as PaymentsManager;
 
 class Provider extends DiProvider
 {
@@ -19,7 +20,7 @@ class Provider extends DiProvider
             return new Repository($di->get(MySQL\Client::class), $di->get('Logger'));
         }, ['factory' => true]);
         $this->di->bind(Manager::class, function (Di $di): Manager {
-            return new Manager($di->get(Repository::class));
+            return new Manager($di->get(Repository::class), $di->get(PaymentsManager::class));
         }, ['factory' => true]);
     }
 }
