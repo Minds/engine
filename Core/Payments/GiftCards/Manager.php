@@ -112,6 +112,45 @@ class Manager
     // public function getAllGiftCards(User $user): iterable
 
     /**
+     * Returns the users remaining balance across all gift cards
+     * @return float
+     */
+    public function getUserBalance(User $user): float
+    {
+        return $this->repository->getUserBalance($user->getGuid());
+    }
+
+    /**
+     * Returns the users remaining balance across all gift cards, returned by the product id
+     * @return float[]
+     */
+    public function getUserBalanceByProduct(User $user): array
+    {
+        return $this->repository->getUserBalanceByProduct($user->getGuid());
+    }
+
+    /**
+     * Returns transactions associated with a user
+     * @return iterable<GiftCardTransaction>
+     */
+    public function getUserTransactions(
+        User $user,
+        int $limit = Repository::DEFAULT_LIMIT,
+        string &$loadAfter = null,
+        string &$loadBefore = null,
+        ?bool &$hasMore = false
+    ): iterable
+    {
+        return $this->repository->getUserTransactions(
+            giftCardCalimedByUserGuid: $user->getGuid(),
+            limit: $limit,
+            loadAfter: $loadAfter,
+            loadBefore: $loadBefore,
+            hasMore: $hasMore,
+        );
+    }
+
+    /**
      * Allows the user to spend against their gift card
      */
     public function spend(
@@ -125,7 +164,6 @@ class Manager
         $giftCards = iterator_to_array($this->repository->getGiftCards(
             claimedByGuid: $user->getGuid(),
             productId: $productId,
-            limit: INF,
             ordering: GiftCardOrderingEnum::CREATED_ASC
         ));
   
@@ -138,7 +176,7 @@ class Manager
         $giftCardTransaction = new GiftCardTransaction(
             paymentGuid: $payment->paymentGuid,
             giftCardGuid: $giftCards[0]->guid,
-            amount: round($payment->paymentAmountMillis / 1000, 2),
+            amount: round($payment->paymentAmountMillis / 1000, 2) * -1,
             createdAt: time(),
         );
 

@@ -85,6 +85,7 @@ class RepositorySpec extends ObjectBehavior
                         'expires_at' => date('c', strtotime('+1 year', $refTime)),
                         'claimed_by_guid' => null,
                         'claimed_at' => null,
+                        'balance' => 9.99,
                     ]
                 ]
             );
@@ -121,6 +122,7 @@ class RepositorySpec extends ObjectBehavior
                         'expires_at' => date('c', strtotime('+1 year', $refTime)),
                         'claimed_by_guid' => 1244987032468459523,
                         'claimed_at' => date('c', $refTime),
+                        'balance' => 9.99,
                     ]
                 ]
             );

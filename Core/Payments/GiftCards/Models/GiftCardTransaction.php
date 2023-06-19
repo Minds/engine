@@ -7,7 +7,8 @@ class GiftCardTransaction
         public readonly int $paymentGuid,
         public readonly int $giftCardGuid,
         public readonly float $amount,
-        public readonly int $createdAt  // Timestamp of the transaction
+        public readonly int $createdAt,  // Timestamp of the transaction
+        public readonly ?float $giftCardRunningBalance = null,
     ) {
     }
 }

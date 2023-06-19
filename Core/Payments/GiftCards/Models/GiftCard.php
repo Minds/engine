@@ -14,7 +14,8 @@ class GiftCard
         public readonly string $claimCode,
         public readonly int $expiresAt,
         public ?int $claimedByGuid = null,
-        public ?int $claimedAt = null
+        public ?int $claimedAt = null,
+        public float $balance = 0.00,
     ) {
     }
 
