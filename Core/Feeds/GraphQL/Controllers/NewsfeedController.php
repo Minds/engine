@@ -30,6 +30,7 @@ use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\Query;
 use Minds\Entities\Group;
 use Minds\Core\FeedNotices\Notices\NoGroupsNotice;
+use Minds\Core\Feeds\GraphQL\Enums\NewsfeedAlgorithmsEnum;
 
 class NewsfeedController
 {
@@ -56,6 +57,15 @@ class NewsfeedController
         ?string $before = null,
         ?array $inFeedNoticesDelivered = [],
     ): NewsfeedConnection {
+        /**
+         * Ideally we would use an enum in the function, but Graphql is not playing nice.
+         */
+        try {
+            $algorithm = NewsfeedAlgorithmsEnum::from($algorithm);
+        } catch (\ValueError) {
+            throw new UserError("Invalid algorithm provided");
+        }
+
         if ($first && $last) {
             throw new UserError("first and last supplied, can only paginate in one direction");
         }
@@ -81,7 +91,7 @@ class NewsfeedController
         $edges = [];
 
         switch ($algorithm) {
-            case "latest":
+            case NewsfeedAlgorithmsEnum::LATEST:
                 $activities = $this->feedsManager->getLatestSubscribed(
                     user: $loggedInUser,
                     limit: $limit,
@@ -90,7 +100,7 @@ class NewsfeedController
                     loadBefore: $loadBefore,
                 );
                 break;
-            case "groups":
+            case NewsfeedAlgorithmsEnum::GROUPS:
                 $activities = $this->feedsManager->getLatestGroups(
                     user: $loggedInUser,
                     limit: $limit,
@@ -99,7 +109,7 @@ class NewsfeedController
                     loadBefore: $loadBefore,
                 );
                 break;
-            case "top":
+            case NewsfeedAlgorithmsEnum::TOP:
                 $activities = $this->feedsManager->getTopSubscribed(
                     user: $loggedInUser,
                     limit: $limit,
@@ -108,7 +118,7 @@ class NewsfeedController
                     loadBefore: $loadBefore,
                 );
                 break;
-            case "for-you":
+            case NewsfeedAlgorithmsEnum::FORYOU:
                 $activities = $this->feedsManager->getClusteredRecs(
                     user: $loggedInUser,
                     limit: $limit,
@@ -147,7 +157,7 @@ class NewsfeedController
             /**
              * Show top highlights on the first page load
              */
-            if ($i === 6 && $algorithm === 'latest' && !($after || $before)) {
+            if ($i === 6 && $algorithm === NewsfeedAlgorithmsEnum::LATEST && !($after || $before)) {
                 $topHighlightsEdge = $this->buildFeedHighlights($loggedInUser, $cursor);
                 if ($topHighlightsEdge) {
                     $edges[] = $topHighlightsEdge;
@@ -173,7 +183,7 @@ class NewsfeedController
              * Unless we're on the group feed, where we always show group recs
              */
             if ($i === 3 && !($after || $before)) {
-                if (mt_rand(0, 1) || $algorithm === 'groups') {
+                if (mt_rand(0, 1) || $algorithm === NewsfeedAlgorithmsEnum::GROUPS) {
                     $groupRecs = $this->buildGroupRecs($loggedInUser, $cursor, 3);
                     if ($groupRecs) {
                         $edges[] = $groupRecs;
@@ -205,15 +215,16 @@ class NewsfeedController
 
         if (empty($edges)) {
             // Show suggested groups if the group feed is empty
-            if ($algorithm === 'groups') {
+            if ($algorithm === NewsfeedAlgorithmsEnum::GROUPS) {
                 $groupRecs = $this->buildGroupRecs($loggedInUser, $loadAfter, 5);
                 if ($groupRecs) {
                     $edges[] = $groupRecs;
                 }
             }
         }
+
         $pageInfo = new Types\PageInfo(
-            hasPreviousPage: $algorithm === 'latest' || ($after && $loadBefore) ? true : false, // Always will be newer data on latest or if we are paging forward
+            hasPreviousPage: $algorithm === NewsfeedAlgorithmsEnum::LATEST || ($after && $loadBefore) ? true : false, // Always will be newer data on latest or if we are paging forward
             hasNextPage: $hasMore,
             startCursor: $loadBefore,
             endCursor: $loadAfter,
@@ -242,7 +253,7 @@ class NewsfeedController
         User $loggedInUser,
         string $cursor,
         array $inFeedNoticesDelivered,
-        string $algorithm,
+        NewsfeedAlgorithmsEnum $algorithm,
         string $location = 'inline',
         int $limit = 1
     ): array {
@@ -252,7 +263,7 @@ class NewsfeedController
         $i = 0;
 
         // On the groups tab, the no-groups notice is highest priority (if applicable)
-        if ($algorithm === 'groups') {
+        if ($algorithm === NewsfeedAlgorithmsEnum::GROUPS) {
             $noGroupsNotice = new NoGroupsNotice;
 
             if (!in_array($noGroupsNotice->getKey(), $inFeedNoticesDelivered, true) && $noGroupsNotice->shouldShow($loggedInUser)) {
