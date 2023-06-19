@@ -79,7 +79,7 @@ class Manager
             foreach ($latestTweets as $tweet) {
                 if (array_filter($tweet->getUrls(), function ($tweetUrl) use ($verificationString) {
                     return strtolower($tweetUrl) === $verificationString;
-                })) {
+                }) || str_contains($tweet->getText(), $verificationString)) {
                     $verifiedTweetId = $tweet->getId();
                     break; // Success!
                 }
