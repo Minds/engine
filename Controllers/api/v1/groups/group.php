@@ -15,6 +15,7 @@ use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Entities\Group as GroupEntity;
 
 use Minds\Exceptions\GroupOperationException;
+use Minds\Exceptions\UserErrorException;
 
 class group implements Interfaces\Api
 {
@@ -137,9 +138,15 @@ class group implements Interfaces\Api
 
         // Creation / Updating
 
-        if (isset($_POST['name'])) {
-            $group->setName($_POST['name']);
+        if (!isset($_POST['name'])) {
+            throw new UserErrorException('Groups must have a name');
         }
+
+        if (mb_strlen($_POST['name']) > 200) {
+            throw new UserErrorException('Group names must be 200 characters or less');
+        }
+
+        $group->setName($_POST['name']);
 
         if (isset($_POST['briefdescription'])) {
             $sanitized_briefdescription = htmlspecialchars(trim($_POST['briefdescription']), ENT_QUOTES, null, false);

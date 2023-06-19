@@ -2,19 +2,22 @@
 namespace Minds\Core\Payments\GiftCards\Models;
 
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use TheCodingMachine\GraphQLite\Annotations\Field;
+use TheCodingMachine\GraphQLite\Annotations\Type;
 
+#[Type(name: "GiftCardNode")]
 class GiftCard
 {
     public function __construct(
-        public readonly int $guid,
-        public readonly GiftCardProductIdEnum $productId,
-        public readonly float $amount,
-        public readonly int $issuedByGuid,
-        public readonly int $issuedAt,
+        #[Field] public readonly int $guid,
+        #[Field] public readonly GiftCardProductIdEnum $productId,
+        #[Field] public readonly float $amount,
+        #[Field] public readonly int $issuedByGuid,
+        #[Field] public readonly int $issuedAt,
         public readonly string $claimCode,
-        public readonly int $expiresAt,
-        public ?int $claimedByGuid = null,
-        public ?int $claimedAt = null,
+        #[Field] public readonly int $expiresAt,
+        #[Field] public ?int $claimedByGuid = null,
+        #[Field] public ?int $claimedAt = null,
         public float $balance = 0.00,
     ) {
     }

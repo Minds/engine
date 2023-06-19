@@ -886,7 +886,7 @@ $CONFIG->set('jury', [
 $CONFIG->set('supermind', [
     'minimum_amount' => [
         'usd' => 1.00,
-        'offchain_token' => 1.00
+        'offchain_token' => 0.01
     ]
 ]);
 
@@ -909,5 +909,5 @@ $CONFIG->set('chatwoot', [
 ]);
 
 $CONFIG->set('strapi', [
-    'url' => 'http://localhost:1337'
+    'url' => 'https://cms.oke.minds.io'
 ]);
