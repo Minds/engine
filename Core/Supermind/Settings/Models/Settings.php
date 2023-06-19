@@ -25,7 +25,7 @@ class Settings implements \JsonSerializable
      */
     private const SUPERMIND_REQUEST_MINIMUM_AMOUNT = [
         SupermindRequestPaymentMethod::CASH => 1.00,
-        SupermindRequestPaymentMethod::OFFCHAIN_TOKEN => 1.00,
+        SupermindRequestPaymentMethod::OFFCHAIN_TOKEN => 0.01,
     ];
 
     public function __construct(
