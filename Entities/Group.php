@@ -916,6 +916,11 @@ class Group extends NormalizedEntity implements EntityInterface
             }
         }
 
+        $export['name'] = $this->getName();
+        if (mb_strlen($export['name']) > 200) {
+            $export['name'] = mb_substr($export['name'], 0, 197) . '...';
+        }
+
         // Compatibility keys
         $export['owner_guid'] = $this->getOwnerObj()->guid;
         //$export['activity:count'] = $this->getActivityCount();
