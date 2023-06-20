@@ -29,6 +29,7 @@ class ObjectImageMapping extends EntityMapping implements MappingInterface
         $map = parent::map($defaultValues);
 
         $map['is_portrait'] = $this->entity->height > $this->entity->width;
+        $map['auto_caption'] = $this->entity->getAutoCaption();
 
         return $map;
     }

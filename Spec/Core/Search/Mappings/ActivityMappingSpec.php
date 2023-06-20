@@ -44,6 +44,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->getWireThreshold()->willReturn(null);
         $activity->get('language')->willReturn('en');
         $activity->get('supermind')->willReturn(false);
+        $activity->getAutoCaption()->willReturn("");
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -89,6 +90,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'is_remind' => false,
                 'is_quoted_post' => false,
                 'is_supermind' => false,
+                'auto_caption' => "",
             ]);
     }
 
@@ -126,6 +128,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->getWireThreshold()->willReturn(null);
         $activity->get('language')->willReturn('en');
         $activity->get('supermind')->willReturn(false);
+        $activity->getAutoCaption()->willReturn("");
         $activity->isRemind()->willReturn(false);
         $activity->isQuotedPost()->willReturn(false);
         $activity->isPortrait()->willReturn(false);
@@ -170,6 +173,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'is_remind' => false,
                 'is_quoted_post' => false,
                 'is_supermind' => false,
+                'auto_caption' => '',
             ]);
     }
 
@@ -205,6 +209,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->getWireThreshold()->willReturn(null);
         $activity->get('language')->willReturn('en');
         $activity->get('supermind')->willReturn(false);
+        $activity->getAutoCaption()->willReturn("");
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -253,6 +258,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'is_quoted_post' => false,
                 'remind_guid' => '123',
                 'is_supermind' => false,
+                'auto_caption' => '',
             ]);
     }
 
@@ -288,6 +294,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->getWireThreshold()->willReturn(null);
         $activity->get('language')->willReturn('en');
         $activity->get('supermind')->willReturn(false);
+        $activity->getAutoCaption()->willReturn("");
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -335,6 +342,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'is_quoted_post' => true,
                 'remind_guid' => '123',
                 'is_supermind' => false,
+                'auto_caption' => '',
             ]);
     }
 }

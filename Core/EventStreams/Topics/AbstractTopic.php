@@ -5,12 +5,12 @@
 namespace Minds\Core\EventStreams\Topics;
 
 use Exception;
-use Pulsar\Client as PulsarClient;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
+use Pulsar\Client as PulsarClient;
 use Pulsar\Consumer;
 use Pulsar\Exception\IOException;
 use Pulsar\Message;
