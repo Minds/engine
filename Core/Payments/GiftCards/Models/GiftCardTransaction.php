@@ -14,7 +14,7 @@ class GiftCardTransaction implements NodeInterface
         #[Field(outputType: 'String')] public readonly int $giftCardGuid,
         #[Field] public readonly float $amount,
         #[Field] public readonly int $createdAt,  // Timestamp of the transaction
-        #[Field] public readonly ?float $giftCardRunningBalance = null,
+        // #[Field] public readonly ?float $giftCardRunningBalance = null,
     ) {
     }
 

@@ -504,14 +504,14 @@ class RepositorySpec extends ObjectBehavior
                 giftCardGuid: 1244987032468459522,
                 amount: 0.99,
                 createdAt: $refTime,
-                giftCardRunningBalance: 9.01,
+                // giftCardRunningBalance: 9.01,
             ),
             new GiftCardTransaction(
                 paymentGuid: 1244987032468459523,
                 giftCardGuid: 1244987032468459522,
                 amount: 10.00,
                 createdAt: $refTime,
-                giftCardRunningBalance: 10.00,
+                // giftCardRunningBalance: 10.00,
             ),
         ]));
     }

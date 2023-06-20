@@ -229,7 +229,8 @@ class Repository extends AbstractRepository
                 'gift_card_guid',
                 'minds_gift_card_transactions.amount',
                 'created_at',
-                new RawExp('SUM(minds_gift_card_transactions.amount) OVER (PARTITION BY gift_card_guid ORDER BY payment_guid) gift_card_balance'),
+                // Vitess currently doesn't support OVER/PARTITION, commenting out
+                // new RawExp('SUM(minds_gift_card_transactions.amount) OVER (PARTITION BY gift_card_guid ORDER BY payment_guid) gift_card_balance'),
             ])
             ->from('minds_gift_card_transactions')
             ->innerJoin('minds_gift_cards', 'minds_gift_cards.guid', Operator::EQ, 'minds_gift_card_transactions.gift_card_guid')
@@ -274,7 +275,7 @@ class Repository extends AbstractRepository
                 giftCardGuid: $row['gift_card_guid'],
                 amount: $row['amount'],
                 createdAt: strtotime($row['created_at']),
-                giftCardRunningBalance: $row['gift_card_balance'],
+                // giftCardRunningBalance: $row['gift_card_balance'],
             );
 
             $loadAfter = base64_encode($row['payment_guid']);
