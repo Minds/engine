@@ -605,7 +605,7 @@ Feature: Supermind
     Then I get a 200 response containing
       """json
         {
-          "min_offchain_tokens": 1,
+          "min_offchain_tokens": 0.01,
           "min_cash": 1
         }
       """
@@ -693,7 +693,7 @@ Feature: Supermind
     And I have "supermind_settings" data
       """json
         {
-          "min_offchain_tokens": 0.9,
+          "min_offchain_tokens": 0.001,
           "min_cash": 9
         }
       """
