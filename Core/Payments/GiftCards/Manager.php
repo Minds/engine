@@ -165,7 +165,7 @@ class Manager
         ?bool &$hasMore = false
     ): iterable {
         return $this->repository->getGiftCardTransactions(
-            giftCardCalimedByUserGuid: $user->getGuid(),
+            giftCardClaimedByUserGuid: $user->getGuid(),
             giftCardGuid: $giftCard?->guid,
             limit: $limit,
             loadAfter: $loadAfter,

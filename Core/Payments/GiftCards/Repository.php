@@ -215,7 +215,7 @@ class Repository extends AbstractRepository
      * @return iterable<GiftCardTransaction>
      */
     public function getGiftCardTransactions(
-        ?int $giftCardCalimedByUserGuid = null,
+        ?int $giftCardClaimedByUserGuid = null,
         ?int $giftCardGuid = null,
         int $limit = self::DEFAULT_LIMIT,
         string &$loadAfter = null,
@@ -237,8 +237,8 @@ class Repository extends AbstractRepository
             ->orderBy('created_at desc')
             ->limit($limit + 1);
 
-        if ($giftCardCalimedByUserGuid) {
-            $query->where('minds_gift_cards.claimed_by_guid', Operator::EQ, $giftCardCalimedByUserGuid);
+        if ($giftCardClaimedByUserGuid) {
+            $query->where('minds_gift_cards.claimed_by_guid', Operator::EQ, $giftCardClaimedByUserGuid);
         }
 
         if ($giftCardGuid) {
