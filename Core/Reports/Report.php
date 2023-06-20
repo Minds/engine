@@ -180,8 +180,7 @@ class Report
      */
     public function export(): array
     {
-        if ($this->entity instanceof PaywallEntityInterface) {
-            $this->entity->setPayWall(true);
+        if ($this->entity instanceof PaywallEntityInterface && $this->entity->isPayWall()) {
             $this->entity->setPaywallUnlocked(true);
         }
     
