@@ -135,4 +135,27 @@ class Manager
 
         $this->emailDelegate->onAuthenticateTwoFactor($user, $code);
     }
+
+    /**
+     * Calls onRequireTwoFactor exclusively for email.
+     * @param User $user
+     * @throws TwoFactorRequiredException
+     * @return void
+     */
+    public function requireEmailTwoFactor(User $user): void
+    {
+        $this->emailDelegate->onRequireTwoFactor($user);
+    }
+
+    /**
+     * Calls onAuthenticateTwoFactor exclusively for email.
+     * @param User $user - user to validate for.
+     * @param string $code - code to validate.
+     * @throws TwoFactorInvalidCodeException - when an invalid code is passed.
+     * @return void
+     */
+    public function authenticateEmailTwoFactor(User $user, string $code): void
+    {
+        $this->emailDelegate->onAuthenticateTwoFactor($user, $code);
+    }
 }

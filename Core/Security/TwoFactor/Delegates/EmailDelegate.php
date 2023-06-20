@@ -84,7 +84,8 @@ class EmailDelegate implements TwoFactorDelegateInterface
         @header("X-MINDS-EMAIL-2FA-KEY: $key", true);
 
         //forward to the twofactor page
-        throw new TwoFactorRequiredException();
+        throw (new TwoFactorRequiredException())
+            ->setKey($key);
     }
 
     /**
