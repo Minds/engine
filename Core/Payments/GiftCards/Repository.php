@@ -93,24 +93,46 @@ class Repository extends AbstractRepository
      */
     public function getGiftCards(
         ?int $claimedByGuid = null,
+        ?int $issuedByGuid = null,
         ?GiftCardProductIdEnum $productId = null,
         int $limit = self::DEFAULT_LIMIT,
         GiftCardOrderingEnum $ordering = GiftCardOrderingEnum::CREATED_ASC,
-        string &$loadAfter = null,
-        string &$loadBefore = null,
-        bool &$hasMore = false
+        ?string &$loadAfter = null,
+        ?string &$loadBefore = null,
+        ?bool &$hasMore = null
     ): iterable {
-        // TODO: pagination
-    
         $query = $this->buildGetGiftCardsQuery()
-            ->limit($limit);
+            ->limit($limit + 1);
 
-        if ($claimedByGuid) {
+        $params = [];
+
+        if ($claimedByGuid && !$issuedByGuid) {
             $query->where('claimed_by_guid', Operator::EQ, $claimedByGuid);
+        }
+
+        // If querying both claimed by and issued, we will do an OR statement
+        if ($issuedByGuid && !$claimedByGuid) {
+            $query->where('issued_by_guid', Operator::EQ, $issuedByGuid);
+        }
+
+        if ($issuedByGuid && $claimedByGuid) {
+            $query->whereRaw('(issued_by_guid = :issued_by_guid OR claimed_by_guid = :claimed_by_guid)');
+            $params = [
+                'issued_by_guid' => $issuedByGuid,
+                'claimed_by_guid' => $claimedByGuid,
+            ];
         }
 
         if ($productId) {
             $query->where('product_id', Operator::EQ, $productId->value);
+        }
+
+        if ($loadAfter) {
+            $query->where('guid', Operator::LT, base64_decode($loadAfter, true));
+        }
+
+        if ($loadBefore) {
+            $query->where('guid', Operator::GT, base64_decode($loadBefore, true));
         }
 
         $query->orderBy(match ($ordering) {
@@ -120,10 +142,25 @@ class Repository extends AbstractRepository
             GiftCardOrderingEnum::EXPIRING_DESC => 'expring_at asc',
         });
 
-        $pdoStatement = $query->execute();
+        $pdoStatement = $query->prepare();
+        $pdoStatement->execute($params);
 
-        foreach ($pdoStatement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $hasMore = false;
+
+        foreach ($pdoStatement->fetchAll(PDO::FETCH_ASSOC) as $i => $row) {
+            if ($i === 0) {
+                $loadBefore = base64_encode($row['guid']);
+            }
+
+            if ($i >= $limit) {
+                $hasMore = true;
+                break;
+            }
+
             $giftCard = $this->buildGiftCardModel($row);
+
+            $loadAfter = base64_encode($row['guid']);
+
             yield $giftCard;
         }
     }
@@ -157,7 +194,9 @@ class Repository extends AbstractRepository
 
         $rows = $pdoStatement->fetchAll(PDO::FETCH_ASSOC);
 
-        $productBalances = array_fill_keys(array_map(function($productId) { return $productId->value; }, GiftCardProductIdEnum::cases()), 0);
+        $productBalances = array_fill_keys(array_map(function ($productId) {
+            return $productId->value;
+        }, GiftCardProductIdEnum::cases()), 0);
 
         foreach ($rows as $row) {
             $productId = GiftCardProductIdEnum::tryFrom($row['product_id']);
@@ -165,7 +204,7 @@ class Repository extends AbstractRepository
                 $this->logger->error("Invalid product_id {$row['product_id']} returned from database.");
                 continue;
             }
-            $productBalances[$productId->value] = $row['balance'];
+            $productBalances[$productId->value] = (float) $row['balance'];
         }
 
         return $productBalances;
@@ -175,15 +214,14 @@ class Repository extends AbstractRepository
      * Returns gift card transactions
      * @return iterable<GiftCardTransaction>
      */
-    public function getUserTransactions(
+    public function getGiftCardTransactions(
         ?int $giftCardCalimedByUserGuid = null,
         ?int $giftCardGuid = null,
         int $limit = self::DEFAULT_LIMIT,
         string &$loadAfter = null,
         string &$loadBefore = null,
         ?bool &$hasMore = false
-    ): iterable
-    {
+    ): iterable {
         $query = $this->mysqlClientReaderHandler
             ->select()
             ->columns([
@@ -207,11 +245,11 @@ class Repository extends AbstractRepository
         }
 
         if ($loadAfter) {
-            $query->where('payment_guid', Operator::LT, base64_decode($loadAfter));
+            $query->where('payment_guid', Operator::LT, base64_decode($loadAfter, true));
         }
 
         if ($loadBefore) {
-            $query->where('payment_guid', Operator::GT, base64_decode($loadBefore));
+            $query->where('payment_guid', Operator::GT, base64_decode($loadBefore, true));
         }
 
         $pdoStatement = $query->execute();
@@ -239,14 +277,14 @@ class Repository extends AbstractRepository
                 giftCardRunningBalance: $row['gift_card_balance'],
             );
 
-            yield $transaction;
-
             $loadAfter = base64_encode($row['payment_guid']);
+
+            yield $transaction;
         }
     }
 
     /**
-     * Builds the base query for 
+     * Builds the base query for
      */
     private function buildGetGiftCardsQuery(): SelectQuery
     {
@@ -308,6 +346,4 @@ class Repository extends AbstractRepository
             balance: $row['balance'],
         );
     }
-
-
 }

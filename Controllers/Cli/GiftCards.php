@@ -125,6 +125,5 @@ class GiftCards extends Cli\Controller implements Interfaces\CliControllerInterf
             productId: GiftCardProductIdEnum::BOOST,
             payment: $paymentDetails,
         );
-
     }
 }

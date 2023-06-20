@@ -77,6 +77,31 @@ class Manager
     }
 
     /**
+     * Returns multiple gift cards
+     */
+    public function getGiftCards(
+        User $claimedByUser,
+        ?User $issuedByUser = null,
+        ?GiftCardProductIdEnum $productId = null,
+        int $limit = Repository::DEFAULT_LIMIT,
+        GiftCardOrderingEnum $ordering = GiftCardOrderingEnum::CREATED_ASC,
+        ?string &$loadAfter = null,
+        ?string &$loadBefore = null,
+        ?bool &$hasMore = null
+    ): iterable {
+        return $this->repository->getGiftCards(
+            claimedByGuid: $claimedByUser->getGuid(),
+            issuedByGuid: $issuedByUser?->getGuid(),
+            productId: $productId,
+            limit: $limit,
+            ordering: $ordering,
+            loadAfter: $loadAfter,
+            loadBefore: $loadBefore,
+            hasMore: $hasMore,
+        );
+    }
+
+    /**
      * Returns a single GiftCard
      */
     public function getGiftCard(int $guid): GiftCard
@@ -109,8 +134,6 @@ class Manager
         return $this->repository->updateGiftCardClaim($giftCard);
     }
 
-    // public function getAllGiftCards(User $user): iterable
-
     /**
      * Returns the users remaining balance across all gift cards
      * @return float
@@ -133,16 +156,17 @@ class Manager
      * Returns transactions associated with a user
      * @return iterable<GiftCardTransaction>
      */
-    public function getUserTransactions(
+    public function getGiftCardTransactions(
         User $user,
+        ?GiftCard $giftCard = null,
         int $limit = Repository::DEFAULT_LIMIT,
         string &$loadAfter = null,
         string &$loadBefore = null,
         ?bool &$hasMore = false
-    ): iterable
-    {
-        return $this->repository->getUserTransactions(
+    ): iterable {
+        return $this->repository->getGiftCardTransactions(
             giftCardCalimedByUserGuid: $user->getGuid(),
+            giftCardGuid: $giftCard?->guid,
             limit: $limit,
             loadAfter: $loadAfter,
             loadBefore: $loadBefore,

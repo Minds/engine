@@ -183,4 +183,336 @@ class RepositorySpec extends ObjectBehavior
         $this->addGiftCardTransaction($giftCardTx)
             ->shouldBe(true);
     }
+
+    public function it_should_return_issued_gift_cards_list(PDOStatement $pdoStatementMock)
+    {
+        $refTime = time();
+
+        $this->mysqlReplicaMock->quote(Argument::that(function ($value) {
+            return match ($value) {
+                "1244987032468459522" => true,
+                default => false,
+            };
+        }))->shouldBeCalled();
+        $this->mysqlReplicaMock->query(Argument::type('string'))->willReturn($pdoStatementMock);
+        $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($pdoStatementMock);
+        
+        $pdoStatementMock->execute([]);
+
+        $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
+            ->willReturn(
+                [
+                    [
+                        'guid' => 1244987032468459523,
+                        'product_id' => 1,
+                        'amount' => 9.99,
+                        'issued_by_guid' => 1244987032468459522,
+                        'issued_at' => date('c', $refTime),
+                        'claim_code' => 'change-me',
+                        'expires_at' => date('c', strtotime('+1 year', $refTime)),
+                        'claimed_by_guid' => 1244987032468459524,
+                        'claimed_at' => date('c', $refTime),
+                        'balance' => 9.99,
+                    ],
+                    [
+                        'guid' => 1244987032468459526,
+                        'product_id' => 1,
+                        'amount' => 4.99,
+                        'issued_by_guid' => 1244987032468459522,
+                        'issued_at' => date('c', $refTime),
+                        'claim_code' => 'change-me',
+                        'expires_at' => date('c', strtotime('+1 year', $refTime)),
+                        'claimed_by_guid' => 1244987032468459524,
+                        'claimed_at' => date('c', $refTime),
+                        'balance' => 0.99,
+                    ]
+                ]
+            );
+    
+
+        $result = $this->getGiftCards(
+            issuedByGuid: 1244987032468459522,
+            limit: 10,
+        );
+        $result->shouldYieldLike(new \ArrayIterator([
+            new GiftCard(
+                guid: 1244987032468459523,
+                productId: GiftCardProductIdEnum::PLUS,
+                amount: 9.99,
+                issuedByGuid: 1244987032468459522,
+                issuedAt: $refTime,
+                claimCode: 'change-me',
+                expiresAt: strtotime('+1 year', $refTime),
+                claimedByGuid: 1244987032468459524,
+                claimedAt: $refTime,
+                balance: 9.99,
+            ),
+            new GiftCard(
+                guid: 1244987032468459526,
+                productId: GiftCardProductIdEnum::PLUS,
+                amount: 4.99,
+                issuedByGuid: 1244987032468459522,
+                issuedAt: $refTime,
+                claimCode: 'change-me',
+                expiresAt: strtotime('+1 year', $refTime),
+                claimedByGuid: 1244987032468459524,
+                claimedAt: $refTime,
+                balance: 0.99,
+            ),
+        ]));
+    }
+
+    public function it_should_return_claimed_gift_cards_list(PDOStatement $pdoStatementMock)
+    {
+        $refTime = time();
+
+        $this->mysqlReplicaMock->quote(Argument::that(function ($value) {
+            return match ($value) {
+                "1244987032468459522" => true,
+                default => false,
+            };
+        }))->shouldBeCalled();
+        $this->mysqlReplicaMock->query(Argument::type('string'))->willReturn($pdoStatementMock);
+        $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($pdoStatementMock);
+        
+        $pdoStatementMock->execute([]);
+
+        $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
+            ->willReturn(
+                [
+                    [
+                        'guid' => 1244987032468459523,
+                        'product_id' => 1,
+                        'amount' => 9.99,
+                        'issued_by_guid' => 1244987032468459522,
+                        'issued_at' => date('c', $refTime),
+                        'claim_code' => 'change-me',
+                        'expires_at' => date('c', strtotime('+1 year', $refTime)),
+                        'claimed_by_guid' => 1244987032468459524,
+                        'claimed_at' => date('c', $refTime),
+                        'balance' => 9.99,
+                    ],
+                    [
+                        'guid' => 1244987032468459526,
+                        'product_id' => 1,
+                        'amount' => 4.99,
+                        'issued_by_guid' => 1244987032468459522,
+                        'issued_at' => date('c', $refTime),
+                        'claim_code' => 'change-me',
+                        'expires_at' => date('c', strtotime('+1 year', $refTime)),
+                        'claimed_by_guid' => 1244987032468459524,
+                        'claimed_at' => date('c', $refTime),
+                        'balance' => 0.99,
+                    ]
+                ]
+            );
+    
+
+        $result = $this->getGiftCards(
+            claimedByGuid: 1244987032468459522,
+            limit: 10,
+        );
+        $result->shouldYieldLike(new \ArrayIterator([
+            new GiftCard(
+                guid: 1244987032468459523,
+                productId: GiftCardProductIdEnum::PLUS,
+                amount: 9.99,
+                issuedByGuid: 1244987032468459522,
+                issuedAt: $refTime,
+                claimCode: 'change-me',
+                expiresAt: strtotime('+1 year', $refTime),
+                claimedByGuid: 1244987032468459524,
+                claimedAt: $refTime,
+                balance: 9.99,
+            ),
+            new GiftCard(
+                guid: 1244987032468459526,
+                productId: GiftCardProductIdEnum::PLUS,
+                amount: 4.99,
+                issuedByGuid: 1244987032468459522,
+                issuedAt: $refTime,
+                claimCode: 'change-me',
+                expiresAt: strtotime('+1 year', $refTime),
+                claimedByGuid: 1244987032468459524,
+                claimedAt: $refTime,
+                balance: 0.99,
+            ),
+        ]));
+    }
+
+    public function it_should_return_issued_and_claimed_gift_cards_list(PDOStatement $pdoStatementMock)
+    {
+        $refTime = time();
+
+        $this->mysqlReplicaMock->query(Argument::type('string'))->willReturn($pdoStatementMock);
+        $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($pdoStatementMock);
+        
+        $pdoStatementMock->execute([
+            'claimed_by_guid' => 1244987032468459524,
+            'issued_by_guid' => 1244987032468459524,
+        ]);
+
+        $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
+            ->willReturn(
+                [
+                    [
+                        'guid' => 1244987032468459523,
+                        'product_id' => 1,
+                        'amount' => 9.99,
+                        'issued_by_guid' => 1244987032468459522,
+                        'issued_at' => date('c', $refTime),
+                        'claim_code' => 'change-me',
+                        'expires_at' => date('c', strtotime('+1 year', $refTime)),
+                        'claimed_by_guid' => 1244987032468459524,
+                        'claimed_at' => date('c', $refTime),
+                        'balance' => 9.99,
+                    ],
+                    [
+                        'guid' => 1244987032468459526,
+                        'product_id' => 1,
+                        'amount' => 4.99,
+                        'issued_by_guid' => 1244987032468459522,
+                        'issued_at' => date('c', $refTime),
+                        'claim_code' => 'change-me',
+                        'expires_at' => date('c', strtotime('+1 year', $refTime)),
+                        'claimed_by_guid' => 1244987032468459524,
+                        'claimed_at' => date('c', $refTime),
+                        'balance' => 0.99,
+                    ]
+                ]
+            );
+    
+
+        $result = $this->getGiftCards(
+            issuedByGuid: 1244987032468459524,
+            claimedByGuid: 1244987032468459524,
+            limit: 10,
+        );
+        $result->shouldYieldLike(new \ArrayIterator([
+            new GiftCard(
+                guid: 1244987032468459523,
+                productId: GiftCardProductIdEnum::PLUS,
+                amount: 9.99,
+                issuedByGuid: 1244987032468459522,
+                issuedAt: $refTime,
+                claimCode: 'change-me',
+                expiresAt: strtotime('+1 year', $refTime),
+                claimedByGuid: 1244987032468459524,
+                claimedAt: $refTime,
+                balance: 9.99,
+            ),
+            new GiftCard(
+                guid: 1244987032468459526,
+                productId: GiftCardProductIdEnum::PLUS,
+                amount: 4.99,
+                issuedByGuid: 1244987032468459522,
+                issuedAt: $refTime,
+                claimCode: 'change-me',
+                expiresAt: strtotime('+1 year', $refTime),
+                claimedByGuid: 1244987032468459524,
+                claimedAt: $refTime,
+                balance: 0.99,
+            ),
+        ]));
+    }
+
+    public function it_should_return_total_balance(PDOStatement $pdoStatementMock)
+    {
+        $this->mysqlReplicaMock->quote(Argument::type('string'))->shouldBeCalled();
+        $this->mysqlReplicaMock->query(Argument::type('string'))->willReturn($pdoStatementMock);
+        
+        $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
+            ->willReturn(
+                [
+                    [
+                       'balance' => 9.99,
+                    ],
+                ]
+            );
+        $this->getUserBalance(1244987032468459524)->shouldbe(9.99);
+    }
+
+    public function it_should_return_balance_per_product(PDOStatement $pdoStatementMock)
+    {
+        $this->mysqlReplicaMock->quote(Argument::type('string'))->shouldBeCalled();
+        $this->mysqlReplicaMock->query(Argument::type('string'))->willReturn($pdoStatementMock);
+        
+        $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
+            ->willReturn(
+                [
+                    [
+                       'product_id' => 0,
+                       'balance' => 10.00,
+                    ],
+                    [
+                        'product_id' => 1,
+                        'balance' => 5.00,
+                     ],
+                     [
+                        'product_id' => 2,
+                        'balance' => 15.00,
+                     ],
+                     [
+                        'product_id' => 3,
+                        'balance' => 1.00,
+                     ],
+                ]
+            );
+    
+
+        $this->getUserBalanceByProduct(1244987032468459524)->shouldBe([
+            GiftCardProductIdEnum::BOOST->value => 10.00,
+            GiftCardProductIdEnum::PLUS->value => 5.00,
+            GiftCardProductIdEnum::PRO->value => 15.00,
+            GiftCardProductIdEnum::SUPERMIND->value => 1.00,
+        ]);
+    }
+
+    public function it_should_return_transactions(PDOStatement $pdoStatementMock)
+    {
+        $refTime = time();
+
+        $this->mysqlReplicaMock->query(Argument::type('string'))->willReturn($pdoStatementMock);
+        
+        $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
+            ->willReturn(
+                [
+                    [
+                        'payment_guid' => 1244987032468459524,
+                        'gift_card_guid' => 1244987032468459522,
+                        'amount' => 0.99,
+                        'created_at' => date('c', $refTime),
+                        'gift_card_balance' => 9.01,
+                    ],
+                    [
+                        'payment_guid' => 1244987032468459523,
+                        'gift_card_guid' => 1244987032468459522,
+                        'amount' => 10.00,
+                        'created_at' => date('c', $refTime),
+                        'gift_card_balance' => 10.00,
+                    ]
+                ]
+            );
+    
+
+        $result = $this->getGiftCardTransactions(
+            limit: 10,
+        );
+        $result->shouldYieldLike(new \ArrayIterator([
+            new GiftCardTransaction(
+                paymentGuid: 1244987032468459524,
+                giftCardGuid: 1244987032468459522,
+                amount: 0.99,
+                createdAt: $refTime,
+                giftCardRunningBalance: 9.01,
+            ),
+            new GiftCardTransaction(
+                paymentGuid: 1244987032468459523,
+                giftCardGuid: 1244987032468459522,
+                amount: 10.00,
+                createdAt: $refTime,
+                giftCardRunningBalance: 10.00,
+            ),
+        ]));
+    }
 }
