@@ -150,47 +150,47 @@ class CaptionedActivitiesTopic extends AbstractTopic implements TopicInterface
             'fields' => [
                 [
                     'name' => 'activity_urn',
-                    'type' => 'string'
+                    'type' => [ 'null', 'string' ],
                 ],
                 [
                     'name' => 'guid',
-                    'type' => 'long'
+                    'type' => [ 'null', 'long' ],
                 ],
                 [
                     'name' => 'type',
-                    'type' => 'string'
+                    'type' => [ 'null', 'string' ],
                 ],
                 [
                     'name' => 'container_guid',
-                    'type' => 'long'
+                    'type' => [ 'null', 'long' ],
                 ],
                 [
                     'name' => 'owner_guid',
-                    'type' => 'long'
+                    'type' => [ 'null', 'long' ],
                 ],
                 [
                     'name' => 'access_id',
-                    'type' => 'long'
+                    'type' => [ 'null', 'long' ],
                 ],
                 [
                     'name' => 'time_published',
-                    'type' => 'string'
+                    'type' => [ 'null', 'string' ],
                 ],
                 [
                     'name' => 'time_created',
-                    'type' => 'string'
+                    'type' => [ 'null', 'string' ],
                 ],
                 [
                     'name' => 'tags',
-                    'type' => 'string'
+                    'type' => [ 'null', 'string' ],
                 ],
                 [
                     'name' => 'message',
-                    'type' => 'string'
+                    'type' => [ 'null', 'string' ],
                 ],
                 [
                     'name' => 'caption',
-                    'type' => 'string'
+                    'type' => [ 'null', 'string' ],
                 ],
             ]
         ]);
