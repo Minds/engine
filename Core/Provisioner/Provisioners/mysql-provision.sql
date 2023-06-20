@@ -317,7 +317,7 @@ ALTER TABLE pseudo_seen_entities
 CREATE TABLE IF NOT EXISTS minds_gift_cards (
     guid bigint PRIMARY KEY,
     product_id tinyint NOT NULL,
-    amount float(2) NOT NULL,
+    amount decimal(5,2) NOT NULL,
     issued_by_guid bigint NOT NULL,
     issued_at timestamp NOT NULL,
     claim_code text NOT NULL,
@@ -329,7 +329,7 @@ CREATE TABLE IF NOT EXISTS minds_gift_cards (
 CREATE TABLE IF NOT EXISTS minds_gift_card_transactions (
     payment_guid bigint NOT NULL ,
     gift_card_guid bigint NOT NULL,
-    amount float(2) NOT NULL,
+    amount decimal(5,2) NOT NULL,
     created_at timestamp NOT NULL,
     PRIMARY KEY (payment_guid, gift_card_guid),
     FOREIGN KEY (payment_guid) REFERENCES minds_payments(payment_guid),

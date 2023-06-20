@@ -17,15 +17,14 @@ class Provider extends DiProvider
      */
     public function register(): void
     {
-        $this->di->bind(Controller::class, function (Di $di): Controller {
-            return new Controller();
-        });
-        
         $this->di->bind(Repository::class, function (Di $di): Repository {
             return new Repository($di->get(MySQL\Client::class), $di->get('Logger'));
         }, ['factory' => true]);
         $this->di->bind(Manager::class, function (Di $di): Manager {
             return new Manager($di->get(Repository::class), $di->get(PaymentsManager::class));
         }, ['factory' => true]);
+        $this->di->bind(Controller::class, function (Di $di): Controller {
+            return new Controller($di->get(Manager::class));
+        });
     }
 }

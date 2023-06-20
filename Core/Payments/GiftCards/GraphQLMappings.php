@@ -5,6 +5,7 @@ namespace Minds\Core\Payments\GiftCards;
 
 use Minds\Core\GraphQL\AbstractGraphQLMappings;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
+use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
 use TheCodingMachine\GraphQLite\Mappers\StaticClassListTypeMapperFactory;
 
 class GraphQLMappings extends AbstractGraphQLMappings
@@ -16,7 +17,13 @@ class GraphQLMappings extends AbstractGraphQLMappings
     {
         $this->schemaFactory->addControllerNamespace('Minds\Core\Payments\GiftCards\Controllers');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
-            GiftCard::class
+            GiftCard::class,
+            GiftCardTransaction::class,
+            Types\GiftCardsConnection::class,
+            Types\GiftCardEdge::class,
+            Types\GiftCardBalanceByProductId::class,
+            Types\GiftCardTransactionsConnection::class,
+            Types\GiftCardTransactionEdge::class,
         ]));
     }
 }

@@ -69,4 +69,61 @@ class GiftCards extends Cli\Controller implements Interfaces\CliControllerInterf
 
         var_dump($giftCard);
     }
+
+    public function getUserBalance()
+    {
+        $userGuid = $this->getOpt('user_guid');
+
+        $user = $this->entitiesBuilder->single($userGuid);
+
+        if (!$user instanceof User) {
+            throw new Exception("Invalid user");
+        }
+
+        $this->out($this->giftCardsManager->getUserBalanceByProduct($user));
+    }
+
+    public function getUserTransactions()
+    {
+        $userGuid = $this->getOpt('user_guid');
+
+        $user = $this->entitiesBuilder->single($userGuid);
+
+        if (!$user instanceof User) {
+            throw new Exception("Invalid user");
+        }
+
+        //$hasMore = false;
+
+        $transactions = iterator_to_array($this->giftCardsManager->getUserTransactions($user, limit: 5, hasMore: $hasMore));
+
+        var_dump($transactions, $hasMore);
+    }
+
+    public function createSpend()
+    {
+        $userGuid = $this->getOpt('user_guid');
+
+        $user = $this->entitiesBuilder->single($userGuid);
+
+        if (!$user instanceof User) {
+            throw new Exception("Invalid user");
+        }
+
+        $amount = $this->getOpt('amount');
+
+        $paymentDetails = new PaymentDetails([
+            'paymentAmountMillis' => (int) round($amount * 1000),
+            'userGuid' => (int) $user->getGuid(),
+            'paymentType' => 0,
+            'paymentMethod' => 0,
+        ]);
+        $this->paymentsManager->createPayment($paymentDetails);
+
+        $this->giftCardsManager->spend(
+            user: $user,
+            productId: GiftCardProductIdEnum::BOOST,
+            payment: $paymentDetails,
+        );
+    }
 }
