@@ -3,29 +3,38 @@ namespace Minds\Core\Payments\GiftCards;
 
 use Minds\Core\Guid;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
+use Minds\Core\Payments\GiftCards\Enums\GiftCardPaymentTypeEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
-use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
+use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 
 class Manager
 {
     public function __construct(
         protected Repository $repository,
-        protected PaymentsManager $paymentsManager
+        protected PaymentsManager $paymentsManager,
+        private readonly PaymentProcessor $paymentProcessor
     ) {
     }
 
     /**
-     * Creates a gift card and authorizes payment
+     * @param User $issuer
+     * @param GiftCardProductIdEnum $productId
+     * @param float $amount
+     * @param int|null $expiresAt
+     * @return GiftCard
+     * @throws ServerErrorException
      */
     public function createGiftCard(
         User $issuer,
         GiftCardProductIdEnum $productId,
         float $amount,
-        ?int $expiresAt = null
+        ?int $expiresAt = null,
+        GiftCardPaymentTypeEnum $paymentTypeEnum = GiftCardPaymentTypeEnum::CASH
     ): GiftCard {
         // If no expiry time set, we will expire in 1 year
         if (!$expiresAt) {
@@ -33,7 +42,7 @@ class Manager
         }
 
         // Build a guid out
-        $guid = Guid::build();
+        $giftCardGuid = Guid::build();
 
         // TODO: payment logic
         $paymentDetails = new PaymentDetails([

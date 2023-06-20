@@ -5,50 +5,67 @@ namespace Minds\Core\Payments\GiftCards\Controllers;
 
 use GraphQL\Error\UserError;
 use Minds\Core\GraphQL\Types\PageInfo;
+use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
-use Minds\Core\Payments\GiftCards\Types\GiftCardsConnection;
+use Minds\Core\Payments\GiftCards\Enums\GiftCardPaymentTypeEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
-use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Manager;
+use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Types\GiftCardBalanceByProductId;
 use Minds\Core\Payments\GiftCards\Types\GiftCardEdge;
+use Minds\Core\Payments\GiftCards\Types\GiftCardsConnection;
 use Minds\Core\Payments\GiftCards\Types\GiftCardTransactionEdge;
 use Minds\Core\Payments\GiftCards\Types\GiftCardTransactionsConnection;
-use Minds\Core\Session;
+use Minds\Entities\User;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
+use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use TheCodingMachine\GraphQLite\Annotations\HideParameter;
+use TheCodingMachine\GraphQLite\Annotations\InjectUser;
+use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Query;
 
 class Controller
 {
-    public function __construct(protected Manager $manager)
-    {
+    public function __construct(
+        private readonly Manager $manager,
+        private readonly Logger $logger
+    ) {
     }
 
     /**
      * @param int $productIdEnum
      * @param float $amount
+     * @param int|null $expiresAt
+     * @param int|null $paymentTypeEnum
      * @return GiftCard
      * @throws UserErrorException
+     * @throws ServerErrorException
      */
     #[Mutation]
+    #[Logged]
     public function createGiftCard(
         int $productIdEnum,
-        float $amount
+        float $amount,
+        ?int $expiresAt,
+        ?int $paymentTypeEnum,
+        #[InjectUser] User $loggedInUser // Do not add in docblock as it will break GraphQL
     ): GiftCard {
-        return new GiftCard(
-            guid: 0,
+        $this->logger->info("Creating gift card", [
+            'productIdEnum' => $productIdEnum,
+            'amount' => $amount,
+            'expiresAt' => $expiresAt,
+            'paymentTypeEnum' => $paymentTypeEnum,
+            'loggedInUser' => $loggedInUser->getGuid()
+        ]);
+        return $this->manager->createGiftCard(
+            issuer: $loggedInUser,
             productId: GiftCardProductIdEnum::tryFrom($productIdEnum) ?? throw new UserErrorException("An error occurred while validating the ", 400, (new ValidationErrorCollection())->add(new ValidationError("productIdEnum", "The value provided is not a valid one"))),
             amount: $amount,
-            issuedByGuid: 0,
-            issuedAt: strtotime("now"),
-            claimCode: "",
-            expiresAt: strtotime("+1 year"),
-            claimedByGuid: null,
-            claimedAt: null
+            expiresAt: $expiresAt,
+            paymentTypeEnum: GiftCardPaymentTypeEnum::tryFrom($paymentTypeEnum) ?? GiftCardPaymentTypeEnum::CASH
         );
     }
 
@@ -56,6 +73,7 @@ class Controller
      * Returns a list of gift cards belonging to a user
      */
     #[Query]
+    #[Logged]
     public function giftCards(
         bool $includeIssued = false,
         ?GiftCardOrderingEnum $ordering = null,
@@ -64,6 +82,7 @@ class Controller
         ?string $after = null,
         ?int $last = null,
         ?string $before = null,
+        #[InjectUser] User $loggedInUser = null // Do not add in docblock as it will break GraphQL
     ): GiftCardsConnection {
         if ($first && $last) {
             throw new UserError("first and last supplied, can only paginate in one direction");
@@ -81,8 +100,8 @@ class Controller
         $edges = [];
 
         $giftCards = $this->manager->getGiftCards(
-            issuedByUser: $includeIssued ? Session::getLoggedinUser() : null,
-            claimedByUser: Session::getLoggedinUser(),
+            claimedByUser: $loggedInUser,
+            issuedByUser: $includeIssued ? $loggedInUser : null,
             productId: $productId,
             limit: $limit,
             ordering: $ordering ?: GiftCardOrderingEnum::CREATED_DESC,
@@ -99,8 +118,8 @@ class Controller
         }
 
         $pageInfo = new PageInfo(
-            hasPreviousPage: ($after && $loadBefore) ? true : false, // Always will be newer data on latest or if we are paging forward
             hasNextPage: $hasMore,
+            hasPreviousPage: $after && $loadBefore, // Always will be newer data on latest or if we are paging forward
             startCursor: ($after && $loadBefore) ? $loadBefore : null,
             endCursor: $hasMore ? $loadAfter : null,
         );
@@ -129,9 +148,11 @@ class Controller
      * The available balance a user has
      */
     #[Query]
-    public function giftCardsBalance(): float
-    {
-        return $this->manager->getUserBalance(Session::getLoggedinUser());
+    #[Logged]
+    public function giftCardsBalance(
+        #[InjectUser] User $loggedInUser = null // Do not add in docblock as it will break GraphQL
+    ): float {
+        return $this->manager->getUserBalance($loggedInUser);
     }
 
     /**
@@ -139,10 +160,12 @@ class Controller
      * @return GiftCardBalanceByProductId[]
      */
     #[Query]
-    public function giftCardsBalances(): array
-    {
+    #[Logged]
+    public function giftCardsBalances(
+        #[InjectUser] User $loggedInUser = null // Do not add in docblock as it will break GraphQL
+    ): array {
         $balances = [];
-        foreach ($this->manager->getUserBalanceByProduct(Session::getLoggedinUser()) as $productId => $balance) {
+        foreach ($this->manager->getUserBalanceByProduct($loggedInUser) as $productId => $balance) {
             $balances[] = new GiftCardBalanceByProductId(GiftCardProductIdEnum::from($productId), $balance);
         }
         return $balances;
@@ -152,6 +175,7 @@ class Controller
      * Returns a list of gift card transactions
      */
     #[Query]
+    #[Logged]
     public function giftCardTransactions(
         #[HideParameter]
         ?GiftCard $giftCard = null,
@@ -159,6 +183,7 @@ class Controller
         ?string $after = null,
         ?int $last = null,
         ?string $before = null,
+        #[InjectUser] User $loggedInUser = null // Do not add in docblock as it will break GraphQL
     ): GiftCardTransactionsConnection {
         if ($first && $last) {
             throw new UserError("first and last supplied, can only paginate in one direction");
@@ -176,7 +201,7 @@ class Controller
         $edges = [];
 
         $transactions = $this->manager->getGiftCardTransactions(
-            user: Session::getLoggedinUser(),
+            user: $loggedInUser,
             giftCard: $giftCard,
             limit: $limit,
             loadAfter: $loadAfter,
@@ -189,8 +214,8 @@ class Controller
         }
 
         $pageInfo = new PageInfo(
-            hasPreviousPage: ($after && $loadBefore) ? true : false, // Always will be newer data on latest or if we are paging forward
             hasNextPage: $hasMore,
+            hasPreviousPage: $after && $loadBefore, // Always will be newer data on latest or if we are paging forward
             startCursor: ($after && $loadBefore) ? $loadBefore : null,
             endCursor: $hasMore ? $loadAfter : null,
         );
