@@ -18,11 +18,11 @@ class GiftCard implements NodeInterface
         #[Field(outputType: 'String')] public readonly int $guid,
         #[Field] public readonly GiftCardProductIdEnum $productId,
         #[Field] public readonly float $amount,
-        #[Field] public readonly int $issuedByGuid,
+        #[Field(outputType: 'String')] public readonly int $issuedByGuid,
         #[Field] public readonly int $issuedAt,
         public readonly string $claimCode,
         #[Field] public readonly int $expiresAt,
-        #[Field] public ?int $claimedByGuid = null,
+        #[Field(outputType: 'String')] public ?int $claimedByGuid = null,
         #[Field] public ?int $claimedAt = null,
         #[Field] public float $balance = 0.00,
     ) {
