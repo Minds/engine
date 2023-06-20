@@ -4,7 +4,6 @@ namespace Spec\Minds\Core\Search\Mappings;
 
 use Minds\Entities\Image;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 
 class ObjectImageMappingSpec extends ObjectBehavior
 {
@@ -50,6 +49,7 @@ class ObjectImageMappingSpec extends ObjectBehavior
             ],
         ]);
         $image->get('language')->willReturn(null);
+        $image->getAutoCaption()->willReturn("");
 
         $this
             ->setEntity($image)
@@ -83,7 +83,8 @@ class ObjectImageMappingSpec extends ObjectBehavior
                 'nsfw' => [ 1 ],
                 'moderator_guid' => '123',
                 '@moderated' => $now * 1000,
-                'is_portrait' => false
+                'is_portrait' => false,
+                'auto_caption' => '',
             ]);
     }
 }
