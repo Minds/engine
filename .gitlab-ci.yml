@@ -28,8 +28,6 @@ baseimage:prepare:
     - docker build -t $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID containers/php
     - docker push $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID
   rules:
-    - changes:
-        - containers/php/*
     - when: manual
       allow_failure: true
 
