@@ -19,9 +19,6 @@ class Client
     /** @var Config */
     protected $config;
 
-    /** @var string */
-    protected $graphqlEndpoint = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2";
-
     public function __construct($http = null, BlockFinder $blockFinder = null, ?Config $config = null)
     {
         $this->http = $http ?: Di::_()->get('Http\Json');
@@ -267,8 +264,10 @@ class Client
      */
     private function request($query, $variables): array
     {
+        $graphqlEndpoint = $this->config->get('uniswap')['url'];
+
         $response = $this->http->post(
-            $this->graphqlEndpoint,
+            $graphqlEndpoint,
             [
                 'query' => $query,
                 'variables' => $variables,
@@ -280,7 +279,10 @@ class Client
         ]
         );
 
-        if (!$response || !$response['data'] ?? null) {
+        if (
+            (!$response || !$response['data'] ?? null) &&
+            $this->config->get('uniswap')['opts']['error_on_empty_resonse']
+        ) {
             throw new \Exception("Invalid response");
         }
 
