@@ -5,10 +5,15 @@ namespace Minds\Core\Payments\GiftCards;
 
 use Exception;
 use Minds\Core\Log\Logger;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardPaymentFailedException;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
-use Minds\Core\Payments\Stripe\Customers\ManagerV2 as StripeCustomersManagerV2;
+use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as StripeIntentsManagerV2;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
+use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
+use Stripe\Exception\ApiErrorException;
 
 class PaymentProcessor
 {
@@ -17,7 +22,6 @@ class PaymentProcessor
     private ?StripeIntentsManagerV2 $intentsManager = null;
 
     public function __construct(
-        private readonly StripeCustomersManagerV2 $customersManager,
         private readonly Logger $logger
     ) {
     }
@@ -28,7 +32,7 @@ class PaymentProcessor
      * @return string
      * @throws Exception
      */
-    public function processPayment(
+    public function setupPayment(
         GiftCard $giftCard,
         string $paymentMethodId
     ): string {
@@ -60,7 +64,7 @@ class PaymentProcessor
                     'code' => $e->getCode(),
                 ],
             ]);
-            throw $e;
+            throw new GiftCardPaymentFailedException(previous: $e);
         }
     }
 
@@ -71,7 +75,8 @@ class PaymentProcessor
             ->setAmount($giftCard->amount)
             ->setPaynmentMethod($paymentMethodId)
             ->setOffSession(true)
-            ->setConfirm(true)
+            ->setConfirm(false)
+            ->setCaptureMethod('manual')
             ->setMetadata([
                 'giftCardGuid' => $giftCard->guid,
                 'giftCardIssuerGuid' => $giftCard->issuedByGuid,
@@ -79,6 +84,20 @@ class PaymentProcessor
             ->setServiceFeePct(self::SERVICE_FEE_PCT)
             ->setStatementDescriptor("Minds Gift Card")
             ->setDescription("Minds Gift Card");
+    }
+
+    /**
+     * @param string $paymentID
+     * @param User $issuer
+     * @return bool
+     * @throws StripeTransferFailedException
+     * @throws ServerErrorException
+     * @throws UserErrorException
+     * @throws ApiErrorException
+     */
+    public function capturePayment(string $paymentID, User $issuer): bool
+    {
+        return $this->getIntentsManager()->capturePaymentIntent($paymentID, $issuer);
     }
 
     private function getIntentsManager(): StripeIntentsManagerV2

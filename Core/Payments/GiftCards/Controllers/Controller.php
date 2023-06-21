@@ -50,14 +50,14 @@ class Controller
         int $productIdEnum,
         float $amount,
         ?int $expiresAt,
-        ?int $paymentTypeEnum,
+        ?int $giftCardPaymentTypeEnum,
         #[InjectUser] User $loggedInUser // Do not add in docblock as it will break GraphQL
     ): GiftCard {
         $this->logger->info("Creating gift card", [
             'productIdEnum' => $productIdEnum,
             'amount' => $amount,
             'expiresAt' => $expiresAt,
-            'paymentTypeEnum' => $paymentTypeEnum,
+            'paymentTypeEnum' => $giftCardPaymentTypeEnum,
             'loggedInUser' => $loggedInUser->getGuid()
         ]);
         return $this->manager->createGiftCard(
@@ -65,7 +65,7 @@ class Controller
             productId: GiftCardProductIdEnum::tryFrom($productIdEnum) ?? throw new UserErrorException("An error occurred while validating the ", 400, (new ValidationErrorCollection())->add(new ValidationError("productIdEnum", "The value provided is not a valid one"))),
             amount: $amount,
             expiresAt: $expiresAt,
-            paymentTypeEnum: GiftCardPaymentTypeEnum::tryFrom($paymentTypeEnum) ?? GiftCardPaymentTypeEnum::CASH
+            giftCardPaymentTypeEnum: GiftCardPaymentTypeEnum::tryFrom($paymentTypeEnum) ?? GiftCardPaymentTypeEnum::CASH
         );
     }
 

@@ -5,8 +5,11 @@ use Minds\Core\Guid;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardPaymentTypeEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardPaymentFailedException;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
+use Minds\Core\Payments\V2\Enums\PaymentMethod;
+use Minds\Core\Payments\V2\Enums\PaymentType;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Entities\User;
@@ -26,7 +29,10 @@ class Manager
      * @param GiftCardProductIdEnum $productId
      * @param float $amount
      * @param int|null $expiresAt
+     * @param int|null $paymentTypeEnum
+     * @param GiftCardPaymentTypeEnum $paymentTypeEnum
      * @return GiftCard
+     * @throws GiftCardPaymentFailedException
      * @throws ServerErrorException
      */
     public function createGiftCard(
@@ -34,7 +40,7 @@ class Manager
         GiftCardProductIdEnum $productId,
         float $amount,
         ?int $expiresAt = null,
-        GiftCardPaymentTypeEnum $paymentTypeEnum = GiftCardPaymentTypeEnum::CASH
+        GiftCardPaymentTypeEnum $giftCardPaymentTypeEnum = GiftCardPaymentTypeEnum::CASH
     ): GiftCard {
         // If no expiry time set, we will expire in 1 year
         if (!$expiresAt) {
@@ -44,45 +50,72 @@ class Manager
         // Build a guid out
         $giftCardGuid = Guid::build();
 
-        // TODO: payment logic
-        $paymentDetails = new PaymentDetails([
-            'paymentAmountMillis' => (int) round($amount * 1000),
-            'userGuid' => (int) $issuer->getGuid(),
-            'paymentType' => 0,
-            'paymentMethod' => 0,
-        ]);
-        $this->paymentsManager->createPayment($paymentDetails);
+        $issuedAt = time();
 
         // Construct the gift card
         $giftCard = new GiftCard(
-            guid: $guid,
+            guid: $giftCardGuid,
             productId: $productId,
             amount: $amount,
             issuedByGuid: $issuer->getGuid(),
-            issuedAt: time(),
-            claimCode: 'todo',
+            issuedAt: $issuedAt,
+            claimCode: $this->generateClaimCode($giftCardGuid, $issuer->getGuid(), $productId, $issuedAt, $amount),
             expiresAt: $expiresAt,
         );
 
-        // Open a transaction
-        $this->repository->beginTransaction();
+        try {
+            // TODO: payment logic
+            $paymentRef = "internal";
+            if ($giftCardPaymentTypeEnum === GiftCardPaymentTypeEnum::CASH) {
+                $paymentRef = $this->paymentProcessor->setupPayment($giftCard, $amount);
+            }
+            // Open a transaction
+            $this->repository->beginTransaction();
 
-        // Save to the database
-        $this->repository->addGiftCard($giftCard);
+            $paymentDetails = new PaymentDetails([
+                'paymentAmountMillis' => (int) round($amount * 1000),
+                'userGuid' => (int) $issuer->getGuid(),
+                'paymentType' => PaymentType::GIFT_CARD_PURCHASE,
+                'paymentMethod' => PaymentMethod::GIFT_CARD,
+                'paymentTxId' => $paymentRef
 
-        // Create the initial deposit on to the gift card
-        $giftCardTransaction = new GiftCardTransaction(
-            paymentGuid: $paymentDetails->paymentGuid,
-            giftCardGuid: $giftCard->guid,
-            amount: $amount,
-            createdAt: time(),
-        );
-        $this->repository->addGiftCardTransaction($giftCardTransaction);
+            ]);
+            $this->paymentsManager->createPayment($paymentDetails);
 
-        // Commit the transaction
-        $this->repository->commitTransaction();
+            // Save to the database
+            $this->repository->addGiftCard($giftCard);
 
-        return $giftCard;
+            // Create the initial deposit on to the gift card
+            $giftCardTransaction = new GiftCardTransaction(
+                paymentGuid: $paymentDetails->paymentGuid,
+                giftCardGuid: $giftCard->guid,
+                amount: $amount,
+                createdAt: time(),
+            );
+            $this->repository->addGiftCardTransaction($giftCardTransaction);
+
+            $this->paymentProcessor->capturePayment($paymentRef, $issuer);
+
+            // Commit the transaction
+            $this->repository->commitTransaction();
+
+            return $giftCard;
+        } catch (GiftCardPaymentFailedException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            $this->repository->rollbackTransaction();
+            throw $e;
+        }
+    }
+
+    private function generateClaimCode(
+        int $guid,
+        int $issuerGuid,
+        GiftCardProductIdEnum $productIdEnum,
+        int $issuedAt,
+        float $amount
+    ): string {
+        return hash("sha256", $guid . $issuerGuid . $productIdEnum->value . $issuedAt . $amount);
     }
 
     /**
