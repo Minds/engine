@@ -5,6 +5,7 @@ use Minds\Entities\Group;
 use Minds\Core\GraphQL\Types\EdgeInterface;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 use TheCodingMachine\GraphQLite\Annotations\Field;
+use TheCodingMachine\GraphQLite\Types\ID;
 
 /**
  * The GroupEdge holds the GroupNode and cursor information.
@@ -15,6 +16,12 @@ class GroupEdge implements EdgeInterface
 {
     public function __construct(protected Group $group, protected string $cursor)
     {
+    }
+
+    #[Field]
+    public function getId(): ID
+    {
+        return new ID("group-" . $this->group->getGuid());
     }
 
     #[Field]

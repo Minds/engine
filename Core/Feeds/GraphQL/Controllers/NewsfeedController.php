@@ -28,7 +28,6 @@ use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Suggestions\Manager as SuggestionsManager;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\Query;
-use Minds\Entities\Group;
 use Minds\Core\FeedNotices\Notices\NoGroupsNotice;
 use Minds\Core\Feeds\GraphQL\Enums\NewsfeedAlgorithmsEnum;
 
