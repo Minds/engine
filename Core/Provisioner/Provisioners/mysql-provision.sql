@@ -335,3 +335,17 @@ CREATE TABLE IF NOT EXISTS minds_gift_card_transactions (
     FOREIGN KEY (payment_guid) REFERENCES minds_payments(payment_guid),
     FOREIGN KEY (gift_card_guid) REFERENCES minds_gift_cards(guid)
 );
+
+CREATE TABLE IF NOT EXISTS minds_onboarding_completion (
+    user_guid bigint PRIMARY KEY,
+    started_at timestamp DEFAULT CURRENT_TIMESTAMP,
+    completed_at timestamp DEFAULT NULL
+)
+
+CREATE TABLE IF NOT EXISTS minds_onboarding_step_progress (
+    user_guid bigint NOT NULL,
+    step_key varchar(100) NOT NULL,
+    step_type varchar(100) NOT NULL,
+    completed_at timestamp DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_guid, step_key)
+)
