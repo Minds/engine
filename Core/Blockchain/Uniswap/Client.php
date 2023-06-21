@@ -279,10 +279,7 @@ class Client
         ]
         );
 
-        if (
-            (!$response || !$response['data'] ?? null) &&
-            $this->config->get('uniswap')['opts']['error_on_empty_resonse']
-        ) {
+        if (!$response || !$response['data'] ?? null) {
             throw new \Exception("Invalid response");
         }
 

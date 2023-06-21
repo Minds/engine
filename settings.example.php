@@ -914,7 +914,4 @@ $CONFIG->set('strapi', [
 
 $CONFIG->set('uniswap', [
     'url' => 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2',
-    'opts' => [
-        'error_on_empty_resonse' => false
-    ]
 ]);
