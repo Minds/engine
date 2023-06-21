@@ -20,6 +20,7 @@ class PulsarConsumerConfigurationMock
 class PulsarSchemaTypeMock
 {
     const AVRO = 4;
+    const JSON = 2;
 }
 class PulsarClientMock
 {

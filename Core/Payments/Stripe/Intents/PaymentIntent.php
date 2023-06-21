@@ -16,7 +16,6 @@ use Minds\Traits\MagicAttributes;
  * @method PaymentIntent getServiceFeePct(): int
  * @method PaymentIntent setCaptureMethod($method)
  * @method PaymentIntent getStatementDescriptor(): string
- * @method PaymentIntent setStatementDescriptor(string $description)
  * @method PaymentIntent setDescription(string $description)
  * @method PaymentIntent getDescription(): string
  * @method bool isOffSession()

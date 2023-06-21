@@ -75,7 +75,7 @@ class FeedsProvider extends Provider
         // V2
 
         $this->di->bind(Elastic\V2\Manager::class, function ($di) {
-            return new Elastic\V2\Manager($di->get('Database\ElasticSearch'), new MySQLRepository(), $di->get('Feeds\Seen\Manager'), $di->get('EntitiesBuilder'), $di->get(Membership::class));
+            return new Elastic\V2\Manager($di->get('Database\ElasticSearch'), new MySQLRepository(), $di->get('Feeds\Seen\Manager'), $di->get('EntitiesBuilder'), $di->get(Membership::class), $di->get('Security\ACL'));
         });
     }
 }
