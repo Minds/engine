@@ -220,7 +220,7 @@ class NewsfeedController
                     loggedInUser: $loggedInUser,
                     location: ($after ||$before) ? 'inline' : 'top',
                     limit: 1,
-                    cursor: $loadBefore,
+                    cursor: '',
                     inFeedNoticesDelivered: $inFeedNoticesDelivered,
                     algorithm: $algorithm
                 );
