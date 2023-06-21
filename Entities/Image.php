@@ -653,7 +653,7 @@ class Image extends File implements MutatableEntityInterface
         return $this->license;
     }
 
-    public function getAutoCaption(): string
+    public function getAutoCaption(): ?string
     {
         return $this->auto_caption;
     }

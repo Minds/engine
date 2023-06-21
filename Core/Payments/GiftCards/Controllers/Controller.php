@@ -38,8 +38,9 @@ class Controller
     /**
      * @param int $productIdEnum
      * @param float $amount
+     * @param string $stripePaymentMethodId
      * @param int|null $expiresAt
-     * @param int|null $paymentTypeEnum
+     * @param int|null $giftCardPaymentTypeEnum
      * @return GiftCard
      * @throws UserErrorException
      * @throws ServerErrorException
@@ -49,6 +50,7 @@ class Controller
     public function createGiftCard(
         int $productIdEnum,
         float $amount,
+        string $stripePaymentMethodId,
         ?int $expiresAt,
         ?int $giftCardPaymentTypeEnum,
         #[InjectUser] User $loggedInUser // Do not add in docblock as it will break GraphQL
@@ -64,8 +66,9 @@ class Controller
             issuer: $loggedInUser,
             productId: GiftCardProductIdEnum::tryFrom($productIdEnum) ?? throw new UserErrorException("An error occurred while validating the ", 400, (new ValidationErrorCollection())->add(new ValidationError("productIdEnum", "The value provided is not a valid one"))),
             amount: $amount,
+            stripePaymentMethodId: $stripePaymentMethodId,
             expiresAt: $expiresAt,
-            giftCardPaymentTypeEnum: GiftCardPaymentTypeEnum::tryFrom($paymentTypeEnum) ?? GiftCardPaymentTypeEnum::CASH
+            giftCardPaymentTypeEnum: GiftCardPaymentTypeEnum::tryFrom($giftCardPaymentTypeEnum) ?? GiftCardPaymentTypeEnum::CASH
         );
     }
 

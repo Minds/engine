@@ -8,12 +8,15 @@ use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardPaymentFailedException;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
+use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\V2\Enums\PaymentMethod;
 use Minds\Core\Payments\V2\Enums\PaymentType;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
+use Stripe\Exception\ApiErrorException;
 
 class Manager
 {
@@ -28,17 +31,21 @@ class Manager
      * @param User $issuer
      * @param GiftCardProductIdEnum $productId
      * @param float $amount
+     * @param string $stripePaymentMethodId
      * @param int|null $expiresAt
-     * @param int|null $paymentTypeEnum
-     * @param GiftCardPaymentTypeEnum $paymentTypeEnum
+     * @param GiftCardPaymentTypeEnum $giftCardPaymentTypeEnum
      * @return GiftCard
      * @throws GiftCardPaymentFailedException
      * @throws ServerErrorException
+     * @throws StripeTransferFailedException
+     * @throws UserErrorException
+     * @throws ApiErrorException
      */
     public function createGiftCard(
         User $issuer,
         GiftCardProductIdEnum $productId,
         float $amount,
+        string $stripePaymentMethodId,
         ?int $expiresAt = null,
         GiftCardPaymentTypeEnum $giftCardPaymentTypeEnum = GiftCardPaymentTypeEnum::CASH
     ): GiftCard {
@@ -64,10 +71,9 @@ class Manager
         );
 
         try {
-            // TODO: payment logic
             $paymentRef = "internal";
             if ($giftCardPaymentTypeEnum === GiftCardPaymentTypeEnum::CASH) {
-                $paymentRef = $this->paymentProcessor->setupPayment($giftCard, $amount);
+                $paymentRef = $this->paymentProcessor->setupPayment($giftCard, $stripePaymentMethodId);
             }
             // Open a transaction
             $this->repository->beginTransaction();

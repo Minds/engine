@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\GiftCards;
 
-use Exception;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardPaymentFailedException;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
@@ -30,7 +29,7 @@ class PaymentProcessor
      * @param GiftCard $giftCard
      * @param string $paymentMethodId
      * @return string
-     * @throws Exception
+     * @throws GiftCardPaymentFailedException
      */
     public function setupPayment(
         GiftCard $giftCard,
@@ -72,14 +71,15 @@ class PaymentProcessor
     {
         return (new PaymentIntent())
             ->setUserGuid($giftCard->issuedByGuid)
-            ->setAmount($giftCard->amount)
-            ->setPaynmentMethod($paymentMethodId)
+            ->setAmount($giftCard->amount * 100)
+            ->setPaymentMethod($paymentMethodId)
             ->setOffSession(true)
             ->setConfirm(false)
             ->setCaptureMethod('manual')
             ->setMetadata([
                 'giftCardGuid' => $giftCard->guid,
                 'giftCardIssuerGuid' => $giftCard->issuedByGuid,
+                'is_manual_transfer' => false // transfer method, NOT capture method.
             ])
             ->setServiceFeePct(self::SERVICE_FEE_PCT)
             ->setStatementDescriptor("Minds Gift Card")

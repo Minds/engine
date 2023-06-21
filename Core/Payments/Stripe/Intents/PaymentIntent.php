@@ -28,6 +28,8 @@ class PaymentIntent extends Intent
 {
     use MagicAttributes;
 
+    private string $userGuid;
+
     /** @var int $amount */
     private $amount = 0;
 
@@ -61,6 +63,24 @@ class PaymentIntent extends Intent
         private ?Logger $logger = null
     ) {
         $this->logger ??= new Logger();
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserGuid(): string
+    {
+        return $this->userGuid;
+    }
+
+    /**
+     * @param string|int $userGuid
+     * @return PaymentIntent
+     */
+    public function setUserGuid(string|int $userGuid): self
+    {
+        $this->userGuid = (string) $userGuid;
+        return $this;
     }
 
     /**
