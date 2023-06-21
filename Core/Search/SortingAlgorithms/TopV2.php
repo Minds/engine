@@ -67,6 +67,14 @@ class TopV2 implements SortingAlgorithm
     {
         return [
             [
+                'filter' => [
+                    'term' => [
+                        'custom_type' => 'video',
+                    ],
+                ],
+                'weight' => 10,
+            ],
+            [
                 'field_value_factor' => [
                     'field' => 'votes:up',
                     'factor' => 1,
