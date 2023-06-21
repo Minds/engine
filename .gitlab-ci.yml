@@ -32,9 +32,6 @@ baseimage:prepare:
       when: never
     - changes:
         - containers/php/*
-    - when: manual
-      allow_failure: true
-
 
 baseimage:deploy:
   stage: baseimage
