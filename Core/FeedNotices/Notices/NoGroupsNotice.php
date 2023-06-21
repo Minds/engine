@@ -14,7 +14,8 @@ use Minds\Core\Groups\Membership as GroupMembershipManager;
 class NoGroupsNotice extends AbstractNotice
 {
     // location of notice in feed.
-    private const LOCATION = 'top';
+    // This is overridden to 'top' in gql newsfeed groups tab
+    private const LOCATION = 'inline';
 
     // notice key / identifier.
     private const KEY = 'no-groups';

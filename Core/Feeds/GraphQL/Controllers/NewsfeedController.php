@@ -213,9 +213,24 @@ class NewsfeedController
         }
 
         if (empty($edges)) {
-            // Show suggested groups if the group feed is empty
+            // If the group feed is empty
             if ($algorithm === NewsfeedAlgorithmsEnum::GROUPS) {
-                $groupRecs = $this->buildGroupRecs($loggedInUser, $loadAfter, 5);
+                // Show the no groups notice
+                $noGroupNotice = $this->buildInFeedNotices(
+                    loggedInUser: $loggedInUser,
+                    location: ($after ||$before) ? 'inline' : 'top',
+                    limit: 1,
+                    cursor: $loadBefore,
+                    inFeedNoticesDelivered: $inFeedNoticesDelivered,
+                    algorithm: $algorithm
+                );
+                if ($noGroupNotice && isset($noGroupNotice[0])) {
+                    $edges[] = $noGroupNotice[0];
+                    $inFeedNoticesDelivered[] = $noGroupNotice[0]->getNode()->getKey();
+                }
+
+                // And show suggested groups
+                $groupRecs = $this->buildGroupRecs($loggedInUser, $loadBefore, 5);
                 if ($groupRecs) {
                     $edges[] = $groupRecs;
                 }
@@ -384,7 +399,7 @@ class NewsfeedController
      * Builds out group recommendations
      * @return PublisherRecsEdge
      */
-    protected function buildGroupRecs(User $loggedInUser, string $cursor = null, int $listSize = 3): PublisherRecsEdge
+    protected function buildGroupRecs(User $loggedInUser, string $cursor, int $listSize = 3): PublisherRecsEdge
     {
         $result = $this->suggestionsManager
             ->setUser($loggedInUser)
