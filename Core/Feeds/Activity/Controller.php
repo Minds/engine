@@ -167,6 +167,9 @@ class Controller
             if ($container = $this->entitiesBuilder->single($activity->container_guid)) {
                 $activity->containerObj = $container->export();
             }
+
+            $activity->setAccessId($payload['container_guid']);
+
             $activity->indexes = [
                 "activity:container:$activity->container_guid",
                 "activity:network:$activity->owner_guid"
