@@ -169,7 +169,9 @@ class NewsfeedController
                 }
             }
 
-            if ($i === 3) { // Show a boost in the 3rd slot
+            if ($i === 3 && !(
+                $loggedInUser->disabled_boost && $loggedInUser->isPlus()
+            )) { // Show a boost in the 3rd slot
                 $boosts = $this->boostManager->getBoostFeed(
                     limit: 1,
                     targetStatus: BoostStatus::APPROVED,
