@@ -64,7 +64,7 @@ class Manager
      * @param User $user - user to set state for.
      * @param string $stepKey - key of the current step, should be unique.
      * @param string $stepType - type of step.
-     * @param KeyValuePair[] $additionalData - additional data for processing.
+     * @param ?KeyValuePair[] $additionalData - additional data for processing.
      * @return OnboardingStepProgressState array of onboarding steps a user has saved progress for.
      */
     public function completeOnboardingStep(

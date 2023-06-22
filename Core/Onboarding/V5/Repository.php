@@ -126,7 +126,7 @@ class Repository extends AbstractRepository
      * @param int $userGuid - user guid to set the completed state for.
      * @param string $stepKey - step key of step.
      * @param string $stepType - step type of step.
-     * @return OnboardingState current step progress state.
+     * @return OnboardingStepProgressState current step progress state.
      */
     public function completeOnboardingStep(
         int $userGuid,
@@ -143,6 +143,9 @@ class Repository extends AbstractRepository
                 'user_guid' => new RawExp(':user_guid'),
                 'step_key' => new RawExp(':step_key'),
                 'step_type' => new RawExp(':step_type'),
+                'completed_at' => new RawExp(':completed_at')
+            ])
+            ->onDuplicateKeyUpdate([
                 'completed_at' => new RawExp(':completed_at')
             ])
             ->prepare();

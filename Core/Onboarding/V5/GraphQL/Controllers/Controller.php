@@ -65,7 +65,7 @@ class Controller
      * Mark an onboarding step for a user as completed.
      * @param string $stepKey - key of the current step, should be unique.
      * @param string $stepType - type of step.
-     * @param KeyValuePair[] $additionalData - additional data for processing.
+     * @param ?KeyValuePair[] $additionalData - additional data for processing.
      * @return OnboardingStepProgressState - updated progress state.
      */
     #[Mutation]
