@@ -580,8 +580,9 @@ class Manager
     public function processExpiredApprovedBoosts(): void
     {
         $this->repository->beginTransaction();
-
+        $this->logger->warning("Processing expired approved boosts");
         foreach ($this->repository->getExpiredApprovedBoosts() as $boost) {
+            $this->logger->warning("Processing expired boost {$boost->getGuid()}", $boost->export());
             $this->repository->updateStatus($boost->getGuid(), BoostStatus::COMPLETED);
 
             $this->actionEventDelegate->onComplete($boost);
