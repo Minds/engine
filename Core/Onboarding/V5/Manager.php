@@ -26,9 +26,9 @@ class Manager
     /**
      * Gets onboarding state for a given user.
      * @param User $user - user to get state for.
-     * @return OnboardingState onboarding state.
+     * @return ?OnboardingState onboarding state.
      */
-    public function getOnboardingState(User $user): OnboardingState
+    public function getOnboardingState(User $user): ?OnboardingState
     {
         return $this->repository->getOnboardingState((int) $user->getGuid());
     }
@@ -73,7 +73,7 @@ class Manager
         string $stepType,
         ?array $additionalData = null
     ): OnboardingStepProgressState {
-        $this->handleAdditionalData($user, $additionalData);
+        $this->handleAdditionalData($user, $stepKey, $additionalData);
 
         return $this->repository->completeOnboardingStep(
             (int) $user->getGuid(),
@@ -88,10 +88,10 @@ class Manager
      * @param array $additionalData - additional data to process.
      * @return void
      */
-    private function handleAdditionalData(User $user, array $additionalData): void
+    private function handleAdditionalData(User $user, string $stepKey, array $additionalData): void
     {
         foreach ($additionalData as $data) {
-            if ($data->key === 'onboarding_interest' && $data->value) {
+            if ($stepKey === 'onboarding_interest_survey' && $data->key === 'onboarding_interest' && $data->value) {
                 $user->setOnboardingInterest($data->value);
                 $this->save->setEntity($user)->save();
             }

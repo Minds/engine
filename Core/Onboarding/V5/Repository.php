@@ -19,9 +19,9 @@ class Repository extends AbstractRepository
     /**
      * Gets onboarding state for a given user guid.
      * @param int $userGuid - user guid to get state for.
-     * @return OnboardingState
+     * @return ?OnboardingState
      */
-    public function getOnboardingState(int $userGuid): OnboardingState
+    public function getOnboardingState(int $userGuid): ?OnboardingState
     {
         $statement = $this->mysqlClientReaderHandler
             ->select()
@@ -35,7 +35,13 @@ class Repository extends AbstractRepository
 
         try {
             $statement->execute();
+
+            if ($statement->rowCount() < 1) {
+                return null;
+            }
+
             $row = $statement->fetch(PDO::FETCH_ASSOC);
+
             return new OnboardingState(
                 $userGuid,
                 $row['started_at'] ? strtotime($row['started_at']) : 1,

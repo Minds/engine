@@ -27,11 +27,11 @@ class Controller
 
     /**
      * Gets onboarding state for the currently logged in user.
-     * @return OnboardingState current onboarding state.
+     * @return ?OnboardingState current onboarding state.
      */
     #[Query]
     #[Logged]
-    public function getOnboardingState(#[InjectUser] User $loggedInUser): OnboardingState
+    public function getOnboardingState(#[InjectUser] User $loggedInUser): ?OnboardingState
     {
         return $this->manager->getOnboardingState($loggedInUser);
     }

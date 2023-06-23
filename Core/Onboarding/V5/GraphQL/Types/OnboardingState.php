@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Onboarding\V5\GraphQL\Types;
 
+use Minds\Entities\ExportableInterface;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 
@@ -10,7 +11,7 @@ use TheCodingMachine\GraphQLite\Annotations\Type;
  * A users onboarding state.
  */
 #[Type]
-class OnboardingState
+class OnboardingState implements ExportableInterface
 {
     public function __construct(
         #[Field(outputType: 'String')] public readonly int $userGuid,
@@ -20,12 +21,17 @@ class OnboardingState
     }
 
     /**
-     * Whether onboarding is completed.
-     * @return bool whether onboarding is completed.
+     * Export the object to an array.
+     * @param array $extras - extras.
+     * @return array exported object.
      */
-    #[Field]
-    public function isCompleted(): bool
+    public function export(array $extras = []): array
     {
-        return (bool) $this->completedAt;
+        return [
+            'user_guid' => $this->userGuid,
+            'started_at' => $this->startedAt,
+            'completed_at' => $this->completedAt,
+            ...$extras
+        ];
     }
 }
