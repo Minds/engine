@@ -912,3 +912,7 @@ $CONFIG->set('chatwoot', [
 $CONFIG->set('strapi', [
     'url' => 'https://cms.oke.minds.io'
 ]);
+
+$CONFIG->set('uniswap', [
+    'url' => 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2',
+]);
