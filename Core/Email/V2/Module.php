@@ -7,7 +7,6 @@ use Minds\Core\Di\ImmutableException;
 
 class Module implements \Minds\Interfaces\ModuleInterface
 {
-
     /**
      * @inheritDoc
      * @throws ImmutableException

@@ -48,7 +48,7 @@ class Provider extends DiProvider
 
         $this->di->bind(
             EmailDelegate::class,
-            fn(Di $di): EmailDelegate =>
+            fn (Di $di): EmailDelegate =>
                 new EmailDelegate(
                     $di->get(Emailer::class),
                     $di->get('EntitiesBuilder'),

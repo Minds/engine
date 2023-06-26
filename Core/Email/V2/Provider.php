@@ -20,7 +20,7 @@ class Provider extends DiProvider
     {
         $this->di->bind(
             Emailer::class,
-            fn(Di $di): Emailer =>
+            fn (Di $di): Emailer =>
                 new Emailer(
                     new Template(),
                     new Mailer(),

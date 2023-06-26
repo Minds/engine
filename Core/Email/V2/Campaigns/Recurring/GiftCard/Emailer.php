@@ -52,10 +52,14 @@ class Emailer extends EmailCampaign
      */
     public function send()
     {
-        if (!$this->targetEmail && !$this->user?->email) return;
+        if (!$this->targetEmail && !$this->user?->email) {
+            return;
+        }
 
         $sender = $this->entitiesBuilder->single($this->giftCard->issuedByGuid);
-        if (!$sender) return;
+        if (!$sender) {
+            return;
+        }
 
         $this->mailer->send($this->buildMessage($sender));
 
@@ -65,7 +69,9 @@ class Emailer extends EmailCampaign
 
     private function buildMessage(User $sender): ?Message
     {
-        if (!$this->topic || !$this->giftCard) return null;
+        if (!$this->topic || !$this->giftCard) {
+            return null;
+        }
 
         $bodyHandler = $this->getBodyHandler($this->giftCard->productId);
         $bodyHandler->setAmount($this->giftCard->amount);
@@ -121,7 +127,7 @@ class Emailer extends EmailCampaign
      */
     private function getBodyHandler(GiftCardProductIdEnum $productIdEnum): GiftCardProductInterface
     {
-        return match($productIdEnum) {
+        return match ($productIdEnum) {
             GiftCardProductIdEnum::BOOST => new BoostCredit(),
             default => throw new InvalidArgumentException("Invalid gift card product id: {$this->giftCard->productId}")
         };
