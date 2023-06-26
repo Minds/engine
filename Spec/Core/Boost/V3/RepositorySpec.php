@@ -392,6 +392,49 @@ class RepositorySpec extends ObjectBehavior
             ->shouldYieldAnInstanceOf(Boost::class);
     }
 
+    public function it_should_get_expired_approved_boosts(PDOStatement $statement): void
+    {
+        $query = "SELECT * FROM boosts WHERE status = :status AND :expired_timestamp > TIMESTAMPADD(DAY, duration_days, approved_timestamp)";
+        $statement->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $statement->rowCount()
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
+
+        $statement->fetchAll(Argument::type('integer'))
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                [
+                    'guid' => 123,
+                    'owner_guid' => 123,
+                    'entity_guid' => 123,
+                    'target_location' => 1,
+                    'target_suitability' => 1,
+                    'payment_method' => 1,
+                    'payment_amount' => 20,
+                    'daily_bid' => 10,
+                    'duration_days' => 2,
+                    'status' => 2,
+                    'reason' => null,
+                    'payment_tx_id' => null,
+                    'created_timestamp' => date('c', time()),
+                    'payment_guid' => null
+                ]
+            ]);
+
+        $this->mysqlClientReader->prepare($query)
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
+            ->shouldBeCalledOnce();
+
+        $this->getExpiredApprovedBoosts()
+            ->shouldYieldAnInstanceOf(Boost::class);
+    }
+
     public function it_should_get_boost_by_guid(
         PDOStatement $statement
     ): void {
