@@ -3,30 +3,45 @@ declare(strict_types=1);
 
 namespace Minds\Core\Email\V2\Campaigns\Recurring\GiftCard;
 
+use http\Exception\InvalidArgumentException;
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\Mailer;
+use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\GiftCardProducts\BoostCredit;
+use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\GiftCardProducts\GiftCardProductInterface;
 use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\V2\Common\Template;
+use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
+use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
+use phpseclib3\Crypt\Random;
 
+/**
+ * @method self setGiftCard(GiftCard $giftCard)
+ * @method self setTargetEmail(string $targetEmail)
+ */
 class Emailer extends EmailCampaign
 {
     use MagicAttributes;
 
-    private ?User $recipientUser = null;
-
     private ?GiftCard $giftCard = null;
+
+    private ?string $targetEmail = null;
 
     public function __construct(
         private readonly Template $template,
         private readonly Mailer $mailer,
+        private readonly EntitiesBuilder $entitiesBuilder,
+        private readonly Config $mindsConfig,
         private readonly Logger $logger,
         $manager = null,
     ) {
-        $this->manager = $manager;
+        $this->manager = $manager ?? Di::_()->get('Email\Manager');
         parent::__construct($manager);
 
         $this->campaign = "gift-card";
@@ -37,37 +52,93 @@ class Emailer extends EmailCampaign
      */
     public function send()
     {
-        if (!$this->user?->email) {
-            return;
-        }
+        if (!$this->targetEmail && !$this->user?->email) return;
 
-        $trackingQueryParams = [
-            '__e_ct_guid' => $this->user->getGuid(),
-            'campaign' => 'when',
-            'topic' => $this->topic,
-        ];
+        $sender = $this->entitiesBuilder->single($this->giftCard->issuedByGuid);
+        if (!$sender) return;
 
-        $trackingQueryString = http_build_query($trackingQueryParams);
+        $this->mailer->send($this->buildMessage($sender));
 
-        $this->mailer->send($this->buildMessage());
+        $this->logger->warning('Gift card email sent', [$this->mailer->getStats(), $this->mailer->getErrors()]);
         $this->saveCampaignLog();
     }
 
-    private function buildMessage(): ?Message
+    private function buildMessage(User $sender): ?Message
     {
         if (!$this->topic || !$this->giftCard) return null;
 
-        $this->template->set('user', $this->recipientUser);
-        $this->template->set('username', $this->recipientUser->getUsername());
-        $this->template->set('email', $this->recipientUser->getEmail());
-        $this->template->set('guid', $this->recipientUser->getGuid());
+        $bodyHandler = $this->getBodyHandler($this->giftCard->productId);
+        $bodyHandler->setAmount($this->giftCard->amount);
+        $bodyHandler->setSender($sender);
+
+        $bodyText = $bodyHandler->buildContent();
+
+        $this->template->setTemplate('default.v2.tpl');
+        $this->template->setBody('./template.tpl');
+
+        $this->template->set('user', $this->user ?? null);
+        $this->template->set('username', $this->user?->getUsername());
+        $this->template->set('email', $this->user?->getEmail() ?? $this->targetEmail);
+        $this->template->set('guid', $this->user?->getGuid());
         $this->template->set('campaign', $this->campaign);
         $this->template->set('topic', $this->topic);
-        $this->template->set('tracking', $trackingQueryString);
+        $this->template->set('tracking', $this->getTrackingQueryString());
         $this->template->set('title', '');
         $this->template->set('state', '');
-        $this->template->set('preheader', $preHeaderText);
+        $this->template->set('preheader', "Claim your gift card");
         $this->template->set('bodyText', $bodyText);
-        $this->template->set('headerText', $headerText);
+        $this->template->set('headerText', "You received a gift");
+
+        $siteUrl = $this->mindsConfig->get('site_url') ?: 'https://www.minds.com/';
+        $this->template->set('signupPath', $siteUrl . "register"); // TODO: update with signup link
+
+        $actionButton = (new ActionButtonV2())
+            ->setLabel("Claim gift")
+            ->setPath("/"); // TODO: update with new claim gift card route in FE once created
+
+        $this->template->set('actionButton', $actionButton->build());
+
+        return (new Message())
+            ->setTo($this->user ?? (new User())->setName("")->setEmail($this->targetEmail))
+            ->setMessageId(
+                implode(
+                    '-',
+                    [
+                        $this->user?->getGuid() ?? Random::string(10),
+                        sha1($this->user?->getEmail() ?? $this->targetEmail),
+                        sha1($this->campaign . $this->topic . time())
+                    ]
+                )
+            )
+            ->setFrom($sender->getEmail(), $sender->getName())
+            ->setSubject("You received a gift")
+            ->setHtml($this->template);
+    }
+
+    /**
+     * @param GiftCardProductIdEnum $productIdEnum
+     * @return GiftCardProductInterface
+     */
+    private function getBodyHandler(GiftCardProductIdEnum $productIdEnum): GiftCardProductInterface
+    {
+        return match($productIdEnum) {
+            GiftCardProductIdEnum::BOOST => new BoostCredit(),
+            default => throw new InvalidArgumentException("Invalid gift card product id: {$this->giftCard->productId}")
+        };
+    }
+
+    /**
+     * @return string
+     */
+    private function getTrackingQueryString(): string
+    {
+        return http_build_query(
+            [
+                '__e_ct_guid' => $this->user?->getGuid(),
+                '__e_ct_email' => $this->user?->getEmail() ?? $this->targetEmail,
+                'campaign' => 'when',
+                'topic' => $this->topic,
+            ]
+        );
     }
 }

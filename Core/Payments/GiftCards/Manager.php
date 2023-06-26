@@ -2,6 +2,8 @@
 namespace Minds\Core\Payments\GiftCards;
 
 use Minds\Core\Guid;
+use Minds\Core\Log\Logger;
+use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardPaymentTypeEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
@@ -23,7 +25,9 @@ class Manager
     public function __construct(
         protected Repository $repository,
         protected PaymentsManager $paymentsManager,
-        private readonly PaymentProcessor $paymentProcessor
+        private readonly PaymentProcessor $paymentProcessor,
+        private readonly EmailDelegate $emailDelegate,
+        private readonly Logger $logger
     ) {
     }
 
@@ -46,6 +50,8 @@ class Manager
         GiftCardProductIdEnum $productId,
         float $amount,
         string $stripePaymentMethodId,
+        ?int $targetUserGuid = null,
+        ?string $targetEmail = null,
         ?int $expiresAt = null,
         GiftCardPaymentTypeEnum $giftCardPaymentTypeEnum = GiftCardPaymentTypeEnum::CASH
     ): GiftCard {
@@ -104,6 +110,9 @@ class Manager
 
             // Commit the transaction
             $this->repository->commitTransaction();
+
+            // Send the email to the target user or email
+            $this->emailDelegate->onCreateGiftCard($giftCard, $targetUserGuid, $targetEmail);
 
             return $giftCard;
         } catch (GiftCardPaymentFailedException $e) {

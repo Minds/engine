@@ -21,6 +21,7 @@ use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
+use Stripe\Exception\ApiErrorException;
 use TheCodingMachine\GraphQLite\Annotations\HideParameter;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
@@ -41,9 +42,12 @@ class Controller
      * @param string $stripePaymentMethodId
      * @param int|null $expiresAt
      * @param int|null $giftCardPaymentTypeEnum
+     * @param int|null $targetUserGuid
+     * @param string|null $targetEmail
      * @return GiftCard
      * @throws UserErrorException
      * @throws ServerErrorException
+     * @throws ApiErrorException
      */
     #[Mutation]
     #[Logged]
@@ -53,13 +57,18 @@ class Controller
         string $stripePaymentMethodId,
         ?int $expiresAt,
         ?int $giftCardPaymentTypeEnum,
+        ?int $targetUserGuid,
+        ?string $targetEmail,
         #[InjectUser] User $loggedInUser // Do not add in docblock as it will break GraphQL
     ): GiftCard {
         $this->logger->info("Creating gift card", [
             'productIdEnum' => $productIdEnum,
             'amount' => $amount,
+            'stripePaymentMethodId' => $stripePaymentMethodId,
             'expiresAt' => $expiresAt,
             'paymentTypeEnum' => $giftCardPaymentTypeEnum,
+            'targetUserGuid' => $targetUserGuid,
+            'targetEmail' => $targetEmail,
             'loggedInUser' => $loggedInUser->getGuid()
         ]);
         return $this->manager->createGiftCard(

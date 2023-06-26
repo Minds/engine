@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Payments\GiftCards;
 
+use Minds\Core\Log\Logger;
+use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Manager;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
@@ -21,20 +23,28 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $paymentsManagerMock;
 
     private Collaborator $paymentProcessorMock;
+    private Collaborator $emailDelegateMock;
+    private Collaborator $loggerMock;
 
     public function let(
         Repository $repositoryMock,
         PaymentsManager $paymentsManagerMock,
-        PaymentProcessor $paymentProcessor
+        PaymentProcessor $paymentProcessor,
+        EmailDelegate $emailDelegate,
+        Logger $logger
     ): void {
         $this->repositoryMock = $repositoryMock;
         $this->paymentsManagerMock = $paymentsManagerMock;
         $this->paymentProcessorMock = $paymentProcessor;
+        $this->emailDelegateMock = $emailDelegate;
+        $this->loggerMock = $logger;
 
         $this->beConstructedWith(
             $this->repositoryMock,
             $this->paymentsManagerMock,
-            $this->paymentProcessorMock
+            $this->paymentProcessorMock,
+            $this->emailDelegateMock,
+            $this->loggerMock
         );
     }
 
@@ -70,7 +80,10 @@ class ManagerSpec extends ObjectBehavior
         $this->repositoryMock->commitTransaction()
             ->shouldBeCalledOnce();
 
-        $this->createGiftCard($issuer, GiftCardProductIdEnum::BOOST, 9.99, "", $expiresAt);
+        $this->emailDelegateMock->onCreateGiftCard(Argument::type(GiftCard::class), null, Argument::type("string"))
+            ->shouldBeCalledOnce();
+
+        $this->createGiftCard($issuer, GiftCardProductIdEnum::BOOST, 9.99, "", null, "test@email.com", $expiresAt);
     }
 
     public function it_should_return_a_gift_card(GiftCard $giftCard): void
