@@ -68,6 +68,10 @@ class Controller
                 'key' => $e->getKey()
             ]);
         }
+
+        return new JsonResponse([
+            'status' => 'success'
+        ]);
     }
 
     /**

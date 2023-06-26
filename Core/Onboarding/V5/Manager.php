@@ -71,7 +71,7 @@ class Manager
         User $user,
         string $stepKey,
         string $stepType,
-        ?array $additionalData = null
+        ?array $additionalData = []
     ): OnboardingStepProgressState {
         $this->handleAdditionalData($user, $stepKey, $additionalData);
 
@@ -85,10 +85,10 @@ class Manager
     /**
      * Handles the processing of any additional passed data that may be optionally passed.
      * @param User $user - user to process data for.
-     * @param array $additionalData - additional data to process.
+     * @param ?KeyValuePair[] $additionalData - additional data to process.
      * @return void
      */
-    private function handleAdditionalData(User $user, string $stepKey, array $additionalData): void
+    private function handleAdditionalData(User $user, string $stepKey, array $additionalData = []): void
     {
         foreach ($additionalData as $data) {
             if ($stepKey === 'onboarding_interest_survey' && $data->key === 'onboarding_interest' && $data->value) {
