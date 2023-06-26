@@ -551,24 +551,24 @@ class Repository
 
         foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $boostData) {
             yield (new Boost(
-                entityGuid: $boostData['entity_guid'],
+                entityGuid: (string) $boostData['entity_guid'],
                 targetLocation: (int) $boostData['target_location'],
                 targetSuitability: (int) $boostData['target_suitability'],
-                targetPlatformWeb: isset($boostData['target_platform_web']) ? (bool) $boostData['target_platform_web'] : true,
-                targetPlatformAndroid: isset($boostData['target_platform_android']) ? (bool) $boostData['target_platform_android'] : true,
-                targetPlatformIos: isset($boostData['target_platform_ios']) ? (bool) $boostData['target_platform_ios'] : true,
-                goal: isset($boostData['goal']) ? (int) $boostData['goal'] : null,
-                goalButtonText: isset($boostData['goal_button_text']) ? (int) $boostData['goal_button_text'] : null,
-                goalButtonUrl: isset($boostData['goal_button_url']) ? (string) $boostData['goal_button_url'] : null,
                 paymentMethod: (int) $boostData['payment_method'],
                 paymentAmount: (float) $boostData['payment_amount'],
                 dailyBid: (int) $boostData['daily_bid'],
                 durationDays: (int) $boostData['duration_days'],
+                goal: isset($boostData['goal']) ? (int) $boostData['goal'] : null,
+                goalButtonText: isset($boostData['goal_button_text']) ? (int) $boostData['goal_button_text'] : null,
+                goalButtonUrl: isset($boostData['goal_button_url']) ? (string) $boostData['goal_button_url'] : null,
                 status: (int) $boostData['status'],
                 createdTimestamp: strtotime($boostData['created_timestamp']),
                 paymentTxId: $boostData['payment_tx_id'],
-                updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
-                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null
+                updatedTimestamp: isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
+                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
+                targetPlatformWeb: isset($boostData['target_platform_web']) ? (bool) $boostData['target_platform_web'] : true,
+                targetPlatformAndroid: isset($boostData['target_platform_android']) ? (bool) $boostData['target_platform_android'] : true,
+                targetPlatformIos: isset($boostData['target_platform_ios']) ? (bool) $boostData['target_platform_ios'] : true
             ))
                 ->setGuid($boostData['guid'])
                 ->setOwnerGuid($boostData['owner_guid']);
