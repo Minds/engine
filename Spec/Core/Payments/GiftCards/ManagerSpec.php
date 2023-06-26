@@ -84,10 +84,14 @@ class ManagerSpec extends ObjectBehavior
         $refTime = time();
         $giftCard = new GiftCard(1244987032468459522, GiftCardProductIdEnum::BOOST, 10, 1244987032468459522, $refTime, 'claim-me', strtotime('+1 year', $refTime));
 
+        $this->repositoryMock->getGiftCardByClaimCode("claim-me")
+            ->shouldBeCalledOnce()
+            ->willReturn($giftCard);
+
         $this->repositoryMock->updateGiftCardClaim(Argument::type(GiftCard::class))->willReturn(true);
 
         $claimer->getGuid()->willReturn('1244987032468459523');
 
-        $this->claimGiftCard($giftCard, $claimer, 'claim-me')->shouldReturn(true);
+        $this->claimGiftCard($claimer, 'claim-me')->shouldReturn($giftCard);
     }
 }
