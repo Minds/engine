@@ -191,7 +191,8 @@ class Manager
                 'terms' => [
                     'guid' => Text::buildArray($seenEntities)
                 ],
-            ];;
+            ];
+            ;
         }
 
         $body = [
