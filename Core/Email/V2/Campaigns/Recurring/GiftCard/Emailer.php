@@ -96,11 +96,11 @@ class Emailer extends EmailCampaign
         $this->template->set('headerText', "You received a gift");
 
         $siteUrl = $this->mindsConfig->get('site_url') ?: 'https://www.minds.com/';
-        $this->template->set('signupPath', $siteUrl . "register"); // TODO: update with signup link
+        $this->template->set('signupPath', $siteUrl . "register");
 
         $actionButton = (new ActionButtonV2())
             ->setLabel("Claim gift")
-            ->setPath("/"); // TODO: update with new claim gift card route in FE once created
+            ->setPath($siteUrl . "gift-cards/claim/{$this->giftCard->claimCode}");
 
         $this->template->set('actionButton', $actionButton->build());
 
