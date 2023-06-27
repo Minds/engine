@@ -1,11 +1,14 @@
 <?php
 namespace Minds\Core\Payments\GiftCards;
 
+use Exception;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
+use Minds\Exceptions\ServerErrorException;
 use PDO;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
@@ -86,6 +89,38 @@ class Repository extends AbstractRepository
         $row = $rows[0];
 
         return $this->buildGiftCardModel($row);
+    }
+
+    /**
+     * Returns a gift card from the database based on claim code
+     *
+     * @param string $claimCode
+     * @return GiftCard
+     * @throws GiftCardNotFoundException
+     * @throws ServerErrorException
+     * @throws Exception
+     */
+    public function getGiftCardByClaimCode(string $claimCode): GiftCard
+    {
+        $statement = $this->buildGetGiftCardsQuery()
+            ->where('claim_code', Operator::EQ, new RawExp(':claim_code'))
+            ->prepare();
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, [
+            'claim_code' => $claimCode,
+        ]);
+
+        try {
+            $statement->execute();
+            if ($statement->rowCount() === 0) {
+                throw new GiftCardNotFoundException();
+            }
+
+            $row = $statement->fetch(PDO::FETCH_ASSOC);
+            return $this->buildGiftCardModel($row);
+        } catch (\PDOException $e) {
+            throw new \Exception('Error getting gift card by claim code', 0, $e);
+        }
     }
 
     /**

@@ -9,6 +9,9 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardPaymentTypeEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardAlreadyClaimedException;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
+use Minds\Core\Payments\GiftCards\Exceptions\InvalidGiftCardClaimCodeException;
 use Minds\Core\Payments\GiftCards\Manager;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Types\GiftCardBalanceByProductId;
@@ -70,6 +73,23 @@ class Controller
             expiresAt: $expiresAt,
             giftCardPaymentTypeEnum: GiftCardPaymentTypeEnum::tryFrom($giftCardPaymentTypeEnum) ?? GiftCardPaymentTypeEnum::CASH
         );
+    }
+
+    /**
+     * @param string $claimCode
+     * @return GiftCard
+     * @throws ServerErrorException
+     * @throws GiftCardAlreadyClaimedException
+     * @throws GiftCardNotFoundException
+     * @throws InvalidGiftCardClaimCodeException
+     */
+    #[Mutation]
+    #[Logged]
+    public function claimGiftCard(
+        #[InjectUser] User $loggedInUser,
+        string $claimCode
+    ): GiftCard {
+        return $this->manager->claimGiftCard($loggedInUser, $claimCode);
     }
 
     /**
