@@ -2,16 +2,16 @@
 namespace Minds\Core\Feeds\Elastic\V2;
 
 use Minds\Common\Access;
-use Minds\Entities\User;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Guid;
-use Minds\Core\Search\SortingAlgorithms\TopV2;
 use Minds\Core\Feeds\ClusteredRecommendations;
 use Minds\Core\Feeds\Seen\Manager as SeenManager;
 use Minds\Core\Groups\Membership;
+use Minds\Core\Guid;
+use Minds\Core\Search\SortingAlgorithms\TopV2;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
+use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Helpers\Text;
 
@@ -182,17 +182,16 @@ class Manager
             ]
         ];
 
+        $mustNot = [];
+
         // Demote posts we've already seen
         $seenEntities = $this->seenManager->listSeenEntities();
         if (count($seenEntities) > 0) {
-            $functionScores[] = [
-                'filter' => [
-                    'terms' => [
-                        'guid' => Text::buildArray($seenEntities),
-                    ]
+            $mustNot[] = [
+                'terms' => [
+                    'guid' => Text::buildArray($seenEntities)
                 ],
-                'weight' => 0.01
-            ];
+            ];;
         }
 
         $body = [
@@ -203,6 +202,7 @@ class Manager
                     'query' => [
                         'bool' => [
                             'must' => $must,
+                            'must_not' => $mustNot,
                         ],
                     ],
                     'functions' => $functionScores,
