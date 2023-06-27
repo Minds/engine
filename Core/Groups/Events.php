@@ -189,6 +189,9 @@ class Events
 
             $group = $params['container'];
             $activity = $params['activity'];
+            
+            // The accessid of the activity should always be the group
+            $activity->setAccessId($group->guid);
 
             if ($group->getModerated() && !$group->isOwner($activity->owner_guid)) {
                 $key = "activity:container:{$group->guid}";
