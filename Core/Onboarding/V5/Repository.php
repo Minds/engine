@@ -97,7 +97,7 @@ class Repository extends AbstractRepository
     /**
      * Gets onboarding step progress state for a given user guid.
      * @param int $userGuid - user guid to get step progress state for.
-     * @return iterable
+     * @return iterable iterable of a users step progress state entries (one per stored step).
      */
     public function getOnboardingStepProgress(int $userGuid): iterable
     {

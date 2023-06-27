@@ -38,7 +38,7 @@ class Controller
 
     /**
      * Sets onboarding state for the currently logged in user.
-     * @param bool $completed - whether onboarding is to be set to completed or now.
+     * @param bool $completed - whether onboarding is to be set to completed or not.
      * @return OnboardingState current onboarding state.
      */
     #[Mutation]
@@ -52,7 +52,7 @@ class Controller
 
     /**
      * Get the currently logged in users onboarding step progress.
-     * @return OnboardingStepProgressState[] onboarding step process.
+     * @return OnboardingStepProgressState[] onboarding step progress.
      */
     #[Query]
     #[Logged]
@@ -63,10 +63,10 @@ class Controller
 
     /**
      * Mark an onboarding step for a user as completed.
-     * @param string $stepKey - key of the current step, should be unique.
+     * @param string $stepKey - key of the current step, should be unique to the step.
      * @param string $stepType - type of step.
      * @param ?KeyValuePair[] $additionalData - additional data for processing.
-     * @return OnboardingStepProgressState - updated progress state.
+     * @return OnboardingStepProgressState - completed progress state.
      */
     #[Mutation]
     #[Logged]
