@@ -24,6 +24,7 @@ use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\Query;
 
@@ -295,6 +296,7 @@ class NewsfeedController
         $activities = $this->feedsManager->getTopSubscribed(
             user: $loggedInUser,
             limit: 3,
+            seenEntitiesStrategy: SeenEntitiesFilterStrategyEnum::EXCLUDE,
             hasMore: $hasMore,
             loadAfter: $loadAfter,
             loadBefore: $loadBefore,
