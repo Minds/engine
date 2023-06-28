@@ -39,6 +39,7 @@ $CONFIG->set('cloudflare', [
     'api_key' => '',
     'email' => '',
     'account_id' => '',
+    'cdn_url' => 'https://customer-gh08u53vbkhozibb.cloudflarestream.com/',
 ]);
 
 $CONFIG->disable_secure_cookies = true;
