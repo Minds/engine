@@ -10,6 +10,7 @@ use Minds\Core\Payments\GiftCards\Manager;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\PaymentProcessor;
 use Minds\Core\Payments\GiftCards\Repository;
+use Minds\Core\Payments\GiftCards\Types\GiftCardTarget;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Entities\User;
@@ -80,10 +81,12 @@ class ManagerSpec extends ObjectBehavior
         $this->repositoryMock->commitTransaction()
             ->shouldBeCalledOnce();
 
-        $this->emailDelegateMock->onCreateGiftCard(Argument::type(GiftCard::class), null, Argument::type("string"))
+        $giftCardTarget = new GiftCardTarget(targetEmail: "test@email.com");
+
+        $this->emailDelegateMock->onCreateGiftCard(Argument::type(GiftCard::class), $giftCardTarget)
             ->shouldBeCalledOnce();
 
-        $this->createGiftCard($issuer, GiftCardProductIdEnum::BOOST, 9.99, "", null, "test@email.com", $expiresAt);
+        $this->createGiftCard($issuer, GiftCardProductIdEnum::BOOST, 9.99, "", $giftCardTarget, $expiresAt);
     }
 
     public function it_should_return_a_gift_card(GiftCard $giftCard): void

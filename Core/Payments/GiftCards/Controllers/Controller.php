@@ -9,16 +9,17 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardPaymentTypeEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardPaymentFailedException;
 use Minds\Core\Payments\GiftCards\Manager;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Types\GiftCardBalanceByProductId;
 use Minds\Core\Payments\GiftCards\Types\GiftCardEdge;
 use Minds\Core\Payments\GiftCards\Types\GiftCardsConnection;
+use Minds\Core\Payments\GiftCards\Types\GiftCardTarget;
 use Minds\Core\Payments\GiftCards\Types\GiftCardTransactionEdge;
 use Minds\Core\Payments\GiftCards\Types\GiftCardTransactionsConnection;
+use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Entities\User;
-use Minds\Entities\ValidationError;
-use Minds\Entities\ValidationErrorCollection;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use Stripe\Exception\ApiErrorException;
@@ -42,12 +43,13 @@ class Controller
      * @param string $stripePaymentMethodId
      * @param int|null $expiresAt
      * @param int|null $giftCardPaymentTypeEnum
-     * @param int|null $targetUserGuid
-     * @param string|null $targetEmail
+     * @param GiftCardTarget $targetInput
      * @return GiftCard
-     * @throws UserErrorException
-     * @throws ServerErrorException
      * @throws ApiErrorException
+     * @throws ServerErrorException
+     * @throws UserErrorException
+     * @throws GiftCardPaymentFailedException
+     * @throws StripeTransferFailedException
      */
     #[Mutation]
     #[Logged]
@@ -57,8 +59,7 @@ class Controller
         string $stripePaymentMethodId,
         ?int $expiresAt,
         ?int $giftCardPaymentTypeEnum,
-        ?int $targetUserGuid,
-        ?string $targetEmail,
+        GiftCardTarget $targetInput,
         #[InjectUser] User $loggedInUser // Do not add in docblock as it will break GraphQL
     ): GiftCard {
         $this->logger->info("Creating gift card", [
@@ -67,8 +68,7 @@ class Controller
             'stripePaymentMethodId' => $stripePaymentMethodId,
             'expiresAt' => $expiresAt,
             'paymentTypeEnum' => $giftCardPaymentTypeEnum,
-            'targetUserGuid' => $targetUserGuid,
-            'targetEmail' => $targetEmail,
+            'recipient' => $targetInput->targetUserGuid ?? $targetInput->targetEmail,
             'loggedInUser' => $loggedInUser->getGuid()
         ]);
         return $this->manager->createGiftCard(
@@ -76,6 +76,7 @@ class Controller
             productId: GiftCardProductIdEnum::tryFrom($productIdEnum) ?? throw new UserErrorException("An error occurred while validating the ", 400, (new ValidationErrorCollection())->add(new ValidationError("productIdEnum", "The value provided is not a valid one"))),
             amount: $amount,
             stripePaymentMethodId: $stripePaymentMethodId,
+            recipient: $targetInput,
             expiresAt: $expiresAt,
             giftCardPaymentTypeEnum: GiftCardPaymentTypeEnum::tryFrom($giftCardPaymentTypeEnum) ?? GiftCardPaymentTypeEnum::CASH
         );
@@ -107,7 +108,7 @@ class Controller
         $loadAfter = $after;
         $loadBefore = $before;
 
-        $limit = min($first ?: $last, 12); // MAX 12
+        $limit = min($first ?? $last, 12); // MAX 12
 
         $edges = [];
 
@@ -124,7 +125,7 @@ class Controller
     
         foreach ($giftCards as $giftCard) {
             // Required for sub query of transactions
-            $giftCard->setQueryRef($this);
+            $giftCard->setQueryRef($this, $loggedInUser);
 
             $edges[] = new GiftCardEdge($giftCard, $loadAfter);
         }

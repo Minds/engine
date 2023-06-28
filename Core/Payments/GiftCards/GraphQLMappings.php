@@ -24,6 +24,9 @@ class GraphQLMappings extends AbstractGraphQLMappings
             Types\GiftCardBalanceByProductId::class,
             Types\GiftCardTransactionsConnection::class,
             Types\GiftCardTransactionEdge::class,
+            Types\GiftCardTarget::class,
         ]));
+
+        $this->schemaFactory->setInputTypeValidator(new Validators\GiftCardTargetInputValidator());
     }
 }

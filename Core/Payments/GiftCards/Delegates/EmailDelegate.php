@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\GiftCards\Delegates;
 
-use InvalidArgumentException;
 use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\Emailer;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
+use Minds\Core\Payments\GiftCards\Types\GiftCardTarget;
+use Minds\Helpers\Validation;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class EmailDelegate
 {
@@ -18,24 +20,27 @@ class EmailDelegate
 
     /**
      * @param GiftCard $giftCard
-     * @param int|null $recipientUserGuid
-     * @param string|null $recipientEmail
+     * @param string $recipient
      * @return void
+     * @throws GraphQLException
      */
     public function onCreateGiftCard(
         GiftCard $giftCard,
-        ?int $recipientUserGuid,
-        ?string $recipientEmail,
+        GiftCardTarget $recipient,
     ): void {
-        if (!$recipientUserGuid && !$recipientEmail) {
-            throw new InvalidArgumentException('Recipient user guid or email must be provided');
+        if (!$recipient->targetEmail && !$recipient->targetUserGuid) {
+            throw new GraphQLException('You must provide at least one between target email or target user guid', 400, null, 'Validation', ['field' => 'targetInput']);
         }
-        $recipientUser = $this->entitiesBuilder->single($recipientUserGuid) ?? null;
+        if ($recipient->targetEmail && !Validation::isValidEmail($recipient->targetEmail)) {
+            throw new GraphQLException('Recipient user guid or email must be provided', 400, null, 'Validation', ['field' => 'targetInput']);
+        }
+
+        $recipientUser = $this->entitiesBuilder->single($recipient->targetUserGuid) ?? null;
 
         $this->emailer
             ->setGiftCard($giftCard)
             ->setUser($recipientUser)
-            ->setTargetEmail($recipientEmail)
+            ->setTargetEmail($recipient->targetEmail ?? null)
             ->setTopic('gift-card-claim-email')
             ->send();
     }

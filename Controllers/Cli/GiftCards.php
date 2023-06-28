@@ -4,13 +4,16 @@ declare(strict_types=1);
 namespace Minds\Controllers\Cli;
 
 use Exception;
+use InvalidArgumentException;
 use Minds\Cli;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
+use Minds\Core\Payments\GiftCards\Enums\GiftCardPaymentTypeEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardPaymentFailedException;
 use Minds\Core\Payments\GiftCards\Manager;
+use Minds\Core\Payments\GiftCards\Types\GiftCardTarget;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
@@ -76,9 +79,12 @@ class GiftCards extends Cli\Controller implements Interfaces\CliControllerInterf
             issuer: $user,
             productId: GiftCardProductIdEnum::BOOST,
             amount: 10,
-            stripePaymentMethodId: $this->getOpt('stripe_payment_method_id'),
-            targetUserGuid: (int) $this->getOpt('target_user_guid') ?? null,
-            targetEmail: $this->getOpt('target_email') ?? null,
+            stripePaymentMethodId: $this->getOpt('stripe_payment_method_id') ?? "",
+            recipient: new GiftCardTarget(
+                targetUserGuid: ((int) $this->getOpt('recipient_user_guid')) ?? null,
+                targetEmail: $this->getOpt('recipient_email'),
+            ),
+            giftCardPaymentTypeEnum: GiftCardPaymentTypeEnum::tryFrom((int)$this->getOpt('payment_type')) ?? throw new InvalidArgumentException('Invalid payment type')
         );
 
         $this->logger->info('Gift card created', [

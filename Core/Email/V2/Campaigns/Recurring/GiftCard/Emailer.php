@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\Email\V2\Campaigns\Recurring\GiftCard;
 
-use http\Exception\InvalidArgumentException;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Campaigns\EmailCampaign;
@@ -20,6 +19,7 @@ use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 use phpseclib3\Crypt\Random;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 /**
  * @method self setGiftCard(GiftCard $giftCard)
@@ -129,7 +129,7 @@ class Emailer extends EmailCampaign
     {
         return match ($productIdEnum) {
             GiftCardProductIdEnum::BOOST => new BoostCredit(),
-            default => throw new InvalidArgumentException("Invalid gift card product id: {$this->giftCard->productId}")
+            default => throw new GraphQLException("Invalid gift card product id: {$this->giftCard->productId}")
         };
     }
 

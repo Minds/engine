@@ -10,6 +10,7 @@ use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardPaymentFailedException;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
+use Minds\Core\Payments\GiftCards\Types\GiftCardTarget;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\V2\Enums\PaymentMethod;
 use Minds\Core\Payments\V2\Enums\PaymentType;
@@ -50,8 +51,7 @@ class Manager
         GiftCardProductIdEnum $productId,
         float $amount,
         string $stripePaymentMethodId,
-        ?int $targetUserGuid = null,
-        ?string $targetEmail = null,
+        GiftCardTarget $recipient,
         ?int $expiresAt = null,
         GiftCardPaymentTypeEnum $giftCardPaymentTypeEnum = GiftCardPaymentTypeEnum::CASH
     ): GiftCard {
@@ -106,13 +106,15 @@ class Manager
             );
             $this->repository->addGiftCardTransaction($giftCardTransaction);
 
-            $this->paymentProcessor->capturePayment($paymentRef, $issuer);
+            if ($giftCardPaymentTypeEnum === GiftCardPaymentTypeEnum::CASH) {
+                $this->paymentProcessor->capturePayment($paymentRef, $issuer);
+            }
 
             // Commit the transaction
             $this->repository->commitTransaction();
 
             // Send the email to the target user or email
-            $this->emailDelegate->onCreateGiftCard($giftCard, $targetUserGuid, $targetEmail);
+            $this->emailDelegate->onCreateGiftCard($giftCard, $recipient);
 
             return $giftCard;
         } catch (GiftCardPaymentFailedException $e) {
