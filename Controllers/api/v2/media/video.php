@@ -11,6 +11,7 @@ use Minds\Api\Factory;
 use Minds\Core\Di\Di;
 use Minds\Core\Media\Video\Manager;
 use Minds\Core\Media\Video\Transcoder\TranscodeStates;
+use Minds\Core\Security\ACL;
 use Minds\Interfaces;
 
 class video implements Interfaces\Api, Interfaces\ApiIgnorePam
@@ -26,10 +27,12 @@ class video implements Interfaces\Api, Interfaces\ApiIgnorePam
         $videoManager = Di::_()->get('Media\Video\Manager');
         /** @var TranscodeStates */
         $transcodeStates = Di::_()->get('Media\Video\Transcoder\TranscodeStates');
+        /** @var ACL */
+        $acl = Di::_()->get('Security\ACL');
 
         $video = $videoManager->get($pages[0]);
 
-        if (!$video) {
+        if (!$video || !$acl->read($video)) {
             return Factory::response([
                 'status' => 'error',
                 'message' => 'Video not found',
