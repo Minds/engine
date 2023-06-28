@@ -20,6 +20,7 @@ use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use Stripe\Exception\ApiErrorException;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class Manager
 {
@@ -51,7 +52,6 @@ class Manager
         GiftCardProductIdEnum $productId,
         float $amount,
         string $stripePaymentMethodId,
-        GiftCardTarget $recipient,
         ?int $expiresAt = null,
         GiftCardPaymentTypeEnum $giftCardPaymentTypeEnum = GiftCardPaymentTypeEnum::CASH
     ): GiftCard {
@@ -113,8 +113,6 @@ class Manager
             // Commit the transaction
             $this->repository->commitTransaction();
 
-            // Send the email to the target user or email
-            $this->emailDelegate->onCreateGiftCard($giftCard, $recipient);
 
             return $giftCard;
         } catch (GiftCardPaymentFailedException $e) {
@@ -123,6 +121,17 @@ class Manager
             $this->repository->rollbackTransaction();
             throw $e;
         }
+    }
+
+    /**
+     * @param GiftCardTarget $recipient
+     * @param GiftCard $giftCard
+     * @return void
+     * @throws GraphQLException
+     */
+    public function sendGiftCardToRecipient(GiftCardTarget $recipient, GiftCard $giftCard): void
+    {
+        $this->emailDelegate->onCreateGiftCard($giftCard, $recipient);
     }
 
     private function generateClaimCode(

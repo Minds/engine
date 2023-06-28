@@ -28,6 +28,7 @@ use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Query;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class Controller
 {
@@ -50,6 +51,7 @@ class Controller
      * @throws UserErrorException
      * @throws GiftCardPaymentFailedException
      * @throws StripeTransferFailedException
+     * @throws GraphQLException
      */
     #[Mutation]
     #[Logged]
@@ -71,15 +73,19 @@ class Controller
             'recipient' => $targetInput->targetUserGuid ?? $targetInput->targetEmail,
             'loggedInUser' => $loggedInUser->getGuid()
         ]);
-        return $this->manager->createGiftCard(
+        $giftCard = $this->manager->createGiftCard(
             issuer: $loggedInUser,
-            productId: GiftCardProductIdEnum::tryFrom($productIdEnum) ?? throw new UserErrorException("An error occurred while validating the ", 400, (new ValidationErrorCollection())->add(new ValidationError("productIdEnum", "The value provided is not a valid one"))),
+            productId: GiftCardProductIdEnum::tryFrom($productIdEnum) ?? throw new GraphQLException("An error occurred while validating the ", 400, null, "Validation", ['field' => 'productIdEnum']),
             amount: $amount,
             stripePaymentMethodId: $stripePaymentMethodId,
-            recipient: $targetInput,
             expiresAt: $expiresAt,
             giftCardPaymentTypeEnum: GiftCardPaymentTypeEnum::tryFrom($giftCardPaymentTypeEnum) ?? GiftCardPaymentTypeEnum::CASH
         );
+
+        // send email to recipient
+        $this->manager->sendGiftCardToRecipient($targetInput, $giftCard);
+
+        return $giftCard;
     }
 
     /**
