@@ -22,6 +22,7 @@ class Provider extends DiProvider
                 suggestedChannelsRecommendationsAlgorithm: new SuggestedChannelsRecommendationsAlgorithm(),
                 boostSuggestionInjector: $di->get(BoostSuggestionInjector::class),
                 suggestionsManager: $di->get('Suggestions\Manager'),
+                experimentsManager: $di->get('Experiments\Manager'),
             );
         });
     }

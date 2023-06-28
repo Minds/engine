@@ -9,7 +9,9 @@ use Minds\Interfaces\ModuleInterface;
 class Module implements ModuleInterface
 {
     public array $submodules = [
-        InAppPurchases\Module::class
+        InAppPurchases\Module::class,
+        V2\Module::class,
+        GiftCards\Module::class,
     ];
     
     /**

@@ -46,6 +46,7 @@ use Minds\Helpers;
  * @property string $blurhash
  * @property array $attachments
  * @property array $supermind
+ * @property string $auto_caption
  */
 class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface
 {
@@ -98,6 +99,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             //	'node' => elgg_get_site_url()
             'attachments' => null,
             'supermind' => null,
+            'auto_caption' => null,
         ]);
     }
 
@@ -288,7 +290,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'time_sent',
                 'permaweb_id',
                 'blurhash',
-                'supermind'
+                'supermind',
+                'auto_caption'
             ]
         );
     }
@@ -1129,6 +1132,17 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function setSupermind(array $supermindDetails): self
     {
         $this->supermind = $supermindDetails;
+        return $this;
+    }
+
+    public function getAutoCaption(): ?string
+    {
+        return $this->auto_caption;
+    }
+
+    public function setAutoCaption(string $autoCaption): self
+    {
+        $this->auto_caption = $autoCaption;
         return $this;
     }
 

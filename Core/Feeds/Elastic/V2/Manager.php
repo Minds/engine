@@ -10,6 +10,7 @@ use Minds\Core\Search\SortingAlgorithms\TopV2;
 use Minds\Core\Feeds\ClusteredRecommendations;
 use Minds\Core\Feeds\Seen\Manager as SeenManager;
 use Minds\Core\Groups\Membership;
+use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Helpers\Text;
@@ -22,6 +23,7 @@ class Manager
         protected SeenManager $seenManager,
         protected EntitiesBuilder $entitiesBuilder,
         protected Membership $groupsMembership,
+        protected ACL $acl,
     ) {
     }
 
@@ -249,9 +251,9 @@ class Manager
 
         $i = 0;
         foreach ($hits as $hit) {
-            $entity = $this->entitiesBuilder->single($hit['_id']);
+            $entity = $this->fetchActivity((int) $hit['_id']);
     
-            if (!$entity instanceof Activity) {
+            if (!$entity) {
                 continue;
             }
 
@@ -317,9 +319,9 @@ class Manager
 
         $i = 0;
         foreach ($allResults as $scoredGuid) {
-            $entity = $this->entitiesBuilder->single($scoredGuid->getGuid());
+            $entity = $this->fetchActivity((int) $scoredGuid->getGuid());
     
-            if (!$entity instanceof Activity) {
+            if (!$entity) {
                 continue;
             }
 
@@ -410,9 +412,9 @@ class Manager
 
         $i = 0;
         foreach ($hits as $hit) {
-            $entity = $this->entitiesBuilder->single($hit['_id']);
+            $entity = $this->fetchActivity((int) $hit['_id']);
     
-            if (!$entity instanceof Activity) {
+            if (!$entity) {
                 continue;
             }
 
@@ -442,5 +444,20 @@ class Manager
     protected function decodeSort(string $sort): array
     {
         return json_decode(base64_decode($sort, true), true);
+    }
+
+    /**
+     * Fetches activity from the entities builder and runs acl checks
+     * @return Activity
+     */
+    private function fetchActivity(int $guid): ?Activity
+    {
+        $entity = $this->entitiesBuilder->single($guid);
+
+        if (!$entity instanceof Activity) {
+            return null;
+        }
+
+        return $this->acl->read($entity) ? $entity : null;
     }
 }
