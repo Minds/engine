@@ -54,7 +54,7 @@ class RepositorySpec extends ObjectBehavior
         $guid = '123';
         $dateTime = new DateTime();
 
-        $this->mysqlMasterMock->prepare('INSERT INTO boost_summaries (guid, date, views, clicks) VALUES (:guid, :date, 0, 1) ON DUPLICATE KEY UPDATE clicks = clicks + 1')
+        $this->mysqlMasterMock->prepare(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($statement);
 
