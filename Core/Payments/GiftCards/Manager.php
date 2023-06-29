@@ -2,6 +2,8 @@
 namespace Minds\Core\Payments\GiftCards;
 
 use Minds\Core\Guid;
+use Minds\Core\Log\Logger;
+use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardPaymentTypeEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
@@ -11,6 +13,7 @@ use Minds\Core\Payments\GiftCards\Exceptions\GiftCardPaymentFailedException;
 use Minds\Core\Payments\GiftCards\Exceptions\InvalidGiftCardClaimCodeException;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
+use Minds\Core\Payments\GiftCards\Types\GiftCardTarget;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\V2\Enums\PaymentMethod;
 use Minds\Core\Payments\V2\Enums\PaymentType;
@@ -20,13 +23,16 @@ use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use Stripe\Exception\ApiErrorException;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class Manager
 {
     public function __construct(
         protected Repository $repository,
         protected PaymentsManager $paymentsManager,
-        private readonly PaymentProcessor $paymentProcessor
+        private readonly PaymentProcessor $paymentProcessor,
+        private readonly EmailDelegate $emailDelegate,
+        private readonly Logger $logger
     ) {
     }
 
@@ -103,10 +109,13 @@ class Manager
             );
             $this->repository->addGiftCardTransaction($giftCardTransaction);
 
-            $this->paymentProcessor->capturePayment($paymentRef, $issuer);
+            if ($giftCardPaymentTypeEnum === GiftCardPaymentTypeEnum::CASH) {
+                $this->paymentProcessor->capturePayment($paymentRef, $issuer);
+            }
 
             // Commit the transaction
             $this->repository->commitTransaction();
+
 
             return $giftCard;
         } catch (GiftCardPaymentFailedException $e) {
@@ -115,6 +124,17 @@ class Manager
             $this->repository->rollbackTransaction();
             throw $e;
         }
+    }
+
+    /**
+     * @param GiftCardTarget $recipient
+     * @param GiftCard $giftCard
+     * @return void
+     * @throws GraphQLException
+     */
+    public function sendGiftCardToRecipient(GiftCardTarget $recipient, GiftCard $giftCard): void
+    {
+        $this->emailDelegate->onCreateGiftCard($giftCard, $recipient);
     }
 
     private function generateClaimCode(
