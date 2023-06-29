@@ -46,7 +46,6 @@ class Controller
      * @param float $amount
      * @param string $stripePaymentMethodId
      * @param int|null $expiresAt
-     * @param int|null $giftCardPaymentTypeEnum
      * @param GiftCardTarget $targetInput
      * @param User $loggedInUser
      * @return GiftCard
@@ -64,7 +63,6 @@ class Controller
         float $amount,
         string $stripePaymentMethodId,
         ?int $expiresAt,
-        ?int $giftCardPaymentTypeEnum,
         GiftCardTarget $targetInput,
         #[InjectUser] User $loggedInUser // Do not add in docblock as it will break GraphQL
     ): GiftCard {
@@ -73,7 +71,7 @@ class Controller
             'amount' => $amount,
             'stripePaymentMethodId' => $stripePaymentMethodId,
             'expiresAt' => $expiresAt,
-            'paymentTypeEnum' => $giftCardPaymentTypeEnum,
+            'paymentTypeEnum' => GiftCardPaymentTypeEnum::CASH,
             'recipient' => $targetInput->targetUserGuid ?? $targetInput->targetEmail,
             'loggedInUser' => $loggedInUser->getGuid()
         ]);
@@ -82,8 +80,7 @@ class Controller
             productId: GiftCardProductIdEnum::tryFrom($productIdEnum) ?? throw new GraphQLException("An error occurred while validating the ", 400, null, "Validation", ['field' => 'productIdEnum']),
             amount: $amount,
             stripePaymentMethodId: $stripePaymentMethodId,
-            expiresAt: $expiresAt,
-            giftCardPaymentTypeEnum: GiftCardPaymentTypeEnum::tryFrom($giftCardPaymentTypeEnum) ?? GiftCardPaymentTypeEnum::CASH
+            expiresAt: $expiresAt
         );
 
         // send email to recipient
