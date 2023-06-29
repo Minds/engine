@@ -11,6 +11,7 @@ class Module implements ModuleInterface
 {
     public array $submodules = [
         Mautic\Module::class,
+        V2\Module::class,
     ];
 
     /**

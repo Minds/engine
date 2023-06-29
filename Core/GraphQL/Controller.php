@@ -1,12 +1,13 @@
 <?php
 namespace Minds\Core\GraphQL;
 
-use Zend\Diactoros\Response\JsonResponse;
-use Zend\Diactoros\ServerRequest;
 use GraphQL\GraphQL;
 use GraphQL\Type\Schema;
 use Minds\Core\Di\Di;
+use Minds\Core\GraphQL\Services\AuthService;
 use TheCodingMachine\GraphQLite\Context\Context;
+use Zend\Diactoros\Response\JsonResponse;
+use Zend\Diactoros\ServerRequest;
 
 class Controller
 {
@@ -17,7 +18,8 @@ class Controller
         $query = $input['query'];
         $variableValues = isset($input['variables']) ? $input['variables'] : null;
 
-        $schema = Di::_()->get(Schema::class);
+        $authService = new AuthService($request->getAttribute('_user'));
+        $schema = Di::_()->get(Schema::class, ['auth_service' => $authService]);
 
         $result = GraphQL::executeQuery($schema, $query, null, new Context(), $variableValues);
         $output = $result->toArray();

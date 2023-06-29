@@ -10,6 +10,9 @@ namespace Minds\Core\Email\V2\Campaigns\Recurring\BoostV3;
 use Exception;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
+use Minds\Core\Boost\V3\Models\Boost;
+use Minds\Core\Boost\V3\Utils\BoostConsoleUrlBuilder;
+use Minds\Core\Boost\V3\Utils\BoostReceiptUrlBuilder;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Campaigns\EmailCampaign;
@@ -17,9 +20,6 @@ use Minds\Core\Email\Mailer;
 use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
-use Minds\Core\Boost\V3\Models\Boost;
-use Minds\Core\Boost\V3\Utils\BoostConsoleUrlBuilder;
-use Minds\Core\Boost\V3\Utils\BoostReceiptUrlBuilder;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\Log\Logger;
@@ -60,6 +60,8 @@ class BoostEmailer extends EmailCampaign
         $this->consoleUrlBuilder ??= Di::_()->get(BoostConsoleUrlBuilder::class);
         $this->receiptUrlBuilder ??= Di::_()->get(BoostReceiptUrlBuilder::class);
         $this->logger ??= Di::_()->get('Logger');
+
+        parent::__construct($this->manager);
 
         $this->campaign = 'when';
     }
