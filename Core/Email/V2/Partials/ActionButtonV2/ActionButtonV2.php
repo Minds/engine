@@ -5,15 +5,19 @@ namespace Minds\Core\Email\V2\Partials\ActionButtonV2;
 use Minds\Core\Email\V2\Common\Template;
 use Minds\Traits\MagicAttributes;
 
+/**
+ * @method self setLabel(string $label)
+ * @method self setPath(string $path)
+ */
 class ActionButtonV2 extends Template
 {
     use MagicAttributes;
 
     /** @var string */
-    protected $path;
+    protected string $path;
 
     /** @var string */
-    protected $label;
+    protected string $label;
 
 
     /** Build button

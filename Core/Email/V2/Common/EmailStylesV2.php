@@ -50,6 +50,19 @@ class EmailStylesV2
             "line-height: 28px;",
             "color: #0a080b;"
         ],
+        "m-mainContent__signup_paragraph" => [
+            "font-family: 'Inter', Arial, sans-serif;",
+            "margin: 25px 25px 95px;",
+            "font-size: 14px;",
+            "color: #000;"
+        ],
+        "m-mainContent__signup_paragraph--link" => [
+            "font-family: 'Inter', Arial, sans-serif;",
+            "color: #4080D0;",
+            "text-align:center;",
+            "text-decoration: underline;",
+            "cursor: pointer;",
+        ],
         "m-mainContent__code" => [
             "font-family: 'Inter', Arial, sans-serif;",
             "margin: 10px 20px 30px;",

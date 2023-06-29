@@ -2,13 +2,13 @@
 
 namespace Spec\Minds\Core\Payments\GiftCards;
 
-use Minds\Core\Payments\GiftCards\Repository;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Data\MySQL\MySQLConnectionEnum;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
+use Minds\Core\Payments\GiftCards\Repository;
 use PDO;
 use PDOStatement;
 use PhpSpec\ObjectBehavior;
@@ -54,6 +54,7 @@ class RepositorySpec extends ObjectBehavior
                 date('c', $refTime) => true,
                 'change-me' => true,
                 date('c', strtotime('+1 year', $refTime)) => true,
+                default => throw new \Exception('Unexpected match value'),
             };
         }))->shouldBeCalled();
         ;
@@ -150,6 +151,7 @@ class RepositorySpec extends ObjectBehavior
                 "1244987032468459522" => true,
                 "1244987032468459523" => true,
                 date('c', $refTime) => true,
+                default => throw new \Exception('Unexpected match value'),
             };
         }))->shouldBeCalled();
         ;
@@ -173,6 +175,7 @@ class RepositorySpec extends ObjectBehavior
                 "1244987032468459522" => true,
                 "9.99" => true,
                 date('c', $refTime) => true,
+                default => throw new \Exception('Unexpected match value'),
             };
         }))->shouldBeCalled();
         ;

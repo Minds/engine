@@ -73,6 +73,7 @@ class GiftCard implements NodeInterface
             after: $after,
             last: $last,
             before: $before,
+            loggedInUser: $this->loggedInUser
         );
     }
 }
