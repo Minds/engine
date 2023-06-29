@@ -8,8 +8,10 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
 use Minds\Core\Search\SortingAlgorithms\TopV2;
 use Minds\Core\Feeds\ClusteredRecommendations;
+use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
 use Minds\Core\Feeds\Seen\Manager as SeenManager;
 use Minds\Core\Groups\Membership;
+use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Helpers\Text;
@@ -22,6 +24,7 @@ class Manager
         protected SeenManager $seenManager,
         protected EntitiesBuilder $entitiesBuilder,
         protected Membership $groupsMembership,
+        protected ACL $acl,
     ) {
     }
 
@@ -117,6 +120,7 @@ class Manager
     public function getTopSubscribed(
         User $user,
         int $limit = 12,
+        SeenEntitiesFilterStrategyEnum $seenEntitiesStrategy = SeenEntitiesFilterStrategyEnum::DEMOTE,
         string &$loadAfter = null,
         string &$loadBefore = null,
         bool &$hasMore = null
@@ -124,6 +128,7 @@ class Manager
         $topAlgo = new TopV2();
 
         $must = [];
+        $mustNot = [];
         $should = [];
         $functionScores = $topAlgo->getFunctionScores();
 
@@ -183,14 +188,25 @@ class Manager
         // Demote posts we've already seen
         $seenEntities = $this->seenManager->listSeenEntities();
         if (count($seenEntities) > 0) {
-            $functionScores[] = [
-                'filter' => [
-                    'terms' => [
-                        'guid' => Text::buildArray($seenEntities),
-                    ]
-                ],
-                'weight' => 0.01
-            ];
+            switch ($seenEntitiesStrategy) {
+                case SeenEntitiesFilterStrategyEnum::DEMOTE:
+                    $functionScores[] = [
+                        'filter' => [
+                            'terms' => [
+                                'guid' => Text::buildArray($seenEntities),
+                            ]
+                        ],
+                        'weight' => 0.01
+                    ];
+                    break;
+                case SeenEntitiesFilterStrategyEnum::EXCLUDE:
+                    $mustNot[] = [
+                        'terms' => [
+                            'guid' => Text::buildArray($seenEntities),
+                        ],
+                    ];
+                    break;
+            }
         }
 
         $body = [
@@ -201,6 +217,7 @@ class Manager
                     'query' => [
                         'bool' => [
                             'must' => $must,
+                            'must_not' => $mustNot,
                         ],
                     ],
                     'functions' => $functionScores,
@@ -249,9 +266,9 @@ class Manager
 
         $i = 0;
         foreach ($hits as $hit) {
-            $entity = $this->entitiesBuilder->single($hit['_id']);
+            $entity = $this->fetchActivity((int) $hit['_id']);
     
-            if (!$entity instanceof Activity) {
+            if (!$entity) {
                 continue;
             }
 
@@ -317,9 +334,9 @@ class Manager
 
         $i = 0;
         foreach ($allResults as $scoredGuid) {
-            $entity = $this->entitiesBuilder->single($scoredGuid->getGuid());
+            $entity = $this->fetchActivity((int) $scoredGuid->getGuid());
     
-            if (!$entity instanceof Activity) {
+            if (!$entity) {
                 continue;
             }
 
@@ -410,9 +427,9 @@ class Manager
 
         $i = 0;
         foreach ($hits as $hit) {
-            $entity = $this->entitiesBuilder->single($hit['_id']);
+            $entity = $this->fetchActivity((int) $hit['_id']);
     
-            if (!$entity instanceof Activity) {
+            if (!$entity) {
                 continue;
             }
 
@@ -442,5 +459,20 @@ class Manager
     protected function decodeSort(string $sort): array
     {
         return json_decode(base64_decode($sort, true), true);
+    }
+
+    /**
+     * Fetches activity from the entities builder and runs acl checks
+     * @return Activity
+     */
+    private function fetchActivity(int $guid): ?Activity
+    {
+        $entity = $this->entitiesBuilder->single($guid);
+
+        if (!$entity instanceof Activity) {
+            return null;
+        }
+
+        return $this->acl->read($entity) ? $entity : null;
     }
 }

@@ -67,6 +67,12 @@ class preview implements Interfaces\Api
      */
     private function getMetadata(string $url): array
     {
-        return Di::_()->get('Metascraper\Service')->scrape($url);
+        $data = Di::_()->get('Metascraper\Service')->scrape($url);
+
+        if (isset($data['meta']['title']) && mb_strlen($data['meta']['title']) > 250) {
+            $data['meta']['title'] = mb_substr($data['meta']['title'], 0, 247) . '...';
+        }
+
+        return $data;
     }
 }

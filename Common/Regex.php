@@ -19,6 +19,11 @@ class Regex
     // #tags | $tags
     const HASH_CASH_TAG = '/([^&]|\b|^)#([\wÀ-ÿ\x0E00\x0E7F\x2460-\x9FBB]+)|([^&]|\b|^)\$([A-Za-z]+)/uim';
 
+    const EMAIL = '/[^\\\\|^\\/|^\\?]*@([\\w-]+\\.)+[\\w-]{2,3}/A';
+
+    const GUID_OR_EMAIL = '/[0-9]+|[^\\\\|^\\/|^\\?]*@([\\w-]+\\.)+[\\w-]{2,3}/A';
+    const GUID = "/[0-9]+/A";
+
     /**
      * Wrapper around preg_match_all for testing.
      */

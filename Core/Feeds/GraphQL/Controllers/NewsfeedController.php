@@ -23,8 +23,8 @@ use Minds\Core\Feeds\GraphQL\Types\PublisherRecsEdge;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
-use Minds\Core\Router\Exceptions\ForbiddenException;
-use Minds\Core\Suggestions\Suggestion;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\Query;
 
@@ -37,6 +37,7 @@ class NewsfeedController
         protected BoostManager $boostManager,
         protected SuggestedChannelsRecommendationsAlgorithm $suggestedChannelsRecommendationsAlgorithm,
         protected BoostSuggestionInjector $boostSuggestionInjector,
+        protected ExperimentsManager $experimentsManager,
     ) {
     }
 
@@ -117,6 +118,13 @@ class NewsfeedController
                 throw new UserError("Invalid algorithm supplied");
         }
 
+        // Build the boosts
+        $isBoostRotatorRemovedExpirementOn = $this->experimentsManager->isOn('minds-4105-remove-rotator');
+        $boosts = $this->buildBoosts(
+            loggedInUser: $loggedInUser,
+            limit: $isBoostRotatorRemovedExpirementOn ? 3 : 1,
+        );
+
         foreach ($activities as $i => $activity) {
             $cursor = $loadAfter;
     
@@ -169,17 +177,30 @@ class NewsfeedController
                 }
             }
 
-            if ($i === 3) { // Show a boost in the 3rd slot
-                $boosts = $this->boostManager->getBoostFeed(
-                    limit: 1,
-                    targetStatus: BoostStatus::APPROVED,
-                    orderByRanking: true,
-                    targetAudience: $loggedInUser->getBoostRating(),
-                    targetLocation: BoostTargetLocation::NEWSFEED,
-                    castToFeedSyncEntities: false,
-                );
-                if ($boosts && isset($boosts[0])) {
-                    $edges[] = new BoostEdge($boosts[0], $cursor);
+            /**
+             * Show boosts depending on if the experiment to remove the rotator is enabled
+             */
+            if (
+                $isBoostRotatorRemovedExpirementOn &&
+                in_array($i, [
+                    1, // 2nd slot
+                    4, // after channel recs
+                    6, // below higlights
+                ], true) &&
+                count($boosts)
+            ) {
+                $boost = array_shift($boosts);
+                if ($boost) {
+                    $edges[] = new BoostEdge($boost, $cursor);
+                }
+            } elseif (
+                !$isBoostRotatorRemovedExpirementOn &&
+                count($boosts) &&
+                $i == 3
+            ) {
+                $boost = $boosts[0];
+                if ($boost) {
+                    $edges[] = new BoostEdge($boost, $cursor);
                 }
             }
 
@@ -206,6 +227,29 @@ class NewsfeedController
     ): ActivityNode {
         $activity = $this->entitiesBuilder->single($guid);
         return new ActivityNode($activity);
+    }
+
+    /**
+     * @return Boost[]
+     */
+    protected function buildBoosts(
+        User $loggedInUser,
+        int $limit = 3
+    ): array {
+        if ($loggedInUser->disabled_boost && $loggedInUser->isPlus()) {
+            return [];
+        }
+
+        $boosts = $this->boostManager->getBoostFeed(
+            limit: $limit,
+            targetStatus: BoostStatus::APPROVED,
+            orderByRanking: true,
+            targetAudience: $loggedInUser->getBoostRating(),
+            targetLocation: BoostTargetLocation::NEWSFEED,
+            castToFeedSyncEntities: false,
+        );
+
+        return $boosts->toArray();
     }
 
     /**
@@ -252,6 +296,7 @@ class NewsfeedController
         $activities = $this->feedsManager->getTopSubscribed(
             user: $loggedInUser,
             limit: 3,
+            seenEntitiesStrategy: SeenEntitiesFilterStrategyEnum::EXCLUDE,
             hasMore: $hasMore,
             loadAfter: $loadAfter,
             loadBefore: $loadBefore,
@@ -294,12 +339,14 @@ class NewsfeedController
                 'limit' => 3
             ]);
 
-        // Inject a boosted channel
-        $result = $this->boostSuggestionInjector->inject(
-            response: $result,
-            targetUser: $loggedInUser,
-            index: 1
-        );
+        // Inject a boosted channel (if not plus and disabled)
+        if (!($loggedInUser->disabled_boost && $loggedInUser->isPlus())) {
+            $result = $this->boostSuggestionInjector->inject(
+                response: $result,
+                targetUser: $loggedInUser,
+                index: 1
+            );
+        }
 
         $edges = [ ];
 

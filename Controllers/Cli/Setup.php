@@ -37,6 +37,7 @@ class Setup extends CliController implements CliControllerInterface
     {
         $user = new SystemUser();
         $user->set('username', 'system_user');
+        $user->setAccessId('2');
         $this->logger->info("System User saved: " . $user->save());
     }
 }

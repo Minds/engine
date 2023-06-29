@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Blockchain\Uniswap;
 
 use Brick\Math\BigDecimal;
+use Minds\Core\Config;
 use Minds\Core\Blockchain\Uniswap\Client;
 use Minds\Core\Blockchain\Services\BlockFinder;
 use Minds\Core\Http;
@@ -17,11 +18,15 @@ class ClientSpec extends ObjectBehavior
     /** @var BlockFinder */
     protected $blockFinder;
 
-    public function let(Http\Curl\Json\Client $http, BlockFinder $blockFinder)
+    /** @var Config */
+    protected $config;
+
+    public function let(Http\Curl\Json\Client $http, BlockFinder $blockFinder, Config $config)
     {
-        $this->beConstructedWith($http, $blockFinder);
+        $this->beConstructedWith($http, $blockFinder, $config);
         $this->http = $http;
         $this->blockFinder = $blockFinder;
+        $this->config = $config;
     }
 
     public function it_is_initializable()
@@ -31,6 +36,9 @@ class ClientSpec extends ObjectBehavior
 
     public function it_should_return_user()
     {
+        $this->config->get('uniswap')
+            ->willReturn(['url' => 'http://localhost:80']);
+
         $this->http->post(
             Argument::type('string'),
             Argument::that(
@@ -93,6 +101,9 @@ class ClientSpec extends ObjectBehavior
 
     public function it_should_return_pairs()
     {
+        $this->config->get('uniswap')
+            ->willReturn(['url' => 'http://localhost:80']);
+
         $this->http->post(
             Argument::type('string'),
             Argument::that(

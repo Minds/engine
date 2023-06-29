@@ -689,9 +689,9 @@ class Manager
         $paymentMethodId = null;
 
         if ($paymentMethod == SupermindRequestPaymentMethod::CASH) {
-            $paymentMethods = (new StripePaymentMethodsManager())->getList([ 'user_guid' => $activityOwner->getOwnerGuid() ]);
+            $paymentMethods = (new StripePaymentMethodsManager())->getList([ 'user_guid' => $activityOwner->getGuid() ]);
             if (count($paymentMethods) === 0) {
-                throw new InvalidPaymentMethodException("No valid payment methods were found for user {$activityOwner->getOwnerGuid()}");
+                throw new InvalidPaymentMethodException("No valid payment methods were found for user {$activityOwner->getGuid()}");
             }
             $paymentMethodId = $paymentMethods[0]->getId();
         }

@@ -55,7 +55,7 @@ class Events
             $entity = $params['entity'];
             $user = $params['user'];
 
-            if (!$user) {
+            if (!$user || !$entity) {
                 return;
             }
 

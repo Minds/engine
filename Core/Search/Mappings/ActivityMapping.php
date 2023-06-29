@@ -61,6 +61,10 @@ class ActivityMapping extends EntityMapping implements MappingInterface
             $map['is_supermind_reply'] = $this->entity->supermind['is_reply'];
         }
 
+        $map['auto_caption'] = "";
+        if (!empty($this->entity->getAutoCaption())) {
+            $map['auto_caption'] = $this->entity->getAutoCaption();
+        }
 
         return $map;
     }

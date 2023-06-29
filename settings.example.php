@@ -39,6 +39,7 @@ $CONFIG->set('cloudflare', [
     'api_key' => '',
     'email' => '',
     'account_id' => '',
+    'cdn_url' => 'https://customer-gh08u53vbkhozibb.cloudflarestream.com/',
 ]);
 
 $CONFIG->disable_secure_cookies = true;
@@ -593,7 +594,28 @@ $CONFIG->set('tags', [
 
 // should eventually replace v1 tags.
 $CONFIG->set('tags_v2', [
-    'Animals', 'Anime', 'Art', 'Comedy', 'Crypto', 'Food', 'Freedom', 'Gaming', 'Literature', 'Memes', 'Movies', 'Music', 'Nature', 'NSFW', 'News', 'Outdoors', 'Photography', 'Politics', 'Religion', 'Sports', 'Technology', 'Travel'
+    'technology',
+    'crypto',
+    'nature',
+    'travel',
+    'outdoors',
+    'animals',
+    'memes',
+    'nsfw',
+    'news',
+    'politics',
+    'spirituality',
+    'health',
+    'education',
+    'business',
+    'sports',
+    'comedy',
+    'fashion',
+    'anime',
+    'gaming',
+    'art',
+    'music',
+    'photography',
 ]);
 
 $CONFIG->set('steward_guid', '');
@@ -888,7 +910,7 @@ $CONFIG->set('jury', [
 $CONFIG->set('supermind', [
     'minimum_amount' => [
         'usd' => 1.00,
-        'offchain_token' => 1.00
+        'offchain_token' => 0.01
     ]
 ]);
 
@@ -911,5 +933,9 @@ $CONFIG->set('chatwoot', [
 ]);
 
 $CONFIG->set('strapi', [
-    'url' => 'http://localhost:1337'
+    'url' => 'https://cms.oke.minds.io'
+]);
+
+$CONFIG->set('uniswap', [
+    'url' => 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2',
 ]);

@@ -1,6 +1,8 @@
 <?php
 namespace Minds\Helpers;
 
+use Minds\Common\Regex;
+
 /**
  * Helper to validate JSON
  * @todo This class might be either deprecated or merged into a more complete JSON helper.
@@ -19,5 +21,15 @@ class Validation
 
         json_decode($string);
         return (json_last_error() == JSON_ERROR_NONE);
+    }
+
+    public static function isValidGuid(string $guid): bool
+    {
+        return preg_replace(Regex::GUID, '', $guid) === "";
+    }
+
+    public static function isValidEmail(string $email): bool
+    {
+        return preg_replace(Regex::EMAIL, '', $email) === "";
     }
 }
