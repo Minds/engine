@@ -15,80 +15,22 @@ use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Minds\Core\Sockets;
 use Minds\Core\Wire\Paywall\PaywallUserNotPaid;
 use Minds\Entities;
+use Minds\Entities\CommentableEntityInterface;
 use Minds\Exceptions\BlockedUserException;
 use Minds\Exceptions\ProhibitedDomainException;
 use Minds\Helpers;
 use Minds\Interfaces;
+use NotImplementedException;
 use Zend\Diactoros\ServerRequestFactory;
 
 class comments implements Interfaces\Api
 {
     /**
-     * Returns the comments
-     * @param array $pages
-     *
-     * API:: /v1/comment/:entityGuid/:commentGuid/:path
+     * Comments are read from v2 API
      */
     public function get($pages)
     {
-        //Factory::isLoggedIn();
-        $response = [];
-        $guid = $pages[0];
-        $parent_guid_l1 = $parent_guid_l2 = 0;
-
-        if (isset($_GET['parent_guid_l1']) && $_GET['parent_guid_l1'] != 0) {
-            $parent_guid_l1 = $_GET['parent_guid_l1'];
-        }
-
-        if (isset($_GET['parent_guid_l2'])  && $_GET['parent_guid_l2'] != 0) {
-            $parent_guid_l2 = $_GET['parent_guid_l2'];
-        }
-
-        $parent_path = $pages[2] ?? "$parent_guid_l1:$parent_guid_l2:0";
-
-        if (isset($pages[1]) && $pages[1] != 0) {
-            $manager = new Core\Comments\Manager();
-            $comment = $manager->get($guid, $parent_path, $pages[1]);
-
-            return Factory::response([
-                'comments' => $comment ? [$comment] : [],
-            ]);
-        }
-
-        /*$entity = Entities\Factory::build($guid);
-
-        if (!Security\ACL::_()->read($entity)) {
-            $subtype = $entity->subtype ?: $entity->type;
-            return Factory::response([
-                'status' => 'error',
-                'message' => "You don't have permission to view these comments as the owner has made the $subtype viewable only to themselves."
-            ]);
-        }*/
-
-        $manager = new Core\Comments\Manager();
-
-        $descending = isset($_GET['descending']) ? $_GET['descending'] !== 'false' : true;
-        $comments = $manager->getList([
-            'entity_guid' => $guid,
-            'parent_path' => $parent_path,
-            'limit' => isset($_GET['limit']) ? (int) $_GET['limit'] : 5,
-            'offset' => isset($_GET['offset']) ? $_GET['offset'] : null,
-            'include_offset' => isset($_GET['include_offset']) ? !($_GET['include_offset'] === "false") : true,
-            'token' => isset($_GET['token']) ? $_GET['token'] : null,
-            'descending' => $descending,
-        ]);
-
-        if ($descending) {
-            // Reversed order output
-            $comments = $comments->reverse();
-        }
-
-        $response['comments'] = Exportable::_($comments);
-        $response['load-previous'] = (string) $comments->getPagingToken();
-
-        $response['socketRoomName'] = "comments:{$guid}:{$parent_path}";
-
-        return Factory::response($response);
+        throw new NotImplementedException();
     }
 
     public function post($pages)
@@ -167,7 +109,15 @@ class comments implements Interfaces\Api
                     ]);
                 }
 
-                if (method_exists($entity, 'getAllowComments') && !$entity->getAllowComments()) {
+                if (!$entity instanceof CommentableEntityInterface) {
+                    Factory::response([
+                        'status' => 'error',
+                        'message' => 'You are unable to comment on this type of entity',
+                    ]);
+                    return;
+                }
+
+                if (!$entity->getAllowComments()) {
                     return Factory::response([
                         'status' => 'error',
                         'message' => 'This user has disabled comments on their post'

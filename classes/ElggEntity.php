@@ -1,5 +1,6 @@
 <?php
 
+use Minds\Entities\CommentableEntityInterface;
 use Minds\Entities\EntityInterface;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
 use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
@@ -22,7 +23,6 @@ use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
  * @property int    $time_updated   A UNIX timestamp of when the entity was last updated (automatically updated on save)
  * @property int    $moderator_guid The GUID of the moderator
  * @property int    $moderated_at   A UNIX timestamp of when the entity was moderated
- * @property bool   $allow_comments A boolean value that turns off comments for an entity
  * @property-read string $enabled
  */
 abstract class ElggEntity extends ElggData implements
@@ -88,7 +88,6 @@ abstract class ElggEntity extends ElggData implements
         $this->attributes['nsfw_lock'] = [];
         $this->attributes['moderator_guid'] = null;
         $this->attributes['time_moderated'] = null;
-        $this->attributes['allow_comments'] = true;
     }
 
     /**
@@ -770,29 +769,6 @@ abstract class ElggEntity extends ElggData implements
     }
 
     /**
-     * Can a user comment on an entity?
-     *
-     * @tip Can be overridden by registering for the permissions_check:comment,
-     * <entity type> plugin hook.
-     *
-     * @param int $user_guid User guid (default is logged in user)
-     *
-     * @return bool
-     */
-    public function canComment($user_guid = 0)
-    {
-        if ($user_guid == 0) {
-            $user_guid = elgg_get_logged_in_user_guid();
-        }
-        $user = get_entity($user_guid);
-
-        // By default, we don't take a position of whether commenting is allowed
-        // because it is handled by the subclasses of ElggEntity
-        $params = ['entity' => $this, 'user' => $user];
-        return elgg_trigger_plugin_hook('permissions_check:comment', $this->type, $params, null);
-    }
-
-    /**
      * Can a user annotate an entity?
      *
      * @tip Can be overridden by registering for the permissions_check:annotate,
@@ -1440,7 +1416,6 @@ abstract class ElggEntity extends ElggData implements
             'tags',
             'nsfw',
             'nsfw_lock',
-            'allow_comments'
         ];
     }
 
@@ -1457,7 +1432,6 @@ abstract class ElggEntity extends ElggData implements
         $export['nsfw'] = $this->getNsfw();
         $export['nsfw_lock'] = $this->getNsfwLock();
         $export['urn'] = $this->getUrn();
-        $export['allow_comments'] = $this->getAllowComments();
 
         if (isset($export['title'])) {
             $export['title'] = (new TitleLengthValidator())->validateMaxAndTrim($export['title']);
@@ -1750,24 +1724,6 @@ abstract class ElggEntity extends ElggData implements
     public function getTimeModerated()
     {
         return $this->time_moderated;
-    }
-
-    /**
-     * Sets the flag for allowing comments on an entity
-     * @param bool $allowComments
-     */
-    public function setAllowComments(bool $allowComments)
-    {
-        $this->allow_comments = $allowComments;
-        return $this;
-    }
-
-    /**
-     * Gets the flag for allowing comments on an entity
-     */
-    public function getAllowComments()
-    {
-        return (bool) $this->allow_comments;
     }
 
     /**

@@ -36,8 +36,9 @@ use Minds\Helpers\StringLengthValidators\DescriptionLengthValidator;
  * @property bool $mature
  * @property array $nsfw
  * @property int $rating
+ * @property bool $allow_comments
  */
-class Video extends MindsObject
+class Video extends MindsObject implements CommentableEntityInterface
 {
     private $cinemr;
 
@@ -56,6 +57,7 @@ class Video extends MindsObject
         $this->attributes['youtube_thumbnail'] = null; // this is ephemeral
         $this->attributes['transcoder'] = null;
         $this->attributes['cloudflare_id'] = null;
+        $this->attributes['allow_comments'] = true;
     }
 
 
@@ -569,5 +571,24 @@ class Video extends MindsObject
     public function getLicense(): string
     {
         return $this->license;
+    }
+
+    /**
+     * !!Support for videos pre multi-image!!
+     * Sets the flag for allowing comments on an entity
+     * @param bool $allowComments
+     */
+    public function setAllowComments(bool $allowComments): self
+    {
+        $this->allow_comments = $allowComments;
+        return $this;
+    }
+
+    /**
+     * Gets the flag for allowing comments on an entity
+     */
+    public function getAllowComments(): bool
+    {
+        return (bool) $this->allow_comments;
     }
 }

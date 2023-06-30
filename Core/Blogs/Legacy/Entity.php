@@ -73,7 +73,7 @@ class Entity
         'header_bg',
         'monetized',
         'paywall',
-        'allow_comments'
+        'allow_comments',
     ];
 
     /**
