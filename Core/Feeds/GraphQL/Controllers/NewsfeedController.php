@@ -21,12 +21,16 @@ use Minds\Core\Feeds\GraphQL\Types\NewsfeedConnection;
 use Minds\Core\Feeds\GraphQL\Types\PublisherRecsConnection;
 use Minds\Core\Feeds\GraphQL\Types\PublisherRecsEdge;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
+use Minds\Core\Groups\V2\GraphQL\Types\GroupEdge;
 use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
+use Minds\Core\Suggestions\Manager as SuggestionsManager;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\Query;
+use Minds\Core\FeedNotices\Notices\NoGroupsNotice;
+use Minds\Core\Feeds\GraphQL\Enums\NewsfeedAlgorithmsEnum;
 
 class NewsfeedController
 {
@@ -37,6 +41,7 @@ class NewsfeedController
         protected BoostManager $boostManager,
         protected SuggestedChannelsRecommendationsAlgorithm $suggestedChannelsRecommendationsAlgorithm,
         protected BoostSuggestionInjector $boostSuggestionInjector,
+        protected SuggestionsManager $suggestionsManager,
         protected ExperimentsManager $experimentsManager,
     ) {
     }
@@ -53,6 +58,15 @@ class NewsfeedController
         ?string $before = null,
         ?array $inFeedNoticesDelivered = [],
     ): NewsfeedConnection {
+        /**
+         * Ideally we would use an enum in the function, but Graphql is not playing nice.
+         */
+        try {
+            $algorithm = NewsfeedAlgorithmsEnum::from($algorithm);
+        } catch (\ValueError) {
+            throw new UserError("Invalid algorithm provided");
+        }
+
         if ($first && $last) {
             throw new UserError("first and last supplied, can only paginate in one direction");
         }
@@ -78,7 +92,7 @@ class NewsfeedController
         $edges = [];
 
         switch ($algorithm) {
-            case "latest":
+            case NewsfeedAlgorithmsEnum::LATEST:
                 $activities = $this->feedsManager->getLatestSubscribed(
                     user: $loggedInUser,
                     limit: $limit,
@@ -87,7 +101,7 @@ class NewsfeedController
                     loadBefore: $loadBefore,
                 );
                 break;
-            case "groups":
+            case NewsfeedAlgorithmsEnum::GROUPS:
                 $activities = $this->feedsManager->getLatestGroups(
                     user: $loggedInUser,
                     limit: $limit,
@@ -96,7 +110,7 @@ class NewsfeedController
                     loadBefore: $loadBefore,
                 );
                 break;
-            case "top":
+            case NewsfeedAlgorithmsEnum::TOP:
                 $activities = $this->feedsManager->getTopSubscribed(
                     user: $loggedInUser,
                     limit: $limit,
@@ -105,7 +119,7 @@ class NewsfeedController
                     loadBefore: $loadBefore,
                 );
                 break;
-            case "for-you":
+            case NewsfeedAlgorithmsEnum::FORYOU:
                 $activities = $this->feedsManager->getClusteredRecs(
                     user: $loggedInUser,
                     limit: $limit,
@@ -127,7 +141,7 @@ class NewsfeedController
 
         foreach ($activities as $i => $activity) {
             $cursor = $loadAfter;
-    
+
             // Do not return more than the limit
             if (count($edges) >= $limit) {
                 break;
@@ -139,7 +153,8 @@ class NewsfeedController
                     location: ($after ||$before) ? 'inline' : 'top',
                     limit: 1,
                     cursor: $cursor,
-                    inFeedNoticesDelivered: $inFeedNoticesDelivered
+                    inFeedNoticesDelivered: $inFeedNoticesDelivered,
+                    algorithm: $algorithm
                 );
                 if ($priorityNotices && isset($priorityNotices[0])) {
                     $edges[] = $priorityNotices[0];
@@ -150,7 +165,7 @@ class NewsfeedController
             /**
              * Show top highlights on the first page load
              */
-            if ($i === 6 && $algorithm === 'latest' && !($after || $before)) {
+            if ($i === 6 && $algorithm === NewsfeedAlgorithmsEnum::LATEST && !($after || $before)) {
                 $topHighlightsEdge = $this->buildFeedHighlights($loggedInUser, $cursor);
                 if ($topHighlightsEdge) {
                     $edges[] = $topHighlightsEdge;
@@ -164,16 +179,28 @@ class NewsfeedController
                     limit: 1,
                     cursor: $cursor,
                     inFeedNoticesDelivered: $inFeedNoticesDelivered,
+                    algorithm: $algorithm
                 );
                 if ($inlineNotice && isset($inlineNotice[0])) {
                     $edges[] = $inlineNotice[0];
                 }
             }
-
+            /**
+             * Publisher recommendations
+             * On first load, randomly show either channel/group recs
+             * Unless we're on the group feed, where we always show group recs
+             */
             if ($i === 3 && !($after || $before)) {
-                $channelRecs = $this->buildChannelRecs($loggedInUser, $cursor);
-                if ($channelRecs) {
-                    $edges[] = $channelRecs;
+                if (mt_rand(0, 1) || $algorithm === NewsfeedAlgorithmsEnum::GROUPS) {
+                    $groupRecs = $this->buildGroupRecs($loggedInUser, $cursor, 3);
+                    if ($groupRecs) {
+                        $edges[] = $groupRecs;
+                    }
+                } else {
+                    $channelRecs = $this->buildChannelRecs($loggedInUser, $cursor);
+                    if ($channelRecs) {
+                        $edges[] = $channelRecs;
+                    }
                 }
             }
 
@@ -207,8 +234,33 @@ class NewsfeedController
             $edges[] = new ActivityEdge($activity, $cursor);
         }
 
+        if (empty($edges)) {
+            // If the group feed is empty
+            if ($algorithm === NewsfeedAlgorithmsEnum::GROUPS) {
+                // Show the no groups notice
+                $noGroupNotice = $this->buildInFeedNotices(
+                    loggedInUser: $loggedInUser,
+                    location: ($after ||$before) ? 'inline' : 'top',
+                    limit: 1,
+                    cursor: '',
+                    inFeedNoticesDelivered: $inFeedNoticesDelivered,
+                    algorithm: $algorithm
+                );
+                if ($noGroupNotice && isset($noGroupNotice[0])) {
+                    $edges[] = $noGroupNotice[0];
+                    $inFeedNoticesDelivered[] = $noGroupNotice[0]->getNode()->getKey();
+                }
+
+                // And show suggested groups
+                $groupRecs = $this->buildGroupRecs($loggedInUser, $loadBefore, 5);
+                if ($groupRecs) {
+                    $edges[] = $groupRecs;
+                }
+            }
+        }
+
         $pageInfo = new Types\PageInfo(
-            hasPreviousPage: $algorithm === 'latest' || ($after && $loadBefore) ? true : false, // Always will be newer data on latest or if we are paging forward
+            hasPreviousPage: $algorithm === NewsfeedAlgorithmsEnum::LATEST || ($after && $loadBefore) ? true : false, // Always will be newer data on latest or if we are paging forward
             hasNextPage: $hasMore,
             startCursor: $loadBefore,
             endCursor: $loadAfter,
@@ -260,6 +312,7 @@ class NewsfeedController
         User $loggedInUser,
         string $cursor,
         array $inFeedNoticesDelivered,
+        NewsfeedAlgorithmsEnum $algorithm,
         string $location = 'inline',
         int $limit = 1
     ): array {
@@ -267,6 +320,18 @@ class NewsfeedController
 
         $feedNotices = $this->feedNoticesManager->getNotices($loggedInUser);
         $i = 0;
+
+        // On the groups tab, the no-groups notice is highest priority (if applicable)
+        if ($algorithm === NewsfeedAlgorithmsEnum::GROUPS) {
+            $noGroupsNotice = new NoGroupsNotice;
+
+            if (!in_array($noGroupsNotice->getKey(), $inFeedNoticesDelivered, true) && $noGroupsNotice->shouldShow($loggedInUser)) {
+                $edges[] = new FeedNoticeEdge($noGroupsNotice, $cursor);
+
+                return $edges;
+            }
+        }
+
         foreach ($feedNotices as $feedNotice) {
             try {
                 if (
@@ -278,6 +343,7 @@ class NewsfeedController
                 }
             } catch (\Exception $e) {
             }
+
             $edges[] = new FeedNoticeEdge($feedNotice, $cursor);
             if (++$i >= $limit) {
                 break;
@@ -362,6 +428,41 @@ class NewsfeedController
         }
 
         // Inject a boosted channel into here too
+
+        $pageInfo = new Types\PageInfo(
+            hasPreviousPage: false,
+            hasNextPage: false,
+            startCursor: null,
+            endCursor: null,
+        );
+
+        $connection = new PublisherRecsConnection();
+        $connection->setEdges($edges);
+        $connection->setPageInfo($pageInfo);
+
+        return new PublisherRecsEdge($connection, $cursor);
+    }
+
+    /**
+     * Builds out group recommendations
+     * @return PublisherRecsEdge
+     */
+    protected function buildGroupRecs(User $loggedInUser, string $cursor, int $listSize = 3): PublisherRecsEdge
+    {
+        $result = $this->suggestionsManager
+            ->setUser($loggedInUser)
+            ->setType('group')
+            ->getList([
+                'limit' => $listSize
+            ]);
+
+        $edges = [ ];
+
+        foreach ($result as $i => $suggestion) {
+            $cursor = base64_encode($i);
+            $entity = $suggestion->getEntity();
+            $edges[] = new GroupEdge($entity, $cursor);
+        }
 
         $pageInfo = new Types\PageInfo(
             hasPreviousPage: false,
