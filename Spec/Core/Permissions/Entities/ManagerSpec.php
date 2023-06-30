@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Permissions\Entities;
 
+use Minds\Core\Blogs\Blog;
 use Minds\Core\Permissions\Entities\Manager;
 use Minds\Core\Permissions\Entities\EntityPermissions;
 use Minds\Entities\User;
@@ -9,6 +10,7 @@ use PhpSpec\ObjectBehavior;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Data\Call;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Entities\Activity;
 use Minds\Entities\Entity;
 use Minds\Entities\Image;
 
@@ -39,7 +41,7 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_save_entity_permissions(Entity $entity, Image $image)
+    public function it_should_save_entity_permissions(Activity $entity, Image $image)
     {
         $permissions = new EntityPermissions();
         $entity->setAllowComments(true)->shouldBeCalled();
@@ -52,7 +54,7 @@ class ManagerSpec extends ObjectBehavior
         $this->save($entity, $permissions);
     }
 
-    public function it_should_save_attachment_permissions(Entity $entity, Image $image)
+    public function it_should_save_attachment_permissions(Activity $entity, Image $image)
     {
         $permissions = new EntityPermissions();
         $image->setAllowComments(true)->shouldBeCalled();
@@ -68,7 +70,7 @@ class ManagerSpec extends ObjectBehavior
         $this->save($entity, $permissions);
     }
 
-    public function it_should_save_linked_entity_permissions(Entity $entity, Entity $parent)
+    public function it_should_save_linked_entity_permissions(Activity $entity, Blog $parent)
     {
         $permissions = new EntityPermissions();
         $parent->setAllowComments(true)->shouldBeCalled();

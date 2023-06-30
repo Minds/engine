@@ -236,11 +236,12 @@ class Repository
         $summariesJoin = "";
         if ($targetUserGuid) {
             $summariesJoin = " LEFT JOIN (
-                    SELECT guid, SUM(views) as total_views FROM boost_summaries
+                    SELECT guid, SUM(views) as total_views, SUM(clicks) as total_clicks FROM boost_summaries
                     GROUP BY 1
                 ) summary
                 ON boosts.guid=summary.guid";
             $selectColumns[] = "summary.total_views";
+            $selectColumns[] = "summary.total_clicks";
         }
 
 
@@ -292,6 +293,7 @@ class Repository
                     updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
                     approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
                     summaryViewsDelivered: (int) ($boostData['total_views'] ?? 0),
+                    summaryClicksDelivered: (int) ($boostData['total_clicks'] ?? 0),
                     paymentGuid: (int) $boostData['payment_guid'] ?: null
                 )
             )
@@ -313,7 +315,8 @@ class Repository
         $values = [ 'guid' => $boostGuid ];
 
         $summariesJoin = "LEFT JOIN (
-                SELECT guid, SUM(views) as total_views FROM boost_summaries
+                SELECT guid, SUM(views) as total_views, SUM(clicks) as total_clicks
+                FROM boost_summaries
                 GROUP BY 1
             ) summary
             ON boosts.guid=summary.guid";
@@ -352,7 +355,8 @@ class Repository
                 paymentGuid: (int) $boostData['payment_guid'] ?: null,
                 updatedTimestamp: isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
                 approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
-                summaryViewsDelivered: (int) $boostData['total_views']
+                summaryViewsDelivered: (int) $boostData['total_views'],
+                summaryClicksDelivered: (int) ($boostData['total_clicks'] ?? 0),
             )
         )
             ->setGuid((string) $boostData['guid'])

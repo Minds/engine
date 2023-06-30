@@ -84,6 +84,7 @@ class Boost implements EntityInterface, ExportableInterface
         private ?int $updatedTimestamp = null,
         private ?int $approvedTimestamp = null,
         private ?int $summaryViewsDelivered = 0,
+        private ?int $summaryClicksDelivered = 0,
         private ?int $paymentGuid = null,
         private ?bool $targetPlatformWeb = true,
         private ?bool $targetPlatformAndroid = true,
@@ -177,6 +178,7 @@ class Boost implements EntityInterface, ExportableInterface
             'approved_timestamp' => $this->getApprovedTimestamp(),
             'summary' => [
                 'views_delivered' => $this->summaryViewsDelivered,
+                'total_clicks' => $this->summaryClicksDelivered,
             ],
         ];
     }

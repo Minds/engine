@@ -136,41 +136,6 @@ class ElggObject extends ElggEntity {
 	}
 
 	/**
-	 * Can a user comment on this object?
-	 *
-	 * @see ElggEntity::canComment()
-	 *
-	 * @param int $user_guid User guid (default is logged in user)
-	 * @return bool
-	 * @since 1.8.0
-	 */
-	public function canComment($user_guid = 0) {
-		$result = parent::canComment($user_guid);
-		if ($result !== null) {
-			return $result;
-		}
-
-		if ($user_guid == 0) {
-			$user_guid = elgg_get_logged_in_user_guid();
-		}
-
-		// must be logged in to comment
-		if (!$user_guid) {
-			return false;
-		}
-
-		// must be member of group
-		if (elgg_instanceof($this->getContainerEntity(), 'group')) {
-			if (!$this->getContainerEntity()->canWriteToContainer($user_guid)) {
-				return false;
-			}
-		}
-
-		// no checks on read access since a user cannot see entities outside his access
-		return true;
-	}
-
-	/**
 	 * Gets the ElggEntity that owns this entity.
      *
      * @return ElggEntity The owning entity
