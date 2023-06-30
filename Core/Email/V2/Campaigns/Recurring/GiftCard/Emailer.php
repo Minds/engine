@@ -116,7 +116,6 @@ class Emailer extends EmailCampaign
                     ]
                 )
             )
-            ->setFrom($sender->getEmail(), $sender->getName())
             ->setSubject("You received a gift")
             ->setHtml($this->template);
     }

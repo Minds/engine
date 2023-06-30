@@ -422,7 +422,7 @@ class Repository
             ->set([
                 'status' => new RawExp(':status'),
                 'updated_timestamp' => $isCompleted ? new RawExp('updated_timestamp') : new RawExp(':timestamp'),
-                'completed_timestamp' => !$isCompleted ? new RawExp('completed_timestamp') : new RawExp(':timestamp'),
+                'completed_timestamp' => !$isCompleted ? new RawExp('completed_timestamp') : new RawExp('TIMESTAMPADD(DAY, duration_days, updated_timestamp)'),
             ])
             ->where('guid', Operator::EQ, new RawExp(':guid'))
             ->prepare();
