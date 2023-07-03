@@ -72,6 +72,7 @@ $CONFIG->set(
                 ['value' => 4, 'label' => 'Fraud'],
                 ['value' => 5, 'label' => 'Revenge Porn'],
                 ['value' => 6, 'label' => 'Sex trafficking'],
+                ['value' => 7, 'label' => 'Animal abuse']
             ],
         ],
         [
