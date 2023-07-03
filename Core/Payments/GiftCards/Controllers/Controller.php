@@ -55,7 +55,6 @@ class Controller
      * @throws ServerErrorException
      * @throws StripeTransferFailedException
      * @throws UserErrorException
-     * @throws ServerErrorException
      */
     #[Mutation]
     #[Logged]
