@@ -78,7 +78,7 @@ class Manager
         return [
             (new Source())
                 ->setType($mimeType)
-                ->setSrc("https://videodelivery.net/$signedToken/manifest/video.m3u8")
+                ->setSrc("{$this->getCdnUrl()}/$signedToken/manifest/video.m3u8")
         ];
     }
 
@@ -90,7 +90,7 @@ class Manager
     {
         $signedToken = $this->getSigningToken($video->getCloudflareId(), 86400 * 90); // 90 days ttl for thumbnails
 
-        return "https://videodelivery.net/$signedToken/thumbnails/thumbnail.jpg?width=1280";
+        return "{$this->getCdnUrl()}/$signedToken/thumbnails/thumbnail.jpg?width=1280";
     }
 
     /**
@@ -186,5 +186,13 @@ class Manager
 
         $response = $this->client->request('GET', 'stream/' . $video->getCloudflareId());
         return json_decode($response->getBody(), true)["result"];
+    }
+
+    /**
+     * Returns the base url for the videos
+     */
+    private function getCdnUrl(): string
+    {
+        return rtrim($this->config->get('cloudflare')['cdn_url'] ?? "https://customer-gh08u53vbkhozibb.cloudflarestream.com/", "/");
     }
 }

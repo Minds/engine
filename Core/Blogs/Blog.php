@@ -24,6 +24,7 @@ use Minds\Helpers\Text;
 use Minds\Traits\MagicAttributes;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Core\Wire\Paywall\PaywallEntityTrait;
+use Minds\Entities\CommentableEntityInterface;
 use Minds\Entities\EntityInterface;
 
 /**
@@ -95,14 +96,12 @@ use Minds\Entities\EntityInterface;
  * @method int getModeratorGuid()
  * @method Blog setTimeModerated(int $timeModerated)
  * @method int getTimeModerated()
- * @method Blog setAllowComments(bool $allowComments)
- * @method bool getAllowComments()
  * @method int getTimeSent()
  * @method Blog setTimeSent(int $time_sent)
  * @method bool getEditorVersion()
  * @method bool setEditorVersion(int $editorVersion)
  */
-class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInterface
+class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInterface, CommentableEntityInterface
 {
     use MagicAttributes;
     use PaywallEntityTrait;
@@ -630,7 +629,6 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
             'tags',
             'nsfw',
             'nsfw_lock',
-            'allow_comments',
             'time_sent',
             'editor_version',
             function ($export) {
@@ -754,5 +752,23 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
     public function getOwnerGuid(): string
     {
         return (string) $this->ownerGuid;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAllowComments(): bool
+    {
+        return $this->allowComments;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setAllowComments(bool $allowComments): self
+    {
+        $this->allowComments = $allowComments;
+        $this->markAsDirty('allowComments');
+        return $this;
     }
 }

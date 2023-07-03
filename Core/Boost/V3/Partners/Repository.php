@@ -130,7 +130,6 @@ class Repository
                 'boosts.guid',
                 'boosts.payment_method',
                 'boosts.payment_amount',
-                'boosts.payment_method',
                 'total_views' => new RawExp('SUM(s.views)')
             ])
             ->from('boosts')
@@ -156,8 +155,8 @@ class Repository
                 'served_by_user_guid',
                 'cash_total_views_served' => new RawExp('SUM(CASE WHEN completed.payment_method = 1 THEN bpv.views ELSE 0 END)'),
                 'tokens_total_views_served' => new RawExp('SUM(CASE WHEN completed.payment_method = 2 THEN bpv.views ELSE 0 END)'),
-                'cash_ecpm' => new RawExp('SUM(CASE WHEN completed.payment_method = 1 THEN ((completed.payment_amount / completed.total_views) * 1000) ELSE 0 END)'),
-                'tokens_ecpm' => new RawExp('SUM(CASE WHEN completed.payment_method = 2 THEN ((completed.payment_amount / completed.total_views) * 1000) ELSE 0 END)'),
+                'cash_ecpm' => new RawExp('SUM( IF(completed.payment_method = 1, completed.payment_amount, 0)) / SUM(IF(completed.payment_method = 1, completed.total_views, 0)) * 1000'),
+                'tokens_ecpm' => new RawExp('SUM(IF(completed.payment_method = 2, completed.payment_amount, 0)) / SUM(IF(completed.payment_method = 2, completed.total_views, 0)) * 1000'),
             ])
             ->from(new RawExp('boost_partner_views as bpv'))
             ->innerJoin(

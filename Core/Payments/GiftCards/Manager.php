@@ -2,12 +2,18 @@
 namespace Minds\Core\Payments\GiftCards;
 
 use Minds\Core\Guid;
+use Minds\Core\Log\Logger;
+use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardPaymentTypeEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardAlreadyClaimedException;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardPaymentFailedException;
+use Minds\Core\Payments\GiftCards\Exceptions\InvalidGiftCardClaimCodeException;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
+use Minds\Core\Payments\GiftCards\Types\GiftCardTarget;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\V2\Enums\PaymentMethod;
 use Minds\Core\Payments\V2\Enums\PaymentType;
@@ -17,13 +23,16 @@ use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 use Stripe\Exception\ApiErrorException;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class Manager
 {
     public function __construct(
         protected Repository $repository,
         protected PaymentsManager $paymentsManager,
-        private readonly PaymentProcessor $paymentProcessor
+        private readonly PaymentProcessor $paymentProcessor,
+        private readonly EmailDelegate $emailDelegate,
+        private readonly Logger $logger
     ) {
     }
 
@@ -100,10 +109,13 @@ class Manager
             );
             $this->repository->addGiftCardTransaction($giftCardTransaction);
 
-            $this->paymentProcessor->capturePayment($paymentRef, $issuer);
+            if ($giftCardPaymentTypeEnum === GiftCardPaymentTypeEnum::CASH) {
+                $this->paymentProcessor->capturePayment($paymentRef, $issuer);
+            }
 
             // Commit the transaction
             $this->repository->commitTransaction();
+
 
             return $giftCard;
         } catch (GiftCardPaymentFailedException $e) {
@@ -112,6 +124,17 @@ class Manager
             $this->repository->rollbackTransaction();
             throw $e;
         }
+    }
+
+    /**
+     * @param GiftCardTarget $recipient
+     * @param GiftCard $giftCard
+     * @return void
+     * @throws GraphQLException
+     */
+    public function sendGiftCardToRecipient(GiftCardTarget $recipient, GiftCard $giftCard): void
+    {
+        $this->emailDelegate->onCreateGiftCard($giftCard, $recipient);
     }
 
     private function generateClaimCode(
@@ -159,27 +182,38 @@ class Manager
 
     /**
      * A user can claim a gift code if they know the claim code
+     * @param User $claimant
+     * @param string $claimCode
+     * @return GiftCard
+     * @throws GiftCardAlreadyClaimedException
+     * @throws GiftCardNotFoundException
+     * @throws InvalidGiftCardClaimCodeException
+     * @throws ServerErrorException
      */
     public function claimGiftCard(
-        GiftCard $giftCard,
         User $claimant,
         string $claimCode,
-    ): bool {
-        // Check its not already been claimed
+    ): GiftCard {
+        $giftCard = $this->repository->getGiftCardByClaimCode($claimCode);
+        // Check it's not already been claimed
         if ($giftCard->isClaimed()) {
-            throw new \Exception("This giftcard has already been claimed");
+            throw new GiftCardAlreadyClaimedException();
         }
 
         // Verify the claim code
         if ($giftCard->claimCode !== $claimCode) {
-            throw new \Exception("Invalid claim code");
+            throw new InvalidGiftCardClaimCodeException();
         }
 
         $giftCard
             ->setClaimedByGuid($claimant->getGuid())
             ->setClaimedAt(time());
 
-        return $this->repository->updateGiftCardClaim($giftCard);
+        // TODO: Add transaction record for the claim?
+
+        $this->repository->updateGiftCardClaim($giftCard);
+
+        return $giftCard;
     }
 
     /**

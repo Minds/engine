@@ -2,6 +2,7 @@
 namespace Minds\Core\Feeds\GraphQL\Types;
 
 use Minds\Core\Boost\V3\GraphQL\Types\BoostEdge;
+use Minds\Core\Groups\V2\GraphQL\Types\GroupEdge;
 use Minds\Core\GraphQL\Types\Connection;
 use Minds\Core\GraphQL\Types\EdgeInterface;
 use Minds\Core\GraphQL\Types\NodeInterface;
@@ -15,7 +16,7 @@ use TheCodingMachine\GraphQLite\Types\ID;
 #[Type]
 class PublisherRecsConnection extends Connection implements NodeInterface
 {
-    /** @var (UserEdge|BoostEdge)[] */
+    /** @var (UserEdge|BoostEdge|GroupEdge)[] */
     protected array $edges = [];
 
     #[Field]

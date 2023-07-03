@@ -62,7 +62,7 @@ class Repository
      */
     public function incrementClicks(string $guid, DateTime $date): bool
     {
-        $statement = "INSERT INTO boost_summaries (guid, date, views, clicks) VALUES (:guid, :date, 0, 1) ON DUPLICATE KEY UPDATE clicks = clicks + 1";
+        $statement = "INSERT INTO boost_summaries (guid, date, views, clicks) VALUES (:guid, :date, 0, 1) ON DUPLICATE KEY UPDATE clicks = IFNULL(clicks, 0) + 1";
         $values = [
             'guid' => $guid,
             'date' => $date->format('c')

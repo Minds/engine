@@ -31,9 +31,10 @@ use Minds\Helpers\StringLengthValidators\DescriptionLengthValidator;
  * @property string $permaweb_id
  * @property int $rating
  * @property string $auto_caption
+ * @property bool $allow_comments
  */
 
-class Image extends File implements MutatableEntityInterface
+class Image extends File implements MutatableEntityInterface, CommentableEntityInterface
 {
     private const THUMBNAILS_SIZES = [
         'xlarge' => [
@@ -76,6 +77,7 @@ class Image extends File implements MutatableEntityInterface
         $this->attributes['license'] = null;
         $this->attributes['blurhash'] = null;
         $this->attributes['auto_caption'] = null;
+        $this->attributes['allow_comments'] = true;
     }
 
     public function getUrl()
@@ -662,5 +664,24 @@ class Image extends File implements MutatableEntityInterface
     {
         $this->auto_caption = $caption;
         return $this;
+    }
+
+    /**
+     * !!Support for images pre multi-image!!
+     * Sets the flag for allowing comments on an entity
+     * @param bool $allowComments
+     */
+    public function setAllowComments(bool $allowComments): self
+    {
+        $this->allow_comments = $allowComments;
+        return $this;
+    }
+
+    /**
+     * Gets the flag for allowing comments on an entity
+     */
+    public function getAllowComments(): bool
+    {
+        return (bool) $this->allow_comments;
     }
 }
