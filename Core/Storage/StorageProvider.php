@@ -22,8 +22,8 @@ class StorageProvider extends Provider
 
         $this->di->bind('Storage', function ($di) {
             $config = $di->get('Config');
-            if ($config->storage_engine) {
-                return $di->get('Storage\\' . $config->storage_engine);
+            if ($config->get('storage')['engine']) {
+                return $di->get('Storage\\' . $config->get('storage')['engine']);
             }
             return $di->get('Storage\Disk');
         }, ['useFactory'=>false]);

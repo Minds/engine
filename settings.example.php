@@ -660,6 +660,12 @@ $CONFIG->set('max_video_length_plus', 1860);
 /* Maximum video file size, in bytes */
 $CONFIG->set('max_video_file_size', 3900000000);
 
+$CONFIG->set('storage', [
+    'engine' => 'Disk',
+    'oci_primary' => false,
+    'oci_bucket_name' => 'mindsfs',
+]);
+
 $CONFIG->set('aws', [
     'key' => '',
     'secret' => '',
@@ -684,6 +690,20 @@ $CONFIG->set('aws', [
     ],
 ]);
 
+$CONFIG->set('oci', [
+    'oss_s3_client' => [
+        'endpoint' => '',
+        'key' => '',
+        'secret' => ''
+    ],
+    'api_auth' => [
+        'private_key' => '',
+        'tenant_id' => '',
+        'user_id' => '',
+        'key_fingerprint' => ''
+    ]
+]);
+
 $CONFIG->set('transcode', [
     //'free_threshold' => 900, // 15 minutes
     'free_threshold' => 2,
@@ -692,8 +712,11 @@ $CONFIG->set('transcode', [
 ]);
 
 $CONFIG->set('transcoder', [
+    'oci_primary' => false,
+    'oci_bucket_name' => 'cinemr',
     'threads' => 4,
     'dir' => 'cinemr_dev',
+    'primary_bucket' => 'aws',
     'presets' => [
         [
             'width' => 640,
