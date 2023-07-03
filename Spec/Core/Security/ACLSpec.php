@@ -194,7 +194,8 @@ class ACLSpec extends ObjectBehavior
         $this->mock_session(true);
 
         Core\Events\Dispatcher::register('acl:read', 'all', function ($event) {
-            var_dump(123); exit;
+            var_dump(123);
+            exit;
             $event->setResponse(true);
         });
 

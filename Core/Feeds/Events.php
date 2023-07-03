@@ -36,8 +36,7 @@ class Events
         $blockManager = null,
         protected ?EntitiesBuilder $entitiesBuilder = null,
         protected ?ACL $acl = null,
-    )
-    {
+    ) {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
