@@ -111,6 +111,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
 
                 // If no user, something went wrong, but still skip
                 if (!$user || !$user instanceof User) {
+                    $this->logger->warning('User ' . $data['user_guid'] . ' not found', $data);
                     $consumer->acknowledge($message);
                     continue;
                 }

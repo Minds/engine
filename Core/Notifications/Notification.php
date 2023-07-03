@@ -16,7 +16,6 @@ use Minds\Traits\MagicAttributes;
 /**
  * Class Notification
  * @package Minds\Core\Notification
- * @method string getUuid()
  * @method Notification setUuid(string $value)
  * @method string getToGuid()
  * @method Notification setToGuid(string $value)
@@ -191,6 +190,9 @@ class Notification
      */
     public function getMergeKey(): string
     {
+        if ($this->getGroupingType() === NotificationTypes::GROUPING_TYPE_AFFILIATE_EARNINGS) {
+            return hash('sha256', $this->getUuid());
+        }
         $period = 3600 * 48; // 24 hour blocks
         $nearestPeriod = $this->getCreatedTimestamp() - ($this->getCreatedTimestamp() % $period);
 
