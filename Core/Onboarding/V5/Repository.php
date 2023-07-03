@@ -25,7 +25,7 @@ class Repository extends AbstractRepository
     {
         $statement = $this->mysqlClientReaderHandler
             ->select()
-            ->from('minds_onboarding_completion')
+            ->from('minds_onboarding_v5_completion')
             ->where('user_guid', Operator::EQ, new RawExp(':user_guid'))
             ->prepare();
 
@@ -63,7 +63,7 @@ class Repository extends AbstractRepository
     {
         $statement = $this->mysqlClientWriterHandler
             ->insert()
-            ->into('minds_onboarding_completion')
+            ->into('minds_onboarding_v5_completion')
             ->set([
                 'user_guid' => new RawExp(':user_guid'),
                 'completed_at' => new RawExp(':completed_at')
@@ -103,7 +103,7 @@ class Repository extends AbstractRepository
     {
         $statement = $this->mysqlClientReaderHandler
             ->select()
-            ->from('minds_onboarding_step_progress')
+            ->from('minds_onboarding_v5_step_progress')
             ->where('user_guid', Operator::EQ, new RawExp(':user_guid'))
             ->prepare();
 
@@ -144,7 +144,7 @@ class Repository extends AbstractRepository
 
         $statement = $this->mysqlClientWriterHandler
             ->insert()
-            ->into('minds_onboarding_step_progress')
+            ->into('minds_onboarding_v5_step_progress')
             ->set([
                 'user_guid' => new RawExp(':user_guid'),
                 'step_key' => new RawExp(':step_key'),
