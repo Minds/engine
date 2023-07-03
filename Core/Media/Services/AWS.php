@@ -98,25 +98,4 @@ class AWS implements ServiceInterface
 
         return $body->getContents();
     }
-
-    public function transcode()
-    {
-        $outputs = [];
-        $presets = Config::_()->aws['elastic_transcoder']['presets'];
-        foreach ($presets as $prefix => $preset_id) {
-            $outputs[] = [
-              'Key' => "$this->dir/$this->key/$prefix",
-              'PresetId' => $preset_id,
-              'ThumbnailPattern' => "$this->dir/$this->key/thumbnail-{count}",
-            ];
-        }
-        $params = [
-               'PipelineId' => Config::_()->aws['elastic_transcoder']['pipeline_id'],
-               'Input' => ['Key' => "$this->dir/$this->key/source"],
-               'Outputs' => $outputs,
-            ];
-        $this->et->createJob($params);
-
-        return $this;
-    }
 }
