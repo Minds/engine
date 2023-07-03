@@ -4,7 +4,6 @@ namespace Minds\Core\FeedNotices;
 
 use Minds\Core\Di\Di;
 use Minds\Core\FeedNotices\Notices\BoostChannelNotice;
-use Minds\Core\FeedNotices\Notices\BuildYourAlgorithmNotice;
 use Minds\Core\FeedNotices\Notices\ConnectWalletNotice;
 use Minds\Core\FeedNotices\Notices\EnablePushNotificationsNotice;
 use Minds\Core\FeedNotices\Notices\InviteFriendsNotice;
@@ -42,7 +41,6 @@ class Manager
 
     // Non-priority notices - to be shown after priority notices - should be shuffled.
     private const NON_PRIORITY_NOTICES = [
-        BuildYourAlgorithmNotice::class,
         UpdateTagsNotice::class,
         SetupChannelNotice::class,
         VerifyUniquenessNotice::class,

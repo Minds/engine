@@ -27,14 +27,7 @@ use Minds\Entities\User;
 
 class Manager
 {
-    /** @var int */
-    const VIEWS_RPM_CENTS = 1000; // $10 USD
-
     public const BOOST_PARTNER_CENTS = 100;
-
-
-    /** @var int */
-    const REFERRAL_CENTS = 10; // $0.10
 
     /** @var int */
     const PLUS_SHARE_PCT = Plus\Manager::REVENUE_SHARE_PCT; // 25%
@@ -118,12 +111,6 @@ class Manager
 
         $this->logger->info("Start processing plus deposits");
         yield from $this->issuePlusDeposits($opts);
-
-        $this->logger->info("Start processing pageview deposits");
-        yield from $this->issuePageviewDeposits($opts);
-
-        $this->logger->info("Start processing referral deposits");
-        yield from $this->issueReferralDeposits($opts);
 
         $this->logger->info("Start processing boost partner deposits");
         yield from $this->issueBoostPartnerDeposits($opts);
@@ -216,107 +203,6 @@ class Manager
                 $this->repository->add($deposit);
             } else {
                 $this->logger->info('-------------- PLUS PAYOUT DEPOSIT ----------------');
-                $this->logger->info('Deposit', $deposit->export());
-                $this->logger->info('---------------------------------------------------');
-            }
-
-            yield $deposit;
-        }
-    }
-
-    /**
-     * Issuse the pageview deposits
-     * @param array
-     * @return iterable
-     */
-    protected function issuePageviewDeposits(array $opts): iterable
-    {
-        $users = [];
-
-        $opts = [
-            'fields' => [ 'views::single' ],
-            'from' => $opts['from'],
-            'owner_guid' => $opts['user_guid'] ?? null,
-        ];
-
-        foreach ($this->entityCentricManager->getListAggregatedByOwner($opts) as $ownerSum) {
-            $views = $ownerSum['views::single']['value'];
-            $amountCents = ($views / 1000) * static::VIEWS_RPM_CENTS;
-
-            if ($amountCents < 1) { // Has to be at least 1 cent / $0.01
-                continue;
-            }
-
-            // Is this user in the pro program?
-            $owner = $this->entitiesBuilder->single($ownerSum['key']);
-            if (!$owner) {
-                continue;
-            }
-            if ($rpm = $owner->getPartnerRpm()) {
-                if ($rpm) {
-                    $amountCents = ($views / 1000) * (int) $rpm;
-                    if ($amountCents < 1) { // Has to be at least 1 cent / $0.01
-                        $amountCents = 0;
-                    }
-                }
-            }
-
-            if (!$owner || !$owner->isPro()) {
-                continue;
-            }
-
-            $deposit = new EarningsDeposit();
-            $deposit->setTimestamp($opts['from'])
-                ->setUserGuid($ownerSum['key'])
-                ->setAmountCents($amountCents)
-                ->setItem("views");
-
-            if (!($opts['dry-run'] ?? false)) {
-                $this->repository->add($deposit);
-            } else {
-                $this->logger->info('-------------- PAGEVIEW PAYOUT DEPOSIT ----------------');
-                $this->logger->info('Deposit', $deposit->export());
-                $this->logger->info('---------------------------------------------------');
-            }
-
-            yield $deposit;
-        }
-    }
-
-    /**
-     * Issue the referral deposits
-     * @param array
-     * @return iterable
-     */
-    protected function issueReferralDeposits(array $opts): iterable
-    {
-        if ($opts['user_guid']) {
-            return;
-        }
-        foreach ($this->entityCentricManager->getListAggregatedByOwner([
-            'fields' => [ 'referral::active' ],
-            'from' => strtotime('-7 days', $opts['from']),
-        ]) as $ownerSum) {
-            $count = $ownerSum['referral::active']['value'];
-            $amountCents = $count * static::REFERRAL_CENTS;
-
-            // Is this user in the pro program?
-            $owner = $this->entitiesBuilder->single($ownerSum['key']);
-
-            if (!$owner || !$owner->isPro()) {
-                continue;
-            }
-
-            $deposit = new EarningsDeposit();
-            $deposit->setTimestamp($opts['from'])
-                ->setUserGuid($ownerSum['key'])
-                ->setAmountCents($amountCents)
-                ->setItem("referrals");
-
-            if (!($opts['dry-run'] ?? false)) {
-                $this->repository->add($deposit);
-            } else {
-                $this->logger->info('-------------- REFERRAL PAYOUT DEPOSIT ----------------');
                 $this->logger->info('Deposit', $deposit->export());
                 $this->logger->info('---------------------------------------------------');
             }
