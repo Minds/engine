@@ -117,26 +117,6 @@ class Events
             }
         });
 
-        // If comment is container_guid then decide if we can allow access
-        $this->eventsDispatcher->register('acl:read', 'all', function (Event $event) {
-            $params = $event->getParameters();
-            $entity = $params['entity'];
-            $user = $params['user'];
-
-            if (!method_exists($entity, 'getContainerGuid')) {
-                return;
-            }
-
-            $container = EntitiesFactory::build($entity->getContainerGuid());
-
-            // If the container container_guid is the same as the the container owner
-            if ($container
-                && $container->container_guid == $container->owner_guid
-                && ACL::_()->read($container)
-            ) {
-                $event->setResponse(true);
-            }
-        });
 
         // If comment is container_guid then decide if we can allow writing
         $this->eventsDispatcher->register('acl:write:container', 'all', function (Event $event) {
