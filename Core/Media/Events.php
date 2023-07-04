@@ -72,7 +72,7 @@ class Events
             $entity = $params['entity'];
             $user = $params['user'];
 
-            if ($entity instanceof Image) {
+            if ($entity instanceof Image || $entity instanceof Video) {
                 $container = $entity->getContainerEntity();
 
                 if ($container
