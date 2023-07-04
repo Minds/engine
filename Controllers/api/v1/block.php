@@ -15,6 +15,7 @@ use Minds\Helpers;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Di\Di;
 use Minds\Core\Security\Block\Manager;
 use Minds\Core\Security\Block\BlockEntry;
 use Minds\Core\Security\Block\BlockListOpts;
@@ -77,10 +78,12 @@ class block extends Controller implements Interfaces\Api
             case is_numeric($pages[0]):
                 /** @var Manager */
                 $blockManager = $this->di->get('Security\Block\Manager');
+
+                $subject = $this->di->get('EntitiesBuilder')->single($pages[0]);
         
                 $blockEntry = (new BlockEntry())
                     ->setActorGuid(Core\Session::getLoggedinUserGuid())
-                    ->setSubject($pages[0]);
+                    ->setSubject($subject);
 
                 /** @var bool */
                 $hasBlocked = $blockManager->hasBlocked($blockEntry);
