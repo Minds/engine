@@ -14,7 +14,9 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Core\Security\Block;
 use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\InteractionCounters;
+use Minds\Core\Security\ACL;
 
 class Events
 {
@@ -29,10 +31,16 @@ class Events
      * @param Dispatcher $eventsDispatcher
      * @param Block\Manager $blockManager
      */
-    public function __construct($eventsDispatcher = null, $blockManager = null)
-    {
+    public function __construct(
+        $eventsDispatcher = null,
+        $blockManager = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null,
+        protected ?ACL $acl = null,
+    ) {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->acl ??= Di::_()->get('Security\ACL');
     }
 
     public function register()
@@ -61,6 +69,15 @@ class Events
             $user = $params['user'];
 
             if ($activity->remind_object) {
+                $remindObj = $activity->remind_object;
+
+                $entity = $this->entitiesBuilder->single($remindObj['guid']);
+                $canRead = $this->acl->read($entity, $user);
+                if (!$canRead) {
+                    $event->setResponse(true);
+                    return;
+                }
+
                 $remindObj = $activity->remind_object;
                 $blockEntry = (new Block\BlockEntry())
                     ->setActor($user)

@@ -175,7 +175,7 @@ class ACL
          * If marked as unlisted and we don't have a container_guid matching owner_guid
          */
         if ($entity->getAccessId() == 0 && $entity->owner_guid == $entity->container_guid) {
-            return true;
+            $this->logger->error('Removed permissive ACL condition for ' . $entity->getGuid());
         }
 
         /**
@@ -332,6 +332,13 @@ class ACL
          * If the user is banned or in a limited state
          */
         if ($user->isBanned() || !$user->isEnabled()) {
+            return false;
+        }
+
+        /**
+         * Can we read the entity we are trying to interact with
+         */
+        if (!$this->read($entity, $user)) {
             return false;
         }
 
