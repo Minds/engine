@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Feeds\Activity;
 
+use Minds\Common\Access;
 use Minds\Common\EntityMutation;
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Data\Locks\LockFailedException;
@@ -114,6 +115,10 @@ class Controller
                 // however this is causing client side regressions and they are being cast to activity views
                 // This can be revisited once we migrate entirely away from ->entity_guid support.
                 throw new UserErrorException("The post your are trying to remind or quote was not found");
+            }
+
+            if ((int) $remind->getAccessId() === Access::UNLISTED) {
+                throw new UserErrorException("The post your are trying to remind is unlisted and can not be reminded or quoted");
             }
 
             // throw and error return response if acl interaction check fails.

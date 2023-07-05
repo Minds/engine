@@ -28,6 +28,25 @@ $CONFIG->cassandra = [
     'password' => 'cassandra',
 ];
 
+
+$CONFIG->set('oci', [
+    'oss_s3_client' => [
+        'endpoint' => '',
+        'key' => '',
+        'secret' => ''
+    ],
+    'api_auth' => [
+        'private_key' => '',
+        'tenant_id' => '',
+        'user_id' => '',
+        'key_fingerprint' => ''
+    ]
+]);
+
+$CONFIG->set('transcoder', [
+    'use_oracle_oss' => false,
+]);
+
 $CONFIG->elasticsearch = [
     'hosts' => [ 'phpspec:9200' ],
     'indexes' => [

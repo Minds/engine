@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Security;
 
+use Minds\Common\Access;
 use Minds\Core;
 use Minds\Core\Config;
 use Minds\Core\EntitiesBuilder;
@@ -188,12 +189,32 @@ class ACLSpec extends ObjectBehavior
 
     public function it_should_allow_interaction(): void
     {
+        $activity = new Activity();
+
         $this->mock_session(true);
 
-        $entity = new Entity();
-        $entity->type = "activity";
+        Core\Events\Dispatcher::register('acl:read', 'all', function ($event) {
+            var_dump(123);
+            exit;
+            $event->setResponse(true);
+        });
 
-        $this->interact($entity)->shouldReturn(true);
+        $this->interact($activity)->shouldReturn(true);
+        $this->mock_session(false);
+    }
+
+    public function it_should_not_allow_interaction_on_unlisted_post(): void
+    {
+        $this->mock_session(true);
+
+        $activity = new Activity();
+        $activity->access_id = Access::UNLISTED;
+
+        Core\Events\Dispatcher::register('acl:read', 'all', function ($event) {
+            $event->setResponse(false);
+        });
+
+        $this->interact($activity)->shouldReturn(false);
         $this->mock_session(false);
     }
 

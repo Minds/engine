@@ -59,7 +59,8 @@
         "thecodingmachine/graphqlite": "6.1.0",
         "symfony/cache": "v5.4.23",
         "symfony/expression-language": "v5.4.21",
-        "google/cloud-pubsub": "^1.43"
+        "google/cloud-pubsub": "^1.43",
+        "oracle/oci-php-sdk": "dev-minds-fixes"
     },
     "repositories": [
         {
@@ -85,6 +86,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/FaustoJohn/selective-database.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Minds/oci-php-sdk.git"
         }
     ],
     "autoload": {
