@@ -4,6 +4,7 @@ namespace Minds\Core\Payments\GiftCards;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
+use Minds\Core\Payments\GiftCards\Delegates\NotificationDelegate;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardPaymentTypeEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
@@ -32,7 +33,8 @@ class Manager
         protected PaymentsManager $paymentsManager,
         private readonly PaymentProcessor $paymentProcessor,
         private readonly EmailDelegate $emailDelegate,
-        private readonly Logger $logger
+        private readonly Logger $logger,
+        private readonly NotificationDelegate $notificationDelegate,
     ) {
     }
 
@@ -116,7 +118,6 @@ class Manager
             // Commit the transaction
             $this->repository->commitTransaction();
 
-
             return $giftCard;
         } catch (GiftCardPaymentFailedException $e) {
             throw $e;
@@ -135,6 +136,7 @@ class Manager
     public function sendGiftCardToRecipient(GiftCardTarget $recipient, GiftCard $giftCard): void
     {
         $this->emailDelegate->onCreateGiftCard($giftCard, $recipient);
+        $this->notificationDelegate->onCreateGiftCard($giftCard, $recipient);
     }
 
     private function generateClaimCode(

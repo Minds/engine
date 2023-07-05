@@ -269,6 +269,18 @@ class NotificationTypes
 
     /**
      * *******************************************
+     * Gift Cards
+     */
+    public const TYPE_GIFT_CARD_RECIPIENT_NOTIFIED = 'gift_card_recipient_notified';
+
+    public const GROUPING_GIFT_CARDS = [
+        self::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED,
+    ];
+
+    public const GROUPING_TYPE_GIFT_CARDS = 'gift_cards';
+
+    /**
+     * *******************************************
      * Community Updates
      */
 
@@ -358,6 +370,9 @@ class NotificationTypes
         // Affiliate Earnings
         self::TYPE_AFFILIATE_EARNINGS_DEPOSITED,
         self::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED,
+
+        // Gift Cards
+        self::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED,
     ];
 
     /** @var array */
@@ -377,5 +392,6 @@ class NotificationTypes
         self::GROUPING_TYPE_COMMUNITY_UPDATES => self::GROUPING_COMMUNITY_UPDATES,
         self::GROUPING_TYPE_SUPERMIND => self::GROUPING_SUPERMIND,
         self::GROUPING_TYPE_AFFILIATE_EARNINGS => self::GROUPING_AFFILIATE_EARNINGS,
+        self::GROUPING_TYPE_GIFT_CARDS => self::GROUPING_GIFT_CARDS,
     ];
 }

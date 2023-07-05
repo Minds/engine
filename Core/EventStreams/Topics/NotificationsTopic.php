@@ -24,7 +24,8 @@ use Pulsar\SchemaType;
 class NotificationsTopic extends AbstractTopic implements TopicInterface
 {
     /** @var int */
-    const DELAY_MS = 30000; // 30 second delay
+    // const DELAY_MS = 30000; // 30 second delay
+    const DELAY_MS = 0; // 30 second delay
 
     /** @var Notifications\Manager */
     protected $notificationsManager;
