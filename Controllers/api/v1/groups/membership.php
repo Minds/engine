@@ -16,6 +16,7 @@ use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\Invitations;
+use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Core\Groups\V2\Membership\Manager;
 use Minds\Entities\Group;
 use Minds\Entities\User;
@@ -273,7 +274,11 @@ class membership implements Interfaces\Api
             }
             //Admin approval
             try {
-                $joined = $this->membershipManager->joinGroup($group, $user);
+                $joined = $this->membershipManager->acceptUser(
+                    group: $group,
+                    user: $user,
+                    actor: $loggedInUser,
+                );
 
                 $event = new Core\Analytics\Metrics\Event();
                 $event->setType('action')
@@ -299,7 +304,7 @@ class membership implements Interfaces\Api
         // Normal join
         try {
             if ($this->invitations->setGroup($group)->isInvited($loggedInUser)) {
-                $joined = $this->invitations->setGroup($group)->accept();
+                $joined = $this->invitations->setGroup($group)->setActor($loggedInUser)->accept();
             } else {
                 $joined = $this->membershipManager->joinGroup($group, $loggedInUser);
             }

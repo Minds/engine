@@ -571,6 +571,7 @@ class ManagerSpec extends ObjectBehavior
          */
         $this->legacyMembershipMock->setGroup($groupMock)->willReturn($this->legacyMembershipMock);
         $this->legacyMembershipMock->setActor($actorMock)->willReturn($this->legacyMembershipMock);
+        $this->legacyMembershipMock->isAwaiting($userMock)->willReturn(true);
         $this->legacyMembershipMock->join($userMock, ['force' => true])->willReturn(true);
 
         /**
@@ -613,6 +614,7 @@ class ManagerSpec extends ObjectBehavior
          */
         $this->legacyMembershipMock->setGroup($groupMock)->willReturn($this->legacyMembershipMock);
         $this->legacyMembershipMock->setActor($actorMock)->willReturn($this->legacyMembershipMock);
+        $this->legacyMembershipMock->isAwaiting($userMock)->willReturn(true); // Want to test vitess flow, so allow
         $this->legacyMembershipMock->join($userMock, ['force' => true])->willReturn(true);
 
         /**
@@ -645,6 +647,7 @@ class ManagerSpec extends ObjectBehavior
          */
         $this->legacyMembershipMock->setGroup($groupMock)->willReturn($this->legacyMembershipMock);
         $this->legacyMembershipMock->setActor($actorMock)->willReturn($this->legacyMembershipMock);
+        $this->legacyMembershipMock->isAwaiting($userMock)->willReturn(true);
         $this->legacyMembershipMock->join($userMock, ['force' => true])->willReturn(true);
 
         /**
@@ -687,6 +690,7 @@ class ManagerSpec extends ObjectBehavior
          */
         $this->legacyMembershipMock->setGroup($groupMock)->willReturn($this->legacyMembershipMock);
         $this->legacyMembershipMock->setActor($actorMock)->willReturn($this->legacyMembershipMock);
+        $this->legacyMembershipMock->isAwaiting($userMock)->willReturn(false);
         $this->legacyMembershipMock->kick($userMock)->willReturn(true);
 
         /**
@@ -729,6 +733,7 @@ class ManagerSpec extends ObjectBehavior
          */
         $this->legacyMembershipMock->setGroup($groupMock)->willReturn($this->legacyMembershipMock);
         $this->legacyMembershipMock->setActor($actorMock)->willReturn($this->legacyMembershipMock);
+        $this->legacyMembershipMock->isAwaiting($userMock)->willReturn(false);
         $this->legacyMembershipMock->kick($userMock)->willReturn(true);
 
         /**

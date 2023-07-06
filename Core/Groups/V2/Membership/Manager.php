@@ -357,6 +357,10 @@ class Manager
         /**
          * Legacy write
          */
+        $this->legacyMembership->setGroup($group)->setActor($actor);
+        if (!$this->legacyMembership->isAwaiting($user)) {
+            return false;
+        }
         $legacyAccepted = $this->legacyMembership->setGroup($group)->setActor($actor)->join($user, ['force' => true]);
         if (!$legacyAccepted) {
             return false;
@@ -393,7 +397,12 @@ class Manager
         /**
          * Legacy write
          */
-        $legacyRemoved = $this->legacyMembership->setGroup($group)->setActor($actor)->kick($user);
+        $this->legacyMembership->setGroup($group)->setActor($actor);
+        if ($this->legacyMembership->isAwaiting($user)) {
+            $legacyRemoved = $this->legacyMembership->setGroup($group)->setActor($actor)->cancelRequest($user);
+        } else {
+            $legacyRemoved = $this->legacyMembership->setGroup($group)->setActor($actor)->kick($user);
+        }
         if (!$legacyRemoved) {
             return false;
         }

@@ -24,7 +24,6 @@ class invitations implements Interfaces\Api
 {
     public function __construct(
         protected ?Manager $membershipManager = null,
-        protected ?Invitations $invitations = null,
         protected ?EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->membershipManager = Di::_()->get(Core\Groups\V2\Membership\Manager::class);
@@ -166,12 +165,12 @@ class invitations implements Interfaces\Api
         try {
             $membership = $this->membershipManager->getMembership($group, $invitee);
         } catch (NotFoundException $e) {
-            return Factory::response([]);
+            $membership = null;
         }
     
-        $banned = $membership->isBanned();
+        $banned = $membership?->isBanned();
 
-        if ($banned && !$membership->isOwner()) {
+        if ($banned && !$membership?->isOwner()) {
             return Factory::response([
                 'done' => false,
                 'error' => 'User is banned from this group'
