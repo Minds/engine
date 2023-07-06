@@ -335,3 +335,7 @@ CREATE TABLE IF NOT EXISTS minds_gift_card_transactions (
     FOREIGN KEY (payment_guid) REFERENCES minds_payments(payment_guid),
     FOREIGN KEY (gift_card_guid) REFERENCES minds_gift_cards(guid)
 );
+
+ALTER TABLE user_configurations
+    ADD dismissals json NULL DEFAULT NULL
+    AFTER plus_demonetized_ts;

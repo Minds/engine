@@ -6,6 +6,8 @@ namespace Minds\Core\Settings;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Settings\Exceptions\UserSettingsNotFoundException;
+use Minds\Core\Settings\GraphQL\Enums\DismissalKeyEnum;
+use Minds\Core\Settings\GraphQL\Types\Dismissal;
 use Minds\Core\Settings\Models\UserSettings;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -57,5 +59,72 @@ class Manager
             ->withData($data);
 
         return $this->repository->storeUserSettings($settings);
+    }
+
+    /**
+     * Get a given users Dismissals.
+     * @throws UserSettingsNotFoundException - if the user has no Dismissals.
+     * @throws ServerErrorException - on error executing.
+     * @return iterable - iterable of Dismissal objects.
+     */
+    public function getDismissals(): iterable
+    {
+        return $this->repository->getDismissals(
+            (string) $this->user->getGuid()
+        );
+    }
+
+    /**
+     * Gets a Dismissal object for a user by dismissal key.
+     * @param string $userGuid - guid of the user to get the Dismissal for.
+     * @throws UserSettingsNotFoundException - if the user has no matching Dismissal.
+     * @throws ServerErrorException - on error executing.
+     * @return Dismissal - matching Dismissal object.
+     */
+    public function getDismissalByKey(DismissalKeyEnum $key): Dismissal
+    {
+        return $this->repository->getDismissalByKey(
+            (string) $this->user->getGuid(),
+            $key
+        );
+    }
+
+    /**
+     * Upsert a Dismissal for a user into their JSON column for Dismissals.
+     * @param DismissalKeyEnum $key - key to upsert entry for.
+     * @throws ServerErrorException - on error executing.
+     * @return Dismissal - the new Dismissal.
+     */
+    public function upsertDismissal(DismissalKeyEnum $key): Dismissal
+    {
+        $dismissals = $this->getUserSettings(allowEmpty: true)
+                ->getDismissals(asArray: true);
+
+        $existingArrayIndex = array_search(
+            $key->value,
+            array_column($dismissals, 'key'),
+            true
+        );
+
+        $currentTimestamp = time();
+
+        if (is_numeric($existingArrayIndex)) {
+            $dismissals[$existingArrayIndex]['dismissal_timestamp'] = $currentTimestamp;
+        } else {
+            $dismissals[] = [
+                'key' => $key->value,
+                'dismissal_timestamp' => $currentTimestamp
+            ];
+        }
+
+        $this->storeUserSettings([
+            'dismissals' => json_encode($dismissals)
+        ]);
+
+        return new Dismissal(
+            (string) $this->user->getGuid(),
+            $key,
+            $currentTimestamp
+        );
     }
 }
