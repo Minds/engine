@@ -71,7 +71,7 @@ class management implements Interfaces\Api
         }
 
         try {
-            $membership = $this->membershipManager->getMembership($group, $member);
+            $membership = $this->membershipManager->getMembership($group, $actor);
         } catch (NotFoundException $e) {
             return Factory::response([
                 'error' => 'No membership was found'
@@ -158,7 +158,7 @@ class management implements Interfaces\Api
         }
 
         try {
-            $membership = $this->membershipManager->getMembership($group, $member);
+            $membership = $this->membershipManager->getMembership($group, $actor);
         } catch (NotFoundException $e) {
             return Factory::response([
                 'error' => 'No membership was found'
