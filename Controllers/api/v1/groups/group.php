@@ -56,6 +56,7 @@ class group implements Interfaces\Api
         try {
             $membership = $this->membershipManager->getMembership($group, $user);
         } catch (NotFoundException $e) {
+            $membership = null;
         }
 
         $notifications = (new Core\Groups\Notifications)
@@ -64,7 +65,7 @@ class group implements Interfaces\Api
         $response['group']['is:muted'] = $user && $notifications->isMuted($user);
 
         $canRead = $user && ($membership?->isMember() || $user->isAdmin());
-        $canModerate = $user && ($membership?->isOwner() || $membership->isModerator());
+        $canModerate = $user && ($membership?->isOwner() || $membership?->isModerator());
 
         if (!$canRead) {
             // Restrict output if cannot read
