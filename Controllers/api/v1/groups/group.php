@@ -55,7 +55,7 @@ class group implements Interfaces\Api
         $response['group'] = $group->export();
 
         try {
-            $membership = $this->membershipManager->getMembership($group, $user);
+            $membership = $user && $this->membershipManager->getMembership($group, $user);
         } catch (NotFoundException $e) {
             $membership = null;
         }
