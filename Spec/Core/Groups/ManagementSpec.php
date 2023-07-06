@@ -9,6 +9,7 @@ use Minds\Core\Groups\V2\Membership;
 use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use Minds\Core\Data\Cassandra\Thrift\Relationships;
+use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Core\Groups\V2\Membership\Membership as MembershipMembership;
 use Minds\Entities\Group as GroupEntity;
 
@@ -51,6 +52,10 @@ class ManagementSpec extends ObjectBehavior
 
         $this->aclMock->write($group, $actor, null)->shouldBeCalled()->willReturn(true);
 
+        $this->membershipsManagerMock->modifyMembershipLevel($group, $user, $actor, GroupMembershipLevelEnum::OWNER)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->setGroup($group);
         $this->setActor($actor);
         $this->grantOwner($user)->shouldReturn(true);
@@ -70,6 +75,10 @@ class ManagementSpec extends ObjectBehavior
         $this->dbMock->remove('group:owner', 50)->shouldBeCalled()->willReturn(true);
 
         $this->aclMock->write($group, $actor, null)->shouldBeCalled()->willReturn(true);
+
+        $this->membershipsManagerMock->modifyMembershipLevel($group, $user, $actor, GroupMembershipLevelEnum::MEMBER)
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->setGroup($group);
         $this->setActor($actor);
@@ -96,6 +105,10 @@ class ManagementSpec extends ObjectBehavior
         $this->dbMock->setGuid(1)->shouldBeCalled();
         $this->dbMock->create('group:moderator', 50)->shouldBeCalled()->willReturn(true);
 
+        $this->membershipsManagerMock->modifyMembershipLevel($group, $user, $actor, GroupMembershipLevelEnum::MODERATOR)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->setGroup($group);
         $this->setActor($actor);
         $this->grantModerator($user)->shouldReturn(true);
@@ -116,6 +129,10 @@ class ManagementSpec extends ObjectBehavior
 
         $this->dbMock->setGuid(1)->shouldBeCalled();
         $this->dbMock->remove('group:moderator', 50)->shouldBeCalled()->willReturn(true);
+
+        $this->membershipsManagerMock->modifyMembershipLevel($group, $user, $actor, GroupMembershipLevelEnum::MEMBER)
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->setGroup($group);
         $this->setActor($actor);

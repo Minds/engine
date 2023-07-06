@@ -300,8 +300,7 @@ class Manager
         Group $group,
         User $user,
         GroupMembershipLevelEnum $membershipLevel = null
-    ): bool
-    {
+    ): bool {
         /**
          * Legacy write
          */
@@ -317,7 +316,7 @@ class Manager
             groupGuid: $group->getGuid(),
             userGuid: $user->getGuid(),
             createdTimestamp: new DateTime(),
-            membershipLevel: $membershipLevel ?: 
+            membershipLevel: $membershipLevel ?:
                 ($group->isPublic() ? GroupMembershipLevelEnum::MEMBER : GroupMembershipLevelEnum::REQUESTED),
         );
 
