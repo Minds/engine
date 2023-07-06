@@ -262,7 +262,7 @@ class membership implements Interfaces\Api
             ]);
         }
 
-        if (isset($pages[1]) && $$membership?->isModerator()) {
+        if (isset($pages[1]) && $membership?->isModerator()) {
             $userGuid = $pages[1];
             $user = $this->entitiesBuilder->single($userGuid);
             if (!$user instanceof User) {
