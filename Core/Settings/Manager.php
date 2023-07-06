@@ -76,7 +76,7 @@ class Manager
 
     /**
      * Gets a Dismissal object for a user by dismissal key.
-     * @param string $userGuid - guid of the user to get the Dismissal for.
+     * @param DismissalKeyEnum $key - key to get Dismissal for.
      * @throws UserSettingsNotFoundException - if the user has no matching Dismissal.
      * @throws ServerErrorException - on error executing.
      * @return Dismissal - matching Dismissal object.
