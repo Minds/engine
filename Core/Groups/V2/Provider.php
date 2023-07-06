@@ -14,7 +14,7 @@ class Provider extends DiProvider
     {
         $this->di->bind(Membership\Repository::class, function ($di) {
             return new Membership\Repository(
-                mysqlHandler: $di->get(MySQL\Client::class),
+                mysqlClient: $di->get(MySQL\Client::class),
                 logger: $di->get('Logger'),
                 cache: $di->get('Cache\PsrWrapper')
             );
