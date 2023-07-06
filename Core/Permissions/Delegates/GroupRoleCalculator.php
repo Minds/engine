@@ -40,19 +40,19 @@ class GroupRoleCalculator extends BaseRoleCalculator
         }
         $group = $this->entitiesBuilder->single($entity->getAccessId());
         $role = null;
-        if ($group->isCreator($this->user)) {
-            $role = $this->roles->getRole(Roles::ROLE_GROUP_OWNER);
-        } elseif ($group->isOwner($this->user)) {
-            $role = $this->roles->getRole(Roles::ROLE_GROUP_ADMIN);
-        } elseif ($group->isBanned($this->user)) {
-            $role = $this->roles->getRole(Roles::ROLE_BANNED);
-        } elseif ($group->isModerator($this->user)) {
-            $role = $this->roles->getRole(Roles::ROLE_GROUP_MODERATOR);
-        } elseif ($group->isMember($this->user)) {
-            $role = $this->roles->getRole(Roles::ROLE_GROUP_SUBSCRIBER);
-        } else {
-            $role = $this->roles->getRole(Roles::ROLE_GROUP_NON_SUBSCRIBER);
-        }
+        // if ($group->isCreator($this->user)) {
+        //     $role = $this->roles->getRole(Roles::ROLE_GROUP_OWNER);
+        // } elseif ($group->isOwner($this->user)) {
+        //     $role = $this->roles->getRole(Roles::ROLE_GROUP_ADMIN);
+        // } elseif ($group->isBanned($this->user)) {
+        //     $role = $this->roles->getRole(Roles::ROLE_BANNED);
+        // } elseif ($group->isModerator($this->user)) {
+        //     $role = $this->roles->getRole(Roles::ROLE_GROUP_MODERATOR);
+        // } elseif ($group->isMember($this->user)) {
+        //     $role = $this->roles->getRole(Roles::ROLE_GROUP_SUBSCRIBER);
+        // } else {
+        //     $role = $this->roles->getRole(Roles::ROLE_GROUP_NON_SUBSCRIBER);
+        // }
         $this->groups[$entity->getAccessId()] = $role;
 
         return $role;

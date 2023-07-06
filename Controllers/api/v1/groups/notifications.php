@@ -6,22 +6,45 @@
 namespace Minds\Controllers\api\v1\groups;
 
 use Minds\Core;
+use Minds\Core\Groups\V2\Membership\Manager;
 use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Factory as EntitiesFactory;
+use Minds\Entities\Group;
 use Minds\Exceptions\GroupOperationException;
+use Minds\Exceptions\NotFoundException;
 
 class notifications implements Interfaces\Api
 {
+    public function __construct(
+        protected ?Manager $membershipManager = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null
+    ) {
+        $this->membershipManager = Di::_()->get(Manager::class);
+        $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
+    }
+
     public function get($pages)
     {
         Factory::isLoggedIn();
 
-        $group = EntitiesFactory::build($pages[0]);
+        /** @var Group */
+        $group = $this->entitiesBuilder->single($pages[0]);
         $user = Session::getLoggedInUser();
 
-        if (!$group->isMember($user)) {
+        try {
+            $membership = $this->membershipManager->getMembership($group, $user);
+        } catch (NotFoundException $e) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'You are not a group member'
+            ]);
+        }
+
+        if (!$membership->isMember()) {
             return Factory::response([
                 'is:muted' => false
             ]);
@@ -39,10 +62,20 @@ class notifications implements Interfaces\Api
     {
         Factory::isLoggedIn();
 
-        $group = EntitiesFactory::build($pages[0]);
+        /** @var Group */
+        $group = $this->entitiesBuilder->single($pages[0]);
         $user = Session::getLoggedInUser();
 
-        if (!$group->isMember($user)) {
+        try {
+            $membership = $this->membershipManager->getMembership($group, $user);
+        } catch (NotFoundException $e) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'You are not a group member'
+            ]);
+        }
+
+        if (!$membership->isMember()) {
             return Factory::response([]);
         }
 

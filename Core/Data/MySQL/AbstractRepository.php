@@ -14,7 +14,7 @@ abstract class AbstractRepository
     protected Connection $mysqlClientReaderHandler;
 
     /**
-     * @param MySQLClient $mysqlHandler
+     * @param Client $mysqlHandler
      * @throws ServerErrorException
      */
     public function __construct(

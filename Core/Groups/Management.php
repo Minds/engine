@@ -9,7 +9,9 @@ use Minds\Core\Di\Di;
 use Minds\Behaviors\Actorable;
 
 use Minds\Entities\Group;
+use Minds\Entities\User;
 use Minds\Exceptions\GroupOperationException;
+use Minds\Exceptions\NotFoundException;
 
 class Management
 {
@@ -22,10 +24,14 @@ class Management
     /**
      * Constructor
      */
-    public function __construct($db = null, $acl = null)
-    {
+    public function __construct(
+        $db = null,
+        $acl = null,
+        protected ?V2\Membership\Manager $membershipManager = null
+    ) {
         $this->relDB = $db ?: Di::_()->get('Database\Cassandra\Relationships');
         $this->setAcl($acl);
+        $this->membershipManager ??= Di::_()->get(V2\Membership\Manager::class);
     }
 
     /**
@@ -54,7 +60,7 @@ class Management
             throw new GroupOperationException('You cannot grant permissions for this group');
         }
 
-        if (!$this->group->isMember($user)) {
+        if (!$this->isGroupMember($user)) {
             throw new GroupOperationException('User is not a member');
         }
 
@@ -80,11 +86,11 @@ class Management
             throw new GroupOperationException('User not found');
         }
 
-        if (!$this->group->isOwner($this->getActor())) {
+        if (!$this->isGroupOwner($this->getActor())) {
             throw new GroupOperationException('You cannot grant moderator permissions for this group');
         }
 
-        if (!$this->group->isMember($user)) {
+        if (!$this->isGroupMember($user)) {
             throw new GroupOperationException('User is not a member');
         }
 
@@ -114,7 +120,7 @@ class Management
             throw new GroupOperationException('User not found');
         }
 
-        if (!$this->group->isOwner($this->getActor())) {
+        if (!$this->isGroupOwner($this->getActor())) {
             throw new GroupOperationException('You cannot revoke moderator permissions for this group');
         }
 
@@ -161,5 +167,29 @@ class Management
         $done = $this->group->save();
 
         return (bool) $done;
+    }
+
+    /**
+     * Helper function to replace existing use case of Group->isMember
+     */
+    private function isGroupMember(User $user): bool
+    {
+        try {
+            return $this->membershipManager->getMembership($this->group, $user)->isMember();
+        } catch (NotFoundException $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Helper function to replace existing use case of Group->isOwner
+     */
+    private function isGroupOwner(User $user): bool
+    {
+        try {
+            return $this->membershipManager->getMembership($this->group, $user)->isOwner();
+        } catch (NotFoundException $e) {
+            return false;
+        }
     }
 }

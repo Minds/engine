@@ -5,45 +5,59 @@ namespace Spec\Minds\Core\Groups;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
+use Minds\Core\Groups\V2\Membership;
 use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use Minds\Core\Data\Cassandra\Thrift\Relationships;
+use Minds\Core\Groups\V2\Membership\Membership as MembershipMembership;
 use Minds\Entities\Group as GroupEntity;
 
 class ManagementSpec extends ObjectBehavior
 {
+    protected $dbMock;
+    protected $aclMock;
+    protected $membershipsManagerMock;
+
+    public function let(Relationships $dbMock, ACL $aclMock, Membership\Manager $membershipsManagerMock)
+    {
+        $this->beConstructedWith($dbMock, $aclMock, $membershipsManagerMock);
+
+        $this->dbMock = $dbMock;
+        $this->aclMock = $aclMock;
+        $this->membershipsManagerMock = $membershipsManagerMock;
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Groups\Management');
     }
 
-    public function it_should_grant_owner(GroupEntity $group, Relationships $db, ACL $acl, User $user, User $actor)
+    public function it_should_grant_owner(GroupEntity $group, User $user, User $actor, MembershipMembership $membershipMock)
     {
-        $this->beConstructedWith($db, $acl);
-
         $user->get('guid')->willReturn(1);
 
         $actor->get('guid')->willReturn(2);
 
         $group->getGuid()->willReturn(50);
-        $group->isMember($user)->shouldBeCalled()->willReturn(true);
+    
+        $this->membershipsManagerMock->getMembership($group, $user)->shouldBeCalled()->willReturn($membershipMock);
+        $membershipMock->isMember()->willReturn(true);
+
         $group->pushOwnerGuid(1)->shouldBeCalled();
         $group->save()->shouldBeCalled()->willReturn(true);
 
-        $db->setGuid(1)->shouldBeCalled();
-        $db->create('group:owner', 50)->shouldBeCalled()->willReturn(true);
+        $this->dbMock->setGuid(1)->shouldBeCalled();
+        $this->dbMock->create('group:owner', 50)->shouldBeCalled()->willReturn(true);
 
-        $acl->write($group, $actor, null)->shouldBeCalled()->willReturn(true);
+        $this->aclMock->write($group, $actor, null)->shouldBeCalled()->willReturn(true);
 
         $this->setGroup($group);
         $this->setActor($actor);
         $this->grantOwner($user)->shouldReturn(true);
     }
 
-    public function it_should_revoke_owner(GroupEntity $group, Relationships $db, ACL $acl, User $user, User $actor)
+    public function it_should_revoke_owner(GroupEntity $group, User $user, User $actor)
     {
-        $this->beConstructedWith($db, $acl);
-
         $user->get('guid')->willReturn(1);
 
         $actor->get('guid')->willReturn(2);
@@ -52,53 +66,56 @@ class ManagementSpec extends ObjectBehavior
         $group->removeOwnerGuid(1)->shouldBeCalled();
         $group->save()->shouldBeCalled()->willReturn(true);
 
-        $db->setGuid(1)->shouldBeCalled();
-        $db->remove('group:owner', 50)->shouldBeCalled()->willReturn(true);
+        $this->dbMock->setGuid(1)->shouldBeCalled();
+        $this->dbMock->remove('group:owner', 50)->shouldBeCalled()->willReturn(true);
 
-        $acl->write($group, $actor, null)->shouldBeCalled()->willReturn(true);
+        $this->aclMock->write($group, $actor, null)->shouldBeCalled()->willReturn(true);
 
         $this->setGroup($group);
         $this->setActor($actor);
         $this->revokeOwner($user)->shouldReturn(true);
     }
 
-    public function it_should_grant_moderator(GroupEntity $group, Relationships $db, ACL $acl, User $user, User $actor)
+    public function it_should_grant_moderator(GroupEntity $group, User $user, User $actor, MembershipMembership $membershipMock)
     {
-        $this->beConstructedWith($db, $acl);
-
         $user->get('guid')->willReturn(1);
 
         $actor->get('guid')->willReturn(2);
 
-        $group->isOwner($actor)->shouldBeCalled()->willReturn(true);
+        $this->membershipsManagerMock->getMembership($group, $actor)->shouldBeCalled()->willReturn($membershipMock);
+        $membershipMock->isOwner()->willReturn(true);
+
         $group->getGuid()->willReturn(50);
-        $group->isMember($user)->shouldBeCalled()->willReturn(true);
+
+        $this->membershipsManagerMock->getMembership($group, $user)->shouldBeCalled()->willReturn($membershipMock);
+        $membershipMock->isMember()->willReturn(true);
+
         $group->pushModeratorGuid(1)->shouldBeCalled();
         $group->save()->shouldBeCalled()->willReturn(true);
 
-        $db->setGuid(1)->shouldBeCalled();
-        $db->create('group:moderator', 50)->shouldBeCalled()->willReturn(true);
+        $this->dbMock->setGuid(1)->shouldBeCalled();
+        $this->dbMock->create('group:moderator', 50)->shouldBeCalled()->willReturn(true);
 
         $this->setGroup($group);
         $this->setActor($actor);
         $this->grantModerator($user)->shouldReturn(true);
     }
 
-    public function it_should_revoke_moderator(GroupEntity $group, Relationships $db, ACL $acl, User $user, User $actor)
+    public function it_should_revoke_moderator(GroupEntity $group, User $user, User $actor, MembershipMembership $membershipMock)
     {
-        $this->beConstructedWith($db, $acl);
-
         $user->get('guid')->willReturn(1);
 
         $actor->get('guid')->willReturn(2);
 
-        $group->isOwner($actor)->shouldBeCalled()->willReturn(true);
+        $this->membershipsManagerMock->getMembership($group, $actor)->shouldBeCalled()->willReturn($membershipMock);
+        $membershipMock->isOwner()->willReturn(true);
+    
         $group->getGuid()->willReturn(50);
         $group->removeModeratorGuid(1)->shouldBeCalled();
         $group->save()->shouldBeCalled()->willReturn(true);
 
-        $db->setGuid(1)->shouldBeCalled();
-        $db->remove('group:moderator', 50)->shouldBeCalled()->willReturn(true);
+        $this->dbMock->setGuid(1)->shouldBeCalled();
+        $this->dbMock->remove('group:moderator', 50)->shouldBeCalled()->willReturn(true);
 
         $this->setGroup($group);
         $this->setActor($actor);

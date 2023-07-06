@@ -6,16 +6,29 @@
 namespace Minds\Controllers\api\v1\groups;
 
 use Minds\Core;
+use Minds\Core\Groups\V2\Membership\Manager;
 use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Factory as EntitiesFactory;
+use Minds\Entities\Group;
 use Minds\Entities\User;
 
 use Minds\Exceptions\GroupOperationException;
+use Minds\Exceptions\NotFoundException;
 
 class management implements Interfaces\Api
 {
+    public function __construct(
+        protected ?Manager $membershipManager = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null
+    ) {
+        $this->membershipManager = Di::_()->get(Manager::class);
+        $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
+    }
+
     public function get($pages)
     {
         return Factory::response([]);
@@ -57,11 +70,19 @@ class management implements Interfaces\Api
             ]);
         }
 
+        try {
+            $membership = $this->membershipManager->getMembership($group, $member);
+        } catch (NotFoundException $e) {
+            return Factory::response([
+                'error' => 'No membership was found'
+            ]);
+        }
+
         $management = (new Core\Groups\Management())
           ->setGroup($group)
           ->setActor($actor);
 
-        if (!$group->isOwner($actor->guid)) {
+        if (!$membership->isOwner()) {
             return Factory::response([
                 'done' => false,
                 'status' => 'error',
@@ -109,6 +130,7 @@ class management implements Interfaces\Api
     {
         Factory::isLoggedIn();
 
+        /** @var Group */
         $group = EntitiesFactory::build($pages[0]);
         $actor = Session::getLoggedInUser();
 
@@ -135,11 +157,19 @@ class management implements Interfaces\Api
             ]);
         }
 
+        try {
+            $membership = $this->membershipManager->getMembership($group, $member);
+        } catch (NotFoundException $e) {
+            return Factory::response([
+                'error' => 'No membership was found'
+            ]);
+        }
+
         $management = (new Core\Groups\Management())
           ->setGroup($group)
           ->setActor($actor);
 
-        if (!$group->isOwner($actor->guid)) {
+        if (!$membership->isOwner()) {
             return Factory::response([
                 'done' => false,
                 'status' => 'error',

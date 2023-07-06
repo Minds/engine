@@ -335,3 +335,14 @@ CREATE TABLE IF NOT EXISTS minds_gift_card_transactions (
     FOREIGN KEY (payment_guid) REFERENCES minds_payments(payment_guid),
     FOREIGN KEY (gift_card_guid) REFERENCES minds_gift_cards(guid)
 );
+
+CREATE TABLE IF NOT EXISTS minds_group_membership (
+    group_guid bigint NOT NULL,
+    user_guid bigint NOT NULL,
+    created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP(),
+    updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP(),
+    membership_level int NOT NULL, 
+    PRIMARY KEY (group_guid, user_guid),
+    INDEX (group_guid, membership_level),
+    INDEX (user_guid, membership_level)
+);

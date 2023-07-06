@@ -17,6 +17,7 @@ use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Behaviors\Actorable;
 
 use Minds\Exceptions\GroupOperationException;
+use Minds\Exceptions\NotFoundException;
 
 class Invitations
 {
@@ -43,13 +44,15 @@ class Invitations
         $acl = null,
         $friendsDB = null,
         EntitiesBuilder $entitiesBuilder = null,
-        ActionEventsTopic $actionEventsTopic = null
+        ActionEventsTopic $actionEventsTopic = null,
+        protected ?V2\Membership\Manager $membershipManager = null
     ) {
         $this->relDB = $db ?: Di::_()->get('Database\Cassandra\Relationships');
         // TODO: [emi] Ask Mark about a 'friendsof' replacement (or create a DI entry)
         $this->friendsDB = $friendsDB ?: new Core\Data\Call('friendsof');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->actionEventsTopic = $actionEventsTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
+        $this->membershipManager ??= Di::_()->get(V2\Membership\Manager::class);
         $this->setAcl($acl);
     }
 
@@ -155,7 +158,7 @@ class Invitations
             throw new GroupOperationException('Cannot invite yourself');
         }
 
-        if ($this->group->isMember($invitee)) {
+        if ($this->isGroupMember($invitee)) {
             throw new GroupOperationException('User is already a member of the group');
         }
 
@@ -209,7 +212,7 @@ class Invitations
             throw new GroupOperationException('User not found');
         }
 
-        if ($this->group->isMember($invitee)) {
+        if ($this->isGroupMember($invitee)) {
             throw new GroupOperationException('User is already a member of the group');
         }
 
@@ -238,7 +241,7 @@ class Invitations
         }
 
         $this->removeInviteFromIndex($this->getActor());
-        return $this->group->join($this->getActor(), [ 'force' => true ]);
+        return $this->membershipManager->joinGroup($this->group, $this->getActor(), forceFromInvite: true);
     }
 
     /**
@@ -282,7 +285,7 @@ class Invitations
 
         if ($user->isAdmin()) {
             return true;
-        } elseif ($this->group->isPublic() && $this->group->isMember($user)) {
+        } elseif ($this->group->isPublic() && $this->isGroupMember($user)) {
             return $invitee ? $this->userHasSubscriber($user, $invitee) : true;
         } elseif (!$this->group->isPublic() && $this->acl->write($this->group, $user)) {
             return $invitee ? $this->userHasSubscriber($user, $invitee) : true;
@@ -315,5 +318,17 @@ class Invitations
         $this->relDB->setGuid($invitee_guid);
 
         return $this->relDB->remove('group:invited', $this->group->getGuid());
+    }
+
+    /**
+     * Helper function to replace existing use case of Group->isMember
+     */
+    private function isGroupMember(User $user): bool
+    {
+        try {
+            return $this->membershipManager->getMembership($this->group, $user)->isMember();
+        } catch (NotFoundException $e) {
+            return false;
+        }
     }
 }
