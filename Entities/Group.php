@@ -570,9 +570,6 @@ class Group extends NormalizedEntity implements EntityInterface
      */
     public function isInvited($user = null)
     {
-        if ($this->isMember()) {
-            return false;
-        }
         return (new Invitations)->setGroup($this)
           ->isInvited($user);
     }
