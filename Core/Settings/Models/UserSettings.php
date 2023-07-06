@@ -188,7 +188,7 @@ class UserSettings implements ExportableInterface
 
         if (array_key_exists('dismissals', $data)) {
             $userSettings->setDismissalsJsonString(
-                $data['dismissals']
+                $data['dismissals'] ?? ''
             );
         }
 
