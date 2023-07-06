@@ -490,7 +490,7 @@ class ManagerSpec extends ObjectBehavior
          * Legacy
          */
         $this->legacyMembershipMock->setGroup($groupMock)->willReturn($this->legacyMembershipMock);
-        $this->legacyMembershipMock->join($userMock)->willReturn(true);
+        $this->legacyMembershipMock->join($userMock, [ 'force' => false ])->willReturn(true);
 
         /**
          * Vitess
@@ -515,7 +515,7 @@ class ManagerSpec extends ObjectBehavior
          * Legacy
          */
         $this->legacyMembershipMock->setGroup($groupMock)->willReturn($this->legacyMembershipMock);
-        $this->legacyMembershipMock->join($userMock)->willReturn(true);
+        $this->legacyMembershipMock->join($userMock, [ 'force' => false ])->willReturn(true);
 
         /**
          * Vitess
