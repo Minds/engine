@@ -2,6 +2,8 @@
 
 namespace Minds\Core\Settings\Models;
 
+use Minds\Core\Settings\GraphQL\Enums\DismissalKeyEnum;
+use Minds\Core\Settings\GraphQL\Types\Dismissal;
 use Minds\Entities\ExportableInterface;
 use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
@@ -56,15 +58,36 @@ class UserSettings implements ExportableInterface
     }
 
     /**
-     * Get dismissals data.
+     * Get raw dismissals data.
      * @param boolean $asArray - whether to get data as an array or it's native string format.
-     * @return array|string - dismissals data in requested format.
+     * @return array|string - Raw dismissals data in requested format.
      */
-    public function getDismissals($asArray = true): array|string
+    public function getRawDismissals($asArray = true): array|string
     {
         return $asArray ?
             (json_decode($this->dismissals, true) ?? []) :
             ($this->dismissals ?? '');
+    }
+
+    /**
+     * Get dismissals data as iterable of Dismissal objects.
+     * @return iterable - dismissals data as iterable of Dismissal objects.
+     */
+    public function getDismissals(): iterable
+    {
+        $rawDismissals = $this->getRawDismissals();
+        foreach ($rawDismissals as $rawDismissal) {
+            $key = DismissalKeyEnum::tryFrom($rawDismissal['key']);
+            if (!$key) {
+                continue;
+            }
+
+            yield new Dismissal(
+                userGuid: $this->userGuid,
+                key: $key,
+                dismissalTimestamp: $rawDismissal['dismissal_timestamp']
+            );
+        }
     }
 
     /**

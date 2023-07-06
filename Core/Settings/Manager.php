@@ -98,7 +98,7 @@ class Manager
     public function upsertDismissal(DismissalKeyEnum $key): Dismissal
     {
         $dismissals = $this->getUserSettings(allowEmpty: true)
-                ->getDismissals(asArray: true);
+                ->getRawDismissals(asArray: true);
 
         $existingArrayIndex = array_search(
             $key->value,
