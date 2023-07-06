@@ -49,6 +49,9 @@ class membership implements Interfaces\Api
         $loggedInUser = Core\Session::getLoggedinUser();
 
         try {
+            if (!$loggedInUser) {
+                throw new NotFoundException();
+            }
             $membership = $this->membershipManager->getMembership($group, $loggedInUser);
         } catch (NotFoundException $e) {
             return Factory::response([]);

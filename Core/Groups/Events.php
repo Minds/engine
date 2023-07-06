@@ -311,7 +311,10 @@ class Events
             $export = $e->response() ?: [];
 
             try {
-                $membership = $user && $membershipManager->getMembership($group, $user);
+                if (!$user) {
+                    throw new NotFoundException();
+                }
+                $membership = $membershipManager->getMembership($group, $user);
             } catch (NotFoundException $ex) {
                 $membership = null;
             }

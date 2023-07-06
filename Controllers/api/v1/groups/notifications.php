@@ -36,6 +36,9 @@ class notifications implements Interfaces\Api
         $user = Session::getLoggedInUser();
 
         try {
+            if (!$user) {
+                throw new NotFoundException();
+            }
             $membership = $this->membershipManager->getMembership($group, $user);
         } catch (NotFoundException $e) {
             return Factory::response([
