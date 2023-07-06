@@ -15,7 +15,7 @@ use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 
 use Minds\Behaviors\Actorable;
-
+use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Exceptions\GroupOperationException;
 use Minds\Exceptions\NotFoundException;
 
@@ -241,7 +241,11 @@ class Invitations
         }
 
         $this->removeInviteFromIndex($this->getActor());
-        return $this->membershipManager->joinGroup($this->group, $this->getActor(), forceFromInvite: true);
+        return $this->membershipManager->joinGroup(
+            group: $this->group,
+            user: $this->getActor(),
+            membershipLevel: GroupMembershipLevelEnum::MEMBER
+        );
     }
 
     /**

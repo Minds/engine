@@ -7,7 +7,7 @@ namespace Minds\Core\Groups;
 use Minds\Core\Di\Di;
 
 use Minds\Behaviors\Actorable;
-
+use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Entities\Group;
 use Minds\Entities\User;
 use Minds\Exceptions\GroupOperationException;
@@ -66,11 +66,15 @@ class Management
 
         $user_guid = is_object($user) ? $user->guid : $user;
 
+        // Old cassandra code
         $this->relDB->setGuid($user_guid);
         $fallback_done = $this->relDB->create('group:owner', $this->group->getGuid());
 
         $this->group->pushOwnerGuid($user_guid);
         $done = $this->group->save();
+
+        // New vitess code
+        $this->membershipManager->modifyMembershipLevel($this->group, $user, $this->actor, GroupMembershipLevelEnum::OWNER);
 
         return (bool) $done;
     }
@@ -100,11 +104,15 @@ class Management
             throw new GroupOperationException('The owner cannot be moderator');
         }
 
+        // Legacy cassandra code
         $this->relDB->setGuid($user_guid);
         $fallback_done = $this->relDB->create('group:moderator', $this->group->getGuid());
 
         $this->group->pushModeratorGuid($user_guid);
         $done = $this->group->save();
+
+        // New vitess code
+        $this->membershipManager->modifyMembershipLevel($this->group, $user, $this->actor, GroupMembershipLevelEnum::MODERATOR);
 
         return (bool) $done;
     }
@@ -130,11 +138,15 @@ class Management
             throw new GroupOperationException('You cannot revoke permissions from yourself');
         }
 
+        // Old cassandra code
         $this->relDB->setGuid($user_guid);
         $fallback_done = $this->relDB->remove('group:moderator', $this->group->getGuid());
 
         $this->group->removeModeratorGuid($user_guid);
         $done = $this->group->save();
+
+        // New vitess code
+        $this->membershipManager->modifyMembershipLevel($this->group, $user, $this->actor, GroupMembershipLevelEnum::MEMBER);
 
         return (bool) $done;
     }
@@ -160,11 +172,15 @@ class Management
             throw new GroupOperationException('You cannot revoke permissions from yourself');
         }
 
+        // Old cassandra code
         $this->relDB->setGuid($user_guid);
         $fallback_done = $this->relDB->remove('group:owner', $this->group->getGuid());
 
         $this->group->removeOwnerGuid($user_guid);
         $done = $this->group->save();
+
+        // New vitess code
+        $this->membershipManager->modifyMembershipLevel($this->group, $user, $this->actor, GroupMembershipLevelEnum::MEMBER);
 
         return (bool) $done;
     }

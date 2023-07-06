@@ -12,6 +12,7 @@ use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Entities\User;
 use Minds\Entities\File as FileEntity;
 use Minds\Entities\Factory as EntitiesFactory;
@@ -247,7 +248,11 @@ class group implements Interfaces\Api
         if ($creation) {
             // Join group
             try {
-                $group->join($user, [ 'force' => true ]);
+                $this->membershipManager->joinGroup(
+                    group: $group,
+                    user: $user,
+                    membershipLevel: GroupMembershipLevelEnum::OWNER
+                );
             } catch (GroupOperationException $e) {
             }
         }

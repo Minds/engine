@@ -12,6 +12,7 @@ use Minds\Core\Data\Cassandra\Thrift\Relationships;
 use Minds\Core\Data\Relationships as DataRelationships;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Entities\Group as GroupEntity;
 use Minds\Core\Groups\V2\Membership\Manager as V2MembershipManager;
 use Minds\Core\Groups\V2\Membership\Membership;
@@ -240,7 +241,7 @@ class InvitationsSpec extends ObjectBehavior
         $this->relDb->check('group:invited', 50)->shouldBeCalled()->willReturn(true);
         $this->relDb->remove('group:invited', 50)->shouldBeCalled()->willReturn(true);
 
-        $this->membershipManagerMock->joinGroup($group, $user, forceFromInvite: true)->shouldBeCalled()->willReturn(true);
+        $this->membershipManagerMock->joinGroup($group, $user, GroupMembershipLevelEnum::MEMBER)->shouldBeCalled()->willReturn(true);
 
         $this->setGroup($group);
         $this->setActor($user);

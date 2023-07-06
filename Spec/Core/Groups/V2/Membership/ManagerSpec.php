@@ -414,6 +414,76 @@ class ManagerSpec extends ObjectBehavior
         ]);
     }
 
+    public function it_should_alter_a_users_membership_level(Group $groupMock, User $userMock, User $actorMock)
+    {
+        /**
+         * Vitess
+         */
+        $membership = new Membership(
+            groupGuid: 123,
+            userGuid: 456,
+            createdTimestamp: new DateTime(),
+            membershipLevel: GroupMembershipLevelEnum::REQUESTED,
+        );
+        $this->repositoryMock->get(123, 456)->willReturn($membership);
+
+        $actorMembership = new Membership(
+            groupGuid: 123,
+            userGuid: 789,
+            createdTimestamp: new DateTime(),
+            membershipLevel: GroupMembershipLevelEnum::OWNER,
+        );
+        $this->repositoryMock->get(123, 789)->willReturn($actorMembership);
+
+        $this->repositoryMock->updateMembershipLevel(Argument::type(Membership::class))->willReturn(true);
+
+        $groupMock->getGuid()
+            ->willReturn(123);
+        $groupMock->isPublic()
+            ->willReturn(false);
+        $userMock->getGuid()
+            ->willReturn(456);
+        $actorMock->getGuid()
+            ->willReturn(789);
+
+        $this->modifyMembershipLevel($groupMock, $userMock, $actorMock, GroupMembershipLevelEnum::MODERATOR)->shouldBe(true);
+    }
+
+    public function it_should_not_alter_a_users_membership_level_if_not_owner(Group $groupMock, User $userMock, User $actorMock)
+    {
+        /**
+         * Vitess
+         */
+        $membership = new Membership(
+            groupGuid: 123,
+            userGuid: 456,
+            createdTimestamp: new DateTime(),
+            membershipLevel: GroupMembershipLevelEnum::REQUESTED,
+        );
+        $this->repositoryMock->get(123, 456)->willReturn($membership);
+
+        $actorMembership = new Membership(
+            groupGuid: 123,
+            userGuid: 789,
+            createdTimestamp: new DateTime(),
+            membershipLevel: GroupMembershipLevelEnum::MODERATOR,
+        );
+        $this->repositoryMock->get(123, 789)->willReturn($actorMembership);
+
+        $this->repositoryMock->updateMembershipLevel(Argument::type(Membership::class))->shouldNotBeCalled();
+
+        $groupMock->getGuid()
+            ->willReturn(123);
+        $groupMock->isPublic()
+            ->willReturn(false);
+        $userMock->getGuid()
+            ->willReturn(456);
+        $actorMock->getGuid()
+            ->willReturn(789);
+
+        $this->shouldThrow(ForbiddenException::class)->duringModifyMembershipLevel($groupMock, $userMock, $actorMock, GroupMembershipLevelEnum::MODERATOR);
+    }
+
     public function it_should_join_group_as_member(Group $groupMock, User $userMock)
     {
         /**

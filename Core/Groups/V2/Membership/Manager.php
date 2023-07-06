@@ -270,9 +270,37 @@ class Manager
     }
 
     /**
+     * Alters the users membership level. Use this for promoting users to moderator or owner.
+     */
+    public function modifyMembershipLevel(Group $group, User $user, User $actor, GroupMembershipLevelEnum $membershipLevel = null): bool
+    {
+        /**
+         * Vitess write
+         */
+        // Get the users membership
+        $userMembership = $this->repository->get($group->getGuid(), $user->getGuid());
+
+        // Get the Actors membership level. They must be at least an owner
+        $actorMembership = $this->repository->get($group->getGuid(), $actor->getGuid());
+
+        if (!$actorMembership->isOwner()) {
+            throw new ForbiddenException();
+        }
+
+        // Update the membership level to a member
+        $userMembership->membershipLevel = $membershipLevel;
+
+        return $this->repository->updateMembershipLevel($userMembership);
+    }
+
+    /**
      * Joins, or requests to join, a group
      */
-    public function joinGroup(Group $group, User $user, bool $forceFromInvite = false): bool
+    public function joinGroup(
+        Group $group,
+        User $user,
+        GroupMembershipLevelEnum $membershipLevel = null
+    ): bool
     {
         /**
          * Legacy write
@@ -289,7 +317,8 @@ class Manager
             groupGuid: $group->getGuid(),
             userGuid: $user->getGuid(),
             createdTimestamp: new DateTime(),
-            membershipLevel: $group->isPublic() || $forceFromInvite ? GroupMembershipLevelEnum::MEMBER : GroupMembershipLevelEnum::REQUESTED,
+            membershipLevel: $membershipLevel ?: 
+                ($group->isPublic() ? GroupMembershipLevelEnum::MEMBER : GroupMembershipLevelEnum::REQUESTED),
         );
 
         return $this->repository->add($membership);
