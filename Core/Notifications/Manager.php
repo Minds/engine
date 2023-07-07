@@ -1,12 +1,12 @@
 <?php
 namespace Minds\Core\Notifications;
 
-use Minds\Entities\User;
-use Minds\Helpers\Counters;
 use Minds\Core\Comments;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Security\ACL;
+use Minds\Entities\User;
+use Minds\Helpers\Counters;
 
 class Manager
 {

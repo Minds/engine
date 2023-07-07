@@ -2,6 +2,8 @@
 
 namespace Spec\Minds\Core\Notifications\Push;
 
+use Minds\Core\Boost\Network\Boost;
+use Minds\Core\Boost\V3\Models\Boost as BoostV3;
 use Minds\Core\Boost\V3\Utils\BoostConsoleUrlBuilder;
 use Minds\Core\Config\Config;
 use Minds\Core\Notifications\Notification;
@@ -9,8 +11,6 @@ use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Push\PushNotification;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
-use Minds\Core\Boost\V3\Models\Boost as BoostV3;
-use Minds\Core\Boost\Network\Boost;
 use PhpSpec\ObjectBehavior;
 
 class PushNotificationSpec extends ObjectBehavior
@@ -24,10 +24,10 @@ class PushNotificationSpec extends ObjectBehavior
         Config $config,
         BoostConsoleUrlBuilder $boostConsoleUrlBuilder
     ) {
-        $this->beConstructedWith($notification, $config, $boostConsoleUrlBuilder);
         $this->notification = $notification;
         $this->config = $config;
         $this->boostConsoleUrlBuilder = $boostConsoleUrlBuilder;
+        $this->beConstructedWith($notification, $config, $boostConsoleUrlBuilder);
     }
 
     public function it_is_initializable()

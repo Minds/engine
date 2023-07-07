@@ -59,6 +59,7 @@ class PushNotificationsEventStreamsSubscription implements SubscriptionInterface
     public function consume(EventInterface $event): bool
     {
         if (!$event instanceof NotificationEvent) {
+            $this->logger->warning("not a notification event", ['event_type' => get_class($event)]); // @codeCoverageIgnore
             return false;
         }
 
