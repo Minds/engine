@@ -80,7 +80,7 @@ class Manager
      * @return PaymentMethod[]
      * @throws Exception
      */
-    private  function fetchStripePaymentMethods(User $user): array
+    private function fetchStripePaymentMethods(User $user): array
     {
         $stripePaymentMethods = $this->stripePaymentMethodsManager->getList([
             'limit' => 12,

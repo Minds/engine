@@ -71,7 +71,6 @@ class PaymentProcessor
      */
     public function setupBoostPayment(Boost $boost, User $user): bool
     {
-
         $paymentDetails = $this->paymentsManager
             ->setUser($user)
             ->createPaymentFromBoost($boost);
