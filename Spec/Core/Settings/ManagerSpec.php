@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Spec\Minds\Core\Settings;
 
 use Minds\Core\Settings\Exceptions\UserSettingsNotFoundException;
-use Minds\Core\Settings\GraphQL\Enums\DismissalKeyEnum;
 use Minds\Core\Settings\GraphQL\Types\Dismissal;
 use Minds\Core\Settings\Manager;
 use Minds\Core\Settings\Models\UserSettings;
@@ -144,7 +143,7 @@ class ManagerSpec extends ObjectBehavior
         User $user,
         Dismissal $dismissal
     ): void {
-        $key = DismissalKeyEnum::ANALYTICS_EXPLAINER;
+        $key = 'ANALYTICS_EXPLAINER';
         $userGuid = '123';
 
         $user->getGuid()

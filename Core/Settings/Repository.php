@@ -5,7 +5,6 @@ namespace Minds\Core\Settings;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
 use Minds\Core\Settings\Exceptions\UserSettingsNotFoundException;
-use Minds\Core\Settings\GraphQL\Enums\DismissalKeyEnum;
 use Minds\Core\Settings\GraphQL\Types\Dismissal;
 use Minds\Core\Settings\Models\UserSettings;
 use Minds\Exceptions\ServerErrorException;
@@ -122,15 +121,9 @@ class Repository
         $dismissals = json_decode($response['dismissals'], true);
 
         foreach ($dismissals as $dismissal) {
-            $key = DismissalKeyEnum::tryFrom($dismissal['key']);
-
-            if (!$key) {
-                continue;
-            }
-
             yield new Dismissal(
                 $userGuid,
-                $key,
+                $dismissal['key'],
                 $dismissal['dismissal_timestamp']
             );
         }
@@ -139,11 +132,12 @@ class Repository
     /**
      * Gets an entry in a users dismissals column by dismissal key.
      * @param string $userGuid - guid of the user to get the dismissal for.
+     * @param string $userGuid - key to get dismissal by.
      * @throws UserSettingsNotFoundException - if the user has no matching dismissal.
      * @throws ServerErrorException - on error executing.
      * @return Dismissal - matching Dismissal object.
      */
-    public function getDismissalByKey(string $userGuid, DismissalKeyEnum $key): Dismissal
+    public function getDismissalByKey(string $userGuid, string $key): Dismissal
     {
         $dismissals = iterator_to_array($this->getDismissals($userGuid));
         $matchingDismissals = array_values(

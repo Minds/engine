@@ -5,7 +5,6 @@ namespace Spec\Minds\Core\Settings;
 
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Settings\Exceptions\UserSettingsNotFoundException;
-use Minds\Core\Settings\GraphQL\Enums\DismissalKeyEnum;
 use Minds\Core\Settings\GraphQL\Types\Dismissal;
 use Minds\Core\Settings\Models\UserSettings;
 use Minds\Core\Settings\Repository;
@@ -151,15 +150,15 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn([
                 'dismissals' => json_encode([
                     [
-                        'key' => DismissalKeyEnum::ANALYTICS_EXPLAINER,
+                        'key' => 'ANALYTICS_EXPLAINER',
                         'dismissal_timestamp' => 123
                     ],
                     [
-                        'key' => DismissalKeyEnum::BOOST_CONSOLE_EXPLAINER,
+                        'key' => 'BOOST_CONSOLE_EXPLAINER',
                         'dismissal_timestamp' => 234
                     ],
                     [
-                        'key' => DismissalKeyEnum::DISCOVERY_PLUS_EXPLAINER,
+                        'key' => 'DISCOVERY_PLUS_EXPLAINER',
                         'dismissal_timestamp' => 345
                     ]
                 ])
@@ -176,17 +175,17 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeAGeneratorWithValues([
                 (new Dismissal(
                     '123',
-                    DismissalKeyEnum::ANALYTICS_EXPLAINER,
+                    'ANALYTICS_EXPLAINER',
                     123
                 )),
                 (new Dismissal(
                     '123',
-                    DismissalKeyEnum::BOOST_CONSOLE_EXPLAINER,
+                    'BOOST_CONSOLE_EXPLAINER',
                     234
                 )),
                 (new Dismissal(
                     '123',
-                    DismissalKeyEnum::DISCOVERY_PLUS_EXPLAINER,
+                    'DISCOVERY_PLUS_EXPLAINER',
                     345
                 )),
             ]);
@@ -208,15 +207,15 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn([
                 'dismissals' => json_encode([
                     [
-                        'key' => DismissalKeyEnum::ANALYTICS_EXPLAINER,
+                        'key' => 'ANALYTICS_EXPLAINER',
                         'dismissal_timestamp' => 123
                     ],
                     [
-                        'key' => DismissalKeyEnum::BOOST_CONSOLE_EXPLAINER,
+                        'key' => 'BOOST_CONSOLE_EXPLAINER',
                         'dismissal_timestamp' => 234
                     ],
                     [
-                        'key' => DismissalKeyEnum::DISCOVERY_PLUS_EXPLAINER,
+                        'key' => 'DISCOVERY_PLUS_EXPLAINER',
                         'dismissal_timestamp' => 345
                     ]
                 ])
@@ -229,10 +228,10 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
             ->shouldBeCalledOnce();
 
-        $this->getDismissalByKey('123', DismissalKeyEnum::ANALYTICS_EXPLAINER)
+        $this->getDismissalByKey('123', 'ANALYTICS_EXPLAINER')
             ->shouldBeLike(new Dismissal(
                 '123',
-                DismissalKeyEnum::ANALYTICS_EXPLAINER,
+                'ANALYTICS_EXPLAINER',
                 123
             ));
     }

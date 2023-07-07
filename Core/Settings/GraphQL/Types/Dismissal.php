@@ -1,7 +1,6 @@
 <?php
 namespace Minds\Core\Settings\GraphQL\Types;
 
-use Minds\Core\Settings\GraphQL\Enums\DismissalKeyEnum;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 
@@ -13,7 +12,7 @@ class Dismissal
 {
     public function __construct(
         #[Field] public readonly string $userGuid,
-        #[Field] public readonly DismissalKeyEnum $key,
+        #[Field] public readonly string $key,
         #[Field] public int $dismissalTimestamp
     ) {
     }

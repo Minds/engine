@@ -6,7 +6,6 @@ namespace Minds\Core\Settings;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Settings\Exceptions\UserSettingsNotFoundException;
-use Minds\Core\Settings\GraphQL\Enums\DismissalKeyEnum;
 use Minds\Core\Settings\GraphQL\Types\Dismissal;
 use Minds\Core\Settings\Models\UserSettings;
 use Minds\Entities\User;
@@ -76,12 +75,12 @@ class Manager
 
     /**
      * Gets a Dismissal object for a user by dismissal key.
-     * @param DismissalKeyEnum $key - key to get Dismissal for.
+     * @param string $key - key to get Dismissal by.
      * @throws UserSettingsNotFoundException - if the user has no matching Dismissal.
      * @throws ServerErrorException - on error executing.
      * @return Dismissal - matching Dismissal object.
      */
-    public function getDismissalByKey(DismissalKeyEnum $key): Dismissal
+    public function getDismissalByKey(string $key): Dismissal
     {
         return $this->repository->getDismissalByKey(
             (string) $this->user->getGuid(),
@@ -91,17 +90,17 @@ class Manager
 
     /**
      * Upsert a Dismissal for a user into their JSON column for Dismissals.
-     * @param DismissalKeyEnum $key - key to upsert entry for.
+     * @param string $key - key to upsert entry for.
      * @throws ServerErrorException - on error executing.
      * @return Dismissal - the new Dismissal.
      */
-    public function upsertDismissal(DismissalKeyEnum $key): Dismissal
+    public function upsertDismissal(string $key): Dismissal
     {
         $dismissals = $this->getUserSettings(allowEmpty: true)
                 ->getRawDismissals(asArray: true);
 
         $existingArrayIndex = array_search(
-            $key->value,
+            $key,
             array_column($dismissals, 'key'),
             true
         );
@@ -112,7 +111,7 @@ class Manager
             $dismissals[$existingArrayIndex]['dismissal_timestamp'] = $currentTimestamp;
         } else {
             $dismissals[] = [
-                'key' => $key->value,
+                'key' => $key,
                 'dismissal_timestamp' => $currentTimestamp
             ];
         }

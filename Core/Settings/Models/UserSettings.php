@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Settings\Models;
 
-use Minds\Core\Settings\GraphQL\Enums\DismissalKeyEnum;
 use Minds\Core\Settings\GraphQL\Types\Dismissal;
 use Minds\Entities\ExportableInterface;
 use Minds\Entities\User;
@@ -77,14 +76,9 @@ class UserSettings implements ExportableInterface
     {
         $rawDismissals = $this->getRawDismissals();
         foreach ($rawDismissals as $rawDismissal) {
-            $key = DismissalKeyEnum::tryFrom($rawDismissal['key']);
-            if (!$key) {
-                continue;
-            }
-
             yield new Dismissal(
                 userGuid: $this->userGuid,
-                key: $key,
+                key: $rawDismissal['key'],
                 dismissalTimestamp: $rawDismissal['dismissal_timestamp']
             );
         }

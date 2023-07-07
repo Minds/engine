@@ -5,11 +5,9 @@ namespace Minds\Core\Settings\GraphQL\Controllers;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Settings\Exceptions\UserSettingsNotFoundException;
-use Minds\Core\Settings\GraphQL\Enums\DismissalKeyEnum;
 use Minds\Core\Settings\GraphQL\Types\Dismissal;
 use Minds\Core\Settings\Manager;
 use Minds\Entities\User;
-use Minds\Exceptions\ServerErrorException;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
@@ -56,15 +54,9 @@ class DismissalsController
         string $key,
         #[InjectUser] User $loggedInUser = null
     ): ?Dismissal {
-        $keyEnumValue = DismissalKeyEnum::from($key);
-
-        if (!$keyEnumValue) {
-            throw new ServerErrorException('Invalid dismissal key');
-        }
-
         try {
             return $this->manager->setUser($loggedInUser)
-                ->getDismissalByKey($keyEnumValue);
+                ->getDismissalByKey($key);
         } catch(UserSettingsNotFoundException $e) {
             return null;
         }
@@ -81,13 +73,7 @@ class DismissalsController
         string $key,
         #[InjectUser] User $loggedInUser = null
     ): Dismissal {
-        $keyEnumValue = DismissalKeyEnum::from($key);
-
-        if (!$keyEnumValue) {
-            return new ServerErrorException('Invalid dismissal key');
-        }
-
         return $this->manager->setUser($loggedInUser)
-            ->upsertDismissal($keyEnumValue);
+            ->upsertDismissal($key);
     }
 }
