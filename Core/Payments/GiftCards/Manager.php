@@ -149,6 +149,15 @@ class Manager
 
     /**
      * Returns multiple gift cards
+     * @param User $claimedByUser
+     * @param User|null $issuedByUser
+     * @param GiftCardProductIdEnum|null $productId
+     * @param int $limit
+     * @param GiftCardOrderingEnum $ordering
+     * @param string|null $loadAfter
+     * @param string|null $loadBefore
+     * @param bool|null $hasMore
+     * @return iterable<GiftCard>
      */
     public function getGiftCards(
         User $claimedByUser,
@@ -263,29 +272,49 @@ class Manager
         User $user,
         GiftCardProductIdEnum $productId,
         PaymentDetails $payment,
-    ) {
-        // Collect the balances of available gift cards
+    ): void {
+        $uncollectedPaymentAmount = round($payment->paymentAmountMillis / 1000, 2) * -1;
 
-        // Find the oldest gift card, deduct the remainder from $amount
-        $giftCards = iterator_to_array($this->repository->getGiftCards(
+        $giftCards = $this->repository->getGiftCards(
             claimedByGuid: $user->getGuid(),
-            productId: $productId,
-            ordering: GiftCardOrderingEnum::CREATED_ASC
-        ));
-  
-        if (empty($giftCards)) {
-            throw new \Exception("You dont have any valid gift cards");
-        }
-
-        // Psuedo code for testing
-        // Create a transaction and debit
-        $giftCardTransaction = new GiftCardTransaction(
-            paymentGuid: $payment->paymentGuid,
-            giftCardGuid: $giftCards[0]->guid,
-            amount: round($payment->paymentAmountMillis / 1000, 2) * -1,
-            createdAt: time(),
+            productId: $productId
         );
 
-        $this->repository->addGiftCardTransaction($giftCardTransaction);
+        foreach ($giftCards as $giftCard) {
+            $uncollectedPaymentAmount -= $giftCard->getBalance();
+            $this->repository->addGiftCardTransaction(
+                new GiftCardTransaction(
+                    paymentGuid: $payment->paymentGuid,
+                    giftCardGuid: $giftCard->guid,
+                    amount: $uncollectedPaymentAmount < 0 ? round($payment->paymentAmountMillis / 1000, 2) * -1 : $giftCard->balance * -1,
+                    createdAt: time(),
+                )
+            );
+
+            if ($uncollectedPaymentAmount <= 0) {
+                return;
+            }
+        }
+    }
+
+    /**
+     * @param int $paymentGuid
+     * @return void
+     * @throws ServerErrorException
+     */
+    public function refund(int $paymentGuid): void
+    {
+        $transactions = $this->repository->getGiftCardTransactionsFromPaymentGuid($paymentGuid);
+
+        foreach ($transactions as $transaction) {
+            $this->repository->addGiftCardTransaction(
+                new GiftCardTransaction(
+                    paymentGuid: $paymentGuid,
+                    giftCardGuid: $transaction->giftCardGuid,
+                    amount: $transaction->amount * -1, // Reverse the transaction
+                    createdAt: time(),
+                )
+            );
+        }
     }
 }

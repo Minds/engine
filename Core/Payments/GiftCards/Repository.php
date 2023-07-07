@@ -246,6 +246,29 @@ class Repository extends AbstractRepository
     }
 
     /**
+     * @param int $guid
+     * @param GiftCardProductIdEnum $productIdEnum
+     * @return float
+     * @throws GiftCardNotFoundException
+     * @throws ServerErrorException
+     */
+    public function getUserBalanceForProduct(int $guid, GiftCardProductIdEnum $productIdEnum): float
+    {
+        $query = $this->buildUserBalanceQuery(claimedByGuid: $guid);
+        $query->where('product_id', Operator::EQ, new RawExp(':product_id'));
+
+        $query->groupBy('claimed_by_guid');
+        $statement = $query->prepare();
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, [
+            'product_id' => $productIdEnum->value,
+        ]);
+
+        $statement->execute();
+        return $statement->fetch(PDO::FETCH_ASSOC)['balance'] ?? throw new GiftCardNotFoundException();
+    }
+
+    /**
      * Returns gift card transactions
      * @return iterable<GiftCardTransaction>
      */
@@ -316,6 +339,44 @@ class Repository extends AbstractRepository
             $loadAfter = base64_encode($row['payment_guid']);
 
             yield $transaction;
+        }
+    }
+
+    /**
+     * @param int $paymentGuid
+     * @return iterable<GiftCardTransaction>
+     * @throws ServerErrorException
+     */
+    public function getGiftCardTransactionsFromPaymentGuid(
+        int $paymentGuid
+    ): iterable {
+        $statement = $this->mysqlClientReaderHandler
+            ->select()
+            ->columns([
+                'payment_guid',
+                'gift_card_guid',
+                'minds_gift_card_transactions.amount',
+                'created_at',
+            ])
+            ->from('minds_gift_card_transactions')
+            ->innerJoin('minds_gift_cards', 'minds_gift_cards.guid', Operator::EQ, 'minds_gift_card_transactions.gift_card_guid')
+            ->where('payment_guid', Operator::EQ, new RawExp(':payment_guid'))
+            ->orderBy('created_at desc')
+            ->prepare();
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, [
+            'payment_guid' => $paymentGuid,
+        ]);
+
+        $statement->execute();
+
+        while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+            yield new GiftCardTransaction(
+                paymentGuid: $row['payment_guid'],
+                giftCardGuid: $row['gift_card_guid'],
+                amount: $row['amount'],
+                createdAt: strtotime($row['created_at']),
+            );
         }
     }
 
