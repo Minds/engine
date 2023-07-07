@@ -30,9 +30,11 @@ use Minds\Helpers\StringLengthValidators\DescriptionLengthValidator;
  * @property array $nsfw
  * @property string $permaweb_id
  * @property int $rating
+ * @property string $auto_caption
+ * @property bool $allow_comments
  */
 
-class Image extends File
+class Image extends File implements MutatableEntityInterface, CommentableEntityInterface
 {
     private const THUMBNAILS_SIZES = [
         'xlarge' => [
@@ -74,6 +76,8 @@ class Image extends File
         $this->attributes['time_sent'] = null;
         $this->attributes['license'] = null;
         $this->attributes['blurhash'] = null;
+        $this->attributes['auto_caption'] = null;
+        $this->attributes['allow_comments'] = true;
     }
 
     public function getUrl()
@@ -383,6 +387,7 @@ class Image extends File
         $export['urn'] = $this->getUrn();
         $export['time_sent'] = $this->getTimeSent();
         $export['license'] = $this->license;
+        $export['auto_caption'] = $this->getAutoCaption();
 
         $export['permaweb_id'] = $this->getPermawebId();
         $export['blurhash'] = $this->blurhash;
@@ -433,6 +438,7 @@ class Image extends File
             'rating' => 2, //open by default
             'time_sent' => time(),
             'blurhash' => null,
+            'auto_caption' => "",
         ], $data);
 
         $allowed = [
@@ -449,6 +455,7 @@ class Image extends File
             'rating',
             'time_sent',
             'blurhash',
+            'auto_caption',
         ];
 
         foreach ($allowed as $field) {
@@ -646,5 +653,35 @@ class Image extends File
     public function getLicense(): ?string
     {
         return $this->license;
+    }
+
+    public function getAutoCaption(): ?string
+    {
+        return $this->auto_caption;
+    }
+
+    public function setAutoCaption(string $caption): self
+    {
+        $this->auto_caption = $caption;
+        return $this;
+    }
+
+    /**
+     * !!Support for images pre multi-image!!
+     * Sets the flag for allowing comments on an entity
+     * @param bool $allowComments
+     */
+    public function setAllowComments(bool $allowComments): self
+    {
+        $this->allow_comments = $allowComments;
+        return $this;
+    }
+
+    /**
+     * Gets the flag for allowing comments on an entity
+     */
+    public function getAllowComments(): bool
+    {
+        return (bool) $this->allow_comments;
     }
 }

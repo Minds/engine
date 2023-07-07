@@ -20,6 +20,7 @@ class PulsarConsumerConfigurationMock
 class PulsarSchemaTypeMock
 {
     const AVRO = 4;
+    const JSON = 2;
 }
 class PulsarClientMock
 {
@@ -57,9 +58,17 @@ class PulsarClientConfigurationMock
 }
 class PulsarProducerMock
 {
-    public function send($message): int
+    public function send($payload, $options = []): int
     {
         return 1;
+    }
+
+    public function connect(): void
+    {
+    }
+
+    public function close(): void
+    {
     }
 }
 class PulsarConsumerMock
@@ -69,6 +78,22 @@ class PulsarConsumerMock
     public function receive()
     {
         return new PulsarMessageMock();
+    }
+
+    public function acknowledge(PulsarMessageMock $messageMock): void
+    {
+    }
+
+    public function negativeAcknowledge(PulsarMessageMock $messageMock): void
+    {
+    }
+
+    public function connect(): void
+    {
+    }
+
+    public function close(): void
+    {
     }
 }
 class PulsarMessageBuilderMock
@@ -88,8 +113,9 @@ class PulsarMessageBuilderMock
 }
 class PulsarMessageMock
 {
-    public function getDataAsString()
+    public function getDataAsString(): string
     {
+        return "";
     }
 }
 class PulsarResultMock

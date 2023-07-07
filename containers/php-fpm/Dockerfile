@@ -1,4 +1,4 @@
-FROM registry.gitlab.com/minds/engine/php:pdo
+FROM minds/php:8.1
 
 ADD --chown=www-data . /var/www/Minds/engine
 

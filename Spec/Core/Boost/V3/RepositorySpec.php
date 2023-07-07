@@ -19,6 +19,10 @@ use PDOStatement;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use Selective\Database\Connection;
+use Selective\Database\Operator;
+use Selective\Database\RawExp;
+use Selective\Database\UpdateQuery;
 use Spec\Minds\Common\Traits\CommonMatchers;
 
 class RepositorySpec extends ObjectBehavior
@@ -28,6 +32,7 @@ class RepositorySpec extends ObjectBehavior
     private Collaborator $mysqlHandler;
     private Collaborator $mysqlClientReader;
     private Collaborator $mysqlClientWriter;
+    private Collaborator $mysqlClientWriterHandler;
     private Collaborator $entitiesBuilder;
 
     /**
@@ -42,6 +47,7 @@ class RepositorySpec extends ObjectBehavior
         MySQLClient $mysqlHandler,
         PDO    $mysqlClientReader,
         PDO    $mysqlClientWriter,
+        Connection $mysqlClientWriterHandler,
         EntitiesBuilder $entitiesBuilder
     ): void {
         $this->mysqlHandler = $mysqlHandler;
@@ -54,9 +60,12 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_MASTER)
             ->willReturn($this->mysqlClientWriter);
 
+        $mysqlClientWriterHandler->getPdo()->willReturn($this->mysqlClientWriter);
+        $this->mysqlClientWriterHandler = $mysqlClientWriterHandler;
+
         $this->entitiesBuilder = $entitiesBuilder;
 
-        $this->beConstructedWith($this->mysqlHandler, $this->entitiesBuilder);
+        $this->beConstructedWith($this->mysqlHandler, $this->entitiesBuilder, $this->mysqlClientWriterHandler);
     }
 
     public function it_is_initializable(): void
@@ -72,8 +81,9 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, payment_method, payment_amount, payment_tx_id, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
+        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_platform_web, target_platform_android, target_platform_ios, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, payment_guid, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
+                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_platform_web, :target_platform_android, :target_platform_ios, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :payment_guid, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
+
         $this->mysqlClientWriter->prepare($query)
             ->shouldBeCalledOnce()
             ->willReturn($statement);
@@ -89,14 +99,28 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn('1236');
         $boost->getTargetSuitability()
             ->willReturn(BoostTargetSuitability::SAFE);
+        $boost->getTargetPlatformWeb()
+            ->willReturn(true);
+        $boost->getTargetPlatformAndroid()
+            ->willReturn(true);
+        $boost->getTargetPlatformIos()
+            ->willReturn(true);
         $boost->getTargetLocation()
             ->willReturn(BoostTargetLocation::NEWSFEED);
+        $boost->getGoal()
+            ->willReturn(null);
+        $boost->getGoalButtonText()
+            ->willReturn(null);
+        $boost->getGoalButtonUrl()
+            ->willReturn(null);
         $boost->getPaymentMethod()
             ->willReturn(BoostPaymentMethod::CASH);
         $boost->getPaymentAmount()
             ->willReturn(1.00);
         $boost->getPaymentTxId()
             ->willReturn('');
+        $boost->getPaymentGuid()
+            ->willReturn(123);
         $boost->getDailyBid()
             ->willReturn(1.00);
         $boost->getDurationDays()
@@ -122,8 +146,8 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, payment_method, payment_amount, payment_tx_id, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
+        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_platform_web, target_platform_android, target_platform_ios, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, payment_guid, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
+                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_platform_web, :target_platform_android, :target_platform_ios, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :payment_guid, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
 
         $this->mysqlClientWriter->prepare($query)
             ->shouldBeCalledOnce()
@@ -144,14 +168,28 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn('1236');
         $boost->getTargetSuitability()
             ->willReturn(BoostTargetSuitability::SAFE);
+        $boost->getTargetPlatformWeb()
+            ->willReturn(true);
+        $boost->getTargetPlatformAndroid()
+            ->willReturn(true);
+        $boost->getTargetPlatformIos()
+            ->willReturn(true);
         $boost->getTargetLocation()
             ->willReturn(BoostTargetLocation::NEWSFEED);
+        $boost->getGoal()
+            ->willReturn(null);
+        $boost->getGoalButtonText()
+            ->willReturn(null);
+        $boost->getGoalButtonUrl()
+            ->willReturn(null);
         $boost->getPaymentMethod()
             ->willReturn(BoostPaymentMethod::CASH);
         $boost->getPaymentAmount()
             ->willReturn(1.00);
         $boost->getPaymentTxId()
             ->willReturn('');
+        $boost->getPaymentGuid()
+            ->willReturn(123);
         $boost->getDailyBid()
             ->willReturn(1.00);
         $boost->getDurationDays()
@@ -186,7 +224,8 @@ class RepositorySpec extends ObjectBehavior
             'reason' => null,
             'payment_tx_id' => null,
             'created_timestamp' => date('c', time()),
-            'total_views' => 100
+            'total_views' => 100,
+            'payment_guid' => null
         ];
 
         $statement->execute()
@@ -229,7 +268,8 @@ class RepositorySpec extends ObjectBehavior
             'reason' => null,
             'payment_tx_id' => null,
             'created_timestamp' => date('c', time()),
-            'total_views' => 150
+            'total_views' => 150,
+            'payment_guid' => null
         ];
 
         $statement->execute()
@@ -274,7 +314,8 @@ class RepositorySpec extends ObjectBehavior
             'reason' => null,
             'payment_tx_id' => null,
             'created_timestamp' => date('c', time()),
-            'total_views' => 175
+            'total_views' => 175,
+            'payment_guid' => null
         ];
 
         $statement->execute()
@@ -320,7 +361,8 @@ class RepositorySpec extends ObjectBehavior
             'reason' => null,
             'payment_tx_id' => null,
             'created_timestamp' => date('c', time()),
-            'total_views' => 200
+            'total_views' => 200,
+            'payment_guid' => null
         ];
 
         $statement->execute()
@@ -350,6 +392,49 @@ class RepositorySpec extends ObjectBehavior
             ->shouldYieldAnInstanceOf(Boost::class);
     }
 
+    public function it_should_get_expired_approved_boosts(PDOStatement $statement): void
+    {
+        $query = "SELECT * FROM boosts WHERE status = :status AND :expired_timestamp > TIMESTAMPADD(DAY, duration_days, approved_timestamp)";
+        $statement->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $statement->rowCount()
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
+
+        $statement->fetchAll(Argument::type('integer'))
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                [
+                    'guid' => 123,
+                    'owner_guid' => 123,
+                    'entity_guid' => 123,
+                    'target_location' => 1,
+                    'target_suitability' => 1,
+                    'payment_method' => 1,
+                    'payment_amount' => 20,
+                    'daily_bid' => 10,
+                    'duration_days' => 2,
+                    'status' => 2,
+                    'reason' => null,
+                    'payment_tx_id' => null,
+                    'created_timestamp' => date('c', time()),
+                    'payment_guid' => null
+                ]
+            ]);
+
+        $this->mysqlClientReader->prepare($query)
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
+            ->shouldBeCalledOnce();
+
+        $this->getExpiredApprovedBoosts()
+            ->shouldYieldAnInstanceOf(Boost::class);
+    }
+
     public function it_should_get_boost_by_guid(
         PDOStatement $statement
     ): void {
@@ -359,17 +444,21 @@ class RepositorySpec extends ObjectBehavior
             'entity_guid' => '123',
             'target_location' => 1,
             'target_suitability' => 1,
+            'target_platform_web' => true,
+            'target_platform_android' => true,
+            'target_platform_ios' => true,
             'payment_method' => 1,
             'payment_amount' => 20,
+            'payment_guid' => '123',
             'daily_bid' => 10,
             'duration_days' => 2,
             'status' => 1,
             'reason' => null,
             'payment_tx_id' => null,
             'created_timestamp' => date('c', time()),
-            'total_views' => 225
+            'total_views' => 225,
+            'total_clicks' => 2,
         ];
-        $query = "SELECT * FROM boosts WHERE guid = :guid";
 
         $statement->execute()
             ->shouldBeCalledOnce();
@@ -382,7 +471,7 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($boostData);
 
-        $this->mysqlClientReader->prepare($query)
+        $this->mysqlClientReader->prepare(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($statement);
 
@@ -434,16 +523,35 @@ class RepositorySpec extends ObjectBehavior
     }
 
     public function it_should_update_boost_status(
-        PDOStatement $statement
+        PDOStatement $statement,
+        UpdateQuery $updateQuery
     ): void {
         $statement->execute()
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid";
-        $this->mysqlClientWriter->prepare($query)
+        $this->mysqlClientWriter->prepare(Argument::type('string'))
+            ->willReturn($statement);
+
+        $updateQuery->table('boosts')
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQuery);
+
+        $updateQuery->set(Argument::type('array'))
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQuery);
+
+        $updateQuery->where('guid', Operator::EQ, Argument::type(RawExp::class))
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQuery);
+
+        $updateQuery->prepare()
             ->shouldBeCalledOnce()
             ->willReturn($statement);
+
+        $this->mysqlClientWriterHandler->update()
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQuery);
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
             ->shouldBeCalledOnce();

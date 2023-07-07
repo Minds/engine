@@ -189,7 +189,6 @@ class Manager
            ->setDateTs(strtotime('midnight', $opts->getDateTs()));
 
         foreach ($this->contributions->getSummaries($contributionsOpts) as $i => $contributionSummary) {
-
             /** @var User */
             $user = $this->entitiesBuilder->single($contributionSummary->getUserGuid());
             if (!$user) {
@@ -237,30 +236,34 @@ class Manager
 
         // Liquidity rewards
 
-        foreach ($this->liquidityPositionsManager->setDateTs($opts->getDateTs())->getAllProvidersSummaries() as $i => $liquiditySummary) {
-            $rewardEntry = new RewardEntry();
-            $rewardEntry->setUserGuid($liquiditySummary->getUserGuid())
-                ->setDateTs($opts->getDateTs())
-                ->setRewardType(static::REWARD_TYPE_LIQUIDITY);
-
-            // Get yesterday RewardEntry
-            $yesterdayRewardEntry = $this->getPreviousRewardEntry($rewardEntry, 1);
-            $multiplier = $yesterdayRewardEntry ? $this->calculateMultiplier($yesterdayRewardEntry) : BigDecimal::of(1);
-            
-            $score = $liquiditySummary->getUserLiquidityTokens()->multipliedBy($multiplier);
-            
-            // Update our new RewardEntry
-            $rewardEntry
-                ->setScore($score)
-                ->setMultiplier($multiplier);
-
-            $this->add($rewardEntry);
-
-            $this->logger->info("[$i]: Liquidity score calculated as $score", [
-                'userGuid' => $rewardEntry->getUserGuid(),
-                'reward_type' => $rewardEntry->getRewardType(),
-                'multiplier' => (string) $multiplier,
-            ]);
+        try {
+            foreach ($this->liquidityPositionsManager->setDateTs($opts->getDateTs())->getAllProvidersSummaries() as $i => $liquiditySummary) {
+                $rewardEntry = new RewardEntry();
+                $rewardEntry->setUserGuid($liquiditySummary->getUserGuid())
+                    ->setDateTs($opts->getDateTs())
+                    ->setRewardType(static::REWARD_TYPE_LIQUIDITY);
+    
+                // Get yesterday RewardEntry
+                $yesterdayRewardEntry = $this->getPreviousRewardEntry($rewardEntry, 1);
+                $multiplier = $yesterdayRewardEntry ? $this->calculateMultiplier($yesterdayRewardEntry) : BigDecimal::of(1);
+                
+                $score = $liquiditySummary->getUserLiquidityTokens()->multipliedBy($multiplier);
+                
+                // Update our new RewardEntry
+                $rewardEntry
+                    ->setScore($score)
+                    ->setMultiplier($multiplier);
+    
+                $this->add($rewardEntry);
+    
+                $this->logger->info("[$i]: Liquidity score calculated as $score", [
+                    'userGuid' => $rewardEntry->getUserGuid(),
+                    'reward_type' => $rewardEntry->getRewardType(),
+                    'multiplier' => (string) $multiplier,
+                ]);
+            }
+        } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
         }
 
         // Holding rewards
@@ -268,7 +271,6 @@ class Manager
         if ($opts->isRecalculate()) {
             $blockNumber = $this->blockFinder->getBlockByTimestamp($opts->getDateTs());
             foreach ($this->uniqueOnChainManager->getAll() as $i => $uniqueOnChain) {
-
                 /** @var User */
                 $user = $this->entitiesBuilder->single($uniqueOnChain->getUserGuid());
                 if (!$user || !$user instanceof User) {
@@ -321,7 +323,6 @@ class Manager
         ////
 
         foreach ($this->repository->getIterator($opts) as $i => $rewardEntry) {
-
             // Confirm the wallet address is still connected
             if (in_array($rewardEntry->getRewardType(), [static::REWARD_TYPE_LIQUIDITY, static::REWARD_TYPE_HOLDING], false)) {
                 /** @var User */

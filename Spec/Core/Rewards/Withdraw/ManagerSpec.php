@@ -22,7 +22,6 @@ use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Minds\Core\Security\TwoFactor\Manager as TwoFactorManager;
-use Minds\Core\Features\Manager as Features;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -62,9 +61,6 @@ class ManagerSpec extends ObjectBehavior
     /** @var EntitiesBuilder $entitiesBuilder */
     private $entitiesBuilder;
 
-    /** @var Features */
-    protected $features;
-
     /** @var MindsWeb3Service */
     protected $mindsWeb3Service;
 
@@ -81,7 +77,6 @@ class ManagerSpec extends ObjectBehavior
         TwoFactorManager $twoFactorManager,
         EntitiesBuilder $entitiesBuilder,
         DeferredSecrets $deferredSecrets,
-        Features $features = null,
         MindsWeb3Service $mindsWeb3Service = null
     ) {
         $this->beConstructedWith(
@@ -97,7 +92,6 @@ class ManagerSpec extends ObjectBehavior
             $twoFactorManager,
             $entitiesBuilder,
             $deferredSecrets,
-            $features,
             $mindsWeb3Service
         );
 
@@ -113,7 +107,6 @@ class ManagerSpec extends ObjectBehavior
         $this->twoFactorManager = $twoFactorManager;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->deferredSecrets = $deferredSecrets;
-        $this->features = $features;
         $this->mindsWeb3Service = $mindsWeb3Service;
     }
 
@@ -845,81 +838,7 @@ class ManagerSpec extends ObjectBehavior
             ->duringFail($request);
     }
 
-    public function it_should_approve(
-        Request $request
-    ) {
-        $this->config->get('blockchain')
-            ->shouldBeCalled()
-            ->willReturn([
-                'server_gas_price' => 100,
-                'contracts' => [
-                    'withdraw' => [
-                        'wallet_pkey' => '',
-                        'wallet_address' => '',
-                        'contract_address' => '',
-                    ],
-                ],
-            ]);
-
-        $request->getStatus()
-            ->shouldBeCalled()
-            ->willReturn('pending_approval');
-
-        $request->getUserGuid()
-            ->shouldBeCalled()
-            ->willReturn(1000);
-
-        $request->getAddress()
-            ->shouldBeCalled()
-            ->willReturn('0x303456');
-
-        $request->getAmount()
-            ->shouldBeCalled()
-            ->willReturn(BigNumber::toPlain(10, 18));
-
-        $request->getGas()
-            ->shouldBeCalled()
-            ->willReturn(BigNumber::toPlain(1, 18));
-
-        $this->features->has('web3-service-withdrawals')
-            ->shouldBeCalled()
-            ->willReturn(false);
-        
-        $this->eth->encodeContractMethod(Argument::cetera())
-            ->shouldBeCalled()
-            ->willReturn('~encoded_contract_method~');
-
-        $this->eth->sendRawTransaction(Argument::cetera())
-            ->shouldBeCalled()
-            ->willReturn('0xf00847');
-
-        $request->setStatus('approved')
-            ->shouldBeCalled()
-            ->willReturn($request);
-
-        $request->setCompletedTx('0xf00847')
-            ->shouldBeCalled()
-            ->willReturn($request);
-
-        $request->setCompleted(true)
-            ->shouldBeCalled()
-            ->willReturn($request);
-
-        $this->repository->add($request)
-            ->shouldBeCalled();
-
-        $this->notificationsDelegate->onApprove($request)
-            ->shouldBeCalled();
-
-        $this->emailDelegate->onApprove($request)
-            ->shouldBeCalled();
-
-        $this
-            ->approve($request)
-            ->shouldReturn(true);
-    }
-
-    public function it_should_approve_using_web3_service_if_feat_enabled(
+    public function it_should_approve_using_web3_service(
         Request $request
     ) {
         $this->config->get('blockchain')
@@ -934,7 +853,7 @@ class ManagerSpec extends ObjectBehavior
                     ],
                 ],
             ]);
-    
+
         $request->getStatus()
             ->shouldBeCalled()
             ->willReturn('pending_approval');
@@ -955,20 +874,16 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(BigNumber::toPlain(1, 18));
 
-        $this->features->has('web3-service-withdrawals')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this->mindsWeb3Service
             ->setWalletPrivateKey('0x0000000000000000000000000000000000000000')
             ->shouldBeCalled()
             ->willReturn($this->mindsWeb3Service);
-   
+
         $this->mindsWeb3Service
             ->setWalletPublicKey('0x000000000000000000000000000000000000dead')
             ->shouldBeCalled()
             ->willReturn($this->mindsWeb3Service);
-        
+
         $this->mindsWeb3Service
             ->withdraw(
                 '0x303456',

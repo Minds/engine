@@ -1,12 +1,13 @@
 <?php
 namespace Minds\Core\Monetization\Partners;
 
+use Cassandra\Bigint;
+use Cassandra\Decimal;
+use Cassandra\Timestamp;
+use Minds\Common\Repository\Response;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom as Prepared;
-use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
-use Cassandra\Bigint;
-use Cassandra\Timestamp;
 
 class Repository
 {
@@ -29,6 +30,7 @@ class Repository
             'to' => null,
             'user_guid' => null,
             'allow_filtering' => false,
+            'offset' => '',
         ], $opts);
 
         $statement = "SELECT * FROM partner_earnings_ledger";
@@ -62,6 +64,9 @@ class Repository
 
         $prepared = new Prepared();
         $prepared->query($statement, $values);
+        $prepared->setOpts([
+            'paging_state_token' => $opts['offset'],
+        ]);
 
         $result = $this->db->request($prepared);
 
@@ -77,11 +82,12 @@ class Repository
                 ->setItem($row['item'])
                 ->setUserGuid((string) $row['user_guid'])
                 ->setAmountCents($row['amount_cents'])
-                ->setAmountTokens($row['amount_tokens'] ? $row['amount_tokens']->value() : 0);
+                ->setAmountTokens(isset($row['amount_tokens']) ? $row['amount_tokens']->toDouble() : 0);
             $response[] = $deposit;
         }
 
         $response->setLastPage($result->isLastPage());
+        $response->setPagingToken($result->pagingStateToken());
         return $response;
     }
 
@@ -109,7 +115,7 @@ class Repository
                 new Timestamp($deposit->getTimestamp(), 0),
                 $deposit->getItem(),
                 $deposit->getAmountCents() ? (int) $deposit->getAmountCents() : null,
-                $deposit->getAmountTokens() ? new Bigint($deposit->getAmountTokens()) : null,
+                $deposit->getAmountTokens() ? new Decimal($deposit->getAmountTokens()) : null,
             ]
         );
         return (bool) $this->db->request($prepared);
@@ -136,6 +142,7 @@ class Repository
 
     /**
      * @param string $guid
+     * @param null $asOfTs
      * @return EarningsBalance
      */
     public function getBalance($guid, $asOfTs = null): EarningsBalance
@@ -155,11 +162,58 @@ class Repository
 
         $result = $this->db->request($prepared);
         $row = $result[0];
-        
+
         $balance = new EarningsBalance();
         $balance->setUserGuid($guid)
             ->setAmountCents($row['cents'])
             ->setAmountTokens($row['tokens']->value());
+        return $balance;
+    }
+
+    /**
+     * @param string $userGuid
+     * @param array $items
+     * @param int|null $asOfTs
+     * @return EarningsBalance
+     */
+    public function getBalanceByItem(string $userGuid, array $items, ?int $asOfTs = null): EarningsBalance
+    {
+        $statement = "SELECT amount_cents as cents, amount_tokens as tokens, item
+            FROM partner_earnings_ledger
+            WHERE user_guid = ?";
+
+        $values = [
+            new Bigint($userGuid)
+        ];
+
+        if ($asOfTs) {
+            $statement .= " AND timestamp <= ?";
+            $values[] = new Timestamp($asOfTs, 0);
+        }
+
+        $prepared = (new Prepared())
+            ->query($statement, $values);
+
+        $result = $this->db->request($prepared);
+
+        $totalCents = $totalTokens = 0;
+
+        /**
+         * @var $deposit
+         */
+        foreach ($result as $deposit) {
+            if (!in_array($deposit['item'], $items, true)) {
+                continue;
+            }
+
+            $totalCents += $deposit['cents'];
+            $totalTokens += $deposit['tokens']->toInt();
+        }
+
+        $balance = new EarningsBalance();
+        $balance->setUserGuid($userGuid)
+            ->setAmountCents($totalCents)
+            ->setAmountTokens($totalTokens);
         return $balance;
     }
 }

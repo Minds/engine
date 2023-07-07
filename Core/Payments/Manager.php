@@ -15,6 +15,7 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Models\GetPaymentsOpts;
 use Minds\Core\Payments\Models\Payment;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
+use Minds\Core\Payments\V2\Repository;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
@@ -222,11 +223,11 @@ class Manager
                 opts: $opts
             );
             if (!count($paymentIntents['data'])) {
-                $this->logger->warn("Customer not found: {$this->user_guid}");
+                $this->logger->warning("Customer not found: {$this->user_guid}");
                 return [];
             }
         } catch (UserErrorException $e) {
-            $this->logger->warn($e->getMessage());
+            $this->logger->warning($e->getMessage());
             return [];
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());

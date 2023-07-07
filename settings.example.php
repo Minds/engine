@@ -39,6 +39,7 @@ $CONFIG->set('cloudflare', [
     'api_key' => '',
     'email' => '',
     'account_id' => '',
+    'cdn_url' => 'https://customer-gh08u53vbkhozibb.cloudflarestream.com/',
 ]);
 
 $CONFIG->disable_secure_cookies = true;
@@ -71,6 +72,7 @@ $CONFIG->set(
                 ['value' => 4, 'label' => 'Fraud'],
                 ['value' => 5, 'label' => 'Revenge Porn'],
                 ['value' => 6, 'label' => 'Sex trafficking'],
+                ['value' => 7, 'label' => 'Animal abuse']
             ],
         ],
         [
@@ -112,7 +114,7 @@ $CONFIG->set(
         ],
         [
             'value' => 10,
-            'label' => 'Infringes my copyright',
+            'label' => 'Intellectual property violation',
             'hasMore' => true,
         ],
         [
@@ -390,6 +392,8 @@ $CONFIG->set('payouts', [
 $CONFIG->set('payments', [
     'stripe' => [
         'api_key' => '',
+        'test_api_key' => '',
+        'test_email' => '',
         'transfers' => [
             'source_type' => 'bank_account',
         ],
@@ -520,11 +524,6 @@ $CONFIG->set('plus', [
     ],
 ]);
 
-$CONFIG->set('iframely', [
-    'key' => 'f4da1791510e9dd6ad63bc',
-    'origin' => 'minds',
-]);
-
 $CONFIG->set('default_email_subscriptions', [
     [
         'campaign' => 'when',
@@ -594,9 +593,30 @@ $CONFIG->set('tags', [
     'art', 'music', 'journalism', 'blockchain', 'freespeech', 'news', 'gaming', 'myphoto', 'nature', 'photography', 'politics', 'top', 'bitcoin', 'technology', 'food', 'animals', 'health', 'science', 'philosophy', 'comedy', 'film', 'minds',
 ]);
 
-// served initially only when under minds-3216-default-tags-v2 - should eventually replace v1 tags.
+// should eventually replace v1 tags.
 $CONFIG->set('tags_v2', [
-    'Animals', 'Anime', 'Art', 'Comedy', 'Crypto', 'Food', 'Freedom', 'Gaming', 'Literature', 'Memes', 'Movies', 'Music', 'Nature', 'NSFW', 'News', 'Outdoors', 'Photography', 'Politics', 'Religion', 'Sports', 'Technology', 'Travel'
+    'technology',
+    'crypto',
+    'nature',
+    'travel',
+    'outdoors',
+    'animals',
+    'memes',
+    'nsfw',
+    'news',
+    'politics',
+    'spirituality',
+    'health',
+    'education',
+    'business',
+    'sports',
+    'comedy',
+    'fashion',
+    'anime',
+    'gaming',
+    'art',
+    'music',
+    'photography',
 ]);
 
 $CONFIG->set('steward_guid', '');
@@ -612,33 +632,6 @@ $CONFIG->set('trending_tags_development_mode', true);
 $CONFIG->set('max_video_length', 900);
 
 $CONFIG->set('max_video_length_plus', 1860);
-
-// You can find a list of all in use feature flags at Core/Features/Provider.php
-$CONFIG->set('features', [
-    'psr7-router' => true,
-    'es-feeds' => false,
-    'helpdesk' => true,
-    'top-feeds' => true,
-    'cassandra-notifications' => true,
-    'dark-mode' => true,
-    'allow-comments-toggle' => false,
-    'permissions' => false,
-    'pro' => false,
-    'webtorrent' => false,
-    'top-feeds-by-age' => true,
-    'ux-2020' => true,
-    'modal-pager' => true,
-    'wallet-upgrade' => true,
-    'subscriber-conversations' => true,
-    'activity-modal' => false,
-    'withdrawal-console' => true,
-    'twilio-verify' => true,
-    'helpdesk-2021' => true,
-    'discovery-default-tags' => true,
-    'skale' => true,
-    'polygon' => true,
-    'web3-service-withdrawals' => false,
-]);
 
 $CONFIG->set('email', [
     'sender' => [
@@ -667,6 +660,12 @@ $CONFIG->set('max_video_length_plus', 1860);
 /* Maximum video file size, in bytes */
 $CONFIG->set('max_video_file_size', 3900000000);
 
+$CONFIG->set('storage', [
+    'engine' => 'Disk',
+    'oci_primary' => false,
+    'oci_bucket_name' => 'mindsfs',
+]);
+
 $CONFIG->set('aws', [
     'key' => '',
     'secret' => '',
@@ -691,6 +690,20 @@ $CONFIG->set('aws', [
     ],
 ]);
 
+$CONFIG->set('oci', [
+    'oss_s3_client' => [
+        'endpoint' => '',
+        'key' => '',
+        'secret' => ''
+    ],
+    'api_auth' => [
+        'private_key' => '',
+        'tenant_id' => '',
+        'user_id' => '',
+        'key_fingerprint' => ''
+    ]
+]);
+
 $CONFIG->set('transcode', [
     //'free_threshold' => 900, // 15 minutes
     'free_threshold' => 2,
@@ -699,8 +712,11 @@ $CONFIG->set('transcode', [
 ]);
 
 $CONFIG->set('transcoder', [
+    'oci_primary' => false,
+    'oci_bucket_name' => 'cinemr',
     'threads' => 4,
     'dir' => 'cinemr_dev',
+    'primary_bucket' => 'aws',
     'presets' => [
         [
             'width' => 640,
@@ -828,6 +844,7 @@ $CONFIG->set('sendwyre', [
 
 $CONFIG->set('onboarding_modal_timestamp', 0);
 $CONFIG->set('onboarding_v2_timestamp', 0);
+$CONFIG->set('onboarding_v5_release_timestamp', 0);
 
 
 $CONFIG->set('snowplow', [
@@ -881,10 +898,6 @@ $CONFIG->set('webpush_vapid_details', [
 
 $CONFIG->set('seen-entities-weight', 0.01);
 
-$CONFIG->set('survey_links', [
-    'post_signup' => '',
-]);
-
 $CONFIG->set('metascraper', [
     'base_url' => 'metascraper:3334/',
     'ttl_seconds' => 86400,
@@ -899,7 +912,7 @@ $CONFIG->set('jury', [
 $CONFIG->set('supermind', [
     'minimum_amount' => [
         'usd' => 1.00,
-        'offchain_token' => 1.00
+        'offchain_token' => 0.01
     ]
 ]);
 
@@ -911,4 +924,20 @@ $CONFIG->set('nostr', [
         'wss://nostr-relay.wlvs.space',
         'wss://nostr-pub.wellorder.net'
     ]
+]);
+
+$CONFIG->set('boost_view_rate_limit', 1);
+
+$CONFIG->set('chatwoot', [
+    'website_token' => '',
+    'base_url' => '',
+    'signing_key' => ''
+]);
+
+$CONFIG->set('strapi', [
+    'url' => 'https://cms.oke.minds.io'
+]);
+
+$CONFIG->set('uniswap', [
+    'url' => 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2',
 ]);

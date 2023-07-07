@@ -66,7 +66,7 @@ class RepositorySpec extends ObjectBehavior
 
         $pdoStmtMock->execute()->shouldBeCalled();
 
-        $pdoStmtMock->fetchAll()->willYield([
+        $pdoStmtMock->fetchAll()->willReturn([
             [
                 'guid' => '1234',
                 'share_ratio_open_audience' => 0.5,

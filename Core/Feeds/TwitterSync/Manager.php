@@ -8,14 +8,12 @@ use Minds\Core\Config\Config;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\TwitterSync\Delegates\ChannelLinksDelegate;
-use Minds\Core\Feeds\Activity\RichEmbed;
 use Minds\Core\Log\Logger;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service as MetascraperService;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 
 class Manager
 {
@@ -37,12 +35,10 @@ class Manager
         protected Config $config,
         protected EntitiesBuilder $entitiesBuilder,
         protected Save $saveAction,
-        protected RichEmbed\Manager $richEmbedManager,
         protected ChannelLinksDelegate $channelLinksDelegate,
         protected Logger $logger,
         protected ImageExtractor $imageExtractor,
-        protected ?MetascraperService $metascraperService = null,
-        protected ?ExperimentsManager $experimentsManager = null
+        protected ?MetascraperService $metascraperService = null
     ) {
     }
 
@@ -83,7 +79,7 @@ class Manager
             foreach ($latestTweets as $tweet) {
                 if (array_filter($tweet->getUrls(), function ($tweetUrl) use ($verificationString) {
                     return strtolower($tweetUrl) === $verificationString;
-                })) {
+                }) || str_contains($tweet->getText(), $verificationString)) {
                     $verifiedTweetId = $tweet->getId();
                     break; // Success!
                 }
@@ -256,9 +252,7 @@ class Manager
                 if ($recentTweet->getUrls() && isset($recentTweet->getUrls()[0]) && !count($photos)) {
                     $url = $recentTweet->getUrls()[0];
                     try {
-                        $richEmbed = $this->experimentsManager->isOn('front-5815-metascraper-stage-2') ?
-                            $this->metascraperService->scrape($url) :
-                            $this->richEmbedManager->getRichEmbed($url);
+                        $richEmbed = $this->metascraperService->scrape($url);
                         $activity
                             ->setTitle($richEmbed['meta']['title'])
                             ->setBlurb($richEmbed['meta']['description'])

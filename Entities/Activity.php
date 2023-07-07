@@ -46,8 +46,9 @@ use Minds\Helpers;
  * @property string $blurhash
  * @property array $attachments
  * @property array $supermind
+ * @property string $auto_caption
  */
-class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface
+class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface, CommentableEntityInterface
 {
     use PaywallEntityTrait;
 
@@ -98,6 +99,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             //	'node' => elgg_get_site_url()
             'attachments' => null,
             'supermind' => null,
+            'auto_caption' => null,
         ]);
     }
 
@@ -276,7 +278,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'monetized',
                 'paywall',
                 'edited',
-                'comments_enabled',
                 'wire_totals',
                 'wire_threshold',
                 'boost_rejection_reason',
@@ -288,7 +289,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'time_sent',
                 'permaweb_id',
                 'blurhash',
-                'supermind'
+                'supermind',
+                'auto_caption'
             ]
         );
     }
@@ -343,7 +345,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
 
             $export['mature'] = (bool) $export['mature'];
 
-            $export['comments_enabled'] = (bool) $export['comments_enabled'];
+            $export['allow_comments'] = $this->getAllowComments();
             // $export['wire_totals'] = $this->getWireTotals();
             $export['wire_threshold'] = $this->getWireThreshold();
             $export['boost_rejection_reason'] = $this->getBoostRejectionReason() ?: -1;
@@ -741,30 +743,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     }
 
     /**
-     * Sets if comments are enabled
-     * @param boolean
-     */
-    public function enableComments()
-    {
-        $this->comments_enabled = true;
-        return $this;
-    }
-    public function disableComments()
-    {
-        $this->comments_enabled = false;
-        return $this;
-    }
-
-    /**
-     * Gets if comments are enabled
-     * @return boolean
-     */
-    public function canComment($user_guid = 0 /* ignored */)
-    {
-        return (bool) $this->comments_enabled;
-    }
-
-    /**
      * Sets the timestamp for this activity
      * @param mixed $value
      */
@@ -1132,6 +1110,17 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         return $this;
     }
 
+    public function getAutoCaption(): ?string
+    {
+        return $this->auto_caption;
+    }
+
+    public function setAutoCaption(string $autoCaption): self
+    {
+        $this->auto_caption = $autoCaption;
+        return $this;
+    }
+
     /**
      * Will return isPortrait logic for posts
      * @return bool
@@ -1231,5 +1220,23 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             ]
         );
         return $diff;
+    }
+
+    /**
+     * Sets the flag for allowing comments on an entity
+     * @param bool $allowComments
+     */
+    public function setAllowComments(bool $allowComments): self
+    {
+        $this->comments_enabled = $allowComments;
+        return $this;
+    }
+
+    /**
+     * Gets the flag for allowing comments on an entity
+     */
+    public function getAllowComments(): bool
+    {
+        return (bool) $this->comments_enabled;
     }
 }

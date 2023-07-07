@@ -101,6 +101,10 @@ CREATE TABLE IF NOT EXISTS user_configurations
     plus_demonetized timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB;
 
+ALTER TABLE user_configurations
+    ADD boost_partner_suitability int NULL DEFAULT NULL
+    AFTER user_guid;
+
 CREATE TABLE IF NOT EXISTS boosts
 (
     guid bigint PRIMARY KEY,
@@ -130,6 +134,7 @@ CREATE TABLE IF NOT EXISTS boost_summaries
     guid bigint,
     date date NOT NULL,
     views int NOT NULL,
+    clicks int,
     PRIMARY KEY (guid, date)
 ) ENGINE=InnoDB;
 
@@ -171,3 +176,176 @@ CREATE TABLE IF NOT EXISTS users_marketing_attributes
 ALTER TABLE boosts
     ADD reason int NULL DEFAULT NULL
     AFTER status;
+
+CREATE TABLE IF NOT EXISTS boost_partner_views
+(
+    served_by_user_guid bigint NOT NULL,
+    boost_guid bigint NOT NULL,
+    views int NOT NULL,
+    view_date timestamp NOT NULL,
+    PRIMARY KEY (served_by_user_guid, boost_guid, view_date)
+) ENGINE=InnoDB;
+
+ALTER TABLE boosts
+    ADD completed_timestamp timestamp DEFAULT NULL
+    AFTER approved_timestamp;
+
+ALTER TABLE boosts
+ADD INDEX completed_timestamp (completed_timestamp) USING BTREE;
+
+ALTER TABLE boosts
+    ADD target_platform_web boolean DEFAULT true
+    AFTER target_suitability;
+
+ALTER TABLE boosts
+    ADD target_platform_android boolean DEFAULT true
+    AFTER target_platform_web;
+
+ALTER TABLE boosts
+    ADD target_platform_ios boolean DEFAULT true
+    AFTER target_platform_android;
+
+ALTER TABLE boosts
+    ADD goal int NULL DEFAULT NULL
+    AFTER target_location;
+
+ALTER TABLE boosts
+    ADD goal_button_text int NULL DEFAULT NULL
+    AFTER goal;
+
+ALTER TABLE boosts
+    ADD goal_button_url text NULL DEFAULT NULL
+    AFTER goal_button_text;
+
+ALTER TABLE boost_summaries
+    ADD clicks int
+    AFTER views;
+
+CREATE TABLE IF NOT EXISTS minds_payments
+(
+    payment_guid bigint NOT NULL PRIMARY KEY,
+    user_guid bigint NOT NULL,
+    affiliate_user_guid bigint DEFAULT NULL,
+    payment_type int NOT NULL,
+    payment_status int NOT NULL,
+    payment_method int NOT NULL,
+    payment_amount_millis int NOT NULL,
+    refunded_amount_millis int NULL,
+    is_captured bool DEFAULT FALSE, # Check stripe docs with different states
+    payment_tx_id text DEFAULT NULL,
+    created_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp NULL DEFAULT NULL,
+    INDEX user_guid_idx (user_guid),
+    INDEX affiliate_user_guid_idx (affiliate_user_guid)
+) ENGINE=InnoDB;
+
+ALTER TABLE boosts
+    ADD payment_guid bigint DEFAULT NULL
+    AFTER payment_method;
+
+CREATE TABLE IF NOT EXISTS minds_default_tag_mapping (
+	entity_guid bigint NOT NULL,
+	tag_name varchar(100) NOT NULL,
+	entity_type varchar(100) NOT NULL,
+	PRIMARY KEY (entity_guid, tag_name)
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS minds_votes
+(
+    user_guid bigint NOT NULL,
+    entity_guid bigint NOT NULL,
+    entity_type text NOT NULL,
+    direction int NOT NULL,
+    deleted boolean NOT NULL DEFAULT FALSE,
+    created_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_guid, entity_guid, direction)
+) ENGINE=InnoDB;
+
+ALTER TABLE minds_payments
+    ADD affiliate_type int DEFAULT NULL
+    AFTER affiliate_user_guid;
+
+CREATE TABLE IF NOT EXISTS minds_comments (
+    guid bigint,
+    entity_guid bigint,
+    owner_guid bigint,
+    parent_guid bigint REFERENCES minds_comment(guid),
+    parent_depth int,
+    body text,
+    attachments json,
+    mature boolean,
+    edited boolean,
+    spam boolean,
+    deleted boolean,
+    `enabled` boolean,
+    group_conversation boolean,
+    access_id bigint,
+    time_created timestamp DEFAULT CURRENT_TIMESTAMP,
+    time_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (guid)
+) ENGINE = InnoDB;
+
+-- For local environment --
+CREATE TABLE IF NOT EXISTS recommendations_latest_cluster_activities (
+  cluster_id int,
+  activity_guid bigint,
+  channel_guid bigint,
+  score float,
+  PRIMARY KEY (cluster_id, activity_guid)
+);
+
+-- For local environment --
+CREATE TABLE IF NOT EXISTS recommendations_latest_cluster_tags (
+  cluster_id int,
+  interest_tag varchar(255),
+  relative_ratio float,
+  PRIMARY KEY (cluster_id, interest_tag)
+);
+
+-- For local environment --
+CREATE TABLE IF NOT EXISTS recommendations_latest_user_clusters (
+  user_id bigint PRIMARY KEY,
+  cluster_id int
+);
+
+ALTER TABLE pseudo_seen_entities
+    ADD first_seen_timestamp timestamp DEFAULT CURRENT_TIMESTAMP
+        AFTER entity_guid;
+
+CREATE TABLE IF NOT EXISTS minds_gift_cards (
+    guid bigint PRIMARY KEY,
+    product_id tinyint NOT NULL,
+    amount decimal(5,2) NOT NULL,
+    issued_by_guid bigint NOT NULL,
+    issued_at timestamp NOT NULL,
+    claim_code text NOT NULL,
+    expires_at timestamp NOT NULL,
+    claimed_by_guid bigint DEFAULT NULL,
+    claimed_at timestamp DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS minds_gift_card_transactions (
+    payment_guid bigint NOT NULL ,
+    gift_card_guid bigint NOT NULL,
+    amount decimal(5,2) NOT NULL,
+    created_at timestamp NOT NULL,
+    PRIMARY KEY (payment_guid, gift_card_guid),
+    FOREIGN KEY (payment_guid) REFERENCES minds_payments(payment_guid),
+    FOREIGN KEY (gift_card_guid) REFERENCES minds_gift_cards(guid)
+);
+
+CREATE TABLE IF NOT EXISTS minds_onboarding_v5_completion (
+    user_guid bigint PRIMARY KEY,
+    started_at timestamp DEFAULT CURRENT_TIMESTAMP,
+    completed_at timestamp DEFAULT NULL
+)
+
+CREATE TABLE IF NOT EXISTS minds_onboarding_v5_step_progress (
+    user_guid bigint NOT NULL,
+    step_key varchar(100) NOT NULL,
+    step_type varchar(100) NOT NULL,
+    completed_at timestamp DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_guid, step_key)
+)

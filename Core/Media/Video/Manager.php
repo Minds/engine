@@ -14,6 +14,8 @@ use Minds\Entities\Video;
 use Minds\Core\EntitiesBuilder;
 use Minds\Common\Repository\Response;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Media\Services\AwsS3Client;
+use Oracle\Oci\ObjectStorage\ObjectStorageClient;
 
 class Manager
 {
@@ -53,7 +55,8 @@ class Manager
         $entitiesBuilder = null,
         $transcoderManager = null,
         $save = null,
-        $cloudflareStreamsManager = null
+        $cloudflareStreamsManager = null,
+        protected ?ObjectStorageClient $osClient = null
     ) {
         $this->config = $config ?? Di::_()->get('Config');
 
@@ -68,11 +71,13 @@ class Manager
                 'secret' => $awsConfig['secret'] ?? null,
             ];
         }
-        $this->s3 = $s3 ?: new S3Client(array_merge(['version' => '2006-03-01'], $opts));
+
+        $this->s3 = $s3 ?? Di::_()->get(AwsS3Client::class);
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->transcoderManager = $transcoderManager ?? Di::_()->get('Media\Video\Transcoder\Manager');
         $this->save = $save ?? new Save();
         $this->cloudflareStreamsManager = $cloudflareStreamsManager ?? new CloudflareStreams\Manager();
+        $this->osClient ??= Di::_()->get(ObjectStorageClient::class);
     }
 
     /**
@@ -140,7 +145,7 @@ class Manager
                 return $this->getCloudflareSources($guid);
             case self::TRANSCODER_MINDS:
             default:
-                 return $this->getMindsTranscoderSources($guid);
+                return $this->getMindsTranscoderSources($guid);
         }
     }
 
@@ -214,9 +219,29 @@ class Manager
                 // To do
                 break;
             case Video::class:
+                $key = $this->config->get('transcoder')['dir'] . "/" . $entity->get('cinemr_guid') . "/" . $size;
+
+                // Set primary client
+                $useOss = $this->config->get('transcoder')['oci_primary'] ?? false;
+
+                if ($useOss) {
+                    $response = $this->osClient->createPreauthenticatedRequest([
+                        'namespaceName' => $this->config->get('oci')['api_auth']['bucket_namespace'],
+                        'bucketName' => $this->config->get('transcoder')['oci_bucket_name'] ?? 'cinemr',
+                        'createPreauthenticatedRequestDetails' => [
+                            'name' => $key,
+                            'objectName' => $key,
+                            'accessType' => 'ObjectRead',
+                            'timeExpires' => date('c', strtotime('+20 minutes')),
+                        ],
+                    ]);
+                    
+                    return $response->getJson()->fullPath;
+                }
+
                 $cmd = $this->s3->getCommand('GetObject', [
                     'Bucket' => 'cinemr', // TODO: don't hard code
-                    'Key' => $this->config->get('transcoder')['dir'] . "/" . $entity->get('cinemr_guid') . "/" . $size,
+                    'Key' => $key,
                 ]);
                 break;
         }

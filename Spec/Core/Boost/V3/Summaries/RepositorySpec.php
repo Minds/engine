@@ -48,4 +48,23 @@ class RepositorySpec extends ObjectBehavior
 
         $this->add('123', new DateTime('midnight'), 125);
     }
+
+    public function it_should_increment_clicks(PDOStatement $statement): void
+    {
+        $guid = '123';
+        $dateTime = new DateTime();
+
+        $this->mysqlMasterMock->prepare(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $statement->execute([
+            'guid' => $guid,
+            'date' => $dateTime->format('c'),
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->incrementClicks($guid, $dateTime);
+    }
 }

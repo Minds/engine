@@ -30,9 +30,9 @@ class ContributionValues
             //     return static::$multipliers['reminds'];
             case 'vote:up':
                 return static::$multipliers['votes'];
-            // case 'vote:down':
+                // case 'vote:down':
             //     return static::$multipliers['downvotes'];
-            // case 'subscribers':
+                // case 'subscribers':
             //     return static::$multipliers['subscribe'];
             default:
                 return 0;

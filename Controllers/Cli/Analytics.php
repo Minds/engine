@@ -5,6 +5,7 @@ namespace Minds\Controllers\Cli;
 use Elasticsearch\Common\Exceptions\ServerErrorResponseException;
 use Minds\Cli;
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Interfaces;
 
@@ -30,7 +31,7 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
                 $this->out('Prints the counts of a user');
                 $this->out('--from={timestamp in milliseconds} the day to start count. Default is yesterday');
                 $this->out('--guid={user guid} REQUIRED the user to aggregate');
-            // no break
+                // no break
             default:
                 $this->out('Syntax usage: cli analytics <type>');
                 $this->displayCommandHelp();
@@ -157,5 +158,48 @@ class Analytics extends Cli\Controller implements Interfaces\CliControllerInterf
             $this->out($i . "-{$view->getUuid()} {$date} ($rps/sec)");
         }
         $this->out('Done');
+    }
+
+    public function syncRemote()
+    {
+        /** @var Core\Data\ElasticSearch\Client */
+        $es = Di::_()->get('Database\ElasticSearch');
+
+        $config = Di::_()->get('Config');
+
+        $indexName = 'minds-metrics-'.date('m-Y', time());
+
+        $result = $es->getClient()->reindex([
+            'wait_for_completion' => true,
+            'body' => [
+                'conflicts' => 'proceed',
+                'source' => [
+                    'remote' => [
+                        'host' => 'https://a7767ca99088a42d58a098b8795bb42f-febc0d643005d91f.elb.us-east-1.amazonaws.com:9200',
+                        'username' => $config->get('elasticsearch')['username'],
+                        'password' => $config->get('elasticsearch')['password']
+                    ],
+                    'index' => $indexName,
+                    'query' => [
+                        'bool' => [
+                            'must' => [
+                                [
+                                    'range' => [
+                                        '@timestamp' => [
+                                            'gte' => 'now-1h'
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                "dest" => [
+                    "index" => $indexName,
+                    "op_type" => "create"
+                ]
+            ]
+        ]);
+        var_dump($result);
     }
 }

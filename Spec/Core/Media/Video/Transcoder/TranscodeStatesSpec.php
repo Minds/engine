@@ -2,16 +2,14 @@
 
 namespace Spec\Minds\Core\Media\Video\Transcoder;
 
-use Google\Service\Transcoder;
-use Minds\Core\Media\Video\Transcoder\TranscodeStates;
-use Minds\Core\Media\Video\Transcoder\Repository;
-use Minds\Core\Media\Video\Transcoder\Transcode;
-use Minds\Core\Media\Video\Transcoder\TranscodeProfiles;
-use Minds\Entities\Video;
 use Minds\Common\Repository\Response;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Media\Video\CloudflareStreams;
-use Minds\Core\Security\ACL;
+use Minds\Core\Media\Video\Transcoder\Repository;
+use Minds\Core\Media\Video\Transcoder\Transcode;
+use Minds\Core\Media\Video\Transcoder\TranscodeProfiles;
+use Minds\Core\Media\Video\Transcoder\TranscodeStates;
+use Minds\Entities\Video;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -23,10 +21,11 @@ class TranscodeStatesSpec extends ObjectBehavior
 
     public function let(Repository $repository, Save $save, CloudflareStreams\Manager $cloudflareStreamsManager)
     {
-        $this->beConstructedWith($repository, $save, $cloudflareStreamsManager);
         $this->repository = $repository;
         $this->save = $save;
         $this->cloudflareStreamsManager = $cloudflareStreamsManager;
+
+        $this->beConstructedWith($this->repository, $this->save, $this->cloudflareStreamsManager, null);
     }
 
     public function it_is_initializable()
@@ -165,7 +164,7 @@ class TranscodeStatesSpec extends ObjectBehavior
                     ->setState(TranscodeStates::TRANSCODING)
                     ->setPct(20)
             );
-        
+
         $this->getStatus($video)
             ->shouldReturn(TranscodeStates::TRANSCODING);
     }
@@ -175,7 +174,9 @@ class TranscodeStatesSpec extends ObjectBehavior
         $video = new Video();
         $video->set('guid', '123');
 
-        $this->repository->getList(Argument::any())->shouldBeCalled();
+        $this->repository->getList([ 'guid' => '123' ])
+            ->shouldBeCalled()
+            ->willReturn(new Response());
 
         $this->shouldNotThrow()->during('getStatus', [$video]);
     }

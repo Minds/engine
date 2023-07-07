@@ -10,6 +10,7 @@ use Minds\Entities\Group as GroupEntity;
 use Minds\Entities\Activity;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Core\Session;
+use Minds\Entities\EntityInterface;
 
 class Events
 {
@@ -19,7 +20,7 @@ class Events
     public function register()
     {
         Dispatcher::register('entities_class_loader', "elgg/hook/all", function ($hook, $type, $return, $row) {
-            if ($row->type == 'group') {
+            if (property_exists($row, 'type') && $row->type == 'group') {
                 $entity = new GroupEntity();
                 $entity->loadFromArray((array) $row);
 
@@ -30,7 +31,13 @@ class Events
         Dispatcher::register('acl:read', 'all', function ($e) {
             $params = $e->getParameters();
             $entity = $params['entity'];
-            $access_id = $entity->access_id;
+
+
+            if (!$entity instanceof EntityInterface) {
+                return;
+            }
+        
+            $access_id = $entity->getAccessId();
             $user = $params['user'];
 
             if (!method_exists($entity, 'getContainerEntity')) {
@@ -182,6 +189,9 @@ class Events
 
             $group = $params['container'];
             $activity = $params['activity'];
+            
+            // The accessid of the activity should always be the group
+            $activity->setAccessId($group->guid);
 
             if ($group->getModerated() && !$group->isOwner($activity->owner_guid)) {
                 $key = "activity:container:{$group->guid}";

@@ -5,6 +5,7 @@ namespace Minds\Core\Entities;
 use Minds\Core\Data\Call;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Entities\Activity;
 
 /**
  * GuidLinkResolver.
@@ -36,6 +37,7 @@ class GuidLinkResolver
     public function resolve(string $guid): ?string
     {
         // Lookup entity link so an entity guid should return a linked Activity guid.
+        // Note: entities made post multi-image changes will have their activity stored as their container guid.
         $linkedActivities = $this->db->getRow("activity:entitylink:{$guid}");
 
         if (count($linkedActivities)) {
@@ -44,5 +46,26 @@ class GuidLinkResolver
         // Else try building the guid. Will get the guid of an entity from an Activity guid.
         $entity = $this->entitiesBuilder->single($guid);
         return $entity->getEntityGuid() ?? null;
+    }
+
+    /**
+     * Unidirectional resolver for getting an Activity object by a given Entity guid.
+     * Will return null in the event that no linked Activity is found.
+     * @param string $entityGuid - guid to get for.
+     * @return Activity|null linked activity, or null in the event no activity is found.
+     */
+    public function resolveActivityFromEntityGuid(string $entityGuid): ?Activity
+    {
+        $linkedActivities = $this->db->getRow("activity:entitylink:{$entityGuid}");
+
+        if (!count($linkedActivities)) {
+            return null;
+        }
+
+        $activityGuid = array_values($linkedActivities)[0];
+        $activity = $this->entitiesBuilder->single($activityGuid);
+        return ($activity && $activity instanceof Activity) ?
+            $activity :
+            null;
     }
 }

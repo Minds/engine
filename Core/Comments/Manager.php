@@ -126,12 +126,12 @@ class Manager
                 'descending' => !$opts['descending'],
                 'include_offset' => false,
             ]));
-            
+
             $newResponse = $this->filterResponse($earlier->reverse());
             foreach ($response as $comment) {
                 $newResponse[] = $comment;
             }
-            
+
             $newResponse->setPagingToken($response->getPagingToken());
             $newResponse->setLastPage($response->isLastPage());
             return $newResponse;
@@ -195,6 +195,7 @@ class Manager
             ->checkAndIncrement();
 
         $this->spam->check($comment);
+        $this->spam->check($entity);
 
         if (
             !$comment->getOwnerGuid() ||
@@ -243,6 +244,11 @@ class Manager
      */
     public function update(Comment $comment)
     {
+        $this->spam->check($comment);
+        if ($entity = $this->entitiesBuilder->single($comment->getEntityGuid())) {
+            $this->spam->check($entity);
+        }
+
         if ($this->legacyRepository->isFallbackEnabled()) {
             $this->legacyRepository->add($comment, $comment->getDirtyAttributes(), true);
         }
@@ -352,10 +358,11 @@ class Manager
 
     /**
      * @param string|Urn $urn
+     * @param bool $skipCache
      * @return Comment|null
      * @throws \Exception
      */
-    public function getByUrn($urn)
+    public function getByUrn($urn, $skipCache = false)
     {
         if (is_string($urn)) {
             $urn = new Urn($urn);
@@ -381,7 +388,12 @@ class Manager
         }
 
         $comment = $this->repository->get($entityGuid, $parentPath, $guid);
-        $this->tmpCacheByUrn[(string) $urn] = $comment;
+
+        // Populate the cache only if we're not skipping it
+        if (!$skipCache) {
+            $this->tmpCacheByUrn[(string) $urn] = $comment;
+        }
+
         return $comment;
     }
 

@@ -8,11 +8,17 @@ use Exception;
 use Iterator;
 use Minds\Common\Repository\Response;
 use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
+use Minds\Core\Data\Call;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
+use Minds\Core\Email\V2\Campaigns\Recurring\SupermindBulkIncentive\SupermindBulkIncentive;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Guid;
+use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
+use Minds\Core\Payments\Stripe\PaymentMethods\Manager as StripePaymentMethodsManager;
+use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
@@ -37,6 +43,7 @@ use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserCashSetupException;
 use Minds\Exceptions\UserErrorException;
+use Minds\Exceptions\UserNotFoundException;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\CardException;
 
@@ -53,7 +60,8 @@ class Manager
         private ?EventsDelegate $eventsDelegate = null,
         private ?ACL $acl = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?TwitterEventsDelegate $twitterEventsDelegate = null
+        private ?TwitterEventsDelegate $twitterEventsDelegate = null,
+        private ?Logger $logger = null
     ) {
         $this->repository ??= Di::_()->get("Supermind\Repository");
         $this->paymentProcessor ??= new SupermindPaymentProcessor();
@@ -61,6 +69,7 @@ class Manager
         $this->acl ??= Di::_()->get('Security\ACL');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->twitterEventsDelegate ??= new TwitterEventsDelegate();
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -384,7 +393,7 @@ class Manager
      * @return bool
      * @throws SupermindRequestCreationCompletionException
      */
-    public function completeSupermindRequestCreation(string $supermindRequestId, int $activityGuid): bool
+    public function completeSupermindRequestCreation(string $supermindRequestId, int $activityGuid, bool $triggerDelegatedEvents = true): bool
     {
         $supermindRequest = $this->repository->getSupermindRequest($supermindRequestId);
 
@@ -394,7 +403,9 @@ class Manager
             $supermindRequest->setActivityGuid((string) $activityGuid);
             $supermindRequest->setEntity($this->entitiesBuilder->single($supermindRequest->getActivityGuid()));
             $supermindRequest->setReceiverEntity($this->entitiesBuilder->single($supermindRequest->getReceiverGuid()));
-            $this->eventsDelegate->onCompleteSupermindRequestCreation($supermindRequest);
+            if ($triggerDelegatedEvents) {
+                $this->eventsDelegate->onCompleteSupermindRequestCreation($supermindRequest);
+            }
         }
 
         return $isSuccessful
@@ -548,9 +559,13 @@ class Manager
             throw new ForbiddenException();
         }
 
+        ini_set('display_errors', '1');
+        error_reporting(E_ALL);
+
         $this->repository->beginTransaction();
 
         try {
+            $this->logger->info('Getting expired supermind requests');
             $expiredSupermindRequests = $this->repository->expireSupermindRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD);
         } catch (Exception $e) {
             $this->repository->rollbackTransaction();
@@ -558,24 +573,37 @@ class Manager
         }
 
         if (count($expiredSupermindRequests) === 0) {
+            $this->logger->info('No expired supermind requests');
+            $this->repository->rollbackTransaction();
             return true;
         }
 
-        foreach ($this->getSupermindRequestsFromIds($expiredSupermindRequests) as $supermindRequest) {
-            try {
-                $this->eventsDelegate->onExpireSupermindRequest($supermindRequest);
+        $requests = iterator_to_array($this->getSupermindRequestsFromIds($expiredSupermindRequests));
 
+        foreach ($requests as $supermindRequest) {
+            try {
                 if ($supermindRequest->getPaymentMethod() === SupermindRequestPaymentMethod::OFFCHAIN_TOKEN) {
+                    $this->logger->info('Refunding Supermind', [$supermindRequest->getGuid()]);
                     $transactionId = $this->paymentProcessor->refundOffchainPayment($supermindRequest);
                     $this->repository->saveSupermindRefundTransaction($supermindRequest->getGuid(), $transactionId);
                 }
+            } catch (UserNotFoundException $e) {
+                $this->logger->warning("{$e->getMessage()} - skipping.");
+                continue;
             } catch (Exception $e) {
+                $this->logger->info('Rolling back - an error occurred with Supermind', [$supermindRequest->getGuid()]);
                 $this->repository->rollbackTransaction();
                 throw $e;
             }
         }
 
         $this->repository->commitTransaction();
+
+        foreach ($requests as $supermindRequest) {
+            $this->logger->info('Firing to events delegate for Supermind', [$supermindRequest->getGuid()]);
+            $this->eventsDelegate->onExpireSupermindRequest($supermindRequest);
+        }
+
         return true;
     }
 
@@ -603,5 +631,124 @@ class Manager
     public function isSupermindRequestRefunded(string $supermindRequestId): bool
     {
         return (bool) $this->repository->getSupermindRefundTransactionId($supermindRequestId);
+    }
+
+    /**
+     * @param $bulkSupermindRequestDetails
+     * @return bool
+     * @throws ApiErrorException
+     * @throws ForbiddenException
+     * @throws KeyNotSetupException
+     * @throws LockFailedException
+     * @throws OffchainWalletInsufficientFundsException
+     * @throws ServerErrorException
+     * @throws SupermindOffchainPaymentFailedException
+     * @throws SupermindPaymentIntentFailedException
+     * @throws SupermindRequestCreationCompletionException
+     * @throws UserNotFoundException
+     * @throws UnverifiedEmailException
+     */
+    public function createBulkSupermindRequest($bulkSupermindRequestDetails): bool
+    {
+        $receiverUser = $this->entitiesBuilder->single($bulkSupermindRequestDetails['receiver_guid']);
+        if (!$receiverUser instanceof User) {
+            throw new UserNotFoundException("User " . $bulkSupermindRequestDetails['receiver_guid'] . " not found");
+        }
+
+        $activityGuid = $bulkSupermindRequestDetails['source_activity'] ?? '';
+        $replyType = (int) $bulkSupermindRequestDetails['reply_type'] ?? SupermindRequestReplyType::TEXT;
+        $paymentMethod = (int) $bulkSupermindRequestDetails['payment_type'] ?? SupermindRequestPaymentMethod::OFFCHAIN_TOKEN;
+        $paymentAmount = (float) $bulkSupermindRequestDetails['payment_amount'] ?? 5;
+
+        $validatorToken = $this->getBulkSupermindRequestValidatorToken(
+            $receiverUser,
+            $activityGuid,
+            $replyType,
+            $paymentMethod,
+            $paymentAmount
+        );
+
+        if (!$this->checkAndStoreUserOfferClaim((string) $receiverUser->getGuid(), $validatorToken)) {
+            throw new Exception("Offer already claimed"); // user has already claimed the offer
+        }
+
+        $activity = $this->entitiesBuilder->single($activityGuid);
+
+        /** @var User $activityOwner */
+        $activityOwner =  $this->entitiesBuilder->single($activity->getOwnerGuid());
+
+        $supermindRequest = (new SupermindRequest())
+            ->setGuid(Guid::build())
+            ->setSenderGuid((string) $activityOwner->getGuid())
+            ->setReceiverGuid((string) $receiverUser->getGuid())
+            ->setReplyType($replyType)
+            ->setTwitterRequired(false)
+            ->setPaymentAmount($paymentAmount)
+            ->setPaymentMethod($paymentMethod);
+
+        $paymentMethodId = null;
+
+        if ($paymentMethod == SupermindRequestPaymentMethod::CASH) {
+            $paymentMethods = (new StripePaymentMethodsManager())->getList([ 'user_guid' => $activityOwner->getGuid() ]);
+            if (count($paymentMethods) === 0) {
+                throw new InvalidPaymentMethodException("No valid payment methods were found for user {$activityOwner->getGuid()}");
+            }
+            $paymentMethodId = $paymentMethods[0]->getId();
+        }
+
+        $this->setUser($activityOwner);
+        $this->addSupermindRequest($supermindRequest, $paymentMethodId);
+
+        $this->completeSupermindRequestCreation($supermindRequest->getGuid(), (int) $activityGuid, false);
+
+        return true;
+    }
+
+    /**
+     * @param string $receiverGuid
+     * @param string $activityGuid
+     * @param int $replyType
+     * @param int $paymentMethod
+     * @param int $paymentAmount
+     * @return string
+     * @throws ServerErrorException
+     */
+    private function getBulkSupermindRequestValidatorToken(
+        User $receiverUser,
+        string $activityGuid,
+        int $replyType,
+        int $paymentMethod,
+        float $paymentAmount
+    ): string {
+        return (new SupermindBulkIncentive())
+            ->setUser($receiverUser)
+            ->withActivityGuid($activityGuid)
+            ->withReplyType($replyType)
+            ->withPaymentMethod($paymentMethod)
+            ->withPaymentAmount($paymentAmount)
+            ->getValidatorToken();
+    }
+
+    /**
+     * Returns false if the user has already claimed the offer, true otherwise
+     * @param string $receiverGuid
+     * @param string $validatorToken
+     * @return bool
+     */
+    private function checkAndStoreUserOfferClaim(string $receiverGuid, string $validatorToken): bool
+    {
+        $db = new Call('entities_by_time');
+        $row = $db->getRow("analytics:rewarded:email:$validatorToken", [
+            'offset' => $receiverGuid,
+            'limit' => 1
+        ]);
+
+        if (isset($row[$receiverGuid])) {
+            return false; // Don't proceed further as the user has claimed the supermind offer
+        }
+
+        // Save the ref so we don't allow to proceed past this point on next run
+        $db->insert("analytics:rewarded:email:$validatorToken", [ $receiverGuid => time() ]);
+        return true;
     }
 }

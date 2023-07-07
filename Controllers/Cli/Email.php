@@ -8,11 +8,8 @@ use Minds\Interfaces;
 use Minds\Entities\User;
 use Minds\Core\Email\EmailSubscribersIterator;
 use Minds\Core\Email\V2\Campaigns;
-use Minds\Core\Email\V2\Campaigns\Recurring\BoostComplete\BoostComplete;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireSent\WireSent;
-use Minds\Core\Email\V2\Campaigns\Recurring\PostSignupSurvey\PostSignupSurvey;
-use Minds\Core\Email\V2\Delegates\ConfirmationSender;
 use Minds\Core\Email\V2\Delegates\DigestSender;
 use Minds\Core\Reports;
 use Minds\Core\Blockchain\Purchase\Delegates\IssuedTokenEmail;
@@ -92,7 +89,9 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             if ($campaign instanceof SupermindBulkIncentive) {
                 $campaign = $campaign
                     ->withActivityGuid($this->getOpt('activity-guid'))
-                    ->withReplyType((int) $this->getOpt('reply-type'));
+                    ->withReplyType((int) $this->getOpt('reply-type'))
+                    ->withPaymentMethod((int) $this->getOpt('payment-method'))
+                    ->withPaymentAmount((int) $this->getOpt('payment-amount'));
             }
 
             $campaign->setUser($user);
@@ -178,62 +177,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         } else {
             $this->out($message->buildHtml());
         }
-    }
-
-    public function testBoostComplete()
-    {
-        $output = $this->getOpt('output');
-        $entityGuid = $this->getOpt('guid');
-        $boostType = $this->getOpt('type');
-        $send = $this->getOpt('send');
-
-        $manager = Di::_()->get('Boost\Network\Manager');
-
-        if (!$entityGuid) {
-            $this->out('--guid=boost guid required');
-            exit;
-        }
-
-        if (!$boostType) {
-            $this->out('--type=boost type required');
-            exit;
-        }
-
-        $boost = $manager->get("urn:boost:{$boostType}:{$entityGuid}", ['hydrate' => true]);
-
-        if (!$boost) {
-            $this->out('Boost not found');
-            exit;
-        }
-
-        $campaign = (new BoostComplete())
-            ->setUser($boost->getOwner())
-            ->setBoost($boost->export());
-
-        $message = $campaign->build();
-
-        if ($send) {
-            Core\Events\Dispatcher::trigger('boost:completed', 'boost', ['boost' => $boost]);
-        }
-
-        if ($output) {
-            file_put_contents($output, $message->buildHtml());
-        } else {
-            $this->out($message->buildHtml());
-        }
-    }
-
-    public function testConfirmationEmail()
-    {
-        $userGuid = $this->getOpt('guid');
-        // $output = $this->getOpt('output');
-        // $send = $this->getOpt('send');
-
-        $user = new User($userGuid);
-        $sender = new ConfirmationSender();
-        $sender->send($user);
-
-        $this->out('sent');
     }
 
     /**
@@ -370,32 +313,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->out('Sent');
     }
 
-    /**
-     * Test PostSignupSurvey email by dispatching an email to a specific
-     * user GUID.
-     *
-     * Usage:
-     *  - `php cli.php Email testPostSignupSurvey --userGuid={{guid}}`
-     *
-     * @return void
-     */
-    public function testPostSignupSurvey(): void
-    {
-        $userGuid = $this->getOpt('userGuid');
-
-        if (!$userGuid) {
-            $this->out('[Error] Missing --userGuid parameter.');
-            return;
-        }
-
-        $user = new User($userGuid);
-        $campaign = new PostSignupSurvey();
-        $campaign->setUser($user);
-        $campaign->send();
-
-        $this->out('Completed.');
-    }
-
     public function testPlusTrial()
     {
         $userGuid = $this->getOpt('userGuid');
@@ -459,6 +376,9 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 
     public function sync_marketing_attributes()
     {
+        ini_set('memory_limit', '2G');
+        Di::_()->get('Config')->set('min_log_level', 'INFO');
+
         $mautic = new Core\Email\Mautic\MarketingAttributes\Manager();
         $mautic->sync();
     }

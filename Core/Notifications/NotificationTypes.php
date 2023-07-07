@@ -255,6 +255,20 @@ class NotificationTypes
 
     /**
      * *******************************************
+     * Affiliate earnings
+     */
+    public const TYPE_AFFILIATE_EARNINGS_DEPOSITED = 'affiliate_earnings_deposited';
+    public const TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED = 'referrer_affiliate_earnings_deposited';
+
+    public const GROUPING_AFFILIATE_EARNINGS = [
+        self::TYPE_AFFILIATE_EARNINGS_DEPOSITED,
+        self::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED,
+    ];
+
+    public const GROUPING_TYPE_AFFILIATE_EARNINGS = 'affiliate_earnings';
+
+    /**
+     * *******************************************
      * Community Updates
      */
 
@@ -339,7 +353,11 @@ class NotificationTypes
         self::TYPE_SUPERMIND_REQUEST_CREATE,
         self::TYPE_SUPERMIND_REQUEST_ACCEPT,
         self::TYPE_SUPERMIND_REQUEST_REJECT,
-        self::TYPE_SUPERMIND_REQUEST_EXPIRE
+        self::TYPE_SUPERMIND_REQUEST_EXPIRE,
+
+        // Affiliate Earnings
+        self::TYPE_AFFILIATE_EARNINGS_DEPOSITED,
+        self::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED,
     ];
 
     /** @var array */
@@ -357,6 +375,7 @@ class NotificationTypes
         self::GROUPING_TYPE_REPORTS => self::GROUPING_REPORTS,
         self::GROUPING_TYPE_TOP_POSTS => self::GROUPING_TOP_POSTS,
         self::GROUPING_TYPE_COMMUNITY_UPDATES => self::GROUPING_COMMUNITY_UPDATES,
-        self::GROUPING_TYPE_SUPERMIND => self::GROUPING_SUPERMIND
+        self::GROUPING_TYPE_SUPERMIND => self::GROUPING_SUPERMIND,
+        self::GROUPING_TYPE_AFFILIATE_EARNINGS => self::GROUPING_AFFILIATE_EARNINGS,
     ];
 }

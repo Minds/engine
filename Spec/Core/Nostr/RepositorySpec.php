@@ -2,10 +2,10 @@
 
 namespace Spec\Minds\Core\Nostr;
 
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Nostr\Repository;
 use Minds\Core\Data\MySQL;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Nostr\NostrEvent;
+use Minds\Core\Nostr\Repository;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PDO;
@@ -53,12 +53,6 @@ class RepositorySpec extends ObjectBehavior
         $pubKey = '36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b';
         $pubKeyNotFound = '46cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b';
 
-        $this->mysqlClientMock->getConnection(MySQL\Client::CONNECTION_REPLICA)
-            ->willReturn($pdoMock);
-
-        $pdoMock->prepare(Argument::type('string'))
-            ->willReturn($pdoStatementMock);
-
         $pdoStatementMock->execute([$pubKey])
             ->shouldBeCalled();
 
@@ -68,8 +62,14 @@ class RepositorySpec extends ObjectBehavior
         $pdoStatementMock->fetchAll()
             ->willReturn(
                 [ 'pubkey' => $pubKey ], // First call (has result)
-                null, // Second call (not data - ie. not found)
+                [], // Second call (not data - ie. not found)
             );
+
+        $pdoMock->prepare(Argument::type('string'))
+            ->willReturn($pdoStatementMock);
+
+        $this->mysqlClientMock->getConnection(MySQL\Client::CONNECTION_REPLICA)
+            ->willReturn($pdoMock);
 
         $this->isOnWhitelist($pubKey)
             ->shouldBe(true);

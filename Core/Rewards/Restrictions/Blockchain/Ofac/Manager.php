@@ -4,8 +4,8 @@ namespace Minds\Core\Rewards\Restrictions\Blockchain\Ofac;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
-use Minds\Core\Rewards\Restrictions\Blockchain\Manager as RestrictionsManager;
 use Minds\Core\Rewards\Restrictions\Blockchain\Exceptions\UnsupportedNetworkException;
+use Minds\Core\Rewards\Restrictions\Blockchain\Manager as RestrictionsManager;
 use Minds\Core\Rewards\Restrictions\Blockchain\Restriction;
 
 /**
@@ -42,7 +42,7 @@ class Manager
                         ->setNetwork($sanction['network'])
                 );
             } catch (UnsupportedNetworkException $e) {
-                $this->logger->warn("Unsupported network: {$sanction['network']} for address: {$sanction['address']}");
+                $this->logger->warning("Unsupported network: {$sanction['network']} for address: {$sanction['address']}");
             }
         }
     }

@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\Groups;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Groups\AdminQueue;
 use Minds\Entities;
 use Minds\Entities\Activity;
@@ -14,16 +15,18 @@ use Spec\Minds\Mocks;
 use Minds\Core\Groups\Delegates\PropagateRejectionDelegate;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\Notifications\Manager as NotificationsManager;
+use PhpSpec\Exception\Example\FailureException;
 
 class FeedsSpec extends ObjectBehavior
 {
     protected $_propagateRejectionDelegate;
-    protected $_adminQueue;
+    protected $adminQueueMock;
     protected $_entities;
     protected $_entitiesFactory;
     protected $_entitiesBuilder;
     protected $_actionEventsTopic;
     protected $_notificationsManager;
+    protected $save;
 
     public function let(
         AdminQueue $adminQueue,
@@ -32,7 +35,8 @@ class FeedsSpec extends ObjectBehavior
         Core\EntitiesBuilder $entitiesBuilder,
         PropagateRejectionDelegate $propagateRejectionDelegate,
         ActionEventsTopic $actionEventsTopic,
-        NotificationsManager $notificationsManager
+        NotificationsManager $notificationsManager,
+        Save $save
     ) {
         // AdminQueue
 
@@ -40,7 +44,7 @@ class FeedsSpec extends ObjectBehavior
             return $adminQueue->getWrappedObject();
         });
 
-        $this->_adminQueue = $adminQueue;
+        $this->adminQueueMock = $adminQueue;
 
         // Entities
 
@@ -66,8 +70,9 @@ class FeedsSpec extends ObjectBehavior
         $this->_actionEventsTopic = $actionEventsTopic;
 
         $this->_notificationsManager = $notificationsManager;
+        $this->save = $save;
 
-        $this->beConstructedWith($entitiesBuilder, $propagateRejectionDelegate, $actionEventsTopic, $notificationsManager);
+        $this->beConstructedWith($entitiesBuilder, $propagateRejectionDelegate, $actionEventsTopic, $notificationsManager, null, $save);
     }
 
     public function it_is_initializable()
@@ -88,67 +93,46 @@ class FeedsSpec extends ObjectBehavior
 
     public function it_should_get_all(
         Group $group,
-        Activity $activity_1,
-        Activity $activity_2
     ) {
-        $activity_1->get('guid')->willReturn(5000);
-        $activity_2->get('guid')->willReturn(5001);
+        $activity1 = (new Activity())->set('guid', '123');
+        $activity2 = (new Activity())->set('guid', '456');
 
-        $rows = new Mocks\Cassandra\Rows([
-            [ 'value' => 5000 ],
-            [ 'value' => 5001 ],
-        ], '');
-
-        $this->_adminQueue->getAll($group, [])
+        $this->adminQueueMock->getAll($group, [], null)
             ->shouldBeCalled()
-            ->willReturn($rows);
-
-        $this->_entities->get([ 'guids' => [ 5000, 5001 ]])
-            ->shouldBeCalled()
-            ->willReturn([
-                $activity_1,
-                $activity_2
+            ->willYield([
+                $activity1,
+                $activity2
             ]);
 
         $return = $this
             ->setGroup($group)
-            ->getAll();
+            ->getAll([]);
 
-        $return->shouldHaveKeys(['data', 'next']);
-        $return['data']->shouldBeAnArrayOf(2, Activity::class);
-        $return['next']->shouldReturn('');
+        $return->shouldBeAnArrayOf(2, Activity::class);
     }
-
 
     public function it_should_return_an_empty_array_during_get_all(
         Group $group
     ) {
-        $rows = new Mocks\Cassandra\Rows([], '');
-
-        $this->_adminQueue->getAll($group, [])
+        $this->adminQueueMock->getAll($group, [], null)
             ->shouldBeCalled()
-            ->willReturn($rows);
-
-        $this->_entities->get(Argument::any())
-            ->shouldNotBeCalled();
+            ->willYield([]);
 
         $return = $this
             ->setGroup($group)
-            ->getAll();
+            ->getAll([]);
 
-        $return->shouldHaveKeys(['data', 'next']);
-        $return['data']->shouldBeAnArrayOf(0, Activity::class);
-        $return['next']->shouldReturn('');
+        $return->shouldBeAnArrayOf(0, Activity::class);
     }
 
     public function it_should_throw_during_get_all_if_no_group()
     {
-        $this->_adminQueue->getAll(Argument::any())
+        $this->adminQueueMock->getAll(Argument::any())
             ->shouldNotBeCalled();
 
         $this
             ->shouldThrow(\Exception::class)
-            ->duringGetAll();
+            ->duringGetAll([]);
     }
 
     // count()
@@ -156,7 +140,7 @@ class FeedsSpec extends ObjectBehavior
     public function it_should_count(
         Group $group
     ) {
-        $this->_adminQueue->count($group)
+        $this->adminQueueMock->count($group)
             ->shouldBeCalled()
             ->willReturn([
                 [ 'count' => new Mocks\Cassandra\Value(2) ]
@@ -171,7 +155,7 @@ class FeedsSpec extends ObjectBehavior
     public function it_should_count_zero_if_no_rows(
         Group $group
     ) {
-        $this->_adminQueue->count($group)
+        $this->adminQueueMock->count($group)
             ->shouldBeCalled()
             ->willReturn(false);
 
@@ -183,7 +167,7 @@ class FeedsSpec extends ObjectBehavior
 
     public function it_should_throw_during_count_if_no_group()
     {
-        $this->_adminQueue->count(Argument::any())
+        $this->adminQueueMock->count(Argument::any())
             ->shouldNotBeCalled();
 
         $this
@@ -199,7 +183,7 @@ class FeedsSpec extends ObjectBehavior
     ) {
         $activity->get('guid')->willReturn(5000);
 
-        $this->_adminQueue->add($group, $activity)
+        $this->adminQueueMock->add($group, $activity)
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -215,7 +199,7 @@ class FeedsSpec extends ObjectBehavior
     ) {
         $activity->get('guid')->willReturn(5000);
 
-        $this->_adminQueue->add(Argument::cetera())
+        $this->adminQueueMock->add(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this
@@ -229,7 +213,7 @@ class FeedsSpec extends ObjectBehavior
     ) {
         $activity->get('guid')->willReturn('');
 
-        $this->_adminQueue->add(Argument::cetera())
+        $this->adminQueueMock->add(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this
@@ -254,10 +238,14 @@ class FeedsSpec extends ObjectBehavior
         $activity->setPending(false)
             ->shouldBeCalled();
 
-        $activity->save(true)
+        $this->save->setEntity($activity)
+            ->shouldBeCalled()
+            ->willReturn($this->save);
+
+        $this->save->save(true)
             ->shouldBeCalled();
 
-        $this->_adminQueue->delete($group, $activity)
+        $this->adminQueueMock->delete($group, $activity)
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -277,9 +265,12 @@ class FeedsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $attachment->save()
+        $this->save->setEntity($attachment)
             ->shouldBeCalled()
-            ->willReturn(true);
+            ->willReturn($this->save);
+
+        $this->save->save(true)
+            ->shouldBeCalled();
 
         $this
             ->setGroup($group)
@@ -290,7 +281,7 @@ class FeedsSpec extends ObjectBehavior
     public function it_should_throw_during_approve_if_no_group(
         Activity $activity
     ) {
-        $this->_adminQueue->delete(Argument::cetera())
+        $this->adminQueueMock->delete(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this
@@ -304,7 +295,7 @@ class FeedsSpec extends ObjectBehavior
     ) {
         $activity->get('guid')->willReturn('');
 
-        $this->_adminQueue->delete(Argument::cetera())
+        $this->adminQueueMock->delete(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this
@@ -322,7 +313,7 @@ class FeedsSpec extends ObjectBehavior
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1001);
 
-        $this->_adminQueue->delete(Argument::cetera())
+        $this->adminQueueMock->delete(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this
@@ -345,7 +336,7 @@ class FeedsSpec extends ObjectBehavior
         $this->_propagateRejectionDelegate->onReject($activity)
             ->shouldBeCalled();
 
-        $this->_adminQueue->delete($group, $activity)
+        $this->adminQueueMock->delete($group, $activity)
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -364,7 +355,7 @@ class FeedsSpec extends ObjectBehavior
     public function it_should_throw_during_reject_if_no_group(
         Activity $activity
     ) {
-        $this->_adminQueue->delete(Argument::cetera())
+        $this->adminQueueMock->delete(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this
@@ -378,7 +369,7 @@ class FeedsSpec extends ObjectBehavior
     ) {
         $activity->get('guid')->willReturn('');
 
-        $this->_adminQueue->delete(Argument::cetera())
+        $this->adminQueueMock->delete(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this
@@ -396,7 +387,7 @@ class FeedsSpec extends ObjectBehavior
         $activity->get('guid')->willReturn(5000);
         $activity->get('container_guid')->willReturn(1001);
 
-        $this->_adminQueue->delete(Argument::cetera())
+        $this->adminQueueMock->delete(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this
@@ -441,40 +432,44 @@ class FeedsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $attachment_1->save()
+        $this->save->setEntity($attachment_1)
             ->shouldBeCalled()
-            ->willReturn(true);
+            ->willReturn($this->save);
 
-        $this->_adminQueue->getAll($group)
+        $this->save->save(true)
+            ->shouldBeCalled();
+
+        $this->adminQueueMock->getAll($group, [], null)
             ->shouldBeCalled()
-            ->willReturn([
-                [ 'value' => 5001 ],
-                [ 'value' => 5002 ],
+            ->willYield([
+                $activity_1->getWrappedObject(),
+                $activity_2->getWrappedObject(),
             ]);
 
-        $this->_entitiesFactory->build(5001)
-            ->shouldBeCalled()
-            ->willReturn($activity_1);
-
-        $this->_entitiesFactory->build(5002)
-            ->shouldBeCalled()
-            ->willReturn($activity_2);
 
         // approve()
 
         $activity_1->setPending(false)
             ->shouldBeCalled();
 
-        $activity_1->save(true)
+        $this->save->setEntity($activity_1)
+            ->shouldBeCalled()
+            ->willReturn($this->save);
+
+        $this->save->save(true)
             ->shouldBeCalled();
 
         $activity_2->setPending(false)
             ->shouldBeCalled();
 
-        $activity_2->save(true)
+        $this->save->setEntity($activity_2)
+            ->shouldBeCalled()
+            ->willReturn($this->save);
+
+        $this->save->save(true)
             ->shouldBeCalled();
 
-        $this->_adminQueue->delete($group, Argument::type(Activity::class))
+        $this->adminQueueMock->delete($group, Argument::type(Activity::class))
             ->shouldBeCalledTimes(2)
             ->willReturn(true);
 
@@ -491,7 +486,7 @@ class FeedsSpec extends ObjectBehavior
 
     public function it_should_throw_during_approve_all_if_no_group()
     {
-        $this->_adminQueue->getAll(Argument::cetera())
+        $this->adminQueueMock->getAll(Argument::cetera())
             ->shouldNotBeCalled();
 
         $this

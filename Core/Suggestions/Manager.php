@@ -6,10 +6,11 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Features;
+use Minds\Core\Log\Logger;
 use Minds\Entities\User;
 use Minds\Core\Security\Block;
 use Minds\Core\Security\RateLimits\InteractionsLimiter;
+use Minds\Core\Suggestions\DefaultTagMapping\Manager as DefaultTagMappingManager;
 
 class Manager
 {
@@ -28,9 +29,6 @@ class Manager
     /** @var InteractionsLimiter */
     private $interactionsLimiter;
 
-    /** @var Features\Manager */
-    private $features;
-
     /** @var Block\Manager */
     private $blockManager;
 
@@ -46,17 +44,19 @@ class Manager
         $suggestedFeedsManager = null,
         $subscriptionsManager = null,
         $interactionsLimiter = null,
-        $features = null,
-        Config $config = null
+        Config $config = null,
+        private ?DefaultTagMappingManager $defaultTagMappingManager = null,
+        private ?Logger $logger = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder();
         //$this->suggestedFeedsManager = $suggestedFeedsManager ?: Di::_()->get('Feeds\Suggested\Manager');
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Subscriptions\Manager');
         $this->interactionsLimiter = $interactionsLimiter ?: new InteractionsLimiter();
-        $this->features = $features ?? new Features\Manager();
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
         $this->config = $config ?? Di::_()->get('Config');
+        $this->defaultTagMappingManager ??= Di::_()->get(DefaultTagMappingManager::class);
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -96,10 +96,6 @@ class Manager
      */
     public function getList($opts = []): Response
     {
-        if (!$this->features->has('suggestions')) {
-            return new Response([]);
-        }
-
         $opts = array_merge([
             'limit' => 12,
             'paging-token' => '',
@@ -188,7 +184,7 @@ class Manager
         return $response;
     }
 
-    private function getFallbackSuggested($opts = [])
+    private function getFallbackSuggested($opts = []): Response
     {
         $opts = array_merge([
             'user_guid' => $this->user ? $this->user->getGuid() : '',
@@ -208,7 +204,31 @@ class Manager
             return $user;
         }, $users->toArray());
 
-        return $this->repository->getList($opts);
+        $response = $this->repository->getList($opts);
+        
+        if ($defaultTagBasedSuggestions = $this->getDefaultTagBasedSuggestions($opts['type'])) {
+            $response->prependToArray($defaultTagBasedSuggestions);
+        }
+        
+        return $response;
+    }
+
+    /**
+     * Get default suggestions based upon a users tags.
+     * @param string $entityType - type of entity to get suggestions of.
+     * @return array suggestions.
+     */
+    private function getDefaultTagBasedSuggestions(string $entityType = 'group'): array
+    {
+        try {
+            return $this->defaultTagMappingManager->getSuggestions(
+                user: $this->user,
+                entityType: $entityType
+            );
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+            return [];
+        }
     }
 
     /**

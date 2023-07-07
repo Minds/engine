@@ -821,24 +821,6 @@ class ElggUser extends ElggEntity implements Friendable
         return parent::__get($name);
     }
 
-    /**
-     * Can a user comment on this user?
-     *
-     * @see ElggEntity::canComment()
-     *
-     * @param int $user_guid User guid (default is logged in user)
-     * @return bool
-     * @since 1.8.0
-     */
-    public function canComment($user_guid = 0)
-    {
-        $result = parent::canComment($user_guid);
-        if ($result !== null) {
-            return $result;
-        }
-        return false;
-    }
-
     public function purgeCache()
     {
         invalidate_cache_for_entity($this->guid);

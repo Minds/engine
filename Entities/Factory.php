@@ -59,11 +59,9 @@ class Factory
             $row = $db->getRow($value);
             $row['guid'] = $value;
         } elseif (is_object($value) || is_array($value)) {
-
             // @todo Check if we can just read ->guid and if not empty we'll load from cache
             $row = $value;
         } elseif (is_string($value)) {
-
             // @todo Check if we can just read ->guid and if not empty we'll load from cache
             $row = json_decode($value, true);
         } else {

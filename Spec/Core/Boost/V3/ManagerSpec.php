@@ -3,9 +3,13 @@
 namespace Spec\Minds\Core\Boost\V3;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Analytics\Views\Manager as ViewsManager;
+use Minds\Core\Blogs\Blog;
 use Minds\Core\Boost\V3\Delegates\ActionEventDelegate;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
+use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
+use Minds\Core\Boost\V3\Exceptions\BoostCreationFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentRefundFailedException;
@@ -13,18 +17,26 @@ use Minds\Core\Boost\V3\Exceptions\BoostPaymentSetupFailedException;
 use Minds\Core\Boost\V3\Exceptions\EntityTypeNotAllowedInLocationException;
 use Minds\Core\Boost\V3\Exceptions\IncorrectBoostStatusException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
-use Minds\Core\Analytics\Views\Manager as ViewsManager;
-use Minds\Core\Security\ACL;
-use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
 use Minds\Core\Boost\V3\Manager;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\PaymentProcessor;
+use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
 use Minds\Core\Boost\V3\Repository;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
+use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Feeds\FeedSyncEntity;
+use Minds\Core\Security\ACL;
+use Minds\Core\Settings\Manager as UserSettingsManager;
+use Minds\Core\Settings\Models\BoostPartnerSuitability;
+use Minds\Core\Settings\Models\UserSettings;
+use Minds\Entities\Activity;
 use Minds\Entities\Entity;
+use Minds\Entities\Image;
 use Minds\Entities\User;
+use Minds\Entities\Video;
 use Minds\Exceptions\ServerErrorException;
 use NotImplementedException;
 use PhpSpec\ObjectBehavior;
@@ -41,6 +53,9 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $preApprovalManager;
     private Collaborator $viewsManager;
     private Collaborator $acl;
+    private Collaborator $guidLinkResolver;
+    private Collaborator $userSettingsManager;
+    private Collaborator $experimentsManager;
 
     public function let(
         Repository $repository,
@@ -49,7 +64,10 @@ class ManagerSpec extends ObjectBehavior
         ActionEventDelegate $actionEventDelegate,
         PreApprovalManager $preApprovalManager,
         ViewsManager $viewsManager,
-        ACL $acl
+        ACL $acl,
+        GuidLinkResolver $guidLinkResolver,
+        UserSettingsManager $userSettingsManager,
+        ExperimentsManager $experimentsManager,
     ) {
         $this->repository = $repository;
         $this->paymentProcessor = $paymentProcessor;
@@ -58,6 +76,9 @@ class ManagerSpec extends ObjectBehavior
         $this->preApprovalManager = $preApprovalManager;
         $this->viewsManager = $viewsManager;
         $this->acl = $acl;
+        $this->guidLinkResolver = $guidLinkResolver;
+        $this->userSettingsManager = $userSettingsManager;
+        $this->experimentsManager = $experimentsManager;
 
         $this->beConstructedWith(
             $this->repository,
@@ -66,7 +87,10 @@ class ManagerSpec extends ObjectBehavior
             $this->actionEventDelegate,
             $this->preApprovalManager,
             $this->viewsManager,
-            $this->acl
+            $this->acl,
+            $this->guidLinkResolver,
+            $this->userSettingsManager,
+            $this->experimentsManager,
         );
     }
 
@@ -100,8 +124,16 @@ class ManagerSpec extends ObjectBehavior
         $this->setUser($user);
 
         $entity->getType()
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(2)
             ->willReturn('activity');
+
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->preApprovalManager->shouldPreApprove($user)
             ->shouldBeCalled()
@@ -111,7 +143,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($entity);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -128,6 +160,87 @@ class ManagerSpec extends ObjectBehavior
             'entity_guid' => '123',
             'target_location' => 1,
             'target_suitability' => 1,
+            'target_platform_web' => true,
+            'target_platform_android' => true,
+            'target_platform_ios' => true,
+            'payment_method' => 1,
+            'daily_bid' => 10,
+            'duration_days' => 2,
+            'goal' => 1,
+            'goal_button_text' => null,
+            'goal_button_url' => null
+        ];
+
+        $this->createBoost($boostData)
+            ->shouldBeEqualTo(true);
+    }
+
+    public function it_should_create_boost_for_linked_activity_for_a_blog(
+        User $user,
+        Blog $blog,
+        Activity $activity
+    ): void {
+        $entityGuid = '123';
+        $activityGuid = '234';
+
+        $blog->getType()
+            ->shouldBeCalledTimes(2)
+            ->willReturn('object');
+
+        $this->entitiesBuilder->single($entityGuid)
+            ->shouldBeCalledOnce()
+            ->willReturn($blog);
+
+        $this->guidLinkResolver->resolveActivityFromEntityGuid($entityGuid)
+            ->shouldBeCalled()
+            ->willReturn($activity);
+
+        $activity->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($activityGuid);
+
+        $activity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
+        $this->repository->beginTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $this->preApprovalManager->shouldPreApprove($user)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->createBoost(Argument::that(function ($arg) {
+            return $arg->getStatus() === null;
+        }))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $boostData = [
+            'entity_guid' => $entityGuid,
+            'target_location' => 1,
+            'target_suitability' => 1,
             'payment_method' => 1,
             'daily_bid' => 10,
             'duration_days' => 2
@@ -137,12 +250,270 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeEqualTo(true);
     }
 
+    public function it_should_create_boost_for_linked_activity_for_an_image(
+        User $user,
+        Image $image,
+        Activity $activity
+    ): void {
+        $entityGuid = '123';
+        $activityGuid = '234';
+
+        $image->getType()
+            ->shouldBeCalledTimes(2)
+            ->willReturn('object');
+
+        $this->entitiesBuilder->single($entityGuid)
+            ->shouldBeCalledOnce()
+            ->willReturn($image);
+
+        $this->guidLinkResolver->resolveActivityFromEntityGuid($entityGuid)
+            ->shouldBeCalled()
+            ->willReturn($activity);
+
+        $activity->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($activityGuid);
+
+        $activity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
+        $this->repository->beginTransaction()
+            ->shouldBeCalledOnce();
+
+
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $this->preApprovalManager->shouldPreApprove($user)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->createBoost(Argument::that(function ($arg) {
+            return $arg->getStatus() === null;
+        }))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $boostData = [
+            'entity_guid' => $entityGuid,
+            'target_location' => 1,
+            'target_suitability' => 1,
+            'payment_method' => 1,
+            'daily_bid' => 10,
+            'duration_days' => 2
+        ];
+
+        $this->createBoost($boostData)
+            ->shouldBeEqualTo(true);
+    }
+
+    public function it_should_create_boost_for_linked_activity_for_a_video(
+        User $user,
+        Video $video,
+        Activity $activity
+    ): void {
+        $entityGuid = '123';
+        $activityGuid = '234';
+
+        $video->getType()
+            ->shouldBeCalledTimes(2)
+            ->willReturn('object');
+
+        $this->entitiesBuilder->single($entityGuid)
+            ->shouldBeCalledOnce()
+            ->willReturn($video);
+
+        $this->guidLinkResolver->resolveActivityFromEntityGuid($entityGuid)
+            ->shouldBeCalled()
+            ->willReturn($activity);
+
+        $activity->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($activityGuid);
+
+        $activity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
+        $this->repository->beginTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $user->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->setUser($user);
+
+        $this->preApprovalManager->shouldPreApprove($user)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->createBoost(Argument::that(function ($arg) {
+            return $arg->getStatus() === null;
+        }))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->repository->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $boostData = [
+            'entity_guid' => $entityGuid,
+            'target_location' => 1,
+            'target_suitability' => 1,
+            'payment_method' => 1,
+            'daily_bid' => 10,
+            'duration_days' => 2
+        ];
+
+        $this->createBoost($boostData)
+            ->shouldBeEqualTo(true);
+    }
+
+    public function it_should_NOT_create_boost_for_a_blog_when_there_is_no_linked_activity(
+        Blog $blog,
+    ): void {
+        $entityGuid = '123';
+
+        $blog->getType()
+            ->shouldBeCalledTimes(3)
+            ->willReturn('object');
+
+        $this->entitiesBuilder->single($entityGuid)
+            ->shouldBeCalledOnce()
+            ->willReturn($blog);
+
+        $this->guidLinkResolver->resolveActivityFromEntityGuid($entityGuid)
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->repository->createBoost(Argument::any())
+            ->shouldNotBeCalled();
+
+        $boostData = [
+            'entity_guid' => $entityGuid,
+            'target_location' => 1,
+            'target_suitability' => 1,
+            'payment_method' => 1,
+            'daily_bid' => 10,
+            'duration_days' => 2
+        ];
+
+        $this->shouldThrow(EntityTypeNotAllowedInLocationException::class)
+            ->during('createBoost', [$boostData]);
+    }
+
+    public function it_should_NOT_create_boost_for_a_image_when_there_is_no_linked_activity(
+        Image $image,
+    ): void {
+        $entityGuid = '123';
+
+        $image->getType()
+            ->shouldBeCalledTimes(3)
+            ->willReturn('object');
+
+        $this->entitiesBuilder->single($entityGuid)
+            ->shouldBeCalledOnce()
+            ->willReturn($image);
+
+        $this->guidLinkResolver->resolveActivityFromEntityGuid($entityGuid)
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->repository->createBoost(Argument::any())
+            ->shouldNotBeCalled();
+
+        $boostData = [
+            'entity_guid' => $entityGuid,
+            'target_location' => 1,
+            'target_suitability' => 1,
+            'payment_method' => 1,
+            'daily_bid' => 10,
+            'duration_days' => 2
+        ];
+
+        $this->shouldThrow(EntityTypeNotAllowedInLocationException::class)
+            ->during('createBoost', [$boostData]);
+    }
+
+    public function it_should_NOT_create_boost_for_a_video_when_there_is_no_linked_activity(
+        Video $video,
+    ): void {
+        $entityGuid = '123';
+
+        $video->getType()
+            ->shouldBeCalledTimes(3)
+            ->willReturn('object');
+
+        $this->entitiesBuilder->single($entityGuid)
+            ->shouldBeCalledOnce()
+            ->willReturn($video);
+
+        $this->guidLinkResolver->resolveActivityFromEntityGuid($entityGuid)
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->repository->createBoost(Argument::any())
+            ->shouldNotBeCalled();
+
+        $boostData = [
+            'entity_guid' => $entityGuid,
+            'target_location' => 1,
+            'target_suitability' => 1,
+            'payment_method' => 1,
+            'daily_bid' => 10,
+            'duration_days' => 2
+        ];
+
+        $this->shouldThrow(EntityTypeNotAllowedInLocationException::class)
+            ->during('createBoost', [$boostData]);
+    }
+
     public function it_should_create_boost_when_pre_approved(
         User $user,
         Entity $entity
     ): void {
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
+
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $user->getGuid()
             ->shouldBeCalledOnce()
@@ -151,7 +522,7 @@ class ManagerSpec extends ObjectBehavior
         $this->setUser($user);
 
         $entity->getType()
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(2)
             ->willReturn('activity');
 
         $this->preApprovalManager->shouldPreApprove($user)
@@ -162,7 +533,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($entity);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -200,7 +571,7 @@ class ManagerSpec extends ObjectBehavior
         Entity $entity
     ): void {
         $entity->getType()
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(3)
             ->willReturn('user');
 
         $this->entitiesBuilder->single(Argument::type('string'))
@@ -227,6 +598,14 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
 
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $user->getGuid()
             ->shouldBeCalledOnce()
             ->willReturn('123');
@@ -234,18 +613,18 @@ class ManagerSpec extends ObjectBehavior
         $this->setUser($user);
 
         $entity->getType()
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(2)
             ->willReturn('activity');
 
         $this->entitiesBuilder->single(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($entity);
-        
+
         $this->preApprovalManager->shouldPreApprove($user)
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -269,12 +648,20 @@ class ManagerSpec extends ObjectBehavior
      * @param Entity $entity
      * @return void
      */
-    public function it_should_try_to_create_boost_and_throw_server_error_exception(
+    public function it_should_try_to_create_boost_and_throw_boost_creation_failed_exception(
         User $user,
         Entity $entity
     ): void {
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
+
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $user->getGuid()
             ->shouldBeCalledOnce()
@@ -283,7 +670,7 @@ class ManagerSpec extends ObjectBehavior
         $this->setUser($user);
 
         $entity->getType()
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(2)
             ->willReturn('activity');
 
         $this->entitiesBuilder->single(Argument::type('string'))
@@ -294,7 +681,11 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->paymentProcessor->refundBoostPayment(Argument::type(Boost::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -314,7 +705,7 @@ class ManagerSpec extends ObjectBehavior
             'duration_days' => 2
         ];
 
-        $this->shouldThrow(ServerErrorException::class)->during('createBoost', [$boostData]);
+        $this->shouldThrow(BoostCreationFailedException::class)->during('createBoost', [$boostData]);
     }
 
     /**
@@ -335,6 +726,14 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
 
+        $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->experimentsManager->isOn('minds-3952-boost-goals')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $user->getGuid()
             ->shouldBeCalledOnce()
             ->willReturn('123');
@@ -342,7 +741,7 @@ class ManagerSpec extends ObjectBehavior
         $this->setUser($user);
 
         $entity->getType()
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(2)
             ->willReturn('activity');
 
         $this->entitiesBuilder->single(Argument::type('string'))
@@ -387,6 +786,10 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
 
+        $boost->getStatus()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostStatus::PENDING);
+
         $this->repository->commitTransaction()
             ->shouldBeCalledOnce();
 
@@ -413,9 +816,37 @@ class ManagerSpec extends ObjectBehavior
      * @param Boost $boost
      * @return void
      */
+    public function it_should_try_approve_boost_and_throw_incorrect_status_exception(
+        Boost $boost
+    ): void {
+        $boost->getStatus()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostStatus::REFUND_IN_PROGRESS);
+
+        $this->repository->beginTransaction()
+            ->shouldBeCalled();
+
+        $this->repository->getBoostByGuid(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($boost);
+
+        $this->repository->rollbackTransaction()
+            ->shouldBeCalled();
+
+        $this->shouldThrow(IncorrectBoostStatusException::class)->during('approveBoost', ['123', '234']);
+    }
+
+    /**
+     * @param Boost $boost
+     * @return void
+     */
     public function it_should_try_to_approve_boost_and_throw_payment_capture_failed_exception(
         Boost $boost
     ): void {
+        $boost->getStatus()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostStatus::PENDING);
+
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
         $this->repository->rollbackTransaction()
@@ -439,6 +870,10 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_try_to_approve_boost_and_throw_server_error_exception(
         Boost $boost
     ): void {
+        $boost->getStatus()
+            ->shouldBeCalledOnce()
+            ->willReturn(BoostStatus::PENDING);
+
         $this->repository->beginTransaction()
             ->shouldBeCalledOnce();
         $this->repository->rollbackTransaction()
@@ -921,45 +1356,537 @@ class ManagerSpec extends ObjectBehavior
         $this->getBoostByGuid($boostGuid)->shouldBe(null);
     }
 
-    // public function it_should_get_boosts_as_feed_sync_entity(
-    //     Boost $boost
-    // ): void {
-    //     $boost = (new Boost(
-    //         '123',
-    //         1,
-    //         1,
-    //         1,
-    //         1,
-    //         1,
-    //         1,
-    //         1,
-    //         1,
-    //         1,
-    //         '123',
-    //         1,
-    //         1
-    //     ))->setOwnerGuid('123')
-    //         ->setGuid('234');
+    public function it_should_get_boosts_as_feed_sync_entity(
+        Boost $boost,
+        User $user
+    ): void {
+        $boostGuid = '234';
+        $ownerGuid = '123';
+        $createdTimestamp = 999999;
+        $boostUrn = "urn:boost:$boostGuid";
 
-    //     $this->repository->getBoosts(
-    //         limit: Argument::type('integer'),
-    //         offset: Argument::type('integer'),
-    //         targetStatus: null,
-    //         forApprovalQueue: Argument::type('bool'),
-    //         targetUserGuid: null,
-    //         orderByRanking: Argument::type('bool'),
-    //         targetAudience: Argument::type('integer'),
-    //         targetLocation: null,
-    //         paymentMethod: null,
-    //         loggedInUser: null,
-    //         hasNext: Argument::type('bool'),
-    //     )
-    //         ->shouldBeCalledOnce()
-    //         ->willYield([$boost]);
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid($ownerGuid)
+            ->setGuid($boostGuid)
+            ->setCreatedTimestamp($createdTimestamp);
 
-    //     $this->getBoostFeed()
-    //         ->shouldReturnAnInstanceOf(Response::class);
-    // }
+        $this->setUser($user);
+
+        $this->repository->getBoosts(
+            limit: 12,
+            offset: 0,
+            targetStatus: null,
+            forApprovalQueue: false,
+            targetUserGuid: null,
+            orderByRanking: false,
+            targetAudience: BoostTargetAudiences::SAFE,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: $user,
+            hasNext: false
+        )
+            ->shouldBeCalled()
+            ->willYield([$boost]);
+
+        $this->getBoostFeed()->toArray()->shouldBeLike([
+            (new FeedSyncEntity())
+                ->setGuid($boostGuid)
+                ->setOwnerGuid($ownerGuid)
+                ->setTimestamp($createdTimestamp)
+                ->setUrn($boostUrn)
+                ->setEntity(null)
+        ]);
+    }
+
+    public function it_should_get_boosts_when_boost_serving_user_allows_only_safe_boosts_and_target_audience_is_safe(
+        Boost $boost,
+        User $user,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: BoostTargetAudiences::SAFE,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->userSettingsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->userSettingsManager);
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldBeCalled()
+            ->willReturn(BoostPartnerSuitability::SAFE);
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldBeCalled()
+            ->willReturn($userSettings);
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::SAFE)
+                ->shouldReturnAnInstanceOf(Response::class);
+    }
+
+    public function it_should_get_boosts_when_boost_serving_user_allows_only_safe_boosts_and_target_audience_is_controversial(
+        Boost $boost,
+        User $user,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: BoostTargetAudiences::SAFE,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->userSettingsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->userSettingsManager);
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldBeCalled()
+            ->willReturn(BoostPartnerSuitability::SAFE);
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldBeCalled()
+            ->willReturn($userSettings);
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::CONTROVERSIAL)
+                ->shouldReturnAnInstanceOf(Response::class);
+    }
+
+    public function it_should_get_boosts_when_boost_serving_user_allows_controversial_boosts_and_target_audience_is_safe(
+        Boost $boost,
+        User $user,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: BoostTargetAudiences::SAFE,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->userSettingsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->userSettingsManager);
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldBeCalled()
+            ->willReturn(BoostPartnerSuitability::CONTROVERSIAL);
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldBeCalled()
+            ->willReturn($userSettings);
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::SAFE)
+                ->shouldReturnAnInstanceOf(Response::class);
+    }
+
+    public function it_should_get_boosts_when_boost_serving_user_allows_controversial_boosts_and_target_audience_is_controversial(
+        Boost $boost,
+        User $user,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: BoostTargetAudiences::CONTROVERSIAL,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->userSettingsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->userSettingsManager);
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldBeCalled()
+            ->willReturn(BoostPartnerSuitability::CONTROVERSIAL);
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldBeCalled()
+            ->willReturn($userSettings);
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::CONTROVERSIAL)
+                ->shouldReturnAnInstanceOf(Response::class);
+    }
+
+    public function it_should_get_boosts_when_boost_serving_user_has_no_boost_partner_settings_and_target_audience_is_safe(
+        Boost $boost,
+        User $user,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: BoostTargetAudiences::SAFE,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->userSettingsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->userSettingsManager);
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldBeCalled()
+            ->willReturn($userSettings);
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::SAFE)
+                ->shouldReturnAnInstanceOf(Response::class);
+    }
+
+    public function it_should_get_boosts_when_boost_serving_user_has_no_boost_partner_settings_and_target_audience_is_controversial(
+        Boost $boost,
+        User $user,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: BoostTargetAudiences::CONTROVERSIAL,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->userSettingsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->userSettingsManager);
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldBeCalled()
+            ->willReturn($userSettings);
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::CONTROVERSIAL)
+                ->shouldReturnAnInstanceOf(Response::class);
+    }
+
+    public function it_should_get_no_boosts_when_serving_user_has_boost_partner_settings_disabled(
+        Boost $boost,
+        User $user,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: Argument::any(),
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldNotBeCalled()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->userSettingsManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->userSettingsManager);
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldBeCalled()
+            ->willReturn(BoostPartnerSuitability::DISABLED);
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldBeCalled()
+            ->willReturn($userSettings);
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::CONTROVERSIAL)
+                ->shouldBeLike(new Response([]));
+    }
+
+    public function it_should_get_boosts_when_no_serving_user_is_found_and_target_audience_is_controversial(
+        Boost $boost,
+        UserSettings $userSettings
+    ): void {
+        $servedByGuid = '654';
+        $boost = (new Boost(
+            '123',
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            '123',
+            1,
+            1
+        ))->setOwnerGuid('123')
+            ->setGuid('234');
+
+        $this->repository->getBoosts(
+            limit: Argument::type('integer'),
+            offset: Argument::type('integer'),
+            targetStatus: null,
+            forApprovalQueue: Argument::type('bool'),
+            targetUserGuid: null,
+            orderByRanking: Argument::type('bool'),
+            targetAudience: BoostTargetAudiences::CONTROVERSIAL,
+            targetLocation: null,
+            entityGuid: null,
+            paymentMethod: null,
+            loggedInUser: null,
+            hasNext: Argument::type('bool'),
+        )
+            ->shouldBeCalledOnce()
+            ->willYield([$boost]);
+
+        $this->entitiesBuilder->single($servedByGuid)
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->userSettingsManager->setUser(Argument::any())
+            ->shouldNotBeCalled();
+
+        $userSettings->getBoostPartnerSuitability()
+            ->shouldNotBeCalled();
+
+        $this->userSettingsManager->getUserSettings(allowEmpty: true)
+            ->shouldNotBeCalled();
+
+        $this->getBoostFeed(servedByGuid: $servedByGuid, targetAudience: BoostTargetAudiences::CONTROVERSIAL)
+                ->shouldReturnAnInstanceOf(Response::class);
+    }
 
     public function it_should_force_reject_by_entity_guid_with_default_statuses()
     {

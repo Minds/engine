@@ -6,6 +6,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Data\Call;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Entities\CommentableEntityInterface;
 
 /*
 * Manager for managing entity specific permissions
@@ -47,6 +48,7 @@ class Manager
             && $entity->getType() == 'activity'
             && $entity->get('entity_guid')
         ) {
+            /** @var CommentableInterface */
             $attachment = $this->entitiesBuilder->single($entity->get('entity_guid'));
             $attachment->setAllowComments($permissions->getAllowComments());
             $this->save
@@ -55,6 +57,7 @@ class Manager
         }
 
         foreach ($this->db->getRow('activity:entitylink:'.$entity->getGUID()) as $parentGuid => $ts) {
+            /** @var CommentableInterface */
             $activity = $this->entitiesBuilder->single($parentGuid);
             $activity->setAllowComments($permissions->getAllowComments());
             $this->save

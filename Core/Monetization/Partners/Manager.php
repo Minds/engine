@@ -4,25 +4,30 @@
  */
 namespace Minds\Core\Monetization\Partners;
 
-use Minds\Core\Analytics\EntityCentric\Manager as EntityCentricManager;
-use Minds\Core\EntitiesBuilder;
 use Minds\Common\Repository\Response;
+use Minds\Core\Analytics\EntityCentric\Manager as EntityCentricManager;
+use Minds\Core\Boost\V3\Partners\Manager as BoostPartnersManager;
 use Minds\Core\Di\Di;
-use Minds\Core\Plus;
+use Minds\Core\Entities;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
+use Minds\Core\Monetization\Partners\Delegates\DepositsDelegate;
+use Minds\Core\Monetization\Partners\Delegates\EmailDelegate;
+use Minds\Core\Monetization\Partners\Delegates\PayoutsDelegate;
 use Minds\Core\Payments\Stripe;
+use Minds\Core\Payments\V2\Enums\PaymentMethod;
+use Minds\Core\Payments\V2\Enums\PaymentStatus;
+use Minds\Core\Payments\V2\Enums\PaymentType;
+use Minds\Core\Payments\V2\Manager as PaymentsManager;
+use Minds\Core\Payments\V2\PaymentOptions;
+use Minds\Core\Plus;
 use Minds\Core\Pro;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
-use Minds\Core\Entities;
-use DateTime;
 
 class Manager
 {
-    /** @var int */
-    const VIEWS_RPM_CENTS = 1000; // $10 USD
-
-    /** @var int */
-    const REFERRAL_CENTS = 10; // $0.10
+    public const BOOST_PARTNER_CENTS = 100;
 
     /** @var int */
     const PLUS_SHARE_PCT = Plus\Manager::REVENUE_SHARE_PCT; // 25%
@@ -31,55 +36,43 @@ class Manager
     const WIRE_REFERRAL_SHARE_PCT = 50; // 50%
 
     /** @var int */
+    const BOOST_PARTNER_REVENUE_SHARE_PCT = BoostPartnersManager::REVENUE_SHARE_PCT; // 50%
+
+    /** @var int */
+    const AFFILIATE_REFERRER_SHARE_PCT = 5; // 5%
+
+    /** @var int */
     const MIN_PAYOUT_CENTS = 10000; // $100 USD
 
-    /** @var Repository */
-    private $repository;
-
-    /** @var EntityCentricManager */
-    private $entityCentricManager;
-
-    /** @var EntitiesBuilder */
-    private $entitiesBuilder;
-
-    /** @var Plus\Manager */
-    private $plusManager;
-
-    /** @var Stripe\Connect\Manager */
-    private $connectManager;
-
-    /** @var Sums */
-    private $sums;
-
-    /** @var Pro\Manager */
-    private $proManager;
-
-    /** @var Delegates\PayoutsDelegate */
-    private $payoutsDelegate;
-
-    /** @var Delegates\EmailDelegate */
-    private $emailDelegate;
-
     public function __construct(
-        $repository = null,
-        $entityCentricManager = null,
-        $entitiesBuilder = null,
-        $plusManager = null,
-        $connectManager = null,
-        $sums = null,
-        $proManager = null,
-        $payoutsDelegate = null,
-        $emailDelegate = null
+        private ?Repository $repository = null,
+        private ?EntityCentricManager $entityCentricManager = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?Plus\Manager $plusManager = null,
+        private ?Stripe\Connect\Manager $connectManager = null,
+        private ?Sums $sums = null,
+        private ?Pro\Manager $proManager = null,
+        private ?PayoutsDelegate $payoutsDelegate = null,
+        private ?EmailDelegate $emailDelegate = null,
+        private ?BoostPartnersManager $boostPartnersManager = null,
+        private ?PaymentsManager $paymentsManager = null,
+        private ?DepositsDelegate $depositsDelegate = null,
+        private ?Logger $logger = null
     ) {
-        $this->repository = $repository ?? new Repository();
-        $this->entityCentricManager = $entityCentricManager ?? new EntityCentricManager();
-        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
-        $this->plusManager = $plusManager ?? Di::_()->get('Plus\Manager');
-        $this->connectManager = $connectManager ?? Di::_()->get('Stripe\Connect\Manager');
-        $this->sums = $sums ?? new Sums();
-        $this->proManager = $proManager ?? Di::_()->get('Pro\Manager');
-        $this->payoutsDelegate = $payoutsDelegate ?? new Delegates\PayoutsDelegate();
-        $this->emailDelegate = $emailDelegate ?? new Delegates\EmailDelegate();
+        $this->repository ??= new Repository();
+        $this->entityCentricManager ??= new EntityCentricManager();
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->plusManager ??= Di::_()->get('Plus\Manager');
+        $this->connectManager ??= Di::_()->get('Stripe\Connect\Manager');
+        $this->sums ??= new Sums();
+        $this->proManager ??= Di::_()->get('Pro\Manager');
+        $this->payoutsDelegate ??= new Delegates\PayoutsDelegate();
+        $this->emailDelegate ??= new Delegates\EmailDelegate();
+        $this->boostPartnersManager ??= Di::_()->get(BoostPartnersManager::class);
+        $this->paymentsManager ??= Di::_()->get(PaymentsManager::class);
+        $this->depositsDelegate ??= new DepositsDelegate();
+
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -113,10 +106,17 @@ class Manager
             'from' => strtotime('midnight'),
         ], $opts);
 
+        $this->logger->info("Start processing wire deposits");
         yield from $this->issueWireReferralDeposits($opts);
+
+        $this->logger->info("Start processing plus deposits");
         yield from $this->issuePlusDeposits($opts);
-        yield from $this->issuePageviewDeposits($opts);
-        yield from $this->issueReferralDeposits($opts);
+
+        $this->logger->info("Start processing boost partner deposits");
+        yield from $this->issueBoostPartnerDeposits($opts);
+
+        $this->logger->info("Start processing affiliate deposits");
+        yield from $this->issueAffiliateDeposits($opts);
     }
 
     /**
@@ -167,7 +167,13 @@ class Manager
                 ->setAmountCents($cents)
                 ->setItem('wire_referral');
 
-            $this->repository->add($deposit);
+            if (!($opts['dry-run'] ?? false)) {
+                $this->repository->add($deposit);
+            } else {
+                $this->logger->info('-------------- WIRE PAYOUT DEPOSIT ----------------');
+                $this->logger->info('Deposit', $deposit->export());
+                $this->logger->info('---------------------------------------------------');
+            }
 
             yield $deposit;
         }
@@ -182,7 +188,9 @@ class Manager
     {
         $revenueUsd = $this->plusManager->getDailyRevenue($opts['from']) * (self::PLUS_SHARE_PCT / 100);
         $revenueCents = round($revenueUsd * 100, 0);
+        $this->logger->info('Fetched daily revenue');
 
+        $this->logger->info('Processing deposits');
         foreach ($this->plusManager->getScores($opts['from']) as $unlock) {
             $shareCents = $revenueCents * $unlock['sharePct'];
             $deposit = new EarningsDeposit();
@@ -191,98 +199,129 @@ class Manager
                 ->setAmountCents($shareCents)
                 ->setItem('plus');
 
-            $this->repository->add($deposit);
+            if (!($opts['dry-run'] ?? false)) {
+                $this->repository->add($deposit);
+            } else {
+                $this->logger->info('-------------- PLUS PAYOUT DEPOSIT ----------------');
+                $this->logger->info('Deposit', $deposit->export());
+                $this->logger->info('---------------------------------------------------');
+            }
 
             yield $deposit;
         }
     }
 
     /**
-     * Issuse the pageview deposits
-     * @param array
+     * Issue revenue share deposits for boost partners generated views
+     * @param array $opts
      * @return iterable
      */
-    protected function issuePageviewDeposits(array $opts): iterable
+    public function issueBoostPartnerDeposits(array $opts): iterable
     {
-        $users = [];
+        $timestamp = $opts['from'];
+        foreach ($this->boostPartnersManager->getRevenueDetails($opts['from'], $opts['to'] ?? null) as $eCPM) {
+            $deposit = (new EarningsDeposit())
+                ->setTimestamp($timestamp)
+                ->setUserGuid($eCPM['served_by_user_guid'])
+                ->setAmountCents((($eCPM['cash_ecpm'] * ($eCPM['cash_total_views_served'] / 1000)) * (self::BOOST_PARTNER_REVENUE_SHARE_PCT / 100)) * 100)
+                ->setAmountTokens(($eCPM['tokens_ecpm'] * ($eCPM['tokens_total_views_served'] / 1000)) * (self::BOOST_PARTNER_REVENUE_SHARE_PCT / 100))
+                ->setItem('boost_partner');
 
-        $opts = [
-            'fields' => [ 'views::single' ],
-            'from' => $opts['from'],
-            'owner_guid' => $opts['user_guid'] ?? null,
-        ];
-
-        foreach ($this->entityCentricManager->getListAggregatedByOwner($opts) as $ownerSum) {
-            $views = $ownerSum['views::single']['value'];
-            $amountCents = ($views / 1000) * static::VIEWS_RPM_CENTS;
-
-            if ($amountCents < 1) { // Has to be at least 1 cent / $0.01
-                continue;
+            if (!($opts['dry-run'] ?? false)) {
+                $this->repository->add($deposit);
+            } else {
+                $this->logger->info('-------------- BOOST PARTNER PAYOUT DEPOSIT ----------------');
+                $this->logger->info('Boost revenue details', $eCPM);
+                $this->logger->info('Deposit', $deposit->export());
+                $this->logger->info('---------------------------------------------------');
             }
 
-            // Is this user in the pro program?
-            $owner = $this->entitiesBuilder->single($ownerSum['key']);
-            if (!$owner) {
-                continue;
-            }
-            if ($rpm = $owner->getPartnerRpm()) {
-                if ($rpm) {
-                    $amountCents = ($views / 1000) * (int) $rpm;
-                    if ($amountCents < 1) { // Has to be at least 1 cent / $0.01
-                        $amountCents = 0;
-                    }
+            yield $deposit;
+        }
+    }
+
+    /**
+     * Calculates and issues affilite earnings
+     * Cash only.
+     * @param array $opts
+     * @return iterable
+     */
+    public function issueAffiliateDeposits(array $opts): iterable
+    {
+        $paymentOptions = (new PaymentOptions())
+            ->setWithAffiliate(true)
+            ->setFromTimestamp($opts['from'])
+            ->setToTimestamp($opts['to'] ?? null)
+            ->setPaymentTypes([
+                PaymentType::MINDS_PRO_PAYMENT,
+                PaymentType::BOOST_PAYMENT,
+                PaymentType::MINDS_PLUS_PAYMENT
+            ])
+            ->setPaymentStatus(PaymentStatus::COMPLETED)
+            ->setPaymentMethod(PaymentMethod::CASH);
+
+        $deposits = [];
+
+        $referrersDeposits = [];
+
+        /**
+         * Iterate through sum of affiliate earnings for time period and deposit
+         * Builds in memory $referrersDeposits
+         */
+        foreach ($this->paymentsManager->getPaymentsAffiliatesEarnings($paymentOptions) as $item) {
+            $deposit = (new EarningsDeposit())
+                ->setTimestamp($opts['from'])
+                ->setUserGuid($item['affiliate_user_guid'])
+                ->setAmountCents($item['total_earnings_millis'] / 10)
+                ->setItem('affiliate');
+
+            // Save the deposit
+            $this->repository->add($deposit);
+
+            // Build the affiliate to see if they have a referrer themselves
+            $affiliateUser = $this->entitiesBuilder->single($item['affiliate_user_guid']);
+
+            if ($affiliateUser instanceof User && !empty($affiliateUser->referrer) && ((time() - $affiliateUser->time_created) < 3650 * 86400)) {
+                if (!isset($referrersDeposits[$affiliateUser->referrer])) {
+                    $referrersDeposits[$affiliateUser->getGuid()] = 0;
                 }
+
+                $referrersDeposits[$affiliateUser->referrer] += $item['total_earnings_millis'] * (self::AFFILIATE_REFERRER_SHARE_PCT / 100);
             }
 
-            if (!$owner || !$owner->isPro()) {
+            yield $deposit;
+
+            if (!($affiliateUser instanceof User)) {
                 continue;
             }
 
-            $deposit = new EarningsDeposit();
-            $deposit->setTimestamp($opts['from'])
-                ->setUserGuid($ownerSum['key'])
-                ->setAmountCents($amountCents)
-                ->setItem("views");
+            // Emit event
+            $this->depositsDelegate->onIssueAffiliateDeposit($affiliateUser, $deposit);
+        }
 
+        /**
+         * Iterate through in memory $referrersDeposits and issue the deposit
+         */
+        foreach ($referrersDeposits as $referrerGuid => $referrersDepositAmountMillis) {
+            $deposit = (new EarningsDeposit())
+                ->setTimestamp($opts['from'])
+                ->setUserGuid($referrerGuid)
+                ->setAmountCents($referrersDepositAmountMillis / 10)
+                ->setItem('affiliate_referrer');
+
+            // Save the deposit
             $this->repository->add($deposit);
 
             yield $deposit;
-        }
-    }
 
-    /**
-     * Issue the referral deposits
-     * @param array
-     * @return iterable
-     */
-    protected function issueReferralDeposits(array $opts): iterable
-    {
-        if ($opts['user_guid']) {
-            return;
-        }
-        foreach ($this->entityCentricManager->getListAggregatedByOwner([
-            'fields' => [ 'referral::active' ],
-            'from' => strtotime('-7 days', $opts['from']),
-        ]) as $ownerSum) {
-            $count = $ownerSum['referral::active']['value'];
-            $amountCents = $count * static::REFERRAL_CENTS;
+            $referrer = $this->entitiesBuilder->single($referrerGuid);
 
-            // Is this user in the pro program?
-            $owner = $this->entitiesBuilder->single($ownerSum['key']);
-
-            if (!$owner || !$owner->isPro()) {
+            if (!($referrer instanceof User)) {
                 continue;
             }
 
-            $deposit = new EarningsDeposit();
-            $deposit->setTimestamp($opts['from'])
-                ->setUserGuid($ownerSum['key'])
-                ->setAmountCents($amountCents)
-                ->setItem("referrals");
-
-            $this->repository->add($deposit);
-
-            yield $deposit;
+            // Emit event
+            $this->depositsDelegate->onIssueAffiliateReferrerDeposit($referrer, $deposit);
         }
     }
 
@@ -295,6 +334,18 @@ class Manager
     public function getBalance(User $user, $asOfTs = null): EarningsBalance
     {
         return $this->repository->getBalance((string) $user->getGuid(), $asOfTs);
+    }
+
+    /**
+     * Returns user's balance for a specific item
+     * @param User $user
+     * @param array $items
+     * @param int|null $asOfTs
+     * @return EarningsBalance
+     */
+    public function getBalanceByItem(User $user, array $items, ?int $asOfTs = null): EarningsBalance
+    {
+        return $this->repository->getBalanceByItem((string) $user->getGuid(), $items, $asOfTs);
     }
 
     /**
@@ -327,18 +378,10 @@ class Manager
                 continue;
             }
 
-            // Calculate the ratio of posts to earnings
-            $ratio = $this->calculatePostsBalanceRatio($earningsBalance);
-            
-            if ($this->calculatePostsBalanceRatio($earningsBalance) < 0.01 && $user->getPartnerRpm() > 100) {
-                //echo "\n do not payout $user->username ratio:$ratio";
-                continue;
-            }
-
             $proSettings = $this->proManager->setUser($user)->get();
             $payoutMethod = $proSettings->getPayoutMethod();
 
-            if (!$this->proManager->setUser($user)->isActive()) {
+            if (!$user->isPlus()) {
                 //echo "\n do not payout $user->username, they are no longer pro";
                 continue;
             }
@@ -348,7 +391,7 @@ class Manager
                 continue;
             }
 
-            if (in_array($user->guid, ['100000000000035825', '100000000000000519', '240489236636110848', '1110292844016312335', '100000000000000341', '1107553086722809873' ], true)) {
+            if (in_array($user->guid, ['100000000000035825', '100000000000000519', '240489236636110848', '1110292844016312335', '1107553086722809873' ], true)) {
                 //echo "\n skipping $user->username";
                 continue;
             }

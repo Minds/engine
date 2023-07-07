@@ -5,6 +5,7 @@
 namespace Minds\Core\Notifications;
 
 use Minds\Common\SystemUser;
+use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
@@ -12,11 +13,9 @@ use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
+use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Wire\Wire;
 use Minds\Entities\User;
-use Minds\Entities\Boost\Peer;
-use Minds\Core\Config;
-use Minds\Core\Supermind\Models\SupermindRequest;
 
 class NotificationsEventStreamsSubscription implements SubscriptionInterface
 {
@@ -68,8 +67,11 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
     public function consume(EventInterface $event): bool
     {
         if (!$event instanceof ActionEvent) {
+            $this->logger->info('Skipping as not an action event');
             return false;
         }
+
+        $this->logger->info('Action event type: ' . $event->getAction());
 
         /** @var User */
         $user = $event->getUser();
@@ -79,7 +81,6 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
 
         if ($entity->getOwnerGuid() == $user->getGuid()
             && !$entity instanceof Wire // Wire owners are the senders
-            && !$entity instanceof Peer // Peer boosters are the senders
             && !$entity instanceof SupermindRequest // Supermind entity owners are the senders
             && $event->getAction() !== ActionEvent::ACTION_GROUP_QUEUE_ADD // Actor is post owner
         ) {
@@ -171,37 +172,6 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 $notification->setType(NotificationTypes::TYPE_BOOST_COMPLETED);
                 $notification->setFromGuid(SystemUser::GUID);
                 break;
-            case ActionEvent::ACTION_BOOST_PEER_REQUEST:
-                /** @var Peer */
-                $peerBoost = $entity;
-
-                $notification->setType(NotificationTypes::TYPE_BOOST_PEER_REQUEST);
-                // Send notification to the intended recipient, not entity owner
-                $notification->setToGuid($peerBoost->getDestination()->getGuid());
-
-                $notification->setData([
-                    'bid' => $peerBoost->getBid(),
-                    'type' => $peerBoost->getType(),
-                ]);
-                break;
-            case ActionEvent::ACTION_BOOST_PEER_ACCEPTED:
-                /** @var Peer */
-                $peerBoost = $entity;
-                $notification->setType(NotificationTypes::TYPE_BOOST_PEER_ACCEPTED);
-                $notification->setData([
-                    'bid' => $peerBoost->getBid(),
-                    'type' => $peerBoost->getType(),
-                ]);
-                break;
-            case ActionEvent::ACTION_BOOST_PEER_REJECTED:
-                /** @var Peer */
-                $peerBoost = $entity;
-                $notification->setType(NotificationTypes::TYPE_BOOST_PEER_REJECTED);
-                $notification->setData([
-                    'bid' => $peerBoost->getBid(),
-                    'type' => $peerBoost->getType(),
-                ]);
-                break;
             case ActionEvent::ACTION_TOKEN_WITHDRAW_ACCEPTED:
                 $notification->setType(NotificationTypes::TYPE_TOKEN_WITHDRAW_ACCEPTED);
                 // The entity is the Withdraw\Request
@@ -236,8 +206,8 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                     'group_urn' => $event->getActionData()['group_urn']
                 ]);
                 break;
-            // Doesn't work bc post gets deleted immediately when rejected
-            // case ActionEvent::ACTION_GROUP_QUEUE_REJECT:
+                // Doesn't work bc post gets deleted immediately when rejected
+                // case ActionEvent::ACTION_GROUP_QUEUE_REJECT:
             //     $notification->setType(NotificationTypes::TYPE_GROUP_QUEUE_REJECT);
             //     $notification->setData([
             //         'group_urn' => $event->getActionData()['group_urn']
@@ -283,18 +253,38 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 $notification->setFromGuid(SystemUser::GUID);
                 $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON);
                 break;
-            // case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
+            case ActionEvent::ACTION_AFFILIATE_EARNINGS_DEPOSITED:
+                /**
+                 * @type User $affiliateUser
+                 */
+                $affiliateUser = $entity;
+                $notification->setToGuid($affiliateUser->getGuid());
+                $notification->setFromGuid(SystemUser::GUID);
+                $notification->setType(NotificationTypes::TYPE_AFFILIATE_EARNINGS_DEPOSITED);
+                $notification->setData($event->getActionData());
+                break;
+            case ActionEvent::ACTION_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
+                /**
+                 * @type User $affiliateUser
+                 */
+                $affiliateUser = $entity;
+                $notification->setToGuid($affiliateUser->getGuid());
+                $notification->setFromGuid(SystemUser::GUID);
+                $notification->setType(NotificationTypes::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED);
+                $notification->setData($event->getActionData());
+                break;
+                // case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
             //     $notification->setToGuid($entity->getSenderGuid());
             //     $notification->setFromGuid($entity->getReceiverGuid());
             //     $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE);
             //     break;
             default:
+                $this->logger->info("{$event->getAction()} is not a valid action for notifications");
                 return true; // We will not make a notification from this
         }
 
         // Save and submit
         if ($this->manager->add($notification)) {
-
             // Some logging
             $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
 

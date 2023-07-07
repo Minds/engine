@@ -4,6 +4,7 @@ namespace Minds\Core\Payments\Stripe\Connect;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
@@ -17,11 +18,11 @@ class ManagerV2
 {
     public function __construct(
         private ?Config $config = null,
-        private ?Stripe\StripeClient $stripeClient = null,
+        private ?StripeClient $stripeClient = null,
         private ?Save $save = null,
     ) {
         $this->config ??= Di::_()->get('Config');
-        $this->stripeClient ??= new Stripe\StripeClient($this->config->get('payments')['stripe']['api_key']);
+        $this->stripeClient ??= Di::_()->get(StripeClient::class);
         $this->save ??= new Save();
     }
 

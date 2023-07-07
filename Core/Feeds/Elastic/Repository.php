@@ -6,7 +6,8 @@ use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Client as ElasticsearchClient;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Di\Di;
-use Minds\Core\Features\Manager as Features;
+use Minds\Core\Groups\Membership;
+use Minds\Core\Log\Logger;
 use Minds\Core\Search\SortingAlgorithms;
 use Minds\Helpers\Text;
 
@@ -28,9 +29,6 @@ class Repository
     /** @var ElasticsearchClient */
     protected $client;
 
-    /** @var Features */
-    protected $features;
-
     /** @var string */
     protected $index;
 
@@ -42,13 +40,16 @@ class Repository
 
     private Config $config;
 
-    public function __construct($client = null, $config = null, $features = null)
-    {
+    public function __construct(
+        $client = null,
+        $config = null,
+        private ?Membership $groupsMembership = null,
+        private ?Logger $logger = null
+    ) {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
-
         $this->config = $config ?? Di::_()->get('Config');
-
-        $this->features = $features ?: Di::_()->get('Features\Manager');
+        $this->groupsMembership ??= Di::_()->get(Membership::class);
+        $this->logger ??= Di::_()->get('Logger');
 
         $this->index = $this->config->get('elasticsearch')['indexes']['search_prefix'];
 
@@ -135,31 +136,38 @@ class Repository
 
     /**
      * Returns a count of the query
-     * @param array $opts
-     * @return
+     * @param array $opts - opts for query.
+     * @param bool $handleExceptions - true if exceptions should be thrown out,
+     * if false 0 will be returned.
+     * @throws Exception - if handle exceptions is false.
+     * @return int count
      */
-    public function getCount(array $opts = []): int
+    public function getCount(array $opts = [], bool $handleExceptions = true): int
     {
-        $built = $this->buildQuery($opts);
-
-        // Using an typed object would be nice
-        // but don't have time
-        $query = $built['query'];
-        unset($query['size']);
-        unset($query['from']);
-        unset($query['body']['_source']);
-        unset($query['body']['sort']);
-
-        $prepared = new Prepared\Count();
-        $prepared->query($query);
-
         try {
-            $response = $this->client->request($prepared);
+            $built = $this->buildQuery($opts);
 
+            // Using an typed object would be nice
+            // but don't have time
+            $query = $built['query'];
+            unset($query['size']);
+            unset($query['from']);
+            unset($query['body']['_source']);
+            unset($query['body']['sort']);
+
+            $prepared = new Prepared\Count();
+            $prepared->query($query);
+
+            $response = $this->client->request($prepared);
             return $response['count'];
         } catch (\Exception $e) {
+            $this->logger->error($e);
+
+            if (!$handleExceptions) {
+                throw $e;
+            }
+
             return 0;
-            // TODO: Log this error, why did it fail
         }
     }
 
@@ -207,6 +215,7 @@ class Repository
             'supermind' => false,
             'use_legacy_time_ranges' => true,
             'exclude_scheduled' => false,
+            'group_posts_for_user_guid' => null,
         ], $opts);
 
         if (!$opts['type']) {
@@ -228,14 +237,7 @@ class Repository
 
         switch ($opts['algorithm']) {
             case "top":
-                if ($this->features->has('top-feeds-by-age')) {
-                    $algorithm = new SortingAlgorithms\TopByPostAge();
-                } else {
-                    $algorithm = new SortingAlgorithms\Top();
-                }
-                if ($this->features->has('topv2-algo')) {
-                    $algorithm = new SortingAlgorithms\TopV2();
-                }
+                $algorithm = new SortingAlgorithms\TopV2();
                 break;
             case "topV2":
                 $algorithm = new SortingAlgorithms\TopV2();
@@ -244,10 +246,7 @@ class Repository
                 $algorithm = new SortingAlgorithms\Controversial();
                 break;
             case "hot":
-                $algorithm = new SortingAlgorithms\Hot();
-                if ($this->features->has('topv2-algo')) {
-                    $algorithm = new SortingAlgorithms\TopV2();
-                }
+                $algorithm = new SortingAlgorithms\TopV2();
                 break;
             case SortingAlgorithms\DigestFeed::class:
                 $algorithm = new SortingAlgorithms\DigestFeed();
@@ -391,6 +390,22 @@ class Repository
             ];
         }
 
+        /**
+         * Group only feed
+         */
+        if ($opts['group_posts_for_user_guid']) {
+            $body['query']['function_score']['query']['bool']['must'][] = [
+                'terms' => [
+                    'container_guid' =>
+                        array_map(function ($guid) {
+                            return (string) $guid;
+                        }, $this->groupsMembership->getGroupGuidsByMember([
+                            'user_guid' => $opts['group_posts_for_user_guid'],
+                        ])),
+                ]
+            ];
+        }
+
         if (!$opts['container_guid'] && !$opts['owner_guid']) {
             if (!isset($body['query']['function_score']['query']['bool']['must_not'])) {
                 $body['query']['function_score']['query']['bool']['must_not'] = [];
@@ -452,7 +467,11 @@ class Repository
             ];
         }
 
-        if ($type !== 'group' && $opts['access_id'] !== null && !$opts['include_group_posts']) {
+        if ($type !== 'group'
+            && $opts['access_id'] !== null
+            && !$opts['include_group_posts']
+            && !$opts['group_posts_for_user_guid']
+        ) {
             $body['query']['function_score']['query']['bool']['must'][] = [
                 'terms' => [
                     'access_id' => Text::buildArray($opts['access_id']),
@@ -598,7 +617,7 @@ class Repository
                 $body['query']['function_score']['query']['bool']['must'][] = [
                     'multi_match' => [
                         'query' => $opts['query'],
-                        'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^12'],
+                        'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^12', 'auto_caption^12'],
                     ],
                 ];
             } else {
@@ -606,7 +625,7 @@ class Repository
                     'multi_match' => [
                         'query' => $opts['query'],
                         'type' => 'phrase',
-                        'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^16'],
+                        'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^16', 'auto_caption^12'],
                     ],
                 ];
             }
@@ -624,7 +643,7 @@ class Repository
             $body['query']['function_score']['query']['bool']['should'][] = [
                 'multi_match' => [
                     'query' => implode(' ', $opts['hashtags']),
-                    'fields' => ['title', 'message', 'description'],
+                    'fields' => ['title', 'message', 'description', 'auto_caption'],
                     'operator' => 'or',
                     'boost' => 0.1
                 ],

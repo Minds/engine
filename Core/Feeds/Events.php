@@ -14,8 +14,9 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Core\Security\Block;
 use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\InteractionCounters;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Security\ACL;
 
 class Events
 {
@@ -30,10 +31,16 @@ class Events
      * @param Dispatcher $eventsDispatcher
      * @param Block\Manager $blockManager
      */
-    public function __construct($eventsDispatcher = null, $blockManager = null, protected ?ExperimentsManager $experimentsManager = null)
-    {
+    public function __construct(
+        $eventsDispatcher = null,
+        $blockManager = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null,
+        protected ?ACL $acl = null,
+    ) {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->acl ??= Di::_()->get('Security\ACL');
     }
 
     public function register()
@@ -63,6 +70,15 @@ class Events
 
             if ($activity->remind_object) {
                 $remindObj = $activity->remind_object;
+
+                $entity = $this->entitiesBuilder->single($remindObj['guid']);
+                $canRead = $entity && $this->acl->read($entity, $user);
+                if (!$canRead) {
+                    $event->setResponse(true);
+                    return;
+                }
+
+                $remindObj = $activity->remind_object;
                 $blockEntry = (new Block\BlockEntry())
                     ->setActor($user)
                     ->setSubjectGuid($remindObj['owner_guid']);
@@ -79,23 +95,12 @@ class Events
             $activity = $params['entity'];
             $export = $event->response() ?: [];
 
-            if ($this->getExperimentsManager()->isOn('front-5673-quote-counts')) {
-                /** @var InteractionCounters */
-                $interactionCounters = Di::_()->get('Feeds\Activity\InteractionCounters');
-            
-                $export['quotes'] = $interactionCounters->setCounter(InteractionCounters::COUNTER_QUOTES)->get($activity);
+            /** @var InteractionCounters */
+            $interactionCounters = Di::_()->get('Feeds\Activity\InteractionCounters');
+        
+            $export['quotes'] = $interactionCounters->setCounter(InteractionCounters::COUNTER_QUOTES)->get($activity);
 
-                $event->setResponse($export);
-            }
+            $event->setResponse($export);
         });
-    }
-
-    /**
-     * @return ExperimentsManager
-     */
-    protected function getExperimentsManager(): ExperimentsManager
-    {
-        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
-        return $this->experimentsManager;
     }
 }

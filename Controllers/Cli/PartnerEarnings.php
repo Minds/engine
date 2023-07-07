@@ -2,13 +2,11 @@
 
 namespace Minds\Controllers\Cli;
 
-use Minds\Core;
-use Minds\Core\Monetization\Partners\Manager;
-use Minds\Core\Di\Di;
 use Minds\Cli;
-use Minds\Interfaces;
-use Minds\Exceptions;
+use Minds\Core\Di\Di;
+use Minds\Core\Monetization\Partners\Manager;
 use Minds\Entities;
+use Minds\Interfaces;
 
 class PartnerEarnings extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -20,7 +18,7 @@ class PartnerEarnings extends Cli\Controller implements Interfaces\CliController
     {
         $this->out('TBD');
     }
-    
+
     public function exec()
     {
         $this->out('Missing subcommand');
@@ -30,16 +28,22 @@ class PartnerEarnings extends Cli\Controller implements Interfaces\CliController
     {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
+        Di::_()->get('Config')->set('min_log_level', 'INFO');
 
         $daysAgo = $this->getOpt('daysAgo') ?: 0;
         $from = $this->getOpt('from') ?: strtotime("midnight $daysAgo days ago");
+        $to = $this->getOpt('to') ?? (strtotime("tomorrow", $from) -1);
+
+        // Dry Run option to test execution before applying changes
+        $dryRun = (bool) $this->getOpt('dry-run') ?? false;
         $manager = new Manager();
 
         $i = 0;
-        foreach ($manager->issueDeposits([ 'from' => $from ]) as $record) {
+        foreach ($manager->issueDeposits([ 'from' => $from, 'to' => $to, 'dry-run' => $dryRun ]) as $record) {
             ++$i;
             $usd = round($record->getAmountCents() / 100, 2);
-            $this->out("[$i]: {$record->getItem()} $$usd");
+            $tokens = round($record->getAmountTokens(), 3);
+            $this->out("[$i]: {$record->getUserGuid()} {$record->getItem()} $$usd | $tokens tokens");
         }
     }
 
@@ -51,7 +55,7 @@ class PartnerEarnings extends Cli\Controller implements Interfaces\CliController
         $manager = new Manager();
 
         $opts = [
-            'to' => strtotime('midnight 31st August 2020') * 1000,
+            'to' => strtotime('midnight last day of last month') * 1000,
             'dryRun' => true,
         ];
 
@@ -60,7 +64,7 @@ class PartnerEarnings extends Cli\Controller implements Interfaces\CliController
             ++$i;
             $user = Di::_()->get('EntitiesBuilder')->single($earningsPayout->getUserGuid());
             $usd = ($earningsPayout->getAmountCents() / 100) ?: 0;
-            echo "\n $i, {$earningsPayout->getUserGuid()}, {$usd}, {$earningsPayout->getMethod()}, $user->username";
+            echo "\n $i, {$earningsPayout->getUserGuid()},  $user->username, , {$usd}, {$earningsPayout->getMethod()}, {$user->getPlusMethod()}, {$user->getProMethod()}";
         }
         echo "\nDone";
     }

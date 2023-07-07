@@ -1,12 +1,15 @@
 <?php
 namespace Minds\Core\Monetization\EarningsOverview;
 
-use Minds\Entities\User;
-use Minds\Core\Di\Di;
-use Minds\Core\Payments\Stripe;
-use Minds\Core\Monetization\Partners;
-use Minds\Core\Wire;
+use Brick\Math\BigDecimal;
+use Minds\Common\Repository\Response;
 use Minds\Core\Config;
+use Minds\Core\Di\Di;
+use Minds\Core\Monetization\Partners;
+use Minds\Core\Payments\Stripe;
+use Minds\Core\Util\BigNumber;
+use Minds\Core\Wire;
+use Minds\Entities\User;
 
 class Manager
 {
@@ -60,7 +63,7 @@ class Manager
     public function getOverview(int $from, int $to): OverviewModel
     {
         $overview = new OverviewModel();
-        
+
         $overview->setEarnings([
             $this->getPartnerEarnings($from, $to),
             $this->getWireEarnings($from, $to),
@@ -127,12 +130,27 @@ class Manager
         // Wire referrals
         $wireReferrals = $partnerEarningsItems['wire_referral'] ?? new EarningsItemModel();
         $wireReferrals->setId('wire_referral');
-        
+
+        // Boost Partners
+        $boostPartners = $partnerEarningsItems['boost_partner'] ?? new EarningsItemModel();
+        $boostPartners->setId('boost_partner');
+
+        // Affiliates
+        $affiliateEarnings = $partnerEarningsItems['affiliate_earnings'] ?? new EarningsItemModel();
+        $affiliateEarnings->setId('affiliate');
+
+        // Affiliate referrals
+        $affiliateReferrerEarnings = $partnerEarningsItems['referrer_affiliate_earnings'] ?? new EarningsItemModel();
+        $affiliateReferrerEarnings->setId('affiliate_referrer');
+
         $earnings->setItems([
             $pageViewEarnings,
             $referralEarnings,
             $plusEarnings,
             $wireReferrals,
+            $boostPartners,
+            $affiliateEarnings,
+            $affiliateReferrerEarnings,
         ]);
 
         return $earnings;
@@ -189,21 +207,32 @@ class Manager
     }
 
     /**
-     * @param array $earningsDeposits
+     * @param array|Response $earningsDeposits
      * @return EarningsGroupModel[]
      */
-    protected function buildPartnerEarningsItemModels($earningsDeposits = []): array
+    protected function buildPartnerEarningsItemModels(array|Response $earningsDeposits = []): array
     {
         $groups = [];
 
+        $iteration = 0;
         foreach ($earningsDeposits as $earningsDeposit) {
+            // var_dump($earningsDeposit->getAmountTokens());
             $earningsDepositItem = $groups[$earningsDeposit->getItem()] ?? new EarningsItemModel();
             $earningsDepositItem->setAmountCents($earningsDepositItem->getAmountCents() + $earningsDeposit->getAmountCents());
-            $earningsDepositItem->setAmountTokens($earningsDepositItem->getAmountTokens() + $earningsDeposit->getAmountTokens());
+            $earningsDepositItem->setAmountTokens(BigDecimal::sum($earningsDepositItem->getAmountTokens(), $earningsDeposit->getAmountTokens()));
             $earningsDepositItem->setCurrency('usd');
             $groups[$earningsDeposit->getItem()] = $earningsDepositItem;
         }
 
+        $this->fixPartnerEarningsItemsTokens($groups);
+
         return $groups;
+    }
+
+    private function fixPartnerEarningsItemsTokens(array &$groups): void
+    {
+        foreach ($groups as $group) {
+            $group->setAmountTokens(BigNumber::toPlain($group->getAmountTokens(), 18));
+        }
     }
 }

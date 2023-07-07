@@ -48,10 +48,10 @@ class analytics implements Interfaces\Api, Interfaces\ApiIgnorePam
         $response = [];
 
         switch ($pages[1]) {
-          case 'play':
-            $response['data'] = $pages[2] ? Helpers\Counters::get($pages[2], 'plays') : -1;
-            break;
-      }
+            case 'play':
+                $response['data'] = $pages[2] ? Helpers\Counters::get($pages[2], 'plays') : -1;
+                break;
+        }
 
         return Factory::response($response);
     }
@@ -120,11 +120,11 @@ class analytics implements Interfaces\Api, Interfaces\ApiIgnorePam
     {
         switch ($pages[0]) {
             case 'open':
-              Helpers\Analytics::increment("app-opens"); //@todo move this to a metric factory soon
-              break;
+                Helpers\Analytics::increment("app-opens"); //@todo move this to a metric factory soon
+                break;
             case 'play':
-              Helpers\Counters::increment($pages[1], 'plays');
-              break;
+                Helpers\Counters::increment($pages[1], 'plays');
+                break;
         }
 
         return Factory::response([]);

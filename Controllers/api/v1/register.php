@@ -178,23 +178,13 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     private function checkCaptcha(string $captcha): bool
     {
-        if (
-            isset($_POST['friendly_captcha_enabled']) &&
-            $_POST['friendly_captcha_enabled']
-        ) {
-            $friendlyCaptchaManager = Di::_()->get('FriendlyCaptcha\Manager');
-            $difficultyScalingType = !isset($_SERVER['HTTP_APP_VERSION']) ?
-                DifficultyScalingType::DIFFICULTY_SCALING_REGISTRATION
-                : null;
-            if (!$friendlyCaptchaManager->verify($captcha, $difficultyScalingType)) {
-                throw new InvalidSolutionException('Captcha failed');
-            }
-            return true;
+        $friendlyCaptchaManager = Di::_()->get('FriendlyCaptcha\Manager');
+        $difficultyScalingType = !isset($_SERVER['HTTP_APP_VERSION']) ?
+            DifficultyScalingType::DIFFICULTY_SCALING_REGISTRATION
+            : null;
+        if (!$friendlyCaptchaManager->verify($captcha, $difficultyScalingType)) {
+            throw new InvalidSolutionException('Captcha failed');
         }
-        $captchaManager = Core\Di\Di::_()->get('Captcha\Manager');
-        if ($captchaManager->verifyFromClientJson($captcha)) {
-            return true;
-        }
-        throw new InvalidSolutionException('Captcha failed');
+        return true;
     }
 }

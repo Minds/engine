@@ -184,21 +184,21 @@ class Group extends NormalizedEntity implements EntityInterface
     public function __get($name)
     {
         switch ($name) {
-          case 'guid':
-            return $this->getGuid();
-            break;
-          case 'type':
-            return $this->getType();
-            break;
-          case 'container_guid':
-            return null;
-            break;
-          case 'owner_guid':
-            return $this->getOwnerObj() ? $this->getOwnerObj()->guid : $this->owner_guid;
-            break;
-          case 'access_id':
-            return $this->access_id;
-            break;
+            case 'guid':
+                return $this->getGuid();
+                break;
+            case 'type':
+                return $this->getType();
+                break;
+            case 'container_guid':
+                return null;
+                break;
+            case 'owner_guid':
+                return $this->getOwnerObj() ? $this->getOwnerObj()->guid : $this->owner_guid;
+                break;
+            case 'access_id':
+                return $this->access_id;
+                break;
         }
 
         return null;
@@ -911,9 +911,14 @@ class Group extends NormalizedEntity implements EntityInterface
         $export = parent::export($keys);
 
         foreach ($export as $key => $value) {
-            if (is_numeric($value) && strlen($value) < 16) {
+            if (is_numeric($value) && strlen($value) < 16 && !in_array($key, ['name', 'brief_description'], true)) {
                 $export[$key] = (int) $value;
             }
+        }
+
+        $export['name'] = $this->getName();
+        if (mb_strlen($export['name']) > 200) {
+            $export['name'] = mb_substr($export['name'], 0, 197) . '...';
         }
 
         // Compatibility keys

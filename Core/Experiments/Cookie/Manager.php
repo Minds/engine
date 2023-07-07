@@ -4,19 +4,8 @@ namespace Minds\Core\Experiments\Cookie;
 use Minds\Common\Cookie;
 
 /**
- * Manager handling a cookie that contains an anonymous user's generated userId for Growthbook -
- * allows us to track analytics for logged out states.
- *
- * Cookie should be deleted on login, and registration before analytics events fire
- * to avoid misreported experiment ids, except when running experiments that track
- * session creation metrics for users that were previously anonymous (signup, login) -
- * in which case the cookie should be deleted AFTER the metrics event has fired.
- *
- * For example when testing whether a change on the homepage has an impact on signups
- * We need this cookie to exist with the generated anonymous ID until we have fired the metrics
- * event for signup so that Growthbook can connect the dots and see that the user that was
- * experimented on signed up - after that, it should be deleted or it would override the ID
- * for other metrics like active, pageviews etc.
+ * Manager handling a cookie that contains an bespoke ID for a user for consumption
+ * by Growthbook - allows us to track analytics between logged in and out states.
  */
 class Manager
 {
@@ -39,7 +28,7 @@ class Manager
         $this->cookie
             ->setName(self::COOKIE_NAME)
             ->setValue($id)
-            ->setExpire(0) // expires at end of session.
+            ->setExpire(strtotime("+1 year"))
             ->setPath('/')
             ->setHttpOnly(false) // browser needs to be able to read this cookie
             ->create();

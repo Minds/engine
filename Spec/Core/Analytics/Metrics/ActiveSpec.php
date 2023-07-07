@@ -54,7 +54,7 @@ class ActiveSpec extends ObjectBehavior
         $this->get()->shouldReturn([
             [
                 'timestamp' => 1529581013443 / 1000,
-                'date' => date('d-m-Y', 1529581013443 / 1000),
+                'date' => date('d-m-Y', (int) (1529581013443 / 1000)),
                 'total' => 50
             ]
         ]);

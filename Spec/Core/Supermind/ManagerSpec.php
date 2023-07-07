@@ -6,6 +6,7 @@ use ArrayIterator;
 use Minds\Common\Repository\Response;
 use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Supermind\Delegates\EventsDelegate;
@@ -28,6 +29,7 @@ use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
+use Minds\Exceptions\UserNotFoundException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Spec\Minds\Common\Traits\CommonMatchers;
@@ -53,19 +55,25 @@ class ManagerSpec extends ObjectBehavior
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
+    /** @var Logger */
+    private $logger;
+
     public function let(
         Repository $repository,
         SupermindPaymentProcessor $paymentProcessor,
         EventsDelegate $eventsDelegate,
         ACL $acl,
         EntitiesBuilder $entitiesBuilder,
+        Logger $logger
     ) {
         $this->beConstructedWith(
             $repository,
             $paymentProcessor,
             $eventsDelegate,
             $acl,
-            $entitiesBuilder
+            $entitiesBuilder,
+            null,
+            $logger
         );
 
         $this->repository = $repository;
@@ -73,6 +81,7 @@ class ManagerSpec extends ObjectBehavior
         $this->eventsDelegate = $eventsDelegate;
         $this->acl = $acl;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->logger = $logger;
     }
 
     public function it_is_initializable()
@@ -101,7 +110,7 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getReceiverGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid);
-        
+
         $supermindRequest->getPaymentMethod()
             ->shouldBeCalled()
             ->willReturn($paymentMethodId);
@@ -183,7 +192,7 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getReceiverGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid);
-        
+
         $supermindRequest->getPaymentMethod()
             ->shouldBeCalled()
             ->willReturn($paymentMethodId);
@@ -223,7 +232,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->paymentProcessor->cancelPaymentIntent($paymentIntentId)
             ->shouldBeCalled();
-        
+
         $this->repository->rollbackTransaction()
             ->shouldBeCalled();
 
@@ -244,7 +253,7 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getReceiverGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid);
-        
+
         $supermindRequest->getPaymentMethod()
             ->shouldBeCalled()
             ->willReturn($paymentMethodId);
@@ -288,7 +297,7 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getReceiverGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid);
-        
+
         $supermindRequest->getPaymentMethod()
             ->shouldBeCalled()
             ->willReturn($paymentMethodId);
@@ -333,7 +342,7 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getReceiverGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid);
-        
+
         $supermindRequest->getPaymentMethod()
             ->shouldBeCalled()
             ->willReturn($paymentMethodId);
@@ -382,7 +391,7 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getReceiverGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid);
-        
+
         $supermindRequest->getPaymentMethod()
             ->shouldBeCalled()
             ->willReturn($paymentMethodId);
@@ -439,7 +448,7 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getReceiverGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid);
-        
+
         $supermindRequest->getPaymentMethod()
             ->shouldBeCalled()
             ->willReturn($paymentMethodId);
@@ -490,7 +499,7 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getReceiverGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid);
-        
+
         $supermindRequest->getPaymentMethod()
             ->shouldBeCalled()
             ->willReturn($paymentMethodId);
@@ -537,7 +546,7 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getReceiverGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid);
-        
+
         $supermindRequest->getPaymentMethod()
             ->shouldBeCalled()
             ->willReturn($paymentMethodId);
@@ -572,10 +581,10 @@ class ManagerSpec extends ObjectBehavior
 
         $this->repository->rollbackTransaction()
             ->shouldBeCalled();
-        
+
         $this->repository->commitTransaction()
             ->shouldBeCalled();
-        
+
         $this->addSupermindRequest($supermindRequest, $paymentMethodId)->shouldBe(true);
     }
 
@@ -590,7 +599,7 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getReceiverGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid);
-        
+
         $supermindRequest->getPaymentMethod()
             ->shouldBeCalled()
             ->willReturn($paymentMethodId);
@@ -638,10 +647,10 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn([
                 'id' => 'test'
             ]);
-        
+
         $this->paymentProcessor->setUser($recipient)
             ->shouldBeCalled();
-        
+
         $this->setUser($recipient);
 
         $supermindRequest->getStatus()
@@ -663,11 +672,11 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
-            
+
         $this->acl->write($supermindRequest, $recipient, ['isReply' => true])
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::ACCEPTED, $supermindRequestId)
             ->shouldBeCalled();
 
@@ -685,10 +694,10 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequestId = '123';
         $supermindStatus = SupermindRequestStatus::CREATED;
         $paymentMethod = SupermindRequestPaymentMethod::OFFCHAIN_TOKEN;
-        
+
         $this->paymentProcessor->setUser($sender)
             ->shouldBeCalled();
-        
+
         $this->setUser($sender);
 
         $supermindRequest->getStatus()
@@ -706,11 +715,11 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
-            
+
         $this->acl->write($supermindRequest, $sender, ['isReply' => true])
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::ACCEPTED, $supermindRequestId)
             ->shouldBeCalled();
 
@@ -734,10 +743,10 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn([
                 'id' => 'test'
             ]);
-        
+
         $this->paymentProcessor->setUser($recipient)
             ->shouldBeCalled();
-        
+
         $this->setUser($recipient);
 
         $supermindRequest->getStatus()
@@ -759,7 +768,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
-            
+
         $this->acl->write($supermindRequest, $recipient, ['isReply' => true])
             ->shouldBeCalled()
             ->willReturn(true);
@@ -781,7 +790,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn(null);
-        
+
         $this->shouldThrow(SupermindNotFoundException::class)->duringAcceptSupermindRequest($supermindRequestId);
     }
 
@@ -799,7 +808,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
-        
+
         $this->shouldThrow(SupermindRequestIncorrectStatusException::class)->duringAcceptSupermindRequest($supermindRequestId);
     }
 
@@ -825,7 +834,7 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getStatus()
             ->shouldBeCalled()
             ->willReturn($supermindStatus);
-        
+
         $supermindRequest->getPaymentTxID()
             ->shouldBeCalled()
             ->willReturn($paymentId);
@@ -833,7 +842,7 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getPaymentMethod()
             ->shouldBeCalled()
             ->willReturn(SupermindRequestPaymentMethod::CASH);
-        
+
         $supermindRequest->getGuid()
             ->shouldBeCalled()
             ->willReturn($supermindRequestId);
@@ -841,7 +850,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
-        
+
         $supermindRequest->isExpired()
             ->shouldBeCalled()
             ->willReturn(true);
@@ -849,7 +858,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
-        
+
         $this->paymentProcessor->cancelPaymentIntent($paymentId)
             ->shouldBeCalled();
 
@@ -873,11 +882,11 @@ class ManagerSpec extends ObjectBehavior
         $supermindRequest->getStatus()
             ->shouldBeCalled()
             ->willReturn($supermindStatus);
-    
+
         $supermindRequest->getPaymentMethod()
             ->shouldBeCalled()
             ->willReturn(SupermindRequestPaymentMethod::OFFCHAIN_TOKEN);
-        
+
         $supermindRequest->getGuid()
             ->shouldBeCalled()
             ->willReturn($supermindRequestId);
@@ -885,7 +894,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
-        
+
         $supermindRequest->isExpired()
             ->shouldBeCalled()
             ->willReturn(true);
@@ -893,7 +902,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
-        
+
         $this->paymentProcessor->refundOffchainPayment($supermindRequest)
             ->shouldBeCalled()
             ->willReturn($txId);
@@ -943,7 +952,7 @@ class ManagerSpec extends ObjectBehavior
         $this->acl->write($supermindRequest, $sender, ['isReply' => true])
             ->shouldBeCalled()
             ->willReturn(false);
-        
+
         $this->shouldThrow(ForbiddenException::class)->duringAcceptSupermindRequest($supermindRequestId);
     }
 
@@ -953,7 +962,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $supermindRequestId = '123';
         $targetStatus = 1;
-        
+
         $this->repository->updateSupermindRequestStatus($targetStatus, $supermindRequestId)
             ->shouldBeCalled()
             ->willReturn(true);
@@ -965,7 +974,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $supermindRequestId = '123';
         $targetStatus = 1;
-        
+
         $this->repository->updateSupermindRequestStatus($targetStatus, $supermindRequestId)
             ->shouldBeCalled()
             ->willReturn(false);
@@ -984,7 +993,7 @@ class ManagerSpec extends ObjectBehavior
         $supermindStatus = SupermindRequestStatus::CREATED;
         $paymentMethod = SupermindRequestPaymentMethod::CASH;
         $paymentTxid = 'pay_123';
-        
+
         $sender->isAdmin()
             ->shouldBeCalled()
             ->willReturn(false);
@@ -995,7 +1004,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->paymentProcessor->setUser($sender)
             ->shouldBeCalled();
-        
+
         $this->setUser($sender);
 
         $supermindRequest->getStatus()
@@ -1091,7 +1100,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
-        
+
         $this->paymentProcessor->cancelPaymentIntent($paymentTxid)
             ->shouldBeCalled();
 
@@ -1114,7 +1123,7 @@ class ManagerSpec extends ObjectBehavior
         $supermindStatus = SupermindRequestStatus::CREATED;
         $paymentMethod = SupermindRequestPaymentMethod::CASH;
         $paymentTxid = 'pay_123';
-        
+
         $sender->isAdmin()
             ->shouldBeCalled()
             ->willReturn(false);
@@ -1125,7 +1134,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->paymentProcessor->setUser($sender)
             ->shouldBeCalled();
-        
+
         $this->setUser($sender);
 
         $supermindRequest->getStatus()
@@ -1158,14 +1167,14 @@ class ManagerSpec extends ObjectBehavior
         $supermindStatus = SupermindRequestStatus::CREATED;
         $paymentMethod = SupermindRequestPaymentMethod::CASH;
         $paymentTxid = 'pay_123';
-        
+
         $actor->getGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid);
 
         $this->paymentProcessor->setUser($actor)
             ->shouldBeCalled();
-        
+
         $this->setUser($actor);
 
         $supermindRequest->getStatus()
@@ -1191,11 +1200,11 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
-            
+
         $this->acl->write($supermindRequest, $actor, ['isReply' => true])
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::REJECTED, $supermindRequestId)
             ->shouldBeCalled();
 
@@ -1222,7 +1231,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->paymentProcessor->setUser($actor)
             ->shouldBeCalled();
-        
+
         $this->setUser($actor);
 
         $supermindRequest->getStatus()
@@ -1248,11 +1257,11 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
-            
+
         $this->acl->write($supermindRequest, $actor, ['isReply' => true])
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::REJECTED, $supermindRequestId)
             ->shouldBeCalled();
 
@@ -1290,7 +1299,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
-            
+
         $this->shouldThrow(SupermindRequestIncorrectStatusException::class)->duringRejectSupermindRequest($supermindRequestId);
     }
 
@@ -1305,7 +1314,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->paymentProcessor->setUser($actor)
             ->shouldBeCalled();
-    
+
         $this->setUser($actor);
 
         $supermindRequest->getStatus()
@@ -1354,14 +1363,14 @@ class ManagerSpec extends ObjectBehavior
         $supermindStatus = SupermindRequestStatus::CREATED;
         $paymentMethod = SupermindRequestPaymentMethod::CASH;
         $paymentTxid = 'pay_123';
-        
+
         $actor->getGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid + '123'); // different guid
 
         $this->paymentProcessor->setUser($actor)
             ->shouldBeCalled();
-        
+
         $this->setUser($actor);
 
         $supermindRequest->getStatus()
@@ -1392,14 +1401,14 @@ class ManagerSpec extends ObjectBehavior
         $supermindStatus = SupermindRequestStatus::CREATED;
         $paymentMethod = SupermindRequestPaymentMethod::CASH;
         $paymentTxid = 'pay_123';
-        
+
         $actor->getGuid()
             ->shouldBeCalled()
             ->willReturn($receiverGuid);
 
         $this->paymentProcessor->setUser($actor)
             ->shouldBeCalled();
-        
+
         $this->setUser($actor);
 
         $supermindRequest->getStatus()
@@ -1417,7 +1426,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn($supermindRequest);
-            
+
         $this->acl->write($supermindRequest, $actor, ['isReply' => true])
             ->shouldBeCalled()
             ->willReturn(false);
@@ -1443,7 +1452,7 @@ class ManagerSpec extends ObjectBehavior
         $this->entitiesBuilder->single($receiverGuid)
             ->shouldBeCalled()
             ->willReturn($receiver);
-    
+
         $supermindRequest->getActivityGuid()
             ->shouldBeCalled()
             ->willReturn($activityGuid);
@@ -1457,7 +1466,7 @@ class ManagerSpec extends ObjectBehavior
 
         $supermindRequest->setEntity($activity)
             ->shouldBeCalled();
-            
+
         $supermindRequest->setReceiverEntity($receiver)
             ->shouldBeCalled();
 
@@ -1513,7 +1522,7 @@ class ManagerSpec extends ObjectBehavior
         $this->entitiesBuilder->single($receiverGuid)
             ->shouldBeCalled()
             ->willReturn($receiver);
-    
+
         $supermindRequest->getActivityGuid()
             ->shouldBeCalled()
             ->willReturn($activityGuid);
@@ -1531,7 +1540,7 @@ class ManagerSpec extends ObjectBehavior
 
         $supermindRequest->setEntity($activity)
             ->shouldBeCalled();
-            
+
         $supermindRequest->setReceiverEntity($receiver)
             ->shouldBeCalled();
 
@@ -1574,7 +1583,7 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_delete_a_supermind_request()
     {
         $supermindRequestId = '123';
-        
+
         $this->repository->deleteSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn(true);
@@ -1585,7 +1594,7 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_throw_exception_when_deleting_a_supermind_request_if_not_successful()
     {
         $supermindRequestId = '123';
-        
+
         $this->repository->deleteSupermindRequest($supermindRequestId)
             ->shouldBeCalled()
             ->willReturn(false);
@@ -1628,7 +1637,7 @@ class ManagerSpec extends ObjectBehavior
         )
             ->shouldBeCalled()
             ->willReturn($returnIterator);
-        
+
         $this->getReceivedRequests($offset, $limit, $status)->shouldBeLike(new Response([
             $supermindRequest1,
             $supermindRequest2,
@@ -1671,7 +1680,7 @@ class ManagerSpec extends ObjectBehavior
         )
             ->shouldBeCalled()
             ->willReturn($returnIterator);
-        
+
         $this->getSentRequests($offset, $limit, $status)->shouldBeLike(new Response([
             $supermindRequest1,
             $supermindRequest2,
@@ -1833,6 +1842,71 @@ class ManagerSpec extends ObjectBehavior
         $this->expireRequests()->shouldBe(true);
     }
 
+    public function it_should_expire_requests_for_offchain_tokens_and_skip_refund_if_no_user_found()
+    {
+        $exceptionMessage = 'User not found';
+        $ids = [ '567', '678' ];
+        $supermindRequestId1 = '567';
+        $supermindRequestId2 = '678';
+        $txid1 = 'offchain:0x1';
+        $txid2 = 'offchain:0x2';
+        $paymentMethod = SupermindRequestPaymentMethod::OFFCHAIN_TOKEN;
+
+        $supermindRequest1 = (new SupermindRequest())
+            ->setGuid($supermindRequestId1)
+            ->setPaymentMethod($paymentMethod);
+
+        $supermindRequest2 = (new SupermindRequest())
+            ->setGuid($supermindRequestId2)
+            ->setPaymentMethod($paymentMethod);
+
+        $returnIterator = new ArrayIterator([
+            $supermindRequest1,
+            $supermindRequest2
+        ]);
+
+        $this->repository->beginTransaction()
+            ->shouldBeCalled();
+
+        $this->repository->expireSupermindRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD)
+            ->shouldBeCalled()
+            ->willReturn($ids);
+
+        $this->repository->getRequestsFromIds($ids)
+            ->shouldBeCalled()
+            ->willReturn($returnIterator);
+
+        $this->eventsDelegate->onExpireSupermindRequest($supermindRequest1)
+            ->shouldBeCalled();
+
+        $this->eventsDelegate->onExpireSupermindRequest($supermindRequest2)
+            ->shouldBeCalled();
+
+        $this->paymentProcessor->refundOffchainPayment($supermindRequest1)
+            ->shouldBeCalled()
+            ->willReturn($txid1);
+
+        $this->paymentProcessor->refundOffchainPayment($supermindRequest2)
+            ->shouldBeCalled()
+            ->willThrow(new UserNotFoundException($exceptionMessage));
+
+        $this->repository->saveSupermindRefundTransaction($supermindRequestId1, $txid1)
+            ->shouldBeCalled();
+
+        $this->repository->saveSupermindRefundTransaction($supermindRequestId2, $txid2)
+            ->shouldNotBeCalled();
+
+        $this->logger->info('Getting expired supermind requests');
+        $this->logger->info('Refunding Supermind', Argument::type('array'));
+        $this->logger->info('Firing to events delegate for Supermind', Argument::type('array'));
+        $this->logger->warning("$exceptionMessage - skipping.");
+
+        $this->repository->commitTransaction()
+            ->shouldBeCalled();
+
+        $this->expireRequests()->shouldBe(true);
+    }
+
     public function it_should_allow_cli_sapi_name_to_expire_requests_for_cash()
     {
         $ids = [ '567' ];
@@ -1905,6 +1979,9 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getRequestsFromIds($ids)
             ->shouldNotBeCalled();
 
+        $this->repository->rollbackTransaction()
+            ->shouldBeCalled();
+
         $this->expireRequests()->shouldBe(true);
     }
 
@@ -1929,9 +2006,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($returnIterator);
 
-        $this->eventsDelegate->onExpireSupermindRequest($supermindRequest)
-            ->shouldBeCalled();
-
         $this->paymentProcessor->refundOffchainPayment($supermindRequest)
             ->shouldBeCalled()
             ->willReturn($txId);
@@ -1940,8 +2014,14 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willThrow(new \Exception('error'));
 
+        $this->logger->info(Argument::type('string'), Argument::any())
+            ->shouldBeCalled();
+
         $this->repository->rollbackTransaction()
             ->shouldBeCalled();
+
+        $this->eventsDelegate->onExpireSupermindRequest($supermindRequest)
+            ->shouldNotBeCalled();
 
         $this->repository->commitTransaction()
             ->shouldNotBeCalled();
@@ -1966,7 +2046,7 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->getRequestsByStatus($status)
             ->shouldBeCalled()
             ->willReturn($returnIterator);
-        
+
         $this->getSupermindRequestsByStatus($status)->shouldBeAGenerator([
             $supermindRequest1,
             $supermindRequest2

@@ -8,7 +8,6 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Core\Queue\Client as Queue;
-use Minds\Entities;
 use PHPMailer;
 
 class Mailer
@@ -116,6 +115,11 @@ class Mailer
     public function getStats()
     {
         return $this->stats;
+    }
+
+    public function getErrors(): string
+    {
+        return $this->mailer->ErrorInfo;
     }
 
     public function __destruct()

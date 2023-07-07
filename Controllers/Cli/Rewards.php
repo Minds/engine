@@ -43,7 +43,7 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
         $recalculate = $this->getOpt('recalculate') ?: false;
 
         $opts = new RewardsQueryOpts();
-        $opts->setDateTs($timestamp);
+        $opts->setDateTs((int) $timestamp);
         $opts->setRecalculate($recalculate);
 
         $manager = Di::_()->get('Rewards\Manager');

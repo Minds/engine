@@ -11,7 +11,6 @@ use Minds\Core;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Helpers\File;
-use Minds\Core\Features\Manager as FeaturesManager;
 
 define('DEFAULT_BANNER_PATHS', [
     'Assets/banners/0.jpg',
@@ -48,66 +47,63 @@ class banners implements Interfaces\Fs
         $content = "";
 
         switch ($type) {
-          case "user":
-            $size = isset($pages[1]) ? $pages[1] : 'fat';
-            $carousels = Core\Entities::get(['subtype'=>'carousel', 'owner_guid'=>$entity->guid]);
-            if ($carousels) {
-                $f = new Entities\File();
-                $f->owner_guid = $entity->guid;
-                $f->setFilename("banners/{$carousels[0]->guid}.jpg");
-                $f->open('read');
-                $content = $f->read();
-                if (!$content) {
-                    $filepath =  Core\Config::build()->dataroot . 'carousel/' . $carousels[0]->guid . $size;
-                    $f = Core\Di\Di::_()->get('Storage')->open($filepath, 'read');
+            case "user":
+                $size = isset($pages[1]) ? $pages[1] : 'fat';
+                $carousels = Core\Entities::get(['subtype'=>'carousel', 'owner_guid'=>$entity->guid]);
+                if ($carousels) {
+                    $f = new Entities\File();
+                    $f->owner_guid = $entity->guid;
+                    $f->setFilename("banners/{$carousels[0]->guid}.jpg");
+                    $f->open('read');
                     $content = $f->read();
-                }
-            } else {
-                $featuresManager = new FeaturesManager;
-                if ($featuresManager->has('channels')) {
+                    if (!$content) {
+                        $filepath =  Core\Config::build()->dataroot . 'carousel/' . $carousels[0]->guid . $size;
+                        $f = Core\Di\Di::_()->get('Storage')->open($filepath, 'read');
+                        $content = $f->read();
+                    }
+                } else {
                     $content = file_get_contents(
                         Core\Config::build()->path . 'engine/' . $this->getSeededBannerPath($entity->guid)
                     );
                 }
-            }
-            break;
-          case "group":
-            $f = new Entities\File();
-            $f->owner_guid = $entity->owner_guid ?: $entity->getOwnerObj()->guid;
-            $f->setFilename("group/{$entity->getGuid()}.jpg");
-            $f->open('read');
-            // no break
-          case "object":
-            break;
+                break;
+            case "group":
+                $f = new Entities\File();
+                $f->owner_guid = $entity->owner_guid ?: $entity->getOwnerObj()->guid;
+                $f->setFilename("group/{$entity->getGuid()}.jpg");
+                $f->open('read');
+                // no break
+            case "object":
+                break;
         }
 
         switch ($entity->subtype) {
-          case "blog":
-            $f = new Entities\File();
-            $f->owner_guid = $entity->owner_guid;
-            $f->setFilename("blog/{$entity->guid}.jpg");
-            $f->open('read');
-            break;
-          case "cms":
-            break;
-          case "carousel":
-            $size = isset($pages[1]) ? $pages[1] : 'fat';
-            $f = new Entities\File();
-            $f->owner_guid = $entity->owner_guid;
-            $f->setFilename("banners/{$entity->guid}.jpg");
-            $f->open('read');
+            case "blog":
+                $f = new Entities\File();
+                $f->owner_guid = $entity->owner_guid;
+                $f->setFilename("blog/{$entity->guid}.jpg");
+                $f->open('read');
+                break;
+            case "cms":
+                break;
+            case "carousel":
+                $size = isset($pages[1]) ? $pages[1] : 'fat';
+                $f = new Entities\File();
+                $f->owner_guid = $entity->owner_guid;
+                $f->setFilename("banners/{$entity->guid}.jpg");
+                $f->open('read');
 
-            $content = $f->read();
-            if (!$content) {
-                $filepath =  Core\Config::build()->dataroot . 'carousel/' . $entity->guid . $size;
-                $f = Core\Di\Di::_()->get('Storage')->open($filepath, 'read');
                 $content = $f->read();
-            }
-            //$filepath = $f->getFilenameOnFilestore();
-            //if (!file_exists($filepath)) {
+                if (!$content) {
+                    $filepath =  Core\Config::build()->dataroot . 'carousel/' . $entity->guid . $size;
+                    $f = Core\Di\Di::_()->get('Storage')->open($filepath, 'read');
+                    $content = $f->read();
+                }
+                //$filepath = $f->getFilenameOnFilestore();
+                //if (!file_exists($filepath)) {
             //    $filepath =  Core\Config::build()->dataroot . 'carousel/' . $entity->guid . $size;
-            //}
-            break;
+                //}
+                break;
         }
 
 

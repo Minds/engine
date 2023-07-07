@@ -20,6 +20,7 @@ class Minds extends base
     private $modules = [
         Log\Module::class,
         Events\Module::class,
+        GraphQL\Module::class,
         EventStreams\Module::class,
         Security\Module::class,
         OAuth\Module::class,
@@ -61,7 +62,7 @@ class Minds extends base
         Register\Module::class,
         Notifications\Module::class,
         Votes\Module::class,
-        Helpdesk\Zendesk\Module::class,
+        Helpdesk\Module::class,
         SocialCompass\Module::class,
         AccountQuality\Module::class,
         Recommendations\Module::class,
@@ -80,7 +81,9 @@ class Minds extends base
         Verification\Module::class,
         Settings\Module::class,
         Boost\V3\Module::class,
-        Monetization\Module::class
+        Monetization\Module::class,
+        Analytics\Module::class,
+        Groups\V2\Module::class,
     ];
 
     /**
@@ -89,6 +92,8 @@ class Minds extends base
     public function init()
     {
         $this->initProviders();
+
+        // $this->loadConfigs();
         $this->initModules();
     }
 
@@ -132,7 +137,6 @@ class Minds extends base
         (new Router\RouterProvider())->register();
         (new Data\DataProvider())->register();
         //(new Core\Notification\NotificationProvider())->register();
-        (new Pages\PagesProvider())->register();
         (new Payments\PaymentsProvider())->register();
         (new Queue\QueueProvider())->register();
         (new Http\HttpProvider())->register();
@@ -156,7 +160,6 @@ class Minds extends base
         (new Plus\PlusProvider())->register();
         (new Pro\ProProvider())->register();
         (new Hashtags\HashtagsProvider())->register();
-        (new Analytics\AnalyticsProvider())->register();
         (new Channels\ChannelsProvider())->register();
         (new Blogs\BlogsProvider())->register();
         (new Permaweb\PermawebProvider())->register();

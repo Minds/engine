@@ -122,6 +122,7 @@ class Manager
             'hide_reminds' => $hide_reminds,
             'wire_support_tier_only' => false,
             'include_group_posts' => false,
+            'group_posts_for_user_guid' => false,
             'unseen' => false,
             'demoted' => false,
             'supermind' => false
@@ -186,7 +187,7 @@ class Manager
 
             $feedSyncEntities[] = (new FeedSyncEntity())
                 ->setGuid((string) $scoredGuid->getGuid())
-    
+
                  ->setOwnerGuid((string) $ownerGuid)
                 ->setUrn(new Urn($urn))
                 ->setTimestamp($scoredGuid->getTimestamp());
@@ -264,12 +265,16 @@ class Manager
     }
 
     /**
-     * @param array $opts
-     * @return int
+     * Returns a count of the query.
+     * @param array $opts - opts for query.
+     * @param bool $handleExceptions - true if exceptions should be thrown out,
+     * if false 0 will be returned.
+     * @throws Exception - if handle exceptions is false.
+     * @return int count.
      */
-    public function getCount(array $opts = [])
+    public function getCount(array $opts = [], bool $handleExceptions = true): int
     {
-        return $this->repository->getCount($opts);
+        return $this->repository->getCount($opts, $handleExceptions);
     }
 
     /**

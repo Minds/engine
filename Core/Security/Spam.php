@@ -5,6 +5,7 @@ namespace Minds\Core\Security;
 use Minds\Helpers\Text;
 use Minds\Core\Config;
 use Minds\Core\Security\ProhibitedDomains;
+use Minds\Exceptions\ProhibitedDomainException;
 
 class Spam
 {
@@ -22,7 +23,8 @@ class Spam
                 $foundSpam = Text::strposa($entity->getBody(), ProhibitedDomains::DOMAINS);
                 break;
             case 'activity':
-                $foundSpam = Text::strposa($entity->getMessage(), ProhibitedDomains::DOMAINS);
+                $foundSpam = Text::strposa($entity->getMessage(), ProhibitedDomains::DOMAINS) ?:
+                    Text::strposa($entity->getPermaUrl(), ProhibitedDomains::DOMAINS);
                 break;
             case 'object':
                 if ($entity->getSubtype() === 'blog') {
@@ -41,12 +43,26 @@ class Spam
                 break;
             default:
                 error_log("[spam-check]: $entity->type:$entity->subtype not supported");
-         }
+        }
 
         if ($foundSpam) {
-            throw new \Exception("Sorry, you included a reference to a domain name linked to spam (${foundSpam})");
+            throw new ProhibitedDomainException("Sorry, you included a reference to a domain name linked to spam (${foundSpam})");
             return true;
         }
         return $foundSpam ? true : false;
+    }
+
+    /**
+     * Check string of text for prohibited spam domains.
+     * @param string $text - text to check.
+     * @throws ProhibitedDomainException - on prohibited domain found.
+     * @return bool true if no domain is found. Else will throw exception.
+     */
+    public function checkText(string $text): bool
+    {
+        if ($foundSpam = Text::strposa($text, ProhibitedDomains::DOMAINS) ?? false) {
+            throw new ProhibitedDomainException("Sorry, you included a reference to a domain name linked to spam (${foundSpam})");
+        }
+        return true;
     }
 }

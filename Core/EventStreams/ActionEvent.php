@@ -122,6 +122,12 @@ class ActionEvent implements EventInterface
     const ACTION_USER_VERIFICATION_PUSH_NOTIFICATION = 'user_verification_push_notification';
 
     /** @var string */
+    const ACTION_CLICK = 'click';
+
+    public const ACTION_AFFILIATE_EARNINGS_DEPOSITED = "affiliate_earnings_deposited";
+    public const ACTION_REFERRER_AFFILIATE_EARNINGS_DEPOSITED = "referrer_affiliate_earnings_deposited";
+
+    /** @var string */
     protected $action;
 
     /** @var string[] */
@@ -174,7 +180,7 @@ class ActionEvent implements EventInterface
             case self::ACTION_REFERRAL_PING:
             case self::ACTION_REFERRAL_PENDING:
             case self::ACTION_REFERRAL_COMPLETE:
-            break;
+                break;
             case self::ACTION_SUBSCRIBE:
             case self::ACTION_UNSUBSCRIBE:
                 break;
@@ -219,6 +225,19 @@ class ActionEvent implements EventInterface
             case self::ACTION_SUPERMIND_REQUEST_EXPIRE:
                 break;
             case self::ACTION_USER_VERIFICATION_PUSH_NOTIFICATION:
+                break;
+            case self::ACTION_CLICK:
+                break;
+            case self::ACTION_AFFILIATE_EARNINGS_DEPOSITED:
+            case self::ACTION_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
+                $allowedKeys = [
+                    'user_guid',
+                    'timestamp',
+                    'item',
+                    'amount_cents',
+                    'amount_usd',
+                    'amount_tokens'
+                ];
                 break;
             default:
                 throw new \Exception("Invalid action set. Ensure allowedKeys are set in ActionEvent model");

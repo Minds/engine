@@ -7,6 +7,7 @@ use Minds\Core\Rewards\Restrictions\Blockchain\Ofac\Client;
 use \GuzzleHttp\Client as GuzzleClient;
 use Psr\Http\Message\ServerRequestInterface;
 use GuzzleHttp\Psr7\Stream;
+use Psr\Http\Message\ResponseInterface;
 
 class ClientSpec extends ObjectBehavior
 {
@@ -26,7 +27,7 @@ class ClientSpec extends ObjectBehavior
     }
 
     public function it_should_get_single_address_from_xml(
-        ServerRequestInterface $request,
+        ResponseInterface $response,
         Stream $stream,
     ) {
         $xmlResponse = '<?xml version="1.0" standalone="yes"?>
@@ -44,7 +45,7 @@ class ClientSpec extends ObjectBehavior
             </sdnList>';
 
                 
-        $request->getBody()
+        $response->getBody()
             ->shouldBeCalled()
             ->willReturn($stream);
 
@@ -58,7 +59,7 @@ class ClientSpec extends ObjectBehavior
             ]
         ])
             ->shouldBeCalled()
-            ->willReturn($request);
+            ->willReturn($response);
 
         $this->getAll()->shouldBe([
             [
@@ -69,7 +70,7 @@ class ClientSpec extends ObjectBehavior
     }
 
     public function it_should_get_multiple_address_for_different_entries_from_xml(
-        ServerRequestInterface $request,
+        ResponseInterface $response,
         Stream $stream,
     ) {
         $xmlResponse = '<?xml version="1.0" standalone="yes"?>
@@ -117,7 +118,7 @@ class ClientSpec extends ObjectBehavior
             </sdnList>';
 
                 
-        $request->getBody()
+        $response->getBody()
             ->shouldBeCalled()
             ->willReturn($stream);
 
@@ -131,7 +132,7 @@ class ClientSpec extends ObjectBehavior
             ]
         ])
             ->shouldBeCalled()
-            ->willReturn($request);
+            ->willReturn($response);
 
         $this->getAll()->shouldBe([
             [
@@ -154,7 +155,7 @@ class ClientSpec extends ObjectBehavior
     }
 
     public function it_should_get_multiple_address_for_same_entry_from_xml(
-        ServerRequestInterface $request,
+        ResponseInterface $response,
         Stream $stream,
     ) {
         $xmlResponse = '<?xml version="1.0" standalone="yes"?>
@@ -177,7 +178,7 @@ class ClientSpec extends ObjectBehavior
             </sdnList>';
 
                 
-        $request->getBody()
+        $response->getBody()
             ->shouldBeCalled()
             ->willReturn($stream);
 
@@ -191,7 +192,7 @@ class ClientSpec extends ObjectBehavior
             ]
         ])
             ->shouldBeCalled()
-            ->willReturn($request);
+            ->willReturn($response);
 
         $this->getAll()->shouldBe([
             [

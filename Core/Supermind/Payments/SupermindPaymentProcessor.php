@@ -22,6 +22,7 @@ use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
+use Minds\Exceptions\UserNotFoundException;
 use Stripe\Exception\ApiErrorException;
 
 class SupermindPaymentProcessor
@@ -40,7 +41,6 @@ class SupermindPaymentProcessor
         private ?MindsConfig $mindsConfig = null,
         private ?SettingsManager $settingsManager = null
     ) {
-        $this->intentsManager ??= new IntentsManagerV2();
         $this->mindsConfig ??= Di::_()->get("Config");
         $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
         $this->offchainTransactions ??= new OffchainTransactions();#
@@ -88,7 +88,7 @@ class SupermindPaymentProcessor
     {
         $paymentIntent = $this->preparePaymentIntent($paymentMethodId, $request);
 
-        $intent = $this->intentsManager->add($paymentIntent);
+        $intent = $this->getIntentsManager()->add($paymentIntent);
 
         return $intent->getId();
     }
@@ -127,9 +127,15 @@ class SupermindPaymentProcessor
         return $paymentIntent;
     }
 
-    private function buildUser(string $userGuid): User
+    /**
+     * Build user from user guid.
+     * @param string $guid - guid of the user.
+     * @return User|null user if one is found.
+     */
+    private function buildUser(string $guid): ?User
     {
-        return $this->entitiesBuilder->single($userGuid);
+        $user = $this->entitiesBuilder->single($guid);
+        return $user instanceof User ? $user : null;
     }
 
     /**
@@ -142,7 +148,7 @@ class SupermindPaymentProcessor
      */
     public function capturePaymentIntent(string $paymentIntentId): bool
     {
-        return $this->intentsManager->capturePaymentIntent($paymentIntentId);
+        return $this->getIntentsManager()->capturePaymentIntent($paymentIntentId);
     }
 
     /**
@@ -152,7 +158,7 @@ class SupermindPaymentProcessor
      */
     public function cancelPaymentIntent(string $paymentIntentId): bool
     {
-        return $this->intentsManager->cancelPaymentIntent($paymentIntentId);
+        return $this->getIntentsManager()->cancelPaymentIntent($paymentIntentId);
     }
 
     /**
@@ -189,10 +195,16 @@ class SupermindPaymentProcessor
      */
     public function refundOffchainPayment(SupermindRequest $request): string
     {
+        $user = $this->buildUser($request->getSenderGuid());
+
+        if (!$user) {
+            throw new UserNotFoundException(
+                "User ({$request->getSenderGuid()}) not found for Supermind with guid: {$request->getGuid()}"
+            );
+        }
+
         $transaction = $this->offchainTransactions
-            ->setUser(
-                $this->buildUser($request->getSenderGuid())
-            )
+            ->setUser($user)
             ->setAmount((string) BigNumber::toPlain($request->getPaymentAmount(), 18))
             ->setType("supermind")
             ->setData([
@@ -243,5 +255,17 @@ class SupermindPaymentProcessor
     public function getDescription(User $receiver): string
     {
         return "Supermind to @{$receiver->getUsername()}";
+    }
+
+    /**
+     * We provide the dependency via this function as in the contructor it is very slow, futher
+     * down the tree it attempts to decrypt emails for Stripe dev mode
+     */
+    private function getIntentsManager()
+    {
+        if (!$this->intentsManager) {
+            $this->intentsManager = new IntentsManagerV2();
+        }
+        return $this->intentsManager;
     }
 }

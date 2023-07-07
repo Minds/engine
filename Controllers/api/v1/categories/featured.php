@@ -30,15 +30,15 @@ class featured implements Interfaces\Api
         }
 
         switch ($pages[0]) {
-          case "object":
-              $repository->setType($pages[1]);
-              break;
-          case "channel":
-          case "channels":
-          case "user":
-          case "users":
-          default:
-            $repository->setType('user');
+            case "object":
+                $repository->setType($pages[1]);
+                break;
+            case "channel":
+            case "channels":
+            case "user":
+            case "users":
+            default:
+                $repository->setType('user');
         }
 
         $guids = $repository->get();

@@ -7,22 +7,10 @@
 
 namespace Minds\Core\Search\SortingAlgorithms;
 
-use Minds\Core\Di\Di;
-use Minds\Core\Features\Manager as Features;
-
 class Hot implements SortingAlgorithm
 {
-    /** @var Features */
-    protected $features;
-
     /** @var string */
     protected $period;
-
-    public function __construct($features = null)
-    {
-        $this->features = $features ?? Di::_()->get('Features\Manager');
-    }
-
 
     /**
      * @return bool
@@ -38,9 +26,7 @@ class Hot implements SortingAlgorithm
      */
     public function setPeriod($period)
     {
-        if (!$this->features->has('top-feeds-by-age')) {
-            $this->period = $period;
-        }
+        $this->period = $period;
         return $this;
     }
 

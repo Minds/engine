@@ -4,7 +4,6 @@ namespace Spec\Minds\Core\Matrix;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
-use PhpSpec\ObjectBehavior;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\Matrix\Client;
@@ -13,6 +12,7 @@ use Minds\Core\Matrix\MatrixConfig;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
+use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 use Psr\Http\Message\ResponseInterface;
@@ -25,10 +25,10 @@ class ManagerSpec extends ObjectBehavior
     protected Collaborator $logger;
 
     public function let(
-        Client $client = null,
         MatrixConfig $matrixConfig,
         EntitiesBuilder $entitiesBuilder,
-        Logger $logger
+        Logger $logger,
+        Client $client = null
     ) {
         $this->client = $client;
         $this->matrixConfig = $matrixConfig;
@@ -54,10 +54,10 @@ class ManagerSpec extends ObjectBehavior
         ResponseInterface $getTokenResponse
     ) {
         $homeserverDomainName = 'homeserver.minds.com';
-        
+
         $senderUsername = 'testSender';
         $receiverUsername = 'testReceiver';
-        
+
         $accessToken = 'abc123abc';
 
         $sender->getUsername()
@@ -109,10 +109,10 @@ class ManagerSpec extends ObjectBehavior
         ResponseInterface $getTokenResponse
     ) {
         $homeserverDomainName = 'homeserver.minds.com';
-        
+
         $senderUsername = 'testSender';
         $receiverUsername = 'testReceiver';
-        
+
         $accessToken = 'abc123abc';
 
         $sender->getUsername()

@@ -11,7 +11,9 @@ use Minds\Core\Supermind\Manager as SupermindManager;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Entities\User;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
+use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 
 class Events
 {
@@ -117,8 +119,12 @@ class Events
             // We need to bypass acl to get info about the supermind
             $ia = $this->getAcl()->setIgnore(true);
 
-            // Fetch the supermind
-            $request = $this->getSupermindManager()->getRequest($requestGuid);
+            try {
+                // Fetch the Supermind
+                $request = $this->getSupermindManager()->getRequest($requestGuid);
+            } catch (SupermindNotFoundException|ForbiddenException $e) {
+                return;
+            }
 
             // Set ACL back to what it was
             $this->getAcl()->setIgnore($ia);

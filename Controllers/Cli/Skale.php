@@ -3,13 +3,13 @@
 namespace Minds\Controllers\Cli;
 
 use Minds\Cli;
-use Minds\Core\Di\Di;
-use Minds\Interfaces;
 use Minds\Core\Blockchain\Skale\Keys as SkaleKeys;
 use Minds\Core\Blockchain\Skale\Tools as SkaleTools;
 use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Nostr\PocSync;
+use Minds\Interfaces;
 
 /**
  * SKALE CLI - check balance and interact with custodial wallets via CLI.
@@ -125,7 +125,7 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
             user: $user ?? null,
             useCache: false
         );
-    
+
         $this->out("address:\t" . ($address ? $address : $this->skaleTools->getCustodialWalletAddress($user)));
         $this->out("balance:\t" . $balance . " wei");
     }
@@ -155,8 +155,8 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
         }
 
         $balance = $this->skaleTools->getSFuelBalance(
-            address: $address ?? null,
             user: $user ?? null,
+            address: $address ?? null,
             useCache: false
         );
 
@@ -178,7 +178,7 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
         $senderUsername = $this->getOpt('senderUsername') ?? null;
         $receiverUsername = $this->getOpt('receiverUsername') ?? null;
         $receiverAddress = $this->getOpt('receiverAddress') ?? null;
-        $amountWei = $this->getOpt('amountWei') ?? null;
+        $amountWei = $this->getOpt('amountWei') ?? 0;
 
         // validate required opts were passed in.
         if (!$senderUsername || !($receiverAddress xor $receiverUsername)) {
@@ -200,9 +200,9 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
 
         $txHash = $this->skaleTools->sendSFuel(
             sender: $sender,
-            receiverAddress: $receiverAddress ?? null,
             receiver: $receiver ?? null,
-            amountWei: $amountWei ?? null
+            receiverAddress: $receiverAddress ?? null,
+            amountWei: $amountWei
         );
 
         $this->out('Sent with tx hash '. $txHash);
@@ -242,12 +242,12 @@ class Skale extends Cli\Controller implements Interfaces\CliControllerInterface
             $this->out('Unable to construct both sender and receiver, or missing receiver address');
             return;
         }
-    
+
         // prepare and send transaction.
         $txHash = $this->skaleTools->sendTokens(
             sender: $sender,
-            receiverAddress: $receiverAddress ?? null,
             receiver: $receiver ?? null,
+            receiverAddress: $receiverAddress ?? null,
             amountWei: $amountWei ?? null
         );
 

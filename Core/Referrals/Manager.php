@@ -4,12 +4,13 @@
  */
 namespace Minds\Core\Referrals;
 
-use Minds\Core\Referrals\Referral;
-use Minds\Core\Referrals\Repository;
-use Minds\Core\Referrals\Delegates\NotificationDelegate;
-use Minds\Core\EntitiesBuilder;
 use Minds\Common\Repository\Response;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Monetization\Partners\EarningsBalance;
+use Minds\Core\Monetization\Partners\Enums\PartnerEarningsItemType;
+use Minds\Core\Monetization\Partners\Manager as PartnersManager;
+use Minds\Entities\User;
 
 class Manager
 {
@@ -25,11 +26,13 @@ class Manager
     public function __construct(
         $repository = null,
         $notificationDelegate = null,
-        $entitiesBuilder = null
+        $entitiesBuilder = null,
+        private ?PartnersManager $partnersManager = null
     ) {
         $this->repository = $repository ?: new Repository;
         $this->notificationDelegate = $notificationDelegate ?: new Delegates\NotificationDelegate;
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
+        $this->partnersManager ??= Di::_()->get('Monetization\Partners\Manager');
     }
 
     /**
@@ -117,5 +120,21 @@ class Manager
         $this->notificationDelegate->notifyProspect($referral);
 
         return true;
+    }
+
+    /**
+     * @param User $user
+     * @return Response
+     */
+    public function getMetrics(User $user): EarningsBalance
+    {
+        return $this->partnersManager->getBalanceByItem(
+            $user,
+            [
+                PartnerEarningsItemType::AFFILIATE_EARNINGS,
+                PartnerEarningsItemType::REFERRER_AFFILIATE_EARNINGS,
+            ],
+            time()
+        );
     }
 }

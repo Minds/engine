@@ -129,7 +129,7 @@ class PushNotification implements PushNotificationInterface
             case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON:
                 return "Don't forget to review {$from->getName()}'s Supermind offer";
                 break;
-            // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
+                // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
             //     $verb = 'missed';
             //     $pronoun = 'your';
             //     $noun = 'Supermind Offer';
@@ -144,6 +144,10 @@ class PushNotification implements PushNotificationInterface
                 break;
             case NotificationTypes::TYPE_BOOST_COMPLETED:
                 return 'Your Boost is complete';
+            case NotificationTypes::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
+            case NotificationTypes::TYPE_AFFILIATE_EARNINGS_DEPOSITED:
+                $data = $this->notification->getData();
+                return 'You earned $' . $data['amount_usd'] . ' from the Minds Affiliate Program';
             default:
                 throw new UndeliverableException("Invalid type");
         }
@@ -215,10 +219,13 @@ class PushNotification implements PushNotificationInterface
     {
         switch ($this->notification->getType()) {
             case NotificationTypes::TYPE_SUBSCRIBE:
-                return $this->config->get('site_url') . 'notifications';
+                return $this->getEnvBasedUri('notifications');
             case NotificationTypes::TYPE_BOOST_ACCEPTED:
             case NotificationTypes::TYPE_BOOST_COMPLETED:
                 return $this->getBoostConsoleUrl();
+            case NotificationTypes::TYPE_AFFILIATE_EARNINGS_DEPOSITED:
+            case NotificationTypes::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
+                return $this->getEnvBasedUri('wallet/cash/earnings');
         }
 
         $entity = $this->notification->getEntity();
@@ -229,20 +236,34 @@ class PushNotification implements PushNotificationInterface
 
         switch ($entity->getType()) {
             case 'user':
-                return $this->config->get('site_url') . $entity->getUsername();
+                return $this->getEnvBasedUri($entity->getUsername());
             case 'comment':
-                return $this->config->get('site_url') . 'newsfeed/' . $entity->getEntityGuid() . '?focusedCommentUrn=' . $entity->getUrn();
+                return $this->getEnvBasedUri('newsfeed/' . $entity->getEntityGuid() . '?focusedCommentUrn=' . $entity->getUrn());
             case 'supermind':
                 if ($entity instanceof SupermindRequest && $entity->getStatus() === SupermindRequestStatus::ACCEPTED) {
-                    return $this->config->get('site_url') . 'newsfeed/' . $entity->getReplyActivityGuid();
+                    return $this->getEnvBasedUri('newsfeed/' . $entity->getReplyActivityGuid());
                 }
-                return $this->config->get('site_url') . 'supermind/' . $entity->getGuid();
+                return $this->getEnvBasedUri('supermind/' . $entity->getGuid());
             case 'activity':
             case 'object':
-                return $this->config->get('site_url') . 'newsfeed/' . $entity->getGuid();
+                return $this->getEnvBasedUri('newsfeed/' . $entity->getGuid());
             default:
                 return '';
         }
+    }
+
+    /**
+     * Needed to allow push notifications to be sent from dev environments
+     * Note: Push notifications' deep links are not supported on dev environments
+     * @param string $route
+     * @return string
+     */
+    private function getEnvBasedUri(string $route): string
+    {
+        if (!str_contains($this->config->get('site_url'), 'minds.io') && !str_contains($this->config->get('site_url'), 'minds.com')) {
+            return "";
+        }
+        return $this->config->get('site_url') . $route;
     }
 
     /**
@@ -250,6 +271,10 @@ class PushNotification implements PushNotificationInterface
      */
     public function getIcon(): string
     {
+        if ($this->getEnvBasedUri("") === "") {
+            return "";
+        }
+
         return $this->notification->getFrom()->getIconURL('large');
     }
 
@@ -266,10 +291,10 @@ class PushNotification implements PushNotificationInterface
         switch ($entity->getType()) {
             case 'object':
                 return $entity->getIconUrl('xlarge');
-            break;
+                break;
             case 'activity':
                 return $entity->getThumbnail();
-            break;
+                break;
         }
 
         return null;
@@ -367,11 +392,13 @@ class PushNotification implements PushNotificationInterface
             case NotificationTypes::TYPE_SUPERMIND_REQUEST_ACCEPT:
             case NotificationTypes::TYPE_SUPERMIND_REQUEST_REJECT:
             case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON:
-            // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
+                // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
             case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
             case NotificationTypes::TYPE_BOOST_ACCEPTED:
             case NotificationTypes::TYPE_BOOST_REJECTED:
             case NotificationTypes::TYPE_BOOST_COMPLETED:
+            case NotificationTypes::TYPE_AFFILIATE_EARNINGS_DEPOSITED:
+            case NotificationTypes::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
                 return true;
         }
         return false;

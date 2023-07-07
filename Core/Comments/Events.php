@@ -16,6 +16,7 @@ use Minds\Core\Votes\Vote;
 use Minds\Core\Sockets;
 use Minds\Core\Session;
 use Minds\Core\Security\ACL;
+use Minds\Entities\EntityInterface;
 
 class Events
 {
@@ -63,7 +64,7 @@ class Events
         $this->eventsDispatcher->register('vote:action:cast', 'comment', function (Event $event) {
             $vote = $event->getParameters()['vote'];
             $comment = $vote->getEntity();
-            
+
             (new Sockets\Events())
                 ->setRoom("comments:{$comment->getEntityGuid()}:{$comment->getParentPath()}")
                 ->emit(
@@ -116,22 +117,6 @@ class Events
             }
         });
 
-        // If comment is container_guid then decide if we can allow access
-        $this->eventsDispatcher->register('acl:read', 'all', function (Event $event) {
-            $params = $event->getParameters();
-            $entity = $params['entity'];
-            $user = $params['user'];
-
-            $container = EntitiesFactory::build($entity->container_guid);
-
-            // If the container container_guid is the same as the the container owner
-            if ($container
-                && $container->container_guid == $container->owner_guid
-                && ACL::_()->read($container)
-            ) {
-                $event->setResponse(true);
-            }
-        });
 
         // If comment is container_guid then decide if we can allow writing
         $this->eventsDispatcher->register('acl:write:container', 'all', function (Event $event) {

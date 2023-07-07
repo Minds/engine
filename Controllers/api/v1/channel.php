@@ -75,10 +75,6 @@ class channel implements Interfaces\Api
             ]);
         }
 
-        Di::_()->get('Referrals\Cookie')
-            ->setEntity($user)
-            ->create();
-
         $user->fullExport = true; //get counts
         $user->exportCounts = true;
         $return = Factory::exportable([$user]);
@@ -190,13 +186,13 @@ class channel implements Interfaces\Api
                 $success = $avatarService->withUser(Core\Session::getLoggedinUser())
                     ->createFromFile($_FILES['file']['tmp_name']);
                
-                    if (!$success) {
-                        Factory::response([
-                            'status' => 'error',
-                            'message' => "Avatar could not save",
-                        ]);
-                        return;
-                    }
+                if (!$success) {
+                    Factory::response([
+                        'status' => 'error',
+                        'message' => "Avatar could not save",
+                    ]);
+                    return;
+                }
 
                 break;
             case "banner":
@@ -230,35 +226,35 @@ class channel implements Interfaces\Api
 
                 break;
             case "carousel":
-              $item = new \Minds\Entities\Object\Carousel(isset($_POST['guid']) ? $_POST['guid'] : null);
-              $item->access_id = ACCESS_PUBLIC;
-              $item->top_offset = $_POST['top'];
-              $item->last_updated = time();
-              $item->save();
+                $item = new \Minds\Entities\Object\Carousel(isset($_POST['guid']) ? $_POST['guid'] : null);
+                $item->access_id = ACCESS_PUBLIC;
+                $item->top_offset = $_POST['top'];
+                $item->last_updated = time();
+                $item->save();
 
-              $response['carousel'] = [
-                 'guid' => (string) $item->guid,
-                 'top_offset' => $item->top_offset,
-                 'src'=> Core\Config::build()->cdn_url . "fs/v1/banners/$item->guid/fat/$item->last_updated"
-              ];
+                $response['carousel'] = [
+                   'guid' => (string) $item->guid,
+                   'top_offset' => $item->top_offset,
+                   'src'=> Core\Config::build()->cdn_url . "fs/v1/banners/$item->guid/fat/$item->last_updated"
+                ];
 
-              if ($item->canEdit() && is_uploaded_file($_FILES['file']['tmp_name'])) {
-                  $manager->setImage($_FILES['file']['tmp_name'])
-                      ->autorotate()
-                      ->resize(2000, 10000);
+                if ($item->canEdit() && is_uploaded_file($_FILES['file']['tmp_name'])) {
+                    $manager->setImage($_FILES['file']['tmp_name'])
+                        ->autorotate()
+                        ->resize(2000, 10000);
 
-                  $file = new Entities\File();
-                  $file->owner_guid = $item->owner_guid;
-                  $file->setFilename("banners/{$item->guid}.jpg");
-                  $file->open('write');
-                  $file->write($manager->getJpeg());
-                  $file->close();
+                    $file = new Entities\File();
+                    $file->owner_guid = $item->owner_guid;
+                    $file->setFilename("banners/{$item->guid}.jpg");
+                    $file->open('write');
+                    $file->write($manager->getJpeg());
+                    $file->close();
 
-                  $response['uploaded'] = true;
-              }
+                    $response['uploaded'] = true;
+                }
 
 
-              break;
+                break;
             case "info":
             default:
                 if (!$owner->canEdit()) {
@@ -355,7 +351,7 @@ class channel implements Interfaces\Api
 
                 $db = new Core\Data\Call('entities');
                 $db->insert($owner->guid, $update);
-       }
+        }
 
         Core\Events\Dispatcher::trigger('entities-ops', 'update', [
             'entityUrn' => $owner->getUrn()

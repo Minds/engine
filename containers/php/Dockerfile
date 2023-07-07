@@ -1,25 +1,27 @@
-FROM php:8.0-fpm-alpine3.16
+FROM php:8.1-fpm-alpine3.18
 
-RUN apk update # Update package lists before we install stuff
+# Install AWS CLI
+RUN apk update \
+    && apk upgrade \
+    && apk add --update --no-cache --virtual .php-deps make \
+    && apk add aws-cli \
+    && rm -rf /var/cache/apk/*
 
-RUN apk add --no-cache --update --virtual .php-deps make
-
-RUN apk add --no-cache --virtual build-deps \
+RUN apk add --virtual build-deps \
     libzip-dev \
-    zlib-dev \
-    freetype-dev \
-    libjpeg-turbo-dev \
     libpng-dev \
-    $PHPIZE_DEPS \
-    && apk add --no-cache \
-    libzip \
-    coreutils \
-    imagemagick \
-    nodejs \
-    npm \
-    ffmpeg \
+    libjpeg-turbo-dev \
+    freetype-dev \
     icu-dev \
+    imagemagick-dev \
+    $PHPIZE_DEPS \
+    && apk add libzip \
     gmp-dev \
+    icu-libs \
+    libpng \
+    libjpeg \
+    nodejs \
+    # Install PHP extension
     && docker-php-ext-install -j$(nproc) bcmath \
     && docker-php-ext-install -j$(nproc) zip \
     && docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/ \
@@ -28,148 +30,38 @@ RUN apk add --no-cache --virtual build-deps \
     && docker-php-ext-install -j$(nproc) sockets \
     && docker-php-ext-install -j$(nproc) intl \
     && docker-php-ext-install -j$(nproc) gmp \
-    && apk del build-deps
-
-# PECL Extensions
-RUN apk add --no-cache --virtual build-deps \
-    $PHPIZE_DEPS \
-    imagemagick-dev \
+    && docker-php-ext-install -j$(nproc) pdo pdo_mysql \
+    # PECL Extensions
+    && apk add libgomp \
+    imagemagick-libs \
+    imagemagick \
     && pecl install redis \
     && pecl install apcu \
     && pecl install imagick \
     && docker-php-ext-enable redis \
     && docker-php-ext-enable apcu \
     && docker-php-ext-enable imagick \
-    && apk del build-deps
-
-# Cassandra extension
-ENV MAKEFLAGS -j4
-ENV INSTALL_DIR /usr/src/datastax-php-driver
-ENV BUILD_DEPS \
-    bash \
+    # Cleanup
+    && apk del build-deps \
+    # starting libsecp256kq php extension compile
+    && export BUILD_DEPS=$'\
     cmake \
-    autoconf \
-    g++ \
-    gcc \
-    make \
     pcre-dev \
     libuv-dev \
     git \
     gmp-dev \
-    autoconf \
-    libtool \
-    openssl-dev \
-    zlib-dev \
-    $PHPIZE_DEPS
-
-RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
-    && apk add --no-cache libuv gmp \
-    && git clone --branch=v1.3.x https://github.com/nano-interactive/php-driver.git $INSTALL_DIR \
-    && cd $INSTALL_DIR \
-    && git submodule update --init \
-    # Install CPP Driver
-    && cd $INSTALL_DIR/lib/cpp-driver \
-    && mkdir build && cd build \
-    && cmake -DCASS_BUILD_STATIC=ON -DCASS_BUILD_SHARED=ON .. \
-    && make && make install \
-    # Install PHP Driver
-    && cd $INSTALL_DIR/ext \
-    && phpize && ./configure && make && make install \
-    && docker-php-ext-enable cassandra \
-    && apk del build-deps \
-    && rm -rf $INSTALL_DIR
-
-# blurhash extension
-RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
-    && curl -fsSL 'https://gitlab.com/minds/php-ext-blurhash/-/archive/master/php_ext_blurhash-master.tar.gz' -o blurhash.tar.gz \
-    && mkdir -p blurhash \
-    && tar -xf blurhash.tar.gz -C blurhash --strip-components=1 \
-    && rm blurhash.tar.gz \
-    && ( \
-        cd blurhash \
-        && phpize \
-        && ./configure\
-        && make -j "$(nproc)" \
-        && make install \
-    ) \
-    && rm -r blurhash \
-    && docker-php-ext-enable blurhash \
-    && apk del build-deps
-
-# ZMQ extension
-ENV INSTALL_DIR /usr/src/php-zmq
-RUN apk add --no-cache --virtual build-deps \
-    zeromq-dev \
-    git \
-    $PHPIZE_DEPS \
-    && apk add --no-cache zeromq \
-    && git clone https://github.com/zeromq/php-zmq.git $INSTALL_DIR \
-    && cd $INSTALL_DIR \
-    && phpize \
-    && ./configure \
-    && make -j$(nproc) \
-    && make install \
-    && docker-php-ext-enable zmq \
-    && apk del build-deps \
-    && rm -rf $INSTALL_DIR
-
-# Install awscli (downstream containers require for the moment)
-
-RUN apk update && apk add --no-cache py-pip && pip install --upgrade pip && pip install awscli
-
-# Build Pulsar
-
-ENV BUILD_DEPS \
-    bash \
-    cmake \
-    autoconf \
-    g++ \
-    gcc \
-    make \
-    pcre-dev \
-    libuv-dev \
-    git \
-    gmp-dev \
-    autoconf \
     libtool \
     openssl-dev \
     zlib-dev \
     boost-dev \
     py3-setuptools \
-    python3-dev \ 
+    python3-dev \
     protobuf-dev \
     curl-dev \
     gtest-dev gmock \
-    $PHPIZE_DEPS
-
-RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
-    # PHP CPP
-    && git clone https://github.com/Minds/PHP-CPP.git \
-    && cd PHP-CPP \
-    && git checkout php80 \
-    && make -j4 \
-    && make install \
-    && cd .. \
-    # Pulsar CPP Client
-    && git clone --depth 1 https://github.com/apache/pulsar-client-cpp.git \
-    && cd pulsar-client-cpp \
-    && cmake . -DBUILD_TESTS=OFF \
-    && make -j2 \
-    && make install \
-    && cd ../.. \
-    && git clone https://gitlab.com/minds/pulsar-php-client \
-    && cd pulsar-php-client \
-    && make -j4 \
-    && cp output/pulsar.so $(php-config --extension-dir)/pulsar.so \
-    && cd .. \
-    && rm -rf PHP-CPP pulsar pulsar-php-client \
-    && apk del build-deps
-
-RUN apk add protobuf-dev automake
-
-
-RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
-    # libsecp256kq
+    automake' \
+    # SECP256K1 signing
+    && apk add --virtual build-deps $BUILD_DEPS $PHPIZE_DEPS \
     && git clone https://github.com/bitcoin-core/secp256k1.git \
     && cd secp256k1 \
         && git checkout efad3506a8937162e8010f5839fdf3771dfcf516 \
@@ -188,10 +80,123 @@ RUN apk add --no-cache --virtual build-deps $BUILD_DEPS \
     && docker-php-ext-enable secp256k1 \
     && cd ../../ \
     && rm -rf secp256k1 secp256k1-php \
-    && apk del build-deps
-
-# Install PDO
-RUN docker-php-ext-install pdo pdo_mysql
+    && apk del build-deps \
+    && export BUILD_DEPS=$'\
+    cmake \
+    make \
+    pcre-dev \
+    libuv-dev \
+    git \
+    gmp-dev \
+    libtool \
+    openssl-dev \
+    libstdc++ \
+    zlib-dev' \
+    && export INSTALL_DIR=/usr/src/datastax-php-driver \
+    # Cassandra extension \
+    && apk add --no-cache --virtual build-deps $BUILD_DEPS $PHPIZE_DEPS \
+    && apk add --no-cache libuv gmp libstdc++ \
+    && git clone --branch=v1.3.x https://github.com/he4rt/scylladb-php-driver.git $INSTALL_DIR \
+    && cd $INSTALL_DIR \
+    && git checkout 7f871a5be0a21d22cf7754b6b0281ab0b0c92999 \
+    && git submodule update --init \
+    # Install CPP Driver
+    && cd $INSTALL_DIR/lib/cpp-driver \
+    && mkdir build && cd build \
+    && cmake -DCASS_BUILD_STATIC=ON -DCASS_BUILD_SHARED=ON .. \
+    && make && make install \
+    # Install PHP Driver
+    && cd $INSTALL_DIR/ext \
+    && phpize && ./configure && make && make install \
+    && docker-php-ext-enable cassandra \
+    && apk del build-deps \
+    && rm -rf $INSTALL_DIR \
+    # blurhash extension
+    && cd $WORKDIR \
+    && apk add --virtual build-deps $BUILD_DEPS $PHPIZE_DEPS \
+    && curl -fsSL 'https://gitlab.com/minds/php-ext-blurhash/-/archive/master/php_ext_blurhash-master.tar.gz' -o blurhash.tar.gz \
+    && mkdir -p blurhash \
+    && tar -xf blurhash.tar.gz -C blurhash --strip-components=1 \
+    && rm blurhash.tar.gz \
+    && ( \
+        cd blurhash \
+        && phpize \
+        && ./configure\
+        && make -j "$(nproc)" \
+        && make install \
+    ) \
+    && rm -r blurhash \
+    && docker-php-ext-enable blurhash \
+    && apk del build-deps \
+    # ZMQ extension
+    && export INSTALL_DIR=/usr/src/php-zmq \
+    && apk add --virtual build-deps \
+    zeromq-dev \
+    git \
+    $PHPIZE_DEPS \
+    && apk add --no-cache zeromq \
+    && git clone https://github.com/zeromq/php-zmq.git $INSTALL_DIR \
+    && cd $INSTALL_DIR \
+    && pwd \
+    && ls -la \
+    && phpize \
+    && ./configure \
+    && make -j$(nproc) \
+    && make install \
+    && docker-php-ext-enable zmq \
+    && rm -rf $INSTALL_DIR \
+    && cd .. \
+    && apk del build-deps \
+    # Pulsar build deps
+    && apk add --no-cache --virtual build-deps \
+    bash \
+    cmake \
+    autoconf \
+    g++ \
+    gcc \
+    make \
+    pcre-dev \
+    libuv-dev \
+    git \
+    gmp-dev \
+    autoconf \
+    libtool \
+    openssl-dev \
+    zlib-dev \
+    boost-dev \
+    py3-setuptools \
+    python3-dev \
+    protobuf-dev \
+    curl-dev \
+    gtest-dev gmock \
+    $PHPIZE_DEPS \
+    # PHP CPP
+    && export INSTALL_DIR=/usr/src/php-cpp \
+    && git clone https://github.com/fast-debug/PHP-CPP.git $INSTALL_DIR \
+    && cd $INSTALL_DIR \
+    && make -j4 \
+    && make install \
+    && rm -rf $INSTALL_DIR \
+    && cd .. \
+    # Pulsar CPP Client
+    && export INSTALL_DIR=/usr/src/pulsar-client-cpp \
+    && git clone --depth 1 https://github.com/apache/pulsar-client-cpp.git $INSTALL_DIR \
+    && echo "cloned" \
+    && cd $INSTALL_DIR \
+    && cmake . -DBUILD_TESTS=OFF \
+    && make -j2 \
+    && make install \
+    && rm -rf $INSTALL_DIR \
+    && cd .. \
+    # Pulsar PHP Client
+    && export INSTALL_DIR=/usr/src/pulsar-php-client \
+    && git clone https://gitlab.com/minds/pulsar-php-client $INSTALL_DIR \
+    && cd $INSTALL_DIR \
+    && make -j4 \
+    && cp output/pulsar.so $(php-config --extension-dir)/pulsar.so \
+    && rm -rf $INSTALL_DIR \
+    && apk del build-deps \
+    && apk add protobuf-dev
 
 # PHP INI
 COPY php.ini /usr/local/etc/php/

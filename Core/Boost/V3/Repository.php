@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\Boost\V3;
 
-use Iterator;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
@@ -15,6 +14,9 @@ use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
+use Selective\Database\Connection;
+use Selective\Database\Operator;
+use Selective\Database\RawExp;
 
 class Repository
 {
@@ -24,15 +26,18 @@ class Repository
     /**
      * @param MySQLClient|null $mysqlHandler
      * @param EntitiesBuilder|null $entitiesBuilder
+     * @param Connection|null $mysqlClientWriterHandler
      * @throws ServerErrorException
      */
     public function __construct(
         private ?MySQLClient $mysqlHandler = null,
-        private ?EntitiesBuilder $entitiesBuilder = null
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?Connection $mysqlClientWriterHandler = null
     ) {
         $this->mysqlHandler ??= Di::_()->get("Database\MySQL\Client");
         $this->mysqlClientReader = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_REPLICA);
         $this->mysqlClientWriter = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_MASTER);
+        $this->mysqlClientWriterHandler ??= new Connection($this->mysqlClientWriter);
 
         $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
     }
@@ -64,8 +69,8 @@ class Repository
      */
     public function createBoost(Boost $boost): bool
     {
-        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_location, payment_method, payment_amount, payment_tx_id, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
-                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_location, :payment_method, :payment_amount, :payment_tx_id, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
+        $query = "INSERT INTO boosts (guid, owner_guid, entity_guid, target_suitability, target_platform_web, target_platform_android, target_platform_ios, target_location, goal, goal_button_text, goal_button_url, payment_method, payment_amount, payment_tx_id, payment_guid, daily_bid, duration_days, status, created_timestamp, approved_timestamp, updated_timestamp)
+                    VALUES (:guid, :owner_guid, :entity_guid, :target_suitability, :target_platform_web, :target_platform_android, :target_platform_ios, :target_location, :goal, :goal_button_text, :goal_button_url, :payment_method, :payment_amount, :payment_tx_id, :payment_guid, :daily_bid, :duration_days, :status, :created_timestamp, :approved_timestamp, :updated_timestamp)";
 
         $createdTimestamp = $boost->getCreatedTimestamp() ?
             date("c", $boost->getCreatedTimestamp()) :
@@ -84,10 +89,17 @@ class Repository
             'owner_guid' => $boost->getOwnerGuid(),
             'entity_guid' => $boost->getEntityGuid(),
             'target_suitability' => $boost->getTargetSuitability(),
+            'target_platform_web' => $boost->getTargetPlatformWeb(),
+            'target_platform_android' => $boost->getTargetPlatformAndroid(),
+            'target_platform_ios' => $boost->getTargetPlatformIos(),
             'target_location' => $boost->getTargetLocation(),
+            'goal' => $boost->getGoal(),
+            'goal_button_text' => $boost->getGoalButtonText(),
+            'goal_button_url' => $boost->getGoalButtonUrl(),
             'payment_method' => $boost->getPaymentMethod(),
             'payment_amount' => $boost->getPaymentAmount(),
             'payment_tx_id' => $boost->getPaymentTxId(),
+            'payment_guid' => $boost->getPaymentGuid(),
             'created_timestamp' => $createdTimestamp,
             'approved_timestamp' => $approvedTimestamp,
             'updated_timestamp' => $updatedTimestamp,
@@ -116,7 +128,7 @@ class Repository
      * @param int|null $paymentMethod
      * @param User|null $loggedInUser
      * @param bool $hasNext
-     * @return Iterator
+     * @return iterable<Boost>
      */
     public function getBoosts(
         int $limit = 12,
@@ -131,7 +143,7 @@ class Repository
         ?int $paymentMethod = null,
         ?User $loggedInUser = null,
         bool &$hasNext = false
-    ): Iterator {
+    ): iterable {
         $values = [];
 
         $selectColumns = [
@@ -172,7 +184,9 @@ class Repository
             $values['payment_method'] = $paymentMethod;
         }
 
-        if ($targetAudience) {
+        // if audience is safe, we want safe only, else we want all audiences.
+        // if this is for the approval queue, we want admins to be able to filter between options.
+        if ($targetAudience === BoostTargetAudiences::SAFE || $forApprovalQueue) {
             $whereClauses[] = "target_suitability = :target_suitability";
             $values['target_suitability'] = $targetAudience;
         }
@@ -185,7 +199,7 @@ class Repository
         $hiddenEntitiesJoin = "";
 
         /**
-         * Hide entities if a user has aid they don't want to see them
+         * Hide entities if a user has said they don't want to see them
          */
         if (!$forApprovalQueue && $loggedInUser) {
             $hiddenEntitiesJoin = " LEFT JOIN entities_hidden
@@ -222,11 +236,12 @@ class Repository
         $summariesJoin = "";
         if ($targetUserGuid) {
             $summariesJoin = " LEFT JOIN (
-                    SELECT guid, SUM(views) as total_views FROM boost_summaries
+                    SELECT guid, SUM(views) as total_views, SUM(clicks) as total_clicks FROM boost_summaries
                     GROUP BY 1
                 ) summary
                 ON boosts.guid=summary.guid";
             $selectColumns[] = "summary.total_views";
+            $selectColumns[] = "summary.total_clicks";
         }
 
 
@@ -253,12 +268,20 @@ class Repository
             if (++$i > $limit) {
                 break;
             }
-            $entity = $this->entitiesBuilder->single($boostData['entity_guid']);
+
+            $entity = $i <= 12 ? $this->entitiesBuilder->single($boostData['entity_guid']) : null;
+
             yield (
                 new Boost(
-                    entityGuid: $boostData['entity_guid'],
+                    entityGuid: (string) $boostData['entity_guid'],
                     targetLocation: (int) $boostData['target_location'],
                     targetSuitability: (int) $boostData['target_suitability'],
+                    targetPlatformWeb: isset($boostData['target_platform_web']) ? (bool) $boostData['target_platform_web'] : true,
+                    targetPlatformAndroid: isset($boostData['target_platform_android']) ? (bool) $boostData['target_platform_android'] : true,
+                    targetPlatformIos: isset($boostData['target_platform_ios']) ? (bool) $boostData['target_platform_ios'] : true,
+                    goal: isset($boostData['goal']) ? (int) $boostData['goal'] : null,
+                    goalButtonText: isset($boostData['goal_button_text']) ? (int) $boostData['goal_button_text'] : null,
+                    goalButtonUrl: isset($boostData['goal_button_url']) ? (string) $boostData['goal_button_url'] : null,
                     paymentMethod: (int) $boostData['payment_method'],
                     paymentAmount: (float) $boostData['payment_amount'],
                     dailyBid: (int) $boostData['daily_bid'],
@@ -269,7 +292,9 @@ class Repository
                     paymentTxId: $boostData['payment_tx_id'],
                     updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
                     approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
-                    summaryViewsDelivered: (int) $boostData['total_views'],
+                    summaryViewsDelivered: (int) ($boostData['total_views'] ?? 0),
+                    summaryClicksDelivered: (int) ($boostData['total_clicks'] ?? 0),
+                    paymentGuid: (int) $boostData['payment_guid'] ?: null
                 )
             )
                 ->setGuid($boostData['guid'])
@@ -279,15 +304,24 @@ class Repository
     }
 
     /**
-     * @param string $boostGuid
-     * @return Boost
-     * @throws BoostNotFoundException
+     * Get a single Boost by GUID. Will link with summaries table.
+     * @param string $boostGuid - guid to get the Boost for.
+     * @return Boost requested boost.
+     * @throws BoostNotFoundException when no matching Boost is found.
      */
     public function getBoostByGuid(string $boostGuid): Boost
     {
-        $query = "SELECT * FROM boosts WHERE guid = :guid";
-        $values = ['guid' => $boostGuid];
+        $selectColumnsStr = implode(',', [ 'boosts.*', 'summary.total_views' ]);
+        $values = [ 'guid' => $boostGuid ];
 
+        $summariesJoin = "LEFT JOIN (
+                SELECT guid, SUM(views) as total_views, SUM(clicks) as total_clicks
+                FROM boost_summaries
+                GROUP BY 1
+            ) summary
+            ON boosts.guid=summary.guid";
+
+        $query = "SELECT $selectColumnsStr FROM boosts $summariesJoin WHERE boosts.guid = :guid";
         $statement = $this->mysqlClientReader->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
@@ -301,9 +335,15 @@ class Repository
         $entity = $this->entitiesBuilder->single($boostData['entity_guid']);
         return (
             new Boost(
-                entityGuid: $boostData['entity_guid'],
+                entityGuid: (string) $boostData['entity_guid'],
                 targetLocation: (int) $boostData['target_location'],
                 targetSuitability: (int) $boostData['target_suitability'],
+                targetPlatformWeb: isset($boostData['target_platform_web']) ? (bool) $boostData['target_platform_web'] : true,
+                targetPlatformAndroid: isset($boostData['target_platform_android']) ? (bool) $boostData['target_platform_android'] : true,
+                targetPlatformIos: isset($boostData['target_platform_ios']) ? (bool) $boostData['target_platform_ios'] : true,
+                goal: isset($boostData['goal']) ? (int) $boostData['goal'] : null,
+                goalButtonText: isset($boostData['goal_button_text']) ? (int) $boostData['goal_button_text'] : null,
+                goalButtonUrl: isset($boostData['goal_button_url']) ? (string) $boostData['goal_button_url'] : null,
                 paymentMethod: (int) $boostData['payment_method'],
                 paymentAmount: (float) $boostData['payment_amount'],
                 dailyBid: (float) $boostData['daily_bid'],
@@ -312,12 +352,15 @@ class Repository
                 rejectionReason: isset($boostData['reason']) ? (int) $boostData['reason'] : null,
                 createdTimestamp: strtotime($boostData['created_timestamp']),
                 paymentTxId: $boostData['payment_tx_id'],
+                paymentGuid: (int) $boostData['payment_guid'] ?: null,
                 updatedTimestamp: isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
-                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null
+                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
+                summaryViewsDelivered: (int) $boostData['total_views'],
+                summaryClicksDelivered: (int) ($boostData['total_clicks'] ?? 0),
             )
         )
-            ->setGuid($boostData['guid'])
-            ->setOwnerGuid($boostData['owner_guid'])
+            ->setGuid((string) $boostData['guid'])
+            ->setOwnerGuid((string) $boostData['owner_guid'])
             ->setEntity($entity);
     }
 
@@ -372,14 +415,24 @@ class Repository
 
     public function updateStatus(string $boostGuid, int $status): bool
     {
-        $query = "UPDATE boosts SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid";
+        $isCompleted = $status === BoostStatus::COMPLETED;
+
+        $statement = $this->mysqlClientWriterHandler->update()
+            ->table('boosts')
+            ->set([
+                'status' => new RawExp(':status'),
+                'updated_timestamp' => $isCompleted ? new RawExp('updated_timestamp') : new RawExp(':timestamp'),
+                'completed_timestamp' => !$isCompleted ? new RawExp('completed_timestamp') : new RawExp('TIMESTAMPADD(DAY, duration_days, updated_timestamp)'),
+            ])
+            ->where('guid', Operator::EQ, new RawExp(':guid'))
+            ->prepare();
+
         $values = [
             'status' => $status,
-            'updated_timestamp' => date('c', time()),
+            'timestamp' => date('c', time()),
             'guid' => $boostGuid
         ];
 
-        $statement = $this->mysqlClientWriter->prepare($query);
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         return $statement->execute();
@@ -502,18 +555,24 @@ class Repository
 
         foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $boostData) {
             yield (new Boost(
-                entityGuid: $boostData['entity_guid'],
+                entityGuid: (string) $boostData['entity_guid'],
                 targetLocation: (int) $boostData['target_location'],
                 targetSuitability: (int) $boostData['target_suitability'],
                 paymentMethod: (int) $boostData['payment_method'],
                 paymentAmount: (float) $boostData['payment_amount'],
                 dailyBid: (int) $boostData['daily_bid'],
                 durationDays: (int) $boostData['duration_days'],
+                goal: isset($boostData['goal']) ? (int) $boostData['goal'] : null,
+                goalButtonText: isset($boostData['goal_button_text']) ? (int) $boostData['goal_button_text'] : null,
+                goalButtonUrl: isset($boostData['goal_button_url']) ? (string) $boostData['goal_button_url'] : null,
                 status: (int) $boostData['status'],
                 createdTimestamp: strtotime($boostData['created_timestamp']),
                 paymentTxId: $boostData['payment_tx_id'],
-                updatedTimestamp:  isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
-                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null
+                updatedTimestamp: isset($boostData['updated_timestamp']) ? strtotime($boostData['updated_timestamp']) : null,
+                approvedTimestamp: isset($boostData['approved_timestamp']) ? strtotime($boostData['approved_timestamp']) : null,
+                targetPlatformWeb: isset($boostData['target_platform_web']) ? (bool) $boostData['target_platform_web'] : true,
+                targetPlatformAndroid: isset($boostData['target_platform_android']) ? (bool) $boostData['target_platform_android'] : true,
+                targetPlatformIos: isset($boostData['target_platform_ios']) ? (bool) $boostData['target_platform_ios'] : true
             ))
                 ->setGuid($boostData['guid'])
                 ->setOwnerGuid($boostData['owner_guid']);

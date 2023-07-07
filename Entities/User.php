@@ -4,10 +4,10 @@ namespace Minds\Entities;
 
 use Minds\Common\ChannelMode;
 use Minds\Core;
+use Minds\Core\Monetization\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
 use Minds\Core\Supermind\Settings\Models\Settings;
 use Minds\Helpers;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
-use Minds\Core\Monetization\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
 
 /**
  * User Entity.
@@ -24,6 +24,7 @@ use Minds\Core\Monetization\Demonetization\Strategies\Interfaces\DemonetizableEn
  * @property string $ban_monetization
  * @property array $tags
  * @property int $onboarding_shown
+ * @property string $onboarding_interest
  * @property User $last_avatar_upload
  * @property int $toaster_notifications
  * @property int $onchain_booster
@@ -81,6 +82,8 @@ class User extends \ElggUser implements DemonetizableEntityInterface
     public const PLUS_PRO_VALID_METHODS = [
         'tokens',
         'usd',
+        'iap_google',
+        'iap_apple',
     ];
 
     protected function initializeAttributes()
@@ -124,6 +127,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface
         $this->attributes['opted_in_hashtags'] = 0;
         $this->attributes['last_accepted_tos'] = Core\Config::_()->get('last_tos_update');
         $this->attributes['onboarding_shown'] = 0;
+        $this->attributes['onboarding_interest'] = '';
         $this->attributes['initial_onboarding_completed'] = 0;
         $this->attributes['creator_frequency'] = null;
         $this->attributes['last_avatar_upload'] = 0;
@@ -264,6 +268,27 @@ class User extends \ElggUser implements DemonetizableEntityInterface
         $this->onboarding_shown = $onboardingShown ? 1 : 0;
 
         return $this;
+    }
+
+    /**
+     * Sets the interest that a user signalled that they are
+     * interested in during onboarding.
+     * @return self
+     */
+    public function setOnboardingInterest(string $onboardingInterest): self
+    {
+        $this->onboarding_interest = $onboardingInterest;
+        return $this;
+    }
+
+    /**
+     * Gets the interest that a user signalled that they are
+     * interested in during onboarding.
+     * @return string a users onboarding interest.
+     */
+    public function getOnboardingInterest(): string
+    {
+        return (bool) $this->onboarding_shown;
     }
 
     /**
@@ -1546,7 +1571,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface
             'allow_unsubscribed_contact',
             'dismissed_widgets',
             'liquidity_spot_opt_out',
-            'supermind_settings'
+            'supermind_settings',
         ]);
     }
 

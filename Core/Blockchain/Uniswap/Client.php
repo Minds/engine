@@ -19,9 +19,6 @@ class Client
     /** @var Config */
     protected $config;
 
-    /** @var string */
-    protected $graphqlEndpoint = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2";
-
     public function __construct($http = null, BlockFinder $blockFinder = null, ?Config $config = null)
     {
         $this->http = $http ?: Di::_()->get('Http\Json');
@@ -111,13 +108,13 @@ class Client
 
         $uniswapUser->setMints(array_map(function ($mint) {
             return UniswapMintEntity::build($mint);
-        }, $response['mints']));
+        }, $response['mints'] ?? []));
 
         // Burns
 
         $uniswapUser->setBurns(array_map(function ($mint) {
             return UniswapBurnEntity::build($mint);
-        }, $response['burns']));
+        }, $response['burns'] ?? []));
         
         return $uniswapUser;
     }
@@ -267,8 +264,10 @@ class Client
      */
     private function request($query, $variables): array
     {
+        $graphqlEndpoint = $this->config->get('uniswap')['url'];
+
         $response = $this->http->post(
-            $this->graphqlEndpoint,
+            $graphqlEndpoint,
             [
                 'query' => $query,
                 'variables' => $variables,

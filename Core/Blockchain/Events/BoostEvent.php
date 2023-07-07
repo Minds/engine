@@ -13,7 +13,6 @@ use Minds\Core\Blockchain\Transactions\Transaction;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Manager as BoostManagerV3;
 use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
-use Minds\Core\Data;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
@@ -31,22 +30,17 @@ class BoostEvent implements BlockchainEventInterface
     /** @var Repository $txRepository */
     protected $txRepository;
 
-    /** @var \Minds\Core\Boost\Repository $boostRepository */
-    protected $boostRepository;
-    
     /** @var Config $config */
     protected $config;
 
     public function __construct(
         $txRepository = null,
-        $boostRepository = null,
         private ?BoostManagerV3 $boostManagerV3 = null,
         private ?PreApprovalManager $preApprovalManager = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         $config = null
     ) {
         $this->txRepository = $txRepository ?: Di::_()->get('Blockchain\Transactions\Repository');
-        $this->boostRepository = $boostRepository ?: Di::_()->get('Boost\Repository');
         $this->boostManagerV3 ??= Di::_()->get(BoostManagerV3::class);
         $this->preApprovalManager ??= Di::_()->get(PreApprovalManager::class);
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
@@ -97,25 +91,7 @@ class BoostEvent implements BlockchainEventInterface
             return;
         }
 
-        $boost = $this->boostRepository
-            ->getEntity($transaction->getData()['handler'], $boostGuid);
-
-        $tx = (string) $transaction->getTx();
-
-        if (!$boost) {
-            throw new \Exception("No boost with hash {$tx}");
-        }
-
-        if ($boost->getState() != 'pending') {
-            throw new \Exception("Boost with hash {$tx} already processed. State: " . $boost->getState());
-        }
-
-        $transaction->setFailed(true);
-
-        $this->txRepository->update($transaction, [ 'failed' ]);
-
-        $boost->setState('failed')
-            ->save();
+        throw new \Exception("Boost not found");
     }
 
     public function boostSent($log, $transaction)
@@ -149,21 +125,7 @@ class BoostEvent implements BlockchainEventInterface
             return;
         }
 
-        $boost = $this->boostRepository->getEntity($transaction->getData()['handler'], $boostGuid);
-
-        $tx = (string) $transaction->getTx();
-
-        if (!$boost) {
-            throw new \Exception("No boost with hash {$tx}");
-        }
-
-        if ($boost->getState() != 'pending') {
-            throw new \Exception("Boost with hash {$tx} already processed. State: " . $boost->getState());
-        }
-
-        $boost->setState('created')
-            ->save();
-        echo "{$boost->getGuid()} now marked completed";
+        throw new \Exception("Boost not found");
     }
 
     public function boostAccepted($log)

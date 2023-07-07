@@ -2,7 +2,6 @@
 
 namespace Spec\Minds\Core\Notification;
 
-use Minds\Core\Features\Manager as FeaturesManager;
 use Minds\Core\Notification\Counters;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -14,13 +13,11 @@ class CountersSpec extends ObjectBehavior
     protected $features;
 
     public function let(
-        \PDO $sql,
-        FeaturesManager $features
+        \PDO $sql
     ) {
         $this->sql = $sql;
-        $this->features = $features;
 
-        $this->beConstructedWith($sql, $features);
+        $this->beConstructedWith($sql);
     }
     public function it_is_initializable()
     {

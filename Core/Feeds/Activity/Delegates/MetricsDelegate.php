@@ -5,6 +5,7 @@ namespace Minds\Core\Feeds\Activity\Delegates;
 use Minds\Core;
 use Minds\Core\Analytics\Metrics\Event;
 use Minds\Core\Di\Di;
+use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\Feeds\Activity\InteractionCounters;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Entities\Activity;
@@ -31,7 +32,6 @@ class MetricsDelegate
             $remind = $activity->getRemind();
 
             // Submit to events engine
-
             $event = new Event();
             $event->setType('action')
                 ->setAction('remind')
@@ -65,6 +65,9 @@ class MetricsDelegate
                 // as it needs to wait for refresh_interval to clear on elasticsearch, post indexing
                 $quotesCounter->updateCache($remind, $currentCount + 1);
             }
+        } else {
+            $this->pushActivityCreateEvent($activity);
+            return;
         }
 
         if ($activity->isRemind() && isset($remind)) {
@@ -88,5 +91,20 @@ class MetricsDelegate
             // Update remind counters (legacy support)
             Counters::decrement($remind->getGuid(), 'remind');
         }
+    }
+
+    /**
+     * Push an activity created event.
+     * @param Activity $activity - activity.
+     * @return void
+     */
+    private function pushActivityCreateEvent(Activity $activity): void
+    {
+        (new Event())->setType('action')
+            ->setAction(ActionEvent::ACTION_CREATE)
+            ->setProduct('platform')
+            ->setEntityType($activity->getType())
+            ->setEntitySubtype($activity->getSubtype())
+            ->push();
     }
 }

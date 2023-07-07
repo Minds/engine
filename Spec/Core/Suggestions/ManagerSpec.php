@@ -3,45 +3,65 @@
 namespace Spec\Minds\Core\Suggestions;
 
 use Minds\Entities\User;
+use Minds\Core\Suggestions\DefaultTagMapping\Manager as DefaultTagMappingManager;
 use Minds\Common\Repository\Response;
+use Minds\Core\Config;
 use Minds\Core\Suggestions\Manager;
 use Minds\Core\Suggestions\Suggestion;
 use Minds\Core\Suggestions\Repository;
 use Minds\Core\Subscriptions\Manager as SubscriptionsManager;
-use Minds\Core\Features;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Core\Security\RateLimits\InteractionsLimiter;
-use Minds\Core\Security\RateLimits\RateLimit;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
     /** @var Repository */
     private $repository;
+
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
+
     /** @var InteractionsLimiter */
     private $interactionsLimiter;
+
     /** @var SubscriptionsManager */
     private $subscriptionsManager;
+
+    private Collaborator $config;
+    private Collaborator $defaultTagMappingManager;
+    private Collaborator $logger;
 
     public function let(
         Repository $repository,
         EntitiesBuilder $entitiesBuilder,
         SubscriptionsManager $subscriptionsManager,
         InteractionsLimiter $interactionsLimiter,
-        Features\Manager $features
+        Config $config,
+        DefaultTagMappingManager $defaultTagMappingManager,
+        Logger $logger
     ) {
         $this->repository = $repository;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->interactionsLimiter = $interactionsLimiter;
         $this->subscriptionsManager = $subscriptionsManager;
+        $this->config = $config;
+        $this->defaultTagMappingManager = $defaultTagMappingManager;
+        $this->logger = $logger;
 
-        $features->has('suggestions')
-            ->willReturn(true);
-
-        $this->beConstructedWith($repository, $entitiesBuilder, null, $subscriptionsManager, $interactionsLimiter, $features);
+        $this->beConstructedWith(
+            $repository,
+            $entitiesBuilder,
+            null,
+            $subscriptionsManager,
+            $interactionsLimiter,
+            $config,
+            $defaultTagMappingManager,
+            $logger
+        );
     }
 
     public function it_is_initializable()

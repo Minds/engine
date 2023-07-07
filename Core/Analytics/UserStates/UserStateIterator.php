@@ -4,7 +4,6 @@ namespace Minds\Core\Analytics\UserStates;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Core\Data;
 
 /*
 * Iterator that loops through users and counts their action.active entries for the past N days
@@ -36,7 +35,7 @@ class UserStateIterator implements \Iterator
     }
 
     //Sets the last day for the iterator (ie, today)
-    public function setReferenceDate($referenceDate)
+    public function setReferenceDate(mixed $referenceDate): self
     {
         $this->referenceDate = $referenceDate;
 
@@ -152,7 +151,7 @@ class UserStateIterator implements \Iterator
     /**
      * Rewind the array cursor.
      */
-    public function rewind()
+    public function rewind(): void
     {
         if ($this->cursor >= 0) {
             $this->get();
@@ -165,7 +164,7 @@ class UserStateIterator implements \Iterator
      *
      * @return mixed
      */
-    public function current()
+    public function current(): mixed
     {
         return $this->data[$this->cursor];
     }
@@ -173,9 +172,9 @@ class UserStateIterator implements \Iterator
     /**
      * Get cursor's key.
      *
-     * @return mixed
+     * @return int
      */
-    public function key()
+    public function key(): int
     {
         return $this->cursor;
     }
@@ -183,7 +182,7 @@ class UserStateIterator implements \Iterator
     /**
      * Goes to the next cursor.
      */
-    public function next()
+    public function next(): void
     {
         ++$this->cursor;
         if (!isset($this->data[$this->cursor])) {
@@ -196,7 +195,7 @@ class UserStateIterator implements \Iterator
      *
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->valid && isset($this->data[$this->cursor]);
     }

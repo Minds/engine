@@ -104,7 +104,6 @@ class Manager
             $ranking = new BoostRanking($boost->getGuid());
         
             foreach ($targetAudiences as $targetAudience => $shareOfBids) {
-
                 // This is our ideal target
                 $targetKey = $boost->getTargetLocation() . '_' . $targetAudience;
                 $totalViews = $this->totalViews[$targetKey];

@@ -28,7 +28,7 @@ class Events
         $this->eventsDispatcher->register('entities:map', 'all', function (Event $event) {
             $params = $event->getParameters();
 
-            if ($params['row']->type == 'object' && $params['row']->subtype == 'blog') {
+            if (property_exists($params['row'], 'type') && $params['row']->type == 'object' && $params['row']->subtype == 'blog') {
                 $blog = (new Legacy\Entity())->build($params['row']);
                 $blog->setEphemeral(false);
 

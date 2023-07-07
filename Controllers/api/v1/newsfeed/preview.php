@@ -12,6 +12,8 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Di\Di;
+use Minds\Core\Security\Spam;
+use Minds\Exceptions\UserErrorException;
 
 class preview implements Interfaces\Api
 {
@@ -23,8 +25,17 @@ class preview implements Interfaces\Api
      */
     public function get($pages)
     {
+        $url = $_GET['url'] ?? false;
+
+        if (!$url) {
+            throw new UserErrorException('Missing URL parameter');
+        }
+
+        /** @var Spam */
+        Di::_()->get('Security\Spam')->checkText($url);
+
         try {
-            $meta = $this->getMetadata($_GET['url']);
+            $meta = $this->getMetadata($url);
         } catch (\Exception $e) {
             return Factory::response([
                 'status' => 'error',
@@ -50,15 +61,18 @@ class preview implements Interfaces\Api
     }
 
     /**
-     * Get Metadata from either metascraper or iframely.
+     * Get Metadata from metascraper.
      * @param string $url - url to get metadata for.
      * @return array - response ready array.
      */
     private function getMetadata(string $url): array
     {
-        if (Di::_()->get('Experiments\Manager')->isOn('front-5392-metascraper-previews')) {
-            return Di::_()->get('Metascraper\Service')->scrape($url);
+        $data = Di::_()->get('Metascraper\Service')->scrape($url);
+
+        if (isset($data['meta']['title']) && mb_strlen($data['meta']['title']) > 250) {
+            $data['meta']['title'] = mb_substr($data['meta']['title'], 0, 247) . '...';
         }
-        return Di::_()->get('Feeds\Activity\RichEmbed\Manager')->getRichEmbed($url);
+
+        return $data;
     }
 }

@@ -125,4 +125,20 @@ class ManagerSpec extends ObjectBehavior
 
         $this->sync(new DateTime('midnight'));
     }
+
+    public function it_should_call_to_increment_clicks(Boost $boost): void
+    {
+        $dateTime = new DateTime();
+        $boostGuid = '123';
+
+        $boost->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($boostGuid);
+
+        $this->repositoryMock->incrementClicks($boostGuid, $dateTime)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->incrementClicks($boost, $dateTime)->shouldBe(true);
+    }
 }

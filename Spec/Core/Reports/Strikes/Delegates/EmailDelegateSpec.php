@@ -80,7 +80,7 @@ class EmailDelegateSpec extends ObjectBehavior
         $this->onStrike($strike);
     }
 
-    public function it_should_send_minds_plis_nsfw_strike_variant()
+    public function it_should_send_minds_plus_nsfw_strike_variant()
     {
         $report = new Report();
         $report->setEntityUrn('urn:entity:123');
@@ -123,6 +123,54 @@ class EmailDelegateSpec extends ObjectBehavior
         $this->campaign->setVars([
             'type' => 'activity',
             'action' => 'marked as nsfw',
+        ])
+            ->shouldBeCalled();
+
+        $this->campaign->send()
+            ->shouldBeCalled();
+
+        //
+
+        $this->onStrike($strike);
+    }
+
+    public function it_should_send_copyright_violation_strike()
+    {
+        $report = new Report();
+        $report->setEntityUrn('urn:entity:123');
+        $strike = new Strike();
+        $strike->setReport($report);
+        $strike->setReasonCode(10);
+
+        $entity = new Activity();
+        $entity->owner_guid = 456;
+        $user = new User();
+
+        $this->entitiesBuilder->single(123)
+            ->willReturn($entity);
+        $this->entitiesBuilder->single(456)
+            ->willReturn($user);
+
+        //
+
+        $this->campaign->setUser($user)
+            ->shouldBeCalled();
+
+        $this->campaign->setTemplate('moderation-strike-copyright')
+            ->shouldBeCalled();
+
+        $this->campaign->setSubject('Strike received')
+            ->shouldBeCalled();
+
+        $this->campaign->setTitle('Strike received')
+            ->shouldBeCalled();
+
+        $this->campaign->setPreheader('You have received a strike')
+            ->shouldBeCalled();
+
+        $this->campaign->setVars([
+            'type' => 'activity',
+            'action' => 'removed',
         ])
             ->shouldBeCalled();
 

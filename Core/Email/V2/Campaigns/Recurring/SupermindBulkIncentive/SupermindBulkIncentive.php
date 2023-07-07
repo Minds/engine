@@ -8,12 +8,13 @@ namespace Minds\Core\Email\V2\Campaigns\Recurring\SupermindBulkIncentive;
 use Exception;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
-use Minds\Core\Email\Manager;
 use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\Mailer;
+use Minds\Core\Email\Manager;
 use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
+use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Supermind\SupermindRequestReplyType;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -34,6 +35,12 @@ class SupermindBulkIncentive extends EmailCampaign
 
     /** @var int */
     private $replyType = SupermindRequestReplyType::TEXT;
+
+    /** @var int */
+    private $paymentMethod = SupermindRequestPaymentMethod::OFFCHAIN_TOKEN;
+
+    /** @var int|float */
+    private $paymentAmount = 5;
 
     /** @var User */
     protected $user;
@@ -95,6 +102,38 @@ class SupermindBulkIncentive extends EmailCampaign
     }
 
     /**
+     * @return SupermindBulkIncentive
+     */
+    public function withPaymentMethod(int $paymentMethod): SupermindBulkIncentive
+    {
+        $instance = clone $this;
+
+        if (!in_array($paymentMethod, SupermindRequestPaymentMethod::VALID_PAYMENT_METHODS, true)) {
+            throw new ServerErrorException("You must provide a valid reply type");
+        }
+
+        $instance->paymentMethod = $paymentMethod;
+
+        return $instance;
+    }
+    
+    /**
+     * @return SupermindBulkIncentive
+     */
+    public function withPaymentAmount(float|int $paymentAmount): SupermindBulkIncentive
+    {
+        $instance = clone $this;
+
+        if ($paymentAmount <= 0) {
+            throw new ServerErrorException("Payment amount must be greater than 0");
+        }
+
+        $instance->paymentAmount = $paymentAmount;
+
+        return $instance;
+    }
+
+    /**
      * Returns a sha1 hash that verifies the email was sent by minds.
      * Email rewards hook uses this to confirm validity
      * @return string
@@ -106,6 +145,8 @@ class SupermindBulkIncentive extends EmailCampaign
             $this->user->getGUID(), // User guid email was sent to
             $this->activityGuid, // guid of the activity we create the supermind from
             $this->replyType,
+            $this->paymentMethod,
+            $this->paymentAmount,
             $this->config->get('emails_secret'),
         ];
         $validatorString = implode('', $validator);
@@ -142,12 +183,14 @@ class SupermindBulkIncentive extends EmailCampaign
             'utm_source' => 'manual',
             'activity_guid' => $this->activityGuid,
             'reply_type' => $this->replyType,
+            'payment_method' => $this->paymentMethod,
+            'payment_amount' => $this->paymentAmount,
             'validator' => $this->getValidatorToken(),
         ];
 
         $trackingQuery = http_build_query($tracking);
 
-        $headerText = "@{$this->user->getUsername()}, we want to send you a 5 token Supermind offer";
+        $headerText = "@{$this->user->getUsername()}, Baste Records sent you a $5 Supermind offer";
 
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);
@@ -167,7 +210,7 @@ class SupermindBulkIncentive extends EmailCampaign
         $actionButton = (new ActionButtonV2())
             ->setLabel("Let's do it")
             ->setPath($actionButtonPath)
-            ;
+        ;
 
         $this->template->set('actionButton', $actionButton->build());
 
@@ -199,7 +242,7 @@ class SupermindBulkIncentive extends EmailCampaign
     {
         $msg = $this->build();
 
-        $canSend = $this->canSend() || true;
+        $canSend = $this->canSend();
 
         if ($this->user && $this->user->getEmail() && $canSend) {
             // Send immediately, as this is executed from a runner

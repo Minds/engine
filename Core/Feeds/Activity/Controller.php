@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Feeds\Activity;
 
+use Minds\Common\Access;
 use Minds\Common\EntityMutation;
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Data\Locks\LockFailedException;
@@ -9,6 +10,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\Exceptions\CreateActivityFailedException;
 use Minds\Core\Feeds\Scheduled\EntityTimeCreated;
+use Minds\Core\Log\Logger;
 use Minds\Core\Monetization\Demonetization\Validators\DemonetizedPlusValidator;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
@@ -20,6 +22,7 @@ use Minds\Entities\Activity;
 use Minds\Entities\Image;
 use Minds\Entities\User;
 use Minds\Entities\Video;
+use Minds\Exceptions\AlreadyPublishedException;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserErrorException;
@@ -34,13 +37,15 @@ class Controller
         protected ?EntitiesBuilder $entitiesBuilder = null,
         protected ?ACL $acl = null,
         protected ?EntityTimeCreated $entityTimeCreated = null,
-        protected ?DemonetizedPlusValidator $demonetizedPlusValidator = null
+        protected ?DemonetizedPlusValidator $demonetizedPlusValidator = null,
+        protected ?Logger $logger = null
     ) {
         $this->manager ??= new Manager();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->acl ??= Di::_()->get('Security\ACL');
         $this->entityTimeCreated ??= new EntityTimeCreated();
         $this->demonetizedPlusValidator ??= Di::_()->get(DemonetizedPlusValidator::class);
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -112,6 +117,10 @@ class Controller
                 throw new UserErrorException("The post your are trying to remind or quote was not found");
             }
 
+            if ((int) $remind->getAccessId() === Access::UNLISTED) {
+                throw new UserErrorException("The post your are trying to remind is unlisted and can not be reminded or quoted");
+            }
+
             // throw and error return response if acl interaction check fails.
 
             if (!$this->acl->interact($remind, $user)) {
@@ -168,10 +177,10 @@ class Controller
                 "activity:network:$activity->owner_guid"
             ];
 
-            // Core\Events\Dispatcher::trigger('activity:container:prepare', $container->type, [
-            //     'container' => $container,
-            //     'activity' => $activity,
-            // ]);
+            \Minds\Core\Events\Dispatcher::trigger('activity:container:prepare', $container->type, [
+                'container' => $container,
+                'activity' => $activity,
+            ]);
         }
 
         /**
@@ -190,7 +199,6 @@ class Controller
          * Attachments
          */
         if (isset($payload['attachment_guids']) && count($payload['attachment_guids']) > 0) {
-
             /**
              * Build out the attachment entities
              */
@@ -256,6 +264,13 @@ class Controller
             $this->manager->addSupermindReply($payload, $activity);
         } elseif (!$this->manager->add($activity)) {
             throw new ServerErrorException("The post could not be saved.");
+        }
+
+        if ($container) {
+            \Minds\Core\Events\Dispatcher::trigger('activity:container', $container->type, [
+                'container' => $container,
+                'activity' => $activity,
+            ]);
         }
 
         /**
@@ -361,7 +376,18 @@ class Controller
          */
         if (isset($payload['time_created'])) {
             $now = time();
-            $this->entityTimeCreated->validate($mutatedActivity, $payload['time_created'] ?? $now, $now);
+            try {
+                $this->entityTimeCreated->validate(
+                    entity: $activity,
+                    time_created: $payload['time_created'] ?? $now,
+                    time_sent: $now,
+                    action: $this->entityTimeCreated::UPDATE_ACTION
+                );
+                $mutatedActivity->setTimeCreated($payload['time_created']);
+            } catch (AlreadyPublishedException $e) {
+                // soft fail.
+                $this->logger->warning($e->getMessage());
+            }
         }
 
         /**

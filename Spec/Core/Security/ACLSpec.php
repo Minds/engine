@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Security;
 
+use Minds\Common\Access;
 use Minds\Core;
 use Minds\Core\Config;
 use Minds\Core\EntitiesBuilder;
@@ -186,21 +187,49 @@ class ACLSpec extends ObjectBehavior
         $this->interact($entity)->shouldReturn(false);
     }
 
-    public function it_should_allow_interaction(Entity $entity)
+    public function it_should_allow_interaction(): void
     {
+        $activity = new Activity();
+
         $this->mock_session(true);
 
-        $this->interact($entity)->shouldReturn(true);
+        Core\Events\Dispatcher::register('acl:read', 'all', function ($event) {
+            var_dump(123);
+            exit;
+            $event->setResponse(true);
+        });
+
+        $this->interact($activity)->shouldReturn(true);
         $this->mock_session(false);
     }
 
-    public function it_should_return_false_on_acl_interact_event(Entity $entity)
+    public function it_should_not_allow_interaction_on_unlisted_post(): void
     {
         $this->mock_session(true);
 
-        Core\Events\Dispatcher::register('acl:interact', 'all', function ($event) {
+        $activity = new Activity();
+        $activity->access_id = Access::UNLISTED;
+
+        Core\Events\Dispatcher::register('acl:read', 'all', function ($event) {
             $event->setResponse(false);
         });
+
+        $this->interact($activity)->shouldReturn(false);
+        $this->mock_session(false);
+    }
+
+    public function it_should_return_false_on_acl_interact_event()
+    {
+        $this->mock_session(true);
+
+        $entity = new Entity();
+        $entity->type = "activity";
+        $entity->owner_guid = "";
+        $entity->container_guid = "";
+
+        Core\Events\Dispatcher::register('acl:interact', 'all', function ($event) {
+            $event->setResponse(false);
+        }, );
 
         $this->interact($entity)->shouldReturn(false);
         $this->mock_session(false);

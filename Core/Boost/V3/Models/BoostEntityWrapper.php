@@ -15,7 +15,7 @@ use Minds\Entities\ExportableInterface;
 class BoostEntityWrapper implements ExportableInterface
 {
     public function __construct(
-        private Boost $boost
+        public Boost $boost
     ) {
         $this->boost = $boost;
     }
@@ -32,6 +32,8 @@ class BoostEntityWrapper implements ExportableInterface
         $export['boosted'] = true;
         $export['boosted_guid'] = $this->boost->getGuid();
         $export['urn'] = $this->boost->getUrn();
+        $export['goal_button_text'] = $this->boost->getGoalButtonText();
+        $export['goal_button_url'] = $this->boost->getGoalButtonUrl();
 
         return count($extras) ? [
             ...$export,

@@ -62,12 +62,6 @@ class Join
     /** @var JoinedValidator */
     private $joinedValidator;
 
-    /** @var Features\Manager */
-    private $featuresManager;
-
-    /** @var TwilioVerify */
-    private $twilioVerify;
-
     public function __construct(
         $twofactor = null,
         $sms = null,
@@ -80,8 +74,6 @@ class Join
         $testnetBalance = null,
         $referralDelegate = null,
         KeyValueLimiter  $kvLimiter = null,
-        $featuresManager = null,
-        $twilioVerify = null
     ) {
         $this->twofactor = $twofactor ?: Di::_()->get('Security\TwoFactor');
         $this->sms = $sms ?: Di::_()->get('SMS');
@@ -94,8 +86,6 @@ class Join
         $this->testnetBalance = $testnetBalance ?: Di::_()->get('Blockchain\Wallets\OffChain\TestnetBalance');
         $this->referralDelegate = $referralDelegate ?: new Delegates\ReferralDelegate;
         $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
-        $this->featuresManager = $featuresManager ?? Di::_()->get('Features\Manager');
-        $this->twilioVerify = $twilioVerify ?? Di::_()->get('SMS\Twilio\Verify');
     }
 
     public function setUser(&$user)
@@ -137,7 +127,6 @@ class Join
      */
     public function verify()
     {
-
         // Limit a single account to 3 attempts per day
         $this->kvLimiter
             ->setKey('rewards-verify')
@@ -145,20 +134,6 @@ class Join
             ->setSeconds(86400) // Day
             ->setMax(3) // 2 per day
             ->checkAndIncrement(); // Will throw exception
-
-
-        if ($this->featuresManager->has('twilio-verify')) {
-            if (!$this->twilioVerify->verify($this->number)) {
-                throw new VoIpPhoneException();
-            }
-
-            if (!$this->user->isEmailConfirmed()) {
-                throw new UnverifiedEmailException();
-            }
-
-            $this->twilioVerify->send($this->number, '');
-            return;
-        }
 
         $secret = $this->twofactor->createSecret();
         $code = $this->twofactor->getCode($secret);
@@ -183,11 +158,6 @@ class Join
 
     public function resendCode()
     {
-        if ($this->featuresManager->has('twilio-verify')) {
-            $this->verify();
-            return;
-        }
-
         $user_guid = $this->user->guid;
         $username = $this->user->getUsername();
         $row = $this->db->getRow("rewards:verificationcode:$user_guid");
@@ -211,13 +181,9 @@ class Join
         }
 
         $valid = false;
-        
-        if ($this->featuresManager->has('twilio-verify')) {
-            $valid = $this->twilioVerify->verifyCode($this->code, $this->number);
-        } else {
-            $valid = $this->twofactor->verifyCode($this->secret, $this->code, 8);
-        }
-        
+
+        $valid = $this->twofactor->verifyCode($this->secret, $this->code, 8);
+
         if ($valid) {
             $hash = hash('sha256', $this->number . $this->config->get('phone_number_hash_salt'));
             $this->user->setPhoneNumberHash($hash);

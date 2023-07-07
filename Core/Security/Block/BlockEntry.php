@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Security\Block;
 
+use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
@@ -25,7 +26,7 @@ class BlockEntry
             $this->actorGuid = (string) $actor->getGuid();
         } else {
             // If this isn't a user, then assume its a standard entity
-            $this->actorGuid = (string) $actor->owner_guid;
+            $this->actorGuid = (string) $actor?->owner_guid;
         }
 
         return $this;
@@ -36,13 +37,13 @@ class BlockEntry
      * @param mixed $subject
      * @return self
      */
-    public function setSubject($subject): self
+    public function setSubject(EntityInterface $subject): self
     {
         if ($subject instanceof User) {
             $this->subjectGuid = (string) $subject->getGuid();
         } else {
             // If this isn't a user, then assume its a standard entity
-            $this->subjectGuid = (string) $subject->owner_guid;
+            $this->subjectGuid = (string) $subject->getOwnerGuid();
         }
 
         return $this;

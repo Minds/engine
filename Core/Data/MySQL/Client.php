@@ -13,13 +13,13 @@ use PDOStatement;
 class Client
 {
     /** @var string */
-    const CONNECTION_MASTER = 'master';
+    const CONNECTION_MASTER = MySQLConnectionEnum::MASTER;
 
     /** @var string */
-    const CONNECTION_REPLICA = 'replica';
+    const CONNECTION_REPLICA = MySQLConnectionEnum::REPLICA;
 
     /** @var string */
-    const CONNECTION_RDONLY = 'rdonly';
+    const CONNECTION_RDONLY = MySQLConnectionEnum::READ_ONLY;
 
     /** @var PDO[] */
     protected array $connections = [];
@@ -37,21 +37,17 @@ class Client
      * @return PDO
      * @throws ServerErrorException
      */
-    public function getConnection(string $connectionType = 'master'): PDO
+    public function getConnection(MySQLConnectionEnum $connectionType = MySQLConnectionEnum::MASTER): PDO
     {
-        if (!in_array($connectionType, [
-            static::CONNECTION_MASTER,
-            static::CONNECTION_REPLICA,
-            static::CONNECTION_RDONLY,
-        ], true)) {
-            throw new ServerErrorException("\$connectionType must be one of MATSER, REPLICA or RDONLY. $connectionType provided");
-        }
+        // if (!MySQLConnectionEnum::tryFrom($connectionType)) {
+        //     throw new ServerErrorException("\$connectionType must be one of MATSER, REPLICA or RDONLY. $connectionType provided");
+        // }
 
-        if (!isset($this->connections[$connectionType])) {
+        if (!isset($this->connections[$connectionType->value])) {
             $config = $this->config->get('mysql') ?? [];
             $host = $config['host'] ?? 'mysql';
             if ($config['is_vitess'] ?? true) {
-                $db = ($config['db'] ?? 'minds') . '@' . $connectionType;
+                $db = ($config['db'] ?? 'minds') . '@' . $connectionType->value;
             } else {
                 $db = ($config['db'] ?? 'minds');
             }
@@ -63,10 +59,12 @@ class Client
                 $options[PDO::MYSQL_ATTR_SSL_CA] = $config['ssl_cert_path'];
                 $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = !($config['ssl_skip_verify'] ?? false);
             }
+            if (php_sapi_name() === 'cli') {
+            }
             $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-            $this->connections[$connectionType] = new PDO($dsn, $user, $pass, $options);
+            $this->connections[$connectionType->value] = new PDO($dsn, $user, $pass, $options);
         }
-        return $this->connections[$connectionType];
+        return $this->connections[$connectionType->value];
     }
 
     /**
@@ -78,11 +76,24 @@ class Client
     public function bindValuesToPreparedStatement(PDOStatement $statement, array $values): void
     {
         foreach ($values as $key => $value) {
-            $statement->bindValue(
-                $key,
-                $value,
-                $this->getParameterType($value)
-            );
+            if (is_array($value)) {
+                foreach ($value as $arrayIndex => $arrayItem) {
+                    if (is_array($arrayItem)) {
+                        throw new ServerErrorException('Nested arrays are not supported');
+                    }
+                    $statement->bindValue(
+                        $key.$arrayIndex,
+                        $arrayItem,
+                        $this->getParameterType($arrayItem)
+                    );
+                }
+            } else {
+                $statement->bindValue(
+                    $key,
+                    $value,
+                    $this->getParameterType($value)
+                );
+            }
         }
     }
 

@@ -40,11 +40,7 @@ class Defaults
 
             $export = $event->response() ?: [];
 
-            if (
-                $this->experiments->isOn('front-5658-owner-hydration') &&
-                $params['entity']->ownerObj &&
-                is_array($params['entity']->ownerObj)
-            ) {
+            if ($params['entity']->ownerObj && is_array($params['entity']->ownerObj)) {
                 $ownerObj = $this->entitiesBuilder->single($params['entity']->ownerObj['guid'], [
                     'cache' => true,
                     'cacheTtl' => 259200 // Cache for 3 day.
@@ -52,12 +48,6 @@ class Defaults
                 if ($ownerObj) {
                     $export['ownerObj'] = $ownerObj->export();
                 }
-            } elseif (
-                $params['entity']->fullExport &&
-                $params['entity']->ownerObj &&
-                is_array($params['entity']->ownerObj)
-            ) {
-                $export['ownerObj'] = Entities\Factory::build($params['entity']->ownerObj)->export();
             }
 
             $event->setResponse($export);
@@ -73,10 +63,6 @@ class Defaults
             }
 
             $allowedTags = '';
-            // if ($this->features->has('code-highlight')) {
-            //     $allowedTags = '<pre><code>';
-            // }
-
             if (isset($export['message'])) {
                 $export['message'] = strip_tags(
                     htmlspecialchars_decode($export['message']),
@@ -182,9 +168,6 @@ class Defaults
 
         // Blockchain events
         (new Core\Blockchain\Events())->register();
-
-        // Boost events
-        (new Core\Boost\Events())->register();
 
         // Comments events
         (new Core\Comments\Events())->register();

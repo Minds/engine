@@ -51,17 +51,17 @@ class notifications implements Interfaces\Api
 
         try {
             switch ($pages[1]) {
-              case 'mute':
-                  $notifications->mute($user);
-                  return Factory::response([
-                      'is:muted' => true
-                  ]);
-                  break;
-              case 'unmute':
-                  $notifications->unmute($user);
-                  return Factory::response([
-                      'is:muted' => false
-                  ]);
+                case 'mute':
+                    $notifications->mute($user);
+                    return Factory::response([
+                        'is:muted' => true
+                    ]);
+                    break;
+                case 'unmute':
+                    $notifications->unmute($user);
+                    return Factory::response([
+                        'is:muted' => false
+                    ]);
             }
         } catch (GroupOperationException $e) {
             return Factory::response([
