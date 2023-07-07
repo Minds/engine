@@ -230,6 +230,14 @@ class ActionEvent implements EventInterface
                 break;
             case self::ACTION_AFFILIATE_EARNINGS_DEPOSITED:
             case self::ACTION_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
+                $allowedKeys = [
+                    'user_guid',
+                    'timestamp',
+                    'item',
+                    'amount_cents',
+                    'amount_usd',
+                    'amount_tokens'
+                ];
                 break;
             default:
                 throw new \Exception("Invalid action set. Ensure allowedKeys are set in ActionEvent model");
