@@ -123,6 +123,7 @@ class Exported
             'strapi' => [
                 'url' => $this->config->get('strapi')['url'],
             ],
+            'onboarding_v5_release_timestamp' => $this->config->get('onboarding_v5_release_timestamp')
         ];
 
         if (Session::isLoggedIn()) {

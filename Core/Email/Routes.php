@@ -30,6 +30,14 @@ class Routes extends ModuleRoutes
                             'confirm',
                             Ref::_('Email\Confirmation\Controller', 'confirmEmail')
                         );
+                        $route->post(
+                            'send',
+                            Ref::_('Email\Confirmation\Controller', 'sendEmail')
+                        );
+                        $route->post(
+                            'verify',
+                            Ref::_('Email\Confirmation\Controller', 'verifyCode')
+                        );
                     });
             });
     }
