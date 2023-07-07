@@ -3,7 +3,11 @@
 namespace Minds\Core\Email\Confirmation;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Email\Confirmation\Exceptions\EmailConfirmationInvalidCodeException;
+use Minds\Core\Email\Confirmation\Exceptions\EmailConfirmationMissingHeadersException;
 use Minds\Core\Security\TwoFactor\Manager;
+use Minds\Core\Security\TwoFactor\TwoFactorInvalidCodeException;
+use Minds\Core\Security\TwoFactor\TwoFactorRequiredException;
 use Minds\Entities\User;
 use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\Response\JsonResponse;
@@ -39,6 +43,63 @@ class Controller
         $user = $request->getAttribute('_user');
 
         $this->manager->gatekeeper($user, $request);
+
+        return new JsonResponse([
+            'status' => 'success'
+        ]);
+    }
+
+    /**
+     * Send a new confirmation email
+     * @param ServerRequest $request - server request object.
+     * @return JsonResponse - contains key to be passed back on
+     * subsequent requests and on code submission.
+     */
+    public function sendEmail(ServerRequest $request): JsonResponse
+    {
+        /** @var User */
+        $user = $request->getAttribute('_user');
+
+        try {
+            $this->manager->requireEmailTwoFactor($user);
+        } catch(TwoFactorRequiredException $e) {
+            return new JsonResponse([
+                'status' => 'success',
+                'key' => $e->getKey()
+            ]);
+        }
+
+        return new JsonResponse([
+            'status' => 'success'
+        ]);
+    }
+
+    /**
+     * Verify an email confirmation code - expects headers to be set for
+     * - X-MINDS-2FA-CODE: containing the code.
+     * - X-MINDS-EMAIL-2FA-KEY: containing key from when confirmation was requested.
+     * @param ServerRequest $request - server request object.
+     * @throws EmailConfirmationMissingHeadersException - when 2FA code is missing.
+     * @throws EmailConfirmationInvalidCodeException - when code is invalid.
+     * @return JsonResponse - status success on success.
+     */
+    public function verifyCode(ServerRequest $request): JsonResponse
+    {
+        /** @var User */
+        $user = $request->getAttribute('_user');
+
+        $twoFactorHeader = $request->getHeader('X-MINDS-2FA-CODE');
+        $code = (string) $twoFactorHeader[0];
+
+        if (!$code || !$request->getHeader('X-MINDS-EMAIL-2FA-KEY')) {
+            throw new EmailConfirmationMissingHeadersException('Both a X-MINDS-EMAIL-2FA-KEY and X-MINDS-2FA-CODE headers must be provided');
+        }
+
+        try {
+            $this->manager->authenticateEmailTwoFactor($user, $code);
+        } catch(TwoFactorInvalidCodeException $e) {
+            throw new EmailConfirmationInvalidCodeException();
+        }
 
         return new JsonResponse([
             'status' => 'success'

@@ -269,6 +269,7 @@ class NotificationTypes
 
     /**
      * *******************************************
+<<<<<<< HEAD
      * Gift Cards
      */
     public const TYPE_GIFT_CARD_RECIPIENT_NOTIFIED = 'gift_card_recipient_notified';
@@ -281,6 +282,8 @@ class NotificationTypes
 
     /**
      * *******************************************
+=======
+>>>>>>> origin
      * Community Updates
      */
 
