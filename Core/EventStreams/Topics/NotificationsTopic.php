@@ -32,8 +32,10 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
     /** @var Producer */
     protected $producer;
 
-    public function __construct(Notifications\Manager $notificationsManager = null, ...$deps)
-    {
+    public function __construct(
+        Notifications\Manager $notificationsManager = null,
+        ...$deps
+    ) {
         parent::__construct(...$deps);
         $this->notificationsManager = $notificationsManager ?? Di::_()->get('Notifications\Manager');
     }
@@ -114,6 +116,10 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
                 $notification = $this->notificationsManager->getByUrn($data['urn']);
 
                 if (!$notification) {
+                    $this->logger->warning("Notification not found", [
+                        'urn' => $data['urn'],
+                        'uuid' => $data['uuid'],
+                    ]);
                     // Not found, it may already have been merged
                     $consumer->acknowledge($message);
                     continue;

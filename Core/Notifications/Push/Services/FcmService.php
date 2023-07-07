@@ -44,6 +44,7 @@ class FcmService extends AbstractService implements PushServiceInterface
                 'token' => $pushNotification->getDeviceSubscription()->getToken(),
             ],
         ];
+
         try {
             $this->request($body);
         } catch (\Exception $e) {
