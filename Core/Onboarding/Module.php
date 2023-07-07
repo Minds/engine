@@ -9,6 +9,11 @@ use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
 {
+    /** @var array */
+    public $submodules = [
+        V5\Module::class
+    ];
+
     /**
      * OnInit.
      */

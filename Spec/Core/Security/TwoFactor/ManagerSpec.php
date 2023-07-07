@@ -21,15 +21,20 @@ class ManagerSpec extends ObjectBehavior
     /** @var Delegates\TOTPDelegate */
     protected $totpDelegate;
 
+    /** @var Delegates\EmailDelegate */
+    protected $emailDelegate;
+
     public function let(
         TOTP\Manager $totpManager,
         Delegates\SMSDelegate $smsDelegate = null,
-        Delegates\TOTPDelegate $totpDelegate = null
+        Delegates\TOTPDelegate $totpDelegate = null,
+        Delegates\EmailDelegate $emailDelegate = null
     ) {
-        $this->beConstructedWith($totpManager, $smsDelegate, $totpDelegate);
+        $this->beConstructedWith($totpManager, $smsDelegate, $totpDelegate, $emailDelegate);
         $this->totpManager = $totpManager;
         $this->smsDelegate = $smsDelegate;
         $this->totpDelegate = $totpDelegate;
+        $this->emailDelegate = $emailDelegate;
     }
 
     public function it_is_initializable()
@@ -82,5 +87,19 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->gatekeeper($user, $request);
+    }
+
+    public function it_should_require_email_two_factor_delegate(User $user)
+    {
+        $this->emailDelegate->onRequireTwoFactor($user)
+            ->shouldBeCalled();
+        $this->requireEmailTwoFactor($user);
+    }
+
+    public function it_should_authenticate_email_two_factor_delegate(User $user)
+    {
+        $this->emailDelegate->onAuthenticateTwoFactor($user, '123')
+            ->shouldBeCalled();
+        $this->authenticateEmailTwoFactor($user, '123');
     }
 }
