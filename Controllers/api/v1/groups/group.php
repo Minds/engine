@@ -6,19 +6,32 @@
 namespace Minds\Controllers\api\v1\groups;
 
 use Minds\Core;
+use Minds\Core\Groups\V2\Membership\Manager;
 use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Entities\User;
 use Minds\Entities\File as FileEntity;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Entities\Group as GroupEntity;
 
 use Minds\Exceptions\GroupOperationException;
+use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
 
 class group implements Interfaces\Api
 {
+    public function __construct(
+        protected ?Manager $membershipManager = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null
+    ) {
+        $this->membershipManager = Di::_()->get(Manager::class);
+        $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
+    }
+
     /**
      * Returns the conversations or conversation
      * @param array $pages
@@ -27,12 +40,12 @@ class group implements Interfaces\Api
      */
     public function get($pages)
     {
-        $group = EntitiesFactory::build($pages[0]);
+        $group = $this->entitiesBuilder->single($pages[0]);
         $user = Session::getLoggedInUser();
 
         $response = [];
 
-        if (!$group) {
+        if (!$group instanceof GroupEntity) {
             return Factory::response([
                 'status' => 'error',
                 'message' => 'The group could not be found',
@@ -41,16 +54,22 @@ class group implements Interfaces\Api
 
         $response['group'] = $group->export();
 
-        $membership = (new Core\Groups\Membership)
-          ->setGroup($group);
+        try {
+            if (!$user) {
+                throw new NotFoundException();
+            }
+            $membership = $this->membershipManager->getMembership($group, $user);
+        } catch (NotFoundException $e) {
+            $membership = null;
+        }
 
         $notifications = (new Core\Groups\Notifications)
           ->setGroup($group);
 
         $response['group']['is:muted'] = $user && $notifications->isMuted($user);
 
-        $canRead = $user && ($membership->isMember($user) || $user->isAdmin());
-        $canModerate = $user && ($group->isOwner($user) || $group->isModerator($user));
+        $canRead = $user && ($membership?->isMember() || $user->isAdmin());
+        $canModerate = $user && ($membership?->isOwner() || $membership?->isModerator());
 
         if (!$canRead) {
             // Restrict output if cannot read
@@ -83,9 +102,19 @@ class group implements Interfaces\Api
 
         if (isset($pages[0])) {
             $creation = false;
-            $group = EntitiesFactory::build($pages[0]);
 
-            if (!$group->isOwner($user) && !Core\Session::isAdmin()) {
+            /** @var GroupEntity */
+            $group = $this->entitiesBuilder->single($pages[0]);
+
+            try {
+                $membership = $this->membershipManager->getMembership($group, $user);
+            } catch (NotFoundException $e) {
+                return Factory::response([
+                    'error' => 'Group membership not found'
+                ]);
+            }
+
+            if (!$membership->isOwner() && !Core\Session::isAdmin()) {
                 return Factory::response([
                     'error' => 'You cannot edit this group'
                 ]);
@@ -138,15 +167,17 @@ class group implements Interfaces\Api
 
         // Creation / Updating
 
-        if (!isset($_POST['name'])) {
+        if (!isset($_POST['name']) && $creation) {
             throw new UserErrorException('Groups must have a name');
         }
 
-        if (mb_strlen($_POST['name']) > 200) {
+        if (isset($_POST['name']) && mb_strlen($_POST['name']) > 200) {
             throw new UserErrorException('Group names must be 200 characters or less');
         }
 
-        $group->setName($_POST['name']);
+        if (isset($_POST['name'])) {
+            $group->setName($_POST['name']);
+        }
 
         if (isset($_POST['briefdescription'])) {
             $sanitized_briefdescription = htmlspecialchars(trim($_POST['briefdescription']), ENT_QUOTES, null, false);
@@ -165,10 +196,10 @@ class group implements Interfaces\Api
                 $group->setAccessId(ACCESS_PUBLIC);
 
                 if (!$creation) {
-                    (new Core\Groups\Membership)
-                      ->setGroup($group)
-                      ->setActor($user)
-                      ->acceptAllRequests();
+                    // (new Core\Groups\Membership)
+                    //   ->setGroup($group)
+                    //   ->setActor($user)
+                    //   ->acceptAllRequests();
                 }
             } elseif ($_POST['membership'] == 0) {
                 $group->setAccessId(ACCESS_PRIVATE);
@@ -222,7 +253,11 @@ class group implements Interfaces\Api
         if ($creation) {
             // Join group
             try {
-                $group->join($user, [ 'force' => true ]);
+                $this->membershipManager->joinGroup(
+                    group: $group,
+                    user: $user,
+                    membershipLevel: GroupMembershipLevelEnum::OWNER
+                );
             } catch (GroupOperationException $e) {
             }
         }

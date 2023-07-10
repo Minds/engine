@@ -13,6 +13,9 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Group;
 use Minds\Entities\User;
 
+/**
+ * @deprecated only used on pro sites
+ */
 class Ownership
 {
     /** @var Membership */
@@ -82,11 +85,6 @@ class Ownership
         ))->filter(function ($group) use ($user) {
             /** @var Group $group */
             return $group && $group->isPublic() && $group->isOwner($user);
-        })->sort(function ($a, $b) {
-            /** @var Group $a */
-            /** @var Group $b */
-
-            return $b->getMembersCount() <=> $a->getMembersCount();
         });
 
         $response
