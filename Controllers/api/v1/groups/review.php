@@ -6,17 +6,30 @@
 namespace Minds\Controllers\api\v1\groups;
 
 use Minds\Core;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Groups\V2\Membership\Manager;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Di\Di;
+use Minds\Exceptions\NotFoundException;
 
 class review implements Interfaces\Api
 {
+    public function __construct(
+        protected ?Manager $membershipManager = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null
+    ) {
+        $this->membershipManager = Di::_()->get(Core\Groups\V2\Membership\Manager::class);
+        $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
+    }
+
     public function get($pages)
     {
         Factory::isLoggedIn();
 
-        $group = Entities\Factory::build($pages[0]);
+        /** @var Entities\Group */
+        $group = $this->entitiesBuilder->single($pages[0]);
         $user = Core\Session::getLoggedInUser();
 
         if (!$group) {
@@ -26,7 +39,16 @@ class review implements Interfaces\Api
             ]);
         }
 
-        if (!$group->isOwner($user) && !$group->isModerator($user)) {
+        try {
+            $membership = $this->membershipManager->getMembership($group, $user);
+        } catch (NotFoundException $e) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'You are not a group member'
+            ]);
+        }
+
+        if (!$membership->isOwner() && !$membership->isModerator()) {
             return Factory::response([
                 'status' => 'error',
                 'message' => 'You don\'t have enough permissions'
@@ -66,11 +88,21 @@ class review implements Interfaces\Api
     {
         Factory::isLoggedIn();
 
-        $group = Entities\Factory::build($pages[0]);
-        $activity = Entities\Factory::build($pages[1]);
+        /** @var Entities\Group */
+        $group = $this->entitiesBuilder->single($pages[0]);
+        $activity = $this->entitiesBuilder->single($pages[1]);
         $user = Core\Session::getLoggedInUser();
 
-        if (!$group->isOwner($user) && !$group->isModerator($user)) {
+        try {
+            $membership = $this->membershipManager->getMembership($group, $user);
+        } catch (NotFoundException $e) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'You are not a group member'
+            ]);
+        }
+
+        if (!$membership->isOwner() && !$membership->isModerator()) {
             return Factory::response([
                 'status' => 'error',
                 'message' => 'You don\'t have enough permissions'

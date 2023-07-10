@@ -5,6 +5,7 @@
 */
 namespace Minds\Controllers\api\v1\groups;
 
+use Minds\Api\Exportable;
 use Minds\Core;
 use Minds\Core\Session;
 use Minds\Interfaces;
@@ -12,11 +13,29 @@ use Minds\Api\Factory;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Core\Search\Documents;
 use Minds\Core\Data\ElasticSearch\Prepared;
-
+use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Groups\Invitations;
+use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
+use Minds\Core\Groups\V2\Membership\Manager;
+use Minds\Entities\Group;
+use Minds\Entities\User;
 use Minds\Exceptions\GroupOperationException;
+use Minds\Exceptions\NotFoundException;
+use Minds\Helpers\Export;
 
 class membership implements Interfaces\Api
 {
+    public function __construct(
+        protected ?Manager $membershipManager = null,
+        protected ?Invitations $invitations = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null
+    ) {
+        $this->membershipManager = Di::_()->get(Core\Groups\V2\Membership\Manager::class);
+        $this->invitations = new Invitations();
+        $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
+    }
+
     /**
     * Returns the members
     * @param array $pages
@@ -25,56 +44,53 @@ class membership implements Interfaces\Api
     */
     public function get($pages)
     {
-        $group = EntitiesFactory::build($pages[0]);
-        $membership = (new Core\Groups\Membership)
-          ->setGroup($group)
-          ->setActor(Session::getLoggedInUser());
+        /** @var Group */
+        $group = $this->entitiesBuilder->single($pages[0]);
 
         $loggedInUser = Core\Session::getLoggedinUser();
 
-        if (!$group->isPublic() && !$membership->isMember($loggedInUser) && !$loggedInUser->isAdmin()) {
+        try {
+            if (!$loggedInUser) {
+                throw new NotFoundException();
+            }
+            $membership = $this->membershipManager->getMembership($group, $loggedInUser);
+        } catch (NotFoundException $e) {
             return Factory::response([]);
         }
 
-        $options = [
-            'limit' => isset($_GET['limit']) ? $_GET['limit'] : 12,
-            'offset' => isset($_GET['offset']) ? $_GET['offset'] : ''
-        ];
+        if (!$group->isPublic() && !$membership->isMember() && !$loggedInUser->isAdmin()) {
+            return Factory::response([]);
+        }
+
+        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 12;
+        $offset = isset($_GET['offset']) ? (int) $_GET['offset'] : 0;
 
         if (!isset($pages[1])) {
             $pages[1] = "members";
         }
 
         $response = [];
+        $loadNext = 0;
 
         switch ($pages[1]) {
             case "requests":
-                if (!$membership->canActorWrite($group)) {
+                if (!$membership->isModerator()) {
                     return Factory::response([]);
                 }
 
-                $users = $membership->getRequests($options);
+                $users = iterator_to_array($this->membershipManager->getRequests(
+                    group: $group,
+                    limit: $limit,
+                    offset: $offset,
+                    loadNext: $loadNext,
+                ));
 
                 if (!$users) {
                     return Factory::response([]);
                 }
 
-                $response['users'] = Factory::exportable($users);
-                $response['load-next'] = end($users)->getGuid();
-                break;
-            case "bans":
-                if (!$membership->canActorWrite($group)) {
-                    return Factory::response([]);
-                }
-
-                $users = $membership->getBannedUsers();
-
-                if (!$users) {
-                    return Factory::response([]);
-                }
-
-                $response['users'] = Factory::exportable($users);
-                $response['load-next'] = end($users)->getGuid();
+                $response['users'] = Exportable::_($users);
+                $response['load-next'] = $loadNext;
                 break;
             case "search":
                 if (!isset($_GET['q']) || !$_GET['q']) {
@@ -114,70 +130,49 @@ class membership implements Interfaces\Api
                     ]);
                 }
 
+                /** @var Core\Groups\V2\Membership\Membership[] */
+                $members = [];
+
                 $i = 0;
-                $guids = array_filter($guids, function ($guid) use ($membership, &$i) {
+                foreach ($guids as $guid) {
                     if ($i > 12) {
+                        break;
+                    }
+                    $user = $this->entitiesBuilder->single($guid);
+                    if (!$user instanceof User) {
                         return false;
                     }
-                    $is = $membership->isMember($guid, false);
-                    if ($is) {
-                        $i++;
-                    }
-                    return $is;
-                });
-
-                if ($guids) {
-                    $guids = array_slice($guids, 0, 12);
-
-                    $members = Core\Entities::get(['guids' => $guids]);
-
-                    $response['members'] = Factory::exportable($members);
-
-                    for ($i = 0; $i < count($response['members']); $i++) {
-                        $response['members'][$i]['is:moderator'] = $group->isModerator($response['members'][$i]['guid']);
-                        $response['members'][$i]['is:owner'] = $group->isOwner($response['members'][$i]['guid']);
-                        $response['members'][$i]['is:member'] = true;
-                        $response['members'][$i]['is:awaiting'] = false;
+                    $userMembership = $this->membershipManager->getMembership($group, $user);
+                    if ($userMembership->isMember()) {
+                        $members[] = $userMembership;
                     }
                 }
-                break;
-            case "owners":
-                if (!$membership->canActorRead($group)) {
-                    return Factory::response([]);
-                }
+            
+                $guids = array_slice($guids, 0, 12);
 
-                $owners = $membership->getOwners($options);
-
-                if (!$owners) {
-                    return Factory::response([]);
-                }
-
-                $response['owners'] = Factory::exportable($owners);
-                $response['load-next'] = end($owners)->getGuid();
+                $response['members'] = Exportable::_($members);
                 break;
             case "members":
             default:
-                if (!$membership->canActorRead($group)) {
+                if (!$membership->isMember()) {
                     return Factory::response([]);
                 }
 
-                $members = $membership->getMembers($options);
+                $members = iterator_to_array($this->membershipManager->getMembers(
+                    group: $group,
+                    limit: $limit,
+                    offset: $offset,
+                    loadNext: $loadNext,
+                ));
 
                 if (!$members) {
                     return Factory::response([]);
                 }
 
-                $response['members'] = Factory::exportable($members);
+                $response['members'] = Exportable::_($members);
 
-                for ($i = 0; $i < count($response['members']); $i++) {
-                    $response['members'][$i]['is:moderator'] = $group->isModerator($response['members'][$i]['guid']);
-                    $response['members'][$i]['is:owner'] = $group->isOwner($response['members'][$i]['guid']);
-                    $response['members'][$i]['is:member'] = true;
-                    $response['members'][$i]['is:awaiting'] = false;
-                }
-
-                $response['load-next'] = end($members)->getGuid();
-                $response['total'] = $membership->getMembersCount();
+                $response['load-next'] = $loadNext;
+                $response['total'] = $this->membershipManager->getMembersCount($group);
                 break;
         }
 
@@ -188,11 +183,12 @@ class membership implements Interfaces\Api
     {
         Factory::isLoggedIn();
 
-        $group = EntitiesFactory::build($pages[0]);
-        $actor = Session::getLoggedInUser();
-        $membership = (new Core\Groups\Membership)
-          ->setGroup($group)
-          ->setActor($actor);
+        /** @var Group */
+        $group = $this->entitiesBuilder->single($pages[0]);
+
+        $loggedInUser = Core\Session::getLoggedinUser();
+
+        $membership = $this->membershipManager->getMembership($group, $loggedInUser);
 
         if (!isset($pages[1])) {
             return Factory::response([]);
@@ -202,33 +198,36 @@ class membership implements Interfaces\Api
         try {
             switch ($pages[1]) {
                 case 'cancel':
-                    $response['done'] = $membership->cancelRequest($actor);
+                    $response['done'] = $this->membershipManager->leaveGroup($group, $loggedInUser);
                     break;
                 case 'kick':
-                    $user = $_POST['user'];
+                    $userGuid = $_POST['user'];
+                    $user = $this->entitiesBuilder->single($userGuid);
 
-                    if (!$user) {
+                    if (!$user instanceof User) {
                         break;
                     }
-                    $response['done'] = $membership->kick($user);
+                    $response['done'] = $this->membershipManager->removeUser($group, $user, $loggedInUser);
                     break;
                 case 'ban':
-                    $user = $_POST['user'];
+                    $userGuid = $_POST['user'];
+                    $user = $this->entitiesBuilder->single($userGuid);
 
-                    if (!$user) {
+                    if (!$user instanceof User) {
                         break;
                     }
 
-                    $response['done'] = $membership->ban($user);
+                    $response['done'] = $this->membershipManager->banUser($group, $user, $loggedInUser);
                     break;
                 case 'unban':
-                    $user = $_POST['user'];
+                    $userGuid = $_POST['user'];
+                    $user = $this->entitiesBuilder->single($userGuid);
 
-                    if (!$user) {
+                    if (!$user instanceof User) {
                         break;
                     }
 
-                    $response['done'] = $membership->unban($user);
+                    $response['done'] = $this->membershipManager->unbanUser($group, $user, $loggedInUser);
                     break;
             }
 
@@ -245,13 +244,18 @@ class membership implements Interfaces\Api
     {
         Factory::isLoggedIn();
 
-        $group = EntitiesFactory::build($pages[0]);
-        $user = Session::getLoggedInUser();
+        /** @var Group */
+        $group = $this->entitiesBuilder->single($pages[0]);
 
-        $membership = (new Core\Groups\Membership)->setGroup($group);
-        $invitations = (new Core\Groups\Invitations)->setGroup($group)->setActor($user);
+        $loggedInUser = Core\Session::getLoggedinUser();
 
-        if (!Core\Security\ACL::_()->interact($group, $user)) {
+        try {
+            $membership = $this->membershipManager->getMembership($group, $loggedInUser);
+        } catch (NotFoundException $e) {
+            $membership = null;
+        }
+
+        if (!Core\Security\ACL::_()->interact($group, $loggedInUser)) {
             return Factory::response([
                 'status' => 'error',
                 'stage' => 'initial',
@@ -259,12 +263,22 @@ class membership implements Interfaces\Api
             ]);
         }
 
-        if (isset($pages[1])
-            && ($group->isOwner($user) || $group->isModerator($user))
-        ) {
+        if (isset($pages[1]) && $membership?->isModerator()) {
+            $userGuid = $pages[1];
+            $user = $this->entitiesBuilder->single($userGuid);
+            if (!$user instanceof User) {
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => 'Invalid user'
+                ]);
+            }
             //Admin approval
             try {
-                $joined = $membership->setActor($user)->join($pages[1]);
+                $joined = $this->membershipManager->acceptUser(
+                    group: $group,
+                    user: $user,
+                    actor: $loggedInUser,
+                );
 
                 $event = new Core\Analytics\Metrics\Event();
                 $event->setType('action')
@@ -289,10 +303,10 @@ class membership implements Interfaces\Api
 
         // Normal join
         try {
-            if ($invitations->isInvited($user)) {
-                $joined = $invitations->accept();
+            if ($this->invitations->setGroup($group)->isInvited($loggedInUser)) {
+                $joined = $this->invitations->setGroup($group)->setActor($loggedInUser)->accept();
             } else {
-                $joined = $group->join($user);
+                $joined = $this->membershipManager->joinGroup($group, $loggedInUser);
             }
 
             $event = new Core\Analytics\Metrics\Event();
@@ -300,8 +314,8 @@ class membership implements Interfaces\Api
                 ->setProduct('platform')
                 ->setAction("join")
                 ->setEntityMembership(2)
-                ->setUserGuid((string) $user->guid)
-                ->setUserPhoneNumberHash($user->getPhoneNumberHash())
+                ->setUserGuid((string) $loggedInUser->guid)
+                ->setUserPhoneNumberHash($loggedInUser->getPhoneNumberHash())
                 ->setEntityGuid((string) $group->guid)
                 ->setEntityType($group->type)
                 ->push();
@@ -322,17 +336,27 @@ class membership implements Interfaces\Api
     {
         Factory::isLoggedIn();
 
-        $group = EntitiesFactory::build($pages[0]);
-        $actor = Session::getLoggedInUser();
-        $membership = (new Core\Groups\Membership)
-          ->setGroup($group);
+        /** @var Group */
+        $group = $this->entitiesBuilder->single($pages[0]);
+
+        $loggedInUser = Core\Session::getLoggedinUser();
+
+        $membership = $this->membershipManager->getMembership($group, $loggedInUser);
 
         // TODO: [emi] Check if this logic makes sense
 
         if (isset($pages[1])) {
+            $userGuid = $pages[1];
+            $user = $this->entitiesBuilder->single($userGuid);
+            if (!$user instanceof User) {
+                return Factory::response([
+                    'status' => 'error',
+                    'message' => 'Invalid user'
+                ]);
+            }
             //Admin approval
             try {
-                $cancelled = $membership->setActor($actor)->cancelRequest($pages[1]);
+                $cancelled = $this->membershipManager->removeUser($group, $user, $loggedInUser);
 
                 return Factory::response([
                     'done' => $cancelled
@@ -347,7 +371,7 @@ class membership implements Interfaces\Api
 
         // Normal leave
         try {
-            $left = $group->leave($actor);
+            $left = $this->membershipManager->leaveGroup($group, $loggedInUser);
 
             return Factory::response([
                 'done' => $left

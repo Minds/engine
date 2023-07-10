@@ -9,9 +9,8 @@ use Minds\Core\Di\Di;
 use Minds\Core\Guid;
 use Minds\Core\Events\Dispatcher;
 use Minds\Entities\Factory as EntitiesFactory;
-use Minds\Core\Groups\Membership;
-use Minds\Core\Groups\Invitations;
 use Minds\Core\Groups\Delegates\ElasticSearchDelegate;
+use Minds\Core\Groups\Invitations;
 use Minds\Traits\MagicAttributes;
 
 /**
@@ -589,50 +588,14 @@ class Group extends NormalizedEntity implements EntityInterface
     }
 
     /**
-     * Checks if a user is member of this group
-     * @param  User    $user
-     * @return boolean
-     */
-    public function isMember($user = null)
-    {
-        return Membership::_($this)->isMember($user);
-    }
-
-    /**
-     * Checks if a user has a membership request for this group
-     * @param  User    $user
-     * @return boolean
-     */
-    public function isAwaiting($user = null)
-    {
-        if ($this->isMember($user)) {
-            return false;
-        }
-        return Membership::_($this)->isAwaiting($user);
-    }
-
-    /**
      * Checks if a user is invited to this group
      * @param  User    $user
      * @return boolean
      */
     public function isInvited($user = null)
     {
-        if ($this->isMember()) {
-            return false;
-        }
         return (new Invitations)->setGroup($this)
           ->isInvited($user);
-    }
-
-    /**
-     * Checks if a user is banned from this group
-     * @param  User    $user
-     * @return boolean
-     */
-    public function isBanned($user = null)
-    {
-        return Membership::_($this)->isBanned($user);
     }
 
     /**
@@ -695,54 +658,6 @@ class Group extends NormalizedEntity implements EntityInterface
     public function isPublic()
     {
         return $this->getMembership() == 2;
-    }
-
-    /**
-     * Attaches a user to this group
-     * @param  User   $user
-     * @return boolean
-     */
-    public function join($user = null, array $opts = [])
-    {
-        return (new Membership)->setGroup($this)
-          ->setActor($user)
-          ->join($user, $opts);
-    }
-
-    /**
-     * Removes a user from this group
-     * @param  User   $user
-     * @return boolean
-     */
-    public function leave($user = null)
-    {
-        return (new Membership)->setGroup($this)
-          ->setActor($user)
-          ->leave($user);
-    }
-
-    public function getMembersCount()
-    {
-        return Membership::_($this)->getMembersCount();
-    }
-
-    public function getActivityCount()
-    {
-        $cache = Di::_()->get('Cache');
-        if ($count = $cache->get("activity:container:{$this->getGuid()}")) {
-            return $count;
-        }
-        $count = $this->indexDb->count("activity:container:{$this->getGuid()}");
-        $cache->set("activity:container:{$this->getGuid()}", $count);
-        return $count;
-    }
-
-    public function getRequestsCount()
-    {
-        if ($this->isPublic()) {
-            return 0;
-        }
-        return Membership::_($this)->getRequestsCount();
     }
 
     public function setBoostRejectionReason($reason)
@@ -947,9 +862,6 @@ class Group extends NormalizedEntity implements EntityInterface
 
         // Compatibility keys
         $export['owner_guid'] = $this->getOwnerObj()->guid;
-        //$export['activity:count'] = $this->getActivityCount();
-        $export['members:count'] = $this->getMembersCount();
-        $export['requests:count'] = $this->getRequestsCount();
         $export['icontime'] = $export['icon_time'];
         $export['briefdescription'] = $export['brief_description'];
         $export['boost_rejection_reason'] = $this->getBoostRejectionReason() ?: -1;
@@ -957,15 +869,8 @@ class Group extends NormalizedEntity implements EntityInterface
         $export['rating'] = (int) $this->getRating();
         $export['nsfw'] = $this->getNSFW();
         $export['nsfw_lock'] = $this->getNSFWLock();
-        $userIsAdmin = Core\Session::isAdmin();
 
         $export['pinned_posts'] = $this->getPinnedPosts();
-
-        $export['is:owner'] = $userIsAdmin || $this->isOwner(Core\Session::getLoggedInUser());
-        $export['is:moderator'] = $this->isModerator(Core\Session::getLoggedInUser());
-        $export['is:member'] = $this->isMember(Core\Session::getLoggedInUser());
-        $export['is:creator'] = $userIsAdmin || $this->isCreator(Core\Session::getLoggedInUser());
-        $export['is:awaiting'] = $this->isAwaiting(Core\Session::getLoggedInUser());
 
         $export['urn'] = $this->getUrn();
 
