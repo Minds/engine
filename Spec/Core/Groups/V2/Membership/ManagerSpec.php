@@ -43,7 +43,7 @@ class ManagerSpec extends ObjectBehavior
         $this->legacyMembershipMock = $legacyMembershipMock;
         $this->experimentsManagerMock = $experimentsManagerMock;
 
-        $this->experimentsManagerMock->hasVariation('engine-2591-groups-memberships', false)->willReturn(true);
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(false);
     }
 
     public function it_is_initializable()
@@ -57,7 +57,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_a_membership_from_legacy(Group $groupMock, User $userMock)
     {
-        $this->experimentsManagerMock->hasVariation('engine-2591-groups-memberships', false)->willReturn(true);
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(false);
 
         $groupMock->getGuid()
             ->willReturn(123);
@@ -82,7 +82,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_an_owner_membership_from_legacy(Group $groupMock, User $userMock)
     {
-        $this->experimentsManagerMock->hasVariation('engine-2591-groups-memberships', false)->willReturn(true);
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(false);
 
         $groupMock->getGuid()
             ->willReturn(123);
@@ -107,7 +107,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_a_moderator_membership_from_legacy(Group $groupMock, User $userMock)
     {
-        $this->experimentsManagerMock->hasVariation('engine-2591-groups-memberships', false)->willReturn(true);
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(false);
 
         $groupMock->getGuid()
             ->willReturn(123);
@@ -132,7 +132,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_count_from_legacy(Group $groupMock)
     {
-        $this->experimentsManagerMock->hasVariation('engine-2591-groups-memberships', false)->willReturn(true);
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(false);
 
         $this->legacyMembershipMock->setGroup($groupMock)->willReturn($this->legacyMembershipMock);
         $this->legacyMembershipMock->getMembersCount()->willReturn(10);
@@ -144,7 +144,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $refTime = time();
     
-        $this->experimentsManagerMock->hasVariation('engine-2591-groups-memberships', false)->willReturn(true);
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(false);
 
         $groupMock->getGuid()
             ->willReturn(123);
@@ -184,7 +184,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_requests_from_legacy(Group $groupMock)
     {
-        $this->experimentsManagerMock->hasVariation('engine-2591-groups-memberships', false)->willReturn(true);
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(false);
 
         $groupMock->getGuid()
             ->willReturn(123);
@@ -207,7 +207,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_groups_from_legacy(User $userMock)
     {
-        $this->experimentsManagerMock->hasVariation('engine-2591-groups-memberships', false)->willReturn(true);
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(false);
 
         $userMock->getGuid()
             ->willReturn(123);
@@ -234,7 +234,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_group_guids_from_legacy(User $userMock)
     {
-        $this->experimentsManagerMock->hasVariation('engine-2591-groups-memberships', false)->willReturn(true);
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(false);
 
         $userMock->getGuid()
             ->willReturn(123);
@@ -256,7 +256,7 @@ class ManagerSpec extends ObjectBehavior
      */
     public function it_should_return_a_membership(Group $groupMock, User $userMock, Membership $membershipMock)
     {
-        $this->experimentsManagerMock->hasVariation('engine-2591-groups-memberships', false)->willReturn(false);
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(true);
 
         $groupMock->getGuid()->willReturn(123);
         $userMock->getGuid()->willReturn(456);
@@ -270,7 +270,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_count(Group $groupMock)
     {
-        $this->experimentsManagerMock->hasVariation('engine-2591-groups-memberships', false)->willReturn(false);
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(true);
 
         $groupMock->getGuid()->willReturn(123);
 
@@ -282,7 +282,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_members(Group $groupMock, User $userMock)
     {
-        $this->experimentsManagerMock->hasVariation('engine-2591-groups-memberships', false)->willReturn(false);
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(true);
 
         $groupMock->getGuid()
             ->shouldBeCalled()
@@ -320,7 +320,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_requests(Group $groupMock, User $userMock)
     {
-        $this->experimentsManagerMock->hasVariation('engine-2591-groups-memberships', false)->willReturn(false);
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(true);
 
         $groupMock->getGuid()
             ->shouldBeCalled()
@@ -351,7 +351,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_groups(User $userMock, Group $groupMock)
     {
-        $this->experimentsManagerMock->hasVariation('engine-2591-groups-memberships', false)->willReturn(false);
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(true);
 
         $userMock->getGuid()
             ->shouldBeCalled()
@@ -382,7 +382,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_group_guids(User $userMock, Group $groupMock)
     {
-        $this->experimentsManagerMock->hasVariation('engine-2591-groups-memberships', false)->willReturn(false);
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(true);
 
         $userMock->getGuid()
             ->shouldBeCalled()
