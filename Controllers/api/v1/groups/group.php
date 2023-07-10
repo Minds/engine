@@ -138,15 +138,17 @@ class group implements Interfaces\Api
 
         // Creation / Updating
 
-        if (!isset($_POST['name'])) {
+        if ($creation && !isset($_POST['name'])) {
             throw new UserErrorException('Groups must have a name');
         }
 
-        if (mb_strlen($_POST['name']) > 200) {
-            throw new UserErrorException('Group names must be 200 characters or less');
-        }
+        if (isset($_POST['name'])) {
+            if (mb_strlen($_POST['name']) > 200) {
+                throw new UserErrorException('Group names must be 200 characters or less');
+            }
 
-        $group->setName($_POST['name']);
+            $group->setName($_POST['name']);
+        }
 
         if (isset($_POST['briefdescription'])) {
             $sanitized_briefdescription = htmlspecialchars(trim($_POST['briefdescription']), ENT_QUOTES, null, false);
@@ -182,6 +184,9 @@ class group implements Interfaces\Api
             $moderationChange = $oldModerationValue != $group->getModerated();
         }
 
+        if (isset($_POST['show_boosts'])) {
+            $group->setShowBoosts($_POST['show_boosts']);
+        }
 
         if (isset($_POST['default_view'])) {
             $group->setDefaultView($_POST['default_view']);
