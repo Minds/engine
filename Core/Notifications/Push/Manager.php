@@ -4,6 +4,7 @@ namespace Minds\Core\Notifications\Push;
 use Exception;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Core\Notifications;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
@@ -37,12 +38,14 @@ class Manager
         Notifications\Manager $notificationsManager = null,
         DeviceSubscriptions\Manager $deviceSubscriptionsManager = null,
         Settings\Manager $settingsManager = null,
-        EntitiesBuilder $entitiesBuilder = null
+        EntitiesBuilder $entitiesBuilder = null,
+        private ?Logger $logger = null
     ) {
         $this->notificationsManager = $notificationsManager;
         $this->deviceSubscriptionsManager = $deviceSubscriptionsManager;
         $this->settingsManager = $settingsManager;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -56,6 +59,9 @@ class Manager
         $toUser = $this->getEntitiesBuilder()->single($notification->getToGuid());
 
         if (!$toUser) {
+            $this->logger->error('Push notification could not be delivered, user not found', [
+                'notification' => $notification->export(),
+            ]);
             return;
         }
 
@@ -78,17 +84,25 @@ class Manager
             $pushNotification = new PushNotification($notification);
             $pushNotification->setUnreadCount($this->getNotificationsManager()->getUnreadCount($toUser));
         } catch (UndeliverableException $e) {
+            $this->logger->info('Push notification could not be delivered', [
+                'notification' => $notification->export(),
+                'exception' => $e,
+            ]);
             return; // We can't deliver for a valid reason
         }
 
         // Has the user opted into this notification?
         if (!$this->getSettingsManager()->canSend($pushNotification)) {
+            $this->logger->info('User has opted out of this notification');
             return; // User has opted out
         }
 
         $opts = new DeviceSubscriptions\DeviceSubscriptionListOpts();
         $opts->setUserGuid($notification->getToGuid());
         foreach ($this->getDeviceSubscriptionsManager()->getList($opts) as $deviceSubscription) {
+            $this->logger->info('Sending push notification', [
+                'deviceSubscription' => $deviceSubscription->getToken(),
+            ]);
             $pushNotification->setDeviceSubscription($deviceSubscription);
 
             $this->getService($deviceSubscription->getService())->send($pushNotification);

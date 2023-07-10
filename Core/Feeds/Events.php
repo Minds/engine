@@ -72,7 +72,7 @@ class Events
                 $remindObj = $activity->remind_object;
 
                 $entity = $this->entitiesBuilder->single($remindObj['guid']);
-                $canRead = $this->acl->read($entity, $user);
+                $canRead = $entity && $this->acl->read($entity, $user);
                 if (!$canRead) {
                     $event->setResponse(true);
                     return;

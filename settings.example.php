@@ -844,6 +844,7 @@ $CONFIG->set('sendwyre', [
 
 $CONFIG->set('onboarding_modal_timestamp', 0);
 $CONFIG->set('onboarding_v2_timestamp', 0);
+$CONFIG->set('onboarding_v5_release_timestamp', 0);
 
 
 $CONFIG->set('snowplow', [
