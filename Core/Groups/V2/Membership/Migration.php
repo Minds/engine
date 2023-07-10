@@ -28,14 +28,14 @@ class Migration
         $this->logger = Di::_()->get('Logger');
     }
 
-    public function run()
+    public function run(string &$pagingToken)
     {
         $prepared = new Custom();
 
         $prepared->query("SELECT * FROM relationships");
 
         // Loop for cassandra rows
-        foreach ($this->scroll->request($prepared) as $row) {
+        foreach ($this->scroll->request($prepared, $pagingToken) as $row) {
             $key = $row['key'];
             $keyParts = explode(':', $key);
 
@@ -51,7 +51,7 @@ class Migration
             $group = $this->entitiesBuilder->single($groupGuid);
 
             if (!$group instanceof Group) {
-                $this->logger->error("Group $groupGuid not found");
+                $this->logger->error("Group $groupGuid not found " . base64_encode($pagingToken));
                 continue;
             }
 
@@ -72,7 +72,7 @@ class Migration
 
             try {
                 $this->repository->add($membership);
-                $this->logger->info("Migrated $groupGuid:$userGuid");
+                $this->logger->info("Migrated $groupGuid:$userGuid " . base64_encode($pagingToken));
             } catch (\Exception $e) {
                 if ($e->getCode() === "23000") {
                     // Duplicate, lets just update the membership level

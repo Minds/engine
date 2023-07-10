@@ -21,6 +21,7 @@ class GroupMembers extends Cli\Controller implements Interfaces\CliControllerInt
     {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
+        Di::_()->get('Config')->set('min_log_level', \Monolog\Logger::INFO);
         $this->migration = new Migration();
     }
 
@@ -31,6 +32,7 @@ class GroupMembers extends Cli\Controller implements Interfaces\CliControllerInt
 
     public function exec()
     {
-        $this->migration->run();
+        $pagingToken = base64_decode($this->getOpt('paging-token'), true);
+        $this->migration->run($pagingToken);
     }
 }

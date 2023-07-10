@@ -524,6 +524,6 @@ class Manager
      */
     private function shouldReadFromLegacy(): bool
     {
-        return $this->readFromLegacy ??= !$this->experimentsManager->hasVariation('engine-2591-groups-memberships', false);
+        return $this->readFromLegacy ??= $this->experimentsManager->hasVariation('engine-2591-groups-memberships', false);
     }
 }
