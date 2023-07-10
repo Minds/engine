@@ -30,7 +30,7 @@ class DismissalsController
      */
     #[Query]
     #[Logged]
-    public function getDimissals(
+    public function getDismissals(
         #[InjectUser] User $loggedInUser = null
     ): array {
         try {
@@ -50,7 +50,7 @@ class DismissalsController
      */
     #[Query]
     #[Logged]
-    public function getDimissalByKey(
+    public function getDismissalByKey(
         string $key,
         #[InjectUser] User $loggedInUser = null
     ): ?Dismissal {
