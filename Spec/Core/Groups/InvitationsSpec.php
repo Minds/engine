@@ -12,7 +12,10 @@ use Minds\Core\Data\Cassandra\Thrift\Relationships;
 use Minds\Core\Data\Relationships as DataRelationships;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Entities\Group as GroupEntity;
+use Minds\Core\Groups\V2\Membership\Manager as V2MembershipManager;
+use Minds\Core\Groups\V2\Membership\Membership;
 
 class InvitationsSpec extends ObjectBehavior
 {
@@ -26,14 +29,24 @@ class InvitationsSpec extends ObjectBehavior
     /** @var ActionEventsTopic */
     protected $actionEventsTopic;
 
-    public function let(Relationships $relDb, ACL $acl, Call $friendsDb, EntitiesBuilder $entitiesBuilder, ActionEventsTopic $actionEventsTopic)
-    {
-        $this->beConstructedWith($relDb, $acl, $friendsDb, $entitiesBuilder, $actionEventsTopic);
+    /** @var V2MembershipManager */
+    protected $membershipManagerMock;
+
+    public function let(
+        Relationships $relDb,
+        ACL $acl,
+        Call $friendsDb,
+        EntitiesBuilder $entitiesBuilder,
+        ActionEventsTopic $actionEventsTopic,
+        V2MembershipManager $membershipManagerMock,
+    ) {
+        $this->beConstructedWith($relDb, $acl, $friendsDb, $entitiesBuilder, $actionEventsTopic, $membershipManagerMock);
         $this->relDb = $relDb;
         $this->acl = $acl;
         $this->friendsDb = $friendsDb;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->actionEventsTopic = $actionEventsTopic;
+        $this->membershipManagerMock = $membershipManagerMock;
     }
 
     public function it_is_initializable()
@@ -75,7 +88,7 @@ class InvitationsSpec extends ObjectBehavior
         $this->isInvited($user)->shouldReturn(true);
     }
 
-    public function it_should_invite_to_a_public_group(GroupEntity $group, User $user, User $actor)
+    public function it_should_invite_to_a_public_group(GroupEntity $group, User $user, User $actor, Membership $membershipMock, Membership $membershipMock2)
     {
         $user->get('guid')->willReturn(1);
 
@@ -84,8 +97,13 @@ class InvitationsSpec extends ObjectBehavior
 
         $group->getGuid()->willReturn(50);
         $group->isPublic()->willReturn(true);
-        $group->isMember($actor)->willReturn(true);
-        $group->isMember($user)->willReturn(false);
+
+        $this->membershipManagerMock->getMembership($group, $actor)->willReturn($membershipMock);
+        $membershipMock->isMember()->willReturn(true);
+        
+        $this->membershipManagerMock->getMembership($group, $user)->willReturn($membershipMock2);
+        $membershipMock2->isMember()->willReturn(false);
+
         $group->getUrn()->willReturn('urn:group:50');
 
         $this->relDb->setGuid(1)->shouldBeCalled();
@@ -103,7 +121,7 @@ class InvitationsSpec extends ObjectBehavior
         $this->invite($user, [ 'notify' => false ])->shouldReturn(true);
     }
 
-    public function it_should_not_invite_to_a_private_group(GroupEntity $group, User $user, User $actor)
+    public function it_should_not_invite_to_a_private_group(GroupEntity $group, User $user, User $actor, Membership $membershipMock, Membership $membershipMock2)
     {
         $user->get('guid')->willReturn(1);
 
@@ -112,8 +130,12 @@ class InvitationsSpec extends ObjectBehavior
 
         $group->getGuid()->willReturn(50);
         $group->isPublic()->willReturn(false);
-        $group->isMember($actor)->willReturn(true);
-        $group->isMember($user)->willReturn(false);
+        
+        $this->membershipManagerMock->getMembership($group, $actor)->willReturn($membershipMock);
+        $membershipMock->isMember()->willReturn(true);
+        
+        $this->membershipManagerMock->getMembership($group, $user)->willReturn($membershipMock2);
+        $membershipMock2->isMember()->willReturn(false);
 
         $this->relDb->create('group:invited', 50)->shouldNotBeCalled();
 
@@ -124,7 +146,7 @@ class InvitationsSpec extends ObjectBehavior
         $this->shouldThrow('\Minds\Exceptions\GroupOperationException')->duringInvite($user, [ 'notify' => false ]);
     }
 
-    public function it_should_invite_to_a_private_group_by_an_owner(GroupEntity $group, User $user, User $actor)
+    public function it_should_invite_to_a_private_group_by_an_owner(GroupEntity $group, User $user, User $actor, Membership $membershipMock, Membership $membershipMock2)
     {
         $user->get('guid')->willReturn(1);
 
@@ -133,8 +155,13 @@ class InvitationsSpec extends ObjectBehavior
 
         $group->getGuid()->willReturn(50);
         $group->isPublic()->willReturn(false);
-        $group->isMember($actor)->willReturn(true);
-        $group->isMember($user)->willReturn(false);
+
+        $this->membershipManagerMock->getMembership($group, $actor)->willReturn($membershipMock);
+        $membershipMock->isMember()->willReturn(true);
+        
+        $this->membershipManagerMock->getMembership($group, $user)->willReturn($membershipMock2);
+        $membershipMock2->isMember()->willReturn(false);
+
         $group->getUrn()->willReturn('urn:group:50');
 
         $this->relDb->setGuid(1)->shouldBeCalled();
@@ -154,7 +181,7 @@ class InvitationsSpec extends ObjectBehavior
         $this->invite($user, [ 'notify' => false ])->shouldReturn(true);
     }
 
-    public function it_should_uninvite(GroupEntity $group, User $user, User $actor)
+    public function it_should_uninvite(GroupEntity $group, User $user, User $actor, Membership $membershipMock, Membership $membershipMock2)
     {
         $user->get('guid')->willReturn(1);
 
@@ -163,8 +190,12 @@ class InvitationsSpec extends ObjectBehavior
 
         $group->getGuid()->willReturn(50);
         $group->isPublic()->willReturn(true);
-        $group->isMember($actor)->willReturn(true);
-        $group->isMember($user)->willReturn(false);
+
+        $this->membershipManagerMock->getMembership($group, $actor)->willReturn($membershipMock);
+        $membershipMock->isMember()->willReturn(true);
+        
+        $this->membershipManagerMock->getMembership($group, $user)->willReturn($membershipMock2);
+        $membershipMock2->isMember()->willReturn(false);
 
         $this->relDb->setGuid(1)->shouldBeCalled();
         $this->relDb->remove('group:invited', 50)->shouldBeCalled()->willReturn(true);
@@ -176,7 +207,7 @@ class InvitationsSpec extends ObjectBehavior
         $this->uninvite($user)->shouldReturn(true);
     }
 
-    public function it_should_not_uninvite_a_non_subscriber(GroupEntity $group, User $user, User $actor)
+    public function it_should_not_uninvite_a_non_subscriber(GroupEntity $group, User $user, User $actor, Membership $membershipMock, Membership $membershipMock2)
     {
         $user->get('guid')->willReturn(1);
 
@@ -185,8 +216,12 @@ class InvitationsSpec extends ObjectBehavior
 
         $group->getGuid()->willReturn(50);
         $group->isPublic()->willReturn(true);
-        $group->isMember($actor)->willReturn(true);
-        $group->isMember($user)->willReturn(false);
+        
+        $this->membershipManagerMock->getMembership($group, $actor)->willReturn($membershipMock);
+        $membershipMock->isMember()->willReturn(true);
+        
+        $this->membershipManagerMock->getMembership($group, $user)->willReturn($membershipMock2);
+        $membershipMock2->isMember()->willReturn(false);
 
         $this->relDb->remove('group:invited', 50)->shouldNotBeCalled();
 
@@ -206,7 +241,7 @@ class InvitationsSpec extends ObjectBehavior
         $this->relDb->check('group:invited', 50)->shouldBeCalled()->willReturn(true);
         $this->relDb->remove('group:invited', 50)->shouldBeCalled()->willReturn(true);
 
-        $group->join($user, [ 'force' => true ])->shouldBeCalled()->willReturn(true);
+        $this->membershipManagerMock->joinGroup($group, $user, GroupMembershipLevelEnum::MEMBER)->shouldBeCalled()->willReturn(true);
 
         $this->setGroup($group);
         $this->setActor($user);
@@ -222,7 +257,7 @@ class InvitationsSpec extends ObjectBehavior
         $this->relDb->check('group:invited', 50)->shouldBeCalled()->willReturn(false);
         $this->relDb->remove('group:invited', 50)->shouldNotBeCalled();
 
-        $group->join($user, [ 'force' => true ])->shouldNotBeCalled();
+        $this->membershipManagerMock->joinGroup($group, $user)->shouldNotBeCalled();
 
         $this->setGroup($group);
         $this->setActor($user);
