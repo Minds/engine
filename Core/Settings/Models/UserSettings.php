@@ -61,7 +61,7 @@ class UserSettings implements ExportableInterface
      * @param boolean $asArray - whether to get data as an array or it's native string format.
      * @return array|string - Raw dismissals data in requested format.
      */
-    public function getRawDismissals($asArray = true): array|string
+    public function getRawDismissals(bool $asArray = true): array|string
     {
         return $asArray ?
             (json_decode($this->dismissals, true) ?? []) :
