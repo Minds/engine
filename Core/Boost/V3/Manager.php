@@ -34,6 +34,7 @@ use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardInsufficientFundsException;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
 use Minds\Core\Security\ACL;
@@ -120,8 +121,6 @@ class Manager
             throw new EntityTypeNotAllowedInLocationException();
         }
 
-        $this->repository->beginTransaction();
-
         $goalFeatureEnabled = $this->experimentsManager
             ->isOn('minds-3952-boost-goals');
 
@@ -149,6 +148,8 @@ class Manager
             ->setOwnerGuid($this->user->getGuid())
             ->setPaymentMethodId($data['payment_method_id'] ?? null);
 
+        // $this->repository->beginTransaction();
+
         try {
             $isOnchainBoost = $boost->getPaymentMethod() === BoostPaymentMethod::ONCHAIN_TOKENS;
 
@@ -157,17 +158,22 @@ class Manager
                 return true;
             }
 
+            $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user);
+            $boost->setPaymentGuid($paymentDetails->paymentGuid);
+
+            $this->repository->beginTransaction();
+
             if ($isOnchainBoost) {
                 $boost->setStatus(BoostStatus::PENDING_ONCHAIN_CONFIRMATION)
                     ->setPaymentTxId($data['payment_tx_id']);
-            } elseif (!$this->paymentProcessor->setupBoostPayment($boost, $this->user)) {
+            } elseif (!$this->paymentProcessor->setupBoostPayment($boost, $this->user, $paymentDetails)) {
                 throw new BoostPaymentSetupFailedException();
             }
 
             if (!$this->repository->createBoost($boost)) {
                 throw new BoostCreationFailedException();
             }
-        } catch (BoostCreationFailedException $e) {
+        } catch (BoostCreationFailedException|GiftCardInsufficientFundsException $e) {
             $this->paymentProcessor->refundBoostPayment($boost);
             $this->repository->rollbackTransaction();
 
@@ -209,7 +215,11 @@ class Manager
             ->setUpdatedTimestamp($presetTimestamp)
             ->setApprovedTimestamp($presetTimestamp);
 
-        if (!$this->paymentProcessor->setupBoostPayment($boost, $this->user)) {
+        $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user);
+
+        $this->repository->beginTransaction();
+
+        if (!$this->paymentProcessor->setupBoostPayment($boost, $this->user, $paymentDetails)) {
             throw new BoostPaymentSetupFailedException();
         }
 

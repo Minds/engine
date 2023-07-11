@@ -6,11 +6,13 @@ namespace Minds\Core\Payments\V2\PaymentMethods;
 use Exception;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
 use Minds\Core\Payments\Stripe\PaymentMethods\Manager as StripePaymentMethodsManager;
 use Minds\Core\Payments\Stripe\PaymentMethods\PaymentMethod as StripePaymentMethod;
 use Minds\Core\Payments\V2\Models\PaymentMethod;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 
 class Manager
 {
@@ -47,32 +49,44 @@ class Manager
      * @param User $user
      * @param GiftCardProductIdEnum $productIdEnum
      * @return PaymentMethod[]
+     * @throws GiftCardNotFoundException
+     * @throws ServerErrorException
      */
     private function fetchGiftCardPaymentMethods(
         User $user,
         GiftCardProductIdEnum $productIdEnum
     ): array {
-        $giftCards = $this->giftCardsManager->getGiftCards(
-            claimedByUser: $user,
-            productId: $productIdEnum,
-        );
-
-        $totalGiftCardsBalance = 0;
-        foreach ($giftCards as $giftCard) {
-            $totalGiftCardsBalance += $giftCard->balance;
+        $giftCardsTotalBalance = 0;
+        try {
+            $giftCardsTotalBalance = $this->giftCardsManager->getUserBalanceForProduct(
+                user: $user,
+                productIdEnum: $productIdEnum,
+            );
+        } catch (GiftCardNotFoundException $e) {
+            // Ignore
         }
 
-        if ($totalGiftCardsBalance === 0) {
+        if ($giftCardsTotalBalance === 0) {
             return [];
         }
 
         return [
             new PaymentMethod(
                 id: "gift_card",
-                name: "Gift Card",
-                balance: $totalGiftCardsBalance,
+                name: $this->getGiftCardLabel($productIdEnum),
+                balance: $giftCardsTotalBalance,
             )
         ];
+    }
+
+    private function getGiftCardLabel(GiftCardProductIdEnum $productIdEnum): string
+    {
+        return match ($productIdEnum) {
+            GiftCardProductIdEnum::BOOST => "Boost Credits",
+            GiftCardProductIdEnum::PLUS => "Minds Plus Credits",
+            GiftCardProductIdEnum::PRO => "Minds Pro Credits",
+            GiftCardProductIdEnum::SUPERMIND => "Supermind Credits",
+        };
     }
 
     /**

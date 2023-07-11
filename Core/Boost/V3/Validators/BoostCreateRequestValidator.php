@@ -4,26 +4,25 @@ declare(strict_types=1);
 namespace Minds\Core\Boost\V3\Validators;
 
 use Exception;
+use Minds\Core\Boost\V3\Enums\BoostGoal;
+use Minds\Core\Boost\V3\Enums\BoostGoalButtonText;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\Enums\BoostTargetSuitability;
-use Minds\Core\Boost\V3\Enums\BoostGoal;
-use Minds\Core\Boost\V3\Enums\BoostGoalButtonText;
 use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Payments\Stripe\PaymentMethods\Manager as PaymentMethodsManager;
+use Minds\Core\Security\ProhibitedDomains;
 use Minds\Core\Session;
+use Minds\Entities\Activity;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
+use Minds\Helpers\Text;
 use Minds\Interfaces\ValidatorInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
-use Minds\Helpers\Text;
-use Minds\Core\Security\ProhibitedDomains;
-use Minds\Core\EntitiesBuilder;
-use Minds\Entities\Activity;
-use Minds\Entities\User;
-use Minds\Entities\EntityInterface;
 
 class BoostCreateRequestValidator implements ValidatorInterface
 {
@@ -118,17 +117,19 @@ class BoostCreateRequestValidator implements ValidatorInterface
                 )
             );
         } elseif ((int) $dataToValidate['payment_method'] === BoostPaymentMethod::CASH) {
-            $isPaymentMethodIdValid = $this->paymentMethodsManager->checkPaymentMethodOwnership(
-                $this->getLoggedInUserGuid(),
-                $dataToValidate['payment_method_id']
-            );
-            if (!$isPaymentMethodIdValid) {
-                $this->errors->add(
-                    new ValidationError(
-                        "supermind_request:payment_options:payment_method_id",
-                        "The provided payment method is not associated with your account"
-                    )
+            if ($dataToValidate['payment_method_id'] !== "gift_card") {
+                $isPaymentMethodIdValid = $this->paymentMethodsManager->checkPaymentMethodOwnership(
+                    $this->getLoggedInUserGuid(),
+                    $dataToValidate['payment_method_id']
                 );
+                if (!$isPaymentMethodIdValid) {
+                    $this->errors->add(
+                        new ValidationError(
+                            "supermind_request:payment_options:payment_method_id",
+                            "The provided payment method is not associated with your account"
+                        )
+                    );
+                }
             }
         } elseif ((int) $dataToValidate['payment_method'] === BoostPaymentMethod::ONCHAIN_TOKENS) {
             if (!$dataToValidate['payment_tx_id'] || !str_starts_with($dataToValidate['payment_tx_id'], '0x')) {

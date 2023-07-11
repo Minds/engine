@@ -26,13 +26,13 @@ class Controller
      * @param ServerRequestInterface $request - request object.
      * @return JsonResponse - response.
      */
-//    #[OA\Get(
-//        path: '/api/v3/supermind/settings',
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 401, description: "Unauthorized"),
-//        ]
-//    )]
+    //    #[OA\Get(
+    //        path: '/api/v3/supermind/settings',
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 401, description: "Unauthorized"),
+    //        ]
+    //    )]
     public function getSettings(ServerRequestInterface $request): JsonResponse
     {
         $user = $request->getAttribute("_user");
@@ -48,14 +48,14 @@ class Controller
      * @param ServerRequestInterface $request - request object.
      * @return JsonResponse - response.
      */
-//    #[OA\Post(
-//        path: '/api/v3/supermind/settings',
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 400, description: "Bad Request"),
-//            new OA\Response(response: 401, description: "Unauthorized"),
-//        ]
-//    )]
+    //    #[OA\Post(
+    //        path: '/api/v3/supermind/settings',
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 400, description: "Bad Request"),
+    //            new OA\Response(response: 401, description: "Unauthorized"),
+    //        ]
+    //    )]
     public function storeSettings(ServerRequestInterface $request): JsonResponse
     {
         $user = $request->getAttribute("_user");

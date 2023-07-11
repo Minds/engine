@@ -10,6 +10,7 @@ use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
+use PDOException;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
 use Selective\Database\SelectQuery;
@@ -62,16 +63,21 @@ class Repository extends AbstractRepository
      */
     public function addGiftCardTransaction(GiftCardTransaction $giftCardTransaction): bool
     {
-        $query = $this->mysqlClientWriterHandler
-            ->insert()
-            ->into('minds_gift_card_transactions')
-            ->set([
-                'payment_guid' => $giftCardTransaction->paymentGuid,
-                'gift_card_guid' => $giftCardTransaction->giftCardGuid,
-                'amount' => $giftCardTransaction->amount,
-                'created_at' => date('c', $giftCardTransaction->createdAt),
-            ]);
-        return $query->execute();
+        try {
+            $query = $this->mysqlClientWriterHandler
+                ->insert()
+                ->into('minds_gift_card_transactions')
+                ->set([
+                    'payment_guid' => $giftCardTransaction->paymentGuid,
+                    'gift_card_guid' => $giftCardTransaction->giftCardGuid,
+                    'amount' => $giftCardTransaction->amount,
+                    'created_at' => date('c', $giftCardTransaction->createdAt),
+                ]);
+            return $query->execute();
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            throw $e;
+        }
     }
 
     /**

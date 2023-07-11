@@ -17,7 +17,6 @@
         "tijsverkoyen/twitteroauth": "dev-master@dev",
         "twilio/sdk": "^5.26",
         "vscn/cruftflake": "dev-master#cab1b9ee9869072e7a58a1eb593b602ec5bedcd3",
-        "zircote/swagger-php": "^4.4",
         "abraham/twitteroauth": "^0.6.4",
         "google/apiclient": "^2.0",
         "aws/aws-php-sns-message-validator": "^1.4",
@@ -56,11 +55,11 @@
         "textalk/websocket": "^1.5",
         "promphp/prometheus_client_php": "^2.6",
         "minds/mysql-fluent-interface": "dev-master",
-        "thecodingmachine/graphqlite": "6.1.0",
         "symfony/cache": "v5.4.23",
         "symfony/expression-language": "v5.4.21",
         "google/cloud-pubsub": "^1.43",
-        "oracle/oci-php-sdk": "dev-minds-fixes"
+        "oracle/oci-php-sdk": "dev-minds-fixes",
+        "thecodingmachine/graphqlite": "6.2.3"
     },
     "repositories": [
         {
@@ -74,10 +73,6 @@
         {
             "type": "vcs",
             "url": "https://github.com/davegardnerisme/cruftflake.git"
-        },
-        {
-            "type": "vcs",
-            "url": "https://gitlab.com/minds/unleash-client-php.git"
         },
         {
             "type": "vcs",
@@ -107,8 +102,8 @@
         "phpspec/phpspec": "^7.3",
         "friends-of-phpspec/phpspec-expect": "^4.0",
         "symfony/process": "^5.0",
-        "friendsofphp/php-cs-fixer": "^3.4",
-        "phpstan/phpstan": "^1.7"
+        "phpstan/phpstan": "^1.7",
+        "friendsofphp/php-cs-fixer": "3.21.1"
     },
     "provide": {
         "symfony/translation-contracts": "2.0.1"

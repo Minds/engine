@@ -19,6 +19,7 @@ use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardInsufficientFundsException;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
@@ -69,12 +70,11 @@ class PaymentProcessor
      * @throws InvalidPaymentMethodException
      * @throws Exception
      */
-    public function setupBoostPayment(Boost $boost, User $user): bool
-    {
-        $paymentDetails = $this->paymentsManager
-            ->setUser($user)
-            ->createPaymentFromBoost($boost);
-
+    public function setupBoostPayment(
+        Boost $boost,
+        User $user,
+        PaymentDetails $paymentDetails
+    ): bool {
         $result = match ($boost->getPaymentMethod()) {
             BoostPaymentMethod::CASH => $this->setupCashPaymentIntent($boost, $paymentDetails, $user),
             BoostPaymentMethod::OFFCHAIN_TOKENS => $this->setupOffchainTokensPayment($boost),
@@ -89,18 +89,35 @@ class PaymentProcessor
 
     /**
      * @param Boost $boost
+     * @param User $user
+     * @return PaymentDetails
+     * @throws InvalidPaymentMethodException
+     * @throws ServerErrorException
+     */
+    public function createMindsPayment(Boost $boost, User $user): PaymentDetails
+    {
+        return $this->paymentsManager
+            ->setUser($user)
+            ->createPaymentFromBoost($boost);
+    }
+
+    /**
+     * @param Boost $boost
+     * @param PaymentDetails $paymentDetails
+     * @param User $user
      * @return bool
-     * @throws Exception
+     * @throws BoostCashPaymentSetupFailedException
+     * @throws GiftCardInsufficientFundsException
      */
     private function setupCashPaymentIntent(Boost $boost, PaymentDetails $paymentDetails, User $user): bool
     {
         if ($boost->getPaymentMethodId() === self::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+            $boost->setPaymentTxId(self::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID);
             $this->giftCardsManager->spend(
                 $user,
                 GiftCardProductIdEnum::BOOST,
                 $paymentDetails
             );
-            $boost->setPaymentTxId(self::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID);
             return true;
         }
 

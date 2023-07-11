@@ -24,7 +24,6 @@ class PaymentMethodsController
     /**
      * Get a list of payment methods for the logged in user
      * @param User $loggedInUser
-     * @param GiftCardProductIdEnum|null $productIdEnum
      * @return PaymentMethod[]
      * @throws Exception
      */
@@ -32,8 +31,8 @@ class PaymentMethodsController
     #[Logged]
     public function paymentMethods(
         #[InjectUser] User $loggedInUser,
-        ?GiftCardProductIdEnum $productIdEnum = null
+        ?GiftCardProductIdEnum $productId = null
     ): array {
-        return $this->paymentMethodsManager->getPaymentMethods($loggedInUser, $productIdEnum);
+        return $this->paymentMethodsManager->getPaymentMethods($loggedInUser, $productId);
     }
 }

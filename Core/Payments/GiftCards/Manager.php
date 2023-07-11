@@ -8,6 +8,7 @@ use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardPaymentTypeEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardAlreadyClaimedException;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardInsufficientFundsException;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardPaymentFailedException;
 use Minds\Core\Payments\GiftCards\Exceptions\InvalidGiftCardClaimCodeException;
@@ -244,6 +245,18 @@ class Manager
     }
 
     /**
+     * @param User $user
+     * @param GiftCardProductIdEnum $productIdEnum
+     * @return float
+     * @throws GiftCardNotFoundException
+     * @throws ServerErrorException
+     */
+    public function getUserBalanceForProduct(User $user, GiftCardProductIdEnum $productIdEnum): float
+    {
+        return $this->repository->getUserBalanceForProduct($user->getGuid(), $productIdEnum);
+    }
+
+    /**
      * Returns transactions associated with a user
      * @return iterable<GiftCardTransaction>
      */
@@ -267,13 +280,17 @@ class Manager
 
     /**
      * Allows the user to spend against their gift card
+     * @param User $user
+     * @param GiftCardProductIdEnum $productId
+     * @param PaymentDetails $payment
+     * @throws GiftCardInsufficientFundsException
      */
     public function spend(
         User $user,
         GiftCardProductIdEnum $productId,
         PaymentDetails $payment,
     ): void {
-        $uncollectedPaymentAmount = round($payment->paymentAmountMillis / 1000, 2) * -1;
+        $uncollectedPaymentAmount = round($payment->paymentAmountMillis / 1000, 2);
 
         $giftCards = $this->repository->getGiftCards(
             claimedByGuid: $user->getGuid(),
@@ -281,7 +298,11 @@ class Manager
         );
 
         foreach ($giftCards as $giftCard) {
-            $uncollectedPaymentAmount -= $giftCard->getBalance();
+            if ($giftCard->balance <= 0) {
+                continue;
+            }
+            
+            $uncollectedPaymentAmount -= $giftCard->balance;
             $this->repository->addGiftCardTransaction(
                 new GiftCardTransaction(
                     paymentGuid: $payment->paymentGuid,
@@ -294,6 +315,10 @@ class Manager
             if ($uncollectedPaymentAmount <= 0) {
                 return;
             }
+        }
+
+        if ($uncollectedPaymentAmount > 0) {
+            throw new GiftCardInsufficientFundsException();
         }
     }
 

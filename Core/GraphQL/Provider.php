@@ -15,6 +15,8 @@ class Provider extends DiProvider
         $this->di->bind(SchemaFactory::class, function (Di $di, array $args = []): SchemaFactory {
             $cache = new APCuCache();
 
+            $cache->clear();
+
             /**
              * PSR-11 Container Wrapper
              */
@@ -31,7 +33,7 @@ class Provider extends DiProvider
              * The library requires some default namespaces
              */
             $factory->addControllerNamespace('Minds\\Core\\GraphQL\\Controllers')
-                    ->addTypeNamespace('Minds\\Core\\GraphQL\\Types');
+                    ->addTypeNamespace('Minds\\Core\\');
 
             if (isset($args['auth_service'])) {
                 $factory->setAuthenticationService($args['auth_service']);
