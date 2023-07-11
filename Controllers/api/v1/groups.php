@@ -48,7 +48,7 @@ class groups implements Interfaces\Api
                 $groups = iterator_to_array($manager->getGroups(
                     user: $user,
                     limit: 12, // frontend client is sending 1 incorrectly
-                    offset: $opts['offset'],
+                    offset: (int) $opts['offset'],
                     loadNext: $loadNext,
                 ));
 
