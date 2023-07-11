@@ -4,12 +4,25 @@ namespace Minds\Controllers\api\v2\newsfeed;
 
 use Minds\Api\Factory;
 use Minds\Core;
+use Minds\Core\Di\Di;
+use Minds\Core\Groups\V2\Membership\Manager;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities;
 use Minds\Entities\Activity;
+use Minds\Entities\Group;
+use Minds\Exceptions\NotFoundException;
 use Minds\Interfaces;
 
 class pin implements Interfaces\Api
 {
+    public function __construct(
+        protected ?Manager $membershipManager = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null
+    ) {
+        $this->membershipManager = Di::_()->get(Manager::class);
+        $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
+    }
+
     public function get($pages)
     {
         return Factory::response([]);
@@ -27,8 +40,18 @@ class pin implements Interfaces\Api
         $user = Core\Session::getLoggedinUser();
 
         if ($activity->container_guid != $user->guid) {
-            $group = Entities\Factory::build($activity->container_guid);
-            if ($group->isModerator($user) || $group->isOwner($user)) {
+            /** @var Group */
+            $group = $this->entitiesBuilder->single($activity->container_guid);
+
+            try {
+                $membership = $this->membershipManager->getMembership($group, $user);
+            } catch (NotFoundException $e) {
+                return Factory::response([
+                    'error' => 'No group membership was found'
+                ]);
+            }
+
+            if ($membership->isModerator() || $membership->isOwner()) {
                 $group->addPinned($activity->guid);
                 $group->save();
             } else {
@@ -60,8 +83,18 @@ class pin implements Interfaces\Api
         $user = Core\Session::getLoggedinUser();
 
         if ($activity->container_guid != $user->guid) {
-            $group = Entities\Factory::build($activity->container_guid);
-            if ($group->isModerator($user) || $group->isOwner($user)) {
+            /** @var Group */
+            $group = $this->entitiesBuilder->single($activity->container_guid);
+
+            try {
+                $membership = $this->membershipManager->getMembership($group, $user);
+            } catch (NotFoundException $e) {
+                return Factory::response([
+                    'error' => 'No group membership was found'
+                ]);
+            }
+        
+            if ($membership->isModerator() || $membership->isOwner()) {
                 $group->removePinned($activity->guid);
                 $group->save();
             } else {
