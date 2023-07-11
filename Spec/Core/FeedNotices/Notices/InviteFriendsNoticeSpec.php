@@ -23,6 +23,11 @@ class InviteFriendsNoticeSpec extends ObjectBehavior
         $this->getKey()->shouldBe('invite-friends');
     }
 
+    public function it_should_get_whether_notice_is_dismissible()
+    {
+        $this->isDismissible()->shouldBe(true);
+    }
+
     public function it_should_determine_if_notice_should_show(
         User $user,
     ) {
@@ -43,7 +48,8 @@ class InviteFriendsNoticeSpec extends ObjectBehavior
         $this->export()->shouldBe([
             'key' => 'invite-friends',
             'location' => 'top',
-            'should_show' => true
+            'should_show' => true,
+            'is_dismissible' => true
         ]);
     }
 }
