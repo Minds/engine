@@ -33,7 +33,7 @@ class Provider extends DiProvider
              * The library requires some default namespaces
              */
             $factory->addControllerNamespace('Minds\\Core\\GraphQL\\Controllers')
-                    ->addTypeNamespace('Minds\\Core\\');
+                    ->addTypeNamespace('Minds\\Core\\GraphQL\\Types');
 
             if (isset($args['auth_service'])) {
                 $factory->setAuthenticationService($args['auth_service']);
