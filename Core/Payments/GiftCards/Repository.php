@@ -64,6 +64,14 @@ class Repository extends AbstractRepository
     public function addGiftCardTransaction(GiftCardTransaction $giftCardTransaction): bool
     {
         try {
+
+            $this->logger->info('Adding gift card transaction', [
+                'payment_guid' => $giftCardTransaction->paymentGuid,
+                'gift_card_guid' => $giftCardTransaction->giftCardGuid,
+                'amount' => $giftCardTransaction->amount,
+                'created_at' => $giftCardTransaction->createdAt,
+            ]);
+
             $query = $this->mysqlClientWriterHandler
                 ->insert()
                 ->into('minds_gift_card_transactions')
@@ -71,7 +79,7 @@ class Repository extends AbstractRepository
                     'payment_guid' => $giftCardTransaction->paymentGuid,
                     'gift_card_guid' => $giftCardTransaction->giftCardGuid,
                     'amount' => $giftCardTransaction->amount,
-                    'created_at' => date('c', $giftCardTransaction->createdAt),
+                    'created_at' => $giftCardTransaction->createdAtWithMilliseconds?->format("Y-m-d H:i:s.v") ?? date('c', $giftCardTransaction->createdAt),
                 ]);
             return $query->execute();
         } catch (PDOException $e) {
@@ -184,6 +192,7 @@ class Repository extends AbstractRepository
         });
 
         $pdoStatement = $query->prepare();
+
         $pdoStatement->execute($params);
 
         $hasMore = false;
@@ -407,7 +416,7 @@ class Repository extends AbstractRepository
             ])
             ->from('minds_gift_cards')
             ->innerJoin('minds_gift_card_transactions', 'minds_gift_cards.guid', Operator::EQ, 'minds_gift_card_transactions.gift_card_guid')
-            ->groupBy('minds_gift_cards.guid');
+            ->groupBy('minds_gift_cards.guid', 'issued_at');
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Payments\GiftCards;
 
+use DateTime;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
@@ -107,6 +108,7 @@ class Manager
                 giftCardGuid: $giftCard->guid,
                 amount: $amount,
                 createdAt: time(),
+                createdAtWithMilliseconds: new DateTime("now")
             );
             $this->repository->addGiftCardTransaction($giftCardTransaction);
 
@@ -284,6 +286,8 @@ class Manager
      * @param GiftCardProductIdEnum $productId
      * @param PaymentDetails $payment
      * @throws GiftCardInsufficientFundsException
+     * @throws GiftCardNotFoundException
+     * @throws ServerErrorException
      */
     public function spend(
         User $user,
@@ -292,23 +296,33 @@ class Manager
     ): void {
         $uncollectedPaymentAmount = round($payment->paymentAmountMillis / 1000, 2);
 
+        $totalGiftCardBalance = $this->repository->getUserBalanceForProduct((int) $user->getGuid(), $productId);
+
+        if ($totalGiftCardBalance < $uncollectedPaymentAmount) {
+            throw new GiftCardInsufficientFundsException();
+        }
+
         $giftCards = $this->repository->getGiftCards(
             claimedByGuid: $user->getGuid(),
             productId: $productId
         );
 
+        $createdAtTimestamp = time();
+        $createdAtWithMilliseconds = new DateTime("now");
+
         foreach ($giftCards as $giftCard) {
             if ($giftCard->balance <= 0) {
                 continue;
             }
-            
+
             $uncollectedPaymentAmount -= $giftCard->balance;
             $this->repository->addGiftCardTransaction(
                 new GiftCardTransaction(
                     paymentGuid: $payment->paymentGuid,
                     giftCardGuid: $giftCard->guid,
-                    amount: $uncollectedPaymentAmount < 0 ? round($payment->paymentAmountMillis / 1000, 2) * -1 : $giftCard->balance * -1,
-                    createdAt: time(),
+                    amount: $uncollectedPaymentAmount < 0 ? ($uncollectedPaymentAmount + $giftCard->balance) * -1 : $giftCard->balance * -1,
+                    createdAt: $createdAtTimestamp,
+                    createdAtWithMilliseconds: $createdAtWithMilliseconds
                 )
             );
 
@@ -331,13 +345,22 @@ class Manager
     {
         $transactions = $this->repository->getGiftCardTransactionsFromPaymentGuid($paymentGuid);
 
+        $this->logger->info('Refunding gift card transactions', [
+            'paymentGuid' => $paymentGuid,
+            'transactions' => $transactions,
+        ]);
+
+        $createdAtTimestamp = time();
+        $createdAtWithMilliseconds = new DateTime("now");
+
         foreach ($transactions as $transaction) {
             $this->repository->addGiftCardTransaction(
                 new GiftCardTransaction(
                     paymentGuid: $paymentGuid,
                     giftCardGuid: $transaction->giftCardGuid,
                     amount: $transaction->amount * -1, // Reverse the transaction
-                    createdAt: time(),
+                    createdAt: $createdAtTimestamp,
+                    createdAtWithMilliseconds: $createdAtWithMilliseconds
                 )
             );
         }

@@ -236,6 +236,11 @@ class PaymentProcessor
         if (!$boostOwner || !$boostOwner instanceof User) {
             $boostOwner = null;
         }
+
+        if ($boost->getPaymentTxId() === self::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+            return true;
+        }
+        
         return $this->getIntentsManager()->capturePaymentIntent($boost->getPaymentTxId(), $boostOwner);
     }
 

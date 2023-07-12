@@ -147,7 +147,7 @@ class Controller
             loadBefore: $loadBefore,
             hasMore: $hasMore,
         );
-    
+        
         foreach ($giftCards as $giftCard) {
             // Required for sub query of transactions
             $giftCard->setQueryRef($this, $loggedInUser);

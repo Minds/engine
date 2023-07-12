@@ -174,8 +174,8 @@ class Manager
                 throw new BoostCreationFailedException();
             }
         } catch (BoostCreationFailedException|GiftCardInsufficientFundsException $e) {
-            $this->paymentProcessor->refundBoostPayment($boost);
             $this->repository->rollbackTransaction();
+            $this->paymentProcessor->refundBoostPayment($boost);
 
             throw $e;
         } catch (Exception $e) {
