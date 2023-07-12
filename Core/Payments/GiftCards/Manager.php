@@ -181,6 +181,15 @@ class Manager
     }
 
     /**
+     * Returns a single GiftCard by its claim code.
+     * @return GiftCard - gift card by claim code.
+     */
+    public function getGiftCardByClaimCode(string $claimCode): GiftCard
+    {
+        return $this->repository->getGiftCardByClaimCode($claimCode);
+    }
+
+    /**
      * A user can claim a gift code if they know the claim code
      * @param User $claimant
      * @param string $claimCode
