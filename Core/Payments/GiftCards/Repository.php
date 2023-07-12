@@ -187,8 +187,8 @@ class Repository extends AbstractRepository
         $query->orderBy(match ($ordering) {
             GiftCardOrderingEnum::CREATED_ASC => 'issued_at asc',
             GiftCardOrderingEnum::CREATED_DESC => 'issued_at desc',
-            GiftCardOrderingEnum::EXPIRING_ASC => 'expring_at asc',
-            GiftCardOrderingEnum::EXPIRING_DESC => 'expring_at asc',
+            GiftCardOrderingEnum::EXPIRING_ASC => 'expires_at asc',
+            GiftCardOrderingEnum::EXPIRING_DESC => 'expires_at asc',
         });
 
         $pdoStatement = $query->prepare();
@@ -416,7 +416,7 @@ class Repository extends AbstractRepository
             ])
             ->from('minds_gift_cards')
             ->innerJoin('minds_gift_card_transactions', 'minds_gift_cards.guid', Operator::EQ, 'minds_gift_card_transactions.gift_card_guid')
-            ->groupBy('minds_gift_cards.guid', 'issued_at');
+            ->groupBy('minds_gift_cards.guid');
     }
 
     /**

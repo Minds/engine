@@ -81,7 +81,7 @@ class GiftCards extends Cli\Controller implements Interfaces\CliControllerInterf
         $giftCard = $this->giftCardsManager->createGiftCard(
             issuer: $user,
             productId: GiftCardProductIdEnum::BOOST,
-            amount: 10,
+            amount: (float) $this->getOpt('amount') ?? 10,
             stripePaymentMethodId: $this->getOpt('stripe_payment_method_id') ?? "",
             giftCardPaymentTypeEnum: GiftCardPaymentTypeEnum::tryFrom((int)$this->getOpt('payment_type')) ?? throw new InvalidArgumentException('Invalid payment type')
         );
