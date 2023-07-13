@@ -359,18 +359,13 @@ class Manager
             'transactions' => $transactions,
         ]);
 
-        $createdAtTimestamp = time();
-        $createdAtWithMilliseconds = new DateTime("now");
+        $refundedAtWithMilliseconds = new DateTime("now");
 
         foreach ($transactions as $transaction) {
-            $this->repository->addGiftCardTransaction(
-                new GiftCardTransaction(
-                    paymentGuid: $paymentGuid,
-                    giftCardGuid: $transaction->giftCardGuid,
-                    amount: $transaction->amount * -1, // Reverse the transaction
-                    createdAt: $createdAtTimestamp,
-                    createdAtWithMilliseconds: $createdAtWithMilliseconds
-                )
+            $this->repository->markTransactionAsRefunded(
+                paymentGuid: $paymentGuid,
+                giftCardGuid: $transaction->giftCardGuid,
+                refundedAtWithMilliseconds: $refundedAtWithMilliseconds
             );
         }
     }
