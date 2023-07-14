@@ -11,7 +11,7 @@ use Minds\Core\Feeds\ClusteredRecommendations;
 use Minds\Core\Feeds\Elastic\V2\Enums\MediaTypeEnum;
 use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
 use Minds\Core\Feeds\Seen\Manager as SeenManager;
-use Minds\Core\Groups\Membership;
+use Minds\Core\Groups\V2\Membership;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Exceptions\ServerErrorException;
@@ -24,7 +24,7 @@ class Manager
         protected ClusteredRecommendations\MySQLRepository $clusteredRecsRepository,
         protected SeenManager $seenManager,
         protected EntitiesBuilder $entitiesBuilder,
-        protected Membership $groupsMembership,
+        protected Membership\Manager $groupsMembershipManager,
         protected ACL $acl,
     ) {
     }
@@ -477,9 +477,7 @@ class Manager
                     'container_guid' =>
                         array_map(function ($guid) {
                             return (string) $guid;
-                        }, $this->groupsMembership->getGroupGuidsByMember([
-                            'user_guid' => $queryOpts->user->getGuid(),
-                        ])),
+                        }, $this->groupsMembershipManager->getGroupGuids($queryOpts->user)),
                 ]
             ];
         }

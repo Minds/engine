@@ -35,6 +35,10 @@ class Scroll
         $request = clone $prepared;
         $cqlOpts = $request->getOpts() ?: [];
 
+        if ($pagingToken) {
+            $cqlOpts['paging_state_token'] = $pagingToken;
+        }
+
         if (!isset($cqlOpts['page_size']) || !$cqlOpts['page_size']) {
             $cqlOpts['page_size'] = 500;
         }

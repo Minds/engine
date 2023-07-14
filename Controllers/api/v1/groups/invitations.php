@@ -9,22 +9,48 @@ use Minds\Core;
 use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Entities\User;
-
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Groups\V2\Membership\Manager;
+use Minds\Entities\Group;
 use Minds\Exceptions\GroupOperationException;
+use Minds\Exceptions\NotFoundException;
+use Minds\Exceptions\UserErrorException;
 
 class invitations implements Interfaces\Api
 {
+    public function __construct(
+        protected ?Manager $membershipManager = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null
+    ) {
+        $this->membershipManager = Di::_()->get(Core\Groups\V2\Membership\Manager::class);
+        $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
+    }
+
     public function get($pages)
     {
         Factory::isLoggedIn();
 
-        $group = EntitiesFactory::build($pages[0]);
+        $group = $this->entitiesBuilder->single($pages[0]);
+    
+        if (!$group instanceof Group) {
+            throw new UserErrorException("Invalid group");
+        }
+    
         $user = Session::getLoggedInUser();
 
-        if (!$group->isMember($user)) {
+        try {
+            $membership = $this->membershipManager->getMembership($group, $user);
+        } catch (NotFoundException $e) {
+            return Factory::response([
+                'error' => 'You cannot read invitations'
+            ]);
+        }
+
+        if (!$membership->isMember()) {
             return Factory::response([
                 'error' => 'You cannot read invitations'
             ]);
@@ -59,10 +85,17 @@ class invitations implements Interfaces\Api
         }
         // End check-only response
 
-        $group = EntitiesFactory::build($pages[0]);
+        $group = $this->entitiesBuilder->single($pages[0]);
+    
+        if (!$group instanceof Group) {
+            throw new UserErrorException("Invalid group");
+        }
+    
         $invitee = Session::getLoggedInUser();
 
-        if ($group->isMember($invitee)) {
+        try {
+            $membership = $this->membershipManager->getMembership($group, $invitee);
+        } catch (NotFoundException $e) {
             return Factory::response([]);
         }
 
@@ -71,11 +104,6 @@ class invitations implements Interfaces\Api
           ->setActor($invitee);
 
         if (!$invitations->isInvited($invitee)) {
-            return Factory::response([]);
-        }
-
-        $membership = new Core\Groups\Membership($group);
-        if ($membership->isBanned($invitee)) {
             return Factory::response([]);
         }
 
@@ -106,7 +134,8 @@ class invitations implements Interfaces\Api
     {
         Factory::isLoggedIn();
 
-        $group = EntitiesFactory::build($pages[0]);
+        /** @var Group */
+        $group = $this->entitiesBuilder->single($pages[0]);
         $user = Session::getLoggedInUser();
         $payload = json_decode(file_get_contents('php://input'), true);
 
@@ -133,11 +162,15 @@ class invitations implements Interfaces\Api
             ]);
         }
 
-        $membership = (new Core\Groups\Membership())
-          ->setGroup($group);
-        $banned = $membership->isBanned($invitee);
+        try {
+            $membership = $this->membershipManager->getMembership($group, $invitee);
+        } catch (NotFoundException $e) {
+            $membership = null;
+        }
+    
+        $banned = $membership?->isBanned();
 
-        if ($banned && !$group->isOwner($user)) {
+        if ($banned && !$membership?->isOwner()) {
             return Factory::response([
                 'done' => false,
                 'error' => 'User is banned from this group'

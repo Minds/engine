@@ -173,12 +173,30 @@ class Controller
      * Returns an individual gift card
      */
     #[Query]
+    #[Logged]
     public function giftCard(
         string $guid
     ): GiftCard {
         $giftCard = $this->manager->getGiftCard((int) $guid);
         // Required for sub query of transactions
         $giftCard->setQueryRef($this);
+        return $giftCard;
+    }
+
+    /**
+     * Returns an individual gift card by its claim code.
+     * @param string $claimCode - claim code to get gift card by.
+     * @return GiftCard requested gift card.
+     */
+    #[Query]
+    #[Logged]
+    public function giftCardByClaimCode(
+        string $claimCode,
+        #[InjectUser] User $loggedInUser = null // Do not add in docblock as it will break GraphQL
+    ): GiftCard {
+        $giftCard = $this->manager->getGiftCardByClaimCode($claimCode);
+        // Required for sub query of transactions
+        $giftCard->setQueryRef($this, $loggedInUser);
         return $giftCard;
     }
 
