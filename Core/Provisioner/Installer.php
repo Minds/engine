@@ -115,10 +115,10 @@ class Installer
 
         // REVNOTE: Removing because I don't think use-existing-settings should exclude necessary parameter checks,
         // in case there are errors in the settings.php file.
-//        if (isset($this->options['use-existing-settings']) && $this->options['use-existing-settings']) {
-//            // Finish checking if we're using the existing settings file
-//            return;
-//        }
+        //        if (isset($this->options['use-existing-settings']) && $this->options['use-existing-settings']) {
+        //            // Finish checking if we're using the existing settings file
+        //            return;
+        //        }
 
         if (!isset($this->options['domain']) || !$this->options['domain']) {
             throw new ProvisionException('Domain name was not provided');
