@@ -17,6 +17,8 @@ use Minds\Core\Sockets;
 use Minds\Core\Session;
 use Minds\Core\Security\ACL;
 use Minds\Entities\EntityInterface;
+use Minds\Entities\Image;
+use Minds\Entities\Video;
 
 class Events
 {
@@ -117,25 +119,27 @@ class Events
             }
         });
 
-        // If comment is container_guid then decide if we can allow access
-        $this->eventsDispatcher->register('acl:read', 'all', function (Event $event) {
+        // Attachments on comments should have the same permissions as the comment parent
+        // This call only happens when the 'container_guid' is not correctly set, which requires further investigation
+        $this->eventsDispatcher->register('acl:read', 'object', function (Event $event) {
             $params = $event->getParameters();
             $entity = $params['entity'];
-            $user = $params['user'];
 
-            if (!method_exists($entity, 'getContainerGuid')) {
+            if ((!$entity instanceof Image || $entity instanceof Video)) {
+                // Skip as this is not an image or a video
                 return;
             }
 
-            $container = EntitiesFactory::build($entity->getContainerGuid());
-
-            // If the container container_guid is the same as the the container owner
-            if ($container
-                && $container->container_guid == $container->owner_guid
-                && ACL::_()->read($container)
-            ) {
-                $event->setResponse(true);
+            if (strlen($entity->getAccessId() === 1)) {
+                // Skip as this is a standard access id and not a parent
+                return;
             }
+
+            $parentEntity = EntitiesFactory::build($entity->getAccessId());
+            $user = $params['user'];
+
+            $canRead = ACL::_()->read($parentEntity, $user);
+            $event->setResponse($canRead);
         });
 
         // If comment is container_guid then decide if we can allow writing

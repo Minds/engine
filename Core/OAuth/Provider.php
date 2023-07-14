@@ -89,7 +89,7 @@ class Provider extends Di\Provider
             $accessTokenRepository = $di->get('OAuth\Repositories\AccessToken');
 
             // Path to authorization server's public key
-            $publicKeyPath = $config->get('oauth')['public_key'] ?: '/var/secure/oauth-pub.key';
+            $publicKeyPath = $config->get('oauth')['public_key'] ?? '/var/secure/oauth-pub.key';
 
             // Setup the authorization server
             $server = new ResourceServer(

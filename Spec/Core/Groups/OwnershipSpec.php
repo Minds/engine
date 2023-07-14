@@ -65,8 +65,8 @@ class OwnershipSpec extends ObjectBehavior
         }))
             ->willReturn(true);
 
-        $group1->getMembersCount()
-            ->willReturn(100);
+        // $group1->getMembersCount()
+        //     ->willReturn(100);
 
         $group2->isPublic()
             ->willReturn(false);
@@ -76,8 +76,8 @@ class OwnershipSpec extends ObjectBehavior
         }))
             ->willReturn(true);
 
-        $group2->getMembersCount()
-            ->willReturn(200);
+        // $group2->getMembersCount()
+        //     ->willReturn(200);
 
         $group3->isPublic()
             ->willReturn(true);
@@ -87,8 +87,8 @@ class OwnershipSpec extends ObjectBehavior
         }))
             ->willReturn(true);
 
-        $group3->getMembersCount()
-            ->willReturn(300);
+        // $group3->getMembersCount()
+        //     ->willReturn(300);
 
         $this
             ->setUserGuid(1000)
@@ -97,7 +97,7 @@ class OwnershipSpec extends ObjectBehavior
                 'offset' => 1,
                 'limit' => 3,
             ])
-            ->shouldBeAResponse([ $group3, $group1 ]);
+            ->shouldBeAResponse([ $group1, $group3 ]);
     }
 
     public function it_should_fetch_an_empty_set()
