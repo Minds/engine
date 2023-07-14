@@ -13,6 +13,7 @@ use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\Stripe\PaymentMethods\Manager as PaymentMethodsManager;
 use Minds\Core\Security\ProhibitedDomains;
 use Minds\Core\Session;
@@ -117,7 +118,7 @@ class BoostCreateRequestValidator implements ValidatorInterface
                 )
             );
         } elseif ((int) $dataToValidate['payment_method'] === BoostPaymentMethod::CASH) {
-            if ($dataToValidate['payment_method_id'] !== "gift_card") {
+            if ($dataToValidate['payment_method_id'] !== GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
                 $isPaymentMethodIdValid = $this->paymentMethodsManager->checkPaymentMethodOwnership(
                     $this->getLoggedInUserGuid(),
                     $dataToValidate['payment_method_id']

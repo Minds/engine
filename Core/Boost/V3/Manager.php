@@ -14,6 +14,7 @@ use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
+use Minds\Core\Boost\V3\Exceptions\BoostCashPaymentSetupFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostCreationFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
@@ -148,50 +149,100 @@ class Manager
             ->setOwnerGuid($this->user->getGuid())
             ->setPaymentMethodId($data['payment_method_id'] ?? null);
 
-        // $this->repository->beginTransaction();
+        $this->processNewBoost($boost, $data['payment_tx_id']);
 
+        $this->repository->commitTransaction();
+        $this->paymentProcessor->commitTransaction();
+
+        $this->actionEventDelegate->onCreate($boost);
+
+        if ($boost->getStatus() === BoostStatus::APPROVED) {
+            $this->actionEventDelegate->onApprove($boost);
+        }
+
+        return true;
+    }
+
+    /**
+     * @param Boost $boost
+     * @param bool $isOnchainBoost
+     * @param string|null $paymentTxId
+     * @return void
+     * @throws BoostCashPaymentSetupFailedException
+     * @throws BoostPaymentSetupFailedException
+     * @throws GiftCardInsufficientFundsException
+     * @throws InvalidBoostPaymentMethodException
+     * @throws InvalidPaymentMethodException
+     * @throws KeyNotSetupException
+     * @throws LockFailedException
+     * @throws OffchainWalletInsufficientFundsException
+     * @throws ServerErrorException
+     */
+    private function processNewBoostPayment(Boost $boost, bool $isOnchainBoost, ?string $paymentTxId = null) : void
+    {
+        $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user);
+        $boost->setPaymentGuid($paymentDetails->paymentGuid);
+
+        $this->repository->beginTransaction();
+        $this->paymentProcessor->beginTransaction();
+
+        if ($isOnchainBoost) {
+            $boost->setStatus(BoostStatus::PENDING_ONCHAIN_CONFIRMATION)
+                ->setPaymentTxId($paymentTxId);
+        } elseif (!$this->paymentProcessor->setupBoostPayment($boost, $this->user, $paymentDetails)) {
+            throw new BoostPaymentSetupFailedException();
+        }
+    }
+
+    /**
+     * @param Boost $boost
+     * @param string|null $paymentTxId
+     * @return void
+     * @throws ApiErrorException
+     * @throws BoostCreationFailedException
+     * @throws BoostPaymentCaptureFailedException
+     * @throws BoostPaymentSetupFailedException
+     * @throws BoostCashPaymentSetupFailedException
+     * @throws GiftCardInsufficientFundsException
+     * @throws InvalidBoostPaymentMethodException
+     * @throws InvalidPaymentMethodException
+     * @throws KeyNotSetupException
+     * @throws LockFailedException
+     * @throws OffchainWalletInsufficientFundsException
+     * @throws ServerErrorException
+     * @throws StripeTransferFailedException
+     * @throws UserErrorException
+     */
+    private function processNewBoost(Boost $boost, ?string $paymentTxId = null): void
+    {
         try {
             $isOnchainBoost = $boost->getPaymentMethod() === BoostPaymentMethod::ONCHAIN_TOKENS;
 
             if (!$isOnchainBoost && $this->preApprovalManager->shouldPreApprove($this->user)) {
                 $this->preApprove($boost);
-                return true;
+                return;
             }
 
-            $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user);
-            $boost->setPaymentGuid($paymentDetails->paymentGuid);
-
-            $this->repository->beginTransaction();
-
-            if ($isOnchainBoost) {
-                $boost->setStatus(BoostStatus::PENDING_ONCHAIN_CONFIRMATION)
-                    ->setPaymentTxId($data['payment_tx_id']);
-            } elseif (!$this->paymentProcessor->setupBoostPayment($boost, $this->user, $paymentDetails)) {
-                throw new BoostPaymentSetupFailedException();
-            }
+            $this->processNewBoostPayment($boost, $isOnchainBoost, $paymentTxId);
 
             if (!$this->repository->createBoost($boost)) {
                 throw new BoostCreationFailedException();
             }
         } catch (BoostCreationFailedException|GiftCardInsufficientFundsException $e) {
-            $this->repository->rollbackTransaction();
             $this->paymentProcessor->refundBoostPayment($boost);
+            $this->repository->rollbackTransaction();
 
             throw $e;
         } catch (Exception $e) {
             $this->repository->rollbackTransaction();
             throw $e;
         }
-
-        $this->repository->commitTransaction();
-
-        $this->actionEventDelegate->onCreate($boost);
-
-        return true;
     }
 
     /**
      * Takes a boost ready for creation and pre-approves it.
+     *
+     * TODO: Refactor as it has unnecessary duplication with processNewBoost
      * @param Boost $boost - boost to pre-approve.
      * @return void
      * @throws ApiErrorException
@@ -215,6 +266,9 @@ class Manager
             ->setUpdatedTimestamp($presetTimestamp)
             ->setApprovedTimestamp($presetTimestamp);
 
+        /**
+         * We had to 
+         */
         $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user);
 
         $this->repository->beginTransaction();
@@ -230,11 +284,6 @@ class Manager
         if (!$this->repository->createBoost($boost)) {
             throw new BoostCreationFailedException();
         }
-
-        $this->repository->commitTransaction();
-
-        $this->actionEventDelegate->onCreate($boost);
-        $this->actionEventDelegate->onApprove($boost);
     }
 
     /**

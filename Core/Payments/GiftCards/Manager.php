@@ -1,7 +1,6 @@
 <?php
 namespace Minds\Core\Payments\GiftCards;
 
-use DateTime;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
@@ -29,6 +28,8 @@ use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class Manager
 {
+    private bool $inTransaction = false;
+
     public function __construct(
         protected Repository $repository,
         protected PaymentsManager $paymentsManager,
@@ -36,6 +37,25 @@ class Manager
         private readonly EmailDelegate $emailDelegate,
         private readonly Logger $logger
     ) {
+    }
+
+    public function setInTransaction(bool $value): void
+    {
+        $this->inTransaction = $value;
+    }
+
+    public function commitTransaction(): void
+    {
+        if ($this->inTransaction) {
+            $this->repository->commitTransaction();
+        }
+    }
+
+    public function rollbackTransaction(): void
+    {
+        if ($this->inTransaction) {
+            $this->repository->rollbackTransaction();
+        }
     }
 
     /**
@@ -65,7 +85,7 @@ class Manager
             $expiresAt = strtotime('+1 year');
         }
 
-        // Build a guid out
+        // Build a guid
         $giftCardGuid = Guid::build();
 
         $issuedAt = time();
@@ -107,8 +127,7 @@ class Manager
                 paymentGuid: $paymentDetails->paymentGuid,
                 giftCardGuid: $giftCard->guid,
                 amount: $amount,
-                createdAt: time(),
-                createdAtWithMilliseconds: new DateTime("now")
+                createdAt: time()
             );
             $this->repository->addGiftCardTransaction($giftCardTransaction);
 
@@ -317,31 +336,43 @@ class Manager
         );
 
         $createdAtTimestamp = time();
-        $createdAtWithMilliseconds = new DateTime("now");
 
+        $this->repository->beginTransaction();
+
+        $paymentSuccessful = false;
         foreach ($giftCards as $giftCard) {
             if ($giftCard->balance <= 0) {
                 continue;
             }
 
             $uncollectedPaymentAmount -= $giftCard->balance;
-            $this->repository->addGiftCardTransaction(
-                new GiftCardTransaction(
-                    paymentGuid: $payment->paymentGuid,
-                    giftCardGuid: $giftCard->guid,
-                    amount: $uncollectedPaymentAmount < 0 ? ($uncollectedPaymentAmount + $giftCard->balance) * -1 : $giftCard->balance * -1,
-                    createdAt: $createdAtTimestamp,
-                    createdAtWithMilliseconds: $createdAtWithMilliseconds
+            if (
+                !$this->repository->addGiftCardTransaction(
+                    new GiftCardTransaction(
+                        paymentGuid: $payment->paymentGuid,
+                        giftCardGuid: $giftCard->guid,
+                        amount: $uncollectedPaymentAmount < 0 ? ($uncollectedPaymentAmount + $giftCard->balance) * -1 : $giftCard->balance * -1,
+                        createdAt: $createdAtTimestamp
+                    )
                 )
-            );
+            ) {
+                $this->repository->rollbackTransaction();
+                throw new ServerErrorException();
+            }
 
             if ($uncollectedPaymentAmount <= 0) {
-                return;
+                $paymentSuccessful = true;
+                break;
             }
         }
 
-        if ($uncollectedPaymentAmount > 0) {
+        if (!$paymentSuccessful) {
+            $this->repository->rollbackTransaction();
             throw new GiftCardInsufficientFundsException();
+        }
+
+        if (!$this->inTransaction) {
+            $this->repository->commitTransaction();
         }
     }
 
@@ -359,13 +390,13 @@ class Manager
             'transactions' => $transactions,
         ]);
 
-        $refundedAtWithMilliseconds = new DateTime("now");
+        $refundedAt = time();
 
         foreach ($transactions as $transaction) {
             $this->repository->markTransactionAsRefunded(
                 paymentGuid: $paymentGuid,
                 giftCardGuid: $transaction->giftCardGuid,
-                refundedAtWithMilliseconds: $refundedAtWithMilliseconds
+                refundedAt: $refundedAt
             );
         }
     }

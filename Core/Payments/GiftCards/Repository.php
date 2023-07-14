@@ -80,7 +80,7 @@ class Repository extends AbstractRepository
                     'payment_guid' => $giftCardTransaction->paymentGuid,
                     'gift_card_guid' => $giftCardTransaction->giftCardGuid,
                     'amount' => $giftCardTransaction->amount,
-                    'created_at' => $giftCardTransaction->createdAtWithMilliseconds?->format("Y-m-d H:i:s.v") ?? date('c', $giftCardTransaction->createdAt),
+                    'created_at' => date('c', $giftCardTransaction->createdAt),
                 ]);
             return $query->execute();
         } catch (PDOException $e) {
@@ -134,6 +134,7 @@ class Repository extends AbstractRepository
             $row = $statement->fetch(PDO::FETCH_ASSOC);
             return $this->buildGiftCardModel($row);
         } catch (\PDOException $e) {
+            error_log($e->getMessage());
             throw new \Exception('Error getting gift card by claim code', 0, $e);
         }
     }
@@ -478,12 +479,12 @@ class Repository extends AbstractRepository
     public function markTransactionAsRefunded(
         int $paymentGuid,
         int $giftCardGuid,
-        DateTime $refundedAtWithMilliseconds
+        int $refundedAt
     ): void {
         $this->logger->info('Marking gift card transaction as refunded', [
             'payment_guid' => $paymentGuid,
             'gift_card_guid' => $giftCardGuid,
-            'refunded_at' => $refundedAtWithMilliseconds->format('Y-m-d H:i:s.v'),
+            'refunded_at' => date('c', $refundedAt),
         ]);
 
         $statement = $this->mysqlClientWriterHandler->update()

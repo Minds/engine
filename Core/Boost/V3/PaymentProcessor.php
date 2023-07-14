@@ -20,7 +20,9 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardInsufficientFundsException;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
+use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
@@ -39,7 +41,7 @@ class PaymentProcessor
 {
     public const SERVICE_FEE_PERCENT = 0;
 
-    private const DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID = "gift_card";
+    private bool $inTransaction = false;
 
     public function __construct(
         private ?IntentsManagerV2 $intentsManager = null,
@@ -58,17 +60,31 @@ class PaymentProcessor
         $this->giftCardsManager ??= Di::_()->get(GiftCardsManager::class);
     }
 
+    public function beginTransaction(): void
+    {
+        $this->inTransaction = true;
+    }
+
+    public function commitTransaction(): void
+    {
+        if ($this->inTransaction) {
+            $this->giftCardsManager->commitTransaction();
+        }
+    }
+
     /**
      * @param Boost $boost
      * @param User $user
+     * @param PaymentDetails $paymentDetails
      * @return bool
+     * @throws BoostCashPaymentSetupFailedException
+     * @throws GiftCardInsufficientFundsException
+     * @throws GiftCardNotFoundException
      * @throws InvalidBoostPaymentMethodException
      * @throws KeyNotSetupException
      * @throws LockFailedException
      * @throws OffchainWalletInsufficientFundsException
      * @throws ServerErrorException
-     * @throws InvalidPaymentMethodException
-     * @throws Exception
      */
     public function setupBoostPayment(
         Boost $boost,
@@ -108,11 +124,14 @@ class PaymentProcessor
      * @return bool
      * @throws BoostCashPaymentSetupFailedException
      * @throws GiftCardInsufficientFundsException
+     * @throws ServerErrorException
+     * @throws GiftCardNotFoundException
      */
     private function setupCashPaymentIntent(Boost $boost, PaymentDetails $paymentDetails, User $user): bool
     {
-        if ($boost->getPaymentMethodId() === self::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
-            $boost->setPaymentTxId(self::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID);
+        if ($boost->getPaymentMethodId() === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+            $boost->setPaymentTxId(GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID);
+            $this->giftCardsManager->setInTransaction($this->inTransaction);
             $this->giftCardsManager->spend(
                 $user,
                 GiftCardProductIdEnum::BOOST,
@@ -237,7 +256,7 @@ class PaymentProcessor
             $boostOwner = null;
         }
 
-        if ($boost->getPaymentTxId() === self::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+        if ($boost->getPaymentTxId() === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
             return true;
         }
         
@@ -310,8 +329,8 @@ class PaymentProcessor
         if (!$boostOwner || !$boostOwner instanceof User) {
             $boostOwner = null;
         }
-        if ($boost->getPaymentTxId() === self::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
-            $this->giftCardsManager->refund($boost->getPaymentGuid());
+        if ($boost->getPaymentTxId() === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+            $this->giftCardsManager->rollbackTransaction();
             return true;
         }
         

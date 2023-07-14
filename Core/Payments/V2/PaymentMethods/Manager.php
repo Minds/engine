@@ -8,6 +8,7 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
+use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\Stripe\PaymentMethods\Manager as StripePaymentMethodsManager;
 use Minds\Core\Payments\Stripe\PaymentMethods\PaymentMethod as StripePaymentMethod;
 use Minds\Core\Payments\V2\Models\PaymentMethod;
@@ -72,21 +73,11 @@ class Manager
 
         return [
             new PaymentMethod(
-                id: "gift_card",
-                name: $this->getGiftCardLabel($productIdEnum),
+                id: GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID,
+                name: GiftCardProductIdEnum::getEnumLabel($productIdEnum),
                 balance: $giftCardsTotalBalance,
             )
         ];
-    }
-
-    private function getGiftCardLabel(GiftCardProductIdEnum $productIdEnum): string
-    {
-        return match ($productIdEnum) {
-            GiftCardProductIdEnum::BOOST => "Boost Credits",
-            GiftCardProductIdEnum::PLUS => "Minds Plus Credits",
-            GiftCardProductIdEnum::PRO => "Minds Pro Credits",
-            GiftCardProductIdEnum::SUPERMIND => "Supermind Credits",
-        };
     }
 
     /**
