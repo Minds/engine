@@ -305,7 +305,12 @@ class Manager
         /**
          * Legacy write
          */
-        $legacyJoined = $this->legacyMembership->setGroup($group)->join($user, [ 'force' => !$group->isPublic() && $membershipLevel === GroupMembershipLevelEnum::MEMBER ]);
+        $legacyJoined = $this->legacyMembership
+            ->setGroup($group)
+            ->join($user, [
+                'force' => !$group->isPublic() && $membershipLevel === GroupMembershipLevelEnum::MEMBER,
+                'isOwner' => $membershipLevel === GroupMembershipLevelEnum::OWNER,
+            ]);
         if (!$legacyJoined) {
             return false;
         }
