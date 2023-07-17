@@ -88,6 +88,9 @@ class SignedUri
         $providedUriWithQuery = $providedUri->withQuery('')
             ->withScheme('');
 
+        error_log('$tokenClaimsUri' . (string) $tokenClaimsUri);
+        error_log('$providedUriWithQuery' . (string) $providedUriWithQuery);
+
         return ((string) $tokenClaimsUri === (string) $providedUriWithQuery);
     }
 }
