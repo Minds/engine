@@ -70,12 +70,15 @@ class SearchController
 
         $limit = min($first ?: $last, 12); // MAX 12
 
+        // Remove # hashtag symbol
+        $query = str_replace('#', '', $query);
+
         $latestQueryOpts = new QueryOpts(
             query: $query,
             accessId: Access::PUBLIC,
             limit: $limit,
             mediaTypeEnum: SearchMediaTypeEnum::toMediaTypeEnum($mediaType),
-            nsfw: $nsfw,
+            nsfw: $this->nsfwEnumsToIntArray($nsfw ?: []),
         );
 
         $topQueryOpts = new QueryOpts(
@@ -84,7 +87,7 @@ class SearchController
             limit: $limit,
             mediaTypeEnum: SearchMediaTypeEnum::toMediaTypeEnum($mediaType),
             seenEntitiesFilterStrategy: SeenEntitiesFilterStrategyEnum::DEMOTE,
-            nsfw: $nsfw,
+            nsfw: $this->nsfwEnumsToIntArray($nsfw),
         );
 
         /**
@@ -311,5 +314,16 @@ class SearchController
         );
 
         return $boosts->toArray();
+    }
+
+    /**
+     * @param SearchNsfwEnum[]
+     * @return int[]
+     */
+    private function nsfwEnumsToIntArray(array $nsfw): array
+    {
+        return array_map(function ($n) {
+            return $n->value;
+        }, $nsfw);
     }
 }

@@ -570,6 +570,23 @@ class Manager
             }
         }
 
+        $nsfw = array_diff([1, 2, 3, 4, 5, 6], $queryOpts->nsfw);
+        if ($nsfw) {
+            $mustNot[] = [
+                'terms' => [
+                    'nsfw' => array_values($nsfw),
+                ],
+            ];
+
+            if (in_array(6, $nsfw, false)) { // 6 is legacy 'mature'
+                $mustNot[] = [
+                    'term' => [
+                        'mature' => true,
+                    ],
+                ];
+            }
+        }
+
         return [
             'must' => $must,
             'mustNot' => $mustNot,
