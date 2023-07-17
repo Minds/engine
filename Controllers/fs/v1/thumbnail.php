@@ -33,6 +33,9 @@ class thumbnail extends Core\page implements Interfaces\page
         $unlockPaywall = false;
 
         error_log('@MDH2 - ABOUT TO CHECK JWT SIG');
+
+        error_log(var_export($_SERVER, true));
+
         $signedUri = new Core\Security\SignedUri();
         $req = \Zend\Diactoros\ServerRequestFactory::fromGlobals();
         if ($req->getQueryParams()['jwtsig'] ?? null) {
