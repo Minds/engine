@@ -24,6 +24,7 @@ use Minds\Core\Search\Enums\SearchNsfwEnum;
 use Minds\Core\Search\Search;
 use Minds\Core\Search\Types\SearchResultsConnection;
 use Minds\Core\Boost\V3\Manager as BoostManager;
+use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Entities\Activity;
 use Minds\Entities\Group;
 use Minds\Entities\User;
@@ -149,14 +150,30 @@ class SearchController
                 loadAfter: $loadAfter,
                 loadBefore: $loadBefore,
             ),
-            SearchFilterEnum::USER => $this->getPublisherSearch('user', $query, $limit),
-            SearchFilterEnum::GROUP => $this->getPublisherSearch('group', $query, $limit),
+            SearchFilterEnum::USER => $this->getPublisherSearch(
+                type: 'user',
+                query: $query,
+                limit: $limit,
+                loadAfter: $loadAfter,
+                loadBefore: $loadBefore,
+                hasMore: $hasMore,
+            ),
+            SearchFilterEnum::GROUP => $this->getPublisherSearch(
+                type: 'group',
+                query: $query,
+                limit: $limit,
+                loadAfter: $loadAfter,
+                loadBefore: $loadBefore,
+                hasMore: $hasMore,
+            ),
             default => throw new UserError("Can not support supplied filter"),
         };
 
+        // If not on latest or top, we request ZERO boosts as the clients dont support yet
         $boosts = $this->buildBoosts(
             loggedInUser: $loggedInUser,
-            limit: 3,
+            limit: in_array($filter, [ SearchFilterEnum::TOP, SearchFilterEnum::LATEST ], true) ? 3 : 0,
+            targetLocation: in_array($filter, [ SearchFilterEnum::TOP, SearchFilterEnum::LATEST ], true) ? BoostTargetLocation::NEWSFEED : BoostTargetLocation::SIDEBAR,
         );
 
         $edges = [];
@@ -215,11 +232,22 @@ class SearchController
     /**
      * @return (User|Group)[]
      */
-    private function getPublisherSearch(string $type, string $query, int $limit): array
-    {
+    private function getPublisherSearch(
+        string $type,
+        string $query,
+        int $limit,
+        string &$loadAfter = null,
+        string &$loadBefore = null,
+        bool &$hasMore = null
+    ): array {
         $guids = array_map(fn ($doc) => $doc['guid'], $this->search->suggest($type, $query, $limit));
 
         $entities = array_filter(array_map(fn ($guid) => $this->entitiesBuilder->single($guid), $guids));
+
+        $loadAfter = base64_encode((string) count($entities));
+        $loadBefore = base64_encode((string) 0);
+
+        $hasMore = false;
 
         return array_values($entities);
     }
@@ -229,22 +257,29 @@ class SearchController
      */
     private function buildMatchedGroups(string $query, int $limit = 3, string $edgeCursor = ''): PublisherRecsEdge
     {
-        $result = $this->getPublisherSearch('group', $query, $limit);
+        $result = $this->getPublisherSearch(
+            type: 'group',
+            query: $query,
+            limit: $limit,
+            loadAfter: $loadAfter,
+            loadBefore: $loadBefore,
+            hasMore: $hasMore,
+        );
 
         $edges = [];
 
         foreach ($result as $i => $entity) {
             $cursor = base64_encode($i);
             if ($entity instanceof Group) {
-                $edges[] = new GroupEdge($entity, $cursor ?: '');
+                $edges[] = new GroupEdge($entity, $loadAfter);
             }
         }
 
         $pageInfo = new PageInfo(
             hasPreviousPage: false,
-            hasNextPage: false,
-            startCursor: null,
-            endCursor: null,
+            hasNextPage: $hasMore,
+            startCursor: $loadBefore,
+            endCursor: $loadAfter,
         );
 
         $connection = new PublisherRecsConnection();
@@ -259,7 +294,8 @@ class SearchController
      */
     protected function buildBoosts(
         User $loggedInUser,
-        int $limit = 3
+        int $limit = 3,
+        int $targetLocation = BoostTargetLocation::NEWSFEED,
     ): array {
         if ($loggedInUser->disabled_boost && $loggedInUser->isPlus()) {
             return [];
@@ -270,7 +306,7 @@ class SearchController
             targetStatus: BoostStatus::APPROVED,
             orderByRanking: true,
             targetAudience: $loggedInUser->getBoostRating(),
-            targetLocation: BoostTargetLocation::NEWSFEED,
+            targetLocation: $targetLocation,
             castToFeedSyncEntities: false,
         );
 
