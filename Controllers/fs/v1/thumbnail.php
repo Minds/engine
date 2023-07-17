@@ -12,7 +12,6 @@ use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Helpers\File;
 use Minds\Interfaces;
-use Zend\Diactoros\Uri;
 
 class thumbnail extends Core\page implements Interfaces\page
 {
@@ -42,6 +41,7 @@ class thumbnail extends Core\page implements Interfaces\page
                 $unlockPaywall = (bool) $_GET['unlock_paywall'] ?? 0;
             }
         }
+
         $size = isset($pages[1]) ? $pages[1] : null;
 
         $entity = Entities\Factory::build($guid);

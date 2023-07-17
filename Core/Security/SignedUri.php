@@ -67,8 +67,6 @@ class SignedUri
      */
     public function confirm($uri): bool
     {
-        error_log('provided URI' . $uri);
-
         $providedUri = new Uri($uri);
         parse_str($providedUri->getQuery(), $queryParams);
         $providedSig = $queryParams['jwtsig'];
@@ -80,12 +78,10 @@ class SignedUri
             return false;
         }
 
-        error_log('checking validation');
         if (!$this->getJwtConfig()->validator()->validate($token, new SignedWith($this->getJwtConfig()->signer(), $this->getJwtConfig()->signingKey()))) {
             return false;
         }
 
-        error_log('checking uris');
         // Strip scheme from the URIs to account for our reverse proxy passing URI's through via http.
         $tokenClaimsUri = (new Uri($token->claims()->get('uri')))
             // TODO: just get rid of query??
@@ -93,9 +89,6 @@ class SignedUri
 
         $providedUriWithQuery = $providedUri->withQuery('')
             ->withScheme('');
-
-        error_log('$tokenClaimsUri' . (string) $tokenClaimsUri);
-        error_log('$providedUriWithQuery' . (string) $providedUriWithQuery);
 
         return ((string) $tokenClaimsUri === (string) $providedUriWithQuery);
     }
