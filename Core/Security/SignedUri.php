@@ -74,7 +74,6 @@ class SignedUri
         try {
             $token = $this->getJwtConfig()->parser()->parse($providedSig);
         } catch (\Exception $e) {
-            error_log('error');
             return false;
         }
 
