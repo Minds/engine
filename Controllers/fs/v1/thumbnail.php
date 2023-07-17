@@ -32,15 +32,17 @@ class thumbnail extends Core\page implements Interfaces\page
 
         $unlockPaywall = false;
 
+        error_log('@MDH2 - ABOUT TO CHECK JWT SIG');
         $signedUri = new Core\Security\SignedUri();
         $req = \Zend\Diactoros\ServerRequestFactory::fromGlobals();
         if ($req->getQueryParams()['jwtsig'] ?? null) {
             if ($signedUri->confirm((string) $req->getUri())) {
+                error_log('@MDH2 - SETTING IGNORE FLAG IN THE ACL');
                 Core\Security\ACL::$ignore = true;
                 $unlockPaywall = (bool) $_GET['unlock_paywall'] ?? 0;
             }
         }
-
+        error_log('@MDH2 - DONE CHECKING JWT SIG');
         $size = isset($pages[1]) ? $pages[1] : null;
 
         $entity = Entities\Factory::build($guid);
@@ -52,6 +54,7 @@ class thumbnail extends Core\page implements Interfaces\page
             ]);
         }
 
+        error_log('@MDH2 - ENTITY EXISTS');
         /** @var Core\Media\Thumbnails $mediaThumbnails */
         $mediaThumbnails = Di::_()->get('Media\Thumbnails');
 
@@ -60,8 +63,10 @@ class thumbnail extends Core\page implements Interfaces\page
             'unlockPaywall' => $unlockPaywall, // Stops blurred image being set.
         ];
 
+        error_log('@MDH2 - GETTING THUMBNAIL');
         $thumbnail = $mediaThumbnails->get($entity, $size, $opts);
 
+        error_log('@MDH2 - GOT THUMBNAIL.');
         if ($thumbnail instanceof \ElggFile) {
             $thumbnail->open('read');
             $contents = $thumbnail->read();
