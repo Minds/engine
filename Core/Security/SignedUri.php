@@ -67,6 +67,8 @@ class SignedUri
      */
     public function confirm($uri): bool
     {
+        error_log('@MDH2 - URI Pre constructor' . $uri);
+
         $providedUri = new Uri($uri);
         parse_str($providedUri->getQuery(), $queryParams);
         $providedSig = $queryParams['jwtsig'];
@@ -86,10 +88,10 @@ class SignedUri
             return false;
         }
 
-        error_log('@MDH2 - TOKEN CLAIMS URI');
+        error_log('@MDH2 - TOKEN CLAIMS URI'); // coming back https
         error_log($token->claims()->get('uri'));
 
-        error_log('@MDH2 - PROVIDED URI');
+        error_log('@MDH2 - PROVIDED URI'); // coming back http
         error_log($providedUri->withQuery(''));
 
         return ((string) $token->claims()->get('uri') === (string) $providedUri->withQuery(''));
