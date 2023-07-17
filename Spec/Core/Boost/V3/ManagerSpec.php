@@ -141,6 +141,11 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
         $this->entitiesBuilder->single(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($entity);
@@ -230,6 +235,11 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
         $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()
             ->willReturn(new PaymentDetails());
@@ -310,6 +320,11 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
         $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()
             ->willReturn(new PaymentDetails());
@@ -388,6 +403,11 @@ class ManagerSpec extends ObjectBehavior
         $this->preApprovalManager->shouldPreApprove($user)
             ->shouldBeCalled()
             ->willReturn(false);
+
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
 
         $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()
@@ -547,6 +567,11 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
         $this->entitiesBuilder->single(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($entity);
@@ -646,6 +671,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+
         $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()
             ->willReturn(new PaymentDetails());
@@ -706,6 +734,9 @@ class ManagerSpec extends ObjectBehavior
         $this->preApprovalManager->shouldPreApprove($user)
             ->shouldBeCalled()
             ->willReturn(false);
+
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
 
         $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()
@@ -777,6 +808,11 @@ class ManagerSpec extends ObjectBehavior
         $this->entitiesBuilder->single(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($entity);
+
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
 
         $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
             ->shouldBeCalledOnce()

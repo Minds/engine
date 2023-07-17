@@ -36,6 +36,7 @@ use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardInsufficientFundsException;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
 use Minds\Core\Security\ACL;
@@ -149,7 +150,7 @@ class Manager
             ->setOwnerGuid($this->user->getGuid())
             ->setPaymentMethodId($data['payment_method_id'] ?? null);
 
-        $this->processNewBoost($boost, $data['payment_tx_id']);
+        $this->processNewBoost($boost, $data['payment_tx_id'] ?? null);
 
         $this->repository->commitTransaction();
         $this->paymentProcessor->commitTransaction();
@@ -177,9 +178,15 @@ class Manager
      * @throws LockFailedException
      * @throws OffchainWalletInsufficientFundsException
      * @throws ServerErrorException
+     * @throws GiftCardNotFoundException
      */
     private function processNewBoostPayment(Boost $boost, bool $isOnchainBoost, ?string $paymentTxId = null) : void
     {
+        /**
+         * Boost payment entry into `minds_payments` had to be separated into its own method
+         * and outside the main transaction to avoid causing an issue with the foreign key
+         * in the `minds_gift_card_transactions` table.
+         */
         $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user);
         $boost->setPaymentGuid($paymentDetails->paymentGuid);
 
@@ -272,6 +279,7 @@ class Manager
         $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user);
 
         $this->repository->beginTransaction();
+        $this->paymentProcessor->beginTransaction();
 
         if (!$this->paymentProcessor->setupBoostPayment($boost, $this->user, $paymentDetails)) {
             throw new BoostPaymentSetupFailedException();
