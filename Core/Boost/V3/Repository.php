@@ -432,6 +432,10 @@ class Repository
             'guid' => $boostGuid
         ];
 
+        if (!$isCompleted) {
+            $values['timestamp'] = date('c', time());
+        }
+
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         return $statement->execute();

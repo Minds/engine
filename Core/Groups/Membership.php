@@ -207,7 +207,8 @@ class Membership
     public function join($user, array $opts = [])
     {
         $opts = array_merge([
-            'force' => false
+            'force' => false,
+            'isOwner' => false,
         ], $opts);
 
         if (!$user) {
@@ -220,7 +221,7 @@ class Membership
 
         $user_guid = is_object($user) ? $user->guid : $user;
         $banned = $this->isBanned($user);
-        $canJoin = $this->group->isPublic() || $this->group->isInvited($user_guid);
+        $canJoin = $opts['isOwner'] || $this->group->isPublic() || $this->group->isInvited($user_guid);
 
         if (!$canJoin && $this->hasActor()) {
             $canJoin = $this->canActorWrite($this->group);
