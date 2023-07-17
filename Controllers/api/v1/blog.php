@@ -203,21 +203,21 @@ class blog implements Interfaces\Api
             }
         }
 
-        // $captcha = Core\Di\Di::_()->get('Captcha\Manager');
+        $captcha = Core\Di\Di::_()->get('Captcha\Manager');
 
-        // if (!isset($_POST['captcha'])) {
-        //     return Factory::response([
-        //         'status' => 'error',
-        //         'message' => 'Please fill out the captcha field',
-        //     ]);
-        // }
+        if (!isset($_POST['captcha'])) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Please fill out the captcha field',
+            ]);
+        }
 
-        // if (!$captcha->verifyFromClientJson($_POST['captcha'] ?? '')) {
-        //     return Factory::response([
-        //         'status' => 'error',
-        //         'message' => 'Please ensure that the captcha you entered is correct',
-        //     ]);
-        // }
+        if (!$captcha->verifyFromClientJson($_POST['captcha'] ?? '')) {
+            return Factory::response([
+                'status' => 'error',
+                'message' => 'Please ensure that the captcha you entered is correct',
+            ]);
+        }
 
         if (!$this->checkBalance(Core\Session::getLoggedInUser()) && preg_match('/(\b(https?|ftp|file):\/\/[^\s\]]+)/im', $_POST['description'] ?? '')) {
             return Factory::response([
