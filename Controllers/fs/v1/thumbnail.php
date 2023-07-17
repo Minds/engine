@@ -12,7 +12,6 @@ use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Helpers\File;
 use Minds\Interfaces;
-use Zend\Diactoros\Uri;
 
 class thumbnail extends Core\page implements Interfaces\page
 {
@@ -33,38 +32,16 @@ class thumbnail extends Core\page implements Interfaces\page
 
         $unlockPaywall = false;
 
-        error_log('@MDH2 - ABOUT TO CHECK JWT SIG');
-
-        error_log(var_export($_SERVER, true));
-
-        $tempOriginUri = $_SERVER['REDIRECT_ORIG_URI'];
-        $tempServReqUri = $_SERVER['REQUEST_URI'];
-        $tempHttpHost = $_SERVER['HTTP_HOST'];
-        $tempReqSchema = $_SERVER['REQUEST_SCHEME'];
-        $uri = (new Uri($_SERVER['REDIRECT_ORIG_URI'] ?? $_SERVER['REQUEST_URI']))
-            ->withHost($_SERVER['HTTP_HOST'])
-            ->withScheme($_SERVER['REQUEST_SCHEME']);
-
-        $strUri = (string) $uri;
-        error_log('@MDH2 - URI: ' . $strUri);
-
         $signedUri = new Core\Security\SignedUri();
-        $req = \Zend\Diactoros\ServerRequestFactory::fromGlobals()
-            ->withMethod('GET')
-            ->withUri(
-                (new Uri($_SERVER['REDIRECT_ORIG_URI'] ?? $_SERVER['REQUEST_URI']))
-                    ->withHost($_SERVER['HTTP_HOST'])
-                    ->withScheme($_SERVER['REQUEST_SCHEME'])
-            );
-
+        $req = \Zend\Diactoros\ServerRequestFactory::fromGlobals();
         if ($req->getQueryParams()['jwtsig'] ?? null) {
+            /** Note: Because of reverse proxy, URI will have http scheme. */
             if ($signedUri->confirm((string) $req->getUri())) {
-                error_log('@MDH2 - SETTING IGNORE FLAG IN THE ACL :):):):):):):):):):):):):)');
                 Core\Security\ACL::$ignore = true;
                 $unlockPaywall = (bool) $_GET['unlock_paywall'] ?? 0;
             }
         }
-        error_log('@MDH2 - DONE CHECKING JWT SIG');
+
         $size = isset($pages[1]) ? $pages[1] : null;
 
         $entity = Entities\Factory::build($guid);
@@ -76,7 +53,6 @@ class thumbnail extends Core\page implements Interfaces\page
             ]);
         }
 
-        error_log('@MDH2 - ENTITY EXISTS');
         /** @var Core\Media\Thumbnails $mediaThumbnails */
         $mediaThumbnails = Di::_()->get('Media\Thumbnails');
 
@@ -85,10 +61,8 @@ class thumbnail extends Core\page implements Interfaces\page
             'unlockPaywall' => $unlockPaywall, // Stops blurred image being set.
         ];
 
-        error_log('@MDH2 - GETTING THUMBNAIL');
         $thumbnail = $mediaThumbnails->get($entity, $size, $opts);
 
-        error_log('@MDH2 - GOT THUMBNAIL.');
         if ($thumbnail instanceof \ElggFile) {
             $thumbnail->open('read');
             $contents = $thumbnail->read();

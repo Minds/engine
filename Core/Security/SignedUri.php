@@ -67,33 +67,25 @@ class SignedUri
      */
     public function confirm($uri): bool
     {
-        error_log('@MDH2 - URI Pre constructor' . $uri);
-
         $providedUri = new Uri($uri);
         parse_str($providedUri->getQuery(), $queryParams);
         $providedSig = $queryParams['jwtsig'];
 
-
-        error_log('@MDH2 - PROVIDED SIG' . $providedSig);
         try {
             $token = $this->getJwtConfig()->parser()->parse($providedSig);
         } catch (\Exception $e) {
             return false;
         }
 
-
-        error_log('@MDH2 - VALIDATING TOKEN');
-
         if (!$this->getJwtConfig()->validator()->validate($token, new SignedWith($this->getJwtConfig()->signer(), $this->getJwtConfig()->signingKey()))) {
             return false;
         }
 
-        error_log('@MDH2 - TOKEN CLAIMS URI'); // coming back https
-        error_log($token->claims()->get('uri'));
+        $tokenClaimsUri = (new Uri($token->claims()->get('uri')))
+            ->withScheme('');
 
-        error_log('@MDH2 - PROVIDED URI'); // coming back http
-        error_log($providedUri->withQuery(''));
+        $providedUriWithQuery = $providedUri->withQuery('');
 
-        return ((string) $token->claims()->get('uri') === (string) $providedUri->withQuery(''));
+        return ((string) $tokenClaimsUri === (string) $providedUriWithQuery);
     }
 }
