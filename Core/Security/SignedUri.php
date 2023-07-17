@@ -81,10 +81,12 @@ class SignedUri
             return false;
         }
 
+        // Strip scheme from the URIs to account for our reverse proxy passing URI's through via http.
         $tokenClaimsUri = (new Uri($token->claims()->get('uri')))
             ->withScheme('');
 
-        $providedUriWithQuery = $providedUri->withQuery('');
+        $providedUriWithQuery = $providedUri->withQuery('')
+            ->withScheme('');
 
         return ((string) $tokenClaimsUri === (string) $providedUriWithQuery);
     }
