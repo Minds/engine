@@ -89,6 +89,12 @@ class ManagerSpec extends ObjectBehavior
         $this->getGiftCard(1244987032468459522)->shouldReturn($giftCard);
     }
 
+    public function it_should_return_a_gift_card_by_claim_code(GiftCard $giftCard): void
+    {
+        $this->repositoryMock->getGiftCardByClaimCode('~claimCode~')->willReturn($giftCard);
+        $this->getGiftCardByClaimCode('~claimCode~')->shouldReturn($giftCard);
+    }
+
     public function it_should_claim_a_gift_card(User $claimer): void
     {
         $refTime = time();
