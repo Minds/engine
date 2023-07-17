@@ -250,22 +250,16 @@ class Manager
 
             $srcIsMinds = strpos($oldSrc, $siteUrl) === 0 || strpos($oldSrc, $cdnUrl) === 0 ;
 
-            error_log('@MDH2 ----------------------------------------');
-            error_log('@MDH2 - CHECKING IMG SRC');
             $entityGuids = [];
             if (
                 preg_match('/\/(\d+)\//', $oldSrc, $entityGuids) &&
                 !$this->isBlogOwnerImageOwner($blog, $entityGuids[1])
             ) {
-                error_log('@MDH2 - BLOG OWNER IS NOT IMAGE OWNER');
                 continue;
             }
 
             if ($srcIsMinds) {
-                error_log('@MDH2 - SIGNING URI old SRC' . $oldSrc);
                 $newSrc = $this->signedUri->sign($oldSrc);
-
-                error_log('@MDH2 - SIGNING URI new SRC' . $newSrc);
                 $image->setAttribute('src', $newSrc);
             }
         }
@@ -277,7 +271,6 @@ class Manager
             $result .= $dom->saveHTML($childNode);
         }
 
-        error_log('@MDH2 ----------------------------------------');
         return $result;
     }
 
