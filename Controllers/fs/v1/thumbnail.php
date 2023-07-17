@@ -12,6 +12,7 @@ use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Helpers\File;
 use Minds\Interfaces;
+use Zend\Diactoros\Uri;
 
 class thumbnail extends Core\page implements Interfaces\page
 {
@@ -37,7 +38,13 @@ class thumbnail extends Core\page implements Interfaces\page
         error_log(var_export($_SERVER, true));
 
         $signedUri = new Core\Security\SignedUri();
-        $req = \Zend\Diactoros\ServerRequestFactory::fromGlobals();
+        $req = \Zend\Diactoros\ServerRequestFactory::fromGlobals()
+            ->withMethod('GET')
+            ->withUri(
+                (new Uri(strtok($_SERVER['REDIRECT_ORIG_URI'] ?? $_SERVER['REQUEST_URI'], '?')))
+                    ->withHost($_SERVER['HTTP_HOST'])
+            );
+
         if ($req->getQueryParams()['jwtsig'] ?? null) {
             if ($signedUri->confirm((string) $req->getUri())) {
                 error_log('@MDH2 - SETTING IGNORE FLAG IN THE ACL');
