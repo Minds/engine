@@ -138,8 +138,10 @@ class Events
             $parentEntity = EntitiesFactory::build($entity->getAccessId());
             $user = $params['user'];
 
-            $canRead = ACL::_()->read($parentEntity, $user);
-            $event->setResponse($canRead);
+            if ($parentEntity) {
+                $canRead = ACL::_()->read($parentEntity, $user);
+                $event->setResponse($canRead);
+            }
         });
 
         // If comment is container_guid then decide if we can allow writing
