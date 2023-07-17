@@ -484,7 +484,7 @@ class Manager
         $boostsArray = iterator_to_array($boosts);
 
         foreach ($boostsArray as $i => $boost) {
-            if ($boost->getEntity() && !$this->acl->read($boost)) {
+            if (!$boost->getEntity() || !$this->acl->read($boost)) {
                 unset($boostsArray[$i]);
                 continue;
             }
