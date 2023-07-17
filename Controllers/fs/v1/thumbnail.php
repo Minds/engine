@@ -41,13 +41,13 @@ class thumbnail extends Core\page implements Interfaces\page
         $req = \Zend\Diactoros\ServerRequestFactory::fromGlobals()
             ->withMethod('GET')
             ->withUri(
-                (new Uri(strtok($_SERVER['REDIRECT_ORIG_URI'] ?? $_SERVER['REQUEST_URI'], '?')))
+                (new Uri($_SERVER['REDIRECT_ORIG_URI'] ?? $_SERVER['REQUEST_URI']))
                     ->withHost($_SERVER['HTTP_HOST'])
             );
 
         if ($req->getQueryParams()['jwtsig'] ?? null) {
             if ($signedUri->confirm((string) $req->getUri())) {
-                error_log('@MDH2 - SETTING IGNORE FLAG IN THE ACL');
+                error_log('@MDH2 - SETTING IGNORE FLAG IN THE ACL :):):):):):):):):):):):):)');
                 Core\Security\ACL::$ignore = true;
                 $unlockPaywall = (bool) $_GET['unlock_paywall'] ?? 0;
             }
