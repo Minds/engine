@@ -67,6 +67,8 @@ class SignedUri
      */
     public function confirm($uri): bool
     {
+        error_log('provided URI' . $uri);
+
         $providedUri = new Uri($uri);
         parse_str($providedUri->getQuery(), $queryParams);
         $providedSig = $queryParams['jwtsig'];
@@ -74,13 +76,16 @@ class SignedUri
         try {
             $token = $this->getJwtConfig()->parser()->parse($providedSig);
         } catch (\Exception $e) {
+            error_log('error');
             return false;
         }
 
+        error_log('checking validation');
         if (!$this->getJwtConfig()->validator()->validate($token, new SignedWith($this->getJwtConfig()->signer(), $this->getJwtConfig()->signingKey()))) {
             return false;
         }
 
+        error_log('checking uris');
         // Strip scheme from the URIs to account for our reverse proxy passing URI's through via http.
         $tokenClaimsUri = (new Uri($token->claims()->get('uri')))
             ->withScheme('');
