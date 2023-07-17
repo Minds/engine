@@ -262,7 +262,6 @@ class Manager
             }
 
             if ($srcIsMinds) {
-
                 error_log('@MDH2 - SIGNING URI old SRC' . $oldSrc);
                 $newSrc = $this->signedUri->sign($oldSrc);
 
