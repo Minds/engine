@@ -83,7 +83,6 @@ class SignedUri
 
         // Strip scheme from the URIs to account for our reverse proxy passing URI's through via http.
         $tokenClaimsUri = (new Uri($token->claims()->get('uri')))
-            // TODO: just get rid of query??
             ->withScheme('');
 
         $providedUriWithQuery = $providedUri->withQuery('')
