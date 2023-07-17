@@ -37,12 +37,24 @@ class thumbnail extends Core\page implements Interfaces\page
 
         error_log(var_export($_SERVER, true));
 
+        $tempOriginUri = $_SERVER['REDIRECT_ORIG_URI'];
+        $tempServReqUri = $_SERVER['REQUEST_URI'];
+        $tempHttpHost = $_SERVER['HTTP_HOST'];
+        $tempReqSchema = $_SERVER['REQUEST_SCHEME'];
+        $uri = (new Uri($_SERVER['REDIRECT_ORIG_URI'] ?? $_SERVER['REQUEST_URI']))
+            ->withHost($_SERVER['HTTP_HOST'])
+            ->withScheme($_SERVER['REQUEST_SCHEME']);
+
+        $strUri = (string) $uri;
+        error_log('@MDH2 - URI: ' . $strUri);
+
         $signedUri = new Core\Security\SignedUri();
         $req = \Zend\Diactoros\ServerRequestFactory::fromGlobals()
             ->withMethod('GET')
             ->withUri(
                 (new Uri($_SERVER['REDIRECT_ORIG_URI'] ?? $_SERVER['REQUEST_URI']))
                     ->withHost($_SERVER['HTTP_HOST'])
+                    ->withScheme($_SERVER['REQUEST_SCHEME'])
             );
 
         if ($req->getQueryParams()['jwtsig'] ?? null) {
