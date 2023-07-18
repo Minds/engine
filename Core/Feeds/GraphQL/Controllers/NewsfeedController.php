@@ -137,11 +137,6 @@ class NewsfeedController
                 throw new UserError("Invalid algorithm supplied");
         }
 
-        // Get explicit vote experiment status
-        $isExplicitVotesExperimentOn = $this->experimentsManager->isOn('minds-4175-explicit-votes');
-        $isExplicitVotesExperimentOn = true; // ojm remove!!!
-
-
         // Build the boosts
         $isBoostRotatorRemovedExperimentOn = $this->experimentsManager->isOn('minds-4105-remove-rotator');
         $boosts = $this->buildBoosts(
@@ -245,25 +240,12 @@ class NewsfeedController
              * Don't show the post if it has been explicitly downvoted
              */
             if (
-                $isExplicitVotesExperimentOn && $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::DOWN)
+                $this->isExplicitVotesExperimentOn() && $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::DOWN)
             ) {
                 continue;
             }
 
-
-            /**
-             * Show explicit vote buttons every 4 posts
-             * when the experiment is on
-             * and the user isn't the post owner
-             *
-             */
-            $showExplicitVoteButtons = false;
-            if (($i === 0 || $i % 4 === 0) && $isExplicitVotesExperimentOn
-                // ojm put this back
-                // &&$loggedInUser->getGuid() !== $activity->getOwnerGuid()
-            ) {
-                $showExplicitVoteButtons = true;
-            }
+            $showExplicitVoteButtons = $this->showExplicitVoteButtons($activity, $loggedInUser, $i);
 
             $edges[] = new ActivityEdge($activity, $cursor, $showExplicitVoteButtons);
         }
@@ -405,6 +387,13 @@ class NewsfeedController
         $edges = [];
 
         foreach ($activities as $activity) {
+            // Don't show downvoted activities
+            if (
+                $this->experimentsManager->isOn('minds-4175-explicit-votes') && $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::DOWN)
+            ) {
+                continue;
+            }
+
             $cursor = $loadAfter;
             $edges[] = new ActivityEdge($activity, $cursor, false);
         }
@@ -512,9 +501,32 @@ class NewsfeedController
         return new PublisherRecsEdge($connection, $cursor);
     }
 
+
+    /**
+     * Show explicit vote buttons every 4 activities
+     * when the experiment is on
+     * and the user isn't the post owner
+     * and the user hasn't voted up already
+     * (assumes we've already checked for downvotes)
+     * @param Activity $activity
+     * @param User $loggedInUser
+     * @param int $i - current index in the list of activities
+     */
+    protected function showExplicitVoteButtons(Activity $activity, User $loggedInUser, int $i): bool
+    {
+        $isPostOwner = $loggedInUser->getGuid() !== $activity->getOwnerGuid();
+
+        $hasUpvoted = $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::UP);
+
+        return (($i === 0 || $i % 4 === 0) && $this->isExplicitVotesExperimentOn() && !$isPostOwner && !$hasUpvoted
+        );
+    }
+
     /**
      * Helper function to determine if current logged in user has
      * voted on the post
+     * @param Activity $activity
+     * @param User $loggedInUser
      * @param int $direction - Votes\Enums\VoteDirectionEnum
      * @return bool
      */
@@ -530,5 +542,15 @@ class NewsfeedController
             ->setDirection($direction === Votes\Enums\VoteDirectionEnum::UP ? 'up' : 'down');
 
         return $this->votesManager->has($vote);
+    }
+
+    /**
+     * Whether experiment is on.
+     * @return bool true if experiment is on.
+     */
+    protected function isExplicitVotesExperimentOn(): bool
+    {
+        return true; // ojm remove
+        // return $this->experimentsManager->isOn('minds-4175-explicit-votes');
     }
 }
