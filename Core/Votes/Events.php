@@ -51,7 +51,7 @@ class Events
             $actionEvent = new ActionEvent();
             $actionEvent
                 ->setAction(
-                    $direction === 'up' ? ActionEvent::ACTION_VOTE_UP : ActionEvent::ACTION_VOTE_DOWN
+                    $direction === 'up' ? ActionEvent::ACTION_VOTE_UP : ActionEvent::ACTION_VOTE_DOWN // ojm look
                 )
                 ->setEntity($entity)
                 ->setUser($actor);
@@ -91,7 +91,6 @@ class Events
         });
 
         // Analytics events
-
         Dispatcher::register('vote', 'all', function (Event $event) {
             $request = $this->retrieveServerRequest();
             $experimentsManager = $this->getExperimentsManager()->setUser($request->getAttribute('_user'));
@@ -223,7 +222,7 @@ class Events
                 ->setAction(
                     $direction === 'up' ?
                         ActionEvent::ACTION_VOTE_UP_REMOVED :
-                        ActionEvent::ACTION_VOTE_DOWN_REMOVED
+                        ActionEvent::ACTION_VOTE_DOWN_REMOVED // ojm look
                 )
                 ->setEntity($entity)
                 ->setUser($actor);

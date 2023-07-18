@@ -90,9 +90,6 @@ class PushNotification implements PushNotificationInterface
             case NotificationTypes::TYPE_VOTE_UP:
                 $verb = 'voted up';
                 break;
-            case NotificationTypes::TYPE_VOTE_DOWN:
-                $verb = 'voted down';
-                break;
             case NotificationTypes::TYPE_REMIND:
                 $verb = 'reminded';
                 break;
@@ -382,7 +379,6 @@ class PushNotification implements PushNotificationInterface
     {
         switch ($notification->getType()) {
             case NotificationTypes::TYPE_VOTE_UP:
-            case NotificationTypes::TYPE_VOTE_DOWN:
             case NotificationTypes::TYPE_REMIND:
             case NotificationTypes::TYPE_QUOTE:
             case NotificationTypes::TYPE_COMMENT:

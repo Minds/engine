@@ -666,7 +666,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
 
         if (!$this->isEphemeral()) {
             $output['thumbs:up:user_guids'] = $this->getVotesUp() ?: [];
-            $output['thumbs:down:user_guids'] = $this->getVotesDown() ?: [];
+            $output['thumbs:down:user_guids'] = $this->getVotesDown() ?: []; // ojm look
 
             // Vote count and Reminds (legacy)
             $output = array_merge($output, (new Legacy\Entity())->exportCounters($this));

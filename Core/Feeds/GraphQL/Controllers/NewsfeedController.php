@@ -31,6 +31,9 @@ use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\Query;
 use Minds\Core\FeedNotices\Notices\NoGroupsNotice;
 use Minds\Core\Feeds\GraphQL\Enums\NewsfeedAlgorithmsEnum;
+use Minds\Core\Di\Di;
+use Minds\Core\Votes;
+use Minds\Entities\Activity;
 
 class NewsfeedController
 {
@@ -43,7 +46,9 @@ class NewsfeedController
         protected BoostSuggestionInjector $boostSuggestionInjector,
         protected SuggestionsManager $suggestionsManager,
         protected ExperimentsManager $experimentsManager,
+        protected ?Votes\Manager $votesManager = null,
     ) {
+        $this->votesManager ??= Di::_()->get('Votes\Manager');
     }
 
     /**
@@ -132,11 +137,16 @@ class NewsfeedController
                 throw new UserError("Invalid algorithm supplied");
         }
 
+        // Get explicit vote experiment status
+        $isExplicitVotesExperimentOn = $this->experimentsManager->isOn('minds-4175-explicit-votes');
+        $isExplicitVotesExperimentOn = true; // ojm remove!!!
+
+
         // Build the boosts
-        $isBoostRotatorRemovedExpirementOn = $this->experimentsManager->isOn('minds-4105-remove-rotator');
+        $isBoostRotatorRemovedExperimentOn = $this->experimentsManager->isOn('minds-4105-remove-rotator');
         $boosts = $this->buildBoosts(
             loggedInUser: $loggedInUser,
-            limit: $isBoostRotatorRemovedExpirementOn ? 3 : 1,
+            limit: $isBoostRotatorRemovedExperimentOn ? 3 : 1,
         );
 
         foreach ($activities as $i => $activity) {
@@ -208,7 +218,7 @@ class NewsfeedController
              * Show boosts depending on if the experiment to remove the rotator is enabled
              */
             if (
-                $isBoostRotatorRemovedExpirementOn &&
+                $isBoostRotatorRemovedExperimentOn &&
                 in_array($i, [
                     1, // 2nd slot
                     4, // after channel recs
@@ -221,7 +231,7 @@ class NewsfeedController
                     $edges[] = new BoostEdge($boost, $cursor);
                 }
             } elseif (
-                !$isBoostRotatorRemovedExpirementOn &&
+                !$isBoostRotatorRemovedExperimentOn &&
                 count($boosts) &&
                 $i == 3
             ) {
@@ -231,7 +241,31 @@ class NewsfeedController
                 }
             }
 
-            $edges[] = new ActivityEdge($activity, $cursor);
+            /**
+             * Don't show the post if it has been explicitly downvoted
+             */
+            if (
+                $isExplicitVotesExperimentOn && $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::DOWN)
+            ) {
+                continue;
+            }
+
+
+            /**
+             * Show explicit vote buttons every 4 posts
+             * when the experiment is on
+             * and the user isn't the post owner
+             *
+             */
+            $showExplicitVoteButtons = false;
+            if (($i === 0 || $i % 4 === 0) && $isExplicitVotesExperimentOn
+                // ojm put this back
+                // &&$loggedInUser->getGuid() !== $activity->getOwnerGuid()
+            ) {
+                $showExplicitVoteButtons = true;
+            }
+
+            $edges[] = new ActivityEdge($activity, $cursor, $showExplicitVoteButtons);
         }
 
         if (empty($edges)) {
@@ -372,7 +406,7 @@ class NewsfeedController
 
         foreach ($activities as $activity) {
             $cursor = $loadAfter;
-            $edges[] = new ActivityEdge($activity, $cursor);
+            $edges[] = new ActivityEdge($activity, $cursor, false);
         }
 
         if (empty($edges)) {
@@ -476,5 +510,25 @@ class NewsfeedController
         $connection->setPageInfo($pageInfo);
 
         return new PublisherRecsEdge($connection, $cursor);
+    }
+
+    /**
+     * Helper function to determine if current logged in user has
+     * voted on the post
+     * @param int $direction - Votes\Enums\VoteDirectionEnum
+     * @return bool
+     */
+    protected function userHasVoted(Activity $activity, User $loggedInUser, int $direction): bool
+    {
+        if (!$loggedInUser) {
+            return false;
+        }
+
+        $vote = (new Votes\Vote())
+            ->setEntity($activity)
+            ->setActor($loggedInUser)
+            ->setDirection($direction === Votes\Enums\VoteDirectionEnum::UP ? 'up' : 'down');
+
+        return $this->votesManager->has($vote);
     }
 }

@@ -109,9 +109,6 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
             case ActionEvent::ACTION_VOTE_UP:
                 $notification->setType(NotificationTypes::TYPE_VOTE_UP);
                 break;
-            case ActionEvent::ACTION_VOTE_DOWN:
-                $notification->setType(NotificationTypes::TYPE_VOTE_DOWN);
-                break;
             case ActionEvent::ACTION_COMMENT:
                 // Comment notifications are handled via their own EventStreamSubscription
                 // due to more tailored delivery specifications, so true to awknowledge but don't deliver

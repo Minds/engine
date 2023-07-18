@@ -14,7 +14,7 @@ class MetricChangeSockets extends Cli\Controller implements Interfaces\CliContro
     // allowed metrics.
     private $allowedMetrics = [
         'thumbs:up:count',
-        'thumbs:down:count'
+        'thumbs:down:count' // ojm look
     ];
 
     public function __construct()
