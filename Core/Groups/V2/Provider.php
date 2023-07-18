@@ -4,6 +4,7 @@ namespace Minds\Core\Groups\V2;
 use Minds\Core\Data\MySQL;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Groups\Membership as LegacyMembership;
+use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 
 class Provider extends DiProvider
 {
@@ -26,6 +27,7 @@ class Provider extends DiProvider
                 acl: $di->get('Security\ACL'),
                 legacyMembership: new LegacyMembership(),
                 experimentsManager: $di->get('Experiments\Manager'),
+                groupRecsAlgo: new SuggestedGroupsRecommendationsAlgorithm(),
             );
         });
     }
