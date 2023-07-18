@@ -10,6 +10,7 @@ use Minds\Core\Experiments;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Group;
 use Minds\Entities\User;
+use Minds\Exceptions\GroupOperationException;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
 
@@ -304,7 +305,12 @@ class Manager
         /**
          * Legacy write
          */
-        $legacyJoined = $this->legacyMembership->setGroup($group)->join($user, [ 'force' => !$group->isPublic() && $membershipLevel === GroupMembershipLevelEnum::MEMBER ]);
+        $legacyJoined = $this->legacyMembership
+            ->setGroup($group)
+            ->join($user, [
+                'force' => !$group->isPublic() && $membershipLevel === GroupMembershipLevelEnum::MEMBER,
+                'isOwner' => $membershipLevel === GroupMembershipLevelEnum::OWNER,
+            ]);
         if (!$legacyJoined) {
             return false;
         }
@@ -331,9 +337,15 @@ class Manager
         /**
          * Legacy write
          */
-        $legacyLeft = $this->legacyMembership->setGroup($group)->leave($user);
-        if (!$legacyLeft) {
-            return false;
+        try {
+            $legacyLeft = $this->legacyMembership->setGroup($group)->leave($user);
+            if (!$legacyLeft) {
+                return false;
+            }
+        } catch (GroupOperationException $e) {
+            if ($e->getMessage() === 'Error leaving group') {
+                return false;
+            }
         }
 
         /**

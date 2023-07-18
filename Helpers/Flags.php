@@ -8,6 +8,10 @@ class Flags
 {
     public static function shouldFail($entity)
     {
+        if (!$entity) {
+            return false;
+        }
+    
         $currentUser = Core\Session::getLoggedInUserGuid();
         $owner = $entity instanceof User ? $entity->guid : $entity->getOwnerGuid();
 
