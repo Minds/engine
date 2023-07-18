@@ -36,7 +36,7 @@ class SuggestedGroupsRecommendationsAlgorithm extends AbstractRecommendationsAlg
     {
         $cacheKey = $this->getCacheKey();
         $cacheKeyOffset = $this->getOffsetCacheKey();
-        $cachedOffset = $this->cache->get($cacheKey, 0);
+        $cachedOffset = (int) $this->cache->get($cacheKey, 0);
         
         $limit = (int) $options['limit'] ?? 3;
 
