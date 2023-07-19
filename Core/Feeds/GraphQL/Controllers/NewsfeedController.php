@@ -389,7 +389,7 @@ class NewsfeedController
         foreach ($activities as $activity) {
             // Don't show downvoted activities
             if (
-                $this->experimentsManager->isOn('minds-4175-explicit-votes') && $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::DOWN)
+                $this->isExplicitVotesExperimentOn() && $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::DOWN)
             ) {
                 continue;
             }
