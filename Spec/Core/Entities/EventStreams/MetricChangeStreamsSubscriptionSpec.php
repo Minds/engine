@@ -124,7 +124,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
             ->willReturn($entity);
 
         $event->getAction()
-            ->willReturn(ActionEvent::ACTION_VOTE_DOWN); // ojm look at this file
+            ->willReturn(ActionEvent::ACTION_VOTE_DOWN);
 
         $this->counters->get('123', 'thumbs:down', false)
             ->shouldBeCalled()

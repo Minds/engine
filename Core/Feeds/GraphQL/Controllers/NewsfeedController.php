@@ -52,6 +52,12 @@ class NewsfeedController
     }
 
     /**
+     * Track when we've shown explicit vote buttons
+     * to make sure we don't show them too infrequently
+     */
+    protected int|null $lastIndexWithExplicitVotes = null;
+
+    /**
      * @param string[]|null $inFeedNoticesDelivered
      */
     #[Query]
@@ -143,6 +149,9 @@ class NewsfeedController
             loggedInUser: $loggedInUser,
             limit: $isBoostRotatorRemovedExperimentOn ? 3 : 1,
         );
+
+        // Reset the explicit vote counter
+        $this->lastIndexWithExplicitVotes = null;
 
         foreach ($activities as $i => $activity) {
             $cursor = $loadAfter;
@@ -514,12 +523,17 @@ class NewsfeedController
      */
     protected function showExplicitVoteButtons(Activity $activity, User $loggedInUser, int $i): bool
     {
-        $isPostOwner = $loggedInUser->getGuid() !== $activity->getOwnerGuid();
+        $isPostOwner = $loggedInUser->getGuid() === $activity->getOwnerGuid();
 
         $hasUpvoted = $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::UP);
 
-        return (($i === 0 || $i % 4 === 0) && $this->isExplicitVotesExperimentOn() && !$isPostOwner && !$hasUpvoted
-        );
+        $show = ($i === 0 || $i - $this->lastIndexWithExplicitVotes >= 4 || is_null($this->lastIndexWithExplicitVotes)) && $this->isExplicitVotesExperimentOn() && !$isPostOwner && !$hasUpvoted;
+
+        if ($show) {
+            $this->lastIndexWithExplicitVotes = $i;
+        }
+
+        return $show;
     }
 
     /**
@@ -550,7 +564,6 @@ class NewsfeedController
      */
     protected function isExplicitVotesExperimentOn(): bool
     {
-        return true; // ojm remove
-        // return $this->experimentsManager->isOn('minds-4175-explicit-votes');
+        return $this->experimentsManager->isOn('minds-4175-explicit-votes');
     }
 }

@@ -51,7 +51,7 @@ class Events
             $actionEvent = new ActionEvent();
             $actionEvent
                 ->setAction(
-                    $direction === 'up' ? ActionEvent::ACTION_VOTE_UP : ActionEvent::ACTION_VOTE_DOWN // ojm look
+                    $direction === 'up' ? ActionEvent::ACTION_VOTE_UP : ActionEvent::ACTION_VOTE_DOWN
                 )
                 ->setEntity($entity)
                 ->setUser($actor);
@@ -222,7 +222,7 @@ class Events
                 ->setAction(
                     $direction === 'up' ?
                         ActionEvent::ACTION_VOTE_UP_REMOVED :
-                        ActionEvent::ACTION_VOTE_DOWN_REMOVED // ojm look
+                        ActionEvent::ACTION_VOTE_DOWN_REMOVED
                 )
                 ->setEntity($entity)
                 ->setUser($actor);
