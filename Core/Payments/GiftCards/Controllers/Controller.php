@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\GiftCards\Controllers;
 
 use GraphQL\Error\UserError;
+use Minds\Core\Di\Di;
 use Minds\Core\GraphQL\Types\PageInfo;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
@@ -226,7 +227,13 @@ class Controller
     ): array {
         $balances = [];
         foreach ($this->manager->getUserBalanceByProduct($loggedInUser) as $productId => $balance) {
-            $giftCardBalance = new GiftCardBalanceByProductId(GiftCardProductIdEnum::from($productId), $balance);
+            $productIdEnum = GiftCardProductIdEnum::tryFrom($productId);
+
+            if (!in_array($productIdEnum, GiftCardProductIdEnum::enabledProductIdEnums())) {
+                continue;
+            }
+
+            $giftCardBalance = new GiftCardBalanceByProductId($productIdEnum, $balance);
             $giftCardBalance->setQueryRef($this, $loggedInUser);
             $balances[] = $giftCardBalance;
         }
@@ -338,12 +345,16 @@ class Controller
         // If we introduce ordering we will need to consider whether to inject at start instead.
         if (!$hasMore) {
             $giftCard = $this->manager->getGiftCard((int) $giftCardGuid);
+            $giftCardIssuer = Di::_()->get('EntitiesBuilder')->single($giftCard->issuedByGuid);
+
             $edges[] = new GiftCardTransactionEdge(
                 new GiftCardTransaction(
                     paymentGuid: 0,
                     giftCardGuid: (int) $giftCardGuid,
                     amount: $giftCard->amount,
                     createdAt: $giftCard->claimedAt,
+                    giftCardIssuerGuid: $giftCardIssuer ? $giftCardIssuer->getGuid() : null,
+                    giftCardIssuerName: $giftCardIssuer ? $giftCardIssuer->getUsername() : null
                 )
             );
         }
