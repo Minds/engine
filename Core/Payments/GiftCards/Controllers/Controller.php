@@ -229,7 +229,7 @@ class Controller
         foreach ($this->manager->getUserBalanceByProduct($loggedInUser) as $productId => $balance) {
             $productIdEnum = GiftCardProductIdEnum::tryFrom($productId);
 
-            if (!in_array($productIdEnum, GiftCardProductIdEnum::enabledProductIdEnums())) {
+            if (!in_array($productIdEnum, GiftCardProductIdEnum::enabledProductIdEnums(), true)) {
                 continue;
             }
 
