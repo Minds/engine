@@ -13,9 +13,10 @@ class GiftCardTransaction implements NodeInterface
         #[Field(outputType: 'String')] public readonly int $paymentGuid,
         #[Field(outputType: 'String')] public readonly int $giftCardGuid,
         #[Field] public readonly float $amount,
-        #[Field] public readonly int $createdAt,  // Timestamp of the transaction
-        #[Field] public readonly ?int $refundedAt = null,  // Timestamp of the transaction's refund
-        // #[Field] public readonly ?float $giftCardRunningBalance = null,
+        #[Field] public readonly int $createdAt,  // Timestamp of the transaction.
+        #[Field] public readonly ?int $refundedAt = null,  // Timestamp of the transaction's refund.
+        #[Field] public ?string $boostGuid = null, // guid of a linked boost, if there is one.
+        // #[Field] public readonly ?float $giftCardRunningBalance = null
     ) {
     }
 

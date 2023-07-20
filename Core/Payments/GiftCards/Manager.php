@@ -7,6 +7,7 @@ use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardPaymentTypeEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use Minds\Core\Payments\GiftCards\Enums\GiftCardStatusFilterEnum;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardAlreadyClaimedException;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardInsufficientFundsException;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
@@ -185,6 +186,7 @@ class Manager
         User $claimedByUser,
         ?User $issuedByUser = null,
         ?GiftCardProductIdEnum $productId = null,
+        ?GiftCardStatusFilterEnum $statusFilter = null,
         int $limit = Repository::DEFAULT_LIMIT,
         GiftCardOrderingEnum $ordering = GiftCardOrderingEnum::CREATED_ASC,
         ?string &$loadAfter = null,
@@ -195,6 +197,7 @@ class Manager
             claimedByGuid: $claimedByUser->getGuid(),
             issuedByGuid: $issuedByUser?->getGuid(),
             productId: $productId,
+            statusFilter: $statusFilter,
             limit: $limit,
             ordering: $ordering,
             loadAfter: $loadAfter,
@@ -309,6 +312,34 @@ class Manager
     }
 
     /**
+     * Returns transactions associated with a user with additional data
+     * for display in a ledger, such as Boost guids.        User $user,
+     * @param int $giftCardGuid - guid of the gift card to get transactions for.
+     * @param int $limit - limit of transactions to return.
+     * @param string &$loadAfter - cursor to load after.
+     * @param string &$loadBefore - cursor to load before.
+     * @param ?bool &$hasMore - whether there are more transactions to load.
+     * @return iterable<GiftCardTransaction>
+     */
+    public function getGiftCardTransactionLedger(
+        User $user,
+        int $giftCardGuid,
+        int $limit = Repository::DEFAULT_LIMIT,
+        string &$loadAfter = null,
+        string &$loadBefore = null,
+        ?bool &$hasMore = false
+    ): iterable {
+        return $this->repository->getGiftCardTransactionLedger(
+            giftCardClaimedByUserGuid: $user->getGuid(),
+            giftCardGuid: $giftCardGuid,
+            limit: $limit,
+            loadAfter: $loadAfter,
+            loadBefore: $loadBefore,
+            hasMore: $hasMore,
+        );
+    }
+
+    /**
      * Allows the user to spend against their gift card
      * @param User $user
      * @param GiftCardProductIdEnum $productId
@@ -332,7 +363,8 @@ class Manager
 
         $giftCards = $this->repository->getGiftCards(
             claimedByGuid: $user->getGuid(),
-            productId: $productId
+            productId: $productId,
+            statusFilter: GiftCardStatusFilterEnum::ACTIVE
         );
 
         $createdAtTimestamp = time();
