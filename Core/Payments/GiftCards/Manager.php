@@ -313,7 +313,7 @@ class Manager
 
     /**
      * Returns transactions associated with a user with additional data
-     * for display in a ledger, such as Boost guids.        User $user,
+     * for display in a ledger, such as Boost guids.
      * @param int $giftCardGuid - guid of the gift card to get transactions for.
      * @param int $limit - limit of transactions to return.
      * @param string &$loadAfter - cursor to load after.
