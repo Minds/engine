@@ -35,6 +35,7 @@ class thumbnail extends Core\page implements Interfaces\page
         $signedUri = new Core\Security\SignedUri();
         $req = \Zend\Diactoros\ServerRequestFactory::fromGlobals();
         if ($req->getQueryParams()['jwtsig'] ?? null) {
+            /** Note: Because of reverse proxy, URI will have http scheme. */
             if ($signedUri->confirm((string) $req->getUri())) {
                 Core\Security\ACL::$ignore = true;
                 $unlockPaywall = (bool) $_GET['unlock_paywall'] ?? 0;
