@@ -7,4 +7,11 @@ enum GiftCardProductIdEnum: int
     case PLUS = 1;
     case PRO = 2;
     case SUPERMIND = 3;
+
+    public static function enabledProductIdEnums(): array
+    {
+        return [
+            GiftCardProductIdEnum::BOOST
+        ];
+    }
 }

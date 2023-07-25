@@ -10,9 +10,12 @@
 
 namespace Minds\Controllers\api\v2;
 
+use Exception;
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
+use Minds\Core\Plus\Manager as PlusManager;
 use Minds\Core\Queue;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Util\BigNumber;
@@ -23,11 +26,15 @@ use Zend\Diactoros\ServerRequestFactory;
 
 class wire implements Interfaces\Api
 {
+    private ?GiftCardsManager $giftCardsManager = null;
+    private ?PlusManager $plusManager = null;
+
     public function get($pages)
     {
         $response = [];
 
-        return Factory::response($response);
+        Factory::response($response);
+        return;
     }
 
     /**
@@ -37,32 +44,47 @@ class wire implements Interfaces\Api
      *
      * API:: /v1/wire/:guid
      */
-    public function post($pages)
+    public function post($pages): void
     {
+        $this->getGiftCardsManager()->issueMindsPlusAndProGiftCards(
+            recipient: Core\Session::getLoggedInUser(),
+            amount: 0,
+            expiryTimestamp: strtotime('+1 year')
+        );
+        return;
         Factory::isLoggedIn();
         $response = [];
 
         if (!isset($pages[0])) {
-            return Factory::response(['status' => 'error', 'message' => ':guid must be passed in uri']);
+            Factory::response(['status' => 'error', 'message' => ':guid must be passed in uri']);
+            return;
         }
 
         $entity = Entities\Factory::build($pages[0]);
 
         if (!$entity) {
-            return Factory::response(['status' => 'error', 'message' => 'Entity not found']);
+            Factory::response(['status' => 'error', 'message' => 'Entity not found']);
+            return;
         }
 
         $user = $entity->type == 'user' ? $entity : $entity->getOwnerEntity();
         if (Core\Session::getLoggedInUserGuid() === $user->guid) {
-            return Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to yourself!']);
+            Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to yourself!']);
+            return;
         }
 
         $isPlus = (string) $user->getGuid() === (string) Core\Di\Di::_()->get('Config')->get('plus')['handler'];
         if (!$isPlus && !Core\Security\ACL::_()->interact($user, Core\Session::getLoggedInUser())) {
-            return Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to a user as you are unable to interact with them.']);
+            Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to a user as you are unable to interact with them.']);
+            return;
         }
 
-        $amount = BigNumber::_($_POST['amount']);
+        try {
+            $amount = BigNumber::_($_POST['amount']);
+        } catch (Exception $e) {
+            Factory::response(['status' => 'error', 'message' => 'you must send an amount']);
+            return;
+        }
 
         $recurring = isset($_POST['recurring']) ? $_POST['recurring'] : false;
         $recurringInterval = $_POST['recurring_interval'] ?? 'once';
@@ -73,12 +95,9 @@ class wire implements Interfaces\Api
             \Sentry\captureMessage("Recurring Subscription was created with 'once' interval");
         }
 
-        if (!$amount) {
-            return Factory::response(['status' => 'error', 'message' => 'you must send an amount']);
-        }
-
         if ($amount->lt(0)) {
-            return Factory::response(['status' => 'error', 'message' => 'amount must be a positive number']);
+            Factory::response(['status' => 'error', 'message' => 'amount must be a positive number']);
+            return;
         }
 
         $manager = Core\Di\Di::_()->get('Wire\Manager');
@@ -105,23 +124,44 @@ class wire implements Interfaces\Api
                 $response['code'] = $e->getCode();
                 $response['message'] = $e->getMessage();
                 $response['errorId'] = str_replace('\\', '::', get_class($e));
-                return Factory::response($response);
+                Factory::response($response);
+                return;
             }
         }
 
         try {
+
+            $loggedInUser = Core\Session::getLoggedInUser();
             $manager
-                ->setAmount((string) BigNumber::toPlain($amount, $digits))
+                ->setAmount((string)BigNumber::toPlain($amount, $digits))
                 ->setRecurring($recurring)
                 ->setRecurringInterval($recurringInterval)
-                ->setSender(Core\Session::getLoggedInUser())
+                ->setSender($loggedInUser)
                 ->setEntity($entity)
-                ->setPayload((array) $_POST['payload']);
+                ->setPayload((array)$_POST['payload']);
             $result = $manager->create();
 
             if (!$result) {
                 throw new \Exception('Something failed');
             }
+
+            if ($_POST['method'] !== 'usd' || !$isPlus) {
+                $response['status'] = 'success';
+                Factory::response($response);
+                return;
+            }
+
+            if ($this->getPlusManager()->isEligibleForTrial($loggedInUser)) {
+                $response['status'] = 'success';
+                Factory::response($response);
+                return;
+            }
+
+            $this->getGiftCardsManager()->issueMindsPlusAndProGiftCards(
+                recipient: $loggedInUser,
+                amount: BigNumber::toPlain($amount, $digits)->toDouble(),
+                expiryTimestamp: strtotime('+1 year')
+            );
 
             $response['status'] = 'success';
         } catch (WalletNotSetupException $e) {
@@ -141,7 +181,8 @@ class wire implements Interfaces\Api
             $response['message'] = $e->getMessage();
         }
 
-        return Factory::response($response);
+        Factory::response($response);
+        return;
     }
 
     public function put($pages)
@@ -150,5 +191,15 @@ class wire implements Interfaces\Api
 
     public function delete($pages)
     {
+    }
+
+    private function getGiftCardsManager(): GiftCardsManager
+    {
+        return $this->giftCardsManager ??= Di::_()->get(GiftCardsManager::class);
+    }
+
+    private function getPlusManager(): PlusManager
+    {
+        return $this->plusManager ??= Di::_()->get('Plus\Manager');
     }
 }

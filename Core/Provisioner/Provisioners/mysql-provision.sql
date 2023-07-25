@@ -330,7 +330,8 @@ CREATE TABLE IF NOT EXISTS minds_gift_card_transactions (
     payment_guid bigint NOT NULL ,
     gift_card_guid bigint NOT NULL,
     amount decimal(5,2) NOT NULL,
-    created_at timestamp NOT NULL,
+    created_at timestamp(3) NOT NULL,
+    refunded_at timestamp(3) DEFAULT NULL,
     PRIMARY KEY (payment_guid, gift_card_guid),
     FOREIGN KEY (payment_guid) REFERENCES minds_payments(payment_guid),
     FOREIGN KEY (gift_card_guid) REFERENCES minds_gift_cards(guid)
