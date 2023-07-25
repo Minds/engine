@@ -5,11 +5,16 @@ namespace Spec\Minds\Core\Blogs;
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Blogs\Delegates;
 use Minds\Core\Blogs\Repository;
+use Minds\Core\Config\Config;
 use Minds\Core\Entities\PropagateProperties;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Events\EventsDispatcher;
+use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
+use Minds\Core\Security\SignedUri;
 use Minds\Core\Security\Spam;
-
+use Minds\Entities\Image;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -36,13 +41,33 @@ class ManagerSpec extends ObjectBehavior
     /** @var PropagateProperties */
     protected $propagateProperties;
 
+    /** @var SignedUri */
+    protected $signedUri;
+
+    /** @var Config */
+    protected $config;
+
+    /** @var EventsDispatcher */
+    protected $eventsDispatcher;
+
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    /** @var Logger */
+    protected $logger;
+
     public function let(
         Repository $repository,
         Delegates\PaywallReview $paywallReview,
         Delegates\Slug $slug,
         Delegates\Feeds $feeds,
         Spam $spam,
-        PropagateProperties $propagateProperties
+        PropagateProperties $propagateProperties,
+        SignedUri $signedUri,
+        Config $config,
+        EventsDispatcher $eventsDispatcher,
+        EntitiesBuilder $entitiesBuilder,
+        Logger $logger
     ) {
         $this->beConstructedWith(
             $repository,
@@ -50,7 +75,12 @@ class ManagerSpec extends ObjectBehavior
             $slug,
             $feeds,
             $spam,
-            $propagateProperties
+            $propagateProperties,
+            $signedUri,
+            $config,
+            $eventsDispatcher,
+            $entitiesBuilder,
+            $logger
         );
 
         $this->repository = $repository;
@@ -59,6 +89,11 @@ class ManagerSpec extends ObjectBehavior
         $this->feeds = $feeds;
         $this->spam = $spam;
         $this->propagateProperties = $propagateProperties;
+        $this->signedUri = $signedUri;
+        $this->config = $config;
+        $this->eventsDispatcher = $eventsDispatcher;
+        $this->entitiesBuilder = $entitiesBuilder;
+        $this->logger = $logger;
     }
 
     public function it_is_initializable()
@@ -284,5 +319,136 @@ class ManagerSpec extends ObjectBehavior
 
         $this->spam->check(Argument::any())->shouldBeCalled()->willReturn(true);
         $this->add($blog);
+    }
+
+    public function it_should_sign_images(
+        Blog $blog,
+        Image $image
+    ) {
+        $entityGuid = '1234567890112233';
+        $blogOwnerGuid = '2234567890112233';
+        $imageOwnerGuid = '2234567890112233';
+
+        $imageUri = "http://localhost:8080/fs/v1/thumbnail/$entityGuid/xlarge";
+        $signedImageUri = "http://localhost:8080/fs/v1/thumbnail/$entityGuid/xlarge?jwtSig=123456";
+        $body = '<img src="'.$imageUri.'">';
+        $signedBody = '<img src="'.$signedImageUri.'">';
+
+        $blog->getBody()
+            ->shouldBeCalled()
+            ->willReturn($body);
+
+        $this->config->get('site_url')
+            ->shouldBeCalled()
+            ->willReturn('http://localhost:8080');
+
+        $this->config->get('cdn_url')
+            ->shouldBeCalled()
+            ->willReturn('http://localhost:8080');
+        
+        $this->entitiesBuilder->single($entityGuid)
+            ->shouldBeCalled()
+            ->willReturn($image);
+
+        $image->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($imageOwnerGuid);
+
+        $blog->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($blogOwnerGuid);
+
+        $this->signedUri->sign($imageUri)
+            ->shouldBeCalled()
+            ->willReturn($signedImageUri);
+
+        $this->signImages($blog)->shouldBe($signedBody);
+    }
+
+    public function it_should_NOT_sign_images_when_image_entity_cannot_be_found(
+        Blog $blog
+    ) {
+        $entityGuid = '1234567890112233';
+        $blogGuid = '2234567890112233';
+
+        $imageUri = "http://localhost:8080/fs/v1/thumbnail/$entityGuid/xlarge";
+        $body = '<img src="'.$imageUri.'">';
+
+        $blog->getBody()
+            ->shouldBeCalled()
+            ->willReturn($body);
+
+        $this->config->get('site_url')
+            ->shouldBeCalled()
+            ->willReturn('http://localhost:8080');
+
+        $this->config->get('cdn_url')
+            ->shouldBeCalled()
+            ->willReturn('http://localhost:8080');
+        
+        $this->entitiesBuilder->single($entityGuid)
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $blog->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($blogGuid);
+
+        $this->logger->warning(Argument::type('string'))
+            ->shouldBeCalled();
+
+        $this->signedUri->sign($imageUri)
+            ->shouldNotBeCalled();
+
+        $this->signImages($blog)->shouldBe($body);
+    }
+
+    public function it_should_NOT_sign_images_when_image_owner_is_not_blog_owner(
+        Blog $blog,
+        Image $image
+    ) {
+        $entityGuid = '1234567890112233';
+        $blogOwnerGuid = '2234567890112233';
+        $imageOwnerGuid = '3234567890112233';
+        $blogGuid = '4234567890112233';
+
+        $imageUri = "http://localhost:8080/fs/v1/thumbnail/$entityGuid/xlarge";
+        $body = '<img src="'.$imageUri.'">';
+
+        $blog->getBody()
+            ->shouldBeCalled()
+            ->willReturn($body);
+
+        $this->config->get('site_url')
+            ->shouldBeCalled()
+            ->willReturn('http://localhost:8080');
+
+        $this->config->get('cdn_url')
+            ->shouldBeCalled()
+            ->willReturn('http://localhost:8080');
+        
+        $this->entitiesBuilder->single($entityGuid)
+            ->shouldBeCalled()
+            ->willReturn($image);
+
+        $image->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($imageOwnerGuid);
+
+        $blog->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($blogOwnerGuid);
+
+        $blog->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($blogGuid);
+
+        $this->logger->warning(Argument::type('string'))
+            ->shouldBeCalled();
+
+        $this->signedUri->sign($imageUri)
+            ->shouldNotBeCalled();
+
+        $this->signImages($blog)->shouldBe($body);
     }
 }
