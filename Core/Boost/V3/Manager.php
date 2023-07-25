@@ -274,7 +274,7 @@ class Manager
             ->setApprovedTimestamp($presetTimestamp);
 
         /**
-         * We had to 
+         * We had to
          */
         $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user);
 
