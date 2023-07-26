@@ -43,6 +43,15 @@ class SupermindPendingNotice extends AbstractNotice
     }
 
     /**
+     * Whether notice is dismissible.
+     * @return boolean - true if notice is dismissible.
+     */
+    public function isDismissible(): bool
+    {
+        return false;
+    }
+
+    /**
      * Whether notice should show in feed, based on whether user has
      * "pending" supermind offers. Note, the actual supermind state `PENDING`
      * is an internal state - we want to check for created, non expired offers.

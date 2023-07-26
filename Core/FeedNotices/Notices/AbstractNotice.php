@@ -32,6 +32,12 @@ abstract class AbstractNotice
     abstract public function shouldShow(User $user): bool;
     
     /**
+     * Whether notice is dismissible.
+     * @return boolean - true if notice is dismissible.
+     */
+    abstract public function isDismissible(): bool;
+
+    /**
      * Set user for instance.
      * @param User $user - user to set.
      * @return self
@@ -54,6 +60,7 @@ abstract class AbstractNotice
             'should_show' => $this->shouldShow(
                 $this->user
             ),
+            'is_dismissible' => $this->isDismissible()
         ];
     }
 }
