@@ -45,6 +45,15 @@ class VerifyUniquenessNotice extends AbstractNotice
     }
 
     /**
+     * Whether notice is dismissible.
+     * @return boolean - true if notice is dismissible.
+     */
+    public function isDismissible(): bool
+    {
+        return true;
+    }
+
+    /**
      * Whether notice should show in feed, based on whether user has
      * no stored phone number hash and meets other prerequisites.
      * @param User $user - user to check for.
