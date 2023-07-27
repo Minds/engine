@@ -377,7 +377,7 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
         )));
         $recipients->append(new NoRewindIterator($groupMembershipManager->getMembers(
             group: $group,
-            limit: 1,
+            limit: 10,
             membershipLevel: GroupMembershipLevelEnum::OWNER
         )));
 

@@ -452,7 +452,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $this->groupMembershipManager->getMembers(
             $group,
             GroupMembershipLevelEnum::OWNER,
-            1,
+            10,
             Argument::any(),
             Argument::any()
         )
