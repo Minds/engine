@@ -42,24 +42,24 @@ class Controller
      * @throws SupermindRequestIncorrectStatusException
      * @throws SupermindUnauthorizedSenderException
      */
-//    #[OA\Delete(
-//        path: '/api/v3/supermind/:guid',
-//        parameters: [
-//            new OA\Parameter(
-//                name: "guid",
-//                in: "path",
-//                required: true,
-//                schema: new OA\Schema(type: 'integer')
-//            )
-//        ],
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 400, description: "Bad Request"),
-//            new OA\Response(response: 401, description: "Unauthorized"),
-//            new OA\Response(response: 403, description: "Forbidden"),
-//            new OA\Response(response: 404, description: "Not found")
-//        ]
-//    )]
+    //    #[OA\Delete(
+    //        path: '/api/v3/supermind/:guid',
+    //        parameters: [
+    //            new OA\Parameter(
+    //                name: "guid",
+    //                in: "path",
+    //                required: true,
+    //                schema: new OA\Schema(type: 'integer')
+    //            )
+    //        ],
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 400, description: "Bad Request"),
+    //            new OA\Response(response: 401, description: "Unauthorized"),
+    //            new OA\Response(response: 403, description: "Forbidden"),
+    //            new OA\Response(response: 404, description: "Not found")
+    //        ]
+    //    )]
     public function revokeSupermindRequest(ServerRequestInterface $request): JsonResponse
     {
         $loggedInUser = $request->getAttribute("_user");
@@ -81,24 +81,24 @@ class Controller
      * @throws SupermindNotFoundException
      * @throws SupermindUnauthorizedSenderException
      */
-//    #[OA\Post(
-//        path: '/api/v3/supermind/:guid/reject',
-//        parameters: [
-//            new OA\Parameter(
-//                name: "guid",
-//                in: "path",
-//                required: true,
-//                schema: new OA\Schema(type: 'integer')
-//            )
-//        ],
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 400, description: "Bad Request"),
-//            new OA\Response(response: 401, description: "Unauthorized"),
-//            new OA\Response(response: 403, description: "Forbidden"),
-//            new OA\Response(response: 404, description: "Not found")
-//        ]
-//    )]
+    //    #[OA\Post(
+    //        path: '/api/v3/supermind/:guid/reject',
+    //        parameters: [
+    //            new OA\Parameter(
+    //                name: "guid",
+    //                in: "path",
+    //                required: true,
+    //                schema: new OA\Schema(type: 'integer')
+    //            )
+    //        ],
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 400, description: "Bad Request"),
+    //            new OA\Response(response: 401, description: "Unauthorized"),
+    //            new OA\Response(response: 403, description: "Forbidden"),
+    //            new OA\Response(response: 404, description: "Not found")
+    //        ]
+    //    )]
     public function rejectSupermindRequest(ServerRequestInterface $request): JsonResponse
     {
         $loggedInUser = $request->getAttribute("_user");
@@ -115,28 +115,28 @@ class Controller
      * @return JsonResponse
      * @throws UserErrorException
      */
-//    #[OA\Get(
-//        path: '/api/v3/supermind/inbox',
-//        parameters: [
-//            new OA\Parameter(
-//                name: "offset",
-//                in: "query",
-//                required: true,
-//                schema: new OA\Schema(type: 'integer')
-//            ),
-//            new OA\Parameter(
-//                name: "limit",
-//                in: "query",
-//                required: true,
-//                schema: new OA\Schema(type: 'integer')
-//            )
-//        ],
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 400, description: "Bad Request"),
-//            new OA\Response(response: 401, description: "Unauthorized"),
-//        ]
-//    )]
+    //    #[OA\Get(
+    //        path: '/api/v3/supermind/inbox',
+    //        parameters: [
+    //            new OA\Parameter(
+    //                name: "offset",
+    //                in: "query",
+    //                required: true,
+    //                schema: new OA\Schema(type: 'integer')
+    //            ),
+    //            new OA\Parameter(
+    //                name: "limit",
+    //                in: "query",
+    //                required: true,
+    //                schema: new OA\Schema(type: 'integer')
+    //            )
+    //        ],
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 400, description: "Bad Request"),
+    //            new OA\Response(response: 401, description: "Unauthorized"),
+    //        ]
+    //    )]
     public function getSupermindInboxRequests(ServerRequestInterface $request): JsonResponse
     {
         $loggedInUser = $request->getAttribute("_user");
@@ -168,22 +168,22 @@ class Controller
      * @return JsonResponse
      * @throws UserErrorException
      */
-//    #[OA\Get(
-//        path: '/api/v3/supermind/inbox/count',
-//        parameters: [
-//            new OA\Parameter(
-//                name: "status",
-//                in: "query",
-//                required: false,
-//                schema: new OA\Schema(type: 'integer')
-//            )
-//        ],
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 400, description: "Bad Request"),
-//            new OA\Response(response: 401, description: "Unauthorized"),
-//        ]
-//    )]
+    //    #[OA\Get(
+    //        path: '/api/v3/supermind/inbox/count',
+    //        parameters: [
+    //            new OA\Parameter(
+    //                name: "status",
+    //                in: "query",
+    //                required: false,
+    //                schema: new OA\Schema(type: 'integer')
+    //            )
+    //        ],
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 400, description: "Bad Request"),
+    //            new OA\Response(response: 401, description: "Unauthorized"),
+    //        ]
+    //    )]
     public function countSupermindInboxRequests(ServerRequestInterface $request): JsonResponse
     {
         $loggedInUser = $request->getAttribute("_user");
@@ -213,28 +213,28 @@ class Controller
      * @return JsonResponse
      * @throws UserErrorException
      */
-//    #[OA\Get(
-//        path: '/api/v3/supermind/outbox',
-//        parameters: [
-//            new OA\Parameter(
-//                name: "offset",
-//                in: "query",
-//                required: true,
-//                schema: new OA\Schema(type: 'integer')
-//            ),
-//            new OA\Parameter(
-//                name: "limit",
-//                in: "query",
-//                required: true,
-//                schema: new OA\Schema(type: 'integer')
-//            )
-//        ],
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 400, description: "Bad Request"),
-//            new OA\Response(response: 401, description: "Unauthorized"),
-//        ]
-//    )]
+    //    #[OA\Get(
+    //        path: '/api/v3/supermind/outbox',
+    //        parameters: [
+    //            new OA\Parameter(
+    //                name: "offset",
+    //                in: "query",
+    //                required: true,
+    //                schema: new OA\Schema(type: 'integer')
+    //            ),
+    //            new OA\Parameter(
+    //                name: "limit",
+    //                in: "query",
+    //                required: true,
+    //                schema: new OA\Schema(type: 'integer')
+    //            )
+    //        ],
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 400, description: "Bad Request"),
+    //            new OA\Response(response: 401, description: "Unauthorized"),
+    //        ]
+    //    )]
     public function getSupermindOutboxRequests(ServerRequestInterface $request): JsonResponse
     {
         $loggedInUser = $request->getAttribute("_user");
@@ -266,22 +266,22 @@ class Controller
      * @return JsonResponse
      * @throws UserErrorException
      */
-//    #[OA\Get(
-//        path: '/api/v3/supermind/outbox/count',
-//        parameters: [
-//            new OA\Parameter(
-//                name: "status",
-//                in: "query",
-//                required: false,
-//                schema: new OA\Schema(type: 'integer')
-//            )
-//        ],
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 400, description: "Bad Request"),
-//            new OA\Response(response: 401, description: "Unauthorized"),
-//        ]
-//    )]
+    //    #[OA\Get(
+    //        path: '/api/v3/supermind/outbox/count',
+    //        parameters: [
+    //            new OA\Parameter(
+    //                name: "status",
+    //                in: "query",
+    //                required: false,
+    //                schema: new OA\Schema(type: 'integer')
+    //            )
+    //        ],
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 400, description: "Bad Request"),
+    //            new OA\Response(response: 401, description: "Unauthorized"),
+    //        ]
+    //    )]
     public function countSupermindOutboxRequests(ServerRequestInterface $request): JsonResponse
     {
         $loggedInUser = $request->getAttribute("_user");
@@ -313,13 +313,13 @@ class Controller
      * @throws SupermindNotFoundException
      * @throws ForbiddenException
      */
-//    #[OA\Get(
-//        path: '/api/v3/supermind/:guid',
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 401, description: "Unauthorized"),
-//        ]
-//    )]
+    //    #[OA\Get(
+    //        path: '/api/v3/supermind/:guid',
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 401, description: "Unauthorized"),
+    //        ]
+    //    )]
     public function getSupermindRequest(ServerRequestInterface $request): JsonResponse
     {
         $user = $request->getAttribute('_user');
@@ -334,13 +334,13 @@ class Controller
      * @param ServerRequestInterface $request
      * @return JsonResponse
      */
-//    #[OA\Post(
-//        path: '/api/v3/supermind/bulk',
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 403, description: "Forbidden"),
-//        ]
-//    )]
+    //    #[OA\Post(
+    //        path: '/api/v3/supermind/bulk',
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 403, description: "Forbidden"),
+    //        ]
+    //    )]
     public function createBulkSupermindRequest(ServerRequestInterface $request): JsonResponse
     {
         try {

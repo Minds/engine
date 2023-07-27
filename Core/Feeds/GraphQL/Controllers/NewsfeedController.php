@@ -2,6 +2,7 @@
 namespace Minds\Core\Feeds\GraphQL\Controllers;
 
 use GraphQL\Error\UserError;
+use Minds\Common\Access;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\GraphQL\Types\BoostEdge;
@@ -30,6 +31,7 @@ use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\Query;
 use Minds\Core\FeedNotices\Notices\NoGroupsNotice;
+use Minds\Core\Feeds\Elastic\V2\QueryOpts;
 use Minds\Core\Feeds\GraphQL\Enums\NewsfeedAlgorithmsEnum;
 
 class NewsfeedController
@@ -93,27 +95,38 @@ class NewsfeedController
 
         switch ($algorithm) {
             case NewsfeedAlgorithmsEnum::LATEST:
-                $activities = $this->feedsManager->getLatestSubscribed(
-                    user: $loggedInUser,
-                    limit: $limit,
+                $activities = $this->feedsManager->getLatest(
+                    queryOpts: new QueryOpts(
+                        user: $loggedInUser,
+                        onlySubscribed: true,
+                        accessId: Access::PUBLIC,
+                        limit: $limit,
+                    ),
                     hasMore: $hasMore,
                     loadAfter: $loadAfter,
                     loadBefore: $loadBefore,
                 );
                 break;
             case NewsfeedAlgorithmsEnum::GROUPS:
-                $activities = $this->feedsManager->getLatestGroups(
-                    user: $loggedInUser,
-                    limit: $limit,
+                $activities = $this->feedsManager->getLatest(
+                    queryOpts: new QueryOpts(
+                        user: $loggedInUser,
+                        onlyGroups: true,
+                        limit: $limit,
+                    ),
                     hasMore: $hasMore,
                     loadAfter: $loadAfter,
                     loadBefore: $loadBefore,
                 );
                 break;
             case NewsfeedAlgorithmsEnum::TOP:
-                $activities = $this->feedsManager->getTopSubscribed(
-                    user: $loggedInUser,
-                    limit: $limit,
+                $activities = $this->feedsManager->getTop(
+                    queryOpts: new QueryOpts(
+                        user: $loggedInUser,
+                        onlySubscribed: true,
+                        accessId: Access::PUBLIC,
+                        limit: $limit,
+                    ),
                     hasMore: $hasMore,
                     loadAfter: $loadAfter,
                     loadBefore: $loadBefore,
@@ -359,10 +372,12 @@ class NewsfeedController
      */
     protected function buildFeedHighlights(User $loggedInUser, string $cursor): ?FeedHighlightsEdge
     {
-        $activities = $this->feedsManager->getTopSubscribed(
-            user: $loggedInUser,
-            limit: 3,
-            seenEntitiesStrategy: SeenEntitiesFilterStrategyEnum::EXCLUDE,
+        $activities = $this->feedsManager->getTop(
+            queryOpts: new QueryOpts(
+                user: $loggedInUser,
+                limit: 3,
+                seenEntitiesFilterStrategy: SeenEntitiesFilterStrategyEnum::EXCLUDE,
+            ),
             hasMore: $hasMore,
             loadAfter: $loadAfter,
             loadBefore: $loadBefore,
