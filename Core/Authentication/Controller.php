@@ -40,14 +40,14 @@ class Controller
      * @throws UserNotSetupException
      * @throws RedisException
      */
-//    #[OA\Post(
-//        path: '/api/v3/authenticate',
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 401, description: "Unauthorized"),
-//            new OA\Response(response: 403, description: "Forbidden")
-//        ]
-//    )]
+    //    #[OA\Post(
+    //        path: '/api/v3/authenticate',
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 401, description: "Unauthorized"),
+    //            new OA\Response(response: 403, description: "Forbidden")
+    //        ]
+    //    )]
     public function authenticate(ServerRequest $request): JsonResponse
     {
         $requestValidator = new AuthenticationRequestValidator();
@@ -68,14 +68,14 @@ class Controller
      * @return JsonResponse
      * @throws Exception
      */
-//    #[OA\Delete(
-//        path: '/api/v3/authenticate',
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 401, description: "Unauthorized"),
-//            new OA\Response(response: 403, description: "Forbidden")
-//        ]
-//    )]
+    //    #[OA\Delete(
+    //        path: '/api/v3/authenticate',
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 401, description: "Unauthorized"),
+    //            new OA\Response(response: 403, description: "Forbidden")
+    //        ]
+    //    )]
     public function deleteSession(ServerRequestInterface $request): JsonResponse
     {
         $this->manager->deleteSession();
@@ -87,14 +87,14 @@ class Controller
      * @param ServerRequestInterface $request
      * @return JsonResponse
      */
-//    #[OA\Delete(
-//        path: '/api/v3/authenticate/all',
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 401, description: "Unauthorized"),
-//            new OA\Response(response: 403, description: "Forbidden")
-//        ]
-//    )]
+    //    #[OA\Delete(
+    //        path: '/api/v3/authenticate/all',
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 401, description: "Unauthorized"),
+    //            new OA\Response(response: 403, description: "Forbidden")
+    //        ]
+    //    )]
     public function deleteAllUserSessions(ServerRequestInterface $request): JsonResponse
     {
         $this->manager->deleteAllUserSessions();

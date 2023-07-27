@@ -219,6 +219,62 @@ class Repository extends MySQL\AbstractRepository
         return $success;
     }
 
+    /**
+    * Will return groups that other members, of groups I am in, are also a member of
+    * @param string $userGuid
+    * @param int $limit
+    * @param int $offset
+    * @return iterable<int>
+    */
+    public function getGroupsOfMutualMember(
+        int $userGuid,
+        int $limit = 3,
+        int $offset = 0
+    ): iterable {
+        $userSharedGroupWithSubquery = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'user_guid' => 'b.user_guid',
+                'count' => new RawExp('count(*)')
+            ])
+            ->from('minds_group_membership')
+            ->innerJoin(['b'=>'minds_group_membership'], 'minds_group_membership.group_guid', Operator::EQ, 'b.group_guid')
+            ->where('minds_group_membership.user_guid', Operator::EQ, new RawExp(':userGuid'))
+            ->where('b.user_guid', Operator::NOT_EQ, new RawExp(':userGuid'))
+            ->groupBy('user_guid')
+            ->alias('b');
+
+        $query = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'group_guid' => 'minds_group_membership.group_guid',
+                'relevance' => new RawExp('count(*)'),
+            ])
+            ->from(new RawExp('minds_group_membership'))
+            // Users that share the same groups
+            ->innerJoin(
+                new RawExp(rtrim($userSharedGroupWithSubquery->build(), ';')),
+                'b.user_guid',
+                Operator::EQ,
+                'minds_group_membership.user_guid'
+            )
+            // Exclude groups already a member of
+            ->leftJoinRaw(['c' => 'minds_group_membership'], 'c.user_guid = :userGuid AND c.group_guid = minds_group_membership.group_guid')
+            ->where('c.membership_level', Operator::IS, null)
+            ->groupBy('group_guid')
+            ->orderBy('relevance desc')
+            ->limit($limit)
+            ->offset($offset);
+
+        $prepared = $query->prepare();
+     
+        $prepared->execute([
+            'userGuid' => $userGuid,
+        ]);
+    
+        foreach ($prepared as $row) {
+            yield (int) $row['group_guid'];
+        }
+    }
+
     private function getMemberCountCacheKey(int $groupGuid, GroupMembershipLevelEnum $membershipLevel = null): string
     {
         $cacheKey = static::CACHE_KEY_PREFIX . ":$groupGuid:member-count";
