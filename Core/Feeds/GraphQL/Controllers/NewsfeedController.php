@@ -31,6 +31,7 @@ use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\Query;
 use Minds\Core\FeedNotices\Notices\NoGroupsNotice;
 use Minds\Core\Feeds\GraphQL\Enums\NewsfeedAlgorithmsEnum;
+use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 
 class NewsfeedController
 {
@@ -41,7 +42,7 @@ class NewsfeedController
         protected BoostManager $boostManager,
         protected SuggestedChannelsRecommendationsAlgorithm $suggestedChannelsRecommendationsAlgorithm,
         protected BoostSuggestionInjector $boostSuggestionInjector,
-        protected SuggestionsManager $suggestionsManager,
+        protected SuggestedGroupsRecommendationsAlgorithm $suggestedGroupsRecommendationsAlgorithm,
         protected ExperimentsManager $experimentsManager,
     ) {
     }
@@ -449,11 +450,10 @@ class NewsfeedController
      */
     protected function buildGroupRecs(User $loggedInUser, string $cursor, int $listSize = 3): PublisherRecsEdge
     {
-        $result = $this->suggestionsManager
+        $result = $this->suggestedGroupsRecommendationsAlgorithm
             ->setUser($loggedInUser)
-            ->setType('group')
-            ->getList([
-                'limit' => $listSize
+            ->getRecommendations([
+                'limit' => 3
             ]);
 
         $edges = [ ];
