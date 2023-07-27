@@ -37,13 +37,12 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
     /** @var Core\Config */
     protected $config;
 
-    private EntitiesBuilder $entitiesBuilder;
-    private Resolver $entitiesResolver;
-
     public function __construct(
         Manager $manager = null,
         Logger $logger = null,
-        Config $config = null
+        Config $config = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?Resolver $entitiesResolver = null
     ) {
         $this->manager = $manager ?? Di::_()->get('Notifications\Manager');
         $this->logger = $logger ?? Di::_()->get('Logger');
@@ -221,6 +220,7 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
             case ActionEvent::ACTION_GROUP_INVITE:
                 $notification->setType(NotificationTypes::TYPE_GROUP_INVITE);
                 $notification->setEntityUrn($event->getActionData()['group_urn']);
+                $notifications[] = $notification;
                 break;
             case ActionEvent::ACTION_GROUP_QUEUE_ADD:
                 $notification->setType(NotificationTypes::TYPE_GROUP_QUEUE_ADD);
@@ -334,13 +334,12 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
 
         $allNotificationsSent = true;
 
-        foreach($notifications as $notification) {
+        foreach ($notifications as $notification) {
             if (!$this->manager->add($notification)) {
                 $allNotificationsSent = false;
                 $this->logger->info("{$notification->getUuid()} {$notification->getType()} failed");
                 continue;
             }
-            // Some logging 
             $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
         }
 
@@ -351,7 +350,8 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
      * Gets group membership manager from DI.
      * @return GroupMembershipManager returns group membership manager.
      */
-    private function getGroupMembershipManager(): GroupMembershipManager {
+    private function getGroupMembershipManager(): GroupMembershipManager
+    {
         return Di::_()->get(GroupMembershipManager::class);
     }
 
@@ -360,7 +360,8 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
      * @param ActionEvent $event - triggered action event.
      * @return Notification[] - array of notifications.
      */
-    private function buildGroupQueueReceivedNotifications(ActionEvent $event): array {
+    private function buildGroupQueueReceivedNotifications(ActionEvent $event): array
+    {
         $group = $this->entitiesResolver->single(new Urn($event->getActionData()['group_urn']));
 
         if (!$group || !($group instanceof Group)) {
@@ -372,12 +373,12 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
         $recipients->append(new NoRewindIterator($groupMembershipManager->getMembers(
             group: $group,
             limit: 10,
-            membershipLevel: GroupMembershipLevelEnum::MODERATOR 
+            membershipLevel: GroupMembershipLevelEnum::MODERATOR
         )));
         $recipients->append(new NoRewindIterator($groupMembershipManager->getMembers(
             group: $group,
             limit: 1,
-            membershipLevel: GroupMembershipLevelEnum::OWNER 
+            membershipLevel: GroupMembershipLevelEnum::OWNER
         )));
 
         $notifications = [];

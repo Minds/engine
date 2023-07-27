@@ -136,12 +136,7 @@ class Feeds
         if ($success && $options['notification']) {
             $this->sendNotification('add', $activity);
             $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_ADD, $activity->getOwnerEntity(), $activity);
-
-            $this->emitActionEvent(
-                ActionEvent::ACTION_GROUP_QUEUE_RECEIVED,
-                new SystemUser(),
-                $activity
-            );
+            $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_RECEIVED, new SystemUser(), $activity);
         }
 
         return $success;

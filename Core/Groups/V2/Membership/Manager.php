@@ -140,8 +140,8 @@ class Manager
          * Vitess read
          */
         foreach ($this->repository->getList(
-            groupGuid: $group->getGuid(), 
-            limit: $limit, 
+            groupGuid: $group->getGuid(),
+            limit: $limit,
             offset: $offset,
             membershipLevel: $membershipLevel
         ) as $membership) {

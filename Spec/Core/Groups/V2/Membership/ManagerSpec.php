@@ -302,7 +302,7 @@ class ManagerSpec extends ObjectBehavior
             membershipLevel: GroupMembershipLevelEnum::MEMBER,
         );
 
-        $this->repositoryMock->getList(123, null, null, Argument::any(), Argument::any())
+        $this->repositoryMock->getList(123, null, GroupMembershipLevelEnum::MEMBER, Argument::any(), Argument::any())
             ->willYield([
                 $membership1,
                 $membership2,
@@ -313,6 +313,46 @@ class ManagerSpec extends ObjectBehavior
         $this->aclMock->read(Argument::any())->willReturn(true);
 
         $this->getMembers($groupMock)->shouldYieldLike([
+            $membership1,
+            $membership2,
+        ]);
+    }
+
+    public function it_should_return_members_for_a_provided_membership_level(Group $groupMock, User $userMock)
+    {
+        $membershipLevel = GroupMembershipLevelEnum::OWNER;
+
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(true);
+
+        $groupMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $membership1 = new Membership(
+            groupGuid: 123,
+            userGuid: 456,
+            createdTimestamp: new DateTime(),
+            membershipLevel: GroupMembershipLevelEnum::OWNER,
+        );
+
+        $membership2 = new Membership(
+            groupGuid: 123,
+            userGuid: 789,
+            createdTimestamp: new DateTime(),
+            membershipLevel: GroupMembershipLevelEnum::OWNER,
+        );
+
+        $this->repositoryMock->getList(123, null, $membershipLevel, Argument::any(), Argument::any())
+            ->willYield([
+                $membership1,
+                $membership2,
+            ]);
+
+        $this->entitiesBuilderMock->single(Argument::any())->willReturn($userMock);
+
+        $this->aclMock->read(Argument::any())->willReturn(true);
+
+        $this->getMembers($groupMock, $membershipLevel)->shouldYieldLike([
             $membership1,
             $membership2,
         ]);
