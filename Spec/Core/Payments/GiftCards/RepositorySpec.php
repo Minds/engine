@@ -485,6 +485,7 @@ class RepositorySpec extends ObjectBehavior
                         'gift_card_guid' => 1244987032468459522,
                         'amount' => 0.99,
                         'created_at' => date('c', $refTime),
+                        'refunded_at' => null,
                         'gift_card_balance' => 9.01,
                     ],
                     [
@@ -492,6 +493,7 @@ class RepositorySpec extends ObjectBehavior
                         'gift_card_guid' => 1244987032468459522,
                         'amount' => 10.00,
                         'created_at' => date('c', $refTime),
+                        'refunded_at' => date('c', $refTime),
                         'gift_card_balance' => 10.00,
                     ]
                 ]
@@ -507,6 +509,7 @@ class RepositorySpec extends ObjectBehavior
                 giftCardGuid: 1244987032468459522,
                 amount: 0.99,
                 createdAt: $refTime,
+                refundedAt: null,
                 // giftCardRunningBalance: 9.01,
             ),
             new GiftCardTransaction(
@@ -514,6 +517,7 @@ class RepositorySpec extends ObjectBehavior
                 giftCardGuid: 1244987032468459522,
                 amount: 10.00,
                 createdAt: $refTime,
+                refundedAt: $refTime,
                 // giftCardRunningBalance: 10.00,
             ),
         ]));

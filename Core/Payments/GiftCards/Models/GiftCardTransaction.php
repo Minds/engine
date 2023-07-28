@@ -2,8 +2,8 @@
 namespace Minds\Core\Payments\GiftCards\Models;
 
 use Minds\Core\GraphQL\Types\NodeInterface;
-use TheCodingMachine\GraphQLite\Annotations\Type;
 use TheCodingMachine\GraphQLite\Annotations\Field;
+use TheCodingMachine\GraphQLite\Annotations\Type;
 use TheCodingMachine\GraphQLite\Types\ID;
 
 #[Type]
@@ -14,6 +14,7 @@ class GiftCardTransaction implements NodeInterface
         #[Field(outputType: 'String')] public readonly int $giftCardGuid,
         #[Field] public readonly float $amount,
         #[Field] public readonly int $createdAt,  // Timestamp of the transaction
+        #[Field] public readonly ?int $refundedAt = null,  // Timestamp of the transaction's refund
         // #[Field] public readonly ?float $giftCardRunningBalance = null,
     ) {
     }
