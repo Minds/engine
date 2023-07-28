@@ -152,9 +152,6 @@ class Manager
 
         $this->processNewBoost($boost, $data['payment_tx_id'] ?? null);
 
-        $this->repository->commitTransaction();
-        $this->paymentProcessor->commitTransaction();
-
         $this->actionEventDelegate->onCreate($boost);
 
         if ($boost->getStatus() === BoostStatus::APPROVED) {
@@ -235,6 +232,9 @@ class Manager
             if (!$this->repository->createBoost($boost)) {
                 throw new BoostCreationFailedException();
             }
+
+            $this->repository->commitTransaction();
+            $this->paymentProcessor->commitTransaction();
         } catch (BoostCreationFailedException|GiftCardInsufficientFundsException $e) {
             $this->paymentProcessor->refundBoostPayment($boost);
             $this->repository->rollbackTransaction();
@@ -273,9 +273,6 @@ class Manager
             ->setUpdatedTimestamp($presetTimestamp)
             ->setApprovedTimestamp($presetTimestamp);
 
-        /**
-         * We had to
-         */
         $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user);
 
         $this->repository->beginTransaction();
@@ -285,12 +282,19 @@ class Manager
             throw new BoostPaymentSetupFailedException();
         }
 
-        if (!$this->paymentProcessor->captureBoostPayment($boost)) {
-            throw new BoostPaymentCaptureFailedException();
-        }
-
         if (!$this->repository->createBoost($boost)) {
             throw new BoostCreationFailedException();
+        }
+
+        $this->repository->commitTransaction();
+        $this->paymentProcessor->commitTransaction();
+
+        /**
+         * Needs to be after the transaction commits due to transaction lock being placed on
+         * payments table because of foreign key constraint in gift card transactions table.
+         */
+        if (!$this->paymentProcessor->captureBoostPayment($boost)) {
+            throw new BoostPaymentCaptureFailedException();
         }
     }
 
