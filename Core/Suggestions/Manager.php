@@ -105,7 +105,7 @@ class Manager
                 'offset' => (int) ($opts['offset'] ?? 0),
             ]);
             if (!$groups) {
-                $groups = $this->getDefaultTagBasedSuggestions('group');
+                $groups = new Response($this->getDefaultTagBasedSuggestions('group'));
             }
             return $groups;
         }
