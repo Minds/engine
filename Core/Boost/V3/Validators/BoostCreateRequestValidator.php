@@ -12,20 +12,20 @@ use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\Enums\BoostTargetSuitability;
 use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\Stripe\PaymentMethods\Manager as PaymentMethodsManager;
-use Minds\Core\Session;
-use Minds\Entities\ValidationError;
-use Minds\Entities\ValidationErrorCollection;
-use Minds\Interfaces\ValidatorInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
-use Minds\Helpers\Text;
 use Minds\Core\Security\ProhibitedDomains;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Security\ACL;
+use Minds\Core\Session;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
+use Minds\Entities\ValidationError;
+use Minds\Entities\ValidationErrorCollection;
+use Minds\Helpers\Text;
+use Minds\Interfaces\ValidatorInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Minds\Core\Security\ACL;
 
 class BoostCreateRequestValidator implements ValidatorInterface
 {
