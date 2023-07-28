@@ -37,6 +37,12 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
         $this->getKey()->shouldBe('connect-wallet');
     }
 
+
+    public function it_should_get_whether_notice_is_dismissible()
+    {
+        $this->isDismissible()->shouldBe(true);
+    }
+
     public function it_should_determine_if_notice_should_show(
         User $user,
     ) {
@@ -111,7 +117,8 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
         $this->export()->shouldBe([
             'key' => 'connect-wallet',
             'location' => 'inline',
-            'should_show' => true
+            'should_show' => true,
+            'is_dismissible' => true
         ]);
     }
 }

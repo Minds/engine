@@ -44,6 +44,11 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
         $this->getKey()->shouldBe('verify-uniqueness');
     }
 
+    public function it_should_get_whether_notice_is_dismissible()
+    {
+        $this->isDismissible()->shouldBe(true);
+    }
+
     public function it_should_determine_if_notice_should_show(
         User $user
     ) {
@@ -133,7 +138,8 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
         $this->export()->shouldBe([
             'key' => 'verify-uniqueness',
             'location' => 'inline',
-            'should_show' => false
+            'should_show' => false,
+            'is_dismissible' => true
         ]);
     }
 }
