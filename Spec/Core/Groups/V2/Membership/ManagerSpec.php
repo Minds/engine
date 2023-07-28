@@ -306,7 +306,7 @@ class ManagerSpec extends ObjectBehavior
             membershipLevel: GroupMembershipLevelEnum::MEMBER,
         );
 
-        $this->repositoryMock->getList(123, null, GroupMembershipLevelEnum::MEMBER, Argument::any(), Argument::any())
+        $this->repositoryMock->getList(123, null, null, Argument::any(), Argument::any())
             ->willYield([
                 $membership1,
                 $membership2,
