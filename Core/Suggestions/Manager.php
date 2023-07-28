@@ -104,9 +104,27 @@ class Manager
                 'limit' => (int) ($opts['limit'] ?? 12),
                 'offset' => (int) ($opts['offset'] ?? 0),
             ]);
-            if (!$groups) {
-                $groups = $this->getDefaultTagBasedSuggestions('group');
+            if (!$groups->count()) {
+                $groups = new Response($this->getDefaultTagBasedSuggestions('group'));
             }
+
+            $groups = $groups->map(function(Suggestion $suggestion): Suggestion {
+                $entity = $suggestion->getEntity() ?: $this->entitiesBuilder->single($suggestion->getEntityGuid());
+
+                if (!$entity) {
+                    error_log("{$suggestion->getEntityGuid()} suggested user not found");
+                    return null;
+                }
+
+                $suggestion->setEntity($entity);
+                return $suggestion;
+            });
+    
+            // Remove missing entities
+            $groups = $groups->filter(function ($suggestion) {
+                return $suggestion && $suggestion->getEntity();
+            });
+
             return $groups;
         }
 
