@@ -80,6 +80,14 @@ class SignedUri
         if (!$this->getJwtConfig()->validator()->validate($token, new SignedWith($this->getJwtConfig()->signer(), $this->getJwtConfig()->signingKey()))) {
             return false;
         }
-        return ((string) $token->claims()->get('uri') === (string) $providedUri->withQuery(''));
+
+        // Strip scheme from the URIs to account for our reverse proxy passing URI's through via http.
+        $tokenClaimsUri = (new Uri($token->claims()->get('uri')))
+            ->withScheme('');
+
+        $providedUriWithQuery = $providedUri->withQuery('')
+            ->withScheme('');
+
+        return ((string) $tokenClaimsUri === (string) $providedUriWithQuery);
     }
 }

@@ -23,6 +23,11 @@ class PlusUpgradeNoticeSpec extends ObjectBehavior
         $this->getKey()->shouldBe('plus-upgrade');
     }
 
+    public function it_should_get_whether_notice_is_dismissible()
+    {
+        $this->isDismissible()->shouldBe(true);
+    }
+
     public function it_should_determine_if_notice_should_show(
         User $user
     ) {
@@ -88,7 +93,8 @@ class PlusUpgradeNoticeSpec extends ObjectBehavior
         $this->export()->shouldBe([
             'key' => 'plus-upgrade',
             'location' => 'top',
-            'should_show' => true
+            'should_show' => true,
+            'is_dismissible' => true
         ]);
     }
 }

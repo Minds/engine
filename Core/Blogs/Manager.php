@@ -14,7 +14,9 @@ use Minds\Core\Security\ACL;
 use Minds\Core\Security\Spam;
 use Minds\Core\Security\SignedUri;
 use Minds\Core\Config;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\EventsDispatcher;
+use Minds\Core\Log\Logger;
 
 class Manager
 {
@@ -61,7 +63,9 @@ class Manager
         PropagateProperties $propagateProperties = null,
         $signedUri = null,
         $config = null,
-        protected ?EventsDispatcher $eventsDispatcher = null
+        protected ?EventsDispatcher $eventsDispatcher = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?Logger $logger = null
     ) {
         $this->repository = $repository ?: new Repository();
         $this->paywallReview = $paywallReview ?: new Delegates\PaywallReview();
@@ -72,6 +76,8 @@ class Manager
         $this->signedUri = $signedUri ?? new SignedUri;
         $this->config = $config ?? Di::_()->get('Config');
         $this->eventsDispatcher ??= Di::_()->get('EventsDispatcher');
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -220,12 +226,12 @@ class Manager
     /**
      * Add signed uri to blog image srcs
      * so they can be viewed when logged out
-     *
-     * @param string $desc
-     * @return string
+     * @param Blog $blog - blog to add signed URIs to body/description of.
+     * @return string updated body/description.
      */
-    public function signImages(string $desc): string
+    public function signImages(Blog $blog): string
     {
+        $desc = $blog->getBody();
         $cdnUrl = $this->config->get('cdn_url');
         $siteUrl = $this->config->get('site_url');
 
@@ -244,9 +250,16 @@ class Manager
 
             $srcIsMinds = strpos($oldSrc, $siteUrl) === 0 || strpos($oldSrc, $cdnUrl) === 0 ;
 
+            $entityGuids = [];
+            if (
+                preg_match('/\/(\d+)\//', $oldSrc, $entityGuids) &&
+                !$this->isBlogOwnerImageOwner($blog, $entityGuids[1])
+            ) {
+                continue;
+            }
+
             if ($srcIsMinds) {
                 $newSrc = $this->signedUri->sign($oldSrc);
-
                 $image->setAttribute('src', $newSrc);
             }
         }
@@ -259,5 +272,40 @@ class Manager
         }
 
         return $result;
+    }
+
+    /**
+     * Returns true if blog owner is owner of an image by its GUID.
+     * @param Blog $blog - Blog to check.
+     * @param string $entityGuid - GUID of image entity.
+     * @return bool - True when blog owner is owner of image.
+     */
+    private function isBlogOwnerImageOwner(Blog $blog, string $entityGuid): bool
+    {
+        try {
+            $imageEntity = $this->entitiesBuilder->single($entityGuid);
+
+            if (!$imageEntity) {
+                $this->logger->warning(
+                    'No image entity found with guid: ' . $entityGuid .
+                    ' for blog: ' . $blog->getGuid()
+                );
+                return false;
+            }
+
+            if ($imageEntity->getOwnerGuid() !== $blog->getOwnerGuid()) {
+                $this->logger->warning(
+                    'Blog owner: ' . $blog->getOwnerGuid() .
+                    ' does not own image: '. $entityGuid .
+                    ' so cannot insert it into their blog: ' . $blog->getGuid()
+                );
+                return false;
+            }
+
+            return true;
+        } catch(\Exception $e) {
+            $this->logger->error($e);
+            return false;
+        }
     }
 }

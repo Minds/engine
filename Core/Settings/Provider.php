@@ -5,6 +5,7 @@ namespace Minds\Core\Settings;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\Settings\GraphQL\Controllers\DismissalsController;
 
 class Provider extends DiProvider
 {
@@ -22,6 +23,9 @@ class Provider extends DiProvider
         });
         Di::_()->bind('Settings\Repository', function ($di): Repository {
             return new Repository();
+        });
+        Di::_()->bind(DismissalsController::class, function (Di $di): DismissalsController {
+            return new DismissalsController();
         });
     }
 }

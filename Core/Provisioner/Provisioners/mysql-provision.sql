@@ -361,3 +361,7 @@ CREATE TABLE IF NOT EXISTS minds_onboarding_v5_step_progress (
     completed_at timestamp DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_guid, step_key)
 )
+
+ALTER TABLE user_configurations
+    ADD dismissals json NULL DEFAULT NULL
+    AFTER plus_demonetized_ts;
