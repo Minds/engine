@@ -64,7 +64,6 @@ class Repository extends AbstractRepository
     public function addGiftCardTransaction(GiftCardTransaction $giftCardTransaction): bool
     {
         try {
-
             $this->logger->info('Adding gift card transaction', [
                 'payment_guid' => $giftCardTransaction->paymentGuid,
                 'gift_card_guid' => $giftCardTransaction->giftCardGuid,
