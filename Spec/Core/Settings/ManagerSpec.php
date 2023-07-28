@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Spec\Minds\Core\Settings;
 
 use Minds\Core\Settings\Exceptions\UserSettingsNotFoundException;
+use Minds\Core\Settings\GraphQL\Types\Dismissal;
 use Minds\Core\Settings\Manager;
 use Minds\Core\Settings\Models\UserSettings;
 use Minds\Core\Settings\Repository;
@@ -109,5 +110,53 @@ class ManagerSpec extends ObjectBehavior
 
         $this->storeUserSettings($data)
             ->shouldBeEqualTo(true);
+    }
+
+    public function it_should_get_a_users_dismissals(
+        User $user,
+        Dismissal $dismissal1,
+        Dismissal $dismissal2
+    ): void {
+        $userGuid = '123';
+
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $this->repository
+            ->getDismissals($userGuid)
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                $dismissal1,
+                $dismissal2
+            ]);
+
+        $this->setUser($user)
+            ->getDismissals()
+            ->shouldBeEqualTo([
+                $dismissal1,
+                $dismissal2
+            ]);
+    }
+
+    public function it_should_get_a_single_dismissal_by_key(
+        User $user,
+        Dismissal $dismissal
+    ): void {
+        $key = 'ANALYTICS_EXPLAINER';
+        $userGuid = '123';
+
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $this->repository
+            ->getDismissalByKey($userGuid, $key)
+            ->shouldBeCalledOnce()
+            ->willReturn($dismissal);
+
+        $this->setUser($user)
+            ->getDismissalByKey($key)
+            ->shouldBeEqualTo($dismissal);
     }
 }

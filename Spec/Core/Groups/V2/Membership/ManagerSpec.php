@@ -11,6 +11,7 @@ use Minds\Core\Groups\Membership as LegacyMembership;
 use Minds\Core\Experiments;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Core\Groups\V2\Membership\Membership;
+use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Group;
@@ -28,6 +29,7 @@ class ManagerSpec extends ObjectBehavior
     protected $aclMock;
     protected $legacyMembershipMock;
     protected $experimentsManagerMock;
+    protected $groupRecsAlgoMock;
 
     public function let(
         Repository $repositoryMock,
@@ -35,13 +37,15 @@ class ManagerSpec extends ObjectBehavior
         ACL $aclMock,
         LegacyMembership $legacyMembershipMock,
         Experiments\Manager $experimentsManagerMock,
+        SuggestedGroupsRecommendationsAlgorithm $groupRecsAlgo
     ) {
-        $this->beConstructedWith($repositoryMock, $entitiesBuilderMock, $aclMock, $legacyMembershipMock, $experimentsManagerMock);
+        $this->beConstructedWith($repositoryMock, $entitiesBuilderMock, $aclMock, $legacyMembershipMock, $experimentsManagerMock, $groupRecsAlgo);
         $this->repositoryMock = $repositoryMock;
         $this->entitiesBuilderMock = $entitiesBuilderMock;
         $this->aclMock = $aclMock;
         $this->legacyMembershipMock = $legacyMembershipMock;
         $this->experimentsManagerMock = $experimentsManagerMock;
+        $this->groupRecsAlgoMock = $groupRecsAlgo;
 
         $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(false);
     }
@@ -490,7 +494,7 @@ class ManagerSpec extends ObjectBehavior
          * Legacy
          */
         $this->legacyMembershipMock->setGroup($groupMock)->willReturn($this->legacyMembershipMock);
-        $this->legacyMembershipMock->join($userMock, [ 'force' => false ])->willReturn(true);
+        $this->legacyMembershipMock->join($userMock, [ 'force' => false, 'isOwner' => false, ])->willReturn(true);
 
         /**
          * Vitess
@@ -506,6 +510,9 @@ class ManagerSpec extends ObjectBehavior
         $userMock->getGuid()
             ->willReturn(456);
 
+        $this->groupRecsAlgoMock->setUser($userMock)->willReturn($this->groupRecsAlgoMock);
+        $this->groupRecsAlgoMock->purgeCache()->shouldBeCalled();
+
         $this->joinGroup($groupMock, $userMock)->shouldBe(true);
     }
 
@@ -515,7 +522,7 @@ class ManagerSpec extends ObjectBehavior
          * Legacy
          */
         $this->legacyMembershipMock->setGroup($groupMock)->willReturn($this->legacyMembershipMock);
-        $this->legacyMembershipMock->join($userMock, [ 'force' => false ])->willReturn(true);
+        $this->legacyMembershipMock->join($userMock, [ 'force' => false, 'isOwner' => false, ])->willReturn(true);
 
         /**
          * Vitess
@@ -530,6 +537,9 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(false);
         $userMock->getGuid()
             ->willReturn(456);
+
+        $this->groupRecsAlgoMock->setUser($userMock)->willReturn($this->groupRecsAlgoMock);
+        $this->groupRecsAlgoMock->purgeCache()->shouldBeCalled();
 
         $this->joinGroup($groupMock, $userMock)->shouldBe(true);
     }

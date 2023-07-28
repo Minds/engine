@@ -42,6 +42,15 @@ class BoostLatestPostNotice extends AbstractNotice
     }
 
     /**
+     * Whether notice is dismissible.
+     * @return boolean - true if notice is dismissible.
+     */
+    public function isDismissible(): bool
+    {
+        return true;
+    }
+
+    /**
      * Whether notice should show in feed, based on whether user has
      * made a post that can be boosted
      * @param User $user - user to check for.

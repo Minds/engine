@@ -116,10 +116,10 @@ class ReverseActionDelegate
                 // Apply a strike to the owner
                 $this->removeStrike($report);
                 break;
-            //case 12: // Incorrect use of hashtags
+                //case 12: // Incorrect use of hashtags
                 // De-index post
                 // Apply a strike to the owner
-            //    break;
+                //    break;
             case 13: // Malware
                 if ($entity->type !== 'user') {
                     $this->actions->setDeletedFlag($entity, false);

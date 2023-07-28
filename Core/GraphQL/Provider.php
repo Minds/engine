@@ -27,6 +27,12 @@ class Provider extends DiProvider
             /** @var SchemaFactory $factory */
             $factory = $di->get(SchemaFactory::class);
 
+            if ($di->get('Config')->minds_debug) {
+                $factory->devMode();
+            } else {
+                $factory->prodMode();
+            }
+
             /**
              * The library requires some default namespaces
              */
@@ -35,11 +41,6 @@ class Provider extends DiProvider
 
             if (isset($args['auth_service'])) {
                 $factory->setAuthenticationService($args['auth_service']);
-            }
-
-            // Prod mode?
-            if (!$di->get('Config')->minds_debug) {
-                $factory->prodMode();
             }
 
             return $factory->createSchema();

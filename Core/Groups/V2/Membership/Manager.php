@@ -7,6 +7,7 @@ use Minds\Core\Groups\Membership as LegacyMembership;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Experiments;
+use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Group;
 use Minds\Entities\User;
@@ -24,6 +25,7 @@ class Manager
         protected ACL $acl,
         protected LegacyMembership $legacyMembership,
         protected Experiments\Manager $experimentsManager,
+        protected SuggestedGroupsRecommendationsAlgorithm $groupRecsAlgo,
     ) {
     }
 
@@ -305,7 +307,12 @@ class Manager
         /**
          * Legacy write
          */
-        $legacyJoined = $this->legacyMembership->setGroup($group)->join($user, [ 'force' => !$group->isPublic() && $membershipLevel === GroupMembershipLevelEnum::MEMBER ]);
+        $legacyJoined = $this->legacyMembership
+            ->setGroup($group)
+            ->join($user, [
+                'force' => !$group->isPublic() && $membershipLevel === GroupMembershipLevelEnum::MEMBER,
+                'isOwner' => $membershipLevel === GroupMembershipLevelEnum::OWNER,
+            ]);
         if (!$legacyJoined) {
             return false;
         }
@@ -321,7 +328,12 @@ class Manager
                 ($group->isPublic() ? GroupMembershipLevelEnum::MEMBER : GroupMembershipLevelEnum::REQUESTED),
         );
 
-        return $this->repository->add($membership);
+        $joined = $this->repository->add($membership);
+
+        // Purge recs cache
+        $this->groupRecsAlgo->setUser($user)->purgeCache();
+
+        return $joined;
     }
 
     /**

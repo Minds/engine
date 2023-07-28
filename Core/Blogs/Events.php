@@ -55,7 +55,7 @@ class Events
                 $export['description'] = '';
                 $export['body'] = '';
             } else {
-                $export['description'] = $this->manager->signImages($blog->getBody());
+                $export['description'] = $this->manager->signImages($blog);
             }
 
             return $event->setResponse($export);

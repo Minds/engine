@@ -17,6 +17,6 @@ class GroupMappingSpec extends ObjectBehavior
     //    Group $group
     //)
     //{
-        // TODO: Find the way to mock __call('getOwnerObj')
+    // TODO: Find the way to mock __call('getOwnerObj')
     //}
 }

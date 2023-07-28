@@ -36,6 +36,11 @@ class BoostLatestPostNoticeSpec extends ObjectBehavior
         $this->getKey()->shouldBe('boost-latest-post');
     }
 
+    public function it_should_get_whether_notice_is_dismissible()
+    {
+        $this->isDismissible()->shouldBe(true);
+    }
+
     public function it_should_determine_that_notice_should_show_because_user_has_made_posts(
         User $user,
     ) {
@@ -102,7 +107,8 @@ class BoostLatestPostNoticeSpec extends ObjectBehavior
         $this->export()->shouldBe([
             'key' => 'boost-latest-post',
             'location' => 'inline',
-            'should_show' => true
+            'should_show' => true,
+            'is_dismissible' => true
         ]);
     }
 }

@@ -127,10 +127,10 @@ class PushNotification implements PushNotificationInterface
                 return "Don't forget to review {$from->getName()}'s Supermind offer";
                 break;
                 // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
-            //     $verb = 'missed';
-            //     $pronoun = 'your';
-            //     $noun = 'Supermind Offer';
-            //     break;
+                //     $verb = 'missed';
+                //     $pronoun = 'your';
+                //     $noun = 'Supermind Offer';
+                //     break;
                 //repeat
             case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
                 return 'Minds Token Rewards';
