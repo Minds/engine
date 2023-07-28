@@ -3,11 +3,11 @@ namespace Minds\Core\Feeds\GraphQL\Types;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
+use Minds\Core\Votes;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
-use Minds\Core\Votes;
-use TheCodingMachine\GraphQLite\Annotations\Type;
 use TheCodingMachine\GraphQLite\Annotations\Field;
+use TheCodingMachine\GraphQLite\Annotations\Type;
 
 /**
  * Wraps the internal Activity class to work with GraphQL types
