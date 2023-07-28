@@ -14,6 +14,8 @@ class GiftCard implements NodeInterface
 {
     use GraphQLSubQueryTrait;
 
+    public const DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID = "gift_card";
+
     public function __construct(
         #[Field(outputType: 'String')] public readonly int $guid,
         #[Field] public readonly GiftCardProductIdEnum $productId,
