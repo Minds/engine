@@ -330,6 +330,9 @@ class PaymentProcessor
             $boostOwner = null;
         }
         if ($boost->getPaymentTxId() === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+            if (!$this->giftCardsManager->isInTransaction()) {
+                $this->giftCardsManager->refund($boost->getPaymentGuid());
+            }
             $this->giftCardsManager->rollbackTransaction();
             return true;
         }

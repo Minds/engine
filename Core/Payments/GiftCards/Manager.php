@@ -44,6 +44,15 @@ class Manager
         $this->inTransaction = $value;
     }
 
+    /**
+     * Returns true if we are currently in a transaction
+     * @return bool
+     */
+    public function isInTransaction(): bool
+    {
+        return $this->inTransaction;
+    }
+
     public function commitTransaction(): void
     {
         if ($this->inTransaction) {
