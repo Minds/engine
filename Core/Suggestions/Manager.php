@@ -104,7 +104,7 @@ class Manager
                 'limit' => (int) ($opts['limit'] ?? 12),
                 'offset' => (int) ($opts['offset'] ?? 0),
             ]);
-            if (!$groups) {
+            if (!$groups->count()) {
                 $groups = new Response($this->getDefaultTagBasedSuggestions('group'));
             }
             return $groups;
