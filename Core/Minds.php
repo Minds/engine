@@ -41,6 +41,7 @@ class Minds extends base
         Captcha\Module::class,
         SEO\Sitemaps\Module::class,
         Discovery\Module::class,
+        Search\Module::class,
         Monetization\Partners\Module::class,
         Monetization\EarningsOverview\Module::class,
         Channels\Groups\Module::class,
@@ -150,7 +151,6 @@ class Minds extends base
         (new Media\MediaProvider())->register();
         (new Notification\NotificationProvider())->register();
         (new Groups\GroupsProvider())->register();
-        (new Search\SearchProvider())->register();
         (new Comments\Provider())->register();
         (new SMS\SMSProvider())->register();
         (new Blockchain\BlockchainProvider())->register();

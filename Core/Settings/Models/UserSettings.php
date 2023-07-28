@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Settings\Models;
 
+use Minds\Core\Settings\GraphQL\Types\Dismissal;
 use Minds\Entities\ExportableInterface;
 use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
@@ -24,6 +25,7 @@ class UserSettings implements ExportableInterface
     private ?float $supermindOffchainTokensMin = null;
     private ?string $plusDemonetizedTimestamp = null;
     private int $boostPartnerSuitability = BoostPartnerSuitability::CONTROVERSIAL;
+    private ?string $dismissals = null;
     private array $dirty = [];
 
     public function setUserGuid(string $userGuid): self
@@ -53,6 +55,47 @@ class UserSettings implements ExportableInterface
         $this->markPropertyAsUpdated('supermind_offchain_tokens_min', $supermindOffchainTokensMin);
         return $this;
     }
+
+    /**
+     * Get raw dismissals data.
+     * @param boolean $asArray - whether to get data as an array or it's native string format.
+     * @return array|string - Raw dismissals data in requested format.
+     */
+    public function getRawDismissals(bool $asArray = true): array|string
+    {
+        return $asArray ?
+            (json_decode($this->dismissals, true) ?? []) :
+            ($this->dismissals ?? '');
+    }
+
+    /**
+     * Get dismissals data as iterable of Dismissal objects.
+     * @return iterable - dismissals data as iterable of Dismissal objects.
+     */
+    public function getDismissals(): iterable
+    {
+        $rawDismissals = $this->getRawDismissals();
+        foreach ($rawDismissals as $rawDismissal) {
+            yield new Dismissal(
+                userGuid: $this->userGuid,
+                key: $rawDismissal['key'],
+                dismissalTimestamp: $rawDismissal['dismissal_timestamp']
+            );
+        }
+    }
+
+    /**
+     * Sets dismissals data as encoded string of JSON object.
+     * @param string $dismissals - dismissals data as a JSON string to set.
+     * @return self
+     */
+    public function setDismissalsJsonString(string $dismissals): self
+    {
+        $this->dismissals = $dismissals;
+        $this->markPropertyAsUpdated('dismissals', $dismissals);
+        return $this;
+    }
+
 
     /**
      * Get whether a user has a plus demonetization timestamp.
@@ -137,6 +180,12 @@ class UserSettings implements ExportableInterface
             );
         }
 
+        if (array_key_exists('dismissals', $data)) {
+            $userSettings->setDismissalsJsonString(
+                $data['dismissals'] ?? ''
+            );
+        }
+
         return $userSettings;
     }
 
@@ -158,7 +207,8 @@ class UserSettings implements ExportableInterface
             'supermind_cash_min' => $this->supermindCashMin,
             'supermind_offchain_tokens_min' => $this->supermindOffchainTokensMin,
             'plus_demonetized_ts' => $this->plusDemonetizedTimestamp,
-            'boost_partner_suitability' =>$this->boostPartnerSuitability
+            'boost_partner_suitability' => $this->boostPartnerSuitability,
+            'dismissals' => $this->dismissals
         ];
     }
 }

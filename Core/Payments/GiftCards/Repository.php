@@ -66,7 +66,6 @@ class Repository extends AbstractRepository
     public function addGiftCardTransaction(GiftCardTransaction $giftCardTransaction): bool
     {
         try {
-
             $this->logger->info('Adding gift card transaction', [
                 'payment_guid' => $giftCardTransaction->paymentGuid,
                 'gift_card_guid' => $giftCardTransaction->giftCardGuid,
@@ -593,7 +592,7 @@ class Repository extends AbstractRepository
      * Marks a gift card's transaction as refunded
      * @param int $paymentGuid
      * @param int $giftCardGuid
-     * @param DateTime $refundedAtWithMilliseconds
+     * @param int $refundedAt
      * @return void
      * @throws ServerErrorException
      */
@@ -617,7 +616,7 @@ class Repository extends AbstractRepository
             ->where('gift_card_guid', Operator::EQ, new RawExp(':gift_card_guid'))
             ->prepare();
         $values = [
-            'refunded_at' => $refundedAtWithMilliseconds->format('Y-m-d H:i:s.v'),
+            'refunded_at' => date('c', $refundedAt),
             'payment_guid' => $paymentGuid,
             'gift_card_guid' => $giftCardGuid,
         ];
