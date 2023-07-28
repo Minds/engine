@@ -50,24 +50,29 @@ class UpgradesDelegate
      */
     public function onWire($wire, $receiver_address): Wire
     {
-        $result = match ($wire->getReceiver()->guid) {
-            $this->config->get('plus')['handler'] => (function () use ($wire, $receiver_address): string{
+        $result = match ($wire->getReceiver()->getGuid()) {
+            $this->config->get('plus')['handler'] => function () use ($wire, $receiver_address): string {
                 $this->onPlusUpgrade($wire, $receiver_address);
                 return "plus";
-            })(),
-            $this->config->get('pro')['handler'] =>
-                (function() use ($wire, $receiver_address): string {
-                    $this->onProUpgrade($wire, $receiver_address);
-                    return "pro";
-                }),
+            },
+            $this->config->get('pro')['handler'] => function () use ($wire, $receiver_address): string {
+                $this->onProUpgrade($wire, $receiver_address);
+                return "pro";
+            },
             default => null
         };
 
-        if ($result && $wire->getMethod() === 'usd' && !$wire->getTrialDays()) {
+        if (!$result) {
+            return $wire;
+        }
+
+        $wireType = $result();
+
+        if ($wire->getMethod() === 'usd' && !$wire->getTrialDays()) {
             $this->giftCardsManager->issueMindsPlusAndProGiftCards(
                 recipient: $wire->getSender(),
                 amount: $wire->getAmount() / 100,
-                expiryTimestamp: $result === "plus" ? $wire->getSender()->getPlusExpires() : $wire->getSender()->getProExpires()
+                expiryTimestamp: $wireType === "plus" ? $wire->getSender()->getPlusExpires() : $wire->getSender()->getProExpires()
             );
         }
 

@@ -65,34 +65,42 @@ class Manager
          */
         $result = match ($inAppPurchase->subscriptionId) {
             "plus.yearly.001",
-            "plus.monthly.001" => (function() use ($inAppPurchase, $method, &$amount): string {
+            "plus.monthly.001" => function () use ($inAppPurchase, $method, &$amount): string {
                 $amount = $this->config->get('upgrades')['plus']['monthly']['usd'];
+                $inAppPurchase->setExpiresMillis(strtotime("+1 month") * 1000);
                 if ($inAppPurchase->subscriptionId === "plus.yearly.001") {
                     $amount = $this->config->get('upgrades')['plus']['yearly']['usd'];
+                    $inAppPurchase->setExpiresMillis(strtotime("+1 year") * 1000);
                 }
 
                 $inAppPurchase->user->setPlusMethod($method);
                 $inAppPurchase->user->setPlusExpires($inAppPurchase->expiresMillis / 1000);
                 return "plus";
-            })(),
-            "pro.monthly.001" => (function() use ($inAppPurchase, $method, &$amount): string {
+            },
+            "pro.monthly.001" => function () use ($inAppPurchase, $method, &$amount): string {
                 $amount = $this->config->get('upgrades')['pro']['monthly']['usd'];
+                $inAppPurchase->setExpiresMillis(strtotime("+1 month") * 1000);
+
                 $inAppPurchase->user->setProMethod($method);
                 $inAppPurchase->user->setProExpires($inAppPurchase->expiresMillis / 1000);
                 return "pro";
-            })(),
+            },
             default => null
         };
 
+        if (!$result) {
+            throw new UserErrorException("Invalid subscriptionId");
+        }
+
+        $subscriptionType = $result();
+
         $inAppPurchase->user->save();
 
-        if ($result) {
-            $this->giftCardsManager->issueMindsPlusAndProGiftCards(
-                recipient: $inAppPurchase->user,
-                amount: $amount,
-                expiryTimestamp: $result === "plus" ? $inAppPurchase->user->getPlusExpires() : $inAppPurchase->user->getProExpires()
-            );
-        }
+        $this->giftCardsManager->issueMindsPlusAndProGiftCards(
+            recipient: $inAppPurchase->user,
+            amount: $amount,
+            expiryTimestamp: $subscriptionType === "plus" ? $inAppPurchase->user->getPlusExpires() : $inAppPurchase->user->getProExpires()
+        );
 
         return true;
     }
