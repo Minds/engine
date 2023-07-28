@@ -112,7 +112,7 @@ class Manager
                 $entity = $suggestion->getEntity() ?: $this->entitiesBuilder->single($suggestion->getEntityGuid());
 
                 if (!$entity) {
-                    error_log("{$suggestion->getEntityGuid()} suggested user not found");
+                    $this->logger->warning("{$suggestion->getEntityGuid()} suggested group not found");
                     return null;
                 }
 
