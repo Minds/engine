@@ -46,12 +46,6 @@ class wire implements Interfaces\Api
      */
     public function post($pages): void
     {
-        $this->getGiftCardsManager()->issueMindsPlusAndProGiftCards(
-            recipient: Core\Session::getLoggedInUser(),
-            amount: 0,
-            expiryTimestamp: strtotime('+1 year')
-        );
-        return;
         Factory::isLoggedIn();
         $response = [];
 
@@ -145,25 +139,9 @@ class wire implements Interfaces\Api
                 throw new \Exception('Something failed');
             }
 
-            if ($_POST['method'] !== 'usd' || !$isPlus) {
-                $response['status'] = 'success';
-                Factory::response($response);
-                return;
-            }
-
-            if ($this->getPlusManager()->isEligibleForTrial($loggedInUser)) {
-                $response['status'] = 'success';
-                Factory::response($response);
-                return;
-            }
-
-            $this->getGiftCardsManager()->issueMindsPlusAndProGiftCards(
-                recipient: $loggedInUser,
-                amount: BigNumber::toPlain($amount, $digits)->toDouble(),
-                expiryTimestamp: strtotime('+1 year')
-            );
-
             $response['status'] = 'success';
+            Factory::response($response);
+            return;
         } catch (WalletNotSetupException $e) {
             $wireQueue = (Queue\Client::Build())
                 ->setQueue('WireNotification')
@@ -174,15 +152,16 @@ class wire implements Interfaces\Api
 
             $response['status'] = 'error';
             $response['message'] = $e->getMessage();
+            Factory::response($response);
+            return;
         } catch (UnverifiedEmailException $e) {
             throw $e;
         } catch (\Exception $e) {
             $response['status'] = 'error';
             $response['message'] = $e->getMessage();
+            Factory::response($response);
+            return;
         }
-
-        Factory::response($response);
-        return;
     }
 
     public function put($pages)
@@ -191,15 +170,5 @@ class wire implements Interfaces\Api
 
     public function delete($pages)
     {
-    }
-
-    private function getGiftCardsManager(): GiftCardsManager
-    {
-        return $this->giftCardsManager ??= Di::_()->get(GiftCardsManager::class);
-    }
-
-    private function getPlusManager(): PlusManager
-    {
-        return $this->plusManager ??= Di::_()->get('Plus\Manager');
     }
 }

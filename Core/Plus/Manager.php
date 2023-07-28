@@ -278,12 +278,10 @@ class Manager
         return $threshold['support_tier']['urn'] === $this->getPlusSupportTierUrn();
     }
 
-    public function isEligibleForTrial(User $user): bool
+    public function isEligibleForTrial(User $user, User $receiver): bool
     {
         $canHavePlusTrial = !$user->plus_expires || $user->plus_expires <= strtotime(self::TRIAL_THRESHOLD_DAYS . ' days ago');
-        if ($this->receiver->getGuid() == $this->config->get('plus')['handler'] && $canHavePlusTrial) {
-            $wire->setTrialDays(self::TRIAL_DAYS);
-        }
+        return $receiver->getGuid() == $this->config->get('plus')['handler'] && $canHavePlusTrial;
     }
 
     /**

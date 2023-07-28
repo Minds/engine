@@ -314,11 +314,7 @@ class Manager
      */
     public function issueMindsPlusAndProGiftCards(User $recipient, float $amount, int $expiryTimestamp): void
     {
-        error_log(debug_backtrace(!DEBUG_BACKTRACE_PROVIDE_OBJECT|DEBUG_BACKTRACE_IGNORE_ARGS,2)[1]['function']);
-        return;
-        if (php_sapi_name() !== "cli" || debug_backtrace(!DEBUG_BACKTRACE_PROVIDE_OBJECT|DEBUG_BACKTRACE_IGNORE_ARGS,2)[1]['function'] !== "") {
-            return;
-        }
+        $this->logger->info("Issuing gift cards to " . $recipient->getGuid() . " for $" . $amount . " (expires " . date("Y-m-d H:i:s", $expiryTimestamp) . ")");
 
         foreach (GiftCardProductIdEnum::enabledProductIdEnums() as $productIdEnum) {
             /**
@@ -342,6 +338,8 @@ class Manager
                 ),
                 giftCard: $creditsGiftCard
             );
+
+            $this->logger->info("Issued gift card " . $creditsGiftCard->guid . " to " . $recipient->getGuid() . " for $" . $amount . " with product $productIdEnum->name (expires " . date("Y-m-d H:i:s", $expiryTimestamp) . ")");
         }
     }
 }
