@@ -10,6 +10,7 @@ use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
+use PDOException;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
 use Selective\Database\SelectQuery;
@@ -62,16 +63,28 @@ class Repository extends AbstractRepository
      */
     public function addGiftCardTransaction(GiftCardTransaction $giftCardTransaction): bool
     {
-        $query = $this->mysqlClientWriterHandler
-            ->insert()
-            ->into('minds_gift_card_transactions')
-            ->set([
+        try {
+            $this->logger->info('Adding gift card transaction', [
                 'payment_guid' => $giftCardTransaction->paymentGuid,
                 'gift_card_guid' => $giftCardTransaction->giftCardGuid,
                 'amount' => $giftCardTransaction->amount,
-                'created_at' => date('c', $giftCardTransaction->createdAt),
+                'created_at' => $giftCardTransaction->createdAt,
             ]);
-        return $query->execute();
+
+            $query = $this->mysqlClientWriterHandler
+                ->insert()
+                ->into('minds_gift_card_transactions')
+                ->set([
+                    'payment_guid' => $giftCardTransaction->paymentGuid,
+                    'gift_card_guid' => $giftCardTransaction->giftCardGuid,
+                    'amount' => $giftCardTransaction->amount,
+                    'created_at' => date('c', $giftCardTransaction->createdAt),
+                ]);
+            return $query->execute();
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            throw $e;
+        }
     }
 
     /**
@@ -119,6 +132,7 @@ class Repository extends AbstractRepository
             $row = $statement->fetch(PDO::FETCH_ASSOC);
             return $this->buildGiftCardModel($row);
         } catch (\PDOException $e) {
+            error_log($e->getMessage());
             throw new \Exception('Error getting gift card by claim code', 0, $e);
         }
     }
@@ -173,11 +187,12 @@ class Repository extends AbstractRepository
         $query->orderBy(match ($ordering) {
             GiftCardOrderingEnum::CREATED_ASC => 'issued_at asc',
             GiftCardOrderingEnum::CREATED_DESC => 'issued_at desc',
-            GiftCardOrderingEnum::EXPIRING_ASC => 'expring_at asc',
-            GiftCardOrderingEnum::EXPIRING_DESC => 'expring_at asc',
+            GiftCardOrderingEnum::EXPIRING_ASC => 'expires_at asc',
+            GiftCardOrderingEnum::EXPIRING_DESC => 'expires_at asc',
         });
 
         $pdoStatement = $query->prepare();
+
         $pdoStatement->execute($params);
 
         $hasMore = false;
@@ -246,6 +261,29 @@ class Repository extends AbstractRepository
     }
 
     /**
+     * @param int $guid
+     * @param GiftCardProductIdEnum $productIdEnum
+     * @return float
+     * @throws GiftCardNotFoundException
+     * @throws ServerErrorException
+     */
+    public function getUserBalanceForProduct(int $guid, GiftCardProductIdEnum $productIdEnum): float
+    {
+        $query = $this->buildUserBalanceQuery(claimedByGuid: $guid);
+        $query->where('product_id', Operator::EQ, new RawExp(':product_id'));
+
+        $query->groupBy('claimed_by_guid');
+        $statement = $query->prepare();
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, [
+            'product_id' => $productIdEnum->value,
+        ]);
+
+        $statement->execute();
+        return $statement->fetch(PDO::FETCH_ASSOC)['balance'] ?? throw new GiftCardNotFoundException();
+    }
+
+    /**
      * Returns gift card transactions
      * @return iterable<GiftCardTransaction>
      */
@@ -264,6 +302,7 @@ class Repository extends AbstractRepository
                 'gift_card_guid',
                 'minds_gift_card_transactions.amount',
                 'created_at',
+                'refunded_at',
                 // Vitess currently doesn't support OVER/PARTITION, commenting out
                 // new RawExp('SUM(minds_gift_card_transactions.amount) OVER (PARTITION BY gift_card_guid ORDER BY payment_guid) gift_card_balance'),
             ])
@@ -310,12 +349,53 @@ class Repository extends AbstractRepository
                 giftCardGuid: $row['gift_card_guid'],
                 amount: $row['amount'],
                 createdAt: strtotime($row['created_at']),
+                refundedAt: $row['refunded_at'] ? strtotime($row['refunded_at']) : null,
                 // giftCardRunningBalance: $row['gift_card_balance'],
             );
 
             $loadAfter = base64_encode($row['payment_guid']);
 
             yield $transaction;
+        }
+    }
+
+    /**
+     * @param int $paymentGuid
+     * @return iterable<GiftCardTransaction>
+     * @throws ServerErrorException
+     */
+    public function getGiftCardTransactionsFromPaymentGuid(
+        int $paymentGuid
+    ): iterable {
+        $statement = $this->mysqlClientReaderHandler
+            ->select()
+            ->columns([
+                'payment_guid',
+                'gift_card_guid',
+                'minds_gift_card_transactions.amount',
+                'created_at',
+                'refunded_at',
+            ])
+            ->from('minds_gift_card_transactions')
+            ->innerJoin('minds_gift_cards', 'minds_gift_cards.guid', Operator::EQ, 'minds_gift_card_transactions.gift_card_guid')
+            ->where('payment_guid', Operator::EQ, new RawExp(':payment_guid'))
+            ->orderBy('created_at desc')
+            ->prepare();
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, [
+            'payment_guid' => $paymentGuid,
+        ]);
+
+        $statement->execute();
+
+        while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+            yield new GiftCardTransaction(
+                paymentGuid: $row['payment_guid'],
+                giftCardGuid: $row['gift_card_guid'],
+                amount: $row['amount'],
+                createdAt: strtotime($row['created_at']),
+                refundedAt: $row['refunded_at'] ? strtotime($row['refunded_at']) : null,
+            );
         }
     }
 
@@ -340,6 +420,7 @@ class Repository extends AbstractRepository
             ])
             ->from('minds_gift_cards')
             ->innerJoin('minds_gift_card_transactions', 'minds_gift_cards.guid', Operator::EQ, 'minds_gift_card_transactions.gift_card_guid')
+            ->where('minds_gift_card_transactions.refunded_at', Operator::IS, null)
             ->groupBy('minds_gift_cards.guid');
     }
 
@@ -355,6 +436,8 @@ class Repository extends AbstractRepository
             ])
             ->from('minds_gift_cards')
             ->innerJoin('minds_gift_card_transactions', 'minds_gift_cards.guid', Operator::EQ, 'minds_gift_card_transactions.gift_card_guid');
+
+        $query->where('minds_gift_card_transactions.refunded_at', Operator::IS, null);
 
         $query->where('claimed_by_guid', Operator::EQ, $claimedByGuid);
 
@@ -381,5 +464,42 @@ class Repository extends AbstractRepository
             claimedAt: isset($row['claimed_at']) ? strtotime($row['claimed_at']) : null,
             balance: $row['balance'],
         );
+    }
+
+    /**
+     * Marks a gift card's transaction as refunded
+     * @param int $paymentGuid
+     * @param int $giftCardGuid
+     * @param int $refundedAt
+     * @return void
+     * @throws ServerErrorException
+     */
+    public function markTransactionAsRefunded(
+        int $paymentGuid,
+        int $giftCardGuid,
+        int $refundedAt
+    ): void {
+        $this->logger->info('Marking gift card transaction as refunded', [
+            'payment_guid' => $paymentGuid,
+            'gift_card_guid' => $giftCardGuid,
+            'refunded_at' => date('c', $refundedAt),
+        ]);
+
+        $statement = $this->mysqlClientWriterHandler->update()
+            ->table('minds_gift_card_transactions')
+            ->set([
+                'refunded_at' => new RawExp(':refunded_at'),
+            ])
+            ->where('payment_guid', Operator::EQ, new RawExp(':payment_guid'))
+            ->where('gift_card_guid', Operator::EQ, new RawExp(':gift_card_guid'))
+            ->prepare();
+        $values = [
+            'refunded_at' => date('c', $refundedAt),
+            'payment_guid' => $paymentGuid,
+            'gift_card_guid' => $giftCardGuid,
+        ];
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+        $statement->execute();
     }
 }

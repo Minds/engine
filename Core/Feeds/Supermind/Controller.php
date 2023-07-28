@@ -23,21 +23,21 @@ class Controller
      * @throws Exceptions\SupermindFeedBadRequestException
      * @throws Exception
      */
-//    #[OA\Get(
-//        path: '/api/v3/newsfeed/superminds',
-//        parameters: [
-//            new OA\Parameter(
-//                name: "limit",
-//                in: "query",
-//                required: true,
-//                schema: new OA\Schema(type: 'integer')
-//            )
-//        ],
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 400, description: "Bad Request"),
-//        ]
-//    )]
+    //    #[OA\Get(
+    //        path: '/api/v3/newsfeed/superminds',
+    //        parameters: [
+    //            new OA\Parameter(
+    //                name: "limit",
+    //                in: "query",
+    //                required: true,
+    //                schema: new OA\Schema(type: 'integer')
+    //            )
+    //        ],
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 400, description: "Bad Request"),
+    //        ]
+    //    )]
     public function getFeed(ServerRequestInterface $request): JsonResponse
     {
         $responseBuilder = new SupermindFeedResponseBuilder();

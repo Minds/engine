@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Settings;
 
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Settings\Exceptions\UserSettingsNotFoundException;
+use Minds\Core\Settings\GraphQL\Types\Dismissal;
 use Minds\Core\Settings\Models\UserSettings;
 use Minds\Core\Settings\Repository;
 use Minds\Exceptions\ServerErrorException;
@@ -13,9 +14,12 @@ use PDOStatement;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use Spec\Minds\Common\Traits\CommonMatchers;
 
 class RepositorySpec extends ObjectBehavior
 {
+    use CommonMatchers;
+
     private Collaborator $mysqlHandler;
     private Collaborator $mysqlClientReader;
     private Collaborator $mysqlClientWriter;
@@ -130,8 +134,105 @@ class RepositorySpec extends ObjectBehavior
             ->shouldBeEqualTo(true);
     }
 
-    private function forceStringSingleLine(string $string)
-    {
-        return trim(preg_replace('/\s+/', ' ', str_replace(["\n", "\r"], '', $string)));
+    public function it_should_get_dismissals(
+        PDOStatement $statement
+    ): void {
+        $statement->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $statement->rowCount()
+            ->shouldBeCalledOnce()
+            ->willReturn(3);
+
+        $statement->fetch(Argument::type('integer'))
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'dismissals' => json_encode([
+                    [
+                        'key' => 'ANALYTICS_EXPLAINER',
+                        'dismissal_timestamp' => 123
+                    ],
+                    [
+                        'key' => 'BOOST_CONSOLE_EXPLAINER',
+                        'dismissal_timestamp' => 234
+                    ],
+                    [
+                        'key' => 'DISCOVERY_PLUS_EXPLAINER',
+                        'dismissal_timestamp' => 345
+                    ]
+                ])
+            ]);
+
+        $this->mysqlClientReader->prepare(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
+            ->shouldBeCalledOnce();
+
+        $this->getDismissals('123')
+            ->shouldBeAGeneratorWithValues([
+                (new Dismissal(
+                    '123',
+                    'ANALYTICS_EXPLAINER',
+                    123
+                )),
+                (new Dismissal(
+                    '123',
+                    'BOOST_CONSOLE_EXPLAINER',
+                    234
+                )),
+                (new Dismissal(
+                    '123',
+                    'DISCOVERY_PLUS_EXPLAINER',
+                    345
+                )),
+            ]);
+    }
+
+    public function it_should_get_a_dismissal_by_key(
+        PDOStatement $statement
+    ): void {
+        $statement->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $statement->rowCount()
+            ->shouldBeCalledOnce()
+            ->willReturn(3);
+
+        $statement->fetch(Argument::type('integer'))
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'dismissals' => json_encode([
+                    [
+                        'key' => 'ANALYTICS_EXPLAINER',
+                        'dismissal_timestamp' => 123
+                    ],
+                    [
+                        'key' => 'BOOST_CONSOLE_EXPLAINER',
+                        'dismissal_timestamp' => 234
+                    ],
+                    [
+                        'key' => 'DISCOVERY_PLUS_EXPLAINER',
+                        'dismissal_timestamp' => 345
+                    ]
+                ])
+            ]);
+
+        $this->mysqlClientReader->prepare(Argument::type('string'))
+            ->shouldBeCalledOnce()
+            ->willReturn($statement);
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, Argument::type('array'))
+            ->shouldBeCalledOnce();
+
+        $this->getDismissalByKey('123', 'ANALYTICS_EXPLAINER')
+            ->shouldBeLike(new Dismissal(
+                '123',
+                'ANALYTICS_EXPLAINER',
+                123
+            ));
     }
 }
