@@ -91,7 +91,6 @@ class Events
         });
 
         // Analytics events
-
         Dispatcher::register('vote', 'all', function (Event $event) {
             $request = $this->retrieveServerRequest();
             $experimentsManager = $this->getExperimentsManager()->setUser($request->getAttribute('_user'));

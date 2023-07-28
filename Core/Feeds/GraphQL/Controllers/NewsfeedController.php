@@ -33,6 +33,8 @@ use TheCodingMachine\GraphQLite\Annotations\Query;
 use Minds\Core\FeedNotices\Notices\NoGroupsNotice;
 use Minds\Core\Feeds\Elastic\V2\QueryOpts;
 use Minds\Core\Feeds\GraphQL\Enums\NewsfeedAlgorithmsEnum;
+use Minds\Core\Votes;
+use Minds\Entities\Activity;
 use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 
 class NewsfeedController
@@ -46,8 +48,15 @@ class NewsfeedController
         protected BoostSuggestionInjector $boostSuggestionInjector,
         protected SuggestedGroupsRecommendationsAlgorithm $suggestedGroupsRecommendationsAlgorithm,
         protected ExperimentsManager $experimentsManager,
+        protected Votes\Manager $votesManager,
     ) {
     }
+
+    /**
+     * Track when we've shown explicit vote buttons
+     * to make sure we don't show them too infrequently
+     */
+    protected int|null $lastIndexWithExplicitVotes = null;
 
     /**
      * @param string[]|null $inFeedNoticesDelivered
@@ -147,11 +156,14 @@ class NewsfeedController
         }
 
         // Build the boosts
-        $isBoostRotatorRemovedExpirementOn = $this->experimentsManager->isOn('minds-4105-remove-rotator');
+        $isBoostRotatorRemovedExperimentOn = $this->experimentsManager->isOn('minds-4105-remove-rotator');
         $boosts = $this->buildBoosts(
             loggedInUser: $loggedInUser,
-            limit: $isBoostRotatorRemovedExpirementOn ? 3 : 1,
+            limit: $isBoostRotatorRemovedExperimentOn ? 3 : 1,
         );
+
+        // Reset the explicit vote counter
+        $this->lastIndexWithExplicitVotes = null;
 
         foreach ($activities as $i => $activity) {
             $cursor = $loadAfter;
@@ -222,7 +234,7 @@ class NewsfeedController
              * Show boosts depending on if the experiment to remove the rotator is enabled
              */
             if (
-                $isBoostRotatorRemovedExpirementOn &&
+                $isBoostRotatorRemovedExperimentOn &&
                 in_array($i, [
                     1, // 2nd slot
                     4, // after channel recs
@@ -235,7 +247,7 @@ class NewsfeedController
                     $edges[] = new BoostEdge($boost, $cursor);
                 }
             } elseif (
-                !$isBoostRotatorRemovedExpirementOn &&
+                !$isBoostRotatorRemovedExperimentOn &&
                 count($boosts) &&
                 $i == 3
             ) {
@@ -245,7 +257,18 @@ class NewsfeedController
                 }
             }
 
-            $edges[] = new ActivityEdge($activity, $cursor);
+            /**
+             * Don't show the post if it has been explicitly downvoted
+             */
+            if (
+                $this->isExplicitVotesExperimentOn() && $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::DOWN)
+            ) {
+                continue;
+            }
+
+            $showExplicitVoteButtons = $this->showExplicitVoteButtons($activity, $loggedInUser, $i);
+
+            $edges[] = new ActivityEdge($activity, $cursor, $showExplicitVoteButtons);
         }
 
         if (empty($edges)) {
@@ -387,8 +410,15 @@ class NewsfeedController
         $edges = [];
 
         foreach ($activities as $activity) {
+            // Don't show downvoted activities
+            if (
+                $this->isExplicitVotesExperimentOn() && $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::DOWN)
+            ) {
+                continue;
+            }
+
             $cursor = $loadAfter;
-            $edges[] = new ActivityEdge($activity, $cursor);
+            $edges[] = new ActivityEdge($activity, $cursor, false);
         }
 
         if (empty($edges)) {
@@ -491,5 +521,62 @@ class NewsfeedController
         $connection->setPageInfo($pageInfo);
 
         return new PublisherRecsEdge($connection, $cursor);
+    }
+
+
+    /**
+     * Show explicit vote buttons every 4 activities
+     * when the experiment is on
+     * and the user isn't the post owner
+     * and the user hasn't voted up already
+     * (assumes we've already checked for downvotes)
+     * @param Activity $activity
+     * @param User $loggedInUser
+     * @param int $i - current index in the list of activities
+     */
+    protected function showExplicitVoteButtons(Activity $activity, User $loggedInUser, int $i): bool
+    {
+        $isPostOwner = $loggedInUser->getGuid() === $activity->getOwnerGuid();
+
+        $hasUpvoted = $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::UP);
+
+        $show = ($i === 0 || $i - $this->lastIndexWithExplicitVotes >= 4 || is_null($this->lastIndexWithExplicitVotes)) && $this->isExplicitVotesExperimentOn() && !$isPostOwner && !$hasUpvoted;
+
+        if ($show) {
+            $this->lastIndexWithExplicitVotes = $i;
+        }
+
+        return $show;
+    }
+
+    /**
+     * Helper function to determine if current logged in user has
+     * voted on the post
+     * @param Activity $activity
+     * @param User $loggedInUser
+     * @param int $direction - Votes\Enums\VoteDirectionEnum
+     * @return bool
+     */
+    protected function userHasVoted(Activity $activity, User $loggedInUser, int $direction): bool
+    {
+        if (!$loggedInUser) {
+            return false;
+        }
+
+        $vote = (new Votes\Vote())
+            ->setEntity($activity)
+            ->setActor($loggedInUser)
+            ->setDirection($direction === Votes\Enums\VoteDirectionEnum::UP ? 'up' : 'down');
+
+        return $this->votesManager->has($vote);
+    }
+
+    /**
+     * Whether experiment is on.
+     * @return bool true if experiment is on.
+     */
+    protected function isExplicitVotesExperimentOn(): bool
+    {
+        return $this->experimentsManager->isOn('minds-4175-explicit-votes');
     }
 }
