@@ -4,17 +4,17 @@
  */
 namespace Minds\Core\Payments\Stripe\PaymentMethods;
 
-use Minds\Traits\MagicAttributes;
 use Minds\Entities\User;
+use Minds\Traits\MagicAttributes;
 
 /**
- * @method PaymentMethod getId(): string
+ * @method string getId(): string
  * @method PaymentMethod getCustomerId(): string
  * @method PaymentMethod getUserGuid(): string
- * @method PaymentMethod getCardBrand(): string
- * @method PaymentMethod getCardExpires(): string
- * @method PaymentMethod getCardCountry(): string
- * @method PaymentMethod getCardLast4(): string
+ * @method string getCardBrand(): string
+ * @method string getCardExpires(): string
+ * @method string getCardCountry(): string
+ * @method string getCardLast4(): string
  */
 class PaymentMethod
 {
