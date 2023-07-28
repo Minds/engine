@@ -1,10 +1,12 @@
 <?php
 namespace Minds\Core\Payments\GiftCards;
 
+use DateTime;
 use Exception;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use Minds\Core\Payments\GiftCards\Enums\GiftCardStatusFilterEnum;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
@@ -64,7 +66,6 @@ class Repository extends AbstractRepository
     public function addGiftCardTransaction(GiftCardTransaction $giftCardTransaction): bool
     {
         try {
-
             $this->logger->info('Adding gift card transaction', [
                 'payment_guid' => $giftCardTransaction->paymentGuid,
                 'gift_card_guid' => $giftCardTransaction->giftCardGuid,
@@ -145,6 +146,7 @@ class Repository extends AbstractRepository
         ?int $claimedByGuid = null,
         ?int $issuedByGuid = null,
         ?GiftCardProductIdEnum $productId = null,
+        ?GiftCardStatusFilterEnum $statusFilter = null,
         int $limit = self::DEFAULT_LIMIT,
         GiftCardOrderingEnum $ordering = GiftCardOrderingEnum::CREATED_ASC,
         ?string &$loadAfter = null,
@@ -177,19 +179,43 @@ class Repository extends AbstractRepository
             $query->where('product_id', Operator::EQ, $productId->value);
         }
 
-        if ($loadAfter) {
-            $query->where('guid', Operator::LT, base64_decode($loadAfter, true));
+        if ($statusFilter) {
+            $query->where(
+                'expires_at',
+                $statusFilter === GiftCardStatusFilterEnum::ACTIVE ?
+                    Operator::GT :
+                    Operator::LTE,
+                date('c')
+            );
         }
 
+        if ($loadAfter) {
+            $operator = Operator::GT;
+
+            if ($ordering === GiftCardOrderingEnum::CREATED_DESC || $ordering === GiftCardOrderingEnum::EXPIRING_DESC) {
+                $operator = Operator::LT;
+            }
+
+            $query->where('guid', $operator, base64_decode($loadAfter, true));
+        }
+
+        // Note, backward traversal may take you back to the first page rather than the expected page.
+        // You should combine with previous after cursor.
         if ($loadBefore) {
-            $query->where('guid', Operator::GT, base64_decode($loadBefore, true));
+            $operator = Operator::LT;
+
+            if ($ordering === GiftCardOrderingEnum::CREATED_DESC || $ordering === GiftCardOrderingEnum::EXPIRING_DESC) {
+                $operator = Operator::GT;
+            }
+
+            $query->where('guid', $operator, base64_decode($loadBefore, true));
         }
 
         $query->orderBy(match ($ordering) {
             GiftCardOrderingEnum::CREATED_ASC => 'issued_at asc',
             GiftCardOrderingEnum::CREATED_DESC => 'issued_at desc',
             GiftCardOrderingEnum::EXPIRING_ASC => 'expires_at asc',
-            GiftCardOrderingEnum::EXPIRING_DESC => 'expires_at asc',
+            GiftCardOrderingEnum::EXPIRING_DESC => 'expires_at desc',
         });
 
         $pdoStatement = $query->prepare();
@@ -240,7 +266,7 @@ class Repository extends AbstractRepository
 
         $query->columns(['product_id']);
         $query->groupBy('product_id');
-    
+
         $pdoStatement = $query->execute();
 
         $rows = $pdoStatement->fetchAll(PDO::FETCH_ASSOC);
@@ -285,7 +311,13 @@ class Repository extends AbstractRepository
     }
 
     /**
-     * Returns gift card transactions
+     * Returns gift card transactions.
+     * @param ?int $giftCardClaimedByUserGuid - user who claimed the gift card.
+     * @param ?int $giftCardGuid - guid of the gift card to get transactions for.
+     * @param int $limit - limit of transactions to return.
+     * @param string &$loadAfter - cursor to load after.
+     * @param string &$loadBefore - cursor to load before.
+     * @param ?bool &$hasMore - whether there are more transactions to load.
      * @return iterable<GiftCardTransaction>
      */
     public function getGiftCardTransactions(
@@ -296,29 +328,12 @@ class Repository extends AbstractRepository
         string &$loadBefore = null,
         ?bool &$hasMore = false
     ): iterable {
-        $query = $this->mysqlClientReaderHandler
-            ->select()
-            ->columns([
-                'payment_guid',
-                'gift_card_guid',
-                'minds_gift_card_transactions.amount',
-                'created_at',
-                'refunded_at',
-                // Vitess currently doesn't support OVER/PARTITION, commenting out
-                // new RawExp('SUM(minds_gift_card_transactions.amount) OVER (PARTITION BY gift_card_guid ORDER BY payment_guid) gift_card_balance'),
-            ])
-            ->from('minds_gift_card_transactions')
-            ->innerJoin('minds_gift_cards', 'minds_gift_cards.guid', Operator::EQ, 'minds_gift_card_transactions.gift_card_guid')
-            ->orderBy('created_at desc')
-            ->limit($limit + 1);
+        $query = $this->buildBaseGiftCardsTransactionsQuery(
+            giftCardClaimedByUserGuid: $giftCardClaimedByUserGuid,
+            giftCardGuid: $giftCardGuid
+        );
 
-        if ($giftCardClaimedByUserGuid) {
-            $query->where('minds_gift_cards.claimed_by_guid', Operator::EQ, $giftCardClaimedByUserGuid);
-        }
-
-        if ($giftCardGuid) {
-            $query->where('gift_card_guid', Operator::EQ, $giftCardGuid);
-        }
+        $query->columns(['payment_guid']);
 
         if ($loadAfter) {
             $query->where('payment_guid', Operator::LT, base64_decode($loadAfter, true));
@@ -358,6 +373,112 @@ class Repository extends AbstractRepository
 
             yield $transaction;
         }
+    }
+
+    /**
+     * Returns gift card transactions with additional joins on other tables such as Boost to provide
+     * more information for ledgers to display transactions to users.
+     * @param ?int $giftCardGuid - guid of the gift card to get transactions for.
+     * @param ?int $giftCardClaimedByUserGuid - user who claimed the gift card.
+     * @param int $limit - limit of transactions to return.
+     * @param string &$loadAfter - cursor to load after.
+     * @param string &$loadBefore - cursor to load before.
+     * @param ?bool &$hasMore - whether there are more transactions to load.
+     * @return iterable<GiftCardTransaction>
+     */
+    public function getGiftCardTransactionLedger(
+        int $giftCardGuid = null,
+        ?int $giftCardClaimedByUserGuid = null,
+        int $limit = self::DEFAULT_LIMIT,
+        string &$loadAfter = null,
+        string &$loadBefore = null,
+        ?bool &$hasMore = false
+    ): iterable {
+        $query = $this->buildBaseGiftCardsTransactionsQuery(
+            giftCardClaimedByUserGuid: $giftCardClaimedByUserGuid,
+            giftCardGuid: $giftCardGuid
+        );
+
+        $query->columns([
+            'payment_guid' => 'minds_gift_card_transactions.payment_guid',
+            new RawExp('boosts.guid AS boost_guid'),
+        ])
+            ->leftJoin('boosts', 'boosts.payment_guid', Operator::EQ, 'minds_gift_card_transactions.payment_guid')
+            ->where('minds_gift_card_transactions.amount', Operator::LT, 0)
+            ->limit($limit + 1);
+
+        
+        if ($loadAfter) {
+            $query->where('minds_gift_card_transactions.payment_guid', Operator::LT, base64_decode($loadAfter, true));
+        }
+
+        if ($loadBefore) {
+            $query->where('minds_gift_card_transactions.payment_guid', Operator::GT, base64_decode($loadBefore, true));
+        }
+
+        $pdoStatement = $query->execute();
+
+        $rows = $pdoStatement->fetchAll(PDO::FETCH_ASSOC);
+        
+        $hasMore = false;
+
+        foreach ($rows as $i => $row) {
+            // Pagination will request $limit+1, we stop yielding if we've returned the requested limit already
+            if ($i >= $limit) {
+                $hasMore = true;
+                break;
+            }
+            
+            if ($i === 0) {
+                $loadBefore = base64_encode($row['payment_guid']);
+            }
+
+            $transaction = new GiftCardTransaction(
+                paymentGuid: $row['payment_guid'],
+                giftCardGuid: $row['gift_card_guid'],
+                amount: $row['amount'],
+                createdAt: strtotime($row['created_at']),
+                refundedAt: $row['refunded_at'] ? strtotime($row['refunded_at']) : null,
+                boostGuid: $row['boost_guid'],
+            );
+
+            $loadAfter = base64_encode($row['payment_guid']);
+
+            yield $transaction;
+        }
+    }
+
+    /**
+     * Build base query to get gift card transactions.
+     * @param ?int $giftCardClaimedByUserGuid - user who claimed the gift card.
+     * @param ?int $giftCardGuid - guid of the gift card to get transactions for.
+     * @return SelectQuery - base query.
+     */
+    private function buildBaseGiftCardsTransactionsQuery(
+        ?int $giftCardClaimedByUserGuid = null,
+        ?int $giftCardGuid = null
+    ): SelectQuery {
+        $query = $this->mysqlClientReaderHandler
+            ->select()
+            ->columns([
+                'gift_card_guid',
+                'minds_gift_card_transactions.amount',
+                'created_at',
+                'refunded_at'
+            ])
+            ->from('minds_gift_card_transactions')
+            ->innerJoin('minds_gift_cards', 'minds_gift_cards.guid', Operator::EQ, 'minds_gift_card_transactions.gift_card_guid')
+            ->orderBy('created_at desc');
+
+        if ($giftCardClaimedByUserGuid) {
+            $query->where('minds_gift_cards.claimed_by_guid', Operator::EQ, $giftCardClaimedByUserGuid);
+        }
+
+        if ($giftCardGuid) {
+            $query->where('gift_card_guid', Operator::EQ, $giftCardGuid);
+        }
+
+        return $query;
     }
 
     /**

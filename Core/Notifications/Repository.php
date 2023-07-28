@@ -5,17 +5,16 @@
 
 namespace Minds\Core\Notifications;
 
-use Minds\Core\Data\Cassandra\Client;
-use Minds\Core\Di\Di;
-use Minds\Common\Repository\Response;
 use Cassandra\Bigint;
 use Cassandra\Set as CassandraSet;
-use Cassandra\Timeuuid;
 use Cassandra\Timestamp;
+use Cassandra\Timeuuid;
 use Cassandra\Type\Set;
 use Minds\Common\Urn;
+use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared;
 use Minds\Core\Data\Cassandra\Scroll;
+use Minds\Core\Di\Di;
 
 class Repository
 {
@@ -83,6 +82,10 @@ class Repository
         try {
             $pagingToken = ''; // Will be changed by scroll pass by reference
             foreach ($this->scroll->request($query, $pagingToken) as $row) {
+                if ($row['type'] === NotificationTypes::TYPE_VOTE_DOWN) {
+                    continue; // Skip vote downs
+                }
+
                 $notification = new Notification();
                 $notification
                     ->setUuid($row['uuid']->uuid() ?: null)

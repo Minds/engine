@@ -11,8 +11,13 @@ class NotificationTypes
     /** @var string */
     const TYPE_VOTE_UP = 'vote_up';
 
+    /**
+     * @deprecated No notifications for down votes anymore. Still required to fetch old notifications.
+     */
+    const TYPE_VOTE_DOWN = 'vote_down';
+
     /** @var string[] */
-    const GROUPING_VOTES = [ self::TYPE_VOTE_UP ];
+    const GROUPING_VOTES = [ self::TYPE_VOTE_UP, self::TYPE_VOTE_DOWN ];
 
     /** @var string */
     const GROUPING_TYPE_VOTES = 'votes';

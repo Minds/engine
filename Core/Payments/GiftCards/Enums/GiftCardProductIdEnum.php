@@ -8,6 +8,13 @@ enum GiftCardProductIdEnum: int
     case PRO = 2;
     case SUPERMIND = 3;
 
+    public static function enabledProductIdEnums(): array
+    {
+        return [
+            GiftCardProductIdEnum::BOOST
+        ];
+    }
+
     public static function getEnumLabel(self $enum): string
     {
         return match ($enum) {

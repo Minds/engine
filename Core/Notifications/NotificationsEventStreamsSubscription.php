@@ -89,6 +89,10 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
 
         $this->logger->info('Action event type: ' . $event->getAction());
 
+        if ($event->getAction() === ActionEvent::ACTION_VOTE_DOWN) {
+            return true; // True to acknowledge, but we dont care about down votes
+        }
+
         /** @var User */
         $user = $event->getUser();
 
