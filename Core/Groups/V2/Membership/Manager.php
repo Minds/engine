@@ -97,7 +97,7 @@ class Manager
      */
     public function getMembers(
         Group $group,
-        GroupMembershipLevelEnum $membershipLevel = GroupMembershipLevelEnum::MEMBER,
+        GroupMembershipLevelEnum $membershipLevel = null,
         int $limit = 12,
         int $offset = 0,
         int|string &$loadNext = 0
