@@ -213,6 +213,9 @@ class group implements Interfaces\Api
             $moderationChange = $oldModerationValue != $group->getModerated();
         }
 
+        if (isset($_POST['show_boosts'])) {
+            $group->setShowBoosts($_POST['show_boosts']);
+        }
 
         if (isset($_POST['default_view'])) {
             $group->setDefaultView($_POST['default_view']);
