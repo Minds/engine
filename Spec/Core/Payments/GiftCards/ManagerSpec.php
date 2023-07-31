@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Payments\GiftCards;
 
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
+use Minds\Core\Payments\GiftCards\Delegates\NotificationDelegate;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardStatusFilterEnum;
@@ -26,6 +27,7 @@ class ManagerSpec extends ObjectBehavior
 
     private Collaborator $paymentProcessorMock;
     private Collaborator $emailDelegateMock;
+    private Collaborator $notificationDelegateMock;
     private Collaborator $loggerMock;
 
     public function let(
@@ -33,12 +35,14 @@ class ManagerSpec extends ObjectBehavior
         PaymentsManager $paymentsManagerMock,
         PaymentProcessor $paymentProcessor,
         EmailDelegate $emailDelegate,
+        NotificationDelegate $notificationDelegate,
         Logger $logger
     ): void {
         $this->repositoryMock = $repositoryMock;
         $this->paymentsManagerMock = $paymentsManagerMock;
         $this->paymentProcessorMock = $paymentProcessor;
         $this->emailDelegateMock = $emailDelegate;
+        $this->notificationDelegateMock = $notificationDelegate;
         $this->loggerMock = $logger;
 
         $this->beConstructedWith(
@@ -46,7 +50,8 @@ class ManagerSpec extends ObjectBehavior
             $this->paymentsManagerMock,
             $this->paymentProcessorMock,
             $this->emailDelegateMock,
-            $this->loggerMock
+            $this->loggerMock,
+            $this->notificationDelegateMock,
         );
     }
 
