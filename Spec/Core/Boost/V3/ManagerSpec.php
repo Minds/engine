@@ -19,6 +19,7 @@ use Minds\Core\Boost\V3\Exceptions\IncorrectBoostStatusException;
 use Minds\Core\Boost\V3\Exceptions\InvalidBoostPaymentMethodException;
 use Minds\Core\Boost\V3\Manager;
 use Minds\Core\Boost\V3\Models\Boost;
+use Minds\Core\Boost\V3\Models\BoostEntityWrapper;
 use Minds\Core\Boost\V3\PaymentProcessor;
 use Minds\Core\Boost\V3\PreApproval\Manager as PreApprovalManager;
 use Minds\Core\Boost\V3\Repository;
@@ -28,6 +29,7 @@ use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
+use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Security\ACL;
 use Minds\Core\Settings\Manager as UserSettingsManager;
 use Minds\Core\Settings\Models\BoostPartnerSuitability;
@@ -139,11 +141,20 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
         $this->entitiesBuilder->single(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($entity);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -224,7 +235,16 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -300,7 +320,16 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -375,7 +404,16 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -529,11 +567,20 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
         $this->entitiesBuilder->single(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($entity);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -624,7 +671,14 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -681,7 +735,14 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -748,9 +809,17 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($entity);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
-            ->shouldNotBeCalled()
-            ->willReturn(true);
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
+            ->shouldNotBeCalled();
 
         $this->repository->createBoost(Argument::that(function ($arg) {
             return $arg->getStatus() === BoostStatus::PENDING_ONCHAIN_CONFIRMATION &&
@@ -1364,6 +1433,7 @@ class ManagerSpec extends ObjectBehavior
         $ownerGuid = '123';
         $createdTimestamp = 999999;
         $boostUrn = "urn:boost:$boostGuid";
+        $activity = new Activity();
 
         $boost = (new Boost(
             '123',
@@ -1381,7 +1451,8 @@ class ManagerSpec extends ObjectBehavior
             1
         ))->setOwnerGuid($ownerGuid)
             ->setGuid($boostGuid)
-            ->setCreatedTimestamp($createdTimestamp);
+            ->setCreatedTimestamp($createdTimestamp)
+            ->setEntity($activity);
 
         $this->setUser($user);
 
@@ -1397,18 +1468,22 @@ class ManagerSpec extends ObjectBehavior
             entityGuid: null,
             paymentMethod: null,
             loggedInUser: $user,
-            hasNext: false
+            hasNext: false,
         )
             ->shouldBeCalled()
             ->willYield([$boost]);
 
+        $this->acl->read(Argument::type(Boost::class))
+            ->willReturn(true);
+
+        
         $this->getBoostFeed()->toArray()->shouldBeLike([
             (new FeedSyncEntity())
                 ->setGuid($boostGuid)
                 ->setOwnerGuid($ownerGuid)
                 ->setTimestamp($createdTimestamp)
                 ->setUrn($boostUrn)
-                ->setEntity(null)
+                ->setEntity(new BoostEntityWrapper($boost))
         ]);
     }
 

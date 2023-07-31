@@ -8,15 +8,17 @@ use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Types\ID;
 
 /**
- * The ActivityEdge contains the ActivityNode (entity) and the cursor (for pagination).
+ * The ActivityEdge contains the ActivityNode (entity), the cursor (for pagination), and whether to display explicit vote buttons.
  * Further information can be provided here, such as relationships or other contexts.
  */
 #[Type]
 class ActivityEdge implements EdgeInterface
 {
-    public function __construct(protected Activity $activity, protected string $cursor)
+    public function __construct(protected Activity $activity, protected string $cursor, protected bool $explicitVotes)
     {
         $this->activity = $activity;
+
+        $this->explicitVotes = $explicitVotes;
     }
 
     #[Field]
@@ -41,5 +43,11 @@ class ActivityEdge implements EdgeInterface
     public function getNode(): ActivityNode
     {
         return new ActivityNode($this->activity);
+    }
+
+    #[Field]
+    public function getExplicitVotes(): bool
+    {
+        return $this->explicitVotes;
     }
 }

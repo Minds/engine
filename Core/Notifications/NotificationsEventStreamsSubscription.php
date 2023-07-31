@@ -83,6 +83,10 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
 
         $this->logger->info('Action event type: ' . $event->getAction());
 
+        if ($event->getAction() === ActionEvent::ACTION_VOTE_DOWN) {
+            return true; // True to acknowledge, but we dont care about down votes
+        }
+
         /** @var User */
         $user = $event->getUser();
 
@@ -118,9 +122,6 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
         switch ($event->getAction()) {
             case ActionEvent::ACTION_VOTE_UP:
                 $notification->setType(NotificationTypes::TYPE_VOTE_UP);
-                break;
-            case ActionEvent::ACTION_VOTE_DOWN:
-                $notification->setType(NotificationTypes::TYPE_VOTE_DOWN);
                 break;
             case ActionEvent::ACTION_COMMENT:
                 // Comment notifications are handled via their own EventStreamSubscription
@@ -218,11 +219,11 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 break;
                 // Doesn't work bc post gets deleted immediately when rejected
                 // case ActionEvent::ACTION_GROUP_QUEUE_REJECT:
-            //     $notification->setType(NotificationTypes::TYPE_GROUP_QUEUE_REJECT);
-            //     $notification->setData([
-            //         'group_urn' => $event->getActionData()['group_urn']
-            //     ]);
-            //     break;
+                //     $notification->setType(NotificationTypes::TYPE_GROUP_QUEUE_REJECT);
+                //     $notification->setData([
+                //         'group_urn' => $event->getActionData()['group_urn']
+                //     ]);
+                //     break;
             case ActionEvent::ACTION_WIRE_SENT:
                 /** @var Wire */
                 $wire = $entity;
@@ -302,10 +303,10 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 ]);
                 break;
                 // case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
-            //     $notification->setToGuid($entity->getSenderGuid());
-            //     $notification->setFromGuid($entity->getReceiverGuid());
-            //     $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE);
-            //     break;
+                //     $notification->setToGuid($entity->getSenderGuid());
+                //     $notification->setFromGuid($entity->getReceiverGuid());
+                //     $notification->setType(NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE);
+                //     break;
             default:
                 $this->logger->info("{$event->getAction()} is not a valid action for notifications");
                 return true; // We will not make a notification from this

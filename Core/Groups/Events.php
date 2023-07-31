@@ -6,14 +6,18 @@ namespace Minds\Core\Groups;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
+use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Entities\Group as GroupEntity;
 use Minds\Entities\Activity;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Core\Session;
 use Minds\Entities\EntityInterface;
+use Minds\Exceptions\NotFoundException;
 
 class Events
 {
+    protected V2\Membership\Manager $membershipManager;
+
     /**
      * Initialize events
      */
@@ -28,6 +32,10 @@ class Events
             }
         });
 
+        /**
+         * Members can read group entities.
+         * Moderators can read pending group posts
+         */
         Dispatcher::register('acl:read', 'all', function ($e) {
             $params = $e->getParameters();
             $entity = $params['entity'];
@@ -47,18 +55,32 @@ class Events
             $group = $entity->getContainerEntity();
 
             if ($group instanceof GroupEntity) {
-                /** @var Membership $membership */
-                $membership = Membership::_($group);
-
                 if ($entity instanceof Activity && $entity->getPending()) {
-                    $e->setResponse($group->isOwner($user->guid));
+                    try {
+                        $membership = $this->getGroupMembershipManager()->getMembership($group, $user);
+                        $e->setResponse($membership->isModerator());
+                    } catch (NotFoundException $ex) {
+                        $e->setResponse(false);
+                    }
                     return;
                 }
 
-                $e->setResponse($group->isPublic() || $membership->isMember($user->guid));
+                if ($group->isPublic()) {
+                    $e->setResponse(true);
+                    return;
+                }
+
+                try {
+                    $membership = $this->getGroupMembershipManager()->getMembership($group, $user);
+                    $e->setResponse($membership->isMember());
+                } catch (NotFoundException $ex) {
+                }
             }
         });
 
+        /**
+         * Group moderators have write permissions for entities belonging to the group
+         */
         Dispatcher::register('acl:write', 'all', function ($e) {
             $params = $e->getParameters();
             $entity = $params['entity'];
@@ -74,9 +96,16 @@ class Events
                 return;
             }
 
-            $e->setResponse(($group->isOwner($user->guid) || $group->isModerator($user->guid)) && $group->isMember($user->guid));
+            try {
+                $membership = $this->getGroupMembershipManager()->getMembership($group, $user);
+                $e->setResponse($membership->isModerator());
+            } catch (NotFoundException $ex) {
+            }
         });
 
+        /**
+         * Group moderators have write permissions on comments made in a group
+         */
         Dispatcher::register('acl:write', 'comment', function ($e) {
             $params = $e->getParameters();
             $comment = $params['entity'];
@@ -93,9 +122,17 @@ class Events
             }
 
             $group = $entity;
-            $e->setResponse(($group->isOwner($user->guid) || $group->isModerator($user->guid)) && $group->isMember($user->guid));
+
+            try {
+                $membership = $this->getGroupMembershipManager()->getMembership($group, $user);
+                $e->setResponse($membership->isModerator());
+            } catch (NotFoundException $ex) {
+            }
         });
 
+        /**
+         * Group members can interact with group activity
+         */
         Dispatcher::register('acl:interact', 'activity', function ($e) {
             $params = $e->getParameters();
             $activity = $params['entity'];
@@ -104,23 +141,23 @@ class Events
             if ($activity instanceof Activity && $activity->container_guid && $activity->container_guid !== $activity->owner_guid) {
                 $container = EntitiesFactory::build($activity->container_guid);
 
-                if ($container->type === 'group') {
-                    $e->setResponse($container->isPublic() || $container->isMember($user->guid));
+                if ($container instanceof GroupEntity) {
+                    if ($container->isPublic()) {
+                        $e->setResponse(true);
+                        return;
+                    }
+                    try {
+                        $membership = $this->getGroupMembershipManager()->getMembership($container, $user);
+                        $e->setResponse($membership->isMember());
+                    } catch (NotFoundException $ex) {
+                    }
                 }
             }
         });
 
-        Dispatcher::register('acl:interact', 'group', function ($e) {
-            $params = $e->getParameters();
-            $group = $params['entity'];
-            $user = $params['user'];
-            $interaction = $params['interaction'];
-
-            if ($group instanceof GroupEntity && $interaction === 'comment') {
-                $e->setResponse($group->isMember($user->guid));
-            }
-        });
-
+        /**
+         * When deleting an activity, remove it from the admin queue
+         */
         Dispatcher::register('delete', 'activity', function ($e) {
             $params = $e->getParameters();
             $activity = $params['entity'];
@@ -140,60 +177,94 @@ class Events
             $adminQueue->delete($group, $activity);
         });
 
+        /**
+         * Group members can read the grup
+         */
         Dispatcher::register('acl:read', 'group', function ($e) {
             $params = $e->getParameters();
             $group = $params['entity'];
             $user = $params['user'];
 
-            $e->setResponse($group->isPublic() || $group->isMember($user->guid));
+            // If public, everyone can read
+            if ($group->isPublic()) {
+                $e->setResponse(true);
+                return;
+            }
+
+            // If logged out, and not public, then do not continue
+            if (!$user) {
+                return;
+            }
+
+            try {
+                $membership = $this->getGroupMembershipManager()->getMembership($group, $user);
+                $e->setResponse($membership->isMember());
+            } catch (NotFoundException $ex) {
+            }
         });
 
+        /**
+         * Moderators and group owner can write to the group
+         */
         Dispatcher::register('acl:write', 'group', function ($e) {
             $params = $e->getParameters();
             $group = $params['entity'];
             $user = $params['user'];
 
-            $isOwner = $group->isOwner($user->guid);
-            $isModerator = $group->isModerator($user->guid);
-            $isMember = $group->isMember($user->guid);
-
-            if ($isOwner && $isMember) {
-                $e->setResponse(true);
+            try {
+                $membership = $this->getGroupMembershipManager()->getMembership($group, $user);
+                $e->setResponse($membership->isModerator());
                 return;
-            } elseif ($isModerator && $isMember) {
-                $e->setResponse(true);
-                return;
+            } catch (NotFoundException $ex) {
             }
 
             $e->setResponse(false);
         });
 
+        /**
+         * Group members can edit their own group posts
+         */
         Dispatcher::register('acl:write:container', 'group', function ($e) {
             $params = $e->getParameters();
             $group = $params['container'];
             $user = $params['user'];
             $entity = $params['entity'];
 
-            if ($group->isOwner($user->guid)) {
+            try {
+                $membership = $this->getGroupMembershipManager()->getMembership($group, $user);
+            } catch (NotFoundException $ex) {
+                return;
+            }
+
+            if ($membership->isOwner()) {
                 return $e->setResponse(true);
             }
 
             // If member and we own the post
-            if ($group->isMember($user->guid) && $entity->owner_guid == $user->guid) {
+            if ($membership->isMember() && $entity->owner_guid == $user->guid) {
                 return $e->setResponse(true);
             }
         });
 
+        /**
+         * Posts from none group moderators will go to the review queue
+         */
         Dispatcher::register('activity:container:prepare', 'group', function ($e) {
             $params = $e->getParameters();
 
             $group = $params['container'];
             $activity = $params['activity'];
+
+            try {
+                $membership = $this->getGroupMembershipManager()->getMembership($group, $activity->getOwnerEntity());
+            } catch (NotFoundException $ex) {
+                return;
+            }
             
             // The accessid of the activity should always be the group
             $activity->setAccessId($group->guid);
 
-            if ($group->getModerated() && !$group->isOwner($activity->owner_guid)) {
+            if ($group->getModerated() && !$membership->isModerator()) {
                 $key = "activity:container:{$group->guid}";
                 $index = array_search($key, $activity->indexes, true);
                 if ($index !== false) {
@@ -204,6 +275,9 @@ class Events
             }
         });
 
+        /**
+         * Sends the activity to the group review feed
+         */
         Dispatcher::register('activity:container', 'group', function ($e) {
             $params = $e->getParameters();
 
@@ -227,21 +301,44 @@ class Events
             $e->setResponse(Membership::cleanup($params['group']));
         });
 
-        Dispatcher::register('save', 'comment', function ($e) {
+        Dispatcher::register('export:extender', 'group', function ($e) {
             $params = $e->getParameters();
-            $comment = $params['entity'];
 
-            if (!$comment->isGroupConversation()) {
+            $group = $params['entity'];
+            $user = Session::getLoggedinUser();
+
+            if (!$group instanceof GroupEntity) {
                 return;
             }
 
-            $group = new GroupEntity;
-            $group->setGuid($comment->getEntityGuid());
+            $membershipManager = $this->getGroupMembershipManager();
 
-            (new Notifications())
-                ->setGroup($group)
-                ->setActor(Session::getLoggedInUser())
-                ->queue('conversation');
+            $export = $e->response() ?: [];
+
+            try {
+                if (!$user) {
+                    throw new NotFoundException();
+                }
+                $membership = $membershipManager->getMembership($group, $user);
+            } catch (NotFoundException $ex) {
+                $membership = null;
+            }
+
+            $export['members:count'] = $membershipManager->getMembersCount($group);
+            //$export['requests:count'] = $membershipManager->getRequestsCount();
+
+            $export['is:owner'] = $membership?->isOwner() ?: false;
+            $export['is:moderator'] = $membership?->isModerator() ?: false;
+            $export['is:member'] = $membership?->isMember() ?: false;
+            $export['is:creator'] = Session::isAdmin() || $group->isCreator(Session::getLoggedInUser());
+            $export['is:awaiting'] = $membership?->membershipLevel === GroupMembershipLevelEnum::REQUESTED;
+
+            $e->setResponse($export);
         });
+    }
+
+    protected function getGroupMembershipManager(): V2\Membership\Manager
+    {
+        return $this->membershipManager ??= Di::_()->get(V2\Membership\Manager::class);
     }
 }

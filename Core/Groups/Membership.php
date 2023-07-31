@@ -98,49 +98,6 @@ class Membership
     }
 
     /**
-     * Fetch the group owners
-     * @param  array $opts
-     * @return array
-     */
-    public function getOwners(array $opts = [])
-    {
-        $opts = array_merge([
-            'limit' => 12,
-            'offset' => '',
-            'hydrate' => true
-        ], $opts);
-
-        $this->relDB->setGuid($this->group->getGuid());
-
-        $guids = $this->relDB->get('group:owner', [
-            'limit' => $opts['limit'],
-            'offset' => $opts['offset'],
-            'inverse' => true
-        ]);
-
-        // we add the original owner of the group
-        if ($this->group->owner_guid) {
-            $guids[] = $this->group->owner_guid;
-        }
-
-        if ($opts['offset']) {
-            array_shift($guids);
-        }
-
-        if (!$guids) {
-            return [];
-        }
-
-        if (!$opts['hydrate']) {
-            return $guids;
-        }
-
-        $users = Core\Entities::get([ 'guids' => $guids ]);
-
-        return $users;
-    }
-
-    /**
      * Count the group members
      * @return int
      */
@@ -250,7 +207,8 @@ class Membership
     public function join($user, array $opts = [])
     {
         $opts = array_merge([
-            'force' => false
+            'force' => false,
+            'isOwner' => false,
         ], $opts);
 
         if (!$user) {
@@ -263,7 +221,7 @@ class Membership
 
         $user_guid = is_object($user) ? $user->guid : $user;
         $banned = $this->isBanned($user);
-        $canJoin = $this->group->isPublic() || $this->group->isInvited($user_guid);
+        $canJoin = $opts['isOwner'] || $this->group->isPublic() || $this->group->isInvited($user_guid);
 
         if (!$canJoin && $this->hasActor()) {
             $canJoin = $this->canActorWrite($this->group);

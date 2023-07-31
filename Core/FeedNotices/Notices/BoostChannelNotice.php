@@ -35,6 +35,15 @@ class BoostChannelNotice extends AbstractNotice
     }
 
     /**
+     * Whether notice is dismissible.
+     * @return boolean - true if notice is dismissible.
+     */
+    public function isDismissible(): bool
+    {
+        return true;
+    }
+
+    /**
      * Whether notice should show in feed, based on whether user is trusted.
      * @param User $user - user to check for.
      * @return boolean - true if notice should show.

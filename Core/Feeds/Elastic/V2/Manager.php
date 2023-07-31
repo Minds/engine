@@ -8,9 +8,10 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
 use Minds\Core\Search\SortingAlgorithms\TopV2;
 use Minds\Core\Feeds\ClusteredRecommendations;
+use Minds\Core\Feeds\Elastic\V2\Enums\MediaTypeEnum;
 use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
 use Minds\Core\Feeds\Seen\Manager as SeenManager;
-use Minds\Core\Groups\Membership;
+use Minds\Core\Groups\V2\Membership;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Exceptions\ServerErrorException;
@@ -23,130 +24,83 @@ class Manager
         protected ClusteredRecommendations\MySQLRepository $clusteredRecsRepository,
         protected SeenManager $seenManager,
         protected EntitiesBuilder $entitiesBuilder,
-        protected Membership $groupsMembership,
+        protected Membership\Manager $groupsMembershipManager,
         protected ACL $acl,
     ) {
     }
 
     /**
-     * Returns the latest subscribed posts
-     * @return iterable<Activity>
+     * Returns the count for the query
      */
-    public function getLatestSubscribed(
-        User $user,
-        int $limit = 12,
+    public function getLatestCount(
+        QueryOpts $queryOpts,
         string &$loadAfter = null,
         string &$loadBefore = null,
         bool &$hasMore = null
-    ): iterable {
-        $must = [];
-        
-        // Only public posts
-        $must[] = [
-            'terms' => [
-                'access_id' => [Access::PUBLIC],
-            ],
-        ];
+    ): int {
+        $prepared = $this->prepareElastic($queryOpts);
+        $must = $prepared['must'];
+        $should = $prepared['should'];
 
-        $should = [];
+        $hasMore = true;
 
-        // Posts from subscriptions
-        $should[] = [
-            'terms' => [
-                'owner_guid' => [
-                    'index' => 'minds-graph-subscriptions',
-                    'id' => (string) $user->getGuid(),
-                    'path' => 'guids',
+        if ($loadAfter || $loadBefore) {
+            $cursorData = $this->decodeSort($loadAfter ?: $loadBefore);
+            $timestamp = $cursorData[0];
+            $op = $loadAfter ? 'lt' : 'gt';
+
+            $must[] = [
+                'range' => [
+                    '@timestamp' => [
+                        $op => $timestamp,
+                    ]
+                ]
+            ];
+        }
+
+        $body = [
+            'query' => [
+                'bool' => [
+                    'must' => $must,
+                    'should' => $should,
+                    'minimum_should_match' => count($should) > 0 ? 1 : 0,
                 ],
             ],
         ];
 
-        // Return own posts too
-        $should[] = [
-            'term' => [
-                'owner_guid' => (string) $user->getGuid()
-            ],
+        $query = [
+            'index' => $this->getSearchIndexName(),
+            'body' => $body,
         ];
 
-        yield from $this->getLatest(
-            must: $must,
-            should: $should,
-            limit: $limit,
-            loadAfter: $loadAfter,
-            loadBefore: $loadBefore,
-            hasMore: $hasMore,
-        );
+        $prepared = new ElasticSearch\Prepared\Count();
+        $prepared->query($query);
+
+        // Setup cursors
+        $loadAfter = $loadBefore;
+        $loadBefore = $this->encodeSort([time() * 1000, Guid::build()]);
+
+        $response = $this->esClient->request($prepared);
+
+        return $response['count'] ?? 0;
     }
 
     /**
-     * Returns the latest group posts the user is a member of
+     * Returns the latest posts for the query
      * @return iterable<Activity>
      */
-    public function getLatestGroups(
-        User $user,
-        int $limit = 12,
+    public function getLatest(
+        QueryOpts $queryOpts,
         string &$loadAfter = null,
         string &$loadBefore = null,
         bool &$hasMore = null
     ): iterable {
-        $must = [];
+        $prepared = $this->prepareElastic($queryOpts);
 
-        // Posts from groups user is member of
-        $must[] = [
-            'terms' => [
-                'container_guid' =>
-                    array_map(function ($guid) {
-                        return (string) $guid;
-                    }, $this->groupsMembership->getGroupGuidsByMember([
-                        'user_guid' => $user->getGuid(),
-                    ])),
-            ]
-        ];
-
-        yield from $this->getLatest(
-            must: $must,
-            should: [],
-            limit: $limit,
-            loadAfter: $loadAfter,
-            loadBefore: $loadBefore,
-            hasMore: $hasMore,
-        );
-    }
-
-    /**
-     * Returns the top subscribed posts
-     * @return iterable<Activity>
-     */
-    public function getTopSubscribed(
-        User $user,
-        int $limit = 12,
-        SeenEntitiesFilterStrategyEnum $seenEntitiesStrategy = SeenEntitiesFilterStrategyEnum::DEMOTE,
-        string &$loadAfter = null,
-        string &$loadBefore = null,
-        bool &$hasMore = null
-    ): iterable {
-        $topAlgo = new TopV2();
-
-        $must = [];
-        $mustNot = [];
-        $should = [];
-        $functionScores = $topAlgo->getFunctionScores();
-
-        // Only public posts
-        $must[] = [
-            'terms' => [
-                'access_id' => [Access::PUBLIC],
-            ],
-        ];
-
-        // Min 1 vote
-        $must[] = [
-            'range' => [
-                'votes:up' => [
-                    'gte' => 1,
-                ]
-            ]
-        ];
+        $limit = $queryOpts->limit;
+        $must = $prepared['must'];
+        $mustNot = $prepared['mustNot'];
+        $should = $prepared['should'];
 
         $must[] = [
             'range' => [
@@ -160,23 +114,103 @@ class Manager
             throw new ServerErrorException("Two cursors, loadAfter and loadBefore were provided. Only one can be provided.");
         }
 
-        // Posts from subscriptions
-        $should[] = [
-            'terms' => [
-                'owner_guid' => [
-                    'index' => 'minds-graph-subscriptions',
-                    'id' => (string) $user->getGuid(),
-                    'path' => 'guids',
+        $body = [
+            //'_source' => false,
+            'query' => [
+                'bool' => [
+                    'must' => $must,
+                    'must_not' => $mustNot,
+                    'should' => $should,
+                    'minimum_should_match' => count($should) > 0 ? 1 : 0,
                 ],
+            ],
+            'sort' => [
+                [
+                    '@timestamp' => $loadBefore ? 'asc' : 'desc', // Top/newer posts are queried in ascending order
+                    'guid' => $loadBefore ? 'asc' : 'desc', // Tie breaker
+                ]
             ],
         ];
 
-        // Return own posts too
-        $should[] = [
-            'term' => [
-                'owner_guid' => (string) $user->getGuid()
-            ],
+        if ($loadAfter || $loadBefore) {
+            $body['search_after'] = $this->decodeSort($loadAfter ?: $loadBefore);
+        }
+
+        $query = [
+            'index' => $this->getSearchIndexName(),
+            'body' => $body,
+            'size' => $limit + 1,
         ];
+
+        $prepared = new ElasticSearch\Prepared\Search();
+        $prepared->query($query);
+
+        $response = $this->esClient->request($prepared);
+
+        // If paginating backwards (top/newer), reverse the array as we do an ascending sort
+        $hits = $loadBefore ? array_reverse($response['hits']['hits']) : $response['hits']['hits'];
+
+        // The 'load newer' will be first items sort key OR a new GUID if no posts are returned
+        $loadBefore = isset($hits[0]) ? $this->encodeSort($hits[0]['sort']) : $this->encodeSort([time() * 1000, Guid::build()]);
+
+
+        // We return +1 $limit, so if we have more than our limit returned, we know there is another pagr
+        if (count($response['hits']['hits']) > $limit) {
+            $hasMore = true;
+        } else {
+            $hasMore = false;
+        }
+
+        $i = 0;
+        foreach ($hits as $hit) {
+            $entity = $this->fetchActivity((int) $hit['_id']);
+    
+            if (!$entity) {
+                continue;
+            }
+
+            // pass to reference before we yield to support with Cursor based pagination
+            $loadAfter = $this->encodeSort($hit['sort']);
+
+            yield $entity;
+
+            // Dont provide more than the limit (we request + 1 to do pagination)
+            if (++$i > $limit) {
+                break;
+            }
+        }
+    }
+
+    /**
+     * Returns the top posts count
+     * @return iterable<Activity>
+     */
+    public function getTopCount(
+        QueryOpts $queryOpts,
+        string &$loadAfter = null,
+        string &$loadBefore = null,
+        bool &$hasMore = null
+    ): int {
+        $topAlgo = new TopV2();
+
+        $prepared = $this->prepareElastic($queryOpts);
+
+        $must = $prepared['must'];
+        $mustNot = $prepared['mustNot'];
+        $should = $prepared['should'];
+
+        // Min 1 vote
+        $must[] = [
+            'range' => [
+                'votes:up' => [
+                    'gte' => 1,
+                ]
+            ]
+        ];
+
+        if ($loadAfter && $loadBefore) {
+            throw new ServerErrorException("Two cursors, loadAfter and loadBefore were provided. Only one can be provided.");
+        }
 
         $must[] = [
             'bool' => [
@@ -185,29 +219,72 @@ class Manager
             ]
         ];
 
-        // Demote posts we've already seen
-        $seenEntities = $this->seenManager->listSeenEntities();
-        if (count($seenEntities) > 0) {
-            switch ($seenEntitiesStrategy) {
-                case SeenEntitiesFilterStrategyEnum::DEMOTE:
-                    $functionScores[] = [
-                        'filter' => [
-                            'terms' => [
-                                'guid' => Text::buildArray($seenEntities),
-                            ]
-                        ],
-                        'weight' => 0.01
-                    ];
-                    break;
-                case SeenEntitiesFilterStrategyEnum::EXCLUDE:
-                    $mustNot[] = [
-                        'terms' => [
-                            'guid' => Text::buildArray($seenEntities),
-                        ],
-                    ];
-                    break;
-            }
+        $body = [
+            '_source' => false,
+            'query' => [
+                'bool' => [
+                    'must' => $must,
+                    'must_not' => $mustNot,
+                ],
+            ]
+        ];
+
+        $query = [
+            'index' => $this->getSearchIndexName(),
+            'body' => $body,
+        ];
+
+        $prepared = new ElasticSearch\Prepared\Search();
+        $prepared->query($query);
+
+        // Setup cursors
+        $loadAfter = $loadBefore;
+        $loadBefore = $this->encodeSort([time() * 1000, Guid::build()]);
+
+        $response = $this->esClient->request($prepared);
+
+        return $response['count'] ?? 0;
+    }
+
+    /**
+     * Returns the top posts
+     * @return iterable<Activity>
+     */
+    public function getTop(
+        QueryOpts $queryOpts,
+        string &$loadAfter = null,
+        string &$loadBefore = null,
+        bool &$hasMore = null
+    ): iterable {
+        $topAlgo = new TopV2();
+
+        $prepared = $this->prepareElastic($queryOpts);
+
+        $limit = $queryOpts->limit;
+        $must = $prepared['must'];
+        $mustNot = $prepared['mustNot'];
+        $should = $prepared['should'];
+        $functionScores = [...$topAlgo->getFunctionScores(), ...$prepared['functionScores']];
+
+        // Min 1 vote
+        $must[] = [
+            'range' => [
+                'votes:up' => [
+                    'gte' => 1,
+                ]
+            ]
+        ];
+
+        if ($loadAfter && $loadBefore) {
+            throw new ServerErrorException("Two cursors, loadAfter and loadBefore were provided. Only one can be provided.");
         }
+
+        $must[] = [
+            'bool' => [
+                'should' => $should,
+                'minimum_should_match' => 1
+            ]
+        ];
 
         $body = [
             '_source' => false,
@@ -239,7 +316,7 @@ class Manager
         }
 
         $query = [
-            'index' => 'minds-search-activity',
+            'index' => $this->getSearchIndexName(),
             'body' => $body,
             'size' => $limit + 1,
         ];
@@ -356,95 +433,168 @@ class Manager
     }
 
     /**
-     * Reusable query to return 'latest' activity posts
-     * @return iterable<Activity>
+     * Build bool query parts for elastic based queries
+     * @return array
      */
-    protected function getLatest(
-        array $must,
-        array $should,
-        int $limit = 12,
-        string &$loadAfter = null,
-        string &$loadBefore = null,
-        bool &$hasMore = null
-    ): iterable {
-        $must[] = [
-            'range' => [
-                '@timestamp' => [
-                    'lte' => time() * 1000, // Never show posts that are in the future
-                ]
+    private function prepareElastic(QueryOpts $queryOpts): array
+    {
+        $must = [];
+        $mustNot = [];
+        $should = [];
+        $functionScores = [];
+
+        // Never show pending posts
+        $mustNot[] = [
+            'term' => [
+                'pending' => true,
             ]
         ];
 
-        if ($loadAfter && $loadBefore) {
-            throw new ServerErrorException("Two cursors, loadAfter and loadBefore were provided. Only one can be provided.");
-        }
-
-        $body = [
-            '_source' => false,
-            'query' => [
-                'bool' => [
-                    'must' => $must,
-                    'should' => $should,
-                    'minimum_should_match' => count($should) > 0 ? 1 : 0,
+        if ($queryOpts->onlySubscribed) {
+            // Posts from subscriptions
+            $should[] = [
+                'terms' => [
+                    'owner_guid' => [
+                        'index' => 'minds-graph-subscriptions',
+                        'id' => (string) $queryOpts->user->getGuid(),
+                        'path' => 'guids',
+                    ],
                 ],
-            ],
-            'sort' => [
-                [
-                    '@timestamp' => $loadBefore ? 'asc' : 'desc', // Top/newer posts are queried in ascending order
-                    'guid' => $loadBefore ? 'asc' : 'desc', // Tie breaker
+            ];
+
+            // Return own posts too
+            $should[] = [
+                'term' => [
+                    'owner_guid' => (string) $queryOpts->user->getGuid()
+                ],
+            ];
+        }
+
+        if ($queryOpts->onlyGroups) {
+            // Posts from groups user is member of
+            $must[] = [
+                'terms' => [
+                    'container_guid' =>
+                        array_map(function ($guid) {
+                            return (string) $guid;
+                        }, $this->groupsMembershipManager->getGroupGuids($queryOpts->user)),
                 ]
-            ],
-        ];
-
-        if ($loadAfter || $loadBefore) {
-            $body['search_after'] = $this->decodeSort($loadAfter ?: $loadBefore);
+            ];
         }
 
-        $query = [
-            'index' => 'minds-search-activity',
-            'body' => $body,
-            'size' => $limit + 1,
-        ];
+        if ($queryOpts->query) {
+            $words = explode(' ', $queryOpts->query);
 
-        $prepared = new ElasticSearch\Prepared\Search();
-        $prepared->query($query);
-
-        $response = $this->esClient->request($prepared);
-
-        // If paginating backwards (top/newer), reverse the array as we do an ascending sort
-        $hits = $loadBefore ? array_reverse($response['hits']['hits']) : $response['hits']['hits'];
-
-        // The 'load newer' will be first items sort key OR a new GUID if no posts are returned
-        $loadBefore = isset($hits[0]) ? $this->encodeSort($hits[0]['sort']) : $this->encodeSort([time() * 1000, Guid::build()]);
-
-
-        // We return +1 $limit, so if we have more than our limit returned, we know there is another pagr
-        if (count($response['hits']['hits']) > $limit) {
-            $hasMore = true;
-        } else {
-            $hasMore = false;
-        }
-
-        $i = 0;
-        foreach ($hits as $hit) {
-            $entity = $this->fetchActivity((int) $hit['_id']);
-    
-            if (!$entity) {
-                continue;
+            if (count($words) === 1) {
+                $must[] = [
+                        'multi_match' => [
+                            'query' => $queryOpts->query,
+                            'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^12', 'auto_caption^12'],
+                        ],
+                    ];
+            } else {
+                $must[] = [
+                    'multi_match' => [
+                        'query' => $queryOpts->query,
+                        'type' => 'phrase',
+                        'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^16', 'auto_caption^12'],
+                    ],
+                ];
             }
+        }
 
-            // pass to reference before we yield to support with Cursor based pagination
-            $loadAfter = $this->encodeSort($hit['sort']);
+        if ($queryOpts->accessId) {
+            // Only public posts
+            $must[] = [
+                'terms' => [
+                    'access_id' => [$queryOpts->accessId],
+                ],
+            ];
+        }
 
-            yield $entity;
-
-            // Dont provide more than the limit (we request + 1 to do pagination)
-            if (++$i > $limit) {
+        switch ($queryOpts->mediaTypeEnum) {
+            case MediaTypeEnum::ALL:
+                // noop
                 break;
+            case MediaTypeEnum::BLOG:
+                $must[] = [
+                    'exists' => [
+                        'field' => 'entity_guid'
+                    ]
+                ];
+                $mustNot[] = [
+                    'terms' => [
+                        'custom_type' => [ 'batch', 'video' ]
+                    ]
+                ];
+                break;
+            case MediaTypeEnum::IMAGE:
+                $must[] = [
+                    'term' => [
+                        'custom_type' => 'batch'
+                    ]
+                ];
+                break;
+            case MediaTypeEnum::VIDEO:
+                $must[] = [
+                    'term' => [
+                        'custom_type' => 'video'
+                    ]
+                ];
+                break;
+        }
+
+        if ($queryOpts->seenEntitiesFilterStrategy !== SeenEntitiesFilterStrategyEnum::NOOP) {
+            // Demote posts we've already seen
+            $seenEntities = $this->seenManager->listSeenEntities();
+            if (count($seenEntities) > 0) {
+                switch ($queryOpts->seenEntitiesFilterStrategy) {
+                    case SeenEntitiesFilterStrategyEnum::DEMOTE:
+                        $functionScores[] = [
+                            'filter' => [
+                                'terms' => [
+                                    'guid' => Text::buildArray($seenEntities),
+                                ]
+                            ],
+                            'weight' => 0.01
+                        ];
+                        break;
+                    case SeenEntitiesFilterStrategyEnum::EXCLUDE:
+                        $mustNot[] = [
+                            'terms' => [
+                                'guid' => Text::buildArray($seenEntities),
+                            ],
+                        ];
+                        break;
+                }
             }
         }
+
+        $nsfw = array_diff([1, 2, 3, 4, 5, 6], $queryOpts->nsfw);
+        if ($nsfw) {
+            $mustNot[] = [
+                'terms' => [
+                    'nsfw' => array_values($nsfw),
+                ],
+            ];
+
+            if (in_array(6, $nsfw, false)) { // 6 is legacy 'mature'
+                $mustNot[] = [
+                    'term' => [
+                        'mature' => true,
+                    ],
+                ];
+            }
+        }
+
+        return [
+            'must' => $must,
+            'mustNot' => $mustNot,
+            'should' => $should,
+            'functionScores' => $functionScores,
+        ];
     }
-    
+
     /**
      * Encodes the sort to base64
      */
@@ -474,5 +624,13 @@ class Manager
         }
 
         return $this->acl->read($entity) ? $entity : null;
+    }
+
+    /**
+     * The search index to query against
+     */
+    private function getSearchIndexName(): string
+    {
+        return 'minds-search-activity';
     }
 }

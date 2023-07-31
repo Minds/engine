@@ -11,7 +11,9 @@ class NotificationTypes
     /** @var string */
     const TYPE_VOTE_UP = 'vote_up';
 
-    /** @var string */
+    /**
+     * @deprecated No notifications for down votes anymore. Still required to fetch old notifications.
+     */
     const TYPE_VOTE_DOWN = 'vote_down';
 
     /** @var string[] */
@@ -228,13 +230,13 @@ class NotificationTypes
 
     /** @var string */
     const TYPE_SUPERMIND_REQUEST_CREATE = 'supermind_created';
-    
+
     /** @var string */
     const TYPE_SUPERMIND_REQUEST_ACCEPT = 'supermind_accepted';
-    
+
     /** @var string */
     const TYPE_SUPERMIND_REQUEST_REJECT = 'supermind_rejected';
-    
+
     /** @var string */
     const TYPE_SUPERMIND_REQUEST_EXPIRE = 'supermind_expired';
 
@@ -249,7 +251,7 @@ class NotificationTypes
         self::TYPE_SUPERMIND_REQUEST_EXPIRE,
         self::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON,
     ];
-    
+
     /** @var string */
     const GROUPING_TYPE_SUPERMIND = 'supermind';
 
@@ -269,7 +271,6 @@ class NotificationTypes
 
     /**
      * *******************************************
-<<<<<<< HEAD
      * Gift Cards
      */
     public const TYPE_GIFT_CARD_RECIPIENT_NOTIFIED = 'gift_card_recipient_notified';
@@ -282,8 +283,6 @@ class NotificationTypes
 
     /**
      * *******************************************
-=======
->>>>>>> origin
      * Community Updates
      */
 
@@ -328,7 +327,6 @@ class NotificationTypes
     /** @var string[] */
     const TYPES = [
         self::TYPE_VOTE_UP,
-        self::TYPE_VOTE_DOWN,
         //
         self::TYPE_TAG,
         //

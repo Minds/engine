@@ -8,7 +8,9 @@ use Minds\Core\Payments\GiftCards\Delegates\NotificationDelegate;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardPaymentTypeEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use Minds\Core\Payments\GiftCards\Enums\GiftCardStatusFilterEnum;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardAlreadyClaimedException;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardInsufficientFundsException;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardPaymentFailedException;
 use Minds\Core\Payments\GiftCards\Exceptions\InvalidGiftCardClaimCodeException;
@@ -28,6 +30,8 @@ use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class Manager
 {
+    private bool $inTransaction = false;
+
     public function __construct(
         protected Repository $repository,
         protected PaymentsManager $paymentsManager,
@@ -36,6 +40,34 @@ class Manager
         private readonly Logger $logger,
         private readonly NotificationDelegate $notificationDelegate,
     ) {
+    }
+
+    public function setInTransaction(bool $value): void
+    {
+        $this->inTransaction = $value;
+    }
+
+    /**
+     * Returns true if we are currently in a transaction
+     * @return bool
+     */
+    public function isInTransaction(): bool
+    {
+        return $this->inTransaction;
+    }
+
+    public function commitTransaction(): void
+    {
+        if ($this->inTransaction) {
+            $this->repository->commitTransaction();
+        }
+    }
+
+    public function rollbackTransaction(): void
+    {
+        if ($this->inTransaction) {
+            $this->repository->rollbackTransaction();
+        }
     }
 
     /**
@@ -65,7 +97,7 @@ class Manager
             $expiresAt = strtotime('+1 year');
         }
 
-        // Build a guid out
+        // Build a guid
         $giftCardGuid = Guid::build();
 
         $issuedAt = time();
@@ -107,7 +139,7 @@ class Manager
                 paymentGuid: $paymentDetails->paymentGuid,
                 giftCardGuid: $giftCard->guid,
                 amount: $amount,
-                createdAt: time(),
+                createdAt: time()
             );
             $this->repository->addGiftCardTransaction($giftCardTransaction);
 
@@ -151,11 +183,21 @@ class Manager
 
     /**
      * Returns multiple gift cards
+     * @param User $claimedByUser
+     * @param User|null $issuedByUser
+     * @param GiftCardProductIdEnum|null $productId
+     * @param int $limit
+     * @param GiftCardOrderingEnum $ordering
+     * @param string|null $loadAfter
+     * @param string|null $loadBefore
+     * @param bool|null $hasMore
+     * @return iterable<GiftCard>
      */
     public function getGiftCards(
         User $claimedByUser,
         ?User $issuedByUser = null,
         ?GiftCardProductIdEnum $productId = null,
+        ?GiftCardStatusFilterEnum $statusFilter = null,
         int $limit = Repository::DEFAULT_LIMIT,
         GiftCardOrderingEnum $ordering = GiftCardOrderingEnum::CREATED_ASC,
         ?string &$loadAfter = null,
@@ -166,6 +208,7 @@ class Manager
             claimedByGuid: $claimedByUser->getGuid(),
             issuedByGuid: $issuedByUser?->getGuid(),
             productId: $productId,
+            statusFilter: $statusFilter,
             limit: $limit,
             ordering: $ordering,
             loadAfter: $loadAfter,
@@ -180,6 +223,15 @@ class Manager
     public function getGiftCard(int $guid): GiftCard
     {
         return $this->repository->getGiftCard($guid);
+    }
+
+    /**
+     * Returns a single GiftCard by its claim code.
+     * @return GiftCard - gift card by claim code.
+     */
+    public function getGiftCardByClaimCode(string $claimCode): GiftCard
+    {
+        return $this->repository->getGiftCardByClaimCode($claimCode);
     }
 
     /**
@@ -237,6 +289,18 @@ class Manager
     }
 
     /**
+     * @param User $user
+     * @param GiftCardProductIdEnum $productIdEnum
+     * @return float
+     * @throws GiftCardNotFoundException
+     * @throws ServerErrorException
+     */
+    public function getUserBalanceForProduct(User $user, GiftCardProductIdEnum $productIdEnum): float
+    {
+        return $this->repository->getUserBalanceForProduct($user->getGuid(), $productIdEnum);
+    }
+
+    /**
      * Returns transactions associated with a user
      * @return iterable<GiftCardTransaction>
      */
@@ -259,35 +323,123 @@ class Manager
     }
 
     /**
+     * Returns transactions associated with a user with additional data
+     * for display in a ledger, such as Boost guids.
+     * @param int $giftCardGuid - guid of the gift card to get transactions for.
+     * @param int $limit - limit of transactions to return.
+     * @param string &$loadAfter - cursor to load after.
+     * @param string &$loadBefore - cursor to load before.
+     * @param ?bool &$hasMore - whether there are more transactions to load.
+     * @return iterable<GiftCardTransaction>
+     */
+    public function getGiftCardTransactionLedger(
+        User $user,
+        int $giftCardGuid,
+        int $limit = Repository::DEFAULT_LIMIT,
+        string &$loadAfter = null,
+        string &$loadBefore = null,
+        ?bool &$hasMore = false
+    ): iterable {
+        return $this->repository->getGiftCardTransactionLedger(
+            giftCardClaimedByUserGuid: $user->getGuid(),
+            giftCardGuid: $giftCardGuid,
+            limit: $limit,
+            loadAfter: $loadAfter,
+            loadBefore: $loadBefore,
+            hasMore: $hasMore,
+        );
+    }
+
+    /**
      * Allows the user to spend against their gift card
+     * @param User $user
+     * @param GiftCardProductIdEnum $productId
+     * @param PaymentDetails $payment
+     * @throws GiftCardInsufficientFundsException
+     * @throws GiftCardNotFoundException
+     * @throws ServerErrorException
      */
     public function spend(
         User $user,
         GiftCardProductIdEnum $productId,
         PaymentDetails $payment,
-    ) {
-        // Collect the balances of available gift cards
+    ): void {
+        $uncollectedPaymentAmount = round($payment->paymentAmountMillis / 1000, 2);
 
-        // Find the oldest gift card, deduct the remainder from $amount
-        $giftCards = iterator_to_array($this->repository->getGiftCards(
-            claimedByGuid: $user->getGuid(),
-            productId: $productId,
-            ordering: GiftCardOrderingEnum::CREATED_ASC
-        ));
-  
-        if (empty($giftCards)) {
-            throw new \Exception("You dont have any valid gift cards");
+        $totalGiftCardBalance = $this->repository->getUserBalanceForProduct((int) $user->getGuid(), $productId);
+
+        if ($totalGiftCardBalance < $uncollectedPaymentAmount) {
+            throw new GiftCardInsufficientFundsException();
         }
 
-        // Psuedo code for testing
-        // Create a transaction and debit
-        $giftCardTransaction = new GiftCardTransaction(
-            paymentGuid: $payment->paymentGuid,
-            giftCardGuid: $giftCards[0]->guid,
-            amount: round($payment->paymentAmountMillis / 1000, 2) * -1,
-            createdAt: time(),
+        $giftCards = $this->repository->getGiftCards(
+            claimedByGuid: $user->getGuid(),
+            productId: $productId
         );
 
-        $this->repository->addGiftCardTransaction($giftCardTransaction);
+        $createdAtTimestamp = time();
+
+        $this->repository->beginTransaction();
+
+        $paymentSuccessful = false;
+        foreach ($giftCards as $giftCard) {
+            if ($giftCard->balance <= 0) {
+                continue;
+            }
+
+            $uncollectedPaymentAmount -= $giftCard->balance;
+            if (
+                !$this->repository->addGiftCardTransaction(
+                    new GiftCardTransaction(
+                        paymentGuid: $payment->paymentGuid,
+                        giftCardGuid: $giftCard->guid,
+                        amount: $uncollectedPaymentAmount < 0 ? ($uncollectedPaymentAmount + $giftCard->balance) * -1 : $giftCard->balance * -1,
+                        createdAt: $createdAtTimestamp
+                    )
+                )
+            ) {
+                $this->repository->rollbackTransaction();
+                throw new ServerErrorException();
+            }
+
+            if ($uncollectedPaymentAmount <= 0) {
+                $paymentSuccessful = true;
+                break;
+            }
+        }
+
+        if (!$paymentSuccessful) {
+            $this->repository->rollbackTransaction();
+            throw new GiftCardInsufficientFundsException();
+        }
+
+        if (!$this->inTransaction) {
+            $this->repository->commitTransaction();
+        }
+    }
+
+    /**
+     * @param int $paymentGuid
+     * @return void
+     * @throws ServerErrorException
+     */
+    public function refund(int $paymentGuid): void
+    {
+        $transactions = $this->repository->getGiftCardTransactionsFromPaymentGuid($paymentGuid);
+
+        $this->logger->info('Refunding gift card transactions', [
+            'paymentGuid' => $paymentGuid,
+            'transactions' => $transactions,
+        ]);
+
+        $refundedAt = time();
+
+        foreach ($transactions as $transaction) {
+            $this->repository->markTransactionAsRefunded(
+                paymentGuid: $paymentGuid,
+                giftCardGuid: $transaction->giftCardGuid,
+                refundedAt: $refundedAt
+            );
+        }
     }
 }

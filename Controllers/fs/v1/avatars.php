@@ -33,9 +33,9 @@ class avatars implements Interfaces\Fs
             $type = $entity->type;
         }
 
-        if (method_exists($entity, 'getGuid')) {
+        if ($entity && method_exists($entity, 'getGuid')) {
             $guid = $entity->getGuid();
-        } elseif (property_exists($entity, 'guid')) {
+        } elseif ($entity && property_exists($entity, 'guid')) {
             $guid = $entity->guid;
         }
 

@@ -27,7 +27,6 @@ class groups implements Interfaces\Api
         $user = Session::getLoggedInUser();
 
         $indexDb = Di::_()->get('Database\Cassandra\Indexes');
-        $relDb = Di::_()->get('Database\Cassandra\Relationships');
 
         if (!isset($pages[0])) {
             $pages[0] = "featured";
@@ -39,43 +38,34 @@ class groups implements Interfaces\Api
         ];
 
         switch ($pages[0]) {
-            case "top":
-            case "featured":
-                $guids = $indexDb->get('group:featured', $opts);
-                end($guids); //get last in array
-                $response['load-next'] =  (string) key($guids);
-                break;
             case "member":
                 Factory::isLoggedIn();
 
-                $manager = new Membership();
-                $guids = $manager->getGroupsByMember([
-                    'user_guid' => $user->guid,
-                    'offset' => (int) $_GET['offset'],
-                ]);
+                $loadNext = 0;
 
-                // if (!($_GET['offset'] || 0)) {
-            //     array_unshift($guids, 100000000000000681); // Help & Support group
-                // } else {
-            //     // remove Help & Support group from subsequent calls
-            //     $guids = array_filter($guids, function ($guid) {
-            //         return $guid != 100000000000000681;
-            //     });
-                // }
+                /** @var Core\Groups\V2\Membership\Manager */
+                $manager = Di::_()->get(Core\Groups\V2\Membership\Manager::class);
+                $groups = iterator_to_array($manager->getGroups(
+                    user: $user,
+                    limit: 12, // frontend client is sending 1 incorrectly
+                    offset: (int) $opts['offset'],
+                    loadNext: $loadNext,
+                ));
 
-                $response['load-next'] = count($guids) + (int) $_GET['offset'];
+                $response['load-next'] = $loadNext;
                 break;
             case "all":
             default:
                 $guids = $indexDb->get('group', $opts);
+
+                if (!$guids) {
+                    return Factory::response([]);
+                }
+        
+                $groups = Entities::get(['guids' => $guids]);
                 break;
         }
 
-        if (!$guids) {
-            return Factory::response([]);
-        }
-
-        $groups = Entities::get(['guids' => $guids]);
 
         $response['groups'] = Factory::exportable($groups);
         $response['entities'] = Factory::exportable($groups);

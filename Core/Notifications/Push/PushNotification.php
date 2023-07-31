@@ -96,9 +96,6 @@ class PushNotification implements PushNotificationInterface
             case NotificationTypes::TYPE_VOTE_UP:
                 $verb = 'voted up';
                 break;
-            case NotificationTypes::TYPE_VOTE_DOWN:
-                $verb = 'voted down';
-                break;
             case NotificationTypes::TYPE_REMIND:
                 $verb = 'reminded';
                 break;
@@ -136,10 +133,10 @@ class PushNotification implements PushNotificationInterface
                 return "Don't forget to review {$from->getName()}'s Supermind offer";
                 break;
                 // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
-            //     $verb = 'missed';
-            //     $pronoun = 'your';
-            //     $noun = 'Supermind Offer';
-            //     break;
+                //     $verb = 'missed';
+                //     $pronoun = 'your';
+                //     $noun = 'Supermind Offer';
+                //     break;
                 //repeat
             case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
                 return 'Minds Token Rewards';
@@ -395,7 +392,6 @@ class PushNotification implements PushNotificationInterface
     {
         switch ($notification->getType()) {
             case NotificationTypes::TYPE_VOTE_UP:
-            case NotificationTypes::TYPE_VOTE_DOWN:
             case NotificationTypes::TYPE_REMIND:
             case NotificationTypes::TYPE_QUOTE:
             case NotificationTypes::TYPE_COMMENT:
