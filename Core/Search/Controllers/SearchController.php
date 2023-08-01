@@ -206,7 +206,7 @@ class SearchController
             }
 
             $entityEdge = match (get_class($entity)) {
-                Activity::class => new ActivityEdge($entity, $cursor),
+                Activity::class => new ActivityEdge($entity, $cursor, false),
                 User::class => new UserEdge($entity, $cursor ?: ''),
                 Group::class => new GroupEdge($entity, $cursor ?: ''),
                 default => null,

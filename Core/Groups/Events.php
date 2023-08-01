@@ -191,6 +191,11 @@ class Events
                 return;
             }
 
+            // If logged out, and not public, then do not continue
+            if (!$user) {
+                return;
+            }
+
             try {
                 $membership = $this->getGroupMembershipManager()->getMembership($group, $user);
                 $e->setResponse($membership->isMember());

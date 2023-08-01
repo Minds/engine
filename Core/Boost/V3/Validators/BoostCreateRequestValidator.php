@@ -4,26 +4,28 @@ declare(strict_types=1);
 namespace Minds\Core\Boost\V3\Validators;
 
 use Exception;
+use Minds\Common\SystemUser;
+use Minds\Core\Boost\V3\Enums\BoostGoal;
+use Minds\Core\Boost\V3\Enums\BoostGoalButtonText;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\Enums\BoostTargetSuitability;
-use Minds\Core\Boost\V3\Enums\BoostGoal;
-use Minds\Core\Boost\V3\Enums\BoostGoalButtonText;
 use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\Stripe\PaymentMethods\Manager as PaymentMethodsManager;
+use Minds\Core\Security\ProhibitedDomains;
 use Minds\Core\Session;
+use Minds\Entities\Activity;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\ValidationError;
 use Minds\Entities\ValidationErrorCollection;
+use Minds\Helpers\Text;
 use Minds\Interfaces\ValidatorInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
-use Minds\Helpers\Text;
-use Minds\Core\Security\ProhibitedDomains;
-use Minds\Core\EntitiesBuilder;
-use Minds\Entities\Activity;
-use Minds\Entities\User;
-use Minds\Entities\EntityInterface;
+use Minds\Core\Security\ACL;
 
 class BoostCreateRequestValidator implements ValidatorInterface
 {
@@ -34,11 +36,15 @@ class BoostCreateRequestValidator implements ValidatorInterface
         private ?MindsConfig $mindsConfig = null,
         private ?ExperimentsManager $experiments = null,
         protected ?EntitiesBuilder $entitiesBuilder = null,
+        private ?ACL $acl = null,
+        private ?SystemUser $systemUser = null
     ) {
         $this->paymentMethodsManager ??= Di::_()->get('Stripe\PaymentMethods\Manager');
         $this->mindsConfig ??= Di::_()->get('Config');
         $this->experiments ??= Di::_()->get('Experiments\Manager');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->acl ??= Di::_()->get('Security\ACL');
+        $this->systemUser ??= new SystemUser();
     }
 
     private function resetErrors(): void
@@ -118,17 +124,19 @@ class BoostCreateRequestValidator implements ValidatorInterface
                 )
             );
         } elseif ((int) $dataToValidate['payment_method'] === BoostPaymentMethod::CASH) {
-            $isPaymentMethodIdValid = $this->paymentMethodsManager->checkPaymentMethodOwnership(
-                $this->getLoggedInUserGuid(),
-                $dataToValidate['payment_method_id']
-            );
-            if (!$isPaymentMethodIdValid) {
-                $this->errors->add(
-                    new ValidationError(
-                        "supermind_request:payment_options:payment_method_id",
-                        "The provided payment method is not associated with your account"
-                    )
+            if ($dataToValidate['payment_method_id'] !== GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+                $isPaymentMethodIdValid = $this->paymentMethodsManager->checkPaymentMethodOwnership(
+                    $this->getLoggedInUserGuid(),
+                    $dataToValidate['payment_method_id']
                 );
+                if (!$isPaymentMethodIdValid) {
+                    $this->errors->add(
+                        new ValidationError(
+                            "supermind_request:payment_options:payment_method_id",
+                            "The provided payment method is not associated with your account"
+                        )
+                    );
+                }
             }
         } elseif ((int) $dataToValidate['payment_method'] === BoostPaymentMethod::ONCHAIN_TOKENS) {
             if (!$dataToValidate['payment_tx_id'] || !str_starts_with($dataToValidate['payment_tx_id'], '0x')) {
@@ -145,6 +153,7 @@ class BoostCreateRequestValidator implements ValidatorInterface
         $this->checkDurationDays($dataToValidate);
         $this->checkGoals($dataToValidate);
         $this->checkTargetPlatform($dataToValidate);
+        $this->checkPublicReadAccess($dataToValidate);
 
         return $this->errors->count() === 0;
     }
@@ -388,6 +397,25 @@ class BoostCreateRequestValidator implements ValidatorInterface
                     )
                 );
             }
+        }
+    }
+
+    /**
+     * Checks that an entity can be read by the system user, meaning that it is publicly accessible.
+     * @param array $dataToValidate - data to validate.
+     * @return void
+     */
+    private function checkPublicReadAccess(array $dataToValidate): void
+    {
+        $boostedEntity = $this->getBoostedEntity($dataToValidate);
+        if (!$this->acl->read($boostedEntity, $this->systemUser)) {
+            $entityType = ucfirst($boostedEntity->getType()) ?? 'Entity';
+            $this->errors->add(
+                new ValidationError(
+                    'entity_guid',
+                    $entityType . " cannot be boosted as it is not publicly accessible"
+                )
+            );
         }
     }
 

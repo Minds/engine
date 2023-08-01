@@ -14,4 +14,14 @@ enum GiftCardProductIdEnum: int
             GiftCardProductIdEnum::BOOST
         ];
     }
+
+    public static function getEnumLabel(self $enum): string
+    {
+        return match ($enum) {
+            GiftCardProductIdEnum::BOOST => "Boost Credits",
+            GiftCardProductIdEnum::PLUS => "Minds Plus Credits",
+            GiftCardProductIdEnum::PRO => "Minds Pro Credits",
+            GiftCardProductIdEnum::SUPERMIND => "Supermind Credits",
+        };
+    }
 }
