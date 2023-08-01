@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Boost\V3\Validators;
 
 use Exception;
+use Minds\Common\SystemUser;
 use Minds\Core\Boost\V3\Enums\BoostGoal;
 use Minds\Core\Boost\V3\Enums\BoostGoalButtonText;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
@@ -24,6 +25,7 @@ use Minds\Entities\ValidationErrorCollection;
 use Minds\Helpers\Text;
 use Minds\Interfaces\ValidatorInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Minds\Core\Security\ACL;
 
 class BoostCreateRequestValidator implements ValidatorInterface
 {
@@ -34,11 +36,15 @@ class BoostCreateRequestValidator implements ValidatorInterface
         private ?MindsConfig $mindsConfig = null,
         private ?ExperimentsManager $experiments = null,
         protected ?EntitiesBuilder $entitiesBuilder = null,
+        private ?ACL $acl = null,
+        private ?SystemUser $systemUser = null
     ) {
         $this->paymentMethodsManager ??= Di::_()->get('Stripe\PaymentMethods\Manager');
         $this->mindsConfig ??= Di::_()->get('Config');
         $this->experiments ??= Di::_()->get('Experiments\Manager');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->acl ??= Di::_()->get('Security\ACL');
+        $this->systemUser ??= new SystemUser();
     }
 
     private function resetErrors(): void
@@ -147,6 +153,7 @@ class BoostCreateRequestValidator implements ValidatorInterface
         $this->checkDurationDays($dataToValidate);
         $this->checkGoals($dataToValidate);
         $this->checkTargetPlatform($dataToValidate);
+        $this->checkPublicReadAccess($dataToValidate);
 
         return $this->errors->count() === 0;
     }
@@ -390,6 +397,25 @@ class BoostCreateRequestValidator implements ValidatorInterface
                     )
                 );
             }
+        }
+    }
+
+    /**
+     * Checks that an entity can be read by the system user, meaning that it is publicly accessible.
+     * @param array $dataToValidate - data to validate.
+     * @return void
+     */
+    private function checkPublicReadAccess(array $dataToValidate): void
+    {
+        $boostedEntity = $this->getBoostedEntity($dataToValidate);
+        if (!$this->acl->read($boostedEntity, $this->systemUser)) {
+            $entityType = ucfirst($boostedEntity->getType()) ?? 'Entity';
+            $this->errors->add(
+                new ValidationError(
+                    'entity_guid',
+                    $entityType . " cannot be boosted as it is not publicly accessible"
+                )
+            );
         }
     }
 
