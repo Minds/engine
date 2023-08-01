@@ -313,6 +313,7 @@ class Manager
         return match ($entity->getType()) {
             'activity' => $targetLocation === BoostTargetLocation::NEWSFEED,
             'user' => $targetLocation === BoostTargetLocation::SIDEBAR,
+            'group' => $targetLocation === BoostTargetLocation::SIDEBAR,
             default => false
         };
     }

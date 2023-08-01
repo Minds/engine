@@ -130,6 +130,8 @@ class ActionEvent implements EventInterface
     public const ACTION_AFFILIATE_EARNINGS_DEPOSITED = "affiliate_earnings_deposited";
     public const ACTION_REFERRER_AFFILIATE_EARNINGS_DEPOSITED = "referrer_affiliate_earnings_deposited";
 
+    public const ACTION_GIFT_CARD_RECIPIENT_NOTIFICATION = "gift_card_recipient_notification";
+
     /** @var string */
     protected $action;
 
@@ -241,6 +243,12 @@ class ActionEvent implements EventInterface
                     'amount_cents',
                     'amount_usd',
                     'amount_tokens'
+                ];
+                break;
+            case self::ACTION_GIFT_CARD_RECIPIENT_NOTIFICATION:
+                $allowedKeys = [
+                    'gift_card_guid',
+                    'sender_guid',
                 ];
                 break;
             default:

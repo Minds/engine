@@ -19,6 +19,7 @@ use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Core\Log\Logger;
+use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Wire\Wire;
 use Minds\Entities\Group;
@@ -37,18 +38,21 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
     /** @var Core\Config */
     protected $config;
 
+
+    private readonly EntitiesBuilder $entitiesBuilder;
+    private ?GiftCardsManager $giftCardsManager = null;
+
     public function __construct(
         Manager $manager = null,
         Logger $logger = null,
         Config $config = null,
-        private ?EntitiesBuilder $entitiesBuilder = null,
         private ?Resolver $entitiesResolver = null
     ) {
         $this->manager = $manager ?? Di::_()->get('Notifications\Manager');
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->config = $config ?? Di::_()->get('Config');
-        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->entitiesResolver ??= Di::_()->get(Resolver::class);
+        $this->entitiesBuilder = Di::_()->get("EntitiesBuilder");
     }
 
     /**
@@ -322,6 +326,25 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 $notification->setData($event->getActionData());
                 $notifications[] = $notification;
                 break;
+            case ActionEvent::ACTION_GIFT_CARD_RECIPIENT_NOTIFICATION:
+                /**
+                 * @type User $recipientUser
+                 */
+                $recipientUser = $entity;
+                $notification->setToGuid($recipientUser->getGuid());
+                $notification->setFromGuid(SystemUser::GUID);
+                $notification->setType(NotificationTypes::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED);
+
+                $sender = $this->entitiesBuilder->single($event->getActionData()['sender_guid']);
+
+                $giftCard = $this->getGiftCardsManager()->getGiftCard((int) $event->getActionData()['gift_card_guid']);
+
+                $notification->setData([
+                    'sender' => $sender->export(),
+                    'gift_card' => get_object_vars($giftCard),
+                ]);
+                $notifications[] = $notification;
+                break;
                 // case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
                 //     $notification->setToGuid($entity->getSenderGuid());
                 //     $notification->setFromGuid($entity->getReceiverGuid());
@@ -392,5 +415,10 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
         }
 
         return $notifications;
+    }
+
+    private function getGiftCardsManager(): GiftCardsManager
+    {
+        return $this->giftCardsManager ??= Di::_()->get(GiftCardsManager::class);
     }
 }
