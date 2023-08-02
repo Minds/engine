@@ -7,7 +7,6 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Core\Guid;
 use Minds\Core\Luid;
 use Minds\Core\Security\ACL;
-use Minds\Core\Security\SignedUri;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\RepositoryEntity;
 use Minds\Entities\User;

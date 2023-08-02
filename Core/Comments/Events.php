@@ -14,13 +14,11 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Entities\Factory as EntitiesFactory;
-use Minds\Core\Votes\Vote;
 use Minds\Core\Sockets;
 use Minds\Core\Session;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\SignedUri;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
-use Minds\Entities\EntityInterface;
 use Minds\Entities\Image;
 use Minds\Entities\Video;
 
@@ -202,11 +200,19 @@ class Events
         });
     }
 
+    /**
+     * Get EntitiesBuilder from DI.
+     * @return EntitiesBuilder - EntitiesBuilder instance from DI.
+     */
     public function getEntitiesBuilder(): EntitiesBuilder
     {
         return Di::_()->get('EntitiesBuilder');
     }
 
+    /**
+     * Get Config from DI.
+     * @return Config - Config instance from DI.
+     */
     public function getConfig(): Config
     {
         return Di::_()->get('Config');
