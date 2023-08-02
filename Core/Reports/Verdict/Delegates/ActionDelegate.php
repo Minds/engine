@@ -171,13 +171,11 @@ class ActionDelegate
                 }
                 break;
             case 10: // Intellectual Property Violation.
-                if ($entity->type === 'user') {
-                    $this->applyBan($report);
-                } else {
+                if ($entity->type !== 'user') {
                     $this->actions->setDeletedFlag($entity, true);
                     $this->saveAction->setEntity($entity)->save();
-                    $this->applyStrike($report);
                 }
+                $this->applyStrike($report);
                 break;
                 //case 12: // Incorrect use of hashtags
                 // De-index post
