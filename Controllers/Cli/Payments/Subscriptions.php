@@ -4,16 +4,24 @@ namespace Minds\Controllers\Cli\Payments;
 
 use Minds\Cli;
 use Minds\Core\Di\Di;
-use Minds\Core\Events\Dispatcher;
+use Minds\Core\Log\Logger;
 use Minds\Core\Payments\Subscriptions\Manager;
 use Minds\Core\Payments\Subscriptions\Queue;
+use Minds\Core\Payments\Subscriptions\Subscription;
 use Minds\Core\Security\ACL;
-use Minds\Helpers\Cql;
 use Minds\Interfaces;
-use Minds\Core\Util\BigNumber;
 
 class Subscriptions extends Cli\Controller implements Interfaces\CliControllerInterface
 {
+    public function __construct(
+        private ?Logger           $logger = null
+    ) {
+        $this->logger ??= Di::_()->get('Logger');
+
+        Di::_()->get('Config')
+            ->set('min_log_level', 'INFO');
+    }
+
     public function help($command = null)
     {
         $this->out('Syntax usage: payments subscriptions [run]');
@@ -48,6 +56,9 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
 
         $this->out($this->getOpt('method') ?: 'tokens');
 
+        /**
+         * @var Subscription $subscription
+         */
         foreach ($subscriptions as $subscription) {
             if ($subscription->getInterval() === 'once') {
                 error_log('Ooops, this should be monthly not set to once');
@@ -74,15 +85,6 @@ class Subscriptions extends Cli\Controller implements Interfaces\CliControllerIn
             $this->out("\t$billing | $user_guid");
 
             $canCharge = true;
-            foreach ($this->getPreviousPayments($user_guid) as $charge) {
-                $date = date('c', $charge->created);
-                $this->out("\t\t $charge->id on $date $charge->created");
-
-                if ($charge->created > strtotime('10 days ago')) {
-                    //$canCharge = false;
-                    //continue;
-                }
-            }
 
             if (!$this->getOpt('dry-run') && $canCharge) {
                 $this->out("\t CHARGED");
