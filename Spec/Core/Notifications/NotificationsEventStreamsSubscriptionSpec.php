@@ -62,7 +62,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $this->entitiesResolver = $entitiesResolver;
         $this->groupMembershipManager = $groupMembershipManager;
 
-        $this->beConstructedWith($manager, $logger, $config, $entitiesBuilder, $entitiesResolver);
+        $this->beConstructedWith($manager, $logger, $config, $entitiesResolver);
 
         Di::_()->bind(GroupMembershipManager::class, function () use ($groupMembershipManager) {
             return $groupMembershipManager->getWrappedObject();
