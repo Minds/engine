@@ -941,3 +941,5 @@ $CONFIG->set('strapi', [
 $CONFIG->set('uniswap', [
     'url' => 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2',
 ]);
+
+$CONFIG->set('livepeer_api_key', '');
