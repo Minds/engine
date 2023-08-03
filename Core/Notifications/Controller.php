@@ -151,6 +151,14 @@ class Controller
                 return false;
             }
 
+            if (
+                $notification['type'] === NotificationTypes::TYPE_GROUP_QUEUE_RECEIVED &&
+                isset($_SERVER['HTTP_APP_VERSION']) &&
+                !$experimentsManager->isOn('mob-5097-group-queue-received-notification')
+            ) {
+                return false;
+            }
+
             if (!isset($notification['entity'])) {
                 return false; // TODO: Delete this notification as the entity is invalid
             }
