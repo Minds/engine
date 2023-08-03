@@ -56,4 +56,29 @@ class Url
         $fragment = isset($parsed_url['fragment']) ? '#' . $parsed_url['fragment'] : '';
         return "$scheme$user$pass$host$port$path$query$fragment";
     }
+
+    /**
+     * Strip a given query parameter from a URL by key.
+     * @param string $url - url to strip query parameters from.
+     * @param string $key - key of parameter to strip.
+     * @return string - stripped url.
+     */
+    public static function stripQueryParameter(string $url, string $key): string
+    {
+        $queryParamStrippedUrl = explode('?', $url)[0];
+
+        $parsedUrl = parse_url($url);
+
+        if (!isset($parsedUrl['query'])) {
+            return $queryParamStrippedUrl;
+        }
+
+        $queryParameters = [];
+        parse_str($parsedUrl['query'], $queryParameters);
+        unset($queryParameters[$key]);
+
+        return empty(http_build_query($queryParameters)) ?
+            $queryParamStrippedUrl :
+            $queryParamStrippedUrl .'?'. http_build_query($queryParameters);
+    }
 }
