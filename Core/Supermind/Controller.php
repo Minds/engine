@@ -157,7 +157,7 @@ class Controller
         $response = $this->manager->getReceivedRequests(
             offset: (int) $offset,
             limit: (int) $limit,
-            status: (int) $status
+            status: SupermindRequestStatus::from($status)
         );
         return new JsonResponse(Exportable::_($response));
     }

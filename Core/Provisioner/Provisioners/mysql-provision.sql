@@ -365,3 +365,8 @@ CREATE TABLE IF NOT EXISTS minds_onboarding_v5_step_progress (
 ALTER TABLE user_configurations
     ADD dismissals json NULL DEFAULT NULL
     AFTER plus_demonetized_ts;
+
+
+UPDATE superminds
+SET status = 7
+WHERE status = 1 AND created_timestamp < TIMESTAMPADD(DAY, -7, NOW());

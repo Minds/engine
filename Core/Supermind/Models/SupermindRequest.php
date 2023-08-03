@@ -68,7 +68,7 @@ class SupermindRequest implements ExportableInterface, EntityInterface
     private ?string $replyActivityGuid = null;
     private string $senderGuid;
     private string $receiverGuid;
-    private int $status = SupermindRequestStatus::PENDING;
+    private SupermindRequestStatus $status = SupermindRequestStatus::PENDING;
     private float $paymentAmount;
     private int $paymentMethod = SupermindRequestPaymentMethod::OFFCHAIN_TOKEN;
     private ?string $paymentTxID = null;
@@ -171,6 +171,13 @@ class SupermindRequest implements ExportableInterface, EntityInterface
         return null;
     }
 
+    public function setStatus(int $status): self
+    {
+        $this->status = SupermindRequestStatus::from($status);
+
+        return $this;
+    }
+
     public function getAccessId(): string
     {
         return (string) Access::PUBLIC;
@@ -188,7 +195,7 @@ class SupermindRequest implements ExportableInterface, EntityInterface
             "reply_activity_guid" => $this->replyActivityGuid,
             "sender_guid" => $this->senderGuid,
             "receiver_guid" => $this->receiverGuid,
-            "status" => $this->status,
+            "status" => $this->status->value,
             "payment_amount" => $this->paymentAmount,
             "payment_method" => $this->paymentMethod,
             "payment_txid" => $this->paymentTxID,
