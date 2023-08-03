@@ -128,6 +128,11 @@ class EmailDelegateSpec extends ObjectBehavior
         $this->getBanReasons("8")
             ->shouldReturn("Spam");
 
+        $this->getBanReasons("10")
+            ->shouldReturn("Intellectual property violation");
+
+        // internal reason for strike accumulation.
+        // 10 is referring to the actual reason.
         $this->getBanReasons("14.10")
             ->shouldReturn("Intellectual property violation");
 
