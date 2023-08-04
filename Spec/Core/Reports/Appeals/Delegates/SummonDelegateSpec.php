@@ -39,7 +39,10 @@ class SummonDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->queue);
 
-        $this->queue->send(Argument::any())
+        $this->queue->send([
+            'appeal' => serialize($appeal),
+            'cohort' => null,
+        ])
             ->shouldBeCalled();
 
         $this
