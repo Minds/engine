@@ -65,17 +65,14 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $this->config = $config;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->entitiesResolver = $entitiesResolver;
+        $this->entitiesBuilder = $entitiesBuilder;
         $this->groupMembershipManager = $groupMembershipManager;
         $this->redisMock = $redisMock;
 
-        $this->beConstructedWith($manager, $logger, $config, $entitiesResolver);
+        $this->beConstructedWith($manager, $logger, $config, $entitiesResolver, $entitiesBuilder);
 
         Di::_()->bind(GroupMembershipManager::class, function () use ($groupMembershipManager) {
             return $groupMembershipManager->getWrappedObject();
-        });
-
-        Di::_()->bind('EntitiesBuilder', function () use ($entitiesBuilder) {
-            return $entitiesBuilder->getWrappedObject();
         });
 
         // Used within socket events.
@@ -1019,8 +1016,6 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
             ->willReturn([
                 'quote_urn' => $quoteUrn
             ]);
-
-        //
 
         $ownerGuid = '456';
         $activity->getOwnerGuid()

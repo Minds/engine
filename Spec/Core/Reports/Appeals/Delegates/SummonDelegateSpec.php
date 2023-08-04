@@ -26,4 +26,24 @@ class SummonDelegateSpec extends ObjectBehavior
     {
         $this->shouldHaveType(SummonDelegate::class);
     }
+
+    public function it_should_queue_on_appeal(Report $report)
+    {
+        $report = new Report();
+        $report->setReasonCode(2);
+
+        $appeal = new Appeal();
+        $appeal->setReport($report);
+
+        $this->queue->setQueue('ReportsAppealSummon')
+            ->shouldBeCalled()
+            ->willReturn($this->queue);
+
+        $this->queue->send(Argument::any())
+            ->shouldBeCalled();
+
+        $this
+            ->shouldNotThrow()
+            ->duringOnAppeal($appeal);
+    }
 }

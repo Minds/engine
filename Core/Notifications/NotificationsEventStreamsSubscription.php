@@ -39,21 +39,20 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
     /** @var Core\Config */
     protected $config;
 
-
-    private readonly EntitiesBuilder $entitiesBuilder;
     private ?GiftCardsManager $giftCardsManager = null;
 
     public function __construct(
         Manager $manager = null,
         Logger $logger = null,
         Config $config = null,
-        private ?Resolver $entitiesResolver = null
+        private ?Resolver $entitiesResolver = null,
+        private ?EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->manager = $manager ?? Di::_()->get('Notifications\Manager');
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->config = $config ?? Di::_()->get('Config');
         $this->entitiesResolver ??= Di::_()->get(Resolver::class);
-        $this->entitiesBuilder = Di::_()->get("EntitiesBuilder");
+        $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
     }
 
     /**
