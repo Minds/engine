@@ -179,7 +179,8 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
      * @example usage: php cli.php Notification emitCountUpdateToSocket --count=10 --userGuid=
      * @return void
      */
-    public function emitCountUpdateToSocket(): void {
+    public function emitCountUpdateToSocket(): void
+    {
         $userGuid = $this->getOpt('userGuid') ?? null;
         $count = $this->getOpt('count') ?? 1;
 

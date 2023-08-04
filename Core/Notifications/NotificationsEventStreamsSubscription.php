@@ -424,7 +424,8 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
      * @param Notification $notification - new notification.
      * @return void
      */
-    private function emitToSockets(Notification $notification): void {
+    private function emitToSockets(Notification $notification): void
+    {
         try {
             $toUser = $this->entitiesBuilder->single($notification->getToGuid());
 
