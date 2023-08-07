@@ -18,7 +18,6 @@ use Stripe\Exception\ApiErrorException;
  */
 class ExpireSupermindRequests extends \Minds\Cli\Controller implements \Minds\Interfaces\CliControllerInterface
 {
-
     public function __construct(
         private ?Logger $logger = null
     ) {

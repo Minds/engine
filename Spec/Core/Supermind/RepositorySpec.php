@@ -505,7 +505,7 @@ class RepositorySpec extends ObjectBehavior
         PDOStatement $pdoStatement,
     ) {
         $senderGuid = '567';
-        $status = 3;
+        $status = SupermindRequestStatus::from(3);
         $resultCount = 3;
 
         $pdoStatement->execute()
@@ -529,7 +529,7 @@ class RepositorySpec extends ObjectBehavior
 
         $this->mysqlHandler->bindValuesToPreparedStatement($pdoStatement, Argument::that(function ($arg) use ($senderGuid, $status) {
             return $arg['sender_guid'] === $senderGuid &&
-                $arg['status'] === $status;
+                $arg['status'] === $status->value;
         }))->shouldBeCalled();
 
         $this->countSentRequests($senderGuid, $status)->shouldBe($resultCount);
@@ -610,7 +610,7 @@ class RepositorySpec extends ObjectBehavior
             return $arg['guid'] === $guid &&
                 $arg['sender_guid'] === $senderGuid &&
                 $arg['receiver_guid'] === $receiverGuid &&
-                $arg['status'] === SupermindRequestStatus::PENDING &&
+                $arg['status'] === SupermindRequestStatus::PENDING->value &&
                 $arg['payment_amount'] === $paymentAmount &&
                 $arg['payment_method']=== $paymentMethod &&
                 $arg['payment_reference'] === $paymentReference &&
@@ -733,7 +733,7 @@ class RepositorySpec extends ObjectBehavior
             return $arg['guid'] === $supermindRequestId &&
                 $arg['activity_guid'] === (int) $activityGuid &&
                 is_string($arg['update_timestamp']) &&
-                $arg['status'] === SupermindRequestStatus::CREATED;
+                $arg['status'] === SupermindRequestStatus::CREATED->value;
         }))->shouldBeCalled();
 
         $pdoStatement->execute()
@@ -768,7 +768,7 @@ class RepositorySpec extends ObjectBehavior
             return $arg['guid'] === $supermindRequestId &&
                 $arg['activity_guid'] === (int) $activityGuid &&
                 is_string($arg['update_timestamp']) &&
-                $arg['status'] === SupermindRequestStatus::CREATED;
+                $arg['status'] === SupermindRequestStatus::CREATED->value;
         }))->shouldBeCalled();
 
         $pdoStatement->execute()
@@ -938,7 +938,7 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn($pdoStatement);
 
         $this->mysqlHandler->bindValuesToPreparedStatement($pdoStatement, Argument::that(function ($arg) {
-            return $arg['status'] === SupermindRequestStatus::CREATED &&
+            return $arg['status'] === SupermindRequestStatus::CREATED->value &&
                 is_string($arg['min_timestamp']) &&
                 is_string($arg['max_timestamp']);
         }))->shouldBeCalled();

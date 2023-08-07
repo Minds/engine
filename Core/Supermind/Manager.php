@@ -171,7 +171,7 @@ class Manager
             throw new SupermindNotFoundException();
         }
 
-        if ($supermindRequest->getStatus() !== SupermindRequestStatus::CREATED) {
+        if ($supermindRequest->getStatus() !== SupermindRequestStatus::CREATED->value) {
             throw new SupermindRequestIncorrectStatusException();
         }
 
@@ -268,7 +268,7 @@ class Manager
             throw new SupermindNotFoundException();
         }
 
-        if ($supermindRequest->getStatus() !== SupermindRequestStatus::CREATED) {
+        if ($supermindRequest->getStatus() !== SupermindRequestStatus::CREATED->value) {
             throw new SupermindRequestIncorrectStatusException();
         }
 
@@ -309,7 +309,7 @@ class Manager
             throw new SupermindNotFoundException();
         }
 
-        if ($supermindRequest->getStatus() !== SupermindRequestStatus::CREATED) {
+        if ($supermindRequest->getStatus() !== SupermindRequestStatus::CREATED->value) {
             throw new SupermindRequestIncorrectStatusException();
         }
 

@@ -22,8 +22,6 @@ use Minds\Traits\MagicAttributes;
  * @method self setSenderGuid(string $senderGuid)
  * @method string getReceiverGuid()
  * @method self setReceiverGuid(string $receiverGuid)
- * @method int getStatus()
- * @method self setStatus(int $status)
  * @method float getPaymentAmount()
  * @method self setPaymentAmount(float $paymentAmount)
  * @method int getPaymentMethod()
@@ -178,6 +176,11 @@ class SupermindRequest implements ExportableInterface, EntityInterface
         return $this;
     }
 
+    public function getStatus(): int
+    {
+        return $this->status->value;
+    }
+
     public function getAccessId(): string
     {
         return (string) Access::PUBLIC;
@@ -195,7 +198,7 @@ class SupermindRequest implements ExportableInterface, EntityInterface
             "reply_activity_guid" => $this->replyActivityGuid,
             "sender_guid" => $this->senderGuid,
             "receiver_guid" => $this->receiverGuid,
-            "status" => $this->status->value,
+            "status" => $this->getStatus(),
             "payment_amount" => $this->paymentAmount,
             "payment_method" => $this->paymentMethod,
             "payment_txid" => $this->paymentTxID,

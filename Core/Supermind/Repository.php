@@ -75,7 +75,7 @@ class Repository extends AbstractRepository
     {
         $values = [
             'receiver_guid' => $receiverGuid,
-            'excludedStatus' => SupermindRequestStatus::PENDING,
+            'excludedStatus' => SupermindRequestStatus::PENDING->value,
             'offset' => $offset,
             'limit' => $limit
         ];
@@ -191,7 +191,7 @@ class Repository extends AbstractRepository
     {
         $values = [
             'sender_guid' => $senderGuid,
-            'excludedStatus' => SupermindRequestStatus::PENDING,
+            'excludedStatus' => SupermindRequestStatus::PENDING->value,
             'offset' => $offset,
             'limit' => $limit
         ];
@@ -230,7 +230,7 @@ class Repository extends AbstractRepository
     {
         $statement = $this->buildCountSentRequestsQuery(
             senderGuid: $senderGuid,
-            status: $status->value
+            status: $status->value ?? null
         );
         $statement->execute();
 
@@ -293,7 +293,7 @@ class Repository extends AbstractRepository
             "guid" => $request->getGuid(),
             "sender_guid" => $request->getSenderGuid(),
             "receiver_guid" => $request->getReceiverGuid(),
-            "status" => SupermindRequestStatus::PENDING,
+            "status" => SupermindRequestStatus::PENDING->value,
             "payment_amount" => $request->getPaymentAmount(),
             "payment_method" => $request->getPaymentMethod(),
             "payment_reference" => $request->getPaymentTxID(),
@@ -372,7 +372,7 @@ class Repository extends AbstractRepository
         $statement = "UPDATE superminds SET activity_guid = :activity_guid, status = :status, updated_timestamp = :update_timestamp WHERE guid = :guid";
         $values = [
             'activity_guid' => $activityGuid,
-            'status' => SupermindRequestStatus::CREATED,
+            'status' => SupermindRequestStatus::CREATED->value,
             'update_timestamp' => date('c', time()),
             'guid' => $supermindRequestId
         ];
@@ -469,7 +469,7 @@ class Repository extends AbstractRepository
 
         $query = "SELECT * FROM superminds WHERE status = :status AND  created_timestamp > :min_timestamp AND created_timestamp < :max_timestamp ORDER BY created_timestamp DESC";
         $values = [
-            'status' => SupermindRequestStatus::CREATED,
+            'status' => SupermindRequestStatus::CREATED->value,
             'min_timestamp' => date('c', $gt),
             'max_timestamp' => date('c', $lt),
         ];
