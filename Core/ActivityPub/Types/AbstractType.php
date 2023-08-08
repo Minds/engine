@@ -1,0 +1,89 @@
+<?php
+namespace Minds\Core\ActivityPub\Types;
+
+use Minds\Core\ActivityPub\Attributes\ExportProperty;
+use Minds\Entities\ExportableInterface;
+use Minds\Entities\User;
+use ReflectionClass;
+use Twilio\Rest\Preview\BulkExports\ExportInstance;
+
+abstract class AbstractType implements ExportableInterface
+{
+    #[ExportProperty]
+    protected string $type;
+
+    protected array $contexts = [
+        'https://www.w3.org/ns/activitystreams',
+    ];
+
+    public function __construct(array $json = [])
+    {
+        foreach ($json as $k => $v) {
+            if (property_exists($this, $k)) {
+                $this->$k = $v;
+            }
+        }
+    }
+
+    public function getContextExport(): array
+    {
+        return [
+            '@context' => count($this->contexts) === 1 ? $this->contexts[0] : $this->contexts
+        ];
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function export(array $extras = []): array
+    {
+        $export = [ ];
+
+        $reflection = new ReflectionClass($this);
+        $properties = $reflection->getProperties();
+
+        foreach ($properties as $property) {
+            $attributes = $property->getAttributes();
+
+            foreach ($attributes as $attribute) {
+                if ($attribute->getName() === ExportProperty::class && isset($this->{$property->getName()})) {
+
+                    $value = $this->{$property->getName()};
+
+                    if ($value instanceof ExportableInterface) {
+                        $value = $value->export();
+                    }
+
+                    if (is_array($value)) {
+                        foreach ($value as $k => $v) {
+                            if ($v instanceof ExportableInterface) {
+                                $value[$k] = $v->export();
+                            }
+                        }
+                    }
+
+                    $export[$property->getName()] = $value;
+                }
+            }
+        }
+
+        return $export;
+    }
+
+    protected function getBaseUrl(User $user = null): string
+    {
+        $baseUrl = 'http://localhost:8080/api/activitypub/';
+
+        if ($user) {
+            $baseUrl .= 'users/' . $user->getGuid() . '/';
+        }
+
+        return $baseUrl;
+    }
+
+}

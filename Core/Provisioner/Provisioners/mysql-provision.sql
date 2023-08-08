@@ -365,3 +365,26 @@ CREATE TABLE IF NOT EXISTS minds_onboarding_v5_step_progress (
 ALTER TABLE user_configurations
     ADD dismissals json NULL DEFAULT NULL
     AFTER plus_demonetized_ts;
+
+
+CREATE TABLE IF NOT EXISTS minds_activitypub_uris (
+    uri varchar(256) NOT NULL PRIMARY KEY,
+    domain varchar(256) NOT NULL,
+    guid bigint NOT NULL UNIQUE
+);
+
+
+CREATE TABLE IF NOT EXISTS minds_activitypub_actors (
+    uri varchar(256) NOT NULL PRIMARY KEY,
+    `type` text NOT NULL,
+    inbox text NOT NULL,
+    outbox text NOT NULL,
+    shared_inbox text DEFAULT NULL,
+    url text DEFAULT NULL,
+    FOREIGN KEY (uri) REFERENCES minds_activitypub_uris(uri)
+);
+
+CREATE TABLE IF NOT EXISTS minds_activitypub_keys (
+    user_guid bigint NOT NULL PRIMARY KEY,
+    private_key text NOT NULL 
+);

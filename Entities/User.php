@@ -149,6 +149,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface
         $this->attributes['dismissed_widgets'] = [];
         $this->attributes['liquidity_spot_opt_out'] = 0;
         $this->attributes['supermind_settings'] = [];
+        $this->attributes['source'] = 'local';
 
         parent::initializeAttributes();
     }
