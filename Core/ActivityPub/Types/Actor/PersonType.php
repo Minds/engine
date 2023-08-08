@@ -57,7 +57,7 @@ class PersonType extends AbstractActorType
         $person->preferredUsername = $user->getUsername();
 
         // Object
-        $person->url = 'http://localhost:8080/' . $user->getUsername();
+        $person->url = Di::_()->get('Config')->get('site_url') . $user->getUsername();
         $person->summary = $user->briefdescription;
         $person->icon = [
             'type' => 'Image',
