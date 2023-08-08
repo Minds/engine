@@ -74,7 +74,7 @@ class ProcessActivityService
 
                     $entity = new Activity();
 
-                    $entity->setMessage($this->activity->object->content);
+                    $entity->setMessage(strip_tags($this->activity->object->content));
                     $entity->setAccessId(Access::PUBLIC);
                     $entity->setSource('activitypub');
                 
@@ -111,7 +111,6 @@ class ProcessActivityService
                 if ($subscriptionsManager->isSubscribed($subject)) {
                     return; // Already subscribed
                 }
-
 
                 $subscriptionsManager->subscribe($subject);
 
