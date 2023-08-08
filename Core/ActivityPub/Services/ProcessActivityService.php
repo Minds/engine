@@ -106,7 +106,14 @@ class ProcessActivityService
                 }
 
                 $subscriptionsManager = new \Minds\Core\Subscriptions\Manager();
-                $subscriptionsManager->setSubscriber($actor)->subscribe($subject);
+                $subscriptionsManager->setSubscriber($actor);
+                
+                if ($subscriptionsManager->isSubscribed($subject)) {
+                    return; // Already subscribed
+                }
+
+
+                $subscriptionsManager->subscribe($subject);
 
                 break;
             case UndoType::class:
