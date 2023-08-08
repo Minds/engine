@@ -16,6 +16,7 @@ use Minds\Core\Supermind\Exceptions\SupermindRequestIncorrectStatusException;
 use Minds\Core\Supermind\Exceptions\SupermindUnauthorizedSenderException;
 use Minds\Core\Supermind\Validators\SupermindCountRequestsValidator;
 use Minds\Core\Supermind\Validators\SupermindGetRequestsValidator;
+use Minds\Core\Supermind\Validators\SupermindLiveReplyValidator;
 use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Stripe\Exception\ApiErrorException;
@@ -355,6 +356,53 @@ class Controller
                 'line' => $e->getLine(),
             ]);
         }
+        return new JsonResponse([]);
+    }
+
+    /**
+     * Accept a live Supermind request.
+     * @param ServerRequestInterface $request - request to accept.
+     * @return JsonResponse - empty JSON response on success.
+     * @throws ApiErrorException
+     * @throws SupermindRequestExpiredException
+     * @throws SupermindRequestIncorrectStatusException
+     * @throws LockFailedException
+     * @throws SupermindNotFoundException
+     * @throws SupermindUnauthorizedSenderException
+     */
+    //    #[OA\Post(
+    //        path: '/api/v3/supermind/:guid/accept-live',
+    //        parameters: [
+    //            new OA\Parameter(
+    //                name: "guid",
+    //                in: "path",
+    //                required: true,
+    //                schema: new OA\Schema(type: 'integer')
+    //            )
+    //        ],
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 400, description: "Bad Request"),
+    //            new OA\Response(response: 401, description: "Unauthorized"),
+    //            new OA\Response(response: 403, description: "Forbidden"),
+    //            new OA\Response(response: 404, description: "Not found")
+    //        ]
+    //    )]
+    public function acceptLiveSupermindRequest(ServerRequestInterface $request): JsonResponse
+    {
+        $requestValidator = new SupermindLiveReplyValidator();
+        if (!$requestValidator->validate($request)) {
+            throw new UserErrorException(
+                message: "An error was encountered whilst validating the request",
+                code: 400,
+                errors: $requestValidator->getErrors()
+            );
+        }
+
+        $this->manager->acceptSupermindRequest(
+            $request->getAttribute("parameters")["guid"]
+        );
+
         return new JsonResponse([]);
     }
 }
