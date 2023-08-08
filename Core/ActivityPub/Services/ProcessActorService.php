@@ -22,8 +22,7 @@ class ProcessActorService
         protected Manager $manager,
         protected ACL $acl,
         protected Save $saveAction,
-    )
-    {
+    ) {
         
     }
 
@@ -38,7 +37,7 @@ class ProcessActorService
      * Builds the actor from just a username
      */
     public function withUsername(string $username): ProcessActorService
-    {        
+    {
         preg_match(Regex::EMAIL, $username, $matches);
 
         if (count($matches)) {
@@ -75,7 +74,7 @@ class ProcessActorService
                 $email = 'activitypub-imported@minds.com';
                 $password = openssl_random_pseudo_bytes(128);
 
-                // Check for username collisions. 
+                // Check for username collisions.
                 if (check_user_index_to_guid(strtolower($username))) {
                     // Do not continue if there is one (at least for now)
                     return null;
@@ -96,7 +95,8 @@ class ProcessActorService
                 return $user;
                 break;
         }
-        
+
+        return null;
     }
 
 }

@@ -11,8 +11,7 @@ class Client
     public function __construct(
         protected  GuzzleHttp\Client $httpClient,
         protected Config $config
-    )
-    {
+    ) {
     }
     
     /**

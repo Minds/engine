@@ -47,7 +47,7 @@ class channel implements Interfaces\Api
          * and the current user is logged and trusted, try to fetch the profile
          */
         if (
-            !$user->username 
+            !$user->username
             && Core\Session::getLoggedinUser()
             && Core\Session::getLoggedinUser()->isTrusted()
         ) {
@@ -57,7 +57,8 @@ class channel implements Interfaces\Api
                 $user = $processActorService
                     ->withUsername($pages[0])
                     ->process();
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+            }
         }
 
         $isAdmin = Core\Session::isAdmin();

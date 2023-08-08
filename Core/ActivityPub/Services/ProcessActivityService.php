@@ -24,8 +24,7 @@ class ProcessActivityService
         protected ProcessActorService $processActorService,
         protected ACL $acl,
         protected ActivityManager $activityManager,
-    )
-    {
+    ) {
         
     }
 
@@ -48,7 +47,7 @@ class ProcessActivityService
                  */
                 if ($this->activity->object instanceof NoteType) {
 
-                    // If activity has been previously imported, then 
+                    // If activity has been previously imported, then
                     $existingActivity = $this->manager->getEntityFromUri($this->activity->object->id);
                     if ($existingActivity) {
                         // No need to import as we already have it

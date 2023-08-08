@@ -22,8 +22,7 @@ class Manager
         protected Config $config,
         protected Client $client,
         protected Webfinger\Manager $webfingerManager,
-    )
-    {
+    ) {
         
     }
 
@@ -116,7 +115,7 @@ class Manager
 
         return null;
 
-        // // Fetch the remote object 
+        // // Fetch the remote object
         // // Does the uri start with http?
         // if (!strpos($objectUri, 'http', 0) === 0) {
         //     throw new UserErrorException("Minds only support IDs that are resolvable http(s) urls");
@@ -143,7 +142,7 @@ class Manager
     {
         if (!$this->isLocalUri($objectUri)) {
             throw new ServerErrorException("Non-local uri passed through to the getEntityFromLocalUri function");
-        }   
+        }
 
         $pathUri = str_replace($this->getBaseUrl(), '', $objectUri);
 

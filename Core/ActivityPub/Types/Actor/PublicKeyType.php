@@ -9,14 +9,11 @@ class PublicKeyType extends AbstractType
     public function __construct(
         #[ExportProperty]
         public string $id,
-
         #[ExportProperty]
         public string $owner,
-
         #[ExportProperty]
         public string $publicKeyPem,
-    )
-    {
+    ) {
 
     }
 

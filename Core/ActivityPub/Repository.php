@@ -9,7 +9,6 @@ use Selective\Database\RawExp;
 
 class Repository extends AbstractRepository
 {
-
     public function getGuidFromUri(string $uri): ?int
     {
         $query = $this->mysqlClientReaderHandler
@@ -39,7 +38,7 @@ class Repository extends AbstractRepository
     }
 
     public function addUri(
-        string $uri, 
+        string $uri,
         string $domain,
         int $guid
     ) {
@@ -125,7 +124,7 @@ class Repository extends AbstractRepository
      * Saves private key for local user
      */
     public function addPrivateKey(
-        int $userGuid, 
+        int $userGuid,
         string $privateKey
     ): bool {
         $query = $this->mysqlClientWriterHandler

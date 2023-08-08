@@ -17,4 +17,12 @@ class ActivityType extends ObjectType
 
     #[ExportProperty]
     public ObjectType $object;
+
+    public function export(array $extras = []): array
+    {
+        $exported = parent::export($extras);
+        $exported['actor'] = $this->actor->id;
+        return $exported;
+    }
+
 }

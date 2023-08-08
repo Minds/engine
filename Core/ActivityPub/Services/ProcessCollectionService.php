@@ -17,8 +17,7 @@ class ProcessCollectionService
 
     public function __construct(
         protected ProcessActivityService $processActivityService,
-    )
-    {
+    ) {
         
     }
 

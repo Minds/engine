@@ -10,7 +10,7 @@ class JsonLdHelper
      */
     public static function equalsOrIncludes(string|array $haystack, string $needle): bool
     {
-        return is_array($haystack) ? in_array($needle, $haystack) : $haystack === $needle;
+        return is_array($haystack) ? in_array($needle, $haystack, true) : $haystack === $needle;
     }
 
     /**
