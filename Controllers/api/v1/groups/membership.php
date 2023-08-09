@@ -23,7 +23,6 @@ use Minds\Entities\User;
 use Minds\Exceptions\GroupOperationException;
 use Minds\Exceptions\NotFoundException;
 use Minds\Helpers\Export;
-use InvalidArgumentException;
 
 class membership implements Interfaces\Api
 {
