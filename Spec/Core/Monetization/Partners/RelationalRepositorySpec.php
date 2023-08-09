@@ -157,8 +157,148 @@ class RelationalRepositorySpec extends ObjectBehavior
     }
 
     public function it_should_get_balance(
-        
+        SelectQuery $selectQueryMock,
+        PDOStatement $statementMock
     ): void {
-        $this->getBalance('1234')->shouldBeAnInstanceOf(EarningsBalance::class);
+        $toTimestamp = time();
+
+        $statementMock->execute()
+            ->shouldBeCalledOnce();
+        $statementMock->fetch(PDO::FETCH_ASSOC)
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'user_guid' => '1234',
+                'cents' => '1000',
+                'tokens' => '1000',
+            ]);
+
+        $selectQueryMock->from('minds_partner_earnings')
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+        $selectQueryMock->columns(Argument::that(function ($items): bool {
+            /**
+             * @var RawExp $amountCents
+             */
+            $amountCents = $items[0];
+            if ($amountCents->getValue() !== "SUM(amount_cents) AS cents") {
+                return false;
+            }
+            /**
+             * @var RawExp $amountTokens
+             */
+            $amountTokens = $items[1];
+            if ($amountTokens->getValue() !== "SUM(amount_tokens) AS tokens") {
+                return false;
+            }
+            return true;
+        }))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('user_guid', Operator::EQ, Argument::that(fn (RawExp $expression): bool => $expression->getValue() === ':user_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('timestamp', Operator::LTE, Argument::that(fn (RawExp $expression): bool => $expression->getValue() === ':timestamp'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($statementMock);
+
+        $this->mysqlClientReaderHandlerMock->select()
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $this->mysqlHandlerMock->bindValuesToPreparedStatement($statementMock, [
+            'user_guid' => 1234,
+            'timestamp' => date('c', $toTimestamp)
+        ])
+            ->shouldBeCalledOnce();
+
+        $this->getBalance(1234, $toTimestamp)->shouldBeLike(
+            (new EarningsBalance())
+                ->setUserGuid('1234')
+                ->setAmountCents(1000)
+                ->setAmountTokens(1000)
+        );
+    }
+
+    public function it_should_get_balance_by_item(
+        SelectQuery $selectQueryMock,
+        PDOStatement $statementMock
+    ): void {
+        $toTimestamp = time();
+        $items = [
+            'item1',
+            'item2',
+        ];
+
+        $statementMock->execute()
+            ->shouldBeCalledOnce();
+        $statementMock->fetch(PDO::FETCH_ASSOC)
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'user_guid' => '1234',
+                'cents' => '1000',
+                'tokens' => '1000',
+            ]);
+
+        $selectQueryMock->from('minds_partner_earnings')
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+        $selectQueryMock->columns(Argument::that(function ($items): bool {
+            /**
+             * @var RawExp $amountCents
+             */
+            $amountCents = $items[0];
+            if ($amountCents->getValue() !== "SUM(amount_cents) AS cents") {
+                return false;
+            }
+            /**
+             * @var RawExp $amountTokens
+             */
+            $amountTokens = $items[1];
+            if ($amountTokens->getValue() !== "SUM(amount_tokens) AS tokens") {
+                return false;
+            }
+            return true;
+        }))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('user_guid', Operator::EQ, Argument::that(fn (RawExp $expression): bool => $expression->getValue() === ':user_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('timestamp', Operator::LTE, Argument::that(fn (RawExp $expression): bool => $expression->getValue() === ':timestamp'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('item', Operator::IN, $items)
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($statementMock);
+
+        $this->mysqlClientReaderHandlerMock->select()
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $this->mysqlHandlerMock->bindValuesToPreparedStatement($statementMock, [
+            'user_guid' => 1234,
+            'timestamp' => date('c', $toTimestamp)
+        ])
+            ->shouldBeCalledOnce();
+
+        $this->getBalanceByItem(1234, $items, $toTimestamp)->shouldBeLike(
+            (new EarningsBalance())
+                ->setUserGuid('1234')
+                ->setAmountCents(1000)
+                ->setAmountTokens(1000)
+        );
     }
 }

@@ -52,7 +52,10 @@ trait CommonMatchers
                 }
 
                 return true;
-            }
+            },
+            'beSameAs' => function ($subject, $value): bool {
+                return serialize($subject) === serialize($value);
+            },
         ];
     }
 }
