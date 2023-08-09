@@ -45,7 +45,7 @@ class Manager
     const MIN_PAYOUT_CENTS = 10000; // $100 USD
 
     public function __construct(
-        private ?Repository $repository = null,
+        private ?RelationalRepository $repository = null,
         private ?EntityCentricManager $entityCentricManager = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?Plus\Manager $plusManager = null,
@@ -59,7 +59,7 @@ class Manager
         private ?DepositsDelegate $depositsDelegate = null,
         private ?Logger $logger = null
     ) {
-        $this->repository ??= new Repository();
+        $this->repository ??= Di::_()->get(RelationalRepository::class);
         $this->entityCentricManager ??= new EntityCentricManager();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->plusManager ??= Di::_()->get('Plus\Manager');
@@ -356,7 +356,7 @@ class Manager
     {
         $from = $opts['from'] ?? 0;
         $to = $opts['to'] ?? time();
-        foreach ($this->getTotalEarningsForOwners([ 'to' => $to ]) as $earningsBalance) {
+        foreach ($this->repository->getBalancesPerUser(toTimestamp: $to) as $earningsBalance) {
             $user = $this->entitiesBuilder->single($earningsBalance->getUserGuid());
             if (!$user) {
                 continue;
