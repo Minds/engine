@@ -422,6 +422,7 @@ class NewsfeedController
             queryOpts: new QueryOpts(
                 user: $loggedInUser,
                 limit: 3,
+                onlySubscribed: true,
                 seenEntitiesFilterStrategy: SeenEntitiesFilterStrategyEnum::EXCLUDE,
             ),
             hasMore: $hasMore,
