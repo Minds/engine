@@ -40,13 +40,13 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
 
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
-    
+
     /** @var Resolver */
     protected $entitiesResolver;
 
     /** @var GroupMembershipManager */
     protected $groupMembershipManager;
-    
+
     public function let(
         Manager $manager,
         Logger $logger,
@@ -425,10 +425,11 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
             ->willReturn($group);
 
         $refTime = time();
-  
+
         $this->groupMembershipManager->getMembers(
             $group,
             GroupMembershipLevelEnum::MODERATOR,
+            false,
             10,
             Argument::any(),
             Argument::any()
