@@ -330,7 +330,7 @@ class ManagerSpec extends ObjectBehavior
         $imageOwnerGuid = '2234567890112233';
 
         $imageUri = "http://localhost:8080/fs/v1/thumbnail/$entityGuid/xlarge";
-        $signedImageUri = "http://localhost:8080/fs/v1/thumbnail/$entityGuid/xlarge?jwtSig=123456";
+        $signedImageUri = "$imageUri?jwtsig=123456";
         $body = '<img src="'.$imageUri.'">';
         $signedBody = '<img src="'.$signedImageUri.'">';
 
@@ -359,6 +359,51 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($blogOwnerGuid);
 
         $this->signedUri->sign($imageUri)
+            ->shouldBeCalled()
+            ->willReturn($signedImageUri);
+
+        $this->signImages($blog)->shouldBe($signedBody);
+    }
+
+    public function it_should_sign_images_but_not_sign_over_existing_jwtsigs(
+        Blog $blog,
+        Image $image
+    ) {
+        $entityGuid = '1234567890112233';
+        $blogOwnerGuid = '2234567890112233';
+        $imageOwnerGuid = '2234567890112233';
+
+        $signiturelessImageUrl = "http://localhost:8080/fs/v1/thumbnail/$entityGuid/xlarge";
+        $imageUri = "$signiturelessImageUrl?jwtsig=123456";
+        $signedImageUri = "$imageUri?jwtsig=234567";
+        $body = '<img src="'.$imageUri.'">';
+        $signedBody = '<img src="'.$signedImageUri.'">';
+
+        $blog->getBody()
+            ->shouldBeCalled()
+            ->willReturn($body);
+
+        $this->config->get('site_url')
+            ->shouldBeCalled()
+            ->willReturn('http://localhost:8080');
+
+        $this->config->get('cdn_url')
+            ->shouldBeCalled()
+            ->willReturn('http://localhost:8080');
+        
+        $this->entitiesBuilder->single($entityGuid)
+            ->shouldBeCalled()
+            ->willReturn($image);
+
+        $image->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($imageOwnerGuid);
+
+        $blog->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($blogOwnerGuid);
+
+        $this->signedUri->sign($signiturelessImageUrl)
             ->shouldBeCalled()
             ->willReturn($signedImageUri);
 

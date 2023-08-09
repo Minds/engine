@@ -35,7 +35,7 @@ class ActionDelegateSpec extends ObjectBehavior
     private $strikesManager;
     private $saveAction;
     private $emailDelegate;
-    private $channelsBanManager;
+    private Collaborator $channelsBanManager;
     private Collaborator $demonetizationContext;
     private Collaborator $demonetizePostStrategy;
     private Collaborator $demonetizePlusUserStrategy;
@@ -487,43 +487,54 @@ class ActionDelegateSpec extends ObjectBehavior
     }
 
 
-    public function it_should_apply_strike_if_intellectual_takedown_violation_for_user(Entity $entity)
+    public function it_should_apply_ban_if_intellectual_takedown_violation_for_user(User $user)
     {
         $report = new Report;
-        $report->setEntityUrn('urn:activity:123')
-            ->setReasonCode(10);
+        $report->setEntityUrn('urn:user:123')
+            ->setEntityOwnerGuid(123)
+            ->setReasonCode(10)
+            ->setSubReasonCode(2);
 
         $verdict = new Verdict;
         $verdict->setReport($report)
             ->setUphold(true)
             ->setAction('10');
 
-        $entity->getGuid()
+        $user->getGuid()
             ->shouldBeCalled()
             ->willReturn('123');
 
-        $entity->get('type')
+        $user->get('type')
             ->shouldBeCalled()
             ->willReturn('user');
 
         $this->entitiesBuilder->single(123)
             ->shouldBeCalled()
-            ->willReturn($entity);
+            ->willReturn($user);
 
         $this->actions->setDeletedFlag(Argument::type(Entity::class), true)
             ->shouldNotBeCalled();
 
-        $this->saveAction->setEntity($entity)
+        $this->saveAction->setEntity($user)
             ->shouldNotBeCalled();
         
         $this->saveAction->save()
             ->shouldNotBeCalled();
 
         $this->strikesManager->countStrikesInTimeWindow(Argument::any(), Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(0);
+            ->shouldNotBeCalled();
 
         $this->strikesManager->add(Argument::any())
+            ->shouldNotBeCalled();
+
+        $this->channelsBanManager->setUser($user)
+            ->shouldBeCalled()
+            ->willReturn($this->channelsBanManager);
+
+        $this->channelsBanManager->ban('10.2')
+            ->shouldBeCalled();
+
+        $this->emailDelegate->onBan($report)
             ->shouldBeCalled();
 
         $this->boostManager->forceRejectByEntityGuid(

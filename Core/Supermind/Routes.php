@@ -56,6 +56,10 @@ class Routes extends ModuleRoutes
                     ':guid/reject',
                     Ref::_('Supermind\Controller', 'rejectSupermindRequest')
                 );
+                $route->post(
+                    ':guid/accept-live',
+                    Ref::_('Supermind\Controller', 'acceptLiveSupermindRequest')
+                );
                 $route
                     ->withMiddleware([
                         AdminMiddleware::class

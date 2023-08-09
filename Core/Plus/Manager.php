@@ -12,6 +12,7 @@ use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Di\Di;
 use Minds\Core\Rewards\Contributions\ContributionValues;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
+use Minds\Entities\User;
 
 class Manager
 {
@@ -32,6 +33,12 @@ class Manager
 
     /** @var int */
     const REVENUE_SHARE_PCT = 25;
+
+    /** @var int */
+    private const TRIAL_DAYS = 7;
+
+    /** @var int */
+    private const TRIAL_THRESHOLD_DAYS = 90;
 
     public function __construct($config = null, $es = null, $db = null)
     {
@@ -269,6 +276,12 @@ class Manager
         }
         $threshold = $entity->getWireThreshold();
         return $threshold['support_tier']['urn'] === $this->getPlusSupportTierUrn();
+    }
+
+    public function isEligibleForTrial(User $user, User $receiver): bool
+    {
+        $canHavePlusTrial = !$user->plus_expires || $user->plus_expires <= strtotime(self::TRIAL_THRESHOLD_DAYS . ' days ago');
+        return $receiver->getGuid() == $this->config->get('plus')['handler'] && $canHavePlusTrial;
     }
 
     /**
