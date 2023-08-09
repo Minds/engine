@@ -88,7 +88,7 @@ class Repository extends MySQL\AbstractRepository
 
         if (!$membershipLevel) {
             $query->where('membership_level', Operator::GTE, GroupMembershipLevelEnum::MEMBER->value);
-        } elseif ($membershipLevelGte){
+        } elseif ($membershipLevelGte) {
             $query->where('membership_level', Operator::GTE, $membershipLevel->value);
         } else {
             $query->where('membership_level', Operator::EQ, $membershipLevel->value);

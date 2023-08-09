@@ -160,7 +160,7 @@ class membership implements Interfaces\Api
                 }
 
                 $membershipLevel = null;
-                if (isset($_GET['membership_level'])){
+                if (isset($_GET['membership_level'])) {
                     $membershipLevel = GroupMembershipLevelEnum::tryFrom((int)($_GET['membership_level']) ?? null);
                 }
 

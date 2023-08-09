@@ -66,7 +66,7 @@ class Client implements Interfaces\QueueClient
             register_shutdown_function(function ($channel, $connection) {
                 $channel->close();
                 $connection->close();
-                //error_log("SHUTDOWN RABBITMQ CONNECTIONS");
+            //error_log("SHUTDOWN RABBITMQ CONNECTIONS");
             }, $this->channel, $this->connection);
         }
     }
