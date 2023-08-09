@@ -899,39 +899,39 @@ function validate_username($username)
         throw new RegistrationException($msg);
     }
 
-    // Blacklist non-alpha chars
-    if (preg_match('/[^a-zA-Z0-9_]+/', $username)) {
-        throw new RegistrationException(elgg_echo('Invalid username! Alphanumerics only please.'));
-    }
+    // // Blacklist non-alpha chars
+    // if (preg_match('/[^a-zA-Z0-9_]+/', $username)) {
+    //     throw new RegistrationException(elgg_echo('Invalid username! Alphanumerics only please.'));
+    // }
 
-    // Blacklist for bad characters (partially nicked from mediawiki)
-    $blacklist = '/[' .
-        '\x{0080}-\x{009f}' . // iso-8859-1 control chars
-        '\x{00a0}' .          // non-breaking space
-        '\x{2000}-\x{200f}' . // various whitespace
-        '\x{2028}-\x{202f}' . // breaks and control chars
-        '\x{3000}' .          // ideographic space
-        '\x{e000}-\x{f8ff}' . // private use
-        ']/u';
+    // // Blacklist for bad characters (partially nicked from mediawiki)
+    // $blacklist = '/[' .
+    //     '\x{0080}-\x{009f}' . // iso-8859-1 control chars
+    //     '\x{00a0}' .          // non-breaking space
+    //     '\x{2000}-\x{200f}' . // various whitespace
+    //     '\x{2028}-\x{202f}' . // breaks and control chars
+    //     '\x{3000}' .          // ideographic space
+    //     '\x{e000}-\x{f8ff}' . // private use
+    //     ']/u';
 
-    if (
-        preg_match($blacklist, $username)
-    ) {
-        // @todo error message needs work
-        throw new RegistrationException(elgg_echo('registration:invalidchars'));
-    }
+    // if (
+    //     preg_match($blacklist, $username)
+    // ) {
+    //     // @todo error message needs work
+    //     throw new RegistrationException(elgg_echo('registration:invalidchars'));
+    // }
 
-    // Belts and braces
-    // @todo Tidy into main unicode
-    $blacklist2 = '\'/\\"*& ?#%^(){}[]~?<>;|¬`+=';
+    // // Belts and braces
+    // // @todo Tidy into main unicode
+    // $blacklist2 = '\'/\\"*& ?#%^(){}[]~?<>;|¬`+=';
 
-    for ($n = 0; $n < strlen($blacklist2); $n++) {
-        if (strpos($username, $blacklist2[$n]) !== false) {
-            $msg = elgg_echo('registration:invalidchars', [$blacklist2[$n], $blacklist2]);
-            $msg = htmlspecialchars($msg, ENT_QUOTES, 'UTF-8');
-            throw new RegistrationException($msg);
-        }
-    }
+    // for ($n = 0; $n < strlen($blacklist2); $n++) {
+    //     if (strpos($username, $blacklist2[$n]) !== false) {
+    //         $msg = elgg_echo('registration:invalidchars', [$blacklist2[$n], $blacklist2]);
+    //         $msg = htmlspecialchars($msg, ENT_QUOTES, 'UTF-8');
+    //         throw new RegistrationException($msg);
+    //     }
+    // }
 
     $result = true;
     return elgg_trigger_plugin_hook(
