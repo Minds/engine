@@ -23,6 +23,7 @@ use Minds\Entities\User;
 use Minds\Exceptions\GroupOperationException;
 use Minds\Exceptions\NotFoundException;
 use Minds\Helpers\Export;
+use InvalidArgumentException;
 
 class membership implements Interfaces\Api
 {
@@ -147,7 +148,7 @@ class membership implements Interfaces\Api
                         $members[] = $userMembership;
                     }
                 }
-            
+
                 $guids = array_slice($guids, 0, 12);
 
                 $response['members'] = Exportable::_($members);
@@ -158,8 +159,17 @@ class membership implements Interfaces\Api
                     return Factory::response([]);
                 }
 
+                $membershipLevel = null;
+                if (isset($_GET['membership_level'])){
+                    $membershipLevel = GroupMembershipLevelEnum::tryFrom((int)($_GET['membership_level']) ?? null);
+                }
+
+                $membershipLevelGte = isset($_GET['membership_level_gte']) ? (bool) $_GET['membership_level_gte'] : false;
+
                 $members = iterator_to_array($this->membershipManager->getMembers(
                     group: $group,
+                    membershipLevel: $membershipLevel,
+                    membershipLevelGte: $membershipLevelGte,
                     limit: $limit,
                     offset: $offset,
                     loadNext: $loadNext,

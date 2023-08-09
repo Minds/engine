@@ -91,6 +91,8 @@ class Manager
      */
     public function getMembers(
         Group $group,
+        GroupMembershipLevelEnum $membershipLevel = null,
+        bool $membershipLevelGte = false,
         int $limit = 12,
         int $offset = 0,
         int|string &$loadNext = 0
@@ -134,7 +136,7 @@ class Manager
         /**
          * Vitess read
          */
-        foreach ($this->repository->getList(groupGuid: $group->getGuid(), limit: $limit, offset: $offset) as $membership) {
+        foreach ($this->repository->getList(groupGuid: $group->getGuid(), membershipLevel: $membershipLevel, membershipLevelGte: $membershipLevelGte, limit: $limit, offset: $offset) as $membership) {
             $user = $this->buildUser($membership->userGuid);
 
             if (!$user) {
