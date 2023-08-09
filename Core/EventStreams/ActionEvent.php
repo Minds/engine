@@ -83,6 +83,9 @@ class ActionEvent implements EventInterface
     const ACTION_GROUP_QUEUE_ADD = 'group_queue_add';
 
     /** @var string */
+    const ACTION_GROUP_QUEUE_RECEIVED = 'group_queue_received';
+    
+    /** @var string */
     const ACTION_GROUP_QUEUE_APPROVE = 'group_queue_approve';
 
     /** @var string */
@@ -205,6 +208,7 @@ class ActionEvent implements EventInterface
                 break;
             case self::ACTION_GROUP_INVITE:
             case self::ACTION_GROUP_QUEUE_ADD:
+            case self::ACTION_GROUP_QUEUE_RECEIVED:
             case self::ACTION_GROUP_QUEUE_APPROVE:
             case self::ACTION_GROUP_QUEUE_REJECT:
                 $allowedKeys = [ 'group_urn' ];

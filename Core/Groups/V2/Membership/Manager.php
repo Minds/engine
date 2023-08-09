@@ -87,6 +87,12 @@ class Manager
     }
 
     /**
+     * Get a groups members.
+     * @param Group $group - group to get members for.
+     * @param GroupMembershipLevelEnum $membershipLevel - filter by membership level, defaults to only members.
+     * @param int $limit - limit the number of results.
+     * @param int $offset - offset the results.
+     * @param int|string &$loadNext - passed reference to a $loadNext variable.
      * @return iterable<Membership>
      */
     public function getMembers(
@@ -136,7 +142,13 @@ class Manager
         /**
          * Vitess read
          */
-        foreach ($this->repository->getList(groupGuid: $group->getGuid(), membershipLevel: $membershipLevel, membershipLevelGte: $membershipLevelGte, limit: $limit, offset: $offset) as $membership) {
+        foreach ($this->repository->getList(
+            groupGuid: $group->getGuid(),
+            limit: $limit,
+            offset: $offset,
+            membershipLevel: $membershipLevel,
+            membershipLevelGte: $membershipLevelGte
+        ) as $membership) {
             $user = $this->buildUser($membership->userGuid);
 
             if (!$user) {
