@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Payments\GiftCards;
 
+use Minds\Common\SystemUser;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
@@ -440,6 +441,50 @@ class Manager
                 giftCardGuid: $transaction->giftCardGuid,
                 refundedAt: $refundedAt
             );
+        }
+    }
+
+    /**
+     * Issues gift cards to a Minds Plus or Minds Pro subscriber and notify the recipient
+     * @param User $recipient
+     * @param float $amount
+     * @param int $expiryTimestamp
+     * @return void
+     * @throws ApiErrorException
+     * @throws GiftCardPaymentFailedException
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     * @throws StripeTransferFailedException
+     * @throws UserErrorException
+     */
+    public function issueMindsPlusAndProGiftCards(User $recipient, float $amount, int $expiryTimestamp): void
+    {
+        $this->logger->info("Issuing gift cards to " . $recipient->getGuid() . " for $" . $amount . " (expires " . date("Y-m-d H:i:s", $expiryTimestamp) . ")");
+
+        foreach (GiftCardProductIdEnum::enabledProductIdEnums() as $productIdEnum) {
+            /**
+             * Issuing a new gift card for the enabled gift card's product
+             */
+            $creditsGiftCard = $this->createGiftCard(
+                issuer: new SystemUser(),
+                productId: $productIdEnum,
+                amount: $amount,
+                stripePaymentMethodId: "",
+                expiresAt: $expiryTimestamp,
+                giftCardPaymentTypeEnum: GiftCardPaymentTypeEnum::INTERNAL
+            );
+
+            /**
+             * Send email and push notifications to recipient for gift card to be claimed
+             */
+            $this->sendGiftCardToRecipient(
+                recipient: new GiftCardTarget(
+                    targetUserGuid: (int) $recipient->getGuid()
+                ),
+                giftCard: $creditsGiftCard
+            );
+
+            $this->logger->info("Issued gift card " . $creditsGiftCard->guid . " to " . $recipient->getGuid() . " for $" . $amount . " with product $productIdEnum->name (expires " . date("Y-m-d H:i:s", $expiryTimestamp) . ")");
         }
     }
 }

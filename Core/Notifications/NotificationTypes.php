@@ -181,6 +181,9 @@ class NotificationTypes
     const TYPE_GROUP_QUEUE_ADD = 'group_queue_add';
 
     /** @var string */
+    const TYPE_GROUP_QUEUE_RECEIVED = 'group_queue_received';
+
+    /** @var string */
     const TYPE_GROUP_QUEUE_APPROVE = 'group_queue_approve';
 
     /** @var string */
@@ -189,7 +192,11 @@ class NotificationTypes
     /** @var string[] */
     const GROUPING_GROUPS = [
         self::TYPE_GROUP_INVITE,
-        self::TYPE_GROUP_QUEUE_ADD,self::TYPE_GROUP_QUEUE_APPROVE,self::TYPE_GROUP_QUEUE_REJECT, ];
+        self::TYPE_GROUP_QUEUE_ADD,
+        self::TYPE_GROUP_QUEUE_APPROVE,
+        self::TYPE_GROUP_QUEUE_REJECT,
+        self::TYPE_GROUP_QUEUE_RECEIVED
+    ];
 
     /** @var string */
     const GROUPING_TYPE_GROUPS = 'groups';
