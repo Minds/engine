@@ -1,13 +1,9 @@
 <?php
 namespace Minds\Core\ActivityPub\Services;
 
-use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
-use Minds\Core\ActivityPub\Types\Activity\ActivityFactory;
+use Minds\Core\ActivityPub\Factories\ActivityFactory;
 use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
-use Minds\Core\ActivityPub\Types\Actor\PersonType;
-use Minds\Core\ActivityPub\Types\Core\ActivityType;
-use Minds\Core\EntitiesBuilder;
 use Minds\Exceptions\ServerErrorException;
 
 class ProcessCollectionService
@@ -17,6 +13,7 @@ class ProcessCollectionService
 
     public function __construct(
         protected ProcessActivityService $processActivityService,
+        protected ActivityFactory $activityFactory,
     ) {
         
     }
@@ -84,7 +81,7 @@ class ProcessCollectionService
 
     private function processItem(array $item): void
     {
-        $apActivity = ActivityFactory::build($item, $this->actor);
+        $apActivity = $this->activityFactory->fromJson($item, $this->actor);
 
         $this->processActivityService
             ->withActivity($apActivity)

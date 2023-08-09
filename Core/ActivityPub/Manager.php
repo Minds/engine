@@ -4,7 +4,7 @@ namespace Minds\Core\ActivityPub;
 use GuzzleHttp\Exception\ConnectException;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
-use Minds\Core\ActivityPub\Types\Actor\ActorFactory;
+use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Webfinger;
@@ -21,61 +21,10 @@ class Manager
         protected EntitiesBuilder $entitiesBuilder,
         protected Config $config,
         protected Client $client,
-        protected Webfinger\Manager $webfingerManager,
     ) {
         
     }
 
-    /**
-     * Returns an ActivityPub uri from a webfinger request
-     */
-    public function webfingerToUri(string $username): ?string
-    {
-        $json = $this->webfingerManager->get('acct:' . $username);
-
-        foreach ($json['links'] as $link) {
-            if ($link['rel'] === 'self') {
-                return $link['href'];
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Returns an ActorType (current PeronType) from a uri
-     * If a local uri is provided, we build locally.
-     * If a remote uri is provided then we will fetch from the server.
-     * @todo: Caching?
-     */
-    public function uriToActor(string $uri): AbstractActorType
-    {
-        if ($this->isLocalUri($uri)) {
-        }
-
-        try {
-            $response = $this->client->request('GET', $uri);
-            $json = json_decode($response->getBody()->getContents(), true);
-        } catch (ConnectException $e) {
-            throw new UserErrorException("Could not connect to $uri");
-        }
-
-        return ActorFactory::build($json);
-    }
-
-    // public function uriToResource(string $uri): AbstractType
-    // {
-    //     if ($this->isLocalUri($uri)) {
-    //     }
-
-    //     try {
-    //         $response = $this->client->request('GET', $uri);
-    //         $json = json_decode($response->getBody()->getContents(), true);
-    //     } catch (ConnectException $e) {
-    //         throw new UserErrorException("Could not connect to $uri");
-    //     }
-
-    //     return ActorFactory::build($json);
-    // }
 
     public function addActor(AbstractActorType $actor, int $guid): bool
     {
@@ -209,7 +158,7 @@ class Manager
         return strpos($uri, $this->getBaseUrl(), 0) === 0;
     }
 
-    private function getBaseUrl(): string
+    public function getBaseUrl(): string
     {
         return $this->config->get('site_url') . 'api/activitypub/';
     }

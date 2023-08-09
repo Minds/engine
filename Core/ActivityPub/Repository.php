@@ -4,6 +4,7 @@ namespace Minds\Core\ActivityPub;
 use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use PDO;
+use PDOException;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
 

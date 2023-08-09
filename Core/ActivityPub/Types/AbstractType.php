@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\ActivityPub\Types;
 
+use DateTime;
 use Minds\Core\ActivityPub\Attributes\ExportProperty;
 use Minds\Entities\ExportableInterface;
 use Minds\Entities\User;
@@ -67,23 +68,16 @@ abstract class AbstractType implements ExportableInterface
                         }
                     }
 
+                    if ($value instanceof DateTime) {
+                        $value = $value->format('c');
+                    }
+
                     $export[$property->getName()] = $value;
                 }
             }
         }
 
         return $export;
-    }
-
-    protected function getBaseUrl(User $user = null): string
-    {
-        $baseUrl = 'http://localhost:8080/api/activitypub/';
-
-        if ($user) {
-            $baseUrl .= 'users/' . $user->getGuid() . '/';
-        }
-
-        return $baseUrl;
     }
 
 }

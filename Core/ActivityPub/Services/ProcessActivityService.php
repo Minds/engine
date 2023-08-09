@@ -88,7 +88,7 @@ class ProcessActivityService
                     $this->acl->setIgnore($ia); // Reset ACL state
         
                     // Save reference so we don't import this again
-                    $this->manager->addUri($this->activity->id, (int) $entity->getGuid());
+                    $this->manager->addUri($this->activity->object->id, (int) $entity->getGuid());
                 }
 
                 break;

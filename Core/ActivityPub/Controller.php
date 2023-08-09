@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\ActivityPub;
 
+use Minds\Core\ActivityPub\Factories\OutboxFactory;
 use Minds\Core\ActivityPub\Types\Activity\CreateType;
 use Minds\Core\ActivityPub\Types\Actor\PersonType;
 use Minds\Core\ActivityPub\Types\Core\OrderedCollectionPageType;
@@ -22,6 +23,7 @@ use Zend\Diactoros\Response\JsonResponse;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Services\HttpSignatureService;
 use Minds\Core\ActivityPub\Services\ProcessCollectionService;
+use Minds\Core\ActivityPub\Factories\ActorFactory;
 
 /**
  * The controller for the ActivityPub module's endpoints
@@ -30,6 +32,8 @@ class Controller
 {
     public function __construct(
         private Manager $manager,
+        private ActorFactory $actorFactory,
+        private OutboxFactory $outboxFactory,
         private EntitiesBuilder $entitiesBuilder,
         private Config $config,
     ) {
@@ -44,7 +48,7 @@ class Controller
     {
         $user = $this->buildUser($request);
 
-        $person = (new PersonType())->withUser($user);
+        $person = $this->actorFactory->fromEntity($user);
 
         return new JsonResponse([
             ...$person->getContextExport(),
@@ -58,7 +62,7 @@ class Controller
         
         $payload = $request->getParsedBody();
 
-        $actor = $this->manager->uriToActor(JsonLdHelper::getValueOrId($payload['actor']));
+        $actor = $this->actorFactory->fromUri(JsonLdHelper::getValueOrId($payload['actor']));
 
         /** @var ProcessCollectionService */
         $proccessCollectionService = Di::_()->get(ProcessCollectionService::class);
@@ -74,37 +78,7 @@ class Controller
     {
         $user = $this->buildUser($request);
 
-        $orderedCollection = new OrderedCollectionPageType();
-        $orderedCollection->setId((string) $request->getUri());
-
-        $baseUrl = $this->buildBaseUrl($user);
-        $orderedCollection->setPartOf($baseUrl . 'outbox');
-
-        // TODO move to a class
-        $elasticManager = Di::_()->get(\Minds\Core\Feeds\Elastic\V2\Manager::class);
-
-        $queryOpts = new QueryOpts(
-            user: $user,
-            onlyOwn: true,
-        );
-
-        $items = [];
-
-        foreach ($elasticManager->getLatest($queryOpts) as $entity) {
-
-            $note = (new NoteType())->withActivity($entity);
-            $note->setId($baseUrl . 'entities/' . $entity->getGuid());
-
-            $item = new CreateType();
-            $item->id = ($baseUrl . 'entities/' . $entity->getGuid() . '/activity');
-            $item->actor = ((new PersonType())->withUser($user));
-            $item->object = ($note);
-    
-            $items[] = $item;
-        }
-
-
-        $orderedCollection->setOrderedItems($items);
+        $orderedCollection = $this->outboxFactory->build((string) $request->getUri(), $user);
 
         return new JsonResponse([
             ...$orderedCollection->getContextExport(),
@@ -126,7 +100,7 @@ class Controller
         $items = [];
 
         foreach ($users as $user) {
-            $person = (new PersonType)->withUser($user);
+            $person = $this->actorFactory->fromEntity($user);
             $items[] = $person->getId();
         }
     
@@ -158,7 +132,7 @@ class Controller
         $items = [];
 
         foreach ($users as $user) {
-            $person = (new PersonType)->withUser($user);
+            $person = $this->actorFactory->fromEntity($user);
             $items[] = $person->getId();
         }
         
@@ -218,7 +192,7 @@ class Controller
         $service = new HttpSignatureService();
         $keyId = $service->getKeyId($request->getHeader('Signature')[0]);
 
-        $actor = $this->manager->uriToActor($keyId);
+        $actor = $this->actorFactory->fromUri($keyId);
 
         $context = new \HttpSignatures\Context([
             'keys' => [$keyId => $actor->publicKey->publicKeyPem],

@@ -5,6 +5,7 @@ use Minds\Common\Regex;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Activity\CreateType;
+use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Types\Actor\PersonType;
 use Minds\Core\ActivityPub\Types\Core\ActivityType;
 use Minds\Core\ActivityPub\Types\Object\NoteType;
@@ -20,6 +21,7 @@ class ProcessActorService
 
     public function __construct(
         protected Manager $manager,
+        protected ActorFactory $actorFactory,
         protected ACL $acl,
         protected Save $saveAction,
     ) {
@@ -42,11 +44,8 @@ class ProcessActorService
 
         if (count($matches)) {
             try {
-                $actorUri = $this->manager->webfingerToUri($username);
-                if ($actorUri) {
-                    $actor = $this->manager->uriToActor($actorUri);
-                    return $this->withActor($actor);
-                }
+                $actor = $this->actorFactory->fromWebfinger($username);
+                return $this->withActor($actor);
             } catch (\Exception $e) {
                 // Do not continue if any exception is found
             }

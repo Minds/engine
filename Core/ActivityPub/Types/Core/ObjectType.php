@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\ActivityPub\Types\Core;
 
+use DateTime;
 use Minds\Core\ActivityPub\Attributes\ExportProperty;
 use Minds\Core\ActivityPub\Types\AbstractType;
 
@@ -62,6 +63,13 @@ class ObjectType extends AbstractType
      */
     #[ExportProperty]
     public array $icon;
+    
+    /**
+     * @see https://www.w3.org/TR/activitystreams-vocabulary/#dfn-published
+     * @todo Change this to be a model
+     */
+    #[ExportProperty]
+    public DateTime $published;
 
     /**
      * Sets the ID (must be a string)

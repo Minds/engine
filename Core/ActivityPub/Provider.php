@@ -9,7 +9,12 @@ use Minds\Core\Webfinger;
 use Minds\Core\ActivityPub\Services\ProcessActivityService;
 use Minds\Core\ActivityPub\Services\ProcessActorService;
 use Minds\Core\ActivityPub\Services\ProcessCollectionService;
+use Minds\Core\ActivityPub\Factories\ActivityFactory;
+use Minds\Core\ActivityPub\Factories\ActorFactory;
+use Minds\Core\ActivityPub\Factories\ObjectFactory;
+use Minds\Core\ActivityPub\Factories\OutboxFactory;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 
 class Provider extends DiProvider
 {
@@ -34,12 +39,13 @@ class Provider extends DiProvider
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 config: $di->get('Config'),
                 client: $di->get(Client::class),
-                webfingerManager: $di->get(Webfinger\Manager::class),
             );
         });
         $this->di->bind(Controller::class, function ($di) {
             return new Controller(
                 manager: $di->get(Manager::class),
+                actorFactory: $di->get(ActorFactory::class),
+                outboxFactory: $di->get(OutboxFactory::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 config: $di->get('Config'),
             );
@@ -51,6 +57,7 @@ class Provider extends DiProvider
         $this->di->bind(ProcessActorService::class, function ($di) {
             return new ProcessActorService(
                 manager: $di->get(Manager::class),
+                actorFactory: $di->get(ActorFactory::class),
                 acl: $di->get('Security\ACL'),
                 saveAction: new Save(),
             );
@@ -64,7 +71,40 @@ class Provider extends DiProvider
             );
         });
         $this->di->bind(ProcessCollectionService::class, function ($di) {
-            return new ProcessCollectionService($di->get(ProcessActivityService::class));
+            return new ProcessCollectionService(
+                processActivityService: $di->get(ProcessActivityService::class),
+                activityFactory: $di->get(ActivityFactory::class),
+            );
+        });
+
+        /**
+         * Factories
+         */
+        $this->di->bind(ActorFactory::class, function ($di) {
+            return new ActorFactory(
+                manager: $di->get(Manager::class),
+                client: $di->get(Client::class),
+                webfingerManager: $di->get(Webfinger\Manager::class),
+                config: $di->get('Config'),
+            );
+        });
+        $this->di->bind(ActivityFactory::class, function ($di) {
+            return new ActivityFactory(
+                actorFactory: $di->get(ActorFactory::class),
+                objectFactory: $di->get(ObjectFactory::class),
+            );
+        });
+        $this->di->bind(ObjectFactory::class, function ($di) {
+            return new ObjectFactory(
+                manager: $di->get(Manager::class),
+            );
+        });
+        $this->di->bind(OutboxFactory::class, function ($di) {
+            return new OutboxFactory(
+                feedsManager: $di->get(FeedsManager::class),
+                objectFactory: $di->get(ObjectFactory::class),
+                actorFactory: $di->get(ActorFactory::class),
+            );
         });
     }
 }
