@@ -447,11 +447,6 @@ class Comment extends RepositoryEntity implements EntityInterface
             $output['owner_guid'] = $unknown->guid;
         }
 
-        if (!Flags::shouldDiscloseStatus($this)) {
-            unset($output['spam']);
-            unset($output['deleted']);
-        }
-
         if (!$this->isEphemeral()) {
             $output['thumbs:up:user_guids'] = $this->getVotesUp();
             $output['thumbs:up:count'] = count($this->getVotesUp() ?: []);
@@ -472,6 +467,11 @@ class Comment extends RepositoryEntity implements EntityInterface
             params: [ 'entity' => $this ],
             default_return: []
         ));
+
+        if (!Flags::shouldDiscloseStatus($this)) {
+            unset($output['spam']);
+            unset($output['deleted']);
+        }
 
         $output = Export::sanitize($output);
 
