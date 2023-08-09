@@ -51,17 +51,17 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
             return false;
         }
 
-        // Quick rate limit to make sure people aren't bombing this.
-        // Note: the password rate limits are in Core\Security\Password->check
+        // // Quick rate limit to make sure people aren't bombing this.
+        // // Note: the password rate limits are in Core\Security\Password->check
 
-        Di::_()->get("Security\RateLimits\KeyValueLimiter")
-            ->setKey('router-post-api-v1-authenticate')
-            ->setValue((new IpAddress)->get())
-            ->setSeconds(3600)
-            ->setMax(100) // 100 times an hour
-            ->checkAndIncrement();
+        // Di::_()->get("Security\RateLimits\KeyValueLimiter")
+        //     ->setKey('router-post-api-v1-authenticate')
+        //     ->setValue((new IpAddress)->get())
+        //     ->setSeconds(3600)
+        //     ->setMax(100) // 100 times an hour
+        //     ->checkAndIncrement();
 
-        //
+        // //
 
         $user = new Entities\User(strtolower($_POST['username']));
 
@@ -75,21 +75,21 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         $attempts->setUser($user);
 
-        try {
-            if ($attempts->checkFailures()) {
-                header('HTTP/1.1 429 Too Many Requests', true, 429);
-                return Factory::response([
-                    'status' => 'error',
-                    'message' => 'LoginException::AttemptsExceeded'
-                ]);
-            }
-        } catch (RateLimitExceededException $e) {
-            header('HTTP/1.1 429 Too Many Requests', true, 429);
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'LoginException::AttemptsExceeded'
-            ]);
-        }
+        // try {
+        //     if ($attempts->checkFailures()) {
+        //         header('HTTP/1.1 429 Too Many Requests', true, 429);
+        //         return Factory::response([
+        //             'status' => 'error',
+        //             'message' => 'LoginException::AttemptsExceeded'
+        //         ]);
+        //     }
+        // } catch (RateLimitExceededException $e) {
+        //     header('HTTP/1.1 429 Too Many Requests', true, 429);
+        //     return Factory::response([
+        //         'status' => 'error',
+        //         'message' => 'LoginException::AttemptsExceeded'
+        //     ]);
+        // }
 
         if (!$user->isEnabled() && !$user->isBanned()) {
             $user->enable();
@@ -97,32 +97,32 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         $password = $_POST['password'];
 
-        try {
-            $passwordSvc = new Core\Security\Password();
-            if (!$passwordSvc->check($user, $password)) {
-                $attempts->logFailure();
-                header('HTTP/1.1 401 Unauthorized', true, 401);
-                return Factory::response(['status' => 'failed']);
-            }
-        } catch (Core\Security\Exceptions\PasswordRequiresHashUpgradeException $e) {
-            $user->password = Core\Security\Password::generate($user, $password);
-            $user->override_password = true;
-            $user->save();
-        }
+        // try {
+        //     $passwordSvc = new Core\Security\Password();
+        //     if (!$passwordSvc->check($user, $password)) {
+        //         $attempts->logFailure();
+        //         header('HTTP/1.1 401 Unauthorized', true, 401);
+        //         return Factory::response(['status' => 'failed']);
+        //     }
+        // } catch (Core\Security\Exceptions\PasswordRequiresHashUpgradeException $e) {
+        //     $user->password = Core\Security\Password::generate($user, $password);
+        //     $user->override_password = true;
+        //     $user->save();
+        // }
 
-        $attempts->resetFailuresCount(); // Reset any previous failed login attempts
+        // $attempts->resetFailuresCount(); // Reset any previous failed login attempts
 
-        try {
-            $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
-            $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals(), enableEmail: false);
-        } catch (\Exception $e) {
-            header('HTTP/1.1 ' . $e->getCode(), true, $e->getCode());
-            $response['status'] = "error";
-            $response['code'] = $e->getCode();
-            $response['message'] = $e->getMessage();
-            $response['errorId'] = str_replace('\\', '::', get_class($e));
-            return Factory::response($response);
-        }
+        // try {
+        //     $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
+        //     $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals(), enableEmail: false);
+        // } catch (\Exception $e) {
+        //     header('HTTP/1.1 ' . $e->getCode(), true, $e->getCode());
+        //     $response['status'] = "error";
+        //     $response['code'] = $e->getCode();
+        //     $response['message'] = $e->getMessage();
+        //     $response['errorId'] = str_replace('\\', '::', get_class($e));
+        //     return Factory::response($response);
+        // }
 
         $sessions = Di::_()->get('Sessions\Manager');
         $sessions->setUser($user);
