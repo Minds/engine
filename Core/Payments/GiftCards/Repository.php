@@ -1,7 +1,6 @@
 <?php
 namespace Minds\Core\Payments\GiftCards;
 
-use DateTime;
 use Exception;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
@@ -622,6 +621,31 @@ class Repository extends AbstractRepository
         ];
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+        $statement->execute();
+    }
+
+    /**
+     * @param int $giftCardGuid
+     * @param int $expiresAt
+     * @return void
+     * @throws ServerErrorException
+     */
+    public function updateGiftCardExpiry(int $giftCardGuid, int $expiresAt): void
+    {
+        $statement = $this->mysqlClientWriterHandler->update()
+            ->table('minds_gift_cards')
+            ->set([
+                'expires_at' => new RawExp(':expires_at'),
+            ])
+            ->where('guid', Operator::EQ, new RawExp(':guid'))
+            ->prepare();
+        $values = [
+            'expires_at' => date('c', $expiresAt),
+            'guid' => $giftCardGuid,
+        ];
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
         $statement->execute();
     }
 }
