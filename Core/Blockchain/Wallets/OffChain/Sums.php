@@ -138,9 +138,9 @@ class Sums
                     new Varint((int) $this->user->guid)
                 ]
             );
-        // $query->setOpts([
-            //     'consistency' => \Cassandra::CONSISTENCY_ALL
-        // ]);
+            // $query->setOpts([
+                //     'consistency' => \Cassandra::CONSISTENCY_ALL
+            // ]);
         } else {
             return 0;
         }
