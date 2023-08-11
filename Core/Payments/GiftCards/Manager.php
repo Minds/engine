@@ -195,7 +195,7 @@ class Manager
      * @return iterable<GiftCard>
      */
     public function getGiftCards(
-        ?User $claimedByUser = null,
+        User $claimedByUser,
         ?User $issuedByUser = null,
         ?GiftCardProductIdEnum $productId = null,
         ?GiftCardStatusFilterEnum $statusFilter = null,
@@ -206,7 +206,7 @@ class Manager
         ?bool &$hasMore = null
     ): iterable {
         return $this->repository->getGiftCards(
-            claimedByGuid: $claimedByUser?->getGuid(),
+            claimedByGuid: $claimedByUser->getGuid(),
             issuedByGuid: $issuedByUser?->getGuid(),
             productId: $productId,
             statusFilter: $statusFilter,
@@ -486,16 +486,5 @@ class Manager
 
             $this->logger->info("Issued gift card " . $creditsGiftCard->guid . " to " . $recipient->getGuid() . " for $" . $amount . " with product $productIdEnum->name (expires " . date("Y-m-d H:i:s", $expiryTimestamp) . ")");
         }
-    }
-
-    /**
-     * @param int $giftCardGuid
-     * @param int $expiresAt
-     * @return void
-     * @throws ServerErrorException
-     */
-    public function updateGiftCardExpiry(int $giftCardGuid, int $expiresAt): void
-    {
-        $this->repository->updateGiftCardExpiry($giftCardGuid, $expiresAt);
     }
 }
