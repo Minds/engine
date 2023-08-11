@@ -143,6 +143,8 @@ class UpgradesDelegate
         $user->setPlusExpires($expires);
         $user->save();
 
+        $wire->getSender()->setPlusExpires($expires);
+
         return $wire;
     }
 
@@ -194,6 +196,8 @@ class UpgradesDelegate
 
         $this->proManager->setUser($user)
             ->enable($expires);
+
+        $wire->getSender()->setProExpires($expires);
 
         $this->cancelExistingPlus($user);
 
