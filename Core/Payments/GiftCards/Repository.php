@@ -1,7 +1,6 @@
 <?php
 namespace Minds\Core\Payments\GiftCards;
 
-use DateTime;
 use Exception;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
