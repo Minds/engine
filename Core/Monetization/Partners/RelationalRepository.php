@@ -43,17 +43,24 @@ class RelationalRepository extends AbstractRepository
         ?int $offset = null
     ): Response {
         $statement = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'timestamp',
+                'item',
+                'user_guid',
+                'amount_cents',
+                'amount_tokens',
+            ])
             ->from('minds_partner_earnings');
         $values = [];
 
         if ($from) {
             $statement->where('timestamp', Operator::GTE, new RawExp(':from'));
-            $values['from'] = $from;
+            $values['from'] = date('c', $from);
         }
 
         if ($to) {
             $statement->where('timestamp', Operator::LT, new RawExp(':to'));
-            $values['to'] = $to;
+            $values['to'] = date('c', $to);
         }
 
         if ($userGuid) {
@@ -61,7 +68,7 @@ class RelationalRepository extends AbstractRepository
             $values['user_guid'] = $userGuid;
         }
 
-        $statement->orderBy('timestamp', 'DESC');
+        $statement->orderBy('timestamp DESC');
 
         // TODO: Consider options for pagination
 

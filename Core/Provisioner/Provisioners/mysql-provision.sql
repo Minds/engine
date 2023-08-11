@@ -374,6 +374,6 @@ CREATE TABLE IF NOT EXISTS minds_partner_earnings (
     item varchar(256) NOT NULL,
     timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     amount_cents int NULL DEFAULT NULL,
-    amount_tokens bigint NULL DEFAULT NULL,
+    amount_tokens varchar(63) NULL DEFAULT NULL,
     PRIMARY KEY (user_guid, item, timestamp)
 );

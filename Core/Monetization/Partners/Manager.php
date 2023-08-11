@@ -82,7 +82,11 @@ class Manager
      */
     public function getList(array $opts = []): Response
     {
-        return $this->repository->getList($opts);
+        return $this->repository->getList(
+            from: $opts['from'] ?? null,
+            to: $opts['to'] ?? null,
+            userGuid: $opts['user_guid'] ?? null,
+        );
     }
 
     /**
