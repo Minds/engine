@@ -78,11 +78,11 @@ class Emailer extends EmailCampaign
             return null;
         }
 
-        $bodyHandler = $this->getBodyHandler($this->giftCard->productId);
-        $bodyHandler->setAmount($this->giftCard->amount);
-        $bodyHandler->setSender($sender);
+        $productHandler = $this->getProductHandler($this->giftCard->productId);
+        $productHandler->setAmount($this->giftCard->amount);
+        $productHandler->setSender($sender);
 
-        $bodyText = $bodyHandler->buildContent();
+        $bodyText = $productHandler->buildContent();
 
         $this->template->setTemplate('default.v2.tpl');
         $this->template->setBody('./template.tpl');
@@ -121,7 +121,7 @@ class Emailer extends EmailCampaign
                     ]
                 )
             )
-            ->setSubject("You received a gift")
+            ->setSubject($productHandler->buildSubject())
             ->setHtml($this->template);
     }
 
@@ -129,7 +129,7 @@ class Emailer extends EmailCampaign
      * @param GiftCardProductIdEnum $productIdEnum
      * @return GiftCardProductInterface
      */
-    private function getBodyHandler(GiftCardProductIdEnum $productIdEnum): GiftCardProductInterface
+    private function getProductHandler(GiftCardProductIdEnum $productIdEnum): GiftCardProductInterface
     {
         return match ($productIdEnum) {
             GiftCardProductIdEnum::BOOST => new BoostCredit(),

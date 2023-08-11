@@ -99,6 +99,8 @@ class NewsfeedController
          */
         $limit = min($first ?: $last, 12); // MAX 12
 
+        $hasMore = false;
+
         // $loggedInUser =  Session::getLoggedInUser();
 
         if (!$loggedInUser) {
