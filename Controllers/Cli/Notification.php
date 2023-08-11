@@ -14,6 +14,7 @@ use Minds\Core\Notifications\Push\System\Manager;
 use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
 use Minds\Core\Notifications\Push\System\Targets\SystemPushNotificationTargetsList;
 use Minds\Core\Notifications\Push\UndeliverableException;
+use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Interfaces;
 
 class Notification extends Cli\Controller implements Interfaces\CliControllerInterface
@@ -171,5 +172,28 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
         }
 
         $this->out('[TopPost CLI] Done.');
+    }
+
+    /**
+     * Emits a notification count update a given users socket connection.
+     * @example usage: php cli.php Notification emitCountUpdateToSocket --count=10 --userGuid=
+     * @return void
+     */
+    public function emitCountUpdateToSocket(): void
+    {
+        $userGuid = $this->getOpt('userGuid') ?? null;
+        $count = $this->getOpt('count') ?? 1;
+
+        if (!$userGuid) {
+            $this->out('A user_guid parameter must be provided');
+            return;
+        }
+
+        $roomName = "notification:count:$userGuid";
+        (new SocketEvents())
+            ->setRoom($roomName)
+            ->emit($roomName, $count);
+
+        $this->out("Emitted notification count of: $count, to user with guid: $userGuid");
     }
 }
