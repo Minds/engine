@@ -26,6 +26,7 @@ use Minds\Entities\Group;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use RedisMock;
 
 class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
 {
@@ -47,25 +48,36 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
     /** @var GroupMembershipManager */
     protected $groupMembershipManager;
 
+    /** @var RedisMock */
+    protected $redisMock;
+
     public function let(
         Manager $manager,
         Logger $logger,
         Config $config,
         EntitiesBuilder $entitiesBuilder,
         Resolver $entitiesResolver,
-        GroupMembershipManager $groupMembershipManager
+        GroupMembershipManager $groupMembershipManager,
+        RedisMock $redisMock
     ) {
         $this->manager = $manager;
         $this->logger = $logger;
         $this->config = $config;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->entitiesResolver = $entitiesResolver;
+        $this->entitiesBuilder = $entitiesBuilder;
         $this->groupMembershipManager = $groupMembershipManager;
+        $this->redisMock = $redisMock;
 
-        $this->beConstructedWith($manager, $logger, $config, $entitiesResolver);
+        $this->beConstructedWith($manager, $logger, $config, $entitiesResolver, $entitiesBuilder);
 
         Di::_()->bind(GroupMembershipManager::class, function () use ($groupMembershipManager) {
             return $groupMembershipManager->getWrappedObject();
+        });
+
+        // Used within socket events.
+        Di::_()->bind('PubSub\Redis', function () use ($redisMock) {
+            return $redisMock->getWrappedObject();
         });
     }
 
@@ -980,4 +992,63 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
 
         $this->consume($actionEvent)->shouldBe(true);
     }
+
+    public function it_should_emit_to_sockets_after_sending(
+        ActionEvent $actionEvent,
+        Activity $activity,
+        User $user,
+        User $toUser
+    ) {
+        $quoteUrn = 'urn:activity:123';
+        $activityUrn = 'urn:activity:456';
+
+        $actionEvent->getAction()
+            ->willReturn(ActionEvent::ACTION_QUOTE);
+
+        $actionEvent->getUser()
+            ->willReturn($user);
+
+        $actionEvent->getEntity()
+            ->willReturn($activity);
+
+        $actionEvent->getTimestamp()
+            ->willReturn(time());
+
+        $actionEvent->getActionData()
+            ->willReturn([
+                'quote_urn' => $quoteUrn
+            ]);
+
+        $ownerGuid = '456';
+        $activity->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($ownerGuid);
+
+        $activity->getUrn()
+            ->willReturn($activityUrn);
+
+        $this->manager->add(Argument::that(function (Notification $notification) use ($ownerGuid) {
+            return $notification->getType() === NotificationTypes::TYPE_QUOTE
+                && $notification->getToGuid() === $ownerGuid
+                && $notification->getUrn() === 'urn:notification:456-';
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->entitiesBuilder->single(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($toUser);
+
+        $this->manager->getUnreadCount($toUser)
+            ->shouldBeCalled()
+            ->willReturn(12);
+
+        $this->redisMock->publish("socket.io#/#", Argument::that(function ($arg) {
+            return strpos($arg, 'notification:count:456');
+        }))
+            ->shouldBeCalled();
+
+        $this->consume($actionEvent);
+    }
+
 }

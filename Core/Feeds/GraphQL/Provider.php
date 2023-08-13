@@ -1,11 +1,11 @@
 <?php
 namespace Minds\Core\Feeds\GraphQL;
 
+use Minds\Core\Boost\V3\Manager as BoostManager;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
-use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 use Minds\Core\FeedNotices;
-use Minds\Core\Boost\V3\Manager as BoostManager;
+use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;

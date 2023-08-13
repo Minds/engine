@@ -20,6 +20,7 @@ use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
+use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Wire\Wire;
 use Minds\Entities\Group;
@@ -38,21 +39,20 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
     /** @var Core\Config */
     protected $config;
 
-
-    private readonly EntitiesBuilder $entitiesBuilder;
     private ?GiftCardsManager $giftCardsManager = null;
 
     public function __construct(
         Manager $manager = null,
         Logger $logger = null,
         Config $config = null,
-        private ?Resolver $entitiesResolver = null
+        private ?Resolver $entitiesResolver = null,
+        private ?EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->manager = $manager ?? Di::_()->get('Notifications\Manager');
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->config = $config ?? Di::_()->get('Config');
         $this->entitiesResolver ??= Di::_()->get(Resolver::class);
-        $this->entitiesBuilder = Di::_()->get("EntitiesBuilder");
+        $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
     }
 
     /**
@@ -364,6 +364,7 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 continue;
             }
             $this->logger->info("{$notification->getUuid()} {$notification->getType()} saved");
+            $this->emitToSockets($notification);
         }
 
         return $allNotificationsSent;
@@ -415,6 +416,32 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
         }
 
         return $notifications;
+    }
+
+    /**
+     * Emits a users notification count via sockets.
+     * @param Notification $notification - new notification.
+     * @return void
+     */
+    private function emitToSockets(Notification $notification): void
+    {
+        try {
+            $toUser = $this->entitiesBuilder->single($notification->getToGuid());
+
+            if (!$toUser || !($toUser instanceof User)) {
+                $this->logger->warning('User not found with guid: ' . $notification?->getToGuid() ?? 'unknown');
+                return;
+            }
+
+            $count = $this->manager->getUnreadCount($toUser);
+            $roomName = "notification:count:{$notification->getToGuid()}";
+
+            (new SocketEvents())
+                ->setRoom($roomName)
+                ->emit($roomName, $count);
+        } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
+        }
     }
 
     private function getGiftCardsManager(): GiftCardsManager

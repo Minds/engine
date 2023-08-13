@@ -108,7 +108,7 @@ class Manager
                 $groups = new Response($this->getDefaultTagBasedSuggestions('group'));
             }
 
-            $groups = $groups->map(function (Suggestion $suggestion): Suggestion {
+            $groups = $groups->map(function (Suggestion $suggestion): ?Suggestion {
                 $entity = $suggestion->getEntity() ?: $this->entitiesBuilder->single($suggestion->getEntityGuid());
 
                 if (!$entity) {
