@@ -111,6 +111,13 @@ class Manager
         // MH: lets index on the fly so we don't need to rely on reverse indexing job
         $this->repository->addNostrUser($user, $publicKey);
 
+        // Also create an event record in MySQL
+        $users = iterator_to_array($this->repository->getEvents(['kinds'=>[0], 'authors'=>[$publicKey]]));
+        if (count($users) == 0) {
+            $event = $this->buildNostrEvent($user);
+            $this->repository->addEvent($event);
+        }
+
         return $publicKey;
     }
 
