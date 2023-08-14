@@ -23,16 +23,11 @@ use Minds\Core\Entities\Ops\EntitiesOpsEvent;
 
 class NostrOpsEventStreamsSubscription implements SubscriptionInterface
 {
-    private Manager $manager;
-    private Resolver $entitiesResolver;
-    private EntitiesBuilder $entitiesBuilder;
-    private Keys $keys;
-
     public function __construct(
-        Manager $manager = null,
-        Resolver $entitiesResolver = null,
-        EntitiesBuilder $entitiesBuilder = null,
-        Keys $keys = null
+        protected ?Manager $manager = null,
+        protected ?Resolver $entitiesResolver = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null,
+        protected ?Keys $keys = null
     ) {
         $this->manager = $manager ?? Di::_()->get('Nostr\Manager');
         $this->entitiesResolver ??= new Resolver();
@@ -75,11 +70,8 @@ class NostrOpsEventStreamsSubscription implements SubscriptionInterface
             return true;
         }
 
-        $entity = $this->entitiesResolver->setOpts([
-            'cache' => false
-        ])->single(new Urn($event->getEntityUrn()));
-
-        return true;
+        $entity = $this->entitiesResolver->setOpts(['cache' => false])
+            ->single(new Urn($event->getEntityUrn()));
 
         if (!$entity) {
             // Entity not found
