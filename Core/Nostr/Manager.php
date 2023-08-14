@@ -381,6 +381,16 @@ class Manager
     }
 
     /**
+     * Return Nostr event id from a Activity id
+     * @param string $activityId
+     * @return string
+     */
+    public function getNostrEventFromActivityId(string $id): string
+    {
+        return $this->repository->getNostrEventFromActivityId($id);
+    }
+
+    /**
      * Return Activity entity from a NostrId
      * @param string $nostrId
      * @return Activity

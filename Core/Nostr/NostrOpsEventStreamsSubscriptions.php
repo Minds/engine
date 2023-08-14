@@ -4,7 +4,11 @@
  * You can test by running `php cli.php EventStreams --subscription=Core\\Nostr\\NostrOpsEventStreamsSubscriptions`
  */
 
-namespace Minds\Core\Comments;
+namespace Minds\Core\Nostr;
+
+use Minds\Common\Urn;
+use Minds\Entities\Activity;
+use Minds\Entities\User;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
@@ -21,28 +25,25 @@ use Minds\Core\Entities\Ops\EntitiesOpsEvent;
 class NostrOpsEventStreamsSubscriptions implements SubscriptionInterface
 {
     protected Manager $manager;
-    private SearchRepository $searchRepository;
-    private RelationalRepository $repository;
-
-    private Logger $logger;
-
+    private Repository $repository;
     private Resolver $entitiesResolver;
     private EntitiesBuilder $entitiesBuilder;
+    private Keys $keys;
 
     public function __construct(
         Manager $manager = null,
-        RelationalRepository $repository = null,
-        SearchRepository $searchRepository = null,
+        Repository $repository = null,
         Resolver $entitiesResolver = null,
         EntitiesBuilder $entitiesBuilder = null,
-        Logger $logger = null
+        Logger $logger = null,
+        Keys $keys = null
     ) {
-        $this->manager = $manager ?? Di::_()->get('Comments\Manager');
-        $this->searchRepository = $searchRepository ?? new SearchRepository();
-        $this->repository = $repository ?? new RelationalRepository();
+        $this->manager = $manager ?? Di::_()->get('Nostr\Manager');
+        $this->repository = $repository ?? new Repository();
         $this->entitiesResolver ??= new Resolver();
         $this->entitiesBuilder ??= new EntitiesBuilder();
-        $this->logger ??= Di::_()->get('Logger');
+        $this->logger ??= new Logger();
+        $this->keys ??= new Keys();
     }
 
     /**
@@ -76,6 +77,7 @@ class NostrOpsEventStreamsSubscriptions implements SubscriptionInterface
      */
     public function consume(EventInterface $event): bool
     {
+        $hello = "world";
         if (!$event instanceof EntitiesOpsEvent) {
             return false;
         }
@@ -91,13 +93,9 @@ class NostrOpsEventStreamsSubscriptions implements SubscriptionInterface
 
         switch (get_class($entity)) {
             case Activity::class:
-                $logger->info("Activity");
                 $user = $entity->getOwnerEntity();
                 break;
-            case User::class:
-                $logger->info("User");
-                $user = $entity;
-                break;
+            // case User::class: // TODO might be useful to sync user profile changes
             default:
                 return true; // Will not sync anything else
         }
@@ -106,21 +104,25 @@ class NostrOpsEventStreamsSubscriptions implements SubscriptionInterface
         $nip26DelegateToken = $this->keys->getNip26DelegationToken($delegatePublicKey);
 
         if (!$nip26DelegateToken) {
-            $logger->info("No NIP26 Delegate Token found for user {$user->getUrn()}");
             return true;
         }
 
+        $activityId = explode(':', $entity->getUrn())[2];
+        $eventId = $this->manager->getNostrEventFromActivityId($activityId);
+
         switch ($event->getOp()) {
             case EntitiesOpsEvent::OP_CREATE:
-            case EntitiesOpsEvent::OP_UPDATE:
-                $logger->info("Create or Update");
                 $event = $this->manager->buildNostrEvent($entity);
                 $this->manager->addEvent($event);
-                break;
+                return true;
+            case EntitiesOpsEvent::OP_UPDATE:
+                $event = $this->manager->buildNostrEvent($entity);
+                $this->manager->addEvent($event);
+                $this->manager->deleteNostrEvents([$eventId]);
+                return true;
             case EntitiesOpsEvent::OP_DELETE:
-                $logger->info("Delete");
-                $this->manager->removeEvent($entity);
-                break;
+                $this->manager->deleteNostrEvents([$eventId]);
+                return true;
         }
     }
 }

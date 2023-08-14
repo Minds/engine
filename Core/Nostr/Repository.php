@@ -249,6 +249,32 @@ class Repository
     }
 
     /**
+     * Return Nostr event id from a Activity id
+     * @param string $activityId
+     * @return string
+     */
+    public function getNostrEventFromActivityId(string $activityId): ?string
+    {
+        $prepared = $this->executeEventsPreparedQuery([
+            'activity_guid' => [ $activityId ],
+            'kinds' => [1],
+        ], returnActivityGuids: true);
+
+        $rows = $prepared->fetchAll();
+
+        if (isset($rows[0])) {
+            $eventId = $rows[0]['id'];
+            if (!$eventId) {
+                return "";
+            }
+
+            return $eventId;
+        }
+
+        return "";
+    }
+
+    /**
      * Return Activity entities from a NostrId
      * @param array $nostrIds
      * @return iterable<Activity>
@@ -340,6 +366,11 @@ class Repository
         if ($filters['until']) {
             $where[] = "e.created_at <= ?";
             array_push($values, date('c', $filters['until']));
+        }
+
+        if ($filters['activity_guid']) {
+            $where[] = "a.activity_guid IN " . $this->inPad($filters['activity_guid']);
+            array_push($values, ...$filters['activity_guid']);
         }
 
         if ($filters) {
