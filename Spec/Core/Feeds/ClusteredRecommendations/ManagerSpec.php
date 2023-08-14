@@ -6,7 +6,6 @@ namespace Spec\Minds\Core\Feeds\ClusteredRecommendations;
 use Exception;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
-use Minds\Core\Feeds\ClusteredRecommendations\LegacyMySQLRepository;
 use Minds\Core\Feeds\ClusteredRecommendations\Manager;
 use Minds\Core\Feeds\ClusteredRecommendations\MySQLRepository;
 use Minds\Core\Feeds\ClusteredRecommendations\RepositoryFactory;
@@ -78,13 +77,6 @@ class ManagerSpec extends ObjectBehavior
     ): void {
         $this->setUser($user);
 
-        $this->experimentsManager->setUser($user)
-            ->shouldBeCalledOnce();
-
-        $this->experimentsManager->isOn('engine-2494-clustered-recs-v2')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this->hashtagsManager->setUser($user)
             ->shouldBeCalledOnce();
         $this->hashtagsManager->get(Argument::type('array'))
@@ -109,70 +101,6 @@ class ManagerSpec extends ObjectBehavior
         $repository->setUser($user);
 
         $this->repositoryFactory->getInstance(MySQLRepository::class)
-            ->shouldBeCalledOnce()
-            ->willReturn($repository);
-
-        $entity->getGuid()
-            ->shouldBeCalledOnce()
-            ->willReturn("123");
-
-        $entity->getOwnerGuid()
-            ->shouldBeCalledOnce()
-            ->willReturn("123");
-
-        $entity->getUrn()
-            ->shouldBeCalled()
-            ->willReturn("");
-
-        $this->entitiesBuilder->single('123')
-            ->shouldBeCalledOnce()
-            ->willReturn($entity);
-
-        $this->getList(12, true)
-            ->shouldContainAnInstanceOf(FeedSyncEntity::class);
-    }
-
-    /**
-     * @param User $user
-     * @param LegacyMySQLRepository $repository
-     * @param Entity $entity
-     * @return void
-     * @throws Exception
-     */
-    public function it_should_get_legacy_list_of_recommendations_for_user(
-        User $user,
-        LegacyMySQLRepository $repository,
-        Entity $entity
-    ): void {
-        $this->setUser($user);
-
-        $this->experimentsManager->setUser($user)
-            ->shouldBeCalledOnce();
-
-        $this->experimentsManager->isOn('engine-2494-clustered-recs-v2')
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $this->seenManager->getIdentifier()
-            ->shouldBeCalledOnce()
-            ->willReturn("");
-
-        $this->userRecommendationsCluster->calculateUserRecommendationsClusterId($user)
-            ->shouldBeCalledOnce()
-            ->willReturn(0);
-
-        $repository->getList(0, 12, [], true, "", null)
-            ->shouldBeCalledOnce()
-            ->willYield([
-                (new ScoredGuid())
-                    ->setGuid('123')
-                    ->setType('activity')
-                    ->setScore(1)
-                    ->setOwnerGuid('123')
-                    ->setTimestamp(0)
-            ]);
-
-        $this->repositoryFactory->getInstance(LegacyMySQLRepository::class)
             ->shouldBeCalledOnce()
             ->willReturn($repository);
 
