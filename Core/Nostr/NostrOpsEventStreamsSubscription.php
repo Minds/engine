@@ -1,7 +1,7 @@
 <?php
 /**
  * This subscription will sync comments to the Nostr table
- * You can test by running `php cli.php EventStreams --subscription=Core\\Nostr\\NostrOpsEventStreamsSubscriptions`
+ * You can test by running `php cli.php EventStreams --subscription=Core\\Nostr\\NostrOpsEventStreamsSubscription`
  */
 
 namespace Minds\Core\Nostr;
@@ -11,7 +11,6 @@ use Minds\Entities\Activity;
 use Minds\Entities\User;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Log\Logger;
 
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\SubscriptionInterface;
@@ -22,27 +21,22 @@ use Minds\Core\Entities\Resolver;
 use Minds\Core\Entities\Ops\EntitiesOpsTopic;
 use Minds\Core\Entities\Ops\EntitiesOpsEvent;
 
-class NostrOpsEventStreamsSubscriptions implements SubscriptionInterface
+class NostrOpsEventStreamsSubscription implements SubscriptionInterface
 {
-    protected Manager $manager;
-    private Repository $repository;
+    private Manager $manager;
     private Resolver $entitiesResolver;
     private EntitiesBuilder $entitiesBuilder;
     private Keys $keys;
 
     public function __construct(
         Manager $manager = null,
-        Repository $repository = null,
         Resolver $entitiesResolver = null,
         EntitiesBuilder $entitiesBuilder = null,
-        Logger $logger = null,
         Keys $keys = null
     ) {
         $this->manager = $manager ?? Di::_()->get('Nostr\Manager');
-        $this->repository = $repository ?? new Repository();
         $this->entitiesResolver ??= new Resolver();
         $this->entitiesBuilder ??= new EntitiesBuilder();
-        $this->logger ??= new Logger();
         $this->keys ??= new Keys();
     }
 
@@ -78,12 +72,14 @@ class NostrOpsEventStreamsSubscriptions implements SubscriptionInterface
     public function consume(EventInterface $event): bool
     {
         if (!$event instanceof EntitiesOpsEvent) {
-            return false;
+            return true;
         }
 
         $entity = $this->entitiesResolver->setOpts([
             'cache' => false
         ])->single(new Urn($event->getEntityUrn()));
+
+        return true;
 
         if (!$entity) {
             // Entity not found
@@ -112,7 +108,6 @@ class NostrOpsEventStreamsSubscriptions implements SubscriptionInterface
         switch ($event->getOp()) {
             case EntitiesOpsEvent::OP_CREATE:
                 $nostrEvent = $this->manager->buildNostrEvent($entity);
-                $test = $nostrEvent->getId();
                 $this->manager->addEvent($nostrEvent);
                 $this->manager->addActivityToNostrId($entity, $nostrEvent->getId());
                 return true;

@@ -316,6 +316,7 @@ class Repository
             '#p' => null,
             'since' => null,
             'until' => null,
+            'activity_guid' => null,
             'limit' => 12,
         ], $filters);
 
