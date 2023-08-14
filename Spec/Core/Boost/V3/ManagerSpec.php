@@ -2001,4 +2001,68 @@ class ManagerSpec extends ObjectBehavior
             statuses: $statuses
         )->shouldBe(true);
     }
+
+    public function it_should_determine_if_a_user_should_be_shown_boosts(
+        User $targetUser
+    ): void {
+        $targetUser->get('disabled_boost')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $targetUser->getTimeCreated()
+            ->shouldBeCalled()
+            ->willReturn(time() - 604801);
+
+        $this->callOnWrappedObject('shouldShowBoosts', [$targetUser])
+            ->shouldBe(true);
+    }
+
+    public function it_should_determine_if_a_user_should_be_shown_boosts_because_they_previously_disabled_boosts_but_are_NOT_plus(
+        User $targetUser
+    ): void {
+        $targetUser->get('disabled_boost')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $targetUser->isPlus()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $targetUser->getTimeCreated()
+            ->shouldBeCalled()
+            ->willReturn(time() - 604801);
+
+        $this->callOnWrappedObject('shouldShowBoosts', [$targetUser])
+            ->shouldBe(true);
+    }
+
+    public function it_should_determine_if_a_user_should_NOT_be_shown_boosts_because_they_are_plus_and_disabled_boosts(
+        User $targetUser
+    ): void {
+        $targetUser->get('disabled_boost')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $targetUser->isPlus()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->callOnWrappedObject('shouldShowBoosts', [$targetUser])
+            ->shouldBe(false);
+    }
+
+    public function it_should_determine_if_a_user_should_NOT_be_shown_boosts_because_they_are_new(
+        User $targetUser
+    ): void {
+        $targetUser->get('disabled_boost')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $targetUser->getTimeCreated()
+            ->shouldBeCalled()
+            ->willReturn(time() - 1000);
+        
+        $this->callOnWrappedObject('shouldShowBoosts', [$targetUser])
+            ->shouldBe(false);
+    }
 }
