@@ -163,8 +163,10 @@ class Repository extends MySQL\AbstractRepository
         if ($success) {
             // Update the cache
             $this->cache->set($this->getMembershipCacheKey($membership->groupGuid, $membership->userGuid), serialize($membership));
-            // Purge the group count cache key
+            // Purge the group count cache key for this membership level
             $this->cache->delete($this->getMemberCountCacheKey($membership->groupGuid, $membership->membershipLevel));
+            // Purge the group count cache key for all membership levels
+            $this->cache->delete($this->getMemberCountCacheKey($membership->groupGuid));
         }
 
         return $success;
@@ -184,10 +186,12 @@ class Repository extends MySQL\AbstractRepository
         if ($success) {
             // Purge the group membership cache key
             $this->cache->delete($this->getMembershipCacheKey($membership->groupGuid, $membership->userGuid));
-            // Purge the group count cache key
+            // Purge the group count cache key for each level
             foreach (GroupMembershipLevelEnum::cases() as $membershipLevel) {
                 $this->cache->delete($this->getMemberCountCacheKey($membership->groupGuid, $membershipLevel));
             }
+            // Purge the group count cache key for all membership levels
+            $this->cache->delete($this->getMemberCountCacheKey($membership->groupGuid));
         }
 
         return $success;
@@ -265,11 +269,11 @@ class Repository extends MySQL\AbstractRepository
             ->offset($offset);
 
         $prepared = $query->prepare();
-     
+
         $prepared->execute([
             'userGuid' => $userGuid,
         ]);
-    
+
         foreach ($prepared as $row) {
             yield (int) $row['group_guid'];
         }
