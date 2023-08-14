@@ -300,7 +300,7 @@ class SearchController
         int $limit = 3,
         int $targetLocation = BoostTargetLocation::NEWSFEED,
     ): array {
-        if ($loggedInUser->disabled_boost && $loggedInUser->isPlus()) {
+        if (!$this->boostManager->shouldShowBoosts($loggedInUser)) {
             return [];
         }
 
