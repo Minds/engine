@@ -82,7 +82,7 @@ class NostrOpsEventStreamsSubscription implements SubscriptionInterface
             case Activity::class:
                 $user = $entity->getOwnerEntity();
                 break;
-            // case User::class: // TODO might be useful to sync user profile changes
+                // case User::class: // TODO might be useful to sync user profile changes
             default:
                 return true; // Will not sync anything else
         }
