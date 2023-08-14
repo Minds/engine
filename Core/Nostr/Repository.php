@@ -265,13 +265,13 @@ class Repository
         if (isset($rows[0])) {
             $eventId = $rows[0]['id'];
             if (!$eventId) {
-                return "";
+                return null;
             }
 
             return $eventId;
         }
 
-        return "";
+        return null;
     }
 
     /**
