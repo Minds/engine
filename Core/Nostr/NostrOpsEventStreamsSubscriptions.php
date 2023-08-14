@@ -51,7 +51,7 @@ class NostrOpsEventStreamsSubscriptions implements SubscriptionInterface
      */
     public function getSubscriptionId(): string
     {
-        return 'nostr-ops';
+        return 'nostr-sync';
     }
 
     /**
@@ -77,7 +77,6 @@ class NostrOpsEventStreamsSubscriptions implements SubscriptionInterface
      */
     public function consume(EventInterface $event): bool
     {
-        $hello = "world";
         if (!$event instanceof EntitiesOpsEvent) {
             return false;
         }
@@ -112,12 +111,15 @@ class NostrOpsEventStreamsSubscriptions implements SubscriptionInterface
 
         switch ($event->getOp()) {
             case EntitiesOpsEvent::OP_CREATE:
-                $event = $this->manager->buildNostrEvent($entity);
-                $this->manager->addEvent($event);
+                $nostrEvent = $this->manager->buildNostrEvent($entity);
+                $test = $nostrEvent->getId();
+                $this->manager->addEvent($nostrEvent);
+                $this->manager->addActivityToNostrId($entity, $nostrEvent->getId());
                 return true;
             case EntitiesOpsEvent::OP_UPDATE:
-                $event = $this->manager->buildNostrEvent($entity);
-                $this->manager->addEvent($event);
+                $nostrEvent = $this->manager->buildNostrEvent($entity);
+                $this->manager->addEvent($nostrEvent);
+                $this->manager->addActivityToNostrId($entity, $nostrEvent->getId());
                 $this->manager->deleteNostrEvents([$eventId]);
                 return true;
             case EntitiesOpsEvent::OP_DELETE:

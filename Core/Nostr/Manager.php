@@ -385,7 +385,7 @@ class Manager
      * @param string $activityId
      * @return string
      */
-    public function getNostrEventFromActivityId(string $id): string
+    public function getNostrEventFromActivityId(string $id): ?string
     {
         return $this->repository->getNostrEventFromActivityId($id);
     }
