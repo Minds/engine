@@ -47,6 +47,7 @@ use Minds\Helpers;
  * @property array $attachments
  * @property array $supermind
  * @property string $auto_caption
+ * @property array $inferred_tags
  */
 class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface, CommentableEntityInterface
 {
@@ -100,6 +101,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'attachments' => null,
             'supermind' => null,
             'auto_caption' => null,
+            'inferred_tags' => [],
         ]);
     }
 
@@ -1118,6 +1120,17 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function setAutoCaption(string $autoCaption): self
     {
         $this->auto_caption = $autoCaption;
+        return $this;
+    }
+
+    public function getInferredTags(): ?array
+    {
+        return $this->inferred_tags;
+    }
+
+    public function setInferredTags(array $inferredTags): self
+    {
+        $this->inferred_tags = $inferredTags;
         return $this;
     }
 
