@@ -158,7 +158,7 @@ class NewsfeedController
 
         if ($isFirstPage && $algorithm === NewsfeedAlgorithmsEnum::FORYOU && $this->isForYouTagRecsExperimentOn($loggedInUser)) {
             $edges = $this->tagRecommendationsManager->prepend(
-                edges: $edges, // passsed by reference.
+                edges: $edges,
                 user: $loggedInUser,
                 cursor: '' // loadAfter not yet passed back by reference from generator.
             );
