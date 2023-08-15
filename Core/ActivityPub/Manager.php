@@ -7,6 +7,7 @@ use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Guid;
 use Minds\Core\Webfinger;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
@@ -25,24 +26,66 @@ class Manager
         
     }
 
-
-    public function addActor(AbstractActorType $actor, int $guid): bool
+    /**
+     * Saves an Actor to the datastore, for easy access later
+     */
+    public function addActor(AbstractActorType $actor, User $user): bool
     {
         // Add the URI to the database
-        $this->addUri($actor->id, $guid);
+        $this->addUri($actor->id, (int) $user->getGuid(), $user->getUrn());
 
         return $this->repository->addActor($actor);
     }
 
-    public function addUri(string $uri, int $guid): bool
+    /**
+     * Retains a reference of URI to minds GUIDS
+     */
+    public function addUri(string $uri, int $guid, string $urn): bool
     {
         return $this->repository->addUri(
             uri: $uri,
             domain: JsonLdHelper::getDomainFromUri($uri),
-            guid: $guid,
+            entityUrn: $urn,
+            entityGuid: $guid,
         );
     }
 
+    /**
+     * Returns a URI (if available) from a Minds guid
+     */
+    public function getUriFromGuid(int $guid): ?string
+    {
+        $uri = $this->repository->getUriFromGuid($guid);
+
+        if ($uri) {
+            return $uri;
+        }
+
+        $entity = $this->entitiesBuilder->single($guid);
+
+        if (!$entity) {
+
+            return $this->getUriFromEntity($entity);
+        }
+    }
+
+    /**
+     * Returns a Uri for an entity
+     */
+    public function getUriFromEntity(EntityInterface $entity): string
+    {
+        $url = $this->getBaseUrl() . 'users/' . $entity->getOwnerGuid();
+
+        if ($entity instanceof User) {
+            return $url;
+        }
+
+        return $url . '/entities/' . $entity->getGuid();
+    }
+
+    /**
+     * Returns a Minds entity from a uri
+     */
     public function getEntityFromUri(string $uri): ?EntityInterface
     {
         // Does the $objectUri start with our local domain
@@ -51,8 +94,8 @@ class Manager
         }
 
         // Do we have a copy of this locally?
-        if ($localGuid = $this->repository->getGuidFromUri($uri)) {
-            $localEntity = $this->entitiesBuilder->single($localGuid);
+        if ($localUrn = $this->repository->getUrnFromUri($uri)) {
+            $localEntity = $this->entitiesBuilder->getByUrn($localUrn);
 
             if (!$localEntity) {
                 //throw new NotFoundException("The local entity could not be found. It may have been deleted");
@@ -63,31 +106,13 @@ class Manager
         }
 
         return null;
-
-        // // Fetch the remote object
-        // // Does the uri start with http?
-        // if (!strpos($objectUri, 'http', 0) === 0) {
-        //     throw new UserErrorException("Minds only support IDs that are resolvable http(s) urls");
-        // }
-
-        // $payload = $this->client->request('GET', $objectUri);
-
-        // if (!$payload) {
-        //     throw new NotFoundException();
-        // }
-
-        // throw new NotImplementedException();
-
-        // switch ($payload['type']) {
-
-        // }
     }
 
     /**
      * Returns a Minds entity from its ActivityPub id. This function should be used
      * when the $objectUri is a local one.
      */
-    public function getEntityFromLocalUri(string $objectUri): ?EntityInterface
+    private function getEntityFromLocalUri(string $objectUri): ?EntityInterface
     {
         if (!$this->isLocalUri($objectUri)) {
             throw new ServerErrorException("Non-local uri passed through to the getEntityFromLocalUri function");
@@ -151,15 +176,35 @@ class Manager
     }
 
     /**
-     * Returns true if the activity pub uri matches the Minds site url
+     * Returns a list of inboxes to target for a users followers.
+     * If there is no sharedInbox, it will coalesce to an inbox url
      */
-    private function isLocalUri($uri): bool
+    public function getInboxesForFollowers(int $userGuid): iterable
     {
-        return strpos($uri, $this->getBaseUrl(), 0) === 0;
+        return $this->repository->getInboxesForFollowers($userGuid);
     }
 
+    /**
+     * Returns the base url that we will use for all of our Ids
+     */
     public function getBaseUrl(): string
     {
         return $this->config->get('site_url') . 'api/activitypub/';
+    }
+
+    /**
+     * Returns a transient id
+     */
+    public function getTransientId(): string
+    {
+        return $this->getBaseUrl() . 'transient/' . Guid::build();
+    }
+    
+    /**
+     * Returns true if the activity pub uri matches the Minds site url
+     */
+    public function isLocalUri($uri): bool
+    {
+        return strpos($uri, $this->getBaseUrl(), 0) === 0;
     }
 }

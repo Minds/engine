@@ -70,6 +70,9 @@ class Comment extends RepositoryEntity implements EntityInterface
     protected $parentGuidL3 = 0; // Not supported yet
 
     /** @var int */
+    protected $parentGuid;
+
+    /** @var int */
     protected $guid;
 
     /** @var int */
@@ -303,6 +306,24 @@ class Comment extends RepositoryEntity implements EntityInterface
             return "{$this->getParentGuidL1()}:{$this->getGuid()}:0";
         }
         return "{$this->getParentGuidL1()}:{$this->getParentGuidL2()}:{$this->getGuid()}";
+    }
+
+    /**
+     * Returns the guid of the parent
+     * If this is a top level comment, null will be returned
+     */
+    public function getParentGuid(): ?int
+    {
+        if (isset($this->parentGuid)) {
+            return $this->parentGuid;
+        }
+        if ($this->getParentGuidL2()) {
+            return $this->getParentGuidL2();
+        }
+        if ($this->getParentGuidL1()) {
+            return $this->getParentGuidL1();
+        }
+        return null;
     }
 
     /**

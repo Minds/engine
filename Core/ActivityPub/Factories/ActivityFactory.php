@@ -9,7 +9,9 @@ use Minds\Core\ActivityPub\Types\Activity\FollowType;
 use Minds\Core\ActivityPub\Types\Activity\UndoType;
 use Minds\Core\ActivityPub\Types\Core\ActivityType;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
-use Minds\Core\Di\Di;
+use Minds\Core\ActivityPub\Types\Activity\AcceptType;
+use Minds\Core\ActivityPub\Types\Activity\AnnounceType;
+use Minds\Core\ActivityPub\Types\Activity\DeleteType;
 use NotImplementedException;
 
 class ActivityFactory
@@ -27,6 +29,9 @@ class ActivityFactory
             'Create' => new CreateType(),
             'Follow' => new FollowType(),
             'Undo' => new UndoType(),
+            'Accept' => new AcceptType(),
+            'Announce' => new AnnounceType(),
+            // 'Delete' => new DeleteType(),
             default => throw new NotImplementedException(),
         };
 
@@ -37,6 +42,9 @@ class ActivityFactory
         $activity->object = match (get_class($activity)) {
             FollowType::class => $this->actorFactory->fromUri(JsonLdHelper::getValueOrId($json['object'])),
             UndoType::class => $this->fromJson($json['object'], $actor),
+            AcceptType::class => $this->fromJson($json['object'], $actor),
+            DeleteType::class => null, // TODO
+            AnnounceType::class => $this->objectFactory->fromUri(JsonLdHelper::getValueOrId($json['object'])),
             default => $this->objectFactory->fromJson($json['object']),
         };
 

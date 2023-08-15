@@ -17,15 +17,6 @@ abstract class AbstractType implements ExportableInterface
         'https://www.w3.org/ns/activitystreams',
     ];
 
-    public function __construct(array $json = [])
-    {
-        foreach ($json as $k => $v) {
-            if (property_exists($this, $k)) {
-                $this->$k = $v;
-            }
-        }
-    }
-
     public function getContextExport(): array
     {
         return [

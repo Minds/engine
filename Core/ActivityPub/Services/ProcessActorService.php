@@ -67,8 +67,6 @@ class ProcessActorService
                     return $user;
                 }
 
-                // TODO: Any requirements we need to check before creating the user
-
                 $username = $this->actor->preferredUsername . '@' . JsonLdHelper::getDomainFromUri($this->actor->id);
                 $email = 'activitypub-imported@minds.com';
                 $password = openssl_random_pseudo_bytes(128);
@@ -82,6 +80,9 @@ class ProcessActorService
                 // Create the user
                 $user = register_user($username, $password, $username, $email, validatePassword: false, isActivityPub: true);
 
+                $user->setName($this->actor->name);
+                $user->setBriefDescription($this->actor->summary);
+
                 // Set the source as being activitypub
                 $user->setSource('activitypub');
 
@@ -89,7 +90,7 @@ class ProcessActorService
                 $this->saveAction->setEntity($user)->save();
                 $this->acl->setIgnore($ia); // Reset ACL state
 
-                $this->manager->addActor($this->actor, (int) $user->getGuid());
+                $this->manager->addActor($this->actor, $user);
 
                 return $user;
                 break;

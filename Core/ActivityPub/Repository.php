@@ -10,14 +10,14 @@ use Selective\Database\RawExp;
 
 class Repository extends AbstractRepository
 {
-    public function getGuidFromUri(string $uri): ?int
+    public function getUrnFromUri(string $uri): ?string
     {
         $query = $this->mysqlClientReaderHandler
             ->select()
             ->columns([
                 'uri',
                 'domain',
-                'guid',
+                'entity_urn',
             ])
             ->from('minds_activitypub_uris')
             ->where('uri', Operator::EQ, new RawExp(':uri'));
@@ -35,13 +35,40 @@ class Repository extends AbstractRepository
 
         $row = $rows[0];
 
-        return $row['guid'];
+        return $row['entity_urn'];
+    }
+
+    public function getUriFromGuid(int $guid): ?string
+    {
+        $query = $this->mysqlClientReaderHandler
+            ->select()
+            ->columns([
+                'uri',
+            ])
+            ->from('minds_activitypub_uris')
+            ->where('entity_guid', Operator::EQ, new RawExp(':entityGuid'));
+
+        $stmt = $query->prepare();
+        $stmt->execute([
+            'entityGuid' => $guid
+        ]);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($rows)) {
+            return null;
+        }
+
+        $row = $rows[0];
+
+        return $row['uri'];
     }
 
     public function addUri(
         string $uri,
         string $domain,
-        int $guid
+        string $entityUrn,
+        int $entityGuid
     ) {
         $query = $this->mysqlClientWriterHandler
             ->insert()
@@ -49,7 +76,8 @@ class Repository extends AbstractRepository
             ->set([
                 'uri' => new RawExp(':uri'),
                 'domain' => new RawExp(':domain'),
-                'guid' => new RawExp(':guid'),
+                'entity_urn' => new RawExp(':entityUrn'),
+                'entity_guid' => new RawExp(':entityGuid'),
             ]);
            
 
@@ -58,7 +86,8 @@ class Repository extends AbstractRepository
         return $stmt->execute([
             'uri' => $uri,
             'domain' => $domain,
-            'guid' => $guid,
+            'entityUrn' => $entityUrn,
+            'entityGuid' => $entityGuid,
         ]);
     }
 
@@ -142,5 +171,30 @@ class Repository extends AbstractRepository
             'userGuid' => $userGuid,
             'privateKey' => $privateKey,
         ]);
+    }
+
+    public function getInboxesForFollowers(int $userGuid): iterable
+    {
+        $query = $this->mysqlClientReaderHandler
+            ->select()
+            ->columns([
+                
+                'inbox' => new RawExp('coalesce(shared_inbox, inbox)'),
+            ])
+            ->from('minds_activitypub_actors')
+            ->innerJoin('minds_activitypub_uris', 'minds_activitypub_uris.uri', Operator::EQ, 'minds_activitypub_actors.uri')
+            ->innerJoin('friends', 'friends.user_guid', Operator::EQ, 'minds_activitypub_uris.entity_guid')
+            ->where('friends.friend_guid', Operator::EQ, new RawExp(':userGuid'));
+
+        $stmt = $query->prepare();
+        $stmt->execute([
+            'userGuid' => $userGuid
+        ]);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($rows as $row) {
+            yield $row['inbox'];
+        }
     }
 }

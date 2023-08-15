@@ -44,9 +44,8 @@ abstract class AbstractActorType extends ObjectType
     #[ExportProperty]
     public PublicKeyType $publicKey;
 
-    public function __construct(...$args)
+    public function __construct()
     {
-        parent::__construct(...$args);
         $this->contexts[] = 'https://w3id.org/security/v1';
     }
 }

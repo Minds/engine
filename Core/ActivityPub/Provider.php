@@ -13,6 +13,7 @@ use Minds\Core\ActivityPub\Factories\ActivityFactory;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Factories\OutboxFactory;
+use Minds\Core\ActivityPub\Services\EmitActivityService;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 
@@ -66,14 +67,26 @@ class Provider extends DiProvider
             return new ProcessActivityService(
                 manager: $di->get(Manager::class),
                 processActorService: $di->get(ProcessActorService::class),
+                emitActivityService: $di->get(EmitActivityService::class),
                 acl: $di->get('Security\ACL'),
                 activityManager: $di->get('Feeds\Activity\Manager'),
+                subscriptionsManager: $di->get('Subscriptions\Manager'),
             );
         });
         $this->di->bind(ProcessCollectionService::class, function ($di) {
             return new ProcessCollectionService(
                 processActivityService: $di->get(ProcessActivityService::class),
                 activityFactory: $di->get(ActivityFactory::class),
+            );
+        });
+        $this->di->bind(EmitActivityService::class, function ($di) {
+            return new EmitActivityService(
+                actorFactory: $di->get(ActorFactory::class),
+                objectFactory: $di->get(ObjectFactory::class),
+                client: $di->get(Client::class),
+                manager: $di->get(Manager::class),
+                entitiesBuilder: $di->get('EntitiesBuilder'),
+                logger: $di->get('Logger'),
             );
         });
 
@@ -97,6 +110,8 @@ class Provider extends DiProvider
         $this->di->bind(ObjectFactory::class, function ($di) {
             return new ObjectFactory(
                 manager: $di->get(Manager::class),
+                client: $di->get(Client::class),
+                actorFactory: $di->get(ActorFactory::class),
             );
         });
         $this->di->bind(OutboxFactory::class, function ($di) {

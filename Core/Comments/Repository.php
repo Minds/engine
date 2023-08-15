@@ -467,7 +467,7 @@ class Repository
         $query->query($cql, $values);
 
         try {
-            $this->cql->request($query);
+            $res = $this->cql->request($query);
         } catch (\Exception $e) {
             error_log("[Comments\Repository::add] {$e->getMessage()} > " . get_class($e));
             return false;

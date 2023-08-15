@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\ActivityPub;
 
+use GuzzleHttp\Exception\ClientException;
 use Minds\Core\ActivityPub\Factories\OutboxFactory;
 use Minds\Core\ActivityPub\Types\Activity\CreateType;
 use Minds\Core\ActivityPub\Types\Actor\PersonType;
@@ -192,7 +193,11 @@ class Controller
         $service = new HttpSignatureService();
         $keyId = $service->getKeyId($request->getHeader('Signature')[0]);
 
-        $actor = $this->actorFactory->fromUri($keyId);
+        try {
+            $actor = $this->actorFactory->fromUri($keyId);
+        } catch (ClientException $e) {
+            throw new ForbiddenException();
+        }
 
         $context = new \HttpSignatures\Context([
             'keys' => [$keyId => $actor->publicKey->publicKeyPem],

@@ -66,10 +66,15 @@ class ObjectType extends AbstractType
     
     /**
      * @see https://www.w3.org/TR/activitystreams-vocabulary/#dfn-published
-     * @todo Change this to be a model
      */
     #[ExportProperty]
     public DateTime $published;
+
+    /**
+     * @see https://www.w3.org/TR/activitystreams-vocabulary/#dfn-inreplyto
+     */
+    #[ExportProperty]
+    public string $inReplyTo;
 
     /**
      * Sets the ID (must be a string)

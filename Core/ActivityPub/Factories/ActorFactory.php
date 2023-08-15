@@ -51,7 +51,13 @@ class ActorFactory
      */
     public function fromUri(string $uri): AbstractActorType
     {
-        // TODO: is this a local entity?
+        if ($this->manager->isLocalUri($uri)) {
+            $entity = $this->manager->getEntityFromUri($uri);
+            if (!$entity) {
+                throw new NotFoundException();
+            }
+            return $this->fromEntity($entity);
+        }
 
         try {
             $response = $this->client->request('GET', $uri);
@@ -71,6 +77,13 @@ class ActorFactory
         // Build the json array from the entity
         if (!$entity instanceof User) {
             throw new NotImplementedException();
+        }
+
+        /**
+         * If we are building a remote user, then use their uri
+         */
+        if ($uri = $this->manager->getUriFromGuid($entity->getGuid())) {
+            return $this->fromUri($uri);
         }
 
         $baseUrl = $this->config->get('site_url') . 'api/activitypub/';

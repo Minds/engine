@@ -370,7 +370,8 @@ ALTER TABLE user_configurations
 CREATE TABLE IF NOT EXISTS minds_activitypub_uris (
     uri varchar(256) NOT NULL PRIMARY KEY,
     domain varchar(256) NOT NULL,
-    guid bigint NOT NULL UNIQUE
+    entity_urn varchar(256) NOT NULL,
+    entity_guid bigint NOT NULL UNIQUE
 );
 
 
