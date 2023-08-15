@@ -257,4 +257,23 @@ class Manager
             count($userHashtags) > 0 &&
             $userHashtags[0]['selected'];
     }
+
+    /**
+     * Gets a random user selected tag.
+     * @return ?string a random tag that the user has selected.
+     */
+    public function getRandomUserSelectedTag(): ?string
+    {
+        $tags = $this->get([
+            'trending' => false,
+            'defaults' => false
+        ]);
+
+        if (!$tags || !count($tags)) {
+            return null;
+        }
+
+        $randomTag = $tags[array_rand($tags)];
+        return strtolower($randomTag['value']);
+    }
 }

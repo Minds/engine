@@ -52,6 +52,9 @@ trait CommonMatchers
                 }
 
                 return true;
+            },
+            'haveALengthOf' => function ($subject, $value) {
+                return count($subject) === $value;
             }
         ];
     }

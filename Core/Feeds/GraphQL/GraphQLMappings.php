@@ -20,6 +20,10 @@ class GraphQLMappings extends AbstractGraphQLMappings
             Types\FeedHighlightsConnection::class,
             Types\PublisherRecsEdge::class,
             Types\PublisherRecsConnection::class,
+            Types\FeedHeaderEdge::class,
+            Types\FeedHeaderNode::class,
+            Types\FeedExploreTagEdge::class,
+            Types\FeedExploreTagNode::class,
         ]));
     }
 }

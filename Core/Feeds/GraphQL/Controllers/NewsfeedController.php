@@ -1,7 +1,6 @@
 <?php
 namespace Minds\Core\Feeds\GraphQL\Controllers;
 
-use AppendIterator;
 use GraphQL\Error\UserError;
 use Iterator;
 use Minds\Common\Access;
@@ -19,6 +18,7 @@ use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
 use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 use Minds\Core\Feeds\Elastic\V2\QueryOpts;
 use Minds\Core\Feeds\GraphQL\Enums\NewsfeedAlgorithmsEnum;
+use Minds\Core\Feeds\GraphQL\TagRecommendations\Manager as TagRecommendationsManager;
 use Minds\Core\Feeds\GraphQL\Types\ActivityEdge;
 use Minds\Core\Feeds\GraphQL\Types\ActivityNode;
 use Minds\Core\Feeds\GraphQL\Types\FeedHighlightsConnection;
@@ -32,11 +32,9 @@ use Minds\Core\Groups\V2\GraphQL\Types\GroupEdge;
 use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
-use Minds\Core\Search\Enums\SearchMediaTypeEnum;
 use Minds\Core\Votes;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
-use NoRewindIterator;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Query;
 
@@ -52,6 +50,7 @@ class NewsfeedController
         protected SuggestedGroupsRecommendationsAlgorithm $suggestedGroupsRecommendationsAlgorithm,
         protected ExperimentsManager $experimentsManager,
         protected Votes\Manager $votesManager,
+        protected TagRecommendationsManager $tagRecommendationsManager
     ) {
     }
 
@@ -94,6 +93,10 @@ class NewsfeedController
         $loadAfter = $after;
         $loadBefore = $before;
 
+        // store value so that this can be used AFTER $loadAfter or $loadBefore
+        // has been set for the next page.
+        $isFirstPage = !$loadAfter && !$loadBefore;
+ 
         /**
          * The limit to use
          */
@@ -153,28 +156,12 @@ class NewsfeedController
             default => throw new UserError("Invalid algorithm supplied")
         };
 
-        if ($algorithm === NewsfeedAlgorithmsEnum::FORYOU && $this->experimentsManager->setUser($loggedInUser)->isOn('minds-4169-for-you-top-posts-injection')) {
-            $topQueryOpts = new QueryOpts(
-                limit: 1, // TODO: swap with configurable value
-                query: "",
-                accessId: Access::PUBLIC,
-                mediaTypeEnum: SearchMediaTypeEnum::toMediaTypeEnum(SearchMediaTypeEnum::ALL),
-                nsfw: [],
-                seenEntitiesFilterStrategy: SeenEntitiesFilterStrategyEnum::DEMOTE,
+        if ($isFirstPage && $algorithm === NewsfeedAlgorithmsEnum::FORYOU && $this->isForYouTagRecsExperimentOn($loggedInUser)) {
+            $edges = $this->tagRecommendationsManager->prepend(
+                edges: $edges, // passsed by reference.
+                user: $loggedInUser,
+                cursor: '' // loadAfter not yet passed back by reference from generator.
             );
-
-            /**
-             * @var Iterator<Activity> $topResultActivities
-             */
-            $topResultActivities = $this->feedsManager->getTop(
-                queryOpts: $topQueryOpts,
-            );
-
-            $mergeIterator = new AppendIterator();
-            $mergeIterator->append(new NoRewindIterator($topResultActivities));
-            $mergeIterator->append(new NoRewindIterator($activities));
-
-            $activities = $mergeIterator;
         }
 
         // Build the boosts
@@ -205,7 +192,7 @@ class NewsfeedController
                     limit: 1
                 );
                 if ($priorityNotices && isset($priorityNotices[0])) {
-                    $edges[] = $priorityNotices[0];
+                    array_unshift($edges, $priorityNotices[0]);
                     $inFeedNoticesDelivered[] = $priorityNotices[0]->getNode()->getKey();
                 }
             }
@@ -601,5 +588,15 @@ class NewsfeedController
     protected function isExplicitVotesExperimentOn(): bool
     {
         return $this->experimentsManager->isOn('minds-4175-explicit-votes');
+    }
+
+    /**
+     * Whether for you tag recs experiment is on.
+     * @param User $loggedInUser - logged in user.
+     * @return bool true if experiment is on.
+     */
+    public function isForYouTagRecsExperimentOn(User $loggedInUser): bool
+    {
+        return $this->experimentsManager->setUser($loggedInUser)->isOn('minds-4228-for-you-tag-recs');
     }
 }
