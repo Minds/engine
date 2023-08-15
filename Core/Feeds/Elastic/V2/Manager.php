@@ -267,13 +267,13 @@ class Manager
         $functionScores = [...$topAlgo->getFunctionScores(), ...$prepared['functionScores']];
 
         // Min 1 vote
-        // $must[] = [
-        //     'range' => [
-        //         'votes:up' => [
-        //             'gte' => 1,
-        //         ]
-        //     ]
-        // ];
+        $must[] = [
+            'range' => [
+                'votes:up' => [
+                    'gte' => 1,
+                ]
+            ]
+        ];
 
         if ($loadAfter && $loadBefore) {
             throw new ServerErrorException("Two cursors, loadAfter and loadBefore were provided. Only one can be provided.");
