@@ -334,7 +334,7 @@ class NewsfeedController
         User $loggedInUser,
         int $limit = 3
     ): array {
-        if ($loggedInUser->disabled_boost && $loggedInUser->isPlus()) {
+        if (!$this->boostManager->shouldShowBoosts($loggedInUser)) {
             return [];
         }
 
