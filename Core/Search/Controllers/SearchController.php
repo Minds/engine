@@ -73,6 +73,7 @@ class SearchController
         $query = str_replace('#', '', $query);
 
         $latestQueryOpts = new QueryOpts(
+            user: $loggedInUser,
             limit: $limit,
             query: $query,
             accessId: Access::PUBLIC,
@@ -81,6 +82,7 @@ class SearchController
         );
 
         $topQueryOpts = new QueryOpts(
+            user: $loggedInUser,
             limit: $limit,
             query: $query,
             accessId: Access::PUBLIC,
