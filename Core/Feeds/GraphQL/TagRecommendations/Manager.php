@@ -90,7 +90,7 @@ class Manager
 
                 // reverse order as we are prepending one-by-one.
                 array_unshift($edges, new FeedHeaderEdge("Based on your interests", $cursor));
-                array_unshift($edges, new FeedExploreTagEdge('gaming', $cursor));
+                array_unshift($edges, new FeedExploreTagEdge($tag, $cursor));
                 if ($groupTagRecommendations) {
                     array_unshift($edges, $groupTagRecommendations);
                 }
