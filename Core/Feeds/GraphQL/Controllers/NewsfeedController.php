@@ -109,6 +109,7 @@ class NewsfeedController
         }
 
         $edges = [];
+        $hasMore = false;
 
         /**
          * @var Iterator<Activity> $activities
