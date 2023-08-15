@@ -50,7 +50,6 @@ class Manager
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?Plus\Manager $plusManager = null,
         private ?Stripe\Connect\Manager $connectManager = null,
-        private ?Sums $sums = null,
         private ?Pro\Manager $proManager = null,
         private ?PayoutsDelegate $payoutsDelegate = null,
         private ?EmailDelegate $emailDelegate = null,
@@ -64,7 +63,6 @@ class Manager
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->plusManager ??= Di::_()->get('Plus\Manager');
         $this->connectManager ??= Di::_()->get('Stripe\Connect\Manager');
-        $this->sums ??= new Sums();
         $this->proManager ??= Di::_()->get('Pro\Manager');
         $this->payoutsDelegate ??= new Delegates\PayoutsDelegate();
         $this->emailDelegate ??= new Delegates\EmailDelegate();

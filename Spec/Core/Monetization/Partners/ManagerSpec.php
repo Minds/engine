@@ -55,7 +55,6 @@ class ManagerSpec extends ObjectBehavior
             $connectManager,
             null,
             null,
-            null,
             $emailDelegate,
             $this->boostPartnersManager,
             $paymentsManager,
