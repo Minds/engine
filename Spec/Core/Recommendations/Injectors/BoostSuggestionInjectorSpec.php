@@ -71,6 +71,10 @@ class BoostSuggestionInjectorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($boostedUser);
 
+        $this->boostManager->shouldShowBoosts($targetUser)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->boostManager->getBoosts(
             1,
             0,
@@ -124,6 +128,10 @@ class BoostSuggestionInjectorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
+        $this->boostManager->shouldShowBoosts($targetUser)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->boostManager->getBoosts(
             1,
             0,
@@ -137,6 +145,33 @@ class BoostSuggestionInjectorSpec extends ObjectBehavior
             null
         )
             ->shouldBeCalled()
+            ->willReturn($boostRepoResponse);
+
+        $this->inject($response, $targetUser, 1);
+    }
+
+    public function it_should_NOT_inject_a_boost_if_boosts_should_not_be_shown_for_user(
+        Response $response,
+        User $targetUser,
+        Response $boostRepoResponse
+    ): void {
+        $this->boostManager->shouldShowBoosts($targetUser)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->boostManager->getBoosts(
+            1,
+            0,
+            BoostStatus::APPROVED,
+            false,
+            null,
+            true,
+            BoostTargetAudiences::SAFE,
+            BoostTargetLocation::SIDEBAR,
+            null,
+            null
+        )
+            ->shouldNotBeCalled()
             ->willReturn($boostRepoResponse);
 
         $this->inject($response, $targetUser, 1);
