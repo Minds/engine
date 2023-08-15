@@ -118,7 +118,7 @@ class ManagerSpec extends ObjectBehavior
         $result->shouldContainValueLike(new FeedHeaderEdge("#$tag trending", ''));
         $result->shouldContainValueLike(new ActivityEdge($activity1, '', false));
         $result->shouldContainValueLike(new ActivityEdge($activity2, '', false));
-        $result->shouldContainValueLike(new FeedExploreTagEdge('gaming', ''));
+        $result->shouldContainValueLike(new FeedExploreTagEdge($tag, ''));
         $result->shouldContainValueLike(new FeedHeaderEdge("Based on your interests", ''));
     }
 
@@ -184,7 +184,7 @@ class ManagerSpec extends ObjectBehavior
         $result->shouldContainValueLike(new FeedHeaderEdge("#$tag trending", ''));
         $result->shouldContainValueLike(new ActivityEdge($activity1, '', false));
         $result->shouldContainValueLike(new ActivityEdge($activity2, '', false));
-        $result->shouldContainValueLike(new FeedExploreTagEdge('gaming', ''));
+        $result->shouldContainValueLike(new FeedExploreTagEdge($tag, ''));
         $result->shouldContainValueLike(new FeedHeaderEdge("Based on your interests", ''));
     }
 
