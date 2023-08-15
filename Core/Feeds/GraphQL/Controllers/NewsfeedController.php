@@ -1,20 +1,25 @@
 <?php
 namespace Minds\Core\Feeds\GraphQL\Controllers;
 
+use AppendIterator;
 use GraphQL\Error\UserError;
+use Iterator;
 use Minds\Common\Access;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\GraphQL\Types\BoostEdge;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
-use Minds\Core\GraphQL\Types;
-use Minds\Core\Feeds\GraphQL\Types\ActivityEdge;
 use Minds\Core\Boost\V3\Manager as BoostManager;
 use Minds\Core\Boost\V3\Models\Boost;
-use Minds\Core\Session;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\FeedNotices;
 use Minds\Core\FeedNotices\GraphQL\Types\FeedNoticeEdge;
+use Minds\Core\FeedNotices\Notices\NoGroupsNotice;
+use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
+use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
+use Minds\Core\Feeds\Elastic\V2\QueryOpts;
+use Minds\Core\Feeds\GraphQL\Enums\NewsfeedAlgorithmsEnum;
+use Minds\Core\Feeds\GraphQL\Types\ActivityEdge;
 use Minds\Core\Feeds\GraphQL\Types\ActivityNode;
 use Minds\Core\Feeds\GraphQL\Types\FeedHighlightsConnection;
 use Minds\Core\Feeds\GraphQL\Types\FeedHighlightsEdge;
@@ -22,20 +27,18 @@ use Minds\Core\Feeds\GraphQL\Types\NewsfeedConnection;
 use Minds\Core\Feeds\GraphQL\Types\PublisherRecsConnection;
 use Minds\Core\Feeds\GraphQL\Types\PublisherRecsEdge;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
+use Minds\Core\GraphQL\Types;
 use Minds\Core\Groups\V2\GraphQL\Types\GroupEdge;
 use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
+use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
-use Minds\Core\Suggestions\Manager as SuggestionsManager;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
-use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
-use Minds\Entities\User;
-use TheCodingMachine\GraphQLite\Annotations\Query;
-use Minds\Core\FeedNotices\Notices\NoGroupsNotice;
-use Minds\Core\Feeds\Elastic\V2\QueryOpts;
-use Minds\Core\Feeds\GraphQL\Enums\NewsfeedAlgorithmsEnum;
+use Minds\Core\Search\Enums\SearchMediaTypeEnum;
 use Minds\Core\Votes;
 use Minds\Entities\Activity;
-use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
+use Minds\Entities\User;
+use NoRewindIterator;
+use TheCodingMachine\GraphQLite\Annotations\InjectUser;
+use TheCodingMachine\GraphQLite\Annotations\Query;
 
 class NewsfeedController
 {
@@ -69,6 +72,7 @@ class NewsfeedController
         ?int $last = null,
         ?string $before = null,
         ?array $inFeedNoticesDelivered = [],
+        #[InjectUser] ?User $loggedInUser = null,
     ): NewsfeedConnection {
         /**
          * Ideally we would use an enum in the function, but Graphql is not playing nice.
@@ -95,7 +99,7 @@ class NewsfeedController
          */
         $limit = min($first ?: $last, 12); // MAX 12
 
-        $loggedInUser =  Session::getLoggedInUser();
+        // $loggedInUser =  Session::getLoggedInUser();
 
         if (!$loggedInUser) {
             throw new UserError("You must be logged in", 403);
@@ -103,56 +107,74 @@ class NewsfeedController
 
         $edges = [];
 
-        switch ($algorithm) {
-            case NewsfeedAlgorithmsEnum::LATEST:
-                $activities = $this->feedsManager->getLatest(
-                    queryOpts: new QueryOpts(
-                        user: $loggedInUser,
-                        onlySubscribed: true,
-                        accessId: Access::PUBLIC,
-                        limit: $limit,
-                    ),
-                    hasMore: $hasMore,
-                    loadAfter: $loadAfter,
-                    loadBefore: $loadBefore,
-                );
-                break;
-            case NewsfeedAlgorithmsEnum::GROUPS:
-                $activities = $this->feedsManager->getLatest(
-                    queryOpts: new QueryOpts(
-                        user: $loggedInUser,
-                        onlyGroups: true,
-                        limit: $limit,
-                    ),
-                    hasMore: $hasMore,
-                    loadAfter: $loadAfter,
-                    loadBefore: $loadBefore,
-                );
-                break;
-            case NewsfeedAlgorithmsEnum::TOP:
-                $activities = $this->feedsManager->getTop(
-                    queryOpts: new QueryOpts(
-                        user: $loggedInUser,
-                        onlySubscribed: true,
-                        accessId: Access::PUBLIC,
-                        limit: $limit,
-                    ),
-                    hasMore: $hasMore,
-                    loadAfter: $loadAfter,
-                    loadBefore: $loadBefore,
-                );
-                break;
-            case NewsfeedAlgorithmsEnum::FORYOU:
-                $activities = $this->feedsManager->getClusteredRecs(
+        /**
+         * @var Iterator<Activity> $activities
+         */
+        $activities = match ($algorithm) {
+            NewsfeedAlgorithmsEnum::LATEST => $this->feedsManager->getLatest(
+                queryOpts: new QueryOpts(
                     user: $loggedInUser,
                     limit: $limit,
-                    hasMore: $hasMore,
-                    loadAfter: $loadAfter,
-                    loadBefore: $loadBefore,
-                );
-                break;
-            default:
-                throw new UserError("Invalid algorithm supplied");
+                    onlySubscribed: true,
+                    accessId: Access::PUBLIC,
+                ),
+                loadAfter: $loadAfter,
+                loadBefore: $loadBefore,
+                hasMore: $hasMore,
+            ),
+            NewsfeedAlgorithmsEnum::GROUPS => $this->feedsManager->getLatest(
+                queryOpts: new QueryOpts(
+                    user: $loggedInUser,
+                    limit: $limit,
+                    onlyGroups: true,
+                ),
+                loadAfter: $loadAfter,
+                loadBefore: $loadBefore,
+                hasMore: $hasMore,
+            ),
+            NewsfeedAlgorithmsEnum::TOP => $this->feedsManager->getTop(
+                queryOpts: new QueryOpts(
+                    user: $loggedInUser,
+                    limit: $limit,
+                    onlySubscribed: true,
+                    accessId: Access::PUBLIC,
+                ),
+                loadAfter: $loadAfter,
+                loadBefore: $loadBefore,
+                hasMore: $hasMore,
+            ),
+            NewsfeedAlgorithmsEnum::FORYOU => $this->feedsManager->getClusteredRecs(
+                user: $loggedInUser,
+                limit: $limit,
+                loadAfter: $loadAfter,
+                loadBefore: $loadBefore,
+                hasMore: $hasMore,
+            ),
+            default => throw new UserError("Invalid algorithm supplied")
+        };
+
+        if ($algorithm === NewsfeedAlgorithmsEnum::FORYOU && $this->experimentsManager->setUser($loggedInUser)->isOn('minds-4169-for-you-top-posts-injection')) {
+            $topQueryOpts = new QueryOpts(
+                limit: 1, // TODO: swap with configurable value
+                query: "",
+                accessId: Access::PUBLIC,
+                mediaTypeEnum: SearchMediaTypeEnum::toMediaTypeEnum(SearchMediaTypeEnum::ALL),
+                nsfw: [],
+                seenEntitiesFilterStrategy: SeenEntitiesFilterStrategyEnum::DEMOTE,
+            );
+
+            /**
+             * @var Iterator<Activity> $topResultActivities
+             */
+            $topResultActivities = $this->feedsManager->getTop(
+                queryOpts: $topQueryOpts,
+            );
+
+            $mergeIterator = new AppendIterator();
+            $mergeIterator->append(new NoRewindIterator($topResultActivities));
+            $mergeIterator->append(new NoRewindIterator($activities));
+
+            $activities = $mergeIterator;
         }
 
         // Build the boosts
@@ -176,11 +198,11 @@ class NewsfeedController
             if ($i === 0) { // Priority notice is always at the top
                 $priorityNotices = $this->buildInFeedNotices(
                     loggedInUser: $loggedInUser,
-                    location: ($after ||$before) ? 'inline' : 'top',
-                    limit: 1,
                     cursor: $cursor,
                     inFeedNoticesDelivered: $inFeedNoticesDelivered,
-                    algorithm: $algorithm
+                    algorithm: $algorithm,
+                    location: ($after ||$before) ? 'inline' : 'top',
+                    limit: 1
                 );
                 if ($priorityNotices && isset($priorityNotices[0])) {
                     $edges[] = $priorityNotices[0];
@@ -201,11 +223,11 @@ class NewsfeedController
             if ($i === 6) { // Show in the 6th spot
                 $inlineNotice = $this->buildInFeedNotices(
                     loggedInUser: $loggedInUser,
-                    location: 'inline',
-                    limit: 1,
                     cursor: $cursor,
                     inFeedNoticesDelivered: $inFeedNoticesDelivered,
-                    algorithm: $algorithm
+                    algorithm: $algorithm,
+                    location: 'inline',
+                    limit: 1
                 );
                 if ($inlineNotice && isset($inlineNotice[0])) {
                     $edges[] = $inlineNotice[0];
@@ -277,11 +299,11 @@ class NewsfeedController
                 // Show the no groups notice
                 $noGroupNotice = $this->buildInFeedNotices(
                     loggedInUser: $loggedInUser,
-                    location: ($after ||$before) ? 'inline' : 'top',
-                    limit: 1,
                     cursor: '',
                     inFeedNoticesDelivered: $inFeedNoticesDelivered,
-                    algorithm: $algorithm
+                    algorithm: $algorithm,
+                    location: ($after ||$before) ? 'inline' : 'top',
+                    limit: 1
                 );
                 if ($noGroupNotice && isset($noGroupNotice[0])) {
                     $edges[] = $noGroupNotice[0];
@@ -297,8 +319,8 @@ class NewsfeedController
         }
 
         $pageInfo = new Types\PageInfo(
-            hasPreviousPage: $algorithm === NewsfeedAlgorithmsEnum::LATEST || ($after && $loadBefore) ? true : false, // Always will be newer data on latest or if we are paging forward
-            hasNextPage: $hasMore,
+            hasNextPage: $hasMore, // Always will be newer data on latest or if we are paging forward
+            hasPreviousPage: $algorithm === NewsfeedAlgorithmsEnum::LATEST || ($after && $loadBefore) ? true : false,
             startCursor: $loadBefore,
             endCursor: $loadAfter,
         );
@@ -325,7 +347,7 @@ class NewsfeedController
         User $loggedInUser,
         int $limit = 3
     ): array {
-        if ($loggedInUser->disabled_boost && $loggedInUser->isPlus()) {
+        if (!$this->boostManager->shouldShowBoosts($loggedInUser)) {
             return [];
         }
 
@@ -400,6 +422,7 @@ class NewsfeedController
             queryOpts: new QueryOpts(
                 user: $loggedInUser,
                 limit: 3,
+                onlySubscribed: true,
                 seenEntitiesFilterStrategy: SeenEntitiesFilterStrategyEnum::EXCLUDE,
             ),
             hasMore: $hasMore,

@@ -3,6 +3,7 @@
 namespace Minds\Core\Comments;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Events\Dispatcher;
 use Minds\Core\Guid;
 use Minds\Core\Luid;
 use Minds\Core\Security\ACL;
@@ -467,31 +468,6 @@ class Comment extends RepositoryEntity implements EntityInterface
             $output['owner_guid'] = $unknown->guid;
         }
 
-        if ($export['attachments']) {
-            foreach ($export['attachments'] as $key => $value) {
-                $output['attachments'][$key] = $this->getAttachment($key);
-                $output[$key] = $output['attachments'][$key];
-            }
-
-            // This is not a great fix. Comments need to be fully constructed at manager/repository level
-            // This is not DRY or spec tested...
-            if (isset($output['custom_data'])) {
-                $siteUrl = Di::_()->get('Config')->get('site_url');
-                $cdnUrl = Di::_()->get('Config')->get('cdn_url');
-                $output['custom_data']['src'] = $output['attachments']['custom_data']['src'] = str_replace($siteUrl, $cdnUrl, $output['attachments']['custom_data']['src']);
-            }
-        }
-
-        if (isset($output['custom_type']) && $output['custom_type'] === 'image') {
-            $output['custom_type'] = 'batch';
-            $output['custom_data'] = [ $output['custom_data'] ];
-        }
-
-        if (!Flags::shouldDiscloseStatus($this)) {
-            unset($output['spam']);
-            unset($output['deleted']);
-        }
-
         if (!$this->isEphemeral()) {
             $output['thumbs:up:user_guids'] = $this->getVotesUp();
             $output['thumbs:up:count'] = count($this->getVotesUp() ?: []);
@@ -505,6 +481,18 @@ class Comment extends RepositoryEntity implements EntityInterface
         $output['can_reply'] = (bool) !$this->getParentGuidL2();
 
         //$output['parent_guid'] = (string) $this->entityGuid;
+
+        $output = array_merge($output, Dispatcher::trigger(
+            event: 'export:extender',
+            namespace: 'comment',
+            params: [ 'entity' => $this ],
+            default_return: []
+        ));
+
+        if (!Flags::shouldDiscloseStatus($this)) {
+            unset($output['spam']);
+            unset($output['deleted']);
+        }
 
         $output = Export::sanitize($output);
 

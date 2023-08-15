@@ -763,4 +763,22 @@ class Manager
             default => BoostTargetAudiences::CONTROVERSIAL
         };
     }
+
+    /**
+     * Whether boosts should be shown for a given user.
+     * @param User $user - user to show.
+     * @param integer $showBoostsAfterX - how long after registration till users should see boosts. Defaults to 1 weeks.
+     * @return boolean true if boosts should be shown.
+     */
+    public function shouldShowBoosts(User $user, int $showBoostsAfterX = 604800): bool
+    {
+        /**
+         * Do not show boosts if plus and disabled flag
+         */
+        if ($user->disabled_boost && $user->isPlus()) {
+            return false;
+        }
+
+        return (time() - $user->getTimeCreated()) > $showBoostsAfterX;
+    }
 }

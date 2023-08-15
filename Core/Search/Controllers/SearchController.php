@@ -7,12 +7,13 @@ use Minds\Common\Access;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\GraphQL\Types\BoostEdge;
+use Minds\Core\Boost\V3\Manager as BoostManager;
+use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Elastic;
 use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
 use Minds\Core\Feeds\Elastic\V2\QueryOpts;
 use Minds\Core\Feeds\GraphQL\Types\ActivityEdge;
-use Minds\Core\Feeds\GraphQL\Types\ActivityNode;
 use Minds\Core\Feeds\GraphQL\Types\PublisherRecsConnection;
 use Minds\Core\Feeds\GraphQL\Types\PublisherRecsEdge;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
@@ -23,8 +24,6 @@ use Minds\Core\Search\Enums\SearchMediaTypeEnum;
 use Minds\Core\Search\Enums\SearchNsfwEnum;
 use Minds\Core\Search\Search;
 use Minds\Core\Search\Types\SearchResultsConnection;
-use Minds\Core\Boost\V3\Manager as BoostManager;
-use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Entities\Activity;
 use Minds\Entities\Group;
 use Minds\Entities\User;
@@ -74,20 +73,20 @@ class SearchController
         $query = str_replace('#', '', $query);
 
         $latestQueryOpts = new QueryOpts(
+            limit: $limit,
             query: $query,
             accessId: Access::PUBLIC,
-            limit: $limit,
             mediaTypeEnum: SearchMediaTypeEnum::toMediaTypeEnum($mediaType),
             nsfw: $this->nsfwEnumsToIntArray($nsfw ?: []),
         );
 
         $topQueryOpts = new QueryOpts(
+            limit: $limit,
             query: $query,
             accessId: Access::PUBLIC,
-            limit: $limit,
             mediaTypeEnum: SearchMediaTypeEnum::toMediaTypeEnum($mediaType),
-            seenEntitiesFilterStrategy: SeenEntitiesFilterStrategyEnum::DEMOTE,
             nsfw: $this->nsfwEnumsToIntArray($nsfw),
+            seenEntitiesFilterStrategy: SeenEntitiesFilterStrategyEnum::DEMOTE,
         );
 
         /**
@@ -106,15 +105,15 @@ class SearchController
             $count = match ($filter) {
                 SearchFilterEnum::LATEST => $this->elasticFeedsManager->getLatestCount(
                     queryOpts: $latestQueryOpts,
-                    hasMore: $hasMore,
                     loadAfter: $loadAfter,
                     loadBefore: $loadBefore,
+                    hasMore: $hasMore,
                 ),
                 SearchFilterEnum::TOP => $this->elasticFeedsManager->getTopCount(
                     queryOpts: $topQueryOpts,
-                    hasMore: $hasMore,
                     loadAfter: $loadAfter,
                     loadBefore: $loadBefore,
+                    hasMore: $hasMore,
                 ),
                 default => 0
             };
@@ -143,15 +142,15 @@ class SearchController
         $entities = match ($filter) {
             SearchFilterEnum::LATEST => $this->elasticFeedsManager->getLatest(
                 queryOpts: $latestQueryOpts,
-                hasMore: $hasMore,
                 loadAfter: $loadAfter,
                 loadBefore: $loadBefore,
+                hasMore: $hasMore,
             ),
             SearchFilterEnum::TOP => $this->elasticFeedsManager->getTop(
                 queryOpts: $topQueryOpts,
-                hasMore: $hasMore,
                 loadAfter: $loadAfter,
                 loadBefore: $loadBefore,
+                hasMore: $hasMore,
             ),
             SearchFilterEnum::USER => $this->getPublisherSearch(
                 type: 'user',
@@ -300,7 +299,7 @@ class SearchController
         int $limit = 3,
         int $targetLocation = BoostTargetLocation::NEWSFEED,
     ): array {
-        if ($loggedInUser->disabled_boost && $loggedInUser->isPlus()) {
+        if (!$this->boostManager->shouldShowBoosts($loggedInUser)) {
             return [];
         }
 

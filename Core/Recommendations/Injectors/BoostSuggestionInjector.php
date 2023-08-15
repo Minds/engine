@@ -38,6 +38,10 @@ class BoostSuggestionInjector
     public function inject(Response $response, User $targetUser, int $index = 1): Response
     {
         try {
+            if (!$this->boostManager->shouldShowBoosts($targetUser)) {
+                return $response;
+            }
+
             $entitiesArray = $response->toArray();
             $boost = $this->getInjectableBoostSuggestion($targetUser);
 
