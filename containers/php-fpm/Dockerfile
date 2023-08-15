@@ -12,6 +12,11 @@ COPY containers/php-fpm/php.ini /usr/local/etc/php/
 COPY containers/php-fpm/opcache.ini /usr/local/etc/php/conf.d/opcache-recommended.ini
 COPY containers/php-fpm/apcu.ini /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
 COPY containers/php-fpm/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+
+# Install xdebug
+RUN apk add --virtual .bdeps $PHPIZE_DEPS \
+    && pecl install xdebug \
+    && docker-php-ext-enable xdebug
 COPY containers/php-fpm/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 ARG MINDS_VERSION="Unknown" 
