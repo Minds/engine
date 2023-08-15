@@ -459,27 +459,6 @@ class Manager
     }
 
     /**
-     * Get all earnings for owners
-     * @param array $opts
-     * @return iterable
-     */
-    public function getTotalEarningsForOwners($opts = []): iterable
-    {
-        return $this->sums->getTotalEarningsForOwners($opts);
-    }
-
-    /**
-     * @param EarningsBalance $earningsBalance
-     * @return float
-     */
-    private function calculatePostsBalanceRatio(EarningsBalance $earningsBalance): float
-    {
-        $earningsPerPost = $earningsBalance->getAmountCents() / $this->sums->getPostsPerOwner([ $earningsBalance->getUserGuid() ])[$earningsBalance->getUserGuid()];
-
-        return ($earningsPerPost / $earningsBalance->getAmountCents()) * 100;
-    }
-
-    /**
      * @param User $user
      * @param int $rpmCents
      * @return void
