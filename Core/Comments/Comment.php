@@ -24,6 +24,7 @@ use Minds\Helpers\Unknown;
  * @method int getParentGuidL2()
  * @method Comment setParentGuidL3(int $value)
  * @method int getParentGuidL3()
+ * @method Comment setParentGuid(int $parentGuid)
  * @method Comment setGuid(int $value)
  * @method Comment setRepliesCount(int $value)
  * @method int getRepliesCount())

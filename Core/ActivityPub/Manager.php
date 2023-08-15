@@ -64,9 +64,15 @@ class Manager
         $entity = $this->entitiesBuilder->single($guid);
 
         if (!$entity) {
+            // Could this be a comment? Improve this as it is not efficient
+            $entity = $this->entitiesBuilder->single('urn:comment:' . $guid);
 
-            return $this->getUriFromEntity($entity);
+            if (!$entity) {
+                return null;
+            }
         }
+
+        return $this->getUriFromEntity($entity);
     }
 
     /**

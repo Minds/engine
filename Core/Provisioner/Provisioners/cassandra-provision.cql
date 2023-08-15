@@ -1713,3 +1713,5 @@ CREATE TABLE minds.partner_earnings_ledger (
     AND speculative_retry = '99p';
 
 ALTER TABLE minds.wire ADD payment_guid bigint;
+
+ALTER TABLE comments ADD parent_guid bigint;

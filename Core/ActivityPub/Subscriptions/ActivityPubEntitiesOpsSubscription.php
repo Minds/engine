@@ -104,6 +104,10 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
             return true; // Bad user, we will skip
         }
 
+        if ($owner->getSource() === 'activitypub') {
+            return true; // Do not re-process activitypub posts
+        }
+
         $actor = $this->actorFactory->fromEntity($owner);
 
         if ($object instanceof AnnounceType) {

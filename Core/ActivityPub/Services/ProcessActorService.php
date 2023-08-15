@@ -81,7 +81,10 @@ class ProcessActorService
                 $user = register_user($username, $password, $username, $email, validatePassword: false, isActivityPub: true);
 
                 $user->setName($this->actor->name);
-                $user->setBriefDescription($this->actor->summary);
+
+                if (isset($this->actor->summary)) {
+                    $user->setBriefDescription($this->actor->summary);
+                }
 
                 // Set the source as being activitypub
                 $user->setSource('activitypub');

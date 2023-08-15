@@ -83,7 +83,9 @@ class ActorFactory
          * If we are building a remote user, then use their uri
          */
         if ($uri = $this->manager->getUriFromGuid($entity->getGuid())) {
-            return $this->fromUri($uri);
+            if (!$this->manager->isLocalUri($uri)) {
+                return $this->fromUri($uri);
+            }
         }
 
         $baseUrl = $this->config->get('site_url') . 'api/activitypub/';

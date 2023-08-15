@@ -76,6 +76,10 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
         /** @var User */
         $user = $event->getUser();
 
+        if ($user->getSource() === 'activitypub') {
+            return true; // Do not reprocess activitypub events
+        }
+
         /** @var mixed */
         $entity = $event->getEntity();
 
@@ -96,8 +100,6 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
             default:
                 return true; // Noop (nothing to do)
         }
-
-        return false;
     }
 
 }

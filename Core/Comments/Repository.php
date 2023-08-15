@@ -8,6 +8,7 @@
 
 namespace Minds\Core\Comments;
 
+use Cassandra\Bigint;
 use Cassandra\Map;
 use Cassandra\Rows;
 use Cassandra\Timestamp;
@@ -185,6 +186,7 @@ class Repository
                     ->setEntityGuid($row['entity_guid'])
                     ->setParentGuidL1($row['parent_guid_l1'] ?? 0)
                     ->setParentGuidL2($row['parent_guid_l2'] ?? 0)
+                    ->setParentGuid($row['parent_guid'] ?? null)
                     ->setGuid($row['guid'])
                     ->setOwnerGuid($row['owner_guid'])
                     ->setTimeCreated($row['time_created'])
@@ -396,6 +398,10 @@ class Repository
 
         if (in_array('parentGuidL2', $attributes, true)) {
             $fields['parent_guid_l2'] = new Varint($comment->getParentGuidL2() ?: 0);
+        }
+
+        if (isset($attributes['parentGuid'])) {
+            $fields['parent_guid'] = new Bigint($comment->getParentGuid());
         }
 
         if (in_array('ownerGuid', $attributes, true)) {
