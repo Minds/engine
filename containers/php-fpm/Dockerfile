@@ -14,6 +14,7 @@ COPY containers/php-fpm/apcu.ini /usr/local/etc/php/conf.d/docker-php-ext-apcu.i
 COPY containers/php-fpm/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Install xdebug
+RUN apk add --update linux-headers
 RUN apk add --virtual .bdeps $PHPIZE_DEPS \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug
