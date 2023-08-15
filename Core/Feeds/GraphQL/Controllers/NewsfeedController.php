@@ -34,6 +34,7 @@ use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecomme
 use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
 use Minds\Core\Votes;
 use Minds\Entities\Activity;
+use Minds\Entities\Group;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Query;
@@ -517,7 +518,10 @@ class NewsfeedController
         foreach ($result as $i => $suggestion) {
             $cursor = base64_encode($i);
             $entity = $suggestion->getEntity();
-            $edges[] = new GroupEdge($entity, $cursor);
+
+            if ($entity && $entity instanceof Group) {
+                $edges[] = new GroupEdge($entity, $cursor);
+            }
         }
 
         $pageInfo = new Types\PageInfo(
