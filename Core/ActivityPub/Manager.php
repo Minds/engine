@@ -5,6 +5,7 @@ use GuzzleHttp\Exception\ConnectException;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
+use Minds\Core\Comments\Comment;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
@@ -52,26 +53,18 @@ class Manager
 
     /**
      * Returns a URI (if available) from a Minds guid
+     * First builds the entity from a urn, then calls the ->getUriFromEntity() function
      */
-    public function getUriFromGuid(int $guid): ?string
+    public function getUriFromUrn(string $urn): ?string
     {
-        $uri = $this->repository->getUriFromGuid($guid);
+        /**
+         * Try to find the entity by its urn
+         */
+        $entity = $this->entitiesBuilder->getByUrn($urn);
 
-        if ($uri) {
-            return $uri;
-        }
-
-        $entity = $this->entitiesBuilder->single($guid);
-
-        if (!$entity) {
-            // Could this be a comment? Improve this as it is not efficient
-            $entity = $this->entitiesBuilder->single('urn:comment:' . $guid);
-
-            if (!$entity) {
-                return null;
-            }
-        }
-
+        /**
+         * Return the uri of the entity
+         */
         return $this->getUriFromEntity($entity);
     }
 
@@ -80,17 +73,30 @@ class Manager
      */
     public function getUriFromEntity(EntityInterface $entity): string
     {
+        /**
+         * Attempt to get the uri from the remote (mysql database)
+         */
+        $uri = $this->repository->getUriFromUrn($entity->getUrn());
+
+        if ($uri) {
+            return $uri;
+        }
+
+        /**
+         * If not found in the table we construct the uri manually
+         */
         $url = $this->getBaseUrl() . 'users/' . $entity->getOwnerGuid();
 
         if ($entity instanceof User) {
             return $url;
         }
 
-        return $url . '/entities/' . $entity->getGuid();
+        return $url . '/entities/' . $entity->getUrn();
     }
 
     /**
      * Returns a Minds entity from a uri
+     * Supports returning entities from both remote and local uris
      */
     public function getEntityFromUri(string $uri): ?EntityInterface
     {
@@ -142,12 +148,11 @@ class Manager
             return $user;
         } elseif (count($pathParts) > 2 && $pathParts[2] === 'entities') {
             // This will be an activity/entity
-            $entityGuid = $pathParts[3];
+            $entityUrn = $pathParts[3];
 
-            $entity = $this->entitiesBuilder->single($entityGuid);
+            $entity = $this->entitiesBuilder->getByUrn($entityUrn);
 
-            if (!$entity instanceof Activity) {
-                //throw new NotFoundException();
+            if (!($entity instanceof Activity || $entity instanceof Comment)) {
                 return null;
             }
 
@@ -212,5 +217,25 @@ class Manager
     public function isLocalUri($uri): bool
     {
         return strpos($uri, $this->getBaseUrl(), 0) === 0;
+    }
+
+    /**
+     * Helper function to return an entity from a guid
+     * (we do this to hack comments...)
+     */
+    private function getEntityFromGuid(int $guid): ?EntityInterface
+    {
+        $entity = $this->entitiesBuilder->single($guid);
+
+        if (!$entity) {
+            // Could this be a comment? Improve this as it is not efficient
+            $entity = $this->entitiesBuilder->single('urn:comment:' . $guid);
+
+            if (!$entity) {
+                return null;
+            }
+        }
+
+        return $entity;
     }
 }

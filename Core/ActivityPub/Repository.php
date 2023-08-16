@@ -38,7 +38,7 @@ class Repository extends AbstractRepository
         return $row['entity_urn'];
     }
 
-    public function getUriFromGuid(int $guid): ?string
+    public function getUriFromUrn(string $urn): ?string
     {
         $query = $this->mysqlClientReaderHandler
             ->select()
@@ -46,11 +46,11 @@ class Repository extends AbstractRepository
                 'uri',
             ])
             ->from('minds_activitypub_uris')
-            ->where('entity_guid', Operator::EQ, new RawExp(':entityGuid'));
+            ->where('entity_urn', Operator::EQ, new RawExp(':entityUrn'));
 
         $stmt = $query->prepare();
         $stmt->execute([
-            'entityGuid' => $guid
+            'entityUrn' => $urn
         ]);
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);

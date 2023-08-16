@@ -3,13 +3,16 @@
 namespace Minds\Core\Comments;
 
 use Minds\Core\Di\Di;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Guid;
 use Minds\Core\Luid;
 use Minds\Core\Security\ACL;
 use Minds\Entities\EntityInterface;
+use Minds\Entities\FederatedEntityInterface;
 use Minds\Entities\RepositoryEntity;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 use Minds\Helpers\Export;
 use Minds\Helpers\Flags;
 use Minds\Helpers\Unknown;
@@ -54,7 +57,7 @@ use Minds\Helpers\Unknown;
  * @method Comment setGroupConversation(bool $value)
  * @method bool isGroupConversation()
  */
-class Comment extends RepositoryEntity implements EntityInterface
+class Comment extends RepositoryEntity implements EntityInterface, FederatedEntityInterface
 {
     /** @var string */
     protected $type = 'comment';
@@ -106,6 +109,12 @@ class Comment extends RepositoryEntity implements EntityInterface
 
     /** @var bool */
     protected $deleted = false;
+
+    /** @var FederatedEntitySourcesEnum */
+    protected $source = FederatedEntitySourcesEnum::LOCAL;
+
+    /** @var string */
+    protected $canonicalUrl;
 
     /** @var array */
     protected $ownerObj;
@@ -374,6 +383,24 @@ class Comment extends RepositoryEntity implements EntityInterface
         ]);
     }
 
+    /**
+     * Returns the urn of the parent comment
+     */
+    public function getParentUrn(): string
+    {
+        if (!$this->getParentGuid()) {
+            throw new ServerErrorException("You can not request a parentUrn if the is no parent comment");
+        }
+
+        return implode(':', [
+            'urn',
+            'comment',
+            $this->getEntityGuid(),
+            $this->getParentPath(),
+            $this->getParentGuid(),
+        ]);
+    }
+
     public function getOwnerGuid(): string
     {
         return (string) $this->ownerGuid;
@@ -498,5 +525,39 @@ class Comment extends RepositoryEntity implements EntityInterface
         $output = Export::sanitize($output);
 
         return $output;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setSource(FederatedEntitySourcesEnum $source): FederatedEntityInterface
+    {
+        $this->source = $source;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSource(): ?FederatedEntitySourcesEnum
+    {
+        return $this->source;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCanonicalUrl(string $canonicalUrl): FederatedEntityInterface
+    {
+        $this->canonicalUrl = $canonicalUrl;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCanonicalUrl(): ?string
+    {
+        return isset($this->canonicalUrl) ? $this->canonicalUrl : null;
     }
 }

@@ -18,6 +18,7 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Helpers\Cql;
 
 class Repository
@@ -49,6 +50,8 @@ class Repository
         'spam',
         'deleted',
         'ownerObj',
+        'source',
+        'canonicalUrl'
     ];
 
     /**
@@ -199,8 +202,17 @@ class Repository
                     ->setDeleted(isset($flags['deleted']) && $flags['deleted'])
                     ->setOwnerObj($row['owner_obj'])
                     ->setVotesUp($row['votes_up'] ?: [])
-                    ->setVotesDown($row['votes_down'] ?: [])
-                    ->setEphemeral(false)
+                    ->setVotesDown($row['votes_down'] ?: []);
+
+                if (isset($row['source'])) {
+                    $comment->setSource(FederatedEntitySourcesEnum::from($row['source']));
+                }
+
+                if (isset($row['canonical_url'])) {
+                    $comment->setCanonicalUrl($row['canonical_url']);
+                }
+
+                $comment->setEphemeral(false)
                     ->markAllAsPristine();
 
                 $comment->setRepliesCount($this->countReplies($comment));
@@ -447,6 +459,14 @@ class Repository
 
         if (in_array('ownerObj', $attributes, true)) {
             $fields['owner_obj'] = $comment->getOwnerObj() ? json_encode($comment->getOwnerObj()) : null;
+        }
+
+        if (in_array('source', $attributes, true)) {
+            $fields['source'] = $comment->getSource()->value;
+        }
+
+        if (in_array('canonicalUrl', $attributes, true)) {
+            $fields['canonical_url'] = $comment->getCanonicalUrl();
         }
 
         if (!$fields) {

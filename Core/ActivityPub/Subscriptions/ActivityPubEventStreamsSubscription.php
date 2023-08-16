@@ -17,6 +17,7 @@ use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 
 class ActivityPubEventStreamsSubscription implements SubscriptionInterface
@@ -76,7 +77,8 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
         /** @var User */
         $user = $event->getUser();
 
-        if ($user->getSource() === 'activitypub') {
+        if ($user->getSource() === FederatedEntitySourcesEnum::ACTIVITY_PUB) {
+            $this->logger->info("Skipping: {$user->getGuid()} is a federated user action");
             return true; // Do not reprocess activitypub events
         }
 

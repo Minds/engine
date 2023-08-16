@@ -4,6 +4,7 @@ namespace Minds\Entities;
 
 use Minds\Common\ChannelMode;
 use Minds\Core;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Core\Monetization\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
 use Minds\Core\Supermind\Settings\Models\Settings;
 use Minds\Helpers;
@@ -74,7 +75,7 @@ use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
  * @property string $twofactor
  * @property string $briefdescription
  */
-class User extends \ElggUser implements DemonetizableEntityInterface
+class User extends \ElggUser implements DemonetizableEntityInterface, FederatedEntityInterface
 {
     public $fullExport = true;
     public $exportCounts = false;
@@ -149,7 +150,8 @@ class User extends \ElggUser implements DemonetizableEntityInterface
         $this->attributes['dismissed_widgets'] = [];
         $this->attributes['liquidity_spot_opt_out'] = 0;
         $this->attributes['supermind_settings'] = [];
-        $this->attributes['source'] = 'local';
+        $this->attributes['source'] = FederatedEntitySourcesEnum::LOCAL->value;
+        $this->attributes['canonical_url'] = null;
 
         parent::initializeAttributes();
     }
@@ -1958,5 +1960,39 @@ class User extends \ElggUser implements DemonetizableEntityInterface
     public function getTwoFactor(): bool
     {
         return $this->twofactor;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setSource(FederatedEntitySourcesEnum $source): FederatedEntityInterface
+    {
+        $this->source = $source->value;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSource(): ?FederatedEntitySourcesEnum
+    {
+        return FederatedEntitySourcesEnum::from($this->source ?: 'local');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCanonicalUrl(string $canonicalUrl): FederatedEntityInterface
+    {
+        $this->canonical_url = $canonicalUrl;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCanonicalUrl(): ?string
+    {
+        return $this->canonical_url;
     }
 }

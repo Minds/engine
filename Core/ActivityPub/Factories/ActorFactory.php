@@ -82,7 +82,7 @@ class ActorFactory
         /**
          * If we are building a remote user, then use their uri
          */
-        if ($uri = $this->manager->getUriFromGuid($entity->getGuid())) {
+        if ($uri = $this->manager->getUriFromEntity($entity)) {
             if (!$this->manager->isLocalUri($uri)) {
                 return $this->fromUri($uri);
             }

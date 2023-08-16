@@ -24,6 +24,8 @@ use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
+use Minds\Entities\FederatedEntityInterface;
 use Minds\Entities\User;
 
 class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
@@ -79,32 +81,49 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
 
         $entity = $this->entitiesBuilder->getByUrn($event->getEntityUrn());
 
-        if (!$entity instanceof EntityInterface) {
+        if (!$entity instanceof FederatedEntityInterface) {
             // Entity not found
             return true; // Acknowledge as its likely this entity has been deleted
+        }
+    
+        $loggerPrefix = $entity->getUrn() . ':';
+
+        if ($entity->getSource() === FederatedEntitySourcesEnum::ACTIVITY_PUB) {
+            $this->logger->info($loggerPrefix . ' Skipping. Federated entity.');
+            return true;
         }
 
         // We are only concerned with the below entities
         switch (get_class($entity)) {
             case Activity::class:
                 if ((int) $entity->getAccessId() !== Access::PUBLIC) {
+                    $this->logger->info($loggerPrefix . ' Skipping. Not public.');
                     return true; // Not a public post, we will not emit out
                 }
                 // no break
             case Comment::class:
                 break;
             default:
+                $this->logger->info($loggerPrefix . ' Skipping. Unsupported entity');
                 return true;
         }
 
-        $object = $this->objectFactory->fromEntity($entity);
+        try {
+            $object = $this->objectFactory->fromEntity($entity);
+        } catch (\Exception $e) {
+            $this->logger->error($loggerPrefix . ' ' . $e->getMessage());
+            return false;
+        }
+        
         $owner = $this->entitiesBuilder->single($entity->getOwnerGuid());
 
         if (!$owner instanceof User) {
+            $this->logger->info($loggerPrefix . ' Skipping. Owner not found');
             return true; // Bad user, we will skip
         }
 
-        if ($owner->getSource() === 'activitypub') {
+        if ($owner->getSource() === FederatedEntitySourcesEnum::ACTIVITY_PUB) {
+            $this->logger->info($loggerPrefix . ' Skipping. Owner is a federated users');
             return true; // Do not re-process activitypub posts
         }
 
@@ -112,7 +131,7 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
 
         if ($object instanceof AnnounceType) {
             // TODO
-            var_dump('announce type');
+            $this->logger->error($loggerPrefix . ' Can not support Announce yet');
             return false;
         }
 
@@ -127,6 +146,8 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
         $activity->object = $object;
 
         $this->emitActivityService->emitActivity($activity, $owner);
+
+        $this->logger->info($loggerPrefix . ' Success');
 
         return true; // Return true to acknowledge the event from the stream (stop it being redelivered)
     }

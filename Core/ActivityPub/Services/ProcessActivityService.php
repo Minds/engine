@@ -2,8 +2,6 @@
 namespace Minds\Core\ActivityPub\Services;
 
 use Minds\Common\Access;
-use Minds\Core\ActivityPub\Factories\ActorFactory;
-use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Activity\AcceptType;
 use Minds\Core\ActivityPub\Types\Activity\AnnounceType;
@@ -13,6 +11,7 @@ use Minds\Core\ActivityPub\Types\Activity\UndoType;
 use Minds\Core\ActivityPub\Types\Core\ActivityType;
 use Minds\Core\ActivityPub\Types\Object\NoteType;
 use Minds\Core\Comments\Comment;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
 use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Guid;
@@ -109,6 +108,11 @@ class ProcessActivityService
                         $comment->setBody(strip_tags($this->activity->object->content));
                         $comment->setOwnerGuid($owner->getGuid());
                         $comment->setTimeCreated(time());
+                        $comment->setSource(FederatedEntitySourcesEnum::ACTIVITY_PUB);
+
+                        if (isset($this->activity->object->url)) {
+                            $comment->setCanonicalUrl($this->activity->object->url);
+                        }
 
                         $commentsManager = new \Minds\Core\Comments\Manager();
                         $commentsManager->add($comment);
@@ -240,7 +244,7 @@ class ProcessActivityService
         $entity = new Activity();
 
         $entity->setAccessId(Access::PUBLIC);
-        $entity->setSource('activitypub');
+        $entity->setSource(FederatedEntitySourcesEnum::ACTIVITY_PUB);
     
         // Requires cleanup (see TwitterSync and Nostr)
         $entity->container_guid = $owner->guid;

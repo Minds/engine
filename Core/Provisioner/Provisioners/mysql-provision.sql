@@ -389,3 +389,11 @@ CREATE TABLE IF NOT EXISTS minds_activitypub_keys (
     user_guid bigint NOT NULL PRIMARY KEY,
     private_key text NOT NULL 
 );
+
+ALTER TABLE minds_comments
+    ADD source text DEFAULT NULL
+        AFTER access_id; 
+
+ALTER TABLE minds_comments
+    ADD canonical_url text DEFAULT NULL
+        AFTER source;

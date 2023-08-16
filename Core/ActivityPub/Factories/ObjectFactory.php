@@ -70,12 +70,12 @@ class ObjectFactory
 
                 // Is this a quote post
                 if ($activity->isQuotedPost()) {
-                    $json['inReplyTo'] = $this->manager->getUriFromGuid($activity->remind_object['guid']);
+                    $json['inReplyTo'] = $this->manager->getUriFromEntity($activity->getRemind());
                 }
 
                 // Is this a remind
                 // if ($activity->isRemind()) {
-                //     $json['inReplyTo'] = $this->manager->getUriFromGuid($activity->remind_object['guid']);
+                //     $json['inReplyTo'] = $this->manager->getUriFromEntity($activity->getRemind());
                 // }
                 
                 break;
@@ -83,12 +83,23 @@ class ObjectFactory
                 /** @var Comment */
                 $comment = $entity;
 
+                if ($comment->getParentGuid()) {
+                    $parentUrn = $comment->getParentUrn();
+                } else {
+                    $parentUrn = 'urn:entity:' . $comment->getEntityGuid();
+                }
+
+                /**
+                 * Get the uri of what we are replying to
+                 */
+                $replyToUri = $this->manager->getUriFromUrn($parentUrn);
+
                 $json = [
-                    'id' => $actorUri . '/entities/' . $entity->getGuid(),
+                    'id' => $actorUri . '/entities/' . $entity->getUrn(),
                     'type' => 'Note',
                     'content' => $comment->getBody(),
                     'attributedTo' => $actorUri,
-                    'inReplyTo' => $this->manager->getUriFromGuid($comment->getParentGuid() ?: $comment->getEntityGuid()),
+                    'inReplyTo' => $replyToUri,
                     'to' => [
                         'https://www.w3.org/ns/activitystreams#Public',
                     ],

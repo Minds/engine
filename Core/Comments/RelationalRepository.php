@@ -74,7 +74,9 @@ class RelationalRepository extends AbstractRepository
             'group_conversation' => new RawExp(':group_conversation'),
             'access_id' => new RawExp(':access_id'),
             'time_created' => new RawExp(':time_created'),
-            'time_updated' => new RawExp(':time_updated')
+            'time_updated' => new RawExp(':time_updated'),
+            'source' => new RawExp(':source'),
+            'canonical_url' => new RawExp(':canonical_url'),
         ])
         ->onDuplicateKeyUpdate([
             'body' => new RawExp(':body'),
@@ -105,7 +107,9 @@ class RelationalRepository extends AbstractRepository
             'group_conversation' => (bool) $comment->isGroupConversation(),
             'access_id' => $comment->getAccessId(),
             'time_created' => $timeCreated,
-            'time_updated' => $timeUpdated
+            'time_updated' => $timeUpdated,
+            'source' => $comment->getSource()->value,
+            'canonical_url' => $comment->getCanonicalUrl(),
         ];
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);

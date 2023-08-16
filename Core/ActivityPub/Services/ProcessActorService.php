@@ -12,6 +12,7 @@ use Minds\Core\ActivityPub\Types\Object\NoteType;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 
@@ -87,7 +88,7 @@ class ProcessActorService
                 }
 
                 // Set the source as being activitypub
-                $user->setSource('activitypub');
+                $user->setSource(FederatedEntitySourcesEnum::ACTIVITY_PUB);
 
                 $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
                 $this->saveAction->setEntity($user)->save();
