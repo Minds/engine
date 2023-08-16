@@ -94,8 +94,7 @@ class NostrOpsEventStreamsSubscription implements SubscriptionInterface
             return true;
         }
 
-        $activityId = explode(':', $entity->getUrn())[2];
-        $eventId = $this->manager->getNostrEventFromActivityId($activityId);
+        $nostrEventId = $this->manager->getNostrEventFromActivityId($entity->getGUID());
 
         switch ($event->getOp()) {
             case EntitiesOpsEvent::OP_CREATE:
@@ -107,7 +106,7 @@ class NostrOpsEventStreamsSubscription implements SubscriptionInterface
                 $nostrEvent = $this->manager->buildNostrEvent($entity);
                 $this->manager->addEvent($nostrEvent);
                 $this->manager->addActivityToNostrId($entity, $nostrEvent->getId());
-                $this->manager->deleteNostrEvents([$eventId]);
+                $this->manager->deleteNostrEvents([$nostrEventId]);
                 return true;
             case EntitiesOpsEvent::OP_DELETE:
                 $this->manager->deleteNostrEvents([$eventId]);
