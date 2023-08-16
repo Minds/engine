@@ -13,7 +13,7 @@ use Selective\Database\RawExp;
 
 class Repository extends MySQL\AbstractRepository
 {
-    const CACHE_KEY_PREFIX = "groups:v2:membership";
+    const CACHE_KEY_PREFIX = "group:v2:membership";
 
     public function __construct(
         MySQL\Client $mysqlClient,
