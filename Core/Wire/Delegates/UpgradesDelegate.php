@@ -6,6 +6,7 @@
 
 namespace Minds\Core\Wire\Delegates;
 
+use Minds\Common\SystemUser;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
@@ -68,8 +69,15 @@ class UpgradesDelegate
 
         $wireType = $result();
 
+        $sender = match ($wireType) {
+            "plus" => $this->entitiesBuilder->single($this->config->get('plus')['handler']),
+            "pro" => $this->entitiesBuilder->single($this->config->get('pro')['handler']),
+            default => null
+        };
+
         if ($wire->getMethod() === 'usd' && !$wire->getTrialDays()) {
             $this->giftCardsManager->issueMindsPlusAndProGiftCards(
+                sender: $sender ?? new SystemUser(),
                 recipient: $wire->getSender(),
                 amount: $wire->getAmount() / 100,
                 expiryTimestamp: $wireType === "plus" ? $wire->getSender()->getPlusExpires() : $wire->getSender()->getProExpires()

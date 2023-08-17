@@ -166,9 +166,9 @@ class Manager
      * @return void
      * @throws GraphQLException
      */
-    public function sendGiftCardToRecipient(GiftCardTarget $recipient, GiftCard $giftCard): void
+    public function sendGiftCardToRecipient(User $sender, GiftCardTarget $recipient, GiftCard $giftCard): void
     {
-        $this->emailDelegate->onCreateGiftCard($giftCard, $recipient);
+        $this->emailDelegate->onCreateGiftCard($giftCard, $recipient, $sender);
         $this->notificationDelegate->onCreateGiftCard($giftCard, $recipient);
     }
 
@@ -457,7 +457,7 @@ class Manager
      * @throws StripeTransferFailedException
      * @throws UserErrorException
      */
-    public function issueMindsPlusAndProGiftCards(User $recipient, float $amount, int $expiryTimestamp): void
+    public function issueMindsPlusAndProGiftCards(?User $sender, User $recipient, float $amount, int $expiryTimestamp): void
     {
         $this->logger->info("Issuing gift cards to " . $recipient->getGuid() . " for $" . $amount . " (expires " . date("Y-m-d H:i:s", $expiryTimestamp) . ")");
 
@@ -478,6 +478,7 @@ class Manager
              * Send email and push notifications to recipient for gift card to be claimed
              */
             $this->sendGiftCardToRecipient(
+                sender: $sender ?? new SystemUser(),
                 recipient: new GiftCardTarget(
                     targetUserGuid: (int) $recipient->getGuid()
                 ),
