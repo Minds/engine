@@ -189,7 +189,11 @@ class Controller
     ): GiftCard {
         $giftCard = $this->manager->getGiftCard((int) $guid);
 
-        if ((string) $giftCard->claimedByGuid !== $loggedInUser->getGuid() && !$loggedInUser->isAdmin()) {
+        if (
+            (string) $giftCard->claimedByGuid !== $loggedInUser->getGuid() &&
+            (string) $giftCard->issuedByGuid !== $loggedInUser->getGuid() &&
+            !$loggedInUser->isAdmin()
+        ) {
             throw new GraphQLException("You are not authorized to view this gift card.", 403);
         }
 
