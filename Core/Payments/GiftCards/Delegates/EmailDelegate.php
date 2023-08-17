@@ -7,6 +7,7 @@ use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\Emailer;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Types\GiftCardTarget;
+use Minds\Entities\User;
 use Minds\Helpers\Validation;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
@@ -27,6 +28,7 @@ class EmailDelegate
     public function onCreateGiftCard(
         GiftCard $giftCard,
         GiftCardTarget $recipient,
+        User $sender
     ): void {
         if (!$recipient->targetEmail && !$recipient->targetUserGuid) {
             throw new GraphQLException('You must provide at least one between target email or target user guid', 400, null, 'Validation', ['field' => 'targetInput']);
@@ -39,6 +41,7 @@ class EmailDelegate
 
         $this->emailer
             ->setGiftCard($giftCard)
+            ->setSender($sender)
             ->setUser($recipientUser)
             ->setTargetEmail($recipient->targetEmail ?? null)
             ->setTopic('gift-card-claim-email')

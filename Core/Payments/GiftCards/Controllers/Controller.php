@@ -87,7 +87,11 @@ class Controller
         );
 
         // send email to recipient
-        $this->manager->sendGiftCardToRecipient($targetInput, $giftCard);
+        $this->manager->sendGiftCardToRecipient(
+            sender: $loggedInUser,
+            recipient: $targetInput,
+            giftCard: $giftCard
+        );
 
         return $giftCard;
     }
