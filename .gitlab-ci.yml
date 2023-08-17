@@ -116,7 +116,7 @@ prepare:runners:
         -t $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID \
         -f containers/php-runners/Dockerfile \
         --build-arg MINDS_VERSION=$CI_PIPELINE_ID \
-        --build-arg SENTRY_DSN=$SENTRY_DSN \
+        --build-arg SENTRY_DSN=$RUNNERS_SENTRY_DSN \
         .
     - docker push $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
     - >
