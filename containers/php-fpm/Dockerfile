@@ -14,10 +14,6 @@ COPY containers/php-fpm/apcu.ini /usr/local/etc/php/conf.d/docker-php-ext-apcu.i
 COPY containers/php-fpm/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Install xdebug
-RUN apk add --update linux-headers
-RUN apk add --virtual .bdeps $PHPIZE_DEPS \
-    && pecl install xdebug \
-    && docker-php-ext-enable xdebug
 COPY containers/php-fpm/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 ARG MINDS_VERSION="Unknown" 
@@ -25,3 +21,4 @@ ENV MINDS_VERSION=${MINDS_VERSION}
 
 ARG SENTRY_DSN=""
 ENV SENTRY_DSN=${SENTRY_DSN}
+CMD ["/bin/sh", "entrypoint.sh"]
