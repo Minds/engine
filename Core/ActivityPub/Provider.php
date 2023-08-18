@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Minds\Core\ActivityPub;
 
+use Minds\Core\ActivityPub\Builders\Objects\MindsActivityBuilder;
+use Minds\Core\ActivityPub\Builders\Objects\MindsCommentBuilder;
 use Minds\Core\ActivityPub\Factories\ActivityFactory;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\LikeFactory;
@@ -18,7 +20,6 @@ use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 use Minds\Core\Webfinger;
-use MindsCommentBuilder;
 
 class Provider extends DiProvider
 {

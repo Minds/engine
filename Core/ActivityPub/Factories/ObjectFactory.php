@@ -3,6 +3,8 @@ namespace Minds\Core\ActivityPub\Factories;
 
 use DateTime;
 use GuzzleHttp\Exception\ConnectException;
+use Minds\Core\ActivityPub\Builders\Objects\MindsActivityBuilder;
+use Minds\Core\ActivityPub\Builders\Objects\MindsCommentBuilder;
 use Minds\Core\ActivityPub\Client;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
@@ -14,7 +16,6 @@ use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
-use MindsCommentBuilder;
 use NotImplementedException;
 
 class ObjectFactory
