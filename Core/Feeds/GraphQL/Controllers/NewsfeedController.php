@@ -473,7 +473,8 @@ class NewsfeedController
         $result = $this->suggestedChannelsRecommendationsAlgorithm
             ->setUser($loggedInUser)
             ->getRecommendations([
-                'limit' => 3
+                'limit' => 3,
+                'export_counts' => true
             ]);
 
         // Inject a boosted channel (if not plus and disabled)

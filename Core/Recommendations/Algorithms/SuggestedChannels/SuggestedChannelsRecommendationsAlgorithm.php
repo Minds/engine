@@ -37,7 +37,11 @@ class SuggestedChannelsRecommendationsAlgorithm extends AbstractRecommendationsA
         
         $limit = (int) $options['limit'] ?? 3;
 
-        $users = array_map(function ($user) {
+        $users = array_map(function ($user) use ($options) {
+            if (isset($options['export_counts']) && $options['export_counts']) {
+                $user->exportCounts = true;
+            }
+
             $suggestion = new Suggestion();
             $suggestion->setEntity($user)
                 ->setEntityType('user');
