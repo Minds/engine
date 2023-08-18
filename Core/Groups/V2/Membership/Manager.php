@@ -381,6 +381,40 @@ class Manager
     }
 
     /**
+     * Cancels a users request to join a group.
+     * @return bool true on success.
+     */
+    public function cancelRequest(Group $group, User $user): bool
+    {
+        $userMembership = null;
+
+        try {
+            // TODO: Check if this check is still needed when we remove legacy writes.
+            $userMembership = $this->repository->get($group->getGuid(), $user->getGuid());
+        } catch(NotFoundException $e) {
+            // do nothing.
+        }
+
+        if (!$userMembership || !$userMembership->isAwaiting()) {
+            throw new GroupOperationException('Cannot cancel as there is no pending membership request.');
+        }
+
+        /**
+         * Legacy write
+         */
+        $legacyRemoved = $this->legacyMembership->setGroup($group)->setActor($user)->cancelRequest($user);
+
+        if (!$legacyRemoved) {
+            return false;
+        }
+
+        /**
+         * Vitess write
+         */
+        return $this->repository->delete($userMembership);
+    }
+
+    /**
      * Accepts a user into a group
      */
     public function acceptUser(Group $group, User $user, User $actor): bool
