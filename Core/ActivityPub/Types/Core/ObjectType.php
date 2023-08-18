@@ -4,7 +4,6 @@ namespace Minds\Core\ActivityPub\Types\Core;
 use DateTime;
 use Minds\Core\ActivityPub\Attributes\ExportProperty;
 use Minds\Core\ActivityPub\Types\AbstractType;
-use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
 
 class ObjectType extends AbstractType
 {
@@ -76,8 +75,6 @@ class ObjectType extends AbstractType
      */
     #[ExportProperty]
     public string $inReplyTo;
-
-    public ?AbstractActorType $actor = null;
 
     /**
      * Sets the ID (must be a string)
