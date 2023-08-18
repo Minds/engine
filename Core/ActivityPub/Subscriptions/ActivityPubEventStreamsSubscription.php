@@ -5,10 +5,12 @@
  */
 namespace Minds\Core\ActivityPub\Subscriptions;
 
-use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
+use Minds\Core\ActivityPub\Factories\ObjectFactory;
+use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Services\EmitActivityService;
 use Minds\Core\ActivityPub\Types\Activity\FollowType;
+use Minds\Core\ActivityPub\Types\Activity\LikeType;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\ActionEvent;
@@ -23,12 +25,14 @@ use Minds\Entities\User;
 class ActivityPubEventStreamsSubscription implements SubscriptionInterface
 {
     public function __construct(
+        private ?ObjectFactory $objectFactory = null,
         protected ?Manager $manager = null,
         protected ?EmitActivityService $emitActivityService = null,
         protected ?ActorFactory $actorFactory = null,
         protected ?Logger $logger = null,
         protected ?Config $config = null,
     ) {
+        $this->objectFactory = Di::_()->get(ObjectFactory::class);
         $this->manager ??= Di::_()->get(Manager::class);
         $this->emitActivityService ??= Di::_()->get(EmitActivityService::class);
         $this->actorFactory ??= Di::_()->get(ActorFactory::class);
@@ -97,6 +101,18 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
 
                 $this->emitActivityService->emitFollow($follow, $user);
                 
+                return true;
+            case ActionEvent::ACTION_VOTE_UP:
+            case ActionEvent::ACTION_VOTE_UP_REMOVED:
+                $actor = $this->actorFactory->fromEntity($user);
+                $object = $this->objectFactory->fromEntity($entity);
+
+                $like = new LikeType();
+                $like->id = $this->manager->getTransientId();
+                $like->actor = $actor;
+                $like->object = $object;
+
+                $this->emitActivityService->emitLike($like, $user);
                 return true;
                 break;
             default:

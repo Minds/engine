@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace Minds\Core\ActivityPub;
 
 use GuzzleHttp\Exception\ClientException;
+use Minds\Core\ActivityPub\Factories\ActorFactory;
+use Minds\Core\ActivityPub\Factories\LikeFactory;
 use Minds\Core\ActivityPub\Factories\OutboxFactory;
-use Minds\Core\ActivityPub\Types\Activity\CreateType;
-use Minds\Core\ActivityPub\Types\Actor\PersonType;
+use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
+use Minds\Core\ActivityPub\Services\HttpSignatureService;
+use Minds\Core\ActivityPub\Services\ProcessCollectionService;
 use Minds\Core\ActivityPub\Types\Core\OrderedCollectionPageType;
-use Minds\Core\ActivityPub\Types\Object\NoteType;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Feeds\Elastic\V2\QueryOpts;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
@@ -21,10 +22,6 @@ use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\SimpleCache\InvalidArgumentException;
 use Zend\Diactoros\Response\JsonResponse;
-use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
-use Minds\Core\ActivityPub\Services\HttpSignatureService;
-use Minds\Core\ActivityPub\Services\ProcessCollectionService;
-use Minds\Core\ActivityPub\Factories\ActorFactory;
 
 /**
  * The controller for the ActivityPub module's endpoints
@@ -35,6 +32,7 @@ class Controller
         private Manager $manager,
         private ActorFactory $actorFactory,
         private OutboxFactory $outboxFactory,
+        private readonly LikeFactory $likeFactory,
         private EntitiesBuilder $entitiesBuilder,
         private Config $config,
     ) {
@@ -144,6 +142,25 @@ class Controller
         $orderedCollection->setPartOf($baseUrl . 'following');
 
         $orderedCollection->setOrderedItems($items);
+
+        return new JsonResponse([
+            ...$orderedCollection->getContextExport(),
+            ...$orderedCollection->export()
+        ]);
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     * @throws NotFoundException
+     * @throws UserErrorException
+     * @throws \NotImplementedException
+     */
+    public function getUserLiked(ServerRequestInterface $request): JsonResponse
+    {
+        $user = $this->buildUser($request);
+
+        $orderedCollection = $this->likeFactory->build((string) $request->getUri(), $user);
 
         return new JsonResponse([
             ...$orderedCollection->getContextExport(),

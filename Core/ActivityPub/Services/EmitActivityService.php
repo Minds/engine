@@ -2,21 +2,17 @@
 namespace Minds\Core\ActivityPub\Services;
 
 use ActivityPhp\Type\Extended\AbstractActor;
-use Minds\Common\Access;
-use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Client;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
-use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
+use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Activity\AcceptType;
-use Minds\Core\ActivityPub\Types\Activity\CreateType;
 use Minds\Core\ActivityPub\Types\Activity\FollowType;
-use Minds\Core\ActivityPub\Types\Activity\UpdateType;
+use Minds\Core\ActivityPub\Types\Activity\LikeType;
 use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
 use Minds\Core\ActivityPub\Types\Core\ActivityType;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
-use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 
 class EmitActivityService
@@ -59,6 +55,20 @@ class EmitActivityService
         $inboxUrl = $target->endpoints['sharedInbox'] ?? $target->inbox;
 
         $this->postRequest($inboxUrl, $follow, $actor);
+    }
+
+    public function emitLike(LikeType $like, User $actor): void
+    {
+        // Get the targets inbox
+        $target = $like->object->actor;
+        if (!$target instanceof AbstractActorType) {
+            $this->logger->info("Emit Like: Failed - target is not an actor");
+            return;
+        }
+
+        $inboxUrl = $target->endpoints['sharedInbox'] ?? $target->inbox;
+
+        $this->postRequest($inboxUrl, $like, $actor);
     }
 
     /**

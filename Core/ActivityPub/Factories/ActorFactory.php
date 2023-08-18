@@ -21,6 +21,14 @@ use NotImplementedException;
 
 class ActorFactory
 {
+    public const ACTOR_TYPES = [
+        'Person' => PersonType::class,
+        'Application' => ApplicationType::class,
+        'Group' => GroupType::class,
+        'Organization' => OrganizationType::class,
+        'Service' => ServiceType::class,
+    ];
+    
     public function __construct(
         protected Manager $manager,
         protected Client $client,

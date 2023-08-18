@@ -11,8 +11,10 @@ use Minds\Core\ActivityPub\Types\Object\NoteType;
 use Minds\Core\Comments\Comment;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
+use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
+use MindsCommentBuilder;
 use NotImplementedException;
 
 class ObjectFactory
@@ -21,6 +23,8 @@ class ObjectFactory
         private Manager $manager,
         private Client $client,
         private ActorFactory $actorFactory,
+        private readonly MindsActivityBuilder $mindsActivityBuilder,
+        private readonly MindsCommentBuilder $mindsCommentBuilder,
     ) {
         
     }
@@ -50,6 +54,7 @@ class ObjectFactory
         $actorUri = $this->manager->getBaseUrl() . 'users/' .$entity->getOwnerGuid();
         switch (get_class($entity)) {
             case Activity::class:
+                return $this->mindsActivityBuilder->toActivityPubNote($entity);
                 /** @var Activity */
                 $activity = $entity;
                 
@@ -109,6 +114,10 @@ class ObjectFactory
                     'published' => date('c', $comment->getTimeCreated()),
                     'url' => $comment->getUrl(),
                 ];
+                break;
+            // TODO: Add docs to explain why this is needed - in short actors are a sub type of objects
+            case User::class:
+                return $this->actorFactory->fromEntity($entity);
                 break;
             default:
                 throw new NotImplementedException();

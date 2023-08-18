@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace Minds\Core\ActivityPub;
 
-use Minds\Core\Di\Provider as DiProvider;
-use Minds\Core\Webfinger;
-use Minds\Core\ActivityPub\Services\ProcessActivityService;
-use Minds\Core\ActivityPub\Services\ProcessActorService;
-use Minds\Core\ActivityPub\Services\ProcessCollectionService;
 use Minds\Core\ActivityPub\Factories\ActivityFactory;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
+use Minds\Core\ActivityPub\Factories\LikeFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Factories\OutboxFactory;
 use Minds\Core\ActivityPub\Services\EmitActivityService;
+use Minds\Core\ActivityPub\Services\ProcessActivityService;
+use Minds\Core\ActivityPub\Services\ProcessActorService;
+use Minds\Core\ActivityPub\Services\ProcessCollectionService;
+use Minds\Core\Di\Di;
+use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
+use Minds\Core\Webfinger;
+use MindsCommentBuilder;
 
 class Provider extends DiProvider
 {
@@ -47,6 +50,7 @@ class Provider extends DiProvider
                 manager: $di->get(Manager::class),
                 actorFactory: $di->get(ActorFactory::class),
                 outboxFactory: $di->get(OutboxFactory::class),
+                likeFactory: $di->get(LikeFactory::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 config: $di->get('Config'),
             );
@@ -71,6 +75,7 @@ class Provider extends DiProvider
                 acl: $di->get('Security\ACL'),
                 activityManager: $di->get('Feeds\Activity\Manager'),
                 subscriptionsManager: $di->get('Subscriptions\Manager'),
+                votesManager: $di->get('Votes\Manager'),
             );
         });
         $this->di->bind(ProcessCollectionService::class, function ($di) {
@@ -112,6 +117,8 @@ class Provider extends DiProvider
                 manager: $di->get(Manager::class),
                 client: $di->get(Client::class),
                 actorFactory: $di->get(ActorFactory::class),
+                mindsActivityBuilder: $di->get(MindsActivityBuilder::class),
+                mindsCommentBuilder: $di->get(MindsCommentBuilder::class),
             );
         });
         $this->di->bind(OutboxFactory::class, function ($di) {
@@ -121,5 +128,16 @@ class Provider extends DiProvider
                 actorFactory: $di->get(ActorFactory::class),
             );
         });
+        $this->di->bind(LikeFactory::class, function (Di $di): LikeFactory {
+            return new LikeFactory(
+                votesManager: $di->get('Votes\Manager'),
+                objectFactory: $di->get(ObjectFactory::class),
+            );
+        });
+
+        /**
+         * Builders
+         */
+        (new Builders\Provider())->register();
     }
 }

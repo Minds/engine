@@ -19,8 +19,7 @@ class Routes extends ModuleRoutes
                     'users/:guid',
                     Ref::_(Controller::class, 'getUser')
                 );
-
-
+                
                 $route->post(
                     'users/:guid/inbox',
                     Ref::_(Controller::class, 'postInbox')
@@ -39,6 +38,11 @@ class Routes extends ModuleRoutes
                 $route->get(
                     'users/:guid/following',
                     Ref::_(Controller::class, 'getUserFollowing')
+                );
+
+                $route->get(
+                    'users/:guid/liked',
+                    Ref::_(Controller::class, 'getUserLiked')
                 );
 
                 $route->post(

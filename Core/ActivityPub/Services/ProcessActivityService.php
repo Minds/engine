@@ -7,18 +7,21 @@ use Minds\Core\ActivityPub\Types\Activity\AcceptType;
 use Minds\Core\ActivityPub\Types\Activity\AnnounceType;
 use Minds\Core\ActivityPub\Types\Activity\CreateType;
 use Minds\Core\ActivityPub\Types\Activity\FollowType;
+use Minds\Core\ActivityPub\Types\Activity\LikeType;
 use Minds\Core\ActivityPub\Types\Activity\UndoType;
 use Minds\Core\ActivityPub\Types\Core\ActivityType;
 use Minds\Core\ActivityPub\Types\Object\NoteType;
 use Minds\Core\Comments\Comment;
-use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
 use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Guid;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Subscriptions;
+use Minds\Core\Votes\Manager as VotesManager;
+use Minds\Core\Votes\Vote;
 use Minds\Entities\Activity;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 
@@ -33,6 +36,7 @@ class ProcessActivityService
         protected ACL $acl,
         protected ActivityManager $activityManager,
         protected Subscriptions\Manager $subscriptionsManager,
+        private readonly VotesManager $votesManager,
     ) {
         
     }
@@ -206,6 +210,29 @@ class ProcessActivityService
                 break;
             case AcceptType::class:
                 // Nothing to do here?
+                break;
+            case LikeType::class:
+                $actor = $this->manager->getEntityFromUri($this->activity->actor->id);
+                if (!$actor) {
+                    // The actor doesn't exist, so we wont continue
+                    throw new ForbiddenException();
+                }
+
+                $entity = $this->manager->getEntityFromUri($this->activity->object->id);
+                
+                $vote = (new Vote())
+                    ->setEntity($entity)
+                    ->setActor($actor)
+                    ->setDirection('up');
+
+                if (
+                    $this->votesManager->setUser($actor)
+                        ->has($vote)) {
+                    // Already voted
+                    return;
+                }
+
+                $this->votesManager->cast($vote);
                 break;
             case UndoType::class:
 
