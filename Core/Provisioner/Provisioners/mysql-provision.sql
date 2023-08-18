@@ -371,7 +371,8 @@ CREATE TABLE IF NOT EXISTS minds_activitypub_uris (
     uri varchar(256) NOT NULL PRIMARY KEY,
     domain varchar(256) NOT NULL,
     entity_urn varchar(256) NOT NULL,
-    entity_guid bigint NOT NULL UNIQUE
+    entity_guid bigint NOT NULL UNIQUE,
+    created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
 );
 
 

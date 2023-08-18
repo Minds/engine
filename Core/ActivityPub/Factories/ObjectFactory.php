@@ -6,6 +6,8 @@ use GuzzleHttp\Exception\ConnectException;
 use Minds\Core\ActivityPub\Client;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
+use Minds\Core\ActivityPub\Types\Object\DocumentType;
+use Minds\Core\ActivityPub\Types\Object\ImageType;
 use Minds\Core\ActivityPub\Types\Core\ObjectType;
 use Minds\Core\ActivityPub\Types\Object\NoteType;
 use Minds\Core\Comments\Comment;
@@ -54,7 +56,7 @@ class ObjectFactory
                 $activity = $entity;
                 
                 $json = [
-                    'id' => $actorUri . '/entities/' . $entity->getGuid(),
+                    'id' => $actorUri . '/entities/' . $entity->getUrn(),
                     'type' => 'Note',
                     'content' => $activity->getMessage(),
                     'attributedTo' => $actorUri,
@@ -77,6 +79,26 @@ class ObjectFactory
                 // if ($activity->isRemind()) {
                 //     $json['inReplyTo'] = $this->manager->getUriFromEntity($activity->getRemind());
                 // }
+
+                // Any image attachments?
+                if ($activity->hasAttachments() && $activity->getCustomType() === 'batch') {
+                    $attachments = [];
+                    foreach ($activity->getCustomData() as $row) {
+                        $attachment = [
+                            'type' => 'Document',
+                            'mediaType' => 'image/jpeg',
+                            'url' => $row['src'],
+                        ];
+                        if ($row['width']) {
+                            $attachment['width'] = $row['width'];
+                        }
+                        if ($row['height']) {
+                            $attachment['height'] = $row['height'];
+                        }
+                        $attachments[] = $attachment;
+                    }
+                    $json['attachment'] = $attachments;
+                }
                 
                 break;
             case Comment::class:
@@ -109,6 +131,25 @@ class ObjectFactory
                     'published' => date('c', $comment->getTimeCreated()),
                     'url' => $comment->getUrl(),
                 ];
+
+                // Any images?
+                $attachments = [];
+                if ($comment->getAttachments() && $comment->getAttachments()['custom_type'] === 'image') {
+                    $row = json_decode($comment->getAttachments()['custom_data'], true);
+                    $attachment = [
+                        'type' => 'Document',
+                        'mediaType' => 'image/jpeg',
+                        'url' => $row['src'],
+                    ];
+                    if ($row['width']) {
+                        $attachment['width'] = $row['width'];
+                    }
+                    if ($row['height']) {
+                        $attachment['height'] = $row['height'];
+                    }
+                    $attachments[] = $attachment;
+                    $json['attachment'] = $attachments;
+                }
                 break;
             default:
                 throw new NotImplementedException();
@@ -127,10 +168,14 @@ class ObjectFactory
     {
         $object = match ($json['type']) {
             'Note' => new NoteType(),
+            'Image' => new ImageType(),
+            'Document' => new DocumentType(),
             default => new NotImplementedException(),
         };
 
-        $object->id = $json['id'];
+        if (isset($json['id'])) {
+            $object->id = $json['id'];
+        }
 
         if (isset($json['to'])) {
             $object->to = $json['to'];
@@ -154,6 +199,30 @@ class ObjectFactory
 
         if (isset($json['inReplyTo'])) {
             $object->inReplyTo = JsonLdHelper::getValueOrId($json['inReplyTo']);
+        }
+
+        if (isset($json['attachment'])) {
+            $object->attachment = [];
+
+            foreach ($json['attachment'] as $attachment) {
+                try {
+                    $object->attachment[] = $this->fromJson($attachment);
+                } catch (NotImplementedException $e) {
+                    // Can not support yet, will just skip
+                }
+            }
+        }
+
+        if (isset($json['mediaType'])) {
+            $object->mediaType = $json['mediaType'];
+        }
+
+        if (isset($json['width'])) {
+            $object->width = $json['width'];
+        }
+
+        if (isset($json['height'])) {
+            $object->height = $json['height'];
         }
 
         switch (get_class($object)) {

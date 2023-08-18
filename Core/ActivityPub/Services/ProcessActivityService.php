@@ -9,16 +9,21 @@ use Minds\Core\ActivityPub\Types\Activity\CreateType;
 use Minds\Core\ActivityPub\Types\Activity\FollowType;
 use Minds\Core\ActivityPub\Types\Activity\UndoType;
 use Minds\Core\ActivityPub\Types\Core\ActivityType;
+use Minds\Core\ActivityPub\Types\Object\DocumentType;
+use Minds\Core\ActivityPub\Types\Object\ImageType;
 use Minds\Core\ActivityPub\Types\Object\NoteType;
 use Minds\Core\Comments\Comment;
+use Minds\Core\Config\Config;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
 use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Guid;
+use Minds\Core\Media\Image\ProcessExternalImageService;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Subscriptions;
 use Minds\Entities\Activity;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 
@@ -33,6 +38,8 @@ class ProcessActivityService
         protected ACL $acl,
         protected ActivityManager $activityManager,
         protected Subscriptions\Manager $subscriptionsManager,
+        protected ProcessExternalImageService $processExternalImageService,
+        protected Config $config,
     ) {
         
     }
@@ -60,7 +67,7 @@ class ProcessActivityService
          *  The owner and have at least one subscriber for their posts to be ingested
          */
         if ($this->subscriptionsManager->setSubscriber($owner)->getSubscriptionsCount() === 0) {
-            //return;
+            // return;
         }
                     
         
@@ -77,6 +84,8 @@ class ProcessActivityService
                         return;
                     }
 
+                    // Does the post have any attachments?
+
                     // Is this a reply?
                     // Do we have the post that is being replied to?
                     if (isset($this->activity->object->inReplyTo)) {
@@ -86,6 +95,9 @@ class ProcessActivityService
                             // For now we will not
                             return;
                         }
+
+                        // Ignore ACL as we need to be able to act on another users behalf
+                        $ia = $this->acl->setIgnore(true);
 
                         // We will always treat Fediverse replies as comments
 
@@ -114,25 +126,77 @@ class ProcessActivityService
                             $comment->setCanonicalUrl($this->activity->object->url);
                         }
 
+                        /**
+                         * If any images, then fetch them
+                         */
+                        $images = $this->processImages(
+                            owner: $owner,
+                            max: 1
+                        );
+                        
+                        if (count($images)) {
+                            $siteUrl = $this->config->get('site_url');
+                            $comment->setAttachment('custom_type', 'image');
+                            $comment->setAttachment('custom_data', [
+                                'guid' => (string) $images[0]->guid,
+                                'container_guid' => (string) $images[0]->container_guid,
+                                'src'=> $siteUrl . 'fs/v1/thumbnail/' . $images[0]->guid,
+                                'href'=> $siteUrl . 'media/' . $images[0]->container_guid . '/' . $images[0]->guid,
+                                'mature' => false,
+                                'width' => $images[0]->width,
+                                'height' => $images[0]->height,
+                            ]);
+                            $comment->setAttachment('attachment_guid', $images[0]->guid);
+
+                            // Fix the access_id on the image
+                            $this->patchImages($comment, $images);
+                        }
+
                         $commentsManager = new \Minds\Core\Comments\Manager();
                         $commentsManager->add($comment);
                         
+                        // Save the comment
                         $this->manager->addUri(
                             uri: $this->activity->object->id,
                             guid: (int) $comment->getGuid(),
                             urn: $comment->getUrn(),
                         );
 
+                        // Reset ACL state
+                        $this->acl->setIgnore($ia);
+
                         return;
                     }
 
+                    // Ignore ACL as we need to be able to act on another users behalf
+                    $ia = $this->acl->setIgnore(true);
+
+                    /**
+                     * Create the Activity
+                     */
                     $entity = $this->prepareActivity($owner);
 
                     $entity->setMessage(strip_tags($this->activity->object->content));
-                                    
-                    $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
+
+                    // If any images, then fetch them
+                    $images = $this->processImages(
+                        owner: $owner,
+                        max: 4
+                    );
+
+                    // Add the images as attachments
+                    $entity->setAttachments($images);
+                
+                    // Save the activity
                     $this->activityManager->add($entity);
-                    $this->acl->setIgnore($ia); // Reset ACL state
+
+                    // Patch image access
+                    if (count($images)) {
+                        $this->patchImages($entity, $images);
+                    }
+
+                    // Reset ACL state
+                    $this->acl->setIgnore($ia);
         
                     // Save reference so we don't import this again
                     $this->manager->addUri(
@@ -234,6 +298,54 @@ class ProcessActivityService
                 }
         }
         
+    }
+
+    /**
+     * @return Image[]
+     */
+    private function processImages(User $owner, int $max = 4): array
+    {
+        $images = [];
+
+        if (isset($this->activity->object->attachment) && count($this->activity->object->attachment)) {
+            foreach ($this->activity->object->attachment as $attachment) {
+                if (count($images) >= $max) {
+                    break;
+                }
+                if (!$attachment instanceof DocumentType) {
+                    continue;
+                }
+                if (strpos($attachment->mediaType, 'image/', 0) === false) {
+                    continue; // Not a valid image
+                }
+                $images[] = $this->processExternalImageService->process($owner, $attachment->url);
+            }
+        }
+
+        return $images;
+    }
+
+    /**
+     * When we create the images, we are not aware of the GUID
+     * After the Activity is saved, and we have a GUID, we can then patch the Images
+     * with the correct access_id and container_guid
+     */
+    private function patchImages(EntityInterface $entity, array $images): void
+    {
+        foreach ($images as $image) {
+            if ($entity instanceof Activity) {
+                $image->setAccessId($entity->getGuid());
+                $image->setContainerGUID($entity->getGuid());
+            } elseif ($entity instanceof Comment) {
+                $image->setAccessId($entity->getAccessId());
+                $image->setContainerGUID($entity->getAccessId());
+            } else {
+                return;
+            }
+
+            // Save the image with our new parent
+            $image->save();
+        }
     }
 
     /**

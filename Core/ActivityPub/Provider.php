@@ -16,6 +16,7 @@ use Minds\Core\ActivityPub\Factories\OutboxFactory;
 use Minds\Core\ActivityPub\Services\EmitActivityService;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
+use Minds\Core\Media\Image\ProcessExternalImageService;
 
 class Provider extends DiProvider
 {
@@ -71,6 +72,8 @@ class Provider extends DiProvider
                 acl: $di->get('Security\ACL'),
                 activityManager: $di->get('Feeds\Activity\Manager'),
                 subscriptionsManager: $di->get('Subscriptions\Manager'),
+                processExternalImageService: $di->get(ProcessExternalImageService::class),
+                config: $di->get('Config'),
             );
         });
         $this->di->bind(ProcessCollectionService::class, function ($di) {
