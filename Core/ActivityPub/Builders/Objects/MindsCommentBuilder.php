@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\ActivityPub\Builders\Objects;
 
+use DateTime;
 use Minds\Core\ActivityPub\Manager as ActivityPubManager;
 use Minds\Core\ActivityPub\Types\Object\NoteType;
 use Minds\Core\Comments\Comment;
