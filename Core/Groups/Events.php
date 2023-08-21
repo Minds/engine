@@ -71,6 +71,9 @@ class Events
                 }
 
                 try {
+                    if (!$user) {
+                        return;
+                    }
                     $membership = $this->getGroupMembershipManager()->getMembership($group, $user);
                     $e->setResponse($membership->isMember());
                 } catch (NotFoundException $ex) {

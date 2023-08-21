@@ -5,6 +5,8 @@ namespace Minds\Controllers\Cli\Supermind;
 use Minds\Core\Blockchain\Wallets\OffChain\Exceptions\OffchainWalletInsufficientFundsException;
 use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
+use Minds\Core\Di\Di;
+use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Supermind\Manager as SupermindManager;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
@@ -16,6 +18,18 @@ use Stripe\Exception\ApiErrorException;
  */
 class ExpireSupermindRequests extends \Minds\Cli\Controller implements \Minds\Interfaces\CliControllerInterface
 {
+    public function __construct(
+        private ?Logger $logger = null
+    ) {
+        $this->logger ??= Di::_()->get("Logger");
+
+        Di::_()->get("Config")
+            ->set('min_log_level', 'INFO');
+
+        error_reporting(E_ALL);
+        ini_set('display_errors', 1);
+    }
+
     /**
      * @inheritDoc
      */

@@ -23,6 +23,7 @@ use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 /**
  * @method self setGiftCard(GiftCard $giftCard)
+ * @method self setSender(User $sender)
  * @method self setTargetEmail(string $targetEmail)
  */
 class Emailer extends EmailCampaign
@@ -30,6 +31,8 @@ class Emailer extends EmailCampaign
     use MagicAttributes;
 
     private ?GiftCard $giftCard = null;
+
+    private ?User $sender = null;
 
     private ?string $targetEmail = null;
 
@@ -56,12 +59,14 @@ class Emailer extends EmailCampaign
             return;
         }
 
-        $sender = $this->entitiesBuilder->single($this->giftCard->issuedByGuid);
-        if (!$sender) {
-            return;
+        if (!$this->sender) {
+            $this->sender = $this->entitiesBuilder->single($this->giftCard->issuedByGuid);
+            if (!$this->sender) {
+                return;
+            }
         }
 
-        $this->mailer->send($this->buildMessage($sender));
+        $this->mailer->send($this->buildMessage($this->sender));
 
         $this->logger->warning('Gift card email sent', [$this->mailer->getStats(), $this->mailer->getErrors()]);
         $this->saveCampaignLog();
@@ -73,11 +78,11 @@ class Emailer extends EmailCampaign
             return null;
         }
 
-        $bodyHandler = $this->getBodyHandler($this->giftCard->productId);
-        $bodyHandler->setAmount($this->giftCard->amount);
-        $bodyHandler->setSender($sender);
+        $productHandler = $this->getProductHandler($this->giftCard->productId);
+        $productHandler->setAmount($this->giftCard->amount);
+        $productHandler->setSender($sender);
 
-        $bodyText = $bodyHandler->buildContent();
+        $bodyText = $productHandler->buildContent();
 
         $this->template->setTemplate('default.v2.tpl');
         $this->template->setBody('./template.tpl');
@@ -116,7 +121,7 @@ class Emailer extends EmailCampaign
                     ]
                 )
             )
-            ->setSubject("You received a gift")
+            ->setSubject($productHandler->buildSubject())
             ->setHtml($this->template);
     }
 
@@ -124,7 +129,7 @@ class Emailer extends EmailCampaign
      * @param GiftCardProductIdEnum $productIdEnum
      * @return GiftCardProductInterface
      */
-    private function getBodyHandler(GiftCardProductIdEnum $productIdEnum): GiftCardProductInterface
+    private function getProductHandler(GiftCardProductIdEnum $productIdEnum): GiftCardProductInterface
     {
         return match ($productIdEnum) {
             GiftCardProductIdEnum::BOOST => new BoostCredit(),

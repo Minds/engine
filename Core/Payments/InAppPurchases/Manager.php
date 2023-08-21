@@ -3,8 +3,10 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\InAppPurchases;
 
+use Minds\Common\SystemUser;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardPaymentFailedException;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
@@ -28,9 +30,11 @@ class Manager
         private readonly GiftCardsManager $giftCardsManager,
         private readonly Config $config,
         private ?InAppPurchasesClientFactory $inAppPurchasesClientFactory = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
         private ?Logger $logger = null
     ) {
         $this->inAppPurchasesClientFactory ??= Di::_()->get(InAppPurchasesClientFactory::class);
+        $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->logger ??= Di::_()->get('Logger');
     }
 
@@ -96,7 +100,15 @@ class Manager
 
         $inAppPurchase->user->save();
 
+        $sender = match ($inAppPurchase->subscriptionId) {
+            "plus.yearly.001",
+            "plus.monthly.001" => $this->entitiesBuilder->single($this->config->get('plus')['handler']),
+            "pro.yearly.001",
+            "pro.monthly.001" => $this->entitiesBuilder->single($this->config->get('pro')['handler']),
+        };
+
         $this->giftCardsManager->issueMindsPlusAndProGiftCards(
+            sender: $sender ?? new SystemUser(),
             recipient: $inAppPurchase->user,
             amount: $amount,
             expiryTimestamp: $subscriptionType === "plus" ? $inAppPurchase->user->getPlusExpires() : $inAppPurchase->user->getProExpires()
