@@ -366,7 +366,6 @@ ALTER TABLE user_configurations
     ADD dismissals json NULL DEFAULT NULL
     AFTER plus_demonetized_ts;
 
-
 CREATE TABLE IF NOT EXISTS minds_activitypub_uris (
     uri varchar(256) NOT NULL PRIMARY KEY,
     domain varchar(256) NOT NULL,

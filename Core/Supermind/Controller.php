@@ -158,7 +158,7 @@ class Controller
         $response = $this->manager->getReceivedRequests(
             offset: (int) $offset,
             limit: (int) $limit,
-            status: (int) $status
+            status: $status ? SupermindRequestStatus::from((int) $status) : null
         );
         return new JsonResponse(Exportable::_($response));
     }
@@ -203,7 +203,7 @@ class Controller
         ['status' => $status] = $request->getQueryParams();
 
         $count = $this->manager->countReceivedRequests(
-            status: (int) $status ?? null
+            status: $status ? SupermindRequestStatus::from((int) $status) : null
         );
 
         return new JsonResponse([ 'count' => $count ]);
@@ -256,7 +256,7 @@ class Controller
         $response = $this->manager->getSentRequests(
             offset: (int) $offset,
             limit: (int) $limit,
-            status: (int) $status
+            status: $status ? SupermindRequestStatus::from($status) : null
         );
         return new JsonResponse(Exportable::_($response));
     }
@@ -298,10 +298,10 @@ class Controller
 
         $this->manager->setUser($loggedInUser);
 
-        ['status' => $status] = $request->getQueryParams();
+        $status = $request->getQueryParams()['status'] ?? null;
 
         $count = $this->manager->countSentRequests(
-            status: (int) $status ?? null
+            status: $status ? SupermindRequestStatus::from($status) : null
         );
 
         return new JsonResponse([ 'count' => $count ]);
