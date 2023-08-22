@@ -179,7 +179,7 @@ class ActorFactory
             if (isset($json['icon']['mediaType'])) {
                 $icon->mediaType = $json['icon']['mediaType'];
             }
-            $icon->url = $json['url'];
+            $icon->url = $json['icon']['url'];
             $actor->icon = $icon;
         }
 
