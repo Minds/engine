@@ -25,7 +25,7 @@ class Repository
      */
     public function add(Subscription $subscription): bool
     {
-        $statement = "INSERT INTO friends (user_guid, friend_guid, timestamp) VALUES (:user_guid, :friend_guid, CURRENT_TIMESTAMP())";
+        $statement = "INSERT INTO friends (user_guid, friend_guid, timestamp) VALUES (:user_guid, :friend_guid, CURRENT_TIMESTAMP()) ON DUPLICATE KEY UPDATE user_guid=user_guid";
         
         $prepared = $this->client->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
         

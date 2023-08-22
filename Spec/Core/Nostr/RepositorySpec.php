@@ -7,6 +7,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Nostr\NostrEvent;
 use Minds\Core\Nostr\Repository;
 use Minds\Entities\Activity;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use PDO;
 use PDOStatement;
@@ -279,7 +280,7 @@ class RepositorySpec extends ObjectBehavior
         $activity->getOwnerGuid()
             ->willReturn('456');
         $activity->getSource()
-            ->willReturn('nostr');
+            ->willReturn(FederatedEntitySourcesEnum::NOSTR);
         //
 
         $this->addActivityToNostrId($activity, 'af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c')
@@ -311,7 +312,7 @@ class RepositorySpec extends ObjectBehavior
         $user->getGuid()
             ->willReturn('123');
         $user->getSource()
-            ->willReturn('nostr');
+            ->willReturn(FederatedEntitySourcesEnum::NOSTR);
         //
 
         $this->addNostrUser($user, '36cb1113be1c14ef3026f42b565f33702776a5255985b78a38233c996c22f46b')
