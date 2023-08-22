@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\ActivityPub;
 
-use Minds\Core\ActivityPub\Builders\Objects\MindsActivityBuilder;
-use Minds\Core\ActivityPub\Builders\Objects\MindsCommentBuilder;
 use Minds\Core\ActivityPub\Factories\ActivityFactory;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\LikeFactory;
@@ -121,8 +119,6 @@ class Provider extends DiProvider
                 manager: $di->get(Manager::class),
                 client: $di->get(Client::class),
                 actorFactory: $di->get(ActorFactory::class),
-                mindsActivityBuilder: $di->get(MindsActivityBuilder::class),
-                mindsCommentBuilder: $di->get(MindsCommentBuilder::class),
             );
         });
         $this->di->bind(OutboxFactory::class, function ($di) {
@@ -142,6 +138,6 @@ class Provider extends DiProvider
         /**
          * Builders
          */
-        (new Builders\Provider())->register();
+        // (new Builders\Provider())->register();
     }
 }

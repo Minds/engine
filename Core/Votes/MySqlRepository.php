@@ -2,7 +2,6 @@
 namespace Minds\Core\Votes;
 
 use Minds\Core\Data\MySQL\Client;
-use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Votes\Enums\VoteEnum;
 use Minds\Exceptions\ServerErrorException;
@@ -110,8 +109,9 @@ class MySqlRepository
         $stmt->execute();
 
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $urn = "urn:comment:{$row['entity_guid']}";
             $entity = match ($row['entity_type']) {
-                'comment' => Di::_()->get('Comments\Manager')->getByGuid($row['entity_guid']),
+                'comment' => $this->entitiesBuilder->getByUrn($urn),
                 default => $this->entitiesBuilder->single($row['entity_guid'])
             };
             yield (new Vote())

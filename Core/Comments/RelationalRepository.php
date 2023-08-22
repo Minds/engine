@@ -174,7 +174,7 @@ class RelationalRepository extends AbstractRepository
             ->setTimeCreated($row['time_created'])
             ->setTimeUpdated($row['time_updated'])
             ->setBody($row['body'])
-            ->setAttachments($row['attachments'] ?: [])
+            ->setAttachments($row['attachments'] ? json_decode($row['attachments']) : [])
             ->setMature(!!$row['mature'])
             ->setEdited(!!$row['edited'])
             ->setSpam(!!$row['spam'])
