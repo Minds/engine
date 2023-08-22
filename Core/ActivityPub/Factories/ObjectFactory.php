@@ -2,6 +2,7 @@
 namespace Minds\Core\ActivityPub\Factories;
 
 use DateTime;
+use Exception;
 use GuzzleHttp\Exception\ConnectException;
 use Minds\Core\ActivityPub\Builders\Objects\MindsActivityBuilder;
 use Minds\Core\ActivityPub\Builders\Objects\MindsCommentBuilder;
@@ -9,6 +10,8 @@ use Minds\Core\ActivityPub\Client;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Core\ObjectType;
+use Minds\Core\ActivityPub\Types\Object\DocumentType;
+use Minds\Core\ActivityPub\Types\Object\ImageType;
 use Minds\Core\ActivityPub\Types\Object\NoteType;
 use Minds\Core\Comments\Comment;
 use Minds\Entities\Activity;
@@ -21,9 +24,9 @@ use NotImplementedException;
 class ObjectFactory
 {
     public function __construct(
-        private Manager $manager,
-        private Client $client,
-        private ActorFactory $actorFactory,
+        private readonly Manager $manager,
+        private readonly Client $client,
+        private readonly ActorFactory $actorFactory,
         private readonly MindsActivityBuilder $mindsActivityBuilder,
         private readonly MindsCommentBuilder $mindsCommentBuilder,
     ) {
@@ -50,61 +53,34 @@ class ObjectFactory
         return $this->fromJson($json);
     }
 
+    /**
+     * @param EntityInterface $entity
+     * @return ObjectType
+     * @throws NotFoundException
+     * @throws NotImplementedException
+     * @throws UserErrorException
+     * @throws Exception
+     */
     public function fromEntity(EntityInterface $entity): ObjectType
     {
-        $actorUri = $this->manager->getBaseUrl() . 'users/' .$entity->getOwnerGuid();
-        switch (get_class($entity)) {
-            case Activity::class:
-                return $this->mindsActivityBuilder->toActivityPubNote($entity);
-                
-                break;
-            case Comment::class:
-                return $this->mindsCommentBuilder->toActivityPubNote($entity);
-                /** @var Comment */
-                $comment = $entity;
+        $object = match (get_class($entity)) {
+            Activity::class => $this->mindsActivityBuilder->toActivityPubNote($entity),
 
-                if ($comment->getParentGuid()) {
-                    $parentUrn = $comment->getParentUrn();
-                } else {
-                    $parentUrn = 'urn:entity:' . $comment->getEntityGuid();
-                }
+            Comment::class => $this->mindsCommentBuilder->toActivityPubNote($entity),
 
-                /**
-                 * Get the uri of what we are replying to
-                 */
-                $replyToUri = $this->manager->getUriFromUrn($parentUrn);
-
-                $json = [
-                    'id' => $actorUri . '/entities/' . $entity->getUrn(),
-                    'type' => 'Note',
-                    'content' => $comment->getBody(),
-                    'attributedTo' => $actorUri,
-                    'inReplyTo' => $replyToUri,
-                    'to' => [
-                        'https://www.w3.org/ns/activitystreams#Public',
-                    ],
-                    'cc' => [
-                        $actorUri . '/followers',
-                    ],
-                    'published' => date('c', $comment->getTimeCreated()),
-                    'url' => $comment->getUrl(),
-                ];
-                break;
             // TODO: Add docs to explain why this is needed - in short actors are a sub type of objects
-            case User::class:
-                return $this->actorFactory->fromEntity($entity);
-                break;
-            default:
-                throw new NotImplementedException();
-        }
+            User::class => $this->actorFactory->fromEntity($entity),
+
+            default => throw new NotImplementedException()
+        };
 
         // If this is a 'reply', then cc in the owner of who we are replying to
-        if ($json['inReplyTo'] ?? null) {
-            $replyObject = $this->fromUri($json['inReplyTo']);
-            $json['cc'][] = $replyObject->attributedTo;
+        if ($object->inReplyTo ?? null) {
+            $replyObject = $this->fromUri($object->inReplyTo);
+            $object->cc[] = $replyObject->attributedTo;
         }
 
-        return $this->fromJson($json);
+        return $object;
     }
 
     public function fromJson(array $json): ObjectType
@@ -115,10 +91,14 @@ class ObjectFactory
 
         $object = match ($json['type']) {
             'Note' => new NoteType(),
+            'Image' => new ImageType(),
+            'Document' => new DocumentType(),
             default => new NotImplementedException(),
         };
 
-        $object->id = $json['id'];
+        if (isset($json['id'])) {
+            $object->id = $json['id'];
+        }
 
         if (isset($json['to'])) {
             $object->to = $json['to'];
@@ -144,12 +124,32 @@ class ObjectFactory
             $object->inReplyTo = JsonLdHelper::getValueOrId($json['inReplyTo']);
         }
 
-        switch (get_class($object)) {
-            case NoteType::class:
-                $object->content = $json['content'];
-                break;
+        if (isset($json['attachment'])) {
+            $object->attachment = [];
+
+            foreach ($json['attachment'] as $attachment) {
+                try {
+                    $object->attachment[] = $this->fromJson($attachment);
+                } catch (NotImplementedException $e) {
+                    // Can not support yet, will just skip
+                }
+            }
         }
 
-        return $object;
+        if (isset($json['mediaType'])) {
+            $object->mediaType = $json['mediaType'];
+        }
+
+        if (isset($json['width'])) {
+            $object->width = $json['width'];
+        }
+
+        if (isset($json['height'])) {
+            $object->height = $json['height'];
+        }
+
+        return match (get_class($object)) {
+            NoteType::class => $object->content = $json['content']
+        };
     }
 }

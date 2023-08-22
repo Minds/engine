@@ -52,10 +52,11 @@ class ObjectType extends AbstractType
     public array $cc;
 
     /**
+     * @param string|LinkType[]
      * @see https://www.w3.org/TR/activitystreams-vocabulary/#dfn-url
      */
     #[ExportProperty]
-    public string $url;
+    public string|array $url;
 
     /**
      * @see https://www.w3.org/TR/activitypub/#actor-objects
@@ -75,6 +76,32 @@ class ObjectType extends AbstractType
      */
     #[ExportProperty]
     public string $inReplyTo;
+
+    /**
+     * @see https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediaType
+     */
+    #[ExportProperty]
+    public string $mediaType;
+
+    /**
+     * @param ObjectType[]|LinkType[]
+     * @see https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attachment
+     */
+    #[ExportProperty]
+    public array $attachment;
+
+    /**
+     * @see https://www.w3.org/TR/activitystreams-vocabulary/#dfn-height
+     */
+    #[ExportProperty]
+    public int $height;
+
+    /**
+     * @see https://www.w3.org/TR/activitystreams-vocabulary/#dfn-width
+     */
+    #[ExportProperty]
+    public int $width;
+    
 
     /**
      * Sets the ID (must be a string)

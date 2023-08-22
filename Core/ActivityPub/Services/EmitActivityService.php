@@ -72,10 +72,10 @@ class EmitActivityService
         $this->postRequest($inboxUrl, $like, $actor);
     }
 
-    public function emitUndoLike(LikeType $like, User $actor): void
+    public function emitUndoLike(LikeType $like, User $actor, string $attributedTo): void
     {
         // Get the targets inbox
-        $target = $this->objectFactory->fromUri($like->object->attributedTo);
+        $target = $this->objectFactory->fromUri($attributedTo);
         if (!$target instanceof AbstractActorType) {
             $this->logger->info("Emit Undo Like: Failed - target is not an actor");
             return;

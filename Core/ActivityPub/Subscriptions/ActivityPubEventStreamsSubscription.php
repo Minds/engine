@@ -112,8 +112,13 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
                 $like->actor = $actor;
                 $like->object = $object;
 
-                $method = $event->getAction() === ActionEvent::ACTION_VOTE_UP ? 'emitLike' : 'emitUndoLike';
-                $this->emitActivityService->$method($like, $user);
+                if ($event->getAction() === ActionEvent::ACTION_VOTE_UP_REMOVED) {
+                    $like->object = $object->id;
+                    $this->emitActivityService->emitUndoLike($like, $user, $object->attributedTo);
+                    return true;
+                }
+
+                $this->emitActivityService->emitLike($like, $user);
                 return true;
                 break;
             default:

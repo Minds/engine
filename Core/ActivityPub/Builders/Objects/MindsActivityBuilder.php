@@ -4,13 +4,13 @@ declare(strict_types=1);
 namespace Minds\Core\ActivityPub\Builders\Objects;
 
 use DateTime;
+use Exception;
 use Minds\Core\ActivityPub\Manager as ActivityPubManager;
 use Minds\Core\ActivityPub\Types\Object\NoteType;
-use Minds\Core\Comments\Comment;
 use Minds\Entities\Activity;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 
-class MindsActivityBuilder
+class MindsActivityBuilder extends AbstractMindsEntityBuilder
 {
     public function __construct(
         private readonly ActivityPubManager $activityPubManager,
@@ -18,7 +18,7 @@ class MindsActivityBuilder
     }
 
     /**
-     * @param Comment $comment
+     * @param Activity $activity
      * @return NoteType
      * @throws Exception
      */
@@ -47,21 +47,12 @@ class MindsActivityBuilder
         if ($activity->isQuotedPost()) {
             $note->inReplyTo = $this->activityPubManager->getUriFromEntity($activity->getRemind());
         }
-        return $note;
-    }
 
-    private function getReplyToUri(Comment $comment): string
-    {
-        if ($comment->getParentGuid()) {
-            $parentUrn = $comment->getParentUrn();
-        } else {
-            $parentUrn = 'urn:entity:' . $comment->getEntityGuid();
+        if ($activity->hasAttachments() && $activity->getCustomType() === 'batch') {
+            $note->attachment = $this->processAttachments($activity->getCustomData());
         }
 
-        /**
-         * Get the uri of what we are replying to
-         */
-        return $this->activityPubManager->getUriFromUrn($parentUrn);
+        return $note;
     }
 
 }

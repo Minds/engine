@@ -4,12 +4,14 @@ declare(strict_types=1);
 namespace Minds\Core\ActivityPub\Builders\Objects;
 
 use DateTime;
+use Exception;
 use Minds\Core\ActivityPub\Manager as ActivityPubManager;
 use Minds\Core\ActivityPub\Types\Object\NoteType;
 use Minds\Core\Comments\Comment;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
+use Minds\Exceptions\ServerErrorException;
 
-class MindsCommentBuilder
+class MindsCommentBuilder extends AbstractMindsEntityBuilder
 {
     public function __construct(
         private readonly ActivityPubManager $activityPubManager,
@@ -36,11 +38,23 @@ class MindsCommentBuilder
         $note->cc = [
             $actorUri . '/followers',
         ];
+
+        if ($comment->getAttachments() && $comment->getAttachments()['custom_type'] === 'image') {
+            $row = json_decode($comment->getAttachments()['custom_data'], true);
+
+            $note->attachment = $this->processAttachments([$row]);
+        }
+
         // TODO: Ask Mark where he added the getUrl for comments
         // $note->url = $comment->getUrl();
         return $note;
     }
 
+    /**
+     * @param Comment $comment
+     * @return string
+     * @throws ServerErrorException
+     */
     private function getReplyToUri(Comment $comment): string
     {
         if ($comment->getParentGuid()) {

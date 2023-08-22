@@ -19,6 +19,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
+use Minds\Core\Media\Image\ProcessExternalImageService;
 use Minds\Core\Webfinger;
 
 class Provider extends DiProvider
@@ -77,6 +78,8 @@ class Provider extends DiProvider
                 activityManager: $di->get('Feeds\Activity\Manager'),
                 subscriptionsManager: $di->get('Subscriptions\Manager'),
                 votesManager: $di->get('Votes\Manager'),
+                processExternalImageService: $di->get(ProcessExternalImageService::class),
+                config: $di->get('Config'),
             );
         });
         $this->di->bind(ProcessCollectionService::class, function ($di) {

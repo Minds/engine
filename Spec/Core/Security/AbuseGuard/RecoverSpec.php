@@ -8,6 +8,7 @@ use Prophecy\Argument;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Entities\User;
 use Minds\Core\Security\AbuseGuard\AccusedEntity;
+use Minds\Core\Comments\Manager as CommentsManager;
 
 class RecoverSpec extends ObjectBehavior
 {
@@ -16,14 +17,16 @@ class RecoverSpec extends ObjectBehavior
         $this->shouldHaveType('Minds\Core\Security\AbuseGuard\Recover');
     }
 
-    public function it_should_set_accused(AccusedEntity $accused)
+    public function it_should_set_accused(AccusedEntity $accused, CommentsManager $commentsManager)
     {
+        $this->beConstructedWith(null, null, $commentsManager);
+    
         $this->setAccused($accused)->shouldReturn($this);
     }
 
-    public function it_should_recover(Client $client, AccusedEntity $accused, User $user)
+    public function it_should_recover(Client $client, AccusedEntity $accused, User $user, CommentsManager $commentsManager)
     {
-        $this->beConstructedWith($client);
+        $this->beConstructedWith($client, null, $commentsManager);
 
         $user->get('guid')->willReturn(123);
         $accused->getUser()->willReturn($user);
