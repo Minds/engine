@@ -74,6 +74,8 @@ use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
  * @property int $disable_autoplay_videos
  * @property string $twofactor
  * @property string $briefdescription
+ * @property string $source
+ * @property string $canonical_url
  */
 class User extends \ElggUser implements DemonetizableEntityInterface, FederatedEntityInterface
 {

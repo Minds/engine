@@ -11,6 +11,7 @@ use PhpSpec\Exception\Example\FailureException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Spec\Minds\Mocks\Cassandra\Rows;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 
 class RepositorySpec extends ObjectBehavior
 {
@@ -260,6 +261,12 @@ class RepositorySpec extends ObjectBehavior
         $comment->getGuid()
             ->shouldBeCalled()
             ->willReturn(1000);
+
+        $comment->getSource()
+            ->willReturn(FederatedEntitySourcesEnum::LOCAL);
+
+        $comment->getCanonicalUrl()
+            ->willReturn(null);
 
         $this->cql->request(Argument::type(Custom::class));
 
