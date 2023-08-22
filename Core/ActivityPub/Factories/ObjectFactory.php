@@ -56,36 +56,10 @@ class ObjectFactory
         switch (get_class($entity)) {
             case Activity::class:
                 return $this->mindsActivityBuilder->toActivityPubNote($entity);
-                /** @var Activity */
-                $activity = $entity;
-                
-                $json = [
-                    'id' => $actorUri . '/entities/' . $entity->getGuid(),
-                    'type' => 'Note',
-                    'content' => $activity->getMessage(),
-                    'attributedTo' => $actorUri,
-                    'to' => [
-                        'https://www.w3.org/ns/activitystreams#Public',
-                    ],
-                    'cc' => [
-                        $actorUri . '/followers',
-                    ],
-                    'published' => date('c', $activity->getTimeCreated()),
-                    'url' => $activity->getUrl(),
-                ];
-
-                // Is this a quote post
-                if ($activity->isQuotedPost()) {
-                    $json['inReplyTo'] = $this->manager->getUriFromEntity($activity->getRemind());
-                }
-
-                // Is this a remind
-                // if ($activity->isRemind()) {
-                //     $json['inReplyTo'] = $this->manager->getUriFromEntity($activity->getRemind());
-                // }
                 
                 break;
             case Comment::class:
+                return $this->mindsCommentBuilder->toActivityPubNote($entity);
                 /** @var Comment */
                 $comment = $entity;
 
@@ -135,6 +109,10 @@ class ObjectFactory
 
     public function fromJson(array $json): ObjectType
     {
+        if (in_array($json['type'], ActorFactory::ACTOR_TYPES)) {
+            return $this->actorFactory->fromJson($json);
+        }
+
         $object = match ($json['type']) {
             'Note' => new NoteType(),
             default => new NotImplementedException(),

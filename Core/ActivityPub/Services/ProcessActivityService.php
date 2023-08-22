@@ -258,6 +258,28 @@ class ProcessActivityService
 
                         $this->subscriptionsManager->setSubscriber($actor)->unSubscribe($subject);
                         break;
+                    case LikeType::class:
+                        /** @var LikeType $likeType */
+                        $likeType = $this->activity->object;
+                        $actor = $this->manager->getEntityFromUri($this->activity->actor->id);
+                        if (!$actor) {
+                            // The actor doesn't exist, so we wont continue
+                            throw new ForbiddenException();
+                        }
+
+                        $subject = $this->manager->getEntityFromUri($likeType->object->id);
+
+                        $vote = (new Vote())
+                            ->setEntity($subject)
+                            ->setActor($actor)
+                            ->setDirection('up');
+                        if (!$this->votesManager->has($vote)) {
+                            // Vote already removed
+                            return;
+                        }
+
+                        $this->votesManager->cancel($vote);
+                        break;
                 }
         }
         

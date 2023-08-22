@@ -28,7 +28,7 @@ class MindsCommentBuilder
         $note->id = $comment->getSource() === FederatedEntitySourcesEnum::LOCAL ? $actorUri . '/entities/' . $comment->getUrn() : $comment->getCanonicalUrl();
         $note->content = $comment->getBody();
         $note->attributedTo = $actorUri;
-        $note->published = new Datetime(date('c', $comment->getTimeCreated()));
+        $note->published = new Datetime(date('c', (int) $comment->getTimeCreated()));
         $note->inReplyTo = $this->getReplyToUri($comment);
         $note->to = [
             'https://www.w3.org/ns/activitystreams#Public',

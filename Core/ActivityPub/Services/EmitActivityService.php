@@ -9,6 +9,7 @@ use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Activity\AcceptType;
 use Minds\Core\ActivityPub\Types\Activity\FollowType;
 use Minds\Core\ActivityPub\Types\Activity\LikeType;
+use Minds\Core\ActivityPub\Types\Activity\UndoType;
 use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
 use Minds\Core\ActivityPub\Types\Core\ActivityType;
 use Minds\Core\EntitiesBuilder;
@@ -60,7 +61,7 @@ class EmitActivityService
     public function emitLike(LikeType $like, User $actor): void
     {
         // Get the targets inbox
-        $target = $like->object->actor;
+        $target = $this->objectFactory->fromUri($like->object->attributedTo);
         if (!$target instanceof AbstractActorType) {
             $this->logger->info("Emit Like: Failed - target is not an actor");
             return;
@@ -69,6 +70,25 @@ class EmitActivityService
         $inboxUrl = $target->endpoints['sharedInbox'] ?? $target->inbox;
 
         $this->postRequest($inboxUrl, $like, $actor);
+    }
+
+    public function emitUndoLike(LikeType $like, User $actor): void
+    {
+        // Get the targets inbox
+        $target = $this->objectFactory->fromUri($like->object->attributedTo);
+        if (!$target instanceof AbstractActorType) {
+            $this->logger->info("Emit Undo Like: Failed - target is not an actor");
+            return;
+        }
+
+        $inboxUrl = $target->endpoints['sharedInbox'] ?? $target->inbox;
+
+        $undo = new UndoType();
+        $undo->id = $this->manager->getTransientId();
+        $undo->actor = $like->actor;
+        $undo->object = $like;
+
+        $this->postRequest($inboxUrl, $undo, $actor);
     }
 
     /**
@@ -99,7 +119,10 @@ class EmitActivityService
                     ...$activity->getContextExport(),
                     ...$activity->export()
                 ]);
-            $this->logger->info("POST $inboxUrl: Delivered");
+            $this->logger->info("POST $inboxUrl: Delivered", [
+                'response' => $response->getBody()->getContents(),
+                'request' => $activity->export(),
+            ]);
             return true;
         } catch (\Exception $e) {
             $this->logger->info("POST $inboxUrl: Failed {$e->getMessage()}");

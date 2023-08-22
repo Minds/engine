@@ -25,8 +25,14 @@ class MindsActivityBuilder
     public function toActivityPubNote(Activity $activity): NoteType
     {
         $actorUri = $this->activityPubManager->getBaseUrl() . 'users/' . $activity->getOwnerGuid();
+        $uri = $actorUri . '/entities/' . $activity->getGuid();
+        if ($activity->getSource() === FederatedEntitySourcesEnum::ACTIVITY_PUB) {
+            $uri = $this->activityPubManager->getUriFromEntity($activity);
+        }
+
+
         $note = new NoteType();
-        $note->id = $activity->getSource() === FederatedEntitySourcesEnum::LOCAL ? $actorUri . '/entities/' . $activity->getGuid() : $activity->getCanonicalUrl();
+        $note->id = $uri;
         $note->content = $activity->getMessage();
         $note->attributedTo = $actorUri;
         $note->published = new Datetime(date('c', $activity->getTimeCreated()));

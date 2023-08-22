@@ -2,12 +2,14 @@
 namespace Minds\Core\Votes;
 
 use Minds\Core\Data\MySQL\Client;
+use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Votes\Enums\VoteEnum;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
 use Selective\Database\Connection;
 use Selective\Database\Operator;
+use Selective\Database\RawExp;
 
 class MySqlRepository
 {
@@ -97,20 +99,19 @@ class MySqlRepository
             ->where('user_guid', Operator::EQ, new RawExp(':user_guid'))
             ->where('direction', Operator::EQ, new RawExp(':direction'))
             ->where('deleted', Operator::EQ, false)
-            ->orderBy('updated_timestamp', 'DESC')
+            ->orderBy('updated_timestamp DESC')
             ->prepare();
 
         $this->mysqlClient->bindValuesToPreparedStatement($stmt, [
             'user_guid' => $userGuid,
-            'direction' => $direction->value,
+            'direction' => 1,
         ]);
 
         $stmt->execute();
 
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $urn = "urn:comment:" . $row['entity_guid'];
             $entity = match ($row['entity_type']) {
-                'comment' => $this->entitiesBuilder->getByUrn($urn),
+                'comment' => Di::_()->get('Comments\Manager')->getByGuid($row['entity_guid']),
                 default => $this->entitiesBuilder->single($row['entity_guid'])
             };
             yield (new Vote())
