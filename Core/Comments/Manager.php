@@ -151,6 +151,17 @@ class Manager
             try {
                 $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
                 $commentOwner = $this->entitiesBuilder->single($comment->getOwnerGuid());
+
+                if (!$entity) {
+                    error_log("{$comment->getEntityGuid()} found comment but entity not found");
+                    continue;
+                }
+                
+                if (!$commentOwner) {
+                    error_log("{$comment->getEntityGuid()} found comment but owner {$comment->getOwnerGuid()} not found");
+                    continue;
+                }
+
                 if (!$this->acl->interact($entity, $commentOwner)) {
                     error_log("{$comment->getEntityGuid()} found comment that entity owner can not interact with. Consider deleting.");
                     // $this->delete($comment, [ 'force' => true ]);
