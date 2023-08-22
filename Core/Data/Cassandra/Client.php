@@ -39,8 +39,6 @@ class Client implements Interfaces\ClientInterface
                 array_merge(
                     [
                         'arguments' => $cql['values'],
-                        'consistency' => Driver::CONSISTENCY_LOCAL_ONE,
-                        'serial_consistency' => Driver::CONSISTENCY_LOCAL_SERIAL,
                     ],
                     $request->getOpts()
                 )

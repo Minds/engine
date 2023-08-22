@@ -11,8 +11,6 @@ use Minds\Core\ActivityPub\Types\Activity\LikeType;
 use Minds\Core\ActivityPub\Types\Activity\UndoType;
 use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
 use Minds\Core\ActivityPub\Types\Core\ActivityType;
-use Minds\Core\Votes\Vote;
-use Minds\Entities\EntityInterface;
 use NotImplementedException;
 
 class ActivityFactory
@@ -52,24 +50,5 @@ class ActivityFactory
         };
 
         return $activity;
-    }
-
-    public function fromEntity(EntityInterface $entity): ActivityType
-    {
-        switch (get_class($entity)) {
-            case Vote::class:
-                /** @var Vote */
-                $vote = $entity;
-
-                $json = [
-                    'id' => $entity->get(),
-                    'type' => 'Like',
-                    'actor' => $this->actorFactory->fromEntity($vote->getActor())->id,
-                    'object' => $this->objectFactory->fromEntity($vote->getEntity())->id,
-                ];
-                break;
-            default:
-                throw new NotImplementedException();
-        }
     }
 }

@@ -27,6 +27,7 @@ class MindsActivityBuilder extends AbstractMindsEntityBuilder
         $actorUri = $this->activityPubManager->getBaseUrl() . 'users/' . $activity->getOwnerGuid();
         $uri = $actorUri . '/entities/' . $activity->getGuid();
         if ($activity->getSource() === FederatedEntitySourcesEnum::ACTIVITY_PUB) {
+            // TODO: Change to $activity->getCanonicalUrl() when it's available
             $uri = $this->activityPubManager->getUriFromEntity($activity);
         }
 

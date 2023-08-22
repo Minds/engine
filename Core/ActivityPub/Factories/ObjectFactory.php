@@ -85,7 +85,7 @@ class ObjectFactory
 
     public function fromJson(array $json): ObjectType
     {
-        if (in_array($json['type'], ActorFactory::ACTOR_TYPES)) {
+        if (in_array($json['type'], ActorFactory::ACTOR_TYPES, true)) {
             return $this->actorFactory->fromJson($json);
         }
 
