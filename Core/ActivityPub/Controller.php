@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Minds\Core\ActivityPub;
 
 use GuzzleHttp\Exception\ClientException;
+use Minds\Core\ActivityPub\JsonActivityResponse;
 use Minds\Core\ActivityPub\Factories\OutboxFactory;
 use Minds\Core\ActivityPub\Types\Activity\CreateType;
 use Minds\Core\ActivityPub\Types\Actor\PersonType;
@@ -20,7 +21,6 @@ use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\SimpleCache\InvalidArgumentException;
-use Zend\Diactoros\Response\JsonResponse;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Services\HttpSignatureService;
 use Minds\Core\ActivityPub\Services\ProcessCollectionService;
@@ -42,22 +42,22 @@ class Controller
 
     /**
      * @param ServerRequestInterface $request
-     * @return JsonResponse
+     * @return JsonActivityResponse
      * @throws InvalidArgumentException
      */
-    public function getUser(ServerRequestInterface $request): JsonResponse
+    public function getUser(ServerRequestInterface $request): JsonActivityResponse
     {
         $user = $this->buildUser($request);
 
         $person = $this->actorFactory->fromEntity($user);
 
-        return new JsonResponse([
+        return new JsonActivityResponse([
             ...$person->getContextExport(),
             ...$person->export()
         ]);
     }
 
-    public function postInbox(ServerRequestInterface $request): JsonResponse
+    public function postInbox(ServerRequestInterface $request): JsonActivityResponse
     {
         $this->verifySignature($request);
         
@@ -72,22 +72,22 @@ class Controller
             ->withActor($actor)
             ->process();
 
-        return new JsonResponse([]);
+        return new JsonActivityResponse([]);
     }
 
-    public function getUserOutbox(ServerRequestInterface $request): JsonResponse
+    public function getUserOutbox(ServerRequestInterface $request): JsonActivityResponse
     {
         $user = $this->buildUser($request);
 
         $orderedCollection = $this->outboxFactory->build((string) $request->getUri(), $user);
 
-        return new JsonResponse([
+        return new JsonActivityResponse([
             ...$orderedCollection->getContextExport(),
             ...$orderedCollection->export()
         ]);
     }
 
-    public function getUserFollowers(ServerRequestInterface $request): JsonResponse
+    public function getUserFollowers(ServerRequestInterface $request): JsonActivityResponse
     {
         $user = $this->buildUser($request);
 
@@ -113,13 +113,13 @@ class Controller
 
         $orderedCollection->setOrderedItems($items);
 
-        return new JsonResponse([
+        return new JsonActivityResponse([
             ...$orderedCollection->getContextExport(),
             ...$orderedCollection->export()
         ]);
     }
 
-    public function getUserFollowing(ServerRequestInterface $request): JsonResponse
+    public function getUserFollowing(ServerRequestInterface $request): JsonActivityResponse
     {
         $user = $this->buildUser($request);
 
@@ -145,7 +145,7 @@ class Controller
 
         $orderedCollection->setOrderedItems($items);
 
-        return new JsonResponse([
+        return new JsonActivityResponse([
             ...$orderedCollection->getContextExport(),
             ...$orderedCollection->export()
         ]);
