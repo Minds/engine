@@ -30,8 +30,7 @@ class RelationalRepositorySpec extends ObjectBehavior
         PDO $mysqlMasterMock,
         PDO $mysqlReplicaMock,
         Connection $mysqlClientWriterHandlerMock,
-    )
-    {
+    ) {
         $this->beConstructedWith($mysqlClient, Di::_()->get('Logger'));
 
         $this->mysqlClientMock = $mysqlClient;

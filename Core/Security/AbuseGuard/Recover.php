@@ -24,8 +24,7 @@ class Recover
         $client = null,
         Config $config = null,
         protected ?Core\Comments\Manager $commentsManager = null
-    )
-    {
+    ) {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
         $this->config = $config ?? Di::_()->get('Config');
         $this->commentsManager = $commentsManager ?? (new Core\Comments\Manager());

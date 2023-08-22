@@ -176,6 +176,12 @@ class ProcessActivityService
                      */
                     $entity = $this->prepareActivity($owner);
 
+                    if (isset($this->activity->object->url)) {
+                        $entity->setCanonicalUrl($this->activity->object->url);
+                    } else {
+                        $entity->setCanonicalUrl($this->activity->object->id);
+                    }
+
                     $entity->setMessage(strip_tags($this->activity->object->content));
 
                     // If any images, then fetch them
