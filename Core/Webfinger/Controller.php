@@ -41,6 +41,10 @@ class Controller
 
         $username = str_replace('acct:', '', $username);
 
+        if (strpos($domain, 'www.') === 0) {
+            $domain = str_replace('www.', '', $domain);
+        }
+
         if ($domain !== $this->config->get('did')['domain']) {
             throw new NotFoundException('Invalid domain');
         }
