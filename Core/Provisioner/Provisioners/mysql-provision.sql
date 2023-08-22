@@ -367,6 +367,34 @@ ALTER TABLE user_configurations
     AFTER plus_demonetized_ts;
 
 
-UPDATE superminds
-SET status = 7
-WHERE status = 1 AND created_timestamp < TIMESTAMPADD(DAY, -7, NOW());
+CREATE TABLE IF NOT EXISTS minds_activitypub_uris (
+    uri varchar(256) NOT NULL PRIMARY KEY,
+    domain varchar(256) NOT NULL,
+    entity_urn varchar(256) NOT NULL,
+    entity_guid bigint NOT NULL UNIQUE,
+    created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
+);
+
+
+CREATE TABLE IF NOT EXISTS minds_activitypub_actors (
+    uri varchar(256) NOT NULL PRIMARY KEY,
+    `type` text NOT NULL,
+    inbox text NOT NULL,
+    outbox text NOT NULL,
+    shared_inbox text DEFAULT NULL,
+    url text DEFAULT NULL,
+    FOREIGN KEY (uri) REFERENCES minds_activitypub_uris(uri)
+);
+
+CREATE TABLE IF NOT EXISTS minds_activitypub_keys (
+    user_guid bigint NOT NULL PRIMARY KEY,
+    private_key text NOT NULL 
+);
+
+ALTER TABLE minds_comments
+    ADD source text DEFAULT NULL
+        AFTER access_id; 
+
+ALTER TABLE minds_comments
+    ADD canonical_url text DEFAULT NULL
+        AFTER source;

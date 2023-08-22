@@ -6,6 +6,7 @@ use Minds\Core\Data\MySQL;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Activity;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use PDO;
 use PDOStatement;
@@ -393,7 +394,7 @@ class Repository
         $ownerGuid = $activity->getOwnerGuid();
         $prepared->bindParam(3, $ownerGuid, PDO::PARAM_STR);
 
-        $isExternal = $activity->getSource() === 'nostr';
+        $isExternal = $activity->getSource() === FederatedEntitySourcesEnum::NOSTR;
         $prepared->bindParam(4, $isExternal, PDO::PARAM_BOOL);
 
         return $prepared->execute();
@@ -439,7 +440,7 @@ class Repository
         $userGuid = $user->getGuid();
         $prepared->bindParam(2, $userGuid, PDO::PARAM_STR); // Bigint
 
-        $isExternal = $user->getSource() === 'nostr';
+        $isExternal = $user->getSource() === FederatedEntitySourcesEnum::NOSTR;
         $prepared->bindParam(3, $isExternal, PDO::PARAM_BOOL);
 
         return $prepared->execute();

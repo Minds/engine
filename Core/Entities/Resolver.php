@@ -155,8 +155,11 @@ class Resolver
      * @param $urn
      * @return mixed
      */
-    public function single($urn): mixed
+    public function single(Urn|string $urn): mixed
     {
+        if (is_string($urn)) {
+            $urn = new Urn($urn);
+        }
         $this->urns = [$urn];
         $entities = $this->fetch();
         return $entities[0] ?? null;

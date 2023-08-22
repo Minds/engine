@@ -201,7 +201,7 @@ abstract class ElggEntity extends ElggData implements
                 if ($value == ACCESS_DEFAULT) {
                     $value = get_default_access($this->getOwnerEntity());
                 }
-                    // no break
+                // no break
             default:
                 $this->attributes[$name] = $value;
                 break;
@@ -1712,23 +1712,4 @@ abstract class ElggEntity extends ElggData implements
         return $this->time_moderated;
     }
 
-    /**
-     * Set the source if externally imported
-     * @param string $source - eg. nostr
-     * @return self
-     */
-    public function setSource(string $source): self
-    {
-        $this->source = $source;
-        return $this;
-    }
-
-    /**
-     * Returns the origin/source, eg. nostr
-     * @return string
-     */
-    public function getSource(): string
-    {
-        return $this->source;
-    }
 }

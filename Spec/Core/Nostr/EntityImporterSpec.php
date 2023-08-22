@@ -9,6 +9,7 @@ use Minds\Core\Nostr\NostrEvent;
 use Minds\Core\Nostr\Manager;
 use Minds\Core\Security\ACL;
 use Minds\Core\Feeds;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use PDOException;
@@ -115,7 +116,7 @@ class EntityImporterSpec extends ObjectBehavior
 
         $this->managerMock->addActivityToNostrId(Argument::that(function ($activity) {
             return $activity->getMessage() === 'Hello sandbox'
-                && $activity->getSource() === 'nostr';
+                && $activity->getSource() === FederatedEntitySourcesEnum::NOSTR;
         }), 'af5b356facc3cde02254a60effd7e299cb66efe1f4af8bafc52ec3f5413e8a0c')
             ->shouldBeCalled();
 

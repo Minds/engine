@@ -8,6 +8,7 @@
 
 namespace Minds\Core\Comments;
 
+use Cassandra\Bigint;
 use Cassandra\Map;
 use Cassandra\Rows;
 use Cassandra\Timestamp;
@@ -17,6 +18,7 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Helpers\Cql;
 
 class Repository
@@ -48,6 +50,8 @@ class Repository
         'spam',
         'deleted',
         'ownerObj',
+        'source',
+        'canonicalUrl'
     ];
 
     /**
@@ -185,6 +189,7 @@ class Repository
                     ->setEntityGuid($row['entity_guid'])
                     ->setParentGuidL1($row['parent_guid_l1'] ?? 0)
                     ->setParentGuidL2($row['parent_guid_l2'] ?? 0)
+                    ->setParentGuid($row['parent_guid'] ?? null)
                     ->setGuid($row['guid'])
                     ->setOwnerGuid($row['owner_guid'])
                     ->setTimeCreated($row['time_created'])
@@ -197,8 +202,17 @@ class Repository
                     ->setDeleted(isset($flags['deleted']) && $flags['deleted'])
                     ->setOwnerObj($row['owner_obj'])
                     ->setVotesUp($row['votes_up'] ?: [])
-                    ->setVotesDown($row['votes_down'] ?: [])
-                    ->setEphemeral(false)
+                    ->setVotesDown($row['votes_down'] ?: []);
+
+                if (isset($row['source'])) {
+                    $comment->setSource(FederatedEntitySourcesEnum::from($row['source']));
+                }
+
+                if (isset($row['canonical_url'])) {
+                    $comment->setCanonicalUrl($row['canonical_url']);
+                }
+
+                $comment->setEphemeral(false)
                     ->markAllAsPristine();
 
                 $comment->setRepliesCount($this->countReplies($comment));
@@ -398,6 +412,10 @@ class Repository
             $fields['parent_guid_l2'] = new Varint($comment->getParentGuidL2() ?: 0);
         }
 
+        if (isset($attributes['parentGuid'])) {
+            $fields['parent_guid'] = new Bigint($comment->getParentGuid());
+        }
+
         if (in_array('ownerGuid', $attributes, true)) {
             $fields['owner_guid'] = new Varint($comment->getOwnerGuid() ?: 0);
         }
@@ -443,6 +461,14 @@ class Repository
             $fields['owner_obj'] = $comment->getOwnerObj() ? json_encode($comment->getOwnerObj()) : null;
         }
 
+        if (in_array('source', $attributes, true)) {
+            $fields['source'] = $comment->getSource()->value;
+        }
+
+        if (in_array('canonicalUrl', $attributes, true)) {
+            $fields['canonical_url'] = $comment->getCanonicalUrl();
+        }
+
         if (!$fields) {
             // No changes
             return true;
@@ -467,7 +493,7 @@ class Repository
         $query->query($cql, $values);
 
         try {
-            $this->cql->request($query);
+            $res = $this->cql->request($query);
         } catch (\Exception $e) {
             error_log("[Comments\Repository::add] {$e->getMessage()} > " . get_class($e));
             return false;

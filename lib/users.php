@@ -879,7 +879,7 @@ function generate_user_password(ElggUser $user, $password, $algo = 'sha256')
  * @return bool
  * @throws RegistrationException on invalid
  */
-function validate_username($username)
+function validate_username($username, bool $isActivityPub = false)
 {
     global $CONFIG;
 
@@ -900,8 +900,12 @@ function validate_username($username)
     }
 
     // Blacklist non-alpha chars
-    if (preg_match('/[^a-zA-Z0-9_]+/', $username)) {
+    if (preg_match('/[^a-zA-Z0-9_-@]+/', $username)) {
         throw new RegistrationException(elgg_echo('Invalid username! Alphanumerics only please.'));
+    }
+
+    if (strpos($username, '@') !== FALSE && !$isActivityPub) {
+        throw new RegistrationException(elgg_echo('Invalid username! You can not include the @ character in your username.'));
     }
 
     // Blacklist for bad characters (partially nicked from mediawiki)
@@ -1025,7 +1029,8 @@ function register_user(
     $allow_multiple_emails = false,
     $friend_guid = 0,
     $invitecode = '',
-    $validatePassword = true
+    $validatePassword = true,
+    $isActivityPub = false,
 ) {
 
     // no need to trim password.
@@ -1053,7 +1058,7 @@ function register_user(
         throw new RegistrationException("Invalid password");
     }
 
-    if (!validate_username($username)) {
+    if (!validate_username($username, $isActivityPub)) {
         throw new RegistrationException("Invalid username");
     }
 

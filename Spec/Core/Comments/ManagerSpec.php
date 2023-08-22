@@ -8,6 +8,7 @@ use Minds\Core\Comments\Delegates\CreateEventDispatcher;
 use Minds\Core\Comments\Delegates\Metrics;
 use Minds\Core\Comments\Delegates\ThreadNotifications;
 use Minds\Core\Comments\Legacy\Repository as LegacyRepository;
+use Minds\Core\Comments\RelationalRepository;
 use Minds\Core\Comments\Repository;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\EventsDispatcher;
@@ -66,6 +67,7 @@ class ManagerSpec extends ObjectBehavior
         Spam $spam,
         KeyValueLimiter $kvLimiter,
         EventsDispatcher $eventsDispatcher,
+        RelationalRepository $relationalRepository,
     ) {
         $this->beConstructedWith(
             $repository,
@@ -78,7 +80,8 @@ class ManagerSpec extends ObjectBehavior
             $entitiesBuilder,
             $spam,
             $kvLimiter,
-            $eventsDispatcher
+            $eventsDispatcher,
+            $relationalRepository,
         );
 
         $this->repository = $repository;

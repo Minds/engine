@@ -37,7 +37,7 @@ class MetricsDelegate
                 ->setAction('remind')
                 ->setProduct('platform')
                 ->setUserGuid((string) $activity->getOwnerGuid())
-                ->setUserPhoneNumberHash(Core\Session::getLoggedInUser()->getPhoneNumberHash())
+                ->setUserPhoneNumberHash(Core\Session::getLoggedInUser()?->getPhoneNumberHash())
                 ->setEntityGuid((string) $remind->getGuid())
                 ->setEntityContainerGuid((string) $remind->getContainerGuid())
                 ->setEntityType($remind->getType())
