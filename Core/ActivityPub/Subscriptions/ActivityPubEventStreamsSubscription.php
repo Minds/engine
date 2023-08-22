@@ -21,6 +21,10 @@ use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
+use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
+use NotImplementedException;
 
 class ActivityPubEventStreamsSubscription implements SubscriptionInterface
 {
@@ -68,6 +72,10 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
      * Called when there is a new event
      * @param EventInterface $event
      * @return bool
+     * @throws NotFoundException
+     * @throws ServerErrorException
+     * @throws UserErrorException
+     * @throws NotImplementedException
      */
     public function consume(EventInterface $event): bool
     {
@@ -78,7 +86,7 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
 
         $this->logger->info('Action event type: ' . $event->getAction());
 
-        /** @var User */
+        /** @var User $user */
         $user = $event->getUser();
 
         if ($user->getSource() === FederatedEntitySourcesEnum::ACTIVITY_PUB) {
@@ -86,7 +94,7 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
             return true; // Do not reprocess activitypub events
         }
 
-        /** @var mixed */
+        /** @var mixed $entity */
         $entity = $event->getEntity();
 
         switch ($event->getAction()) {
@@ -120,7 +128,6 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
 
                 $this->emitActivityService->emitLike($like, $user);
                 return true;
-                break;
             default:
                 return true; // Noop (nothing to do)
         }

@@ -73,12 +73,10 @@ class ObjectFactory
                 throw new NotFoundException("Found ActivityPub entity but could not resolve remote uri");
             }
         }
-
         switch (get_class($entity)) {
             case Activity::class:
                 /** @var Activity */
                 $activity = $entity;
-
                 $json = [
                     'id' => $actorUri . '/entities/' . $entity->getUrn(),
                     'type' => 'Note',
@@ -123,7 +121,6 @@ class ObjectFactory
                     }
                     $json['attachment'] = $attachments;
                 }
-
                 break;
             case Comment::class:
                 /** @var Comment */
@@ -175,7 +172,6 @@ class ObjectFactory
                     $json['attachment'] = $attachments;
                 }
                 break;
-
             case User::class:
                 return $this->actorFactory->fromEntity($entity);
 
@@ -264,6 +260,5 @@ class ObjectFactory
         }
 
         return $object;
-
     }
 }

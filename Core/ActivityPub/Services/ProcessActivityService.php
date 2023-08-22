@@ -58,7 +58,6 @@ class ProcessActivityService
     {
         $className = get_class($this->activity);
 
-
         /** @var User $owner */
         $owner = $this->manager->getEntityFromUri($this->activity->actor->id);
         if (!$owner) {
