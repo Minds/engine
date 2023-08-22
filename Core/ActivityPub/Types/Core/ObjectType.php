@@ -4,6 +4,7 @@ namespace Minds\Core\ActivityPub\Types\Core;
 use DateTime;
 use Minds\Core\ActivityPub\Attributes\ExportProperty;
 use Minds\Core\ActivityPub\Types\AbstractType;
+use Minds\Core\ActivityPub\Types\Object\ImageType;
 
 class ObjectType extends AbstractType
 {
@@ -63,7 +64,7 @@ class ObjectType extends AbstractType
      * @todo Change this to be a model
      */
     #[ExportProperty]
-    public array $icon;
+    public ImageType $icon;
     
     /**
      * @see https://www.w3.org/TR/activitystreams-vocabulary/#dfn-published

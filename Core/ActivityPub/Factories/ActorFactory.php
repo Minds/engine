@@ -11,6 +11,7 @@ use Minds\Core\ActivityPub\Types\Actor\OrganizationType;
 use Minds\Core\ActivityPub\Types\Actor\PersonType;
 use Minds\Core\ActivityPub\Types\Actor\PublicKeyType;
 use Minds\Core\ActivityPub\Types\Actor\ServiceType;
+use Minds\Core\ActivityPub\Types\Object\ImageType;
 use Minds\Core\Config\Config;
 use Minds\Core\Webfinger;
 use Minds\Entities\EntityInterface;
@@ -109,6 +110,7 @@ class ActorFactory
             'summary' => $entity->briefdescription,
             'icon' => [
                 'type' => 'Image',
+                'mediaType' => 'image/jpeg',
                 'url' => $entity->getIconURL('large'),
             ],
             'publicKey' => [
@@ -170,6 +172,15 @@ class ActorFactory
 
         if (isset($json['url'])) {
             $actor->url = $json['url'];
+        }
+
+        if (isset($json['icon'])) {
+            $icon = new ImageType();
+            if (isset($json['icon']['mediaType'])) {
+                $icon->mediaType = $json['icon']['mediaType'];
+            }
+            $icon->url = $json['url'];
+            $actor->icon = $icon;
         }
 
         if (isset($json['endpoints'])) {
