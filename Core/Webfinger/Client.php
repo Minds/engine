@@ -21,13 +21,19 @@ class Client
      */
     public function request(string $method, string $url, array $body = []): ResponseInterface
     {
-        $json = $this->httpClient->request($method, $url, [
-                    'headers' => [
-                        'Content-Type' => 'application/activity+json',
-                        'Accept' => 'application/jrd+json, application/json',
-                    ],
-                    'json' => $body,
-                ]);
+        $opts = [
+            'headers' => [
+                'Content-Type' => 'application/activity+json',
+                'Accept' => 'application/jrd+json, application/json',
+            ],
+            'json' => $body,
+        ];
+
+        if (($httpProxy = $this->config->get('http_proxy'))) {
+            $opts['proxy'] =  $httpProxy;
+        }
+
+        $json = $this->httpClient->request($method, $url, $opts);
        
         return $json;
     }
