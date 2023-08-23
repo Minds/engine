@@ -66,6 +66,11 @@ class ActivityMapping extends EntityMapping implements MappingInterface
             $map['auto_caption'] = $this->entity->getAutoCaption();
         }
 
+        $map['inferred_tags'] = [];
+        if (!empty($this->entity->getInferredTags())) {
+            $map['inferred_tags'] = $this->entity->getInferredTags();
+        }
+
         return $map;
     }
 }

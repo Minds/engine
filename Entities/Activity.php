@@ -48,8 +48,12 @@ use Minds\Helpers;
  * @property array $attachments
  * @property array $supermind
  * @property string $auto_caption
+<<<<<<< HEAD
+ * @property array $inferred_tags
+=======
  * @property string $source
  * @property string $canonical_url
+>>>>>>> origin
  */
 class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface, CommentableEntityInterface, FederatedEntityInterface
 {
@@ -103,6 +107,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'attachments' => null,
             'supermind' => null,
             'auto_caption' => null,
+            'inferred_tags' => [],
             'source' => FederatedEntitySourcesEnum::LOCAL->value,
             'canonical_url' => null,
         ]);
@@ -295,7 +300,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'permaweb_id',
                 'blurhash',
                 'supermind',
-                'auto_caption'
+                'auto_caption',
+                'inferred_tags',
             ]
         );
     }
@@ -1123,6 +1129,17 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function setAutoCaption(string $autoCaption): self
     {
         $this->auto_caption = $autoCaption;
+        return $this;
+    }
+
+    public function getInferredTags(): ?array
+    {
+        return $this->inferred_tags;
+    }
+
+    public function setInferredTags(array $inferredTags): self
+    {
+        $this->inferred_tags = $inferredTags;
         return $this;
     }
 
