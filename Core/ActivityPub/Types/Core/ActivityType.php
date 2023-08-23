@@ -13,7 +13,7 @@ class ActivityType extends ObjectType
     public PersonType $actor;
 
     #[ExportProperty]
-    public ObjectType $object;
+    public ObjectType|string $object;
 
     public function export(array $extras = []): array
     {

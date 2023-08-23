@@ -3,12 +3,12 @@
 namespace Minds\Core\Comments;
 
 use Minds\Core\Di\Di;
-use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Guid;
 use Minds\Core\Luid;
 use Minds\Core\Security\ACL;
 use Minds\Entities\EntityInterface;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\FederatedEntityInterface;
 use Minds\Entities\RepositoryEntity;
 use Minds\Entities\User;
@@ -32,7 +32,6 @@ use Minds\Helpers\Unknown;
  * @method Comment setRepliesCount(int $value)
  * @method int getRepliesCount())
  * @method Comment setOwnerGuid(int $value)
- * @method int getOwnerGuid()
  * @method Comment setTimeCreated(int $value)
  * @method int getTimeCreated()
  * @method Comment setTimeUpdated(int $value)

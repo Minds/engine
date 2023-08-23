@@ -17,6 +17,7 @@ use Minds\Core\Session;
 use Minds\Core\Votes\Counters;
 use Minds\Core\Votes\Manager;
 use Minds\Core\Votes\Vote;
+use Minds\Core\Votes\VoteOptions;
 use Minds\Interfaces;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -103,9 +104,7 @@ class votes implements Interfaces\Api
             ->setDirection($direction)
             ->setActor($loggedInUser);
 
-        $options = [
-            'puzzleSolution' => ''
-        ];
+        $options = new VoteOptions();
 
         $request = ServerRequestFactory::fromGlobals();
         $requestBody = json_decode($request->getBody()->getContents(), true);
@@ -118,7 +117,7 @@ class votes implements Interfaces\Api
             $options['puzzleSolution'] = $puzzleSolution;
         }
 
-        $options['client_meta'] = $requestBody['client_meta'] ?? [];
+        $options->clientMeta = $requestBody['client_meta'] ?? [];
 
         try {
             $manager->toggle($vote, $options);

@@ -5,11 +5,11 @@ namespace Minds\Entities;
 use Minds\Core;
 use Minds\Core\Analytics;
 use Minds\Core\Di\Di;
-use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Queue;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Core\Wire\Paywall\PaywallEntityTrait;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Helpers;
 
 /**
@@ -759,7 +759,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
 
     /**
      * Gets the timestamp
-     * @return boolean
+     * @return int
      */
     public function getTimeCreated()
     {
