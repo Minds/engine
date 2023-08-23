@@ -69,8 +69,10 @@ class EmitActivityService
 
         $inboxUrls = iterator_to_array($this->manager->getInboxesForFollowers($actor->getGuid()));
 
-        // TODO: Dedup
-        $inboxUrls[] = $target->endpoints['sharedInbox'] ?? $target->inbox;
+        if (!$this->manager->isLocalUri($like->object->attributedTo)) {
+            // TODO: Dedup
+            $inboxUrls[] = $target->endpoints['sharedInbox'] ?? $target->inbox;
+        }
 
         foreach ($inboxUrls as $inboxUrl) {
             $this->postRequest($inboxUrl, $like, $actor);
@@ -93,8 +95,10 @@ class EmitActivityService
 
         $inboxUrls = iterator_to_array($this->manager->getInboxesForFollowers($actor->getGuid()));
 
-        // TODO: Dedup
-        $inboxUrls[] = $target->endpoints['sharedInbox'] ?? $target->inbox;
+        if (!$this->manager->isLocalUri($attributedTo)) {
+            // TODO: Dedup
+            $inboxUrls[] = $target->endpoints['sharedInbox'] ?? $target->inbox;
+        }
 
         foreach ($inboxUrls as $inboxUrl) {
             $this->postRequest($inboxUrl, $undo, $actor);
