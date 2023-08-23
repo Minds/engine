@@ -129,10 +129,7 @@ class EmitActivityService
                     ...$activity->getContextExport(),
                     ...$activity->export()
                 ]);
-            $this->logger->info("POST $inboxUrl: Delivered", [
-                'response' => $response->getBody()->getContents(),
-                'request' => $activity->export(),
-            ]);
+            $this->logger->info("POST $inboxUrl: Delivered");
             return true;
         } catch (\Exception $e) {
             $this->logger->info("POST $inboxUrl: Failed {$e->getMessage()}");
