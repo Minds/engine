@@ -67,9 +67,14 @@ class EmitActivityService
             return;
         }
 
-        $inboxUrl = $target->endpoints['sharedInbox'] ?? $target->inbox;
+        $inboxUrls = iterator_to_array($this->manager->getInboxesForFollowers($actor->getGuid()));
 
-        $this->postRequest($inboxUrl, $like, $actor);
+        // TODO: Dedup
+        $inboxUrls[] = $target->endpoints['sharedInbox'] ?? $target->inbox;
+
+        foreach ($inboxUrls as $inboxUrl) {
+            $this->postRequest($inboxUrl, $like, $actor);
+        }
     }
 
     public function emitUndoLike(LikeType $like, User $actor, string $attributedTo): void
@@ -81,14 +86,19 @@ class EmitActivityService
             return;
         }
 
-        $inboxUrl = $target->endpoints['sharedInbox'] ?? $target->inbox;
-
         $undo = new UndoType();
         $undo->id = $this->manager->getTransientId();
         $undo->actor = $like->actor;
         $undo->object = $like;
 
-        $this->postRequest($inboxUrl, $undo, $actor);
+        $inboxUrls = iterator_to_array($this->manager->getInboxesForFollowers($actor->getGuid()));
+
+        // TODO: Dedup
+        $inboxUrls[] = $target->endpoints['sharedInbox'] ?? $target->inbox;
+
+        foreach ($inboxUrls as $inboxUrl) {
+            $this->postRequest($inboxUrl, $undo, $actor);
+        }
     }
 
     /**
