@@ -6,9 +6,9 @@ use GuzzleHttp\Exception\ConnectException;
 use Minds\Core\ActivityPub\Client;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
+use Minds\Core\ActivityPub\Types\Core\ObjectType;
 use Minds\Core\ActivityPub\Types\Object\DocumentType;
 use Minds\Core\ActivityPub\Types\Object\ImageType;
-use Minds\Core\ActivityPub\Types\Core\ObjectType;
 use Minds\Core\ActivityPub\Types\Object\NoteType;
 use Minds\Core\Comments\Comment;
 use Minds\Entities\Activity;
@@ -72,6 +72,9 @@ class ObjectFactory
 
                 // Is this a quote post
                 if ($activity->isQuotedPost()) {
+                    if (!$activity->getRemind()) {
+                        throw new NotFoundException("Could not find the quoted post for activity {$activity->getUrn()}");
+                    }
                     $json['inReplyTo'] = $this->manager->getUriFromEntity($activity->getRemind());
                 }
 
