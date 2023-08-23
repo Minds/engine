@@ -267,7 +267,7 @@ class ObjectFactory
 
         switch (get_class($object)) {
             case NoteType::class:
-                $object->content = $json['content'];
+                $object->content = $json['content'] ?? '';
                 break;
         }
 
