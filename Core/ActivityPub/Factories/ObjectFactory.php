@@ -82,8 +82,17 @@ class ObjectFactory
             case Activity::class:
                 /** @var Activity */
                 $activity = $entity;
+
+                // Is this a remind, if so, we want to get the orignial entity
+                if ($activity->isRemind()) {
+                    $activity = $activity->getRemind();
+                    if (!$activity) {
+                        throw new NotFoundException("Reminded content cant be found");
+                    }
+                }
+
                 $json = [
-                    'id' => $actorUri . '/entities/' . $entity->getUrn(),
+                    'id' => $actorUri . '/entities/' . $activity->getUrn(),
                     'type' => 'Note',
                     'content' => $activity->getMessage(),
                     'attributedTo' => $actorUri,
@@ -104,11 +113,6 @@ class ObjectFactory
                     }
                     $json['inReplyTo'] = $this->manager->getUriFromEntity($activity->getRemind());
                 }
-
-                // Is this a remind
-                // if ($activity->isRemind()) {
-                //     $json['inReplyTo'] = $this->manager->getUriFromEntity($activity->getRemind());
-                // }
 
                 // Any image attachments?
                 if ($activity->hasAttachments() && $activity->getCustomType() === 'batch') {

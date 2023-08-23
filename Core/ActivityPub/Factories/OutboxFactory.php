@@ -1,7 +1,8 @@
 <?php
 namespace Minds\Core\ActivityPub\Factories;
 
-use Minds\Core\ActivityPub\Types\Activity\CreateType;
+use Minds\Core\ActivityPub\Enums\ActivityFactoryOpEnum;
+use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Types\Core\OrderedCollectionPageType;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
@@ -12,9 +13,11 @@ use Minds\Entities\User;
 class OutboxFactory
 {
     public function __construct(
+        protected Manager $manager,
         protected FeedsManager $feedsManager,
         protected ObjectFactory $objectFactory,
         protected ActorFactory $actorFactory,
+        protected ActivityFactory $activityFactory,
     ) {
         
     }
@@ -27,7 +30,6 @@ class OutboxFactory
         $orderedCollection = new OrderedCollectionPageType();
         $orderedCollection->setId($uri);
 
-        // $baseUrl = $this->buildBaseUrl($user);
         $orderedCollection->setPartOf($uri . 'outbox');
 
         $queryOpts = new QueryOpts(
@@ -38,16 +40,8 @@ class OutboxFactory
         $items = [];
 
         foreach ($this->feedsManager->getLatest($queryOpts) as $entity) {
-            $object = $this->objectFactory->fromEntity($entity);
-
-            $item = new CreateType();
-            $item->id = $object->id . '/activity';
-            $item->actor = $this->actorFactory->fromEntity($user);
-            $item->object = $object;
-    
-            $items[] = $item;
+            $items[]= $this->activityFactory->fromEntity(ActivityFactoryOpEnum::CREATE, $entity, $user);
         }
-
 
         $orderedCollection->setOrderedItems($items);
 

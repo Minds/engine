@@ -224,6 +224,10 @@ class ProcessActivityService
                 }
     
                 $originalEntity = $this->manager->getEntityFromUri($this->activity->object->id);
+
+                if (!$originalEntity) {
+                    throw new NotFoundException("The reminded content could not be found one Minds");
+                }
     
                 $remind = new RemindIntent();
                 $remind->setGuid($originalEntity->getGuid());

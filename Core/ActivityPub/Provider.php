@@ -110,6 +110,7 @@ class Provider extends DiProvider
         });
         $this->di->bind(ActivityFactory::class, function ($di) {
             return new ActivityFactory(
+                manager: $di->get(Manager::class),
                 actorFactory: $di->get(ActorFactory::class),
                 objectFactory: $di->get(ObjectFactory::class),
             );
@@ -123,9 +124,11 @@ class Provider extends DiProvider
         });
         $this->di->bind(OutboxFactory::class, function ($di) {
             return new OutboxFactory(
+                manager: $di->get(Manager::class),
                 feedsManager: $di->get(FeedsManager::class),
                 objectFactory: $di->get(ObjectFactory::class),
                 actorFactory: $di->get(ActorFactory::class),
+                activityFactory: $di->get(ActivityFactory::class),
             );
         });
         $this->di->bind(LikeFactory::class, function (Di $di): LikeFactory {
