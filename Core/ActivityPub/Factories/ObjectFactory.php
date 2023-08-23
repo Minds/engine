@@ -94,6 +94,9 @@ class ObjectFactory
 
                 // Is this a quote post
                 if ($activity->isQuotedPost()) {
+                    if (!$activity->getRemind()) {
+                        throw new NotFoundException("Could not find the quoted post for activity {$activity->getUrn()}");
+                    }
                     $json['inReplyTo'] = $this->manager->getUriFromEntity($activity->getRemind());
                 }
 

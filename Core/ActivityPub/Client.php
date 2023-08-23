@@ -54,8 +54,14 @@ class Client
             ]);
             $request = $context->signer()->signWithDigest($request);
         }
+
+        $opts = [];
+
+        if (($httpProxy = $this->config->get('http_proxy'))) {
+            $opts['proxy'] =  $httpProxy;
+        }
     
-        $json = $this->httpClient->send($request);
+        $json = $this->httpClient->send($request, $opts);
        
         return $json;
     }
