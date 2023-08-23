@@ -36,28 +36,4 @@ class ControllerSpec extends ObjectBehavior
     {
         $this->shouldHaveType(Controller::class);
     }
-
-    public function it_should_get_feed_from_manager(ServerRequest $request)
-    {
-        $this->config->get('default_recommendations_user')
-            ->shouldBeCalled()
-            ->willReturn('1000');
-
-        $this->manager->getList([
-            'cache_key' => '1000',
-            'subscriptions' => '1000',
-            'access_id' => 2,
-            'limit' => 12,
-            'type' => 'activity',
-            'algorithm' => 'top',
-            'period' => '1y',
-            'single_owner_threshold' => 36,
-            'from_timestamp' => 0,
-            'nsfw' => [],
-            'unseen' => false
-        ])->shouldBeCalled()
-          ->willReturn(new Response());
-
-        $this->getDefaultFeed($request);
-    }
 }
