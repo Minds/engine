@@ -76,7 +76,8 @@ class Manager
         $entitiesBuilder = null,
         $spam = null,
         $kvLimiter = null,
-        protected ?EventsDispatcher $eventsDispatcher = null
+        protected ?EventsDispatcher $eventsDispatcher = null,
+        protected ?RelationalRepository $relationalRepository = null,
     ) {
         $this->repository = $repository ?: new Repository();
         $this->legacyRepository = $legacyRepository ?: new Legacy\Repository();
@@ -89,6 +90,7 @@ class Manager
         $this->spam = $spam ?: Di::_()->get('Security\Spam');
         $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
         $this->eventsDispatcher ??= Di::_()->get('EventsDispatcher');
+        $this->relationalRepository ??= Di::_()->get(RelationalRepository::class);
     }
 
     public function get($entity_guid, $parent_path, $guid)
@@ -149,6 +151,17 @@ class Manager
             try {
                 $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
                 $commentOwner = $this->entitiesBuilder->single($comment->getOwnerGuid());
+
+                if (!$entity) {
+                    error_log("{$comment->getEntityGuid()} found comment but entity not found");
+                    continue;
+                }
+                
+                if (!$commentOwner) {
+                    error_log("{$comment->getEntityGuid()} found comment but owner {$comment->getOwnerGuid()} not found");
+                    continue;
+                }
+
                 if (!$this->acl->interact($entity, $commentOwner)) {
                     error_log("{$comment->getEntityGuid()} found comment that entity owner can not interact with. Consider deleting.");
                     // $this->delete($comment, [ 'force' => true ]);
@@ -369,6 +382,10 @@ class Manager
         }
         $components = explode(':', $urn->getNss());
 
+        if (count($components) === 1) {
+            return $this->getByGuid($components[0]);
+        }
+
         if (count($components) !== 5) {
             error_log("[CommentsManager]: Invalid Comment URN (${$components})");
             return null;
@@ -395,6 +412,14 @@ class Manager
         }
 
         return $comment;
+    }
+
+    /**
+     * Currently only  works with comments since May 2023
+     */
+    public function getByGuid(int $guid): ?Comment
+    {
+        return $this->relationalRepository->getByGuid($guid);
     }
 
     /**

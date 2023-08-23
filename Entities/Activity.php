@@ -9,6 +9,7 @@ use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Queue;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Core\Wire\Paywall\PaywallEntityTrait;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Helpers;
 
 /**
@@ -47,9 +48,14 @@ use Minds\Helpers;
  * @property array $attachments
  * @property array $supermind
  * @property string $auto_caption
+<<<<<<< HEAD
  * @property array $inferred_tags
+=======
+ * @property string $source
+ * @property string $canonical_url
+>>>>>>> origin
  */
-class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface, CommentableEntityInterface
+class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface, CommentableEntityInterface, FederatedEntityInterface
 {
     use PaywallEntityTrait;
 
@@ -102,6 +108,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'supermind' => null,
             'auto_caption' => null,
             'inferred_tags' => [],
+            'source' => FederatedEntitySourcesEnum::LOCAL->value,
+            'canonical_url' => null,
         ]);
     }
 
@@ -292,7 +300,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'permaweb_id',
                 'blurhash',
                 'supermind',
-                'auto_caption'
+                'auto_caption',
+                'inferred_tags',
             ]
         );
     }
@@ -756,7 +765,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
 
     /**
      * Gets the timestamp
-     * @return boolean
+     * @return int
      */
     public function getTimeCreated()
     {
@@ -1251,5 +1260,39 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getAllowComments(): bool
     {
         return (bool) $this->comments_enabled;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setSource(FederatedEntitySourcesEnum $source): FederatedEntityInterface
+    {
+        $this->source = $source->value;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSource(): ?FederatedEntitySourcesEnum
+    {
+        return FederatedEntitySourcesEnum::from($this->source ?: 'local');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCanonicalUrl(string $canonicalUrl): FederatedEntityInterface
+    {
+        $this->canonical_url = $canonicalUrl;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCanonicalUrl(): ?string
+    {
+        return $this->canonical_url;
     }
 }

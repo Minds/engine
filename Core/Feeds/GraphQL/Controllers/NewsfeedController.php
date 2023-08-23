@@ -99,6 +99,8 @@ class NewsfeedController
          */
         $limit = min($first ?: $last, 12); // MAX 12
 
+        $hasMore = false;
+
         // $loggedInUser =  Session::getLoggedInUser();
 
         if (!$loggedInUser) {
@@ -153,7 +155,7 @@ class NewsfeedController
             default => throw new UserError("Invalid algorithm supplied")
         };
 
-        if ($algorithm === NewsfeedAlgorithmsEnum::FORYOU && $this->experimentsManager->setUser($loggedInUser)->isOn('minds-4169-for-you-top-posts-injection')) {
+        if ($algorithm === NewsfeedAlgorithmsEnum::FORYOU && !$after && $this->experimentsManager->setUser($loggedInUser)->isOn('minds-4169-for-you-top-posts-injection')) {
             $topQueryOpts = new QueryOpts(
                 limit: 1, // TODO: swap with configurable value
                 query: "",
@@ -195,7 +197,17 @@ class NewsfeedController
                 break;
             }
 
-            if ($i === 0) { // Priority notice is always at the top
+            if (
+                (
+                    $this->isForYouTopExperimentActive($loggedInUser, $algorithm, $after) &&
+                    $i === 1
+                )
+                ||
+                (
+                    !$this->isForYouTopExperimentActive($loggedInUser, $algorithm, $after) &&
+                    $i === 0
+                )
+            ) { // Priority notice is always at the top
                 $priorityNotices = $this->buildInFeedNotices(
                     loggedInUser: $loggedInUser,
                     cursor: $cursor,
@@ -290,7 +302,7 @@ class NewsfeedController
 
             $showExplicitVoteButtons = $this->showExplicitVoteButtons($activity, $loggedInUser, $i);
 
-            $edges[] = new ActivityEdge($activity, $cursor, $showExplicitVoteButtons);
+            $edges[] = new ActivityEdge($activity, $cursor ?? "", $showExplicitVoteButtons);
         }
 
         if (empty($edges)) {
@@ -410,6 +422,14 @@ class NewsfeedController
         }
 
         return $edges;
+    }
+
+    private function isForYouTopExperimentActive(User $loggedInUser, NewsfeedAlgorithmsEnum $algorithm, ?string $after): bool
+    {
+        return
+            $algorithm === NewsfeedAlgorithmsEnum::FORYOU &&
+            !$after &&
+            $this->experimentsManager->setUser($loggedInUser)->isOn('minds-4169-for-you-top-posts-injection');
     }
 
     /**

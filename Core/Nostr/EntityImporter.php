@@ -10,6 +10,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Security\ACL;
 use Minds\Core\Feeds;
 use Minds\Entities\Activity;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 
@@ -57,7 +58,7 @@ class EntityImporter
 
 
         // Set the source as being nostr
-        $user->setSource('nostr');
+        $user->setSource(FederatedEntitySourcesEnum::NOSTR);
 
         $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
         $this->saveAction->setEntity($user)->save();
@@ -157,7 +158,7 @@ class EntityImporter
                     //
                     $activity->setMessage($nostrEvent->getContent());
                     $activity->setAccessId(Access::PUBLIC);
-                    $activity->setSource('nostr');
+                    $activity->setSource(FederatedEntitySourcesEnum::NOSTR);
 
                     $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
                     $this->activityManager->add($activity);

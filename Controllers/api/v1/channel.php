@@ -16,6 +16,8 @@ use Minds\Common\ChannelMode;
 use Minds\Core\Di\Di;
 use Minds\Core\Security\Block\BlockEntry;
 use ElggFile;
+use Minds\Common\Regex;
+use Minds\Core\ActivityPub\Services\ProcessActorService;
 use Minds\Core\Channels\AvatarService;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
 use Zend\Diactoros\ServerRequestFactory;
@@ -39,6 +41,25 @@ class channel implements Interfaces\Api
         }
 
         $user = new Entities\User($pages[0]);
+
+        /**
+         * If we can't find the user, and it looks like an ActivityPub style username (mark@minds.com),
+         * and the current user is logged and trusted, try to fetch the profile
+         */
+        if (
+            !$user->username
+            && Core\Session::getLoggedinUser()
+            && Core\Session::getLoggedinUser()->isTrusted()
+        ) {
+            try {
+                /** @var ProcessActorService */
+                $processActorService = Di::_()->get(ProcessActorService::class);
+                $user = $processActorService
+                    ->withUsername($pages[0])
+                    ->process();
+            } catch (\Exception $e) {
+            }
+        }
 
         $isAdmin = Core\Session::isAdmin();
         $isLoggedIn = Core\Session::isLoggedin();

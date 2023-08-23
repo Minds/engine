@@ -27,7 +27,7 @@ class CommentOpsEventStreamsSubscription implements SubscriptionInterface
     ) {
         $this->manager = $manager ?? Di::_()->get('Comments\Manager');
         $this->searchRepository = $searchRepository ?? new SearchRepository();
-        $this->repository = $repository ?? new RelationalRepository();
+        $this->repository = $repository ?? Di::_()->get(RelationalRepository::class);
     }
 
     /**

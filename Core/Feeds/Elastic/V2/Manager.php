@@ -451,6 +451,15 @@ class Manager
             ]
         ];
 
+        if ($queryOpts->onlyOwn) {
+            // Return own posts only
+            $must[] = [
+                'term' => [
+                    'owner_guid' => (string) $queryOpts->user->getGuid()
+                ],
+            ];
+        }
+
         if ($queryOpts->onlySubscribed) {
             // Posts from subscriptions
             $should[] = [
