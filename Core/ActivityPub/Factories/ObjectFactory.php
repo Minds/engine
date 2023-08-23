@@ -14,6 +14,7 @@ use Minds\Core\Comments\Comment;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
+use Minds\Entities\FederatedEntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
@@ -60,6 +61,10 @@ class ObjectFactory
     public function fromEntity(EntityInterface $entity): ObjectType
     {
         $actorUri = $this->manager->getBaseUrl() . 'users/' .$entity->getOwnerGuid();
+
+        if (!$entity instanceof FederatedEntityInterface) {
+            throw new NotImplementedException();
+        }
 
         /**
          * If this is a remote entity, then we need to get the remote uri

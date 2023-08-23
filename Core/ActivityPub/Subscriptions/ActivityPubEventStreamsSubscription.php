@@ -20,6 +20,7 @@ use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
+use Minds\Entities\FederatedEntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
@@ -94,8 +95,13 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
             return true; // Do not reprocess activitypub events
         }
 
-        /** @var mixed $entity */
+        /** @var EntityInterface $entity */
         $entity = $event->getEntity();
+
+        if (!$entity instanceof FederatedEntityInterface) {
+            $this->logger->info("Skipping: {$entity->getGuid()} is not a supported entity type");
+            return true;
+        }
 
         switch ($event->getAction()) {
             case ActionEvent::ACTION_SUBSCRIBE:
