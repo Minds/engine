@@ -87,6 +87,12 @@ class ManagerSpec extends ObjectBehavior
 
         //
 
+        $this->repository->getEvents(['kinds' => [0], 'authors' => ['4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715']])
+            ->shouldBeCalled()
+            ->willReturn(new \ArrayObject(['one']));
+
+        //
+
         $this->getPublicKeyFromUsername('phpspec')
             ->shouldBe('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
     }
@@ -108,6 +114,11 @@ class ManagerSpec extends ObjectBehavior
 
         //
 
+        $this->repository->getEvents(['kinds' => [0], 'authors' => ['4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715']])
+            ->shouldBeCalled()
+            ->willReturn(new \ArrayObject(['one']));
+
+        //
         $this->getPublicKeyFromUser($user)
             ->shouldBe('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
     }
