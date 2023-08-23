@@ -45,6 +45,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->get('language')->willReturn('en');
         $activity->get('supermind')->willReturn(false);
         $activity->getAutoCaption()->willReturn("");
+        $activity->getInferredTags()->willReturn([]);
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -91,6 +92,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'is_quoted_post' => false,
                 'is_supermind' => false,
                 'auto_caption' => "",
+                'inferred_tags' => [],
             ]);
     }
 
@@ -129,6 +131,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->get('language')->willReturn('en');
         $activity->get('supermind')->willReturn(false);
         $activity->getAutoCaption()->willReturn("");
+        $activity->getInferredTags()->willReturn([]);
         $activity->isRemind()->willReturn(false);
         $activity->isQuotedPost()->willReturn(false);
         $activity->isPortrait()->willReturn(false);
@@ -174,6 +177,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'is_quoted_post' => false,
                 'is_supermind' => false,
                 'auto_caption' => '',
+                'inferred_tags' => [],
             ]);
     }
 
@@ -210,6 +214,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->get('language')->willReturn('en');
         $activity->get('supermind')->willReturn(false);
         $activity->getAutoCaption()->willReturn("");
+        $activity->getInferredTags()->willReturn([]);
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -259,6 +264,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'remind_guid' => '123',
                 'is_supermind' => false,
                 'auto_caption' => '',
+                'inferred_tags' => [],
             ]);
     }
 
@@ -295,6 +301,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->get('language')->willReturn('en');
         $activity->get('supermind')->willReturn(false);
         $activity->getAutoCaption()->willReturn("");
+        $activity->getInferredTags()->willReturn([]);
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -343,6 +350,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'remind_guid' => '123',
                 'is_supermind' => false,
                 'auto_caption' => '',
+                'inferred_tags' => [],
             ]);
     }
 }

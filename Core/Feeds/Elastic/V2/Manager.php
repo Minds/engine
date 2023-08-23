@@ -1,19 +1,19 @@
 <?php
 namespace Minds\Core\Feeds\Elastic\V2;
 
-use Minds\Common\Access;
-use Minds\Entities\User;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Guid;
-use Minds\Core\Search\SortingAlgorithms\TopV2;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\ClusteredRecommendations;
 use Minds\Core\Feeds\Elastic\V2\Enums\MediaTypeEnum;
 use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
 use Minds\Core\Feeds\Seen\Manager as SeenManager;
 use Minds\Core\Groups\V2\Membership;
+use Minds\Core\Guid;
+use Minds\Core\Search\SortingAlgorithms\TopV2;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
+use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Helpers\Text;
 
@@ -26,6 +26,7 @@ class Manager
         protected EntitiesBuilder $entitiesBuilder,
         protected Membership\Manager $groupsMembershipManager,
         protected ACL $acl,
+        private readonly ExperimentsManager $experimentsManager,
     ) {
     }
 
@@ -494,22 +495,25 @@ class Manager
         if ($queryOpts->query) {
             $words = explode(' ', $queryOpts->query);
 
-            if (count($words) === 1) {
-                $must[] = [
-                        'multi_match' => [
-                            'query' => $queryOpts->query,
-                            'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^12', 'auto_caption^12'],
-                        ],
-                    ];
-            } else {
-                $must[] = [
-                    'multi_match' => [
-                        'query' => $queryOpts->query,
-                        'type' => 'phrase',
-                        'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^16', 'auto_caption^12'],
-                    ],
-                ];
+            $multiMatch = [
+                'multi_match' => [
+                    'query' => $queryOpts->query,
+                    'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^12', 'auto_caption^12'],
+                ],
+            ];
+
+            if (count($words) > 1) {
+                $multiMatch['multi_match']['type'] = 'phrase';
             }
+            
+            $this->experimentsManager
+                ->setUser($queryOpts->user);
+
+            if ($this->experimentsManager->isOn('engine-2619-inferred-tags')) {
+                $multiMatch['multi_match']['fields'][] = 'inferred_tags^12';
+            }
+
+            $must[] = $multiMatch;
         }
 
         if ($queryOpts->accessId) {
