@@ -2,21 +2,18 @@
 namespace Minds\Core\ActivityPub\Services;
 
 use ActivityPhp\Type\Extended\AbstractActor;
-use Minds\Common\Access;
-use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Client;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
-use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
+use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Activity\AcceptType;
-use Minds\Core\ActivityPub\Types\Activity\CreateType;
 use Minds\Core\ActivityPub\Types\Activity\FollowType;
-use Minds\Core\ActivityPub\Types\Activity\UpdateType;
+use Minds\Core\ActivityPub\Types\Activity\LikeType;
+use Minds\Core\ActivityPub\Types\Activity\UndoType;
 use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
 use Minds\Core\ActivityPub\Types\Core\ActivityType;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
-use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 
 class EmitActivityService
@@ -59,6 +56,49 @@ class EmitActivityService
         $inboxUrl = $target->endpoints['sharedInbox'] ?? $target->inbox;
 
         $this->postRequest($inboxUrl, $follow, $actor);
+    }
+
+    public function emitLike(LikeType $like, User $actor): void
+    {
+        // Get the targets inbox
+        $target = $this->objectFactory->fromUri($like->object->attributedTo);
+        if (!$target instanceof AbstractActorType) {
+            $this->logger->info("Emit Like: Failed - target is not an actor");
+            return;
+        }
+
+        $inboxUrls = iterator_to_array($this->manager->getInboxesForFollowers($actor->getGuid()));
+
+        // TODO: Dedup
+        $inboxUrls[] = $target->endpoints['sharedInbox'] ?? $target->inbox;
+
+        foreach ($inboxUrls as $inboxUrl) {
+            $this->postRequest($inboxUrl, $like, $actor);
+        }
+    }
+
+    public function emitUndoLike(LikeType $like, User $actor, string $attributedTo): void
+    {
+        // Get the targets inbox
+        $target = $this->objectFactory->fromUri($attributedTo);
+        if (!$target instanceof AbstractActorType) {
+            $this->logger->info("Emit Undo Like: Failed - target is not an actor");
+            return;
+        }
+
+        $undo = new UndoType();
+        $undo->id = $this->manager->getTransientId();
+        $undo->actor = $like->actor;
+        $undo->object = $like;
+
+        $inboxUrls = iterator_to_array($this->manager->getInboxesForFollowers($actor->getGuid()));
+
+        // TODO: Dedup
+        $inboxUrls[] = $target->endpoints['sharedInbox'] ?? $target->inbox;
+
+        foreach ($inboxUrls as $inboxUrl) {
+            $this->postRequest($inboxUrl, $undo, $actor);
+        }
     }
 
     /**

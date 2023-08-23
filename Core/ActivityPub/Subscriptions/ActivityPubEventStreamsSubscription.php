@@ -5,10 +5,12 @@
  */
 namespace Minds\Core\ActivityPub\Subscriptions;
 
-use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
+use Minds\Core\ActivityPub\Factories\ObjectFactory;
+use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Services\EmitActivityService;
 use Minds\Core\ActivityPub\Types\Activity\FollowType;
+use Minds\Core\ActivityPub\Types\Activity\LikeType;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\ActionEvent;
@@ -19,16 +21,22 @@ use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
+use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
+use NotImplementedException;
 
 class ActivityPubEventStreamsSubscription implements SubscriptionInterface
 {
     public function __construct(
+        private ?ObjectFactory $objectFactory = null,
         protected ?Manager $manager = null,
         protected ?EmitActivityService $emitActivityService = null,
         protected ?ActorFactory $actorFactory = null,
         protected ?Logger $logger = null,
         protected ?Config $config = null,
     ) {
+        $this->objectFactory = Di::_()->get(ObjectFactory::class);
         $this->manager ??= Di::_()->get(Manager::class);
         $this->emitActivityService ??= Di::_()->get(EmitActivityService::class);
         $this->actorFactory ??= Di::_()->get(ActorFactory::class);
@@ -64,6 +72,10 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
      * Called when there is a new event
      * @param EventInterface $event
      * @return bool
+     * @throws NotFoundException
+     * @throws ServerErrorException
+     * @throws UserErrorException
+     * @throws NotImplementedException
      */
     public function consume(EventInterface $event): bool
     {
@@ -74,7 +86,7 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
 
         $this->logger->info('Action event type: ' . $event->getAction());
 
-        /** @var User */
+        /** @var User $user */
         $user = $event->getUser();
 
         if ($user->getSource() === FederatedEntitySourcesEnum::ACTIVITY_PUB) {
@@ -82,7 +94,7 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
             return true; // Do not reprocess activitypub events
         }
 
-        /** @var mixed */
+        /** @var mixed $entity */
         $entity = $event->getEntity();
 
         switch ($event->getAction()) {
@@ -98,7 +110,24 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
                 $this->emitActivityService->emitFollow($follow, $user);
                 
                 return true;
-                break;
+            case ActionEvent::ACTION_VOTE_UP:
+            case ActionEvent::ACTION_VOTE_UP_REMOVED:
+                $actor = $this->actorFactory->fromEntity($user);
+                $object = $this->objectFactory->fromEntity($entity);
+
+                $like = new LikeType();
+                $like->id = $this->manager->getTransientId();
+                $like->actor = $actor;
+                $like->object = $object;
+
+                if ($event->getAction() === ActionEvent::ACTION_VOTE_UP_REMOVED) {
+                    $like->object = $object->id;
+                    $this->emitActivityService->emitUndoLike($like, $user, $object->attributedTo);
+                    return true;
+                }
+
+                $this->emitActivityService->emitLike($like, $user);
+                return true;
             default:
                 return true; // Noop (nothing to do)
         }

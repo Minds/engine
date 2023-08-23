@@ -13,6 +13,8 @@ use Minds\Core\ActivityPub\Types\Object\NoteType;
 use Minds\Core\Comments\Comment;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
+use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
 use NotImplementedException;
@@ -20,9 +22,9 @@ use NotImplementedException;
 class ObjectFactory
 {
     public function __construct(
-        private Manager $manager,
-        private Client $client,
-        private ActorFactory $actorFactory,
+        private readonly Manager $manager,
+        private readonly Client $client,
+        private readonly ActorFactory $actorFactory,
     ) {
         
     }
@@ -47,14 +49,34 @@ class ObjectFactory
         return $this->fromJson($json);
     }
 
+    /**
+     * @param EntityInterface $entity
+     * @return ObjectType
+     * @throws NotFoundException
+     * @throws NotImplementedException
+     * @throws UserErrorException
+     * @throws \Minds\Exceptions\ServerErrorException
+     */
     public function fromEntity(EntityInterface $entity): ObjectType
     {
         $actorUri = $this->manager->getBaseUrl() . 'users/' .$entity->getOwnerGuid();
+
+        /**
+         * If this is a remote entity, then we need to get the remote uri
+         */
+        if ($entity->getSource() === FederatedEntitySourcesEnum::ACTIVITY_PUB) {
+            if ($uri = $this->manager->getUriFromEntity($entity)) {
+                if (!$this->manager->isLocalUri($uri)) {
+                    return $this->fromUri($uri);
+                }
+            } else {
+                throw new NotFoundException("Found ActivityPub entity but could not resolve remote uri");
+            }
+        }
         switch (get_class($entity)) {
             case Activity::class:
                 /** @var Activity */
                 $activity = $entity;
-                
                 $json = [
                     'id' => $actorUri . '/entities/' . $entity->getUrn(),
                     'type' => 'Note',
@@ -102,7 +124,6 @@ class ObjectFactory
                     }
                     $json['attachment'] = $attachments;
                 }
-                
                 break;
             case Comment::class:
                 /** @var Comment */
@@ -131,7 +152,7 @@ class ObjectFactory
                     'cc' => [
                         $actorUri . '/followers',
                     ],
-                    'published' => date('c', $comment->getTimeCreated()),
+                    'published' => date('c', (int) $comment->getTimeCreated()),
                     'url' => $comment->getUrl(),
                 ];
 
@@ -154,6 +175,9 @@ class ObjectFactory
                     $json['attachment'] = $attachments;
                 }
                 break;
+            case User::class:
+                return $this->actorFactory->fromEntity($entity);
+
             default:
                 throw new NotImplementedException();
         }
@@ -169,6 +193,10 @@ class ObjectFactory
 
     public function fromJson(array $json): ObjectType
     {
+        if (isset(ActorFactory::ACTOR_TYPES[$json['type']])) {
+            return $this->actorFactory->fromJson($json);
+        }
+
         $object = match ($json['type']) {
             'Note' => new NoteType(),
             'Image' => new ImageType(),
