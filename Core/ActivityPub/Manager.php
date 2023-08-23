@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\ActivityPub;
 
 use GuzzleHttp\Exception\ConnectException;
@@ -24,7 +25,6 @@ class Manager
         protected Config $config,
         protected Client $client,
     ) {
-        
     }
 
     /**
@@ -61,6 +61,10 @@ class Manager
          * Try to find the entity by its urn
          */
         $entity = $this->entitiesBuilder->getByUrn($urn);
+
+        if (!$entity) {
+            return null;
+        }
 
         /**
          * Return the uri of the entity
@@ -181,7 +185,7 @@ class Manager
             if (!$success) {
                 throw new ServerErrorException("Unable to save private key for user");
             }
-        
+
             return $private;
         }
     }
@@ -210,7 +214,7 @@ class Manager
     {
         return $this->getBaseUrl() . 'transient/' . Guid::build();
     }
-    
+
     /**
      * Returns true if the activity pub uri matches the Minds site url
      */
