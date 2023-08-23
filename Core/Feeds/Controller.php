@@ -89,9 +89,9 @@ class Controller
             'access_id' => 2,
             'limit' => $limit,
             'type' => 'activity',
-            'algorithm' => 'top',
+            'algorithm' => 'latest',
             'period' => '1y',
-            'single_owner_threshold' => $fromTimestamp ? 0 : 36, // after 3 scrolls
+            'single_owner_threshold' => 0, //$fromTimestamp ? 0 : 36, // after 3 scrolls
             'from_timestamp' => $fromTimestamp,
             'nsfw' => [],
             'unseen' => $unseen,
