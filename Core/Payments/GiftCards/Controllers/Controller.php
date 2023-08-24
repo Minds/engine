@@ -184,9 +184,19 @@ class Controller
     #[Query]
     #[Logged]
     public function giftCard(
-        string $guid
+        string $guid,
+        #[InjectUser] User $loggedInUser = null // Do not add in docblock as it will break GraphQL
     ): GiftCard {
         $giftCard = $this->manager->getGiftCard((int) $guid);
+
+        if (
+            (string) $giftCard->claimedByGuid !== $loggedInUser->getGuid() &&
+            (string) $giftCard->issuedByGuid !== $loggedInUser->getGuid() &&
+            !$loggedInUser->isAdmin()
+        ) {
+            throw new GraphQLException("You are not authorized to view this gift card.", 403);
+        }
+
         // Required for sub query of transactions
         $giftCard->setQueryRef($this);
         return $giftCard;
