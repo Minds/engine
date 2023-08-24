@@ -61,7 +61,9 @@
         "thecodingmachine/graphqlite": "6.2.3",
         "sentry/sdk": "^3.5",
         "symfony/psr-http-message-bridge": "^2.3",
-        "liamdennehy/http-signatures-php": "dev-use-upstream-phpseclib"
+        "liamdennehy/http-signatures-php": "dev-use-upstream-phpseclib",
+        "nojimage/twitter-text-php": "^3.3",
+        "soundasleep/html2text": "^2.1"
     },
     "repositories": [
         {
