@@ -9,6 +9,7 @@
 namespace Minds\Core\Votes;
 
 use Minds\Core;
+use Minds\Core\Comments\Comment;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
@@ -239,6 +240,10 @@ class Events
             $export = $event->response() ?: [];
             $params = $event->getParameters();
             $entity = $params['entity'];
+
+            if ($entity instanceof Comment) {
+                return;
+            }
 
             $guid = $entity->getGuid();
 
