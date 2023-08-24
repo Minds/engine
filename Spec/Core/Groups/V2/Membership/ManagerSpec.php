@@ -147,7 +147,7 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_return_members_from_legacy(Group $groupMock)
     {
         $refTime = time();
-    
+
         $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(false);
 
         $groupMock->getGuid()
@@ -242,7 +242,7 @@ class ManagerSpec extends ObjectBehavior
 
         $userMock->getGuid()
             ->willReturn(123);
-    
+
         $this->legacyMembershipMock->getGroupGuidsByMember([ 'user_guid' => 123, 'limit' => 500 ])
             ->willReturn([
                 456,
@@ -306,7 +306,7 @@ class ManagerSpec extends ObjectBehavior
             membershipLevel: GroupMembershipLevelEnum::MEMBER,
         );
 
-        $this->repositoryMock->getList(123, null, null, Argument::any(), Argument::any())
+        $this->repositoryMock->getList(123, null, null, false, Argument::any(), Argument::any())
             ->willYield([
                 $membership1,
                 $membership2,
@@ -346,7 +346,7 @@ class ManagerSpec extends ObjectBehavior
             membershipLevel: GroupMembershipLevelEnum::OWNER,
         );
 
-        $this->repositoryMock->getList(123, null, $membershipLevel, Argument::any(), Argument::any())
+        $this->repositoryMock->getList(123, null, $membershipLevel, false, Argument::any(), Argument::any())
             ->willYield([
                 $membership1,
                 $membership2,
@@ -377,7 +377,7 @@ class ManagerSpec extends ObjectBehavior
             membershipLevel: GroupMembershipLevelEnum::REQUESTED,
         );
 
-        $this->repositoryMock->getList(123, null, GroupMembershipLevelEnum::REQUESTED, Argument::any(), Argument::any())
+        $this->repositoryMock->getList(123, null, GroupMembershipLevelEnum::REQUESTED, false, Argument::any(), Argument::any())
             ->willYield([
                 $membership,
                 $membership
@@ -408,7 +408,7 @@ class ManagerSpec extends ObjectBehavior
             membershipLevel: GroupMembershipLevelEnum::REQUESTED,
         );
 
-        $this->repositoryMock->getList(null, 123, null, Argument::any(), Argument::any())
+        $this->repositoryMock->getList(null, 123, null, false, Argument::any(), Argument::any())
             ->willYield([
                 $membership,
                 $membership
@@ -446,7 +446,7 @@ class ManagerSpec extends ObjectBehavior
             membershipLevel: GroupMembershipLevelEnum::REQUESTED,
         );
 
-        $this->repositoryMock->getList(null, 789, null, Argument::any(), Argument::any())
+        $this->repositoryMock->getList(null, 789, null, false, Argument::any(), Argument::any())
             ->willYield([
                 $membership1,
                 $membership2
