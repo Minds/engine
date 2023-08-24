@@ -78,10 +78,19 @@ class BoostSuggestionInjector
             return null;
         }
 
+        $entity = $boost->getEntity();
+        $boostedEntityType = $boost->getEntity()->getType() ?? null;
+
+        // export subscriber / subscription counts for users.
+        if ($boostedEntityType === 'user') {
+            $entity->exportCounts = true;
+            $boost->setEntity($entity);
+        }
+
         return (new Suggestion())
             ->setConfidenceScore(1)
             ->setEntityGuid($boost->getGuid())
             ->setEntity(new BoostEntityWrapper($boost))
-            ->setEntityType($boost->getEntity()->getType() ?? null);
+            ->setEntityType($boostedEntityType);
     }
 }
