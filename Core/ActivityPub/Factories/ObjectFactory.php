@@ -107,6 +107,10 @@ class ObjectFactory
                     }
                 }
 
+                if (!$content) {
+                    $content = $activity->getURL();
+                }
+
                 $content = ContentParserBuilder::format($content);
 
                 $json = [
