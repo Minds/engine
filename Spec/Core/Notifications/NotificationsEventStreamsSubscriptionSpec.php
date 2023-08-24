@@ -41,13 +41,13 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
 
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
-    
+
     /** @var Resolver */
     protected $entitiesResolver;
 
     /** @var GroupMembershipManager */
     protected $groupMembershipManager;
-    
+
     /** @var RedisMock */
     protected $redisMock;
 
@@ -437,10 +437,11 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
             ->willReturn($group);
 
         $refTime = time();
-  
+
         $this->groupMembershipManager->getMembers(
             $group,
             GroupMembershipLevelEnum::MODERATOR,
+            false,
             10,
             Argument::any(),
             Argument::any()
@@ -464,6 +465,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $this->groupMembershipManager->getMembers(
             $group,
             GroupMembershipLevelEnum::OWNER,
+            false,
             10,
             Argument::any(),
             Argument::any()

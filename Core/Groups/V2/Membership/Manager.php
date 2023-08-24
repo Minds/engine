@@ -98,6 +98,7 @@ class Manager
     public function getMembers(
         Group $group,
         GroupMembershipLevelEnum $membershipLevel = null,
+        bool $membershipLevelGte = false,
         int $limit = 12,
         int $offset = 0,
         int|string &$loadNext = 0
@@ -145,7 +146,8 @@ class Manager
             groupGuid: $group->getGuid(),
             limit: $limit,
             offset: $offset,
-            membershipLevel: $membershipLevel
+            membershipLevel: $membershipLevel,
+            membershipLevelGte: $membershipLevelGte
         ) as $membership) {
             $user = $this->buildUser($membership->userGuid);
 
