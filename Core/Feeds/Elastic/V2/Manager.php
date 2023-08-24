@@ -103,14 +103,6 @@ class Manager
         $mustNot = $prepared['mustNot'];
         $should = $prepared['should'];
 
-        $must[] = [
-            'range' => [
-                '@timestamp' => [
-                    'lte' => time() * 1000, // Never show posts that are in the future
-                ]
-            ]
-        ];
-
         if ($loadAfter && $loadBefore) {
             throw new ServerErrorException("Two cursors, loadAfter and loadBefore were provided. Only one can be provided.");
         }
@@ -443,6 +435,15 @@ class Manager
         $mustNot = [];
         $should = [];
         $functionScores = [];
+
+        // Feeds should always return posts less than current time
+        $must[] = [
+            'range' => [
+                '@timestamp' => [
+                    'lte' => time() * 1000, // Never show posts that are in the future
+                ]
+            ]
+        ];
 
         // Never show pending posts
         $mustNot[] = [
