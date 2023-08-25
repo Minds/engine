@@ -18,6 +18,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
 use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Guid;
+use Minds\Core\Log\Logger;
 use Minds\Core\Media\Image\ProcessExternalImageService;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
@@ -44,6 +45,7 @@ class ProcessActivityService
         private readonly VotesManager $votesManager,
         protected ProcessExternalImageService $processExternalImageService,
         protected Config $config,
+        protected Logger $logger,
     ) {
         
     }
@@ -57,22 +59,31 @@ class ProcessActivityService
 
     public function process(): void
     {
+        $logPrefix = "{$this->activity->id}: ";
+
         $className = get_class($this->activity);
 
         /** @var User $owner */
         $owner = $this->manager->getEntityFromUri($this->activity->actor->id);
         if (!$owner) {
-            // The owner could not be found. The owner must be present
-            return;
-        }
+            // Actor not found, we will try and pull in their profile
 
-        /**
-         *  The owner and have at least one subscriber for their posts to be ingested
-         */
-        if ($this->subscriptionsManager->setSubscriber($owner)->getSubscriptionsCount() === 0) {
-            // return;
+            $this->logger->info("$logPrefix Actor ({$this->activity->actor->id}) not found, fetching them");
+
+            try {
+                $owner = $this->processActorService
+                    ->withActorUri($this->activity->actor->id)
+                    ->process();
+
+                if (!$owner) {
+                    // The owner could not be found. The owner must be present
+                    return;
+                }
+            } catch (\Exception $e) {
+                $this->logger->error("$logPrefix Error fetching actor {$e->getMessage()}");
+                return;
+            }
         }
-                    
         
         switch ($className) {
             case CreateType::class:
@@ -80,9 +91,19 @@ class ProcessActivityService
                  * Process the Note as a Minds Activity
                  */
                 if ($this->activity->object instanceof NoteType) {
+
+                    /**
+                     *  The owner and have at least one subscriber for their posts to be ingested
+                     */
+                    if ($this->subscriptionsManager->setSubscriber($owner)->getSubscriptionsCount() === 0) {
+                        $this->logger->info("$logPrefix Can not pull in post for {$owner->getGuid()}: No subscribers");
+                        return;
+                    }
+
                     // If activity has been previously imported, then
                     $existingActivity = $this->manager->getEntityFromUri($this->activity->object->id);
                     if ($existingActivity) {
+                        $this->logger->info("$logPrefix The post already exists");
                         // No need to import as we already have it
                         return;
                     }
@@ -96,6 +117,7 @@ class ProcessActivityService
                         if (!$inReplyToEntity) {
                             // Should we fetch a new one?
                             // For now we will not
+                            $this->logger->info("$logPrefix The reminded content could not be found. It may not yet exist on Minds.");
                             return;
                         }
 
@@ -220,6 +242,7 @@ class ProcessActivityService
                 // If activity has been previously imported, then
                 $existingActivity = $this->manager->getEntityFromUri($this->activity->id);
                 if ($existingActivity) {
+                    $this->logger->info("$logPrefix The remind already exists");
                     // No need to import as we already have it
                     return;
                 }
@@ -227,7 +250,8 @@ class ProcessActivityService
                 $originalEntity = $this->manager->getEntityFromUri($this->activity->object->id);
 
                 if (!$originalEntity) {
-                    throw new NotFoundException("The reminded content could not be found one Minds");
+                    $this->logger->info("$logPrefix The reminded content could not be found on Minds");
+                    throw new NotFoundException("The reminded content could not be found on Minds");
                 }
     
                 $remind = new RemindIntent();
@@ -253,12 +277,14 @@ class ProcessActivityService
             case FollowType::class:
                 $actor = $this->manager->getEntityFromUri($this->activity->actor->id);
                 if (!$actor) {
+                    $this->logger->info("$logPrefix The actor could not be found");
                     // The actor doesn't exist, so we wont continue
                     throw new ForbiddenException();
                 }
 
                 $subject = $this->manager->getEntityFromUri($this->activity->object->id);
                 if (!$subject instanceof User) {
+                    $this->logger->info("$logPrefix The user trying to be subscribed to ({$this->activity->object->id}) could not be found");
                     // We couldn't find the user that is trying to be subscribed to
                     throw new NotFoundException();
                 }
@@ -287,6 +313,7 @@ class ProcessActivityService
             case LikeType::class:
                 $actor = $this->manager->getEntityFromUri($this->activity->actor->id);
                 if (!$actor) {
+                    $this->logger->info("$logPrefix The actor could not be found");
                     // The actor doesn't exist, so we wont continue
                     throw new ForbiddenException();
                 }

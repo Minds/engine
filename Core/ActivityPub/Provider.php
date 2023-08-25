@@ -28,9 +28,9 @@ class Provider extends DiProvider
      */
     public function register(): void
     {
-        $this->di->bind(Client::class, function ($di) {
+        $this->di->bind(Client::class, function (Di $di): Client {
             return new Client(
-                httpClient: new \GuzzleHttp\Client(),
+                httpClient: $di->get(\GuzzleHttp\Client::class),
                 config: $di->get('Config'),
             );
         });
@@ -65,6 +65,7 @@ class Provider extends DiProvider
                 actorFactory: $di->get(ActorFactory::class),
                 acl: $di->get('Security\ACL'),
                 saveAction: new Save(),
+                avatarService: $di->get('Channels\AvatarService'),
             );
         });
         $this->di->bind(ProcessActivityService::class, function ($di) {
@@ -78,6 +79,7 @@ class Provider extends DiProvider
                 votesManager: $di->get('Votes\Manager'),
                 processExternalImageService: $di->get(ProcessExternalImageService::class),
                 config: $di->get('Config'),
+                logger: $di->get('Logger'),
             );
         });
         $this->di->bind(ProcessCollectionService::class, function ($di) {
