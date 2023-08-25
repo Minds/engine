@@ -20,7 +20,7 @@ class Image implements AssetsInterface
     {
     }
 
-    public function upload(array $media, ?User $owner)
+    public function upload(array $media, ?User $owner = null)
     {
         $filename = "image/{$this->entity->batch_guid}/{$this->entity->guid}/master.jpg";
 

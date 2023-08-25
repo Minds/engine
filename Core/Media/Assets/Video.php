@@ -54,7 +54,7 @@ class Video implements AssetsInterface
         return true;
     }
 
-    public function upload(array $media, ?User $owner)
+    public function upload(array $media, ?User $owner = null)
     {
         return [
             'media' => $media
