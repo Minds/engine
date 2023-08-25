@@ -129,6 +129,19 @@ class Manager
     }
 
     /**
+     * @return iterable<User>
+     */
+    public function getActorEntities(): iterable
+    {
+        foreach ($this->repository->getActorEntityUrns() as $urn) {
+            $entity = $this->entitiesBuilder->getByUrn($urn);
+            if ($entity instanceof User) {
+                yield $entity;
+            }
+        }
+    }
+
+    /**
      * Returns a Minds entity from its ActivityPub id. This function should be used
      * when the $objectUri is a local one.
      */
@@ -192,6 +205,15 @@ class Manager
 
             return $private;
         }
+    }
+
+    /**
+     * Returns a url for an actor, if one exists.
+     * This is useful to see if the avatar has changed
+     */
+    public function getActorIconUrl(AbstractActorType $actor): ?string
+    {
+        return $this->repository->getActorIconUrl($actor);
     }
 
     /**
