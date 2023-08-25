@@ -93,7 +93,7 @@ class ObjectFactory
                     }
                 }
 
-                $content = $activity->getMessage();
+                $content = $activity->getMessage() ?: '';
 
                 // Rich embed? Are we including our link?
                 if ($activity->perma_url) {
