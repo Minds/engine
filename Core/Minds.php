@@ -87,6 +87,7 @@ class Minds extends base
         Groups\V2\Module::class,
         Webfinger\Module::class,
         ActivityPub\Module::class,
+        Admin\Module::class,
     ];
 
     /**

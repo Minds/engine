@@ -45,6 +45,10 @@ class Provider extends DiProvider
                 $factory->setAuthenticationService($args['auth_service']);
             }
 
+            if (isset($args['authorization_service'])) {
+                $factory->setAuthorizationService($args['authorization_service']);
+            }
+
             return $factory->createSchema();
         }, ['useFactory' => true ]);
 
