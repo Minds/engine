@@ -5,11 +5,13 @@ use Minds\Common\Access;
 use Minds\Entities\User;
 use Minds\Entities\Image as ImageEntity;
 use GuzzleHttp\Client as GuzzleClient;
+use Minds\Core\Media\Assets\Image as ImageAssets;
 
 class ProcessExternalImageService
 {
     public function __construct(
-        private readonly GuzzleClient $httpClient
+        private readonly GuzzleClient $httpClient,
+        private readonly ImageAssets $imageAssets,
     ) {
         
     }
@@ -38,22 +40,10 @@ class ProcessExternalImageService
         fclose($fp);
 
         /**
-         * Uploads the source file to S3
+         * Uploads the source file to S3 and handles resizing
          */
-        $file = new \ElggFile(); //only using for legacy reasons
-        $file->owner_guid = $owner->getGuid();
-        $file->container_guid = $owner->getGuid();
-        $file->setFilename("/image/$image->batch_guid/$image->guid/master.jpg");
-        $file->open('write');
-        $file->write($imageData);
-        $file->close();
+        $image->setAssets($this->imageAssets->upload([ 'file' => $tmpFilename ], $owner));
 
-        /**
-         * Create sizes
-         */
-        //$loc = $image->getFilenameOnFilestore();
-        $image->createThumbnails($tmpFilename);
-        $image->save();
         unlink($tmpFilename);
 
         return $image;
