@@ -95,7 +95,7 @@ class ProcessActivityService
                     /**
                      *  The owner and have at least one subscriber for their posts to be ingested
                      */
-                    if ($this->subscriptionsManager->setSubscriber($owner)->getSubscriptionsCount() === 0) {
+                    if ($this->subscriptionsManager->setSubscriber($owner)->getSubscribersCount() === 0) {
                         $this->logger->info("$logPrefix Can not pull in post for {$owner->getGuid()}: No subscribers");
                         return;
                     }
