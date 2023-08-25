@@ -4,24 +4,26 @@
  */
 namespace Minds\Core\Reports\Verdict\Delegates;
 
-use Minds\Core\Security\ACL;
-use Minds\Core\Reports\Verdict\Verdict;
-use Minds\Core\Di\Di;
 use Minds\Common\Urn;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Manager as BoostManager;
-use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePostStrategy;
-use Minds\Core\Monetization\Demonetization\DemonetizationContext;
-use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePlusUserStrategy;
-use Minds\Core\Reports\Report;
-use Minds\Core\Reports\Strikes\Strike;
+use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save as SaveAction;
 use Minds\Core\Log\Logger;
+use Minds\Core\Monetization\Demonetization\DemonetizationContext;
+use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePlusUserStrategy;
+use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePostStrategy;
 use Minds\Core\Plus;
+use Minds\Core\Reports\Report;
+use Minds\Core\Reports\Strikes\Strike;
+use Minds\Core\Reports\Verdict\Verdict;
+use Minds\Core\Security\ACL;
+use Minds\Core\Security\Password;
 use Minds\Core\Sessions;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
-use Minds\Core\Security\Password;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
+use Minds\Entities\FederatedEntityInterface;
 
 class ActionDelegate
 {
@@ -70,7 +72,8 @@ class ActionDelegate
         private ?DemonetizePostStrategy $demonetizePostStrategy = null,
         private ?DemonetizePlusUserStrategy $demonetizePlusUserStrategy = null,
         private ?BoostManager $boostManager = null,
-        private ?Logger $logger = null
+        private ?Logger $logger = null,
+        private ?ActivityPubReportDelegate $activityPubReportDelegate = null
     ) {
         $this->entitiesBuilder = $entitiesBuilder  ?: Di::_()->get('EntitiesBuilder');
         $this->actions = $actions ?: Di::_()->get('Reports\Actions');
@@ -86,6 +89,7 @@ class ActionDelegate
         $this->demonetizePostStrategy ??= Di::_()->get(DemonetizePostStrategy::class);
         $this->demonetizePlusUserStrategy ??= Di::_()->get(DemonetizePlusUserStrategy::class);
         $this->boostManager ??= Di::_()->get(BoostManager::class);
+        $this->activityPubReportDelegate ??= Di::_()->get(ActivityPubReportDelegate::class);
         $this->logger ??= Di::_()->get('Logger');
     }
 
@@ -289,6 +293,8 @@ class ActionDelegate
                     ->setSubReasonCode(implode('.', [ $reasonCode, $subReasonCode ]));
                 $this->applyBan($report);
             }
+        } else {
+            $this->reportToActivityPub($report);
         }
     }
 
@@ -321,6 +327,20 @@ class ActionDelegate
             ->ban(implode('.', [ $report->getReasonCode(), $report->getSubReasonCode() ]));
 
         $this->emailDelegate->onBan($report);
+        $this->reportToActivityPub($report);
+    }
+
+    private function reportToActivityPub(Report $report): void
+    {
+        if (!$report->getEntity() instanceof FederatedEntityInterface) {
+            return;
+        }
+
+        if ($report->getEntity()->getSource() !== FederatedEntitySourcesEnum::ACTIVITY_PUB) {
+            return;
+        }
+
+        $this->activityPubReportDelegate->onReportUpheld($report);
     }
 
     /**

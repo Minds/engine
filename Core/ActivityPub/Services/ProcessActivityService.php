@@ -2,10 +2,13 @@
 namespace Minds\Core\ActivityPub\Services;
 
 use Minds\Common\Access;
+use Minds\Common\SystemUser;
+use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Activity\AcceptType;
 use Minds\Core\ActivityPub\Types\Activity\AnnounceType;
 use Minds\Core\ActivityPub\Types\Activity\CreateType;
+use Minds\Core\ActivityPub\Types\Activity\FlagType;
 use Minds\Core\ActivityPub\Types\Activity\FollowType;
 use Minds\Core\ActivityPub\Types\Activity\LikeType;
 use Minds\Core\ActivityPub\Types\Activity\UndoType;
@@ -18,6 +21,10 @@ use Minds\Core\Feeds\Activity\Manager as ActivityManager;
 use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Guid;
 use Minds\Core\Media\Image\ProcessExternalImageService;
+use Minds\Core\Reports\Enums\ReportReasonEnum;
+use Minds\Core\Reports\Report;
+use Minds\Core\Reports\UserReports\Manager as UserReportsManager;
+use Minds\Core\Reports\UserReports\UserReport;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Subscriptions;
@@ -41,6 +48,7 @@ class ProcessActivityService
         protected ActivityManager $activityManager,
         protected Subscriptions\Manager $subscriptionsManager,
         private readonly VotesManager $votesManager,
+        private readonly UserReportsManager $userReportsManager,
         protected ProcessExternalImageService $processExternalImageService,
         protected Config $config,
     ) {
@@ -301,6 +309,33 @@ class ProcessActivityService
                 }
 
                 $this->votesManager->cast($vote);
+                break;
+            case FlagType::class:
+                if (!is_array($this->activity->object)) {
+                    // Invalid flag
+                    return;
+                }
+
+                foreach ($this->activity->object as $uri) {
+                    $entity = $this->manager->getEntityFromUri(JsonLdHelper::getValueOrId($uri));
+
+                    if (!$entity) {
+                        continue;
+                    }
+
+                    $report = (new Report())
+                        ->setReasonCode(ReportReasonEnum::ACTIVITY_PUB_REPORT->value)
+                        ->setEntityUrn($entity->getUrn())
+                        ->setEntity($entity)
+                        ->setEntityOwnerGuid($entity->getOwnerGuid());
+
+                    $userReport = (new UserReport())
+                        ->setReport($report)
+                        ->setReporterGuid(SystemUser::GUID)
+                        ->setTimestamp(time());
+
+                    $this->userReportsManager->add($userReport);
+                }
                 break;
             case UndoType::class:
 

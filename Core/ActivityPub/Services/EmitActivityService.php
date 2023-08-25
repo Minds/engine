@@ -7,6 +7,7 @@ use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Activity\AcceptType;
+use Minds\Core\ActivityPub\Types\Activity\FlagType;
 use Minds\Core\ActivityPub\Types\Activity\FollowType;
 use Minds\Core\ActivityPub\Types\Activity\LikeType;
 use Minds\Core\ActivityPub\Types\Activity\UndoType;
@@ -105,6 +106,24 @@ class EmitActivityService
         }
     }
 
+    public function emitFlag(FlagType $flag, string $attributedTo): void
+    {
+        if ($this->manager->isLocalUri($attributedTo)) {
+            $this->logger->info("Emit Flag: Skipped - target is local");
+            return;
+        }
+
+        $target = $this->objectFactory->fromUri($attributedTo);
+        if (!$target instanceof AbstractActorType) {
+            $this->logger->info("Emit Undo Like: Failed - target is not an actor");
+            return;
+        }
+
+        $inboxUrl = $target->endpoints['sharedInbox'] ?? $target->inbox;
+
+        $this->postFlagRequest($inboxUrl, $flag);
+    }
+
     /**
      * Emit Accept event (usually just for a Follow Response)
      */
@@ -118,6 +137,31 @@ class EmitActivityService
             $this->postRequest($inboxUrl, $accept, $actor);
         } else {
             // Not supported
+        }
+    }
+
+    /**
+     * @param string $inboxUrl
+     * @param ActivityType $activity
+     * @return bool
+     */
+    private function postFlagRequest(string $inboxUrl, ActivityType $activity): bool
+    {
+        $this->logger->info("POST $inboxUrl: Sending");
+        try {
+            $response = $this->client
+                ->withPrivateKeys([
+                    $activity->actor->id . '#main-key' => $activity->actor->publicKey->publicKeyPem,
+                ])
+                ->request('POST', $inboxUrl, [
+                    ...$activity->getContextExport(),
+                    ...$activity->export()
+                ]);
+            $this->logger->info("POST $inboxUrl: Delivered");
+            return true;
+        } catch (\Exception $e) {
+            $this->logger->info("POST $inboxUrl: Failed {$e->getMessage()}");
+            return false;
         }
     }
 
