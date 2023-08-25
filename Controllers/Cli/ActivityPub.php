@@ -77,13 +77,19 @@ class ActivityPub extends Cli\Controller implements Interfaces\CliControllerInte
     public function syncUsers()
     {
         foreach ($this->manager->getActorEntities() as $user) {
+            $this->out("Syncing {$user->getGuid()}");
+
             // Fetch their latest account
             $actor = $this->actorFactory->fromEntity($user);
 
-            // Reprocess the user
-            $this->processActorService
-                ->withActor($actor)
-                ->process();
+            try {
+                // Reprocess the user
+                $this->processActorService
+                    ->withActor($actor)
+                    ->process();
+            } catch (\Exception $e) {
+                $this->out($e->getMessage());
+            }
         }
     }
 }
