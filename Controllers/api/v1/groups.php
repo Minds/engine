@@ -12,7 +12,6 @@ use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Groups\Membership;
-use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 
 class groups implements Interfaces\Api
 {
@@ -44,21 +43,11 @@ class groups implements Interfaces\Api
 
                 $loadNext = 0;
 
-
-                $membershipLevel = null;
-                if (isset($_GET['membership_level'])) {
-                    $membershipLevel = GroupMembershipLevelEnum::tryFrom((int)($_GET['membership_level']) ?? null);
-                }
-
-                $membershipLevelGte = isset($_GET['membership_level_gte']) ? (bool) $_GET['membership_level_gte'] : false;
-
                 /** @var Core\Groups\V2\Membership\Manager */
                 $manager = Di::_()->get(Core\Groups\V2\Membership\Manager::class);
                 $groups = iterator_to_array($manager->getGroups(
                     user: $user,
-                    membershipLevel: $membershipLevel,
-                    membershipLevelGte: $membershipLevelGte,
-                    limit: (int) $opts['limit'],
+                    limit: 12, // frontend client is sending 1 incorrectly
                     offset: (int) $opts['offset'],
                     loadNext: $loadNext,
                 ));
@@ -72,7 +61,7 @@ class groups implements Interfaces\Api
                 if (!$guids) {
                     return Factory::response([]);
                 }
-
+        
                 $groups = Entities::get(['guids' => $guids]);
                 break;
         }

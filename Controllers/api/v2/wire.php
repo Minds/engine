@@ -124,6 +124,7 @@ class wire implements Interfaces\Api
         }
 
         try {
+
             $loggedInUser = Core\Session::getLoggedInUser();
             $manager
                 ->setAmount((string)BigNumber::toPlain($amount, $digits))

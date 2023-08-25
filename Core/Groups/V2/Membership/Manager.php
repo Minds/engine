@@ -90,7 +90,6 @@ class Manager
      * Get a groups members.
      * @param Group $group - group to get members for.
      * @param GroupMembershipLevelEnum $membershipLevel - filter by membership level, defaults to only members.
-     * @param bool $membershipLevelGte - whether to show matches greater than the provided membership level as well
      * @param int $limit - limit the number of results.
      * @param int $offset - offset the results.
      * @param int|string &$loadNext - passed reference to a $loadNext variable.
@@ -99,7 +98,6 @@ class Manager
     public function getMembers(
         Group $group,
         GroupMembershipLevelEnum $membershipLevel = null,
-        bool $membershipLevelGte = false,
         int $limit = 12,
         int $offset = 0,
         int|string &$loadNext = 0
@@ -147,8 +145,7 @@ class Manager
             groupGuid: $group->getGuid(),
             limit: $limit,
             offset: $offset,
-            membershipLevel: $membershipLevel,
-            membershipLevelGte: $membershipLevelGte
+            membershipLevel: $membershipLevel
         ) as $membership) {
             $user = $this->buildUser($membership->userGuid);
 
@@ -213,18 +210,10 @@ class Manager
 
     /**
      * Returns a list of groups a user is a member of
-     * @param User $user - user to get groups for.
-     * @param GroupMembershipLevelEnum $membershipLevel - filter by membership level, defaults to only members.
-     * @param bool $membershipLevelGte - whether to show matches greater than the provided membership level as well
-     * @param int $limit - limit the number of results.
-     * @param int $offset - offset the results.
-     * @param int|string &$loadNext - passed reference to a $loadNext variable.
      * @return iterable<Group>
      */
     public function getGroups(
         User $user,
-        GroupMembershipLevelEnum $membershipLevel = null,
-        bool $membershipLevelGte = false,
         int $limit = 12,
         int $offset = 0,
         int &$loadNext = 0
@@ -255,9 +244,7 @@ class Manager
             $this->repository->getList(
                 userGuid: $user->getGuid(),
                 limit: $limit,
-                offset: $offset,
-                membershipLevel: $membershipLevel,
-                membershipLevelGte: $membershipLevelGte
+                offset: $offset
             ) as $membership
         ) {
             $group = $this->buildGroup($membership->groupGuid);

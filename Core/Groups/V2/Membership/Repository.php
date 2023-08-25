@@ -63,7 +63,6 @@ class Repository extends MySQL\AbstractRepository
         int $groupGuid = null,
         int $userGuid = null,
         GroupMembershipLevelEnum $membershipLevel = null,
-        bool $membershipLevelGte = false,
         int $limit = 12,
         int $offset = 0,
     ): iterable {
@@ -88,8 +87,6 @@ class Repository extends MySQL\AbstractRepository
 
         if (!$membershipLevel) {
             $query->where('membership_level', Operator::GTE, GroupMembershipLevelEnum::MEMBER->value);
-        } elseif ($membershipLevelGte) {
-            $query->where('membership_level', Operator::GTE, $membershipLevel->value);
         } else {
             $query->where('membership_level', Operator::EQ, $membershipLevel->value);
         }
@@ -272,11 +269,11 @@ class Repository extends MySQL\AbstractRepository
             ->offset($offset);
 
         $prepared = $query->prepare();
-
+     
         $prepared->execute([
             'userGuid' => $userGuid,
         ]);
-
+    
         foreach ($prepared as $row) {
             yield (int) $row['group_guid'];
         }
