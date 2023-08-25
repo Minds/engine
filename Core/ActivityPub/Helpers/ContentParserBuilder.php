@@ -32,6 +32,8 @@ class ContentParserBuilder
             ->setUrlBaseUser($siteUrl)
             ->setUrlBaseHash($siteUrl . 'search?f=top&t=all&q=')
             ->setUrlBaseCash($siteUrl . 'search?f=top&t=all&q=')
+            ->setHashtagClass('hashtag')
+            ->setUsernameClass('mention')
             ->setUsernameIncludeSymbol(true)
             ->autoLink($input);
 
