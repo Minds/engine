@@ -115,13 +115,13 @@ class ProcessActorService
         $user->setSource(FederatedEntitySourcesEnum::ACTIVITY_PUB);
 
         // Try to pull in an avatar, only if it differs
-        //if (isset($this->actor->icon) && $this->manager->getActorIconUrl($this->actor) !== $this->actor->icon->url) {
-        $this->avatarService
-            ->withUser($user)
-            ->createFromUrl($this->actor->icon->url);
+        if (isset($this->actor->icon) && $this->manager->getActorIconUrl($this->actor) !== $this->actor->icon->url) {
+            $this->avatarService
+                ->withUser($user)
+                ->createFromUrl($this->actor->icon->url);
 
-        $user->icontime = time();
-        //}
+            $user->icontime = time();
+        }
 
         // Save the user
         $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
