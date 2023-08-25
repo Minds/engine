@@ -50,6 +50,8 @@ class Provider extends DiProvider
                 manager: $di->get(Manager::class),
                 actorFactory: $di->get(ActorFactory::class),
                 outboxFactory: $di->get(OutboxFactory::class),
+                objectFactory: $di->get(ObjectFactory::class),
+                activityFactory: $di->get(ActivityFactory::class),
                 likeFactory: $di->get(LikeFactory::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 config: $di->get('Config'),
