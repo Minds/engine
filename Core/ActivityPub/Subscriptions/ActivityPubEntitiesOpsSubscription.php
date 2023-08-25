@@ -6,6 +6,8 @@
 namespace Minds\Core\ActivityPub\Subscriptions;
 
 use Minds\Common\Access;
+use Minds\Core\ActivityPub\Enums\ActivityFactoryOpEnum;
+use Minds\Core\ActivityPub\Factories\ActivityFactory;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Services\EmitActivityService;
@@ -34,12 +36,14 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
         protected ?EmitActivityService $emitActivityService = null,
         protected ?ObjectFactory $objectFactory = null,
         protected ?ActorFactory $actorFactory = null,
+        protected ?ActivityFactory $activityFactory = null,
         protected ?EntitiesBuilder $entitiesBuilder = null,
         protected ?Logger $logger = null
     ) {
         $this->emitActivityService ??= Di::_()->get(EmitActivityService::class);
         $this->objectFactory ??= Di::_()->get(ObjectFactory::class);
         $this->actorFactory ??= Di::_()->get(ActorFactory::class);
+        $this->activityFactory ??= Di::_()->get(ActivityFactory::class);
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->logger ??= Di::_()->get('Logger');
     }
@@ -108,13 +112,6 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
                 return true;
         }
 
-        try {
-            $object = $this->objectFactory->fromEntity($entity);
-        } catch (\Exception $e) {
-            $this->logger->error($loggerPrefix . ' ' . $e->getMessage());
-            return false;
-        }
-        
         $owner = $this->entitiesBuilder->single($entity->getOwnerGuid());
 
         if (!$owner instanceof User) {
@@ -127,23 +124,17 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
             return true; // Do not re-process activitypub posts
         }
 
-        $actor = $this->actorFactory->fromEntity($owner);
-
-        if ($object instanceof AnnounceType) {
-            // TODO
-            $this->logger->error($loggerPrefix . ' Can not support Announce yet');
-            return false;
-        }
-
-        $activity = match ($event->getOp()) {
-            EntitiesOpsEvent::OP_CREATE => new CreateType(),
-            EntitiesOpsEvent::OP_UPDATE => new UpdateType(),
-            EntitiesOpsEvent::OP_DELETE => new DeleteType(),
+        $op = match ($event->getOp()) {
+            EntitiesOpsEvent::OP_CREATE => ActivityFactoryOpEnum::CREATE,
+            EntitiesOpsEvent::OP_UPDATE => ActivityFactoryOpEnum::UPDATE,
+            EntitiesOpsEvent::OP_DELETE => ActivityFactoryOpEnum::DELETE,
         };
 
-        $activity->id = $object->id . '/activity';
-        $activity->actor = $actor;
-        $activity->object = $object;
+        $activity = $this->activityFactory->fromEntity(
+            op: $op,
+            entity: $entity,
+            actor: $owner
+        );
 
         $this->emitActivityService->emitActivity($activity, $owner);
 

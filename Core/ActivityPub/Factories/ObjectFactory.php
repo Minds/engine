@@ -4,6 +4,8 @@ namespace Minds\Core\ActivityPub\Factories;
 use DateTime;
 use GuzzleHttp\Exception\ConnectException;
 use Minds\Core\ActivityPub\Client;
+use Minds\Core\ActivityPub\Helpers\ContentParserBuild;
+use Minds\Core\ActivityPub\Helpers\ContentParserBuilder;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Core\ObjectType;
@@ -82,10 +84,39 @@ class ObjectFactory
             case Activity::class:
                 /** @var Activity */
                 $activity = $entity;
+
+                // Is this a remind, if so, we want to get the orignial entity
+                if ($activity->isRemind()) {
+                    $activity = $activity->getRemind();
+                    if (!$activity) {
+                        throw new NotFoundException("Reminded content cant be found");
+                    }
+                }
+
+                $content = $activity->getMessage() ?: '';
+
+                // Rich embed? Are we including our link?
+                if ($activity->perma_url) {
+                    $urls = ContentParserBuilder::getUrls($content);
+                    if (!count($urls)) {
+                        // No links found in the post, so we will append the permaurl
+                        if ($content) {
+                            $content .= "\n"; // New line if there is already content
+                        }
+                        $content .= $activity->getPermaURL();
+                    }
+                }
+
+                if (!$content) {
+                    $content = $activity->getURL();
+                }
+
+                $content = ContentParserBuilder::format($content);
+
                 $json = [
-                    'id' => $actorUri . '/entities/' . $entity->getUrn(),
+                    'id' => $actorUri . '/entities/' . $activity->getUrn(),
                     'type' => 'Note',
-                    'content' => $activity->getMessage(),
+                    'content' => $content,
                     'attributedTo' => $actorUri,
                     'to' => [
                         'https://www.w3.org/ns/activitystreams#Public',
@@ -104,11 +135,6 @@ class ObjectFactory
                     }
                     $json['inReplyTo'] = $this->manager->getUriFromEntity($activity->getRemind());
                 }
-
-                // Is this a remind
-                // if ($activity->isRemind()) {
-                //     $json['inReplyTo'] = $this->manager->getUriFromEntity($activity->getRemind());
-                // }
 
                 // Any image attachments?
                 if ($activity->hasAttachments() && $activity->getCustomType() === 'batch') {
@@ -145,10 +171,13 @@ class ObjectFactory
                  */
                 $replyToUri = $this->manager->getUriFromUrn($parentUrn);
 
+                $content = $comment->getBody();
+                $content = ContentParserBuilder::format($content);
+
                 $json = [
                     'id' => $actorUri . '/entities/' . $entity->getUrn(),
                     'type' => 'Note',
-                    'content' => $comment->getBody(),
+                    'content' => $content,
                     'attributedTo' => $actorUri,
                     'inReplyTo' => $replyToUri,
                     'to' => [
@@ -263,7 +292,7 @@ class ObjectFactory
 
         switch (get_class($object)) {
             case NoteType::class:
-                $object->content = $json['content'];
+                $object->content = $json['content'] ?? '';
                 break;
         }
 

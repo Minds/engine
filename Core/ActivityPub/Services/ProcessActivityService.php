@@ -3,6 +3,7 @@ namespace Minds\Core\ActivityPub\Services;
 
 use Minds\Common\Access;
 use Minds\Common\SystemUser;
+use Minds\Core\ActivityPub\Helpers\ContentParserBuilder;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Activity\AcceptType;
@@ -127,7 +128,7 @@ class ProcessActivityService
                             $comment->setParentGuidL2(0);
                         }
 
-                        $comment->setBody(strip_tags($this->activity->object->content));
+                        $comment->setBody(ContentParserBuilder::sanitize($this->activity->object->content));
                         $comment->setOwnerGuid($owner->getGuid());
                         $comment->setTimeCreated(time());
                         $comment->setSource(FederatedEntitySourcesEnum::ACTIVITY_PUB);
@@ -192,7 +193,7 @@ class ProcessActivityService
                         $entity->setCanonicalUrl($this->activity->object->id);
                     }
 
-                    $entity->setMessage(strip_tags($this->activity->object->content));
+                    $entity->setMessage(ContentParserBuilder::sanitize($this->activity->object->content));
 
                     // If any images, then fetch them
                     $images = $this->processImages(
@@ -232,6 +233,10 @@ class ProcessActivityService
                 }
     
                 $originalEntity = $this->manager->getEntityFromUri($this->activity->object->id);
+
+                if (!$originalEntity) {
+                    throw new NotFoundException("The reminded content could not be found one Minds");
+                }
     
                 $remind = new RemindIntent();
                 $remind->setGuid($originalEntity->getGuid());

@@ -81,7 +81,8 @@ class FeedsProvider extends Provider
                 $di->get('Feeds\Seen\Manager'),
                 $di->get('EntitiesBuilder'),
                 $di->get(Membership\Manager::class),
-                $di->get('Security\ACL')
+                $di->get('Security\ACL'),
+                $di->get('Experiments\Manager')
             );
         });
     }

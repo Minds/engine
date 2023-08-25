@@ -36,6 +36,11 @@ class Controller
             offset: (int) $offset,
         ));
 
+        array_map(function ($user) {
+            $user->exportCounts = true;
+            return $user;
+        }, $users);
+
         return new JsonResponse([
             'users' => Exportable::_($users),
         ]);

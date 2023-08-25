@@ -10,6 +10,8 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
+use Minds\Entities\FederatedEntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use phpseclib3\Crypt\PublicKeyLoader;
@@ -77,10 +79,12 @@ class Manager
         /**
          * Attempt to get the uri from the remote (mysql database)
          */
-        $uri = $this->repository->getUriFromUrn($entity->getUrn());
+        if ($entity instanceof FederatedEntityInterface && $entity->getSource() === FederatedEntitySourcesEnum::ACTIVITY_PUB) {
+            $uri = $this->repository->getUriFromUrn($entity->getUrn());
 
-        if ($uri) {
-            return $uri;
+            if ($uri) {
+                return $uri;
+            }
         }
 
         /**
