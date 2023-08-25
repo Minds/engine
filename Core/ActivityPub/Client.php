@@ -15,7 +15,7 @@ class Client
     private array $privateKeys;
 
     public function __construct(
-        protected  GuzzleHttp\Client $httpClient,
+        protected GuzzleHttp\Client $httpClient,
         protected Config $config
     ) {
     }

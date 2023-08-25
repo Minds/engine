@@ -63,6 +63,29 @@ class Repository extends AbstractRepository
 
         return $row['uri'];
     }
+    
+    /**
+     * Returns an iterator of all urns of actors
+     */
+    public function getActorEntityUrns(): iterable
+    {
+        $query = $this->mysqlClientReaderHandler
+            ->select()
+            ->columns([
+                'entity_urn',
+            ])
+            ->from('minds_activitypub_uris')
+            ->innerJoin('minds_activitypub_actors', 'minds_activitypub_actors.uri', Operator::EQ, 'minds_activitypub_uris.uri');
+
+        $stmt = $query->prepare();
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($rows as $row) {
+            yield $row['entity_urn'];
+        }
+    }
 
     public function addUri(
         string $uri,
@@ -78,6 +101,9 @@ class Repository extends AbstractRepository
                 'domain' => new RawExp(':domain'),
                 'entity_urn' => new RawExp(':entityUrn'),
                 'entity_guid' => new RawExp(':entityGuid'),
+            ])
+            ->onDuplicateKeyUpdate([
+                'updated_timestamp' => date('c'),
             ]);
            
 
@@ -96,18 +122,23 @@ class Repository extends AbstractRepository
      */
     public function addActor(AbstractActorType $actor): bool
     {
+        $updatable = [
+            'inbox' => new RawExp(':inbox'),
+            'outbox' => new RawExp(':outbox'),
+            'shared_inbox' => new RawExp(':sharedInbox'),
+            'url' => new RawExp(':url'),
+            'icon_url' => new RawExp(':icon_url')
+        ];
+
         $query = $this->mysqlClientWriterHandler
             ->insert()
             ->into('minds_activitypub_actors')
             ->set([
                 'uri' => new RawExp(':uri'),
                 'type' => new RawExp(':type'),
-                'inbox' => new RawExp(':inbox'),
-                'outbox' => new RawExp(':outbox'),
-                'shared_inbox' => new RawExp(':sharedInbox'),
-                'url' => new RawExp(':url'),
-            ]);
-           
+                ...$updatable
+            ])
+            ->onDuplicateKeyUpdate($updatable);
 
         $stmt = $query->prepare();
     
@@ -117,8 +148,38 @@ class Repository extends AbstractRepository
             'inbox' => $actor->inbox,
             'outbox' => $actor->outbox,
             'sharedInbox' => $actor->endpoints['sharedInbox'] ?? null,
-            'url' => $actor->url
+            'url' => $actor->url,
+            'icon_url' => isset($actor->icon) ? $actor->icon->url : null,
         ]);
+    }
+
+    /**
+     * Returns an icon url for an actor
+     */
+    public function getActorIconUrl(AbstractActorType $actor): ?string
+    {
+        $query = $this->mysqlClientReaderHandler
+            ->select()
+            ->columns([
+                'icon_url',
+            ])
+            ->from('minds_activitypub_actors')
+            ->where('uri', Operator::EQ, new RawExp(':uri'));
+
+        $stmt = $query->prepare();
+        $stmt->execute([
+            'uri' => $actor->id,
+        ]);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($rows)) {
+            return null;
+        }
+
+        $row = $rows[0];
+
+        return $row['icon_url'];
     }
 
     /**
@@ -197,4 +258,5 @@ class Repository extends AbstractRepository
             yield $row['inbox'];
         }
     }
+
 }
