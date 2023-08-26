@@ -123,6 +123,10 @@ class EmitActivityService
 
     private function postRequest(string $inboxUrl, ActivityType $activity, User $actor): bool
     {
+        if (strpos($inboxUrl, $this->manager->getBaseUrl(), 0) === 0) {
+            return false;
+        }
+
         $this->logger->info("POST $inboxUrl: Sending");
         try {
             $response = $this->client

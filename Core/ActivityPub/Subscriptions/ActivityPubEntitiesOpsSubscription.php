@@ -130,6 +130,10 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
             EntitiesOpsEvent::OP_DELETE => ActivityFactoryOpEnum::DELETE,
         };
 
+        if ($op === ActivityFactoryOpEnum::UPDATE) {
+            return true; // we will not issue updates for now due to load concerns
+        }
+
         $activity = $this->activityFactory->fromEntity(
             op: $op,
             entity: $entity,
