@@ -257,8 +257,14 @@ class Controller
         $service = new HttpSignatureService();
         $keyId = $service->getKeyId($request->getHeader('Signature')[0]);
 
+        $requestActor = JsonLdHelper::getValueOrId($request->getParsedBody()['actor']);
+
         try {
             $actor = $this->actorFactory->fromUri($keyId);
+
+            if ($requestActor !== $actor->id) {
+                throw new ForbiddenException("Actor doesn't match signature");
+            }
         } catch (ClientException $e) {
             throw new ForbiddenException();
         }
@@ -270,6 +276,8 @@ class Controller
         if (!$context->verifier()->isSigned($request)) {
             throw new ForbiddenException();
         }
+
+
     }
 
 }
