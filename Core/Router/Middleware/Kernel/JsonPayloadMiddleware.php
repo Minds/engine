@@ -14,7 +14,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 class JsonPayloadMiddleware implements MiddlewareInterface
 {
     /** @var string[] */
-    const JSON_MIME_TYPES = ['application/json', 'text/json', 'application/x-json', 'application/activity+json'];
+    const JSON_MIME_TYPES = ['application/json', 'text/json', 'application/x-json', 'application/activity+json', 'application/ld+json'];
 
     /**
      * Process an incoming server request.

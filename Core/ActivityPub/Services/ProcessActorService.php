@@ -105,7 +105,9 @@ class ProcessActorService
 
     private function updateUser(User $user): User
     {
-        $user->setName($this->actor->name);
+        if (isset($this->actor->name)) {
+            $user->setName($this->actor->name);
+        }
 
         if (isset($this->actor->summary)) {
             $user->setBriefDescription($this->actor->summary);
