@@ -17,7 +17,7 @@
 <tr>
     <td>
         <p>
-            You may cancel your membership at any time in your <a href="https://www.minds.com/settings/billing/recurring-payments">billing settings</a>. If you decide to cancel before the end of the 7-day free trial, then your credit card will not be charged.
+            Boost credits will be issued after the 7-day free trial, when your card is successfully charged. You may cancel your membership at any time in your <a href="https://www.minds.com/settings/billing/recurring-payments">billing settings</a>. If you decide to cancel before the end of the 7-day free trial, then your credit card will not be charged.
         </p>
     </td>
 </tr>
