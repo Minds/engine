@@ -2,30 +2,21 @@
 
 namespace Minds\Core\FeedNotices\Notices;
 
-use Minds\Core\Hashtags\User\Manager as UserHashtagsManager;
 use Minds\Entities\User;
 
 /**
- * Feed notice to prompt user to update their tags.
- * @deprecated
+ * Feed notice for upgrading to plus.
  */
-class UpdateTagsNotice extends AbstractNotice
+class ProUpgradeNotice extends AbstractNotice
 {
+    // minimum age for an account to be shown the notice.
+    private const MINIMUM_ACCOUNT_AGE = 2592000; // 30 days.
+
     // location of notice in feed.
-    private const LOCATION = 'inline';
+    private const LOCATION = 'top';
 
     // notice key / identifier.
-    private const KEY = 'update-tags';
-
-    /**
-     * Constructor.
-     * @param ?UserHashtagsManager $userHashtagsManager - manager for user hashtags.
-     */
-    public function __construct(
-        private ?UserHashtagsManager $userHashtagsManager = null
-    ) {
-        $this->userHashtagsManager ??= new UserHashtagsManager();
-    }
+    private const KEY = 'pro-upgrade';
 
     /**
      * Get location of notice in feed.
@@ -55,13 +46,14 @@ class UpdateTagsNotice extends AbstractNotice
     }
 
     /**
-     * Whether notice should show in feed, based on whether user has
-     * set hashtags previously.
+     * Whether notice should show in feed, based on whether user
+     * is not already plus and the account has existed for
+     * longer than the minimum account age.
      * @param User $user - user to check for.
      * @return boolean - true if notice should show.
      */
     public function shouldShow(User $user): bool
     {
-        return !($this->userHashtagsManager->setUser($user)->hasSetHashtags());
+        return $user->isPlus() && (!$user->getProExpires() || $user->getProExpires() < time());
     }
 }
