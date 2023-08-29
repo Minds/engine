@@ -117,6 +117,8 @@ class Event
             if ($this->data['action']) {
                 $this->data['account_quality_score'] = $this->getAccountQualityScore();
             }
+
+            $this->data['source'] = $this->user->getSource()->value;
         }
 
         if (isset($this->data['client_meta'])) {
