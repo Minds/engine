@@ -67,7 +67,7 @@ class ProcessActorService
         throw new NotFoundException();
     }
 
-    public function process(): ?User
+    public function process(bool $update = true): ?User
     {
         $className = get_class($this->actor);
         
@@ -76,8 +76,10 @@ class ProcessActorService
 
                 $user = $this->manager->getEntityFromUri($this->actor->id);
                 if ($user) {
-                    // The user already exists, lets resync
-                    $this->updateUser($user);
+                    if ($update) {
+                        // The user already exists, lets resync
+                        $this->updateUser($user);
+                    }
                     return $user;
                 }
 
