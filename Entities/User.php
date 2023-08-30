@@ -1577,6 +1577,8 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
             'dismissed_widgets',
             'liquidity_spot_opt_out',
             'supermind_settings',
+            'canonical_url',
+            'source',
         ]);
     }
 
