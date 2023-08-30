@@ -121,7 +121,7 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
 
         try {
             $this->processImageEntity($event, $caption);
-            $this->processActivity($event, $caption);
+            $this->processActivity($event);
         } catch (\Exception $e) {
             $this->cache->delete("captioned-activity-{$event->getActivityUrn()}");
             // Rethrow
@@ -143,7 +143,7 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
          * @var Image $imageEntity
          */
         $imageEntity = $this->entitiesBuilder->single($event->getGuid());
-        if (!$imageEntity) {
+        if (!$imageEntity instanceof Image) {
             // Entity not found
             throw new NotFoundException("Image {$event->getGuid()} not found");
         }
@@ -162,8 +162,10 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
      * @throws StopEventException
      * @throws UnverifiedEmailException
      */
-    private function processActivity(CaptionedActivityEvent $event, string $caption): void
+    private function processActivity(CaptionedActivityEvent $event): void
     {
+        $captions = [];
+
         /**
          * @var Activity $activity
          */
@@ -174,8 +176,23 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
             throw new NotFoundException("Activity {$event->getActivityUrn()} not found");
         }
 
+        if ($activity->hasAttachments()) {
+            $assetGuids = array_map(function ($attachment) {
+                return $attachment['guid'];
+            }, $activity->attachments);
+            
+            foreach ($assetGuids as $assetGuid) {
+                $assetEntity = $this->entitiesBuilder->single($assetGuids);
+                if ($assetEntity instanceof Image) {
+                    $captions[] = $assetEntity->getAutoCaption();
+                }
+            }
+        }
+
+        $caption = implode(' ', $captions);
+
         $mutatedImageEntity = new EntityMutation($activity);
-        $mutatedImageEntity->setAutoCaption($activity->getAutoCaption() . " $caption");
+        $mutatedImageEntity->setAutoCaption($caption);
 
         $this->saveAction->setEntity($mutatedImageEntity->getMutatedEntity())->save();
     }
