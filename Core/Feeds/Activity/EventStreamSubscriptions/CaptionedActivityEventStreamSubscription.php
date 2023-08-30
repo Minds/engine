@@ -88,6 +88,7 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
             return true;
         } catch (NotFoundException $e) {
             $this->logger->info("Skipping captioned activity {$event->getActivityUrn()} as it was not found");
+            return true;
         } catch (Exception $e) {
             $this->logger->info(
                 "An issue was encountered whilst processing activity captions for activity {$event->getActivityUrn()}",
