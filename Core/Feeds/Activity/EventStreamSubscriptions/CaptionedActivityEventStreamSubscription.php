@@ -86,6 +86,8 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
             }
 
             return true;
+        } catch (NotFoundException $e) {
+            $this->logger->info("Skipping captioned activity {$event->getActivityUrn()} as it was not found");
         } catch (Exception $e) {
             $this->logger->info(
                 "An issue was encountered whilst processing activity captions for activity {$event->getActivityUrn()}",
@@ -116,10 +118,14 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
     {
         $this->cache->set("captioned-activity-{$event->getActivityUrn()}", true);
 
-        $this->processImageEntity($event, $caption);
-        $this->processActivity($event, $caption);
-
-        $this->cache->delete("captioned-activity-{$event->getActivityUrn()}");
+        try {
+            $this->processImageEntity($event, $caption);
+            $this->processActivity($event, $caption);
+        } catch (\Exception $e) {
+            $this->cache->delete("captioned-activity-{$event->getActivityUrn()}");
+            // Rethrow
+            throw $e;
+        }
     }
 
     /**
