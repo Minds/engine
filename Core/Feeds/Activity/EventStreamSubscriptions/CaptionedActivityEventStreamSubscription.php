@@ -80,7 +80,10 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
         }
 
         try {
-            $this->updateActivity($event, $event->getCaption());
+
+            if ($event->getCaption()) {
+                $this->updateActivity($event, $event->getCaption());
+            }
 
             return true;
         } catch (Exception $e) {
