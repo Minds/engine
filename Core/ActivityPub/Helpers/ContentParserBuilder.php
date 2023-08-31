@@ -41,7 +41,7 @@ class ContentParserBuilder
      */
     public static function format(string $input): string
     {
-        $output =  str_replace("\n", '<br />', $input);
+        $output = str_replace("\n", '<br />', $input);
 
         $siteUrl = Di::_()->get('Config')->get('site_url');
 
@@ -55,7 +55,7 @@ class ContentParserBuilder
             ->setUsernameClass('u-url mention')
             ->setUsernameIncludeSymbol(true);
 
-        $output = $autoLink->autoLink($input);
+        $output = $autoLink->autoLink($output);
 
         // Fix for webfinger
         // foreach (self::getMentions($input) as $mention) {
