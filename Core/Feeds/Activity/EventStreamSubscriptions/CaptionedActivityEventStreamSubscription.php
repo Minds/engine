@@ -29,6 +29,8 @@ use Psr\SimpleCache\InvalidArgumentException;
  */
 class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
 {
+    const CACHE_KEY = 'captioned-activity-event';
+
     public function __construct(
         private ?EntitiesResolver $entitiesResolver = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
@@ -74,7 +76,7 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
             return true;
         }
 
-        if ($this->cache->get("captioned-activity-{$event->getActivityUrn()}")) {
+        if ($this->cache->get(self::CACHE_KEY . "-{$event->getActivityUrn()}")) {
             $this->logger->info("Skipping captioned activity {$event->getActivityUrn()} as it is already being processed");
             return false;
         }
@@ -117,13 +119,13 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
      */
     private function updateActivity(CaptionedActivityEvent $event, string $caption): void
     {
-        $this->cache->set("captioned-activity-{$event->getActivityUrn()}", true);
+        $this->cache->set(self::CACHE_KEY . "-{$event->getActivityUrn()}", true, 300);
 
         try {
             $this->processImageEntity($event, $caption);
             $this->processActivity($event);
         } catch (\Exception $e) {
-            $this->cache->delete("captioned-activity-{$event->getActivityUrn()}");
+            $this->cache->delete(self::CACHE_KEY . "-{$event->getActivityUrn()}");
             // Rethrow
             throw $e;
         }
