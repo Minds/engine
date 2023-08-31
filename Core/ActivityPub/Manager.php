@@ -267,6 +267,14 @@ class Manager
     }
 
     /**
+     * Returns the site url
+     */
+    public function getSiteUrl(): string
+    {
+        return $this->config->get('site_url');
+    }
+
+    /**
      * Returns a transient id
      */
     public function getTransientId(): string
@@ -282,23 +290,4 @@ class Manager
         return strpos($uri, $this->getBaseUrl(), 0) === 0;
     }
 
-    /**
-     * Helper function to return an entity from a guid
-     * (we do this to hack comments...)
-     */
-    private function getEntityFromGuid(int $guid): ?EntityInterface
-    {
-        $entity = $this->entitiesBuilder->single($guid);
-
-        if (!$entity) {
-            // Could this be a comment? Improve this as it is not efficient
-            $entity = $this->entitiesBuilder->single('urn:comment:' . $guid);
-
-            if (!$entity) {
-                return null;
-            }
-        }
-
-        return $entity;
-    }
 }

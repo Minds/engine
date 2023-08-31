@@ -108,8 +108,11 @@ class ObjectFactory
                     }
                 }
 
-                if (!$content) {
-                    $content = $activity->getURL();
+                if (!$content || ($activity->hasAttachments() && $activity->getCustomType() === 'video')) {
+                    if ($content) {
+                        $content .= ' ';
+                    }
+                    $content .= $activity->getURL();
                 }
 
                 // By default, cc to the actors followers
@@ -173,6 +176,7 @@ class ObjectFactory
             case Comment::class:
                 /** @var Comment */
                 $comment = $entity;
+                $url = $this->manager->getSiteUrl() . 'newsfeed/' . $comment->getEntityGuid() . '?focusedCommentUrn=' . $comment->getUrn();
 
                 if ($comment->getParentGuid()) {
                     $parentUrn = $comment->getParentUrn();
@@ -186,6 +190,14 @@ class ObjectFactory
                 $replyToUri = $this->manager->getUriFromUrn($parentUrn);
 
                 $content = $rawContent = $comment->getBody();
+
+                if (!$content || ($comment->hasAttachments() && $comment->getAttachments()['custom_type'] === 'video')) {
+                    if ($content) {
+                        $content .= ' ';
+                    }
+                    $content .= $url;
+                }
+
                 $content = ContentParserBuilder::format($content);
 
                 // By default, cc to followers
@@ -214,7 +226,7 @@ class ObjectFactory
                     'cc' => $cc,
                     'tag' => $tag,
                     'published' => date('c', (int) $comment->getTimeCreated()),
-                    'url' => $comment->getUrl(),
+                    'url' => $url,
                 ];
 
                 // Any images?
