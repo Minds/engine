@@ -211,7 +211,7 @@ class ProcessObjectService
             $entity->setAttachments($images);
 
             // Are there any urls? If so lets build a rich embed from the first url we find
-            if ($urls = ContentParserBuilder::getUrls($entity->getMessage() ?: '') && !$entity->hasAttachments()) {
+            if (($urls = ContentParserBuilder::getUrls($entity->getMessage() ?: '')) && !$entity->hasAttachments()) {
                 $url = $urls[0];
                 try {
                     $richEmbed = $this->metascraperService->scrape($url);
