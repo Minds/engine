@@ -58,13 +58,13 @@ class ContentParserBuilder
         $output = $autoLink->autoLink($input);
 
         // Fix for webfinger
-        foreach (self::getMentions($input) as $mention) {
-            if (substr_count($mention, '@') < 2) {
-                continue;
-            }
-            $href = $siteUrl . $mention;
-            $output = str_replace($mention, "<a class=\"u-url mention\" href=\"$href\">$mention</a>", $output);
-        }
+        // foreach (self::getMentions($input) as $mention) {
+        //     if (substr_count($mention, '@') < 2) {
+        //         continue;
+        //     }
+        //     $href = $siteUrl . $mention;
+        //     $output = str_replace($mention, "<a class=\"u-url mention\" href=\"$href\">$mention</a>", $output);
+        // }
 
         return $output;
     }
