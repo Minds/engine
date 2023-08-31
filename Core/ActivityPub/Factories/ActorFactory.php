@@ -43,15 +43,12 @@ class ActorFactory
      */
     public function fromWebfinger(string $username): AbstractActorType
     {
-        $json = $this->webfingerManager->get('acct:' . $username);
+        $uri = $this->manager->getUriFromUsername($username, revalidateWebfinger: true);
 
-        foreach ($json['links'] as $link) {
-            if ($link['rel'] === 'self') {
-                $uri = $link['href'];
-                return $this->fromuri($uri);
-            }
+        if ($uri) {
+            return $this->fromUri($uri);
         }
-       
+
         throw new NotFoundException();
     }
 

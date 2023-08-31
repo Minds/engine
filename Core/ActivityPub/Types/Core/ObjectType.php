@@ -53,6 +53,13 @@ class ObjectType extends AbstractType
     public array $cc;
 
     /**
+     * @param LinkType|LinkType[]
+     * @see https://www.w3.org/TR/activitystreams-vocabulary/#dfn-tag
+     */
+    #[ExportProperty]
+    public array $tag;
+
+    /**
      * @param string|LinkType[]
      * @see https://www.w3.org/TR/activitystreams-vocabulary/#dfn-url
      */

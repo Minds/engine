@@ -44,6 +44,7 @@ class Provider extends DiProvider
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 config: $di->get('Config'),
                 client: $di->get(Client::class),
+                webfingerManager: $di->get(Webfinger\Manager::class),
             );
         });
         $this->di->bind(Controller::class, function ($di) {
