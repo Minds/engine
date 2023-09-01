@@ -7,6 +7,7 @@ namespace Minds\Core\EventStreams\Topics;
 use Minds\Common\Urn;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\EventInterface;
+use Minds\Core\EventStreams\UndeliveredEventException;
 use Minds\Entities\Entity;
 use Minds\Entities\User;
 use Minds\Helpers\MagicAttributes;
@@ -63,7 +64,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
         $result = $producer->send($message);
 
         if ($result != Result::ResultOk) {
-            return false;
+            throw new UndeliveredEventException();
         }
 
         return true;

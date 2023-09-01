@@ -9,6 +9,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\Topics\AbstractTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
+use Minds\Core\EventStreams\UndeliveredEventException;
 use Pulsar\Client;
 use Pulsar\Consumer;
 use Pulsar\ConsumerConfiguration;
@@ -64,7 +65,7 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
         $result = $this->getProducer()->send($message);
 
         if ($result != Result::ResultOk) {
-            return false;
+            throw new UndeliveredEventException();
         }
 
         return true;
