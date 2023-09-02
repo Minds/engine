@@ -395,7 +395,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         if ($this->hasAttachments()) {
             $export['custom_type'] = $this->getCustomType();
             $export['custom_data'] = $this->getCustomData();
-        
+
             if ($export['custom_type'] === 'video') {
                 $export['entity_guid'] = (string) $this->getGuid(); // mobile expects this
                 $export['thumbnail_src'] = $export['custom_data']['src']; // discovery/plus expects this
@@ -1084,6 +1084,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'width' => $attachmentEntity->width,
                 'height' => $attachmentEntity->height,
                 'blurhash' => $attachmentEntity->blurhash,
+                'gif' => $attachmentEntity->gif
             ];
 
             $attachments[] = $attachment;
