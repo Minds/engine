@@ -14,6 +14,7 @@ class QueryOpts
         public readonly string $query = "",
         public readonly bool $onlySubscribed = false,
         public readonly bool $onlyGroups = false,
+        public readonly bool $onlyOwn = false,
         public readonly ?int $accessId = null,
         public readonly ?MediaTypeEnum $mediaTypeEnum = MediaTypeEnum::ALL,
         public readonly ?array $nsfw = [],

@@ -12,6 +12,7 @@ use Cassandra\Set;
 use Cassandra\Type;
 use Cassandra\Varint;
 use Minds\Core\Comments\Comment;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
@@ -26,9 +27,12 @@ class Repository
      * Repository constructor.
      * @param null $cql
      */
-    public function __construct($cql = null)
-    {
+    public function __construct(
+        $cql = null,
+        private ?Config $config = null
+    ) {
         $this->cql = $cql ?: Di::_()->get('Database\Cassandra\Cql');
+        $this->config ??= Di::_()->get('Config');
     }
 
     /**
@@ -51,8 +55,13 @@ class Repository
             AND parent_guid_l1 = ?
             AND parent_guid_l2 = ?
             AND parent_guid_l3 = ?
-            AND guid = ?
-            IF EXISTS";
+            AND guid = ?";
+
+        // Can't use IF EXISTS if you only have one node in the cluster as it will fail to achieve quorum
+        if (!$this->config->get('minds_debug')) {
+            $cql .= " IF EXISTS";
+        }
+
         $values = [
             $set,
             new Varint($comment->getEntityGuid()),
@@ -88,8 +97,13 @@ class Repository
             AND parent_guid_l1 = ?
             AND parent_guid_l2 = ?
             AND parent_guid_l3 = ?
-            AND guid = ?
-            IF EXISTS";
+            AND guid = ?";
+
+        // Can't use IF EXISTS if you only have one node in the cluster as it will fail to achieve quorum
+        if (!$this->config->get('minds_debug')) {
+            $cql .= " IF EXISTS";
+        }
+
         $values = [
             $set,
             new Varint($comment->getEntityGuid()),

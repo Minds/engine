@@ -4,6 +4,7 @@ namespace Minds\Core\Media\Assets;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Entities;
+use Minds\Entities\User;
 use PHPStan\File\CouldNotWriteFileException;
 
 class Image implements AssetsInterface
@@ -19,12 +20,18 @@ class Image implements AssetsInterface
     {
     }
 
-    public function upload(array $media, array $data)
+    public function upload(array $media, ?User $owner = null)
     {
         $filename = "image/{$this->entity->batch_guid}/{$this->entity->guid}/master.jpg";
 
         // @note: legacy file handling
         $file = new \ElggFile();
+
+        if ($owner) {
+            $file->owner_guid = $owner->getGuid();
+            $file->container_guid = $owner->getGuid();
+        }
+
         $file->setFilename($filename);
         $file->open('write');
         $file->write(file_get_contents($media['file']));

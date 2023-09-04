@@ -46,11 +46,7 @@ class Manager
      */
     private function getRepository(): RepositoryInterface
     {
-        $this->experimentsManager->setUser($this->user);
-        return match ($this->experimentsManager->isOn('engine-2494-clustered-recs-v2')) {
-            true => $this->repositoryFactory->getInstance(MySQLRepository::class),
-            default => $this->repositoryFactory->getInstance(LegacyMySQLRepository::class)
-        };
+        return $this->repositoryFactory->getInstance(MySQLRepository::class);
     }
 
     /**
@@ -75,15 +71,10 @@ class Manager
     {
         $this->repository ??= $this->getRepository();
 
-        $clusterId = 0;
-        $tags = null;
-        if (!$this->experimentsManager->isOn('engine-2494-clustered-recs-v2')) {
-            $clusterId = $this->userRecommendationsCluster->calculateUserRecommendationsClusterId($this->user);
-        } else {
-            $this->repository->setUser($this->user);
-            $this->hashtagsManager->setUser($this->user);
-            $tags = $this->hashtagsManager->get([]);
-        }
+        $clusterId = 0; // default cluster id
+        $this->repository->setUser($this->user);
+        $this->hashtagsManager->setUser($this->user);
+        $tags = $this->hashtagsManager->get([]);
 
         $seenEntitiesList = [];
 

@@ -85,6 +85,8 @@ class Minds extends base
         Monetization\Module::class,
         Analytics\Module::class,
         Groups\V2\Module::class,
+        Webfinger\Module::class,
+        ActivityPub\Module::class,
     ];
 
     /**

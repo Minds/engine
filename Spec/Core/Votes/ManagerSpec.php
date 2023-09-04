@@ -11,6 +11,7 @@ use Minds\Core\Votes\Counters;
 use Minds\Core\Votes\Indexes;
 use Minds\Core\Votes\MySqlRepository;
 use Minds\Core\Votes\Vote;
+use Minds\Core\Votes\VoteOptions;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -74,11 +75,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->experimentsManager->isOn(Argument::type("string"))
             ->shouldBeCalledOnce()
-            ->willReturn(true);
-
-        $this->friendlyCaptchaManager->verify(Argument::type("string"), Argument::type("string"))
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
+            ->willReturn(false);
 
         $this->acl->interact($entity, $user, 'voteup')
             ->shouldBeCalled()
@@ -95,7 +92,10 @@ class ManagerSpec extends ObjectBehavior
         $this->mySqlRepositoryMock->add($vote)
             ->willReturn(true);
 
-        $this->cast($vote, ['events' => false, 'puzzleSolution' => 'puzzle', 'client_meta' => []])
+        $options = new VoteOptions();
+        $options->events = false;
+
+        $this->cast($vote, $options)
             ->shouldReturn(true);
     }
 
@@ -115,11 +115,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->experimentsManager->isOn(Argument::type("string"))
             ->shouldBeCalledOnce()
-            ->willReturn(true);
-
-        $this->friendlyCaptchaManager->verify(Argument::type("string"), Argument::type("string"))
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
+            ->willReturn(false);
 
         $this->acl->interact($entity, $user, 'voteup')
             ->shouldBeCalled()
@@ -129,14 +125,16 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->dispatcher->trigger('vote', 'up', ['vote' => $vote, 'isFriendlyCaptchaPuzzleValid' => true, 'client_meta' => []])
+        $this->dispatcher->trigger('vote', 'up', ['vote' => $vote, 'client_meta' => []])
             ->shouldBeCalled()
             ->willReturn(true);
 
         $this->mySqlRepositoryMock->add($vote)
             ->willReturn(true);
 
-        $this->cast($vote, ['events' => true, 'puzzleSolution' => 'puzzle', 'client_meta' => []])
+        $options = new VoteOptions();
+
+        $this->cast($vote, $options)
             ->shouldReturn(true);
     }
 
@@ -161,7 +159,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willThrow(UnverifiedEmailException::class);
 
-        $this->shouldThrow(UnverifiedEmailException::class)->during('cast', [$vote, ['events' => true]]);
+        $options = new VoteOptions();
+
+        $this->shouldThrow(UnverifiedEmailException::class)->during('cast', [$vote, $options]);
     }
 
     public function it_should_throw_during_insert_if_cannot_interact(
@@ -183,8 +183,11 @@ class ManagerSpec extends ObjectBehavior
         $this->indexes->insert($vote)
             ->shouldNotBeCalled();
 
+        $options = new VoteOptions();
+        $options->events = false;
+
         $this->shouldThrow(new \Exception('Actor cannot interact with entity'))
-            ->duringCast($vote, ['events' => false]);
+            ->duringCast($vote, $options);
     }
 
     public function it_should_cancel(
@@ -206,7 +209,10 @@ class ManagerSpec extends ObjectBehavior
         $this->mySqlRepositoryMock->delete($vote)
             ->willReturn(true);
 
-        $this->cancel($vote, ['events' => false])
+        $options = new VoteOptions();
+        $options->events = false;
+
+        $this->cancel($vote, $options)
             ->shouldReturn(true);
     }
 
@@ -230,7 +236,9 @@ class ManagerSpec extends ObjectBehavior
         $this->mySqlRepositoryMock->delete($vote)
             ->willReturn(true);
 
-        $this->cancel($vote, ['events' => true])
+        $options = new VoteOptions();
+
+        $this->cancel($vote, $options)
             ->shouldReturn(true);
     }
 
@@ -282,11 +290,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->experimentsManager->isOn(Argument::type("string"))
             ->shouldBeCalledOnce()
-            ->willReturn(true);
-
-        $this->friendlyCaptchaManager->verify(Argument::type("string"), Argument::type("string"))
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
+            ->willReturn(false);
 
         $this->acl->interact($entity, $user, 'voteup')
             ->shouldBeCalled()
@@ -307,7 +311,11 @@ class ManagerSpec extends ObjectBehavior
         $this->mySqlRepositoryMock->add($vote)
             ->willReturn(true);
 
-        $this->toggle($vote, ['events' => false, 'puzzleSolution' => 'puzzle', 'client_meta' => []])
+
+        $options = new VoteOptions();
+        $options->events = false;
+
+        $this->toggle($vote, $options)
             ->shouldReturn(true);
     }
 
@@ -338,7 +346,10 @@ class ManagerSpec extends ObjectBehavior
         $this->mySqlRepositoryMock->delete($vote)
             ->willReturn(true);
 
-        $this->toggle($vote, ['events' => false])
+        $options = new VoteOptions();
+        $options->events = false;
+
+        $this->toggle($vote, $options)
             ->shouldReturn(true);
     }
 }

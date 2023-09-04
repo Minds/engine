@@ -4,6 +4,7 @@ namespace Minds\Core\Search\Controllers;
 use GraphQL\Error\UserError;
 use GraphQL\Type\Definition\ResolveInfo;
 use Minds\Common\Access;
+use Minds\Core\ActivityPub\Services\ProcessActorService;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\GraphQL\Types\BoostEdge;
@@ -37,6 +38,7 @@ class SearchController
         protected Search $search,
         protected EntitiesBuilder $entitiesBuilder,
         protected BoostManager $boostManager,
+        protected ProcessActorService $processActorService,
     ) {
     }
 
@@ -73,6 +75,7 @@ class SearchController
         $query = str_replace('#', '', $query);
 
         $latestQueryOpts = new QueryOpts(
+            user: $loggedInUser,
             limit: $limit,
             query: $query,
             accessId: Access::PUBLIC,
@@ -81,6 +84,7 @@ class SearchController
         );
 
         $topQueryOpts = new QueryOpts(
+            user: $loggedInUser,
             limit: $limit,
             query: $query,
             accessId: Access::PUBLIC,
@@ -171,6 +175,7 @@ class SearchController
             default => throw new UserError("Can not support supplied filter"),
         };
 
+
         // If not on latest or top, we request ZERO boosts as the clients dont support yet
         $boosts = $this->buildBoosts(
             loggedInUser: $loggedInUser,
@@ -179,6 +184,16 @@ class SearchController
         );
 
         $edges = [];
+
+        if ($filter === SearchFilterEnum::USER) {
+            try {
+                $user = $this->processActorService
+                    ->withUsername($query)
+                    ->process();
+                $edges[] = new UserEdge($user, "");
+            } catch (\Exception $e) {
+            }
+        }
 
         /**
          * If top filter and first slot, show matched groups
@@ -202,6 +217,10 @@ class SearchController
                 if ($boost) {
                     $edges[] = new BoostEdge($boost, $cursor);
                 }
+            }
+
+            if ($filter === SearchFilterEnum::USER && $user?->getGuid() === $entity->getGuid()) {
+                continue;
             }
 
             $entityEdge = match (get_class($entity)) {

@@ -23,6 +23,7 @@ class ActivityMapping extends EntityMapping implements MappingInterface
             'entity_guid' => ['type' => 'text', '$exportField' => 'entity_guid'],
             'pending' =>  ['type' => 'boolean', '$exportField' => 'pending'],
             'license' => ['type' => 'text', '$exportField' => 'license'],
+            'source'  => [ 'type' => 'text', '$exportField' => 'source' ],
         ]);
     }
 
@@ -64,6 +65,11 @@ class ActivityMapping extends EntityMapping implements MappingInterface
         $map['auto_caption'] = "";
         if (!empty($this->entity->getAutoCaption())) {
             $map['auto_caption'] = $this->entity->getAutoCaption();
+        }
+
+        $map['inferred_tags'] = [];
+        if (!empty($this->entity->getInferredTags())) {
+            $map['inferred_tags'] = $this->entity->getInferredTags();
         }
 
         return $map;

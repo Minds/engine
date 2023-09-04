@@ -6,6 +6,7 @@ use Minds\Core\Data\MySQL;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Activity;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use PDO;
 use PDOStatement;
@@ -249,6 +250,32 @@ class Repository
     }
 
     /**
+     * Return Nostr event id from a Activity id
+     * @param string $activityId
+     * @return string
+     */
+    public function getNostrEventFromActivityId(string $activityId): ?string
+    {
+        $prepared = $this->executeEventsPreparedQuery([
+            'activity_guid' => [ $activityId ],
+            'kinds' => [1],
+        ], returnActivityGuids: true);
+
+        $rows = $prepared->fetchAll();
+
+        if (isset($rows[0])) {
+            $eventId = $rows[0]['id'];
+            if (!$eventId) {
+                return null;
+            }
+
+            return $eventId;
+        }
+
+        return null;
+    }
+
+    /**
      * Return Activity entities from a NostrId
      * @param array $nostrIds
      * @return iterable<Activity>
@@ -290,6 +317,7 @@ class Repository
             '#p' => null,
             'since' => null,
             'until' => null,
+            'activity_guid' => null,
             'limit' => 12,
         ], $filters);
 
@@ -340,6 +368,11 @@ class Repository
         if ($filters['until']) {
             $where[] = "e.created_at <= ?";
             array_push($values, date('c', $filters['until']));
+        }
+
+        if ($filters['activity_guid']) {
+            $where[] = "a.activity_guid IN " . $this->inPad($filters['activity_guid']);
+            array_push($values, ...$filters['activity_guid']);
         }
 
         if ($filters) {
@@ -393,7 +426,7 @@ class Repository
         $ownerGuid = $activity->getOwnerGuid();
         $prepared->bindParam(3, $ownerGuid, PDO::PARAM_STR);
 
-        $isExternal = $activity->getSource() === 'nostr';
+        $isExternal = $activity->getSource() === FederatedEntitySourcesEnum::NOSTR;
         $prepared->bindParam(4, $isExternal, PDO::PARAM_BOOL);
 
         return $prepared->execute();
@@ -439,7 +472,7 @@ class Repository
         $userGuid = $user->getGuid();
         $prepared->bindParam(2, $userGuid, PDO::PARAM_STR); // Bigint
 
-        $isExternal = $user->getSource() === 'nostr';
+        $isExternal = $user->getSource() === FederatedEntitySourcesEnum::NOSTR;
         $prepared->bindParam(3, $isExternal, PDO::PARAM_BOOL);
 
         return $prepared->execute();

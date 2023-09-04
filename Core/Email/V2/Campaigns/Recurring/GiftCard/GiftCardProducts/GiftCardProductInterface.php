@@ -11,4 +11,6 @@ interface GiftCardProductInterface
     public function setSender(User $sender): void;
 
     public function buildContent(): string;
+
+    public function buildSubject(): string;
 }

@@ -35,7 +35,6 @@
         "monolog/monolog": "^2.5",
         "psr/simple-cache": "1.0.1",
         "icamys/php-sitemap-generator": "^4.4.1",
-        "sentry/sdk": "^3.1",
         "vlucas/phpdotenv": "^4.3",
         "sendgrid/sendgrid": "^7.4",
         "ocramius/package-versions": "1.5",
@@ -59,7 +58,12 @@
         "symfony/expression-language": "v5.4.21",
         "google/cloud-pubsub": "^1.43",
         "oracle/oci-php-sdk": "dev-minds-fixes",
-        "thecodingmachine/graphqlite": "6.2.3"
+        "thecodingmachine/graphqlite": "6.2.3",
+        "sentry/sdk": "^3.5",
+        "symfony/psr-http-message-bridge": "^2.3",
+        "liamdennehy/http-signatures-php": "dev-use-upstream-phpseclib",
+        "nojimage/twitter-text-php": "^3.3",
+        "soundasleep/html2text": "^2.1"
     },
     "repositories": [
         {
@@ -85,6 +89,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/Minds/oci-php-sdk.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/oddevan/http-signatures-php.git"
         }
     ],
     "autoload": {

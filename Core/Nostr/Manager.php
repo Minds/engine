@@ -111,6 +111,15 @@ class Manager
         // MH: lets index on the fly so we don't need to rely on reverse indexing job
         $this->repository->addNostrUser($user, $publicKey);
 
+        // Also create an event record in MySQL
+        // This is so we can have the user details queryable by Nostr clients.
+        // Will be triggered when the "about" page is viewed on a profile or NIP-26 is enabled for the account.
+        $users = iterator_to_array($this->repository->getEvents(['kinds'=>[0], 'authors'=>[$publicKey]]));
+        if (count($users) == 0) {
+            $event = $this->buildNostrEvent($user);
+            $this->repository->addEvent($event);
+        }
+
         return $publicKey;
     }
 
@@ -378,6 +387,16 @@ class Manager
     public function addNostrUser(User $user, string $nostrPublicKey): bool
     {
         return $this->repository->addNostrUser($user, $nostrPublicKey);
+    }
+
+    /**
+     * Return Nostr event id from a Activity id
+     * @param string $activityId
+     * @return string
+     */
+    public function getNostrEventFromActivityId(string $id): ?string
+    {
+        return $this->repository->getNostrEventFromActivityId($id);
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Payments\InAppPurchases;
 
 use Minds\Core\Config;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
 use Minds\Core\Payments\InAppPurchases\Clients\InAppPurchasesClientFactory;
 use Minds\Core\Payments\InAppPurchases\Google\GoogleInAppPurchasesClient;
@@ -18,18 +19,23 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $giftCardsManagerMock;
     private Collaborator $configMock;
     private Collaborator $iapFactoryMock;
+    private Collaborator $entitiesBuilderMock;
+
     public function let(
         GiftCardsManager $giftCardsManager,
         Config $config,
         InAppPurchasesClientFactory $iapFactory,
+        EntitiesBuilder $entitiesBuilderMock
     ): void {
         $this->giftCardsManagerMock = $giftCardsManager;
         $this->configMock = $config;
         $this->iapFactoryMock = $iapFactory;
+        $this->entitiesBuilderMock = $entitiesBuilderMock;
         $this->beConstructedWith(
             $this->giftCardsManagerMock,
             $this->configMock,
-            $this->iapFactoryMock
+            $this->iapFactoryMock,
+            $this->entitiesBuilderMock
         );
     }
 
@@ -69,7 +75,17 @@ class ManagerSpec extends ObjectBehavior
                 ]
             ]);
 
-        $this->giftCardsManagerMock->issueMindsPlusAndProGiftCards($userMock, Argument::type('float'), Argument::type('int'))
+        $this->configMock->get('plus')
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'handler' => '123'
+            ]);
+
+        $this->entitiesBuilderMock->single(Argument::any())
+            ->shouldBeCalledOnce()
+            ->willReturn($userMock);
+
+        $this->giftCardsManagerMock->issueMindsPlusAndProGiftCards($userMock, $userMock, Argument::type('float'), Argument::type('int'))
             ->shouldBeCalledOnce();
 
         $googleClientMock->acknowledgeSubscription($iapModel)

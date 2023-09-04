@@ -44,7 +44,7 @@ class SuggestCompleter
                 }, $values)
             )
         );
-        
+
         $weight = count($inputs) === 1 ? 4 : 2;
 
         $map = [
@@ -53,7 +53,7 @@ class SuggestCompleter
         ];
         return $map;
     }
-    
+
     /**
      * @param $inputs
      * @param int $calls

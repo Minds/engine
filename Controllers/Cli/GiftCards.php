@@ -87,6 +87,7 @@ class GiftCards extends Cli\Controller implements Interfaces\CliControllerInterf
         );
 
         $this->giftCardsManager->sendGiftCardToRecipient(
+            sender: $user,
             recipient: new GiftCardTarget(
                 targetUserGuid: ((int) $this->getOpt('recipient_user_guid')) ?? null,
                 targetEmail: $this->getOpt('recipient_email'),

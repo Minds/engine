@@ -8,6 +8,7 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Guid;
 use Minds\Core\Events\Dispatcher;
+use Minds\Core\EventStreams\UndeliveredEventException;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Core\Groups\Delegates\ElasticSearchDelegate;
 use Minds\Core\Groups\Invitations;
@@ -135,9 +136,15 @@ class Group extends NormalizedEntity implements EntityInterface
         // Temporary until this is refactored into a Manager
         (new ElasticSearchDelegate())->onSave($this);
 
-        Di::_()->get('EventsDispatcher')->trigger('entities-ops', $creation ? 'create' : 'update', [
-            'entityUrn' => $this->getUrn()
-        ]);
+        try {
+            Di::_()->get('EventsDispatcher')->trigger('entities-ops', $creation ? 'create' : 'update', [
+                'entityUrn' => $this->getUrn()
+            ]);
+        } catch (UndeliveredEventException $e) {
+            $this->db->removeRow($this->getGuid());
+            // Rethrow
+            throw $e;
+        }
 
         return $saved;
     }

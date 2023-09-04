@@ -255,7 +255,7 @@ class Membership
                 ->unmute($user_guid);
         } else {
             if ($this->isAwaiting($user_guid)) {
-                throw new GroupOperationException('you have already requested to join');
+                throw new GroupOperationException('You have already requested to join');
             }
             $done = $this->relDB->create('membership_request', $this->group->getGuid());
         }

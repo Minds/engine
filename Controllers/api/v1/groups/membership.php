@@ -147,7 +147,7 @@ class membership implements Interfaces\Api
                         $members[] = $userMembership;
                     }
                 }
-            
+
                 $guids = array_slice($guids, 0, 12);
 
                 $response['members'] = Exportable::_($members);
@@ -158,8 +158,17 @@ class membership implements Interfaces\Api
                     return Factory::response([]);
                 }
 
+                $membershipLevel = null;
+                if (isset($_GET['membership_level'])) {
+                    $membershipLevel = GroupMembershipLevelEnum::tryFrom((int)($_GET['membership_level']) ?? null);
+                }
+
+                $membershipLevelGte = isset($_GET['membership_level_gte']) ? (bool) $_GET['membership_level_gte'] : false;
+
                 $members = iterator_to_array($this->membershipManager->getMembers(
                     group: $group,
+                    membershipLevel: $membershipLevel,
+                    membershipLevelGte: $membershipLevelGte,
                     limit: $limit,
                     offset: $offset,
                     loadNext: $loadNext,
@@ -188,8 +197,6 @@ class membership implements Interfaces\Api
 
         $loggedInUser = Core\Session::getLoggedinUser();
 
-        $membership = $this->membershipManager->getMembership($group, $loggedInUser);
-
         if (!isset($pages[1])) {
             return Factory::response([]);
         }
@@ -198,7 +205,7 @@ class membership implements Interfaces\Api
         try {
             switch ($pages[1]) {
                 case 'cancel':
-                    $response['done'] = $this->membershipManager->leaveGroup($group, $loggedInUser);
+                    $response['done'] = $this->membershipManager->cancelRequest($group, $loggedInUser);
                     break;
                 case 'kick':
                     $userGuid = $_POST['user'];
@@ -235,7 +242,7 @@ class membership implements Interfaces\Api
         } catch (GroupOperationException $e) {
             return Factory::response([
                 'done' => false,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -296,7 +303,7 @@ class membership implements Interfaces\Api
             } catch (GroupOperationException $e) {
                 return Factory::response([
                     'done' => false,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }
@@ -327,7 +334,7 @@ class membership implements Interfaces\Api
             return Factory::response([
                 'status' => 'error',
                 'done' => false,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -364,7 +371,7 @@ class membership implements Interfaces\Api
             } catch (GroupOperationException $e) {
                 return Factory::response([
                     'done' => false,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }
@@ -379,7 +386,7 @@ class membership implements Interfaces\Api
         } catch (GroupOperationException $e) {
             return Factory::response([
                 'done' => false,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }

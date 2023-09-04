@@ -49,7 +49,7 @@ class SupermindGetRequestsValidator implements ValidatorInterface
         }
   
         $status = $dataToValidate['status'] ?? null;
-        if (!is_null($status) && ($status < 1 || in_array($status, $this->invalidStatuses, true))) {
+        if (!is_null($status) && ($status < 1 || in_array(SupermindRequestStatus::from((int) $status), $this->invalidStatuses, true))) {
             $this->errors->add(
                 new ValidationError(
                     "status",

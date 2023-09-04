@@ -3,6 +3,7 @@ namespace Minds\Core\Media\Assets;
 
 use Minds\Core;
 use Minds\Entities;
+use Minds\Entities\User;
 
 class Video implements AssetsInterface
 {
@@ -53,7 +54,7 @@ class Video implements AssetsInterface
         return true;
     }
 
-    public function upload(array $media, array $data)
+    public function upload(array $media, ?User $owner = null)
     {
         return [
             'media' => $media

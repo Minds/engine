@@ -8,8 +8,11 @@ use Minds\Core\Guid;
 use Minds\Core\Luid;
 use Minds\Core\Security\ACL;
 use Minds\Entities\EntityInterface;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
+use Minds\Entities\FederatedEntityInterface;
 use Minds\Entities\RepositoryEntity;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 use Minds\Helpers\Export;
 use Minds\Helpers\Flags;
 use Minds\Helpers\Unknown;
@@ -24,11 +27,11 @@ use Minds\Helpers\Unknown;
  * @method int getParentGuidL2()
  * @method Comment setParentGuidL3(int $value)
  * @method int getParentGuidL3()
+ * @method Comment setParentGuid(int $parentGuid)
  * @method Comment setGuid(int $value)
  * @method Comment setRepliesCount(int $value)
  * @method int getRepliesCount())
  * @method Comment setOwnerGuid(int $value)
- * @method int getOwnerGuid()
  * @method Comment setTimeCreated(int $value)
  * @method int getTimeCreated()
  * @method Comment setTimeUpdated(int $value)
@@ -53,7 +56,7 @@ use Minds\Helpers\Unknown;
  * @method Comment setGroupConversation(bool $value)
  * @method bool isGroupConversation()
  */
-class Comment extends RepositoryEntity implements EntityInterface
+class Comment extends RepositoryEntity implements EntityInterface, FederatedEntityInterface
 {
     /** @var string */
     protected $type = 'comment';
@@ -69,6 +72,9 @@ class Comment extends RepositoryEntity implements EntityInterface
 
     /** @var int */
     protected $parentGuidL3 = 0; // Not supported yet
+
+    /** @var int */
+    protected $parentGuid;
 
     /** @var int */
     protected $guid;
@@ -102,6 +108,12 @@ class Comment extends RepositoryEntity implements EntityInterface
 
     /** @var bool */
     protected $deleted = false;
+
+    /** @var FederatedEntitySourcesEnum */
+    protected $source = FederatedEntitySourcesEnum::LOCAL;
+
+    /** @var string */
+    protected $canonicalUrl;
 
     /** @var array */
     protected $ownerObj;
@@ -307,6 +319,24 @@ class Comment extends RepositoryEntity implements EntityInterface
     }
 
     /**
+     * Returns the guid of the parent
+     * If this is a top level comment, null will be returned
+     */
+    public function getParentGuid(): ?int
+    {
+        if (isset($this->parentGuid)) {
+            return $this->parentGuid;
+        }
+        if ($this->getParentGuidL2()) {
+            return $this->getParentGuidL2();
+        }
+        if ($this->getParentGuidL1()) {
+            return $this->getParentGuidL1();
+        }
+        return null;
+    }
+
+    /**
      * Return an array of thumbnails
      * @return array
      */
@@ -349,6 +379,24 @@ class Comment extends RepositoryEntity implements EntityInterface
             $this->getEntityGuid(),
             $this->getPartitionPath(),
             $this->getGuid(),
+        ]);
+    }
+
+    /**
+     * Returns the urn of the parent comment
+     */
+    public function getParentUrn(): string
+    {
+        if (!$this->getParentGuid()) {
+            throw new ServerErrorException("You can not request a parentUrn if the is no parent comment");
+        }
+
+        return implode(':', [
+            'urn',
+            'comment',
+            $this->getEntityGuid(),
+            $this->getParentPath(),
+            $this->getParentGuid(),
         ]);
     }
 
@@ -408,6 +456,8 @@ class Comment extends RepositoryEntity implements EntityInterface
             'edited',
             'spam',
             'deleted',
+            'canonicalUrl',
+            'source',
             function ($export) {
                 return $this->_extendExport($export);
             }
@@ -476,5 +526,39 @@ class Comment extends RepositoryEntity implements EntityInterface
         $output = Export::sanitize($output);
 
         return $output;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setSource(FederatedEntitySourcesEnum $source): FederatedEntityInterface
+    {
+        $this->source = $source;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSource(): ?FederatedEntitySourcesEnum
+    {
+        return $this->source;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCanonicalUrl(string $canonicalUrl): FederatedEntityInterface
+    {
+        $this->canonicalUrl = $canonicalUrl;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCanonicalUrl(): ?string
+    {
+        return isset($this->canonicalUrl) ? $this->canonicalUrl : null;
     }
 }
