@@ -8,9 +8,9 @@ use Minds\Core\Monetization\Partners\Delegates;
 use Minds\Core\Monetization\Partners\EarningsBalance;
 use Minds\Core\Monetization\Partners\EarningsDeposit;
 use Minds\Core\Monetization\Partners\Manager;
-use Minds\Core\Monetization\Partners\Repository;
-use Minds\Core\Payments\V2\Manager as PaymentsManager;
+use Minds\Core\Monetization\Partners\RelationalRepository;
 use Minds\Core\Payments\Stripe;
+use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Plus;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -19,7 +19,7 @@ use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
-    /** @var Repository */
+    /** @var RelationalRepository */
     protected $repository;
 
     /** @var EntitiesBuilder */
@@ -34,7 +34,7 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $boostPartnersManager;
 
     public function let(
-        Repository $repository,
+        RelationalRepository $repository,
         EntitiesBuilder $entitiesBuilder,
         Plus\Manager $plusManager,
         Stripe\Connect\Manager $connectManager,
@@ -53,7 +53,6 @@ class ManagerSpec extends ObjectBehavior
             $entitiesBuilder,
             $plusManager,
             $connectManager,
-            null,
             null,
             null,
             $emailDelegate,
