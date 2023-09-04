@@ -145,6 +145,9 @@ class RelationalRepositorySpec extends ObjectBehavior
         }))
             ->shouldBeCalledOnce()
             ->willReturn($insertQueryMock);
+        $insertQueryMock->onDuplicateKeyUpdate(Argument::type('array'))
+            ->shouldBeCalledOnce()
+            ->willReturn($insertQueryMock);
         $insertQueryMock->prepare()
             ->shouldBeCalledOnce()
             ->willReturn($statementMock);
