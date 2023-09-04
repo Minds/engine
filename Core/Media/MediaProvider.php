@@ -159,7 +159,7 @@ class MediaProvider extends Provider
         }, ['useFactory' => true]);
 
         $this->di->bind(Image\ProcessExternalImageService::class, function (Di $di): Image\ProcessExternalImageService {
-            return new Image\ProcessExternalImageService(new \GuzzleHttp\Client());
+            return new Image\ProcessExternalImageService($di->get(\GuzzleHttp\Client::class), new Assets\Image());
         });
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use Minds\Core\EventStreams\UndeliveredEventException;
 use Minds\Entities\CommentableEntityInterface;
 use Minds\Entities\EntityInterface;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
@@ -1116,9 +1117,18 @@ abstract class ElggEntity extends ElggData implements
             }
         }
 
-        \Minds\Core\Events\Dispatcher::trigger('entities-ops', $isUpdate ? 'update' : 'create', [
-            'entityUrn' => $this->getUrn()
-        ]);
+        try {
+            \Minds\Core\Events\Dispatcher::trigger('entities-ops', $isUpdate ? 'update' : 'create', [
+                'entityUrn' => $this->getUrn()
+            ]);
+        } catch (UndeliveredEventException $e) {
+            if (!$isUpdate) {
+                // This is a new entity, so we will delete it
+                $db->removeRow($this->guid);
+            }
+            // Rethrow
+            throw $e;
+        } 
 
         return $this->guid;
     }

@@ -23,6 +23,7 @@ class Manager
         protected EntitiesBuilder $entitiesBuilder,
         protected Config $config,
         protected Client $client,
+        protected Webfinger\Manager $webfingerManager,
     ) {
     }
 
@@ -100,6 +101,42 @@ class Manager
     }
 
     /**
+     * Returns an actor uri from a username (either local or remote).
+     * It will first attempt to find a user by their username
+     * If that is not found we will fetch the actor from their webfinger resource
+     */
+    public function getUriFromUsername(string $username, bool $revalidateWebfinger = false): ?string
+    {
+        $username = ltrim(strtolower($username), '@');
+
+        $user = $this->entitiesBuilder->getByUserByIndex($username);
+
+        if ($user instanceof User && !(
+            $user->getSource() === FederatedEntitySourcesEnum::ACTIVITY_PUB && $revalidateWebfinger
+        )) {
+            return $this->getUriFromEntity($user);
+        }
+
+        if (strpos($username, '@') === false) {
+            return null;
+        }
+
+        // The user doesn't exist on Minds, so try to find from their webfinger
+        try {
+            $json = $this->webfingerManager->get('acct:' . $username);
+
+            foreach ($json['links'] as $link) {
+                if ($link['rel'] === 'self') {
+                    return $link['href'];
+                }
+            }
+        } catch (\Exception $e) {
+        }
+
+        return null;
+    }
+
+    /**
      * Returns a Minds entity from a uri
      * Supports returning entities from both remote and local uris
      */
@@ -123,6 +160,19 @@ class Manager
         }
 
         return null;
+    }
+
+    /**
+     * @return iterable<User>
+     */
+    public function getActorEntities(): iterable
+    {
+        foreach ($this->repository->getActorEntityUrns() as $urn) {
+            $entity = $this->entitiesBuilder->getByUrn($urn);
+            if ($entity instanceof User) {
+                yield $entity;
+            }
+        }
     }
 
     /**
@@ -213,6 +263,15 @@ class Manager
     }
 
     /**
+     * Returns a url for an actor, if one exists.
+     * This is useful to see if the avatar has changed
+     */
+    public function getActorIconUrl(AbstractActorType $actor): ?string
+    {
+        return $this->repository->getActorIconUrl($actor);
+    }
+
+    /**
      * Returns a list of inboxes to target for a users followers.
      * If there is no sharedInbox, it will coalesce to an inbox url
      */
@@ -227,6 +286,14 @@ class Manager
     public function getBaseUrl(): string
     {
         return $this->config->get('site_url') . 'api/activitypub/';
+    }
+
+    /**
+     * Returns the site url
+     */
+    public function getSiteUrl(): string
+    {
+        return $this->config->get('site_url');
     }
 
     /**
@@ -245,23 +312,4 @@ class Manager
         return strpos($uri, $this->getBaseUrl(), 0) === 0;
     }
 
-    /**
-     * Helper function to return an entity from a guid
-     * (we do this to hack comments...)
-     */
-    private function getEntityFromGuid(int $guid): ?EntityInterface
-    {
-        $entity = $this->entitiesBuilder->single($guid);
-
-        if (!$entity) {
-            // Could this be a comment? Improve this as it is not efficient
-            $entity = $this->entitiesBuilder->single('urn:comment:' . $guid);
-
-            if (!$entity) {
-                return null;
-            }
-        }
-
-        return $entity;
-    }
 }

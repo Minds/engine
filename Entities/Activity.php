@@ -299,6 +299,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'supermind',
                 'auto_caption',
                 'inferred_tags',
+                'canonical_url',
+                'source',
             ]
         );
     }

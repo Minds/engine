@@ -21,6 +21,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
 use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Guid;
+use Minds\Core\Log\Logger;
 use Minds\Core\Media\Image\ProcessExternalImageService;
 use Minds\Core\Reports\Enums\ReportReasonEnum;
 use Minds\Core\Reports\Report;
@@ -44,6 +45,7 @@ class ProcessActivityService
     public function __construct(
         protected Manager $manager,
         protected ProcessActorService $processActorService,
+        protected ProcessObjectService $processObjectService,
         protected EmitActivityService $emitActivityService,
         protected ACL $acl,
         protected ActivityManager $activityManager,
@@ -52,6 +54,7 @@ class ProcessActivityService
         private readonly UserReportsManager $userReportsManager,
         protected ProcessExternalImageService $processExternalImageService,
         protected Config $config,
+        protected Logger $logger,
     ) {
         
     }
@@ -65,169 +68,43 @@ class ProcessActivityService
 
     public function process(): void
     {
+        $logPrefix = "{$this->activity->id}: ";
+
         $className = get_class($this->activity);
 
         /** @var User $owner */
         $owner = $this->manager->getEntityFromUri($this->activity->actor->id);
         if (!$owner) {
-            // The owner could not be found. The owner must be present
-            return;
-        }
+            // Actor not found, we will try and pull in their profile
 
-        /**
-         *  The owner and have at least one subscriber for their posts to be ingested
-         */
-        if ($this->subscriptionsManager->setSubscriber($owner)->getSubscriptionsCount() === 0) {
-            // return;
+            $this->logger->info("$logPrefix Actor ({$this->activity->actor->id}) not found, fetching them");
+
+            try {
+                $owner = $this->processActorService
+                    ->withActorUri($this->activity->actor->id)
+                    ->process();
+
+                if (!$owner) {
+                    // The owner could not be found. The owner must be present
+                    return;
+                }
+            } catch (\Exception $e) {
+                $this->logger->error("$logPrefix Error fetching actor {$e->getMessage()}");
+                return;
+            }
         }
-                    
         
         switch ($className) {
             case CreateType::class:
-                /**
-                 * Process the Note as a Minds Activity
-                 */
-                if ($this->activity->object instanceof NoteType) {
-                    // If activity has been previously imported, then
-                    $existingActivity = $this->manager->getEntityFromUri($this->activity->object->id);
-                    if ($existingActivity) {
-                        // No need to import as we already have it
-                        return;
-                    }
-
-                    // Does the post have any attachments?
-
-                    // Is this a reply?
-                    // Do we have the post that is being replied to?
-                    if (isset($this->activity->object->inReplyTo)) {
-                        $inReplyToEntity = $this->manager->getEntityFromUri($this->activity->object->inReplyTo);
-                        if (!$inReplyToEntity) {
-                            // Should we fetch a new one?
-                            // For now we will not
-                            return;
-                        }
-
-                        // Ignore ACL as we need to be able to act on another users behalf
-                        $ia = $this->acl->setIgnore(true);
-
-                        // We will always treat Fediverse replies as comments
-
-                        $comment = new Comment();
-                        
-                        if ($inReplyToEntity instanceof Comment) {
-                            $comment->setEntityGuid($inReplyToEntity->getEntityGuid());
-                            $comment->setParentGuidL1(0);
-                            $comment->setParentGuidL2(0);
-
-                            $parentGuids = explode(':', $inReplyToEntity->getChildPath());
-                            $comment->setParentGuidL1($parentGuids[0]);
-                            $comment->setParentGuidL2($parentGuids[1]);
-                        } else {
-                            $comment->setEntityGuid($inReplyToEntity->getGuid());
-                            $comment->setParentGuidL1(0);
-                            $comment->setParentGuidL2(0);
-                        }
-
-                        $comment->setBody(ContentParserBuilder::sanitize($this->activity->object->content));
-                        $comment->setOwnerGuid($owner->getGuid());
-                        $comment->setTimeCreated(time());
-                        $comment->setSource(FederatedEntitySourcesEnum::ACTIVITY_PUB);
-
-                        if (isset($this->activity->object->url)) {
-                            $comment->setCanonicalUrl($this->activity->object->url);
-                        }
-
-                        /**
-                         * If any images, then fetch them
-                         */
-                        $images = $this->processImages(
-                            owner: $owner,
-                            max: 1
-                        );
-                        
-                        if (count($images)) {
-                            $siteUrl = $this->config->get('site_url');
-                            $comment->setAttachment('custom_type', 'image');
-                            $comment->setAttachment('custom_data', [
-                                'guid' => (string) $images[0]->guid,
-                                'container_guid' => (string) $images[0]->container_guid,
-                                'src'=> $siteUrl . 'fs/v1/thumbnail/' . $images[0]->guid,
-                                'href'=> $siteUrl . 'media/' . $images[0]->container_guid . '/' . $images[0]->guid,
-                                'mature' => false,
-                                'width' => $images[0]->width,
-                                'height' => $images[0]->height,
-                            ]);
-                            $comment->setAttachment('attachment_guid', $images[0]->guid);
-
-                            // Fix the access_id on the image
-                            $this->patchImages($comment, $images);
-                        }
-
-                        $commentsManager = new \Minds\Core\Comments\Manager();
-                        $commentsManager->add($comment);
-                        
-                        // Save the comment
-                        $this->manager->addUri(
-                            uri: $this->activity->object->id,
-                            guid: (int) $comment->getGuid(),
-                            urn: $comment->getUrn(),
-                        );
-
-                        // Reset ACL state
-                        $this->acl->setIgnore($ia);
-
-                        return;
-                    }
-
-                    // Ignore ACL as we need to be able to act on another users behalf
-                    $ia = $this->acl->setIgnore(true);
-
-                    /**
-                     * Create the Activity
-                     */
-                    $entity = $this->prepareActivity($owner);
-
-                    if (isset($this->activity->object->url)) {
-                        $entity->setCanonicalUrl($this->activity->object->url);
-                    } else {
-                        $entity->setCanonicalUrl($this->activity->object->id);
-                    }
-
-                    $entity->setMessage(ContentParserBuilder::sanitize($this->activity->object->content));
-
-                    // If any images, then fetch them
-                    $images = $this->processImages(
-                        owner: $owner,
-                        max: 4
-                    );
-
-                    // Add the images as attachments
-                    $entity->setAttachments($images);
-                
-                    // Save the activity
-                    $this->activityManager->add($entity);
-
-                    // Patch image access
-                    if (count($images)) {
-                        $this->patchImages($entity, $images);
-                    }
-
-                    // Reset ACL state
-                    $this->acl->setIgnore($ia);
-        
-                    // Save reference so we don't import this again
-                    $this->manager->addUri(
-                        uri: $this->activity->object->id,
-                        guid: (int) $entity->getGuid(),
-                        urn: $entity->getUrn(),
-                    );
-                }
-
+                $this->processObjectService
+                    ->withObject($this->activity->object)
+                    ->process();
                 break;
             case AnnounceType::class:
                 // If activity has been previously imported, then
                 $existingActivity = $this->manager->getEntityFromUri($this->activity->id);
                 if ($existingActivity) {
+                    $this->logger->info("$logPrefix The remind already exists");
                     // No need to import as we already have it
                     return;
                 }
@@ -235,7 +112,8 @@ class ProcessActivityService
                 $originalEntity = $this->manager->getEntityFromUri($this->activity->object->id);
 
                 if (!$originalEntity) {
-                    throw new NotFoundException("The reminded content could not be found one Minds");
+                    $this->logger->info("$logPrefix The reminded content could not be found on Minds");
+                    throw new NotFoundException("The reminded content could not be found on Minds");
                 }
     
                 $remind = new RemindIntent();
@@ -243,7 +121,7 @@ class ProcessActivityService
                 $remind->setOwnerGuid($owner->getGuid());
                 $remind->setQuotedPost(false);
 
-                $entity = $this->prepareActivity($owner);
+                $entity = $this->processObjectService->prepareActivity($owner);
                 $entity->setRemind($remind);
                 
                 $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
@@ -261,12 +139,14 @@ class ProcessActivityService
             case FollowType::class:
                 $actor = $this->manager->getEntityFromUri($this->activity->actor->id);
                 if (!$actor) {
+                    $this->logger->info("$logPrefix The actor could not be found");
                     // The actor doesn't exist, so we wont continue
                     throw new ForbiddenException();
                 }
 
                 $subject = $this->manager->getEntityFromUri($this->activity->object->id);
                 if (!$subject instanceof User) {
+                    $this->logger->info("$logPrefix The user trying to be subscribed to ({$this->activity->object->id}) could not be found");
                     // We couldn't find the user that is trying to be subscribed to
                     throw new NotFoundException();
                 }
@@ -295,6 +175,7 @@ class ProcessActivityService
             case LikeType::class:
                 $actor = $this->manager->getEntityFromUri($this->activity->actor->id);
                 if (!$actor) {
+                    $this->logger->info("$logPrefix The actor could not be found");
                     // The actor doesn't exist, so we wont continue
                     throw new ForbiddenException();
                 }
@@ -393,69 +274,4 @@ class ProcessActivityService
         
     }
 
-    /**
-     * @return Image[]
-     */
-    private function processImages(User $owner, int $max = 4): array
-    {
-        $images = [];
-
-        if (isset($this->activity->object->attachment) && count($this->activity->object->attachment)) {
-            foreach ($this->activity->object->attachment as $attachment) {
-                if (count($images) >= $max) {
-                    break;
-                }
-                if (!$attachment instanceof DocumentType) {
-                    continue;
-                }
-                if (strpos($attachment->mediaType, 'image/', 0) === false) {
-                    continue; // Not a valid image
-                }
-                $images[] = $this->processExternalImageService->process($owner, $attachment->url);
-            }
-        }
-
-        return $images;
-    }
-
-    /**
-     * When we create the images, we are not aware of the GUID
-     * After the Activity is saved, and we have a GUID, we can then patch the Images
-     * with the correct access_id and container_guid
-     */
-    private function patchImages(EntityInterface $entity, array $images): void
-    {
-        foreach ($images as $image) {
-            if ($entity instanceof Activity) {
-                $image->setAccessId($entity->getGuid());
-                $image->setContainerGUID($entity->getGuid());
-            } elseif ($entity instanceof Comment) {
-                $image->setAccessId($entity->getAccessId());
-                $image->setContainerGUID($entity->getAccessId());
-            } else {
-                return;
-            }
-
-            // Save the image with our new parent
-            $image->save();
-        }
-    }
-
-    /**
-     * Helper function to build an Activity entity with the correct attributes
-     */
-    private function prepareActivity(User $owner): Activity
-    {
-        $entity = new Activity();
-
-        $entity->setAccessId(Access::PUBLIC);
-        $entity->setSource(FederatedEntitySourcesEnum::ACTIVITY_PUB);
-    
-        // Requires cleanup (see TwitterSync and Nostr)
-        $entity->container_guid = $owner->guid;
-        $entity->owner_guid = $owner->guid;
-        $entity->ownerObj = $owner->export();
-
-        return $entity;
-    }
 }

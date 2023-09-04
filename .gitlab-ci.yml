@@ -188,7 +188,6 @@ review:start:
       --set engine.image.repository=$CI_REGISTRY_IMAGE/fpm \
       --set-string engine.image.tag=$CI_PIPELINE_ID \
       --set domain=$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
-      --set baseDomain=$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
       --set cdn_domain=$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
       --set siteUrl=https://$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN/
       --set-string environments.sandbox.routingCookie=false

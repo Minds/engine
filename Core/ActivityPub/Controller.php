@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Minds\Core\ActivityPub;
 
 use GuzzleHttp\Exception\ClientException;
+use Minds\Core\ActivityPub\Enums\ActivityFactoryOpEnum;
+use Minds\Core\ActivityPub\Factories\ActivityFactory;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\LikeFactory;
+use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Factories\OutboxFactory;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Services\HttpSignatureService;
@@ -16,6 +19,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Router\Exceptions\ForbiddenException;
+use Minds\Entities\FederatedEntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
@@ -31,6 +35,8 @@ class Controller
         private Manager $manager,
         private ActorFactory $actorFactory,
         private OutboxFactory $outboxFactory,
+        private ObjectFactory $objectFactory,
+        private ActivityFactory $activityFactory,
         private readonly LikeFactory $likeFactory,
         private EntitiesBuilder $entitiesBuilder,
         private Config $config,
@@ -76,11 +82,44 @@ class Controller
     {
         $user = $this->buildUser($request);
 
-        $orderedCollection = $this->outboxFactory->build((string) $request->getUri(), $user);
+        $orderedCollection = $this->outboxFactory->build($this->buildUri($request), $user);
 
         return new JsonActivityResponse([
             ...$orderedCollection->getContextExport(),
             ...$orderedCollection->export()
+        ]);
+    }
+
+    public function getObject(ServerRequestInterface $request): JsonActivityResponse
+    {
+
+        $object = $this->objectFactory->fromUri($this->buildUri($request));
+
+        return new JsonActivityResponse([
+            ...$object->getContextExport(),
+            ...$object->export()
+        ]);
+    }
+
+    public function getActivity(ServerRequestInterface $request): JsonActivityResponse
+    {
+        $entity = $this->manager->getEntityFromUri($this->buildUri($request));
+
+        if (!$entity instanceof FederatedEntityInterface) {
+            throw new NotFoundException();
+        }
+
+        $owner = $this->entitiesBuilder->single($entity->getOwnerGuid());
+
+        if (!$owner instanceof User) {
+            throw new ForbiddenException("Owner not available");
+        }
+
+        $activity = $this->activityFactory->fromEntity(ActivityFactoryOpEnum::CREATE, $entity, $owner);
+
+        return new JsonActivityResponse([
+            ...$activity->getContextExport(),
+            ...$activity->export()
         ]);
     }
 
@@ -159,7 +198,7 @@ class Controller
     {
         $user = $this->buildUser($request);
 
-        $orderedCollection = $this->likeFactory->build((string) $request->getUri(), $user);
+        $orderedCollection = $this->likeFactory->build($this->buildUri($request), $user);
 
         return new JsonActivityResponse([
             ...$orderedCollection->getContextExport(),
@@ -215,6 +254,14 @@ class Controller
     }
 
     /**
+     * Reconstructs a valid local uri
+     */
+    protected function buildUri(ServerRequestInterface $request): string
+    {
+        return $this->config->get('site_url') . ltrim($request->getUri()->getPath(), '/');
+    }
+
+    /**
      * This function will throw an exception if the signature fails
      * @throws ForbiddenException
      */
@@ -223,8 +270,14 @@ class Controller
         $service = new HttpSignatureService();
         $keyId = $service->getKeyId($request->getHeader('Signature')[0]);
 
+        $requestActor = JsonLdHelper::getValueOrId($request->getParsedBody()['actor']);
+
         try {
             $actor = $this->actorFactory->fromUri($keyId);
+
+            if ($requestActor !== $actor->id) {
+                throw new ForbiddenException("Actor doesn't match signature");
+            }
         } catch (ClientException $e) {
             throw new ForbiddenException();
         }
@@ -236,6 +289,8 @@ class Controller
         if (!$context->verifier()->isSigned($request)) {
             throw new ForbiddenException();
         }
+
+
     }
 
 }

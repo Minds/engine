@@ -396,3 +396,9 @@ ALTER TABLE minds_comments
 ALTER TABLE minds_comments
     ADD canonical_url text DEFAULT NULL
         AFTER source;
+
+ALTER TABLE minds_activitypub_actors
+    ADD icon_url text DEFAULT NULL;
+
+ALTER TABLE minds_activitypub_uris
+    ADD updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP;

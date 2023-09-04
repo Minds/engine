@@ -19,6 +19,7 @@ use Minds\Exceptions\BlockedUserException;
 use Minds\Exceptions\InvalidLuidException;
 use Minds\Common\Repository\Response;
 use Minds\Core\Events\EventsDispatcher;
+use Minds\Core\EventStreams\UndeliveredEventException;
 
 class Manager
 {
@@ -242,9 +243,16 @@ class Manager
 
             $this->countCache->destroy($comment);
 
-            $this->eventsDispatcher->trigger('entities-ops', 'create', [
-                'entityUrn' => $comment->getUrn(),
-            ]);
+            try {
+                $this->eventsDispatcher->trigger('entities-ops', 'create', [
+                    'entityUrn' => $comment->getUrn(),
+                ]);
+            } catch (UndeliveredEventException $e) {
+                // Unable to create the comment event, delete
+                $this->repository->delete($comment);
+                // Rethrow
+                throw $e;
+            }
         }
 
         return $success;

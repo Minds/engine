@@ -45,6 +45,16 @@ class Routes extends ModuleRoutes
                     Ref::_(Controller::class, 'getUserLiked')
                 );
 
+                $route->get(
+                    'users/:guid/entities/:urn',
+                    Ref::_(Controller::class, 'getObject')
+                );
+
+                $route->get(
+                    'users/:guid/entities/:urn/activity',
+                    Ref::_(Controller::class, 'getActivity')
+                );
+
                 $route->post(
                     'inbox',
                     Ref::_(Controller::class, 'postInbox')

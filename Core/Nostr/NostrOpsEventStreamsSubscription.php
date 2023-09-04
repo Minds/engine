@@ -112,5 +112,7 @@ class NostrOpsEventStreamsSubscription implements SubscriptionInterface
                 $this->manager->deleteNostrEvents([$nostrEventId]);
                 return true;
         }
+
+        return false;
     }
 }

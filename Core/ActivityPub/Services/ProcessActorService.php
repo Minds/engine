@@ -7,8 +7,7 @@ use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Activity\CreateType;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Types\Actor\PersonType;
-use Minds\Core\ActivityPub\Types\Core\ActivityType;
-use Minds\Core\ActivityPub\Types\Object\NoteType;
+use Minds\Core\Channels\AvatarService;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
@@ -25,10 +24,23 @@ class ProcessActorService
         protected ActorFactory $actorFactory,
         protected ACL $acl,
         protected Save $saveAction,
+        protected AvatarService $avatarService,
     ) {
         
     }
 
+    /**
+     * Constructs the actor from just a uri
+     */
+    public function withActorUri(string $uri): ProcessActorService
+    {
+        $actor = $this->actorFactory->fromUri($uri);
+        return $this->withActor($actor);
+    }
+
+    /**
+     * Constructs the actor from an actor type
+     */
     public function withActor(PersonType $actor): ProcessActorService
     {
         $instance = clone $this;
@@ -55,7 +67,7 @@ class ProcessActorService
         throw new NotFoundException();
     }
 
-    public function process(): ?User
+    public function process(bool $update = true): ?User
     {
         $className = get_class($this->actor);
         
@@ -64,7 +76,10 @@ class ProcessActorService
 
                 $user = $this->manager->getEntityFromUri($this->actor->id);
                 if ($user) {
-                    // Nothing to do, the user already exists
+                    if ($update) {
+                        // The user already exists, lets resync
+                        $this->updateUser($user);
+                    }
                     return $user;
                 }
 
@@ -81,26 +96,52 @@ class ProcessActorService
                 // Create the user
                 $user = register_user($username, $password, $username, $email, validatePassword: false, isActivityPub: true);
 
-                $user->setName($this->actor->name);
-
-                if (isset($this->actor->summary)) {
-                    $user->setBriefDescription($this->actor->summary);
-                }
-
-                // Set the source as being activitypub
-                $user->setSource(FederatedEntitySourcesEnum::ACTIVITY_PUB);
-
-                $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
-                $this->saveAction->setEntity($user)->save();
-                $this->acl->setIgnore($ia); // Reset ACL state
-
-                $this->manager->addActor($this->actor, $user);
+                $user = $this->updateUser($user);
 
                 return $user;
                 break;
         }
 
         return null;
+    }
+
+    private function updateUser(User $user): User
+    {
+        if (isset($this->actor->name)) {
+            $user->setName($this->actor->name);
+        }
+
+        if (isset($this->actor->summary)) {
+            $user->setBriefDescription($this->actor->summary);
+        }
+
+        // Set the source as being activitypub
+        $user->setSource(FederatedEntitySourcesEnum::ACTIVITY_PUB);
+
+        if (isset($this->actor->url)) {
+            $user->setCanonicalUrl($this->actor->url);
+        } else {
+            $user->setCanonicalUrl($this->actor->id);
+        }
+
+        // Try to pull in an avatar, only if it differs
+        if (isset($this->actor->icon) && $this->manager->getActorIconUrl($this->actor) !== $this->actor->icon->url) {
+            $this->avatarService
+                ->withUser($user)
+                ->createFromUrl($this->actor->icon->url);
+
+            $user->icontime = time();
+        }
+
+        // Save the user
+        $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
+        $this->saveAction->setEntity($user)->save();
+        $this->acl->setIgnore($ia); // Reset ACL state
+
+        // Sync the actor to database (updated inboxes, icon reference etc)
+        $this->manager->addActor($this->actor, $user);
+
+        return $user;
     }
 
 }
