@@ -27,14 +27,18 @@ class Events
             $params = $e->getParameters();
             $entity = $params['entity'];
             $user = $params['user'];
+            $interaction = $params['interaction'];
 
             $blockEntry = (new BlockEntry())
                 ->setActor($user)
                 ->setSubject($entity);
 
             // If user is blocked, don't allow interaction
+            // (unless it's a downvote)
             if ($this->manager->isBlocked($blockEntry)) {
-                return $e->setResponse(false);
+                if ($interaction !== 'votedown') {
+                    return $e->setResponse(false);
+                }
             }
 
             // If user has blocked, don't allow i
