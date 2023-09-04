@@ -45,12 +45,11 @@ class Manager
     const MIN_PAYOUT_CENTS = 10000; // $100 USD
 
     public function __construct(
-        private ?Repository $repository = null,
+        private ?RelationalRepository $repository = null,
         private ?EntityCentricManager $entityCentricManager = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?Plus\Manager $plusManager = null,
         private ?Stripe\Connect\Manager $connectManager = null,
-        private ?Sums $sums = null,
         private ?Pro\Manager $proManager = null,
         private ?PayoutsDelegate $payoutsDelegate = null,
         private ?EmailDelegate $emailDelegate = null,
@@ -59,12 +58,11 @@ class Manager
         private ?DepositsDelegate $depositsDelegate = null,
         private ?Logger $logger = null
     ) {
-        $this->repository ??= new Repository();
+        $this->repository ??= Di::_()->get(RelationalRepository::class);
         $this->entityCentricManager ??= new EntityCentricManager();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->plusManager ??= Di::_()->get('Plus\Manager');
         $this->connectManager ??= Di::_()->get('Stripe\Connect\Manager');
-        $this->sums ??= new Sums();
         $this->proManager ??= Di::_()->get('Pro\Manager');
         $this->payoutsDelegate ??= new Delegates\PayoutsDelegate();
         $this->emailDelegate ??= new Delegates\EmailDelegate();
@@ -82,7 +80,11 @@ class Manager
      */
     public function getList(array $opts = []): Response
     {
-        return $this->repository->getList($opts);
+        return $this->repository->getList(
+            from: $opts['from'] ?? null,
+            to: $opts['to'] ?? null,
+            userGuid: $opts['user_guid'] ?? null,
+        );
     }
 
     /**
@@ -356,7 +358,7 @@ class Manager
     {
         $from = $opts['from'] ?? 0;
         $to = $opts['to'] ?? time();
-        foreach ($this->getTotalEarningsForOwners([ 'to' => $to ]) as $earningsBalance) {
+        foreach ($this->repository->getBalancesPerUser(toTimestamp: $to) as $earningsBalance) {
             $user = $this->entitiesBuilder->single($earningsBalance->getUserGuid());
             if (!$user) {
                 continue;
@@ -454,27 +456,6 @@ class Manager
             //->setMethod('usd')
             ->setItem('payout');
         $this->add($deposit);
-    }
-
-    /**
-     * Get all earnings for owners
-     * @param array $opts
-     * @return iterable
-     */
-    public function getTotalEarningsForOwners($opts = []): iterable
-    {
-        return $this->sums->getTotalEarningsForOwners($opts);
-    }
-
-    /**
-     * @param EarningsBalance $earningsBalance
-     * @return float
-     */
-    private function calculatePostsBalanceRatio(EarningsBalance $earningsBalance): float
-    {
-        $earningsPerPost = $earningsBalance->getAmountCents() / $this->sums->getPostsPerOwner([ $earningsBalance->getUserGuid() ])[$earningsBalance->getUserGuid()];
-
-        return ($earningsPerPost / $earningsBalance->getAmountCents()) * 100;
     }
 
     /**
