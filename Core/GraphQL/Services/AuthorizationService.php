@@ -8,7 +8,6 @@ use TheCodingMachine\GraphQLite\Security\AuthorizationServiceInterface;
 
 class AuthorizationService implements AuthorizationServiceInterface
 {
-
     /**
      * @inheritDoc
      */

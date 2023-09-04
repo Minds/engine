@@ -119,8 +119,9 @@ class Manager
     {
         $this->totpManager->delete(
             (new TOTPSecretQueryOpts())
-                ->setUserGuid($targetUser->getGuid()
-            )
+                ->setUserGuid(
+                    $targetUser->getGuid()
+                )
         );
 
         $targetUser->telno = null;
