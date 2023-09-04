@@ -38,6 +38,17 @@ class EmitActivityService
         foreach ($this->manager->getInboxesForFollowers($actor->getGuid()) as $inboxUrl) {
             $this->postRequest($inboxUrl, $activity, $actor);
         }
+
+        // If there are any mentions or additional cc's, also send to those
+        foreach ($activity->object->cc as $cc) {
+            try {
+                $ccActor = $this->actorFactory->fromUri($cc);
+            } catch (\Exception $e) {
+                continue;
+            }
+
+            $this->postRequest($ccActor->inbox, $activity, $actor);
+        }
     }
 
     /**
@@ -123,6 +134,10 @@ class EmitActivityService
 
     private function postRequest(string $inboxUrl, ActivityType $activity, User $actor): bool
     {
+        if (strpos($inboxUrl, $this->manager->getBaseUrl(), 0) === 0) {
+            return false;
+        }
+
         $this->logger->info("POST $inboxUrl: Sending");
         try {
             $response = $this->client

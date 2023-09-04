@@ -2,10 +2,8 @@
 
 namespace Minds\Core\ActivityPub;
 
-use GuzzleHttp\Exception\ConnectException;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
-use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\Comments\Comment;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
@@ -17,7 +15,6 @@ use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\FederatedEntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
-use Minds\Exceptions\UserErrorException;
 
 class Manager
 {
@@ -26,6 +23,7 @@ class Manager
         protected EntitiesBuilder $entitiesBuilder,
         protected Config $config,
         protected Client $client,
+        protected Webfinger\Manager $webfingerManager,
     ) {
     }
 
@@ -100,6 +98,41 @@ class Manager
         }
 
         return $url . '/entities/' . $entity->getUrn();
+    }
+
+    /**
+     * Returns an actor uri from a username (either local or remote).
+     * It will first attempt to find a user by their username
+     * If that is not found we will fetch the actor from their webfinger resource
+     */
+    public function getUriFromUsername(string $username, bool $revalidateWebfinger = false): ?string
+    {
+        $username = ltrim(strtolower($username), '@');
+
+        $user = $this->entitiesBuilder->getByUserByIndex($username);
+
+        if ($user instanceof User && !(
+            $user->getSource() === FederatedEntitySourcesEnum::ACTIVITY_PUB && $revalidateWebfinger
+        )) {
+            return $this->getUriFromEntity($user);
+        }
+
+        if (strpos($username, '@') === false) {
+            return null;
+        }
+
+        // The user doesn't exist on Minds, so try to find from their webfinger
+        try {
+            $json = $this->webfingerManager->get('acct:' . $username);
+
+            foreach ($json['links'] as $link) {
+                if ($link['rel'] === 'self') {
+                    return $link['href'];
+                }
+            }
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**
@@ -234,6 +267,14 @@ class Manager
     }
 
     /**
+     * Returns the site url
+     */
+    public function getSiteUrl(): string
+    {
+        return $this->config->get('site_url');
+    }
+
+    /**
      * Returns a transient id
      */
     public function getTransientId(): string
@@ -249,23 +290,4 @@ class Manager
         return strpos($uri, $this->getBaseUrl(), 0) === 0;
     }
 
-    /**
-     * Helper function to return an entity from a guid
-     * (we do this to hack comments...)
-     */
-    private function getEntityFromGuid(int $guid): ?EntityInterface
-    {
-        $entity = $this->entitiesBuilder->single($guid);
-
-        if (!$entity) {
-            // Could this be a comment? Improve this as it is not efficient
-            $entity = $this->entitiesBuilder->single('urn:comment:' . $guid);
-
-            if (!$entity) {
-                return null;
-            }
-        }
-
-        return $entity;
-    }
 }

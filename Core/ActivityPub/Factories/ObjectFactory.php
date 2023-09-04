@@ -9,6 +9,7 @@ use Minds\Core\ActivityPub\Helpers\ContentParserBuilder;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Core\ObjectType;
+use Minds\Core\ActivityPub\Types\Link\MentionType;
 use Minds\Core\ActivityPub\Types\Object\DocumentType;
 use Minds\Core\ActivityPub\Types\Object\ImageType;
 use Minds\Core\ActivityPub\Types\Object\NoteType;
@@ -93,7 +94,7 @@ class ObjectFactory
                     }
                 }
 
-                $content = $activity->getMessage() ?: '';
+                $content = $rawContent = $activity->getMessage() ?: '';
 
                 // Rich embed? Are we including our link?
                 if ($activity->perma_url) {
@@ -107,8 +108,25 @@ class ObjectFactory
                     }
                 }
 
-                if (!$content) {
-                    $content = $activity->getURL();
+                if (!$content || ($activity->hasAttachments() && $activity->getCustomType() === 'video')) {
+                    if ($content) {
+                        $content .= ' ';
+                    }
+                    $content .= $activity->getURL();
+                }
+
+                // By default, cc to the actors followers
+                $cc = [
+                    $actorUri . '/followers',
+                ];
+
+                $tag = $this->buildTag($rawContent);
+
+                foreach ($tag as $t) {
+                    // If a remote user, add to the cc
+                    if (!$this->manager->isLocalUri($t['href'])) {
+                        $cc[] = $t['href'];
+                    }
                 }
 
                 $content = ContentParserBuilder::format($content);
@@ -121,9 +139,8 @@ class ObjectFactory
                     'to' => [
                         'https://www.w3.org/ns/activitystreams#Public',
                     ],
-                    'cc' => [
-                        $actorUri . '/followers',
-                    ],
+                    'cc' => $cc,
+                    'tag' => $tag,
                     'published' => date('c', $activity->getTimeCreated()),
                     'url' => $activity->getUrl(),
                 ];
@@ -159,6 +176,7 @@ class ObjectFactory
             case Comment::class:
                 /** @var Comment */
                 $comment = $entity;
+                $url = $this->manager->getSiteUrl() . 'newsfeed/' . $comment->getEntityGuid() . '?focusedCommentUrn=' . $comment->getUrn();
 
                 if ($comment->getParentGuid()) {
                     $parentUrn = $comment->getParentUrn();
@@ -171,8 +189,30 @@ class ObjectFactory
                  */
                 $replyToUri = $this->manager->getUriFromUrn($parentUrn);
 
-                $content = $comment->getBody();
+                $content = $rawContent = $comment->getBody();
+
+                if (!$content || ($comment->hasAttachments() && $comment->getAttachments()['custom_type'] === 'video')) {
+                    if ($content) {
+                        $content .= ' ';
+                    }
+                    $content .= $url;
+                }
+
                 $content = ContentParserBuilder::format($content);
+
+                // By default, cc to followers
+                $cc = [
+                    $actorUri . '/followers',
+                ];
+
+                $tag = $this->buildTag($rawContent);
+
+                foreach ($tag as $t) {
+                    // If a remote user, add to the cc
+                    if (!$this->manager->isLocalUri($t['href'])) {
+                        $cc[] = $t['href'];
+                    }
+                }
 
                 $json = [
                     'id' => $actorUri . '/entities/' . $entity->getUrn(),
@@ -183,11 +223,10 @@ class ObjectFactory
                     'to' => [
                         'https://www.w3.org/ns/activitystreams#Public',
                     ],
-                    'cc' => [
-                        $actorUri . '/followers',
-                    ],
+                    'cc' => $cc,
+                    'tag' => $tag,
                     'published' => date('c', (int) $comment->getTimeCreated()),
-                    'url' => $comment->getUrl(),
+                    'url' => $url,
                 ];
 
                 // Any images?
@@ -250,6 +289,20 @@ class ObjectFactory
             $object->cc = $json['cc'];
         }
 
+        if (isset($json['tag'])) {
+            $tag = [];
+            foreach ($json['tag'] as $t) {
+                if ($t['type'] !== 'Mention') {
+                    continue;
+                }
+                $mention = new MentionType();
+                $mention->href = $t['href'];
+                $mention->name = $t['name'];
+                $tag[] = $mention;
+            }
+            $object->tag = $tag;
+        }
+
         if (isset($json['published'])) {
             $object->published = new DateTime($json['published']);
         }
@@ -297,5 +350,31 @@ class ObjectFactory
         }
 
         return $object;
+    }
+
+    private function buildTag(string $content): array
+    {
+        $tag = [];
+
+        // Is this a mention?
+        if ($mentions = ContentParserBuilder::getMentions($content)) {
+            //
+            foreach ($mentions as $mention) {
+                $uri = $this->manager->getUriFromUsername($mention);
+
+                if (!$uri) {
+                    continue;
+                }
+
+                // Add all users to tge tags list
+                $tag[] = [
+                    'type' => 'Mention',
+                    'href' => $uri,
+                    'name' => $mention,
+                ];
+            }
+        }
+
+        return $tag;
     }
 }

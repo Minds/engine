@@ -17,7 +17,7 @@ Help files and parameters are available for some tasks.
 
 ## Default admin user
 
-Minds ships with a local user ready to roll. 
+Minds ships with a local user ready to roll.
 * username: minds
 * password: Pa$$w0rd
 
@@ -47,7 +47,7 @@ You can then manage these ENVs out on the review sites with the [Deployment Guid
 * To run a specific spec, include a specific spec file ```bin/phpspec run Spec/Core/Feeds/Suggested/RepositorySpec.php```
 * To run a specific test in a spec, include a specific spec file:line number of the test function: ```bin/phpspec run Spec/Core/Feeds/Suggested/RepositorySpec.php:82```
 ## Contributing
-If you'd like to contribute to the Minds project, check out the [Contribution](https://developers.minds.com/docs/contributing/contributing/) section of Minds.org or head right over to the [Minds Open Source Community](https://www.minds.com/groups/profile/365903183068794880).  If you've found or fixed a bug, let us know in the [Minds Help and Support Group](https://www.minds.com/groups/profile/100000000000000681/activity)!
+If you'd like to contribute to the Minds project, check out the [Contribution](https://developers.minds.com/docs/contributing/contributing/) section of Minds.org or head right over to the [Minds Open Source Community](https://www.minds.com/group/365903183068794880).  If you've found or fixed a bug, let us know in the [Minds Help and Support Group](https://www.minds.com/groups/profile/100000000000000681/activity)!
 
 ## Security reports
 Please report all security issues to [security@minds.com](mailto:security@minds.com).

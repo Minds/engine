@@ -13,6 +13,7 @@ use Minds\Core\ActivityPub\Services\EmitActivityService;
 use Minds\Core\ActivityPub\Services\ProcessActivityService;
 use Minds\Core\ActivityPub\Services\ProcessActorService;
 use Minds\Core\ActivityPub\Services\ProcessCollectionService;
+use Minds\Core\ActivityPub\Services\ProcessObjectService;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Entities\Actions\Save;
@@ -43,6 +44,7 @@ class Provider extends DiProvider
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 config: $di->get('Config'),
                 client: $di->get(Client::class),
+                webfingerManager: $di->get(Webfinger\Manager::class),
             );
         });
         $this->di->bind(Controller::class, function ($di) {
@@ -74,6 +76,22 @@ class Provider extends DiProvider
             return new ProcessActivityService(
                 manager: $di->get(Manager::class),
                 processActorService: $di->get(ProcessActorService::class),
+                processObjectService: $di->get(ProcessObjectService::class),
+                emitActivityService: $di->get(EmitActivityService::class),
+                acl: $di->get('Security\ACL'),
+                activityManager: $di->get('Feeds\Activity\Manager'),
+                subscriptionsManager: $di->get('Subscriptions\Manager'),
+                votesManager: $di->get('Votes\Manager'),
+                processExternalImageService: $di->get(ProcessExternalImageService::class),
+                config: $di->get('Config'),
+                logger: $di->get('Logger'),
+            );
+        });
+        $this->di->bind(ProcessObjectService::class, function (Di $di): ProcessObjectService {
+            return new ProcessObjectService(
+                manager: $di->get(Manager::class),
+                processActorService: $di->get(ProcessActorService::class),
+                metascraperService: $di->get('Metascraper\Service'),
                 emitActivityService: $di->get(EmitActivityService::class),
                 acl: $di->get('Security\ACL'),
                 activityManager: $di->get('Feeds\Activity\Manager'),

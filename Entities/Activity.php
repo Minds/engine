@@ -48,12 +48,9 @@ use Minds\Helpers;
  * @property array $attachments
  * @property array $supermind
  * @property string $auto_caption
-<<<<<<< HEAD
  * @property array $inferred_tags
-=======
  * @property string $source
  * @property string $canonical_url
->>>>>>> origin
  */
 class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface, CommentableEntityInterface, FederatedEntityInterface
 {
@@ -302,6 +299,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'supermind',
                 'auto_caption',
                 'inferred_tags',
+                'canonical_url',
+                'source',
             ]
         );
     }

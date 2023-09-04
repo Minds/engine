@@ -130,6 +130,10 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
             EntitiesOpsEvent::OP_DELETE => ActivityFactoryOpEnum::DELETE,
         };
 
+        if ($op === ActivityFactoryOpEnum::UPDATE) {
+            return true; // we will not issue updates for now due to load concerns
+        }
+
         $activity = $this->activityFactory->fromEntity(
             op: $op,
             entity: $entity,
@@ -138,7 +142,7 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
 
         $this->emitActivityService->emitActivity($activity, $owner);
 
-        $this->logger->info($loggerPrefix . ' Success');
+        $this->logger->info($loggerPrefix . ' Success (' . $event->getOp() . ')');
 
         return true; // Return true to acknowledge the event from the stream (stop it being redelivered)
     }

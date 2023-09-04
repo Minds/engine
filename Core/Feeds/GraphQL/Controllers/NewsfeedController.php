@@ -300,7 +300,9 @@ class NewsfeedController
                 continue;
             }
 
-            $showExplicitVoteButtons = $this->showExplicitVoteButtons($activity, $loggedInUser, $i);
+            $showExplicitVoteButtons = $algorithm === NewsfeedAlgorithmsEnum::FORYOU ?
+                $this->showExplicitVoteButtons($activity, $loggedInUser, $i) :
+                false;
 
             $edges[] = new ActivityEdge($activity, $cursor ?? "", $showExplicitVoteButtons);
         }

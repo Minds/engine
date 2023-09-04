@@ -456,6 +456,8 @@ class Comment extends RepositoryEntity implements EntityInterface, FederatedEnti
             'edited',
             'spam',
             'deleted',
+            'canonicalUrl',
+            'source',
             function ($export) {
                 return $this->_extendExport($export);
             }
