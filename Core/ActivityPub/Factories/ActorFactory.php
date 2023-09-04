@@ -18,7 +18,7 @@ use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
-use NotImplementedException;
+use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
 
 class ActorFactory
 {

@@ -18,7 +18,7 @@ use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
-use NotImplementedException;
+use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
 
 class ActivityFactory
 {
