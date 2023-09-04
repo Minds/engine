@@ -93,6 +93,7 @@ class Provider extends DiProvider
                 processActorService: $di->get(ProcessActorService::class),
                 metascraperService: $di->get('Metascraper\Service'),
                 emitActivityService: $di->get(EmitActivityService::class),
+                objectFactory: $di->get(ObjectFactory::class),
                 acl: $di->get('Security\ACL'),
                 activityManager: $di->get('Feeds\Activity\Manager'),
                 subscriptionsManager: $di->get('Subscriptions\Manager'),

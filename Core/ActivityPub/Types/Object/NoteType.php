@@ -11,4 +11,10 @@ class NoteType extends ObjectType
     protected string $type = 'Note';
 
     public ?PersonType $actor = null;
+
+    /**
+     * Non-standard quote post field
+     * TODO: Do proper schema validation for this property
+     */
+    public string $quoteUri;
 }

@@ -2,6 +2,7 @@
 namespace Minds\Core\ActivityPub\Services;
 
 use Minds\Common\Access;
+use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Types\Core\ObjectType;
 use Minds\Core\ActivityPub\Helpers\ContentParserBuilder;
 use Minds\Core\ActivityPub\Manager;
@@ -10,6 +11,7 @@ use Minds\Core\ActivityPub\Types\Object\NoteType;
 use Minds\Core\Comments\Comment;
 use Minds\Core\Config\Config;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
+use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Log\Logger;
 use Minds\Core\Media\Image\ProcessExternalImageService;
 use Minds\Core\Security\ACL;
@@ -30,6 +32,7 @@ class ProcessObjectService
         protected Manager $manager,
         protected ProcessActorService $processActorService,
         protected EmitActivityService $emitActivityService,
+        protected ObjectFactory $objectFactory,
         protected ACL $acl,
         protected ActivityManager $activityManager,
         protected Subscriptions\Manager $subscriptionsManager,
@@ -224,6 +227,26 @@ class ProcessObjectService
                 } catch (\Exception $e) {
                     $this->logger->error($logPrefix . $e->getMessage());
                 }
+            }
+
+            // Is this a quote post
+            if (isset($this->object->quoteUri)) {
+                // Fetch the orignal activity
+                $quoteObject = $this->objectFactory->fromUri($this->object->quoteUri);
+
+                if (!$this->manager->isLocalUri($this->object->quoteUri)) {
+                    // Pull in the remote content
+                    $this->withObject($quoteObject)->process();
+                }
+
+                $quotePost = $this->manager->getEntityFromUri($this->object->quoteUri);
+
+                $remind = new RemindIntent();
+                $remind->setGuid($quotePost->getGuid());
+                $remind->setOwnerGuid($quotePost->getOwnerGuid());
+                $remind->setQuotedPost(true);
+
+                $entity->setRemind($remind);
             }
         
             // Save the activity

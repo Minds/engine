@@ -361,6 +361,10 @@ class ObjectFactory
             $object->source->mediaType = $json['source']['mediaType'];
         }
 
+        if (isset($json['quoteUri'])) {
+            $object->quoteUri = $json['quoteUri'];
+        }
+
         switch (get_class($object)) {
             case NoteType::class:
                 $object->content = $json['content'] ?? '';
