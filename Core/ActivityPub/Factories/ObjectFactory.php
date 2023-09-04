@@ -355,7 +355,7 @@ class ObjectFactory
             $object->height = $json['height'];
         }
 
-        if (isset($json['source'])) {
+        if (isset($json['source']) && is_array($json['source'])) {
             $object->source = new SourceType();
             $object->source->content = $json['source']['content'];
             $object->source->mediaType = $json['source']['mediaType'];
