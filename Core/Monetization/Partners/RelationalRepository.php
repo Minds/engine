@@ -151,6 +151,10 @@ class RelationalRepository extends AbstractRepository
                 'amount_cents' => $deposit->getAmountCents() ?? null,
                 'amount_tokens' => $deposit->getAmountTokens() ?? null,
             ])
+            ->onDuplicateKeyUpdate([
+                'amount_cents' => $deposit->getAmountCents() ?? null,
+                'amount_tokens' => $deposit->getAmountTokens() ?? null,
+            ])
             ->prepare();
 
         $statement->execute();
