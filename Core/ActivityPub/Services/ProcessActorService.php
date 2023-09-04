@@ -118,6 +118,12 @@ class ProcessActorService
         // Set the source as being activitypub
         $user->setSource(FederatedEntitySourcesEnum::ACTIVITY_PUB);
 
+        if (isset($this->actor->url)) {
+            $user->setCanonicalUrl($this->actor->url);
+        } else {
+            $user->setCanonicalUrl($this->actor->id);
+        }
+
         // Try to pull in an avatar, only if it differs
         if (isset($this->actor->icon) && $this->manager->getActorIconUrl($this->actor) !== $this->actor->icon->url) {
             $this->avatarService

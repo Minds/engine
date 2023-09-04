@@ -9,6 +9,7 @@ use Minds\Core\ActivityPub\Helpers\ContentParserBuilder;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Core\ObjectType;
+use Minds\Core\ActivityPub\Types\Core\SourceType;
 use Minds\Core\ActivityPub\Types\Link\MentionType;
 use Minds\Core\ActivityPub\Types\Object\DocumentType;
 use Minds\Core\ActivityPub\Types\Object\ImageType;
@@ -94,7 +95,7 @@ class ObjectFactory
                     }
                 }
 
-                $content = $rawContent = $activity->getMessage() ?: '';
+                $content = $activity->getMessage() ?: '';
 
                 // Rich embed? Are we including our link?
                 if ($activity->perma_url) {
@@ -115,12 +116,14 @@ class ObjectFactory
                     $content .= $activity->getURL();
                 }
 
+                $plainContent = $content;
+
                 // By default, cc to the actors followers
                 $cc = [
                     $actorUri . '/followers',
                 ];
 
-                $tag = $this->buildTag($rawContent);
+                $tag = $this->buildTag($plainContent);
 
                 foreach ($tag as $t) {
                     // If a remote user, add to the cc
@@ -143,6 +146,10 @@ class ObjectFactory
                     'tag' => $tag,
                     'published' => date('c', $activity->getTimeCreated()),
                     'url' => $activity->getUrl(),
+                    'source' => [
+                        'content' => $plainContent,
+                        'mediaType' => 'text/plain',
+                    ],
                 ];
 
                 // Is this a quote post
@@ -189,13 +196,14 @@ class ObjectFactory
                  */
                 $replyToUri = $this->manager->getUriFromUrn($parentUrn);
 
-                $content = $rawContent = $comment->getBody();
+                $content = $plainContent = $comment->getBody();
 
                 if (!$content || ($comment->hasAttachments() && $comment->getAttachments()['custom_type'] === 'video')) {
                     if ($content) {
                         $content .= ' ';
                     }
                     $content .= $url;
+                    $plainContent = $content;
                 }
 
                 $content = ContentParserBuilder::format($content);
@@ -205,7 +213,7 @@ class ObjectFactory
                     $actorUri . '/followers',
                 ];
 
-                $tag = $this->buildTag($rawContent);
+                $tag = $this->buildTag($plainContent);
 
                 foreach ($tag as $t) {
                     // If a remote user, add to the cc
@@ -227,6 +235,10 @@ class ObjectFactory
                     'tag' => $tag,
                     'published' => date('c', (int) $comment->getTimeCreated()),
                     'url' => $url,
+                    'source' => [
+                        'content' => $plainContent,
+                        'mediaType' => 'text/plain',
+                    ],
                 ];
 
                 // Any images?
@@ -341,6 +353,12 @@ class ObjectFactory
 
         if (isset($json['height'])) {
             $object->height = $json['height'];
+        }
+
+        if (isset($json['source'])) {
+            $object->source = new SourceType();
+            $object->source->content = $json['source']['content'];
+            $object->source->mediaType = $json['source']['mediaType'];
         }
 
         switch (get_class($object)) {

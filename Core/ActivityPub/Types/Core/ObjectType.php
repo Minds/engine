@@ -109,6 +109,12 @@ class ObjectType extends AbstractType
      */
     #[ExportProperty]
     public int $width;
+
+    /**
+     * @see https://www.w3.org/TR/activitypub/#x3-3-the-source-property
+     */
+    #[ExportProperty]
+    public SourceType $source;
     
 
     /**

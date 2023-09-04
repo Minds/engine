@@ -118,7 +118,7 @@ class ProcessObjectService
                     $comment->setParentGuidL2(0);
                 }
 
-                $comment->setBody(ContentParserBuilder::sanitize($this->object->content));
+                $comment->setBody(ContentParserBuilder::sanitize($this->getContent()));
                 $comment->setOwnerGuid($owner->getGuid());
                 $comment->setTimeCreated(time());
                 $comment->setSource(FederatedEntitySourcesEnum::ACTIVITY_PUB);
@@ -199,7 +199,7 @@ class ProcessObjectService
                 $entity->setCanonicalUrl($this->object->id);
             }
 
-            $entity->setMessage(ContentParserBuilder::sanitize($this->object->content));
+            $entity->setMessage($this->getContent());
 
             // If any images, then fetch them
             $images = $this->processImages(
@@ -264,6 +264,19 @@ class ProcessObjectService
         $entity->ownerObj = $owner->export();
 
         return $entity;
+    }
+
+    /**
+     * If we have a source object, we will try and read from that
+     */
+    private function getContent(): string
+    {
+        if (isset($this->object->source) && $this->object->source->mediaType === 'text/plain') {
+            $content = $this->object->source->content;
+        } else {
+            $content = $this->object->content;
+        }
+        return ContentParserBuilder::sanitize($content);
     }
 
     /**
