@@ -363,8 +363,20 @@ CREATE TABLE IF NOT EXISTS minds_onboarding_v5_step_progress (
 );
 
 ALTER TABLE user_configurations
+    ADD plus_demonetized_ts timestamp NULL DEFAULT NULL;
+
+ALTER TABLE user_configurations
     ADD dismissals json NULL DEFAULT NULL
     AFTER plus_demonetized_ts;
+
+CREATE TABLE IF NOT EXISTS minds_partner_earnings (
+    user_guid bigint NOT NULL,
+    item varchar(256) NOT NULL,
+    timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    amount_cents int NULL DEFAULT NULL,
+    amount_tokens decimal(8,3) NULL DEFAULT NULL,
+    PRIMARY KEY (user_guid, item, timestamp)
+);
 
 CREATE TABLE IF NOT EXISTS minds_activitypub_uris (
     uri varchar(256) NOT NULL PRIMARY KEY,
