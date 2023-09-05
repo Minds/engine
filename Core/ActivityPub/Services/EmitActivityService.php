@@ -132,7 +132,7 @@ class EmitActivityService
 
         $inboxUrl = $target->endpoints['sharedInbox'] ?? $target->inbox;
 
-        $this->postFlagRequest($inboxUrl, $flag);
+        $this->postRequest($inboxUrl, $flag);
     }
 
     /**
@@ -151,32 +151,7 @@ class EmitActivityService
         }
     }
 
-    /**
-     * @param string $inboxUrl
-     * @param ActivityType $activity
-     * @return bool
-     */
-    private function postFlagRequest(string $inboxUrl, ActivityType $activity): bool
-    {
-        $this->logger->info("POST $inboxUrl: Sending");
-        try {
-            $response = $this->client
-                ->withPrivateKeys([
-                    $activity->actor->id . '#main-key' => $activity->actor->publicKey->publicKeyPem,
-                ])
-                ->request('POST', $inboxUrl, [
-                    ...$activity->getContextExport(),
-                    ...$activity->export()
-                ]);
-            $this->logger->info("POST $inboxUrl: Delivered");
-            return true;
-        } catch (\Exception $e) {
-            $this->logger->info("POST $inboxUrl: Failed {$e->getMessage()}");
-            return false;
-        }
-    }
-
-    private function postRequest(string $inboxUrl, ActivityType $activity, User $actor): bool
+    private function postRequest(string $inboxUrl, ActivityType $activity, ?User $actor = null): bool
     {
         if (strpos($inboxUrl, $this->manager->getBaseUrl(), 0) === 0) {
             return false;
@@ -184,9 +159,10 @@ class EmitActivityService
 
         $this->logger->info("POST $inboxUrl: Sending");
         try {
+            $privateKey = $actor ? $this->manager->getPrivateKey($actor) : $this->manager->getPrivateKeyByUserGuid(0);
             $response = $this->client
                 ->withPrivateKeys([
-                    $activity->actor->id . '#main-key' => (string) $this->manager->getPrivateKey($actor),
+                    $activity->actor->id . '#main-key' => (string) $privateKey,
                 ])
                 ->request('POST', $inboxUrl, [
                     ...$activity->getContextExport(),

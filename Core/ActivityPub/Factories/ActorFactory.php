@@ -3,6 +3,7 @@ namespace Minds\Core\ActivityPub\Factories;
 
 use GuzzleHttp\Exception\ConnectException;
 use Minds\Core\ActivityPub\Client;
+use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
 use Minds\Core\ActivityPub\Types\Actor\ApplicationType;
@@ -19,7 +20,6 @@ use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
-use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
 
 class ActorFactory
 {
@@ -30,6 +30,8 @@ class ActorFactory
         'Organization' => OrganizationType::class,
         'Service' => ServiceType::class,
     ];
+
+    public const MINDS_APPLICATION_PREFERRED_USERNAME = "application";
 
     public const MINDS_APPLICATION_ACTOR_GUID = 0;
     
@@ -214,11 +216,11 @@ class ActorFactory
     public function buildMindsApplicationActor(): ApplicationType
     {
         $actor = new ApplicationType();
-        $actor->id = $this->config->get('site_url') . '/api/activitypub/actor';
-        $actor->preferredUsername = "Minds.com";
+        $actor->id = $this->config->get('site_url') . 'api/activitypub/actor';
+        $actor->preferredUsername = self::MINDS_APPLICATION_PREFERRED_USERNAME;
         $actor->url = $this->config->get('site_url');
         $actor->endpoints = [
-            'sharedInbox' => $this->config->get('site_url') . '/api/activitypub/inbox'
+            'sharedInbox' => $this->config->get('site_url') . 'api/activitypub/inbox'
         ];
         $actor->inbox = $actor->id . '/inbox';
         $actor->outbox = $actor->id . '/outbox';
@@ -227,8 +229,7 @@ class ActorFactory
         $publicKey = $this->cache->get("activitypub:key:$actor->id");
         if (!$publicKey) {
             $publicKey = ($this->manager->getPrivateKeyByUserGuid(0))
-                ->getPublicKey()
-                ->toString();
+                ->getPublicKey();
 
             $this->cache->set("activitypub:key:$actor->id", $publicKey);
         }

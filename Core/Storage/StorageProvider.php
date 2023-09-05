@@ -5,7 +5,6 @@
 
 namespace Minds\Core\Storage;
 
-use Minds\Core;
 use Minds\Core\Di\Provider;
 
 class StorageProvider extends Provider
@@ -22,7 +21,7 @@ class StorageProvider extends Provider
 
         $this->di->bind('Storage', function ($di) {
             $config = $di->get('Config');
-            if ($config->get('storage')['engine']) {
+            if ($config->get('storage')['engine'] ?? false) {
                 return $di->get('Storage\\' . $config->get('storage')['engine']);
             }
             return $di->get('Storage\Disk');

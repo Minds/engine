@@ -2,8 +2,9 @@
 namespace Minds\Core\ActivityPub\Factories;
 
 use Minds\Core\ActivityPub\Enums\ActivityFactoryOpEnum;
-use Minds\Core\ActivityPub\Manager;
+use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
+use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Activity\AcceptType;
 use Minds\Core\ActivityPub\Types\Activity\AnnounceType;
 use Minds\Core\ActivityPub\Types\Activity\CreateType;
@@ -19,7 +20,6 @@ use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
-use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
 
 class ActivityFactory
 {
@@ -94,9 +94,7 @@ class ActivityFactory
 
         // Must
         $activity->id = $json['id'];
-        // if ($activity->getType() !== "Flag") {
-            $activity->actor = $actor;
-        // }
+        $activity->actor = $actor;
 
         $activity->object = match (get_class($activity)) {
             FollowType::class => $this->actorFactory->fromUri(JsonLdHelper::getValueOrId($json['object'])),

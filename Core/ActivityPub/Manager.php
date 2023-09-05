@@ -8,6 +8,7 @@ use Minds\Core\Comments\Comment;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
+use Minds\Core\Webfinger\Manager as WebfingerManager;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
@@ -19,11 +20,11 @@ use phpseclib3\Crypt\PublicKeyLoader;
 class Manager
 {
     public function __construct(
-        protected Repository $repository,
-        protected EntitiesBuilder $entitiesBuilder,
-        protected Config $config,
-        protected Client $client,
-        protected Webfinger\Manager $webfingerManager,
+        protected Repository       $repository,
+        protected EntitiesBuilder  $entitiesBuilder,
+        protected Config           $config,
+        protected Client           $client,
+        protected WebfingerManager $webfingerManager,
     ) {
     }
 
