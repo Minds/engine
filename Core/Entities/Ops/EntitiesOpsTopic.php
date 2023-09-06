@@ -57,6 +57,7 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
             ->setContent(json_encode([
                 'op' => $event->getOp(),
                 'entity_urn' => $event->getEntityUrn(),
+                'entity_serialized' => $event->getEntitySerialized(),
             ]))
             ->build();
 
@@ -112,6 +113,10 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                     ->setOp($data['op'])
                     ->setTimestamp($message->getEventTimestamp());
 
+                if (isset($data['entity_serialized'])) {
+                    $event->setEntitySerialized($data['entity_serialized']);
+                }
+
                 if (call_user_func($callback, $event, $message) === true) {
                     $consumer->acknowledge($message);
                 }
@@ -137,6 +142,14 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
 
         $config = new ProducerConfiguration();
         $config->setSchema(SchemaType::AVRO, static::SCHEMA_NAME, $this->getSchema(), []);
+        //$config->setSchema(SchemaType::AVRO, static::SCHEMA_NAME . 'v2', $this->getSchemaV2(), []);
+
+        $schema = json_encode([
+            'type' => 'AVRO',
+            'schema' => $this->getSchema(),
+            'properties' => (object) []
+        ]);
+
 
         return $this->producer = $this->client()->createProducer("persistent://$tenant/$namespace/$topic", $config);
     }
@@ -151,7 +164,7 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
     {
         return json_encode([
             'type' => 'record',
-            'name' => static::SCHEMA_NAME,
+            'name' => static::SCHEMA_NAME ,
             'namespace' => 'engine',
             'fields' => [
                 [
@@ -160,6 +173,25 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                 ],
                 [
                     'name' => 'entity_urn',
+                    'type' => 'string',
+                ],
+                [
+                    'name' => 'entity_json',
+                    'type' => 'string',
+                ],
+            ]
+        ]);
+    }
+
+    protected function getSchemaV2(): string
+    {
+        return json_encode([
+            'type' => 'record',
+            'name' => static::SCHEMA_NAME . 'v2',
+            'namespace' => 'engine',
+            'fields' => [
+                [
+                    'name' => 'entity_json',
                     'type' => 'string',
                 ],
             ]

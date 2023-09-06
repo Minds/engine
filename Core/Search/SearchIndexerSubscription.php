@@ -75,9 +75,14 @@ class SearchIndexerSubscription implements SubscriptionInterface
             return false;
         }
 
-        $entity = $this->entitiesResolver->setOpts([
-            'cache' => false
-        ])->single(new Urn($event->getEntityUrn()));
+        // We may have a serialized entity (eg. if we no longer have the deleted record)
+        if ($serializedEntity = $event->getEntitySerialized()) {
+            $entity = unserialize($serializedEntity);
+        } else {
+            $entity = $this->entitiesResolver->setOpts([
+                'cache' => false
+            ])->single(new Urn($event->getEntityUrn()));
+        }
 
         if (!$entity) {
             // Entity not found

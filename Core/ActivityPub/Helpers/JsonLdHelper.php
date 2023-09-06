@@ -1,6 +1,8 @@
 <?php
 namespace Minds\Core\ActivityPub\Helpers;
 
+use Minds\Core\ActivityPub\Types\Core\ObjectType;
+
 class JsonLdHelper
 {
     const CONTEXT = 'https://www.w3.org/ns/activitystreams';
@@ -24,9 +26,15 @@ class JsonLdHelper
         return static::equalsOrIncludes($json['@context'], static::CONTEXT);
     }
 
-    public static function getValueOrId($value): ?string
+    public static function getValueOrId(string|null|ObjectType|array $value): ?string
     {
-        return is_string($value) || is_null($value) ? $value : $value['id'];
+        if (is_string($value) || is_null($value)) {
+            return $value;
+        }
+        if ($value instanceof ObjectType) {
+            return $value->id;
+        }
+        return $value['id'];
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Minds\Core\ActivityPub;
 
+use Minds\Core\ActivityPub\Exceptions\MissingEntityException;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
 use Minds\Core\Comments\Comment;
@@ -139,6 +140,7 @@ class Manager
     /**
      * Returns a Minds entity from a uri
      * Supports returning entities from both remote and local uris
+     * @throws MissingEntityException
      */
     public function getEntityFromUri(string $uri): ?EntityInterface
     {
@@ -152,8 +154,7 @@ class Manager
             $localEntity = $this->entitiesBuilder->getByUrn($localUrn);
 
             if (!$localEntity) {
-                //throw new NotFoundException("The local entity could not be found. It may have been deleted");
-                return false;
+                throw new MissingEntityException();
             }
 
             return $localEntity;
@@ -248,6 +249,14 @@ class Manager
     public function getActorIconUrl(AbstractActorType $actor): ?string
     {
         return $this->repository->getActorIconUrl($actor);
+    }
+
+    /**
+     * Returns a public key from an actors uri
+     */
+    public function getActorPublicKey(string $uri): ?string
+    {
+        return $this->repository->getActorPublicKey($uri);
     }
 
     /**

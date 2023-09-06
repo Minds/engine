@@ -67,7 +67,7 @@ class Controller
         
         $payload = $request->getParsedBody();
 
-        $actor = $this->actorFactory->fromUri(JsonLdHelper::getValueOrId($payload['actor']));
+        $actor = JsonLdHelper::getValueOrId($payload['actor']);
 
         /** @var ProcessCollectionService */
         $proccessCollectionService = Di::_()->get(ProcessCollectionService::class);
@@ -257,7 +257,9 @@ class Controller
         $service = new HttpSignatureService();
         $keyId = $service->getKeyId($request->getHeader('Signature')[0]);
 
-        $requestActor = JsonLdHelper::getValueOrId($request->getParsedBody()['actor']);
+        $body = $request->getParsedBody();
+
+        $requestActor = JsonLdHelper::getValueOrId($body['actor']);
 
         try {
             $actor = $this->actorFactory->fromUri($keyId);
@@ -266,6 +268,24 @@ class Controller
                 throw new ForbiddenException("Actor doesn't match signature");
             }
         } catch (ClientException $e) {
+            if ($e->getCode() === 410  || $e->getCode() === 404) {
+            
+                if (
+                    $requestActor === JsonLdHelper::getValueOrId($body['object'])
+                    && $body['type'] === 'Delete'
+                ) {
+                    // Bypass the signature validation check, instead lets check the object is really gone
+                    try {
+                        $this->objectFactory->fromUri(JsonLdHelper::getValueOrId($body['object']));
+                    } catch (ClientException $e) {
+                        if ($e->getCode() === 410  || $e->getCode() === 404) {
+                            // Its really gone, the HTTP signature isn't important
+                            return;
+                        }
+                    }
+                }
+                
+            }
             throw new ForbiddenException();
         }
 
