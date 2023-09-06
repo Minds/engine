@@ -77,7 +77,7 @@ class ActivityFactory
         return $item;
     }
 
-    public function fromJson(array $json, AbstractActorType $actor): ActivityType
+    public function fromJson(array $json, AbstractActorType|string $actor): ActivityType
     {
         $activity = match ($json['type']) {
             'Create' => new CreateType(),
@@ -86,7 +86,7 @@ class ActivityFactory
             'Undo' => new UndoType(),
             'Accept' => new AcceptType(),
             'Announce' => new AnnounceType(),
-            // 'Delete' => new DeleteType(),
+            'Delete' => new DeleteType(),
             default => throw new NotImplementedException(),
         };
 
@@ -99,7 +99,7 @@ class ActivityFactory
             UndoType::class => $this->fromJson($json['object'], $actor),
             AcceptType::class => $this->fromJson($json['object'], $actor),
             LikeType::class => $this->objectFactory->fromUri(JsonLdHelper::getValueOrId($json['object'])),
-            DeleteType::class => null, // TODO
+            DeleteType::class => JsonLdHelper::getValueOrId($json['object']),
             AnnounceType::class => $this->objectFactory->fromUri(JsonLdHelper::getValueOrId($json['object'])),
             default => $this->objectFactory->fromJson($json['object']),
         };

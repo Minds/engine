@@ -83,7 +83,12 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
             return false;
         }
 
-        $entity = $this->entitiesBuilder->getByUrn($event->getEntityUrn());
+        // We may have a serialized entity (eg. if we no longer have the deleted record)
+        if ($serializedEntity = $event->getEntitySerialized()) {
+            $entity = unserialize($serializedEntity);
+        } else {
+            $entity = $this->entitiesBuilder->getByUrn($event->getEntityUrn());
+        }
 
         if (!$entity instanceof FederatedEntityInterface) {
             // Entity not found
