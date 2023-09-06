@@ -74,7 +74,7 @@ class ProcessActorService
         switch ($className) {
             case PersonType::class:
 
-                $user = $this->manager->getEntityFromUri($this->actor->id);
+                $user = $this->manager->getEntityFromUri(JsonLdHelper::getValueOrId($this->actor));
                 if ($user) {
                     if ($update) {
                         // The user already exists, lets resync
@@ -121,7 +121,7 @@ class ProcessActorService
         if (isset($this->actor->url)) {
             $user->setCanonicalUrl($this->actor->url);
         } else {
-            $user->setCanonicalUrl($this->actor->id);
+            $user->setCanonicalUrl(JsonLdHelper::getValueOrId($this->actor));
         }
 
         // Try to pull in an avatar, only if it differs
