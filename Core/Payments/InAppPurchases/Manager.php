@@ -64,6 +64,8 @@ class Manager
 
         $amount = null;
 
+        // TODO: purchaseToken is not used and we should store it for reconciliation
+
         /**
          * Not ideal, but short term solution
          */
