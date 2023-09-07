@@ -110,7 +110,7 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                     $consumer->acknowledge($message);
                 }
             } catch (\Exception $e) {
-                $this->logger->error("Topic(Consume): Uncaught error" . $e->getMessage());
+                $this->logger->error("Topic(Consume): Uncaught error: " . $e->getMessage());
             }
         }
     }
