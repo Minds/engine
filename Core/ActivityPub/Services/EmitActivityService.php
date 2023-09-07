@@ -5,6 +5,7 @@ use ActivityPhp\Type\Extended\AbstractActor;
 use Minds\Core\ActivityPub\Client;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
+use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Activity\AcceptType;
 use Minds\Core\ActivityPub\Types\Activity\FlagType;
@@ -142,7 +143,7 @@ class EmitActivityService
     {
         // Get the targets inbox
         if ($accept->object instanceof FollowType) {
-            $target = $accept->object->actor;
+            $target = $this->actorFactory->fromUri(JsonLdHelper::getValueOrId($accept->object->actor));
             $inboxUrl = $target->endpoints['sharedInbox'] ?? $target->inbox;
     
             $this->postRequest($inboxUrl, $accept, $actor);

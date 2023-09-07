@@ -274,7 +274,7 @@ class Events
 
             // Make sure our export of voters is an array and not an object
             $export['thumbs:up:user_guids'] = $entity->{'thumbs:up:user_guids'} ? (array) array_values($entity->{'thumbs:up:user_guids'}) : [];
-            $export['thumbs:down:user_guids'] = $entity->{'thumbs:down:user_guids'} ? (array) array_intersect(array_values($entity->{'thumbs:down:user_guids'}), [(string) Session::getLoggedInUserGuid()]) : [];
+            $export['thumbs:down:user_guids'] = $entity->{'thumbs:down:user_guids'} ? (array) array_values(array_intersect(array_values($entity->{'thumbs:down:user_guids'}), [(string) Session::getLoggedInUserGuid()])) : [];
 
             $event->setResponse($export);
         });

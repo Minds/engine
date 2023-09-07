@@ -345,6 +345,7 @@ class Manager
 
             $this->eventsDispatcher->trigger('entities-ops', 'delete', [
                 'entityUrn' => $comment->getUrn(),
+                'entity' => $comment,
             ]);
         }
 

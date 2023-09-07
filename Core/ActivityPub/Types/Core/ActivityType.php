@@ -2,6 +2,7 @@
 namespace Minds\Core\ActivityPub\Types\Core;
 
 use Minds\Core\ActivityPub\Attributes\ExportProperty;
+use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Types\Actor\ApplicationType;
 use Minds\Core\ActivityPub\Types\Actor\PersonType;
 
@@ -11,7 +12,7 @@ class ActivityType extends ObjectType
     protected string $type = 'Activity';
 
     #[ExportProperty]
-    public PersonType|ApplicationType $actor;
+    public PersonType|string|ApplicationType $actor;
 
     /**
      * @var ObjectType|string|array<string>
@@ -22,7 +23,7 @@ class ActivityType extends ObjectType
     public function export(array $extras = []): array
     {
         $exported = parent::export($extras);
-        $exported['actor'] = $this->actor->id;
+        $exported['actor'] = JsonLdHelper::getValueOrId($this->actor);
         return $exported;
     }
 
