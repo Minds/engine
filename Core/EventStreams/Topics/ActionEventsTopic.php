@@ -146,6 +146,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                 }
             } catch (\Exception $e) {
                 $consumer->negativeAcknowledge($message);
+                $this->logger->error("Topic(Consume): Uncaught error: " . $e->getMessage());
             }
         }
     }
