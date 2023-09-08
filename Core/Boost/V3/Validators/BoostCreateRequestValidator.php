@@ -15,7 +15,9 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
+use Minds\Core\Payments\InAppPurchases\Enums\InAppPurchasePaymentMethodIdsEnum;
 use Minds\Core\Payments\Stripe\PaymentMethods\Manager as PaymentMethodsManager;
+use Minds\Core\Security\ACL;
 use Minds\Core\Security\ProhibitedDomains;
 use Minds\Core\Session;
 use Minds\Entities\Activity;
@@ -25,7 +27,6 @@ use Minds\Entities\ValidationErrorCollection;
 use Minds\Helpers\Text;
 use Minds\Interfaces\ValidatorInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Minds\Core\Security\ACL;
 
 class BoostCreateRequestValidator implements ValidatorInterface
 {
@@ -124,7 +125,10 @@ class BoostCreateRequestValidator implements ValidatorInterface
                 )
             );
         } elseif ((int) $dataToValidate['payment_method'] === BoostPaymentMethod::CASH) {
-            if ($dataToValidate['payment_method_id'] !== GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+            if (
+                $dataToValidate['payment_method_id'] !== GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID &&
+                in_array($dataToValidate['payment_method_id'], InAppPurchasePaymentMethodIdsEnum::cases())
+            ) {
                 $isPaymentMethodIdValid = $this->paymentMethodsManager->checkPaymentMethodOwnership(
                     $this->getLoggedInUserGuid(),
                     $dataToValidate['payment_method_id']
@@ -148,6 +152,8 @@ class BoostCreateRequestValidator implements ValidatorInterface
                 );
             }
         }
+
+        $this->checkIAPTransaction($dataToValidate);
 
         $this->checkDailyBid($dataToValidate);
         $this->checkDurationDays($dataToValidate);
@@ -402,10 +408,10 @@ class BoostCreateRequestValidator implements ValidatorInterface
 
     /**
      * Checks that an entity can be read by the system user, meaning that it is publicly accessible.
-     * @param array $dataToValidate - data to validate.
+     * @param array|ServerRequestInterface $dataToValidate - data to validate.
      * @return void
      */
-    private function checkPublicReadAccess(array $dataToValidate): void
+    private function checkPublicReadAccess(array|ServerRequestInterface $dataToValidate): void
     {
         $boostedEntity = $this->getBoostedEntity($dataToValidate);
         if (!$this->acl->read($boostedEntity, $this->systemUser)) {
@@ -443,7 +449,7 @@ class BoostCreateRequestValidator implements ValidatorInterface
      * @param array|ServerRequestInterface $dataToValidate
      * @return EntityInterface entity - the entity being boosted
      */
-    private function getBoostedEntity($dataToValidate): ?EntityInterface
+    private function getBoostedEntity(array|ServerRequestInterface $dataToValidate): ?EntityInterface
     {
         $boostedEntity = null;
 
@@ -461,5 +467,32 @@ class BoostCreateRequestValidator implements ValidatorInterface
     public function getErrors(): ?ValidationErrorCollection
     {
         return $this->errors;
+    }
+
+    /**
+     * @param array|ServerRequestInterface $dataToValidate
+     * @return void
+     */
+    private function checkIAPTransaction(array|ServerRequestInterface $dataToValidate): void
+    {
+        if (!in_array($dataToValidate['payment_method_id'], InAppPurchasePaymentMethodIdsEnum::cases())) {
+            return;
+        }
+
+        if (!isset($dataToValidate['iap-transaction'])) {
+            $this->errors->add(
+                new ValidationError(
+                    'iap-transaction',
+                    'IAP transaction must be provided'
+                )
+            );
+        } elseif (!is_string($dataToValidate['iap-transaction'])) {
+            $this->errors->add(
+                new ValidationError(
+                    'iap-transaction',
+                    'IAP transaction must be a string'
+                )
+            );
+        }
     }
 }

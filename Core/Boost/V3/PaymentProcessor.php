@@ -23,6 +23,7 @@ use Minds\Core\Payments\GiftCards\Exceptions\GiftCardInsufficientFundsException;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
+use Minds\Core\Payments\InAppPurchases\Enums\InAppPurchasePaymentMethodIdsEnum;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
@@ -110,11 +111,14 @@ class PaymentProcessor
      * @throws InvalidPaymentMethodException
      * @throws ServerErrorException
      */
-    public function createMindsPayment(Boost $boost, User $user): PaymentDetails
-    {
+    public function createMindsPayment(
+        Boost $boost,
+        User $user,
+        ?string $iapTransaction = null
+    ): PaymentDetails {
         return $this->paymentsManager
             ->setUser($user)
-            ->createPaymentFromBoost($boost);
+            ->createPaymentFromBoost($boost, $iapTransaction);
     }
 
     /**
@@ -129,6 +133,11 @@ class PaymentProcessor
      */
     private function setupCashPaymentIntent(Boost $boost, PaymentDetails $paymentDetails, User $user): bool
     {
+        if (InAppPurchasePaymentMethodIdsEnum::tryFrom($boost->getPaymentMethodId())) {
+            $boost->setPaymentTxId($boost->getPaymentMethodId());
+            return true;
+        }
+
         if ($boost->getPaymentMethodId() === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
             $boost->setPaymentTxId(GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID);
             $this->giftCardsManager->setInTransaction($this->inTransaction);

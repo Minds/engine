@@ -7,6 +7,7 @@ use Iterator;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
+use Minds\Core\Payments\InAppPurchases\Enums\InAppPurchasePaymentMethodIdsEnum;
 use Minds\Core\Payments\V2\Enums\PaymentAffiliateType;
 use Minds\Core\Payments\V2\Enums\PaymentMethod;
 use Minds\Core\Payments\V2\Enums\PaymentStatus;
@@ -61,7 +62,7 @@ class Manager
      * @throws InvalidPaymentMethodException
      * @throws ServerErrorException
      */
-    public function createPaymentFromBoost(Boost $boost): PaymentDetails
+    public function createPaymentFromBoost(Boost $boost, ?string $iapTransaction = null): PaymentDetails
     {
         $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
         $affiliateType = PaymentAffiliateType::REFERRAL_COOKIE;
@@ -73,12 +74,24 @@ class Manager
             $affiliateType = $affiliateUserGuid ? PaymentAffiliateType::SIGNUP : null;
         }
 
+        $paymentMethod = match ($boost->getPaymentMethodId()) {
+            InAppPurchasePaymentMethodIdsEnum::GOOGLE->value => PaymentMethod::ANDROID_IAP,
+            InAppPurchasePaymentMethodIdsEnum::APPLE->value => PaymentMethod::IOS_IAP,
+            default => PaymentMethod::getValidatedPaymentMethod($boost->getPaymentMethod()),
+        };
+
+        $paymentTxId = $boost->getPaymentTxId();
+        if ($iapTransaction) {
+            $iapTransactionDetails = json_decode()
+            $paymentTxId = $iapTransaction;
+        }
+
         $paymentDetails = new PaymentDetails([
             'userGuid' => (int) $boost->getOwnerGuid(),
             'affiliateUserGuid' => $affiliateUserGuid,
             'affiliateType' => $affiliateType ?? null, // Only set if it's a valid type, otherwise 'null' is fine
             'paymentType' => PaymentType::BOOST_PAYMENT,
-            'paymentMethod' => PaymentMethod::getValidatedPaymentMethod($boost->getPaymentMethod()),
+            'paymentMethod' => $paymentMethod,
             'paymentAmountMillis' => (int) ($boost->getPaymentAmount() * 1000), // In dollars, so multiply by 1000
             'paymentTxId' => $boost->getPaymentTxId(),
         ]);

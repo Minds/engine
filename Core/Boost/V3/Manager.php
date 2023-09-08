@@ -150,7 +150,7 @@ class Manager
             ->setOwnerGuid($this->user->getGuid())
             ->setPaymentMethodId($data['payment_method_id'] ?? null);
 
-        $this->processNewBoost($boost, $data['payment_tx_id'] ?? null);
+        $this->processNewBoost($boost, $data['payment_tx_id'] ?? null, $data['iap_transaction'] ?? null);
 
         $this->actionEventDelegate->onCreate($boost);
 
@@ -217,8 +217,11 @@ class Manager
      * @throws StripeTransferFailedException
      * @throws UserErrorException
      */
-    private function processNewBoost(Boost $boost, ?string $paymentTxId = null): void
-    {
+    private function processNewBoost(
+        Boost $boost,
+        ?string $paymentTxId = null,
+        ?string $iapTransaction = null
+    ): void {
         try {
             $isOnchainBoost = $boost->getPaymentMethod() === BoostPaymentMethod::ONCHAIN_TOKENS;
 
