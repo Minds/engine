@@ -75,7 +75,7 @@ class ProcessObjectService
              * If this is a reply, then we don't check min subscribers
              */
             if (
-                $requireMinSubscribers 
+                $requireMinSubscribers
                 && !isset($this->object->inReplyTo)
                 && $this->subscriptionsManager->setSubscriber($owner)->getSubscribersCount() === 0
             ) {
