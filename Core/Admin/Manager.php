@@ -157,7 +157,7 @@ class Manager
         // Free up old username
         $db = new Call('user_index_to_guid');
         if ($db->getRow(strtolower($oldUsername))) {
-            if (!$db->deleteByKey($oldUsername)) {
+            if (!$db->removeRow($oldUsername)) {
                 throw new GraphQLException('Warning: Username updated but encountered error when deleting old username');
             }
         }

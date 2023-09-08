@@ -81,29 +81,6 @@ class Call
         return $guid;
     }
 
-    /**
-     * Deletes a row from a cassandra table
-     * @param string $key
-     * @return bool
-     */
-    public function deleteByKey(string $key): bool
-    {
-        self::$deletes++;
-
-        $statement = "DELETE FROM $this->cf_name WHERE key=?";
-        $values = [$key];
-
-        $query = new Cassandra\Prepared\Custom();
-        $query->query($statement, $values);
-
-        try {
-            $this->client->request($query);
-            return true;
-        } catch (\Exception $e) {
-            return false;
-        }
-    }
-
     public function insertBatch($rows = [])
     {
         return $this->cf->batch_insert($rows);
