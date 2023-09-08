@@ -52,7 +52,7 @@ class ProcessObjectService
         return $instance;
     }
 
-    public function process(): void
+    public function process(bool $requireMinSubscribers = true): void
     {
         $logPrefix = "{$this->object->id}: ";
 
@@ -71,9 +71,14 @@ class ProcessObjectService
         if ($this->object instanceof NoteType) {
 
             /**
-             *  The owner and have at least one subscriber for their posts to be ingested
+             * The owner and have at least one subscriber for their posts to be ingested
+             * If this is a reply, then we don't check min subscribers
              */
-            if ($this->subscriptionsManager->setSubscriber($owner)->getSubscribersCount() === 0) {
+            if (
+                $requireMinSubscribers 
+                && !isset($this->object->inReplyTo)
+                && $this->subscriptionsManager->setSubscriber($owner)->getSubscribersCount() === 0
+            ) {
                 $this->logger->info("$logPrefix Can not pull in post for {$owner->getGuid()}: No subscribers");
                 return;
             }
@@ -236,7 +241,7 @@ class ProcessObjectService
 
                 if (!$this->manager->isLocalUri($this->object->quoteUri)) {
                     // Pull in the remote content
-                    $this->withObject($quoteObject)->process();
+                    $this->withObject($quoteObject)->process(requireMinSubscribers: false);
                 }
 
                 $quotePost = $this->manager->getEntityFromUri($this->object->quoteUri);
