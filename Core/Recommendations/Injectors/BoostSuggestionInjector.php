@@ -79,6 +79,11 @@ class BoostSuggestionInjector
         }
 
         $entity = $boost->getEntity();
+
+        if (!$entity) {
+            return null;
+        }
+    
         $boostedEntityType = $boost->getEntity()->getType() ?? null;
 
         // export subscriber / subscription counts for users.
