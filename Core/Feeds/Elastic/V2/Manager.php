@@ -268,6 +268,15 @@ class Manager
             ]
         ];
 
+        // For search performance, only go back 90d
+        $must[] = [
+            'range' => [
+                '@timestamp' => [
+                    'gte' => "now-90d/d",
+                ]
+            ]
+        ];
+
         if ($loadAfter && $loadBefore) {
             throw new ServerErrorException("Two cursors, loadAfter and loadBefore were provided. Only one can be provided.");
         }
@@ -440,7 +449,7 @@ class Manager
         $must[] = [
             'range' => [
                 '@timestamp' => [
-                    'lte' => time() * 1000, // Never show posts that are in the future
+                    'lte' => "now" // Never show posts that are in the future
                 ]
             ]
         ];
@@ -449,6 +458,13 @@ class Manager
         $mustNot[] = [
             'term' => [
                 'pending' => true,
+            ]
+        ];
+
+        // Never show soft deletes
+        $mustNot[] = [
+            'term' => [
+                'deleted' => true,
             ]
         ];
 

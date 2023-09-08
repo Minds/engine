@@ -9,7 +9,7 @@ use Minds\Exceptions\ServerErrorException;
 class ProcessCollectionService
 {
     protected array $json;
-    protected AbstractActorType $actor;
+    protected AbstractActorType|string $actor;
 
     public function __construct(
         protected ProcessActivityService $processActivityService,
@@ -25,7 +25,7 @@ class ProcessCollectionService
         return $instance;
     }
 
-    public function withActor(AbstractActorType $actor): ProcessCollectionService
+    public function withActor(AbstractActorType|string $actor): ProcessCollectionService
     {
         $instance = clone $this;
         $instance->actor = $actor;
@@ -90,7 +90,7 @@ class ProcessCollectionService
 
     private function isActorDifferent(): bool
     {
-        return isset($this->json['actor']) && JsonLdHelper::getValueOrId($this->json['actor']) !== $this->actor->getId();
+        return isset($this->json['actor']) && JsonLdHelper::getValueOrId($this->json['actor']) !== JsonLdHelper::getValueOrId($this->actor);
     }
 
     private function isActorBanned(): bool

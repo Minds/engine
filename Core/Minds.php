@@ -87,6 +87,7 @@ class Minds extends base
         Groups\V2\Module::class,
         Webfinger\Module::class,
         ActivityPub\Module::class,
+        Admin\Module::class,
     ];
 
     /**
@@ -96,7 +97,7 @@ class Minds extends base
     {
         $this->initProviders();
 
-        // $this->loadConfigs();
+        $this->loadConfigs();
         $this->initModules();
     }
 

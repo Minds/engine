@@ -7,6 +7,7 @@ namespace Minds\Core\ActivityPub\Subscriptions;
 
 use Minds\Common\Access;
 use Minds\Core\ActivityPub\Enums\ActivityFactoryOpEnum;
+use Minds\Core\ActivityPub\Exceptions\MissingEntityException;
 use Minds\Core\ActivityPub\Factories\ActivityFactory;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
@@ -29,6 +30,7 @@ use Minds\Entities\EntityInterface;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\FederatedEntityInterface;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
 
 class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
 {
@@ -83,7 +85,12 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
             return false;
         }
 
-        $entity = $this->entitiesBuilder->getByUrn($event->getEntityUrn());
+        // We may have a serialized entity (eg. if we no longer have the deleted record)
+        if ($serializedEntity = $event->getEntitySerialized()) {
+            $entity = unserialize($serializedEntity);
+        } else {
+            $entity = $this->entitiesBuilder->getByUrn($event->getEntityUrn());
+        }
 
         if (!$entity instanceof FederatedEntityInterface) {
             // Entity not found
@@ -134,11 +141,16 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
             return true; // we will not issue updates for now due to load concerns
         }
 
-        $activity = $this->activityFactory->fromEntity(
-            op: $op,
-            entity: $entity,
-            actor: $owner
-        );
+        try {
+            $activity = $this->activityFactory->fromEntity(
+                op: $op,
+                entity: $entity,
+                actor: $owner
+            );
+        } catch (NotFoundException|MissingEntityException $e) {
+            $this->logger->info($loggerPrefix . ' Skipping.  (' . $e->getMessage() . ')');
+            return true;
+        }
 
         $this->emitActivityService->emitActivity($activity, $owner);
 
