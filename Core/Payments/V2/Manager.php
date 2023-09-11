@@ -3,11 +3,16 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\V2;
 
+use GuzzleHttp\Exception\GuzzleException;
 use Iterator;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
+use Minds\Core\Payments\InAppPurchases\Apple\AppleInAppPurchasesClient;
 use Minds\Core\Payments\InAppPurchases\Enums\InAppPurchasePaymentMethodIdsEnum;
+use Minds\Core\Payments\InAppPurchases\Google\GoogleInAppPurchasesClient;
+use Minds\Core\Payments\InAppPurchases\Manager as InAppPurchasesManager;
+use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
 use Minds\Core\Payments\V2\Enums\PaymentAffiliateType;
 use Minds\Core\Payments\V2\Enums\PaymentMethod;
 use Minds\Core\Payments\V2\Enums\PaymentStatus;
@@ -19,7 +24,9 @@ use Minds\Core\Referrals\ReferralCookie;
 use Minds\Core\Wire\Wire;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
+use Minds\Exceptions\InAppPurchaseNotAcknowledgedException;
 use Minds\Exceptions\ServerErrorException;
+use NotImplementedException;
 use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -28,9 +35,10 @@ class Manager
     private ?User $user = null;
 
     public function __construct(
-        private ?Repository $repository = null,
-        private ?ReferralCookie $referralCookie = null,
-        private ?Logger $logger = null
+        private readonly InAppPurchasesManager $inAppPurchasesManager,
+        private ?Repository                    $repository = null,
+        private ?ReferralCookie                $referralCookie = null,
+        private ?Logger                        $logger = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
 
@@ -58,9 +66,13 @@ class Manager
 
     /**
      * @param Boost $boost
+     * @param string|null $iapTransaction
      * @return PaymentDetails
+     * @throws InAppPurchaseNotAcknowledgedException
      * @throws InvalidPaymentMethodException
+     * @throws NotImplementedException
      * @throws ServerErrorException
+     * @throws GuzzleException
      */
     public function createPaymentFromBoost(Boost $boost, ?string $iapTransaction = null): PaymentDetails
     {
@@ -82,8 +94,21 @@ class Manager
 
         $paymentTxId = $boost->getPaymentTxId();
         if ($iapTransaction) {
-            $iapTransactionDetails = json_decode()
-            $paymentTxId = $iapTransaction;
+            $iapTransactionDetails = json_decode($iapTransaction);
+
+            $purchaseProductDetails = $this->inAppPurchasesManager->getProductPurchaseDetails(
+                new InAppPurchase(
+                    source: $paymentMethod === PaymentMethod::ANDROID_IAP ? GoogleInAppPurchasesClient::class : AppleInAppPurchasesClient::class,
+                    purchaseToken: $iapTransactionDetails->purchaseToken ?? "",
+                    productId: $iapTransactionDetails->productId ?? "",
+                    transactionId: $iapTransaction,
+                )
+            );
+            if (!$purchaseProductDetails->acknowledged) {
+                throw new InAppPurchaseNotAcknowledgedException();
+            }
+
+            $paymentTxId = ($iapTransaction->orderId ?? "") . "_" . ($iapTransaction->purchaseToken ?? "");
         }
 
         $paymentDetails = new PaymentDetails([

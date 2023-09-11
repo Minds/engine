@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
+use Minds\Core\Payments\InAppPurchases\Manager as InAppPurchasesManager;
 use Minds\Core\Payments\Stripe\PaymentMethods\Manager as StripePaymentMethodsManager;
 use Minds\Core\Payments\V2\Controllers\PaymentMethodsController;
 use Minds\Core\Payments\V2\PaymentMethods\Manager as PaymentMethodsManager;
@@ -22,7 +23,9 @@ class Provider extends DiProvider
         $this->di->bind(
             Manager::class,
             function (Di $di): Manager {
-                return new Manager();
+                return new Manager(
+                    $di->get(InAppPurchasesManager::class)
+                );
             },
             ['factory' => true]
         );

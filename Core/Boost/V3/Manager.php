@@ -177,14 +177,18 @@ class Manager
      * @throws ServerErrorException
      * @throws GiftCardNotFoundException
      */
-    private function processNewBoostPayment(Boost $boost, bool $isOnchainBoost, ?string $paymentTxId = null) : void
-    {
+    private function processNewBoostPayment(
+        Boost $boost,
+        bool $isOnchainBoost,
+        ?string $paymentTxId = null,
+        ?string $iapTransaction = null
+    ) : void {
         /**
          * Boost payment entry into `minds_payments` had to be separated into its own method
          * and outside the main transaction to avoid causing an issue with the foreign key
          * in the `minds_gift_card_transactions` table.
          */
-        $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user);
+        $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user, $iapTransaction);
         $boost->setPaymentGuid($paymentDetails->paymentGuid);
 
         $this->repository->beginTransaction();
@@ -230,7 +234,7 @@ class Manager
                 return;
             }
 
-            $this->processNewBoostPayment($boost, $isOnchainBoost, $paymentTxId);
+            $this->processNewBoostPayment($boost, $isOnchainBoost, $paymentTxId, $iapTransaction);
 
             if (!$this->repository->createBoost($boost)) {
                 throw new BoostCreationFailedException();

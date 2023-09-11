@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\InAppPurchases;
 
+use GuzzleHttp\Exception\GuzzleException;
 use Minds\Common\SystemUser;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
@@ -14,6 +15,7 @@ use Minds\Core\Payments\InAppPurchases\Apple\AppleInAppPurchasesClient;
 use Minds\Core\Payments\InAppPurchases\Clients\InAppPurchasesClientFactory;
 use Minds\Core\Payments\InAppPurchases\Google\GoogleInAppPurchasesClient;
 use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
+use Minds\Core\Payments\InAppPurchases\Models\ProductPurchase;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
@@ -117,5 +119,63 @@ class Manager
         );
 
         return true;
+    }
+
+    /**
+     * @param InAppPurchase $inAppPurchase
+     * @return ProductPurchase
+     * @throws GuzzleException
+     * @throws NotImplementedException
+     */
+    public function getProductPurchaseDetails(InAppPurchase $inAppPurchase): ProductPurchase
+    {
+        return match ($inAppPurchase->source) {
+            GoogleInAppPurchasesClient::class => $this->fetchAndroidProductPurchase($inAppPurchase),
+            AppleInAppPurchasesClient::class => $this->fetchAppleProductPurchase($inAppPurchase),
+            default => throw new NotImplementedException("getProductPurchaseDetails"),
+        };
+    }
+
+    /**
+     * @param InAppPurchase $inAppPurchase
+     * @return mixed
+     * @throws NotImplementedException
+     * @throws GuzzleException
+     */
+    private function fetchAppleProductPurchase(InAppPurchase $inAppPurchase): ProductPurchase
+    {
+        /**
+         * @var AppleInAppPurchasesClient $inAppPurchaseClient
+         */
+        $inAppPurchaseClient = $this->inAppPurchasesClientFactory->createClient(AppleInAppPurchasesClient::class);
+
+        // TODO: Implementation of this method is not complete
+        $appleTransaction = $inAppPurchaseClient->getTransaction($inAppPurchase->transactionId);
+
+        return new ProductPurchase(
+            $inAppPurchase->productId,
+            "TODO"
+        );
+    }
+
+    /**
+     * @param InAppPurchase $inAppPurchase
+     * @return ProductPurchase
+     * @throws NotImplementedException
+     */
+    private function fetchAndroidProductPurchase(InAppPurchase $inAppPurchase): ProductPurchase
+    {
+        /** @var GoogleInAppPurchasesClient $inAppPurchaseClient
+         *
+         */
+        $inAppPurchaseClient = $this->inAppPurchasesClientFactory->createClient(GoogleInAppPurchasesClient::class);
+
+        $androidProductPurchase = $inAppPurchaseClient->getInAppPurchaseProductPurchase($inAppPurchase);
+
+        return new ProductPurchase(
+            $inAppPurchase->productId,
+            $androidProductPurchase->getOrderId() . "_" . $androidProductPurchase->getPurchaseToken(),
+            (bool) $androidProductPurchase->getAcknowledgementState()
+        );
     }
 }
