@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Admin;
 
+use Minds\Core\Data\Call;
 use Minds\Core\Email\Confirmation\Manager as EmailConfirmationManager;
 use Minds\Core\Email\SpamFilter;
 use Minds\Core\Email\Verify\Manager as EmailVerifyManager;
@@ -148,8 +149,17 @@ class Manager
         } catch (RegistrationException $e) {
             throw new GraphQLException($e->getMessage());
         }
+        $oldUsername = $targetUser->username;
 
         $targetUser->username = $newUsername;
         $targetUser->save();
+
+        // Free up old username
+        $db = new Call('user_index_to_guid');
+        if ($db->getRow(strtolower($oldUsername))) {
+            if (!$db->removeRow($oldUsername)) {
+                throw new GraphQLException('Warning: Username updated but encountered error when deleting old username');
+            }
+        }
     }
 }
