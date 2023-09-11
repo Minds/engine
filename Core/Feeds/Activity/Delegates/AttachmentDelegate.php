@@ -138,7 +138,7 @@ class AttachmentDelegate
                         'width' => $attachment->width,
                         'height' => $attachment->height,
                         'blurhash' => $attachment->blurhash,
-                        'gif' => (bool) $attachment->gif ?? false,
+                        'gif' => $attachment->gif
                     ]]);
                 break;
             case 'video':

@@ -126,6 +126,7 @@ class Manager
         );
 
         $targetUser->telno = null;
+        $targetUser->twofactor = false;
         $targetUser->save();
     }
 
