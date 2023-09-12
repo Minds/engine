@@ -182,13 +182,13 @@ class Manager
      */
     public function sendGiftCardToIssuer(User $issuer, GiftCard $giftCard): void
     {
+        $paymentTxId = null;
+
         try {
             $paymentTransactions = iterator_to_array($this->repository->getGiftCardTransactions(
                 giftCardGuid: $giftCard?->guid,
                 limit: 1
             ));
-
-            $paymentTxId = null;
 
             if (count($paymentTransactions)) {
                 $paymentGuid = $paymentTransactions[0]->paymentGuid;
