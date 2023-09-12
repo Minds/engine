@@ -69,7 +69,7 @@ class Emailer extends EmailCampaign
      */
     public function send()
     {
-        if (!$this->targetEmail && !$this->user?->email) {
+        if (!$this->targetEmail) {
             return;
         }
 
@@ -102,9 +102,7 @@ class Emailer extends EmailCampaign
         $this->template->setTemplate('default.v2.tpl');
         $this->template->setBody('./template.tpl');
 
-        $this->template->set('user', $this->user ?? null);
-        $this->template->set('email', $this->user?->getEmail() ?? $this->targetEmail);
-        $this->template->set('guid', $this->user?->getGuid());
+        $this->template->set('email', $this->targetEmail);
         $this->template->set('campaign', $this->campaign);
         $this->template->set('topic', $this->topic);
         $this->template->set('tracking', $this->getTrackingQueryString());
@@ -197,8 +195,7 @@ class Emailer extends EmailCampaign
     {
         return http_build_query(
             [
-                '__e_ct_guid' => $this->user?->getGuid(),
-                '__e_ct_email' => $this->user?->getEmail() ?? $this->targetEmail,
+                '__e_ct_email' => $this->targetEmail,
                 'campaign' => 'when',
                 'topic' => $this->topic,
             ]
