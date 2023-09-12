@@ -46,7 +46,7 @@ class PlusEmailSpec extends ObjectBehavior
 
         $this->buildBodyContentArray()
             ->shouldBe([
-                "Thanks for gifting <b>Minds+ ($10 for 1 month)</b> to someone lucky. If you selected a recipient during checkout, we've already notified them with details on how they can claim the gift.",
+                "Thanks for gifting <b>Minds+ (1 month)</b> to someone lucky. If you selected a recipient during checkout, we've already notified them with details on how they can claim the gift.",
                 "<b>Or you can share this claim link</b> with them, whether or not they already have a Minds account."
             ]);
     }
@@ -74,7 +74,7 @@ class PlusEmailSpec extends ObjectBehavior
 
         $this->buildBodyContentArray()
             ->shouldBe([
-                "Thanks for gifting <b>Minds+ ($110 for 1 year)</b> to someone lucky. If you selected a recipient during checkout, we've already notified them with details on how they can claim the gift.",
+                "Thanks for gifting <b>Minds+ (1 year)</b> to someone lucky. If you selected a recipient during checkout, we've already notified them with details on how they can claim the gift.",
                 "<b>Or you can share this claim link</b> with them, whether or not they already have a Minds account."
             ]);
     }
@@ -102,7 +102,7 @@ class PlusEmailSpec extends ObjectBehavior
 
         $this->buildBodyContentArray()
             ->shouldBe([
-                "Thanks for gifting <b>Minds+ ($109 for 1 month)</b> to someone lucky. If you selected a recipient during checkout, we've already notified them with details on how they can claim the gift.",
+                "Thanks for gifting <b>Minds+ (1 month)</b> to someone lucky. If you selected a recipient during checkout, we've already notified them with details on how they can claim the gift.",
                 "<b>Or you can share this claim link</b> with them, whether or not they already have a Minds account."
             ]);
     }
@@ -130,7 +130,7 @@ class PlusEmailSpec extends ObjectBehavior
 
         $this->buildBodyContentArray()
             ->shouldBe([
-                "Thanks for gifting <b>Minds+ ($111 for 1 year)</b> to someone lucky. If you selected a recipient during checkout, we've already notified them with details on how they can claim the gift.",
+                "Thanks for gifting <b>Minds+ (1 year)</b> to someone lucky. If you selected a recipient during checkout, we've already notified them with details on how they can claim the gift.",
                 "<b>Or you can share this claim link</b> with them, whether or not they already have a Minds account."
             ]);
     }

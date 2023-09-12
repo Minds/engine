@@ -37,7 +37,7 @@ class PlusEmail implements GiftCardIssuerEmailInterface
     public function buildBodyContentArray(): array
     {
         return [
-            "Thanks for gifting <b>Minds+ {$this->getAmountAndSpan()}</b> to someone lucky. If you selected a recipient during checkout, we've already notified them with details on how they can claim the gift.",
+            "Thanks for gifting <b>Minds+ {$this->getSpanText()}</b> to someone lucky. If you selected a recipient during checkout, we've already notified them with details on how they can claim the gift.",
             "<b>Or you can share this claim link</b> with them, whether or not they already have a Minds account."
         ];
     }
@@ -52,12 +52,12 @@ class PlusEmail implements GiftCardIssuerEmailInterface
     }
 
     /**
-     * Get amount and timespan for subscription, in brackets,
+     * Get timespan for subscription, in brackets,
      * derived from the gift card amount and most expensive tier
      * the user can purchase with it.
-     * @return string amount and timespan.
+     * @return string timespan.
      */
-    private function getAmountAndSpan(): string
+    private function getSpanText(): string
     {
         $upgradesConfig = $this->config->get('upgrades');
         $yearlyUsd = $upgradesConfig['plus']['yearly']['usd'] ?? null;
@@ -68,11 +68,11 @@ class PlusEmail implements GiftCardIssuerEmailInterface
         }
 
         if ($this->amount >= $yearlyUsd) {
-            return "(\${$this->amount} for 1 year)";
+            return "(1 year)";
         }
 
         if ($this->amount >= $monthlyUsd) {
-            return "(\${$this->amount} for 1 month)";
+            return "(1 month)";
         }
 
         return '';
