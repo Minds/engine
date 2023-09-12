@@ -263,4 +263,51 @@ class Repository
             throw new ServerErrorException("An error occurred whilst retrieving affiliates earnings");
         }
     }
+
+    /**
+     * Returns a PaymentDetails object retrieved by payment guid.
+     * @param int $paymentGuid - guid of payment to get.
+     * @return PaymentDetails - payment details object.
+     * @throws ServerErrorException
+     */
+    public function getPaymentByPaymentGuid(int $paymentGuid): PaymentDetails
+    {
+        $statement = $this->mysqlClientReaderHandler->select()
+            ->from('minds_payments')
+            ->where('payment_guid', Operator::EQ, new RawExp(':payment_guid'))
+            ->prepare();
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, [
+            'payment_guid' => $paymentGuid
+        ]);
+
+        try {
+            $statement->execute();
+
+            $row = $statement->fetch();
+                
+            if (!$row) {
+                return null;
+            }
+
+            return new PaymentDetails([
+                'paymentGuid' => $row['payment_guid'] ?? null,
+                'userGuid' => $row['user_guid'] ?? null,
+                'affiliateUserGuid' => $row['affiliate_user_guid'] ?? null,
+                'affiliateType' => $row['affiliate_type']  ?? null,
+                'paymentType' => $row['payment_type']  ?? null,
+                'paymentStatus' => $row['payment_status']  ?? null,
+                'paymentMethod' => $row['payment_method']  ?? null,
+                'paymentAmountMillis' => $row['payment_amount_millis']  ?? null,
+                'refundedAmountMillis' => $row['refunded_amount_millis']  ?? null,
+                'isCaptured' => (bool) $row['is_captured'] ?? false,
+                'paymentTxId' => $row['payment_tx_id'] ?? null,
+                'createdTimestamp' => isset($row['created_timestamp']) ? strtotime($row['created_timestamp']) : null,
+                'updatedTimestamp' => isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
+            ]);
+        } catch (PDOException $e) {
+            $this->logger->error($e);
+            throw new ServerErrorException("An error occurred whilst retrieving payment with the guid: " . $paymentGuid);
+        }
+    }
 }

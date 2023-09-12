@@ -1,10 +1,13 @@
 <?php
 namespace Minds\Core\Payments\GiftCards\Models;
 
+use Minds\Core\Di\Di;
 use Minds\Core\GraphQL\Traits\GraphQLSubQueryTrait;
 use Minds\Core\GraphQL\Types\NodeInterface;
+use Minds\Core\Payments\GiftCards\Enums\GiftCardPaymentTypeEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Types\GiftCardTransactionsConnection;
+use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 use TheCodingMachine\GraphQLite\Types\ID;
@@ -77,5 +80,25 @@ class GiftCard implements NodeInterface
             before: $before,
             loggedInUser: $this->loggedInUser
         );
+    }
+
+    /**
+     * Username of the gift card issuer
+     * @return string username of the gift card issuer.
+     */
+    #[Field(name: 'issuedByUsername')]
+    public function issuedByUsername(): string
+    {
+        if (GiftCardPaymentTypeEnum::INTERNAL) {
+            return 'minds';
+        }
+
+        $user = Di::_()->get('EntitiesBuilder')->single($this->guid);
+        
+        if (!$user || !($user instanceof User)) {
+            return null;
+        }
+
+        return $user->getUsername();
     }
 }
