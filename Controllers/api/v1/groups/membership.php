@@ -142,9 +142,13 @@ class membership implements Interfaces\Api
                     if (!$user instanceof User) {
                         return false;
                     }
-                    $userMembership = $this->membershipManager->getMembership($group, $user);
-                    if ($userMembership->isMember()) {
-                        $members[] = $userMembership;
+                    try {
+                        $userMembership = $this->membershipManager->getMembership($group, $user);
+                        if ($userMembership->isMember()) {
+                            $members[] = $userMembership;
+                        }
+                    } catch (\Exception $e) {
+
                     }
                 }
 
