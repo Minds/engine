@@ -3,10 +3,12 @@ namespace Minds\Core\ActivityPub\Services;
 
 use Minds\Common\Access;
 use Minds\Core\ActivityPub\Helpers\ContentParserBuilder;
+use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Activity\AcceptType;
 use Minds\Core\ActivityPub\Types\Activity\AnnounceType;
 use Minds\Core\ActivityPub\Types\Activity\CreateType;
+use Minds\Core\ActivityPub\Types\Activity\DeleteType;
 use Minds\Core\ActivityPub\Types\Activity\FollowType;
 use Minds\Core\ActivityPub\Types\Activity\LikeType;
 use Minds\Core\ActivityPub\Types\Activity\UndoType;
@@ -15,6 +17,7 @@ use Minds\Core\ActivityPub\Types\Object\DocumentType;
 use Minds\Core\ActivityPub\Types\Object\NoteType;
 use Minds\Core\Comments\Comment;
 use Minds\Core\Config\Config;
+use Minds\Core\Entities\Actions\Delete;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
 use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Guid;
@@ -65,15 +68,16 @@ class ProcessActivityService
         $className = get_class($this->activity);
 
         /** @var User $owner */
-        $owner = $this->manager->getEntityFromUri($this->activity->actor->id);
-        if (!$owner) {
+        $owner = $this->manager->getEntityFromUri(JsonLdHelper::getValueOrId($this->activity->actor));
+        if (!$owner && !$this->activity instanceof DeleteType) {
             // Actor not found, we will try and pull in their profile
 
-            $this->logger->info("$logPrefix Actor ({$this->activity->actor->id}) not found, fetching them");
+            $actorId = JsonLdHelper::getValueOrId($this->activity->actor);
+            $this->logger->info("$logPrefix Actor ({$actorId}) not found, fetching them");
 
             try {
                 $owner = $this->processActorService
-                    ->withActorUri($this->activity->actor->id)
+                    ->withActorUri(JsonLdHelper::getValueOrId($this->activity->actor))
                     ->process();
 
                 if (!$owner) {
@@ -128,8 +132,26 @@ class ProcessActivityService
                 );
 
                 break;
+            case DeleteType::class:
+                // Do we have a copy of this?
+                $entity = $this->manager->getEntityFromUri(JsonLdHelper::getValueOrId($this->activity->object));
+
+                if (!$entity) {
+                    throw new NotFoundException();
+                }
+
+                $actor = $this->manager->getEntityFromUri(JsonLdHelper::getValueOrId($this->activity->actor));
+
+                if (!$actor || !$this->acl->write($entity, $actor)) {
+                    throw new ForbiddenException();
+                }
+
+                $del = new Delete();
+                $del->setEntity($entity)->delete();
+
+                break;
             case FollowType::class:
-                $actor = $this->manager->getEntityFromUri($this->activity->actor->id);
+                $actor = $this->manager->getEntityFromUri(JsonLdHelper::getValueOrId($this->activity->actor));
                 if (!$actor) {
                     $this->logger->info("$logPrefix The actor could not be found");
                     // The actor doesn't exist, so we wont continue
@@ -165,7 +187,7 @@ class ProcessActivityService
                 // Nothing to do here?
                 break;
             case LikeType::class:
-                $actor = $this->manager->getEntityFromUri($this->activity->actor->id);
+                $actor = $this->manager->getEntityFromUri(JsonLdHelper::getValueOrId($this->activity->actor));
                 if (!$actor) {
                     $this->logger->info("$logPrefix The actor could not be found");
                     // The actor doesn't exist, so we wont continue
@@ -173,6 +195,19 @@ class ProcessActivityService
                 }
 
                 $entity = $this->manager->getEntityFromUri($this->activity->object->id);
+
+                if (!$entity) {
+                    $this->processObjectService
+                        ->withObject($this->activity->object)
+                        ->process();
+
+                    $entity = $this->manager->getEntityFromUri($this->activity->object->id);
+
+                    // The entity is still not found, so we will skip these
+                    if (!$entity) {
+                        return;
+                    }
+                }
                 
                 $vote = (new Vote())
                     ->setEntity($entity)
@@ -198,7 +233,7 @@ class ProcessActivityService
                         /**
                          * Unfollow
                          */
-                        $actor = $this->manager->getEntityFromUri($this->activity->actor->id);
+                        $actor = $this->manager->getEntityFromUri(JsonLdHelper::getValueOrId($this->activity->actor));
                         if (!$actor) {
                             // The actor doesn't exist, so we wont continue
                             throw new ForbiddenException();
@@ -215,7 +250,7 @@ class ProcessActivityService
                     case LikeType::class:
                         /** @var LikeType $likeType */
                         $likeType = $this->activity->object;
-                        $actor = $this->manager->getEntityFromUri($this->activity->actor->id);
+                        $actor = $this->manager->getEntityFromUri(JsonLdHelper::getValueOrId($this->activity->actor));
                         if (!$actor) {
                             // The actor doesn't exist, so we wont continue
                             throw new ForbiddenException();

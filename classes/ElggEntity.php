@@ -1275,7 +1275,8 @@ abstract class ElggEntity extends ElggData implements
             }
 
             \Minds\Core\Events\Dispatcher::trigger('entities-ops', 'delete', [
-                'entityUrn' => $this->getUrn()
+                'entityUrn' => $this->getUrn(),
+                'entity' => $this,
             ]);
 
             return true;
