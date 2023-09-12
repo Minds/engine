@@ -88,11 +88,13 @@ class Manager
      */
     public function getThumbnailUrl(Video $video): string
     {
+        $size = 640;
+
         $signedToken = $this->getSigningToken($video->getCloudflareId(), 86400 * 90); // 90 days ttl for thumbnails
 
-        $signedUrl = "{$this->getCdnUrl()}/$signedToken/thumbnails/thumbnail.jpg?width=1280";
+        $signedUrl = "{$this->getCdnUrl()}/$signedToken/thumbnails/thumbnail.jpg?width=$size";
     
-        return $this->getProxyUrl() . '?size=1280&src=' . urlencode($signedUrl);
+        return $this->getProxyUrl() . "?size=$size&src=" . urlencode($signedUrl);
     }
 
     /**
