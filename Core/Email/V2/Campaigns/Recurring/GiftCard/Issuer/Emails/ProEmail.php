@@ -60,8 +60,8 @@ class ProEmail implements GiftCardIssuerEmailInterface
     private function getAmountAndSpan(): string
     {
         $upgradesConfig = $this->config->get('upgrades');
-        $yearlyUsd = $upgradesConfig['pro']['yearly']['usd'];
-        $monthlyUsd = $upgradesConfig['pro']['monthly']['usd'];
+        $yearlyUsd = $upgradesConfig['pro']['yearly']['usd'] ?? null;
+        $monthlyUsd = $upgradesConfig['pro']['monthly']['usd'] ?? null;
 
         if (!$monthlyUsd || !$yearlyUsd) {
             return '';

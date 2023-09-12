@@ -124,13 +124,13 @@ class Emailer extends EmailCampaign
         }
 
         return (new Message())
-            ->setTo($this->user ?? (new User())->setName("")->setEmail($this->targetEmail))
+            ->setTo((new User())->setName("")->setEmail($this->targetEmail))
             ->setMessageId(
                 implode(
                     '-',
                     [
-                        $this->user?->getGuid() ?? Random::string(10),
-                        sha1($this->user?->getEmail() ?? $this->targetEmail),
+                        Random::string(10),
+                        sha1($this->targetEmail),
                         sha1($this->campaign . $this->topic . time())
                     ]
                 )

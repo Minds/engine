@@ -436,4 +436,16 @@ class ManagerSpec extends ObjectBehavior
             sourceActivity: null
         );
     }
+
+    public function it_should_get_payment_by_payment_guid(PaymentDetails $paymentDetails)
+    {
+        $paymentGuid = 1234567890123456;
+
+        $this->repositoryMock->getPaymentByPaymentGuid($paymentGuid)
+            ->shouldBeCalled()
+            ->willReturn($paymentDetails);
+
+        $this->getPaymentByPaymentGuid($paymentGuid)
+            ->shouldBe($paymentDetails);
+    }
 }

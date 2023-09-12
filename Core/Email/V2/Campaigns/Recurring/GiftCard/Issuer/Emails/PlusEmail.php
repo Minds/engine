@@ -60,8 +60,8 @@ class PlusEmail implements GiftCardIssuerEmailInterface
     private function getAmountAndSpan(): string
     {
         $upgradesConfig = $this->config->get('upgrades');
-        $yearlyUsd = $upgradesConfig['plus']['yearly']['usd'];
-        $monthlyUsd = $upgradesConfig['plus']['monthly']['usd'];
+        $yearlyUsd = $upgradesConfig['plus']['yearly']['usd'] ?? null;
+        $monthlyUsd = $upgradesConfig['plus']['monthly']['usd'] ?? null;
 
         if (!$monthlyUsd || !$yearlyUsd) {
             return '';

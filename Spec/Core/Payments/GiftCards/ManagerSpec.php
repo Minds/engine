@@ -12,14 +12,17 @@ use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardStatusFilterEnum;
 use Minds\Core\Payments\GiftCards\Manager;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
+use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
 use Minds\Core\Payments\GiftCards\PaymentProcessor;
 use Minds\Core\Payments\GiftCards\Repository;
+use Minds\Core\Payments\GiftCards\Types\GiftCardTarget;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -195,5 +198,154 @@ class ManagerSpec extends ObjectBehavior
         $claimer->getGuid()->willReturn('1244987032468459523');
 
         $this->claimGiftCard($claimer, 'claim-me')->shouldReturn($giftCard);
+    }
+
+    public function it_should_send_a_gift_card_to_an_issuer(User $issuer): void
+    {
+        $giftCardGuid = '123';
+        $paymentGuid = '234';
+        $paymentTxId = 'sk_123';
+
+        $giftCard = new GiftCard(
+            guid: (int) $giftCardGuid,
+            productId: GiftCardProductIdEnum::PLUS,
+            amount: 100,
+            issuedByGuid: (int) '1231',
+            issuedAt: time(),
+            claimCode: 'claimCode',
+            expiresAt: time(),
+            balance: 100
+        );
+
+        $giftCardTransaction = new GiftCardTransaction(
+            paymentGuid: (int) $paymentGuid,
+            giftCardGuid: (int) $giftCardGuid,
+            amount: 100,
+            createdAt: time()
+        );
+
+        $this->repositoryMock->getGiftCardTransactions(
+            null,
+            $giftCardGuid,
+            1,
+            null,
+            null,
+            null
+        )->shouldBeCalled()
+            ->willYield([$giftCardTransaction]);
+
+        $this->paymentsManagerMock->getPaymentByPaymentGuid($paymentGuid)
+            ->shouldBeCalled()
+            ->willReturn(new PaymentDetails([
+                'paymentTxId' => $paymentTxId
+            ]));
+
+        $this->emailDelegateMock->onIssuerEmailRequested(
+            giftCard: $giftCard,
+            issuer: $issuer,
+            paymentTxId: $paymentTxId
+        )->shouldBeCalled();
+
+        $this->sendGiftCardToIssuer(
+            issuer: $issuer,
+            giftCard: $giftCard
+        );
+    }
+
+    public function it_should_patch_a_gift_card_target_with_only_a_username(User $user)
+    {
+        $targetUsername = 'testUser';
+        $targetUserGuid = null;
+        $targetEmail = null;
+        $fetchedUserGuid = '1234567890123456';
+
+        $recipient = new GiftCardTarget(
+            targetUsername: $targetUsername,
+            targetUserGuid: $targetUserGuid,
+            targetEmail: $targetEmail
+        );
+
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($fetchedUserGuid);
+
+        $this->entitiesBuilderMock->getByUserByIndex($targetUsername)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->patchGiftCardTarget($recipient)
+            ->shouldBeLike(new GiftCardTarget(
+                targetUsername: null,
+                targetUserGuid: (int) $fetchedUserGuid,
+                targetEmail: null
+            ));
+    }
+
+    public function it_should_throw_an_error_patching_a_gift_card_target_with_only_a_username_when_user_not_found()
+    {
+        $targetUsername = 'testUser';
+        $targetUserGuid = null;
+        $targetEmail = null;
+
+        $recipient = new GiftCardTarget(
+            targetUsername: $targetUsername,
+            targetUserGuid: $targetUserGuid,
+            targetEmail: $targetEmail
+        );
+
+        $this->entitiesBuilderMock->getByUserByIndex($targetUsername)
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->shouldThrow(GraphQLException::class)
+            ->during('patchGiftCardTarget', [$recipient]);
+    }
+
+    public function it_should_NOT_patch_a_gift_card_target_with_NO_username()
+    {
+        $targetUsername = null;
+        $targetUserGuid = 1234567890123456;
+        $targetEmail = 'noreply@minds.com';
+
+        $recipient = new GiftCardTarget(
+            targetUsername: $targetUsername,
+            targetUserGuid: $targetUserGuid,
+            targetEmail: $targetEmail
+        );
+
+        $this->patchGiftCardTarget($recipient)
+            ->shouldBeLike($recipient);
+    }
+
+    public function it_should_NOT_patch_a_gift_card_target_with_a_target_guid()
+    {
+        $targetUsername = 'testUser';
+        $targetUserGuid = 1234567890123456;
+        $targetEmail = null;
+
+        $recipient = new GiftCardTarget(
+            targetUsername: $targetUsername,
+            targetUserGuid: $targetUserGuid,
+            targetEmail: $targetEmail
+        );
+
+        $this->patchGiftCardTarget($recipient)
+            ->shouldBeLike($recipient);
+    }
+
+    public function it_should_NOT_patch_an_empty_gift_card_target()
+    {
+        $targetUsername = null;
+        $targetUserGuid = null;
+        $targetEmail = null;
+
+        $recipient = new GiftCardTarget(
+            targetUsername: $targetUsername,
+            targetUserGuid: $targetUserGuid,
+            targetEmail: $targetEmail
+        );
+
+        $this->patchGiftCardTarget($recipient)
+            ->shouldBeLike($recipient);
     }
 }
