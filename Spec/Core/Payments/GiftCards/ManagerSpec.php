@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Payments\GiftCards;
 
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
 use Minds\Core\Payments\GiftCards\Delegates\NotificationDelegate;
@@ -29,6 +30,7 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $emailDelegateMock;
     private Collaborator $notificationDelegateMock;
     private Collaborator $loggerMock;
+    private Collaborator $entitiesBuilderMock;
 
     public function let(
         Repository $repositoryMock,
@@ -36,7 +38,8 @@ class ManagerSpec extends ObjectBehavior
         PaymentProcessor $paymentProcessor,
         EmailDelegate $emailDelegate,
         NotificationDelegate $notificationDelegate,
-        Logger $logger
+        Logger $logger,
+        EntitiesBuilder $entitiesBuilder
     ): void {
         $this->repositoryMock = $repositoryMock;
         $this->paymentsManagerMock = $paymentsManagerMock;
@@ -44,6 +47,7 @@ class ManagerSpec extends ObjectBehavior
         $this->emailDelegateMock = $emailDelegate;
         $this->notificationDelegateMock = $notificationDelegate;
         $this->loggerMock = $logger;
+        $this->entitiesBuilderMock = $entitiesBuilder;
 
         $this->beConstructedWith(
             $this->repositoryMock,
@@ -52,6 +56,7 @@ class ManagerSpec extends ObjectBehavior
             $this->emailDelegateMock,
             $this->loggerMock,
             $this->notificationDelegateMock,
+            $this->entitiesBuilderMock
         );
     }
 
