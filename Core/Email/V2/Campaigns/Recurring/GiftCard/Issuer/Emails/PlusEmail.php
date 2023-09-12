@@ -64,7 +64,7 @@ class PlusEmail implements GiftCardIssuerEmailInterface
         $monthlyUsd = $upgradesConfig['plus']['monthly']['usd'];
 
         if (!$monthlyUsd || !$yearlyUsd) {
-            return null;
+            return '';
         }
 
         if ($this->amount >= $yearlyUsd) {
@@ -75,6 +75,6 @@ class PlusEmail implements GiftCardIssuerEmailInterface
             return "(\${$this->amount} for 1 month)";
         }
 
-        return null;
+        return '';
     }
 }
