@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Payments\GiftCards\Models;
 
+use Minds\Common\SystemUser;
 use Minds\Core\Di\Di;
 use Minds\Core\GraphQL\Traits\GraphQLSubQueryTrait;
 use Minds\Core\GraphQL\Types\NodeInterface;
@@ -90,7 +91,7 @@ class GiftCard implements NodeInterface
     #[Field(name: 'issuedByUsername')]
     public function issuedByUsername(): string
     {
-        if (GiftCardPaymentTypeEnum::INTERNAL) {
+        if ($this->issuedByGuid === (new SystemUser())->getGuid()) {
             return 'minds';
         }
 
