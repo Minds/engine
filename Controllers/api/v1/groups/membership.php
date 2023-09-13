@@ -145,6 +145,7 @@ class membership implements Interfaces\Api
                     try {
                         $userMembership = $this->membershipManager->getMembership($group, $user);
                         if ($userMembership->isMember()) {
+                            $userMembership->setUser($user);
                             $members[] = $userMembership;
                         }
                     } catch (\Exception $e) {
