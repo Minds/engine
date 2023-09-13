@@ -94,8 +94,8 @@ class GiftCard implements NodeInterface
             return 'minds';
         }
 
-        $user = Di::_()->get('EntitiesBuilder')->single($this->guid);
-        
+        $user = Di::_()->get('EntitiesBuilder')->single($this->issuedByGuid);
+
         if (!$user || !($user instanceof User)) {
             return null;
         }
