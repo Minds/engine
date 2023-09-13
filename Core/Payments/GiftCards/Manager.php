@@ -120,6 +120,7 @@ class Manager
             $paymentRef = "internal";
             if ($giftCardPaymentTypeEnum === GiftCardPaymentTypeEnum::CASH) {
                 $paymentRef = $this->paymentProcessor->setupPayment($giftCard, $stripePaymentMethodId);
+                $giftCard->purchaseTxId = $paymentRef;
             }
             // Open a transaction
             $this->repository->beginTransaction();
@@ -182,27 +183,9 @@ class Manager
      */
     public function sendGiftCardToIssuer(User $issuer, GiftCard $giftCard): void
     {
-        $paymentTxId = null;
-
-        try {
-            $paymentTransactions = iterator_to_array($this->repository->getGiftCardTransactions(
-                giftCardGuid: $giftCard?->guid,
-                limit: 1
-            ));
-
-            if (count($paymentTransactions)) {
-                $paymentGuid = $paymentTransactions[0]->paymentGuid;
-                $paymentDetails = $this->paymentsManager->getPaymentByPaymentGuid($paymentGuid);
-                $paymentTxId = $paymentDetails->paymentTxId;
-            }
-        } catch(\Exception $e) {
-            $this->logger->error($e);
-        }
-
         $this->emailDelegate->onIssuerEmailRequested(
             giftCard: $giftCard,
-            issuer: $issuer,
-            paymentTxId: $paymentTxId
+            issuer: $issuer
         );
     }
 

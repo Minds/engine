@@ -184,14 +184,4 @@ class Manager
     ): Iterator {
         return $this->repository->getPaymentsAffiliatesEarnings($paymentOptions);
     }
-
-    /**
-     * Gets a payment by payment guid.
-     * @param int $paymentGuid - payment guid to get payment for.
-     * @return PaymentDetails details of the payment retrieved.
-     */
-    public function getPaymentByPaymentGuid(int $paymentGuid): PaymentDetails
-    {
-        return $this->repository->getPaymentByPaymentGuid($paymentGuid);
-    }
 }

@@ -30,6 +30,7 @@ class GiftCard implements NodeInterface
         #[Field(outputType: 'String')] public ?int $claimedByGuid = null,
         #[Field] public ?int $claimedAt = null,
         #[Field] public float $balance = 0.00,
+        public ?string $purchaseTxId = null,
     ) {
     }
 

@@ -55,13 +55,11 @@ class EmailDelegate
      * Called when an issuer email is requested. Sends an email to the issuer.
      * @param GiftCard $giftCard - gift card.
      * @param User $issuer - issuer to send an email to.
-     * @param string|null $paymentTxId - optional TXID allowing a receipt to be provided in the email.
      * @return void
      */
     public function onIssuerEmailRequested(
         GiftCard $giftCard,
         User $issuer,
-        ?string $paymentTxId
     ): void {
         $this->issuerEmailer
             ->setGiftCard($giftCard)
@@ -69,7 +67,7 @@ class EmailDelegate
             ->setUser($issuer)
             ->setTargetEmail($issuer->getEmail())
             ->setTopic('gift-card-issuer-email')
-            ->setPaymentTxId($paymentTxId)
+            ->setPaymentTxId($giftCard->purchaseTxId)
             ->send();
     }
 }
