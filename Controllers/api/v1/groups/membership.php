@@ -140,11 +140,12 @@ class membership implements Interfaces\Api
                     }
                     $user = $this->entitiesBuilder->single($guid);
                     if (!$user instanceof User) {
-                        return false;
+                        continue;
                     }
                     try {
                         $userMembership = $this->membershipManager->getMembership($group, $user);
                         if ($userMembership->isMember()) {
+                            $userMembership->setUser($user);
                             $members[] = $userMembership;
                         }
                     } catch (\Exception $e) {
