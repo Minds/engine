@@ -86,10 +86,10 @@ class GiftCard implements NodeInterface
 
     /**
      * Username of the gift card issuer
-     * @return string username of the gift card issuer.
+     * @return string|null username of the gift card issuer.
      */
     #[Field(name: 'issuedByUsername')]
-    public function issuedByUsername(): string
+    public function issuedByUsername(): ?string
     {
         if ($this->issuedByGuid === (new SystemUser())->getGuid()) {
             return 'minds';
