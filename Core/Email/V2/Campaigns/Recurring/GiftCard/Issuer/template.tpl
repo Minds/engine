@@ -13,7 +13,7 @@
 <!-- CLAIM LINK -->
 <?php if(isset($vars['claimLink'])){ ?>
     <div <?= $emailStylesV2->getStyles(['m-mainContent__linkBox']) ?> >
-        <a href="<?php echo $vars['claimLink']; ?>" target="_blank"> <?php echo $vars['claimLink']; ?> </a>
+        <a <?= $emailStylesV2->getStyles(['m-mainContent__linkBoxHref']) ?> href="<?php echo $vars['claimLink']; ?>" target="_blank"> <?php echo $vars['claimLink']; ?> </a>
     </div>
 <?php } ?>
 

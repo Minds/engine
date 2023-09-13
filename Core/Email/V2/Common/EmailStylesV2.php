@@ -82,13 +82,15 @@ class EmailStylesV2
         "m-mainContent__linkBox" => [
             "font-size: 18px;",
             "line-height: 28px;",
-            "color: #0a080b;",
             "margin: 0 20px 30px;",
             "padding: 20px;",
             "background-color: rgb(238, 238, 238);",
             "font-family: monospace;",
             "word-break: break-word;",
             "text-decoration: underline;"
+        ],
+        "m-mainContent__linkBoxHref" => [
+            "color: #0a080b;"
         ],
         "m-mainContent__standaloneLink" => [
             "font-family: 'Inter', Arial, sans-serif;",
