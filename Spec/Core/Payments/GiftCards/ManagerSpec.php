@@ -203,8 +203,6 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_send_a_gift_card_to_an_issuer(User $issuer): void
     {
         $giftCardGuid = '123';
-        $paymentGuid = '234';
-        $paymentTxId = 'sk_123';
 
         $giftCard = new GiftCard(
             guid: (int) $giftCardGuid,
@@ -217,33 +215,9 @@ class ManagerSpec extends ObjectBehavior
             balance: 100
         );
 
-        $giftCardTransaction = new GiftCardTransaction(
-            paymentGuid: (int) $paymentGuid,
-            giftCardGuid: (int) $giftCardGuid,
-            amount: 100,
-            createdAt: time()
-        );
-
-        $this->repositoryMock->getGiftCardTransactions(
-            null,
-            $giftCardGuid,
-            1,
-            null,
-            null,
-            null
-        )->shouldBeCalled()
-            ->willYield([$giftCardTransaction]);
-
-        $this->paymentsManagerMock->getPaymentByPaymentGuid($paymentGuid)
-            ->shouldBeCalled()
-            ->willReturn(new PaymentDetails([
-                'paymentTxId' => $paymentTxId
-            ]));
-
         $this->emailDelegateMock->onIssuerEmailRequested(
             giftCard: $giftCard,
-            issuer: $issuer,
-            paymentTxId: $paymentTxId
+            issuer: $issuer
         )->shouldBeCalled();
 
         $this->sendGiftCardToIssuer(

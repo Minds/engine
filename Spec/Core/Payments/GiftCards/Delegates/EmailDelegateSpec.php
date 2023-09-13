@@ -47,6 +47,8 @@ class EmailDelegateSpec extends ObjectBehavior
         $paymentTxId = 'paymentTxId';
         $issuerEmail = 'noreply@minds.com';
 
+        $giftCard->purchaseTxId = $paymentTxId;
+
         $issuer->getEmail()
             ->shouldBeCalled()
             ->willReturn($issuerEmail);
@@ -81,8 +83,7 @@ class EmailDelegateSpec extends ObjectBehavior
 
         $this->onIssuerEmailRequested(
             giftCard: $giftCard,
-            issuer: $issuer,
-            paymentTxId: $paymentTxId
+            issuer: $issuer
         );
     }
 }
