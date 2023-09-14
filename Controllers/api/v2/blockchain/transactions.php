@@ -155,37 +155,37 @@ class transactions implements Interfaces\Api
                 }
                 break;
                 // case 'spend':
-            //     if (!$_POST['type']) {
-            //         return Factory::response([
-            //             'status' => 'error',
-            //             'message' => 'Type is required'
-            //         ]);
-            //     }
+                //     if (!$_POST['type']) {
+                //         return Factory::response([
+                //             'status' => 'error',
+                //             'message' => 'Type is required'
+                //         ]);
+                //     }
 
-            //     $amount = BigNumber::_($_POST['amount']);
+                //     $amount = BigNumber::_($_POST['amount']);
 
-            //     if ($amount->lte(0)) {
-            //         return Factory::response([
-            //             'status' => 'error',
-            //             'message' => 'Amount should be a positive number'
-            //         ]);
-            //     }
+                //     if ($amount->lte(0)) {
+                //         return Factory::response([
+                //             'status' => 'error',
+                //             'message' => 'Amount should be a positive number'
+                //         ]);
+                //     }
 
-            //     /** @var Core\Blockchain\Wallets\OffChain\Transactions $transactions */
-            //     $transactions = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
+                //     /** @var Core\Blockchain\Wallets\OffChain\Transactions $transactions */
+                //     $transactions = Di::_()->get('Blockchain\Wallets\OffChain\Transactions');
 
-            //     $transactions
-            //         ->setUser(Session::getLoggedinUser())
-            //         ->setType($_POST['type'])
-            //         ->setAmount((string) BigNumber::_($amount)->neg());
+                //     $transactions
+                //         ->setUser(Session::getLoggedinUser())
+                //         ->setType($_POST['type'])
+                //         ->setAmount((string) BigNumber::_($amount)->neg());
 
-            //     $transaction = $transactions->create();
+                //     $transaction = $transactions->create();
 
-            //     $response = [
-            //         'txHash' => $transaction->getTx()
-            //     ];
+                //     $response = [
+                //         'txHash' => $transaction->getTx()
+                //     ];
 
-            //     break;
+                //     break;
         }
 
         return Factory::response($response);

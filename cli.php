@@ -1,4 +1,10 @@
 <?php
+
+use Minds\Interfaces\SentryExceptionExclusionInterface;
+use Sentry\Event;
+use Sentry\EventHint;
+use Stripe\Exception\RateLimitException;
+
 $_SCRIPTNAME = basename(__FILE__);
 
 if (PHP_SAPI !== 'cli') {
@@ -12,6 +18,29 @@ require_once(dirname(__FILE__) . "/vendor/autoload.php");
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 date_default_timezone_set('UTC');
+
+// Sentry
+Sentry\init([
+    'dsn' => getenv('SENTRY_DSN'),
+    'release' => getenv('MINDS_VERSION') ?: 'Unknown',
+    'environment' => getenv('MINDS_ENV') ?: 'development',
+    'send_default_pii' => false,
+    'before_send' => function (Event $event, ?EventHint $hint): ?Event {
+        $exclusions = [
+            RateLimitException::class,
+            SentryExceptionExclusionInterface::class
+        ];
+
+        if ($hint !== null) {
+            if (array_filter($exclusions, function (string $value, int $key) use ($hint) {
+                return $hint->exception instanceof $value;
+            }, ARRAY_FILTER_USE_BOTH)) {
+                return null;
+            }
+        }
+        return $event;
+    },
+]);
 
 if (!isset($argv) || !is_array($argv)) {
     return;
@@ -37,7 +66,6 @@ if (!$argv) {
 
 try {
     $minds = new Minds\Core\Minds();
-    $minds->loadConfigs();
     $minds->loadLegacy();
     //loading events will instantiate all of the dependencies which won't be configured yet if we're installing
     if ($argv[0] !== 'install') {

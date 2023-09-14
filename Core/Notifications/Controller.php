@@ -1,15 +1,13 @@
 <?php
 namespace Minds\Core\Notifications;
 
-use Minds\Entities\User;
-use Minds\Core;
-use Minds\Core\Notification;
 use Minds\Api\Exportable;
+use Minds\Core\Di\Di;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
-use Minds\Core\Notifications\Manager;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
-use Minds\Core\Queue\Client as QueueClient;
 
 /**
  * Notifications Controller
@@ -28,9 +26,11 @@ class Controller
      * @param null $manager
      */
     public function __construct(
-        $manager = null
+        $manager = null,
+        private ?ExperimentsManager $experimentsManager = null,
     ) {
         $this->manager = $manager ?? new Manager();
+        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
     }
 
     /**
@@ -143,7 +143,22 @@ class Controller
             ]);
         }
 
-        $exportedList = array_values(array_filter(Exportable::_($notifications)->export(), function ($notification) {
+        $experimentsManager = $this->experimentsManager->setUser($user);
+
+        $exportedList = array_values(array_filter(Exportable::_($notifications)->export(), function ($notification) use ($experimentsManager): bool {
+            // Exclude gift card notifications if the experiment is off
+            if (!$experimentsManager->isOn('minds-4126-gift-card-claim') && $notification['type'] === NotificationTypes::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED) {
+                return false;
+            }
+
+            if (
+                $notification['type'] === NotificationTypes::TYPE_GROUP_QUEUE_RECEIVED &&
+                isset($_SERVER['HTTP_APP_VERSION']) &&
+                !$experimentsManager->isOn('mob-5097-group-queue-received-notification')
+            ) {
+                return false;
+            }
+
             if (!isset($notification['entity'])) {
                 return false; // TODO: Delete this notification as the entity is invalid
             }

@@ -1,13 +1,13 @@
 <?php
 namespace Minds\Core\Queue\RabbitMQ;
 
+use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Queue\Interfaces;
 use Minds\Core\Queue\Message;
-use Minds\Core\Config;
+use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
-use PhpAmqpLib\Channel\AMQPChannel;
 
 /**
  * Messaging queue
@@ -45,14 +45,20 @@ class Client implements Interfaces\QueueClient
     protected function setup(): void
     {
         if (!$this->connection) {
-            $this->connection = AMQPStreamConnection::create_connection([
-                [
-                    'host' => $this->config->rabbitmq['host'] ?: 'localhost',
-                    'port' => $this->config->rabbitmq['port'] ?: 5672,
-                    'user' =>$this->config->rabbitmq['username'] ?: 'guest',
-                    'password' => $this->config->rabbitmq['password'] ?: 'guest',
-                ],
-            ]);
+            $this->connection = new AMQPStreamConnection(
+                $this->config->rabbitmq['host'] ?: 'localhost',
+                $this->config->rabbitmq['port'] ?: 5672,
+                $this->config->rabbitmq['username'] ?: 'guest',
+                $this->config->rabbitmq['password'] ?: 'guest'
+            );
+            // $this->connection = AMQPStreamConnection::create_connection([
+            //     [
+            //         'host' => $this->config->rabbitmq['host'] ?: 'localhost',
+            //         'port' => $this->config->rabbitmq['port'] ?: 5672,
+            //         'user' =>$this->config->rabbitmq['username'] ?: 'guest',
+            //         'password' => $this->config->rabbitmq['password'] ?: 'guest',
+            //     ],
+            // ]);
         }
 
         if (!$this->channel) {
@@ -60,7 +66,7 @@ class Client implements Interfaces\QueueClient
             register_shutdown_function(function ($channel, $connection) {
                 $channel->close();
                 $connection->close();
-            //error_log("SHUTDOWN RABBITMQ CONNECTIONS");
+                //error_log("SHUTDOWN RABBITMQ CONNECTIONS");
             }, $this->channel, $this->connection);
         }
     }

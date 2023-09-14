@@ -4,12 +4,10 @@
  */
 namespace Minds\Core\Entities\Ops;
 
-use Minds\Core\Config\Config;
-use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\Topics\AbstractTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
-use Pulsar\Client;
+use Minds\Core\EventStreams\UndeliveredEventException;
 use Pulsar\Consumer;
 use Pulsar\ConsumerConfiguration;
 use Pulsar\MessageBuilder;
@@ -28,14 +26,6 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
 
     /** @var Producer */
     protected $producer;
-
-    public function __construct(
-        Client $client = null,
-        Config $config = null
-    ) {
-        $this->client = $client ?? null;
-        $this->config = $config ?? Di::_()->get('Config');
-    }
 
     /**
      * Sends notifications events to our stream
@@ -56,6 +46,7 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
             ->setContent(json_encode([
                 'op' => $event->getOp(),
                 'entity_urn' => $event->getEntityUrn(),
+                'entity_serialized' => $event->getEntitySerialized(),
             ]))
             ->build();
 
@@ -64,7 +55,7 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
         $result = $this->getProducer()->send($message);
 
         if ($result != Result::ResultOk) {
-            return false;
+            throw new UndeliveredEventException();
         }
 
         return true;
@@ -111,10 +102,15 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                     ->setOp($data['op'])
                     ->setTimestamp($message->getEventTimestamp());
 
+                if (isset($data['entity_serialized'])) {
+                    $event->setEntitySerialized($data['entity_serialized']);
+                }
+
                 if (call_user_func($callback, $event, $message) === true) {
                     $consumer->acknowledge($message);
                 }
             } catch (\Exception $e) {
+                $this->logger->error("Topic(Consume): Uncaught error: " . $e->getMessage());
             }
         }
     }
@@ -136,6 +132,14 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
 
         $config = new ProducerConfiguration();
         $config->setSchema(SchemaType::AVRO, static::SCHEMA_NAME, $this->getSchema(), []);
+        //$config->setSchema(SchemaType::AVRO, static::SCHEMA_NAME . 'v2', $this->getSchemaV2(), []);
+
+        $schema = json_encode([
+            'type' => 'AVRO',
+            'schema' => $this->getSchema(),
+            'properties' => (object) []
+        ]);
+
 
         return $this->producer = $this->client()->createProducer("persistent://$tenant/$namespace/$topic", $config);
     }
@@ -150,7 +154,7 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
     {
         return json_encode([
             'type' => 'record',
-            'name' => static::SCHEMA_NAME,
+            'name' => static::SCHEMA_NAME ,
             'namespace' => 'engine',
             'fields' => [
                 [
@@ -159,6 +163,25 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                 ],
                 [
                     'name' => 'entity_urn',
+                    'type' => 'string',
+                ],
+                [
+                    'name' => 'entity_json',
+                    'type' => 'string',
+                ],
+            ]
+        ]);
+    }
+
+    protected function getSchemaV2(): string
+    {
+        return json_encode([
+            'type' => 'record',
+            'name' => static::SCHEMA_NAME . 'v2',
+            'namespace' => 'engine',
+            'fields' => [
+                [
+                    'name' => 'entity_json',
                     'type' => 'string',
                 ],
             ]

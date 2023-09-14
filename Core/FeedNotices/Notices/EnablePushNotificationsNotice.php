@@ -46,6 +46,15 @@ class EnablePushNotificationsNotice extends AbstractNotice
     }
 
     /**
+     * Whether notice is dismissible.
+     * @return boolean - true if notice is dismissible.
+     */
+    public function isDismissible(): bool
+    {
+        return true;
+    }
+
+    /**
      * Whether notice should show in feed, based on whether user has
      * all push notifications enabled.
      * @param User $user - user to check for.

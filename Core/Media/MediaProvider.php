@@ -7,6 +7,7 @@ namespace Minds\Core\Media;
 
 use Aws\S3\S3Client;
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
 use Oracle\Oci\Common\Auth\UserAuthProvider;
 use Oracle\Oci\ObjectStorage\ObjectStorageClient;
@@ -156,5 +157,9 @@ class MediaProvider extends Provider
 
             return new S3Client(array_merge(['version' => '2006-03-01'], $opts));
         }, ['useFactory' => true]);
+
+        $this->di->bind(Image\ProcessExternalImageService::class, function (Di $di): Image\ProcessExternalImageService {
+            return new Image\ProcessExternalImageService($di->get(\GuzzleHttp\Client::class), new Assets\Image());
+        });
     }
 }

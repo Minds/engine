@@ -158,7 +158,7 @@ class EmailDelegate
             // start string with matching label
             $reasonString = $reasonObject[0]['label'];
             // if has more, and the reason supplied requests more (e.g. 1.1)
-            if ($reasonObject[0]['hasMore'] && isset($splitReason[1])) {
+            if ($reasonObject[0]['hasMore'] && isset($splitReason[1]) && isset($reasonObject[0]['reasons'])) {
                 // filter for sub-reasons.
                 $subReasonObject = array_values(array_filter(
                     $reasonObject[0]['reasons'],

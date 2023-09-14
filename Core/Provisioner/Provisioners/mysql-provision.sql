@@ -330,7 +330,8 @@ CREATE TABLE IF NOT EXISTS minds_gift_card_transactions (
     payment_guid bigint NOT NULL ,
     gift_card_guid bigint NOT NULL,
     amount decimal(5,2) NOT NULL,
-    created_at timestamp NOT NULL,
+    created_at timestamp(3) NOT NULL,
+    refunded_at timestamp(3) DEFAULT NULL,
     PRIMARY KEY (payment_guid, gift_card_guid),
     FOREIGN KEY (payment_guid) REFERENCES minds_payments(payment_guid),
     FOREIGN KEY (gift_card_guid) REFERENCES minds_gift_cards(guid)
@@ -351,7 +352,7 @@ CREATE TABLE IF NOT EXISTS minds_onboarding_v5_completion (
     user_guid bigint PRIMARY KEY,
     started_at timestamp DEFAULT CURRENT_TIMESTAMP,
     completed_at timestamp DEFAULT NULL
-)
+);
 
 CREATE TABLE IF NOT EXISTS minds_onboarding_v5_step_progress (
     user_guid bigint NOT NULL,
@@ -359,4 +360,57 @@ CREATE TABLE IF NOT EXISTS minds_onboarding_v5_step_progress (
     step_type varchar(100) NOT NULL,
     completed_at timestamp DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_guid, step_key)
-)
+);
+
+ALTER TABLE user_configurations
+    ADD plus_demonetized_ts timestamp NULL DEFAULT NULL;
+
+ALTER TABLE user_configurations
+    ADD dismissals json NULL DEFAULT NULL
+    AFTER plus_demonetized_ts;
+
+CREATE TABLE IF NOT EXISTS minds_partner_earnings (
+    user_guid bigint NOT NULL,
+    item varchar(256) NOT NULL,
+    timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    amount_cents int NULL DEFAULT NULL,
+    amount_tokens decimal(8,3) NULL DEFAULT NULL,
+    PRIMARY KEY (user_guid, item, timestamp)
+);
+
+CREATE TABLE IF NOT EXISTS minds_activitypub_uris (
+    uri varchar(256) NOT NULL PRIMARY KEY,
+    domain varchar(256) NOT NULL,
+    entity_urn varchar(256) NOT NULL,
+    entity_guid bigint NOT NULL UNIQUE,
+    created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS minds_activitypub_actors (
+    uri varchar(256) NOT NULL PRIMARY KEY,
+    `type` text NOT NULL,
+    inbox text NOT NULL,
+    outbox text NOT NULL,
+    shared_inbox text DEFAULT NULL,
+    url text DEFAULT NULL,
+    FOREIGN KEY (uri) REFERENCES minds_activitypub_uris(uri)
+);
+
+CREATE TABLE IF NOT EXISTS minds_activitypub_keys (
+    user_guid bigint NOT NULL PRIMARY KEY,
+    private_key text NOT NULL 
+);
+
+ALTER TABLE minds_comments
+    ADD source text DEFAULT NULL
+        AFTER access_id; 
+
+ALTER TABLE minds_comments
+    ADD canonical_url text DEFAULT NULL
+        AFTER source;
+
+ALTER TABLE minds_activitypub_actors
+    ADD icon_url text DEFAULT NULL;
+
+ALTER TABLE minds_activitypub_uris
+    ADD updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP;

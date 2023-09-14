@@ -595,28 +595,27 @@ $CONFIG->set('tags', [
 
 // should eventually replace v1 tags.
 $CONFIG->set('tags_v2', [
-    'technology',
-    'crypto',
-    'nature',
-    'travel',
-    'outdoors',
     'animals',
-    'memes',
-    'nsfw',
-    'news',
-    'politics',
-    'spirituality',
-    'health',
-    'education',
-    'business',
-    'sports',
+    'technology',
     'comedy',
-    'fashion',
-    'anime',
-    'gaming',
-    'art',
     'music',
+    'memes',
+    'crypto',
+    'gaming',
+    'fashion',
+    'health',
+    'art',
+    'myphoto',
+    'news',
     'photography',
+    'minds',
+    'nature',
+    'outdoors',
+    'politics',
+    'travel',
+    'education',
+    'spirituality',
+    'anime'
 ]);
 
 $CONFIG->set('steward_guid', '');
@@ -662,7 +661,6 @@ $CONFIG->set('max_video_file_size', 3900000000);
 
 $CONFIG->set('storage', [
     'engine' => 'Disk',
-    'oci_primary' => false,
     'oci_bucket_name' => 'mindsfs',
 ]);
 
@@ -941,3 +939,5 @@ $CONFIG->set('strapi', [
 $CONFIG->set('uniswap', [
     'url' => 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2',
 ]);
+
+$CONFIG->set('livepeer_api_key', '');

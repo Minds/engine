@@ -314,6 +314,10 @@ class RedisMock
     {
         return true;
     }
+    public function publish($channel, $data = '')
+    {
+        return true;
+    }
 }
 
 if (!class_exists('Cassandra')) {

@@ -8,6 +8,7 @@
 
 namespace Minds\Core\Groups;
 
+use Minds\Common\SystemUser;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
@@ -135,6 +136,7 @@ class Feeds
         if ($success && $options['notification']) {
             $this->sendNotification('add', $activity);
             $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_ADD, $activity->getOwnerEntity(), $activity);
+            $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_RECEIVED, new SystemUser(), $activity);
         }
 
         return $success;
@@ -287,7 +289,7 @@ class Feeds
      * @param string $type
      * @param Entities\Activity $activity
      */
-    public function emitActionEvent($action, User $actor, Entities\Activity $activity)
+    public function emitActionEvent($action, ?User $actor, Entities\Activity $activity)
     {
         $actionEvent = new ActionEvent();
 

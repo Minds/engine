@@ -34,6 +34,11 @@ class EnablePushNotificationsNoticeSpec extends ObjectBehavior
         $this->getKey()->shouldBe('enable-push-notifications');
     }
 
+    public function it_should_get_whether_notice_is_dismissible()
+    {
+        $this->isDismissible()->shouldBe(true);
+    }
+
     public function it_should_determine_if_notice_should_show(
         User $user
     ) {
@@ -85,7 +90,8 @@ class EnablePushNotificationsNoticeSpec extends ObjectBehavior
         $this->export()->shouldBe([
             'key' => 'enable-push-notifications',
             'location' => 'inline',
-            'should_show' => true
+            'should_show' => true,
+            'is_dismissible' => true
         ]);
     }
 }

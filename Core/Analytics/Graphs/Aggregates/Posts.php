@@ -71,7 +71,7 @@ class Posts implements AggregateInterface
 
             $result[$avgKey] = Manager::calculateAverages($result[$k]);
         }
-//        var_dump(array_keys($result)); die();
+        //        var_dump(array_keys($result)); die();
         return $result;
     }
 

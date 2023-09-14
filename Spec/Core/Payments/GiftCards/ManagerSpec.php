@@ -5,7 +5,10 @@ namespace Spec\Minds\Core\Payments\GiftCards;
 
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
+use Minds\Core\Payments\GiftCards\Delegates\NotificationDelegate;
+use Minds\Core\Payments\GiftCards\Enums\GiftCardOrderingEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use Minds\Core\Payments\GiftCards\Enums\GiftCardStatusFilterEnum;
 use Minds\Core\Payments\GiftCards\Manager;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\PaymentProcessor;
@@ -24,6 +27,7 @@ class ManagerSpec extends ObjectBehavior
 
     private Collaborator $paymentProcessorMock;
     private Collaborator $emailDelegateMock;
+    private Collaborator $notificationDelegateMock;
     private Collaborator $loggerMock;
 
     public function let(
@@ -31,12 +35,14 @@ class ManagerSpec extends ObjectBehavior
         PaymentsManager $paymentsManagerMock,
         PaymentProcessor $paymentProcessor,
         EmailDelegate $emailDelegate,
+        NotificationDelegate $notificationDelegate,
         Logger $logger
     ): void {
         $this->repositoryMock = $repositoryMock;
         $this->paymentsManagerMock = $paymentsManagerMock;
         $this->paymentProcessorMock = $paymentProcessor;
         $this->emailDelegateMock = $emailDelegate;
+        $this->notificationDelegateMock = $notificationDelegate;
         $this->loggerMock = $logger;
 
         $this->beConstructedWith(
@@ -44,13 +50,88 @@ class ManagerSpec extends ObjectBehavior
             $this->paymentsManagerMock,
             $this->paymentProcessorMock,
             $this->emailDelegateMock,
-            $this->loggerMock
+            $this->loggerMock,
+            $this->notificationDelegateMock,
         );
     }
 
     public function it_is_initializable(): void
     {
         $this->shouldHaveType(Manager::class);
+    }
+
+    // get gift cards.
+    public function it_should_get_gift_cards(
+        User $claimedByUser,
+        User $issuedByUser,
+        GiftCard $giftCard1,
+        GiftCard $giftCard2
+    ): void {
+        $productId = GiftCardProductIdEnum::BOOST;
+        $statusFilter = GiftCardStatusFilterEnum::EXPIRED;
+        $limit = 8;
+        $ordering = GiftCardOrderingEnum::CREATED_DESC;
+
+        $claimedByUser->getGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $issuedByUser?->getGuid()
+            ->shouldBeCalled()
+            ->willReturn(234);
+
+        $this->repositoryMock->getGiftCards(
+            123,
+            234,
+            $productId,
+            $statusFilter,
+            $limit,
+            $ordering,
+            null,
+            null,
+            null
+        )
+            ->shouldBeCalled()
+            ->willReturn([$giftCard1, $giftCard2]);
+
+        $this->getGiftCards(
+            claimedByUser: $claimedByUser,
+            issuedByUser: $issuedByUser,
+            productId: $productId,
+            statusFilter: $statusFilter,
+            limit: $limit,
+            ordering: $ordering
+        )->shouldBe([$giftCard1, $giftCard2]);
+    }
+
+    // get gift cards ledger.
+    public function it_should_get_gift_card_transaction_ledger(
+        User $user,
+        GiftCard $giftCard1,
+        GiftCard $giftCard2
+    ): void {
+        $giftCardGuid = 234;
+        $limit = 8;
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+    
+        $this->repositoryMock->getGiftCardTransactionLedger(
+            Argument::any(),
+            Argument::any(),
+            Argument::any(),
+            Argument::any(),
+            Argument::any(),
+            Argument::any()
+        )
+            ->shouldBeCalled()
+            ->willReturn([$giftCard1, $giftCard2]);
+
+        $this->getGiftCardTransactionLedger(
+            user: $user,
+            giftCardGuid: $giftCardGuid,
+            limit: $limit
+        )->shouldBe([$giftCard1, $giftCard2]);
     }
     
     public function it_should_create_gift_card(User $issuer): void

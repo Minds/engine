@@ -485,6 +485,7 @@ class RepositorySpec extends ObjectBehavior
                         'gift_card_guid' => 1244987032468459522,
                         'amount' => 0.99,
                         'created_at' => date('c', $refTime),
+                        'refunded_at' => null,
                         'gift_card_balance' => 9.01,
                     ],
                     [
@@ -492,6 +493,7 @@ class RepositorySpec extends ObjectBehavior
                         'gift_card_guid' => 1244987032468459522,
                         'amount' => 10.00,
                         'created_at' => date('c', $refTime),
+                        'refunded_at' => date('c', $refTime),
                         'gift_card_balance' => 10.00,
                     ]
                 ]
@@ -507,6 +509,7 @@ class RepositorySpec extends ObjectBehavior
                 giftCardGuid: 1244987032468459522,
                 amount: 0.99,
                 createdAt: $refTime,
+                refundedAt: null,
                 // giftCardRunningBalance: 9.01,
             ),
             new GiftCardTransaction(
@@ -514,6 +517,72 @@ class RepositorySpec extends ObjectBehavior
                 giftCardGuid: 1244987032468459522,
                 amount: 10.00,
                 createdAt: $refTime,
+                refundedAt: $refTime,
+                // giftCardRunningBalance: 10.00,
+            ),
+        ]));
+    }
+
+    public function it_should_return_transactions_ledger(PDOStatement $pdoStatementMock)
+    {
+        $refTime = time();
+
+        $this->mysqlReplicaMock->query(Argument::type('string'))->willReturn($pdoStatementMock);
+        $this->mysqlReplicaMock->quote(Argument::that(function ($value) {
+            return match ($value) {
+                "123" => true,
+                "0" => true,
+                default => false,
+            };
+        }))->shouldBeCalled()
+            ->willReturn('123');
+ 
+        $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
+            ->willReturn(
+                [
+                    [
+                        'payment_guid' => 1244987032468459524,
+                        'gift_card_guid' => 1244987032468459522,
+                        'amount' => 0.99,
+                        'created_at' => date('c', $refTime),
+                        'refunded_at' => null,
+                        'gift_card_balance' => 9.01,
+                        'boost_guid' => null
+                    ],
+                    [
+                        'payment_guid' => 1244987032468459523,
+                        'gift_card_guid' => 1244987032468459522,
+                        'amount' => 10.00,
+                        'created_at' => date('c', $refTime),
+                        'refunded_at' => date('c', $refTime),
+                        'gift_card_balance' => 10.00,
+                        'boost_guid' => 1244987032468459524
+                    ]
+                ]
+            );
+
+
+        $result = $this->getGiftCardTransactionLedger(
+            giftCardGuid: 123,
+            limit: 10,
+        );
+        $result->shouldYieldLike(new \ArrayIterator([
+            new GiftCardTransaction(
+                paymentGuid: 1244987032468459524,
+                giftCardGuid: 1244987032468459522,
+                amount: 0.99,
+                createdAt: $refTime,
+                refundedAt: null,
+                boostGuid: null
+                // giftCardRunningBalance: 9.01,
+            ),
+            new GiftCardTransaction(
+                paymentGuid: 1244987032468459523,
+                giftCardGuid: 1244987032468459522,
+                amount: 10.00,
+                createdAt: $refTime,
+                refundedAt: $refTime,
+                boostGuid: 1244987032468459524,
                 // giftCardRunningBalance: 10.00,
             ),
         ]));

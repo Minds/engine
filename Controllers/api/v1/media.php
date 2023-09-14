@@ -282,7 +282,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
         $assets = Core\Media\AssetsFactory::build($entity);
 
         $assets->validate($media);
-        $entity->setAssets($assets->upload($media, $data));
+        $entity->setAssets($assets->upload($media));
 
         // Save initial entity
 

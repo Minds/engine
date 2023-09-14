@@ -47,8 +47,8 @@ class Sums
 
         if ($this->user) {
             $query->query(
-                "SELECT 
-                SUM(amount) as balance 
+                "SELECT
+                SUM(amount) as balance
                 FROM blockchain_transactions_mainnet_by_address
                 WHERE user_guid = ?
                 AND wallet_address = 'offchain'",
@@ -56,9 +56,9 @@ class Sums
                     new Varint((int) $this->user->guid)
                 ]
             );
-        // $query->setOpts([
+            // $query->setOpts([
             //     'consistency' => \Cassandra::CONSISTENCY_ALL
-        // ]);
+            // ]);
         } else {
             //$query->query("SELECT SUM(amount) as balance from rewards");
         }
@@ -73,7 +73,7 @@ class Sums
         if (!$rows) {
             return 0;
         }
-        
+
         return (string) BigNumber::_($rows[0]['balance']);
     }
 
@@ -138,9 +138,9 @@ class Sums
                     new Varint((int) $this->user->guid)
                 ]
             );
-        // $query->setOpts([
+            // $query->setOpts([
             //     'consistency' => \Cassandra::CONSISTENCY_ALL
-        // ]);
+            // ]);
         } else {
             return 0;
         }
@@ -155,7 +155,7 @@ class Sums
         if (!$rows) {
             return 0;
         }
-        
+
         return (string) BigNumber::_($rows[0]['count']);
     }
 }

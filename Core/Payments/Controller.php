@@ -31,28 +31,28 @@ class Controller
      * @param ServerRequestInterface $request
      * @return JsonResponse
      */
-//    #[OA\Get(
-//        path: '/api/v3/payments',
-//        parameters: [
-//            new OA\Parameter(
-//                name: "offset",
-//                in: "query",
-//                required: false,
-//                schema: new OA\Schema(type: 'string')
-//            ),
-//            new OA\Parameter(
-//                name: "limit",
-//                in: "query",
-//                required: false,
-//                schema: new OA\Schema(type: 'integer')
-//            )
-//        ],
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 400, description: "Bad Request"),
-//            new OA\Response(response: 401, description: "Unauthorized"),
-//        ]
-//    )]
+    //    #[OA\Get(
+    //        path: '/api/v3/payments',
+    //        parameters: [
+    //            new OA\Parameter(
+    //                name: "offset",
+    //                in: "query",
+    //                required: false,
+    //                schema: new OA\Schema(type: 'string')
+    //            ),
+    //            new OA\Parameter(
+    //                name: "limit",
+    //                in: "query",
+    //                required: false,
+    //                schema: new OA\Schema(type: 'integer')
+    //            )
+    //        ],
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 400, description: "Bad Request"),
+    //            new OA\Response(response: 401, description: "Unauthorized"),
+    //        ]
+    //    )]
     public function getPayments(ServerRequest $request): JsonResponse
     {
         $loggedInUser = $request->getAttribute("_user");
@@ -86,21 +86,21 @@ class Controller
      * @param ServerRequestInterface $request
      * @return JsonResponse
      */
-//    #[OA\Get(
-//        path: '/api/v3/payments/:paymentId',
-//        parameters: [
-//            new OA\Parameter(
-//                name: "paymentId",
-//                in: "path",
-//                required: true,
-//                schema: new OA\Schema(type: 'string')
-//            )
-//        ],
-//        responses: [
-//            new OA\Response(response: 302, description: "Redirect to receipt"),
-//            new OA\Response(response: 401, description: "Unauthorized")
-//        ]
-//    )]
+    //    #[OA\Get(
+    //        path: '/api/v3/payments/:paymentId',
+    //        parameters: [
+    //            new OA\Parameter(
+    //                name: "paymentId",
+    //                in: "path",
+    //                required: true,
+    //                schema: new OA\Schema(type: 'string')
+    //            )
+    //        ],
+    //        responses: [
+    //            new OA\Response(response: 302, description: "Redirect to receipt"),
+    //            new OA\Response(response: 401, description: "Unauthorized")
+    //        ]
+    //    )]
     public function redirectToReceipt(ServerRequest $request): RedirectResponse
     {
         $loggedInUser = $request->getAttribute('_user');

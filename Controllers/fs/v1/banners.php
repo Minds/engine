@@ -101,7 +101,7 @@ class banners implements Interfaces\Fs
                 }
                 //$filepath = $f->getFilenameOnFilestore();
                 //if (!file_exists($filepath)) {
-            //    $filepath =  Core\Config::build()->dataroot . 'carousel/' . $entity->guid . $size;
+                //    $filepath =  Core\Config::build()->dataroot . 'carousel/' . $entity->guid . $size;
                 //}
                 break;
         }

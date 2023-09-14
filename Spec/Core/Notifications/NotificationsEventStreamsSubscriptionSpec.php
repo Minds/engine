@@ -2,10 +2,18 @@
 
 namespace Spec\Minds\Core\Notifications;
 
+use DateTime;
 use Minds\Common\SystemUser;
 use Minds\Core\Boost\Network\Boost;
 use Minds\Core\Config;
+use Minds\Core\Di\Di;
+use Minds\Core\Entities\Resolver;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\ActionEvent;
+use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
+use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipManager;
+use Minds\Core\Groups\V2\Membership\Membership;
+use Minds\Core\Log\Logger;
 use Minds\Core\Notifications\Manager;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\NotificationsEventStreamsSubscription;
@@ -18,6 +26,7 @@ use Minds\Entities\Group;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use RedisMock;
 
 class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
 {
@@ -27,11 +36,49 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
     /** @var Config */
     protected $config;
 
-    public function let(Manager $manager, Config $config)
-    {
-        $this->beConstructedWith($manager, null, $config);
+    /** @var Logger */
+    protected $logger;
+
+    /** @var EntitiesBuilder */
+    protected $entitiesBuilder;
+
+    /** @var Resolver */
+    protected $entitiesResolver;
+
+    /** @var GroupMembershipManager */
+    protected $groupMembershipManager;
+
+    /** @var RedisMock */
+    protected $redisMock;
+
+    public function let(
+        Manager $manager,
+        Logger $logger,
+        Config $config,
+        EntitiesBuilder $entitiesBuilder,
+        Resolver $entitiesResolver,
+        GroupMembershipManager $groupMembershipManager,
+        RedisMock $redisMock
+    ) {
         $this->manager = $manager;
+        $this->logger = $logger;
         $this->config = $config;
+        $this->entitiesBuilder = $entitiesBuilder;
+        $this->entitiesResolver = $entitiesResolver;
+        $this->entitiesBuilder = $entitiesBuilder;
+        $this->groupMembershipManager = $groupMembershipManager;
+        $this->redisMock = $redisMock;
+
+        $this->beConstructedWith($manager, $logger, $config, $entitiesResolver, $entitiesBuilder);
+
+        Di::_()->bind(GroupMembershipManager::class, function () use ($groupMembershipManager) {
+            return $groupMembershipManager->getWrappedObject();
+        });
+
+        // Used within socket events.
+        Di::_()->bind('PubSub\Redis', function () use ($redisMock) {
+            return $redisMock->getWrappedObject();
+        });
     }
 
     public function it_is_initializable()
@@ -333,6 +380,126 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         }))
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->consume($actionEvent);
+    }
+
+    public function it_should_send_group_queue_received_notifications(
+        ActionEvent $actionEvent,
+        Activity $activity,
+        User $actor,
+        User $owner,
+        User $moderator1,
+        User $moderator2,
+        Group $group
+    ) {
+        $actionEvent->getAction()
+            ->willReturn(ActionEvent::ACTION_GROUP_QUEUE_RECEIVED);
+
+        $actionEvent->getEntity()
+            ->willReturn($activity);
+
+        $actionEvent->getUser()
+            ->willReturn($actor);
+
+        $actionEvent->getTimestamp()
+            ->willReturn(time());
+
+        $actionEvent->getActionData()
+            ->willReturn([
+                'group_urn' => 'urn:group:789'
+            ]);
+
+        //
+
+        $actor->getGuid()
+            ->willReturn('456');
+
+        $moderator1->getGuid()
+            ->willReturn('123');
+
+        $moderator2->getOwnerGuid()
+            ->willReturn(0);
+
+        $activity->getOwnerEntity()
+            ->willReturn($moderator1);
+        $activity->getOwnerGuid()
+            ->willReturn('123');
+        $activity->getUrn()
+            ->willReturn('urn:activity:123');
+
+        $group->getUrn()
+            ->shouldBeCalled()
+            ->willReturn('urn:group:234');
+
+        $this->entitiesResolver->single(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($group);
+
+        $refTime = time();
+
+        $this->groupMembershipManager->getMembers(
+            $group,
+            GroupMembershipLevelEnum::MODERATOR,
+            false,
+            10,
+            Argument::any(),
+            Argument::any()
+        )
+            ->shouldBeCalled()
+            ->willYield([
+                (new Membership(
+                    groupGuid: 123,
+                    userGuid: 111,
+                    createdTimestamp: new DateTime("@$refTime"),
+                    membershipLevel: GroupMembershipLevelEnum::MEMBER,
+                )),
+                (new Membership(
+                    groupGuid: 123,
+                    userGuid: 222,
+                    createdTimestamp: new DateTime("@$refTime"),
+                    membershipLevel: GroupMembershipLevelEnum::OWNER,
+                ))
+            ]);
+
+        $this->groupMembershipManager->getMembers(
+            $group,
+            GroupMembershipLevelEnum::OWNER,
+            false,
+            10,
+            Argument::any(),
+            Argument::any()
+        )
+            ->shouldBeCalled()
+            ->willYield([
+                (new Membership(
+                    groupGuid: 123,
+                    userGuid: 333,
+                    createdTimestamp: new DateTime("@$refTime"),
+                    membershipLevel: GroupMembershipLevelEnum::OWNER,
+                ))
+            ]);
+
+        $this->manager->add(Argument::that(function (Notification $notification) {
+            return $notification->getType() === NotificationTypes::TYPE_GROUP_QUEUE_RECEIVED
+                && $notification->getToGuid() == '111'
+                && $notification->getFromGuid() === SystemUser::GUID
+                && $notification->getEntityUrn() === 'urn:group:234';
+        }));
+
+        $this->manager->add(Argument::that(function (Notification $notification) {
+            return $notification->getType() === NotificationTypes::TYPE_GROUP_QUEUE_RECEIVED
+                && $notification->getToGuid() == '222'
+                && $notification->getFromGuid() === SystemUser::GUID
+                && $notification->getEntityUrn() === 'urn:group:234';
+        }));
+
+        $this->manager->add(Argument::that(function (Notification $notification) {
+            return $notification->getType() === NotificationTypes::TYPE_GROUP_QUEUE_RECEIVED
+                && $notification->getToGuid() == '333'
+                && $notification->getFromGuid() === SystemUser::GUID
+                && $notification->getEntityUrn() === 'urn:group:234';
+        }));
 
         $this->consume($actionEvent);
     }
@@ -825,4 +992,63 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
 
         $this->consume($actionEvent)->shouldBe(true);
     }
+
+    public function it_should_emit_to_sockets_after_sending(
+        ActionEvent $actionEvent,
+        Activity $activity,
+        User $user,
+        User $toUser
+    ) {
+        $quoteUrn = 'urn:activity:123';
+        $activityUrn = 'urn:activity:456';
+
+        $actionEvent->getAction()
+            ->willReturn(ActionEvent::ACTION_QUOTE);
+
+        $actionEvent->getUser()
+            ->willReturn($user);
+
+        $actionEvent->getEntity()
+            ->willReturn($activity);
+
+        $actionEvent->getTimestamp()
+            ->willReturn(time());
+
+        $actionEvent->getActionData()
+            ->willReturn([
+                'quote_urn' => $quoteUrn
+            ]);
+
+        $ownerGuid = '456';
+        $activity->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($ownerGuid);
+
+        $activity->getUrn()
+            ->willReturn($activityUrn);
+
+        $this->manager->add(Argument::that(function (Notification $notification) use ($ownerGuid) {
+            return $notification->getType() === NotificationTypes::TYPE_QUOTE
+                && $notification->getToGuid() === $ownerGuid
+                && $notification->getUrn() === 'urn:notification:456-';
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->entitiesBuilder->single(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($toUser);
+
+        $this->manager->getUnreadCount($toUser)
+            ->shouldBeCalled()
+            ->willReturn(12);
+
+        $this->redisMock->publish("socket.io#/#", Argument::that(function ($arg) {
+            return strpos($arg, 'notification:count:456');
+        }))
+            ->shouldBeCalled();
+
+        $this->consume($actionEvent);
+    }
+
 }

@@ -41,9 +41,7 @@ class Controller
 
         $params = $request->getQueryParams();
 
-        $showBoostsAfterX = $params['show_boosts_after_x'];
-
-        if (!$this->shouldShowBoosts($loggedInUser, (int) $showBoostsAfterX) && !($params['force_boost_enabled'] ?? false)) {
+        if (!$this->manager->shouldShowBoosts($loggedInUser) && !($params['force_boost_enabled'] ?? false)) {
             return new JsonResponse([
                 'status' => 'success',
                 'boosts' => []
@@ -306,30 +304,5 @@ class Controller
             ->cancelBoost((string) $boostGuid);
 
         return new JsonResponse([]);
-    }
-
-    /**
-     * Whether boosts should be shown for a user
-     * @param User $user - user to show.
-     * @param integer|null $showBoostsAfterX - how long after registration till users should see boosts.
-     * @return boolean true if boosts should be shown.
-     */
-    private function shouldShowBoosts(User $user, ?int $showBoostsAfterX = null): bool
-    {
-        /**
-         * Do not show boosts if plus and disabled flag
-         */
-        if ($user->disabled_boost && $user->isPlus()) {
-            return false;
-        }
-
-        $showBoostsAfterX = filter_var($showBoostsAfterX, FILTER_VALIDATE_INT, [
-            'options' => [
-                'default' => 3600, // 1 day
-                'min_range' => 0,
-                'max_range' => 604800 // 1 week
-            ]
-        ]);
-        return (time() - $user->getTimeCreated()) > $showBoostsAfterX;
     }
 }

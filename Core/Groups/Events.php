@@ -71,6 +71,9 @@ class Events
                 }
 
                 try {
+                    if (!$user) {
+                        return;
+                    }
                     $membership = $this->getGroupMembershipManager()->getMembership($group, $user);
                     $e->setResponse($membership->isMember());
                 } catch (NotFoundException $ex) {
@@ -188,6 +191,11 @@ class Events
             // If public, everyone can read
             if ($group->isPublic()) {
                 $e->setResponse(true);
+                return;
+            }
+
+            // If logged out, and not public, then do not continue
+            if (!$user) {
                 return;
             }
 

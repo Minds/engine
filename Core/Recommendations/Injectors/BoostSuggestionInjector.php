@@ -38,6 +38,10 @@ class BoostSuggestionInjector
     public function inject(Response $response, User $targetUser, int $index = 1): Response
     {
         try {
+            if (!$this->boostManager->shouldShowBoosts($targetUser)) {
+                return $response;
+            }
+
             $entitiesArray = $response->toArray();
             $boost = $this->getInjectableBoostSuggestion($targetUser);
 
@@ -74,10 +78,24 @@ class BoostSuggestionInjector
             return null;
         }
 
+        $entity = $boost->getEntity();
+
+        if (!$entity) {
+            return null;
+        }
+    
+        $boostedEntityType = $boost->getEntity()->getType() ?? null;
+
+        // export subscriber / subscription counts for users.
+        if ($boostedEntityType === 'user') {
+            $entity->exportCounts = true;
+            $boost->setEntity($entity);
+        }
+
         return (new Suggestion())
             ->setConfidenceScore(1)
             ->setEntityGuid($boost->getGuid())
             ->setEntity(new BoostEntityWrapper($boost))
-            ->setEntityType($boost->getEntity()->getType() ?? null);
+            ->setEntityType($boostedEntityType);
     }
 }

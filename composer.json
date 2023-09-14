@@ -17,7 +17,6 @@
         "tijsverkoyen/twitteroauth": "dev-master@dev",
         "twilio/sdk": "^5.26",
         "vscn/cruftflake": "dev-master#cab1b9ee9869072e7a58a1eb593b602ec5bedcd3",
-        "zircote/swagger-php": "^4.4",
         "abraham/twitteroauth": "^0.6.4",
         "google/apiclient": "^2.0",
         "aws/aws-php-sns-message-validator": "^1.4",
@@ -36,7 +35,6 @@
         "monolog/monolog": "^2.5",
         "psr/simple-cache": "1.0.1",
         "icamys/php-sitemap-generator": "^4.4.1",
-        "sentry/sdk": "^3.1",
         "vlucas/phpdotenv": "^4.3",
         "sendgrid/sendgrid": "^7.4",
         "ocramius/package-versions": "1.5",
@@ -56,11 +54,16 @@
         "textalk/websocket": "^1.5",
         "promphp/prometheus_client_php": "^2.6",
         "minds/mysql-fluent-interface": "dev-master",
-        "thecodingmachine/graphqlite": "6.1.0",
         "symfony/cache": "v5.4.23",
         "symfony/expression-language": "v5.4.21",
         "google/cloud-pubsub": "^1.43",
-        "oracle/oci-php-sdk": "dev-minds-fixes"
+        "oracle/oci-php-sdk": "dev-minds-fixes",
+        "thecodingmachine/graphqlite": "6.2.3",
+        "sentry/sdk": "^3.5",
+        "symfony/psr-http-message-bridge": "^2.3",
+        "liamdennehy/http-signatures-php": "dev-use-upstream-phpseclib",
+        "nojimage/twitter-text-php": "^3.3",
+        "soundasleep/html2text": "^2.1"
     },
     "repositories": [
         {
@@ -77,10 +80,6 @@
         },
         {
             "type": "vcs",
-            "url": "https://gitlab.com/minds/unleash-client-php.git"
-        },
-        {
-            "type": "vcs",
             "url": "https://github.com/minds/oauth2-openid-connect-server.git"
         },
         {
@@ -90,6 +89,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/Minds/oci-php-sdk.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/oddevan/http-signatures-php.git"
         }
     ],
     "autoload": {
@@ -107,8 +110,8 @@
         "phpspec/phpspec": "^7.3",
         "friends-of-phpspec/phpspec-expect": "^4.0",
         "symfony/process": "^5.0",
-        "friendsofphp/php-cs-fixer": "^3.4",
-        "phpstan/phpstan": "^1.7"
+        "phpstan/phpstan": "^1.7",
+        "friendsofphp/php-cs-fixer": "3.21.1"
     },
     "provide": {
         "symfony/translation-contracts": "2.0.1"

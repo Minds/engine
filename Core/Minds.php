@@ -41,6 +41,7 @@ class Minds extends base
         Captcha\Module::class,
         SEO\Sitemaps\Module::class,
         Discovery\Module::class,
+        Search\Module::class,
         Monetization\Partners\Module::class,
         Monetization\EarningsOverview\Module::class,
         Channels\Groups\Module::class,
@@ -84,6 +85,9 @@ class Minds extends base
         Monetization\Module::class,
         Analytics\Module::class,
         Groups\V2\Module::class,
+        Webfinger\Module::class,
+        ActivityPub\Module::class,
+        Admin\Module::class,
     ];
 
     /**
@@ -92,8 +96,6 @@ class Minds extends base
     public function init()
     {
         $this->initProviders();
-
-        // $this->loadConfigs();
         $this->initModules();
     }
 
@@ -132,8 +134,8 @@ class Minds extends base
             return new GuidBuilder();
         }, ['useFactory' => true]);
 
-        (new \Minds\Entities\EntitiesProvider())->register();
         (new Config\ConfigProvider())->register();
+        (new \Minds\Entities\EntitiesProvider())->register();
         (new Router\RouterProvider())->register();
         (new Data\DataProvider())->register();
         //(new Core\Notification\NotificationProvider())->register();
@@ -150,7 +152,6 @@ class Minds extends base
         (new Media\MediaProvider())->register();
         (new Notification\NotificationProvider())->register();
         (new Groups\GroupsProvider())->register();
-        (new Search\SearchProvider())->register();
         (new Comments\Provider())->register();
         (new SMS\SMSProvider())->register();
         (new Blockchain\BlockchainProvider())->register();
@@ -172,7 +173,6 @@ class Minds extends base
     public function start()
     {
         $this->checkInstalled();
-        $this->loadConfigs();
         $this->loadLegacy();
         $this->loadEvents();
 
@@ -230,33 +230,6 @@ class Minds extends base
         * System loaded and ready
         */
         Dispatcher::trigger('ready', 'elgg/event/system', null, true);
-    }
-
-    /**
-     * Load settings files.
-     */
-    public function loadConfigs()
-    {
-        global $CONFIG;
-        if (!isset($CONFIG)) {
-            $CONFIG = static::$di->get('Config');
-        }
-
-        // Load the system settings
-        if (file_exists(__MINDS_ROOT__ . '/settings.php')) {
-            include_once __MINDS_ROOT__ . '/settings.php';
-        }
-
-        // Load mulit globals if set
-        if (file_exists(__MINDS_ROOT__ . '/multi.settings.php')) {
-            define('multisite', true);
-            require_once __MINDS_ROOT__ . '/multi.settings.php';
-        }
-        // Load environment values
-        $env = Helpers\Env::getMindsEnv();
-        foreach ($env as $key => $value) {
-            $CONFIG->set($key, $value, ['recursive' => true]);
-        }
     }
 
     /**

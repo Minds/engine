@@ -83,6 +83,9 @@ class ActionEvent implements EventInterface
     const ACTION_GROUP_QUEUE_ADD = 'group_queue_add';
 
     /** @var string */
+    const ACTION_GROUP_QUEUE_RECEIVED = 'group_queue_received';
+    
+    /** @var string */
     const ACTION_GROUP_QUEUE_APPROVE = 'group_queue_approve';
 
     /** @var string */
@@ -126,6 +129,8 @@ class ActionEvent implements EventInterface
 
     public const ACTION_AFFILIATE_EARNINGS_DEPOSITED = "affiliate_earnings_deposited";
     public const ACTION_REFERRER_AFFILIATE_EARNINGS_DEPOSITED = "referrer_affiliate_earnings_deposited";
+
+    public const ACTION_GIFT_CARD_RECIPIENT_NOTIFICATION = "gift_card_recipient_notification";
 
     /** @var string */
     protected $action;
@@ -203,6 +208,7 @@ class ActionEvent implements EventInterface
                 break;
             case self::ACTION_GROUP_INVITE:
             case self::ACTION_GROUP_QUEUE_ADD:
+            case self::ACTION_GROUP_QUEUE_RECEIVED:
             case self::ACTION_GROUP_QUEUE_APPROVE:
             case self::ACTION_GROUP_QUEUE_REJECT:
                 $allowedKeys = [ 'group_urn' ];
@@ -237,6 +243,12 @@ class ActionEvent implements EventInterface
                     'amount_cents',
                     'amount_usd',
                     'amount_tokens'
+                ];
+                break;
+            case self::ACTION_GIFT_CARD_RECIPIENT_NOTIFICATION:
+                $allowedKeys = [
+                    'gift_card_guid',
+                    'sender_guid',
                 ];
                 break;
             default:

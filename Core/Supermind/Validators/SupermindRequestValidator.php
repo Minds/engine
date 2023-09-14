@@ -180,6 +180,15 @@ class SupermindRequestValidator implements ValidatorInterface
             );
         }
 
+        if ($supermindRequest['reply_type'] === SupermindRequestReplyType::LIVE && $supermindRequest['twitter_required']) {
+            $this->errors->add(
+                new ValidationError(
+                    "supermind_request:twitter_required",
+                    "You cannot require Twitter for a live Supermind request"
+                )
+            );
+        }
+
         if (!isset($supermindRequest['payment_options'])) {
             $this->errors->add(
                 new ValidationError(

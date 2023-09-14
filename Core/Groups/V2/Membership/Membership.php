@@ -41,6 +41,18 @@ class Membership implements ExportableInterface
     }
 
     /**
+     * Helper function to determine if a user is awaiting a decision
+     * on their membership request.
+     * @return bool
+     */
+    public function isAwaiting(): bool
+    {
+        return in_array($this->membershipLevel, [
+            GroupMembershipLevelEnum::REQUESTED,
+        ], true);
+    }
+
+    /**
      * Helper function to determine if the user has the moderator role
      */
     public function isModerator(): bool

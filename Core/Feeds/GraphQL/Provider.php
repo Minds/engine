@@ -1,12 +1,13 @@
 <?php
 namespace Minds\Core\Feeds\GraphQL;
 
+use Minds\Core\Boost\V3\Manager as BoostManager;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
-use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 use Minds\Core\FeedNotices;
-use Minds\Core\Boost\V3\Manager as BoostManager;
+use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
+use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
 
 class Provider extends DiProvider
@@ -21,8 +22,9 @@ class Provider extends DiProvider
                 boostManager: $di->get(BoostManager::class),
                 suggestedChannelsRecommendationsAlgorithm: new SuggestedChannelsRecommendationsAlgorithm(),
                 boostSuggestionInjector: $di->get(BoostSuggestionInjector::class),
-                suggestionsManager: $di->get('Suggestions\Manager'),
+                suggestedGroupsRecommendationsAlgorithm: new SuggestedGroupsRecommendationsAlgorithm(),
                 experimentsManager: $di->get('Experiments\Manager'),
+                votesManager: $di->get('Votes\Manager'),
             );
         });
     }

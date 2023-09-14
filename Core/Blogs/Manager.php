@@ -17,6 +17,7 @@ use Minds\Core\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Log\Logger;
+use Minds\Helpers\Url;
 
 class Manager
 {
@@ -217,6 +218,7 @@ class Manager
 
             $this->eventsDispatcher->trigger('entities-ops', 'delete', [
                 'entityUrn' => $blog->getUrn(),
+                'entity' => $blog,
             ]);
         }
 
@@ -246,8 +248,8 @@ class Manager
         }
 
         foreach ($images as $image) {
-            $oldSrc = $image->getAttribute('src');
-
+            // strip any existing jwtsig from the URL, so we can reapply it.
+            $oldSrc = Url::stripQueryParameter($image->getAttribute('src'), 'jwtsig');
             $srcIsMinds = strpos($oldSrc, $siteUrl) === 0 || strpos($oldSrc, $cdnUrl) === 0 ;
 
             $entityGuids = [];

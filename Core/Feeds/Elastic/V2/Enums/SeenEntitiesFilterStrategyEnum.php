@@ -1,6 +1,9 @@
 <?php
 namespace Minds\Core\Feeds\Elastic\V2\Enums;
 
+use TheCodingMachine\GraphQLite\Annotations\Input;
+
+#[Input()]
 enum SeenEntitiesFilterStrategyEnum
 {
     /**

@@ -39,6 +39,15 @@ class PlusUpgradeNotice extends AbstractNotice
     }
 
     /**
+     * Whether notice is dismissible.
+     * @return boolean - true if notice is dismissible.
+     */
+    public function isDismissible(): bool
+    {
+        return true;
+    }
+
+    /**
      * Whether notice should show in feed, based on whether user
      * is not already plus and the account has existed for
      * longer than the minimum account age.

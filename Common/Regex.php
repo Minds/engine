@@ -8,7 +8,7 @@ namespace Minds\Common;
 class Regex
 {
     // @tags
-    const AT = '/(?:@)([a-zA-Z0-9_]+)/';
+    const AT = '/(?:^|\W|\s)@([a-z0-9_\-\.]+[a-z0-9_](?:@([a-z0-9_\-]+\.[a-z]{2,}(\.[a-z]{2,})?))?)\b/uim';
     
     // #tags
     const HASH_TAG = '/([^&]|\b|^)#([\wÀ-ÿ\u0E00-\u0E7F\u2460-\u9FBB]+)/uim';

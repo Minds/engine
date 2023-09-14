@@ -12,6 +12,7 @@ use Minds\Core\Suggestions\Repository;
 use Minds\Core\Subscriptions\Manager as SubscriptionsManager;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
+use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 use Minds\Core\Security\RateLimits\InteractionsLimiter;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -31,6 +32,9 @@ class ManagerSpec extends ObjectBehavior
     /** @var SubscriptionsManager */
     private $subscriptionsManager;
 
+    /** @var SuggestedGroupsRecommendationsAlgorithm */
+    private $suggestedGroupsRecommendationsAlgorithm;
+
     private Collaborator $config;
     private Collaborator $defaultTagMappingManager;
     private Collaborator $logger;
@@ -42,6 +46,7 @@ class ManagerSpec extends ObjectBehavior
         InteractionsLimiter $interactionsLimiter,
         Config $config,
         DefaultTagMappingManager $defaultTagMappingManager,
+        SuggestedGroupsRecommendationsAlgorithm $suggestedGroupsRecommendationsAlgorithm,
         Logger $logger
     ) {
         $this->repository = $repository;
@@ -50,6 +55,7 @@ class ManagerSpec extends ObjectBehavior
         $this->subscriptionsManager = $subscriptionsManager;
         $this->config = $config;
         $this->defaultTagMappingManager = $defaultTagMappingManager;
+        $this->suggestedGroupsRecommendationsAlgorithm = $suggestedGroupsRecommendationsAlgorithm;
         $this->logger = $logger;
 
         $this->beConstructedWith(
@@ -60,6 +66,7 @@ class ManagerSpec extends ObjectBehavior
             $interactionsLimiter,
             $config,
             $defaultTagMappingManager,
+            $suggestedGroupsRecommendationsAlgorithm,
             $logger
         );
     }

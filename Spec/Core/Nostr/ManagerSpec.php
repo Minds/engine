@@ -87,6 +87,12 @@ class ManagerSpec extends ObjectBehavior
 
         //
 
+        $this->repository->getEvents(['kinds' => [0], 'authors' => ['4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715']])
+            ->shouldBeCalled()
+            ->willReturn(new \ArrayObject(['one']));
+
+        //
+
         $this->getPublicKeyFromUsername('phpspec')
             ->shouldBe('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
     }
@@ -108,6 +114,11 @@ class ManagerSpec extends ObjectBehavior
 
         //
 
+        $this->repository->getEvents(['kinds' => [0], 'authors' => ['4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715']])
+            ->shouldBeCalled()
+            ->willReturn(new \ArrayObject(['one']));
+
+        //
         $this->getPublicKeyFromUser($user)
             ->shouldBe('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
     }
@@ -197,53 +208,53 @@ class ManagerSpec extends ObjectBehavior
      * @throws NotFoundException
      * @throws ServerErrorException
      */
-//    public function it_should_return_nostr_events_from_nostr_authors(
-//        Activity $activityMock,
-//        User $userMock
-//    ): void {
-//        /**
-//         * Set up mock entity
-//         */
-//        $activityMock->getOwnerGuid()
-//            ->willReturn("user_123");
-//        $activityMock->getTimeCreated()
-//            ->willReturn(1653047334);
-//        $activityMock->getMessage()
-//            ->willReturn('Hello nostr. This is Minds calling');
-//        $activityMock->getEntityGuid()
-//            ->willReturn(null);
-//        $activityMock->isRemind()
-//            ->willReturn(false);
-//        $activityMock->isQuotedPost()
-//            ->willReturn(false);
-//        $activityMock->getType()
-//            ->willReturn('activity');
-//
-//        /**
-//         * Set up repository mock
-//         */
-//        $this->repository->getEntitiesByNostrAuthors(["123"])
-//            ->willYield([$activityMock->getWrappedObject()]);
-//
-//        $this->setupKeysMock($userMock);
-//
-//        $this->entitiesBuilder->single("user_123")
-//            ->willReturn($userMock);
-//
-//        $nostrEventMock = (new NostrEvent())
-//            ->setId("c7462cd60b3278e59cf863a512971b2c35da77aabd6761eb76d1e42083da9038")
-//            ->setKind(1)
-//            ->setCreated_at(1653047334)
-//            ->setPubKey("4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715")
-//            ->setSig("9aafd37d5312426c34c4f16d9d837167260c1000b6cb7d111b9a0966692ee04a4c93af15767c521eab9b660ee4169b489f8023f836403388f970ad52bbbaf995")
-//            ->setContent('Hello nostr. This is Minds calling');
-//
-//        $this->buildNostrEvent($activityMock->getWrappedObject())
-//            ->willReturn($nostrEventMock);
-//
-//        $response = $this->getNostrEventsForAuthors(["123"]);
-//        $response->shouldContainValueLike($nostrEventMock);
-//    }
+    //    public function it_should_return_nostr_events_from_nostr_authors(
+    //        Activity $activityMock,
+    //        User $userMock
+    //    ): void {
+    //        /**
+    //         * Set up mock entity
+    //         */
+    //        $activityMock->getOwnerGuid()
+    //            ->willReturn("user_123");
+    //        $activityMock->getTimeCreated()
+    //            ->willReturn(1653047334);
+    //        $activityMock->getMessage()
+    //            ->willReturn('Hello nostr. This is Minds calling');
+    //        $activityMock->getEntityGuid()
+    //            ->willReturn(null);
+    //        $activityMock->isRemind()
+    //            ->willReturn(false);
+    //        $activityMock->isQuotedPost()
+    //            ->willReturn(false);
+    //        $activityMock->getType()
+    //            ->willReturn('activity');
+    //
+    //        /**
+    //         * Set up repository mock
+    //         */
+    //        $this->repository->getEntitiesByNostrAuthors(["123"])
+    //            ->willYield([$activityMock->getWrappedObject()]);
+    //
+    //        $this->setupKeysMock($userMock);
+    //
+    //        $this->entitiesBuilder->single("user_123")
+    //            ->willReturn($userMock);
+    //
+    //        $nostrEventMock = (new NostrEvent())
+    //            ->setId("c7462cd60b3278e59cf863a512971b2c35da77aabd6761eb76d1e42083da9038")
+    //            ->setKind(1)
+    //            ->setCreated_at(1653047334)
+    //            ->setPubKey("4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715")
+    //            ->setSig("9aafd37d5312426c34c4f16d9d837167260c1000b6cb7d111b9a0966692ee04a4c93af15767c521eab9b660ee4169b489f8023f836403388f970ad52bbbaf995")
+    //            ->setContent('Hello nostr. This is Minds calling');
+    //
+    //        $this->buildNostrEvent($activityMock->getWrappedObject())
+    //            ->willReturn($nostrEventMock);
+    //
+    //        $response = $this->getNostrEventsForAuthors(["123"]);
+    //        $response->shouldContainValueLike($nostrEventMock);
+    //    }
 
     public function it_should_accept_default_filters(NostrEvent $nostrEvent, Activity $activity, User $user)
     {

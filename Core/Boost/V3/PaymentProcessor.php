@@ -18,6 +18,11 @@ use Minds\Core\Data\Locks\KeyNotSetupException;
 use Minds\Core\Data\Locks\LockFailedException;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardInsufficientFundsException;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
+use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
+use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
@@ -25,6 +30,7 @@ use Minds\Core\Payments\V2\Enums\PaymentStatus;
 use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
 use Minds\Core\Payments\V2\Exceptions\PaymentNotFoundException;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
+use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -35,57 +41,105 @@ class PaymentProcessor
 {
     public const SERVICE_FEE_PERCENT = 0;
 
+    private bool $inTransaction = false;
+
     public function __construct(
         private ?IntentsManagerV2 $intentsManager = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?OffchainTransactions $offchainTransactions = null,
         private ?MindsConfig $mindsConfig = null,
         private ?AdminTransactionProcessor $onchainAdminTransactionProcessor = null,
-        private ?PaymentsManager $paymentsManager = null
+        private ?PaymentsManager $paymentsManager = null,
+        private ?GiftCardsManager $giftCardsManager = null,
     ) {
         $this->mindsConfig ??= Di::_()->get("Config");
         $this->entitiesBuilder ??= Di::_()->get("EntitiesBuilder");
         $this->offchainTransactions ??= new OffchainTransactions();
         $this->onchainAdminTransactionProcessor ??= new AdminTransactionProcessor();
         $this->paymentsManager ??= Di::_()->get(PaymentsManager::class);
+        $this->giftCardsManager ??= Di::_()->get(GiftCardsManager::class);
+    }
+
+    public function beginTransaction(): void
+    {
+        $this->inTransaction = true;
+    }
+
+    public function commitTransaction(): void
+    {
+        if ($this->inTransaction) {
+            $this->giftCardsManager->commitTransaction();
+        }
     }
 
     /**
      * @param Boost $boost
      * @param User $user
+     * @param PaymentDetails $paymentDetails
      * @return bool
+     * @throws BoostCashPaymentSetupFailedException
+     * @throws GiftCardInsufficientFundsException
+     * @throws GiftCardNotFoundException
      * @throws InvalidBoostPaymentMethodException
      * @throws KeyNotSetupException
      * @throws LockFailedException
      * @throws OffchainWalletInsufficientFundsException
      * @throws ServerErrorException
-     * @throws InvalidPaymentMethodException
-     * @throws Exception
      */
-    public function setupBoostPayment(Boost $boost, User $user): bool
-    {
+    public function setupBoostPayment(
+        Boost $boost,
+        User $user,
+        PaymentDetails $paymentDetails
+    ): bool {
         $result = match ($boost->getPaymentMethod()) {
-            BoostPaymentMethod::CASH => $this->setupCashPaymentIntent($boost),
+            BoostPaymentMethod::CASH => $this->setupCashPaymentIntent($boost, $paymentDetails, $user),
             BoostPaymentMethod::OFFCHAIN_TOKENS => $this->setupOffchainTokensPayment($boost),
             BoostPaymentMethod::ONCHAIN_TOKENS => throw new ServerErrorException("Onchain transactions are processed client-side"),
             default => throw new InvalidBoostPaymentMethodException()
         };
-        $paymentDetails = $this->paymentsManager
-            ->setUser($user)
-            ->createPaymentFromBoost($boost);
 
         $boost->setPaymentGuid($paymentDetails->paymentGuid);
 
-        return (bool) $result;
+        return $result;
     }
 
     /**
      * @param Boost $boost
-     * @return bool
-     * @throws Exception
+     * @param User $user
+     * @return PaymentDetails
+     * @throws InvalidPaymentMethodException
+     * @throws ServerErrorException
      */
-    private function setupCashPaymentIntent(Boost $boost): bool
+    public function createMindsPayment(Boost $boost, User $user): PaymentDetails
     {
+        return $this->paymentsManager
+            ->setUser($user)
+            ->createPaymentFromBoost($boost);
+    }
+
+    /**
+     * @param Boost $boost
+     * @param PaymentDetails $paymentDetails
+     * @param User $user
+     * @return bool
+     * @throws BoostCashPaymentSetupFailedException
+     * @throws GiftCardInsufficientFundsException
+     * @throws ServerErrorException
+     * @throws GiftCardNotFoundException
+     */
+    private function setupCashPaymentIntent(Boost $boost, PaymentDetails $paymentDetails, User $user): bool
+    {
+        if ($boost->getPaymentMethodId() === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+            $boost->setPaymentTxId(GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID);
+            $this->giftCardsManager->setInTransaction($this->inTransaction);
+            $this->giftCardsManager->spend(
+                $user,
+                GiftCardProductIdEnum::BOOST,
+                $paymentDetails
+            );
+            return true;
+        }
+
         try {
             $paymentIntent = (new PaymentIntent())
                 ->setUserGuid($boost->getOwnerGuid())
@@ -201,6 +255,11 @@ class PaymentProcessor
         if (!$boostOwner || !$boostOwner instanceof User) {
             $boostOwner = null;
         }
+
+        if ($boost->getPaymentTxId() === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+            return true;
+        }
+        
         return $this->getIntentsManager()->capturePaymentIntent($boost->getPaymentTxId(), $boostOwner);
     }
 
@@ -262,6 +321,7 @@ class PaymentProcessor
      * @param Boost $boost
      * @return bool
      * @throws ApiErrorException
+     * @throws ServerErrorException
      */
     private function refundCashPaymentIntent(Boost $boost): bool
     {
@@ -269,6 +329,14 @@ class PaymentProcessor
         if (!$boostOwner || !$boostOwner instanceof User) {
             $boostOwner = null;
         }
+        if ($boost->getPaymentTxId() === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+            if (!$this->giftCardsManager->isInTransaction()) {
+                $this->giftCardsManager->refund($boost->getPaymentGuid());
+            }
+            $this->giftCardsManager->rollbackTransaction();
+            return true;
+        }
+        
         return $this->getIntentsManager()->cancelPaymentIntent($boost->getPaymentTxId(), $boostOwner);
     }
 

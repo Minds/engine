@@ -37,6 +37,11 @@ class SupermindPendingNoticeSpec extends ObjectBehavior
         $this->getKey()->shouldBe('supermind-pending');
     }
 
+    public function it_should_get_whether_notice_is_dismissible()
+    {
+        $this->isDismissible()->shouldBe(false);
+    }
+
     public function it_should_determine_if_notice_should_show(
         User $user
     ) {
@@ -95,7 +100,8 @@ class SupermindPendingNoticeSpec extends ObjectBehavior
         $this->export()->shouldBe([
             'key' => 'supermind-pending',
             'location' => 'top',
-            'should_show' => true
+            'should_show' => true,
+            'is_dismissible' => false
         ]);
     }
 }

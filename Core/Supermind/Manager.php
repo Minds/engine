@@ -171,7 +171,7 @@ class Manager
             throw new SupermindNotFoundException();
         }
 
-        if ($supermindRequest->getStatus() !== SupermindRequestStatus::CREATED) {
+        if ($supermindRequest->getStatus() !== SupermindRequestStatus::CREATED->value) {
             throw new SupermindRequestIncorrectStatusException();
         }
 
@@ -214,11 +214,12 @@ class Manager
 
     /**
      * @param string $supermindRequestId
-     * @param int $targetStatus
+     * @param SupermindRequestStatus $targetStatus
      * @return bool
+     * @throws ServerErrorException
      * @throws SupermindRequestStatusUpdateException
      */
-    public function updateSupermindRequestStatus(string $supermindRequestId, int $targetStatus): bool
+    public function updateSupermindRequestStatus(string $supermindRequestId, SupermindRequestStatus $targetStatus): bool
     {
         return $this->repository->updateSupermindRequestStatus($targetStatus, $supermindRequestId) ? true : throw new SupermindRequestStatusUpdateException();
     }
@@ -267,7 +268,7 @@ class Manager
             throw new SupermindNotFoundException();
         }
 
-        if ($supermindRequest->getStatus() !== SupermindRequestStatus::CREATED) {
+        if ($supermindRequest->getStatus() !== SupermindRequestStatus::CREATED->value) {
             throw new SupermindRequestIncorrectStatusException();
         }
 
@@ -308,7 +309,7 @@ class Manager
             throw new SupermindNotFoundException();
         }
 
-        if ($supermindRequest->getStatus() !== SupermindRequestStatus::CREATED) {
+        if ($supermindRequest->getStatus() !== SupermindRequestStatus::CREATED->value) {
             throw new SupermindRequestIncorrectStatusException();
         }
 
@@ -456,10 +457,10 @@ class Manager
     /**
      * @param int $offset
      * @param int $limit
-     * @param int|null $status
+     * @param SupermindRequestStatus|null $status
      * @return Response
      */
-    public function getReceivedRequests(int $offset, int $limit, ?int $status): Response
+    public function getReceivedRequests(int $offset, int $limit, ?SupermindRequestStatus $status): Response
     {
         $requests = [];
         foreach ($this->repository->getReceivedRequests(
@@ -476,10 +477,10 @@ class Manager
 
     /**
      * Count received requests for instance user.
-     * @param integer|null $status - status to count for (null will return all).
+     * @param SupermindRequestStatus|null $status - status to count for (null will return all).
      * @return integer returns count of received requests.
      */
-    public function countReceivedRequests(?int $status = null): int
+    public function countReceivedRequests(?SupermindRequestStatus $status = null): int
     {
         return $this->repository->countReceivedRequests(
             receiverGuid: (string) $this->user->getGuid(),
@@ -490,10 +491,10 @@ class Manager
     /**
      * @param int $offset
      * @param int $limit
-     * @param int|null $status
+     * @param SupermindRequestStatus|null $status
      * @return Response
      */
-    public function getSentRequests(int $offset, int $limit, ?int $status): Response
+    public function getSentRequests(int $offset, int $limit, ?SupermindRequestStatus $status): Response
     {
         $requests = [];
         foreach ($this->repository->getSentRequests(
@@ -510,10 +511,10 @@ class Manager
 
     /**
      * Count sent requests for instance user.
-     * @param integer|null $status - status to count for (null will return all).
+     * @param SupermindRequestStatus|null $status - status to count for (null will return all).
      * @return integer returns count of sent requests.
      */
-    public function countSentRequests(?int $status = null): int
+    public function countSentRequests(?SupermindRequestStatus $status = null): int
     {
         return $this->repository->countSentRequests(
             senderGuid: (string) $this->user->getGuid(),
@@ -562,47 +563,66 @@ class Manager
         ini_set('display_errors', '1');
         error_reporting(E_ALL);
 
-        $this->repository->beginTransaction();
+        foreach ($this->repository->getExpiredRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD) as $request) {
+            $this->logger->info('Expiring Supermind', [$request->getGuid()]);
 
-        try {
-            $this->logger->info('Getting expired supermind requests');
-            $expiredSupermindRequests = $this->repository->expireSupermindRequests(SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD);
-        } catch (Exception $e) {
-            $this->repository->rollbackTransaction();
-            throw $e;
-        }
+            $this->logger->info('Setting supermind request status to expiring in progress', ['request_guid' => $request->getGuid()]);
+            $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::EXPIRING_IN_PROGRESS, $request->getGuid());
 
-        if (count($expiredSupermindRequests) === 0) {
-            $this->logger->info('No expired supermind requests');
-            $this->repository->rollbackTransaction();
-            return true;
-        }
+            $this->logger->info('Status updated to ' . SupermindRequestStatus::EXPIRING_IN_PROGRESS->name, ['request_guid' => $request->getGuid()]);
 
-        $requests = iterator_to_array($this->getSupermindRequestsFromIds($expiredSupermindRequests));
-
-        foreach ($requests as $supermindRequest) {
+            /**
+             * Transaction started after updating status to expiring in progress
+             * to prevent refund being processed multiple times due to errors
+             */
+            $this->logger->info('Beginning transaction', ['request_guid' => $request->getGuid()]);
+            $this->repository->beginTransaction();
             try {
-                if ($supermindRequest->getPaymentMethod() === SupermindRequestPaymentMethod::OFFCHAIN_TOKEN) {
-                    $this->logger->info('Refunding Supermind', [$supermindRequest->getGuid()]);
-                    $transactionId = $this->paymentProcessor->refundOffchainPayment($supermindRequest);
-                    $this->repository->saveSupermindRefundTransaction($supermindRequest->getGuid(), $transactionId);
+                // Refund offchain token payment
+                if ($request->getPaymentMethod() === SupermindRequestPaymentMethod::OFFCHAIN_TOKEN) {
+                    $this->logger->info('Supermind request payment method is offchain tokens', ['request_guid' => $request->getGuid()]);
+
+                    // Refund offchain payment
+                    $this->logger->info('Refunding supermind request', ['request_guid' => $request->getGuid()]);
+                    $transactionId = $this->paymentProcessor->refundOffchainPayment($request);
+                    $this->logger->info('Supermind request refunded', ['request_guid' => $request->getGuid()]);
+
+                    // Store refund transaction
+                    $this->logger->info('Storing supermind refund transaction', [
+                        'request_guid' => $request->getGuid(),
+                        'transaction_id' => $transactionId
+                    ]);
+                    $this->repository->saveSupermindRefundTransaction($request->getGuid(), $transactionId);
+                    $this->logger->info('Supermind refund transaction stored', [
+                        'request_guid' => $request->getGuid(),
+                        'transaction_id' => $transactionId
+                    ]);
                 }
-            } catch (UserNotFoundException $e) {
-                $this->logger->warning("{$e->getMessage()} - skipping.");
-                continue;
+
+                // Update supermind request status to Expired and commit transaction
+                $this->logger->info('Setting supermind request status to expired', ['request_guid' => $request->getGuid()]);
+                $this->repository->updateSupermindRequestStatus(SupermindRequestStatus::EXPIRED, $request->getGuid());
+                $this->repository->commitTransaction();
+
+                $this->logger->info('Status updated to ' . SupermindRequestStatus::EXPIRED->name, ['request_guid' => $request->getGuid()]);
+                $this->logger->info('Transaction committed', ['request_guid' => $request->getGuid()]);
+
+                $this->logger->info('Firing to events delegate for Supermind', [$request->getGuid()]);
+                $this->eventsDelegate->onExpireSupermindRequest($request);
             } catch (Exception $e) {
-                $this->logger->info('Rolling back - an error occurred with Supermind', [$supermindRequest->getGuid()]);
+                $this->logger->error('Error expiring supermind', [
+                    'request_guid' => $request->getGuid(),
+                    'exception' => [
+                        'message' => $e->getMessage(),
+                        'trace' => $e->getTrace()
+                    ]
+                ]);
                 $this->repository->rollbackTransaction();
-                throw $e;
+                continue;
             }
         }
 
-        $this->repository->commitTransaction();
-
-        foreach ($requests as $supermindRequest) {
-            $this->logger->info('Firing to events delegate for Supermind', [$supermindRequest->getGuid()]);
-            $this->eventsDelegate->onExpireSupermindRequest($supermindRequest);
-        }
+        $this->logger->info('Finished expiring superminds');
 
         return true;
     }

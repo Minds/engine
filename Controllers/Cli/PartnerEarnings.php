@@ -79,10 +79,10 @@ class PartnerEarnings extends Cli\Controller implements Interfaces\CliController
         var_dump($user->getPartnerRpm());
 
         $manager = new Manager();
-//        $manager->resetRpm($user, $this->getOpt('rpm') ?: 1);
+        //        $manager->resetRpm($user, $this->getOpt('rpm') ?: 1);
 
         $daysAgo = 180;
-//        var_dump($user->getPartnerRpm());
+        //        var_dump($user->getPartnerRpm());
 
         while (--$daysAgo >= 0) {
             $this->out($daysAgo);

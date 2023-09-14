@@ -76,7 +76,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $entity->getGuid()
             ->shouldBeCalled()
             ->willReturn($guid);
-            
+
         $entity->getEntityGuid()
             ->shouldBeCalled()
             ->willReturn($entityGuid);
@@ -91,7 +91,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $this->counters->get('123', 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
-       
+
         $this->socketEvents->setRoom("entity:metrics:$guid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);
@@ -114,7 +114,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $entity->getGuid()
             ->shouldBeCalled()
             ->willReturn($guid);
-            
+
         $entity->getEntityGuid()
             ->shouldBeCalled()
             ->willReturn($entityGuid);
@@ -125,7 +125,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
 
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN);
-       
+
         $this->counters->get('123', 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
@@ -152,7 +152,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $entity->getGuid()
             ->shouldBeCalled()
             ->willReturn($guid);
-            
+
         $entity->getEntityGuid()
             ->shouldBeCalled()
             ->willReturn($entityGuid);
@@ -186,7 +186,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $entity->getGuid()
             ->shouldBeCalled()
             ->willReturn($guid);
-            
+
         $this->experiments->isOn('engine-1218-metrics-sockets')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -217,7 +217,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
     }
 
     // ACTIVITY WITH LINKED MEDIA
-    
+
     public function it_should_emit_event_for_vote_up_for_an_activity_with_linked_media(ActionEvent $event, Activity $entity)
     {
         $entityGuid = '321';
@@ -240,7 +240,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $this->counters->get($entityGuid, 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
-        
+
         $this->socketEvents->setRoom("entity:metrics:$entityGuid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);
@@ -273,7 +273,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $this->counters->get($entityGuid, 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
-        
+
         $this->socketEvents->setRoom("entity:metrics:$entityGuid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);
@@ -320,7 +320,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
     public function it_should_emit_event_for_vote_down_removed_for_an_activity_with_linked_media(ActionEvent $event, Activity $entity)
     {
         $entityGuid = '321';
-         
+
         $this->experiments->isOn('engine-1218-metrics-sockets')
             ->shouldBeCalled()
             ->willReturn(true);
@@ -335,11 +335,11 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
 
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN_REMOVED);
-        
+
         $this->counters->get('321', 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
-       
+
         $this->socketEvents->setRoom("entity:metrics:$entityGuid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);
@@ -370,11 +370,11 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
 
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_UP);
-        
+
         $this->counters->get($guid, 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
-       
+
         $this->socketEvents->setRoom("entity:metrics:$guid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);
@@ -403,11 +403,11 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
 
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN);
-        
+
         $this->counters->get($guid, 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
-       
+
         $this->socketEvents->setRoom("entity:metrics:$guid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);
@@ -436,11 +436,11 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
 
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_UP_REMOVED);
-        
+
         $this->counters->get($guid, 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
-       
+
         $this->socketEvents->setRoom("entity:metrics:$guid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);
@@ -469,11 +469,11 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
 
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN_REMOVED);
-            
+
         $this->counters->get($guid, 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
-       
+
         $this->socketEvents->setRoom("entity:metrics:$guid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);
@@ -507,7 +507,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $this->counters->get($guid, 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
-        
+
         $this->socketEvents->setRoom("entity:metrics:$guid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);
@@ -536,11 +536,11 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
 
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN);
-            
+
         $this->counters->get($guid, 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
-       
+
         $this->socketEvents->setRoom("entity:metrics:$guid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);
@@ -573,7 +573,7 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $this->counters->get($guid, 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
-        
+
         $this->socketEvents->setRoom("entity:metrics:$guid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);
@@ -595,18 +595,18 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $entity->getGuid()
             ->shouldBeCalled()
             ->willReturn($guid);
-            
+
         $event->getEntity()
             ->shouldBeCalled()
             ->willReturn($entity);
 
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN_REMOVED);
-            
+
         $this->counters->get($guid, 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
-       
+
         $this->socketEvents->setRoom("entity:metrics:$guid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);
@@ -637,11 +637,11 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
 
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_UP);
-            
+
         $this->counters->get($guid, 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
-        
+
         $this->socketEvents->setRoom("entity:metrics:$guid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);
@@ -663,18 +663,18 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $entity->getGuid()
             ->shouldBeCalled()
             ->willReturn($guid);
-            
+
         $event->getEntity()
             ->shouldBeCalled()
             ->willReturn($entity);
 
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN);
-           
+
         $this->counters->get($guid, 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
-        
+
         $this->socketEvents->setRoom("entity:metrics:$guid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);
@@ -696,18 +696,18 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $entity->getGuid()
             ->shouldBeCalled()
             ->willReturn($guid);
-            
+
         $event->getEntity()
             ->shouldBeCalled()
             ->willReturn($entity);
 
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_UP_REMOVED);
-            
+
         $this->counters->get($guid, 'thumbs:up', false)
             ->shouldBeCalled()
             ->willReturn(1);
-        
+
         $this->socketEvents->setRoom("entity:metrics:$guid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);
@@ -736,11 +736,11 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
 
         $event->getAction()
             ->willReturn(ActionEvent::ACTION_VOTE_DOWN_REMOVED);
-            
+
         $this->counters->get($guid, 'thumbs:down', false)
             ->shouldBeCalled()
             ->willReturn(1);
-        
+
         $this->socketEvents->setRoom("entity:metrics:$guid")
             ->shouldBeCalled()
             ->willReturn($this->socketEvents);

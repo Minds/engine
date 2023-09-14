@@ -58,16 +58,19 @@ class ControllerSpec extends ObjectBehavior
                     'key' => 'boost-channel',
                     'location' => 'top',
                     'should_show' => true,
+                    'is_dismissible' => true
                 ],
                 [
                     'key' => 'verify-email',
                     'location' => 'top',
                     'should_show' => false,
+                    'is_dismissible' => false
                 ],
                 [
                     'key' => 'setup-channel',
                     'location' => 'inline',
                     'should_show' => true,
+                    'is_dismissible' => true
                 ],
             ]
         ]));

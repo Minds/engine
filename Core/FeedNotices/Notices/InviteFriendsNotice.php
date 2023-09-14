@@ -34,6 +34,16 @@ class InviteFriendsNotice extends AbstractNotice
     }
 
     /**
+     * Whether notice is dismissible.
+     * @return boolean - true if notice is dismissible.
+     */
+    public function isDismissible(): bool
+    {
+        return true;
+    }
+
+
+    /**
      * Whether notice should show in feed. Always true for this notice.
      * @param User $user - user to check for.
      * @return boolean - true if notice should show.

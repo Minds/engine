@@ -13,7 +13,7 @@ use Selective\Database\RawExp;
 
 class Repository extends MySQL\AbstractRepository
 {
-    const CACHE_KEY_PREFIX = "groups:v2:membership";
+    const CACHE_KEY_PREFIX = "group:v2:membership";
 
     public function __construct(
         MySQL\Client $mysqlClient,
@@ -63,6 +63,7 @@ class Repository extends MySQL\AbstractRepository
         int $groupGuid = null,
         int $userGuid = null,
         GroupMembershipLevelEnum $membershipLevel = null,
+        bool $membershipLevelGte = false,
         int $limit = 12,
         int $offset = 0,
     ): iterable {
@@ -87,6 +88,8 @@ class Repository extends MySQL\AbstractRepository
 
         if (!$membershipLevel) {
             $query->where('membership_level', Operator::GTE, GroupMembershipLevelEnum::MEMBER->value);
+        } elseif ($membershipLevelGte) {
+            $query->where('membership_level', Operator::GTE, $membershipLevel->value);
         } else {
             $query->where('membership_level', Operator::EQ, $membershipLevel->value);
         }
@@ -163,8 +166,10 @@ class Repository extends MySQL\AbstractRepository
         if ($success) {
             // Update the cache
             $this->cache->set($this->getMembershipCacheKey($membership->groupGuid, $membership->userGuid), serialize($membership));
-            // Purge the group count cache key
+            // Purge the group count cache key for this membership level
             $this->cache->delete($this->getMemberCountCacheKey($membership->groupGuid, $membership->membershipLevel));
+            // Purge the group count cache key for all membership levels
+            $this->cache->delete($this->getMemberCountCacheKey($membership->groupGuid));
         }
 
         return $success;
@@ -184,10 +189,12 @@ class Repository extends MySQL\AbstractRepository
         if ($success) {
             // Purge the group membership cache key
             $this->cache->delete($this->getMembershipCacheKey($membership->groupGuid, $membership->userGuid));
-            // Purge the group count cache key
+            // Purge the group count cache key for each level
             foreach (GroupMembershipLevelEnum::cases() as $membershipLevel) {
                 $this->cache->delete($this->getMemberCountCacheKey($membership->groupGuid, $membershipLevel));
             }
+            // Purge the group count cache key for all membership levels
+            $this->cache->delete($this->getMemberCountCacheKey($membership->groupGuid));
         }
 
         return $success;
@@ -217,6 +224,62 @@ class Repository extends MySQL\AbstractRepository
             }
         }
         return $success;
+    }
+
+    /**
+    * Will return groups that other members, of groups I am in, are also a member of
+    * @param string $userGuid
+    * @param int $limit
+    * @param int $offset
+    * @return iterable<int>
+    */
+    public function getGroupsOfMutualMember(
+        int $userGuid,
+        int $limit = 3,
+        int $offset = 0
+    ): iterable {
+        $userSharedGroupWithSubquery = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'user_guid' => 'b.user_guid',
+                'count' => new RawExp('count(*)')
+            ])
+            ->from('minds_group_membership')
+            ->innerJoin(['b'=>'minds_group_membership'], 'minds_group_membership.group_guid', Operator::EQ, 'b.group_guid')
+            ->where('minds_group_membership.user_guid', Operator::EQ, new RawExp(':userGuid'))
+            ->where('b.user_guid', Operator::NOT_EQ, new RawExp(':userGuid'))
+            ->groupBy('user_guid')
+            ->alias('b');
+
+        $query = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'group_guid' => 'minds_group_membership.group_guid',
+                'relevance' => new RawExp('count(*)'),
+            ])
+            ->from(new RawExp('minds_group_membership'))
+            // Users that share the same groups
+            ->innerJoin(
+                new RawExp(rtrim($userSharedGroupWithSubquery->build(), ';')),
+                'b.user_guid',
+                Operator::EQ,
+                'minds_group_membership.user_guid'
+            )
+            // Exclude groups already a member of
+            ->leftJoinRaw(['c' => 'minds_group_membership'], 'c.user_guid = :userGuid AND c.group_guid = minds_group_membership.group_guid')
+            ->where('c.membership_level', Operator::IS, null)
+            ->groupBy('group_guid')
+            ->orderBy('relevance desc')
+            ->limit($limit)
+            ->offset($offset);
+
+        $prepared = $query->prepare();
+
+        $prepared->execute([
+            'userGuid' => $userGuid,
+        ]);
+
+        foreach ($prepared as $row) {
+            yield (int) $row['group_guid'];
+        }
     }
 
     private function getMemberCountCacheKey(int $groupGuid, GroupMembershipLevelEnum $membershipLevel = null): string

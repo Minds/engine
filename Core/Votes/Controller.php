@@ -35,6 +35,11 @@ class Controller
         $queryParams = $request->getQueryParams();
         $limit = (int) ($queryParams['limit'] ?? 12);
         $direction = $queryParams['direction'] ?? 'up';
+
+        if ($direction === 'down') {
+            throw new UserErrorException("Downvote lists have been removed");
+        }
+
         $entityGuid = $request->getAttribute('parameters')['entityGuid'] ?? null;
         $nextPage = $queryParams['next-page'] ?? null;
 

@@ -41,7 +41,7 @@ class SupermindSteps extends ApiTester
     #[When('I accept the Supermind request for stored data ":dataToRetrieve" with the following reply :supermindReply')]
     public function whenIAcceptSupermindRequestStatusForStoredData(string $dataToRetrieve, PyStringNode $supermindReply)
     {
-//        $this->loginWithSupermindReceiverAccount();
+        //        $this->loginWithSupermindReceiverAccount();
 
         $supermindReply = json_decode($supermindReply->getRaw(), true);
         $supermindReply = $this->populateSupermindReplyDetails($supermindReply, $dataToRetrieve);

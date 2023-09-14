@@ -11,10 +11,12 @@ use Minds\Core\Groups\Membership as LegacyMembership;
 use Minds\Core\Experiments;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Core\Groups\V2\Membership\Membership;
+use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Group;
 use Minds\Entities\User;
+use Minds\Exceptions\GroupOperationException;
 use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -28,6 +30,7 @@ class ManagerSpec extends ObjectBehavior
     protected $aclMock;
     protected $legacyMembershipMock;
     protected $experimentsManagerMock;
+    protected $groupRecsAlgoMock;
 
     public function let(
         Repository $repositoryMock,
@@ -35,13 +38,15 @@ class ManagerSpec extends ObjectBehavior
         ACL $aclMock,
         LegacyMembership $legacyMembershipMock,
         Experiments\Manager $experimentsManagerMock,
+        SuggestedGroupsRecommendationsAlgorithm $groupRecsAlgo
     ) {
-        $this->beConstructedWith($repositoryMock, $entitiesBuilderMock, $aclMock, $legacyMembershipMock, $experimentsManagerMock);
+        $this->beConstructedWith($repositoryMock, $entitiesBuilderMock, $aclMock, $legacyMembershipMock, $experimentsManagerMock, $groupRecsAlgo);
         $this->repositoryMock = $repositoryMock;
         $this->entitiesBuilderMock = $entitiesBuilderMock;
         $this->aclMock = $aclMock;
         $this->legacyMembershipMock = $legacyMembershipMock;
         $this->experimentsManagerMock = $experimentsManagerMock;
+        $this->groupRecsAlgoMock = $groupRecsAlgo;
 
         $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(false);
     }
@@ -143,7 +148,7 @@ class ManagerSpec extends ObjectBehavior
     public function it_should_return_members_from_legacy(Group $groupMock)
     {
         $refTime = time();
-    
+
         $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(false);
 
         $groupMock->getGuid()
@@ -238,7 +243,7 @@ class ManagerSpec extends ObjectBehavior
 
         $userMock->getGuid()
             ->willReturn(123);
-    
+
         $this->legacyMembershipMock->getGroupGuidsByMember([ 'user_guid' => 123, 'limit' => 500 ])
             ->willReturn([
                 456,
@@ -302,7 +307,7 @@ class ManagerSpec extends ObjectBehavior
             membershipLevel: GroupMembershipLevelEnum::MEMBER,
         );
 
-        $this->repositoryMock->getList(123, null, null, Argument::any(), Argument::any())
+        $this->repositoryMock->getList(123, null, null, false, Argument::any(), Argument::any())
             ->willYield([
                 $membership1,
                 $membership2,
@@ -313,6 +318,46 @@ class ManagerSpec extends ObjectBehavior
         $this->aclMock->read(Argument::any())->willReturn(true);
 
         $this->getMembers($groupMock)->shouldYieldLike([
+            $membership1,
+            $membership2,
+        ]);
+    }
+
+    public function it_should_return_members_for_a_provided_membership_level(Group $groupMock, User $userMock)
+    {
+        $membershipLevel = GroupMembershipLevelEnum::OWNER;
+
+        $this->experimentsManagerMock->isOn('engine-2591-groups-memberships')->willReturn(true);
+
+        $groupMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $membership1 = new Membership(
+            groupGuid: 123,
+            userGuid: 456,
+            createdTimestamp: new DateTime(),
+            membershipLevel: GroupMembershipLevelEnum::OWNER,
+        );
+
+        $membership2 = new Membership(
+            groupGuid: 123,
+            userGuid: 789,
+            createdTimestamp: new DateTime(),
+            membershipLevel: GroupMembershipLevelEnum::OWNER,
+        );
+
+        $this->repositoryMock->getList(123, null, $membershipLevel, false, Argument::any(), Argument::any())
+            ->willYield([
+                $membership1,
+                $membership2,
+            ]);
+
+        $this->entitiesBuilderMock->single(Argument::any())->willReturn($userMock);
+
+        $this->aclMock->read(Argument::any())->willReturn(true);
+
+        $this->getMembers($groupMock, $membershipLevel)->shouldYieldLike([
             $membership1,
             $membership2,
         ]);
@@ -333,7 +378,7 @@ class ManagerSpec extends ObjectBehavior
             membershipLevel: GroupMembershipLevelEnum::REQUESTED,
         );
 
-        $this->repositoryMock->getList(123, null, GroupMembershipLevelEnum::REQUESTED, Argument::any(), Argument::any())
+        $this->repositoryMock->getList(123, null, GroupMembershipLevelEnum::REQUESTED, false, Argument::any(), Argument::any())
             ->willYield([
                 $membership,
                 $membership
@@ -364,7 +409,7 @@ class ManagerSpec extends ObjectBehavior
             membershipLevel: GroupMembershipLevelEnum::REQUESTED,
         );
 
-        $this->repositoryMock->getList(null, 123, null, Argument::any(), Argument::any())
+        $this->repositoryMock->getList(null, 123, null, false, Argument::any(), Argument::any())
             ->willYield([
                 $membership,
                 $membership
@@ -402,7 +447,7 @@ class ManagerSpec extends ObjectBehavior
             membershipLevel: GroupMembershipLevelEnum::REQUESTED,
         );
 
-        $this->repositoryMock->getList(null, 789, null, Argument::any(), Argument::any())
+        $this->repositoryMock->getList(null, 789, null, false, Argument::any(), Argument::any())
             ->willYield([
                 $membership1,
                 $membership2
@@ -506,6 +551,9 @@ class ManagerSpec extends ObjectBehavior
         $userMock->getGuid()
             ->willReturn(456);
 
+        $this->groupRecsAlgoMock->setUser($userMock)->willReturn($this->groupRecsAlgoMock);
+        $this->groupRecsAlgoMock->purgeCache()->shouldBeCalled();
+
         $this->joinGroup($groupMock, $userMock)->shouldBe(true);
     }
 
@@ -530,6 +578,9 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(false);
         $userMock->getGuid()
             ->willReturn(456);
+
+        $this->groupRecsAlgoMock->setUser($userMock)->willReturn($this->groupRecsAlgoMock);
+        $this->groupRecsAlgoMock->purgeCache()->shouldBeCalled();
 
         $this->joinGroup($groupMock, $userMock)->shouldBe(true);
     }
@@ -562,6 +613,73 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(456);
 
         $this->leaveGroup($groupMock, $userMock)->shouldBe(true);
+    }
+
+    public function it_should_cancel_a_group_join_request(
+        Group $groupMock,
+        User $userMock,
+        Membership $membershipMock
+    ) {
+        $userGuid = '1234567890123450';
+        $groupGuid = '1234567890123451';
+
+        $membershipMock->isAwaiting()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $groupMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($groupGuid);
+
+        $userMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $this->repositoryMock->get($groupGuid, $userGuid)->willReturn($membershipMock);
+
+        /**
+         * Legacy
+         */
+        $this->legacyMembershipMock->setGroup($groupMock)->willReturn($this->legacyMembershipMock);
+        $this->legacyMembershipMock->setActor($userMock)->willReturn($this->legacyMembershipMock);
+        $this->legacyMembershipMock->cancelRequest($userMock)->willReturn(true);
+
+        /**
+         * Vitess
+         */
+       
+        $this->repositoryMock->delete(Argument::type(Membership::class))->willReturn(true);
+
+        $this->cancelRequest($groupMock, $userMock)->shouldBe(true);
+    }
+
+    public function it_should_NOT_cancel_a_group_join_request_if_there_is_already_a_pending_request(
+        Group $groupMock,
+        User $userMock,
+        Membership $membershipMock
+    ) {
+        $userGuid = '1234567890123450';
+        $groupGuid = '1234567890123451';
+
+        $membershipMock->isAwaiting()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $groupMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($groupGuid);
+
+        $userMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($userGuid);
+
+        $this->repositoryMock->get($groupGuid, $userGuid)->willReturn($membershipMock);
+       
+        $this->repositoryMock->delete(Argument::type(Membership::class))->shouldNotBeCalled();
+
+        $this->shouldThrow(
+            new GroupOperationException("Cannot cancel as there is no pending membership request.")
+        )->during('cancelRequest', [$groupMock, $userMock]);
     }
 
     public function it_should_accept_user(Group $groupMock, User $userMock, User $actorMock)

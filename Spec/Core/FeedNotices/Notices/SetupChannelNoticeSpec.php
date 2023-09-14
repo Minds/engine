@@ -23,6 +23,11 @@ class SetupChannelNoticeSpec extends ObjectBehavior
         $this->getKey()->shouldBe('setup-channel');
     }
 
+    public function it_should_get_whether_notice_is_dismissible()
+    {
+        $this->isDismissible()->shouldBe(true);
+    }
+
     public function it_should_determine_if_notice_should_show_because_no_name(
         User $user
     ) {
@@ -85,7 +90,8 @@ class SetupChannelNoticeSpec extends ObjectBehavior
         $this->export()->shouldBe([
             'key' => 'setup-channel',
             'location' => 'inline',
-            'should_show' => false
+            'should_show' => false,
+            'is_dismissible' => true
         ]);
     }
 }

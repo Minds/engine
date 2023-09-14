@@ -8,6 +8,7 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Guid;
 use Minds\Core\Events\Dispatcher;
+use Minds\Core\EventStreams\UndeliveredEventException;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Core\Groups\Delegates\ElasticSearchDelegate;
 use Minds\Core\Groups\Invitations;
@@ -32,6 +33,7 @@ class Group extends NormalizedEntity implements EntityInterface
     protected $access_id = 2;
     protected $membership;
     protected $moderated = 0;
+    protected $show_boosts = 1;
     protected $default_view = 0;
     protected $banner = false;
     protected $banner_position;
@@ -62,6 +64,7 @@ class Group extends NormalizedEntity implements EntityInterface
         'banner_position',
         'membership',
         'moderated',
+        'show_boosts',
         'default_view',
         'featured',
         'featured_id',
@@ -102,6 +105,7 @@ class Group extends NormalizedEntity implements EntityInterface
             'access_id' => $this->access_id,
             'membership' => $this->membership,
             'moderated' => $this->moderated,
+            'show_boosts' => $this->show_boosts,
             'default_view' => $this->default_view,
             'banner' => $this->banner,
             'banner_position' => $this->banner_position,
@@ -132,9 +136,15 @@ class Group extends NormalizedEntity implements EntityInterface
         // Temporary until this is refactored into a Manager
         (new ElasticSearchDelegate())->onSave($this);
 
-        Di::_()->get('EventsDispatcher')->trigger('entities-ops', $creation ? 'create' : 'update', [
-            'entityUrn' => $this->getUrn()
-        ]);
+        try {
+            Di::_()->get('EventsDispatcher')->trigger('entities-ops', $creation ? 'create' : 'update', [
+                'entityUrn' => $this->getUrn()
+            ]);
+        } catch (UndeliveredEventException $e) {
+            $this->db->removeRow($this->getGuid());
+            // Rethrow
+            throw $e;
+        }
 
         return $saved;
     }
@@ -335,6 +345,27 @@ class Group extends NormalizedEntity implements EntityInterface
     public function getModerated()
     {
         return $this->moderated ? 1 : 0;
+    }
+
+    /**
+     * Sets `show_boosts`. Converts to int boolean.
+     * @param mixed $show_boosts
+     * @return Group
+     */
+    public function setShowBoosts($show_boosts)
+    {
+        $this->show_boosts = $show_boosts ? 1 : 0;
+
+        return $this;
+    }
+
+    /**
+     * Gets `show_boosts`
+     * @return int
+     */
+    public function getShowBoosts()
+    {
+        return $this->show_boosts ? 1 : 0;
     }
 
     /**

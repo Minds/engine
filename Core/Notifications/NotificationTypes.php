@@ -11,7 +11,9 @@ class NotificationTypes
     /** @var string */
     const TYPE_VOTE_UP = 'vote_up';
 
-    /** @var string */
+    /**
+     * @deprecated No notifications for down votes anymore. Still required to fetch old notifications.
+     */
     const TYPE_VOTE_DOWN = 'vote_down';
 
     /** @var string[] */
@@ -179,6 +181,9 @@ class NotificationTypes
     const TYPE_GROUP_QUEUE_ADD = 'group_queue_add';
 
     /** @var string */
+    const TYPE_GROUP_QUEUE_RECEIVED = 'group_queue_received';
+
+    /** @var string */
     const TYPE_GROUP_QUEUE_APPROVE = 'group_queue_approve';
 
     /** @var string */
@@ -187,7 +192,11 @@ class NotificationTypes
     /** @var string[] */
     const GROUPING_GROUPS = [
         self::TYPE_GROUP_INVITE,
-        self::TYPE_GROUP_QUEUE_ADD,self::TYPE_GROUP_QUEUE_APPROVE,self::TYPE_GROUP_QUEUE_REJECT, ];
+        self::TYPE_GROUP_QUEUE_ADD,
+        self::TYPE_GROUP_QUEUE_APPROVE,
+        self::TYPE_GROUP_QUEUE_REJECT,
+        self::TYPE_GROUP_QUEUE_RECEIVED
+    ];
 
     /** @var string */
     const GROUPING_TYPE_GROUPS = 'groups';
@@ -228,13 +237,13 @@ class NotificationTypes
 
     /** @var string */
     const TYPE_SUPERMIND_REQUEST_CREATE = 'supermind_created';
-    
+
     /** @var string */
     const TYPE_SUPERMIND_REQUEST_ACCEPT = 'supermind_accepted';
-    
+
     /** @var string */
     const TYPE_SUPERMIND_REQUEST_REJECT = 'supermind_rejected';
-    
+
     /** @var string */
     const TYPE_SUPERMIND_REQUEST_EXPIRE = 'supermind_expired';
 
@@ -249,7 +258,7 @@ class NotificationTypes
         self::TYPE_SUPERMIND_REQUEST_EXPIRE,
         self::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON,
     ];
-    
+
     /** @var string */
     const GROUPING_TYPE_SUPERMIND = 'supermind';
 
@@ -266,6 +275,18 @@ class NotificationTypes
     ];
 
     public const GROUPING_TYPE_AFFILIATE_EARNINGS = 'affiliate_earnings';
+
+    /**
+     * *******************************************
+     * Gift Cards
+     */
+    public const TYPE_GIFT_CARD_RECIPIENT_NOTIFIED = 'gift_card_recipient_notified';
+
+    public const GROUPING_GIFT_CARDS = [
+        self::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED,
+    ];
+
+    public const GROUPING_TYPE_GIFT_CARDS = 'gift_cards';
 
     /**
      * *******************************************
@@ -313,7 +334,6 @@ class NotificationTypes
     /** @var string[] */
     const TYPES = [
         self::TYPE_VOTE_UP,
-        self::TYPE_VOTE_DOWN,
         //
         self::TYPE_TAG,
         //
@@ -358,6 +378,9 @@ class NotificationTypes
         // Affiliate Earnings
         self::TYPE_AFFILIATE_EARNINGS_DEPOSITED,
         self::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED,
+
+        // Gift Cards
+        self::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED,
     ];
 
     /** @var array */
@@ -377,5 +400,6 @@ class NotificationTypes
         self::GROUPING_TYPE_COMMUNITY_UPDATES => self::GROUPING_COMMUNITY_UPDATES,
         self::GROUPING_TYPE_SUPERMIND => self::GROUPING_SUPERMIND,
         self::GROUPING_TYPE_AFFILIATE_EARNINGS => self::GROUPING_AFFILIATE_EARNINGS,
+        self::GROUPING_TYPE_GIFT_CARDS => self::GROUPING_GIFT_CARDS,
     ];
 }

@@ -28,23 +28,23 @@ class Controller
      * @throws ForbiddenException
      * @throws NotFoundException
      */
-//    #[OA\Get(
-//        path: '/api/v3/entities/:guid',
-//        parameters: [
-//            new OA\Parameter(
-//                name: "guid",
-//                in: "path",
-//                required: true,
-//                schema: new OA\Schema(type: 'string')
-//            )
-//        ],
-//        responses: [
-//            new OA\Response(response: 200, description: "Ok"),
-//            new OA\Response(response: 400, description: "Bad Request"),
-//            new OA\Response(response: 401, description: "Unauthorized"),
-//            new OA\Response(response: 404, description: "Not found")
-//        ]
-//    )]
+    //    #[OA\Get(
+    //        path: '/api/v3/entities/:guid',
+    //        parameters: [
+    //            new OA\Parameter(
+    //                name: "guid",
+    //                in: "path",
+    //                required: true,
+    //                schema: new OA\Schema(type: 'string')
+    //            )
+    //        ],
+    //        responses: [
+    //            new OA\Response(response: 200, description: "Ok"),
+    //            new OA\Response(response: 400, description: "Bad Request"),
+    //            new OA\Response(response: 401, description: "Unauthorized"),
+    //            new OA\Response(response: 404, description: "Not found")
+    //        ]
+    //    )]
     public function getEntity(ServerRequestInterface $request): JsonResponse
     {
         $loggedInUser = $request->getAttribute("_user");

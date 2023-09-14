@@ -7,6 +7,7 @@ use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
+use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 use Minds\Entities\User;
 use Minds\Core\Security\Block;
 use Minds\Core\Security\RateLimits\InteractionsLimiter;
@@ -46,6 +47,7 @@ class Manager
         $interactionsLimiter = null,
         Config $config = null,
         private ?DefaultTagMappingManager $defaultTagMappingManager = null,
+        private ?SuggestedGroupsRecommendationsAlgorithm $suggestedGroupsRecommendationsAlgorithm = null,
         private ?Logger $logger = null
     ) {
         $this->repository = $repository ?: new Repository();
@@ -56,6 +58,7 @@ class Manager
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
         $this->config = $config ?? Di::_()->get('Config');
         $this->defaultTagMappingManager ??= Di::_()->get(DefaultTagMappingManager::class);
+        $this->suggestedGroupsRecommendationsAlgorithm ??= new SuggestedGroupsRecommendationsAlgorithm();
         $this->logger ??= Di::_()->get('Logger');
     }
 
@@ -96,6 +99,35 @@ class Manager
      */
     public function getList($opts = []): Response
     {
+        if ($this->type === 'group') {
+            $groups = $this->suggestedGroupsRecommendationsAlgorithm->setUser($this->user)->getRecommendations([
+                'limit' => (int) ($opts['limit'] ?? 12),
+                'offset' => (int) ($opts['offset'] ?? 0),
+            ]);
+            if (!$groups->count()) {
+                $groups = new Response($this->getDefaultTagBasedSuggestions('group'));
+            }
+
+            $groups = $groups->map(function (Suggestion $suggestion): ?Suggestion {
+                $entity = $suggestion->getEntity() ?: $this->entitiesBuilder->single($suggestion->getEntityGuid());
+
+                if (!$entity) {
+                    $this->logger->warning("{$suggestion->getEntityGuid()} suggested group not found");
+                    return null;
+                }
+
+                $suggestion->setEntity($entity);
+                return $suggestion;
+            });
+    
+            // Remove missing entities
+            $groups = $groups->filter(function ($suggestion) {
+                return $suggestion && $suggestion->getEntity();
+            });
+
+            return $groups;
+        }
+
         $opts = array_merge([
             'limit' => 12,
             'paging-token' => '',

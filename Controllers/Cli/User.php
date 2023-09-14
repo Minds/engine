@@ -8,6 +8,7 @@ use Minds\Interfaces;
 use Minds\Exceptions;
 use Minds\Entities;
 use Minds\Core\Channels\Ban;
+use Minds\Core\Di\Di;
 
 class User extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -83,6 +84,28 @@ class User extends Cli\Controller implements Interfaces\CliControllerInterface
         }
     }
 
+    public function change_email()
+    {
+        try {
+            if (!$this->getOpt('username') || !$this->getOpt('email')) {
+                throw new Exceptions\CliException('Missing username / email');
+            }
+
+            $username = $this->getOpt('username');
+            $email = $this->getOpt('email');
+
+            $user = new Entities\User($username);
+        
+            $user->email = $email;
+            $user->save();
+
+            $this->out("Email changed successfuly for user ".$username);
+        } catch (\Exception $e) {
+            $this->out("An error has occured");
+            $this->out($e);
+        }
+    }
+
     /**
      * Ban a user.
      * Requires username.
@@ -102,6 +125,30 @@ class User extends Cli\Controller implements Interfaces\CliControllerInterface
         $this->out("Banning ".$username."...");
         $ban->ban($this->getOpt('reason') ?? 1);
         $this->out("Success if there are no errors above. Banned ".$username.".");
+    }
+
+    /**
+     * `php cli.php User baneFromCsv --csv=bans.svc --reason=16`
+     */
+    public function banFromCsv()
+    {
+        $filename = $this->getOpt('csv');
+        $row = 1;
+        if (($handle = fopen($filename, "r")) !== false) {
+            while (($data = fgetcsv($handle, 1000, ",")) !== false) {
+                $guid = $data[0];
+                $user = Di::_()->get('EntitiesBuilder')->single($guid);
+                if (!$user instanceof Entities\User) {
+                    continue;
+                }
+
+                $ban = new Ban();
+                $ban->setUser($user);
+                $this->out("Banning ".$user->getGuid()."...");
+                $ban->ban($this->getOpt('reason') ?? 1);
+            }
+            fclose($handle);
+        }
     }
 
     /**

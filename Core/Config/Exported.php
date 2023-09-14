@@ -13,7 +13,6 @@ use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\I18n\Manager as I18nManager;
-use Minds\Core\Navigation\Manager as NavigationManager;
 use Minds\Core\Rewards\Contributions\ContributionValues;
 use Minds\Core\Session;
 use Minds\Core\Supermind\Settings\Models\Settings as SupermindSettings;
@@ -123,6 +122,7 @@ class Exported
             'strapi' => [
                 'url' => $this->config->get('strapi')['url'],
             ],
+            'livepeer_api_key' => $this->config->get('livepeer_api_key'),
             'onboarding_v5_release_timestamp' => $this->config->get('onboarding_v5_release_timestamp')
         ];
 

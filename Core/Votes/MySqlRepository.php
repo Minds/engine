@@ -2,15 +2,23 @@
 namespace Minds\Core\Votes;
 
 use Minds\Core\Data\MySQL\Client;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Votes\Enums\VoteEnum;
+use Minds\Exceptions\ServerErrorException;
+use PDO;
 use Selective\Database\Connection;
+use Selective\Database\Operator;
+use Selective\Database\RawExp;
 
 class MySqlRepository
 {
     protected Connection $mysqlQueryMasterBuilder;
     protected Connection $mysqlQueryReplicaBuilder;
 
-    public function __construct(private ?Client $mysqlClient = null)
-    {
+    public function __construct(
+        private readonly EntitiesBuilder $entitiesBuilder,
+        private ?Client $mysqlClient = null
+    ) {
         $this->mysqlClient ??= new Client();
         $this->mysqlQueryMasterBuilder = new Connection($this->mysqlClient->getConnection(Client::CONNECTION_MASTER));
         $this->mysqlQueryReplicaBuilder = new Connection($this->mysqlClient->getConnection(Client::CONNECTION_REPLICA));
@@ -41,7 +49,9 @@ class MySqlRepository
 
         $stmt = $query->prepare();
 
-        return $stmt->execute();
+        $result = $stmt->execute();
+
+        return $result;
     }
 
     /**
@@ -70,5 +80,44 @@ class MySqlRepository
             ]);
 
         return $query->execute();
+    }
+
+    /**
+     * @param int $userGuid
+     * @param VoteEnum $direction
+     * @return iterable<array>
+     * @throws ServerErrorException
+     */
+    public function getList(
+        int $userGuid,
+        VoteEnum $direction = VoteEnum::UP
+    ): iterable {
+        $stmt = $this->mysqlQueryReplicaBuilder
+            ->select()
+            ->from('minds_votes')
+            ->where('user_guid', Operator::EQ, new RawExp(':user_guid'))
+            ->where('direction', Operator::EQ, new RawExp(':direction'))
+            ->where('deleted', Operator::EQ, false)
+            ->orderBy('updated_timestamp DESC')
+            ->prepare();
+
+        $this->mysqlClient->bindValuesToPreparedStatement($stmt, [
+            'user_guid' => $userGuid,
+            'direction' => 1,
+        ]);
+
+        $stmt->execute();
+
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $urn = "urn:comment:{$row['entity_guid']}";
+            $entity = match ($row['entity_type']) {
+                'comment' => $this->entitiesBuilder->getByUrn($urn),
+                default => $this->entitiesBuilder->single($row['entity_guid'])
+            };
+            yield (new Vote())
+                ->setDirection($direction->value)
+                ->setActor($this->entitiesBuilder->single($row['user_guid']))
+                ->setEntity($entity);
+        }
     }
 }

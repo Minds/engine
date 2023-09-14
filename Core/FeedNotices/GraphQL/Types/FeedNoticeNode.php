@@ -36,4 +36,10 @@ class FeedNoticeNode implements NodeInterface
     {
         return $this->feedNotice->getKey();
     }
+
+    #[Field(description: 'Whether the notice is dismissible')]
+    public function isDismissible(): bool
+    {
+        return $this->feedNotice->isDismissible();
+    }
 }

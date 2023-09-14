@@ -5,70 +5,51 @@ declare(strict_types=1);
 namespace Minds\Core\Supermind;
 
 use Iterator;
+use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Log\Logger;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
 use PDOStatement;
+use Selective\Database\Operator;
 
-class Repository
+class Repository extends AbstractRepository
 {
-    private PDO $mysqlClientReader;
-    private PDO $mysqlClientWriter;
-
     /**
      * @param MySQLClient|null $mysqlHandler
      * @param EntitiesBuilder|null $entitiesBuilder
      * @throws ServerErrorException
      */
     public function __construct(
-        private ?MySQLClient $mysqlHandler = null,
+        ?MySQLClient $mysqlHandler = null,
+        ?Logger $logger = null,
         private ?EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
-        $this->mysqlHandler ??= Di::_()->get("Database\MySQL\Client");
-        $this->mysqlClientReader = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_REPLICA);
-        $this->mysqlClientWriter = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_MASTER);
-    }
-
-    public function beginTransaction(): void
-    {
-        if ($this->mysqlClientWriter->inTransaction()) {
-            throw new PDOException("Cannot initiate transaction. Previously initiated transaction still in progress.");
-        }
-
-        $this->mysqlClientWriter->beginTransaction();
-    }
-
-    public function rollbackTransaction(): void
-    {
-        if ($this->mysqlClientWriter->inTransaction()) {
-            $this->mysqlClientWriter->rollBack();
-        }
-    }
-
-    public function commitTransaction(): void
-    {
-        $this->mysqlClientWriter->commit();
+        parent::__construct(
+            mysqlHandler: $mysqlHandler ?? Di::_()->get('Database\MySQL\Client'),
+            logger: $logger ?? Di::_()->get('Logger')
+        );
     }
 
     /**
      * @param string $receiverGuid
      * @param int $offset
      * @param int $limit
-     * @param int|null $status
+     * @param SupermindRequestStatus|null $status
      * @return Iterator
      */
-    public function getReceivedRequests(string $receiverGuid, int $offset, int $limit, ?int $status): Iterator
+    public function getReceivedRequests(string $receiverGuid, int $offset, int $limit, ?SupermindRequestStatus $status): Iterator
     {
         $statement = $this->buildReceivedRequestsQuery(
             receiverGuid: $receiverGuid,
             offset: $offset,
             limit: $limit,
-            status: $status
+            status: $status->value ?? null
         );
         $statement->execute();
 
@@ -94,7 +75,7 @@ class Repository
     {
         $values = [
             'receiver_guid' => $receiverGuid,
-            'excludedStatus' => SupermindRequestStatus::PENDING,
+            'excludedStatus' => SupermindRequestStatus::PENDING->value,
             'offset' => $offset,
             'limit' => $limit
         ];
@@ -107,7 +88,7 @@ class Repository
         }
 
         // for created - we want to filter out any expired superminds not yet marked as expired.
-        if ($status == SupermindRequestStatus::CREATED) {
+        if ($status == SupermindRequestStatus::CREATED->value) {
             $values['min_timestamp'] = date('c', time() - SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD);
             $createdAfterClause = 'AND created_timestamp >= :min_timestamp';
         }
@@ -126,14 +107,14 @@ class Repository
     /**
      * Get count of received requests.
      * @param string $receiverGuid - guid of receiver.
-     * @param int|null $status - status to count for (null will return all).
+     * @param SupermindRequestStatus|null $status - status to count for (null will return all).
      * @return int count.
      */
-    public function countReceivedRequests(string $receiverGuid, ?int $status = null): int
+    public function countReceivedRequests(string $receiverGuid, ?SupermindRequestStatus $status = null): int
     {
         $statement = $this->buildCountReceivedRequestsQuery(
             receiverGuid: $receiverGuid,
-            status: $status
+            status: $status->value ?? null
         );
         $statement->execute();
 
@@ -151,7 +132,7 @@ class Repository
     {
         $values = [
             'receiver_guid' => $receiverGuid,
-            'excludedStatus' => SupermindRequestStatus::PENDING
+            'excludedStatus' => SupermindRequestStatus::PENDING->value
         ];
 
         $whereStatusClause = '';
@@ -161,7 +142,7 @@ class Repository
             $whereStatusClause = "AND status = :status";
 
             // for created - we want to filter out any expired superminds not yet marked as expired.
-            if ($status === SupermindRequestStatus::CREATED) {
+            if ($status === SupermindRequestStatus::CREATED->value) {
                 $values['min_timestamp'] = date('c', time() - SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD);
                 $createdAfterClause = 'AND created_timestamp >= :min_timestamp';
             }
@@ -181,15 +162,16 @@ class Repository
      * @param string $senderGuid
      * @param int $offset
      * @param int $limit
+     * @param SupermindRequestStatus|null $status
      * @return Iterator
      */
-    public function getSentRequests(string $senderGuid, int $offset, int $limit, ?int $status): Iterator
+    public function getSentRequests(string $senderGuid, int $offset, int $limit, ?SupermindRequestStatus $status): Iterator
     {
         $statement = $this->buildSentRequestsQuery(
             senderGuid: $senderGuid,
             offset: $offset,
             limit: $limit,
-            status: $status
+            status: $status->value ?? null
         );
         $statement->execute();
 
@@ -209,7 +191,7 @@ class Repository
     {
         $values = [
             'sender_guid' => $senderGuid,
-            'excludedStatus' => SupermindRequestStatus::PENDING,
+            'excludedStatus' => SupermindRequestStatus::PENDING->value,
             'offset' => $offset,
             'limit' => $limit
         ];
@@ -222,7 +204,7 @@ class Repository
         }
 
         // for created - we want to filter out any expired superminds not yet marked as expired.
-        if ($status == SupermindRequestStatus::CREATED) {
+        if ($status == SupermindRequestStatus::CREATED->value) {
             $values['min_timestamp'] = date('c', time() - SupermindRequest::SUPERMIND_EXPIRY_THRESHOLD);
             $createdAfterClause = 'AND created_timestamp >= :min_timestamp';
         }
@@ -241,14 +223,14 @@ class Repository
     /**
      * Get count of sent requests.
      * @param string $senderGuid - guid of sender.
-     * @param int|null $status - status to count for (null will return all).
+     * @param SupermindRequestStatus|null $status - status to count for (null will return all).
      * @return int count.
      */
-    public function countSentRequests(string $senderGuid, ?int $status = null): int
+    public function countSentRequests(string $senderGuid, ?SupermindRequestStatus $status = null): int
     {
         $statement = $this->buildCountSentRequestsQuery(
             senderGuid: $senderGuid,
-            status: $status
+            status: $status->value ?? null
         );
         $statement->execute();
 
@@ -266,7 +248,7 @@ class Repository
     {
         $values = [
             'sender_guid' => $senderGuid,
-            'excludedStatus' => SupermindRequestStatus::PENDING
+            'excludedStatus' => SupermindRequestStatus::PENDING->value
         ];
 
         $whereStatusClause = '';
@@ -311,7 +293,7 @@ class Repository
             "guid" => $request->getGuid(),
             "sender_guid" => $request->getSenderGuid(),
             "receiver_guid" => $request->getReceiverGuid(),
-            "status" => SupermindRequestStatus::PENDING,
+            "status" => SupermindRequestStatus::PENDING->value,
             "payment_amount" => $request->getPaymentAmount(),
             "payment_method" => $request->getPaymentMethod(),
             "payment_reference" => $request->getPaymentTxID(),
@@ -326,15 +308,16 @@ class Repository
     }
 
     /**
-     * @param int $status
+     * @param SupermindRequestStatus $status
      * @param string $supermindRequestId
      * @return bool
+     * @throws ServerErrorException
      */
-    public function updateSupermindRequestStatus(int $status, string $supermindRequestId): bool
+    public function updateSupermindRequestStatus(SupermindRequestStatus $status, string $supermindRequestId): bool
     {
         $statement = "UPDATE superminds SET status = :status, updated_timestamp = :updated_timestamp WHERE guid = :guid";
         $values = [
-            "status" => $status,
+            "status" => $status->value,
             'updated_timestamp' => date('c', time()),
             "guid" => $supermindRequestId
         ];
@@ -389,7 +372,7 @@ class Repository
         $statement = "UPDATE superminds SET activity_guid = :activity_guid, status = :status, updated_timestamp = :update_timestamp WHERE guid = :guid";
         $values = [
             'activity_guid' => $activityGuid,
-            'status' => SupermindRequestStatus::CREATED,
+            'status' => SupermindRequestStatus::CREATED->value,
             'update_timestamp' => date('c', time()),
             'guid' => $supermindRequestId
         ];
@@ -457,50 +440,21 @@ class Repository
 
     /**
      * @param int $thresholdInSeconds
-     * @return string[]
+     * @return iterable<SupermindRequest>
      */
-    public function expireSupermindRequests(int $thresholdInSeconds): array
+    public function getExpiredRequests(int $thresholdInSeconds): iterable
     {
-        $statement = "SELECT guid FROM superminds WHERE status = :created_status AND created_timestamp <= :target_timestamp";
-        $values = [
-            "created_status" => SupermindRequestStatus::CREATED,
-            "target_timestamp" => date('c', strtotime("-${thresholdInSeconds} seconds"))
-        ];
+        $statement = $this->mysqlClientReaderHandler->select()
+            ->from('superminds')
+            ->where('status', Operator::EQ, SupermindRequestStatus::CREATED->value)
+            ->where('created_timestamp', Operator::LTE, date('c', strtotime("-${thresholdInSeconds} seconds")))
+            ->prepare();
 
-        $statement = $this->mysqlClientReader->prepare($statement);
-        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
         $statement->execute();
 
-        $supermindRequestIDs = $statement->fetchAll(PDO::FETCH_COLUMN);
-
-        if (count($supermindRequestIDs) === 0) {
-            return [];
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            yield SupermindRequest::fromData($row);
         }
-
-
-        $statement = "UPDATE superminds SET status = :target_status WHERE status = :created_status AND created_timestamp <= :target_timestamp AND guid IN ";
-        $values['target_status'] = SupermindRequestStatus::EXPIRED;
-
-        $statement .= "(" .
-            join(
-                ",",
-                array_map(
-                    function (int $index, string $value) use (&$values): string {
-                        $values["supermind_$index"] = $value;
-                        return ":supermind_$index";
-                    },
-                    array_keys($supermindRequestIDs),
-                    array_values($supermindRequestIDs)
-                )
-            ) .
-            ")";
-
-        $statement = $this->mysqlClientWriter->prepare($statement);
-        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
-
-        $statement->execute();
-
-        return $supermindRequestIDs;
     }
 
     /**
@@ -515,7 +469,7 @@ class Repository
 
         $query = "SELECT * FROM superminds WHERE status = :status AND  created_timestamp > :min_timestamp AND created_timestamp < :max_timestamp ORDER BY created_timestamp DESC";
         $values = [
-            'status' => SupermindRequestStatus::CREATED,
+            'status' => SupermindRequestStatus::CREATED->value,
             'min_timestamp' => date('c', $gt),
             'max_timestamp' => date('c', $lt),
         ];

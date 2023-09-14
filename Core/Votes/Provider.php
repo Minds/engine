@@ -8,9 +8,10 @@
 
 namespace Minds\Core\Votes;
 
-use Minds\Core\Di;
+use Minds\Core\Di\Di;
+use Minds\Core\Di\Provider as DiProvider;
 
-class Provider extends Di\Provider
+class Provider extends DiProvider
 {
     public function register()
     {
@@ -30,8 +31,10 @@ class Provider extends Di\Provider
             return new Controller();
         }, [ 'useFactory' => true ]);
 
-        $this->di->bind(MySqlRepository::class, function () {
-            return new MySqlRepository();
+        $this->di->bind(MySqlRepository::class, function (Di $di): MySqlRepository {
+            return new MySqlRepository(
+                $di->get('EntitiesBuilder'),
+            );
         }, [ 'useFactory' => true ]);
     }
 }

@@ -2,31 +2,14 @@
 
 namespace Minds\Core\Comments;
 
-use Minds\Core\Data\MySQL;
-use Minds\Core\Di\Di;
+use Minds\Core\Data\MySQL\AbstractRepository;
 use PDO;
 use PDOException;
-
-use Minds\Core\Data\MySQL\Client as MySQLClient;
-use Selective\Database\Connection;
+use Selective\Database\Operator;
 use Selective\Database\RawExp;
 
-class RelationalRepository
+class RelationalRepository extends AbstractRepository
 {
-    private PDO $mysqlClientWriter;
-
-    public function __construct(
-        private ?MySQL\Client $mysqlClient = null,
-        private ?Connection $mysqlClientWriterHandler = null,
-        private ?\Minds\Core\Log\Logger $logger = null
-    ) {
-        $this->mysqlClient ??= Di::_()->get("Database\MySQL\Client");
-        $this->mysqlClientWriter = $this->mysqlClient->getConnection(MySQLClient::CONNECTION_MASTER);
-        $this->mysqlClientWriterHandler ??= new Connection($this->mysqlClientWriter);
-
-        $this->logger = Di::_()->get('Logger');
-    }
-
     /**
      * Delete Comment from a relational database
      * @param string $guid
@@ -45,7 +28,7 @@ class RelationalRepository
 
         $values = ['guid' => $guid];
 
-        $this->mysqlClient->bindValuesToPreparedStatement($statement, $values);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         try {
             $this->logger->info("Executing DELETE query.");
@@ -91,7 +74,9 @@ class RelationalRepository
             'group_conversation' => new RawExp(':group_conversation'),
             'access_id' => new RawExp(':access_id'),
             'time_created' => new RawExp(':time_created'),
-            'time_updated' => new RawExp(':time_updated')
+            'time_updated' => new RawExp(':time_updated'),
+            'source' => new RawExp(':source'),
+            'canonical_url' => new RawExp(':canonical_url'),
         ])
         ->onDuplicateKeyUpdate([
             'body' => new RawExp(':body'),
@@ -122,10 +107,12 @@ class RelationalRepository
             'group_conversation' => (bool) $comment->isGroupConversation(),
             'access_id' => $comment->getAccessId(),
             'time_created' => $timeCreated,
-            'time_updated' => $timeUpdated
+            'time_updated' => $timeUpdated,
+            'source' => $comment->getSource()->value,
+            'canonical_url' => $comment->getCanonicalUrl(),
         ];
 
-        $this->mysqlClient->bindValuesToPreparedStatement($statement, $values);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         try {
             $statement->execute();
@@ -134,5 +121,69 @@ class RelationalRepository
             $this->logger->error("Query error details: ", $statement->errorInfo());
             return false;
         }
+    }
+
+    /**
+     * Returns a comment from their GUID
+     *
+     * Note: this is incomplete until all the migration is moved over
+     */
+    public function getByGuid(int $guid): ?Comment
+    {
+        $query = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'guid',
+                'entity_guid',
+                'owner_guid',
+                'parent_guid',
+                'parent_depth',
+                'body',
+                'attachments',
+                'mature',
+                'edited',
+                'spam',
+                'deleted',
+                'enabled',
+                'group_conversation',
+                'access_id',
+                'time_created',
+                'time_updated'
+            ])
+            ->from('minds_comments')
+            ->where('guid', Operator::EQ, new RawExp(':guid'));
+
+        $stmt = $query->prepare();
+        $stmt->execute([
+            'guid' => $guid,
+        ]);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($rows)) {
+            return null;
+        }
+
+        $row = $rows[0];
+
+        $comment = new Comment();
+        $comment
+            ->setEntityGuid($row['entity_guid'])
+            ->setGuid($row['guid'])
+            ->setParentGuid($row['parent_guid'])
+            ->setOwnerGuid($row['owner_guid'])
+            ->setTimeCreated($row['time_created'])
+            ->setTimeUpdated($row['time_updated'])
+            ->setBody($row['body'])
+            ->setAttachments($row['attachments'] ? json_decode($row['attachments']) : [])
+            ->setMature(!!$row['mature'])
+            ->setEdited(!!$row['edited'])
+            ->setSpam(!!$row['spam'])
+            ->setDeleted(!!$row['deleted'])
+            ->setEphemeral(false)
+            ->markAllAsPristine();
+
+        // TODO: get reply counts in!
+
+        return $comment;
     }
 }

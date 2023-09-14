@@ -33,6 +33,11 @@ class NoGroupsNoticeSpec extends ObjectBehavior
         $this->getKey()->shouldBe('no-groups');
     }
 
+    public function it_should_get_whether_notice_is_dismissible()
+    {
+        $this->isDismissible()->shouldBe(false);
+    }
+
     public function it_should_determine_if_notice_should_show(
         User $user
     ) {
@@ -81,7 +86,8 @@ class NoGroupsNoticeSpec extends ObjectBehavior
         $this->export()->shouldBe([
             'key' => 'no-groups',
             'location' => 'top',
-            'should_show' => false
+            'should_show' => false,
+            'is_dismissible' => false
         ]);
     }
 }

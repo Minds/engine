@@ -5,6 +5,7 @@ namespace Minds\Core\Payments\InAppPurchases;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
 use Minds\Core\Payments\InAppPurchases\Clients\InAppPurchasesClientFactory;
 
 class Provider extends DiProvider
@@ -16,7 +17,10 @@ class Provider extends DiProvider
     public function register(): void
     {
         $this->di->bind(Manager::class, function (Di $di): Manager {
-            return new Manager();
+            return new Manager(
+                giftCardsManager: $di->get(GiftCardsManager::class),
+                config: $di->get('Config'),
+            );
         }, ['factory' => true]);
         $this->di->bind(InAppPurchasesClientFactory::class, function (Di $di): InAppPurchasesClientFactory {
             return new InAppPurchasesClientFactory();

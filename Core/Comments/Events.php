@@ -8,15 +8,17 @@
 
 namespace Minds\Core\Comments;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Entities\Factory as EntitiesFactory;
-use Minds\Core\Votes\Vote;
 use Minds\Core\Sockets;
 use Minds\Core\Session;
 use Minds\Core\Security\ACL;
-use Minds\Entities\EntityInterface;
+use Minds\Core\Security\SignedUri;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Entities\Image;
 use Minds\Entities\Video;
 
@@ -125,12 +127,12 @@ class Events
             $params = $event->getParameters();
             $entity = $params['entity'];
 
-            if ((!$entity instanceof Image || $entity instanceof Video)) {
+            if (!($entity instanceof Image || $entity instanceof Video)) {
                 // Skip as this is not an image or a video
                 return;
             }
 
-            if (strlen($entity->getAccessId() === 1)) {
+            if (strlen($entity->getAccessId()) === 1) {
                 // Skip as this is a standard access id and not a parent
                 return;
             }
@@ -158,5 +160,61 @@ class Events
                 }
             }
         });
+
+        $this->eventsDispatcher->register('export:extender', 'comment', function (Event $event) {
+            $params = $event->getParameters();
+            $entity = $params['entity'];
+            $attachments = $entity->getAttachments();
+            $output = [];
+
+            // Handle attachment processing.
+            if ($attachments) {
+                foreach ($attachments as $key => $value) {
+                    $output['attachments'][$key] = $entity->getAttachment($key);
+                    $output[$key] = $output['attachments'][$key];
+                }
+    
+                // This is not a great fix. Comments need to be fully constructed at manager/repository level
+                // This is not DRY or spec tested...
+                if (isset($output['custom_data'])) {
+                    $config = $this->getConfig();
+                    $siteUrl = $config->get('site_url');
+                    $cdnUrl = $config->get('cdn_url');
+                    $output['custom_data']['src'] = $output['attachments']['custom_data']['src'] =
+                        str_replace($siteUrl, $cdnUrl, $output['attachments']['custom_data']['src']);
+                    
+                    // If the container is an activity and it has a paywall, then sign any attachments so that they can be viewed.
+                    $container = $this->getEntitiesBuilder()->single($entity->getEntityGuid());
+                    if ($container && $container instanceof PaywallEntityInterface && $container->isPayWall()) {
+                        $output['custom_data']['src'] = (new SignedUri())->sign($output['custom_data']['src']).'&unlock_paywall=true';
+                    }
+                }
+   
+                if (isset($output['custom_type']) && $output['custom_type'] === 'image') {
+                    $output['custom_type'] = 'batch';
+                    $output['custom_data'] = [ $output['custom_data'] ];
+                }
+            }
+
+            $event->setResponse($output);
+        });
+    }
+
+    /**
+     * Get EntitiesBuilder from DI.
+     * @return EntitiesBuilder - EntitiesBuilder instance from DI.
+     */
+    public function getEntitiesBuilder(): EntitiesBuilder
+    {
+        return Di::_()->get('EntitiesBuilder');
+    }
+
+    /**
+     * Get Config from DI.
+     * @return Config - Config instance from DI.
+     */
+    public function getConfig(): Config
+    {
+        return Di::_()->get('Config');
     }
 }

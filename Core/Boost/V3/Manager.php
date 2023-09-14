@@ -14,6 +14,7 @@ use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetAudiences;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
+use Minds\Core\Boost\V3\Exceptions\BoostCashPaymentSetupFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostCreationFailedException;
 use Minds\Core\Boost\V3\Exceptions\BoostNotFoundException;
 use Minds\Core\Boost\V3\Exceptions\BoostPaymentCaptureFailedException;
@@ -34,6 +35,8 @@ use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardInsufficientFundsException;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
 use Minds\Core\Security\ACL;
@@ -120,8 +123,6 @@ class Manager
             throw new EntityTypeNotAllowedInLocationException();
         }
 
-        $this->repository->beginTransaction();
-
         $goalFeatureEnabled = $this->experimentsManager
             ->isOn('minds-3952-boost-goals');
 
@@ -149,25 +150,92 @@ class Manager
             ->setOwnerGuid($this->user->getGuid())
             ->setPaymentMethodId($data['payment_method_id'] ?? null);
 
+        $this->processNewBoost($boost, $data['payment_tx_id'] ?? null);
+
+        $this->actionEventDelegate->onCreate($boost);
+
+        if ($boost->getStatus() === BoostStatus::APPROVED) {
+            $this->actionEventDelegate->onApprove($boost);
+        }
+
+        return true;
+    }
+
+    /**
+     * @param Boost $boost
+     * @param bool $isOnchainBoost
+     * @param string|null $paymentTxId
+     * @return void
+     * @throws BoostCashPaymentSetupFailedException
+     * @throws BoostPaymentSetupFailedException
+     * @throws GiftCardInsufficientFundsException
+     * @throws InvalidBoostPaymentMethodException
+     * @throws InvalidPaymentMethodException
+     * @throws KeyNotSetupException
+     * @throws LockFailedException
+     * @throws OffchainWalletInsufficientFundsException
+     * @throws ServerErrorException
+     * @throws GiftCardNotFoundException
+     */
+    private function processNewBoostPayment(Boost $boost, bool $isOnchainBoost, ?string $paymentTxId = null) : void
+    {
+        /**
+         * Boost payment entry into `minds_payments` had to be separated into its own method
+         * and outside the main transaction to avoid causing an issue with the foreign key
+         * in the `minds_gift_card_transactions` table.
+         */
+        $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user);
+        $boost->setPaymentGuid($paymentDetails->paymentGuid);
+
+        $this->repository->beginTransaction();
+        $this->paymentProcessor->beginTransaction();
+
+        if ($isOnchainBoost) {
+            $boost->setStatus(BoostStatus::PENDING_ONCHAIN_CONFIRMATION)
+                ->setPaymentTxId($paymentTxId);
+        } elseif (!$this->paymentProcessor->setupBoostPayment($boost, $this->user, $paymentDetails)) {
+            throw new BoostPaymentSetupFailedException();
+        }
+    }
+
+    /**
+     * @param Boost $boost
+     * @param string|null $paymentTxId
+     * @return void
+     * @throws ApiErrorException
+     * @throws BoostCreationFailedException
+     * @throws BoostPaymentCaptureFailedException
+     * @throws BoostPaymentSetupFailedException
+     * @throws BoostCashPaymentSetupFailedException
+     * @throws GiftCardInsufficientFundsException
+     * @throws InvalidBoostPaymentMethodException
+     * @throws InvalidPaymentMethodException
+     * @throws KeyNotSetupException
+     * @throws LockFailedException
+     * @throws OffchainWalletInsufficientFundsException
+     * @throws ServerErrorException
+     * @throws StripeTransferFailedException
+     * @throws UserErrorException
+     */
+    private function processNewBoost(Boost $boost, ?string $paymentTxId = null): void
+    {
         try {
             $isOnchainBoost = $boost->getPaymentMethod() === BoostPaymentMethod::ONCHAIN_TOKENS;
 
             if (!$isOnchainBoost && $this->preApprovalManager->shouldPreApprove($this->user)) {
                 $this->preApprove($boost);
-                return true;
+                return;
             }
 
-            if ($isOnchainBoost) {
-                $boost->setStatus(BoostStatus::PENDING_ONCHAIN_CONFIRMATION)
-                    ->setPaymentTxId($data['payment_tx_id']);
-            } elseif (!$this->paymentProcessor->setupBoostPayment($boost, $this->user)) {
-                throw new BoostPaymentSetupFailedException();
-            }
+            $this->processNewBoostPayment($boost, $isOnchainBoost, $paymentTxId);
 
             if (!$this->repository->createBoost($boost)) {
                 throw new BoostCreationFailedException();
             }
-        } catch (BoostCreationFailedException $e) {
+
+            $this->repository->commitTransaction();
+            $this->paymentProcessor->commitTransaction();
+        } catch (BoostCreationFailedException|GiftCardInsufficientFundsException $e) {
             $this->paymentProcessor->refundBoostPayment($boost);
             $this->repository->rollbackTransaction();
 
@@ -176,16 +244,12 @@ class Manager
             $this->repository->rollbackTransaction();
             throw $e;
         }
-
-        $this->repository->commitTransaction();
-
-        $this->actionEventDelegate->onCreate($boost);
-
-        return true;
     }
 
     /**
      * Takes a boost ready for creation and pre-approves it.
+     *
+     * TODO: Refactor as it has unnecessary duplication with processNewBoost
      * @param Boost $boost - boost to pre-approve.
      * @return void
      * @throws ApiErrorException
@@ -209,12 +273,13 @@ class Manager
             ->setUpdatedTimestamp($presetTimestamp)
             ->setApprovedTimestamp($presetTimestamp);
 
-        if (!$this->paymentProcessor->setupBoostPayment($boost, $this->user)) {
-            throw new BoostPaymentSetupFailedException();
-        }
+        $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user);
 
-        if (!$this->paymentProcessor->captureBoostPayment($boost)) {
-            throw new BoostPaymentCaptureFailedException();
+        $this->repository->beginTransaction();
+        $this->paymentProcessor->beginTransaction();
+
+        if (!$this->paymentProcessor->setupBoostPayment($boost, $this->user, $paymentDetails)) {
+            throw new BoostPaymentSetupFailedException();
         }
 
         if (!$this->repository->createBoost($boost)) {
@@ -222,9 +287,15 @@ class Manager
         }
 
         $this->repository->commitTransaction();
+        $this->paymentProcessor->commitTransaction();
 
-        $this->actionEventDelegate->onCreate($boost);
-        $this->actionEventDelegate->onApprove($boost);
+        /**
+         * Needs to be after the transaction commits due to transaction lock being placed on
+         * payments table because of foreign key constraint in gift card transactions table.
+         */
+        if (!$this->paymentProcessor->captureBoostPayment($boost)) {
+            throw new BoostPaymentCaptureFailedException();
+        }
     }
 
     /**
@@ -242,6 +313,7 @@ class Manager
         return match ($entity->getType()) {
             'activity' => $targetLocation === BoostTargetLocation::NEWSFEED,
             'user' => $targetLocation === BoostTargetLocation::SIDEBAR,
+            'group' => $targetLocation === BoostTargetLocation::SIDEBAR,
             default => false
         };
     }
@@ -690,5 +762,23 @@ class Manager
             BoostPartnerSuitability::DISABLED => null,
             default => BoostTargetAudiences::CONTROVERSIAL
         };
+    }
+
+    /**
+     * Whether boosts should be shown for a given user.
+     * @param User $user - user to show.
+     * @param integer $showBoostsAfterX - how long after registration till users should see boosts. Defaults to 1 weeks.
+     * @return boolean true if boosts should be shown.
+     */
+    public function shouldShowBoosts(User $user, int $showBoostsAfterX = 604800): bool
+    {
+        /**
+         * Do not show boosts if plus and disabled flag
+         */
+        if ($user->disabled_boost && $user->isPlus()) {
+            return false;
+        }
+
+        return (time() - $user->getTimeCreated()) > $showBoostsAfterX;
     }
 }

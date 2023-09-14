@@ -9,6 +9,7 @@ use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Queue;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Core\Wire\Paywall\PaywallEntityTrait;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Helpers;
 
 /**
@@ -47,8 +48,11 @@ use Minds\Helpers;
  * @property array $attachments
  * @property array $supermind
  * @property string $auto_caption
+ * @property array $inferred_tags
+ * @property string $source
+ * @property string $canonical_url
  */
-class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface, CommentableEntityInterface
+class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface, CommentableEntityInterface, FederatedEntityInterface
 {
     use PaywallEntityTrait;
 
@@ -100,6 +104,9 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'attachments' => null,
             'supermind' => null,
             'auto_caption' => null,
+            'inferred_tags' => [],
+            'source' => FederatedEntitySourcesEnum::LOCAL->value,
+            'canonical_url' => null,
         ]);
     }
 
@@ -190,7 +197,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         (new Core\Translation\Storage())->purge($this->guid);
 
         Core\Events\Dispatcher::trigger('entities-ops', 'delete', [
-            'entityUrn' => $this->getUrn()
+            'entityUrn' => $this->getUrn(),
+            'entity' => $this,
         ]);
 
         Queue\Client::build()->setQueue("FeedCleanup")
@@ -290,7 +298,10 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'permaweb_id',
                 'blurhash',
                 'supermind',
-                'auto_caption'
+                'auto_caption',
+                'inferred_tags',
+                'canonical_url',
+                'source',
             ]
         );
     }
@@ -385,7 +396,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         if ($this->hasAttachments()) {
             $export['custom_type'] = $this->getCustomType();
             $export['custom_data'] = $this->getCustomData();
-        
+
             if ($export['custom_type'] === 'video') {
                 $export['entity_guid'] = (string) $this->getGuid(); // mobile expects this
                 $export['thumbnail_src'] = $export['custom_data']['src']; // discovery/plus expects this
@@ -754,7 +765,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
 
     /**
      * Gets the timestamp
-     * @return boolean
+     * @return int
      */
     public function getTimeCreated()
     {
@@ -1074,6 +1085,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'width' => $attachmentEntity->width,
                 'height' => $attachmentEntity->height,
                 'blurhash' => $attachmentEntity->blurhash,
+                'gif' => $attachmentEntity->gif
             ];
 
             $attachments[] = $attachment;
@@ -1118,6 +1130,17 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function setAutoCaption(string $autoCaption): self
     {
         $this->auto_caption = $autoCaption;
+        return $this;
+    }
+
+    public function getInferredTags(): ?array
+    {
+        return $this->inferred_tags;
+    }
+
+    public function setInferredTags(array $inferredTags): self
+    {
+        $this->inferred_tags = $inferredTags;
         return $this;
     }
 
@@ -1238,5 +1261,39 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getAllowComments(): bool
     {
         return (bool) $this->comments_enabled;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setSource(FederatedEntitySourcesEnum $source): FederatedEntityInterface
+    {
+        $this->source = $source->value;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSource(): ?FederatedEntitySourcesEnum
+    {
+        return FederatedEntitySourcesEnum::from($this->source ?: 'local');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCanonicalUrl(string $canonicalUrl): FederatedEntityInterface
+    {
+        $this->canonical_url = $canonicalUrl;
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCanonicalUrl(): ?string
+    {
+        return $this->canonical_url;
     }
 }

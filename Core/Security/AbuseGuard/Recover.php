@@ -20,10 +20,14 @@ class Recover
     /** @var Config */
     protected $config;
 
-    public function __construct($client = null, Config $config = null)
-    {
+    public function __construct(
+        $client = null,
+        Config $config = null,
+        protected ?Core\Comments\Manager $commentsManager = null
+    ) {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
         $this->config = $config ?? Di::_()->get('Config');
+        $this->commentsManager = $commentsManager ?? (new Core\Comments\Manager());
     }
 
     public function setAccused($accused)
@@ -34,7 +38,7 @@ class Recover
 
     public function recover()
     {
-        $manager = (new Core\Comments\Manager());
+        $manager = $this->commentsManager;
         $user = $this->accused->getUser();
         foreach ($this->getComments() as $comment) {
             if ($comment->getGuid() && !$comment->isDeleted()) {

@@ -103,7 +103,7 @@ class PushNotificationSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('comment');
 
-        
+
         $sender->getName()
             ->shouldBeCalled()
             ->willReturn('Sender');
@@ -144,7 +144,7 @@ class PushNotificationSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('comment');
 
-        
+
         $sender->getName()
             ->shouldBeCalled()
             ->willReturn('Sender');
@@ -185,7 +185,7 @@ class PushNotificationSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('vote_up');
 
-        
+
         $sender->getName()
             ->shouldBeCalled()
             ->willReturn('Sender');
@@ -198,46 +198,6 @@ class PushNotificationSpec extends ObjectBehavior
             ->shouldReturn('Sender voted up your post');
     }
 
-    public function it_should_get_title_for_voted_down_your_post_notification(
-        User $sender,
-        Activity $entity
-    ) {
-        $this->notification->getFrom()
-            ->shouldBeCalled()
-            ->willReturn($sender);
-
-        $this->notification->getEntity()
-            ->shouldBeCalled()
-            ->willReturn($entity);
-
-        $entity->getOwnerGuid()
-            ->shouldBeCalled()
-            ->willReturn(123);
-
-        $this->notification->getToGuid()
-            ->shouldBeCalled()
-            ->willReturn(123);
-
-        $entity->getType()
-            ->shouldBeCalled()
-            ->willReturn('activity');
-
-        $this->notification->getType()
-            ->shouldBeCalled()
-            ->willReturn('vote_down');
-
-        $sender->getName()
-            ->shouldBeCalled()
-            ->willReturn('Sender');
-
-        $this->notification->getMergedCount()
-            ->shouldBeCalled()
-            ->willReturn(0);
-
-        $this->getTitle()
-            ->shouldReturn('Sender voted down your post');
-    }
-    
     public function it_should_get_title_for_reminded_your_post_notification(
         User $sender,
         Activity $entity
@@ -357,7 +317,7 @@ class PushNotificationSpec extends ObjectBehavior
         $this->getTitle()
             ->shouldReturn('Sender tagged you in their post');
     }
-    
+
     public function it_should_get_title_for_token_rewards_notification(
         User $sender,
         Activity $entity
@@ -518,11 +478,11 @@ class PushNotificationSpec extends ObjectBehavior
         $entity->getType()
             ->shouldBeCalled()
             ->willReturn(NotificationTypes::TYPE_SUPERMIND_REQUEST_CREATE);
-        
+
         $this->notification->getType()
             ->shouldBeCalled()
             ->willReturn(NotificationTypes::TYPE_SUPERMIND_REQUEST_CREATE);
-            
+
         $this->getTitle()->shouldReturn('MindsUser sent you a Supermind offer');
     }
 
@@ -557,11 +517,11 @@ class PushNotificationSpec extends ObjectBehavior
         $entity->getType()
             ->shouldBeCalled()
             ->willReturn(NotificationTypes::TYPE_SUPERMIND_REQUEST_ACCEPT);
-        
+
         $this->notification->getType()
             ->shouldBeCalled()
             ->willReturn(NotificationTypes::TYPE_SUPERMIND_REQUEST_ACCEPT);
-            
+
         $this->getTitle()->shouldReturn('MindsUser has replied to your Supermind offer');
     }
 
@@ -596,11 +556,11 @@ class PushNotificationSpec extends ObjectBehavior
         $entity->getType()
             ->shouldBeCalled()
             ->willReturn(NotificationTypes::TYPE_SUPERMIND_REQUEST_REJECT);
-        
+
         $this->notification->getType()
             ->shouldBeCalled()
             ->willReturn(NotificationTypes::TYPE_SUPERMIND_REQUEST_REJECT);
-            
+
         $this->getTitle()->shouldReturn('MindsUser has declined your Supermind offer');
     }
 
@@ -660,7 +620,7 @@ class PushNotificationSpec extends ObjectBehavior
         $this->config->get('site_url')
             ->shouldBeCalled()
             ->willReturn('https://www.minds.com/');
-        
+
         $this->notification->getType()
             ->shouldBeCalled()
             ->willReturn(NotificationTypes::TYPE_BOOST_ACCEPTED);
@@ -700,7 +660,7 @@ class PushNotificationSpec extends ObjectBehavior
         $this->config->get('site_url')
             ->shouldBeCalled()
             ->willReturn('https://www.minds.com/');
-        
+
         $this->notification->getType()
             ->shouldBeCalled()
             ->willReturn(NotificationTypes::TYPE_BOOST_COMPLETED);
@@ -714,7 +674,7 @@ class PushNotificationSpec extends ObjectBehavior
         $this->config->get('site_url')
             ->shouldBeCalled()
             ->willReturn('https://www.minds.com/');
-        
+
         $this->notification->getType()
             ->shouldBeCalled()
             ->willReturn(NotificationTypes::TYPE_BOOST_REJECTED);
@@ -740,7 +700,7 @@ class PushNotificationSpec extends ObjectBehavior
         $this->config->get('site_url')
             ->shouldBeCalled()
             ->willReturn('https://www.minds.com/');
-        
+
         $this->notification->getType()
             ->shouldBeCalled()
             ->willReturn(NotificationTypes::TYPE_BOOST_REJECTED);

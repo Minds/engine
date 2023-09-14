@@ -5,9 +5,12 @@ use Minds\Core\Boost\V3\Models\Boost as BoostV3;
 use Minds\Core\Boost\V3\Utils\BoostConsoleUrlBuilder;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Log\Logger;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
+use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIDLabelEnum;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Entities\User;
@@ -30,6 +33,8 @@ class PushNotification implements PushNotificationInterface
 
     private array $metadata = [];
 
+    private readonly Logger $logger;
+
     public function __construct(
         Notification $notification,
         Config $config = null,
@@ -43,6 +48,7 @@ class PushNotification implements PushNotificationInterface
 
         $this->config = $config ?? Di::_()->get('Config');
         $this->boostConsoleUrlBuilder ??= Di::_()->get(BoostConsoleUrlBuilder::class);
+        $this->logger = Di::_()->get('Logger');
     }
 
     /**
@@ -90,9 +96,6 @@ class PushNotification implements PushNotificationInterface
             case NotificationTypes::TYPE_VOTE_UP:
                 $verb = 'voted up';
                 break;
-            case NotificationTypes::TYPE_VOTE_DOWN:
-                $verb = 'voted down';
-                break;
             case NotificationTypes::TYPE_REMIND:
                 $verb = 'reminded';
                 break;
@@ -130,10 +133,10 @@ class PushNotification implements PushNotificationInterface
                 return "Don't forget to review {$from->getName()}'s Supermind offer";
                 break;
                 // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
-            //     $verb = 'missed';
-            //     $pronoun = 'your';
-            //     $noun = 'Supermind Offer';
-            //     break;
+                //     $verb = 'missed';
+                //     $pronoun = 'your';
+                //     $noun = 'Supermind Offer';
+                //     break;
                 //repeat
             case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
                 return 'Minds Token Rewards';
@@ -148,6 +151,11 @@ class PushNotification implements PushNotificationInterface
             case NotificationTypes::TYPE_AFFILIATE_EARNINGS_DEPOSITED:
                 $data = $this->notification->getData();
                 return 'You earned $' . $data['amount_usd'] . ' from the Minds Affiliate Program';
+            case NotificationTypes::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED:
+                ['gift_card' => $giftCard, 'sender' => $sender] = $this->notification->getData();
+
+                $product = GiftCardProductIdEnum::from($giftCard['productId']);
+                return "{$sender['name']} sent you a gift for " . GiftCardProductIDLabelEnum::fromProductIdEnum($product)->value;
             default:
                 throw new UndeliverableException("Invalid type");
         }
@@ -226,6 +234,8 @@ class PushNotification implements PushNotificationInterface
             case NotificationTypes::TYPE_AFFILIATE_EARNINGS_DEPOSITED:
             case NotificationTypes::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
                 return $this->getEnvBasedUri('wallet/cash/earnings');
+            case NotificationTypes::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED:
+                return $this->getEnvBasedUri('gift-cards/claim/' . $this->notification->getData()['gift_card']['claimCode']);
         }
 
         $entity = $this->notification->getEntity();
@@ -382,7 +392,6 @@ class PushNotification implements PushNotificationInterface
     {
         switch ($notification->getType()) {
             case NotificationTypes::TYPE_VOTE_UP:
-            case NotificationTypes::TYPE_VOTE_DOWN:
             case NotificationTypes::TYPE_REMIND:
             case NotificationTypes::TYPE_QUOTE:
             case NotificationTypes::TYPE_COMMENT:
@@ -399,6 +408,7 @@ class PushNotification implements PushNotificationInterface
             case NotificationTypes::TYPE_BOOST_COMPLETED:
             case NotificationTypes::TYPE_AFFILIATE_EARNINGS_DEPOSITED:
             case NotificationTypes::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
+            case NotificationTypes::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED:
                 return true;
         }
         return false;

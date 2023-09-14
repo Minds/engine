@@ -29,6 +29,7 @@ use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
+use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Security\ACL;
 use Minds\Core\Settings\Manager as UserSettingsManager;
 use Minds\Core\Settings\Models\BoostPartnerSuitability;
@@ -140,11 +141,20 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
         $this->entitiesBuilder->single(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($entity);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -225,7 +235,16 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -301,7 +320,16 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -376,7 +404,16 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -530,11 +567,20 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
         $this->entitiesBuilder->single(Argument::type('string'))
             ->shouldBeCalledOnce()
             ->willReturn($entity);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -625,7 +671,14 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -682,7 +735,14 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user)
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
@@ -749,9 +809,17 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($entity);
 
-        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class))
-            ->shouldNotBeCalled()
-            ->willReturn(true);
+        $this->paymentProcessor->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->paymentProcessor->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+            ->shouldBeCalledOnce()
+            ->willReturn(new PaymentDetails());
+
+        $this->paymentProcessor->setupBoostPayment(Argument::type(Boost::class), $user, Argument::type(PaymentDetails::class))
+            ->shouldNotBeCalled();
 
         $this->repository->createBoost(Argument::that(function ($arg) {
             return $arg->getStatus() === BoostStatus::PENDING_ONCHAIN_CONFIRMATION &&
@@ -1932,5 +2000,69 @@ class ManagerSpec extends ObjectBehavior
             reason: $reason,
             statuses: $statuses
         )->shouldBe(true);
+    }
+
+    public function it_should_determine_if_a_user_should_be_shown_boosts(
+        User $targetUser
+    ): void {
+        $targetUser->get('disabled_boost')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $targetUser->getTimeCreated()
+            ->shouldBeCalled()
+            ->willReturn(time() - 604801);
+
+        $this->callOnWrappedObject('shouldShowBoosts', [$targetUser])
+            ->shouldBe(true);
+    }
+
+    public function it_should_determine_if_a_user_should_be_shown_boosts_because_they_previously_disabled_boosts_but_are_NOT_plus(
+        User $targetUser
+    ): void {
+        $targetUser->get('disabled_boost')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $targetUser->isPlus()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $targetUser->getTimeCreated()
+            ->shouldBeCalled()
+            ->willReturn(time() - 604801);
+
+        $this->callOnWrappedObject('shouldShowBoosts', [$targetUser])
+            ->shouldBe(true);
+    }
+
+    public function it_should_determine_if_a_user_should_NOT_be_shown_boosts_because_they_are_plus_and_disabled_boosts(
+        User $targetUser
+    ): void {
+        $targetUser->get('disabled_boost')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $targetUser->isPlus()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->callOnWrappedObject('shouldShowBoosts', [$targetUser])
+            ->shouldBe(false);
+    }
+
+    public function it_should_determine_if_a_user_should_NOT_be_shown_boosts_because_they_are_new(
+        User $targetUser
+    ): void {
+        $targetUser->get('disabled_boost')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $targetUser->getTimeCreated()
+            ->shouldBeCalled()
+            ->willReturn(time() - 1000);
+        
+        $this->callOnWrappedObject('shouldShowBoosts', [$targetUser])
+            ->shouldBe(false);
     }
 }

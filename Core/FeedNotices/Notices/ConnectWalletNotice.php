@@ -3,11 +3,12 @@
 namespace Minds\Core\FeedNotices\Notices;
 
 use Minds\Core\Di\Di;
-use Minds\Entities\User;
 use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
+use Minds\Entities\User;
 
 /**
  * Feed notice to prompt a user to connect their wallet.
+ * @deprecated
  */
 class ConnectWalletNotice extends AbstractNotice
 {
@@ -39,6 +40,15 @@ class ConnectWalletNotice extends AbstractNotice
     public function getKey(): string
     {
         return self::KEY;
+    }
+
+    /**
+     * Whether notice is dismissible.
+     * @return boolean - true if notice is dismissible.
+     */
+    public function isDismissible(): bool
+    {
+        return true;
     }
 
     /**

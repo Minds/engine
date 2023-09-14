@@ -8,9 +8,14 @@
 
 namespace Minds\Core\Search;
 
-use Minds\Core\Di\Provider;
+use Composer\XdebugHandler\Process;
+use Minds\Core\ActivityPub\Services\ProcessActorService;
+use Minds\Core\Di;
+use Minds\Core\Feeds\Elastic;
+use Minds\Core\Boost\V3\Manager as BoostManager;
+use Minds\Core\Search\Controllers\SearchController;
 
-class SearchProvider extends Provider
+class Provider extends Di\Provider
 {
     public function register()
     {
@@ -33,5 +38,15 @@ class SearchProvider extends Provider
         $this->di->bind('Search\Hashtags\Manager', function ($di) {
             return new Hashtags\Manager();
         }, ['useFactory' => true]);
+
+        $this->di->bind(Controllers\SearchController::class, function (Di\Di $di): SearchController {
+            return new Controllers\SearchController(
+                elasticFeedsManager: $di->get(Elastic\V2\Manager::class),
+                search: $di->get('Search\Search'),
+                entitiesBuilder: $di->get('EntitiesBuilder'),
+                boostManager: $di->get(BoostManager::class),
+                processActorService: $di->get(ProcessActorService::class),
+            );
+        });
     }
 }

@@ -1,19 +1,25 @@
 <?php
 namespace Minds\Core\Feeds\GraphQL\Controllers;
 
+use AppendIterator;
 use GraphQL\Error\UserError;
+use Iterator;
+use Minds\Common\Access;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
 use Minds\Core\Boost\V3\GraphQL\Types\BoostEdge;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
-use Minds\Core\GraphQL\Types;
-use Minds\Core\Feeds\GraphQL\Types\ActivityEdge;
 use Minds\Core\Boost\V3\Manager as BoostManager;
 use Minds\Core\Boost\V3\Models\Boost;
-use Minds\Core\Session;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\FeedNotices;
 use Minds\Core\FeedNotices\GraphQL\Types\FeedNoticeEdge;
+use Minds\Core\FeedNotices\Notices\NoGroupsNotice;
+use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
+use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
+use Minds\Core\Feeds\Elastic\V2\QueryOpts;
+use Minds\Core\Feeds\GraphQL\Enums\NewsfeedAlgorithmsEnum;
+use Minds\Core\Feeds\GraphQL\Types\ActivityEdge;
 use Minds\Core\Feeds\GraphQL\Types\ActivityNode;
 use Minds\Core\Feeds\GraphQL\Types\FeedHighlightsConnection;
 use Minds\Core\Feeds\GraphQL\Types\FeedHighlightsEdge;
@@ -21,16 +27,18 @@ use Minds\Core\Feeds\GraphQL\Types\NewsfeedConnection;
 use Minds\Core\Feeds\GraphQL\Types\PublisherRecsConnection;
 use Minds\Core\Feeds\GraphQL\Types\PublisherRecsEdge;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
+use Minds\Core\GraphQL\Types;
 use Minds\Core\Groups\V2\GraphQL\Types\GroupEdge;
 use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
+use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
-use Minds\Core\Suggestions\Manager as SuggestionsManager;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
-use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
+use Minds\Core\Search\Enums\SearchMediaTypeEnum;
+use Minds\Core\Votes;
+use Minds\Entities\Activity;
 use Minds\Entities\User;
+use NoRewindIterator;
+use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Query;
-use Minds\Core\FeedNotices\Notices\NoGroupsNotice;
-use Minds\Core\Feeds\GraphQL\Enums\NewsfeedAlgorithmsEnum;
 
 class NewsfeedController
 {
@@ -41,10 +49,17 @@ class NewsfeedController
         protected BoostManager $boostManager,
         protected SuggestedChannelsRecommendationsAlgorithm $suggestedChannelsRecommendationsAlgorithm,
         protected BoostSuggestionInjector $boostSuggestionInjector,
-        protected SuggestionsManager $suggestionsManager,
+        protected SuggestedGroupsRecommendationsAlgorithm $suggestedGroupsRecommendationsAlgorithm,
         protected ExperimentsManager $experimentsManager,
+        protected Votes\Manager $votesManager,
     ) {
     }
+
+    /**
+     * Track when we've shown explicit vote buttons
+     * to make sure we don't show them too infrequently
+     */
+    protected int|null $lastIndexWithExplicitVotes = null;
 
     /**
      * @param string[]|null $inFeedNoticesDelivered
@@ -57,6 +72,7 @@ class NewsfeedController
         ?int $last = null,
         ?string $before = null,
         ?array $inFeedNoticesDelivered = [],
+        #[InjectUser] ?User $loggedInUser = null,
     ): NewsfeedConnection {
         /**
          * Ideally we would use an enum in the function, but Graphql is not playing nice.
@@ -83,7 +99,9 @@ class NewsfeedController
          */
         $limit = min($first ?: $last, 12); // MAX 12
 
-        $loggedInUser =  Session::getLoggedInUser();
+        $hasMore = false;
+
+        // $loggedInUser =  Session::getLoggedInUser();
 
         if (!$loggedInUser) {
             throw new UserError("You must be logged in", 403);
@@ -91,53 +109,85 @@ class NewsfeedController
 
         $edges = [];
 
-        switch ($algorithm) {
-            case NewsfeedAlgorithmsEnum::LATEST:
-                $activities = $this->feedsManager->getLatestSubscribed(
+        /**
+         * @var Iterator<Activity> $activities
+         */
+        $activities = match ($algorithm) {
+            NewsfeedAlgorithmsEnum::LATEST => $this->feedsManager->getLatest(
+                queryOpts: new QueryOpts(
                     user: $loggedInUser,
                     limit: $limit,
-                    hasMore: $hasMore,
-                    loadAfter: $loadAfter,
-                    loadBefore: $loadBefore,
-                );
-                break;
-            case NewsfeedAlgorithmsEnum::GROUPS:
-                $activities = $this->feedsManager->getLatestGroups(
+                    onlySubscribed: true,
+                    accessId: Access::PUBLIC,
+                ),
+                loadAfter: $loadAfter,
+                loadBefore: $loadBefore,
+                hasMore: $hasMore,
+            ),
+            NewsfeedAlgorithmsEnum::GROUPS => $this->feedsManager->getLatest(
+                queryOpts: new QueryOpts(
                     user: $loggedInUser,
                     limit: $limit,
-                    hasMore: $hasMore,
-                    loadAfter: $loadAfter,
-                    loadBefore: $loadBefore,
-                );
-                break;
-            case NewsfeedAlgorithmsEnum::TOP:
-                $activities = $this->feedsManager->getTopSubscribed(
+                    onlyGroups: true,
+                ),
+                loadAfter: $loadAfter,
+                loadBefore: $loadBefore,
+                hasMore: $hasMore,
+            ),
+            NewsfeedAlgorithmsEnum::TOP => $this->feedsManager->getTop(
+                queryOpts: new QueryOpts(
                     user: $loggedInUser,
                     limit: $limit,
-                    hasMore: $hasMore,
-                    loadAfter: $loadAfter,
-                    loadBefore: $loadBefore,
-                );
-                break;
-            case NewsfeedAlgorithmsEnum::FORYOU:
-                $activities = $this->feedsManager->getClusteredRecs(
-                    user: $loggedInUser,
-                    limit: $limit,
-                    hasMore: $hasMore,
-                    loadAfter: $loadAfter,
-                    loadBefore: $loadBefore,
-                );
-                break;
-            default:
-                throw new UserError("Invalid algorithm supplied");
+                    onlySubscribed: true,
+                    accessId: Access::PUBLIC,
+                ),
+                loadAfter: $loadAfter,
+                loadBefore: $loadBefore,
+                hasMore: $hasMore,
+            ),
+            NewsfeedAlgorithmsEnum::FORYOU => $this->feedsManager->getClusteredRecs(
+                user: $loggedInUser,
+                limit: $limit,
+                loadAfter: $loadAfter,
+                loadBefore: $loadBefore,
+                hasMore: $hasMore,
+            ),
+            default => throw new UserError("Invalid algorithm supplied")
+        };
+
+        if ($algorithm === NewsfeedAlgorithmsEnum::FORYOU && !$after && $this->experimentsManager->setUser($loggedInUser)->isOn('minds-4169-for-you-top-posts-injection')) {
+            $topQueryOpts = new QueryOpts(
+                limit: 1, // TODO: swap with configurable value
+                query: "",
+                accessId: Access::PUBLIC,
+                mediaTypeEnum: SearchMediaTypeEnum::toMediaTypeEnum(SearchMediaTypeEnum::ALL),
+                nsfw: [],
+                seenEntitiesFilterStrategy: SeenEntitiesFilterStrategyEnum::DEMOTE,
+            );
+
+            /**
+             * @var Iterator<Activity> $topResultActivities
+             */
+            $topResultActivities = $this->feedsManager->getTop(
+                queryOpts: $topQueryOpts,
+            );
+
+            $mergeIterator = new AppendIterator();
+            $mergeIterator->append(new NoRewindIterator($topResultActivities));
+            $mergeIterator->append(new NoRewindIterator($activities));
+
+            $activities = $mergeIterator;
         }
 
         // Build the boosts
-        $isBoostRotatorRemovedExpirementOn = $this->experimentsManager->isOn('minds-4105-remove-rotator');
+        $isBoostRotatorRemovedExperimentOn = $this->experimentsManager->isOn('minds-4105-remove-rotator');
         $boosts = $this->buildBoosts(
             loggedInUser: $loggedInUser,
-            limit: $isBoostRotatorRemovedExpirementOn ? 3 : 1,
+            limit: $isBoostRotatorRemovedExperimentOn ? 3 : 1,
         );
+
+        // Reset the explicit vote counter
+        $this->lastIndexWithExplicitVotes = null;
 
         foreach ($activities as $i => $activity) {
             $cursor = $loadAfter;
@@ -147,14 +197,24 @@ class NewsfeedController
                 break;
             }
 
-            if ($i === 0) { // Priority notice is always at the top
+            if (
+                (
+                    $this->isForYouTopExperimentActive($loggedInUser, $algorithm, $after) &&
+                    $i === 1
+                )
+                ||
+                (
+                    !$this->isForYouTopExperimentActive($loggedInUser, $algorithm, $after) &&
+                    $i === 0
+                )
+            ) { // Priority notice is always at the top
                 $priorityNotices = $this->buildInFeedNotices(
                     loggedInUser: $loggedInUser,
-                    location: ($after ||$before) ? 'inline' : 'top',
-                    limit: 1,
                     cursor: $cursor,
                     inFeedNoticesDelivered: $inFeedNoticesDelivered,
-                    algorithm: $algorithm
+                    algorithm: $algorithm,
+                    location: ($after ||$before) ? 'inline' : 'top',
+                    limit: 1
                 );
                 if ($priorityNotices && isset($priorityNotices[0])) {
                     $edges[] = $priorityNotices[0];
@@ -175,11 +235,11 @@ class NewsfeedController
             if ($i === 6) { // Show in the 6th spot
                 $inlineNotice = $this->buildInFeedNotices(
                     loggedInUser: $loggedInUser,
-                    location: 'inline',
-                    limit: 1,
                     cursor: $cursor,
                     inFeedNoticesDelivered: $inFeedNoticesDelivered,
-                    algorithm: $algorithm
+                    algorithm: $algorithm,
+                    location: 'inline',
+                    limit: 1
                 );
                 if ($inlineNotice && isset($inlineNotice[0])) {
                     $edges[] = $inlineNotice[0];
@@ -208,7 +268,7 @@ class NewsfeedController
              * Show boosts depending on if the experiment to remove the rotator is enabled
              */
             if (
-                $isBoostRotatorRemovedExpirementOn &&
+                $isBoostRotatorRemovedExperimentOn &&
                 in_array($i, [
                     1, // 2nd slot
                     4, // after channel recs
@@ -221,7 +281,7 @@ class NewsfeedController
                     $edges[] = new BoostEdge($boost, $cursor);
                 }
             } elseif (
-                !$isBoostRotatorRemovedExpirementOn &&
+                !$isBoostRotatorRemovedExperimentOn &&
                 count($boosts) &&
                 $i == 3
             ) {
@@ -231,7 +291,20 @@ class NewsfeedController
                 }
             }
 
-            $edges[] = new ActivityEdge($activity, $cursor);
+            /**
+             * Don't show the post if it has been explicitly downvoted
+             */
+            if (
+                $this->isExplicitVotesExperimentOn() && $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::DOWN)
+            ) {
+                continue;
+            }
+
+            $showExplicitVoteButtons = $algorithm === NewsfeedAlgorithmsEnum::FORYOU ?
+                $this->showExplicitVoteButtons($activity, $loggedInUser, $i) :
+                false;
+
+            $edges[] = new ActivityEdge($activity, $cursor ?? "", $showExplicitVoteButtons);
         }
 
         if (empty($edges)) {
@@ -240,11 +313,11 @@ class NewsfeedController
                 // Show the no groups notice
                 $noGroupNotice = $this->buildInFeedNotices(
                     loggedInUser: $loggedInUser,
-                    location: ($after ||$before) ? 'inline' : 'top',
-                    limit: 1,
                     cursor: '',
                     inFeedNoticesDelivered: $inFeedNoticesDelivered,
-                    algorithm: $algorithm
+                    algorithm: $algorithm,
+                    location: ($after ||$before) ? 'inline' : 'top',
+                    limit: 1
                 );
                 if ($noGroupNotice && isset($noGroupNotice[0])) {
                     $edges[] = $noGroupNotice[0];
@@ -260,8 +333,8 @@ class NewsfeedController
         }
 
         $pageInfo = new Types\PageInfo(
-            hasPreviousPage: $algorithm === NewsfeedAlgorithmsEnum::LATEST || ($after && $loadBefore) ? true : false, // Always will be newer data on latest or if we are paging forward
-            hasNextPage: $hasMore,
+            hasNextPage: $hasMore, // Always will be newer data on latest or if we are paging forward
+            hasPreviousPage: $algorithm === NewsfeedAlgorithmsEnum::LATEST || ($after && $loadBefore) ? true : false,
             startCursor: $loadBefore,
             endCursor: $loadAfter,
         );
@@ -288,7 +361,7 @@ class NewsfeedController
         User $loggedInUser,
         int $limit = 3
     ): array {
-        if ($loggedInUser->disabled_boost && $loggedInUser->isPlus()) {
+        if (!$this->boostManager->shouldShowBoosts($loggedInUser)) {
             return [];
         }
 
@@ -353,16 +426,27 @@ class NewsfeedController
         return $edges;
     }
 
+    private function isForYouTopExperimentActive(User $loggedInUser, NewsfeedAlgorithmsEnum $algorithm, ?string $after): bool
+    {
+        return
+            $algorithm === NewsfeedAlgorithmsEnum::FORYOU &&
+            !$after &&
+            $this->experimentsManager->setUser($loggedInUser)->isOn('minds-4169-for-you-top-posts-injection');
+    }
+
     /**
      * Will attempt to build feed highlights, if there any available
      * @return FeedHighlightsEdge|null
      */
     protected function buildFeedHighlights(User $loggedInUser, string $cursor): ?FeedHighlightsEdge
     {
-        $activities = $this->feedsManager->getTopSubscribed(
-            user: $loggedInUser,
-            limit: 3,
-            seenEntitiesStrategy: SeenEntitiesFilterStrategyEnum::EXCLUDE,
+        $activities = $this->feedsManager->getTop(
+            queryOpts: new QueryOpts(
+                user: $loggedInUser,
+                limit: 3,
+                onlySubscribed: true,
+                seenEntitiesFilterStrategy: SeenEntitiesFilterStrategyEnum::EXCLUDE,
+            ),
             hasMore: $hasMore,
             loadAfter: $loadAfter,
             loadBefore: $loadBefore,
@@ -371,8 +455,15 @@ class NewsfeedController
         $edges = [];
 
         foreach ($activities as $activity) {
+            // Don't show downvoted activities
+            if (
+                $this->isExplicitVotesExperimentOn() && $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::DOWN)
+            ) {
+                continue;
+            }
+
             $cursor = $loadAfter;
-            $edges[] = new ActivityEdge($activity, $cursor);
+            $edges[] = new ActivityEdge($activity, $cursor, false);
         }
 
         if (empty($edges)) {
@@ -402,7 +493,8 @@ class NewsfeedController
         $result = $this->suggestedChannelsRecommendationsAlgorithm
             ->setUser($loggedInUser)
             ->getRecommendations([
-                'limit' => 3
+                'limit' => 3,
+                'export_counts' => true
             ]);
 
         // Inject a boosted channel (if not plus and disabled)
@@ -449,11 +541,10 @@ class NewsfeedController
      */
     protected function buildGroupRecs(User $loggedInUser, string $cursor, int $listSize = 3): PublisherRecsEdge
     {
-        $result = $this->suggestionsManager
+        $result = $this->suggestedGroupsRecommendationsAlgorithm
             ->setUser($loggedInUser)
-            ->setType('group')
-            ->getList([
-                'limit' => $listSize
+            ->getRecommendations([
+                'limit' => 3
             ]);
 
         $edges = [ ];
@@ -476,5 +567,62 @@ class NewsfeedController
         $connection->setPageInfo($pageInfo);
 
         return new PublisherRecsEdge($connection, $cursor);
+    }
+
+
+    /**
+     * Show explicit vote buttons every 4 activities
+     * when the experiment is on
+     * and the user isn't the post owner
+     * and the user hasn't voted up already
+     * (assumes we've already checked for downvotes)
+     * @param Activity $activity
+     * @param User $loggedInUser
+     * @param int $i - current index in the list of activities
+     */
+    protected function showExplicitVoteButtons(Activity $activity, User $loggedInUser, int $i): bool
+    {
+        $isPostOwner = $loggedInUser->getGuid() === $activity->getOwnerGuid();
+
+        $hasUpvoted = $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::UP);
+
+        $show = ($i === 0 || $i - $this->lastIndexWithExplicitVotes >= 4 || is_null($this->lastIndexWithExplicitVotes)) && $this->isExplicitVotesExperimentOn() && !$isPostOwner && !$hasUpvoted;
+
+        if ($show) {
+            $this->lastIndexWithExplicitVotes = $i;
+        }
+
+        return $show;
+    }
+
+    /**
+     * Helper function to determine if current logged in user has
+     * voted on the post
+     * @param Activity $activity
+     * @param User $loggedInUser
+     * @param int $direction - Votes\Enums\VoteDirectionEnum
+     * @return bool
+     */
+    protected function userHasVoted(Activity $activity, User $loggedInUser, int $direction): bool
+    {
+        if (!$loggedInUser) {
+            return false;
+        }
+
+        $vote = (new Votes\Vote())
+            ->setEntity($activity)
+            ->setActor($loggedInUser)
+            ->setDirection($direction === Votes\Enums\VoteDirectionEnum::UP ? 'up' : 'down');
+
+        return $this->votesManager->has($vote);
+    }
+
+    /**
+     * Whether experiment is on.
+     * @return bool true if experiment is on.
+     */
+    protected function isExplicitVotesExperimentOn(): bool
+    {
+        return $this->experimentsManager->isOn('minds-4175-explicit-votes');
     }
 }

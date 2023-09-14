@@ -15,6 +15,8 @@ class Provider extends DiProvider
         $this->di->bind(SchemaFactory::class, function (Di $di, array $args = []): SchemaFactory {
             $cache = new APCuCache();
 
+            $cache->clear();
+
             /**
              * PSR-11 Container Wrapper
              */
@@ -27,6 +29,12 @@ class Provider extends DiProvider
             /** @var SchemaFactory $factory */
             $factory = $di->get(SchemaFactory::class);
 
+            if ($di->get('Config')->minds_debug) {
+                $factory->devMode();
+            } else {
+                $factory->prodMode();
+            }
+
             /**
              * The library requires some default namespaces
              */
@@ -37,9 +45,8 @@ class Provider extends DiProvider
                 $factory->setAuthenticationService($args['auth_service']);
             }
 
-            // Prod mode?
-            if (!$di->get('Config')->minds_debug) {
-                $factory->prodMode();
+            if (isset($args['authorization_service'])) {
+                $factory->setAuthorizationService($args['authorization_service']);
             }
 
             return $factory->createSchema();

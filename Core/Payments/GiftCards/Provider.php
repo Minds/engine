@@ -9,6 +9,7 @@ use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\Emailer;
 use Minds\Core\Payments\GiftCards\Controllers\Controller;
 use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
+use Minds\Core\Payments\GiftCards\Delegates\NotificationDelegate;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
 
 class Provider extends DiProvider
@@ -35,7 +36,8 @@ class Provider extends DiProvider
                 $di->get(PaymentsManager::class),
                 $di->get(PaymentProcessor::class),
                 $di->get(EmailDelegate::class),
-                $di->get('Logger')
+                $di->get('Logger'),
+                $di->get(NotificationDelegate::class),
             );
         }, ['factory' => true]);
 
@@ -52,6 +54,17 @@ class Provider extends DiProvider
                 new EmailDelegate(
                     $di->get(Emailer::class),
                     $di->get('EntitiesBuilder'),
+                )
+        );
+
+        $this->di->bind(
+            NotificationDelegate::class,
+            fn (Di $di): NotificationDelegate =>
+                new NotificationDelegate(
+                    $di->get('EventStreams\Topics\ActionEventsTopic'),
+                    $di->get('EntitiesBuilder'),
+                    $di->get('Experiments\Manager'),
+                    $di->get('Logger'),
                 )
         );
     }

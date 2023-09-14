@@ -29,6 +29,8 @@ use Psr\SimpleCache\InvalidArgumentException;
  */
 class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
 {
+    const CACHE_KEY = 'captioned-activity-event';
+
     public function __construct(
         private ?EntitiesResolver $entitiesResolver = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
@@ -74,14 +76,20 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
             return true;
         }
 
-        if ($this->cache->get("captioned-activity-{$event->getActivityUrn()}")) {
+        if ($this->cache->get(self::CACHE_KEY . "-{$event->getActivityUrn()}")) {
             $this->logger->info("Skipping captioned activity {$event->getActivityUrn()} as it is already being processed");
             return false;
         }
 
         try {
-            $this->updateActivity($event, $event->getCaption());
 
+            if ($event->getCaption()) {
+                $this->updateActivity($event, $event->getCaption());
+            }
+
+            return true;
+        } catch (NotFoundException $e) {
+            $this->logger->info("Skipping captioned activity {$event->getActivityUrn()} as it was not found");
             return true;
         } catch (Exception $e) {
             $this->logger->info(
@@ -111,12 +119,16 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
      */
     private function updateActivity(CaptionedActivityEvent $event, string $caption): void
     {
-        $this->cache->set("captioned-activity-{$event->getActivityUrn()}", true);
+        $this->cache->set(self::CACHE_KEY . "-{$event->getActivityUrn()}", true, 300);
 
-        $this->processImageEntity($event, $caption);
-        $this->processActivity($event, $caption);
-
-        $this->cache->delete("captioned-activity-{$event->getActivityUrn()}");
+        try {
+            $this->processImageEntity($event, $caption);
+            $this->processActivity($event);
+        } catch (\Exception $e) {
+            $this->cache->delete(self::CACHE_KEY . "-{$event->getActivityUrn()}");
+            // Rethrow
+            throw $e;
+        }
     }
 
     /**
@@ -133,7 +145,7 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
          * @var Image $imageEntity
          */
         $imageEntity = $this->entitiesBuilder->single($event->getGuid());
-        if (!$imageEntity) {
+        if (!$imageEntity instanceof Image) {
             // Entity not found
             throw new NotFoundException("Image {$event->getGuid()} not found");
         }
@@ -152,8 +164,10 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
      * @throws StopEventException
      * @throws UnverifiedEmailException
      */
-    private function processActivity(CaptionedActivityEvent $event, string $caption): void
+    private function processActivity(CaptionedActivityEvent $event): void
     {
+        $captions = [];
+
         /**
          * @var Activity $activity
          */
@@ -164,8 +178,23 @@ class CaptionedActivityEventStreamSubscription implements SubscriptionInterface
             throw new NotFoundException("Activity {$event->getActivityUrn()} not found");
         }
 
+        if ($activity->hasAttachments()) {
+            $assetGuids = array_map(function ($attachment) {
+                return $attachment['guid'];
+            }, $activity->attachments);
+            
+            foreach ($assetGuids as $assetGuid) {
+                $assetEntity = $this->entitiesBuilder->single($assetGuids);
+                if ($assetEntity instanceof Image) {
+                    $captions[] = $assetEntity->getAutoCaption();
+                }
+            }
+        }
+
+        $caption = implode(' ', $captions);
+
         $mutatedImageEntity = new EntityMutation($activity);
-        $mutatedImageEntity->setAutoCaption($activity->getAutoCaption() . " $caption");
+        $mutatedImageEntity->setAutoCaption($caption);
 
         $this->saveAction->setEntity($mutatedImageEntity->getMutatedEntity())->save();
     }

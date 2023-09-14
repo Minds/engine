@@ -9,12 +9,14 @@
 namespace Minds\Core\Votes;
 
 use Minds\Core;
+use Minds\Core\Comments\Comment;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Session;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Entities;
 use Minds\Entities\Activity;
@@ -91,7 +93,6 @@ class Events
         });
 
         // Analytics events
-
         Dispatcher::register('vote', 'all', function (Event $event) {
             $request = $this->retrieveServerRequest();
             $experimentsManager = $this->getExperimentsManager()->setUser($request->getAttribute('_user'));
@@ -240,6 +241,10 @@ class Events
             $params = $event->getParameters();
             $entity = $params['entity'];
 
+            if ($entity instanceof Comment) {
+                return;
+            }
+
             $guid = $entity->getGuid();
 
             switch (get_class($entity)) {
@@ -260,15 +265,16 @@ class Events
             }
 
             $upCount = Helpers\Counters::get($guid, 'thumbs:up');
-            $downCount = Helpers\Counters::get($guid, 'thumbs:down');
 
 
             $export['thumbs:up:count'] = $upCount;
-            $export['thumbs:down:count'] = $downCount;
+
+            // Downvote counts removed
+            $export['thumbs:down:count'] = 0;
 
             // Make sure our export of voters is an array and not an object
             $export['thumbs:up:user_guids'] = $entity->{'thumbs:up:user_guids'} ? (array) array_values($entity->{'thumbs:up:user_guids'}) : [];
-            $export['thumbs:down:user_guids'] = $entity->{'thumbs:down:user_guids'} ? (array) array_values($entity->{'thumbs:down:user_guids'}) : [];
+            $export['thumbs:down:user_guids'] = $entity->{'thumbs:down:user_guids'} ? (array) array_values(array_intersect(array_values($entity->{'thumbs:down:user_guids'}), [(string) Session::getLoggedInUserGuid()])) : [];
 
             $event->setResponse($export);
         });

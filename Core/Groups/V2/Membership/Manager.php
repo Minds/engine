@@ -7,6 +7,7 @@ use Minds\Core\Groups\Membership as LegacyMembership;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Experiments;
+use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Group;
 use Minds\Entities\User;
@@ -24,6 +25,7 @@ class Manager
         protected ACL $acl,
         protected LegacyMembership $legacyMembership,
         protected Experiments\Manager $experimentsManager,
+        protected SuggestedGroupsRecommendationsAlgorithm $groupRecsAlgo,
     ) {
     }
 
@@ -85,10 +87,19 @@ class Manager
     }
 
     /**
+     * Get a groups members.
+     * @param Group $group - group to get members for.
+     * @param GroupMembershipLevelEnum $membershipLevel - filter by membership level, defaults to only members.
+     * @param bool $membershipLevelGte - whether to show matches greater than the provided membership level as well
+     * @param int $limit - limit the number of results.
+     * @param int $offset - offset the results.
+     * @param int|string &$loadNext - passed reference to a $loadNext variable.
      * @return iterable<Membership>
      */
     public function getMembers(
         Group $group,
+        GroupMembershipLevelEnum $membershipLevel = null,
+        bool $membershipLevelGte = false,
         int $limit = 12,
         int $offset = 0,
         int|string &$loadNext = 0
@@ -132,7 +143,15 @@ class Manager
         /**
          * Vitess read
          */
-        foreach ($this->repository->getList(groupGuid: $group->getGuid(), limit: $limit, offset: $offset) as $membership) {
+        foreach ($this->repository->getList(
+            groupGuid: $group->getGuid(),
+            limit: $limit,
+            offset: $offset,
+            membershipLevel: $membershipLevel,
+            membershipLevelGte: $membershipLevelGte
+        ) as $membership) {
+            $loadNext = ++$offset;
+
             $user = $this->buildUser($membership->userGuid);
 
             if (!$user) {
@@ -141,7 +160,6 @@ class Manager
 
             $membership->setUser($user);
 
-            $loadNext = ++$offset;
             yield $membership;
         }
     }
@@ -183,23 +201,32 @@ class Manager
                 offset: $offset
             ) as $membership
         ) {
+            $loadNext = ++$offset;
+
             $user = $this->buildUser($membership->userGuid);
 
             if (!$user) {
                 continue;
             }
 
-            $loadNext = ++$offset;
             yield $user;
         }
     }
 
     /**
      * Returns a list of groups a user is a member of
+     * @param User $user - user to get groups for.
+     * @param GroupMembershipLevelEnum $membershipLevel - filter by membership level, defaults to only members.
+     * @param bool $membershipLevelGte - whether to show matches greater than the provided membership level as well
+     * @param int $limit - limit the number of results.
+     * @param int $offset - offset the results.
+     * @param int|string &$loadNext - passed reference to a $loadNext variable.
      * @return iterable<Group>
      */
     public function getGroups(
         User $user,
+        GroupMembershipLevelEnum $membershipLevel = null,
+        bool $membershipLevelGte = false,
         int $limit = 12,
         int $offset = 0,
         int &$loadNext = 0
@@ -230,16 +257,19 @@ class Manager
             $this->repository->getList(
                 userGuid: $user->getGuid(),
                 limit: $limit,
-                offset: $offset
+                offset: $offset,
+                membershipLevel: $membershipLevel,
+                membershipLevelGte: $membershipLevelGte
             ) as $membership
         ) {
+            $loadNext = ++$offset;
+
             $group = $this->buildGroup($membership->groupGuid);
 
             if (!$group) {
                 continue;
             }
 
-            $loadNext = ++$offset;
             yield $group;
         }
     }
@@ -326,7 +356,12 @@ class Manager
                 ($group->isPublic() ? GroupMembershipLevelEnum::MEMBER : GroupMembershipLevelEnum::REQUESTED),
         );
 
-        return $this->repository->add($membership);
+        $joined = $this->repository->add($membership);
+
+        // Purge recs cache
+        $this->groupRecsAlgo->setUser($user)->purgeCache();
+
+        return $joined;
     }
 
     /**
@@ -359,6 +394,40 @@ class Manager
         }
 
         return $this->repository->delete($membership);
+    }
+
+    /**
+     * Cancels a users request to join a group.
+     * @return bool true on success.
+     */
+    public function cancelRequest(Group $group, User $user): bool
+    {
+        $userMembership = null;
+
+        try {
+            // TODO: Check if this check is still needed when we remove legacy writes.
+            $userMembership = $this->repository->get($group->getGuid(), $user->getGuid());
+        } catch(NotFoundException $e) {
+            // do nothing.
+        }
+
+        if (!$userMembership || !$userMembership->isAwaiting()) {
+            throw new GroupOperationException('Cannot cancel as there is no pending membership request.');
+        }
+
+        /**
+         * Legacy write
+         */
+        $legacyRemoved = $this->legacyMembership->setGroup($group)->setActor($user)->cancelRequest($user);
+
+        if (!$legacyRemoved) {
+            return false;
+        }
+
+        /**
+         * Vitess write
+         */
+        return $this->repository->delete($userMembership);
     }
 
     /**

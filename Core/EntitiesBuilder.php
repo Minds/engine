@@ -6,17 +6,17 @@ namespace Minds\Core;
 use Minds\Core\Data;
 use Minds\Core\Di\Di;
 use Minds\Entities\Entity;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\Factory;
 use Minds\Entities\User;
 
 class EntitiesBuilder
 {
-    /** @var Data\lookup */
-    protected $lookup;
-
-    public function __construct($lookup = null)
-    {
-        $this->lookup = $lookup ?? Di::_()->get('Database\Cassandra\Data\Lookup');
+    public function __construct(
+        protected ?Data\lookup $lookup = null,
+        protected ?Entities\Resolver $urnResolver = null,
+    ) {
+        $this->lookup ??= Di::_()->get('Database\Cassandra\Data\Lookup');
     }
 
     /**
@@ -47,6 +47,15 @@ class EntitiesBuilder
         }
 
         return null;
+    }
+
+    public function getByUrn(string $urn): ?EntityInterface
+    {
+        $entity = $this->getUrnResolver()->single($urn);
+        if (!$entity instanceof EntityInterface) {
+            return null;
+        }
+        return $entity;
     }
 
     /**
@@ -147,5 +156,10 @@ class EntitiesBuilder
         }
 
         return $namespace;
+    }
+
+    private function getUrnResolver(): Entities\Resolver
+    {
+        return $this->urnResolver ??= Di::_()->get(Entities\Resolver::class);
     }
 }
