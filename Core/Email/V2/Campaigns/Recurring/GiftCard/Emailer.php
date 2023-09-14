@@ -133,6 +133,8 @@ class Emailer extends EmailCampaign
     {
         return match ($productIdEnum) {
             GiftCardProductIdEnum::BOOST => new BoostCredit(),
+            GiftCardProductIdEnum::PLUS => new BoostCredit(),
+            GiftCardProductIdEnum::PRO => new BoostCredit(),
             default => throw new GraphQLException("Invalid gift card product id: {$this->giftCard->productId}")
         };
     }

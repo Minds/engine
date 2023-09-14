@@ -2,11 +2,9 @@
 
 namespace Spec\Minds\Core\Provisioner;
 
-use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
-
 use Minds\Core\Minds;
 use Minds\Entities\Site;
+use PhpSpec\ObjectBehavior;
 
 class InstallerSpec extends ObjectBehavior
 {
@@ -38,6 +36,7 @@ class InstallerSpec extends ObjectBehavior
         ]);
 
         $CONFIG->site_name = 'PHPSpec Minds';
+        $CONFIG->set('site_url', 'https://phpspec.minds.io/');
     }
 
     public function it_should_check_options_valid()
@@ -152,7 +151,7 @@ class InstallerSpec extends ObjectBehavior
 
     public function it_should_setup_site(Site $site)
     {
-        $site->set('name', 'PHPSpec Minds')->shouldBeCalled();
+        $site->set('name', 'Minds')->shouldBeCalled();
         $site->set('url', 'https://phpspec.minds.io/')->shouldBeCalled();
         $site->set('access_id', 2)->shouldBeCalled();
         $site->set('email', 'phpspec@minds.io')->shouldBeCalled();

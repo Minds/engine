@@ -15,11 +15,12 @@ require_once(dirname(__FILE__) . '/mocks.php');
 require_once(dirname(__FILE__) . '/pulsar-mocks.php');
 
 $minds = new Minds\Core\Minds();
+$minds->start();
 
 $CONFIG = Minds\Core\Di\Di::_()->get('Config');
 $CONFIG->default_access = 2;
 $CONFIG->site_guid = 0;
-$CONFIG->site_url = "";
+$CONFIG->site_url = "https://phpspec.minds.io/";
 $CONFIG->cassandra = [
     'keyspace' => 'phpspec',
     'servers' => ['127.0.0.1'],
@@ -95,5 +96,7 @@ $CONFIG->set('sockets', [
     'jwt_domain' => 'localhost:8080',
     'server_uri' => 'localhost:8010'
 ]);
+$CONFIG->set('development_mode', false);
+$CONFIG->set('trending_tags_development_mode', false);
 
 $minds->loadLegacy();

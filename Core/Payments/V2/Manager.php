@@ -7,6 +7,7 @@ use Iterator;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
+use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\V2\Enums\PaymentAffiliateType;
 use Minds\Core\Payments\V2\Enums\PaymentMethod;
 use Minds\Core\Payments\V2\Enums\PaymentStatus;
@@ -108,6 +109,7 @@ class Manager
         $affiliateUserGuid = null;
         $paymentType = PaymentType::WIRE_PAYMENT;
 
+        $paymentMethod = PaymentMethod::CASH;
         if ($isPlus || $isPro) {
             if ($sourceActivity) {
                 $affiliateUserGuid = ((int) $sourceActivity->getOwnerGuid()) ?? null;
@@ -130,6 +132,12 @@ class Manager
             if ($isPro) {
                 $paymentType = PaymentType::MINDS_PRO_PAYMENT;
             }
+
+            if ($wire->getAddress() === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+                $paymentMethod = PaymentMethod::GIFT_CARD;
+            }
+        } elseif ($wire->getAddress() === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+            throw new InvalidPaymentMethodException('Cannot use gift card as payment method for wire');
         }
 
         $paymentDetails = new PaymentDetails([
@@ -137,7 +145,7 @@ class Manager
             'affiliateUserGuid' => $affiliateUserGuid,
             'affiliateType' => $affiliateType ?? null, // Only set if it's a valid type, otherwise 'null' is fine
             'paymentType' => $paymentType,
-            'paymentMethod' => PaymentMethod::getValidatedPaymentMethod(PaymentMethod::CASH),
+            'paymentMethod' => $paymentMethod,
             'paymentAmountMillis' => (int) ($wire->getAmount() * 10), // Already in cents, so multiply by 10
             'paymentTxId' => $paymentTxId,
             'paymentStatus' => !$wire->getTrialDays() ? PaymentStatus::COMPLETED : PaymentStatus::PENDING,

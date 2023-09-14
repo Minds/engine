@@ -10,15 +10,23 @@ namespace Minds\Core\Wire;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Guid;
+use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardInsufficientFundsException;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
+use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
+use Minds\Core\Payments\GiftCards\Models\GiftCard;
+use Minds\Core\Payments\Stripe\Intents\Intent;
 use Minds\Core\Payments\Stripe\Intents\Manager as StripeIntentsManager;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
+use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Util\BigNumber;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;
 use Minds\Core\Wire\SupportTiers\Manager as SupportTiersManager;
 use Minds\Entities;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 
 class Manager
 {
@@ -116,7 +124,8 @@ class Manager
         $acl = null,
         $eventsDelegate = null,
         private ?SupportTiersManager $supportTiersManager = null,
-        private ?PaymentsManager $paymentsManager = null
+        private ?PaymentsManager $paymentsManager = null,
+        private readonly ?GiftCardsManager $giftCardsManager = null,
     ) {
         $this->repository = $repository ?: Di::_()->get('Wire\Repository');
         $this->txManager = $txManager ?: Di::_()->get('Blockchain\Transactions\Manager');
@@ -353,53 +362,50 @@ class Manager
                     throw new \Exception("You must select a payment method");
                 }
 
-                // Determine if a trial is eligible
-                // If the reciever is Minds+ channel and the sender has never has plus (no plus_expires field)
-                // or they haven't had plus in 90 days then they will have a trial.
-                $canHavePlusTrial = !$this->sender->plus_expires || $this->sender->plus_expires <= strtotime(self::TRIAL_THRESHOLD_DAYS . ' days ago');
-                if ($this->receiver->getGuid() == $this->config->get('plus')['handler'] && $canHavePlusTrial) {
-                    $wire->setTrialDays(self::TRIAL_DAYS);
-                }
-
+                // TODO: only set to gift_card if paymentMethodId is gift_card
                 $wire->setAddress('stripe')
                     ->setMethod('usd');
 
-                $statementDescriptor = $this->getStatementDescriptorFromWire($wire);
-                $description = $this->getDescriptionFromWire($wire);
+                $paymentMethod = "usd";
+                if ($this->payload['paymentMethodId'] === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+                    $paymentMethod = GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID;
+                    $wire->setAddress(GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID);
+                }
 
-                // If this is a trial, we still create the subscription but do not charge
-                $intent = new PaymentIntent();
-                $intent
-                    ->setUserGuid($this->sender->getGuid())
-                    ->setAmount(!$wire->getTrialDays() ? $this->amount : 100) // $1 hold on card during trial
-                    ->setPaymentMethod($this->payload['paymentMethodId'])
-                    ->setOffSession(true)
-                    ->setConfirm(true)
-                    ->setCaptureMethod(!$wire->getTrialDays() ? 'automatic' : 'manual') // Do not charge card
-                    ->setStripeAccountId($this->receiver->getMerchant()['id'])
-                    ->setServiceFeePct(static::WIRE_SERVICE_FEE_PCT)
-                    ->setMetadata([
-                        'user_guid' => $this->sender->getGuid(),
-                        'receiver_guid' => $this->receiver->getGuid()
-                    ])
-                    ->setStatementDescriptor($statementDescriptor)
-                    ->setDescription($description);
+                // Determine if a trial is eligible
+                // If the reciever is Minds+ channel and the sender has never had plus (no plus_expires field)
+                // or they haven't had plus in 90 days then they will have a trial.
+                $canHavePlusTrial = !$this->sender->plus_expires || $this->sender->plus_expires <= strtotime(self::TRIAL_THRESHOLD_DAYS . ' days ago');
+                if ($paymentMethod === "usd" && $this->receiver->getGuid() == $this->config->get('plus')['handler'] && $canHavePlusTrial) { // No trial provided if purchased via gift card credits
+                    $wire->setTrialDays(self::TRIAL_DAYS);
+                }
 
-                // Charge stripe
-                $intent = $this->stripeIntentsManager->add($intent);
+                if ($paymentMethod === "usd") {
+                    $intent = $this->processStripeWirePayment($wire);
 
-                if (!$intent->getId()) {
-                    throw new \Exception("Payment failed");
+                    $transactionId = $intent->getId();
+                } else {
+                    $transactionId = GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID;
                 }
                 
                 // Add to Minds payments table
                 $paymentDetails = $this->paymentsManager->createPaymentFromWire(
                     wire: $wire,
-                    paymentTxId: $intent->getId(),
+                    paymentTxId: $transactionId,
                     isPlus: $isPlusPayment,
                     isPro: $isProPayment,
                     sourceActivity: $this->sourceEntity
                 );
+
+                if (
+                    $paymentMethod === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID &&
+                    ($isPlusPayment || $isProPayment)
+                ) {
+                    $this->processGiftCardWirePayment(
+                        paymentDetails: $paymentDetails,
+                        isPlusPayment: $isPlusPayment
+                    );
+                }
 
                 // Save the wire to the Repository
                 $wire->setPaymentGuid($paymentDetails->paymentGuid);
@@ -425,6 +431,63 @@ class Manager
         }
 
         return true;
+    }
+
+    /**
+     * @param Wire $wire
+     * @return Intent
+     * @throws \Exception
+     */
+    private function processStripeWirePayment(Wire $wire): Intent
+    {
+        $statementDescriptor = $this->getStatementDescriptorFromWire($wire);
+        $description = $this->getDescriptionFromWire($wire);
+
+        // If this is a trial, we still create the subscription but do not charge
+        $intent = new PaymentIntent();
+        $intent
+            ->setUserGuid($this->sender->getGuid())
+            ->setAmount(!$wire->getTrialDays() ? $this->amount : 100) // $1 hold on card during trial
+            ->setPaymentMethod($this->payload['paymentMethodId'])
+            ->setOffSession(true)
+            ->setConfirm(true)
+            ->setCaptureMethod(!$wire->getTrialDays() ? 'automatic' : 'manual') // Do not charge card
+            ->setStripeAccountId($this->receiver->getMerchant()['id'])
+            ->setServiceFeePct(static::WIRE_SERVICE_FEE_PCT)
+            ->setMetadata([
+                'user_guid' => $this->sender->getGuid(),
+                'receiver_guid' => $this->receiver->getGuid()
+            ])
+            ->setStatementDescriptor($statementDescriptor)
+            ->setDescription($description);
+
+        // Charge stripe
+        $intent = $this->stripeIntentsManager->add($intent);
+
+        if (!$intent->getId()) {
+            throw new \Exception("Payment failed");
+        }
+
+        return $intent;
+    }
+
+    /**
+     * @param PaymentDetails $paymentDetails
+     * @param bool $isPlusPayment
+     * @return bool
+     * @throws GiftCardInsufficientFundsException
+     * @throws GiftCardNotFoundException
+     * @throws ServerErrorException
+     */
+    private function processGiftCardWirePayment(
+        PaymentDetails $paymentDetails,
+        bool $isPlusPayment
+    ): void {
+        $this->giftCardsManager->spend(
+            user: $this->sender,
+            productId: $isPlusPayment ? GiftCardProductIdEnum::PLUS : GiftCardProductIdEnum::PRO,
+            payment: $paymentDetails
+        );
     }
 
     /**

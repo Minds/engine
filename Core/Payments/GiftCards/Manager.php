@@ -375,7 +375,8 @@ class Manager
 
         $giftCards = $this->repository->getGiftCards(
             claimedByGuid: $user->getGuid(),
-            productId: $productId
+            productId: $productId,
+            statusFilter: GiftCardStatusFilterEnum::ACTIVE,
         );
 
         $createdAtTimestamp = time();
@@ -461,7 +462,7 @@ class Manager
     {
         $this->logger->info("Issuing gift cards to " . $recipient->getGuid() . " for $" . $amount . " (expires " . date("Y-m-d H:i:s", $expiryTimestamp) . ")");
 
-        foreach (GiftCardProductIdEnum::enabledProductIdEnums() as $productIdEnum) {
+        foreach (GiftCardProductIdEnum::enabledGiftsForPlusPro() as $productIdEnum) {
             /**
              * Issuing a new gift card for the enabled gift card's product
              */
