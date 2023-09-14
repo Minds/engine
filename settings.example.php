@@ -661,7 +661,6 @@ $CONFIG->set('max_video_file_size', 3900000000);
 
 $CONFIG->set('storage', [
     'engine' => 'Disk',
-    'oci_primary' => false,
     'oci_bucket_name' => 'mindsfs',
 ]);
 
