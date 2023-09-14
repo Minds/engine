@@ -15,7 +15,6 @@ require_once(dirname(__FILE__) . '/mocks.php');
 require_once(dirname(__FILE__) . '/pulsar-mocks.php');
 
 $minds = new Minds\Core\Minds();
-$minds->start();
 
 $CONFIG = Minds\Core\Di\Di::_()->get('Config');
 $CONFIG->default_access = 2;
