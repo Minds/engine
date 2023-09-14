@@ -12,7 +12,6 @@ use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardStatusFilterEnum;
 use Minds\Core\Payments\GiftCards\Manager;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
-use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
 use Minds\Core\Payments\GiftCards\PaymentProcessor;
 use Minds\Core\Payments\GiftCards\Repository;
 use Minds\Core\Payments\GiftCards\Types\GiftCardTarget;
@@ -196,6 +195,9 @@ class ManagerSpec extends ObjectBehavior
         $this->repositoryMock->updateGiftCardClaim(Argument::type(GiftCard::class))->willReturn(true);
 
         $claimer->getGuid()->willReturn('1244987032468459523');
+
+        $this->notificationDelegateMock->onGiftCardClaimed($giftCard, $claimer)
+            ->shouldBeCalled();
 
         $this->claimGiftCard($claimer, 'claim-me')->shouldReturn($giftCard);
     }

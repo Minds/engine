@@ -285,6 +285,8 @@ class Manager
 
         $this->repository->updateGiftCardClaim($giftCard);
 
+        $this->notificationDelegate->onGiftCardClaimed($giftCard, $claimant);
+
         return $giftCard;
     }
 
