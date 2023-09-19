@@ -168,13 +168,22 @@ class invitations implements Interfaces\Api
             $membership = null;
         }
     
-        $banned = $membership?->isBanned();
+        if ($banned = $membership?->isBanned()) {
+            $loggedInUserMembershp = null;
 
-        if ($banned && !$membership?->isOwner()) {
-            return Factory::response([
-                'done' => false,
-                'error' => 'User is banned from this group'
-            ]);
+            try {
+                $loggedInUserMembershp = $this->membershipManager->getMembership($group, $user);
+            } catch (NotFoundException $e) {
+                // do nothing - user has no membership record.
+            }
+
+            // if the user is not at minimum, a moderator, prevent them from inviting the banned user.
+            if (!$loggedInUserMembershp?->isModerator()) {
+                return Factory::response([
+                    'done' => false,
+                    'error' => 'User is banned from this group'
+                ]);
+            }
         }
 
         $invitations = (new Core\Groups\Invitations)
@@ -190,8 +199,9 @@ class invitations implements Interfaces\Api
             ]);
         }
 
+        // lift any existing bans on the user.
         if ($banned) {
-            $membership->setActor($user)->unban($invitee);
+            $this->membershipManager->unbanUser($group, $invitee, $user);
         }
 
         return Factory::response([
