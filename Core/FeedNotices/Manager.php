@@ -5,7 +5,6 @@ namespace Minds\Core\FeedNotices;
 use Minds\Core\Di\Di;
 use Minds\Core\FeedNotices\Notices\BoostChannelNotice;
 use Minds\Core\FeedNotices\Notices\BoostLatestPostNotice;
-use Minds\Core\FeedNotices\Notices\BoostPartnersNotice;
 use Minds\Core\FeedNotices\Notices\EnablePushNotificationsNotice;
 use Minds\Core\FeedNotices\Notices\InAppVerifyUniquenessNotice;
 use Minds\Core\FeedNotices\Notices\InviteFriendsNotice;
@@ -48,7 +47,6 @@ class Manager
         PlusUpgradeNotice::class,
         ProUpgradeNotice::class,
         InviteFriendsNotice::class,
-        BoostPartnersNotice::class,
         BoostLatestPostNotice::class,
     ];
 
