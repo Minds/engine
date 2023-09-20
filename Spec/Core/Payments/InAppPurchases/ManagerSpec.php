@@ -58,11 +58,11 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(time());
 
         $iapModel = new InAppPurchase(
-            GoogleInAppPurchasesClient::class,
-            "plus.monthly.001",
-            "purchase-token",
-            $userMock->getWrappedObject(),
-            time() * 1000
+            source: GoogleInAppPurchasesClient::class,
+            subscriptionId: "plus.monthly.001",
+            purchaseToken: "purchase-token",
+            user: $userMock->getWrappedObject(),
+            transactionId: time() * 1000
         );
 
         $this->configMock->get('upgrades')

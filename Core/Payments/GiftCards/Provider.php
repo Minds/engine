@@ -39,7 +39,7 @@ class Provider extends DiProvider
                 $di->get('Logger'),
                 $di->get(NotificationDelegate::class),
             );
-        }, ['factory' => true]);
+        }, ['factory' => false]);
 
         $this->di->bind(Controller::class, function (Di $di): Controller {
             return new Controller(

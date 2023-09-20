@@ -104,9 +104,6 @@ class Manager
                     transactionId: $iapTransaction,
                 )
             );
-            if (!$purchaseProductDetails->acknowledged) {
-                throw new InAppPurchaseNotAcknowledgedException();
-            }
 
             $paymentTxId = ($iapTransaction->orderId ?? "") . "_" . ($iapTransaction->purchaseToken ?? "");
         }
@@ -118,7 +115,7 @@ class Manager
             'paymentType' => PaymentType::BOOST_PAYMENT,
             'paymentMethod' => $paymentMethod,
             'paymentAmountMillis' => (int) ($boost->getPaymentAmount() * 1000), // In dollars, so multiply by 1000
-            'paymentTxId' => $boost->getPaymentTxId(),
+            'paymentTxId' => $paymentTxId,
         ]);
 
         $this->createPayment($paymentDetails);

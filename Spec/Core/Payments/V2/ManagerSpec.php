@@ -6,6 +6,7 @@ namespace Spec\Minds\Core\Payments\V2;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Log\Logger;
+use Minds\Core\Payments\InAppPurchases\Manager as InAppPurchasesManager;
 use Minds\Core\Payments\V2\Manager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Payments\V2\Repository;
@@ -20,20 +21,24 @@ use Zend\Diactoros\ServerRequest;
 
 class ManagerSpec extends ObjectBehavior
 {
+    private Collaborator $inAppPurchasesManagerMock;
     private Collaborator $repositoryMock;
     private Collaborator $referralCookieMock;
     private Collaborator $loggerMock;
 
     public function let(
+        InAppPurchasesManager $inAppPurchasesManager,
         Repository $repository,
         ReferralCookie $referralCookie,
         Logger $logger
     ): void {
+        $this->inAppPurchasesManagerMock = $inAppPurchasesManager;
         $this->repositoryMock = $repository;
         $this->referralCookieMock = $referralCookie;
         $this->loggerMock = $logger;
 
         $this->beConstructedWith(
+            $this->inAppPurchasesManagerMock,
             $this->repositoryMock,
             $this->referralCookieMock,
             $this->loggerMock
@@ -93,6 +98,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn("123");
 
+        $boost->getPaymentMethodId()
+            ->shouldBeCalledOnce()
+            ->willReturn('12345');
+
         $this->repositoryMock->createPayment(
             Argument::that(
                 function (PaymentDetails $paymentDetails): bool {
@@ -137,6 +146,10 @@ class ManagerSpec extends ObjectBehavior
         $boost->getPaymentTxId()
             ->shouldBeCalledOnce()
             ->willReturn("123");
+
+        $boost->getPaymentMethodId()
+            ->shouldBeCalledOnce()
+            ->willReturn('12345');
 
         $this->repositoryMock->createPayment(
             Argument::that(
@@ -186,6 +199,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn("123");
 
+        $boost->getPaymentMethodId()
+            ->shouldBeCalledOnce()
+            ->willReturn('12345');
+
         $this->repositoryMock->createPayment(
             Argument::that(
                 function (PaymentDetails $paymentDetails): bool {
@@ -233,6 +250,10 @@ class ManagerSpec extends ObjectBehavior
         $boost->getPaymentTxId()
             ->shouldBeCalledOnce()
             ->willReturn("123");
+
+        $boost->getPaymentMethodId()
+            ->shouldBeCalledOnce()
+            ->willReturn('12345');
 
         $this->repositoryMock->createPayment(
             Argument::that(

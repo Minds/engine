@@ -11,6 +11,7 @@ use Lcobucci\JWT\Signer\Ecdsa\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Token\Parser;
 use Minds\Core\Config\Config as MindsConfig;
+use Minds\Core\Log\Logger;
 use Minds\Core\Payments\InAppPurchases\Apple\Types\JWSTransactionInfo;
 use Minds\Core\Payments\InAppPurchases\Clients\InAppPurchaseClientInterface;
 use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;

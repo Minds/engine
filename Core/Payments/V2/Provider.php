@@ -27,7 +27,7 @@ class Provider extends DiProvider
                     $di->get(InAppPurchasesManager::class)
                 );
             },
-            ['factory' => true]
+            ['factory' => false]
         );
 
         $this->di->bind(

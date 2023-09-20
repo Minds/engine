@@ -174,7 +174,7 @@ class Manager
 
         return new ProductPurchase(
             $inAppPurchase->productId,
-            $androidProductPurchase->getOrderId() . "_" . $androidProductPurchase->getPurchaseToken(),
+            $androidProductPurchase->getOrderId() . ":" . ($androidProductPurchase->getPurchaseToken() ?? $inAppPurchase->purchaseToken),
             (bool) $androidProductPurchase->getAcknowledgementState()
         );
     }
