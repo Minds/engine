@@ -212,7 +212,9 @@ class Repository
                 'total_earnings_millis' => new RawExp("SUM((payment_amount_millis - ((payment_amount_millis * $paymentFeePct) - $paymentFeeMillis)) * $sharePct)")
             ])
             ->from('minds_payments')
-            ->where('updated_timestamp', Operator::GTE, date('c', $options->getFromTimestamp()));
+            ->where('updated_timestamp', Operator::GTE, date('c', $options->getFromTimestamp()))
+            // Exclude gift card payments (the lazy way - ie. should do left join on gift tx table)
+            ->where('payment_tx_id', Operator::IS_NOT, null);
 
         if ($options->getWithAffiliate()) {
             if ($options->getAffiliateGuid()) {
