@@ -4,6 +4,7 @@ namespace Minds\Core\ActivityPub\Factories;
 use DateTime;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\ServerException;
 use Minds\Core\ActivityPub\Client;
 use Minds\Core\ActivityPub\Helpers\ContentParserBuild;
 use Minds\Core\ActivityPub\Helpers\ContentParserBuilder;
@@ -51,7 +52,7 @@ class ObjectFactory
             $json = json_decode($response->getBody()->getContents(), true);
         } catch (ConnectException $e) {
             throw new UserErrorException("Could not connect to $uri");
-        } catch (ClientException $e) {
+        } catch (ClientException|ServerException $e) {
             throw new ServerErrorException("Unable to fetch $uri. " . $e->getMessage());
         }
 
