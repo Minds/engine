@@ -24,6 +24,7 @@ use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\InAppPurchases\Enums\InAppPurchasePaymentMethodIdsEnum;
+use Minds\Core\Payments\InAppPurchases\Models\ProductPurchase;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
@@ -114,11 +115,11 @@ class PaymentProcessor
     public function createMindsPayment(
         Boost $boost,
         User $user,
-        ?string $iapTransaction = null
+        ?ProductPurchase $iapProductPurchaseDetails = null
     ): PaymentDetails {
         return $this->paymentsManager
             ->setUser($user)
-            ->createPaymentFromBoost($boost, $iapTransaction);
+            ->createPaymentFromBoost($boost, $iapProductPurchaseDetails);
     }
 
     /**

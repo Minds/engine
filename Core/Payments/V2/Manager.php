@@ -8,11 +8,8 @@ use Iterator;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
-use Minds\Core\Payments\InAppPurchases\Apple\AppleInAppPurchasesClient;
 use Minds\Core\Payments\InAppPurchases\Enums\InAppPurchasePaymentMethodIdsEnum;
-use Minds\Core\Payments\InAppPurchases\Google\GoogleInAppPurchasesClient;
-use Minds\Core\Payments\InAppPurchases\Manager as InAppPurchasesManager;
-use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
+use Minds\Core\Payments\InAppPurchases\Models\ProductPurchase;
 use Minds\Core\Payments\V2\Enums\PaymentAffiliateType;
 use Minds\Core\Payments\V2\Enums\PaymentMethod;
 use Minds\Core\Payments\V2\Enums\PaymentStatus;
@@ -35,7 +32,6 @@ class Manager
     private ?User $user = null;
 
     public function __construct(
-        private readonly InAppPurchasesManager $inAppPurchasesManager,
         private ?Repository                    $repository = null,
         private ?ReferralCookie                $referralCookie = null,
         private ?Logger                        $logger = null
@@ -74,7 +70,7 @@ class Manager
      * @throws ServerErrorException
      * @throws GuzzleException
      */
-    public function createPaymentFromBoost(Boost $boost, ?string $iapTransaction = null): PaymentDetails
+    public function createPaymentFromBoost(Boost $boost, ?ProductPurchase $iapProductPurchaseDetails = null): PaymentDetails
     {
         $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
         $affiliateType = PaymentAffiliateType::REFERRAL_COOKIE;
@@ -93,19 +89,8 @@ class Manager
         };
 
         $paymentTxId = $boost->getPaymentTxId();
-        if ($iapTransaction) {
-            $iapTransactionDetails = json_decode($iapTransaction);
-
-            $purchaseProductDetails = $this->inAppPurchasesManager->getProductPurchaseDetails(
-                new InAppPurchase(
-                    source: $paymentMethod === PaymentMethod::ANDROID_IAP ? GoogleInAppPurchasesClient::class : AppleInAppPurchasesClient::class,
-                    purchaseToken: $iapTransactionDetails->purchaseToken ?? "",
-                    productId: $iapTransactionDetails->productId ?? "",
-                    transactionId: $iapTransaction,
-                )
-            );
-
-            $paymentTxId = ($iapTransaction->orderId ?? "") . "_" . ($iapTransaction->purchaseToken ?? "");
+        if ($iapProductPurchaseDetails) {
+            $paymentTxId = $iapProductPurchaseDetails->transactionId;
         }
 
         $paymentDetails = new PaymentDetails([

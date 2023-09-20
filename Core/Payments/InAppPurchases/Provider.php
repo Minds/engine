@@ -22,7 +22,7 @@ class Provider extends DiProvider
                 giftCardsManager: $di->get(GiftCardsManager::class),
                 config: $di->get('Config'),
             );
-        }, ['factory' => true]);
+        }, ['factory' => false]);
         $this->di->bind(InAppPurchasesClientFactory::class, function (Di $di): InAppPurchasesClientFactory {
             return new InAppPurchasesClientFactory();
         }, ['factory' => true]);

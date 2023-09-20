@@ -29,6 +29,7 @@ use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
+use Minds\Core\Payments\InAppPurchases\Manager as InAppPurchasesManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Security\ACL;
 use Minds\Core\Settings\Manager as UserSettingsManager;
@@ -58,18 +59,20 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $guidLinkResolver;
     private Collaborator $userSettingsManager;
     private Collaborator $experimentsManager;
+    private Collaborator $inAppPurchasesManagerMock;
 
     public function let(
-        Repository $repository,
-        PaymentProcessor $paymentProcessor,
-        EntitiesBuilder $entitiesBuilder,
-        ActionEventDelegate $actionEventDelegate,
-        PreApprovalManager $preApprovalManager,
-        ViewsManager $viewsManager,
-        ACL $acl,
-        GuidLinkResolver $guidLinkResolver,
-        UserSettingsManager $userSettingsManager,
-        ExperimentsManager $experimentsManager,
+        Repository            $repository,
+        PaymentProcessor      $paymentProcessor,
+        EntitiesBuilder       $entitiesBuilder,
+        ActionEventDelegate   $actionEventDelegate,
+        PreApprovalManager    $preApprovalManager,
+        ViewsManager          $viewsManager,
+        ACL                   $acl,
+        GuidLinkResolver      $guidLinkResolver,
+        UserSettingsManager   $userSettingsManager,
+        ExperimentsManager    $experimentsManager,
+        InAppPurchasesManager $inAppPurchasesManager,
     ) {
         $this->repository = $repository;
         $this->paymentProcessor = $paymentProcessor;
@@ -81,6 +84,7 @@ class ManagerSpec extends ObjectBehavior
         $this->guidLinkResolver = $guidLinkResolver;
         $this->userSettingsManager = $userSettingsManager;
         $this->experimentsManager = $experimentsManager;
+        $this->inAppPurchasesManagerMock = $inAppPurchasesManager;
 
         $this->beConstructedWith(
             $this->repository,
@@ -93,6 +97,7 @@ class ManagerSpec extends ObjectBehavior
             $this->guidLinkResolver,
             $this->userSettingsManager,
             $this->experimentsManager,
+            $this->inAppPurchasesManagerMock,
         );
     }
 

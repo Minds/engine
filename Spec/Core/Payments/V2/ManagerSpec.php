@@ -32,13 +32,11 @@ class ManagerSpec extends ObjectBehavior
         ReferralCookie $referralCookie,
         Logger $logger
     ): void {
-        $this->inAppPurchasesManagerMock = $inAppPurchasesManager;
         $this->repositoryMock = $repository;
         $this->referralCookieMock = $referralCookie;
         $this->loggerMock = $logger;
 
         $this->beConstructedWith(
-            $this->inAppPurchasesManagerMock,
             $this->repositoryMock,
             $this->referralCookieMock,
             $this->loggerMock
