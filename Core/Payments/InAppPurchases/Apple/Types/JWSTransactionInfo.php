@@ -15,13 +15,12 @@ class JWSTransactionInfo
         public readonly bool $isUpgraded = false,
         public readonly string $originalTransactionId = "",
         public readonly string $productId = "",
-
     ) {
     }
 
     public static function fromToken(UnencryptedToken $token): self
     {
-        $payload = (object) base64_decode($token->payload());
+        $payload = (object) base64_decode($token->payload(), true);
         return new self(
             $payload->expiresDate,
             $payload->originalPurchaseDate,

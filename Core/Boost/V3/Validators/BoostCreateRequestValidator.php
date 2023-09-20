@@ -127,7 +127,7 @@ class BoostCreateRequestValidator implements ValidatorInterface
         } elseif ((int) $dataToValidate['payment_method'] === BoostPaymentMethod::CASH) {
             if (
                 $dataToValidate['payment_method_id'] !== GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID &&
-                in_array($dataToValidate['payment_method_id'], InAppPurchasePaymentMethodIdsEnum::cases())
+                in_array($dataToValidate['payment_method_id'], InAppPurchasePaymentMethodIdsEnum::cases(), true)
             ) {
                 $isPaymentMethodIdValid = $this->paymentMethodsManager->checkPaymentMethodOwnership(
                     $this->getLoggedInUserGuid(),
@@ -475,7 +475,7 @@ class BoostCreateRequestValidator implements ValidatorInterface
      */
     private function checkIAPTransaction(array|ServerRequestInterface $dataToValidate): void
     {
-        if (!in_array($dataToValidate['payment_method_id'], InAppPurchasePaymentMethodIdsEnum::cases())) {
+        if (!in_array($dataToValidate['payment_method_id'], InAppPurchasePaymentMethodIdsEnum::cases(), true)) {
             return;
         }
 
