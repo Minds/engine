@@ -132,7 +132,6 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 ->generateWithPassword($password);
 
             // TODO: Move full reguster flow to the core
-            elgg_trigger_plugin_hook('register', 'user', $params, true);
             Core\Events\Dispatcher::trigger('register', 'user', $params);
             Core\Events\Dispatcher::trigger('register/complete', 'user', $params);
 

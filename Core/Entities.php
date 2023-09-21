@@ -24,17 +24,6 @@ class Entities extends base
     }
 
     /**
-     * List entities
-     * @param  array $options
-     * @return array
-     */
-    public static function view($options)
-    {
-        //	$options['count'] = NULL;
-        return \elgg_list_entities($options);
-    }
-
-    /**
      * Builds an entity object based on the values passed (GUID, array, object, etc)
      * @param  mixed  $row
      * @param  bool   $cache - cache or load from cache?
@@ -54,9 +43,7 @@ class Entities extends base
             return $row;
         }
 
-        //plugins should, strictly speaking, handle the routing of entities by themselves..
-        if (($new_entity = Events\Dispatcher::trigger('entities:map', 'all', [ 'row' => $row ]))
-          || $new_entity = elgg_trigger_plugin_hook('entities_class_loader', 'all', $row)) {
+        if (($new_entity = Events\Dispatcher::trigger('entities:map', 'all', [ 'row' => $row ]))) {
             return $new_entity;
         }
 

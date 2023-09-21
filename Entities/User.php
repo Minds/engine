@@ -4,6 +4,7 @@ namespace Minds\Entities;
 
 use Minds\Common\ChannelMode;
 use Minds\Core;
+use Minds\Core\Di\Di;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Core\Monetization\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
 use Minds\Core\Supermind\Settings\Models\Settings;
@@ -1424,7 +1425,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
     {
         $join_date = $this->getTimeCreated();
 
-        return elgg_get_site_url() . "icon/$this->guid/$size/$join_date/$this->icontime/" . Core\Config::_()->lastcache;
+        return Di::_()->get('Config')->get('site_url') . "icon/$this->guid/$size/$join_date/$this->icontime/" . Core\Config::_()->lastcache;
     }
 
     /**
