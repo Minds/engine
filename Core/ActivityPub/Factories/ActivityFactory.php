@@ -101,11 +101,15 @@ class ActivityFactory
             UndoType::class => $this->fromJson($json['object'], $actor),
             AcceptType::class => $this->fromJson($json['object'], $actor),
             LikeType::class => $this->objectFactory->fromUri(JsonLdHelper::getValueOrId($json['object'])),
-            FlagType::class => $json['object'],
+            FlagType::class => is_array($json['object']) ? "" : $json['object'],
             DeleteType::class => JsonLdHelper::getValueOrId($json['object']),
             AnnounceType::class => $this->objectFactory->fromUri(JsonLdHelper::getValueOrId($json['object'])),
             default => $this->objectFactory->fromJson($json['object']),
         };
+
+        if (is_array($json['object'])) {
+            $activity->mastodonObject = $json['object'];
+        }
 
         return $activity;
     }

@@ -224,7 +224,7 @@ class ProcessActivityService
                 break;
             case FlagType::class:
                 // Handle mastodon way of sending flags
-                if (is_array($this->activity->object)) {
+                if ($this->activity->mastodonObject) {
                     $this->processMastodonFlagActivity();
                     return;
                 }

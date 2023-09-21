@@ -3,8 +3,7 @@ namespace Minds\Core\ActivityPub\Types\Core;
 
 use Minds\Core\ActivityPub\Attributes\ExportProperty;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
-use Minds\Core\ActivityPub\Types\Actor\ApplicationType;
-use Minds\Core\ActivityPub\Types\Actor\PersonType;
+use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
 
 class ActivityType extends ObjectType
 {
@@ -12,13 +11,15 @@ class ActivityType extends ObjectType
     protected string $type = 'Activity';
 
     #[ExportProperty]
-    public PersonType|string|ApplicationType $actor;
+    public AbstractActorType $actor;
 
     /**
-     * @var ObjectType|string|array<string>
+     * @var ObjectType|string
      */
     #[ExportProperty]
-    public ObjectType|string|array $object;
+    public ObjectType|string $object;
+
+    public ?array $mastodonObject = null;
 
     public function export(array $extras = []): array
     {
