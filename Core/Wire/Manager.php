@@ -362,7 +362,6 @@ class Manager
                     throw new \Exception("You must select a payment method");
                 }
 
-                // TODO: only set to gift_card if paymentMethodId is gift_card
                 $wire->setAddress('stripe')
                     ->setMethod('usd');
 
@@ -393,7 +392,8 @@ class Manager
                     paymentTxId: $transactionId,
                     isPlus: $isPlusPayment,
                     isPro: $isProPayment,
-                    sourceActivity: $this->sourceEntity
+                    sourceActivity: $this->sourceEntity,
+                    paidWithGiftCard: $paymentMethod === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID
                 );
 
                 if (
