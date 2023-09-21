@@ -199,6 +199,13 @@ class ProcessActivityService
                     $this->processObjectService
                         ->withObject($this->activity->object)
                         ->process();
+
+                    $entity = $this->manager->getEntityFromUri($this->activity->object->id);
+
+                    // The entity is still not found, so we will skip these
+                    if (!$entity) {
+                        return;
+                    }
                 }
                 
                 $vote = (new Vote())

@@ -150,6 +150,8 @@ class Manager
             membershipLevel: $membershipLevel,
             membershipLevelGte: $membershipLevelGte
         ) as $membership) {
+            $loadNext = ++$offset;
+
             $user = $this->buildUser($membership->userGuid);
 
             if (!$user) {
@@ -158,7 +160,6 @@ class Manager
 
             $membership->setUser($user);
 
-            $loadNext = ++$offset;
             yield $membership;
         }
     }
@@ -200,13 +201,14 @@ class Manager
                 offset: $offset
             ) as $membership
         ) {
+            $loadNext = ++$offset;
+
             $user = $this->buildUser($membership->userGuid);
 
             if (!$user) {
                 continue;
             }
 
-            $loadNext = ++$offset;
             yield $user;
         }
     }
@@ -260,13 +262,14 @@ class Manager
                 membershipLevelGte: $membershipLevelGte
             ) as $membership
         ) {
+            $loadNext = ++$offset;
+
             $group = $this->buildGroup($membership->groupGuid);
 
             if (!$group) {
                 continue;
             }
 
-            $loadNext = ++$offset;
             yield $group;
         }
     }

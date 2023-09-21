@@ -78,6 +78,7 @@ class Image extends File implements MutatableEntityInterface, CommentableEntityI
         $this->attributes['blurhash'] = null;
         $this->attributes['auto_caption'] = null;
         $this->attributes['allow_comments'] = true;
+        $this->attributes['gif'] = false;
     }
 
     public function getUrl()
@@ -178,7 +179,7 @@ class Image extends File implements MutatableEntityInterface, CommentableEntityI
     public function createThumbnails(string $filepath = null): string
     {
         $sizes = ['xlarge', 'large', 'medium', 'small'];
-        
+
         $master = $filepath ?: $this->getFilenameOnFilestore();
         $image = new Imagick($master);
 
@@ -490,8 +491,11 @@ class Image extends File implements MutatableEntityInterface, CommentableEntityI
 
         if (isset($assets['media'])) {
             if (strpos($assets['media']['type'], '/gif') !== false) {
-                $this->gif = true;
+                $this->gif = 1;
             }
+
+            $this->attributes['gif'] = isset($this->gif) && $this->gif ? 1 : 0;
+
 
             $thumbnail = $this->createThumbnails($assets['media']['file']);
             // NOTE: it's better if we use tiny, but we aren't resizing to tiny at the moment.
@@ -523,7 +527,7 @@ class Image extends File implements MutatableEntityInterface, CommentableEntityI
                 'nsfw' => $this->nsfw ?: [],
                 'width' => $this->width ?? 0,
                 'height' => $this->height ?? 0,
-                'gif' => (bool) ($this->gif ?? false),
+                'gif' => $this->gif,
                 'license' => $this->license ?? '',
             ]]
         ];

@@ -461,6 +461,13 @@ class Manager
             ]
         ];
 
+        // Never show soft deletes
+        $mustNot[] = [
+            'term' => [
+                'deleted' => true,
+            ]
+        ];
+
         if ($queryOpts->onlyOwn) {
             // Return own posts only
             $must[] = [
