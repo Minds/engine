@@ -165,7 +165,7 @@ class Events
             $params = $event->getParameters();
             $entity = $params['entity'];
             $attachments = $entity->getAttachments();
-            $output = [];
+            $output = $event->response() ?: [];
 
             // Handle attachment processing.
             if ($attachments) {

@@ -234,6 +234,26 @@ class Events
         });
 
         /**
+         * Exports comment vote counters and user_guid arrays.
+         */
+        Dispatcher::register('export:extender', 'comment', function (Event $event) {
+            $export = $event->response() ?: [];
+            $params = $event->getParameters();
+            $entity = $params['entity'];
+
+            if (!$entity->isEphemeral()) {
+                $export['thumbs:up:user_guids'] = $entity->getVotesUp();
+                $export['thumbs:up:count'] = count($entity->getVotesUp() ?: []);
+    
+                // Strip out all users who are not the currently logged in user.
+                $export['thumbs:down:user_guids'] = $entity->getVotesDown() ? (array) array_values(array_intersect(array_values($entity->getVotesDown()), [(string) Session::getLoggedInUserGuid()])) : [];
+                $export['thumbs:down:count'] = 0;
+            }
+
+            $event->setResponse($export);
+        });
+
+        /**
          * Exports the counter column for the votes
          */
         Dispatcher::register('export:extender', 'all', function (Event $event) {
