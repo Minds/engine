@@ -24,6 +24,8 @@ Sentry\init([
     'dsn' => getenv('SENTRY_DSN'),
     'release' => getenv('MINDS_VERSION') ?: 'Unknown',
     'environment' => getenv('MINDS_ENV') ?: 'development',
+    'error_types' => E_ERROR,
+    'attach_stacktrace' => true,
     'send_default_pii' => false,
     'before_send' => function (Event $event, ?EventHint $hint): ?Event {
         $exclusions = [
