@@ -7,7 +7,6 @@ use Iterator;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
-use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\V2\Enums\PaymentAffiliateType;
 use Minds\Core\Payments\V2\Enums\PaymentMethod;
 use Minds\Core\Payments\V2\Enums\PaymentStatus;
@@ -104,7 +103,8 @@ class Manager
         string $paymentTxId,
         bool $isPlus = false,
         bool $isPro = false,
-        ?Activity $sourceActivity = null
+        ?Activity $sourceActivity = null,
+        bool $paidWithGiftCard = false
     ): PaymentDetails {
         $affiliateUserGuid = null;
         $paymentType = PaymentType::WIRE_PAYMENT;
@@ -133,10 +133,10 @@ class Manager
                 $paymentType = PaymentType::MINDS_PRO_PAYMENT;
             }
 
-            if ($wire->getAddress() === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+            if ($paidWithGiftCard) {
                 $paymentMethod = PaymentMethod::GIFT_CARD;
             }
-        } elseif ($wire->getAddress() === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
+        } elseif ($paidWithGiftCard) {
             throw new InvalidPaymentMethodException('Cannot use gift card as payment method for wire');
         }
 

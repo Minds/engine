@@ -211,8 +211,6 @@ class Manager
             $content, // <content, as a string>
         ], JSON_UNESCAPED_SLASHES));
 
-        print_r('id: ' . $id . "\n");
-
         $ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
 
         $schnorrKeypair = null;

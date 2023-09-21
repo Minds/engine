@@ -369,7 +369,6 @@ class Manager
                 $paymentMethod = "usd";
                 if ($this->payload['paymentMethodId'] === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
                     $paymentMethod = GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID;
-                    $wire->setAddress(GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID);
                 }
 
                 // Determine if a trial is eligible

@@ -151,7 +151,7 @@ class InstallerSpec extends ObjectBehavior
 
     public function it_should_setup_site(Site $site)
     {
-        $site->set('name', 'Minds')->shouldBeCalled();
+        $site->set('name', 'PHPSpec Minds')->shouldBeCalled();
         $site->set('url', 'https://phpspec.minds.io/')->shouldBeCalled();
         $site->set('access_id', 2)->shouldBeCalled();
         $site->set('email', 'phpspec@minds.io')->shouldBeCalled();

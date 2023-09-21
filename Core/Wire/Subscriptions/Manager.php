@@ -153,7 +153,6 @@ class Manager
                 ]);
                 break;
             case "stripe":
-            case GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID:
                 if (!$this->processPaymentWithGiftCard($sender, $receiver, $amount) && !$this->processPaymentWithCash($sender)) {
                     return false;
                 }
