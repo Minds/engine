@@ -3,17 +3,17 @@
 namespace Minds\Core\Wire\Delegates;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Wire\Wire;
+use Minds\Core\Payments\Subscriptions\Manager as PaymentsSubscriptionsManager;
 use Minds\Core\Payments\Subscriptions\Subscription;
+use Minds\Core\Wire\Wire;
 
 class RecurringDelegate
 {
-    /** @var $subscriptionsManager */
-    private $subscriptionsManager;
 
-    public function __construct($subscriptionsManager = null)
-    {
-        $this->subscriptionsManager = $subscriptionsManager ?? Di::_()->get('Payments\Subscriptions\Manager');
+    public function __construct(
+        private ?PaymentsSubscriptionsManager $subscriptionsManager = null
+    ) {
+        $this->subscriptionsManager ??= Di::_()->get('Payments\Subscriptions\Manager');
     }
 
     /**
