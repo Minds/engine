@@ -101,11 +101,11 @@ class NewsfeedController
 
         $hasMore = false;
 
-        // $loggedInUser =  Session::getLoggedInUser();
-
         if (!$loggedInUser) {
             throw new UserError("You must be logged in", 403);
         }
+
+        $allowedNsfw = $loggedInUser->getViewMature() ? [1,2,3,4,5,6] : [];
 
         $edges = [];
 
@@ -129,6 +129,7 @@ class NewsfeedController
                     user: $loggedInUser,
                     limit: $limit,
                     onlyGroups: true,
+                    nsfw: $allowedNsfw,
                 ),
                 loadAfter: $loadAfter,
                 loadBefore: $loadBefore,
