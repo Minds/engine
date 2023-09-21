@@ -36,6 +36,11 @@ class Events
                 ->setEntityUrn($opts->getParameters()['entityUrn'])
                 ->setTimestamp(time());
 
+            if (isset($opts->getParameters()['entity'])) {
+                $entity = $opts->getParameters()['entity'];
+                $event->setEntitySerialized(serialize($entity));
+            }
+
             $this->entitiesOpsTopic->send($event);
         });
     }

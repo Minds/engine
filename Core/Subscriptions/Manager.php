@@ -179,4 +179,13 @@ class Manager
     {
         return $this->subscriber->getSubscriptionsCount(); //TODO: Refactor so we are the source of truth
     }
+
+    /**
+     * Return the count of subscribers a user has
+     * @return int
+     */
+    public function getSubscribersCount(): int
+    {
+        return (int) $this->subscriber->getSubscribersCount(); //TODO: Refactor so we are the source of truth
+    }
 }

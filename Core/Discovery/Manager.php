@@ -501,7 +501,7 @@ class Manager
 
             $entity = $this->entitiesBuilder->single($doc['_id']);
 
-            if (!$this->acl->read($entity)) {
+            if (!$entity || !$this->acl->read($entity)) {
                 continue;
             }
 

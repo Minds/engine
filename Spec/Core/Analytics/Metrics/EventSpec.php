@@ -10,6 +10,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared\Index;
 use Minds\Core\AccountQuality\ManagerInterface as AccountQualityManagerInterface;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 
 class EventSpec extends ObjectBehavior
@@ -98,6 +99,7 @@ class EventSpec extends ObjectBehavior
 
         $user->isPlus()->shouldBeCalled()->willReturn(true);
         $user->getGuid()->shouldBeCalled()->willReturn($userGuid);
+        $user->getSource()->shouldBeCalled()->willReturn(FederatedEntitySourcesEnum::LOCAL);
 
         $this->setUser($user);
         $this->setType('action');

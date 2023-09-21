@@ -8,6 +8,9 @@ use Minds\Core\Comments\RelationalRepository;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 
 use Minds\Core\Comments\Comment;
+use Minds\Core\Data\MySQL\MySQLConnectionEnum;
+use Minds\Core\Di\Di;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Selective\Database\Connection;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -18,25 +21,29 @@ use PhpSpec\Wrapper\Collaborator;
 
 class RelationalRepositorySpec extends ObjectBehavior
 {
-    private Collaborator $mysqlClient;
-    private Collaborator $mysqlClientWriter;
-    private Collaborator $mysqlClientWriterHandler;
+    private Collaborator $mysqlClientMock;
+    private Collaborator $mysqlMasterMock;
+    private Collaborator $mysqlReplicaMock;
 
     public function let(
         MySQLClient $mysqlClient,
-        PDO    $mysqlClientWriter,
-        Connection $mysqlClientWriterHandler,
+        PDO $mysqlMasterMock,
+        PDO $mysqlReplicaMock,
+        Connection $mysqlClientWriterHandlerMock,
     ) {
-        $this->mysqlClient = $mysqlClient;
+        $this->beConstructedWith($mysqlClient, Di::_()->get('Logger'));
 
-        $this->mysqlClientWriter = $mysqlClientWriter;
-        $this->mysqlClient->getConnection(MySQLClient::CONNECTION_MASTER)
-            ->willReturn($this->mysqlClientWriter);
+        $this->mysqlClientMock = $mysqlClient;
 
-        $mysqlClientWriterHandler->getPdo()->willReturn($this->mysqlClientWriter);
-        $this->mysqlClientWriterHandler = $mysqlClientWriterHandler;
+        $this->mysqlClientMock->getConnection(MySQLConnectionEnum::MASTER)
+            ->willReturn($mysqlMasterMock);
+        $this->mysqlMasterMock = $mysqlMasterMock;
 
-        $this->beConstructedWith($this->mysqlClient, $this->mysqlClientWriterHandler);
+
+        $this->mysqlClientMock->getConnection(MySQLConnectionEnum::REPLICA)
+            ->willReturn($mysqlReplicaMock);
+        $this->mysqlReplicaMock = $mysqlReplicaMock;
+
     }
 
     public function it_is_initializable()
@@ -47,7 +54,6 @@ class RelationalRepositorySpec extends ObjectBehavior
     public function it_should_add(
         Comment $comment,
         PDOStatement $statement,
-        InsertQuery $insertQuery
     ) {
         // Comment
         $comment->getGuid()
@@ -83,38 +89,21 @@ class RelationalRepositorySpec extends ObjectBehavior
         $comment->getAccessId()
             ->shouldBeCalled()
             ->willReturn('1000');
-
-        $statement->execute()
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
-
-        $statement->closeCursor()
-            ->shouldBeCalledOnce()
-            ->willReturn(true);
-
-        $insertQuery->into('minds_comments')
-            ->shouldBeCalledOnce()
-            ->willReturn($insertQuery);
-
-        $insertQuery->set(Argument::type('array'))
-            ->shouldBeCalledOnce()
-            ->willReturn($insertQuery);
-
-        $insertQuery->onDuplicateKeyUpdate(Argument::type('array'))
-            ->shouldBeCalledOnce()
-            ->willReturn($insertQuery);
+        $comment->getSource()
+            ->shouldBeCalled()
+            ->willReturn(FederatedEntitySourcesEnum::LOCAL);
+        $comment->getCanonicalUrl()
+            ->shouldBeCalled()
+            ->willReturn(null);
 
 
-        $this->mysqlClientWriterHandler->insert()
-            ->shouldBeCalledOnce()
-            ->willReturn($insertQuery);
-
-        $insertQuery->prepare()
-            ->shouldBeCalledOnce()
-            ->willReturn($statement);
-
-        $this->mysqlClient->bindValuesToPreparedStatement(Argument::type('object'), Argument::type('array'))
+        $this->mysqlMasterMock->prepare(Argument::type('string'))->shouldBeCalled()->willReturn($statement);
+        $this->mysqlMasterMock->quote(Argument::type('string'))->willReturn('');
+        $this->mysqlClientMock->bindValuesToPreparedStatement(Argument::type('object'), Argument::type('array'))
             ->shouldBeCalledOnce();
+
+        $statement->execute()->shouldBeCalled()->willReturn(true);
+        $statement->closeCursor()->shouldBeCalled()->willReturn(true);
 
         $this->add($comment, '2019-01-01 00:00:00', '2019-01-01 00:00:00', null, 0)->shouldReturn(true);
     }

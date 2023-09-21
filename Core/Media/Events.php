@@ -8,6 +8,7 @@ use Minds\Entities;
 use Minds\Entities\Image;
 use Minds\Entities\Video;
 use Minds\Entities\Activity;
+use Minds\Entities\Album;
 use Minds\Helpers;
 
 class Events
@@ -76,7 +77,12 @@ class Events
                 $container = $entity->getContainerEntity();
 
                 if ($container
-                    && ($container instanceof Activity || $container instanceof Video || $container instanceof Image)
+                    && (
+                        $container instanceof Activity ||
+                        $container instanceof Video ||
+                        $container instanceof Image ||
+                        $container instanceof Album
+                    )
                 ) {
                     $canReadContainer = Core\Security\ACL::_()->read($container, $user);
                     $event->setResponse($canReadContainer);

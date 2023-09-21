@@ -3,11 +3,12 @@
 namespace Minds\Core\FeedNotices\Notices;
 
 use Minds\Core\Di\Di;
-use Minds\Entities\User;
 use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
+use Minds\Entities\User;
 
 /**
  * Feed notice to prompt a user to connect their wallet.
+ * @deprecated
  */
 class ConnectWalletNotice extends AbstractNotice
 {

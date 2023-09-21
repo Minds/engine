@@ -1,19 +1,19 @@
 <?php
 namespace Minds\Core\Feeds\Elastic\V2;
 
-use Minds\Common\Access;
-use Minds\Entities\User;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Guid;
-use Minds\Core\Search\SortingAlgorithms\TopV2;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Feeds\ClusteredRecommendations;
 use Minds\Core\Feeds\Elastic\V2\Enums\MediaTypeEnum;
 use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
 use Minds\Core\Feeds\Seen\Manager as SeenManager;
 use Minds\Core\Groups\V2\Membership;
+use Minds\Core\Guid;
+use Minds\Core\Search\SortingAlgorithms\TopV2;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
+use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Helpers\Text;
 
@@ -26,6 +26,7 @@ class Manager
         protected EntitiesBuilder $entitiesBuilder,
         protected Membership\Manager $groupsMembershipManager,
         protected ACL $acl,
+        private readonly ExperimentsManager $experimentsManager,
     ) {
     }
 
@@ -101,14 +102,6 @@ class Manager
         $must = $prepared['must'];
         $mustNot = $prepared['mustNot'];
         $should = $prepared['should'];
-
-        $must[] = [
-            'range' => [
-                '@timestamp' => [
-                    'lte' => time() * 1000, // Never show posts that are in the future
-                ]
-            ]
-        ];
 
         if ($loadAfter && $loadBefore) {
             throw new ServerErrorException("Two cursors, loadAfter and loadBefore were provided. Only one can be provided.");
@@ -271,6 +264,15 @@ class Manager
             'range' => [
                 'votes:up' => [
                     'gte' => 1,
+                ]
+            ]
+        ];
+
+        // For search performance, only go back 90d
+        $must[] = [
+            'range' => [
+                '@timestamp' => [
+                    'gte' => "now-90d/d",
                 ]
             ]
         ];
@@ -443,12 +445,37 @@ class Manager
         $should = [];
         $functionScores = [];
 
+        // Feeds should always return posts less than current time
+        $must[] = [
+            'range' => [
+                '@timestamp' => [
+                    'lte' => "now" // Never show posts that are in the future
+                ]
+            ]
+        ];
+
         // Never show pending posts
         $mustNot[] = [
             'term' => [
                 'pending' => true,
             ]
         ];
+
+        // Never show soft deletes
+        $mustNot[] = [
+            'term' => [
+                'deleted' => true,
+            ]
+        ];
+
+        if ($queryOpts->onlyOwn) {
+            // Return own posts only
+            $must[] = [
+                'term' => [
+                    'owner_guid' => (string) $queryOpts->user->getGuid()
+                ],
+            ];
+        }
 
         if ($queryOpts->onlySubscribed) {
             // Posts from subscriptions
@@ -485,22 +512,25 @@ class Manager
         if ($queryOpts->query) {
             $words = explode(' ', $queryOpts->query);
 
-            if (count($words) === 1) {
-                $must[] = [
-                        'multi_match' => [
-                            'query' => $queryOpts->query,
-                            'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^12', 'auto_caption^12'],
-                        ],
-                    ];
-            } else {
-                $must[] = [
-                    'multi_match' => [
-                        'query' => $queryOpts->query,
-                        'type' => 'phrase',
-                        'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^16', 'auto_caption^12'],
-                    ],
-                ];
+            $multiMatch = [
+                'multi_match' => [
+                    'query' => $queryOpts->query,
+                    'fields' => ['name^2', 'title^12', 'message^12', 'description^12', 'brief_description^8', 'username^8', 'tags^12', 'auto_caption^12'],
+                ],
+            ];
+
+            if (count($words) > 1) {
+                $multiMatch['multi_match']['type'] = 'phrase';
             }
+            
+            $this->experimentsManager
+                ->setUser($queryOpts->user);
+
+            if ($this->experimentsManager->isOn('engine-2619-inferred-tags')) {
+                $multiMatch['multi_match']['fields'][] = 'inferred_tags^12';
+            }
+
+            $must[] = $multiMatch;
         }
 
         if ($queryOpts->accessId) {

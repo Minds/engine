@@ -20,6 +20,7 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
+use Minds\Core\Votes\Enums\VoteEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\StopEventException;
 
@@ -78,12 +79,8 @@ class Manager
      * @throws SolutionAlreadySeenException
      * @throws \SodiumException
      */
-    public function cast($vote, array $options = [])
+    public function cast($vote, VoteOptions $options = new VoteOptions())
     {
-        $options = array_merge([
-            'events' => true
-        ], $options);
-
         if (!$this->acl->interact($vote->getEntity(), $vote->getActor(), "vote{$vote->getDirection()}")) {
             throw new \Exception('Actor cannot interact with entity');
         }
@@ -107,6 +104,10 @@ class Manager
         $eventOptions = [
             'vote' => $vote
         ];
+
+        /**
+         * @deprecated To be removed as FF has been inactive for 4 months
+         */
         if ($vote->getDirection() === "up" && $this->experimentsManager->isOn("minds-3119-captcha-for-engagement")) {
             $isPuzzleValid = false;
             try {
@@ -120,12 +121,12 @@ class Manager
             $eventOptions['isFriendlyCaptchaPuzzleValid'] = $isPuzzleValid;
         }
 
-        $eventOptions['client_meta'] = $options['client_meta'];
+        $eventOptions['client_meta'] = $options->clientMeta;
 
-        if ($done && $options['events']) {
+        if ($done && $options->events) {
             $this->eventsDispatcher->trigger('vote', $vote->getDirection(), $eventOptions);
 
-            if (!$eventOptions['isFriendlyCaptchaPuzzleValid']) {
+            if (isset($eventOptions['isFriendlyCaptchaPuzzleValid']) && !$eventOptions['isFriendlyCaptchaPuzzleValid']) {
                 throw new InvalidSolutionException();
             }
         }
@@ -141,12 +142,8 @@ class Manager
      * @throws UnverifiedEmailException
      * @throws StopEventException
      */
-    public function cancel($vote, array $options = [])
+    public function cancel($vote, VoteOptions $options = new VoteOptions())
     {
-        $options = array_merge([
-            'events' => true
-        ], $options);
-
         $done = $this->eventsDispatcher->trigger('vote:action:cancel', $vote->getEntity()->type, [
             'vote' => $vote
         ], null);
@@ -162,7 +159,7 @@ class Manager
         // Save to MySQL
         $done = $this->mySqlRepository->delete($vote) && $done;
 
-        if ($done && $options['events']) {
+        if ($done && $options->events) {
             $this->eventsDispatcher->trigger('vote:cancel', $vote->getDirection(), [
                 'vote' => $vote
             ]);
@@ -199,12 +196,8 @@ class Manager
      * @throws StopEventException
      * @throws UnverifiedEmailException
      */
-    public function toggle($vote, array $options = [])
+    public function toggle($vote, VoteOptions $options = new VoteOptions())
     {
-        $options = array_merge([
-            'events' => true
-        ], $options);
-
         if (!$this->has($vote)) {
             return $this->cast($vote, $options);
         } else {
@@ -218,5 +211,18 @@ class Manager
     public function getList(VoteListOpts $opts): iterable
     {
         return $this->indexes->getList($opts);
+    }
+
+    public function getVotesFromRelationalRepository(
+        User $user,
+    ): iterable {
+        foreach (
+            $this->mySqlRepository->getList(
+                (int) $user->getGuid(),
+                VoteEnum::UP
+            ) as $item
+        ) {
+            yield $item;
+        }
     }
 }

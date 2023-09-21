@@ -9,6 +9,7 @@
 namespace Minds\Core\Votes;
 
 use Minds\Core;
+use Minds\Core\Comments\Comment;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
@@ -233,12 +234,36 @@ class Events
         });
 
         /**
+         * Exports comment vote counters and user_guid arrays.
+         */
+        Dispatcher::register('export:extender', 'comment', function (Event $event) {
+            $export = $event->response() ?: [];
+            $params = $event->getParameters();
+            $entity = $params['entity'];
+
+            if (!$entity->isEphemeral()) {
+                $export['thumbs:up:user_guids'] = $entity->getVotesUp();
+                $export['thumbs:up:count'] = count($entity->getVotesUp() ?: []);
+    
+                // Strip out all users who are not the currently logged in user.
+                $export['thumbs:down:user_guids'] = $entity->getVotesDown() ? (array) array_values(array_intersect(array_values($entity->getVotesDown()), [(string) Session::getLoggedInUserGuid()])) : [];
+                $export['thumbs:down:count'] = 0;
+            }
+
+            $event->setResponse($export);
+        });
+
+        /**
          * Exports the counter column for the votes
          */
         Dispatcher::register('export:extender', 'all', function (Event $event) {
             $export = $event->response() ?: [];
             $params = $event->getParameters();
             $entity = $params['entity'];
+
+            if ($entity instanceof Comment) {
+                return;
+            }
 
             $guid = $entity->getGuid();
 
@@ -269,7 +294,7 @@ class Events
 
             // Make sure our export of voters is an array and not an object
             $export['thumbs:up:user_guids'] = $entity->{'thumbs:up:user_guids'} ? (array) array_values($entity->{'thumbs:up:user_guids'}) : [];
-            $export['thumbs:down:user_guids'] = $entity->{'thumbs:down:user_guids'} ? (array) array_intersect(array_values($entity->{'thumbs:down:user_guids'}), [(string) Session::getLoggedInUserGuid()]) : [];
+            $export['thumbs:down:user_guids'] = $entity->{'thumbs:down:user_guids'} ? (array) array_values(array_intersect(array_values($entity->{'thumbs:down:user_guids'}), [(string) Session::getLoggedInUserGuid()])) : [];
 
             $event->setResponse($export);
         });

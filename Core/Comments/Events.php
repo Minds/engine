@@ -127,12 +127,12 @@ class Events
             $params = $event->getParameters();
             $entity = $params['entity'];
 
-            if ((!$entity instanceof Image || $entity instanceof Video)) {
+            if (!($entity instanceof Image || $entity instanceof Video)) {
                 // Skip as this is not an image or a video
                 return;
             }
 
-            if (strlen($entity->getAccessId() === 1)) {
+            if (strlen($entity->getAccessId()) === 1) {
                 // Skip as this is a standard access id and not a parent
                 return;
             }
@@ -165,7 +165,7 @@ class Events
             $params = $event->getParameters();
             $entity = $params['entity'];
             $attachments = $entity->getAttachments();
-            $output = [];
+            $output = $event->response() ?: [];
 
             // Handle attachment processing.
             if ($attachments) {

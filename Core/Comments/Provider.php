@@ -14,5 +14,8 @@ class Provider extends Di\Provider
         $this->di->bind('Comments\Manager', function ($di) {
             return new Manager();
         }, ['useFactory' => true]);
+        $this->di->bind(RelationalRepository::class, function ($di) {
+            return new RelationalRepository($di->get('Database\MySQL\Client'), $di->get('Logger'));
+        });
     }
 }

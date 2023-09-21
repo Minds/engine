@@ -72,7 +72,7 @@ class TopV2 implements SortingAlgorithm
                         'custom_type' => 'video',
                     ],
                 ],
-                'weight' => 10,
+                'weight' => 2,
             ],
             [
                 'field_value_factor' => [

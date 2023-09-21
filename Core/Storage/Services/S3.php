@@ -7,7 +7,6 @@ use Aws\S3\S3Client;
 use Exception;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
-use Minds\Core\Media\Services\AwsS3Client;
 use Minds\Core\Media\Services\OciS3Client;
 use Minds\Helpers\File;
 
@@ -24,11 +23,9 @@ class S3 implements ServiceInterface
     ];
 
     public function __construct(
-        protected ?S3Client $awsS3Client = null,
         protected ?S3Client $ociS3Client = null,
         protected ?Config $config = null
     ) {
-        $this->awsS3Client ??= Di::_()->get(AwsS3Client::class);
         $this->ociS3Client ??= Di::_()->get(OciS3Client::class);
         $this->config ??= Di::_()->get('Config');
     }
@@ -60,11 +57,9 @@ class S3 implements ServiceInterface
 
         $useOci = $this->config->get('storage')['oci_primary'] ?? false;
 
-        $s3 = $useOci ? $this->ociS3Client : $this->awsS3Client;
+        $bucketName = $this->config->get('storage')['oci_bucket_name'];
 
-        $bucketName = $useOci ? $this->config->get('storage')['oci_bucket_name'] : $this->config->get('aws')['bucket'];
-
-        $write =  $s3->putObject([
+        $write =  $this->ociS3Client->putObject([
           // 'ACL' => 'public-read',
           'Bucket' => $bucketName,
           'Key' => $this->filepath,
@@ -88,15 +83,7 @@ class S3 implements ServiceInterface
                     ]);
                     return $result['Body'];
                 } catch (S3Exception $e) {
-                    try { // to read object from AWS S3 bucket on failure
-                        $result = $this->awsS3Client->getObject([
-                            'Bucket' => $this->config->get('aws')['bucket'],
-                            'Key' => $this->filepath
-                        ]);
-                        return $result['Body'];
-                    } catch (Exception $e) {
-                        return "";
-                    }
+                    return "";
                 }
                 break;
         }

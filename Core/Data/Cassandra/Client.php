@@ -5,11 +5,9 @@
 namespace Minds\Core\Data\Cassandra;
 
 use Cassandra as Driver;
-use Minds\Core;
-use Minds\Core\Data\Interfaces;
 use Minds\Core\Config;
+use Minds\Core\Data\Interfaces;
 use Minds\Core\Di\Di;
-use Minds\Core\Events\Dispatcher;
 
 class Client implements Interfaces\ClientInterface
 {
@@ -40,7 +38,7 @@ class Client implements Interfaces\ClientInterface
                 $statement,
                 array_merge(
                     [
-                        'arguments' => $cql['values']
+                        'arguments' => $cql['values'],
                     ],
                     $request->getOpts()
                 )
@@ -92,7 +90,6 @@ class Client implements Interfaces\ClientInterface
     {
         return Config::_()->get('multi')['prefix'];
     }
-
 
     /**
      * Get performance and diagnostic metrics.

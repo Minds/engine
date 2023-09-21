@@ -136,11 +136,11 @@ class Manager
         $boostPartners->setId('boost_partner');
 
         // Affiliates
-        $affiliateEarnings = $partnerEarningsItems['affiliate_earnings'] ?? new EarningsItemModel();
+        $affiliateEarnings = $partnerEarningsItems['affiliate'] ?? new EarningsItemModel();
         $affiliateEarnings->setId('affiliate');
 
         // Affiliate referrals
-        $affiliateReferrerEarnings = $partnerEarningsItems['referrer_affiliate_earnings'] ?? new EarningsItemModel();
+        $affiliateReferrerEarnings = $partnerEarningsItems['affiliate_referrer'] ?? new EarningsItemModel();
         $affiliateReferrerEarnings->setId('affiliate_referrer');
 
         $earnings->setItems([

@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Search\Mappings;
 
 use Minds\Entities\Activity;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use PhpSpec\ObjectBehavior;
 
 class ActivityMappingSpec extends ObjectBehavior
@@ -44,7 +45,9 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->getWireThreshold()->willReturn(null);
         $activity->get('language')->willReturn('en');
         $activity->get('supermind')->willReturn(false);
+        $activity->get('source')->willReturn('local');
         $activity->getAutoCaption()->willReturn("");
+        $activity->getInferredTags()->willReturn([]);
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -80,6 +83,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'entity_guid' => '8000',
                 'pending' => false,
                 'license' => 'cc-test-lic',
+                'source' => 'local',
                 '@timestamp' => $now * 1000,
                 'public' => true,
                 // 'wire_support_tier' => null,
@@ -91,6 +95,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'is_quoted_post' => false,
                 'is_supermind' => false,
                 'auto_caption' => "",
+                'inferred_tags' => [],
             ]);
     }
 
@@ -129,10 +134,12 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->get('language')->willReturn('en');
         $activity->get('supermind')->willReturn(false);
         $activity->getAutoCaption()->willReturn("");
+        $activity->getInferredTags()->willReturn([]);
         $activity->isRemind()->willReturn(false);
         $activity->isQuotedPost()->willReturn(false);
         $activity->isPortrait()->willReturn(false);
         $activity->hasAttachments()->willReturn(false);
+        $activity->get('source')->willReturn('local');
 
         $this
             ->setEntity($activity)
@@ -161,6 +168,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'entity_guid' => '8000',
                 'pending' => true,
                 'license' => 'cc-test-lic',
+                'source' => 'local',
                 '@timestamp' => $now * 1000,
                 'public' => true,
                 // 'wire_support_tier' => null,
@@ -174,6 +182,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'is_quoted_post' => false,
                 'is_supermind' => false,
                 'auto_caption' => '',
+                'inferred_tags' => [],
             ]);
     }
 
@@ -210,6 +219,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->get('language')->willReturn('en');
         $activity->get('supermind')->willReturn(false);
         $activity->getAutoCaption()->willReturn("");
+        $activity->getInferredTags()->willReturn([]);
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -219,6 +229,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->hasAttachments()->willReturn(false);
         $activity->get('remind_object')
             ->willReturn(['guid' => 123]);
+        $activity->get('source')->willReturn('local');
 
         $this
             ->setEntity($activity)
@@ -247,6 +258,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'entity_guid' => '8000',
                 'pending' => false,
                 'license' => 'cc-test-lic',
+                'source' => 'local',
                 '@timestamp' => $now * 1000,
                 'public' => true,
                 // 'wire_support_tier' => null,
@@ -259,6 +271,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'remind_guid' => '123',
                 'is_supermind' => false,
                 'auto_caption' => '',
+                'inferred_tags' => [],
             ]);
     }
 
@@ -295,6 +308,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->get('language')->willReturn('en');
         $activity->get('supermind')->willReturn(false);
         $activity->getAutoCaption()->willReturn("");
+        $activity->getInferredTags()->willReturn([]);
 
         $activity->isPayWall()->willReturn(false);
         $activity->getMature()->willReturn(false);
@@ -303,6 +317,7 @@ class ActivityMappingSpec extends ObjectBehavior
         $activity->isPortrait()->willReturn(false);
         $activity->hasAttachments()->willReturn(false);
         $activity->get('remind_object')->willReturn(['guid' => 123]);
+        $activity->get('source')->willReturn('local');
 
         $this
             ->setEntity($activity)
@@ -331,6 +346,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'entity_guid' => '8000',
                 'pending' => false,
                 'license' => 'cc-test-lic',
+                'source' => 'local',
                 '@timestamp' => $now * 1000,
                 'public' => true,
                 // 'wire_support_tier' => null,
@@ -343,6 +359,7 @@ class ActivityMappingSpec extends ObjectBehavior
                 'remind_guid' => '123',
                 'is_supermind' => false,
                 'auto_caption' => '',
+                'inferred_tags' => [],
             ]);
     }
 }

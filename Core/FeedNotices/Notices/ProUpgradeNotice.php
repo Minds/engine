@@ -2,26 +2,21 @@
 
 namespace Minds\Core\FeedNotices\Notices;
 
-use Minds\Core\Di\Di;
 use Minds\Entities\User;
-use Minds\Core\Experiments\Manager as ExperimentsManager;
 
 /**
- * Feed notice to inform users about the Boost Partners program.
+ * Feed notice for upgrading to plus.
  */
-class BoostPartnersNotice extends AbstractNotice
+class ProUpgradeNotice extends AbstractNotice
 {
+    // minimum age for an account to be shown the notice.
+    private const MINIMUM_ACCOUNT_AGE = 2592000; // 30 days.
+
     // location of notice in feed.
-    private const LOCATION = 'inline';
+    private const LOCATION = 'top';
 
     // notice key / identifier.
-    private const KEY = 'boost-partners';
-
-    public function __construct(
-        private ?ExperimentsManager $experimentsManager = null
-    ) {
-        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
-    }
+    private const KEY = 'pro-upgrade';
 
     /**
      * Get location of notice in feed.
@@ -51,13 +46,14 @@ class BoostPartnersNotice extends AbstractNotice
     }
 
     /**
-     * Whether notice should show in feed - true if the experiment is enabled
-     * and their phone number has been verified
+     * Whether notice should show in feed, based on whether user
+     * is not already plus and the account has existed for
+     * longer than the minimum account age.
      * @param User $user - user to check for.
      * @return boolean - true if notice should show.
      */
     public function shouldShow(User $user): bool
     {
-        return $this->experimentsManager->setUser($user)->isOn('epic-303-boost-partners') && $user->getPhoneNumberHash();
+        return $user->isPlus() && (!$user->getProExpires() || $user->getProExpires() < time());
     }
 }

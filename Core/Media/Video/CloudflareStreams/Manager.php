@@ -88,9 +88,13 @@ class Manager
      */
     public function getThumbnailUrl(Video $video): string
     {
+        $size = 640;
+
         $signedToken = $this->getSigningToken($video->getCloudflareId(), 86400 * 90); // 90 days ttl for thumbnails
 
-        return "{$this->getCdnUrl()}/$signedToken/thumbnails/thumbnail.jpg?width=1280";
+        $signedUrl = "{$this->getCdnUrl()}/$signedToken/thumbnails/thumbnail.jpg?width=$size";
+    
+        return $this->getProxyUrl() . "?size=$size&src=" . urlencode($signedUrl);
     }
 
     /**
@@ -194,5 +198,10 @@ class Manager
     private function getCdnUrl(): string
     {
         return rtrim($this->config->get('cloudflare')['cdn_url'] ?? "https://customer-gh08u53vbkhozibb.cloudflarestream.com/", "/");
+    }
+
+    private function getProxyUrl(): string
+    {
+        return $this->config->get('cdn_url') . 'api/v2/media/proxy';
     }
 }

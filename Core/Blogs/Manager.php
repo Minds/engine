@@ -218,6 +218,7 @@ class Manager
 
             $this->eventsDispatcher->trigger('entities-ops', 'delete', [
                 'entityUrn' => $blog->getUrn(),
+                'entity' => $blog,
             ]);
         }
 

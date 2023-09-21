@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Search\Mappings;
 
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -55,6 +56,7 @@ class UserMappingSpec extends ObjectBehavior
         $user->getTags()->willReturn([ 'spaceiscool' ]);
         $user->getPlusExpires()->willReturn(0);
         $user->getProExpires()->willReturn(0);
+        $user->get('source')->willReturn('local');
 
         $this
             ->setEntity($user)
@@ -79,6 +81,7 @@ class UserMappingSpec extends ObjectBehavior
                 'username' => 'phpspec',
                 'briefdescription' => 'PHPSpec Brief Description #invalidhashtag',
                 'email_confirmed_at' =>  $now * 1000,
+                'source' => 'local',
                 '@timestamp' => $now * 1000,
                 'public' => true,
                 'tags' => [ 'spaceiscool' ],
@@ -126,6 +129,7 @@ class UserMappingSpec extends ObjectBehavior
         $user->get('language')->willReturn('en');
         $user->get('name')->willReturn('PHPSpec Name');
         $user->get('username')->willReturn('phpspec');
+        $user->get('source')->willReturn('local');
 
         $this
             ->setEntity($user)

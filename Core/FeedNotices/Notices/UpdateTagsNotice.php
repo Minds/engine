@@ -2,11 +2,12 @@
 
 namespace Minds\Core\FeedNotices\Notices;
 
-use Minds\Entities\User;
 use Minds\Core\Hashtags\User\Manager as UserHashtagsManager;
+use Minds\Entities\User;
 
 /**
  * Feed notice to prompt user to update their tags.
+ * @deprecated
  */
 class UpdateTagsNotice extends AbstractNotice
 {

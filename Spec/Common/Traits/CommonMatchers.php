@@ -55,7 +55,10 @@ trait CommonMatchers
             },
             'haveALengthOf' => function ($subject, $value) {
                 return count($subject) === $value;
-            }
+            },
+            'beSameAs' => function ($subject, $value): bool {
+                return serialize($subject) === serialize($value);
+            },
         ];
     }
 }

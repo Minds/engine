@@ -16,6 +16,7 @@ class EntitiesOpsEvent implements EventInterface
     protected string $entityUrn;
     protected string $op;
     protected int $timestamp = 0;
+    protected string $entitySerialized;
 
     /**
      * Set the entity urn that is being modified
@@ -56,5 +57,25 @@ class EntitiesOpsEvent implements EventInterface
     public function getOp(): string
     {
         return $this->op;
+    }
+
+    /**
+     * Set an array of data for entity. This is used for delete events to maintain
+     * a copy of the source entity
+     * @param array $json
+     * @return self
+     */
+    public function setEntitySerialized(string $serialized): self
+    {
+        $this->entitySerialized = $serialized;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getEntitySerialized(): ?string
+    {
+        return isset($this->entitySerialized) ? $this->entitySerialized : null;
     }
 }
