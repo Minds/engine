@@ -216,31 +216,14 @@ class ProcessActivityService
                 $this->votesManager->cast($vote);
                 break;
             case FlagType::class:
-                if (!is_array($this->activity->object)) {
-                    // Invalid flag
+                // Handle mastodon way of sending flags
+                if (is_array($this->activity->object)) {
+                    $this->processMastodonFlagActivity();
                     return;
                 }
 
-                foreach ($this->activity->object as $uri) {
-                    $entity = $this->manager->getEntityFromUri(JsonLdHelper::getValueOrId($uri));
-
-                    if (!$entity) {
-                        continue;
-                    }
-
-                    $report = (new Report())
-                        ->setReasonCode(ReportReasonEnum::ACTIVITY_PUB_REPORT->value)
-                        ->setEntityUrn($entity->getUrn())
-                        ->setEntity($entity)
-                        ->setEntityOwnerGuid($entity->getOwnerGuid());
-
-                    $userReport = (new UserReport())
-                        ->setReport($report)
-                        ->setReporterGuid(SystemUser::GUID)
-                        ->setTimestamp(time());
-
-                    $this->userReportsManager->add($userReport);
-                }
+                // Handle official ActivityPub Flag spec
+                $this->processFlagEntity(JsonLdHelper::getValueOrId($this->activity->object));
                 break;
             case UndoType::class:
 
@@ -291,6 +274,35 @@ class ProcessActivityService
                 }
         }
         
+    }
+
+    private function processMastodonFlagActivity(): void
+    {
+        foreach ($this->activity->object as $uri) {
+            $this->processFlagEntity($uri);
+        }
+    }
+
+    private function processFlagEntity(string $uri): void
+    {
+        $entity = $this->manager->getEntityFromUri(JsonLdHelper::getValueOrId($uri));
+
+        if (!$entity) {
+            return;
+        }
+
+        $report = (new Report())
+            ->setReasonCode(ReportReasonEnum::ACTIVITY_PUB_REPORT->value)
+            ->setEntityUrn($entity->getUrn())
+            ->setEntity($entity)
+            ->setEntityOwnerGuid($entity->getOwnerGuid());
+
+        $userReport = (new UserReport())
+            ->setReport($report)
+            ->setReporterGuid(SystemUser::GUID)
+            ->setTimestamp(time());
+
+        $this->userReportsManager->add($userReport);
     }
 
 }
