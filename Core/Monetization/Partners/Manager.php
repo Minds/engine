@@ -358,7 +358,7 @@ class Manager
     {
         $from = $opts['from'] ?? 0;
         $to = $opts['to'] ?? time();
-        foreach ($this->repository->getBalancesPerUser(toTimestamp: $to) as $earningsBalance) {
+        foreach ($this->repository->getBalancesPerUser(toTimestamp: $to, minBalance: self::MIN_PAYOUT_CENTS) as $earningsBalance) {
             $user = $this->entitiesBuilder->single($earningsBalance->getUserGuid());
             if (!$user) {
                 continue;
@@ -370,7 +370,7 @@ class Manager
                 continue;
             }
 
-            $earningsBalance->setAmountCents($this->getBalance($user, $to / 1000)->getAmountCents());
+            $earningsBalance->setAmountCents($this->getBalance($user, $to)->getAmountCents());
             if ($earningsBalance->getAmountCents() < self::MIN_PAYOUT_CENTS) {
                 continue;
             }
@@ -429,10 +429,10 @@ class Manager
                     echo " paying out $user->username";
                     $this->payoutsDelegate->onUsdPayout($earningsPayout);
                 }
-                $this->emailDelegate->onIssuePayout($earningsPayout);
+                //$this->emailDelegate->onIssuePayout($earningsPayout);
                 break;
             case "eth":
-                $this->emailDelegate->onIssuePayout($earningsPayout);
+                //$this->emailDelegate->onIssuePayout($earningsPayout);
                 break;
             case "tokens":
                 $amount = BigNumber::toPlain(($earningsPayout->getAmountCents() / 100) * 1.25, 18);
