@@ -102,29 +102,37 @@ class ObjectFactory
 
                 $content = '';
 
-                if ($activity->hasAttachments() && $activity->getTitle()) {
-                    $content .= $activity->getTitle() . "\n";
-                }
-
-                $content .= $activity->getMessage() ?: '';
-
-                // Rich embed? Are we including our link?
-                if ($activity->perma_url) {
-                    $urls = ContentParserBuilder::getUrls($content);
-                    if (!count($urls)) {
-                        // No links found in the post, so we will append the permaurl
-                        if ($content) {
-                            $content .= "\n"; // New line if there is already content
-                        }
-                        $content .= $activity->getPermaURL();
-                    }
-                }
-
-                if (!$content || ($activity->hasAttachments() && $activity->getCustomType() === 'video')) {
-                    if ($content) {
-                        $content .= ' ';
+                if ($activity->isPayWall()) {
+                    $title = $activity->getTitle();
+                    if ($title) {
+                        $content .= $title . "\n";
                     }
                     $content .= $activity->getURL();
+                } else {
+                    if ($activity->hasAttachments() && $activity->getTitle()) {
+                        $content .= $activity->getTitle() . "\n";
+                    }
+
+                    $content .= $activity->getMessage() ?: '';
+
+                    // Rich embed? Are we including our link?
+                    if ($activity->perma_url) {
+                        $urls = ContentParserBuilder::getUrls($content);
+                        if (!count($urls)) {
+                            // No links found in the post, so we will append the permaurl
+                            if ($content) {
+                                $content .= "\n"; // New line if there is already content
+                            }
+                            $content .= $activity->getPermaURL();
+                        }
+                    }
+
+                    if (!$content || ($activity->hasAttachments() && $activity->getCustomType() === 'video')) {
+                        if ($content) {
+                            $content .= ' ';
+                        }
+                        $content .= $activity->getURL();
+                    }
                 }
 
                 $plainContent = $content;
@@ -172,7 +180,7 @@ class ObjectFactory
                 }
 
                 // Any image attachments?
-                if ($activity->hasAttachments() && $activity->getCustomType() === 'batch') {
+                if ($activity->hasAttachments() && $activity->getCustomType() === 'batch' && !$activity->isPayWall()) {
                     $attachments = [];
                     foreach ($activity->getCustomData() as $row) {
                         $attachment = [
