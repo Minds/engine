@@ -230,54 +230,6 @@ abstract class ElggEntity extends ElggData implements
         }
     }
 
-
-    /**
-     * Adds a private setting to this entity.
-     *
-     * Since the move to cassandra, attributes have been merged.
-     * Therefore, this funciton will be soon deprecated and replaced with
-     * a single set function.
-     *
-     * @param string $name  Name of private setting
-     * @param mixed  $value Value of private setting
-     *
-     * @return bool
-     */
-    public function setPrivateSetting($name, $value)
-    {
-        if ($this->guid) {
-            $this->$name = $value;
-            return	$this->save();
-        } else {
-            $this->temp_private_settings[$name] = $value;
-            return true;
-        }
-    }
-
-    /**
-     * Returns a private setting value
-     *
-     * @param string $name Name of the private setting
-     *
-     * @return mixed
-     */
-    public function getPrivateSetting($name)
-    {
-        return $this->$name;
-    }
-
-    /**
-     * Removes private setting
-     *
-     * @param string $name Name of the private setting
-     *
-     * @return bool
-     */
-    public function removePrivateSetting($name)
-    {
-        return remove_private_setting($this->getGUID(), $name);
-    }
-
     /**
      * Can a user edit this entity.
      *
