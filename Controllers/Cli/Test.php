@@ -4,16 +4,18 @@ namespace Minds\Controllers\Cli;
 
 use Exception;
 use Minds\Cli;
-use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Log\Logger;
 use Minds\Core\Monetization\Partners\Delegates\DepositsDelegate;
 use Minds\Core\Monetization\Partners\EarningsDeposit;
 use Minds\Interfaces;
 
 class Test extends Cli\Controller implements Interfaces\CliControllerInterface
 {
-    public function __construct()
-    {
+    public function __construct(
+        private ?Logger $logger = null
+    ) {
+        $this->logger = Di::_()->get('Logger');
         define('__MINDS_INSTALLING__', true);
     }
 
@@ -24,13 +26,12 @@ class Test extends Cli\Controller implements Interfaces\CliControllerInterface
 
     public function exec(): void
     {
-        $namespace = Core\Entities::buildNamespace([
-            'type' => 'object',
-            'subtype' => 'video',
-            'network' => '732337264197111809'
-        ]);
-
-        $this->out($namespace);
+        $this->logger->info('This is an INFO log message');
+        $this->logger->warning('This is a WARNING log message');
+        $this->logger->debug('This is a DEBUG log message');
+        $this->logger->alert('This is an ALERT log message');
+        $this->logger->error('This is an ERROR log message');
+        $this->logger->critical('This is a CRITICAL log message');
     }
 
     /**
