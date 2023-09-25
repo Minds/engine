@@ -10,7 +10,6 @@ use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Entities\User;
 use Minds\Entities\Group;
 use Minds\Interfaces;
-
 class container implements Interfaces\Api
 {
     /**
@@ -111,6 +110,8 @@ class container implements Interfaces\Api
 
         //
 
+        $algorithm = (string) ($_GET['algorithm'] ?? 'latest');
+
         $sync = (bool) ($_GET['sync'] ?? false);
 
         $fromTimestamp = $_GET['from_timestamp'] ?? 0;
@@ -148,7 +149,7 @@ class container implements Interfaces\Api
             'custom_type' => $custom_type,
             'limit' => $limit,
             'type' => $type,
-            'algorithm' => 'latest',
+            'algorithm' => $algorithm,
             'period' => '1y',
             'sync' => $sync,
             'from_timestamp' => $fromTimestamp,
