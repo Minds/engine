@@ -98,4 +98,7 @@ $CONFIG->set('sockets', [
 $CONFIG->set('development_mode', false);
 $CONFIG->set('trending_tags_development_mode', false);
 
+$CONFIG->set('site_name', 'PHPSpec Minds');
+
+
 $minds->loadLegacy();
