@@ -314,5 +314,6 @@ class ProhibitedDomains
         '//smmseomarket.com/',
         'www.interpol.int',
         '/interpol.int',
+        '//usasmmclub.com',
     ];
 }
