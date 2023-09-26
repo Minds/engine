@@ -293,7 +293,7 @@ class Manager
 
             yield $deposit;
 
-            if (!($affiliateUser instanceof User)) {
+            if (!($affiliateUser instanceof User) || $deposit->getAmountCents() < 1) {
                 continue;
             }
 
@@ -318,7 +318,7 @@ class Manager
 
             $referrer = $this->entitiesBuilder->single($referrerGuid);
 
-            if (!($referrer instanceof User)) {
+            if (!($referrer instanceof User) || $deposit->getAmountCents() < 1) {
                 continue;
             }
 
