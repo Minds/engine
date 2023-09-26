@@ -14,6 +14,7 @@ use Minds\Core\ActivityPub\Services\ProcessActivityService;
 use Minds\Core\ActivityPub\Services\ProcessActorService;
 use Minds\Core\ActivityPub\Services\ProcessCollectionService;
 use Minds\Core\ActivityPub\Services\ProcessObjectService;
+use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Entities\Actions\Save;
@@ -82,6 +83,7 @@ class Provider extends DiProvider
                 activityManager: $di->get('Feeds\Activity\Manager'),
                 subscriptionsManager: $di->get('Subscriptions\Manager'),
                 votesManager: $di->get('Votes\Manager'),
+                userReportsManager: $di->get('Moderation\UserReports\Manager'),
                 processExternalImageService: $di->get(ProcessExternalImageService::class),
                 config: $di->get('Config'),
                 logger: $di->get('Logger'),
@@ -129,6 +131,7 @@ class Provider extends DiProvider
                 client: $di->get(Client::class),
                 webfingerManager: $di->get(Webfinger\Manager::class),
                 config: $di->get('Config'),
+                cache: $di->get(InMemoryCache::class),
             );
         });
         $this->di->bind(ActivityFactory::class, function ($di) {
