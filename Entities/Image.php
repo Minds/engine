@@ -83,19 +83,15 @@ class Image extends File implements MutatableEntityInterface, CommentableEntityI
 
     public function getUrl()
     {
-        return elgg_get_site_url() . "media/$this->guid";
+        return Di::_()->get('Config')->get('site_url') . "media/$this->guid";
     }
 
     public function getIconUrl($size = 'large')
     {
-        global $CONFIG; //@todo remove globals!
         if ($this->time_created <= 1407542400) {
             $size = '';
         }
-
-        // if ($this->access_id != 2) {
-        //     $base_url = \elgg_get_site_url();
-        // }
+    
         $mediaManager = Di::_()->get('Media\Image\Manager');
 
         return $mediaManager->getPublicAssetUris($this, $size)[0];
@@ -518,11 +514,12 @@ class Image extends File implements MutatableEntityInterface, CommentableEntityI
      */
     public function getActivityParameters()
     {
+        $siteUrl = Di::_()->get('Config')->get('site_url');
         return [
             'batch',
             [[
-                'src' => \elgg_get_site_url() . 'fs/v1/thumbnail/' . $this->guid,
-                'href' => \elgg_get_site_url() . 'media/' . ($this->container_guid ? $this->container_guid . '/' : '') . $this->guid,
+                'src' => $siteUrl . 'fs/v1/thumbnail/' . $this->guid,
+                'href' => $siteUrl . 'media/' . ($this->container_guid ? $this->container_guid . '/' : '') . $this->guid,
                 'mature' => $this->getFlag('mature'),
                 'nsfw' => $this->nsfw ?: [],
                 'width' => $this->width ?? 0,

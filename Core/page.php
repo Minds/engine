@@ -78,11 +78,6 @@ class page extends base
                 $location = $_SERVER['HTTP_REFERER'];
             }
 
-            // return new forward location or false to stop the forward or empty string to exit
-            $current_page = \current_page_url();
-            $params = ['current_url' => $current_page, 'forward_url' => $location];
-            $location = \elgg_trigger_plugin_hook('forward', $reason, $params, $location);
-
             if ($location) {
                 header("Location: {$location}");
                 exit;
@@ -90,7 +85,7 @@ class page extends base
                 exit;
             }
         } else {
-            throw new \SecurityException(elgg_echo('SecurityException:ForwardFailedToRedirect'));
+            throw new \SecurityException('SecurityException:ForwardFailedToRedirect');
         }
     }
 }

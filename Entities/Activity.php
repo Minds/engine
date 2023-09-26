@@ -100,7 +100,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'license' => '',
             'permaweb_id' => '',
             'blurhash' => null,
-            //	'node' => elgg_get_site_url()
             'attachments' => null,
             'supermind' => null,
             'auto_caption' => null,
@@ -415,7 +414,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
      */
     public function getURL()
     {
-        return elgg_get_site_url() . 'newsfeed/' . $this->guid;
+        return Di::_()->get('Config')->get('site_url') . 'newsfeed/' . $this->guid;
     }
 
     /**
