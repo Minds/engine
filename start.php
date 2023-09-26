@@ -9,13 +9,6 @@ use Stripe\Exception\RateLimitException;
 // Log all before the autoload by default, as there could be initialisation issues
 error_reporting(E_ALL);
 
-/**
- * The time with microseconds when the Minds engine was started.
- *
- * @global float
- */
-global $START_MICROTIME;
-$START_MICROTIME = microtime(true);
 date_default_timezone_set('UTC');
 
 define('__MINDS_ROOT__', dirname(__FILE__));

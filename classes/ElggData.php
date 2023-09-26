@@ -10,7 +10,6 @@
  * @property int $time_created
  */
 abstract class ElggData implements
-	Loggable,	// Can events related to this object class be logged
 	Iterator,	// Override foreach behaviour
 	ArrayAccess, // Override for array access
 	Exportable
@@ -153,30 +152,6 @@ abstract class ElggData implements
 	public function getAge(): int
 	{
 		return time() - $this->getTimeCreated();
-	}
-
-	/*
-	 *  SYSTEM LOG INTERFACE
-	 */
-
-	/**
-	 * Return the class name of the object.
-	 *
-	 * @return string
-	 */
-	public function getClassName() {
-		return get_class($this);
-	}
-
-	/**
-	 * Return the GUID of the owner of this object.
-	 *
-	 * @return int
-	 * @deprecated 1.8 Use getOwnerGUID() instead
-	 */
-	public function getObjectOwnerGUID() {
-		elgg_deprecated_notice("getObjectOwnerGUID() was deprecated.  Use getOwnerGUID().", 1.8);
-		return $this->owner_guid;
 	}
 
 	/*
