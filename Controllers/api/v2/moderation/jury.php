@@ -6,10 +6,8 @@ namespace Minds\Controllers\api\v2\moderation;
 
 use Minds\Api\Factory;
 use Minds\Core\Di\Di;
-use Minds\Core\Reports\Enums\ReportReasonEnum;
 use Minds\Core\Reports\Jury\Decision;
 use Minds\Core\Reports\Jury\JuryClosedException;
-use Minds\Core\Reports\Manager as ReportsManager;
 use Minds\Core\Reports\Summons\SummonsNotFoundException;
 use Minds\Core\Session;
 use Minds\Interfaces;
@@ -100,22 +98,9 @@ class jury implements Interfaces\Api
         }
 
         $juryManager = Di::_()->get('Moderation\Jury\Manager');
-        /**
-         * @var ReportsManager $moderationManager
-         */
         $moderationManager = Di::_()->get('Moderation\Manager');
         $report = $moderationManager->getReport($urn);
         if ($juryType !== 'appeal') {
-            if (
-                $report->getReasonCode() === ReportReasonEnum::ACTIVITY_PUB_REPORT->value &&
-                !$adminReasonOverride
-            ) {
-                Factory::response([
-                    'status' => 'error',
-                    'message' => 'Admins must provide an override reason for ActivityPub reports',
-                ]);
-                return;
-            }
             $report->setAdminReasonOverride($adminReasonOverride);
         }
 

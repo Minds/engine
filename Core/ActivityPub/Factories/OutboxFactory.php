@@ -3,7 +3,9 @@ namespace Minds\Core\ActivityPub\Factories;
 
 use Minds\Core\ActivityPub\Enums\ActivityFactoryOpEnum;
 use Minds\Core\ActivityPub\Manager;
+use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Types\Core\OrderedCollectionPageType;
+use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 use Minds\Core\Feeds\Elastic\V2\QueryOpts;
 use Minds\Entities\User;

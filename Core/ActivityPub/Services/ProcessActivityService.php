@@ -1,18 +1,21 @@
 <?php
 namespace Minds\Core\ActivityPub\Services;
 
-use Minds\Common\SystemUser;
+use Minds\Common\Access;
+use Minds\Core\ActivityPub\Helpers\ContentParserBuilder;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Activity\AcceptType;
 use Minds\Core\ActivityPub\Types\Activity\AnnounceType;
 use Minds\Core\ActivityPub\Types\Activity\CreateType;
 use Minds\Core\ActivityPub\Types\Activity\DeleteType;
-use Minds\Core\ActivityPub\Types\Activity\FlagType;
 use Minds\Core\ActivityPub\Types\Activity\FollowType;
 use Minds\Core\ActivityPub\Types\Activity\LikeType;
 use Minds\Core\ActivityPub\Types\Activity\UndoType;
 use Minds\Core\ActivityPub\Types\Core\ActivityType;
+use Minds\Core\ActivityPub\Types\Object\DocumentType;
+use Minds\Core\ActivityPub\Types\Object\NoteType;
+use Minds\Core\Comments\Comment;
 use Minds\Core\Config\Config;
 use Minds\Core\Entities\Actions\Delete;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
@@ -20,15 +23,14 @@ use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Media\Image\ProcessExternalImageService;
-use Minds\Core\Reports\Enums\ReportReasonEnum;
-use Minds\Core\Reports\Report;
-use Minds\Core\Reports\UserReports\Manager as UserReportsManager;
-use Minds\Core\Reports\UserReports\UserReport;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Subscriptions;
 use Minds\Core\Votes\Manager as VotesManager;
 use Minds\Core\Votes\Vote;
+use Minds\Entities\Activity;
+use Minds\Entities\EntityInterface;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 
@@ -45,7 +47,6 @@ class ProcessActivityService
         protected ActivityManager $activityManager,
         protected Subscriptions\Manager $subscriptionsManager,
         private readonly VotesManager $votesManager,
-        private readonly UserReportsManager $userReportsManager,
         protected ProcessExternalImageService $processExternalImageService,
         protected Config $config,
         protected Logger $logger,
@@ -222,16 +223,6 @@ class ProcessActivityService
 
                 $this->votesManager->cast($vote);
                 break;
-            case FlagType::class:
-                // Handle mastodon way of sending flags
-                if ($this->activity->mastodonObject) {
-                    $this->processMastodonFlagActivity();
-                    return;
-                }
-
-                // Handle official ActivityPub Flag spec
-                $this->processFlagEntity(JsonLdHelper::getValueOrId($this->activity->object));
-                break;
             case UndoType::class:
 
                 switch (get_class($this->activity->object)) {
@@ -281,35 +272,6 @@ class ProcessActivityService
                 }
         }
         
-    }
-
-    private function processMastodonFlagActivity(): void
-    {
-        foreach ($this->activity->object as $uri) {
-            $this->processFlagEntity($uri);
-        }
-    }
-
-    private function processFlagEntity(string $uri): void
-    {
-        $entity = $this->manager->getEntityFromUri(JsonLdHelper::getValueOrId($uri));
-
-        if (!$entity) {
-            return;
-        }
-
-        $report = (new Report())
-            ->setReasonCode(ReportReasonEnum::ACTIVITY_PUB_REPORT->value)
-            ->setEntityUrn($entity->getUrn())
-            ->setEntity($entity)
-            ->setEntityOwnerGuid($entity->getOwnerGuid());
-
-        $userReport = (new UserReport())
-            ->setReport($report)
-            ->setReporterGuid(SystemUser::GUID)
-            ->setTimestamp(time());
-
-        $this->userReportsManager->add($userReport);
     }
 
 }

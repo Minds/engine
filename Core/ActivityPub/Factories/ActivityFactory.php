@@ -2,14 +2,12 @@
 namespace Minds\Core\ActivityPub\Factories;
 
 use Minds\Core\ActivityPub\Enums\ActivityFactoryOpEnum;
-use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
-use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
+use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Types\Activity\AcceptType;
 use Minds\Core\ActivityPub\Types\Activity\AnnounceType;
 use Minds\Core\ActivityPub\Types\Activity\CreateType;
 use Minds\Core\ActivityPub\Types\Activity\DeleteType;
-use Minds\Core\ActivityPub\Types\Activity\FlagType;
 use Minds\Core\ActivityPub\Types\Activity\FollowType;
 use Minds\Core\ActivityPub\Types\Activity\LikeType;
 use Minds\Core\ActivityPub\Types\Activity\UndoType;
@@ -20,6 +18,7 @@ use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
+use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
 
 class ActivityFactory
 {
@@ -84,7 +83,6 @@ class ActivityFactory
             'Create' => new CreateType(),
             'Follow' => new FollowType(),
             'Like' => new LikeType(),
-            'Flag' => new FlagType(),
             'Undo' => new UndoType(),
             'Accept' => new AcceptType(),
             'Announce' => new AnnounceType(),
@@ -101,15 +99,10 @@ class ActivityFactory
             UndoType::class => $this->fromJson($json['object'], $actor),
             AcceptType::class => $this->fromJson($json['object'], $actor),
             LikeType::class => $this->objectFactory->fromUri(JsonLdHelper::getValueOrId($json['object'])),
-            FlagType::class => is_array($json['object']) ? "" : $json['object'],
             DeleteType::class => JsonLdHelper::getValueOrId($json['object']),
             AnnounceType::class => $this->objectFactory->fromUri(JsonLdHelper::getValueOrId($json['object'])),
             default => $this->objectFactory->fromJson($json['object']),
         };
-
-        if (is_array($json['object'])) {
-            $activity->mastodonObject = $json['object'];
-        }
 
         return $activity;
     }

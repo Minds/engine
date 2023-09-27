@@ -3,7 +3,6 @@ namespace Minds\Core\ActivityPub\Factories;
 
 use GuzzleHttp\Exception\ConnectException;
 use Minds\Core\ActivityPub\Client;
-use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
 use Minds\Core\ActivityPub\Types\Actor\ApplicationType;
@@ -14,12 +13,12 @@ use Minds\Core\ActivityPub\Types\Actor\PublicKeyType;
 use Minds\Core\ActivityPub\Types\Actor\ServiceType;
 use Minds\Core\ActivityPub\Types\Object\ImageType;
 use Minds\Core\Config\Config;
-use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Webfinger;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
+use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
 
 class ActorFactory
 {
@@ -30,17 +29,12 @@ class ActorFactory
         'Organization' => OrganizationType::class,
         'Service' => ServiceType::class,
     ];
-
-    public const MINDS_APPLICATION_PREFERRED_USERNAME = "application";
-
-    public const MINDS_APPLICATION_ACTOR_GUID = 0;
     
     public function __construct(
         protected Manager $manager,
         protected Client $client,
         protected Webfinger\Manager $webfingerManager,
-        protected Config $config,
-        private readonly InMemoryCache $cache
+        protected Config $config
     ) {
     }
 
@@ -209,36 +203,6 @@ class ActorFactory
 
                 break;
         }
-
-        return $actor;
-    }
-
-    public function buildMindsApplicationActor(): ApplicationType
-    {
-        $actor = new ApplicationType();
-        $actor->id = $this->config->get('site_url') . 'api/activitypub/actor';
-        $actor->preferredUsername = self::MINDS_APPLICATION_PREFERRED_USERNAME;
-        $actor->url = $this->config->get('site_url');
-        $actor->endpoints = [
-            'sharedInbox' => $this->config->get('site_url') . 'api/activitypub/inbox'
-        ];
-        $actor->inbox = $actor->id . '/inbox';
-        $actor->outbox = $actor->id . '/outbox';
-        $actor->manuallyApprovesFollowers = true;
-
-        $publicKey = $this->cache->get("activitypub:key:$actor->id");
-        if (!$publicKey) {
-            $publicKey = ($this->manager->getPrivateKeyByUserGuid(0))
-                ->getPublicKey();
-
-            $this->cache->set("activitypub:key:$actor->id", $publicKey);
-        }
-
-        $actor->publicKey = new PublicKeyType(
-            id: $actor->id . '#main-key',
-            owner: $actor->id,
-            publicKeyPem: $publicKey
-        );
 
         return $actor;
     }

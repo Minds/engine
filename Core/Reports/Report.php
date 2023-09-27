@@ -26,8 +26,6 @@ use Minds\Traits\MagicAttributes;
  * @method int getAppealTimestamp()
  * @method null|string getAdminReasonOverride()
  * @method Report setState(string $string)
- * @method Report setEntityUrn(string $urn)
- * @method Report setEntity(Entity $entity)
  * @method Report setTimestamp(int $timestamp)
  * @method Report setReasonCode(int $value)
  * @method Report setSubReasonCode(int $value)

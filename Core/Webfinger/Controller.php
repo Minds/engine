@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\Webfinger;
 
-use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
@@ -50,10 +49,6 @@ class Controller
         if ($domain !== $this->config->get('did')['domain']) {
             throw new NotFoundException('Invalid domain');
         }
-
-        if (strtolower($username) === ActorFactory::MINDS_APPLICATION_PREFERRED_USERNAME) {
-            return new JsonResponse($this->buildApplicationUserWebfingerResponse($resource));
-        }
     
         // get the minds channel from the resource
         $user = $this->entitiesBuilder->getByUserByIndex(strtolower($username));
@@ -83,28 +78,6 @@ class Controller
                 ],
             ]
         ]);
-    }
-
-    private function buildApplicationUserWebfingerResponse(string $resource): array
-    {
-        return [
-            'subject' => $resource,
-            'aliases' => [
-                $this->config->get('site_url') . 'api/activitypub/actor'
-            ],
-            'links' => [
-                [
-                    'rel' => "http://webfinger.net/rel/profile-page",
-                    'type' => 'text/html',
-                    'href' => $this->config->get('site_url'),
-                ],
-                [
-                    'rel' => 'self',
-                    'type' => 'application/activity+json',
-                    'href' => $this->config->get('site_url') . 'api/activitypub/actor',
-                ],
-            ]
-        ];
     }
 
 }

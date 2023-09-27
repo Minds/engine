@@ -45,8 +45,5 @@ class Provider extends DiProvider
         $this->di->bind('Moderation\Summons\Manager', function ($di) {
             return new Summons\Manager();
         }, [ 'useFactory'=> true ]);
-
-
-        (new Verdict\Delegates\Provider())->register();
     }
 }

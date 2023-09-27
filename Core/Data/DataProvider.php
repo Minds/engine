@@ -5,9 +5,9 @@
 
 namespace Minds\Core\Data;
 
-use Minds\Core\Data\cache\InMemoryCache;
-use Minds\Core\Di\Di;
+use Minds\Core\Data\Locks;
 use Minds\Core\Di\Provider;
+use PDO;
 
 class DataProvider extends Provider
 {
@@ -31,10 +31,6 @@ class DataProvider extends Provider
         $this->di->bind('Cache\Cassandra', function ($di) {
             return new cache\Cassandra();
         }, ['useFactory'=>true]);
-
-        $this->di->bind(InMemoryCache::class, function (Di $di): InMemoryCache {
-            return new InMemoryCache();
-        }, ['useFactory' => true]);
         /**
          * Database bindings
          */
