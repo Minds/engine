@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Payments\GiftCards;
 
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
 use Minds\Core\Payments\GiftCards\Delegates\NotificationDelegate;
@@ -11,14 +12,17 @@ use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardStatusFilterEnum;
 use Minds\Core\Payments\GiftCards\Manager;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
+use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
 use Minds\Core\Payments\GiftCards\PaymentProcessor;
 use Minds\Core\Payments\GiftCards\Repository;
+use Minds\Core\Payments\GiftCards\Types\GiftCardTarget;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -29,6 +33,7 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $emailDelegateMock;
     private Collaborator $notificationDelegateMock;
     private Collaborator $loggerMock;
+    private Collaborator $entitiesBuilderMock;
 
     public function let(
         Repository $repositoryMock,
@@ -36,7 +41,8 @@ class ManagerSpec extends ObjectBehavior
         PaymentProcessor $paymentProcessor,
         EmailDelegate $emailDelegate,
         NotificationDelegate $notificationDelegate,
-        Logger $logger
+        Logger $logger,
+        EntitiesBuilder $entitiesBuilder
     ): void {
         $this->repositoryMock = $repositoryMock;
         $this->paymentsManagerMock = $paymentsManagerMock;
@@ -44,6 +50,7 @@ class ManagerSpec extends ObjectBehavior
         $this->emailDelegateMock = $emailDelegate;
         $this->notificationDelegateMock = $notificationDelegate;
         $this->loggerMock = $logger;
+        $this->entitiesBuilderMock = $entitiesBuilder;
 
         $this->beConstructedWith(
             $this->repositoryMock,
@@ -52,6 +59,7 @@ class ManagerSpec extends ObjectBehavior
             $this->emailDelegateMock,
             $this->loggerMock,
             $this->notificationDelegateMock,
+            $this->entitiesBuilderMock
         );
     }
 
@@ -190,5 +198,128 @@ class ManagerSpec extends ObjectBehavior
         $claimer->getGuid()->willReturn('1244987032468459523');
 
         $this->claimGiftCard($claimer, 'claim-me')->shouldReturn($giftCard);
+    }
+
+    public function it_should_send_a_gift_card_to_an_issuer(User $issuer): void
+    {
+        $giftCardGuid = '123';
+
+        $giftCard = new GiftCard(
+            guid: (int) $giftCardGuid,
+            productId: GiftCardProductIdEnum::PLUS,
+            amount: 100,
+            issuedByGuid: (int) '1231',
+            issuedAt: time(),
+            claimCode: 'claimCode',
+            expiresAt: time(),
+            balance: 100
+        );
+
+        $this->emailDelegateMock->onIssuerEmailRequested(
+            giftCard: $giftCard,
+            issuer: $issuer
+        )->shouldBeCalled();
+
+        $this->sendGiftCardToIssuer(
+            issuer: $issuer,
+            giftCard: $giftCard
+        );
+    }
+
+    public function it_should_patch_a_gift_card_target_with_only_a_username(User $user)
+    {
+        $targetUsername = 'testUser';
+        $targetUserGuid = null;
+        $targetEmail = null;
+        $fetchedUserGuid = '1234567890123456';
+
+        $recipient = new GiftCardTarget(
+            targetUsername: $targetUsername,
+            targetUserGuid: $targetUserGuid,
+            targetEmail: $targetEmail
+        );
+
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($fetchedUserGuid);
+
+        $this->entitiesBuilderMock->getByUserByIndex($targetUsername)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->patchGiftCardTarget($recipient)
+            ->shouldBeLike(new GiftCardTarget(
+                targetUsername: null,
+                targetUserGuid: (int) $fetchedUserGuid,
+                targetEmail: null
+            ));
+    }
+
+    public function it_should_throw_an_error_patching_a_gift_card_target_with_only_a_username_when_user_not_found()
+    {
+        $targetUsername = 'testUser';
+        $targetUserGuid = null;
+        $targetEmail = null;
+
+        $recipient = new GiftCardTarget(
+            targetUsername: $targetUsername,
+            targetUserGuid: $targetUserGuid,
+            targetEmail: $targetEmail
+        );
+
+        $this->entitiesBuilderMock->getByUserByIndex($targetUsername)
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->shouldThrow(GraphQLException::class)
+            ->during('patchGiftCardTarget', [$recipient]);
+    }
+
+    public function it_should_NOT_patch_a_gift_card_target_with_NO_username()
+    {
+        $targetUsername = null;
+        $targetUserGuid = 1234567890123456;
+        $targetEmail = 'noreply@minds.com';
+
+        $recipient = new GiftCardTarget(
+            targetUsername: $targetUsername,
+            targetUserGuid: $targetUserGuid,
+            targetEmail: $targetEmail
+        );
+
+        $this->patchGiftCardTarget($recipient)
+            ->shouldBeLike($recipient);
+    }
+
+    public function it_should_NOT_patch_a_gift_card_target_with_a_target_guid()
+    {
+        $targetUsername = 'testUser';
+        $targetUserGuid = 1234567890123456;
+        $targetEmail = null;
+
+        $recipient = new GiftCardTarget(
+            targetUsername: $targetUsername,
+            targetUserGuid: $targetUserGuid,
+            targetEmail: $targetEmail
+        );
+
+        $this->patchGiftCardTarget($recipient)
+            ->shouldBeLike($recipient);
+    }
+
+    public function it_should_NOT_patch_an_empty_gift_card_target()
+    {
+        $targetUsername = null;
+        $targetUserGuid = null;
+        $targetEmail = null;
+
+        $recipient = new GiftCardTarget(
+            targetUsername: $targetUsername,
+            targetUserGuid: $targetUserGuid,
+            targetEmail: $targetEmail
+        );
+
+        $this->patchGiftCardTarget($recipient)
+            ->shouldBeLike($recipient);
     }
 }
