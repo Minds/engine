@@ -75,9 +75,12 @@ class Controller
             'stripePaymentMethodId' => $stripePaymentMethodId,
             'expiresAt' => $expiresAt,
             'paymentTypeEnum' => GiftCardPaymentTypeEnum::CASH,
-            'recipient' => $targetInput->targetUserGuid ?? $targetInput->targetEmail,
+            'recipient' => $targetInput->targetUserGuid ?? $targetInput->targetUsername ?? $targetInput->targetEmail,
             'loggedInUser' => $loggedInUser->getGuid()
         ]);
+
+        $targetInput = $this->manager->patchGiftCardTarget($targetInput);
+
         $giftCard = $this->manager->createGiftCard(
             issuer: $loggedInUser,
             productId: GiftCardProductIdEnum::tryFrom($productIdEnum) ?? throw new GraphQLException("An error occurred while validating the ", 400, null, "Validation", ['field' => 'productIdEnum']),
@@ -86,12 +89,18 @@ class Controller
             expiresAt: $expiresAt
         );
 
-        // send email to recipient
-        $this->manager->sendGiftCardToRecipient(
-            sender: $loggedInUser,
-            recipient: $targetInput,
-            giftCard: $giftCard
+        $this->manager->sendGiftCardToIssuer(
+            giftCard: $giftCard,
+            issuer: $loggedInUser
         );
+
+        if ($targetInput->targetUserGuid) {
+            $this->manager->sendGiftCardToRecipient(
+                sender: $loggedInUser,
+                recipient: $targetInput,
+                giftCard: $giftCard
+            );
+        }
 
         return $giftCard;
     }
