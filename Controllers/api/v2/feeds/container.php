@@ -10,6 +10,7 @@ use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Entities\User;
 use Minds\Entities\Group;
 use Minds\Interfaces;
+
 class container implements Interfaces\Api
 {
     /**
