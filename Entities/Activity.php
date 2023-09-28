@@ -119,58 +119,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     }
 
     /**
-     * Saves the activity
-     * @param  bool  $index - save to index
-     * @return mixed        - the GUID
-     */
-    public function save($index = true)
-    {
-        if ($this->getEphemeral()) {
-            throw new \Exception('Cannot save an ephemeral activity');
-        }
-
-        //cache owner_guid for brief
-        if (!$this->ownerObj && $owner = $this->getOwnerEntity(false)) {
-            $this->ownerObj = $owner->export();
-        }
-
-        if ($this->getDeleted()) {
-            $index = false;
-
-            if ($this->dirtyIndexes) {
-                $indexes = $this->getIndexKeys(true);
-
-                $db = new Core\Data\Call('entities_by_time');
-                foreach ($indexes as $idx) {
-                    $db->removeAttributes($idx, [$this->guid]);
-                }
-
-                Queue\Client::build()->setQueue("FeedCleanup")
-                    ->send([
-                        "guid" => $this->guid,
-                        "owner_guid" => $this->owner_guid,
-                        "type" => "activity"
-                    ]);
-            }
-        } else {
-            if ($this->dirtyIndexes) {
-                // Re-add to indexes, force as true
-                $index = true;
-            }
-        }
-
-        $guid = parent::save($index);
-
-        if ($this->isPayWall()) {
-            (new Core\Payments\Plans\PaywallReview())
-                ->setEntityGuid($guid)
-                ->add();
-        }
-
-        return $guid;
-    }
-
-    /**
      * Deletes the activity entity and indexes
      * @return bool
      */
@@ -361,7 +309,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             $export['boost_rejection_reason'] = $this->getBoostRejectionReason() ?: -1;
             $export['rating'] = $this->getRating();
             $export['ephemeral'] = $this->getEphemeral();
-            $export['ownerObj'] = $this->getOwnerObj();
+            // $export['ownerObj'] = $this->getOwnerObj();
             $export['time_sent'] = $this->getTimeSent();
             $export['license'] = $this->license;
             $export['blurhash'] = $this->blurhash;

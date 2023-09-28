@@ -392,9 +392,13 @@ class Manager
      */
     public function update(EntityMutation $activityMutation): bool
     {
+        /** @var Activity */
         $activity = $activityMutation->getMutatedEntity();
 
         $this->validateStringLengths($activity);
+
+        /** @var string[] */
+        $mutatedAttributes = [];
 
         if ($activity->type !== 'activity' && in_array($activity->subtype, [
             'video', 'image'
@@ -419,6 +423,8 @@ class Manager
 
         if ($activityMutation->hasMutated('timeCreated')) {
             $this->timeCreatedDelegate->onUpdate($activityMutation->getOriginalEntity(), $activity->getTimeCreated(), $activity->getTimeSent());
+        
+            $mutatedAttributes[] = 'time_created';
         }
 
         // - Attachment
@@ -436,9 +442,15 @@ class Manager
                 ->setURL('')
                 ->setThumbnail('');
 
+            $mutatedAttributes[] = 'blurb';
+            $mutatedAttributes[] = 'perma_url';
+            $mutatedAttributes[] = 'thumbnail_src';
+
             if (!$activityMutation->hasMutated('title')) {
                 $activity->setTitle('');
+                $mutatedAttributes[] = 'title';
             }
+            
         }
 
         if ($activityMutation->hasMutated('videoPosterBase64Blob')) {
@@ -451,6 +463,7 @@ class Manager
 
         $success = $this->save
             ->setEntity($activity)
+            ->withMutatedAttributes($mutatedAttributes)
             ->save();
 
         // Will no longer be relevant for new media posts without entity_guid

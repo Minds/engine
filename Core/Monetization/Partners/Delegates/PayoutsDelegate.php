@@ -44,7 +44,7 @@ class PayoutsDelegate
             ->setStripeAccountId($earningsPayout->getDestinationId())
             //->setPaymentMethod('ba_1GXRIvEtkBDgTlGKvjWXajXk')
             //->setPaymentMethod('bank')
-            ->setPaymentMethod('card_1GYrg8EtkBDgTlGKhlw24o0x')
+            ->setPaymentMethod('card_1NvFkFEtkBDgTlGKbFkAoO09')
             ->setUserGuid('1030390936930099216')
             ->setCustomerId('cus_H5cDc4UqBJOzuP');
 

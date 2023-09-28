@@ -86,7 +86,7 @@ class Session extends base
      */
     public static function setUserByGuid($user_guid)
     {
-        $user = new User($user_guid);
+        $user = Di::_()->get(EntitiesBuilder::class)->single($user_guid);
         static::setUser($user);
     }
 

@@ -65,9 +65,6 @@ class ElggSite extends ElggEntity {
 	function __construct($guid = null) {
 		$this->initializeAttributes();
 
-		// compatibility for 1.7 api.
-		$this->initialise_attributes(false);
-
 		if (!empty($guid)) {
 			// Is $guid is a DB entity table row
 			if ($guid instanceof stdClass) {

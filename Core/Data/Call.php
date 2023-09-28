@@ -30,6 +30,8 @@ class Call
     private $keyspace;
     private $cf_name;
 
+    private int $tenantId;
+
     public function __construct(
         $cf = null,
         $keyspace = null,
@@ -43,6 +45,8 @@ class Call
         $this->keyspace = $keyspace ?: $config->get('cassandra')['keyspace'];
         $this->cf_name = $cf;
         $this->client = $cql ?: Core\Di\Di::_()->get('Database\Cassandra\Cql');
+
+        $this->tenantId = $config->get('tenant_id') ?: 0;
     }
 
     public function insert($guid = null, array $data = [], $ttl = null, $silent = false)

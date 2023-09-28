@@ -31,9 +31,6 @@ class Manager
     /** @var Delegates\HydrateSettingsDelegate */
     protected $hydrateSettingsDelegate;
 
-    /** @var Delegates\SetupRoutingDelegate */
-    protected $setupRoutingDelegate;
-
     /** @var Delegates\SubscriptionDelegate */
     protected $subscriptionDelegate;
 
@@ -51,7 +48,6 @@ class Manager
      * @param EntitiesBuilder                      $entitiesBuilder
      * @param Delegates\InitializeSettingsDelegate $initializeSettingsDelegate
      * @param Delegates\HydrateSettingsDelegate    $hydrateSettingsDelegate
-     * @param Delegates\SetupRoutingDelegate       $setupRoutingDelegate
      * @param Delegates\SubscriptionDelegate       $subscriptionDelegate
      */
     public function __construct(
@@ -60,7 +56,6 @@ class Manager
         $entitiesBuilder = null,
         $initializeSettingsDelegate = null,
         $hydrateSettingsDelegate = null,
-        $setupRoutingDelegate = null,
         $subscriptionDelegate = null
     ) {
         $this->repository = $repository ?: new Repository();
@@ -68,7 +63,6 @@ class Manager
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->initializeSettingsDelegate = $initializeSettingsDelegate ?: new Delegates\InitializeSettingsDelegate();
         $this->hydrateSettingsDelegate = $hydrateSettingsDelegate ?: new Delegates\HydrateSettingsDelegate();
-        $this->setupRoutingDelegate = $setupRoutingDelegate ?: new Delegates\SetupRoutingDelegate();
         $this->subscriptionDelegate = $subscriptionDelegate ?: new Delegates\SubscriptionDelegate();
     }
 
@@ -379,12 +373,6 @@ class Manager
         }
 
         $settings->setTimeUpdated(time());
-
-        // Only update routing if we are active
-        if ($this->isActive()) {
-            $this->setupRoutingDelegate
-                ->onUpdate($settings);
-        }
 
         return $this->repository->update($settings);
     }

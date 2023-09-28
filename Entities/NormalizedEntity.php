@@ -120,48 +120,6 @@ class NormalizedEntity
         }
         return (string) $this->guid;
     }
-
-    /**
-     * Adds a reference to this entity on the `featured` index
-     * @return mixed - the featured ID
-     */
-    public function feature()
-    {
-        //@todo check if the entity is allowed to be featured
-        $this->featured_id = Core\Guid::build();
-
-        $this->indexDb->set("$this->type:featured", [ $this->featured_id => $this->getGUID() ]);
-        if ($this->subtype) {
-            $this->indexDb->set("$this->type:$this->subtype:featured", [ $this->featured_id => $this->getGUID() ]);
-        }
-
-        $this->featured = 1;
-        $this->save();
-
-        return $this->featured_id;
-    }
-
-    /**
-     * Removes this entity's reference from the `featured` index
-     * @return bool|null
-     */
-    public function unFeature()
-    {
-        if ($this->featured_id) {
-            //supports legacy imports
-            $this->indexDb->remove("$this->type:featured", [ $this->featured_id ]);
-            $this->indexDb->remove("$this->type:$this->subtype:featured", [ $this->featured_id ]);
-            $this->featured_id = null;
-        }
-
-        $this->featured = 0;
-        $this->save();
-
-        $this->db->removeAttributes($this->guid, [ 'featured_id' ]);
-
-        return true;
-    }
-
     /**
      * Magic method for getter and setters.
      */
@@ -211,7 +169,4 @@ class NormalizedEntity
         return Core\Security\ACL::_()->write($this);
     }
 
-    public function save()
-    {
-    }
 }

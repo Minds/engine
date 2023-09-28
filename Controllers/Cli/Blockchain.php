@@ -133,14 +133,6 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
         }
     }
 
-    public function testMul()
-    {
-        $manager = Di::_()->get('Blockchain\Purchase\Manager');
-        $amount = "0.006868131868131868";
-        $weiAmount = BigNumber::toPlain($amount, 18)->mul($manager->getEthTokenRate()); //convert to tokens
-        var_dump($weiAmount);
-    }
-
     public function setRate()
     {
         error_reporting(E_ALL);

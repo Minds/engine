@@ -467,6 +467,6 @@ class Manager
     {
         $user->setPartnerRpm($rpmCents);
         $save = new Entities\Actions\Save();
-        $save->setEntity($user)->save();
+        $save->setEntity($user)->withMutatedAttributes(['partner_rpm'])->save();
     }
 }

@@ -2000,4 +2000,27 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
     {
         return $this->canonical_url;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function toArray(): array
+    {
+        $array = parent::toArray();
+		
+        if (!$this->override_password && !$this->guid) {
+            unset($array['password']);
+            unset($array['salt']);
+        }
+        
+        if (!$this->plus_expires || $this->plus_expires < time()) { //ensure we don't update this field
+            unset($array['plus_expires']);
+        }
+
+        if (!$this->merchant || !is_array($this->merchant)) {
+            unset($array['merchant']); //HACK: only allow updating of merchant if it's an array
+        }
+
+        return $array;
+	}
 }

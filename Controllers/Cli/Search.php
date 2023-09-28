@@ -6,8 +6,12 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Cli;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
+use Minds\Core\Feeds\Elastic\V2\QueryOpts;
+use Minds\Core\Reports\Enums\ReportReasonEnum;
+use Minds\Core\Security\Spam;
 use Minds\Interfaces;
 use Minds\Entities;
+use Minds\Exceptions\ProhibitedDomainException;
 
 class Search extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -87,6 +91,42 @@ class Search extends Cli\Controller implements Interfaces\CliControllerInterface
                 'entityUrn' => $urn
             ]);
             $this->out($urn);
+        }
+    }
+
+    public function cleanup_spam()
+    {
+        /** @var Core\Feeds\Elastic\V2\Manager */
+        $manager = Di::_()->get(Core\Feeds\Elastic\V2\Manager::class);
+
+        $entitiesBuilder = Di::_()->get('EntitiesBuilder');
+
+        /** @var Core\Channels\Ban */
+        $channelsBanManager = Di::_()->get('Channels\Ban');
+
+        $spam = new Spam();
+
+        $opts = new QueryOpts(
+            limit: 9999,
+            query: null,
+        );
+
+        $i = 0;
+        foreach ($manager->getLatest($opts) as $activity) {
+            ++$i;
+            try {
+                $spam->check($activity);
+                $this->out($i);
+            } catch (ProhibitedDomainException $e) {
+                $this->out('Ban ' . $activity->getOwnerGuid());
+
+                $user = $entitiesBuilder->single($activity->getOwnerGuid());
+
+                $channelsBanManager
+                    ->setUser($user)
+                    ->ban(implode('.', [ ReportReasonEnum::SPAM->value, 0 ]));
+            } finally {
+            }
         }
     }
 }

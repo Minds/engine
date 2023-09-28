@@ -509,9 +509,7 @@ $CONFIG->set('blockchain', [
 ]);
 
 $CONFIG->set('blockchain_override', [
-    'pledge' => [
-        // ...
-    ],
+
 ]);
 
 $CONFIG->set('token_exchange_rate', 1.25);
@@ -743,10 +741,6 @@ $CONFIG->set('transcoder', [
     ],
 ]);
 
-$CONFIG->cinemr_url = 'https://cinemr.s3.amazonaws.com/cinemr_dev/';
-
-$CONFIG->mongodb_servers = ['minds_mongo_1'];
-
 $CONFIG->set('last_tos_update', 1);
 
 $CONFIG->set('gitlab', [
@@ -759,9 +753,6 @@ $CONFIG->set('gitlab', [
 
 $CONFIG->set('pro', [
     'handler' => '',
-    'root_domains' => ['minds.com', 'www.minds.com', 'localhost', 'localhost:8080', 'localhost:4200', 'nginx', 'host.docker.internal'],
-    'subdomain_suffix' => 'minds.com',
-    'dynamodb_table_name' => 'traefik',
 ]);
 
 $CONFIG->set('contact_details', [

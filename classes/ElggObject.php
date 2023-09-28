@@ -56,9 +56,6 @@ class ElggObject extends ElggEntity {
 	function __construct($guid = null) {
 		$this->initializeAttributes();
 
-		// compatibility for 1.7 api.
-		$this->initialise_attributes(false);
-
 		parent::__construct($guid);
 	}
 
@@ -123,10 +120,6 @@ class ElggObject extends ElggEntity {
 				if(elgg_get_logged_in_user_guid() == $this->owner_guid)
 					$cache = false;
 				return new Minds\Entities\User($array, $cache);
-			}  else {
-				if($this->canEdit()){
-	//				$this->save();
-				}
 			}
 		}
 

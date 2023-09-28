@@ -1,20 +1,14 @@
 <?php
-/**
- * Module
- * @author edgebal
- */
-
-namespace Minds\Core\Front;
+namespace Minds\Core\MultiTenant;
 
 use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
 {
     /**
-     * Executed onInit
-     * @return void
+     * OnInit
      */
-    public function onInit(): void
+    public function onInit()
     {
         (new Provider())->register();
     }
