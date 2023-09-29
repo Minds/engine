@@ -83,11 +83,13 @@ class AvatarService
                         ->autorotate()
                         ->resize($size_info['w'], $size_info['h'], $size_info['upscale'], $size_info['square']);
 
+            $patchedGuid = $this->user->legacy_guid ?: $this->user->guid;
+
             if ($blob = $this->imagickManager->getJpeg()) {
                 //@todo Make these actual entities.  See exts #348.
                 $file = new ElggFile();
                 $file->owner_guid = $userGuid;
-                $file->setFilename("profile/{$userGuid}{$name}.jpg");
+                $file->setFilename("profile/{$patchedGuid}{$name}.jpg");
                 $file->open('write');
                 $file->write($blob);
                 $file->close();

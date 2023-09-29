@@ -2,6 +2,7 @@
 namespace Minds\Core\Payments\GiftCards;
 
 use Minds\Common\SystemUser;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
@@ -40,6 +41,7 @@ class Manager
         private readonly EmailDelegate $emailDelegate,
         private readonly Logger $logger,
         private readonly NotificationDelegate $notificationDelegate,
+        private readonly EntitiesBuilder $entitiesBuilder,
     ) {
     }
 
@@ -118,6 +120,7 @@ class Manager
             $paymentRef = "internal";
             if ($giftCardPaymentTypeEnum === GiftCardPaymentTypeEnum::CASH) {
                 $paymentRef = $this->paymentProcessor->setupPayment($giftCard, $stripePaymentMethodId);
+                $giftCard->purchaseTxId = $paymentRef;
             }
             // Open a transaction
             $this->repository->beginTransaction();
@@ -168,8 +171,22 @@ class Manager
      */
     public function sendGiftCardToRecipient(User $sender, GiftCardTarget $recipient, GiftCard $giftCard): void
     {
-        $this->emailDelegate->onCreateGiftCard($giftCard, $recipient, $sender);
+        $this->emailDelegate->onRecipientEmailRequested($giftCard, $recipient, $sender);
         $this->notificationDelegate->onCreateGiftCard($giftCard, $recipient);
+    }
+
+    /**
+     * Sends a gift card to the issuer, with receipt and a shareable link.
+     * @param User $issuer - issuer of the gift card.
+     * @param GiftCard $giftCard - gift card we are sending.
+     * @return void
+     */
+    public function sendGiftCardToIssuer(User $issuer, GiftCard $giftCard): void
+    {
+        $this->emailDelegate->onIssuerEmailRequested(
+            giftCard: $giftCard,
+            issuer: $issuer
+        );
     }
 
     private function generateClaimCode(
@@ -488,5 +505,33 @@ class Manager
 
             $this->logger->info("Issued gift card " . $creditsGiftCard->guid . " to " . $recipient->getGuid() . " for $" . $amount . " with product $productIdEnum->name (expires " . date("Y-m-d H:i:s", $expiryTimestamp) . ")");
         }
+    }
+
+    /**
+     * Patch a gift card such that if only a targetUserGuid is provided, their targetEmail is added to the target.
+     * @param GiftCardTarget $recipient - target for the gift card.
+     * @return GiftCardTarget patched gift card target.
+     */
+    public function patchGiftCardTarget(GiftCardTarget $recipient): GiftCardTarget
+    {
+        if (!$recipient->targetUsername || $recipient->targetUserGuid) {
+            return $recipient;
+        }
+
+        // no targets being set means the email will only be sent to the issuer, which IS valid.
+        if (!$recipient->targetUsername && !$recipient->targetUserGuid && !$recipient->targetEmail) {
+            return $recipient;
+        }
+
+        $recipientUser = $this->entitiesBuilder->getByUserByIndex($recipient->targetUsername);
+
+        if (!$recipientUser || !($recipientUser instanceof User)) {
+            throw new GraphQLException('No valid recipient was found with username: ' . $recipient->targetUsername);
+        }
+
+        return new GiftCardTarget(
+            targetUserGuid: $recipientUser->getGuid(),
+            targetEmail: $recipient->targetEmail
+        );
     }
 }

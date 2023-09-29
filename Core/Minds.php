@@ -175,13 +175,6 @@ class Minds extends base
         $this->checkInstalled();
         $this->loadLegacy();
         $this->loadEvents();
-
-        /*
-        * If this is a multisite, then load the specific database settings
-        */
-        if ($this->detectMultisite()) {
-            new multisite();
-        }
     }
 
     /**
@@ -192,15 +185,11 @@ class Minds extends base
         /*
          * If we are a multisite, we get the install status from the multisite settings
          */
-        if ($this->detectMultisite()) {
-            //we do this on db load.. not here
-        } else {
-            if (!file_exists(__MINDS_ROOT__ . '/settings.php') && !defined('__MINDS_INSTALLING__') && php_sapi_name() !== 'cli') {
-                ob_end_clean();
-                header('Fatal error', true, 500);
-                error_log('settings.php file could not be found');
-                exit;
-            }
+        if (!file_exists(__MINDS_ROOT__ . '/settings.php') && !defined('__MINDS_INSTALLING__') && php_sapi_name() !== 'cli') {
+            ob_end_clean();
+            header('Fatal error', true, 500);
+            error_log('settings.php file could not be found');
+            exit;
         }
     }
 
@@ -242,28 +231,10 @@ class Minds extends base
         // TODO: Remove when no longer needed
         $lib_files = [
             'elgglib.php',
-            'access.php',
-            'configuration.php',
             'entities.php',
-            'extender.php',
-            'filestore.php',
-            //'group.php',
             'input.php',
-            'languages.php',
-            'memcache.php',
-            //'notification.php',
-            'objects.php',
-            //'pagehandler.php',
-            //'pageowner.php',
-            'pam.php',
-            //'plugins.php',
-            'private_settings.php',
             'sessions.php',
-            'sites.php',
-            'user_settings.php',
             'users.php',
-            //'xml.php',
-            //'xml-rpc.php'
         ];
 
         foreach ($lib_files as $file) {

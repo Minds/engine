@@ -50,6 +50,13 @@ class EmailStylesV2
             "line-height: 28px;",
             "color: #0a080b;"
         ],
+        "m-mainContent__paragraph--subtext" => [
+            "margin: 10px 20px 30px;",
+            "font-family: 'Inter', sans-serif;",
+            "font-size: 16px;",
+            "line-height: 28px;",
+            "color: #0a080b;"
+        ],
         "m-mainContent__signup_paragraph" => [
             "font-family: 'Inter', Arial, sans-serif;",
             "margin: 25px 25px 95px;",
@@ -72,10 +79,32 @@ class EmailStylesV2
             "color: #0a080b;",
             "border: 1px dashed #666666;",
         ],
+        "m-mainContent__linkBox" => [
+            "font-size: 18px;",
+            "line-height: 28px;",
+            "margin: 0 20px 30px;",
+            "padding: 20px;",
+            "background-color: rgb(238, 238, 238);",
+            "font-family: monospace;",
+            "word-break: break-word;",
+            "text-decoration: underline;"
+        ],
+        "m-mainContent__linkBoxHref" => [
+            "color: #0a080b;"
+        ],
         "m-mainContent__standaloneLink" => [
             "font-family: 'Inter', Arial, sans-serif;",
             "display: inline-block;",
             "margin: 30px 20px 0px;",
+            "font-size: 18px;",
+            "line-height: 20px;",
+            "color: #0a080b;",
+            "text-align:center;",
+            "text-decoration: underline;"
+        ],
+        "m-mainContent__standaloneLink--noMargin" => [
+            "font-family: 'Inter', Arial, sans-serif;",
+            "display: inline-block;",
             "font-size: 18px;",
             "line-height: 20px;",
             "color: #0a080b;",

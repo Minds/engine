@@ -9,6 +9,8 @@ use Minds\Core\Email\Campaigns\EmailCampaign;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\GiftCardProducts\BoostCredit;
 use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\GiftCardProducts\GiftCardProductInterface;
+use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\GiftCardProducts\PlusCredit;
+use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\GiftCardProducts\ProCredit;
 use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\V2\Common\Template;
 use Minds\Core\Email\V2\Partials\ActionButtonV2\ActionButtonV2;
@@ -133,8 +135,8 @@ class Emailer extends EmailCampaign
     {
         return match ($productIdEnum) {
             GiftCardProductIdEnum::BOOST => new BoostCredit(),
-            GiftCardProductIdEnum::PLUS => new BoostCredit(),
-            GiftCardProductIdEnum::PRO => new BoostCredit(),
+            GiftCardProductIdEnum::PLUS => new PlusCredit(),
+            GiftCardProductIdEnum::PRO => new ProCredit(),
             default => throw new GraphQLException("Invalid gift card product id: {$this->giftCard->productId}")
         };
     }
