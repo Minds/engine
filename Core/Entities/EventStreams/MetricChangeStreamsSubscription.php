@@ -53,7 +53,7 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
      */
     public function getTopicRegex(): string
     {
-        return '(vote_up|vote_down|vote_up_removed|vote_down_removed)';
+        return '(vote_up|vote_up_removed)';
     }
 
     /**
@@ -79,15 +79,6 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
                     value: $count
                 );
                 break;
-            case 'vote_down_removed':
-            case 'vote_down':
-                $count = $this->counters->get($guid, 'thumbs:down', false);
-                $this->emitViaSockets(
-                    guid: $guid,
-                    key: 'thumbs:down:count',
-                    value: $count
-                );
-                break;
         }
 
         return true;
@@ -96,7 +87,7 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
     /**
      * Emits event via sockets.
      * @param string $guid - guid to emitting for.
-     * @param string $key - metrics key e.g. `thumbs:count:count`.
+     * @param string $key - metrics key e.g. `thumbs:up:count`.
      * @param integer $value - value we want to emit to sockets.
      * @return self
      */

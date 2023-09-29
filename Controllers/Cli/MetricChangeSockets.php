@@ -13,8 +13,7 @@ class MetricChangeSockets extends Cli\Controller implements Interfaces\CliContro
 {
     // allowed metrics.
     private $allowedMetrics = [
-        'thumbs:up:count',
-        'thumbs:down:count'
+        'thumbs:up:count'
     ];
 
     public function __construct()
