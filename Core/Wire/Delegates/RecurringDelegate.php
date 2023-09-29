@@ -9,7 +9,6 @@ use Minds\Core\Wire\Wire;
 
 class RecurringDelegate
 {
-
     public function __construct(
         private ?PaymentsSubscriptionsManager $subscriptionsManager = null
     ) {
