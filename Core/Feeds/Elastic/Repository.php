@@ -245,6 +245,9 @@ class Repository
             case "controversial":
                 $algorithm = new SortingAlgorithms\Controversial();
                 break;
+            case "groupTop":
+                $algorithm = new SortingAlgorithms\GroupTop();
+                break;
             case "hot":
                 $algorithm = new SortingAlgorithms\TopV2();
                 break;
