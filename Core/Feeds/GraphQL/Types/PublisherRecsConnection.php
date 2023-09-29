@@ -20,6 +20,9 @@ class PublisherRecsConnection extends Connection implements NodeInterface
     protected array $edges = [];
 
     #[Field]
+    public bool $dismissible = true;
+
+    #[Field]
     public function getId(): ID
     {
         return new ID("publisher-recs");
@@ -34,5 +37,16 @@ class PublisherRecsConnection extends Connection implements NodeInterface
     public function getEdges(): array
     {
         return $this->edges;
+    }
+
+    /**
+     * Whether publisher recs are to be dismissible.
+     * @param bool $dismissible - whether publisher recs should be dismissible.
+     * @return self
+     */
+    public function setDismissible(bool $dismissible): self
+    {
+        $this->dismissible = $dismissible;
+        return $this;
     }
 }
