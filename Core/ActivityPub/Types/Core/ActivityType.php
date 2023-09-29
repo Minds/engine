@@ -11,7 +11,7 @@ class ActivityType extends ObjectType
     protected string $type = 'Activity';
 
     #[ExportProperty]
-    public AbstractActorType $actor;
+    public AbstractActorType|string $actor;
 
     /**
      * @var ObjectType|string
@@ -19,7 +19,7 @@ class ActivityType extends ObjectType
     #[ExportProperty]
     public ObjectType|string $object;
 
-    public ?array $mastodonObject = null;
+    public ?array $objects = null;
 
     public function export(array $extras = []): array
     {

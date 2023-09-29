@@ -108,7 +108,8 @@ class jury implements Interfaces\Api
         if ($juryType !== 'appeal') {
             if (
                 $report->getReasonCode() === ReportReasonEnum::ACTIVITY_PUB_REPORT->value &&
-                !$adminReasonOverride
+                !$adminReasonOverride &&
+                $uphold
             ) {
                 Factory::response([
                     'status' => 'error',

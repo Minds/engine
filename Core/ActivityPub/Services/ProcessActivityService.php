@@ -224,8 +224,8 @@ class ProcessActivityService
                 break;
             case FlagType::class:
                 // Handle mastodon way of sending flags
-                if ($this->activity->mastodonObject) {
-                    $this->processMastodonFlagActivity();
+                if ($this->activity->objects) {
+                    $this->processMultiObjectsFlagActivity();
                     return;
                 }
 
@@ -283,9 +283,12 @@ class ProcessActivityService
         
     }
 
-    private function processMastodonFlagActivity(): void
+    private function processMultiObjectsFlagActivity(): void
     {
-        foreach ($this->activity->object as $uri) {
+        foreach ($this->activity->objects as $uri) {
+            if (!is_string($uri)) {
+                $uri = JsonLdHelper::getValueOrId($uri);
+            }
             $this->processFlagEntity($uri);
         }
     }

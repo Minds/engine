@@ -108,7 +108,7 @@ class ActivityFactory
         };
 
         if (is_array($json['object'])) {
-            $activity->mastodonObject = $json['object'];
+            $activity->objects = $json['object'];
         }
 
         return $activity;
