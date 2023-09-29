@@ -7,6 +7,7 @@ use Minds\Core\Data\MySQL;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\Emailer;
+use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\Issuer\Emailer as IssuerEmailer;
 use Minds\Core\Payments\GiftCards\Controllers\Controller;
 use Minds\Core\Payments\GiftCards\Delegates\EmailDelegate;
 use Minds\Core\Payments\GiftCards\Delegates\NotificationDelegate;
@@ -38,6 +39,7 @@ class Provider extends DiProvider
                 $di->get(EmailDelegate::class),
                 $di->get('Logger'),
                 $di->get(NotificationDelegate::class),
+                $di->get('EntitiesBuilder'),
             );
         }, ['factory' => true]);
 
@@ -53,6 +55,7 @@ class Provider extends DiProvider
             fn (Di $di): EmailDelegate =>
                 new EmailDelegate(
                     $di->get(Emailer::class),
+                    $di->get(IssuerEmailer::class),
                     $di->get('EntitiesBuilder'),
                 )
         );

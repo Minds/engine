@@ -150,7 +150,7 @@ class Video extends MindsObject implements CommentableEntityInterface
 
     public function getURL()
     {
-        return elgg_get_site_url() . 'media/' . $this->guid;
+        return Di::_()->get('Config')->get('site_url') . 'media/' . $this->guid;
     }
 
     protected function getIndexKeys($ia = false)

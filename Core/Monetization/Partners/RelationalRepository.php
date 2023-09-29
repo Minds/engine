@@ -104,7 +104,8 @@ class RelationalRepository extends AbstractRepository
      */
     public function getBalancesPerUser(
         ?int $fromTimestamp = null,
-        ?int $toTimestamp = null
+        ?int $toTimestamp = null,
+        ?int $minBalance = null
     ): iterable {
         $statement = $this->mysqlClientReaderHandler->select()
             ->from('minds_partner_earnings')
@@ -119,9 +120,14 @@ class RelationalRepository extends AbstractRepository
             $statement->where('timestamp', Operator::GTE, new RawExp(':from'));
             $values['from'] = date('c', $fromTimestamp);
         }
+
         if ($toTimestamp) {
             $statement->where('timestamp', Operator::LTE, new RawExp(':to'));
             $values['to'] = date('c', $toTimestamp);
+        }
+
+        if ($minBalance) {
+            $statement->having('total_cents', Operator::GTE, $minBalance);
         }
 
         $statement = $statement->prepare();

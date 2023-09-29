@@ -68,7 +68,6 @@ class ElggObject extends ElggEntity {
 	 * @param mixed $guid GUID of an ElggObject or the stdClass object from entities table
 	 *
 	 * @return bool
-	 * @throws InvalidClassException
 	 */
 	protected function load($guid) {
 		foreach($guid as $k => $v){
@@ -78,35 +77,6 @@ class ElggObject extends ElggEntity {
 		cache_entity($this);
 
 		return true;
-	}
-
-	/**
-	 * Return sites that this object is a member of
-	 *
-	 * Site membership is determined by relationships and not site_guid.d
-	 *
-	 * @todo This should be moved to ElggEntity
-	 * @todo Unimplemented
-	 *
-	 * @param string $subtype Optionally, the subtype of result we want to limit to
-	 * @param int    $limit   The number of results to return
-	 * @param int    $offset  Any indexing offset
-	 *
-	 * @return array|false
-	 */
-	function getSites($subtype = "", $limit = 10, $offset = 0) {
-		return get_site_objects($this->getGUID(), $subtype, $limit, $offset);
-	}
-
-	/**
-	 * Add this object to a site
-	 *
-	 * @param int $site_guid The guid of the site to add it to
-	 *
-	 * @return bool
-	 */
-	function addToSite($site_guid) {
-		return add_site_object($this->getGUID(), $site_guid);
 	}
 
 	/*
