@@ -132,6 +132,8 @@ class ActionEvent implements EventInterface
 
     public const ACTION_GIFT_CARD_RECIPIENT_NOTIFICATION = "gift_card_recipient_notification";
 
+    public const ACTION_UPHELD_REPORT = "upheld_report";
+
     /** @var string */
     protected $action;
 
@@ -250,6 +252,8 @@ class ActionEvent implements EventInterface
                     'gift_card_guid',
                     'sender_guid',
                 ];
+                break;
+            case self::ACTION_UPHELD_REPORT:
                 break;
             default:
                 throw new \Exception("Invalid action set. Ensure allowedKeys are set in ActionEvent model");

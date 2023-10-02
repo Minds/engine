@@ -10,6 +10,7 @@ use TheCodingMachine\GraphQLite\Annotations\Input;
 class GiftCardTarget
 {
     public function __construct(
+        #[Field] public readonly ?string $targetUsername = null,
         #[Field(inputType: 'String')] public readonly ?int $targetUserGuid = null,
         #[Field] public readonly ?string $targetEmail = null,
     ) {
