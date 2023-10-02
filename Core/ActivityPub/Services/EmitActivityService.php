@@ -8,6 +8,7 @@ use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Activity\AcceptType;
+use Minds\Core\ActivityPub\Types\Activity\FlagType;
 use Minds\Core\ActivityPub\Types\Activity\FollowType;
 use Minds\Core\ActivityPub\Types\Activity\LikeType;
 use Minds\Core\ActivityPub\Types\Activity\UndoType;
@@ -117,6 +118,24 @@ class EmitActivityService
         }
     }
 
+    public function emitFlag(FlagType $flag, string $attributedTo): void
+    {
+        if ($this->manager->isLocalUri($attributedTo)) {
+            $this->logger->info("Emit Flag: Skipped - target is local");
+            return;
+        }
+
+        $target = $this->objectFactory->fromUri($attributedTo);
+        if (!$target instanceof AbstractActorType) {
+            $this->logger->info("Emit Undo Like: Failed - target is not an actor");
+            return;
+        }
+
+        $inboxUrl = $target->endpoints['sharedInbox'] ?? $target->inbox;
+
+        $this->postRequest($inboxUrl, $flag);
+    }
+
     /**
      * Emit Accept event (usually just for a Follow Response)
      */
@@ -133,7 +152,7 @@ class EmitActivityService
         }
     }
 
-    private function postRequest(string $inboxUrl, ActivityType $activity, User $actor): bool
+    private function postRequest(string $inboxUrl, ActivityType $activity, ?User $actor = null): bool
     {
         if (strpos($inboxUrl, $this->manager->getBaseUrl(), 0) === 0) {
             return false;
@@ -141,9 +160,10 @@ class EmitActivityService
 
         $this->logger->info("POST $inboxUrl: Sending");
         try {
+            $privateKey = $actor ? $this->manager->getPrivateKey($actor) : $this->manager->getPrivateKeyByUserGuid(0);
             $response = $this->client
                 ->withPrivateKeys([
-                    $activity->actor->id . '#main-key' => (string) $this->manager->getPrivateKey($actor),
+                    $activity->actor->id . '#main-key' => (string) $privateKey,
                 ])
                 ->request('POST', $inboxUrl, [
                     ...$activity->getContextExport(),
