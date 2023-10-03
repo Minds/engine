@@ -4,7 +4,6 @@ namespace Minds\Core;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
-use Minds\Helpers;
 use Minds\Interfaces\ModuleInterface;
 
 /**
@@ -88,6 +87,7 @@ class Minds extends base
         Webfinger\Module::class,
         ActivityPub\Module::class,
         Admin\Module::class,
+        Storage\Quotas\Module::class,
     ];
 
     /**

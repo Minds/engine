@@ -414,3 +414,15 @@ ALTER TABLE minds_activitypub_actors
 
 ALTER TABLE minds_activitypub_uris
     ADD updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP;
+
+CREATE TABLE IF NOT EXISTS minds_asset_storage (
+    entity_guid bigint NOT NULL,
+    entity_type int NOT NULL,
+    owner_guid bigint NOT NULL,
+    size_bytes bigint NOT NULL,
+    created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    deleted boolean NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (entity_guid),
+    INDEX (owner_guid)
+);

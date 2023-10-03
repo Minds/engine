@@ -5,16 +5,19 @@
 namespace Minds\Core\Media\Video;
 
 use Aws\S3\S3Client;
+use Exception;
 use Minds\Common;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Media\Services\AwsS3Client;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
+use Minds\Core\Storage\Quotas\Manager as StorageQuotasManager;
 use Minds\Entities\Activity;
 use Minds\Entities\Entity;
 use Minds\Entities\Video;
-use Minds\Core\EntitiesBuilder;
-use Minds\Common\Repository\Response;
-use Minds\Core\Entities\Actions\Save;
-use Minds\Core\Media\Services\AwsS3Client;
+use Minds\Exceptions\StopEventException;
 use Oracle\Oci\ObjectStorage\ObjectStorageClient;
 
 class Manager
@@ -56,7 +59,8 @@ class Manager
         $transcoderManager = null,
         $save = null,
         $cloudflareStreamsManager = null,
-        protected ?ObjectStorageClient $osClient = null
+        protected ?ObjectStorageClient $osClient = null,
+        private ?StorageQuotasManager $storageQuotasManager = null
     ) {
         $this->config = $config ?? Di::_()->get('Config');
 
@@ -106,6 +110,11 @@ class Manager
 
     /**
      * Adds a video and creates its transcodes
+     * @param Video $video
+     * @return bool
+     * @throws UnverifiedEmailException
+     * @throws StopEventException
+     * @throws Exception
      */
     public function add(Video $video): bool
     {
@@ -117,6 +126,9 @@ class Manager
         $success = $this->save->setEntity($video)->save();
 
         if ($success) {
+            // Update storage quota
+            $this->storageQuotasManager->storeAssetQuota($video);
+
             // Kick off the transcoder
             if ($video->getTranscoder() !== self::TRANSCODER_CLOUDFLARE) {
                 $this->transcoderManager->createTranscodes($video);
@@ -211,7 +223,7 @@ class Manager
      * @param string $size
      * @return string
      */
-    public function getPublicAssetUri($entity, $size = '360.mp4'): string
+    public function getPublicAssetUri($entity, $size = '360.mp4'): ?string
     {
         $cmd = null;
         switch (get_class($entity)) {
@@ -234,6 +246,11 @@ class Manager
                             'accessType' => 'ObjectRead',
                             'timeExpires' => date('c', strtotime('+20 minutes')),
                         ],
+                    ]);
+                    $asset = $this->osClient->getObject([
+                        'namespaceName' => $this->config->get('oci')['api_auth']['bucket_namespace'],
+                        'bucketName' => $this->config->get('transcoder')['oci_bucket_name'] ?? 'cinemr',
+                        'objectName' => $key,
                     ]);
                     
                     return $response->getJson()->fullPath;
