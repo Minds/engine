@@ -50,6 +50,7 @@ use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
 use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
 use Stripe\Exception\ApiErrorException;
+use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 
 class Manager
 {
@@ -105,7 +106,8 @@ class Manager
         $notificationsDelegate = null,
         $entitiesBuilder = null,
         private ?MessageLengthValidator $messageLengthValidator = null,
-        private ?TitleLengthValidator $titleLengthValidator = null
+        private ?TitleLengthValidator $titleLengthValidator = null,
+        private ?ElasticManager $elasticManager = null
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -121,6 +123,7 @@ class Manager
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->messageLengthValidator = $messageLengthValidator ?? new MessageLengthValidator();
         $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
+        $this->elasticManager ??= Di::_()->get('Feeds\Elastic\Manager');
     }
 
     public function getSupermindManager(): SupermindManager
@@ -364,6 +367,91 @@ class Manager
         }
 
         return $success;
+    }
+
+    /**
+     * Delete all of the user's reminds of an activity
+     * @param Activity $activity that was reminded
+     * @param User $user
+     * @return bool
+     */
+    public function deleteRemindsOfActivityByUser(Activity $activity, User $user): bool
+    {
+        // Get all of the reminds
+        $reminds = $this->getRemindsOfActivityByUser($activity, $user);
+
+        $success = true;
+
+        if ($reminds) {
+            // Delete each remind
+            foreach($reminds as $remind) {
+                if (!$this->delete($remind)) {
+                    $success = false;
+                };
+            }
+        }
+
+        return $success;
+    }
+
+    /**
+     * Get all the reminds a user has made of an activity.
+     * @param Activity $activity that was reminded
+     * @param User $user
+     * @return array
+     */
+    public function getRemindsOfActivityByUser(Activity $activity, User $user): array
+    {
+        $hasMore = true;
+        $fromTimestamp = null;
+
+        $reminds = [];
+
+        while($hasMore){
+
+            $response = $this->elasticManager->getList([
+                'algorithm' => 'latest',
+                'period' => 'all',
+                'type' => 'activity',
+                'limit' => 24,
+                'remind_guid' => $activity->getGuid(),
+                'owner_guid' => $user->getGuid(),
+                'from_timestamp' => $fromTimestamp
+            ]);
+
+            $entities = array_map(function ($feedItem) {
+                return $feedItem->getEntity();
+            }, $response->toArray());
+
+            if ($entities) {
+                $reminds = array_merge($reminds, $entities);
+                $fromTimestamp = $response->getPagingToken();
+                $hasMore = true;
+            } else {
+                $hasMore = false;
+            }
+        }
+
+        return $reminds;
+    }
+
+        /**
+     * Get the count of all reminds a user has made of an activity.
+     * @param Activity $activity that was reminded
+     * @param User $user
+     * @return array
+     */
+    public function countRemindsOfActivityByUser(Activity $activity, User $user): int
+    {
+        $count = $this->elasticManager->getCount([
+            'algorithm' => 'latest',
+            'type' => 'activity',
+            'period' => 'all',
+            'remind_guid' => $activity->getGuid(),
+            'owner_guid' => $user->getGuid(),
+        ]);
+
+        return $count;
     }
 
     /**
