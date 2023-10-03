@@ -87,6 +87,7 @@ class Manager
 
     /**
      * @param array $opts
+     * @param boolean $getAll if true, auto-scroll to get all results at once
      * @return Response
      * @throws \Exception
      */
