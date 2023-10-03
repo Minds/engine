@@ -407,7 +407,7 @@ class Manager
 
         $reminds = [];
 
-        while($hasMore){
+        while($hasMore) {
 
             $response = $this->elasticManager->getList([
                 'algorithm' => 'latest',
@@ -435,7 +435,7 @@ class Manager
         return $reminds;
     }
 
-        /**
+    /**
      * Get the count of all reminds a user has made of an activity.
      * @param Activity $activity that was reminded
      * @param User $user

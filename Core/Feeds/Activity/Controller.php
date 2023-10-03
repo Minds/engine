@@ -481,7 +481,7 @@ class Controller
      */
     public function deleteRemindsOfActivityByUser(ServerRequest $request): JsonResponse
     {
-                /** @var User $user */
+        /** @var User $user */
         $user = $request->getAttribute('_user');
 
         $parameters = $request->getAttribute('parameters');
