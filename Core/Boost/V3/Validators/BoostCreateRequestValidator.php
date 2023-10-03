@@ -5,6 +5,7 @@ namespace Minds\Core\Boost\V3\Validators;
 
 use Exception;
 use Minds\Common\SystemUser;
+use Minds\Core\Blogs\Blog;
 use Minds\Core\Boost\V3\Enums\BoostGoal;
 use Minds\Core\Boost\V3\Enums\BoostGoalButtonText;
 use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
@@ -252,7 +253,7 @@ class BoostCreateRequestValidator implements ValidatorInterface
      */
     private function checkGoals(array $dataToValidate): void
     {
-        if ($this->goalFeatureEnabled() && !isset($_SERVER['HTTP_APP_VERSION'])) {
+        if ($this->goalFeatureEnabled()) {
             // GOALS AREN'T ALLOWED FOR CHANNEL BOOSTS OR FOR BOOSTING SOMEONE ELSE'S POST
             $boostedEntity = $this->getBoostedEntity($dataToValidate);
 
@@ -265,7 +266,9 @@ class BoostCreateRequestValidator implements ValidatorInterface
                 );
             }
 
-            $boostedEntityOwnerGuid = ($boostedEntity instanceof Activity) ? $boostedEntity->getOwnerGuid() : '';
+            $boostedEntityOwnerGuid = ($boostedEntity instanceof Activity || $boostedEntity instanceof Blog) ?
+                $boostedEntity->getOwnerGuid() :
+                '';
 
             if ($boostedEntityOwnerGuid !== $this->getLoggedInUserGuid()) {
                 // Either it's a channel boost or it's not the post owner - all invalid

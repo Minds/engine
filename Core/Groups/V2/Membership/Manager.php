@@ -573,6 +573,21 @@ class Manager
     }
 
     /**
+     * Returns whether the user is banned from the group
+     */
+    public function isBanned(User $user, Group $group): bool
+    {
+        $userMembership = $this->repository->get($group->getGuid(), $user->getGuid());
+
+        if ($userMembership) {
+            return $userMembership->membershipLevel === GroupMembershipLevelEnum::BANNED;
+        } else {
+            return false;
+        }
+
+    }
+
+    /**
      * Helper function to build a user entity
      */
     private function buildUser(int $userGuid): ?User

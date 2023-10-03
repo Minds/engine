@@ -5,10 +5,12 @@
  */
 namespace Minds\Core\ActivityPub\Subscriptions;
 
+use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Services\EmitActivityService;
+use Minds\Core\ActivityPub\Types\Activity\FlagType;
 use Minds\Core\ActivityPub\Types\Activity\FollowType;
 use Minds\Core\ActivityPub\Types\Activity\LikeType;
 use Minds\Core\Config\Config;
@@ -25,7 +27,6 @@ use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
-use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
 
 class ActivityPubEventStreamsSubscription implements SubscriptionInterface
 {
@@ -134,7 +135,21 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
 
                 $this->emitActivityService->emitLike($like, $user);
                 return true;
+            case ActionEvent::ACTION_UPHELD_REPORT:
+                $this->logger->info('Skipping upheld report');
+
+                $object = $this->objectFactory->fromEntity($entity);
+
+                $flagType = new FlagType();
+                $flagType->id = $this->manager->getTransientId();
+                $flagType->actor = $this->actorFactory->buildMindsApplicationActor(); // new System Application Type
+                $flagType->object = $object->id;
+
+                $this->emitActivityService->emitFlag($flagType, $object->attributedTo);
+                return true;
+
             default:
+                $this->logger->info('Skipping as not a supported action');
                 return true; // Noop (nothing to do)
         }
     }

@@ -13,6 +13,7 @@ use Monolog\Handler\ChromePHPHandler;
 use Monolog\Handler\ErrorLogHandler;
 use Monolog\Handler\FirePHPHandler;
 use Monolog\Handler\PHPConsoleHandler;
+use Monolog\Level as MonologLevel;
 use Monolog\Logger as MonologLogger;
 use Sentry\Monolog\Handler as SentryHandler;
 use Sentry\SentrySdk;
@@ -40,7 +41,7 @@ class Logger extends MonologLogger
         ], $options);
 
         $isProduction = (bool) $options['isProduction'];
-        $level = $options['minLogLevel'] ?? MonologLogger::WARNING;
+        $level = $options['minLogLevel'] ?? MonologLevel::Warning;
 
         $handlers = [];
 
@@ -63,7 +64,7 @@ class Logger extends MonologLogger
 
         if ($isProduction) {
             // Do _NOT_ send INFO or DEBUG
-            $handlers[] = new SentryHandler(SentrySdk::getCurrentHub(), max($level, MonologLogger::ERROR));
+            $handlers[] = new SentryHandler(SentrySdk::getCurrentHub(), max($level, MonologLevel::Error));
         } else {
             // Extra handlers for Development Mode
 

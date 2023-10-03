@@ -72,8 +72,13 @@ class group implements Interfaces\Api
         $canModerate = $user && ($membership?->isOwner() || $membership?->isModerator());
 
         if (!$canRead) {
+            // Specify if the user is banned
+            if ($membership && $this->membershipManager->isBanned($user, $group)) {
+                $response['group']['is:banned'] = true;
+            }
+
             // Restrict output if cannot read
-            $allowed = ['guid', 'name', 'membership', 'type', 'is:awaiting', 'is:invited', 'nsfw', 'nsfw_lock', 'conversationDisabled', 'briefdescription' ];
+            $allowed = ['guid', 'name', 'membership', 'type', 'is:awaiting', 'is:banned', 'is:invited', 'nsfw', 'nsfw_lock', 'conversationDisabled', 'briefdescription' ];
             if ($response['group']['membership'] == 2) {
                 $allowed = array_merge($allowed, ['members:count', 'activity:count', 'comments:count']);
             }

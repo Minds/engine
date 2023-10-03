@@ -55,7 +55,7 @@ class PartnerEarnings extends Cli\Controller implements Interfaces\CliController
         $manager = new Manager();
 
         $opts = [
-            'to' => strtotime('midnight last day of last month') * 1000,
+            'to' => strtotime('midnight last day of last month'),
             'dryRun' => true,
         ];
 

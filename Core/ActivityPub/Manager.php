@@ -9,22 +9,23 @@ use Minds\Core\Comments\Comment;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
-use Minds\Core\Webfinger;
+use Minds\Core\Webfinger\Manager as WebfingerManager;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\FederatedEntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
+use phpseclib3\Crypt\PublicKeyLoader;
 
 class Manager
 {
     public function __construct(
-        protected Repository $repository,
-        protected EntitiesBuilder $entitiesBuilder,
-        protected Config $config,
-        protected Client $client,
-        protected Webfinger\Manager $webfingerManager,
+        protected Repository       $repository,
+        protected EntitiesBuilder  $entitiesBuilder,
+        protected Config           $config,
+        protected Client           $client,
+        protected WebfingerManager $webfingerManager,
     ) {
     }
 
@@ -220,26 +221,47 @@ class Manager
 
     /**
      * Returns a private key (RSA PKCS8) or creates and saves one
+     * @throws ServerErrorException
      */
-    public function getPrivateKey(User $user): \phpseclib3\Crypt\RSA\PrivateKey
+    public function getPrivateKey(User $user): \phpseclib3\Crypt\Common\PrivateKey
     {
         $userGuid = (int) $user->getGuid();
+
+        return $this->getPrivateKeyByUserGuid($userGuid);
+    }
+
+    /**
+     * @param int $userGuid
+     * @return \phpseclib3\Crypt\Common\PrivateKey
+     * @throws ServerErrorException
+     */
+    public function getPrivateKeyByUserGuid(int $userGuid): \phpseclib3\Crypt\Common\PrivateKey
+    {
         $privateKey = $this->repository->getPrivateKey($userGuid);
 
         if ($privateKey) {
-            return \phpseclib3\Crypt\PublicKeyLoader::loadPrivateKey($privateKey);
-        } else {
-            // No private key was found, so we will create one
-            $private = \phpseclib3\Crypt\RSA::createKey();
-
-            $success = $this->repository->addPrivateKey($userGuid, (string) $private);
-
-            if (!$success) {
-                throw new ServerErrorException("Unable to save private key for user");
-            }
-
-            return $private;
+            return PublicKeyLoader::loadPrivateKey($privateKey);
         }
+
+        return $this->generateAndAddPrivateKey($userGuid);
+    }
+
+    /**
+     * @param int $userGuid
+     * @return \phpseclib3\Crypt\Common\PrivateKey
+     * @throws ServerErrorException
+     */
+    private function generateAndAddPrivateKey(int $userGuid): \phpseclib3\Crypt\Common\PrivateKey
+    {
+        $private = \phpseclib3\Crypt\RSA::createKey();
+
+        $success = $this->repository->addPrivateKey($userGuid, (string) $private);
+
+        if (!$success) {
+            throw new ServerErrorException("Unable to save private key for user");
+        }
+
+        return $private;
     }
 
     /**

@@ -12,6 +12,7 @@ use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardStatusFilterEnum;
 use Minds\Core\Payments\GiftCards\Manager;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
+use Minds\Core\Payments\GiftCards\Models\GiftCardTransaction;
 use Minds\Core\Payments\GiftCards\PaymentProcessor;
 use Minds\Core\Payments\GiftCards\Repository;
 use Minds\Core\Payments\GiftCards\Types\GiftCardTarget;

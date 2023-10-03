@@ -10,7 +10,6 @@ use Minds\Core\ActivityPub\Factories\ActivityFactory;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\LikeFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
-use Minds\Core\ActivityPub\JsonActivityResponse;
 use Minds\Core\ActivityPub\Factories\OutboxFactory;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Services\HttpSignatureService;
@@ -204,6 +203,20 @@ class Controller
         return new JsonActivityResponse([
             ...$orderedCollection->getContextExport(),
             ...$orderedCollection->export()
+        ]);
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return JsonActivityResponse
+     */
+    public function getMindsApplicationActor(ServerRequestInterface $request): JsonActivityResponse
+    {
+        $actor = $this->actorFactory->buildMindsApplicationActor();
+
+        return new JsonActivityResponse([
+            ...$actor->getContextExport(),
+            ...$actor->export()
         ]);
     }
 

@@ -138,8 +138,8 @@ class Entity
     {
         $output = [];
 
+        $output['thumbs:down:count'] = 0;
         $output['thumbs:up:count'] = Counters::get($blog->getGuid(), 'thumbs:up');
-        $output['thumbs:down:count'] = Counters::get($blog->getGuid(), 'thumbs:down');
         $output['reminds'] = Counters::get($blog->getGuid(), 'remind');
 
         return $output;

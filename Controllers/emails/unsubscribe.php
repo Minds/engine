@@ -5,6 +5,7 @@
 namespace Minds\Controllers\emails;
 
 use Minds\Core;
+use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use Minds\Interfaces;
 
@@ -15,7 +16,7 @@ class unsubscribe extends core\page implements Interfaces\page
      */
     public function get($pages)
     {
-        \elgg_set_ignore_access();
+        ACL::_()->setIgnore(true);
 
         $siteUrl = Core\Config::_()->site_url;
 

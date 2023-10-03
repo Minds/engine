@@ -112,23 +112,11 @@ class LoginAttempts
         if (!$this->user) {
             throw new UserNotSetupException();
         }
+    
         $user_guid = (int) $this->user->guid;
 
         if ($user_guid) {
-            $fails = (int) $this->user->getPrivateSetting("login_failures");
-
-            if ($fails) {
-                for ($n = 1; $n <= $fails; $n++) {
-                    $this->user->removePrivateSetting("login_failure_" . $n);
-                }
-
-                $this->user->removePrivateSetting("login_failures");
-                $this->getRedis()->delete("login-failures:$user_guid");
-
-                return true;
-            }
-
-            // nothing to reset
+            $this->getRedis()->delete("login-failures:$user_guid");
             return true;
         }
 
