@@ -126,11 +126,17 @@ class Controller
             if (!$this->acl->interact($remind, $user)) {
                 throw new UnauthorizedException();
             }
+
             $shouldBeQuotedPost = $payload['message'] || (
                 is_array($payload['attachment_guids']) &&
                 count($payload['attachment_guids'])
             );
-            // $shouldBeQuotedPost = $payload['message'] || count($payload['attachment_guids']);
+
+            if (!$shouldBeQuotedPost && $this->manager->countRemindsOfActivityByUser($remind, $user) > 0) {
+                throw new UserErrorException("You've already reminded this post'");
+            }
+
+
             $remindIntent = new RemindIntent();
             $remindIntent->setGuid($remind->getGuid())
                         ->setOwnerGuid($remind->getOwnerGuid())
