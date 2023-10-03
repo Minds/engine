@@ -259,6 +259,7 @@ class ActionEvent implements EventInterface
                     'gift_card_guid',
                     'claimant_guid'
                 ];
+                break;
             case self::ACTION_UPHELD_REPORT:
                 break;
             default:
