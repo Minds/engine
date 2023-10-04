@@ -165,6 +165,17 @@ class Manager
     }
 
     /**
+     * Get assigned variation for a given feature key.
+     * @param string $featureKey - feature key to get assigned variation for.
+     * @return mixed variation.
+     */
+    public function getVariation(string $featureKey): mixed
+    {
+        $defaultValue = $this->growthbook->getFeatures()[$featureKey]->defaultValue ?? false;
+        return $this->growthbook->getValue($featureKey, $defaultValue);
+    }
+
+    /**
      * Whether user has been put in the specified variation of an experiment.
      * @param string $featureKey - the key of the feature.
      * @param $variationId - the variation label.
