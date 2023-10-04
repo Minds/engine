@@ -197,6 +197,9 @@ class ManagerSpec extends ObjectBehavior
 
         $claimer->getGuid()->willReturn('1244987032468459523');
 
+        $this->notificationDelegateMock->onGiftCardClaimed($giftCard, $claimer)
+            ->shouldBeCalled();
+
         $this->claimGiftCard($claimer, 'claim-me')->shouldReturn($giftCard);
     }
 

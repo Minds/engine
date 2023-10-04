@@ -18,6 +18,8 @@ use Minds\Core\Notifications\Manager;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\NotificationsEventStreamsSubscription;
 use Minds\Core\Notifications\NotificationTypes;
+use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
+use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Rewards\Withdraw\Request;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Wire\Wire;
@@ -51,6 +53,9 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
     /** @var RedisMock */
     protected $redisMock;
 
+    /** @var GiftCardsManager */
+    protected $giftCardsManager;
+
     public function let(
         Manager $manager,
         Logger $logger,
@@ -58,7 +63,8 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         EntitiesBuilder $entitiesBuilder,
         Resolver $entitiesResolver,
         GroupMembershipManager $groupMembershipManager,
-        RedisMock $redisMock
+        RedisMock $redisMock,
+        GiftCardsManager $giftCardsManager
     ) {
         $this->manager = $manager;
         $this->logger = $logger;
@@ -68,6 +74,7 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $this->entitiesBuilder = $entitiesBuilder;
         $this->groupMembershipManager = $groupMembershipManager;
         $this->redisMock = $redisMock;
+        $this->giftCardsManager = $giftCardsManager;
 
         $this->beConstructedWith($manager, $logger, $config, $entitiesResolver, $entitiesBuilder);
 
@@ -78,6 +85,10 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         // Used within socket events.
         Di::_()->bind('PubSub\Redis', function () use ($redisMock) {
             return $redisMock->getWrappedObject();
+        });
+
+        Di::_()->bind(GiftCardsManager::class, function () use ($giftCardsManager) {
+            return $giftCardsManager->getWrappedObject();
         });
     }
 
@@ -993,6 +1004,162 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $this->consume($actionEvent)->shouldBe(true);
     }
 
+    /**
+     * Gift card notifications
+     */
+    public function it_should_send_a_gift_card_recipient_notification(
+        ActionEvent $actionEvent,
+        User $issuer,
+        User $user,
+        GiftCard $giftCard
+    ) {
+        $senderGuid = '1234567890123456';
+        $giftCardGuid = '2234567890123456';
+        $ownerGuid = '3234567890123456';
+        $ownerUrn = 'urn:user:3234567890123456';
+        $issuerGuid = '4234567890123456';
+
+        $actionEvent->getAction()
+            ->willReturn(ActionEvent::ACTION_GIFT_CARD_RECIPIENT_NOTIFICATION);
+
+        $actionEvent->getUser()
+            ->willReturn($user);
+
+        $actionEvent->getEntity()
+            ->willReturn($issuer);
+
+        $actionEvent->getTimestamp()
+            ->willReturn(time());
+
+        $actionEvent->getActionData()
+            ->shouldBeCalled()
+            ->willReturn([
+                'sender_guid' => $senderGuid,
+                'gift_card_guid' => $giftCardGuid
+            ]);
+
+        $issuer->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($issuerGuid);
+
+        $issuer->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($ownerGuid);
+
+        $issuer->getUrn()
+            ->willReturn($ownerUrn);
+
+        $this->entitiesBuilder->single($senderGuid)
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->giftCardsManager->getGiftCard((int) $giftCardGuid)
+            ->shouldBeCalled()
+            ->willReturn($giftCard);
+
+        $this->manager->add(Argument::that(function (Notification $notification) use ($issuerGuid) {
+            return $notification->getType() === NotificationTypes::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED
+                && $notification->getToGuid() === $issuerGuid
+                && $notification->getFromGuid() === SystemUser::GUID
+                && $notification->getUrn() === 'urn:notification:4234567890123456-';
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->entitiesBuilder->single(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->manager->getUnreadCount($user)
+            ->shouldBeCalled()
+            ->willReturn(0);
+
+        $this->consume($actionEvent);
+    }
+
+    public function it_should_send_a_gift_card_issuer_claimed_notification(
+        ActionEvent $actionEvent,
+        User $claimant,
+        User $issuer,
+        GiftCard $giftCard
+    ) {
+        $claimantGuid = '1234567890123456';
+        $giftCardGuid = '2234567890123456';
+        $claimantUrn = 'urn:user:3234567890123456';
+        $issuerGuid = '4234567890123456';
+        $issuerUrn = 'urn:user:4234567890123456';
+
+        $actionEvent->getAction()
+            ->willReturn(ActionEvent::ACTION_GIFT_CARD_ISSUER_CLAIMED_NOTIFICATION);
+
+        $actionEvent->getUser()
+            ->willReturn($claimant);
+
+        $actionEvent->getEntity()
+            ->willReturn($issuer);
+
+        $actionEvent->getTimestamp()
+            ->willReturn(time());
+
+        $actionEvent->getActionData()
+            ->shouldBeCalled()
+            ->willReturn([
+                'claimant_guid' => $claimantGuid,
+                'gift_card_guid' => $giftCardGuid
+            ]);
+
+        $claimant->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($claimantGuid);
+
+        $claimant->getUrn()
+            ->willReturn($claimantUrn);
+
+        $issuer->getGuid()
+            ->shouldBeCalled()
+            ->willReturn($issuerGuid);
+
+        $issuer->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn($issuerGuid);
+
+        $issuer->getUrn()
+            ->willReturn($issuerUrn);
+
+        $claimant->export()
+            ->willReturn([]);
+
+        $this->entitiesBuilder->single($claimantGuid)
+            ->shouldBeCalled()
+            ->willReturn($claimant);
+
+        $this->giftCardsManager->getGiftCard((int) $giftCardGuid)
+            ->shouldBeCalled()
+            ->willReturn($giftCard);
+
+        $this->manager->add(Argument::that(function (Notification $notification) use ($issuerGuid) {
+            return $notification->getType() === NotificationTypes::TYPE_GIFT_CARD_CLAIMED_ISSUER_NOTIFIED
+                && $notification->getToGuid() === $issuerGuid
+                && $notification->getFromGuid() === SystemUser::GUID
+                && $notification->getUrn() === 'urn:notification:4234567890123456-';
+        }))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->entitiesBuilder->single(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($issuer);
+
+        $this->manager->getUnreadCount($issuer)
+            ->shouldBeCalled()
+            ->willReturn(0);
+
+        $this->consume($actionEvent);
+    }
+
+    /**
+     * Socket emission
+     */
     public function it_should_emit_to_sockets_after_sending(
         ActionEvent $actionEvent,
         Activity $activity,
