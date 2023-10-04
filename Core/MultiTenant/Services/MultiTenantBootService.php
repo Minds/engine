@@ -41,7 +41,7 @@ class MultiTenantBootService
 
     protected function isReservedDomain(string $domain): bool
     {
-        $reservedDomains = $this->config->get('multi_tenant')['reserved_domains'];
+        $reservedDomains = $this->config->get('multi_tenant')['reserved_domains'] ?? [];
 
         return in_array($domain, $reservedDomains, true);
     }

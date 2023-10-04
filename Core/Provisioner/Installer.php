@@ -3,7 +3,7 @@
 namespace Minds\Core\Provisioner;
 
 use Minds\Core;
-use Minds\Core\Config;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities\Site;
 use Minds\Entities\Activity;
@@ -17,8 +17,12 @@ class Installer
     protected $defaults = [];
     protected $options = [];
 
-    public function __construct()
+    public function __construct(
+        private ?Config $config = null,
+    )
     {
+        $this->config = $config ?? Di::_()->get('Config');
+
         $this->defaults = [
             'domain' => 'http://localhost:8080',
             'username' => 'minds',
@@ -256,10 +260,8 @@ class Installer
 
     public function setupSite($site = null)
     {
-        $config = Di::_()->get('Config');
-
         $site = $site ?: new Site();
-        $site->name = $config->get('site_name');
+        $site->name = $this->config->get('site_name');
         $site->url = $this->getSiteUrl();
         $site->access_id = ACCESS_PUBLIC;
         $site->email = isset($this->options['site-email']) && $this->options['site-email'] ? $this->options['site-email'] : $this->options['email'];
@@ -289,8 +291,6 @@ class Installer
             throw new ProvisionException('Cannot grant privileges to new User entity');
         }
 
-        Helpers\Wallet::createTransaction($user->guid, 750000000, $user->guid, 'Installed Minds');
-
         $activity = new Activity();
         $activity->owner_guid = $user->guid;
         $activity->setMessage('Hello Minds!');
@@ -303,10 +303,8 @@ class Installer
 
     public function getSiteUrl()
     {
-        $config = Di::_()->get('Config');
-
-        if ($config->get('site_url')) {
-            $siteUrl = $config->get('site_url');
+        if ($this->config->get('site_url')) {
+            $siteUrl = $this->config->get('site_url');
         } else {
             $siteUrl = $this->options['no-https'] ? 'http' : 'https';
             $siteUrl .= '://'.$this->options['domain'].'/';

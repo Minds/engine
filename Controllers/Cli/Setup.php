@@ -6,6 +6,7 @@ namespace Minds\Controllers\Cli;
 use Minds\Cli\Controller as CliController;
 use Minds\Common\SystemUser;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Log\Logger;
 use Minds\Interfaces\CliControllerInterface;
 
@@ -38,6 +39,10 @@ class Setup extends CliController implements CliControllerInterface
         $user = new SystemUser();
         $user->set('username', 'system_user');
         $user->setAccessId('2');
-        $this->logger->info("System User saved: " . $user->save());
+
+        $saved = (new Save())
+            ->setEntity($user)
+            ->save();
+        $this->logger->info("System User saved: " . $saved);
     }
 }

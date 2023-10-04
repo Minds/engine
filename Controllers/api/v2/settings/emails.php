@@ -6,6 +6,7 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Confirmation\Manager as EmailConfirmation;
 use Minds\Core\Email\EmailSubscription;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Entities\User;
 use Minds\Interfaces;
 
@@ -71,7 +72,7 @@ class emails implements Interfaces\Api
             $emailChange = strtolower($_POST['email']) !== strtolower($user->getEmail());
 
             $user->setEmail($_POST['email']);
-            $user->save();
+            (new Save())->setEntity($user)->withMutatedAttributes(['email'])->save();
 
             if ($emailChange) {
                 /** @var EmailConfirmation $emailConfirmation */

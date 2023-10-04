@@ -8,6 +8,7 @@
 namespace Minds\Core\Channels\Delegates;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Entities\User;
 
@@ -32,7 +33,7 @@ class Ban
         $user->banned = 'yes';
         $user->code = '';
 
-        $saved = (bool) $user->save();
+        $saved = (bool) (new Save())->setEntity($user)->withMutatedAttributes(['ban_reason', 'banned'])->save();
 
         if ($saved) {
             if ($refreshCache) {

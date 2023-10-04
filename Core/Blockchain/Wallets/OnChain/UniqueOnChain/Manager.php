@@ -6,6 +6,7 @@ use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Exceptions\UserErrorException;
 use Minds\Core\Blockchain\BigQuery\HoldersQuery;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Rewards\Restrictions\Blockchain\Manager as RestrictionsManager;
 
 class Manager
@@ -64,7 +65,8 @@ class Manager
 
         if ($added && $user && $addAddress) {
             $user->setEthWallet($address->getAddress());
-            $user->save();
+            
+            (new Save())->setEntity($user)->withMutatedAttributes(['eth_wallet'])->save();
         }
 
         return $added;
@@ -87,7 +89,7 @@ class Manager
 
         if ($removeAddress && $user && $removed) {
             $user->setEthWallet('');
-            $user->save();
+            (new Save())->setEntity($user)->withMutatedAttributes(['eth_wallet'])->save();
         }
 
         return $removed;

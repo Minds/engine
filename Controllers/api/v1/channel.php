@@ -243,7 +243,10 @@ class channel implements Interfaces\Api
                 $item->title = '';
                 $item->owner_guid = elgg_get_logged_in_user_guid();
                 $item->access_id = ACCESS_PUBLIC;
-                $item->save();
+
+                $this->save
+                    ->setEntity($item)
+                    ->save();
 
                 if (is_uploaded_file($_FILES['file']['tmp_name'])) {
                     $manager->setImage($_FILES['file']['tmp_name'])

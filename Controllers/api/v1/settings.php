@@ -11,6 +11,7 @@ use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Confirmation\Manager as EmailConfirmation;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Settings\Manager as SettingsManager;
 use Minds\Entities;
 use Minds\Exceptions\TwoFactorRequired;
@@ -19,6 +20,13 @@ use Zend\Diactoros\ServerRequestFactory;
 
 class settings implements Interfaces\Api
 {
+    protected Save $save;
+
+    public function __construct()
+    {
+        $this->save = new Save();
+    }
+
     /**
      * Extended channel
      *
@@ -217,7 +225,7 @@ class settings implements Interfaces\Api
             }
 
             $response = [];
-            if (!$user->save()) {
+            if (!$this->save->setEntity($user)->save()) {
                 $response['status'] = 'error';
             }
 

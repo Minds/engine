@@ -9,6 +9,7 @@
 namespace Minds\Core\Entities\Actions;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
 use Minds\Core\Events\Dispatcher;
 
 class Delete
@@ -24,9 +25,11 @@ class Delete
      * @param null $eventsDispatcher
      */
     public function __construct(
-        $eventsDispatcher = null
+        $eventsDispatcher = null,
+        private ?EntitiesRepositoryInterface $entitiesRepository = null
     ) {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
+        $this->entitiesRepository ??= Di::_()->get(EntitiesRepositoryInterface::class);
     }
 
     /**
@@ -51,10 +54,20 @@ class Delete
             return false;
         }
 
-        //// DELETES ARE SCARY SO NO FALLBACK?
-        //if (method_exists($this->entity, 'delete')) {
-        //    return $this->entity->delete(...$args);
-        //}
+        $delete = $this->eventsDispatcher->trigger('delete', $this->entity->getType(), [ 'entity' => $this->entity ]);
+
+        $success = $delete && $this->entitiesRepository->delete($this->entity);
+
+        if ($success) {
+            $this->eventsDispatcher->trigger('entities-ops', 'delete', [
+                'entityUrn' => $this->entity->getUrn(),
+                'entity' => $this->entity,
+            ]);
+        }
+
+        return $success;
+
+        // TODO: remove after here
 
         $namespace = $this->entity->type;
 

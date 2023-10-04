@@ -7,6 +7,7 @@ namespace Minds\Core\Security;
 use Minds\Common\IpAddress;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Entities;
 use Minds\Entities\User;
@@ -16,9 +17,15 @@ class Password
     /** @var KeyValueLimiter */
     protected $kvLimiter;
 
-    public function __construct(KeyValueLimiter $kvLimiter = null)
+    protected Save $save;
+
+    public function __construct(
+        KeyValueLimiter $kvLimiter = null,
+        Save $save = null,
+    )
     {
         $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
+        $this->save = $save ?? new Save();
     }
 
     /**
@@ -119,7 +126,16 @@ class Password
         $bytes = openssl_random_pseudo_bytes(128);
         $code = hash('sha512', $bytes);
         $user->password_reset_code = $code;
-        $user->save();
+
+        $save = new Save();
+
+        $save
+            ->setEntity($user)
+            ->withMutatedAttributes([
+                'password_reset_code',
+            ])
+            ->save();
+
         return $code;
     }
 
@@ -134,7 +150,13 @@ class Password
 
         $user->password = self::generate($user, $randomPassword);
         $user->override_password = true;
-        $user->save();
+
+        $this->save
+            ->setEntity($user)
+            ->withMutatedAttributes([
+                'password',
+            ])
+            ->save();
 
         return true;
     }

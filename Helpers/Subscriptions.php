@@ -132,18 +132,6 @@ class Subscriptions
 
     public static function registerEvents()
     {
-        Events\Dispatcher::register('subscribe', 'all', function (Events\Event $event) {
-            $params = $event->getParameters();
-
-            Wallet::createTransaction($params['to_guid'], 5, $params['user_guid'], 'Subscription');
-        });
-
-        Events\Dispatcher::register('unsubscribe', 'all', function (Events\Event $event) {
-            $params = $event->getParameters();
-
-            Wallet::createTransaction($params['from_guid'], -5, $params['user_guid'], 'Subscription Removed');
-        });
-
         Events\Dispatcher::register('subscription:dispatch', 'all', function (Events\Event $event) {
             $params = $event->getParameters();
 

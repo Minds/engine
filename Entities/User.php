@@ -125,7 +125,6 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         $this->attributes['icontime'] = 0;
         $this->attributes['briefdescription'] = '';
         $this->attributes['rating'] = 1;
-        $this->attributes['p2p_media_enabled'] = 0;
         $this->attributes['is_mature'] = 0;
         $this->attributes['mature_lock'] = 0;
         $this->attributes['opted_in_hashtags'] = 0;
@@ -1070,18 +1069,6 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         return $this;
     }
 
-    public function isP2PMediaEnabled()
-    {
-        return (bool) $this->attributes['p2p_media_enabled'];
-    }
-
-    public function setP2PMediaEnabled($value)
-    {
-        $this->attributes['p2p_media_enabled'] = (bool) $value;
-
-        return $this;
-    }
-
     /**
      * Exports to an array.
      *
@@ -1137,7 +1124,6 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
 
         $export['tags'] = $this->getHashtags();
         $export['rewards'] = (bool) $this->getPhoneNumberHash();
-        $export['p2p_media_enabled'] = $this->isP2PMediaEnabled();
         $export['is_mature'] = $this->isMature();
         $export['mature_lock'] = $this->getMatureLock();
         $export['mature'] = (int) $this->getViewMature();
@@ -2007,7 +1993,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
     public function toArray(): array
     {
         $array = parent::toArray();
-		
+        
         if (!$this->override_password && !$this->guid) {
             unset($array['password']);
             unset($array['salt']);
@@ -2022,5 +2008,5 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         }
 
         return $array;
-	}
+    }
 }

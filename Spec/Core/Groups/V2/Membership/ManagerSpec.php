@@ -21,8 +21,6 @@ use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-use function PHPSTORM_META\map;
-
 class ManagerSpec extends ObjectBehavior
 {
     protected $repositoryMock;

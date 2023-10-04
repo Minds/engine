@@ -4,6 +4,7 @@ namespace Minds\Core\Onboarding;
 
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Entities\User;
 
 class Manager
@@ -30,6 +31,8 @@ class Manager
     /** @var OnboardingGroups\OnogingOnboardingGroup */
     protected $ongoingOnboarding;
 
+    protected Save $save;
+
     /**
      * Manager constructor.
      *
@@ -40,11 +43,13 @@ class Manager
         $steps = null,
         $config = null,
         $initialOnboarding = null,
-        $ongoingOnboarding = null
+        $ongoingOnboarding = null,
+        $save = null,
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->initialOnboarding = $initialOnboarding ?? new OnboardingGroups\InitialOnboardingGroup();
         $this->ongoingOnboarding = $ongoingOnboarding ?? new OnboardingGroups\OngoingOnboardingGroup();
+        $this->save ??= new Save();
 
         if ($steps) {
             $this->steps = $steps;
@@ -100,8 +105,13 @@ class Manager
             throw new \Exception('User not set');
         }
 
-        $saved = $this->user
-            ->setOnboardingShown($onboardingShown)
+        $this->user
+            ->setOnboardingShown($onboardingShown);
+
+        $saved = $this->save->setEntity($this->user)
+            ->withMutatedAttributes([
+                'onboarding_shown',
+            ])
             ->save();
 
         return (bool) $saved;
@@ -120,8 +130,13 @@ class Manager
             throw new \Exception('User not set');
         }
 
-        $saved = $this->user
-            ->setInitialOnboardingCompleted(time())
+        $this->user
+            ->setInitialOnboardingCompleted(time());
+
+        $saved = $this->save->setEntity($this->user)
+            ->withMutatedAttributes([
+                'initial_onboarding_completed',
+            ])
             ->save();
 
         return (bool) $saved;
@@ -196,8 +211,13 @@ class Manager
             throw new \Exception('Invalid creator frequency');
         }
 
-        $saved = $this->user
-            ->setCreatorFrequency($creatorFrequency)
+        $this->user
+            ->setCreatorFrequency($creatorFrequency);
+
+        $saved = $this->save->setEntity($this->user)
+            ->withMutatedAttributes([
+                'creator_frequency',
+            ])
             ->save();
 
         return (bool) $saved;

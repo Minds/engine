@@ -4,6 +4,7 @@ namespace Minds\Core\Payments\Plans;
 use Minds\Core;
 use Minds\Entities;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 
 class PaywallReview
 {
@@ -12,10 +13,13 @@ class PaywallReview
 
     private $entity_guid;
 
-    public function __construct($db = null, $config = null)
+    private Save $save;
+
+    public function __construct($db = null, $config = null, $save = null)
     {
         $this->db = $db ?: Di::_()->get('Database\Cassandra\Cql');
         $this->config = $config ?: Di::_()->get('Config');
+        $this->save ??= new Save();
     }
 
     public function setEntityGuid($guid)
@@ -112,10 +116,10 @@ class PaywallReview
 
         if ($entity->subtype == 'blog') {
             $entity->monetized = false;
-            $entity->save();
+            $this->save->setEntity($entity)->withMutatedAttributes(['monetized'])->save();
         } else {
             $entity->paywall = false;
-            $entity->save();
+            $this->save->setEntity($entity)->withMutatedAttributes(['paywall'])->save();
         }
 
         $this->remove();

@@ -11,6 +11,7 @@ use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Factory as EntitiesFactory;
 use Minds\Entities\Group;
@@ -114,7 +115,7 @@ class management implements Interfaces\Api
             $saved = false;
             $group->setOwnerObj($member);
             try {
-                $saved = $group->save();
+                $saved = (new Save())->setEntity($group)->save();
             } catch (\Exception $e) {
                 error_log($e->getMessage());
             }

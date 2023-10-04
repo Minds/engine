@@ -11,8 +11,6 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Entities\Services\EntitiesRepositoryService;
 
-use function PHPSTORM_META\map;
-
 /// Map a username to a cached GUID
 global $USERNAME_TO_GUID_MAP_CACHE;
 $USERNAME_TO_GUID_MAP_CACHE = [];

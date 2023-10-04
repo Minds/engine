@@ -103,6 +103,7 @@ class Provider extends DiProvider
                 processExternalImageService: $di->get(ProcessExternalImageService::class),
                 config: $di->get('Config'),
                 logger: $di->get('Logger'),
+                save: new Save(),
             );
         });
         $this->di->bind(ProcessCollectionService::class, function ($di) {

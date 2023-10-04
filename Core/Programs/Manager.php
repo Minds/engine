@@ -4,6 +4,7 @@ namespace Minds\Core\Programs;
 use Minds\Core;
 use Minds\Entities;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 
 class Manager
 {
@@ -12,16 +13,21 @@ class Manager
     /** @var Entities\User */
     protected $user;
 
+    protected Save $save;
+
     protected static $defaultSettings = [
         'ads' => [
             'blogs' => 0,
         ],
     ];
 
-    public function __construct($timeline = null)
-    {
+    public function __construct(
+        $timeline = null,
+        $save = null,
+    ) {
         // @todo: migrate to CQLv3 (when PR is merged)
         $this->timeline = $timeline ?: new Core\Data\Call('entities_by_time');
+        $this->save = new Save();
     }
 
     public function setUser($user)
@@ -101,7 +107,12 @@ class Manager
         $programs = array_unique($programs);
 
         $this->user->setPrograms($programs);
-        $this->user->save();
+
+        $this->save->setEntity($this->user)
+            ->withMutatedAttributes([
+                'programs',
+            ])
+            ->save();
 
         Core\Events\Dispatcher::trigger('notification', 'program', [
             'to'=> [ $optInRequest->getFrom()['guid'] ],
@@ -129,7 +140,12 @@ class Manager
         $programs = array_unique($programs);
 
         $user->setPrograms($programs);
-        $user->save();
+
+        $this->save->setEntity($this->user)
+            ->withMutatedAttributes([
+                'programs',
+            ])
+            ->save();
 
         $optInRequest->delete();
 
@@ -213,7 +229,12 @@ class Manager
         $userRow[$program] = $settings;
 
         $this->user->setMonetizationSettings($userRow);
-        $this->user->save();
+        
+        $this->save->setEntity($this->user)
+            ->withMutatedAttributes([
+                'monetization_settings',
+            ])
+            ->save();
 
         return true;
     }

@@ -7,6 +7,7 @@ namespace Minds\Core\Groups;
 use Minds\Core\Di\Di;
 
 use Minds\Behaviors\Actorable;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Entities\Group;
 use Minds\Entities\User;
@@ -21,6 +22,8 @@ class Management
     protected $group;
     protected $relDB;
 
+    protected Save $save;
+
     /**
      * Constructor
      */
@@ -32,6 +35,8 @@ class Management
         $this->relDB = $db ?: Di::_()->get('Database\Cassandra\Relationships');
         $this->setAcl($acl);
         $this->membershipManager ??= Di::_()->get(V2\Membership\Manager::class);
+
+        $this->save = new Save();
     }
 
     /**
@@ -71,7 +76,7 @@ class Management
         $fallback_done = $this->relDB->create('group:owner', $this->group->getGuid());
 
         $this->group->pushOwnerGuid($user_guid);
-        $done = $this->group->save();
+        $done = $this->save->setEntity($this->group)->save();
 
         // New vitess code
         $this->membershipManager->modifyMembershipLevel($this->group, $user, $this->actor, GroupMembershipLevelEnum::OWNER);
@@ -109,7 +114,7 @@ class Management
         $fallback_done = $this->relDB->create('group:moderator', $this->group->getGuid());
 
         $this->group->pushModeratorGuid($user_guid);
-        $done = $this->group->save();
+        $done = $this->save->setEntity($this->group)->save();
 
         // New vitess code
         $this->membershipManager->modifyMembershipLevel($this->group, $user, $this->actor, GroupMembershipLevelEnum::MODERATOR);
@@ -143,7 +148,7 @@ class Management
         $fallback_done = $this->relDB->remove('group:moderator', $this->group->getGuid());
 
         $this->group->removeModeratorGuid($user_guid);
-        $done = $this->group->save();
+        $done = $this->save->setEntity($this->group)->save();
 
         // New vitess code
         $this->membershipManager->modifyMembershipLevel($this->group, $user, $this->actor, GroupMembershipLevelEnum::MEMBER);
@@ -177,7 +182,7 @@ class Management
         $fallback_done = $this->relDB->remove('group:owner', $this->group->getGuid());
 
         $this->group->removeOwnerGuid($user_guid);
-        $done = $this->group->save();
+        $done = $this->save->setEntity($this->group)->save();
 
         // New vitess code
         $this->membershipManager->modifyMembershipLevel($this->group, $user, $this->actor, GroupMembershipLevelEnum::MEMBER);

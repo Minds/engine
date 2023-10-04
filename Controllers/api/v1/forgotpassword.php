@@ -13,6 +13,7 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -20,6 +21,12 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
     /** @var ActionButton */
     protected $actionButton;
+
+    public function __construct(
+        private Save $save,
+    ) {
+        $this->save = new Save();
+    }
 
     /**
      * NOT AVAILABLE
@@ -155,7 +162,14 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
                 $user->password = Core\Security\Password::generate($user, $_POST['password']);
                 $user->password_reset_code = "";
                 $user->override_password = true;
-                $user->save();
+
+                $this->save
+                    ->setEntity($user)
+                    ->withMutatedAttributes([
+                        'password',
+                        'password_reset_code'
+                    ])
+                    ->save();
 
                 (new \Minds\Core\Sessions\CommonSessions\Manager())->deleteAll($user);
 

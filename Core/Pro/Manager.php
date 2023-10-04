@@ -122,6 +122,9 @@ class Manager
 
         $saved = $this->saveAction
             ->setEntity($this->user)
+            ->withMutatedAttributes([
+                'pro_expires',
+            ])
             ->save();
 
         $this->initializeSettingsDelegate
@@ -150,6 +153,9 @@ class Manager
 
         $saved = $this->saveAction
             ->setEntity($this->user)
+            ->withMutatedAttributes([
+                'pro_expires',
+            ])
             ->save();
 
         return (bool) $saved;
@@ -347,6 +353,9 @@ class Manager
             $this->user->setProPublished($values['published']);
             $this->saveAction
                 ->setEntity($this->user)
+                ->withMutatedAttributes([
+                    'pro_published',
+                ])
                 ->save();
         }
 

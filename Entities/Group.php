@@ -78,24 +78,17 @@ class Group extends NormalizedEntity implements EntityInterface
     ];
 
     /**
-     * Save
-     * @return boolean
+     * Returns the entity in an associative array
      */
-    public function save(array $opts = [])
+    public function toArray(): array
     {
-        $creation = false;
-
         if (!$this->guid) {
             $this->guid = Guid::build();
             $this->time_created = time();
             $creation = true;
         }
 
-        if (!$this->canEdit()) {
-            return false;
-        }
-
-        $saved = $this->saveToDb([
+        $data = [
             'type' => $this->type,
             'guid' => $this->guid,
             'owner_guid' => $this->owner_guid,
@@ -124,29 +117,9 @@ class Group extends NormalizedEntity implements EntityInterface
             'nsfw' => $this->getNSFW(),
             'nsfw_lock' => $this->getNSFWLock(),
             'time_created' => $this->getTimeCreated(),
-        ]);
+        ];
 
-        if (!$saved) {
-            throw new \Exception("We couldn't save the entity to the database");
-        }
-
-        $this->saveToIndex();
-        \elgg_trigger_event($creation ? 'create' : 'update', $this->type, $this);
-
-        // Temporary until this is refactored into a Manager
-        (new ElasticSearchDelegate())->onSave($this);
-
-        try {
-            Di::_()->get('EventsDispatcher')->trigger('entities-ops', $creation ? 'create' : 'update', [
-                'entityUrn' => $this->getUrn()
-            ]);
-        } catch (UndeliveredEventException $e) {
-            $this->db->removeRow($this->getGuid());
-            // Rethrow
-            throw $e;
-        }
-
-        return $saved;
+        return $data;
     }
 
     /**

@@ -8,6 +8,7 @@ use Minds\Core\Media\Assets\Video;
 use Minds\Entities\Activity;
 use Minds\Entities\Factory;
 use Minds\Entities\EntityInterface;
+use Minds\Entities\Group;
 use Minds\Entities\Image;
 use Minds\Entities\User;
 
@@ -17,8 +18,7 @@ class CassandraRepository implements EntitiesRepositoryInterface
         private Call $entitiesTable,
         private lookup $lookupTable,
         private Indexes $indexesTable,
-    )
-    {
+    ) {
         
     }
 
@@ -68,7 +68,8 @@ class CassandraRepository implements EntitiesRepositoryInterface
             case Activity::class:
             case Image::class:
             case Video::class:
-                /**  @var User|Activity|Image|Video */
+            case Group::class:
+                /**  @var User|Activity|Image|Video|Group */
                 $entity = $entity;
                 $data = $entity->toArray();
                 break;
@@ -113,8 +114,8 @@ class CassandraRepository implements EntitiesRepositoryInterface
             case User::class:
             case Activity::class:
             case Image::class:
-            case Video::class:
-                /**  @var User|Activity|Image|Video */
+            case Group::class:
+                /**  @var User|Activity|Image|Video|Group */
                 $entity = $entity;
                 $data = $entity->toArray();
                 break;
@@ -153,6 +154,24 @@ class CassandraRepository implements EntitiesRepositoryInterface
             $this->indexesTable->remove($rowkey, [$entity->getGuid()]);
         }
 
+        switch (get_class($entity)) {
+            case User::class:
+                /**
+                 * Remove the user indexes
+                 */
+                /** @var User */
+                $entity = $entity;
+                if (!$this->lookupTable->get(strtolower($entity->getUsername()))) {
+                    $this->lookupTable->remove(strtolower($entity->getUsername()));
+                    $this->lookupTable->remove(strtolower($entity->getEmail()));
+                    if ($entity->phone_number_hash) {
+                        $this->lookupTable->remove(strtolower($entity->phone_number_hash));
+                    }
+                }
+                break;
+        }
+
+        return true;
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Provisioner;
 
+use Minds\Core\Config\Config;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -10,14 +11,17 @@ use Minds\Entities\Site;
 
 class InstallerSpec extends ObjectBehavior
 {
+    private $configMock;
+
     public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Provisioner\Installer');
     }
 
-    public function let(Minds $minds)
+    public function let(Minds $minds, Config $config)
     {
-        global $CONFIG;
+        $this->beConstructedWith($config);
+        $this->configMock = $config;
 
         $this->setApp($minds);
 
@@ -36,8 +40,6 @@ class InstallerSpec extends ObjectBehavior
             'phone-number-public-key' => __FILE__,
             'phone-number-private-key' => __FILE__
         ]);
-
-        $CONFIG->site_name = 'PHPSpec Minds';
     }
 
     public function it_should_check_options_valid()
@@ -152,8 +154,12 @@ class InstallerSpec extends ObjectBehavior
 
     public function it_should_setup_site(Site $site)
     {
+        $this->configMock->get('site_name')->willReturn('PHPSpec Minds');
         $site->set('name', 'PHPSpec Minds')->shouldBeCalled();
+
+        $this->configMock->get('site_url')->willReturn('https://phpspec.minds.io/');
         $site->set('url', 'https://phpspec.minds.io/')->shouldBeCalled();
+
         $site->set('access_id', 2)->shouldBeCalled();
         $site->set('email', 'phpspec@minds.io')->shouldBeCalled();
 
@@ -165,7 +171,9 @@ class InstallerSpec extends ObjectBehavior
     }
 
     public function it_should_get_site_url()
-    {
+    { 
+        $this->configMock->get('site_url')->willReturn('https://phpspec.minds.io/');
+
         $this->getSiteUrl()->shouldReturn('https://phpspec.minds.io/');
     }
 }

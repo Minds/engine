@@ -67,7 +67,7 @@ class SpamSpec extends ObjectBehavior
     public function it_should_detect_spam_in_a_user(
         User $user
     ) {
-        $user = new User('123');
+        $user = new User();
         $user['briefdescription'] = 'test bit.ly test';
         $user['type'] = 'user';
         
@@ -119,7 +119,7 @@ class SpamSpec extends ObjectBehavior
     public function it_should_detect_NO_spam_in_a_user(
         User $user
     ) {
-        $user = new User('123');
+        $user = new User();
         $user['briefdescription'] = 'test bit.nospam test';
         $user['type'] = 'user';
         

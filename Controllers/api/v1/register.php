@@ -14,12 +14,20 @@ use Minds\Core;
 use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
 use Minds\Core\Captcha\FriendlyCaptcha\Classes\DifficultyScalingType;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Entities\User;
 use Minds\Helpers\StringLengthValidators\UsernameLengthValidator;
 use Minds\Interfaces;
 
 class register implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    private Save $save;
+
+    public function __construct(
+    ) {
+        $this->save = new Save();
+    }
+
     /**
      * NOT AVAILABLE
      */
@@ -112,7 +120,15 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             }
 
             if ($hasSignupTags) {
-                $user->save();
+                $this->save
+                    ->setEntity($user)
+                    ->withMutatedAttributes([
+                        'signupParentId',
+                        'signupPreviousUrl',
+                        'signupParentId',
+                        'language',
+                    ])
+                    ->save();
             } else {
                 return Factory::response(['status'=>'error', 'message' => "Please refresh your browser or update you app. We don't recognise your platform."]);
             }

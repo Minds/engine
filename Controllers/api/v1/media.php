@@ -21,6 +21,13 @@ use Minds\Core\Entities\Actions\Save;
 
 class media implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    private Save $save;
+
+    public function __construct()
+    {
+        $this->save = new Save();
+    }
+
     /**
      * Return the media items
      * @param array $pages
@@ -176,7 +183,11 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                 $video->access_id = 0;
                 $video->patch(['full_hd', Core\Session::getLoggedinUser()->isPro()]);
                 $video->upload($tmpFilename);
-                $guid = $video->save();
+
+                $this->save->setEntity($video)->save();
+
+                $guid = $video->getGuid();
+    
                 fclose($fp);
                 break;
 
@@ -184,7 +195,11 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
                 $image = new Entities\Image();
                 $image->batch_guid = 0;
                 $image->access_id = 0;
-                $guid = $image->save();
+
+                $this->save->setEntity($image)->save();
+
+                $guid = $image->getGuid();
+    
                 $image->filename = "/image/$image->batch_guid/$image->guid/master.jpg";
                 $fp = fopen("/tmp/{$image->guid}-master.jpg", "w");
                 $req = Helpers\Upload::parsePhpInput();
@@ -200,7 +215,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
 
                 $loc = $image->getFilenameOnFilestore();
                 $image->createThumbnails("/tmp/{$image->guid}-master.jpg");
-                $image->save();
+                $this->save->setEntity($image)->save();
                 unlink("/tmp/{$image->guid}-master.jpg");
         }
 
@@ -236,7 +251,6 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
     private function _upload($clientType, array $data = [], array $media = [])
     {
         $user = Core\Session::getLoggedInUser();
-        $save = new Save();
 
         // @note: Sometimes images are uploaded as videos. Polyfill:
         $mimeIsImage = strpos($media['type'], 'image/') !== false;
@@ -286,7 +300,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         // Save initial entity
 
-        $success = $save
+        $success = $this->save
             ->setEntity($entity)
             ->save(true);
 
@@ -299,13 +313,6 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
             ->setEntityGuid($entity->guid)
             ->setUserGuid(Core\Session::getLoggedInUserGuid())
             ->follow();
-
-
-        // Mark user as mature, if needed
-        if (!$user->getMatureContent() && $entity->getFlag('mature')) {
-            $user->setMatureContent(true);
-            $user->save();
-        }
 
         $location = method_exists($entity, 'getFilenameOnFilestore') ? $entity->getFilenameOnFilestore() : '';
 
@@ -333,7 +340,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
         $entity->setAssets($assets->update($data));
 
         // Save and reindex
-        $success = $entity->save(true);
+        $success = $this->save->setEntity($entity)->save();
 
         if (!$success) {
             throw new \Exception('Error updating media entity');
@@ -344,12 +351,6 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
             'entity' => $entity->export()
         ];
 
-        // Mark user as mature, if needed
-        if (!$user->getMatureContent() && $entity->getFlag('mature')) {
-            $user->setMatureContent(true);
-            $user->save();
-        }
-
         // Create activity post
         /** @var Core\Media\Feeds $feeds */
         $feeds = Di::_()->get('Media\Feeds')->setEntity($entity);
@@ -358,16 +359,6 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
             (isset($data['access_token']) && $data['access_token']) ||
             ($entity->access_id == 0 && isset($data['access_id']) && $data['access_id'] == 2)
         ) {
-            $activity = $feeds->createActivity();
-
-            if ($activity) {
-                $response['activity_guid'] = $activity->guid;
-            }
-
-            $feeds->dispatch([
-                'facebook' => isset($data['facebook']) && $data['facebook'] ? $data['facebook'] : false,
-                'twitter' => isset($data['twitter']) && $data['twitter'] ? true : false
-            ]);
         } else {
             $feeds->updateActivities();
         }

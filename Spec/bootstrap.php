@@ -28,6 +28,8 @@ $CONFIG->cassandra = [
     'password' => 'cassandra',
 ];
 
+$CONFIG->set('development_mode', false);
+
 
 $CONFIG->set('oci', [
     'oss_s3_client' => [

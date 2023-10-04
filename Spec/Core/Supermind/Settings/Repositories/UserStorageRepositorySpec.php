@@ -60,6 +60,12 @@ class UserStorageRepositorySpec extends ObjectBehavior
         $this->saveAction->setEntity($user)
             ->shouldBeCalled()
             ->willReturn($this->saveAction);
+
+        $this->saveAction->withMutatedAttributes([
+            'supermind_settings'
+        ])
+            ->shouldBeCalled()
+            ->willReturn($this->saveAction);
         
         $this->saveAction->save()
             ->shouldBeCalled();
