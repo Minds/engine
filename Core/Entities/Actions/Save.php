@@ -21,6 +21,7 @@ use Minds\Core\Security\ACL;
 use Minds\Exceptions\StopEventException;
 use Minds\Helpers\MagicAttributes;
 use Minds\Core\Log\Logger;
+use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Entities\EntityInterface;
 
 /**
@@ -49,12 +50,14 @@ class Save
         $eventsDispatcher = null,
         $logger = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?EntitiesRepositoryInterface $entitiesRepository = null
+        private ?EntitiesRepositoryInterface $entitiesRepository = null,
+        private ?ACL $acl = null,
     ) {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->logger = $logger ?: Di::_()->get('Logger');
         $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
         $this->entitiesRepository ??= Di::_()->get(EntitiesRepositoryInterface::class);
+        $this->acl ??= Di::_()->get(ACL::class);
     }
 
     /**
@@ -105,6 +108,10 @@ class Save
 
         if (!$this->entity) {
             return false;
+        }
+
+        if (!$this->acl->write($this->entity)) {
+            throw new UnauthorizedException();
         }
 
         $this->beforeSave();

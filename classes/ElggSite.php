@@ -126,24 +126,6 @@ class ElggSite extends ElggEntity {
 			return; //the site is not an entitiy, it is static from settings
 		}
 		$this->guid = 1;
-		return parent::save();
-	}
-
-	/**
-	 * Delete the site.
-	 *
-	 * @note You cannot delete the current site.
-	 *
-	 * @return bool
-	 * @throws SecurityException
-	 */
-	public function delete() {
-		global $CONFIG;
-		if ($CONFIG->site->getGUID() == $this->guid) {
-			throw new SecurityException('SecurityException:deletedisablecurrentsite');
-		}
-
-		return parent::delete();
 	}
 
 	/**

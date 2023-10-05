@@ -105,13 +105,6 @@ abstract class ElggData implements
 	abstract public function getURL();
 
 	/**
-	 * Delete this data.
-	 *
-	 * @return bool
-	 */
-	abstract public function delete();
-
-	/**
 	 * Returns the UNIX epoch time that this entity was created
 	 *
 	 * @return int UNIX epoch time

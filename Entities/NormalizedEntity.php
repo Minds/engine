@@ -13,8 +13,6 @@ class NormalizedEntity
 {
     use Traits\Entity;
 
-    protected $db;
-    protected $indexDb;
     protected $guid;
     protected $indexes = [];
     protected $exportableDefaults = [];
@@ -30,28 +28,6 @@ class NormalizedEntity
 
     /** @var string $subtype */
     protected $subtype;
-
-    public function __construct($db = null, $indexDb = null)
-    {
-        $this->db = $db ?: new Data\Call('entities');
-        $this->indexDb = $indexDb ?: Core\Di\Di::_()->get('Database\Cassandra\Indexes');
-    }
-
-    /**
-    * Load entity data from a GUID
-    * @param  $guid
-    * @return $this
-    * @throws \Exception
-    */
-    public function loadFromGuid($guid)
-    {
-        $row = $this->db->getRow($guid);
-        if (!$row) {
-            throw new \Exception("Entity not found");
-        }
-        $row['guid'] = $guid;
-        return $this->loadFromArray($row);
-    }
 
     /**
     * Load entity data from an array
@@ -73,40 +49,7 @@ class NormalizedEntity
             }
         }
 
-        //if($this->useCache())
-        //	cache_entity($this);
         return $this;
-    }
-
-    /**
-    * Save the normalized entity to the database
-    * @param  array $data
-    * @return bool
-    */
-    protected function saveToDb($data)
-    {
-        foreach ($data as $k => $v) {
-            if (is_null($v)) {
-                unset($data[$k]);
-                continue;
-            }
-            if (is_array($v)) {
-                $v = json_encode($v);
-            }
-            $data[$k] = $v;
-        }
-        return (bool) $this->db->insert($this->getGuid(), $data);
-    }
-
-    /**
-    * Save to indexes
-    * @return null
-    */
-    protected function saveToIndex()
-    {
-        foreach ($this->indexes as $index) {
-            $this->indexDb->insert($index, [$this->getGuid() => $this->getGuid()]);
-        }
     }
 
     /**

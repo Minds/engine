@@ -519,46 +519,6 @@ abstract class ElggEntity extends ElggData implements
     }
 
     /**
-     * Delete this entity.
-     *
-     * @return bool
-     */
-    public function delete()
-    {
-        global $CONFIG, $ENTITY_CACHE;
-
-        //some plugins may want to halt the delete...
-        $delete = Minds\Core\Events\Dispatcher::trigger('delete', $this->type, [ 'entity' => $this ]);
-
-        if ($delete && $this->canEdit()) {
-
-            // delete cache
-            if (isset($ENTITY_CACHE[$this->guid])) {
-                invalidate_cache_for_entity($this->guid);
-            }
-
-            // Now delete the entity itself
-            $db = new Minds\Core\Data\Call('entities');
-            $res = $db->removeRow($this->guid);
-
-
-            $db = new Minds\Core\Data\Call('entities_by_time');
-            foreach ($this->getIndexKeys() as $rowkey) {
-                $db->removeAttributes($rowkey, [$this->guid], false);
-            }
-
-            \Minds\Core\Events\Dispatcher::trigger('entities-ops', 'delete', [
-                'entityUrn' => $this->getUrn(),
-                'entity' => $this,
-            ]);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Returns an array of indexes into which this entity is stored
      *
      * @param bool $ia - ignore access

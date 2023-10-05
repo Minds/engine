@@ -119,16 +119,6 @@ class Image extends File implements MutatableEntityInterface, CommentableEntityI
     }
 
     /**
-     * Extend the default delete function to remove from the remote service
-     */
-    public function delete()
-    {
-        return parent::delete();
-
-        //remove from the filestore
-    }
-
-    /**
      * Return the folder in which this image is stored
      */
     public function getFilePath()

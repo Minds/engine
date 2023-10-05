@@ -90,7 +90,7 @@ class Join
         $this->testnetBalance = $testnetBalance ?: Di::_()->get('Blockchain\Wallets\OffChain\TestnetBalance');
         $this->referralDelegate = $referralDelegate ?: new Delegates\ReferralDelegate;
         $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
-        $this->save = new Save();
+        $this->save = $save ?? new Save();
     }
 
     public function setUser(&$user)

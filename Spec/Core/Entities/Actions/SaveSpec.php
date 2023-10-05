@@ -7,6 +7,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\EventsDispatcher;
+use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Entities\Group;
 use Minds\Entities\User;
@@ -20,14 +21,22 @@ class SaveSpec extends ObjectBehavior
     protected $dispatcher;
 
     protected Collaborator $entitiesBuilderMock;
-    protected Collaborator $entitiesRepositoryMock;
+    protected Collaborator $entitiesRepositoryMock;#
+    protected Collaborator $aclMock;
 
-    public function let(EventsDispatcher $dispatcher, EntitiesBuilder $entitiesBuilderMock, EntitiesRepositoryInterface $entitiesRepositoryMock)
-    {
-        $this->beConstructedWith($dispatcher, null, $entitiesBuilderMock, $entitiesRepositoryMock);
+    public function let(
+        EventsDispatcher $dispatcher,
+        EntitiesBuilder $entitiesBuilderMock,
+        EntitiesRepositoryInterface $entitiesRepositoryMock,
+        ACL $aclMock,
+    ) {
+        $this->beConstructedWith($dispatcher, null, $entitiesBuilderMock, $entitiesRepositoryMock, $aclMock);
         $this->dispatcher = $dispatcher;
         $this->entitiesBuilderMock = $entitiesBuilderMock;
         $this->entitiesRepositoryMock = $entitiesRepositoryMock;
+        $this->aclMock = $aclMock;
+
+        $this->aclMock->write(Argument::any())->willReturn(true);
     }
 
     public function it_is_initializable()

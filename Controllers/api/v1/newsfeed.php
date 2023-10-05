@@ -13,6 +13,7 @@ use Exception;
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Delete;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Security;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
@@ -238,8 +239,8 @@ class newsfeed implements Interfaces\Api
      */
     public function delete($pages): void
     {
-        $activity = new Activity($pages[0]);
-        if (!$activity->guid) {
+        $activity = Di::_()->get(EntitiesBuilder::class)->single($pages[0]);
+        if (!$activity instanceof Activity) {
             Factory::response(['status' => 'error', 'message' => 'could not find activity post']);
             return;
         }
@@ -273,7 +274,7 @@ class newsfeed implements Interfaces\Api
                 $attachment = Entities\Factory::build($activity->entity_guid);
 
                 if ($attachment && $owner->guid == $attachment->owner_guid) {
-                    $attachment->delete();
+                    (new Delete())->setEntity($attachment)->delete();
                 }
             } catch (Exception $e) {
                 error_log("Cannot delete attachment: {$activity->entity_guid}");
@@ -283,7 +284,7 @@ class newsfeed implements Interfaces\Api
         // remove from pinned
         $owner->removePinned($activity->guid);
 
-        if ($activity->delete()) {
+        if ((new Delete())->setEntity($activity)->delete()) {
             Factory::response(['message' => 'removed ' . $pages[0]]);
             return;
         }

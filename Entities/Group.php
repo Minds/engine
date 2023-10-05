@@ -119,43 +119,12 @@ class Group extends NormalizedEntity implements EntityInterface
             'time_created' => $this->getTimeCreated(),
         ];
 
-        return $data;
-    }
-
-    /**
-     * Deletes from DB
-     * @return boolean
-     */
-    public function delete()
-    {
-        if (!$this->canEdit()) {
-            return false;
-        }
-
-        $this->unFeature();
-
-        Di::_()->get('Queue')
-          ->setExchange('mindsqueue')
-          ->setQueue('FeedCleanup')
-          ->send([
-              'guid' => $this->getGuid(),
-              'owner_guid' => $this->getOwnerObj()->guid,
-              'type' => $this->getType()
-          ]);
-
-        Di::_()->get('Queue')
-          ->setExchange('mindsqueue')
-          ->setQueue('CleanupDispatcher')
-          ->send([
-              'type' => 'group',
-              'group' => $this->export()
-          ]);
-
-        Di::_()->get('EventsDispatcher')->trigger('entities-ops', 'delete', [
-            'entityUrn' => $this->getUrn()
-        ]);
-
-        return (bool) $this->db->removeRow($this->getGuid());
+        return array_map(function ($val) {
+            if (is_array($val)) {
+                $val = json_encode($val);
+            }
+            return $val;
+        }, $data);
     }
 
     /**
@@ -696,6 +665,7 @@ class Group extends NormalizedEntity implements EntityInterface
         $this->pinned_posts = $pinned;
         return $this;
     }
+
     /**
      * Gets the group's pinned posts
      * @return array

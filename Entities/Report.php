@@ -42,11 +42,6 @@ class Report extends DenormalizedEntity
         throw new \Exception('Use Reports\Repository');
     }
 
-    public function delete()
-    {
-        throw new \Exception('Use Reports\Repository::delete()');
-    }
-
     /**
      * @return mixed
      */

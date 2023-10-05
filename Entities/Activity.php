@@ -119,47 +119,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     }
 
     /**
-     * Deletes the activity entity and indexes
-     * @return bool
-     */
-    public function delete()
-    {
-        if ($this->getEphemeral()) {
-            throw new \Exception('Cannot save an ephemeral activity');
-        }
-
-        if ($this->p2p_boosted) {
-            return false;
-        }
-
-        $indexes = $this->getIndexKeys(true);
-        $db = new Core\Data\Call('entities');
-        $res = $db->removeRow($this->guid);
-
-        $db = new Core\Data\Call('entities_by_time');
-        foreach ($indexes as $index) {
-            $db->removeAttributes($index, [$this->guid]);
-        }
-
-        (new Core\Translation\Storage())->purge($this->guid);
-
-        Core\Events\Dispatcher::trigger('entities-ops', 'delete', [
-            'entityUrn' => $this->getUrn(),
-            'entity' => $this,
-        ]);
-
-        Queue\Client::build()->setQueue("FeedCleanup")
-            ->send([
-                "guid" => $this->guid,
-                "owner_guid" => $this->owner_guid,
-                "type" => "activity"
-            ]);
-
-        Core\Events\Dispatcher::trigger('delete', 'activity', ['entity' => $this]);
-
-        return true;
-    }
-    /**
      * Returns an array of indexes into which this entity is stored
      *
      * @param  bool $ia - ignore access

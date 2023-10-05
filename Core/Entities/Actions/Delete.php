@@ -11,6 +11,8 @@ namespace Minds\Core\Entities\Actions;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
 use Minds\Core\Events\Dispatcher;
+use Minds\Core\Router\Exceptions\UnauthorizedException;
+use Minds\Core\Security\ACL;
 
 class Delete
 {
@@ -26,10 +28,12 @@ class Delete
      */
     public function __construct(
         $eventsDispatcher = null,
-        private ?EntitiesRepositoryInterface $entitiesRepository = null
+        private ?EntitiesRepositoryInterface $entitiesRepository = null,
+        private ?ACL $acl = null,
     ) {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->entitiesRepository ??= Di::_()->get(EntitiesRepositoryInterface::class);
+        $this->acl ??= Di::_()->get(ACL::class);
     }
 
     /**
@@ -52,6 +56,10 @@ class Delete
     {
         if (!$this->entity) {
             return false;
+        }
+
+        if (!$this->acl->write($this->entity)) {
+            throw new UnauthorizedException();
         }
 
         $delete = $this->eventsDispatcher->trigger('delete', $this->entity->getType(), [ 'entity' => $this->entity ]);

@@ -11,6 +11,7 @@ use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Delete;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
@@ -337,7 +338,7 @@ class group implements Interfaces\Api
         }
 
         try {
-            $group->delete();
+            (new Delete())->setEntity($group)->delete();
 
             return Factory::response([
                 'done' => true
