@@ -14,12 +14,12 @@ use Minds\Entities\User;
 
 class Ban
 {
-    /** @var EventsDispatcher */
-    protected $eventsDispatcher;
-
-    public function __construct($eventsDispatcher = null)
-    {
-        $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
+    public function __construct(
+        protected ?EventsDispatcher $eventsDispatcher = null,
+        protected ?Save $save = null,
+    ) {
+        $this->eventsDispatcher ??= Di::_()->get('EventsDispatcher');
+        $this->save ??= new Save();
     }
 
     /**
@@ -33,7 +33,7 @@ class Ban
         $user->banned = 'yes';
         $user->code = '';
 
-        $saved = (bool) (new Save())->setEntity($user)->withMutatedAttributes(['ban_reason', 'banned'])->save();
+        $saved = (bool) $this->save->setEntity($user)->withMutatedAttributes(['ban_reason', 'banned'])->save();
 
         if ($saved) {
             if ($refreshCache) {

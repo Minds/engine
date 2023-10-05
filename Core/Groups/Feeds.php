@@ -132,10 +132,12 @@ class Feeds
         $adminQueue = Di::_()->get('Groups\AdminQueue');
         $success = $adminQueue->add($this->group, $activity);
 
+        /** @var User */
+        $owner = $this->entitiesBuilder->single($activity->getOwnerGuid());
 
         if ($success && $options['notification']) {
             $this->sendNotification('add', $activity);
-            $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_ADD, $activity->getOwnerEntity(), $activity);
+            $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_ADD, $owner, $activity);
             $this->emitActionEvent(ActionEvent::ACTION_GROUP_QUEUE_RECEIVED, new SystemUser(), $activity);
         }
 

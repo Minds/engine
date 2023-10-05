@@ -80,7 +80,8 @@ class NostrOpsEventStreamsSubscription implements SubscriptionInterface
 
         switch (get_class($entity)) {
             case Activity::class:
-                $user = $entity->getOwnerEntity();
+                /** @var User */
+                $user = $this->entitiesBuilder->single($entity->getOwnerGuid());
                 break;
                 // case User::class: // TODO might be useful to sync user profile changes
             default:

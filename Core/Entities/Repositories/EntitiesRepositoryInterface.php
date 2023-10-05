@@ -24,7 +24,7 @@ interface EntitiesRepositoryInterface
      * Updates an entity and saves to the data store
      * Acts as an upsert.
      * Specify columns to only update those. Empty columns will update all columns
-     * 
+     *
      * @param EntityInterface $entity
      * @param string[] $columns
      */

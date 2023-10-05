@@ -4,21 +4,30 @@ namespace Spec\Minds\Core\Entities\Actions;
 
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Entities\Activity;
 use Minds\Entities\Group;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 
 class SaveSpec extends ObjectBehavior
 {
     /** @var EventsDispatcher */
     protected $dispatcher;
 
-    public function let(EventsDispatcher $dispatcher)
+    protected Collaborator $entitiesBuilderMock;
+    protected Collaborator $entitiesRepositoryMock;
+
+    public function let(EventsDispatcher $dispatcher, EntitiesBuilder $entitiesBuilderMock, EntitiesRepositoryInterface $entitiesRepositoryMock)
     {
-        $this->beConstructedWith($dispatcher);
+        $this->beConstructedWith($dispatcher, null, $entitiesBuilderMock, $entitiesRepositoryMock);
         $this->dispatcher = $dispatcher;
+        $this->entitiesBuilderMock = $entitiesBuilderMock;
+        $this->entitiesRepositoryMock = $entitiesRepositoryMock;
     }
 
     public function it_is_initializable()
@@ -28,7 +37,22 @@ class SaveSpec extends ObjectBehavior
 
     public function it_should_save_an_entity_using_its_save_method(User $user)
     {
-        $user->getOwnerEntity()
+        $user->getGuid()
+            ->willReturn(null);
+            
+        $user->set('guid', Argument::any())
+            ->shouldBeCalled();
+    
+        $user->getUrn()
+            ->willReturn('urn:user:123');
+
+        $user->getType()
+            ->willReturn('user');
+
+        $user->getSubtype()
+            ->willReturn(null);
+
+        $user->getOwnerGuid()
             ->shouldBeCalled()
             ->willReturn(null);
 
@@ -36,7 +60,10 @@ class SaveSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $user->getContainerEntity()
+        $user->getOwnerGuid()
+            ->willReturn(null);
+
+        $user->getContainerGuid()
             ->shouldBeCalled()
             ->willReturn(null);
 
@@ -51,9 +78,22 @@ class SaveSpec extends ObjectBehavior
         $user->setNsfw([])
             ->shouldBeCalled();
 
-        $user->save()
+        //
+        
+        $this->entitiesRepositoryMock->create($user)
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->dispatcher->trigger('create', Argument::any(), Argument::any())
+            ->willReturn(true);
+
+        $this->dispatcher->trigger('entities-ops', Argument::any(), Argument::any())
+            ->willReturn(true);
+
+        $this->dispatcher->trigger('entity:save', Argument::any(), Argument::any(), true)
+            ->willReturn(true);
+
+        //
 
         $this->setEntity($user);
 
@@ -62,8 +102,26 @@ class SaveSpec extends ObjectBehavior
 
     public function it_should_save_an_entity_via_the_entity_save_event(Blog $blog)
     {
-        $blog->getOwnerEntity()
+        $blog->getGuid()
+            ->willReturn('');
+
+        // $blog->set('guid', Argument::any())
+        //     ->shouldBeCalled();
+
+        $blog->getUrn()
+            ->willReturn('urn:blog:123');
+
+        $blog->getType()
+            ->willReturn('object');
+
+        $blog->getSubtype()
+            ->willReturn('blog');
+    
+        $blog->getOwnerGuid()
             ->shouldBeCalled()
+            ->willReturn('');
+
+        $blog->getContainerGuid()
             ->willReturn(null);
 
         $blog->language = null;
@@ -78,9 +136,17 @@ class SaveSpec extends ObjectBehavior
 
         $blog->setNsfw([])->shouldBeCalled();
 
+        $this->dispatcher->trigger('create', Argument::any(), Argument::any())
+            ->willReturn(true);
+
+        $this->dispatcher->trigger('entities-ops', Argument::any(), Argument::any())
+            ->willReturn(true);
+
         $this->dispatcher->trigger('entity:save', 'object:blog', ['entity' => $blog], false)
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->entitiesRepositoryMock->create($blog)->willReturn(false);
 
         $this->setEntity($blog);
         $this->save($blog)->shouldReturn(true);
@@ -89,6 +155,22 @@ class SaveSpec extends ObjectBehavior
     public function it_should_save_an_entity_using_its_save_method_with_NSFW_from_owner(Activity $activity, User $owner)
     {
         $nsfw = [1, 2, 3, 4, 5, 6];
+
+        $activity->getGuid()
+            ->willReturn(null);
+
+        $activity->set('guid', Argument::any())
+            ->shouldBeCalled();
+
+        $activity->getUrn()
+            ->willReturn('urn:activity:123');
+
+        $activity->getType()
+            ->willReturn('activity');
+
+        $activity->getSubtype()
+            ->willReturn(null);
+
         $owner->getNsfw()
             ->shouldBeCalled()
             ->willReturn($nsfw);
@@ -109,11 +191,13 @@ class SaveSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
         
-        $activity->getOwnerEntity()
+        $activity->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($owner);
+            ->willReturn(123);
 
-        $activity->getContainerEntity()
+        $this->entitiesBuilderMock->single(123)->willReturn($owner);
+
+        $activity->getContainerGuid()
             ->shouldBeCalled()
             ->willReturn(null);
 
@@ -127,9 +211,22 @@ class SaveSpec extends ObjectBehavior
 
         $activity->setNsfw($nsfw)->shouldBeCalled();
 
-        $activity->save()
+        //
+        
+        $this->entitiesRepositoryMock->create($activity)
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->dispatcher->trigger('create', Argument::any(), Argument::any())
+            ->willReturn(true);
+
+        $this->dispatcher->trigger('entities-ops', Argument::any(), Argument::any())
+            ->willReturn(true);
+
+        $this->dispatcher->trigger('entity:save', Argument::any(), Argument::any(), true)
+            ->willReturn(true);
+
+        //
 
         $this->setEntity($activity);
 
@@ -139,6 +236,22 @@ class SaveSpec extends ObjectBehavior
     public function it_should_save_an_entity_using_its_save_method_with_NsfwLock_from_owner(Activity $activity, User $owner)
     {
         $nsfw = [1, 2, 3, 4, 5, 6];
+
+        $activity->getGuid()
+            ->willReturn(null);
+
+        $activity->set('guid', Argument::any())
+            ->shouldBeCalled();
+
+        $activity->getUrn()
+            ->willReturn('urn:activity:123');
+
+        $activity->getType()
+            ->willReturn('activity');
+
+        $activity->getSubtype()
+            ->willReturn(null);
+
         $owner->getNsfw()
             ->shouldBeCalled()
             ->willReturn([]);
@@ -159,11 +272,13 @@ class SaveSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $activity->getOwnerEntity()
+        $activity->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($owner);
+            ->willReturn(123);
 
-        $activity->getContainerEntity()
+        $this->entitiesBuilderMock->single(123)->willReturn($owner);
+
+        $activity->getContainerGuid()
             ->shouldBeCalled()
             ->willReturn(null);
 
@@ -177,9 +292,22 @@ class SaveSpec extends ObjectBehavior
 
         $activity->setNsfw($nsfw)->shouldBeCalled();
 
-        $activity->save()
+        //
+        
+        $this->entitiesRepositoryMock->create($activity)
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->dispatcher->trigger('create', Argument::any(), Argument::any())
+            ->willReturn(true);
+
+        $this->dispatcher->trigger('entities-ops', Argument::any(), Argument::any())
+            ->willReturn(true);
+
+        $this->dispatcher->trigger('entity:save', Argument::any(), Argument::any(), true)
+            ->willReturn(true);
+
+        //
 
         $this->setEntity($activity);
 
@@ -189,6 +317,22 @@ class SaveSpec extends ObjectBehavior
     public function it_should_save_an_entity_using_its_save_method_with_NSFW_from_container(Activity $activity, Group $container)
     {
         $nsfw = [1, 2, 3, 4, 5, 6];
+        
+        $activity->getGuid()
+            ->willReturn(null);
+
+        $activity->set('guid', Argument::any())
+            ->shouldBeCalled();
+
+        $activity->getUrn()
+            ->willReturn('urn:activity:123');
+
+        $activity->getType()
+            ->willReturn('activity');
+
+        $activity->getSubtype()
+            ->willReturn(null);
+    
         $container->getNsfw()
             ->shouldBeCalled()
             ->willReturn($nsfw);
@@ -201,13 +345,15 @@ class SaveSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $activity->getOwnerEntity()
+        $activity->getOwnerGuid()
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $activity->getContainerEntity()
+        $activity->getContainerGuid()
             ->shouldBeCalled()
-            ->willReturn($container);
+            ->willReturn(456);
+
+        $this->entitiesBuilderMock->single(456)->willReturn($container);
 
         $activity->getNsfw()
             ->shouldBeCalled()
@@ -219,9 +365,23 @@ class SaveSpec extends ObjectBehavior
 
         $activity->setNsfw($nsfw)->shouldBeCalled();
 
-        $activity->save()
+        //
+        
+        $this->entitiesRepositoryMock->create($activity)
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->dispatcher->trigger('create', Argument::any(), Argument::any())
+            ->willReturn(true);
+
+        $this->dispatcher->trigger('entities-ops', Argument::any(), Argument::any())
+            ->willReturn(true);
+
+        $this->dispatcher->trigger('entity:save', Argument::any(), Argument::any(), true)
+            ->willReturn(true);
+
+        //
+
         $this->setEntity($activity);
 
         $this->save()->shouldReturn(true);
@@ -230,6 +390,22 @@ class SaveSpec extends ObjectBehavior
     public function it_should_save_an_entity_using_its_save_method_with_NSFW_from_group(Activity $activity, Group $container)
     {
         $nsfw = [1, 2, 3, 4, 5, 6];
+
+        $activity->getGuid()
+            ->willReturn(null);
+
+        $activity->set('guid', Argument::any())
+            ->shouldBeCalled();
+
+        $activity->getUrn()
+            ->willReturn('urn:activity:123');
+
+        $activity->getType()
+            ->willReturn('activity');
+
+        $activity->getSubtype()
+            ->willReturn(null);
+
         $container->getNsfw()
             ->shouldBeCalled()
             ->willReturn([]);
@@ -242,13 +418,15 @@ class SaveSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $activity->getOwnerEntity()
+        $activity->getOwnerGuid()
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $activity->getContainerEntity()
+        $activity->getContainerGuid()
             ->shouldBeCalled()
-            ->willReturn($container);
+            ->willReturn(456);
+
+        $this->entitiesBuilderMock->single(456)->willReturn($container);
 
         $activity->getNsfw()
             ->shouldBeCalled()
@@ -260,9 +438,22 @@ class SaveSpec extends ObjectBehavior
 
         $activity->setNsfw($nsfw)->shouldBeCalled();
 
-        $activity->save()
+        //
+        
+        $this->entitiesRepositoryMock->create($activity)
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->dispatcher->trigger('create', Argument::any(), Argument::any())
+            ->willReturn(true);
+
+        $this->dispatcher->trigger('entities-ops', Argument::any(), Argument::any())
+            ->willReturn(true);
+
+        $this->dispatcher->trigger('entity:save', Argument::any(), Argument::any(), true)
+            ->willReturn(true);
+
+        //
 
         $this->setEntity($activity);
 
@@ -274,6 +465,21 @@ class SaveSpec extends ObjectBehavior
     {
         $nsfw = [1, 2, 3];
         $nsfwLock = [4, 5, 6];
+
+        $activity->getGuid()
+            ->willReturn(null);
+
+        $activity->set('guid', Argument::any())
+            ->shouldBeCalled();
+
+        $activity->getUrn()
+            ->willReturn('urn:activity:123');
+
+        $activity->getType()
+            ->willReturn('activity');
+
+        $activity->getSubtype()
+            ->willReturn(null);
 
         $container->getNsfw()
             ->shouldBeCalled()
@@ -287,13 +493,15 @@ class SaveSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $activity->getOwnerEntity()
+        $activity->getOwnerGuid()
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $activity->getContainerEntity()
+        $activity->getContainerGuid()
             ->shouldBeCalled()
-            ->willReturn($container);
+            ->willReturn(456);
+
+        $this->entitiesBuilderMock->single(456)->willReturn($container);
 
         $activity->getNsfw()
             ->shouldBeCalled()
@@ -305,11 +513,20 @@ class SaveSpec extends ObjectBehavior
 
         $activity->setNsfw(array_merge($nsfw, $nsfwLock))->shouldBeCalled();
 
-        $activity->save()
+        $this->setEntity($activity);
+
+        $this->entitiesRepositoryMock->create($activity)
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->setEntity($activity);
+        $this->dispatcher->trigger('create', Argument::any(), Argument::any())
+            ->willReturn(true);
+
+        $this->dispatcher->trigger('entities-ops', Argument::any(), Argument::any())
+            ->willReturn(true);
+
+        $this->dispatcher->trigger('entity:save', Argument::any(), Argument::any(), true)
+            ->willReturn(true);
 
         $this->save()->shouldReturn(true);
     }
@@ -324,12 +541,15 @@ class SaveSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $activity->getOwnerEntity()
+        $activity->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($owner);
+            ->willReturn(123);
 
         $activity->set('language', 'en')
             ->shouldBeCalled();
+
+        $this->entitiesBuilderMock->single(123)
+            ->willReturn($owner);
         
         $this->setEntity($activity);
         $this->applyLanguage();
@@ -340,10 +560,6 @@ class SaveSpec extends ObjectBehavior
         $activity->get('language')
             ->shouldBeCalled()
             ->willReturn('en');
-
-        $activity->getOwnerEntity()
-            ->shouldBeCalledTimes(0)
-            ->willReturn($owner);
         
         $owner->get('language')
             ->shouldBeCalledTimes(0)

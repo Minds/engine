@@ -306,26 +306,6 @@ abstract class ElggEntity extends ElggData implements
     }
 
     /**
-     * Gets the ElggEntity that owns this entity.
-     *
-     * @return ElggEntity The owning entity
-     */
-    public function getOwnerEntity($brief = false)
-    {
-        if ($brief && isset($this->ownerObj)) {
-            $owner = is_array($this->ownerObj) || is_object($this->ownerObj) ? $this->ownerObj : json_decode($this->ownerObj, true);
-            if (is_object($this->ownerObj)) {
-                $owner = json_decode(json_encode($this->ownerObj), true);
-            }
-            if (isset($owner['name']) || (is_object($owner) && $owner->name)) {
-                return new Minds\Entities\User($owner);
-            }
-        }
-
-        return new Minds\Entities\User($this->owner_guid);
-    }
-
-    /**
      * Set the container for this object.
      *
      * @param int $container_guid The ID of the container.
@@ -340,40 +320,12 @@ abstract class ElggEntity extends ElggData implements
     }
 
     /**
-     * Set the container for this object.
-     *
-     * @param int $container_guid The ID of the container.
-     *
-     * @return bool
-     * @deprecated 1.8 use setContainerGUID()
-     */
-    public function setContainer($container_guid)
-    {
-        elgg_deprecated_notice("ElggObject::setContainer deprecated for ElggEntity::setContainerGUID", 1.8);
-        $container_guid = (int)$container_guid;
-
-        return $this->set('container_guid', $container_guid);
-    }
-
-    /**
      * Gets the container GUID for this entity.
      *
      * @return int
      */
     public function getContainerGUID()
     {
-        return $this->get('container_guid');
-    }
-
-    /**
-     * Gets the container GUID for this entity.
-     *
-     * @return int
-     * @deprecated 1.8 Use getContainerGUID()
-     */
-    public function getContainer()
-    {
-        elgg_deprecated_notice("ElggObject::getContainer deprecated for ElggEntity::getContainerGUID", 1.8);
         return $this->get('container_guid');
     }
 

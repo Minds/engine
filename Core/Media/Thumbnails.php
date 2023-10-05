@@ -66,7 +66,7 @@ class Thumbnails
             // don't do anything if the entity cannot be paywalled
         }
 
-        $user = $entity->getOwnerEntity(false);
+        $user = $this->entitiesBuilder->single($entity->getOwnerGuid());
         $userGuid = $user->guid;
 
         if ($user->legacy_guid) {

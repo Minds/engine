@@ -19,8 +19,7 @@ class Installer
 
     public function __construct(
         private ?Config $config = null,
-    )
-    {
+    ) {
         $this->config = $config ?? Di::_()->get('Config');
 
         $this->defaults = [

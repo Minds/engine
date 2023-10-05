@@ -175,14 +175,14 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             $this->type
         ];
 
-        $owner = $this->getOwnerEntity();
+        $ownerGuid = $this->getOwnerGuid();
 
-        array_push($indexes, "$this->type:user:$owner->guid");
-        array_push($indexes, "$this->type:network:$owner->guid");
+        array_push($indexes, "$this->type:user:$ownerGuid");
+        array_push($indexes, "$this->type:network:$ownerGuid");
 
 
-        if ($this->to_guid == $owner->guid) {
-            array_push($indexes, "$this->type:user:own:$owner->guid");
+        if ($this->to_guid == $ownerGuid) {
+            array_push($indexes, "$this->type:user:own:$ownerGuid");
         }
 
         /**
@@ -363,15 +363,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getURL()
     {
         return Di::_()->get('Config')->get('site_url') . 'newsfeed/' . $this->guid;
-    }
-
-    /**
-     * Returns the owner entity
-     * @return mixed
-     */
-    public function getOwnerEntity($brief = false)
-    {
-        return parent::getOwnerEntity(true);
     }
 
     /**

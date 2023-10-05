@@ -229,7 +229,7 @@ class ElggUser extends ElggEntity
      *
      * @return int
      */
-    public function getOwnerGuid(): string
+    public function getOwnerGuid(): ?string
     {
         if ($this->owner_guid == 0) {
             return $this->guid;

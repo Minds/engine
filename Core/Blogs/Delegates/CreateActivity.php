@@ -10,7 +10,9 @@ namespace Minds\Core\Blogs\Delegates;
 
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Data\Call;
+use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Activity;
 
 class CreateActivity
@@ -25,10 +27,11 @@ class CreateActivity
      * CreateActivity constructor.
      * @param null $saveAction
      */
-    public function __construct($saveAction = null, Call $db=null)
+    public function __construct($saveAction = null, Call $db=null, protected ?EntitiesBuilder $entitiesBuilder = null)
     {
         $this->saveAction = $saveAction ?: new Save();
         $this->db = $db ?? new Call('entities_by_time');
+        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
     }
 
     /**
@@ -51,7 +54,8 @@ class CreateActivity
             return true;
         }
 
-        $owner = $blog->getOwnerEntity();
+        /** @var User */
+        $owner = $this->entitiesBuilder->single($blog->getOwnerGuid());
 
         $activity = (new Activity())
             ->setTitle($blog->getTitle())

@@ -102,46 +102,4 @@ class ElggObject extends ElggEntity {
 		));
 	}
 
-	/**
-	 * Gets the ElggEntity that owns this entity.
-     *
-     * @return ElggEntity The owning entity
-      */
-	public function getOwnerEntity($brief = true) {
-		global $CONFIG;
-		if($brief && isset($this->ownerObj) && is_array($this->ownerObj)){
-			if($this->ownerObj['name']){
-				if(!$this->ownerObj['icontime'])
-					$array = array_merge($this->ownerObj, array('icontime'=>$CONFIG->lastcache));
-				else
-					$array = $this->ownerObj;
-
-				$cache = true;
-				if(elgg_get_logged_in_user_guid() == $this->owner_guid)
-					$cache = false;
-				return new Minds\Entities\User($array, $cache);
-			}
-		}
-
-		$owner = new Minds\Entities\User($this->owner_guid, false);
- 		return $owner;
-	}
-	/**
- 	 * Save an object.
-	 *
-	 * @return bool|int
-	 * @throws IOException
-	 */
-	public function save($index = true) {
-		//cache owner_guid for brief
-		if($owner = $this->getOwnerEntity(false)){
-            $this->ownerObj = $owner->export();
-            if(!$owner->username){
-                throw new \Exception("Bad username tried to save an object {$owner->guid} " . session_id());
-            }
-        }
-
-		$guid = parent::save($index);
-        return $guid;
-	}
 }

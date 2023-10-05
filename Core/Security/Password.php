@@ -22,8 +22,7 @@ class Password
     public function __construct(
         KeyValueLimiter $kvLimiter = null,
         Save $save = null,
-    )
-    {
+    ) {
         $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
         $this->save = $save ?? new Save();
     }

@@ -22,21 +22,20 @@ class Management
     protected $group;
     protected $relDB;
 
-    protected Save $save;
-
     /**
      * Constructor
      */
     public function __construct(
         $db = null,
         $acl = null,
-        protected ?V2\Membership\Manager $membershipManager = null
+        protected ?V2\Membership\Manager $membershipManager = null,
+        protected ?Save $save = null,
     ) {
         $this->relDB = $db ?: Di::_()->get('Database\Cassandra\Relationships');
         $this->setAcl($acl);
         $this->membershipManager ??= Di::_()->get(V2\Membership\Manager::class);
 
-        $this->save = new Save();
+        $this->save ??= new Save();
     }
 
     /**

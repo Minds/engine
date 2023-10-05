@@ -74,15 +74,18 @@ class ManagerSpec extends ObjectBehavior
             TranscodeProfiles\Thumbnails::class,
             TranscodeProfiles\X264_360p::class,
             TranscodeProfiles\X264_720p::class,
+            TranscodeProfiles\X264_1080p::class,
             TranscodeProfiles\Webm_360p::class,
             TranscodeProfiles\Webm_720p::class,
+            TranscodeProfiles\Webm_1080p::class,
         ] as $i => $profile) {
             // Should be added to repo
             $this->repository->add(Argument::that(function ($transcode) use ($video, $profile) {
                 return $transcode->getProfile() instanceof $profile
                     && $transcode->getGuid() === $video->getGuid();
             }))
-                ->shouldBeCalled();
+                ->shouldBeCalled()
+                ->willReturn(true);
             // And queue
             $this->queueDelegate->onAdd(Argument::that(function ($transcode) use ($video, $profile) {
                 return $transcode->getProfile() instanceof $profile
@@ -90,13 +93,6 @@ class ManagerSpec extends ObjectBehavior
             }))
                 ->shouldBeCalled();
         }
-
-        // Should not add 1080p
-        $this->repository->add(Argument::that(function ($transcode) use ($video, $profile) {
-            return $transcode->getProfile() instanceof TranscodeProfiles\X264_1080p
-                && $transcode->getGuid() === $video->getGuid();
-        }))
-            ->shouldNotBeCalled();
 
         $this->createTranscodes($video);
     }

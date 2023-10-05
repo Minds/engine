@@ -2,7 +2,6 @@
 
 namespace Spec\Minds\Core\Blockchain\Transactions;
 
-use Minds\Core\Blockchain\Events\WireEvent;
 use Minds\Core\Blockchain\Services\Ethereum;
 use Minds\Core\Blockchain\Transactions\Repository;
 use Minds\Core\Blockchain\Transactions\Transaction;
@@ -189,7 +188,6 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_run_but_fail_because_the_receipt_has_a_wrong_status(
         Transaction $transaction,
-        WireEvent $wireEvent
     ) {
         $this->setUserGuid('123');
         $this->setTimestamp('12345678');
@@ -245,7 +243,7 @@ class ManagerSpec extends ObjectBehavior
         $this->run();
     }
 
-    public function it_should_run_and_call_topics(Transaction $transaction, WireEvent $wireEvent)
+    public function it_should_run_and_call_topics(Transaction $transaction)
     {
         $this->setUserGuid('123');
         $this->setTimestamp('12345678');

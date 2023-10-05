@@ -141,12 +141,12 @@ class Save
             }
             // Rethrow
             throw $e;
-        } 
+        }
 
-        $namespace = $this->entity->type;
+        $namespace = $this->entity->getType();
 
-        if ($this->entity->subtype) {
-            $namespace .= ":{$this->entity->subtype}";
+        if ($this->entity->getSubtype()) {
+            $namespace .= ":{$this->entity->getSubtype()}";
         }
 
         return $this->eventsDispatcher->trigger('entity:save', $namespace, [
@@ -172,7 +172,7 @@ class Save
     {
         try {
             if (!$this->entity->language) {
-                $owner = $this->entitiesBuilder->single($this->entity->getOwnerGuid());
+                $owner = $this->entity->getOwnerGuid() ? $this->entitiesBuilder->single($this->entity->getOwnerGuid()) : null;
                 if ($owner instanceof User && $owner->language) {
                     $this->entity->language = $owner->language;
                 }
@@ -214,10 +214,11 @@ class Save
             }
         }
 
-        // if (method_exists($this->entity, 'getContainerEntity') && $this->entity->getContainerEntity()) {
-        //     $nsfwReasons = array_merge($nsfwReasons, $this->entity->getContainerEntity()->getNSFW());
-        //     $nsfwReasons = array_merge($nsfwReasons, $this->entity->getContainerEntity()->getNSFWLock());
-        // }
+        if (method_exists($this->entity, 'getContainerGuid') && $this->entity->getContainerGuid()) {
+            $container = $this->entitiesBuilder->single($this->entity->getContainerGuid());
+            $nsfwReasons = array_merge($nsfwReasons, $container->getNSFW());
+            $nsfwReasons = array_merge($nsfwReasons, $container->getNSFWLock());
+        }
 
         $this->entity->setNSFW($nsfwReasons);
     }

@@ -13,6 +13,7 @@ use Exception;
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Security;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Manager as SupermindManager;
@@ -261,7 +262,7 @@ class newsfeed implements Interfaces\Api
             return;
         }
         /** @var Entities\User $owner */
-        $owner = $activity->getOwnerEntity();
+        $owner = Di::_()->get(EntitiesBuilder::class)->single($activity->getOwnerGuid());
 
         if (
             $activity->entity_guid &&
