@@ -9,6 +9,7 @@ use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Storage\Quotas\Controllers\Controller;
 use Minds\Core\Storage\Quotas\Repositories\MySqlRepository;
+use Oracle\Oci\ObjectStorage\ObjectStorageClient;
 
 class Provider extends DiProvider
 {
@@ -29,8 +30,9 @@ class Provider extends DiProvider
         $this->di->bind(
             Manager::class,
             fn(Di $di): Manager => new Manager(
-                $di->get('Storage'),
+                $di->get(ObjectStorageClient::class),
                 $di->get(MySqlRepository::class),
+                $di->get('EntitiesBuilder'),
                 $di->get('Config'),
                 $di->get('Logger')
             )

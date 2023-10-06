@@ -247,11 +247,6 @@ class Manager
                             'timeExpires' => date('c', strtotime('+20 minutes')),
                         ],
                     ]);
-                    $asset = $this->osClient->getObject([
-                        'namespaceName' => $this->config->get('oci')['api_auth']['bucket_namespace'],
-                        'bucketName' => $this->config->get('transcoder')['oci_bucket_name'] ?? 'cinemr',
-                        'objectName' => $key,
-                    ]);
                     
                     return $response->getJson()->fullPath;
                 }

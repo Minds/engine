@@ -12,6 +12,9 @@ class GraphQLMappings extends AbstractGraphQLMappings
     {
         $this->schemaFactory->addControllerNamespace('Minds\Core\Storage\Quotas\Controllers');
         $this->schemaFactory->addControllerNamespace('Minds\\Core\\Storage\\Quotas\\Enums');
-        $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([]));
+        $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
+            Types\QuotaDetails::class,
+            Types\AssetConnection::class,
+        ]));
     }
 }
