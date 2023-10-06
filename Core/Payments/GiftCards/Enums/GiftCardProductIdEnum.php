@@ -11,7 +11,9 @@ enum GiftCardProductIdEnum: int
     public static function enabledProductIdEnums(): array
     {
         return [
-            GiftCardProductIdEnum::BOOST
+            GiftCardProductIdEnum::BOOST,
+            GiftCardProductIdEnum::PLUS,
+            GiftCardProductIdEnum::PRO
         ];
     }
 

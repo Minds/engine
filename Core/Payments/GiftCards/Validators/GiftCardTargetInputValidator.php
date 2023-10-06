@@ -28,10 +28,6 @@ class GiftCardTargetInputValidator implements InputTypeValidatorInterface
             return;
         }
 
-        if (!$input->targetEmail && !$input->targetUserGuid) {
-            throw new GraphQLException("You must provide at least one between target email or target user guid", 400, null, "Validation", ['field' => 'targetInput']);
-        }
-
         if ($input->targetEmail && Validation::isValidEmail($input->targetEmail) === false) {
             throw new GraphQLException("Invalid target email", 400, null, "Validation", ['field' => 'targetInput']);
         }

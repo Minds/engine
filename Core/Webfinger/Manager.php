@@ -1,6 +1,8 @@
 <?php
 namespace Minds\Core\Webfinger;
 
+use Minds\Exceptions\ServerErrorException;
+
 class Manager
 {
     public function __construct(protected Client $client)
@@ -19,6 +21,10 @@ class Manager
         $response = $this->client->request('GET', $requestUrl);
 
         $json = json_decode($response->getBody()->getContents(), true);
+
+        if (!is_array($json)) {
+            throw new ServerErrorException("bad webfinger response");
+        }
 
         return $json;
     }

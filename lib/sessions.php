@@ -27,27 +27,4 @@ function elgg_get_logged_in_user_guid() {
 	return 0;
 }
 
-/**
- * Returns whether or not the user is currently logged in
- *
- * @return bool
- */
-function elgg_is_logged_in() {
-	return Minds\Core\Session::isLoggedin();
-}
-
-/**
- * Returns whether or not the user is currently logged in and that they are an admin user.
- *
- * @return bool
- */
-function elgg_is_admin_logged_in() {
-	$user = elgg_get_logged_in_user_entity();
-
-	if ((elgg_is_logged_in()) && $user->isAdmin()) {
-		return TRUE;
-	}
-
-	return FALSE;
-}
 

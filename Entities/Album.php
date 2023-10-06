@@ -9,6 +9,7 @@ namespace Minds\Entities;
 use Minds\Api;
 use Minds\Core;
 use Minds\Core\Data;
+use Minds\Core\Di\Di;
 
 class Album extends MindsObject
 {
@@ -23,7 +24,7 @@ class Album extends MindsObject
 
     public function getURL()
     {
-        return elgg_get_site_url() . 'media/'.$this->guid;
+        return Di::_()->get('Config')->get('site_url') . 'media/'.$this->guid;
     }
 
     /**

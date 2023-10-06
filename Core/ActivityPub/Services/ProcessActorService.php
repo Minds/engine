@@ -2,22 +2,22 @@
 namespace Minds\Core\ActivityPub\Services;
 
 use Minds\Common\Regex;
+use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
-use Minds\Core\ActivityPub\Types\Activity\CreateType;
-use Minds\Core\ActivityPub\Factories\ActorFactory;
+use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
+use Minds\Core\ActivityPub\Types\Actor\ApplicationType;
 use Minds\Core\ActivityPub\Types\Actor\PersonType;
 use Minds\Core\Channels\AvatarService;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Security\ACL;
-use Minds\Entities\Activity;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 
 class ProcessActorService
 {
-    protected PersonType $actor;
+    protected AbstractActorType $actor;
 
     public function __construct(
         protected Manager $manager,
@@ -41,7 +41,7 @@ class ProcessActorService
     /**
      * Constructs the actor from an actor type
      */
-    public function withActor(PersonType $actor): ProcessActorService
+    public function withActor(AbstractActorType $actor): ProcessActorService
     {
         $instance = clone $this;
         $instance->actor = $actor;
@@ -73,6 +73,7 @@ class ProcessActorService
         
         switch ($className) {
             case PersonType::class:
+            case ApplicationType::class:
 
                 $user = $this->manager->getEntityFromUri(JsonLdHelper::getValueOrId($this->actor));
                 if ($user) {

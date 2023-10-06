@@ -87,7 +87,7 @@ class ElggDiskFilestore extends ElggFilestore
                 $mode = "a+b";
                 break;
             default:
-                $msg = elgg_echo('InvalidParameterException:UnrecognisedFileMode', [$mode]);
+                $msg = 'InvalidParameterException:UnrecognisedFileMode ' . $mode;
                 throw new InvalidParameterException($msg);
         }
 
@@ -225,9 +225,6 @@ class ElggDiskFilestore extends ElggFilestore
         }
 
         if (!$owner_guid) {
-            //$msg = elgg_echo('InvalidParameterException:MissingOwner',
-            //	array($file->getFilename(), $file->guid));
-            //throw new InvalidParameterException($msg);
             return false;
         }
         //error_log('ATTEMPTING TO GET FILENAME: '. $this->dir_root . $this->makefileMatrix($owner_guid) . $file->getFilename());
@@ -258,22 +255,6 @@ class ElggDiskFilestore extends ElggFilestore
         return file_exists($this->getFilenameOnFilestore($file));
     }
 
-    /**
-     * Returns the size of all data stored under a directory in the disk store.
-     *
-     * @param string $prefix         Optional/ The prefix to check under.
-     * @param string $container_guid The guid of the entity whose data you want to check.
-     *
-     * @return int|false
-     */
-    public function getSize($prefix = '', $container_guid = null)
-    {
-        if ($container_guid) {
-            return get_dir_size($this->dir_root . $this->makefileMatrix($container_guid) . $prefix);
-        } else {
-            return false;
-        }
-    }
 
     /**
      * Create a directory $dirroot
@@ -303,7 +284,7 @@ class ElggDiskFilestore extends ElggFilestore
     {
         if (!file_exists($dirroot)) {
             if (!@mkdir($dirroot, 0700, true)) {
-                throw new IOException(elgg_echo('IOException:CouldNotMake', [$dirroot]));
+                throw new IOException('IOException:CouldNotMake ' . $dirroot);
             }
         }
 

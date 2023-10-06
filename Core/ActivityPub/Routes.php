@@ -59,6 +59,11 @@ class Routes extends ModuleRoutes
                     'inbox',
                     Ref::_(Controller::class, 'postInbox')
                 );
+
+                $route->get(
+                    'actor',
+                    Ref::_(Controller::class, 'getMindsApplicationActor')
+                );
             });
     }
 }

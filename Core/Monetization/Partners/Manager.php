@@ -111,9 +111,6 @@ class Manager
         $this->logger->info("Start processing wire deposits");
         yield from $this->issueWireReferralDeposits($opts);
 
-        $this->logger->info("Start processing plus deposits");
-        yield from $this->issuePlusDeposits($opts);
-
         $this->logger->info("Start processing boost partner deposits");
         yield from $this->issueBoostPartnerDeposits($opts);
 
@@ -173,38 +170,6 @@ class Manager
                 $this->repository->add($deposit);
             } else {
                 $this->logger->info('-------------- WIRE PAYOUT DEPOSIT ----------------');
-                $this->logger->info('Deposit', $deposit->export());
-                $this->logger->info('---------------------------------------------------');
-            }
-
-            yield $deposit;
-        }
-    }
-
-    /**
-     * Issue deposits for plus
-     * @param array $opts
-     * @return iterable
-     */
-    protected function issuePlusDeposits(array $opts): iterable
-    {
-        $revenueUsd = $this->plusManager->getDailyRevenue($opts['from']) * (self::PLUS_SHARE_PCT / 100);
-        $revenueCents = round($revenueUsd * 100, 0);
-        $this->logger->info('Fetched daily revenue');
-
-        $this->logger->info('Processing deposits');
-        foreach ($this->plusManager->getScores($opts['from']) as $unlock) {
-            $shareCents = $revenueCents * $unlock['sharePct'];
-            $deposit = new EarningsDeposit();
-            $deposit->setTimestamp($opts['from'])
-                ->setUserGuid($unlock['user_guid'])
-                ->setAmountCents($shareCents)
-                ->setItem('plus');
-
-            if (!($opts['dry-run'] ?? false)) {
-                $this->repository->add($deposit);
-            } else {
-                $this->logger->info('-------------- PLUS PAYOUT DEPOSIT ----------------');
                 $this->logger->info('Deposit', $deposit->export());
                 $this->logger->info('---------------------------------------------------');
             }
@@ -293,7 +258,7 @@ class Manager
 
             yield $deposit;
 
-            if (!($affiliateUser instanceof User)) {
+            if (!($affiliateUser instanceof User) || $deposit->getAmountCents() < 1) {
                 continue;
             }
 
@@ -318,7 +283,7 @@ class Manager
 
             $referrer = $this->entitiesBuilder->single($referrerGuid);
 
-            if (!($referrer instanceof User)) {
+            if (!($referrer instanceof User) || $deposit->getAmountCents() < 1) {
                 continue;
             }
 
@@ -358,7 +323,7 @@ class Manager
     {
         $from = $opts['from'] ?? 0;
         $to = $opts['to'] ?? time();
-        foreach ($this->repository->getBalancesPerUser(toTimestamp: $to) as $earningsBalance) {
+        foreach ($this->repository->getBalancesPerUser(toTimestamp: $to, minBalance: self::MIN_PAYOUT_CENTS) as $earningsBalance) {
             $user = $this->entitiesBuilder->single($earningsBalance->getUserGuid());
             if (!$user) {
                 continue;
@@ -370,7 +335,7 @@ class Manager
                 continue;
             }
 
-            $earningsBalance->setAmountCents($this->getBalance($user, $to / 1000)->getAmountCents());
+            $earningsBalance->setAmountCents($this->getBalance($user, $to)->getAmountCents());
             if ($earningsBalance->getAmountCents() < self::MIN_PAYOUT_CENTS) {
                 continue;
             }
@@ -429,10 +394,10 @@ class Manager
                     echo " paying out $user->username";
                     $this->payoutsDelegate->onUsdPayout($earningsPayout);
                 }
-                $this->emailDelegate->onIssuePayout($earningsPayout);
+                //$this->emailDelegate->onIssuePayout($earningsPayout);
                 break;
             case "eth":
-                $this->emailDelegate->onIssuePayout($earningsPayout);
+                //$this->emailDelegate->onIssuePayout($earningsPayout);
                 break;
             case "tokens":
                 $amount = BigNumber::toPlain(($earningsPayout->getAmountCents() / 100) * 1.25, 18);

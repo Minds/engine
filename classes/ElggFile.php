@@ -1,5 +1,7 @@
 <?php
 
+use Minds\Core\Di\Di;
+
 /**
  * This class represents a physical file.
  *
@@ -143,7 +145,7 @@ class ElggFile extends ElggObject {
 	 */
 	public function open($mode) {
 		if (!$this->getFilename()) {
-			throw new IOException(elgg_echo('IOException:MissingFileName'));
+			throw new IOException('IOException:MissingFileName');
 		}
 
 		// See if file has already been saved
@@ -155,7 +157,7 @@ class ElggFile extends ElggObject {
 			($mode != "write") &&
 			($mode != "append")
 		) {
-			$msg = elgg_echo('InvalidParameterException:UnrecognisedFileMode', array($mode));
+			$msg = 'InvalidParameterException:UnrecognisedFileMode ' . $mode;
 			throw new InvalidParameterException($msg);
 		}
 
@@ -294,37 +296,19 @@ class ElggFile extends ElggObject {
 	}
 
 	/**
-	 * Set a filestore.
-	 *
-	 * @param ElggFilestore $filestore The file store.
-	 *
-	 * @return void
-	 */
-	public function setFilestore(ElggFilestore $filestore) {
-		$this->filestore = $filestore;
-	}
-
-	/**
 	 * Return a filestore suitable for saving this file.
 	 * This filestore is either a pre-registered filestore,
 	 * a filestore as recorded in metadata or the system default.
 	 *
 	 * @return ElggFilestore
-	 *
-	 * @throws ClassNotFoundException
 	 */
-	protected function getFilestore() {
-
-		$this->filestore = get_default_filestore();
+	protected function getFilestore()
+	{
+		if (!$this->filestore) {
+			$this->filestore = new ElggDiskFilestore(Di::_()->get('Config')->get('dataroot'));
+		}
 		
 		return $this->filestore;
 	}
 
-    /**
-     * Executed prior to object serialization
-     */
-    // public function __sleep()
-    // {
-    //     unset($this->handle);
-    // }
 }

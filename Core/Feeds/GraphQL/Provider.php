@@ -25,7 +25,12 @@ class Provider extends DiProvider
                 suggestedGroupsRecommendationsAlgorithm: new SuggestedGroupsRecommendationsAlgorithm(),
                 experimentsManager: $di->get('Experiments\Manager'),
                 votesManager: $di->get('Votes\Manager'),
+                tagRecommendationsManager: $di->get(TagRecommendations\Manager::class)
             );
+        });
+
+        $this->di->bind(TagRecommendations\Manager::class, function (Di $di) {
+            return new TagRecommendations\Manager();
         });
     }
 }

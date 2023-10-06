@@ -82,7 +82,7 @@ class ActivityNode extends AbstractEntityNode
     #[Field]
     public function getVotesDownCount(): int
     {
-        return (int) $this->activity->{'thumbs:down:count'};
+        return 0;
     }
 
     #[Field]
