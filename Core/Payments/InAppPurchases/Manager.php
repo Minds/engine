@@ -12,6 +12,7 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardPaymentFailedException;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
 use Minds\Core\Payments\InAppPurchases\Apple\AppleInAppPurchasesClient;
+use Minds\Core\Payments\InAppPurchases\Apple\Enums\ApplePurchaseStatusEnum;
 use Minds\Core\Payments\InAppPurchases\Clients\InAppPurchasesClientFactory;
 use Minds\Core\Payments\InAppPurchases\Google\GoogleInAppPurchasesClient;
 use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
@@ -148,13 +149,13 @@ class Manager
          * @var AppleInAppPurchasesClient $inAppPurchaseClient
          */
         $inAppPurchaseClient = $this->inAppPurchasesClientFactory->createClient(AppleInAppPurchasesClient::class);
-
-        // TODO: Implementation of this method is not complete
+        
         $appleTransaction = $inAppPurchaseClient->getTransaction($inAppPurchase->transactionId);
 
         return new ProductPurchase(
-            $inAppPurchase->productId,
-            "TODO"
+            productId: $inAppPurchase->productId,
+            transactionId: $inAppPurchase->transactionId,
+            acknowledged: $appleTransaction->purchaseState === ApplePurchaseStatusEnum::purchased
         );
     }
 
@@ -173,9 +174,9 @@ class Manager
         $androidProductPurchase = $inAppPurchaseClient->getInAppPurchaseProductPurchase($inAppPurchase);
 
         return new ProductPurchase(
-            $inAppPurchase->productId,
-            $androidProductPurchase->getOrderId() . ":" . ($androidProductPurchase->getPurchaseToken() ?? $inAppPurchase->purchaseToken),
-            (bool) $androidProductPurchase->getAcknowledgementState()
+            productId: $inAppPurchase->productId,
+            transactionId: $androidProductPurchase->getOrderId() . ":" . ($androidProductPurchase->getPurchaseToken() ?? $inAppPurchase->purchaseToken),
+            acknowledged: (bool) $androidProductPurchase->getAcknowledgementState()
         );
     }
 }

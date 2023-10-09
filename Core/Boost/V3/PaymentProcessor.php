@@ -261,6 +261,10 @@ class PaymentProcessor
      */
     private function captureCashPaymentIntent(Boost $boost): bool
     {
+        if (InAppPurchasePaymentMethodIdsEnum::tryFrom($boost->getPaymentTxId())) {
+            return true;
+        }
+
         $boostOwner = $this->entitiesBuilder->single($boost->getOwnerGuid());
         if (!$boostOwner || !$boostOwner instanceof User) {
             $boostOwner = null;
@@ -335,6 +339,10 @@ class PaymentProcessor
      */
     private function refundCashPaymentIntent(Boost $boost): bool
     {
+        if (InAppPurchasePaymentMethodIdsEnum::tryFrom($boost->getPaymentTxId())) {
+            return true;
+        }
+        
         $boostOwner = $this->entitiesBuilder->single($boost->getOwnerGuid());
         if (!$boostOwner || !$boostOwner instanceof User) {
             $boostOwner = null;

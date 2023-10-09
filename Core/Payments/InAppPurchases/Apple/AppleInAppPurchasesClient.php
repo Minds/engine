@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\InAppPurchases\Apple;
 
+use DateTimeImmutable;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Psr7\Uri;
 use Lcobucci\JWT\Configuration;
@@ -10,9 +11,10 @@ use Lcobucci\JWT\Encoding\JoseEncoder;
 use Lcobucci\JWT\Signer\Ecdsa\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Token\Parser;
+use Lcobucci\JWT\UnencryptedToken;
 use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Log\Logger;
-use Minds\Core\Payments\InAppPurchases\Apple\Types\JWSTransactionInfo;
+use Minds\Core\Payments\InAppPurchases\Apple\Types\AppleConsumablePurchase;
 use Minds\Core\Payments\InAppPurchases\Clients\InAppPurchaseClientInterface;
 use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
 use NotImplementedException;
@@ -47,7 +49,7 @@ class AppleInAppPurchasesClient implements InAppPurchaseClientInterface
      * @return void
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getTransaction(string $transactionId): JWSTransactionInfo
+    public function getTransaction(string $transactionId): AppleConsumablePurchase
     {
         $response = $this->client->get(
             uri: new Uri("/inApps/v1/transactions/$transactionId"),
@@ -62,8 +64,11 @@ class AppleInAppPurchasesClient implements InAppPurchaseClientInterface
 
         $jwtHandler = Configuration::forSymmetricSigner(new Sha256(), InMemory::plainText($this->key));
         $jwtHandler->setParser(new Parser(new JoseEncoder()));
+        /**
+         * @var UnencryptedToken $token
+         */
         $token = $jwtHandler->parser()->parse($content->signedTransactionInfo);
-        return JWSTransactionInfo::fromToken($token);
+        return AppleConsumablePurchase::fromToken($token);
     }
 
     private function generateJWTToken(): string
@@ -75,11 +80,12 @@ class AppleInAppPurchasesClient implements InAppPurchaseClientInterface
             ->withHeader('alg', self::JWT_ALGORITHM)
             ->withHeader('kid', $this->mindsConfig->get('apple')['iap']['key_id'])
             ->withHeader('typ', self::JWT_TYPE)
-            // Set token claims
-            ->withClaim('iss', $this->mindsConfig->get('apple')['iap']['issuer_id'])
-            ->withClaim('iat', $issuedAtTimestamp)
-            ->withClaim('exp', strtotime('+60 minutes', $issuedAtTimestamp))
-            ->withClaim('aud', self::JWT_AUDIENCE)
+
+            ->issuedBy($this->mindsConfig->get('apple')['iap']['issuer_id'])
+            ->issuedAt((new DateTimeImmutable())->setTimestamp($issuedAtTimestamp))
+            ->expiresAt((new DateTimeImmutable())->setTimestamp(strtotime('+60 minutes', $issuedAtTimestamp)))
+            ->permittedFor(self::JWT_AUDIENCE)
+
             ->withClaim('bid', self::APP_BUNDLE_ID)
             // Build and sign token
             ->getToken($jwtBuilder->signer(), $jwtBuilder->signingKey())->toString();
