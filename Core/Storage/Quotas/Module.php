@@ -8,7 +8,6 @@ use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
 {
-
     /**
      * @return void
      * @throws ImmutableException

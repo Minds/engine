@@ -9,5 +9,4 @@ use TheCodingMachine\GraphQLite\Annotations\Type;
 #[Type]
 class AssetConnection extends Connection
 {
-
 }

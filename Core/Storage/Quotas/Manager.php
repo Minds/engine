@@ -40,7 +40,8 @@ class Manager
      * @throws Exception
      */
     public function storeAssetQuota(
-        Video|Image $asset, string|false $filename = false
+        Video|Image $asset,
+        string|false $filename = false
     ): void {
         match (get_class($asset)) {
             Video::class => $this->storeVideoQuota($asset, $filename),
@@ -145,7 +146,7 @@ class Manager
             $limit = $first;
             $offset = 0;
         } else {
-            ['limit' => $limit, 'offset' => $offset] = json_decode(base64_decode($cursor), true);
+            ['limit' => $limit, 'offset' => $offset] = json_decode(base64_decode($cursor, true), true);
         }
 
         $assetConnection = new AssetConnection();
@@ -205,7 +206,7 @@ class Manager
             $limit = $first;
             $offset = 0;
         } else {
-            ['limit' => $limit, 'offset' => $offset] = json_decode(base64_decode($cursor), true);
+            ['limit' => $limit, 'offset' => $offset] = json_decode(base64_decode($cursor, true), true);
         }
 
         $assetConnection = new AssetConnection();
