@@ -202,7 +202,7 @@ class Controller
             /**
              * Build out the attachment entities
              */
-            $attachmentEntities = $this->entitiesBuilder->get([ 'guid' => $payload['attachment_guids']]);
+            $attachmentEntities = $this->entitiesBuilder->get([ 'guids' => $payload['attachment_guids'] ]);
 
             $imageCount = count(array_filter($attachmentEntities, function ($attachmentEntity) {
                 return $attachmentEntity instanceof Image;

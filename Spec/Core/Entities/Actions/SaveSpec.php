@@ -158,7 +158,7 @@ class SaveSpec extends ObjectBehavior
         $this->entitiesRepositoryMock->create($blog)->willReturn(false);
 
         $this->setEntity($blog);
-        $this->save($blog)->shouldReturn(true);
+        $this->save()->shouldReturn(true);
     }
 
     public function it_should_save_an_entity_using_its_save_method_with_NSFW_from_owner(Activity $activity, User $owner)

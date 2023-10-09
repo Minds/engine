@@ -97,12 +97,11 @@ class Save
 
     /**
      * Saves the entity.
-     * @param mixed ...$args
      * @return bool
      * @throws StopEventException
      * @throws UnverifiedEmailException
      */
-    public function save(...$args)
+    public function save(bool $isUpdate = null)
     {
         $success = false;
 
@@ -118,13 +117,20 @@ class Save
 
         //
 
-        $isUpdate = false;
-    
-        if ($this->entity->getGuid()) {
-            $isUpdate = true;
+        if ($isUpdate === null) {
+            if ($this->entity->getGuid()) {
+                $isUpdate = true; // Assume its an update as we already have a guid
+            } else {
+                $isUpdate = false;
+            }
+        }
+
+        if ($isUpdate) {
             $this->eventsDispatcher->trigger('update', 'elgg/event/' . $this->entity->getType(), $this->entity);
         } else {
-            $this->entity->guid = Guid::build();
+            if (!$this->entity->getGuid()) {
+                $this->entity->guid = Guid::build();
+            }
             $this->eventsDispatcher->trigger('create', 'elgg/event/' .  $this->entity->getType(), $this->entity);
         }
 

@@ -5,6 +5,8 @@ namespace Minds\Core;
 
 use Minds\Core\Data;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
+use Minds\Core\Entities\Repositories\MySQLRepository;
 use Minds\Entities\Entity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\Factory;
@@ -15,6 +17,7 @@ class EntitiesBuilder
     public function __construct(
         protected ?Data\lookup $lookup = null,
         protected ?Entities\Resolver $urnResolver = null,
+        protected ?EntitiesRepositoryInterface $entitiesRepository = null,
     ) {
         $this->lookup ??= Di::_()->get('Database\Cassandra\Data\Lookup');
     }
@@ -37,16 +40,18 @@ class EntitiesBuilder
      */
     public function getByUserByIndex(string $key): ?User
     {
-        $values = $this->lookup->get(strtolower($key));
+        return $this->getEntitiesRepository()->loadFromIndex('username', strtolower($key));
+        
+        // $values = $this->lookup->get(strtolower($key));
 
-        $userGuid = key($values);
-        $user = $this->single($userGuid);
+        // $userGuid = key($values);
+        // $user = $this->single($userGuid);
 
-        if ($user && $user instanceof User) {
-            return $user;
-        }
+        // if ($user && $user instanceof User) {
+        //     return $user;
+        // }
 
-        return null;
+        // return null;
     }
 
     public function getByUrn(string $urn): ?EntityInterface
@@ -65,7 +70,14 @@ class EntitiesBuilder
      */
     public function get(array $options = [])
     {
-        return \elgg_get_entities($options);
+        $entitiesRepository = $this->getEntitiesRepository();
+        if ($entitiesRepository instanceof MySQLRepository) {
+            if ($options['guids'] ?? null) {
+                return $this->entitiesRepository->loadFromGuid($options['guids']);
+            }
+        } else {
+            return \elgg_get_entities($options);
+        }
     }
 
     /**
@@ -148,5 +160,10 @@ class EntitiesBuilder
     private function getUrnResolver(): Entities\Resolver
     {
         return $this->urnResolver ??= Di::_()->get(Entities\Resolver::class);
+    }
+
+    private function getEntitiesRepository(): EntitiesRepositoryInterface
+    {
+        return $this->entitiesRepository ??= Di::_()->get(EntitiesRepositoryInterface::class);
     }
 }

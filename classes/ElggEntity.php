@@ -84,7 +84,6 @@ abstract class ElggEntity extends ElggData implements
         $this->attributes['time_created'] = time();
         $this->attributes['time_updated'] = time();
         $this->attributes['last_action'] = null;
-        $this->attributes['enabled'] = "yes";
         $this->attributes['tags'] = null;
         $this->attributes['nsfw'] = [];
         $this->attributes['nsfw_lock'] = [];
@@ -324,7 +323,7 @@ abstract class ElggEntity extends ElggData implements
      *
      * @return int
      */
-    public function getContainerGUID()
+    public function getContainerGuid()
     {
         return $this->get('container_guid');
     }

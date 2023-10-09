@@ -20,18 +20,19 @@ use Minds\Common\Regex;
 use Minds\Core\ActivityPub\Services\ProcessActorService;
 use Minds\Core\Channels\AvatarService;
 use Minds\Core\Entities\Actions\Save;
-use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
+use Minds\Core\EntitiesBuilder;
+use Minds\Entities\User;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
 use Zend\Diactoros\ServerRequestFactory;
 
 class channel implements Interfaces\Api
 {
-    private EntitiesRepositoryInterface $entitiesRepository;
+    private EntitiesBuilder $entitiesBuilder;
     private Save $save;
 
     public function __construct()
     {
-        $this->entitiesRepository = Di::_()->get(EntitiesRepositoryInterface::class);
+        $this->entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
         $this->save = new Save();
     }
 
@@ -52,9 +53,9 @@ class channel implements Interfaces\Api
         }
 
         if (is_numeric($pages[0])) {
-            $user = $this->entitiesRepository->loadFromGuid((int) $pages[0]);
+            $user = $this->entitiesBuilder->single((int) $pages[0]);
         } else {
-            $user = $this->entitiesRepository->loadFromIndex('username', $pages[0]);
+            $user = $this->entitiesBuilder->getByUserByIndex($pages[0]);
         }
 
         /**
@@ -62,7 +63,7 @@ class channel implements Interfaces\Api
          * and the current user is logged and trusted, try to fetch the profile
          */
         if (
-            !$user->username
+            !$user instanceof User
             && Core\Session::getLoggedinUser()
             && Core\Session::getLoggedinUser()->isTrusted()
         ) {

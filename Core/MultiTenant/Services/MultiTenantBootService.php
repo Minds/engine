@@ -17,7 +17,11 @@ class MultiTenantBootService
     {
         $request = ServerRequestFactory::fromGlobals();
 
-        $domain = $request->getUri()->getHost();
+        $uri = $request->getUri();
+
+        $scheme = $uri->getScheme();
+        $domain = $uri->getHost();
+        $port = $uri->getPort();
     
         // Does the domain match
         if ($this->isReservedDomain($domain)) {
@@ -30,13 +34,20 @@ class MultiTenantBootService
 
         // Update the configs
 
-        $siteUrl = 'https://' . $domain . '/';
+        if ($port) {
+            $siteUrl = "$scheme://$domain:$port/";
+        } else {
+            $siteUrl = "$scheme://$domain/";
+        }
 
         $this->config->set('site_url', $siteUrl);
         $this->config->set('cdn_url', $siteUrl);
         $this->config->set('cdn_assets_url', $siteUrl);
 
         $this->config->set('tenant_id', 123);
+
+        $this->config->set('dataroot', $this->config->get('dataroot') . 'tenant/' . $this->config->get('tenant_id') . '/');
+
     }
 
     protected function isReservedDomain(string $domain): bool

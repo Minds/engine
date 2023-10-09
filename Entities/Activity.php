@@ -43,7 +43,6 @@ use Minds\Helpers;
  * @property string $urn
  * @property int $time_sent
  * @property string $license
- * @property string $permaweb_id
  * @property string $blurhash
  * @property array $attachments
  * @property array $supermind
@@ -92,13 +91,11 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'edited' => false,
             'comments_enabled' => true,
             'wire_threshold' => null,
-            'boost_rejection_reason' => -1,
             'pending' => false,
             'rating' => 2, //open by default
             'ephemeral' => false,
             'time_sent' => null,
             'license' => '',
-            'permaweb_id' => '',
             'blurhash' => null,
             'attachments' => null,
             'supermind' => null,
@@ -114,8 +111,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         parent::__construct($guid);
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->activityManager = $activityManager ?? Di::_()->get('Feeds\Activity\Manager');
-        if ($cache) {
-        }
     }
 
     /**
@@ -190,7 +185,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'p2p_boosted',
                 'mature',
                 'monetized',
-                'paywall',
+                //'paywall',
                 'edited',
                 'wire_totals',
                 'wire_threshold',
@@ -276,8 +271,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             if ($this->hide_impressions) {
                 $export['hide_impressions'] = $this->hide_impressions;
             }
-
-            $export['permaweb_id'] = $this->getPermawebId();
 
             if (Helpers\Flags::shouldDiscloseStatus($this)) {
                 $export['spam'] = (bool) $this->getSpam();
@@ -862,26 +855,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getAccessId(): string
     {
         return $this->access_id;
-    }
-
-    /**
-     * Sets `permaweb_id`
-     * @param string $permaweb_id
-     * @return Activity
-     */
-    public function setPermawebId(string $permaweb_id): Activity
-    {
-        $this->permaweb_id = $permaweb_id;
-        return $this;
-    }
-
-    /**
-     * Gets `permaweb_id`
-     * @return string
-     */
-    public function getPermawebId(): string
-    {
-        return $this->permaweb_id;
     }
 
     //

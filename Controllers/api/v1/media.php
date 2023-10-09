@@ -302,7 +302,7 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         $success = $this->save
             ->setEntity($entity)
-            ->save(true);
+            ->save(isUpdate: false);
 
         if (!$success) {
             throw new \Exception('Error saving media entity');

@@ -79,6 +79,7 @@ class Image extends File implements MutatableEntityInterface, CommentableEntityI
         $this->attributes['auto_caption'] = null;
         $this->attributes['allow_comments'] = true;
         $this->attributes['gif'] = false;
+        $this->attributes['batch_guid'] = 0;
     }
 
     public function getUrl()

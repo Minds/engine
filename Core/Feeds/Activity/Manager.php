@@ -467,6 +467,10 @@ class Manager
             $this->paywallDelegate->onUpdate($activity);
         }
 
+        if (empty($mutatedAttributes)) {
+            return true; // Nothing changed
+        }
+
         $success = $this->save
             ->setEntity($activity)
             ->withMutatedAttributes($mutatedAttributes)
@@ -525,7 +529,13 @@ class Manager
      */
     public function patchAttachmentEntity(Activity $activity, EntityInterface $entity): bool
     {
-        return $this->save->setEntity($entity)->save();
+        return $this->save
+            ->setEntity($entity)
+            ->withMutatedAttributes([
+                'access_id',
+                'container_guid',
+            ])
+            ->save(isUpdate: true);
     }
 
     /**

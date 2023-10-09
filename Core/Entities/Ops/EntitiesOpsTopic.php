@@ -39,15 +39,21 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
 
         // Build the message
 
+        $data = [
+            'op' => $event->getOp(),
+            'entity_urn' => $event->getEntityUrn(),
+            'entity_serialized' => $event->getEntitySerialized(),
+        ];
+
+        if ($this->config->get('tenant_id')) {
+            $data['tenant_id'] = $this->config->get('tenant_id');
+        }
+
         $builder = new MessageBuilder();
         $message = $builder
             //->setPartitionKey(0)
             ->setEventTimestamp($event->getTimestamp() ?: time())
-            ->setContent(json_encode([
-                'op' => $event->getOp(),
-                'entity_urn' => $event->getEntityUrn(),
-                'entity_serialized' => $event->getEntitySerialized(),
-            ]))
+            ->setContent(json_encode($data))
             ->build();
 
         // Send the event to the stream
@@ -102,6 +108,12 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                     ->setOp($data['op'])
                     ->setTimestamp($message->getEventTimestamp());
 
+                // Multi tenant support
+
+                if (isset($data['tenant_id'])) {
+                    $this->config->set('tenant_id', $data['tenant_id']);
+                }
+
                 if (isset($data['entity_serialized'])) {
                     $event->setEntitySerialized($data['entity_serialized']);
                 }
@@ -111,6 +123,9 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                 }
             } catch (\Exception $e) {
                 $this->logger->error("Topic(Consume): Uncaught error: " . $e->getMessage());
+            } finally {
+                // Reset Multi Tenant support
+                $this->config->set('tenant_id', null);
             }
         }
     }
@@ -132,7 +147,6 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
 
         $config = new ProducerConfiguration();
         $config->setSchema(SchemaType::AVRO, static::SCHEMA_NAME, $this->getSchema(), []);
-        //$config->setSchema(SchemaType::AVRO, static::SCHEMA_NAME . 'v2', $this->getSchemaV2(), []);
 
         $schema = json_encode([
             'type' => 'AVRO',
@@ -154,7 +168,7 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
     {
         return json_encode([
             'type' => 'record',
-            'name' => static::SCHEMA_NAME ,
+            'name' => static::SCHEMA_NAME,
             'namespace' => 'engine',
             'fields' => [
                 [
@@ -169,22 +183,12 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                     'name' => 'entity_json',
                     'type' => 'string',
                 ],
-            ]
-        ]);
-    }
-
-    protected function getSchemaV2(): string
-    {
-        return json_encode([
-            'type' => 'record',
-            'name' => static::SCHEMA_NAME . 'v2',
-            'namespace' => 'engine',
-            'fields' => [
                 [
-                    'name' => 'entity_json',
-                    'type' => 'string',
+                    'name' => 'tenant_id',
+                    'type' => 'int'
                 ],
             ]
         ]);
     }
+
 }

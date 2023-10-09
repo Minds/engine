@@ -25,7 +25,7 @@ class CassandraRepository implements EntitiesRepositoryInterface
     /**
      * @inheritDoc
      */
-    public function loadFromGuid(int $guid): ?EntityInterface
+    public function loadFromGuid(int|array $guid): mixed
     {
         $row = $this->entitiesTable->getRow($guid, [ 'limit' => 5000 ]);
 
