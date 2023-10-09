@@ -97,7 +97,7 @@ class NewsfeedController
         // store value so that this can be used AFTER $loadAfter or $loadBefore
         // has been set for the next page.
         $isFirstPage = !$loadAfter && !$loadBefore;
- 
+
         /**
          * The limit to use
          */
@@ -124,6 +124,7 @@ class NewsfeedController
                     limit: $limit,
                     onlySubscribed: true,
                     accessId: Access::PUBLIC,
+                    nsfw: $allowedNsfw,
                 ),
                 loadAfter: $loadAfter,
                 loadBefore: $loadBefore,
@@ -146,6 +147,7 @@ class NewsfeedController
                     limit: $limit,
                     onlySubscribed: true,
                     accessId: Access::PUBLIC,
+                    nsfw: $allowedNsfw,
                 ),
                 loadAfter: $loadAfter,
                 loadBefore: $loadBefore,
