@@ -581,7 +581,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($entity);
 
-        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user)
+        $this->paymentProcessor->createMindsPayment(Argument::type(Boost::class), $user, null)
             ->shouldBeCalledOnce()
             ->willReturn(new PaymentDetails());
 
