@@ -42,12 +42,14 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 'u.*',
                 'a.*',
                 'i.*',
+                'v.*',
                 'g.*',
             ])
             ->from(new RawExp('minds_entities as e'))
             ->leftJoin(['u' => 'minds_entities_user'], 'e.guid', Operator::EQ, 'u.guid')
             ->leftJoin(['a' => 'minds_entities_activity'], 'e.guid', Operator::EQ, 'a.guid')
             ->leftJoin(['i' => 'minds_entities_object_image'], 'e.guid', Operator::EQ, 'i.guid')
+            ->leftJoin(['v' => 'minds_entities_object_video'], 'e.guid', Operator::EQ, 'v.guid')
             ->leftJoin(['g' => 'minds_entities_group'], 'e.guid', Operator::EQ, 'g.guid');
 
         if (is_array($guid)) {
@@ -321,6 +323,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
             case User::class:
             case Activity::class:
             case Image::class:
+            case Video::class:
             case Group::class:
                 /**  @var User|Activity|Image|Video|Group */
                 $entity = $entity;
@@ -563,6 +566,9 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     switch (EntitySubtypeEnum::tryFrom($row['subtype'])) {
                         case EntitySubtypeEnum::IMAGE:
                             $row = [...$row, ...$tableMappedRow['i']];
+                            break;
+                        case EntitySubtypeEnum::VIDEO:
+                            $row = [...$row, ...$tableMappedRow['v']];
                             break;
                     }
                     break;
