@@ -88,4 +88,16 @@ class Factory
 
         return $entity;
     }
+
+    /**
+     * Caches an entity (currently just in memory)
+     */
+    public static function cache(EntityInterface $entity): void
+    {
+        $guid = $entity->getGuid();
+
+        $cacheKey = $guid;
+
+        self::$entitiesCache[$cacheKey] = $entity;
+    }
 }

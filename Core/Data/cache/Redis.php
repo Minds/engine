@@ -76,6 +76,9 @@ class Redis extends abstractCacher
         if (count($this->local) > static::MAX_LOCAL_CACHE) {
             $this->local[$key] = []; // Clear cache if we meet the max
         }
+
+        $key = $this->buildKey($key);
+
         try {
             $redis = $this->getSlave();
             $value = $redis->get($key);
@@ -100,6 +103,8 @@ class Redis extends abstractCacher
 
     public function set($key, $value, $ttl = 0)
     {
+        $key = $this->buildKey($key);
+
         //error_log("still setting $key with value $value for $ttl seconds");
         try {
             $redis = $this->getMaster();
@@ -132,6 +137,8 @@ class Redis extends abstractCacher
         if (isset($this->local[$key])) {
             unset($this->local[$key]); // Remove from local, inmemory cache
         }
+
+        $key = $this->buildKey($key);
 
         try {
             $redis = $this->getMaster();
@@ -168,5 +175,13 @@ class Redis extends abstractCacher
             }
         } catch (\Exception $e) {
         }
+    }
+
+    private function buildKey(string $key): string
+    {
+        if ($tenantId = $this->config->get('tenant_id')) {
+            $key = "tenant:$tenantId:$key";
+        }
+        return $key;
     }
 }

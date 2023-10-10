@@ -114,7 +114,7 @@ class Manager
         // If we have a cached version use that
         if ($useCached) {
             $cached = $this->psrCache->get(static::FEATURES_CACHE_KEY);
-            if ($cached) {
+            if ($cached && is_array($cached)) {
                 return $cached;
             }
         }

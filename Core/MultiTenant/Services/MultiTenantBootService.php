@@ -1,14 +1,15 @@
 <?php
 namespace Minds\Core\MultiTenant\Services;
 
-use Exception;
 use Minds\Core\Config\Config;
+use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
 use Zend\Diactoros\ServerRequestFactory;
 
 class MultiTenantBootService
 {
     public function __construct(
-        private Config $config
+        private Config $config,
+        private DomainService $domainService,
     ) {
         
     }
@@ -22,15 +23,13 @@ class MultiTenantBootService
         $scheme = $uri->getScheme();
         $domain = $uri->getHost();
         $port = $uri->getPort();
-    
-        // Does the domain match
-        if ($this->isReservedDomain($domain)) {
+
+        try {
+            $tenantId = $this->domainService->getTenantIdFromDomain($domain);
+        } catch (ReservedDomainException) {
             // Nothing more to do, this is a reserved domain and not a multi tenant site
             return;
         }
-
-        // Find the tenant id configs for this site
-        
 
         // Update the configs
 
@@ -44,16 +43,9 @@ class MultiTenantBootService
         $this->config->set('cdn_url', $siteUrl);
         $this->config->set('cdn_assets_url', $siteUrl);
 
-        $this->config->set('tenant_id', 123);
+        $this->config->set('tenant_id', $tenantId);
 
         $this->config->set('dataroot', $this->config->get('dataroot') . 'tenant/' . $this->config->get('tenant_id') . '/');
-
     }
 
-    protected function isReservedDomain(string $domain): bool
-    {
-        $reservedDomains = $this->config->get('multi_tenant')['reserved_domains'] ?? [];
-
-        return in_array($domain, $reservedDomains, true);
-    }
 }

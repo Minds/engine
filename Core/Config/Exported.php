@@ -117,7 +117,8 @@ class Exported
                 'url' => $this->config->get('strapi')['url'],
             ],
             'livepeer_api_key' => $this->config->get('livepeer_api_key'),
-            'onboarding_v5_release_timestamp' => $this->config->get('onboarding_v5_release_timestamp')
+            'onboarding_v5_release_timestamp' => $this->config->get('onboarding_v5_release_timestamp'),
+            'is_tenant' => !!$this->config->get('tenant_id'),
         ];
 
         if (Session::isLoggedIn()) {

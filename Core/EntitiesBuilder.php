@@ -40,7 +40,11 @@ class EntitiesBuilder
      */
     public function getByUserByIndex(string $key): ?User
     {
-        return $this->getEntitiesRepository()->loadFromIndex('username', strtolower($key));
+        $user = $this->getEntitiesRepository()->loadFromIndex('username', strtolower($key));
+
+        Factory::cache($user);
+    
+        return $user;
         
         // $values = $this->lookup->get(strtolower($key));
 
