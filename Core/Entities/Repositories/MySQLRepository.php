@@ -7,9 +7,11 @@ use Minds\Core\Data\Call;
 use Minds\Core\Data\Cassandra\Thrift\Indexes;
 use Minds\Core\Data\lookup;
 use Minds\Core\Data\MySQL\AbstractRepository;
+use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Data\MySQL\MySQLDataTypeEnum;
 use Minds\Core\Entities\Enums\EntitySubtypeEnum;
 use Minds\Core\Entities\Enums\EntityTypeEnum;
+use Minds\Core\Log\Logger;
 use Minds\Entities\Video;
 use Minds\Entities\Activity;
 use Minds\Entities\Factory;
@@ -26,9 +28,10 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
 {
     public function __construct(
         private Config $config,
-        ... $args
+        Client $mysqlClient,
+        Logger $logger,
     ) {
-        parent::__construct(...$args);
+        parent::__construct($mysqlClient, $logger);
     }
 
     /**
