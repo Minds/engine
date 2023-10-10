@@ -37,11 +37,13 @@ class AppleInAppPurchasesClient implements InAppPurchaseClientInterface
     }
 
     /**
-     * TODO
+     * @param InAppPurchase $inAppPurchase
+     * @return bool
+     * @throws NotImplementedException
      */
     public function acknowledgeSubscription(InAppPurchase $inAppPurchase): bool
     {
-        return false;
+        throw new NotImplementedException();
     }
 
     /**
