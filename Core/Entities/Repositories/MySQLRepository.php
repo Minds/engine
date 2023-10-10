@@ -41,12 +41,14 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 'e.*',
                 'u.*',
                 'a.*',
-                'i.*'
+                'i.*',
+                'g.*',
             ])
             ->from(new RawExp('minds_entities as e'))
             ->leftJoin(['u' => 'minds_entities_user'], 'e.guid', Operator::EQ, 'u.guid')
             ->leftJoin(['a' => 'minds_entities_activity'], 'e.guid', Operator::EQ, 'a.guid')
-            ->leftJoin(['i' => 'minds_entities_object_image'], 'e.guid', Operator::EQ, 'i.guid');
+            ->leftJoin(['i' => 'minds_entities_object_image'], 'e.guid', Operator::EQ, 'i.guid')
+            ->leftJoin(['g' => 'minds_entities_group'], 'e.guid', Operator::EQ, 'g.guid');
 
         if (is_array($guid)) {
             //$query->where('e.guid', Operator::IN, new RawExp(':guid'));
@@ -295,6 +297,9 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
         return true;
     }
 
+    /**
+     * Helper function to map an entity to its table name
+     */
     private function buildTableName(EntityInterface $entity): string
     {
         return match(get_class($entity)) {
@@ -307,6 +312,9 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
         };
     }
 
+    /**
+     * Converts an entity to array form data
+     */
     private function buildData(EntityInterface $entity, array $columns = []): array
     {
         switch (get_class($entity)) {
@@ -429,9 +437,42 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'tenant_id' => MySQLDataTypeEnum::INT,
                     'guid' => MySQLDataTypeEnum::BIGINT,
                     'deleted' => MySQLDataTypeEnum::BOOL,
+                    'width' => MySQLDataTypeEnum::INT,
+                    'height' => MySQLDataTypeEnum::INT,
                     'time_created' => MySQLDataTypeEnum::TIMESTAMP,
                     'time_updated' => MySQLDataTypeEnum::TIMESTAMP,
                     'auto_caption' => MySQLDataTypeEnum::TEXT,
+                ];
+            case Video::class:
+                return [
+                    ... $entitiesTable,
+                    'tenant_id' => MySQLDataTypeEnum::INT,
+                    'guid' => MySQLDataTypeEnum::BIGINT,
+                    'deleted' => MySQLDataTypeEnum::BOOL,
+                    'cloudflare_id' => MySQLDataTypeEnum::TEXT,
+                    'width' => MySQLDataTypeEnum::INT,
+                    'height' => MySQLDataTypeEnum::INT,
+                    'time_created' => MySQLDataTypeEnum::TIMESTAMP,
+                    'time_updated' => MySQLDataTypeEnum::TIMESTAMP,
+                    'auto_caption' => MySQLDataTypeEnum::TEXT,
+                ];
+            case Group::class:
+                return [
+                    'tenant_id' => MySQLDataTypeEnum::INT,
+                    'guid' => MySQLDataTypeEnum::BIGINT,
+                    'deleted' => MySQLDataTypeEnum::BOOL,
+                    'name' => MySQLDataTypeEnum::TEXT,
+                    'brief_description' => MySQLDataTypeEnum::TEXT,
+                    'membership' => MySQLDataTypeEnum::INT,
+                    'moderated' => MySQLDataTypeEnum::BOOL,
+                    'icon_time' => MySQLDataTypeEnum::TIMESTAMP,
+                    'tags' => MySQLDataTypeEnum::JSON,
+                    'show_boost' => MySQLDataTypeEnum::BOOL,
+                    'banner' => MySQLDataTypeEnum::BOOL,
+                    //'nsfw' => MySQLDataTypeEnum::JSON,
+                    //'nsfw__lock' => MySQLDataTypeEnum::JSON,
+                    'time_created' => MySQLDataTypeEnum::TIMESTAMP,
+                    'time_updated' => MySQLDataTypeEnum::TIMESTAMP,
                 ];
         }
         return [];
@@ -500,6 +541,8 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
             // We always want the base entities values
             $row = $tableMappedRow['e'];
 
+            $mapToUnix = [];
+
             /**
              * Build out the row for our specific entity type
              */
@@ -508,25 +551,13 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     $row = [...$row, ...$tableMappedRow['u']];
 
                     $mapToUnix = ['time_created', 'time_updated', 'last_login', 'last_accepted_tos'];
-                    
-
-                    foreach ($row as $k => $v) {
-                        if (in_array($k, $mapToUnix, true)) {
-                            $row[$k] = strtotime($v);
-                        }
-                    }
+   
                     break;
                 case EntityTypeEnum::ACTIVITY:
                     $row = [...$row, ...$tableMappedRow['a']];
 
                     $mapToUnix = ['time_created', 'time_updated', 'last_login', 'last_accepted_tos'];
                     
-
-                    foreach ($row as $k => $v) {
-                        if (in_array($k, $mapToUnix, true)) {
-                            $row[$k] = strtotime($v);
-                        }
-                    }
                     break;
                 case EntityTypeEnum::OBJECT:
                     switch (EntitySubtypeEnum::tryFrom($row['subtype'])) {
@@ -535,6 +566,20 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                             break;
                     }
                     break;
+                case EntityTypeEnum::GROUP:
+                    $row = [...$row, ...$tableMappedRow['g']];
+
+                    $mapToUnix = ['time_created', 'time_updated', 'last_login', 'last_accepted_tos'];
+
+                    break;
+
+            }
+
+            // Remap fields
+            foreach ($row as $k => $v) {
+                if (in_array($k, $mapToUnix, true)) {
+                    $row[$k] = strtotime($v);
+                }
             }
 
             $entities[] = Factory::build($row);

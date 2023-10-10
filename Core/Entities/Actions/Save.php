@@ -119,7 +119,8 @@ class Save
 
         if ($isUpdate === null) {
             if ($this->entity->getGuid()) {
-                $isUpdate = true; // Assume its an update as we already have a guid
+                // Ambigous if we should update or create. Perform a SELECT query to see if the entity exists
+                $isUpdate = !!$this->entitiesRepository->loadFromGuid($this->entity->getGuid());
             } else {
                 $isUpdate = false;
             }

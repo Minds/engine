@@ -105,7 +105,7 @@ class Group extends NormalizedEntity implements EntityInterface
             'icon_time' => $this->icon_time,
             'featured' => $this->featured,
             'featured_id' => $this->featured_id,
-            'tags' => $this->tags,
+            'tags' => $this->getTags(),
             'owner_guids' => $this->owner_guids,
             'moderator_guids' => $this->moderator_guids,
             'boost_rejection_reason' => $this->boost_rejection_reason,
