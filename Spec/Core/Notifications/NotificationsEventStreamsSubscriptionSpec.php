@@ -365,12 +365,16 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $receiver->getOwnerGuid()
             ->willReturn(0);
 
-        $activity->getOwnerEntity()
-            ->willReturn($receiver);
         $activity->getOwnerGuid()
             ->willReturn('123');
         $activity->getUrn()
             ->willReturn('urn:activity:123');
+
+        $this->entitiesBuilder->single(123)->willReturn($receiver);
+
+        $this->manager->getUnreadCount($receiver)
+            ->shouldBeCalled()
+            ->willReturn(12);
 
         //
         $this->manager->add(Argument::that(function (Notification $notification) {
@@ -421,12 +425,12 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $moderator2->getOwnerGuid()
             ->willReturn(0);
 
-        $activity->getOwnerEntity()
-            ->willReturn($moderator1);
         $activity->getOwnerGuid()
             ->willReturn('123');
         $activity->getUrn()
             ->willReturn('urn:activity:123');
+
+        $this->entitiesBuilder->single(123)->willReturn($moderator1);
 
         $group->getUrn()
             ->shouldBeCalled()
@@ -534,12 +538,16 @@ class NotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $receiver->getOwnerGuid()
             ->willReturn(0);
 
-        $activity->getOwnerEntity()
-            ->willReturn($receiver);
         $activity->getOwnerGuid()
             ->willReturn('123');
         $activity->getUrn()
             ->willReturn('urn:activity:123');
+
+        $this->entitiesBuilder->single(123)->willReturn($receiver);
+        
+        $this->manager->getUnreadCount($receiver)
+            ->shouldBeCalled()
+            ->willReturn(12);
 
         //
         $this->manager->add(Argument::that(function (Notification $notification) {

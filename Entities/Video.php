@@ -161,27 +161,6 @@ class Video extends MindsObject implements CommentableEntityInterface
         return array_merge(parent::getIndexKeys($ia), $indexes);
     }
 
-    /**
-     * Extend the default entity save function to update the remote service
-     *
-     */
-    public function save($force = false)
-    {
-        $this->super_subtype = 'archive';
-        parent::save((!$this->guid || $force));
-        return $this->guid;
-    }
-
-    /**
-     * Extend the default delete function to remove from the remote service
-     */
-    public function delete()
-    {
-        $result = parent::delete();
-
-        return $result;
-    }
-
     public function getExportableValues()
     {
         return array_merge(parent::getExportableValues(), [

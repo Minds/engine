@@ -84,7 +84,6 @@ abstract class ElggEntity extends ElggData implements
         $this->attributes['time_created'] = time();
         $this->attributes['time_updated'] = time();
         $this->attributes['last_action'] = null;
-        $this->attributes['enabled'] = "yes";
         $this->attributes['tags'] = null;
         $this->attributes['nsfw'] = [];
         $this->attributes['nsfw_lock'] = [];
@@ -306,26 +305,6 @@ abstract class ElggEntity extends ElggData implements
     }
 
     /**
-     * Gets the ElggEntity that owns this entity.
-     *
-     * @return ElggEntity The owning entity
-     */
-    public function getOwnerEntity($brief = false)
-    {
-        if ($brief && isset($this->ownerObj)) {
-            $owner = is_array($this->ownerObj) || is_object($this->ownerObj) ? $this->ownerObj : json_decode($this->ownerObj, true);
-            if (is_object($this->ownerObj)) {
-                $owner = json_decode(json_encode($this->ownerObj), true);
-            }
-            if (isset($owner['name']) || (is_object($owner) && $owner->name)) {
-                return new Minds\Entities\User($owner);
-            }
-        }
-
-        return new Minds\Entities\User($this->owner_guid);
-    }
-
-    /**
      * Set the container for this object.
      *
      * @param int $container_guid The ID of the container.
@@ -340,40 +319,12 @@ abstract class ElggEntity extends ElggData implements
     }
 
     /**
-     * Set the container for this object.
-     *
-     * @param int $container_guid The ID of the container.
-     *
-     * @return bool
-     * @deprecated 1.8 use setContainerGUID()
-     */
-    public function setContainer($container_guid)
-    {
-        elgg_deprecated_notice("ElggObject::setContainer deprecated for ElggEntity::setContainerGUID", 1.8);
-        $container_guid = (int)$container_guid;
-
-        return $this->set('container_guid', $container_guid);
-    }
-
-    /**
      * Gets the container GUID for this entity.
      *
      * @return int
      */
-    public function getContainerGUID()
+    public function getContainerGuid()
     {
-        return $this->get('container_guid');
-    }
-
-    /**
-     * Gets the container GUID for this entity.
-     *
-     * @return int
-     * @deprecated 1.8 Use getContainerGUID()
-     */
-    public function getContainer()
-    {
-        elgg_deprecated_notice("ElggObject::getContainer deprecated for ElggEntity::getContainerGUID", 1.8);
         return $this->get('container_guid');
     }
 
@@ -560,46 +511,6 @@ abstract class ElggEntity extends ElggData implements
     public function isEnabled()
     {
         if ($this->enabled == 'yes') {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Delete this entity.
-     *
-     * @return bool
-     */
-    public function delete()
-    {
-        global $CONFIG, $ENTITY_CACHE;
-
-        //some plugins may want to halt the delete...
-        $delete = Minds\Core\Events\Dispatcher::trigger('delete', $this->type, [ 'entity' => $this ]);
-
-        if ($delete && $this->canEdit()) {
-
-            // delete cache
-            if (isset($ENTITY_CACHE[$this->guid])) {
-                invalidate_cache_for_entity($this->guid);
-            }
-
-            // Now delete the entity itself
-            $db = new Minds\Core\Data\Call('entities');
-            $res = $db->removeRow($this->guid);
-
-
-            $db = new Minds\Core\Data\Call('entities_by_time');
-            foreach ($this->getIndexKeys() as $rowkey) {
-                $db->removeAttributes($rowkey, [$this->guid], false);
-            }
-
-            \Minds\Core\Events\Dispatcher::trigger('entities-ops', 'delete', [
-                'entityUrn' => $this->getUrn(),
-                'entity' => $this,
-            ]);
-
             return true;
         }
 

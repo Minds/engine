@@ -5,6 +5,7 @@ use GuzzleHttp;
 use GuzzleHttp\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\Delegates\AttachmentDelegate;
 use Minds\Core\Log\Logger;
 use Minds\Entities\Activity;
@@ -32,12 +33,14 @@ class ImageExtractor
         protected ?Client $httpClient = null,
         protected ?Logger $logger = null,
         protected ?AttachmentDelegate $attachmentDelegate = null,
-        protected ?Save $saveAction = null
+        protected ?Save $saveAction = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null,
     ) {
         $this->httpClient = $httpClient ?? new GuzzleHttp\Client();
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->attachmentDelegate = $attachmentDelegate ?? new AttachmentDelegate();
         $this->saveAction = $saveAction ?? new Save();
+        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
     }
 
     /**
@@ -50,7 +53,8 @@ class ImageExtractor
     public function extractAndUploadToActivity(MediaData $mediaData, Activity $activity): Activity
     {
         try {
-            $owner = $activity->getOwnerEntity();
+            /** @var User */
+            $owner = $this->entitiesBuilder->single($activity->getOwnerGuid());
 
             $entityGuid = $this->extractAndUpload($mediaData, $owner);
 

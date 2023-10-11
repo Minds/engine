@@ -106,13 +106,11 @@ class ManagerSpec extends ObjectBehavior
         Entity $entity,
         User $owner
     ) {
-        $comment->getOwnerEntity(false)
-            ->shouldBeCalled()
-            ->willReturn($owner);
-
         $comment->getOwnerGuid()
             ->shouldBeCalled()
             ->willReturn(1000);
+
+        $this->entitiesBuilder->single(1000)->willReturn($owner);
 
         $comment->getEntityGuid()
             ->shouldBeCalled()
@@ -191,13 +189,11 @@ class ManagerSpec extends ObjectBehavior
         Entity $entity,
         User $owner
     ) {
-        $comment->getOwnerEntity(false)
-            ->shouldBeCalled()
-            ->willReturn($owner);
-
         $comment->getEntityGuid()
             ->shouldBeCalled()
             ->willReturn(5000);
+
+        $this->entitiesBuilder->single(4000)->willReturn($owner);
 
         $comment->getOwnerGuid()
             ->willReturn(4000);
@@ -226,13 +222,11 @@ class ManagerSpec extends ObjectBehavior
         Entity $entity,
         User $owner
     ) {
-        $comment->getOwnerEntity(false)
-            ->shouldBeCalled()
-            ->willReturn($owner);
-
         $comment->getOwnerGuid()
             ->shouldBeCalled()
             ->willReturn(1000);
+
+        $this->entitiesBuilder->single(1000)->willReturn($owner);
 
         $comment->getEntityGuid()
             ->shouldBeCalled()
@@ -306,13 +300,11 @@ class ManagerSpec extends ObjectBehavior
         Entity $entity,
         User $owner
     ) {
-        $comment->getOwnerEntity(false)
-            ->shouldBeCalled()
-            ->willReturn($owner);
-
         $comment->getOwnerGuid()
             ->shouldBeCalled()
             ->willReturn(1000);
+
+        $this->entitiesBuilder->single(1000)->willReturn($owner);
 
         $comment->getEntityGuid()
             ->shouldBeCalled()
@@ -352,13 +344,11 @@ class ManagerSpec extends ObjectBehavior
         Entity $entity,
         User $owner
     ) {
-        $comment->getOwnerEntity(false)
-            ->shouldBeCalled()
-            ->willReturn($owner);
-
         $comment->getOwnerGuid()
             ->shouldBeCalled()
             ->willReturn(1000);
+
+        $this->entitiesBuilder->single(1000)->willReturn($owner);
 
         $comment->getEntityGuid()
             ->shouldBeCalled()

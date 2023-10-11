@@ -44,7 +44,7 @@ class SubscriptionSync extends Cli\Controller implements Interfaces\CliControlle
             if ($plan['entity_guid']) {
                 $entity = Entities\Factory::build($plan['entity_guid']);
                 if ($entity->type != 'user') {
-                    $entity = $entity->getOwnerEntity();
+                    //$entity = $entity->getOwnerEntity();
                 }
                 $opts = [
                   'stripe_account' => $entity->getMerchant()['id']

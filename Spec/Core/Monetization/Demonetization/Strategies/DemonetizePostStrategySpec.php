@@ -11,6 +11,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Entities\Activity;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\Image;
 use Minds\Entities\User;
 use Minds\Entities\Video;
@@ -55,7 +56,7 @@ class DemonetizePostStrategySpec extends ObjectBehavior
     }
 
     public function it_should_execute_for_activity(
-        PaywallEntityInterface $entity
+        Activity $entity
     ) {
         $entity->setWireThreshold([])
             ->shouldBeCalled();

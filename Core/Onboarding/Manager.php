@@ -49,7 +49,7 @@ class Manager
         $this->config = $config ?: Di::_()->get('Config');
         $this->initialOnboarding = $initialOnboarding ?? new OnboardingGroups\InitialOnboardingGroup();
         $this->ongoingOnboarding = $ongoingOnboarding ?? new OnboardingGroups\OngoingOnboardingGroup();
-        $this->save ??= new Save();
+        $this->save = $save ?? new Save();
 
         if ($steps) {
             $this->steps = $steps;

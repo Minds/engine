@@ -4,7 +4,7 @@ namespace Minds\Core\Entities\Repositories;
 use Minds\Core\Data\Call;
 use Minds\Core\Data\Cassandra\Thrift\Indexes;
 use Minds\Core\Data\lookup;
-use Minds\Core\Media\Assets\Video;
+use Minds\Entities\Video;
 use Minds\Entities\Activity;
 use Minds\Entities\Factory;
 use Minds\Entities\EntityInterface;
@@ -25,7 +25,7 @@ class CassandraRepository implements EntitiesRepositoryInterface
     /**
      * @inheritDoc
      */
-    public function loadFromGuid(int $guid): ?EntityInterface
+    public function loadFromGuid(int|array $guid): mixed
     {
         $row = $this->entitiesTable->getRow($guid, [ 'limit' => 5000 ]);
 
@@ -47,6 +47,10 @@ class CassandraRepository implements EntitiesRepositoryInterface
     {
         // Cassandra only maintains one index
         $values = $this->lookupTable->get(strtolower($value));
+
+        if (!$values) {
+            return null;
+        }
 
         $guid = key($values);
         $user = $this->loadFromGuid($guid);
@@ -99,7 +103,7 @@ class CassandraRepository implements EntitiesRepositoryInterface
         }
 
         foreach ($this->getIndexKeys($entity) as $index) {
-            $this->indexesTable->insert($index, $data);
+            $this->indexesTable->insert($index, [ $entity->getGuid() => time() ]);
         }
 
         return true;
@@ -114,6 +118,7 @@ class CassandraRepository implements EntitiesRepositoryInterface
             case User::class:
             case Activity::class:
             case Image::class:
+            case Video::class:
             case Group::class:
                 /**  @var User|Activity|Image|Video|Group */
                 $entity = $entity;
@@ -161,7 +166,7 @@ class CassandraRepository implements EntitiesRepositoryInterface
                  */
                 /** @var User */
                 $entity = $entity;
-                if (!$this->lookupTable->get(strtolower($entity->getUsername()))) {
+                if ($this->lookupTable->get(strtolower($entity->getUsername()))) {
                     $this->lookupTable->remove(strtolower($entity->getUsername()));
                     $this->lookupTable->remove(strtolower($entity->getEmail()));
                     if ($entity->phone_number_hash) {

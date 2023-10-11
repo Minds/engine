@@ -106,40 +106,6 @@ class ElggUser extends ElggEntity
     }
 
     /**
-     * User specific override of the entity delete method.
-     *
-     * @return bool
-     */
-    public function delete()
-    {
-        global $USERNAME_TO_GUID_MAP_CACHE, $CODE_TO_GUID_MAP_CACHE;
-
-        // clear cache
-        if (isset($USERNAME_TO_GUID_MAP_CACHE[$this->username])) {
-            unset($USERNAME_TO_GUID_MAP_CACHE[$this->username]);
-        }
-        if (isset($CODE_TO_GUID_MAP_CACHE[$this->code])) {
-            unset($CODE_TO_GUID_MAP_CACHE[$this->code]);
-        }
-
-        if ($this->guid) {
-            $db = new Minds\Core\Data\Call('entities_by_time');
-            $db->removeAttributes('user', [$this->guid]);
-            $db = new Minds\Core\Data\Call('user_index_to_guid');
-            $db->removeRow($this->username);
-            $db->removeRow($this->email); //@todo we should keep a record of indexes
-        }
-
-        $entities = elgg_get_entities(['owner_guid'=>$this->guid, 'limit'=>0]);
-        foreach ($entities as $entity) {
-            $entity->delete();
-        }
-
-        // Delete entity
-        return parent::delete();
-    }
-
-    /**
      * Is this user banned or not?
      *
      * @return bool
@@ -229,7 +195,7 @@ class ElggUser extends ElggEntity
      *
      * @return int
      */
-    public function getOwnerGuid(): string
+    public function getOwnerGuid(): ?string
     {
         if ($this->owner_guid == 0) {
             return $this->guid;

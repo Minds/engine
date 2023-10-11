@@ -27,7 +27,7 @@ class EntitiesProvider extends Provider
             return $di->get(EntitiesBuilder::class);
         }, ['useFactory' => true]);
 
-       $this->di->bind('Entities\Counters', function ($di) {
+        $this->di->bind('Entities\Counters', function ($di) {
             return new Counters();
         }, ['useFactory' => true]);
         $this->di->bind('Entities\Factory', function ($di) {

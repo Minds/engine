@@ -171,7 +171,7 @@ class InstallerSpec extends ObjectBehavior
     }
 
     public function it_should_get_site_url()
-    { 
+    {
         $this->configMock->get('site_url')->willReturn('https://phpspec.minds.io/');
 
         $this->getSiteUrl()->shouldReturn('https://phpspec.minds.io/');

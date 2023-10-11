@@ -7,8 +7,10 @@ interface EntitiesRepositoryInterface
 {
     /**
      * Returns an entity (if exists) from the data store
+     * @param int|int[] $guid - pass a single or array of guids
+     * @return null|EntityInterface|EntityInterface[]
      */
-    public function loadFromGuid(int $guid): ?EntityInterface;
+    public function loadFromGuid(int|array $guid): mixed;
 
     /**
      * Returns an entity (if exists) by an index from the data store
@@ -24,7 +26,7 @@ interface EntitiesRepositoryInterface
      * Updates an entity and saves to the data store
      * Acts as an upsert.
      * Specify columns to only update those. Empty columns will update all columns
-     * 
+     *
      * @param EntityInterface $entity
      * @param string[] $columns
      */

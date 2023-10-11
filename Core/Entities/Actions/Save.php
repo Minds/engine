@@ -21,6 +21,7 @@ use Minds\Core\Security\ACL;
 use Minds\Exceptions\StopEventException;
 use Minds\Helpers\MagicAttributes;
 use Minds\Core\Log\Logger;
+use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Entities\EntityInterface;
 
 /**
@@ -49,12 +50,14 @@ class Save
         $eventsDispatcher = null,
         $logger = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?EntitiesRepositoryInterface $entitiesRepository = null
+        private ?EntitiesRepositoryInterface $entitiesRepository = null,
+        private ?ACL $acl = null,
     ) {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->logger = $logger ?: Di::_()->get('Logger');
         $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
         $this->entitiesRepository ??= Di::_()->get(EntitiesRepositoryInterface::class);
+        $this->acl ??= Di::_()->get(ACL::class);
     }
 
     /**
@@ -94,12 +97,11 @@ class Save
 
     /**
      * Saves the entity.
-     * @param mixed ...$args
      * @return bool
      * @throws StopEventException
      * @throws UnverifiedEmailException
      */
-    public function save(...$args)
+    public function save(bool $isUpdate = null)
     {
         $success = false;
 
@@ -107,17 +109,29 @@ class Save
             return false;
         }
 
+        if (!$this->acl->write($this->entity)) {
+            throw new UnauthorizedException();
+        }
+
         $this->beforeSave();
 
         //
 
-        $isUpdate = false;
-    
-        if ($this->entity->getGuid()) {
-            $isUpdate = true;
+        if ($isUpdate === null) {
+            if ($this->entity->getGuid()) {
+                // Ambigous if we should update or create. Perform a SELECT query to see if the entity exists
+                $isUpdate = !!$this->entitiesRepository->loadFromGuid($this->entity->getGuid());
+            } else {
+                $isUpdate = false;
+            }
+        }
+
+        if ($isUpdate) {
             $this->eventsDispatcher->trigger('update', 'elgg/event/' . $this->entity->getType(), $this->entity);
         } else {
-            $this->entity->guid = Guid::build();
+            if (!$this->entity->getGuid()) {
+                $this->entity->guid = Guid::build();
+            }
             $this->eventsDispatcher->trigger('create', 'elgg/event/' .  $this->entity->getType(), $this->entity);
         }
 
@@ -141,12 +155,12 @@ class Save
             }
             // Rethrow
             throw $e;
-        } 
+        }
 
-        $namespace = $this->entity->type;
+        $namespace = $this->entity->getType();
 
-        if ($this->entity->subtype) {
-            $namespace .= ":{$this->entity->subtype}";
+        if ($this->entity->getSubtype()) {
+            $namespace .= ":{$this->entity->getSubtype()}";
         }
 
         return $this->eventsDispatcher->trigger('entity:save', $namespace, [
@@ -172,7 +186,7 @@ class Save
     {
         try {
             if (!$this->entity->language) {
-                $owner = $this->entitiesBuilder->single($this->entity->getOwnerGuid());
+                $owner = $this->entity->getOwnerGuid() ? $this->entitiesBuilder->single($this->entity->getOwnerGuid()) : null;
                 if ($owner instanceof User && $owner->language) {
                     $this->entity->language = $owner->language;
                 }
@@ -214,10 +228,11 @@ class Save
             }
         }
 
-        // if (method_exists($this->entity, 'getContainerEntity') && $this->entity->getContainerEntity()) {
-        //     $nsfwReasons = array_merge($nsfwReasons, $this->entity->getContainerEntity()->getNSFW());
-        //     $nsfwReasons = array_merge($nsfwReasons, $this->entity->getContainerEntity()->getNSFWLock());
-        // }
+        if (method_exists($this->entity, 'getContainerGuid') && $this->entity->getContainerGuid()) {
+            $container = $this->entitiesBuilder->single($this->entity->getContainerGuid());
+            $nsfwReasons = array_merge($nsfwReasons, $container->getNSFW());
+            $nsfwReasons = array_merge($nsfwReasons, $container->getNSFWLock());
+        }
 
         $this->entity->setNSFW($nsfwReasons);
     }

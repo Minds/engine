@@ -10,6 +10,7 @@ namespace Minds\Core\Search;
 
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Minds\Common\SystemUser;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Di\Di;
@@ -28,13 +29,15 @@ class Index
         protected ?string $indexPrefix = null,
         protected ?Manager $hashtagsManager = null,
         protected ?Logger $logger = null,
-        protected ?Mappings\Factory $mappingFactory = null
+        protected ?Mappings\Factory $mappingFactory = null,
+        protected ?Config $config = null,
     ) {
         $this->client ??= Di::_()->get('Database\ElasticSearch');
         $this->indexPrefix ??= Di::_()->get('Config')->get('elasticsearch')['indexes']['search_prefix'];
         $this->hashtagsManager ??= Di::_()->get('Search\Hashtags\Manager');
         $this->logger ??= Di::_()->get('Logger');
         $this->mappingFactory ??= Di::_()->get('Search\Mappings');
+        $this->config ??= Di::_()->get(Config::class);
     }
 
     /**
@@ -59,6 +62,10 @@ class Index
 
         try {
             $body = $mapper->map();
+
+            if ($tenantId = $this->config->get('tenant_id')) {
+                $body['tenant_id'] = $tenantId;
+            }
 
             if ($suggest = $mapper->suggestMap()) {
                 $body = array_merge($body, [

@@ -146,7 +146,6 @@ class Minds extends base
         (new Categories\CategoriesProvider())->register();
         (new Storage\StorageProvider())->register();
         (new Monetization\MonetizationProvider())->register();
-        (new Programs\ProgramsProvider())->register();
         (new Wire\WireProvider())->register();
         (new Trending\TrendingProvider())->register();
         (new Media\MediaProvider())->register();

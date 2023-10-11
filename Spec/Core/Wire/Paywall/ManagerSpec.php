@@ -3,15 +3,25 @@
 namespace Spec\Minds\Core\Wire\Paywall;
 
 use Minds\Core\Wire\Paywall\Manager;
+use Minds\Core\Wire\Thresholds;
 use Minds\Entities\Activity;
 use Minds\Entities\Image;
 use Minds\Entities\Video;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
+    protected Collaborator $thresholdsMock;
+
+    public function let(Thresholds $thresholdsMock)
+    {
+        $this->beConstructedWith($thresholdsMock);
+        $this->thresholdsMock = $thresholdsMock;
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
@@ -56,10 +66,8 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_if_allowed_to_view_paywall(Activity $activity)
     {
-        $activity->isPaywall()
+        $this->thresholdsMock->isAllowed(Argument::type(User::class), $activity)
             ->willReturn(true);
-        $activity->getOwnerEntity()
-            ->willReturn(new User);
 
         $this->setUser(new User)
             ->isAllowed($activity)

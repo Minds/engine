@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Feeds\Elastic\V2;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
@@ -27,6 +28,7 @@ class Manager
         protected Membership\Manager $groupsMembershipManager,
         protected ACL $acl,
         private readonly ExperimentsManager $experimentsManager,
+        private readonly Config $config,
     ) {
     }
 
@@ -375,6 +377,10 @@ class Manager
         string &$loadBefore = null,
         bool &$hasMore = null
     ): iterable {
+        if ($tenantId = $this->config->get('tenant_id')) {
+            throw new \Exception("Not supported with multi tenants");
+        }
+
         if ($loadAfter && $loadBefore) {
             throw new ServerErrorException("Two cursors, loadAfter and loadBefore were provided. Only one can be provided.");
         }
@@ -444,6 +450,14 @@ class Manager
         $mustNot = [];
         $should = [];
         $functionScores = [];
+
+        if ($tenantId = $this->config->get('tenant_id')) {
+            $must[] = [
+                'term' => [
+                   'tenant_id' => $tenantId,
+                ],
+            ];
+        }
 
         // Feeds should always return posts less than current time
         $must[] = [

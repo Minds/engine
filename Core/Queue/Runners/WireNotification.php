@@ -35,7 +35,7 @@ class WireNotification implements Interfaces\QueueRunner
                     return;
                 }
 
-                $receiverUser = $entity->type === 'user' ? $entity : $entity->getOwnerEntity();
+                $receiverUser = $entity;
 
                 if (isset($data['walletNotSetupException']) && $data['walletNotSetupException']) {
                     $message = 'Somebody wanted to send you a Tokens wire, but you need to setup your wallet address first! You can set it up in your Wallet.';

@@ -8,12 +8,14 @@ use Minds\Common\Jwt;
 use Minds\Core\Config;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Email\Confirmation\Manager;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Entities\Resolver;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Queue\Interfaces\QueueClient;
 use Minds\Entities\User;
 use Minds\Entities\UserFactory;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
@@ -36,6 +38,8 @@ class ManagerSpec extends ObjectBehavior
     /** @var Resolver */
     protected $resolver;
 
+    protected Collaborator $saveMock;
+
     public function let(
         Config $config,
         Jwt $jwt,
@@ -43,6 +47,7 @@ class ManagerSpec extends ObjectBehavior
         Client $es,
         UserFactory $userFactory,
         Resolver $resolver,
+        Save $saveMock,
     ) {
         $this->config = $config;
         $this->jwt = $jwt;
@@ -50,6 +55,7 @@ class ManagerSpec extends ObjectBehavior
         $this->es = $es;
         $this->userFactory = $userFactory;
         $this->resolver = $resolver;
+        $this->saveMock = $saveMock;
 
         $this->config->get('email_confirmation')
             ->willReturn([
@@ -65,7 +71,7 @@ class ManagerSpec extends ObjectBehavior
             ]);
 
 
-        $this->beConstructedWith($config, $jwt, $queue, $es, $userFactory, $resolver);
+        $this->beConstructedWith($config, $jwt, $queue, $es, $userFactory, $resolver, $saveMock);
     }
 
     public function it_is_initializable()
@@ -103,9 +109,14 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
-        $user->save()
-            ->shouldBeCalled()
-            ->willReturn(true);
+        $this->saveMock->setEntity($user)
+            ->willReturn($this->saveMock);
+
+        $this->saveMock->withMutatedAttributes([
+            'email_confirmation_token',
+        ])->willReturn($this->saveMock);
+
+        $this->saveMock->save()->shouldBeCalled()->willReturn(true);
 
         $this
             ->setUser($user)
@@ -185,9 +196,14 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
-        $user->save()
-            ->shouldBeCalled()
-            ->willReturn(true);
+        $this->saveMock->setEntity($user)
+            ->willReturn($this->saveMock);
+
+        $this->saveMock->withMutatedAttributes([
+            'email_confirmation_token',
+        ])->willReturn($this->saveMock);
+
+        $this->saveMock->save()->shouldBeCalled()->willReturn(true);
 
         $this
             ->setUser($user)
@@ -213,9 +229,15 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
-        $user->save()
-            ->shouldBeCalled()
-            ->willReturn(true);
+        $this->saveMock->setEntity($user)
+            ->willReturn($this->saveMock);
+
+        $this->saveMock->withMutatedAttributes([
+            'email_confirmation_token',
+            'email_confirmed_at'
+        ])->willReturn($this->saveMock);
+
+        $this->saveMock->save()->shouldBeCalled()->willReturn(true);
 
         $this
             ->setUser($user)

@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Config;
 
+use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
 use Minds\Helpers\Env;
 
@@ -15,7 +16,7 @@ class ConfigProvider extends Provider
      */
     public function register()
     {
-        $this->di->bind('Config', function ($di) {
+        $this->di->bind(Config::class, function (Di $di): Config {
             global $CONFIG;
 
             if (!isset($CONFIG)) {
@@ -34,6 +35,10 @@ class ConfigProvider extends Provider
             }
 
             return $CONFIG;
+        }, ['useFactory'=>true]);
+
+        $this->di->bind('Config', function ($di) {
+            return $di->get(Config::class);
         }, ['useFactory'=>true]);
 
         $this->di->bind('Config\Exported', function ($di) {

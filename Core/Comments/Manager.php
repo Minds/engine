@@ -194,7 +194,8 @@ class Manager
     {
         $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
 
-        $owner = $comment->getOwnerEntity(false);
+        /** @var User */
+        $owner = $this->entitiesBuilder->single($comment->getOwnerGuid());
 
         //if (!$this->acl->interact($entity, $owner, "comment")) {
         //    throw new \Exception();
@@ -296,7 +297,8 @@ class Manager
     {
         $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
 
-        $owner = $comment->getOwnerEntity(false);
+        /** @var User */
+        $owner = $this->entitiesBuilder->single($comment->getOwnerGuid());
 
         if (
             !$comment->getOwnerGuid() ||
@@ -459,7 +461,8 @@ class Manager
      */
     private function canInteractWithParentTree(Comment $comment): bool
     {
-        $owner = $comment->getOwnerEntity(false);
+        /** @var User */
+        $owner = $this->entitiesBuilder->single($comment->getOwnerGuid());
 
         if ($comment->getParentGuidL2()) {
             $parent = $this->get($comment->getEntityGuid(), $comment->getParentPath(), $comment->getParentGuidL2());

@@ -2,6 +2,8 @@
 
 namespace Minds\Core\Feeds;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
 use Minds\Core\Feeds\ClusteredRecommendations\MySQLRepository;
 use Minds\Core\Groups\V2\Membership;
@@ -74,7 +76,7 @@ class FeedsProvider extends Provider
 
         // V2
 
-        $this->di->bind(Elastic\V2\Manager::class, function ($di) {
+        $this->di->bind(Elastic\V2\Manager::class, function (Di $di) {
             return new Elastic\V2\Manager(
                 $di->get('Database\ElasticSearch'),
                 new MySQLRepository(),
@@ -82,7 +84,8 @@ class FeedsProvider extends Provider
                 $di->get('EntitiesBuilder'),
                 $di->get(Membership\Manager::class),
                 $di->get('Security\ACL'),
-                $di->get('Experiments\Manager')
+                $di->get('Experiments\Manager'),
+                $di->get(Config::class),
             );
         });
     }

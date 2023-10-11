@@ -398,7 +398,14 @@ class Manager
         $this->validateStringLengths($activity);
 
         /** @var string[] */
-        $mutatedAttributes = [];
+        $mutatedAttributes = array_filter(array_map(function ($attr) {
+            return match($attr) {
+                'wireThreshold' => 'wire_threshold',
+                'entityGuid' => 'entity_guid',
+                'thumbnail' => null,
+                default => $attr,
+            };
+        }, array_keys($activityMutation->getMutatedValues())));
 
         if ($activity->type !== 'activity' && in_array($activity->subtype, [
             'video', 'image'
@@ -448,7 +455,6 @@ class Manager
 
             if (!$activityMutation->hasMutated('title')) {
                 $activity->setTitle('');
-                $mutatedAttributes[] = 'title';
             }
             
         }
@@ -459,6 +465,10 @@ class Manager
 
         if ($activityMutation->hasMutated('wireThreshold')) {
             $this->paywallDelegate->onUpdate($activity);
+        }
+
+        if (empty($mutatedAttributes)) {
+            return true; // Nothing changed
         }
 
         $success = $this->save
@@ -519,7 +529,13 @@ class Manager
      */
     public function patchAttachmentEntity(Activity $activity, EntityInterface $entity): bool
     {
-        return $this->save->setEntity($entity)->save();
+        return $this->save
+            ->setEntity($entity)
+            ->withMutatedAttributes([
+                'access_id',
+                'container_guid',
+            ])
+            ->save(isUpdate: true);
     }
 
     /**

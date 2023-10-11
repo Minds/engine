@@ -5,6 +5,7 @@
 namespace Minds\Core\Groups;
 
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Entities\Group as GroupEntity;
@@ -258,8 +259,10 @@ class Events
             $group = $params['container'];
             $activity = $params['activity'];
 
+            $owner = Di::_()->get(EntitiesBuilder::class)->single($activity->getOwnerGuid());
+
             try {
-                $membership = $this->getGroupMembershipManager()->getMembership($group, $activity->getOwnerEntity());
+                $membership = $this->getGroupMembershipManager()->getMembership($group, $owner);
             } catch (NotFoundException $ex) {
                 return;
             }
