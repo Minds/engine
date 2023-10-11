@@ -16,7 +16,7 @@ class DomainServiceSpec extends ObjectBehavior
     private Collaborator $repositoryMock;
     private Collaborator $cacheMock;
 
-    function let(Config $configMock, Repository $repositoryMock, PsrWrapper $cacheMock)
+    public function let(Config $configMock, Repository $repositoryMock, PsrWrapper $cacheMock)
     {
         $this->beConstructedWith($configMock, $repositoryMock, $cacheMock);
         $this->configMock = $configMock;
@@ -24,12 +24,12 @@ class DomainServiceSpec extends ObjectBehavior
         $this->cacheMock = $cacheMock;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(DomainService::class);
     }
 
-    function it_should_return_a_tenant_from_custom_domain()
+    public function it_should_return_a_tenant_from_custom_domain()
     {
         $this->repositoryMock->getTenantFromDomain('phpspec.local')
             ->willReturn(new Tenant(
@@ -42,7 +42,7 @@ class DomainServiceSpec extends ObjectBehavior
         $tenant->domain->shouldBe('phpspec.local');
     }
 
-    function it_should_return_a_tenant_from_subdomain()
+    public function it_should_return_a_tenant_from_subdomain()
     {
         $this->configMock->get('multi_tenant')
             ->willReturn([
@@ -60,7 +60,7 @@ class DomainServiceSpec extends ObjectBehavior
         $tenant->domain->shouldBe(null);
     }
 
-    function it_should_not_return_tenant_if_reserved_domain()
+    public function it_should_not_return_tenant_if_reserved_domain()
     {
         $this->configMock->get('multi_tenant')
             ->willReturn([

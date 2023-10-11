@@ -36,7 +36,7 @@ class DomainService
         // Is this a temporary subdomain?
         if ($this->isTemporarySubdomain($domain)) {
             $tenant = $this->getTenantFromSubdomain($domain);
-        } else {   
+        } else {
             // Is this a custom domain?
             // Find the tenant id configs for this site
             $tenant = $this->repository->getTenantFromDomain($domain);
@@ -68,13 +68,14 @@ class DomainService
     {
         $domainSuffix = $this->config->get('multi_tenant')['subdomain_suffix'] ?? 'minds.com';
 
-        return strpos($domain, $domainSuffix) !== FALSE;
+        return strpos($domain, $domainSuffix) !== false;
     }
 
     /**
      * Returns a tenant id from its subdomain
      */
-    protected function getTenantFromSubdomain($domain): Tenant {
+    protected function getTenantFromSubdomain($domain): Tenant
+    {
         $domainSuffix = $this->config->get('multi_tenant')['subdomain_suffix'] ?? 'minds.com';
 
         if (!$this->isTemporarySubdomain($domain)) {

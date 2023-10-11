@@ -16,19 +16,19 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
     private Collaborator $configMock;
     private Collaborator $domainServiceMock;
 
-    function let(Config $configMock, DomainService $domainServiceMock)
+    public function let(Config $configMock, DomainService $domainServiceMock)
     {
         $this->beConstructedWith($configMock, $domainServiceMock);
         $this->configMock = $configMock;
         $this->domainServiceMock = $domainServiceMock;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(MultiTenantBootService::class);
     }
 
-    function it_should_setup_a_tenant(ServerRequest $requestMock, UriInterface $uriMock)
+    public function it_should_setup_a_tenant(ServerRequest $requestMock, UriInterface $uriMock)
     {
         $requestMock->getUri()->willReturn($uriMock);
 

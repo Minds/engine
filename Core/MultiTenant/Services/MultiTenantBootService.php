@@ -2,6 +2,7 @@
 namespace Minds\Core\MultiTenant\Services;
 
 use Minds\Core\Config\Config;
+use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
 use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\ServerRequestFactory;
@@ -47,6 +48,8 @@ class MultiTenantBootService
         } catch (ReservedDomainException) {
             // Nothing more to do, this is a reserved domain and not a multi tenant site
             return;
+        } catch (NoTenantFoundException $e) {
+            throw $e;
         }
 
         // Update the configs
