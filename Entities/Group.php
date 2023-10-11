@@ -457,6 +457,9 @@ class Group extends NormalizedEntity implements EntityInterface
      */
     public function getOwnerGuid(): string
     {
+        if ($this->owner_guid) {
+            return $this->owner_guid;
+        }
         $guids = $this->getOwnerGuids();
         return $guids
             ? (string) $guids[0]

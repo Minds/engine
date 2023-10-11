@@ -101,7 +101,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
 
         $entities = $this->buildEntities($statement);
 
-        return $entities[0];
+        return $entities[0] ?? null;
     }
 
     /**

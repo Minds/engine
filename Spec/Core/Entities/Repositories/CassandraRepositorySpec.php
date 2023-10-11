@@ -21,7 +21,7 @@ class CassandraRepositorySpec extends ObjectBehavior
     private Collaborator $lookupTableMock;
     private Collaborator $indexesTableMock;
 
-    function let(Call $entitiesTableMock, lookup $lookupTableMock, Indexes $indexesTableMock)
+    public function let(Call $entitiesTableMock, lookup $lookupTableMock, Indexes $indexesTableMock)
     {
         $this->beConstructedWith($entitiesTableMock, $lookupTableMock, $indexesTableMock);
 
@@ -30,12 +30,12 @@ class CassandraRepositorySpec extends ObjectBehavior
         $this->indexesTableMock = $indexesTableMock;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(CassandraRepository::class);
     }
 
-    function it_should_load_an_entity_from_a_guid()
+    public function it_should_load_an_entity_from_a_guid()
     {
         $this->entitiesTableMock->getRow(123, Argument::any())
             ->shouldBeCalled()
@@ -47,7 +47,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         $entity->getGuid()->shouldBe('123');
     }
 
-    function it_should_not_load_an_entity_from_a_guid_that_does_not_exist()
+    public function it_should_not_load_an_entity_from_a_guid_that_does_not_exist()
     {
         $this->entitiesTableMock->getRow(123, Argument::any())
             ->shouldBeCalled()
@@ -56,7 +56,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         $this->loadFromGuid(123)->shouldBe(null);
     }
 
-    function it_should_load_a_user_from_their_username()
+    public function it_should_load_a_user_from_their_username()
     {
         $this->lookupTableMock->get('minds')
             ->willReturn(['123' => time()]);
@@ -72,7 +72,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         $user->getGuid()->shouldBe('123');
     }
 
-    function it_should_not_load_a_user_from_their_username_if_not_found()
+    public function it_should_not_load_a_user_from_their_username_if_not_found()
     {
         $this->lookupTableMock->get('minds')
             ->willReturn(null);
@@ -82,7 +82,7 @@ class CassandraRepositorySpec extends ObjectBehavior
 
     // Create
 
-    function it_should_create_an_activity()
+    public function it_should_create_an_activity()
     {
         $activity = new Activity();
         $activity->guid = 123;
@@ -97,7 +97,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         $this->create($activity)->shouldBe(true);
     }
 
-    function it_should_create_an_image()
+    public function it_should_create_an_image()
     {
         $image = new Image();
         $image->guid = 123;
@@ -112,7 +112,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         $this->create($image)->shouldBe(true);
     }
 
-    function it_should_create_a_video()
+    public function it_should_create_a_video()
     {
         $video = new Video();
         $video->guid = 123;
@@ -127,7 +127,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         $this->create($video)->shouldBe(true);
     }
 
-    function it_should_create_a_group()
+    public function it_should_create_a_group()
     {
         $group = new Group();
         $group->setGuid(123);
@@ -142,7 +142,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         $this->create($group)->shouldBe(true);
     }
 
-    function it_should_create_a_user()
+    public function it_should_create_a_user()
     {
         $user = new User();
         $user->guid = 123;
@@ -160,7 +160,7 @@ class CassandraRepositorySpec extends ObjectBehavior
 
     // Update
 
-    function it_should_update_an_activity()
+    public function it_should_update_an_activity()
     {
         $activity = new Activity();
         $activity->guid = 123;
@@ -176,7 +176,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         $this->update($activity, ['message'])->shouldBe(true);
     }
 
-    function it_should_update_an_image()
+    public function it_should_update_an_image()
     {
         $image = new Image();
         $image->guid = 123;
@@ -192,7 +192,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         $this->update($image, ['width'])->shouldBe(true);
     }
 
-    function it_should_update_a_video()
+    public function it_should_update_a_video()
     {
         $video = new Video();
         $video->guid = 123;
@@ -208,7 +208,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         $this->update($video, ['width'])->shouldBe(true);
     }
 
-    function it_should_update_a_group()
+    public function it_should_update_a_group()
     {
         $group = new Group();
         $group->setGuid(123);
@@ -224,7 +224,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         $this->update($group, ['name'])->shouldBe(true);
     }
 
-    function it_should_update_a_user()
+    public function it_should_update_a_user()
     {
         $user = new User();
         $user->guid = 123;
@@ -242,7 +242,7 @@ class CassandraRepositorySpec extends ObjectBehavior
 
     // Delete
 
-    function it_should_delete_an_activity()
+    public function it_should_delete_an_activity()
     {
         $activity = new Activity();
         $activity->guid = 123;
@@ -257,7 +257,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         $this->delete($activity)->shouldBe(true);
     }
 
-    function it_should_delete_an_image()
+    public function it_should_delete_an_image()
     {
         $image = new Image();
         $image->guid = 123;
@@ -272,7 +272,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         $this->delete($image)->shouldBe(true);
     }
 
-    function it_should_delete_a_video()
+    public function it_should_delete_a_video()
     {
         $video = new Video();
         $video->guid = 123;
@@ -287,7 +287,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         $this->delete($video)->shouldBe(true);
     }
 
-    function it_should_delete_a_group()
+    public function it_should_delete_a_group()
     {
         $group = new Group();
         $group->setGuid(123);
@@ -302,7 +302,7 @@ class CassandraRepositorySpec extends ObjectBehavior
         $this->delete($group)->shouldBe(true);
     }
 
-    function it_should_delete_a_user()
+    public function it_should_delete_a_user()
     {
         $user = new User();
         $user->guid = 123;
