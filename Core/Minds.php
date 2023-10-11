@@ -7,6 +7,7 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Helpers;
 use Minds\Interfaces\ModuleInterface;
+use Zend\Diactoros\ServerRequestFactory;
 
 /**
  * Core Minds Engine.
@@ -181,8 +182,11 @@ class Minds extends base
      */
     public function checkInstalled()
     {
+        /** @var MultiTenant\Services\MultiTenantBootService */
         $service = Di::_()->get(MultiTenant\Services\MultiTenantBootService::class);
-        $service->boot();
+        $service
+            ->withRequest(ServerRequestFactory::fromGlobals())
+            ->boot();
 
         if (!file_exists(__MINDS_ROOT__ . '/settings.php') && !defined('__MINDS_INSTALLING__') && php_sapi_name() !== 'cli') {
             ob_end_clean();

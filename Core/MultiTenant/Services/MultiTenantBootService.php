@@ -3,10 +3,13 @@ namespace Minds\Core\MultiTenant\Services;
 
 use Minds\Core\Config\Config;
 use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
+use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\ServerRequestFactory;
 
 class MultiTenantBootService
 {
+    private ServerRequest $request;
+
     public function __construct(
         private Config $config,
         private DomainService $domainService,
@@ -14,11 +17,23 @@ class MultiTenantBootService
         
     }
 
+    /**
+     * Pass through a request interface so the boot function knows what domain we are calling
+     * from
+     */
+    public function withRequest(ServerRequest $request): MultiTenantBootService
+    {
+        $instance = clone $this;
+        $instance->request = $request;
+        return $instance;
+    }
+
+    /**
+     * If a multi tenant install is found, this function will update all the site configs
+     */
     public function boot(): void
     {
-        $request = ServerRequestFactory::fromGlobals();
-
-        $uri = $request->getUri();
+        $uri = $this->request->getUri();
 
         $scheme = $uri->getScheme();
         $domain = $uri->getHost();

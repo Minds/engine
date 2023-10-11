@@ -30,7 +30,7 @@ class DomainService
         $cacheKey = 'global:tenant:domain:' . $domain;
 
         if ($tenant = $this->cache->get($cacheKey)) {
-            //return unserialize($tenant);
+            return unserialize($tenant);
         }
 
         // Is this a temporary subdomain?
