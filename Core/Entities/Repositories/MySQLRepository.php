@@ -359,6 +359,10 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     $val = (bool) $val;
                 }
 
+                if ($dataType === MySQLDataTypeEnum::BOOL && in_array($val, ['yes', 'no'], true)) {
+                    $val = $val === 'yes';
+                }
+
                 $data[$key] = $val;
             }
         }
@@ -389,6 +393,9 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'disabled_boost' => MySQLDataTypeEnum::BOOL,
                     'spam' => MySQLDataTypeEnum::BOOL,
                     'deleted' => MySQLDataTypeEnum::BOOL,
+                    'admin' => MySQLDataTypeEnum::BOOL,
+                    'enabled' => MySQLDataTypeEnum::BOOL,
+                    'banned' => MySQLDataTypeEnum::BOOL,
                     'mature' => MySQLDataTypeEnum::BOOL,
                     'canary' => MySQLDataTypeEnum::BOOL,
                     'verified' => MySQLDataTypeEnum::BOOL,
@@ -557,7 +564,15 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     $row = [...$row, ...$tableMappedRow['u']];
 
                     $mapToUnix = ['time_created', 'time_updated', 'last_login', 'last_accepted_tos'];
+
+                    $mapToYesNo = ['admin', 'enabled', 'banned'];
    
+                    foreach ($mapToYesNo as $k) {
+                        if (isset($row[$k])) {
+                            $row[$k] = $row[$k] ? 'yes' : 'no';
+                        }
+                    }
+
                     break;
                 case EntityTypeEnum::ACTIVITY:
                     $row = [...$row, ...$tableMappedRow['a']];
