@@ -4,6 +4,7 @@ namespace Minds\Core\MultiTenant\Services;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
+use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Repository;
 
 class DomainService
@@ -16,7 +17,7 @@ class DomainService
         
     }
 
-    public function getTenantIdFromDomain(string $domain): ?int
+    public function getTenantFromDomain(string $domain): ?Tenant
     {
         $domain = strtolower($domain);
 
@@ -28,27 +29,61 @@ class DomainService
 
         $cacheKey = 'global:tenant:domain:' . $domain;
 
-        if ($tenantId = $this->cache->get($cacheKey)) {
-            return (int) $tenantId;
+        if ($tenant = $this->cache->get($cacheKey)) {
+            //return unserialize($tenant);
         }
 
-        // Find the tenant id configs for this site
-        $tenantId = $this->repository->getTenantIdFromDomain($domain);
+        // Is this a temporary subdomain?
+        if ($this->isTemporarySubdomain($domain)) {
+            $tenant = $this->getTenantFromSubdomain($domain);
+        } else {   
+            // Is this a custom domain?
+            // Find the tenant id configs for this site
+            $tenant = $this->repository->getTenantFromDomain($domain);
+        }
 
-        if (!$tenantId) {
+        if (!$tenant) {
             throw new NoTenantFoundException("Could not find a valid site for this domain");
         }
 
-        $this->cache->set($cacheKey, $tenantId);
+        $this->cache->set($cacheKey, serialize($tenant));
 
-        return $tenantId;
+        return $tenant;
     }
 
+    /**
+     * Helper function to determine if a domain is a reserved domain (ie. for minds.com)
+     */
     protected function isReservedDomain(string $domain): bool
     {
         $reservedDomains = $this->config->get('multi_tenant')['reserved_domains'] ?? [];
 
         return in_array($domain, $reservedDomains, true);
+    }
+
+    /**
+     * Helper function to determine if a domain is a subdomain
+     */
+    protected function isTemporarySubdomain(string $domain): bool
+    {
+        $domainSuffix = $this->config->get('multi_tenant')['subdomain_suffix'] ?? 'minds.com';
+
+        return strpos($domain, $domainSuffix) !== FALSE;
+    }
+
+    /**
+     * Returns a tenant id from its subdomain
+     */
+    protected function getTenantFromSubdomain($domain): Tenant {
+        $domainSuffix = $this->config->get('multi_tenant')['subdomain_suffix'] ?? 'minds.com';
+
+        if (!$this->isTemporarySubdomain($domain)) {
+            throw new \Exception("Not a valid subdomain");
+        }
+
+        $hash = rtrim(str_replace($domainSuffix, '', $domain), '.');
+
+        return $this->repository->getTenantFromHash($hash);
     }
 
 }

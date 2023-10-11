@@ -25,7 +25,10 @@ class MultiTenantBootService
         $port = $uri->getPort();
 
         try {
-            $tenantId = $this->domainService->getTenantIdFromDomain($domain);
+            $tenant = $this->domainService->getTenantFromDomain($domain);
+            if ($tenant->domain) {
+                $domain = $tenant->domain;
+            }
         } catch (ReservedDomainException) {
             // Nothing more to do, this is a reserved domain and not a multi tenant site
             return;
@@ -43,7 +46,7 @@ class MultiTenantBootService
         $this->config->set('cdn_url', $siteUrl);
         $this->config->set('cdn_assets_url', $siteUrl);
 
-        $this->config->set('tenant_id', $tenantId);
+        $this->config->set('tenant_id', $tenant->id);
 
         $this->config->set('dataroot', $this->config->get('dataroot') . 'tenant/' . $this->config->get('tenant_id') . '/');
     }
