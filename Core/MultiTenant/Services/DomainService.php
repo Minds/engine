@@ -53,12 +53,14 @@ class DomainService
 
     /**
      * Helper function to determine if a domain is a reserved domain (ie. for minds.com)
+     * Also, treat ip addresses as reserved domains
      */
     protected function isReservedDomain(string $domain): bool
     {
         $reservedDomains = $this->config->get('multi_tenant')['reserved_domains'] ?? [];
 
-        return in_array($domain, $reservedDomains, true);
+        return in_array($domain, $reservedDomains, true)
+            || filter_var($domain, FILTER_VALIDATE_IP) !== false;
     }
 
     /**
