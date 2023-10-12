@@ -77,7 +77,7 @@ class DomainService
     /**
      * Returns a tenant id from its subdomain
      */
-    protected function getTenantFromSubdomain($domain): Tenant
+    protected function getTenantFromSubdomain($domain): ?Tenant
     {
         $domainSuffix = $this->config->get('multi_tenant')['subdomain_suffix'] ?? 'minds.com';
 
