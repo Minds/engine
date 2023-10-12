@@ -4,6 +4,7 @@ namespace Minds\Core\MultiTenant\Services;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
+use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Repository;
 
@@ -24,7 +25,7 @@ class DomainService
         // Does the domain match
         if ($this->isReservedDomain($domain)) {
             // Nothing more to do, this is a reserved domain and not a multi tenant site
-            return null;
+            throw new ReservedDomainException();
         }
 
         $cacheKey = 'global:tenant:domain:' . $domain;

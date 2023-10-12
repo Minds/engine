@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\MultiTenant\Services;
 
 use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Repository;
 use Minds\Core\MultiTenant\Services\DomainService;
@@ -69,7 +70,6 @@ class DomainServiceSpec extends ObjectBehavior
                 ]
             ]);
 
-        $tenant = $this->getTenantFromDomain('phpspec.public');
-        $tenant->shouldBe(null);
+        $this->shouldThrow(ReservedDomainException::class)->duringGetTenantFromDomain('phpspec.public');
     }
 }
