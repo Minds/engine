@@ -563,7 +563,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 case EntityTypeEnum::USER:
                     $row = [...$row, ...$tableMappedRow['u']];
 
-                    $mapToUnix = ['time_created', 'time_updated', 'last_login', 'last_accepted_tos'];
+                    $mapToUnix = ['time_created', 'time_updated', 'last_login', 'last_accepted_tos', 'icontime'];
 
                     $mapToYesNo = ['admin', 'enabled', 'banned'];
    
@@ -577,7 +577,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 case EntityTypeEnum::ACTIVITY:
                     $row = [...$row, ...$tableMappedRow['a']];
 
-                    $mapToUnix = ['time_created', 'time_updated', 'last_login', 'last_accepted_tos'];
+                    $mapToUnix = ['time_created', 'time_updated', ];
                     
                     break;
                 case EntityTypeEnum::OBJECT:
@@ -593,7 +593,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 case EntityTypeEnum::GROUP:
                     $row = [...$row, ...$tableMappedRow['g']];
 
-                    $mapToUnix = ['time_created', 'time_updated', 'last_login', 'last_accepted_tos'];
+                    $mapToUnix = ['time_created', 'time_updated', 'icon_time'];
 
                     break;
 
