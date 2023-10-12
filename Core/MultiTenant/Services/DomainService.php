@@ -43,7 +43,7 @@ class DomainService
         }
 
         if (!$tenant) {
-            throw new NoTenantFoundException("Could not find a valid site for this domain");
+            throw new NoTenantFoundException("Could not find a valid site for domain: " . $domain);
         }
 
         $this->cache->set($cacheKey, serialize($tenant));

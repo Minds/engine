@@ -78,6 +78,8 @@ class EntitiesBuilder
         if ($entitiesRepository instanceof MySQLRepository) {
             if ($options['guids'] ?? null) {
                 return $this->entitiesRepository->loadFromGuid($options['guids']);
+            } else {
+                return [];
             }
         } else {
             return \elgg_get_entities($options);
