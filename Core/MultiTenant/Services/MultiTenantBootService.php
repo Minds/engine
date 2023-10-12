@@ -64,6 +64,31 @@ class MultiTenantBootService
         $this->config->set('tenant_id', $tenant->id);
 
         $this->config->set('dataroot', $this->config->get('dataroot') . 'tenant/' . $this->config->get('tenant_id') . '/');
+
+        if ($tenantConfig = $tenant->config) {
+            if ($tenantConfig->siteEmail) {
+                $this->config->set('site_email', $tenant->config->siteEmail);
+            }
+            if ($tenantConfig->siteName) {
+                $this->config->set('site_name', $tenant->config->siteName);
+                $this->config->set('tenant_name', $tenant->config->siteName);
+            }
+
+            $themeConfig = [];
+
+            if ($tenant->config->colorScheme) {
+                $themeConfig['color_scheme'] = $tenant->config->colorScheme?->value;
+            }
+
+            if ($tenant->config->primaryColor) {
+                $themeConfig['primary_color'] = $tenant->config->primaryColor;
+            }
+
+            $this->config->set('theme', [
+                'color_scheme' => $tenant->config->colorScheme?->value,
+                'primary_color' => $tenant->config->primaryColor
+            ]);
+        }
     }
 
 }

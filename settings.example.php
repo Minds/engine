@@ -932,3 +932,8 @@ $CONFIG->set('uniswap', [
 ]);
 
 $CONFIG->set('livepeer_api_key', '');
+
+$CONFIG->set('theme', [
+    'color_scheme' => 'LIGHT',
+    'primary_color' => '#1b85d6'
+]);

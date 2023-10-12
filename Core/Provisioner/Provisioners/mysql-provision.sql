@@ -414,3 +414,13 @@ ALTER TABLE minds_activitypub_actors
 
 ALTER TABLE minds_activitypub_uris
     ADD updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP;
+
+CREATE TABLE IF NOT EXISTS minds_tenant_configs (
+    tenant_id int,
+    site_name varchar(64),
+    site_email varchar(128),
+    primary_color varchar(16),
+    color_scheme varchar(32),
+    updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (tenant_id)
+)

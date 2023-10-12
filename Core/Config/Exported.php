@@ -72,6 +72,7 @@ class Exported
             'cdn_url' => $this->config->get('cdn_url'),
             'cdn_assets_url' => $this->config->get('cdn_assets_url'),
             'site_url' => $this->config->get('site_url'),
+            'site_name' => $this->config->get('site_name'),
             'socket_server' => $this->config->get('sockets')['server_uri'] ?: 'ha-socket-io-us-east-1.minds.com:3030',
             'language' => $this->i18n->getLanguage(),
             'languages' => $this->i18n->getLanguages(),
@@ -119,6 +120,7 @@ class Exported
             'livepeer_api_key' => $this->config->get('livepeer_api_key'),
             'onboarding_v5_release_timestamp' => $this->config->get('onboarding_v5_release_timestamp'),
             'is_tenant' => !!$this->config->get('tenant_id'),
+            'theme' => $this->config->get('theme')
         ];
 
         if (Session::isLoggedIn()) {
