@@ -7,8 +7,10 @@
  * @subpackage DataModel.User
  */
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
 use Minds\Core\Entities\Services\EntitiesRepositoryService;
 
 /// Map a username to a cached GUID
@@ -25,17 +27,25 @@ $CODE_TO_GUID_MAP_CACHE = [];
  */
 function get_user_index_to_guid($index)
 {
-    try {
-        $db = new Minds\Core\Data\Call('user_index_to_guid');
-        $row = $db->getRow($index);
-        if (!$row || !is_array($row)) {
+    $isMultiTenant = !!Di::_()->get(Config::class)->get('tenant_id');
+
+    if ($isMultiTenant) {
+        /** @var EntitiesRepositoryInterface */
+        $entitiesRepository = Di::_()->get(EntitiesRepositoryInterface::class);
+        return !!$entitiesRepository->loadFromIndex('username', $index);
+    } else {
+        try {
+            $db = new Minds\Core\Data\Call('user_index_to_guid');
+            $row = $db->getRow($index);
+            if (!$row || !is_array($row)) {
+                return false;
+            }
+            foreach ($row as $k=>$v) {
+                return $k;
+            }
+        } catch (Exception $e) {
             return false;
         }
-        foreach ($row as $k=>$v) {
-            return $k;
-        }
-    } catch (Exception $e) {
-        return false;
     }
 }
 
