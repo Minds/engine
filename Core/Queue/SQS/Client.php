@@ -13,19 +13,26 @@ use Minds\Core\Queue\Interfaces\QueueClient;
 use Minds\Core\Queue\Message;
 use Aws\Sqs\SqsClient;
 use Aws\Sqs\Exception\SqsException;
+use Minds\Core\Config\Config;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 
 class Client implements QueueClient
 {
     /** @var SqsClient $client */
     protected $client;
 
-    protected $config;
+    protected Config $config;
     protected $queueName = 'default';
 
-    public function __construct($config = null, $sqsClientMock = null)
-    {
-        $this->config = $config ?: Di::_()->get('Config');
+    public function __construct(
+        $config = null,
+        $sqsClientMock = null,
+        protected ?MultiTenantBootService $multiTenantBootService = null,
+    ) {
+        $this->config ??= Di::_()->get(Config::class);
         $this->setUp($sqsClientMock);
+
+        $this->multiTenantBootService ??= Di::_()->get(MultiTenantBootService::class);
     }
 
     protected function setUp($sqsClientMock = null)
@@ -81,8 +88,12 @@ class Client implements QueueClient
     }
 
     //$delay must be between 0 and 900 seconds else SQS will error
-    public function send($message, $delay = null)
+    public function send(array $message, $delay = null)
     {
+        if ($tenantId = $this->config->get('tenant_id')) {
+            $message['tenant_id'] = $tenantId;
+        }
+
         $msgClass = new Message();
         $body = [
             'queueName' => $this->queueName,
@@ -155,8 +166,15 @@ class Client implements QueueClient
                 $receiptHandle = $message['ReceiptHandle'];
                 $body = json_decode($message['Body']);
 
+                $message = $body->message;
+
+                // If multi tenant, load its configs
+                if (isset($message['tenant_id']) && $tenantId = $message['tenant_id']) {
+                    $this->multiTenantBootService->bootFromTenantId($tenantId);
+                }
+
                 try {
-                    $callback(new Message($body->message));
+                    $callback(new Message($message));
                 } catch (\Exception $e) {
                     echo '[SQS Queue:receive:callback] '.get_class($e).': '.$e->getMessage();
                     echo $e->getTraceAsString();
@@ -169,6 +187,11 @@ class Client implements QueueClient
                     ]);
                 } catch (\Exception $e) {
                     echo '[SQS Queue:receive:purge] '.get_class($e).': '.$e->getMessage();
+                }
+
+                // Reset multi tenant configs
+                if ($tenantId) {
+                    $this->multiTenantBootService->resetRootConfigs();
                 }
             }
         }

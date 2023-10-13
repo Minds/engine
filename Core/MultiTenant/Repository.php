@@ -61,4 +61,9 @@ class Repository extends AbstractRepository
         return new Tenant($tenantId, $domain);
     }
 
+    public function getTenantFromId(int $id): ?Tenant
+    {
+        return $this->getTenantFromHash(md5($id));
+    }
+
 }

@@ -6,8 +6,10 @@ use Minds\Core\Config\Config;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
+use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 use Psr\Http\Message\UriInterface;
 use Zend\Diactoros\ServerRequest;
 
@@ -15,12 +17,18 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
 {
     private Collaborator $configMock;
     private Collaborator $domainServiceMock;
+    private Collaborator $dataServiceMock;
 
-    public function let(Config $configMock, DomainService $domainServiceMock)
+    public function let(
+        Config $configMock,
+        DomainService $domainServiceMock,
+        MultiTenantDataService $dataServiceMock,
+    )
     {
-        $this->beConstructedWith($configMock, $domainServiceMock);
+        $this->beConstructedWith($configMock, $domainServiceMock, $dataServiceMock);
         $this->configMock = $configMock;
         $this->domainServiceMock = $domainServiceMock;
+        $this->dataServiceMock = $dataServiceMock;
     }
 
     public function it_is_initializable()
@@ -43,6 +51,9 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
         $this->domainServiceMock->getTenantFromDomain('phpspec.local')
             ->shouldBeCalled()
             ->willReturn(new Tenant(123, 'phpspec.local'));
+
+        $this->domainServiceMock->buildDomain(Argument::any())
+            ->willReturn('phpspec.local');
 
         // test the configs are being applied
 
@@ -68,6 +79,6 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
         $this->configMock->get('tenant_id')
             ->willReturn(123);
 
-        $this->withRequest($requestMock)->boot();
+        $this->bootFromRequest($requestMock);
     }
 }

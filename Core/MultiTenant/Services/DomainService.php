@@ -6,13 +6,12 @@ use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
 use Minds\Core\MultiTenant\Models\Tenant;
-use Minds\Core\MultiTenant\Repository;
 
 class DomainService
 {
     public function __construct(
         private Config $config,
-        private Repository $repository,
+        private MultiTenantDataService $dataService,
         private PsrWrapper $cache,
     ) {
         
@@ -40,7 +39,7 @@ class DomainService
         } else {
             // Is this a custom domain?
             // Find the tenant id configs for this site
-            $tenant = $this->repository->getTenantFromDomain($domain);
+            $tenant = $this->dataService->getTenantFromDomain($domain);
         }
 
         if (!$tenant) {
@@ -50,6 +49,24 @@ class DomainService
         $this->cache->set($cacheKey, serialize($tenant));
 
         return $tenant;
+    }
+
+    /**
+     * Builds the domain for the tenant.
+     * If a custom domain is provided, we will return it.
+     * If no domain, we fallback to a temporary subdomain
+     */
+    public function buildDomain(Tenant $tenant): string
+    {
+        if ($tenant->domain) {
+            // Todo: Confirm DNS is configured correctly?
+            return $tenant->domain;
+        }
+
+        $domainSuffix = $this->getDomainSuffix();
+
+        return md5($tenant->id) . '.' . $domainSuffix;
+
     }
 
     /**
@@ -69,7 +86,7 @@ class DomainService
      */
     protected function isTemporarySubdomain(string $domain): bool
     {
-        $domainSuffix = $this->config->get('multi_tenant')['subdomain_suffix'] ?? 'minds.com';
+        $domainSuffix = $this->getDomainSuffix();
 
         return strpos($domain, $domainSuffix) !== false;
     }
@@ -79,7 +96,7 @@ class DomainService
      */
     protected function getTenantFromSubdomain($domain): ?Tenant
     {
-        $domainSuffix = $this->config->get('multi_tenant')['subdomain_suffix'] ?? 'minds.com';
+        $domainSuffix = $this->getDomainSuffix();
 
         if (!$this->isTemporarySubdomain($domain)) {
             throw new \Exception("Not a valid subdomain");
@@ -87,7 +104,16 @@ class DomainService
 
         $hash = rtrim(str_replace($domainSuffix, '', $domain), '.');
 
-        return $this->repository->getTenantFromHash($hash);
+        return $this->dataService->getTenantFromHash($hash);
+    }
+
+    /**
+     * This is the domain suffix for the temporary network domains.
+     * ie. elephants.(networks.minds.com)
+     */
+    protected function getDomainSuffix(): string
+    {
+        return $this->config->get('multi_tenant')['subdomain_suffix'] ?? 'minds.com';
     }
 
 }

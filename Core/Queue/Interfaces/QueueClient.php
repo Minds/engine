@@ -23,7 +23,7 @@ interface QueueClient
      * @param $message
      * @return mixed
      */
-    public function send($message);
+    public function send(array $message);
 
     /**
      * @param $callback

@@ -121,7 +121,7 @@ class Client implements Interfaces\QueueClient
      * @param mixed $message
      * @return self
      */
-    public function send($message): self
+    public function send(array $message): self
     {
         $msg = new Message();
         //error_log("\n === NEW MESSAGE FROM MINDS ===");

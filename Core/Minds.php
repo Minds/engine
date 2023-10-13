@@ -23,6 +23,7 @@ class Minds extends base
     private $modules = [
         Log\Module::class,
         Events\Module::class,
+        MultiTenant\Module::class,
         GraphQL\Module::class,
         EventStreams\Module::class,
         Security\Module::class,
@@ -89,7 +90,6 @@ class Minds extends base
         Webfinger\Module::class,
         ActivityPub\Module::class,
         Admin\Module::class,
-        MultiTenant\Module::class,
     ];
 
     /**
@@ -187,8 +187,7 @@ class Minds extends base
             /** @var MultiTenant\Services\MultiTenantBootService */
             $service = Di::_()->get(MultiTenant\Services\MultiTenantBootService::class);
             $service
-                ->withRequest(ServerRequestFactory::fromGlobals())
-                ->boot();
+                ->bootFromRequest(ServerRequestFactory::fromGlobals());
         }
 
         if (!file_exists(__MINDS_ROOT__ . '/settings.php') && !defined('__MINDS_INSTALLING__') && php_sapi_name() !== 'cli') {

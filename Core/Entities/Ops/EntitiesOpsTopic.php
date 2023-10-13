@@ -4,10 +4,12 @@
  */
 namespace Minds\Core\Entities\Ops;
 
+use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\Topics\AbstractTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\EventStreams\UndeliveredEventException;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Pulsar\Consumer;
 use Pulsar\ConsumerConfiguration;
 use Pulsar\MessageBuilder;
@@ -27,6 +29,8 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
     /** @var Producer */
     protected $producer;
 
+    protected MultiTenantBootService $multiTenantBootService;
+
     /**
      * Sends notifications events to our stream
      * @param EventInterface $event
@@ -45,8 +49,8 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
             'entity_serialized' => $event->getEntitySerialized(),
         ];
 
-        if ($this->config->get('tenant_id')) {
-            $data['tenant_id'] = $this->config->get('tenant_id');
+        if ($tenantId = $this->config->get('tenant_id')) {
+            $data['tenant_id'] = $tenantId;
         }
 
         $builder = new MessageBuilder();
@@ -110,8 +114,8 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
 
                 // Multi tenant support
 
-                if (isset($data['tenant_id'])) {
-                    $this->config->set('tenant_id', $data['tenant_id']);
+                if (isset($data['tenant_id']) && $tenantId = $data['tenant_id']) {
+                    $this->getMultiTenantBootService()->bootFromTenantId($tenantId);
                 }
 
                 if (isset($data['entity_serialized'])) {
@@ -125,7 +129,9 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                 $this->logger->error("Topic(Consume): Uncaught error: " . $e->getMessage());
             } finally {
                 // Reset Multi Tenant support
-                $this->config->set('tenant_id', null);
+                if ($tenantId) {
+                    $this->getMultiTenantBootService()->resetRootConfigs();
+                }
             }
         }
     }
@@ -189,6 +195,11 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                 ],
             ]
         ]);
+    }
+
+    protected function getMultiTenantBootService(): MultiTenantBootService
+    {
+        return $this->multiTenantBootService ??= Di::_()->get(MultiTenantBootService::class);
     }
 
 }
