@@ -50,7 +50,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 'i.*',
                 'v.*',
                 'g.*',
-                'has_voted' => new RawExp("
+                'has_voted_up' => new RawExp("
                     CASE 
                         WHEN 
                             e.type='activity' AND (
@@ -58,6 +58,21 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                                 WHERE minds_votes.entity_guid = e.guid
                                 AND user_guid=:loggedInUser
                                 AND deleted = False
+                                AND direction = 1
+                            )
+                        THEN TRUE 
+                        ELSE FALSE
+                    END
+                "),
+                'has_voted_down' => new RawExp("
+                    CASE 
+                        WHEN 
+                            e.type='activity' AND (
+                                SELECT 1 FROM minds_votes
+                                WHERE minds_votes.entity_guid = e.guid
+                                AND user_guid=:loggedInUser
+                                AND deleted = False
+                                AND direction = 2
                             )
                         THEN TRUE 
                         ELSE FALSE
@@ -596,8 +611,11 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     $row = [...$row, ...$tableMappedRow['a']];
 
                     // Hack for votes
-                    if ($tableMappedRow['']['has_voted'] ?? false) {
+                    if ($tableMappedRow['']['has_voted_up'] ?? false) {
                         $row['thumbs:up:user_guids'] = [(string) $this->activeSession->getUserGuid()];
+                    }
+                    if ($tableMappedRow['']['has_voted_down'] ?? false) {
+                        $row['thumbs:down:user_guids'] = [(string) $this->activeSession->getUserGuid()];
                     }
 
                     $mapToUnix = ['time_created', 'time_updated', ];
