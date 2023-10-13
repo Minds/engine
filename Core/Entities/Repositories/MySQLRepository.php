@@ -12,6 +12,8 @@ use Minds\Core\Data\MySQL\MySQLDataTypeEnum;
 use Minds\Core\Entities\Enums\EntitySubtypeEnum;
 use Minds\Core\Entities\Enums\EntityTypeEnum;
 use Minds\Core\Log\Logger;
+use Minds\Core\Session;
+use Minds\Core\Sessions\ActiveSession;
 use Minds\Entities\Video;
 use Minds\Entities\Activity;
 use Minds\Entities\Factory;
@@ -28,6 +30,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
 {
     public function __construct(
         private Config $config,
+        private ActiveSession $activeSession,
         Client $mysqlClient,
         Logger $logger,
     ) {
@@ -47,6 +50,16 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 'i.*',
                 'v.*',
                 'g.*',
+                'has_voted' => new RawExp("
+                    CASE 
+                        WHEN 
+                            e.type='activity' AND (
+                                SELECT 1 FROM minds_votes WHERE minds_votes.entity_guid = e.guid AND user_guid=:loggedInUser
+                            )
+                        THEN TRUE 
+                        ELSE FALSE
+                    END
+                "),
             ])
             ->from(new RawExp('minds_entities as e'))
             ->leftJoin(['u' => 'minds_entities_user'], 'e.guid', Operator::EQ, 'u.guid')
@@ -72,7 +85,8 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
         $statement = $query->prepare();
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, [
-            'guid' => $guid
+            'guid' => $guid,
+            'loggedInUser' => $this->activeSession->getUserGuid(),
         ]);
 
         $statement->execute();
@@ -577,6 +591,11 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     break;
                 case EntityTypeEnum::ACTIVITY:
                     $row = [...$row, ...$tableMappedRow['a']];
+
+                    // Hack for votes
+                    if ($tableMappedRow['']['has_voted'] ?? false) {
+                        $row['thumbs:up:user_guids'] = [(string) $this->activeSession->getUserGuid()];
+                    }
 
                     $mapToUnix = ['time_created', 'time_updated', ];
                     

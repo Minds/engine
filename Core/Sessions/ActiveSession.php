@@ -25,4 +25,15 @@ class ActiveSession
     {
         return CoreSession::getLoggedinUser() ?: null;
     }
+
+    /**
+     * Gets the currently logged in user guid
+     * @return int|null
+     */
+    public function getUserGuid(): ?int
+    {
+        $user = $this->getUser();
+
+        return $user ? (int) $user->getGuid() : null;
+    }
 }

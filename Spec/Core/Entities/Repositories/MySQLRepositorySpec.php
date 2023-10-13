@@ -7,6 +7,7 @@ use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Data\MySQL\MySQLConnectionEnum;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Repositories\MySQLRepository;
+use Minds\Core\Sessions\ActiveSession;
 use Minds\Entities\Activity;
 use Minds\Entities\Group;
 use Minds\Entities\Image;
@@ -27,10 +28,11 @@ class MySQLRepositorySpec extends ObjectBehavior
     public function let(
         Client $mysqlClientMock,
         Config $configMock,
+        ActiveSession $activeSessionMock,
         PDO $mysqlMasterMock,
         PDO $mysqlReplicaMock,
     ) {
-        $this->beConstructedWith($configMock, $mysqlClientMock, Di::_()->get('Logger'));
+        $this->beConstructedWith($configMock, $activeSessionMock, $mysqlClientMock, Di::_()->get('Logger'));
 
         $this->mysqlClientMock = $mysqlClientMock;
 
@@ -92,7 +94,7 @@ class MySQLRepositorySpec extends ObjectBehavior
             'table' => 'a',
         ]);
 
-        $this->mysqlClientMock->bindValuesToPreparedStatement($pdoStatementMock, [ 'guid' => 123 ])
+        $this->mysqlClientMock->bindValuesToPreparedStatement($pdoStatementMock, [ 'guid' => 123, 'loggedInUser' => null ])
             ->shouldBeCalled();
 
         $entity = $this->loadFromGuid(123);
@@ -113,7 +115,7 @@ class MySQLRepositorySpec extends ObjectBehavior
 
         $pdoStatementMock->rowCount()->shouldBeCalled()->willReturn(0);
 
-        $this->mysqlClientMock->bindValuesToPreparedStatement($pdoStatementMock, [ 'guid' => 123 ])
+        $this->mysqlClientMock->bindValuesToPreparedStatement($pdoStatementMock, [ 'guid' => 123, 'loggedInUser' => null ])
             ->shouldBeCalled();
 
         $this->loadFromGuid(123)->shouldBe(null);

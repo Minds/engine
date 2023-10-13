@@ -57,6 +57,7 @@ class Provider extends \Minds\Core\Di\Provider
         $this->di->bind(MySQLRepository::class, function (Di $di): MySQLRepository {
             return new MySQLRepository(
                 config: $di->get(Config::class),
+                activeSession: $di->get('Sessions\ActiveSession'),
                 mysqlClient: $di->get('Database\MySQL\Client'),
                 logger: $di->get('Logger')
             );
