@@ -17,20 +17,6 @@ class Client
      */
     public static function build($client = '')
     {
-        $alias = 'Queue';
-
-        if ($client) {
-            $alias = "Queue\\{$client}";
-        }
-
-        $instance = Di::_()->get($alias);
-
-        if (!$instance) {
-            throw new \Exception("DI binding not found: {$alias}");
-        } elseif (!($instance instanceof Interfaces\QueueClient)) {
-            throw new \Exception("DI binding is not of Interface QueueClient: {$alias}");
-        }
-
-        return $instance;
+        return Di::_()->get('Queue');
     }
 }

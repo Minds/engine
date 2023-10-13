@@ -47,7 +47,6 @@ class Controller
         $registry->getOrRegisterGauge('engine', 'sendGrid_connections_total', 'SendGrid connections')->incBy($metrics['sendGrid'] ? 1 : 0);
         $registry->getOrRegisterGauge('engine', 'web3_connections_total', 'Web3 connections')->incBy($metrics['web3'] ? 1 : 0);
         $registry->getOrRegisterGauge('engine', 'permaweb_connections_total', 'Permaweb connections')->incBy($metrics['permaweb'] ? 1 : 0);
-        $registry->getOrRegisterGauge('engine', 'sqs_connections_total', 'SQS connections')->incBy($metrics['sqs'] ? 1 : 0);
 
         $renderer = new Prometheus\RenderTextFormat();
         $result = $renderer->render($registry->getMetricFamilySamples());

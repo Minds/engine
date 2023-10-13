@@ -23,8 +23,7 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
         Config $configMock,
         DomainService $domainServiceMock,
         MultiTenantDataService $dataServiceMock,
-    )
-    {
+    ) {
         $this->beConstructedWith($configMock, $domainServiceMock, $dataServiceMock);
         $this->configMock = $configMock;
         $this->domainServiceMock = $domainServiceMock;
