@@ -8,7 +8,8 @@ class Tenant
     public function __construct(
         public readonly int $id,
         public readonly ?string $domain = null,
-        public readonly ?MultiTenantConfig $config
+        public readonly ?int $ownerGuid = null,
+        public readonly ?MultiTenantConfig $config = null
     ) {
         
     }

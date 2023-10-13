@@ -14,6 +14,8 @@ $CONFIG->set('multi_tenant', [
     'subdomain_suffix' => 'networks.localhost',
 ]);
 
+$CONFIG->set('tenant_owner_guid', '0');
+
 /*
  * Cassandra configuration
  */

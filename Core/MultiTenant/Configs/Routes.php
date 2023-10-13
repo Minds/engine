@@ -3,7 +3,7 @@
 namespace Minds\Core\MultiTenant\Configs;
 
 use Minds\Core\Di\Ref;
-use Minds\Core\Router\Middleware\LoggedInMiddleware;
+use Minds\Core\Router\Middleware\AdminMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 
@@ -16,18 +16,24 @@ class Routes extends ModuleRoutes
     {
         $this->route
             ->withPrefix('api/v3/multi-tenant/configs')
-            ->withMiddleware([
-                LoggedInMiddleware::class,
-            ])
             ->do(function (Route $route) {
+                // logged-out routes.
                 $route->get(
                     'image/:imageType',
                     Ref::_(Image\Controller::class, 'get')
                 );
-                $route->post(
-                    'image/upload',
-                    Ref::_(Image\Controller::class, 'upload')
-                );
+
+                // admin routes.
+                $route
+                    ->withMiddleware([
+                        AdminMiddleware::class,
+                    ])
+                    ->do(function (Route $route): void {
+                        $route->post(
+                            'image/upload',
+                            Ref::_(Image\Controller::class, 'upload')
+                        );
+                    });
             });
     }
 }

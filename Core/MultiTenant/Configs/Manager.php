@@ -8,15 +8,20 @@ use Minds\Core\Config\Config;
 use Minds\Core\Log\Logger;
 use Minds\Core\MultiTenant\Configs\Enums\MultiTenantColorScheme;
 use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
+use Minds\Core\MultiTenant\Services\DomainService;
+use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Exceptions\NotFoundException;
 
 class Manager
 {
     public function __construct(
+        private readonly MultiTenantDataService $multiTenantDataService,
+        private readonly DomainService $domainService,
         private readonly Repository $repository,
         private readonly Logger $logger,
         private readonly Config $config
-    ) {}
+    ) {
+    }
 
     public function getConfigs(
     ): ?MultiTenantConfig {
@@ -25,7 +30,7 @@ class Manager
         try {
             return $this->repository->get(
                 tenantId: $tenantId,
-            );   
+            );
         } catch(NotFoundException $e) {
             return null;
         } catch(\Exception $e) {
@@ -41,11 +46,23 @@ class Manager
     ): bool {
         $tenantId = $this->config->get('tenant_id');
 
-        return $this->repository->upsert(
+        $result = $this->repository->upsert(
             tenantId: $tenantId,
             siteName: $siteName,
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
-        );       
+        );
+
+        if ($result) {
+            $this->invalidateCache($tenantId);
+        }
+
+        return $result;
+    }
+
+    private function invalidateCache(int $tenantId): void
+    {
+        $tenant = $this->multiTenantDataService->getTenantFromId($tenantId);
+        $this->domainService->invalidateCache($tenant->domain);
     }
 }

@@ -27,7 +27,7 @@ class DomainService
             throw new ReservedDomainException();
         }
 
-        $cacheKey = 'global:tenant:domain:' . $domain;
+        $cacheKey = $this->getCacheKey($domain);
 
         if ($tenant = $this->cache->get($cacheKey)) {
             return unserialize($tenant);
@@ -67,6 +67,17 @@ class DomainService
 
         return md5($tenant->id) . '.' . $domainSuffix;
 
+    }
+
+    /**
+     * Invalidate the global tenant cache entry for a given domain.
+     * @param string $domain - domain to scope invalidation to.
+     * @return self
+     */
+    public function invalidateCache(string $domain): self
+    {
+        $this->cache->withTenantPrefix(false)->delete($this->getCacheKey($domain));
+        return $this;
     }
 
     /**
@@ -116,4 +127,13 @@ class DomainService
         return $this->config->get('multi_tenant')['subdomain_suffix'] ?? 'minds.com';
     }
 
+    /**
+     * Get cache key for a given domain.
+     * @param string $domain - domain to scope cache key to.
+     * @return string - cache key.
+     */
+    protected function getCacheKey(string $domain): string
+    {
+        return strtolower('global:tenant:domain:' . $domain);
+    }
 }

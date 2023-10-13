@@ -92,13 +92,20 @@ class MultiTenantBootService
         $this->setConfig('cdn_assets_url', $siteUrl);
 
         $this->setConfig('tenant_id', $tenant->id);
-
+        $this->setConfig('tenant_owner_guid', $tenant->ownerGuid);
         $this->setConfig('dataroot', $this->config->get('dataroot') . 'tenant/' . $this->config->get('tenant_id') . '/');
 
         if ($tenantConfig = $tenant->config) {
             if ($tenantConfig->siteEmail) {
-                $this->setConfig('site_email', $tenant->config->siteEmail);
+                $emailConfig = $this->config->get('email');
+                $emailConfig['sender']['email'] = $tenant->config->siteEmail;
+
+                if ($tenantConfig->siteName) {
+                    $emailConfig['sender']['name'] = $tenant->config->siteName;
+                }
+                $this->setConfig('email', $emailConfig);
             }
+
             if ($tenantConfig->siteName) {
                 $this->setConfig('site_name', $tenant->config->siteName);
             }

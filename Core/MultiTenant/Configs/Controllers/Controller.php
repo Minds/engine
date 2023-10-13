@@ -28,7 +28,8 @@ class Controller
      * @return MultiTenantConfig
      */
     #[Query]
-    public function getMultiTenantConfig(): ?MultiTenantConfig {
+    public function getMultiTenantConfig(): ?MultiTenantConfig
+    {
         return $this->manager->getConfigs();
     }
 

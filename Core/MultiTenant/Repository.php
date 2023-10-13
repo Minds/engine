@@ -37,7 +37,7 @@ class Repository extends AbstractRepository
     public function getTenantFromHash(string $hash): ?Tenant
     {
         $query = $this->buildGetTenantQuery()
-            ->where(new RawExp('md5(tenant_id) = :hash'));
+            ->where(new RawExp('md5(minds_tenants.tenant_id) = :hash'));
             
         $statement = $query->prepare();
 
@@ -62,6 +62,7 @@ class Repository extends AbstractRepository
             ->columns([
                 'minds_tenants.tenant_id',
                 'domain',
+                'owner_guid',
                 'site_name',
                 'site_email',
                 'primary_color',
@@ -70,22 +71,29 @@ class Repository extends AbstractRepository
             ]);
     }
 
-    private function buildTenantModel(array $row) {
+    private function buildTenantModel(array $row)
+    {
         $tenantId = $row['tenant_id'];
         $domain = $row['domain'];
+        $tenantOwnerGuid = $row['owner_guid'];
         $siteName = $row['site_name'] ?? null;
         $siteEmail = $row['site_email'] ?? null;
         $primaryColor = $row['primary_color'] ?? null;
         $colorScheme = $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null;
         $updatedTimestamp = $row['updated_timestamp'] ?? null;
 
-        return new Tenant($tenantId, $domain, new MultiTenantConfig(
-            siteName: $siteName,
-            siteEmail: $siteEmail,
-            primaryColor: $primaryColor,
-            colorScheme: $colorScheme,
-            updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null
-        ));
+        return new Tenant(
+            id: $tenantId,
+            domain: $domain,
+            ownerGuid: $tenantOwnerGuid,
+            config: new MultiTenantConfig(
+                siteName: $siteName,
+                siteEmail: $siteEmail,
+                primaryColor: $primaryColor,
+                colorScheme: $colorScheme,
+                updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null
+            )
+        );
     }
 
     public function getTenantFromId(int $id): ?Tenant

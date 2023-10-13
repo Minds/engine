@@ -9,4 +9,3 @@ enum MultiTenantConfigImageType: string
     case HORIZONTAL_LOGO = 'horizontal_logo';
     case FAVICON = 'favicon';
 }
-

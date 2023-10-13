@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace Minds\Core\MultiTenant\Configs;
 
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\MultiTenant\Services\DomainService;
+use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 
 class Provider extends DiProvider
 {
@@ -17,6 +19,8 @@ class Provider extends DiProvider
         });
         $this->di->bind(Manager::class, function ($di) {
             return new Manager(
+                $di->get(MultiTenantDataService::class),
+                $di->get(DomainService::class),
                 $di->get(Repository::class),
                 $di->get('Logger'),
                 $di->get('Config')
@@ -36,7 +40,8 @@ class Provider extends DiProvider
         });
         $this->di->bind(Image\Manager::class, function ($di) {
             return new Image\Manager(
-                $di->get('Media\Imagick\Manager')
+                $di->get('Media\Imagick\Manager'),
+                $di->get('Config')
             );
         });
     }

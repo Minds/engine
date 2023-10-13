@@ -15,5 +15,6 @@ class MultiTenantConfigInput
         #[Field] public readonly ?string $siteEmail = null,
         #[Field] public readonly ?MultiTenantColorScheme $colorScheme = null,
         #[Field] public readonly ?string $primaryColor = null
-    ) {}
+    ) {
+    }
 }
