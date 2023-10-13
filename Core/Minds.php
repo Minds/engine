@@ -88,6 +88,7 @@ class Minds extends base
         ActivityPub\Module::class,
         Admin\Module::class,
         Payments\Lago\Module::class,
+        Payments\Lago\Module::class,
     ];
 
     /**

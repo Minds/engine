@@ -12,8 +12,12 @@ class GraphQLMappings extends AbstractGraphQLMappings
     {
         $this->schemaFactory->addControllerNamespace("Minds\Core\Payments\Lago\Controllers");
         $this->schemaFactory->addTypeNamespace("Minds\\Core\\Payments\\Lago\\Enums");
+        $this->schemaFactory->addTypeNamespace("Minds\\Core\\Payments\\Lago\\Types");
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
-
+            Types\Customer::class,
+            Types\BillingConfiguration::class,
+            Types\Subscription::class,
+            Types\Plan::class,
         ]));
     }
 }

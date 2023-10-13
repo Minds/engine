@@ -21,6 +21,16 @@ class ClientsProvider extends DiProvider
                 $this->getHttpClient()
             );
         });
+        $this->di->bind(PlansClient::class, function (Di $di): PlansClient {
+            return new PlansClient(
+                $this->getHttpClient()
+            );
+        });
+        $this->di->bind(SubscriptionsClient::class, function (Di $di): SubscriptionsClient {
+            return new SubscriptionsClient(
+                $this->getHttpClient()
+            );
+        });
     }
 
     private function getHttpClient(): Client
