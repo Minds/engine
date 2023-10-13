@@ -74,7 +74,7 @@ class DomainService
      * @param string $domain - domain to scope invalidation to.
      * @return self
      */
-    public function invalidateCache(string $domain): self
+    public function invalidateGlobalTenantCache(string $domain): self
     {
         $this->cache->withTenantPrefix(false)->delete($this->getCacheKey($domain));
         return $this;

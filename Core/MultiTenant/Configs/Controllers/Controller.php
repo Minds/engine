@@ -15,6 +15,9 @@ use TheCodingMachine\GraphQLite\Annotations\Query;
 use TheCodingMachine\GraphQLite\Annotations\Security;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
+/**
+ * Controller for MultiTenant Configs.
+ */
 class Controller
 {
     public function __construct(
@@ -24,6 +27,7 @@ class Controller
     }
 
     /**
+     * Gets multi-tenant config for the calling tenant.
      * @throws GraphQLException
      * @return MultiTenantConfig
      */
@@ -34,9 +38,10 @@ class Controller
     }
 
     /**
-     * @param MultiTenantConfigInput $multiTenantConfigInput
-     * @throws GraphQLException
-     * @return bool
+     * Sets multi-tenant config for the calling tenant.
+     * @param MultiTenantConfigInput $multiTenantConfigInput - input type with fields to change.
+     * @throws GraphQLException - on error.
+     * @return bool - true on success.
      */
     #[Mutation]
     #[Logged]

@@ -7,6 +7,9 @@ use Minds\Core\MultiTenant\Configs\Enums\MultiTenantColorScheme;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 
+/**
+ * Multi-tenant config model.
+ */
 #[Type]
 class MultiTenantConfig
 {

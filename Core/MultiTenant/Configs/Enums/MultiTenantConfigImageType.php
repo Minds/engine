@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Configs\Enums;
 
+/**
+ * Different types of configurable images for multi-tenant networks.
+ */
 enum MultiTenantConfigImageType: string
 {
     case SQUARE_LOGO = 'square_logo';

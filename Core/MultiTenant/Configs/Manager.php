@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Configs;
@@ -12,6 +11,10 @@ use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Exceptions\NotFoundException;
 
+/**
+ * Manager for multi-tenant configs.
+ * Allows getting and updating of config values.
+ */
 class Manager
 {
     public function __construct(
@@ -23,6 +26,10 @@ class Manager
     ) {
     }
 
+    /**
+     * Gets multi-tenant config for the calling tenant.
+     * @return ?MultiTenantConfig - null if not found.
+     */
     public function getConfigs(
     ): ?MultiTenantConfig {
         $tenantId = $this->config->get('tenant_id');
@@ -39,6 +46,13 @@ class Manager
         }
     }
 
+    /**
+     * Sets multi-tenant config for the calling tenant.
+     * @param ?string $siteName - site name to set.
+     * @param ?MultiTenantColorScheme $colorScheme - color scheme to set.
+     * @param ?string $primaryColor - primary color to set.
+     * @return bool - true on success.
+     */
     public function upsertConfigs(
         ?string $siteName,
         ?MultiTenantColorScheme $colorScheme,
@@ -60,9 +74,14 @@ class Manager
         return $result;
     }
 
+    /**
+     * Invalidates global cached configurations for a given tenant domain.
+     * @param integer $tenantId - tenant ID.
+     * @return void
+     */
     private function invalidateCache(int $tenantId): void
     {
         $tenant = $this->multiTenantDataService->getTenantFromId($tenantId);
-        $this->domainService->invalidateCache($tenant->domain);
+        $this->domainService->invalidateGlobalTenantCache($tenant->domain);
     }
 }

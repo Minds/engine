@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Configs;
@@ -11,8 +10,17 @@ use Minds\Exceptions\NotFoundException;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
 
+/**
+ * Repository for multi-tenant configs.
+ */
 class Repository extends AbstractRepository
 {
+    /**
+     * Get the config for a tenant by tenant id.
+     * @param integer $tenantId - tenant id.
+     * @throws NotFoundException - if no rows are found.
+     * @return MultiTenantConfig - found config.
+     */
     public function get(int $tenantId): MultiTenantConfig
     {
         $query = $this->mysqlClientWriterHandler
@@ -42,6 +50,14 @@ class Repository extends AbstractRepository
         );
     }
 
+    /**
+     * Upsert tenant config values.
+     * @param integer $tenantId - tenant id.
+     * @param ?string $siteName - site name.
+     * @param ?MultiTenantColorScheme $colorScheme - color scheme.
+     * @param ?string $primaryColor - primary color.
+     * @return bool - true on success.
+     */
     public function upsert(
         int $tenantId,
         ?string $siteName,

@@ -6,6 +6,9 @@ namespace Minds\Core\MultiTenant\Configs;
 use Minds\Core\GraphQL\AbstractGraphQLMappings;
 use TheCodingMachine\GraphQLite\Mappers\StaticClassListTypeMapperFactory;
 
+/**
+ * GraphQL mappings for multi-tenant configs.
+ */
 class GraphQLMappings extends AbstractGraphQLMappings
 {
     /**

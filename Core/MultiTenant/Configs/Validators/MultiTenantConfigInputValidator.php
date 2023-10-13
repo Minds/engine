@@ -7,6 +7,10 @@ use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfigInput;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 use TheCodingMachine\GraphQLite\Types\InputTypeValidatorInterface;
 
+/**
+ * Multi-tenant config input validator. Validates input for multi-tenant config
+ * before input is passed to the controller.
+ */
 class MultiTenantConfigInputValidator implements InputTypeValidatorInterface
 {
     /**

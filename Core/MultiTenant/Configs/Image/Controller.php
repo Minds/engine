@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Configs\Image;
@@ -11,6 +10,9 @@ use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\Response\JsonResponse;
 
+/**
+ * Controller multi-tenant config image retrieval and uploads.
+ */
 class Controller
 {
     public function __construct(
@@ -19,7 +21,12 @@ class Controller
     ) {
     }
 
-    public function get(ServerRequestInterface $request)
+    /**
+     * Get an image for the passed in type.
+     * @param ServerRequestInterface $request - server request.
+     * @return void
+     */
+    public function get(ServerRequestInterface $request): void
     {
         if (!$type = MultiTenantConfigImageType::tryFrom($request->getAttribute("parameters")["imageType"])) {
             throw new UserErrorException('A valid type must be provided');
@@ -42,10 +49,10 @@ class Controller
         exit;
     }
 
-
     /**
-     * @param ServerRequest $request
-     * @return JsonResponse
+     * Upload an image for the passed in type.
+     * @param ServerRequest $request - server request.
+     * @return JsonResponse - success status on success.
      */
     public function upload(ServerRequest $request): JsonResponse
     {
