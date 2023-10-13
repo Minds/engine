@@ -4,6 +4,16 @@ $CONFIG = Minds\Core\Di\Di::_()->get('Config');
 
 $CONFIG->minds_debug = true;
 
+$CONFIG->set('multi_tenant', [
+    'enabled' => false,
+    'reserved_domains' => [
+        'minds.com',
+        'www.minds.com',
+        'localhost',
+    ],
+    'subdomain_suffix' => 'networks.localhost',
+]);
+
 /*
  * Cassandra configuration
  */

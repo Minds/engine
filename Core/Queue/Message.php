@@ -1,37 +1,26 @@
 <?php
 namespace Minds\Core\Queue;
 
+use Minds\Core\EventStreams\EventInterface;
+use Minds\Core\EventStreams\TimebasedEventTrait;
+
 /**
  * Message object
  */
-class Message
+class Message implements EventInterface
 {
-    private $data;
+    use TimebasedEventTrait;
     
-    public function __construct($data = null)
-    {
-        if ($data) {
-            $this->data = json_decode($data, true);
-        }
+    public function __construct(
+        public readonly string $queueName,
+        public readonly array $data = [],
+        public readonly int $delaySecs = 0,
+        public readonly ?int $tenantId = null,
+    ) {
+
     }
- 
-    /**
-     * Serialize and set the data
-     * @param mixed $data
-     * @return string
-     */
-    public function setData($data)
-    {
-        // if (is_array($data)) {
-        //     //multisites require that we pass the keyspace
-        //     global $CONFIG;
-        //     $data['keyspace'] = $CONFIG->cassandra->keyspace;
-        // }
-        $this->data = json_encode($data);
-        return $this->data;
-    }
-    
-    public function getData()
+
+    public function getData(): array
     {
         return $this->data;
     }

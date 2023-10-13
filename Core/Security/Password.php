@@ -128,12 +128,16 @@ class Password
 
         $save = new Save();
 
+        $ia = ACL::_()->setIgnore(true);
+
         $save
             ->setEntity($user)
             ->withMutatedAttributes([
                 'password_reset_code',
             ])
             ->save();
+
+        ACL::_()->setIgnore($ia);
 
         return $code;
     }

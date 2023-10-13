@@ -141,10 +141,10 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(null);
 
         $nostrEvent = $this->buildNostrEvent($user);
-        $nostrEvent->getId()->shouldBe('01af15a48be6415ba054e4ada5abf5a2bd3ec036354f028084e848e299d68062');
+        $nostrEvent->getId()->shouldBe('9a6632c7bd77040c167241bc9796836914532bc669e7f56170d37a7c91f4a1a2');
         $nostrEvent->getKind()->shouldBe(0);
         $nostrEvent->getPubKey()->shouldBe("4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715");
-        $nostrEvent->getSig()->shouldBe("2de5f704f0b1db6eb387654a44be6101e94ed1252873085c850563b13722b09cc5be52f25db5306696614367dfaa31e6bd7506b6221f0377180c3d3127e00531");
+        $nostrEvent->getSig()->shouldBe("4711a52137e39ab65e9e5cd0bc9932d50b03bc239cf7bd810bee6ba42355a6f795c8ea247f2515f323c65db18787b609bfe42406ade659548425b1dea21761b0");
     }
 
     public function it_should_build_a_nostr_event_for_activity(Activity $activity, User $user)

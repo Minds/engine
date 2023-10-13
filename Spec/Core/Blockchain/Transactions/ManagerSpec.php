@@ -15,7 +15,7 @@ class ManagerSpec extends ObjectBehavior
     private $repo;
     /** @var Ethereum */
     private $eth;
-    /** @var \Minds\Core\Queue\RabbitMQ\Client */
+
     private $rabbit;
     /** @var Redis */
     private $cacher;
@@ -25,7 +25,7 @@ class ManagerSpec extends ObjectBehavior
     public function let(
         Repository $repo,
         Ethereum $eth,
-        \Minds\Core\Queue\RabbitMQ\Client $rabbit,
+        \Minds\Core\Queue\Interfaces\QueueClient $rabbit,
         Redis $cacher,
         EventsDispatcher $dispatcher
     ) {

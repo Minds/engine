@@ -106,7 +106,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         ]);
     }
 
-    public function __construct($guid = null, $cache = null, $entitiesBuilder = null, $activityManager = null)
+    public function __construct($guid = null, $entitiesBuilder = null, $activityManager = null)
     {
         parent::__construct($guid);
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');

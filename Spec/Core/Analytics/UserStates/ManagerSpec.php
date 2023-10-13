@@ -21,7 +21,7 @@ class ManagerSpec extends ObjectBehavior
     protected $userStateIterator;
     protected $queue;
 
-    public function let(Client $client, Queue\RabbitMQ\Client $queue, Delegates\EntityDelegate $entityDelegate)
+    public function let(Client $client, Queue\Interfaces\QueueClient $queue, Delegates\EntityDelegate $entityDelegate)
     {
         $activeUsersIterator = new ActiveUsersIterator($client->getWrappedObject());
         $userStateIterator = new UserStateIterator($client->getWrappedObject());

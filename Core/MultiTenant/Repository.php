@@ -87,4 +87,9 @@ class Repository extends AbstractRepository
             updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null
         ));
     }
+
+    public function getTenantFromId(int $id): ?Tenant
+    {
+        return $this->getTenantFromHash(md5($id));
+    }
 }

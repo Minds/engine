@@ -6,29 +6,22 @@
 namespace Minds\Core\Queue;
 
 use Minds\Core\Di\Provider;
-use Aws\Sqs\SqsClient;
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 
 class QueueProvider extends Provider
 {
     public function register()
     {
-        $this->di->bind('Queue', function ($di) {
-            $client = $di->get('Config')->get('queue_engine') ?: 'RabbitMQ';
-            return $di->get('Queue\\' . $client);
-        });
-
-        // Clients
-
-        $this->di->bind('Queue\RabbitMQ', function ($di) {
-            $config = $di->get('Config');
-
-            return new RabbitMQ\Client(
-                $config
+        $this->di->bind('Queue', function (Di $di): LegacyClient {
+            return new LegacyClient(
+                config: $di->get(Config::class),
+                // topic: new LegacyQueueTopic(),
+                logger: $di->get('Logger'),
             );
-        }, [ 'useFactory' => true ]);
+        }, [
+            'useFactory' => true,
+        ]);
 
-        $this->di->bind('Queue\SQS', function ($di) {
-            return new SQS\Client($di->get('Config'));
-        }, [ 'useFactory' => true ]);
     }
 }

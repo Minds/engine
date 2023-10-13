@@ -14,6 +14,7 @@ use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -23,9 +24,11 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
     protected $actionButton;
 
     public function __construct(
-        private Save $save,
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?Save $save = null,
     ) {
-        $this->save = new Save();
+        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
+        $this->save ??= new Save();
     }
 
     /**
@@ -57,21 +60,21 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
         switch ($pages[0]) {
             case "request":
 
-                try {
-                    $rateLimitCheck = Di::_()->get("Security\RateLimits\KeyValueLimiter")
-                        ->setKey('forgot-password-ips')
-                        ->setValue($_SERVER['HTTP_X_FORWARDED_FOR'])
-                        ->setSeconds(86400) // Day
-                        ->setMax(5)
-                        ->checkAndIncrement();
-                } catch (RateLimitExceededException $e) {
-                    $response['status'] = "error";
-                    $response['message'] = $e->getMessage();
-                    break;
-                }
+                // try {
+                //     $rateLimitCheck = Di::_()->get("Security\RateLimits\KeyValueLimiter")
+                //         ->setKey('forgot-password-ips')
+                //         ->setValue($_SERVER['HTTP_X_FORWARDED_FOR'])
+                //         ->setSeconds(86400) // Day
+                //         ->setMax(5)
+                //         ->checkAndIncrement();
+                // } catch (RateLimitExceededException $e) {
+                //     $response['status'] = "error";
+                //     $response['message'] = $e->getMessage();
+                //     break;
+                // }
 
-                $user = new Entities\User(strtolower($_POST['username']));
-                if (!$user->guid) {
+                $user = $this->entitiesBuilder->getByUserByIndex(strtolower($_POST['username']));
+                if (!$user) {
                     $response['status'] = "error";
                     $response['message'] = "Could not find @" . $_POST['username'];
                     break;

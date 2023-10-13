@@ -2,7 +2,7 @@
 /**
  * This is the topic where all entity create, update and delete operations are processed.
  */
-namespace Minds\Core\Entities\Ops;
+namespace Minds\Core\Queue;
 
 use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\EventInterface;
@@ -18,13 +18,13 @@ use Pulsar\ProducerConfiguration;
 use Pulsar\Result;
 use Pulsar\SchemaType;
 
-class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
+class LegacyQueueTopic extends AbstractTopic implements TopicInterface
 {
     /** @var string */
-    const TOPIC_NAME = 'entities-ops';
+    const TOPIC_NAME = 'legacy-queue';
 
     /** @var string */
-    const SCHEMA_NAME = 'entitiesops'; // AVRO schema dislikes hyphens
+    const SCHEMA_NAME = 'legacyqueue'; // AVRO schema dislikes hyphens
 
     /** @var Producer */
     protected $producer;
@@ -37,32 +37,45 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
      */
     public function send(EventInterface $event): bool
     {
-        if (!$event instanceof EntitiesOpsEvent) {
+        if (!$event instanceof Message) {
             return false;
         }
+
+        $tenant = $this->getPulsarTenant();
+        $namespace = $this->getPulsarNamespace();
+        $topic = 'legacy-queue-' . strtolower($event->queueName);
+
+        // Build the config and include the schema
+
+        $config = new ProducerConfiguration();
+        $config->setSchema(SchemaType::AVRO, self::SCHEMA_NAME, $this->getSchema(), []);
+
+        $producer = $this->client()->createProducer("persistent://$tenant/$namespace/$topic", $config);
 
         // Build the message
 
         $data = [
-            'op' => $event->getOp(),
-            'entity_urn' => $event->getEntityUrn(),
-            'entity_serialized' => $event->getEntitySerialized(),
+            'data' => json_encode($event->data),
         ];
 
-        if ($tenantId = $this->config->get('tenant_id')) {
+        if ($tenantId = $event->tenantId) {
             $data['tenant_id'] = $tenantId;
         }
 
         $builder = new MessageBuilder();
+
+        if ($delaySecs = $event->delaySecs) {
+            $builder->setDeliverAfter($delaySecs * 1000);
+        }
+
         $message = $builder
-            //->setPartitionKey(0)
             ->setEventTimestamp($event->getTimestamp() ?: time())
             ->setContent(json_encode($data))
             ->build();
 
         // Send the event to the stream
 
-        $result = $this->getProducer()->send($message);
+        $result = $producer->send($message);
 
         if ($result != Result::ResultOk) {
             throw new UndeliveredEventException();
@@ -94,74 +107,37 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
     ): void {
         $tenant = $this->getPulsarTenant();
         $namespace = $this->getPulsarNamespace();
-        $topic = static::TOPIC_NAME;
 
         $config = new ConsumerConfiguration();
         $config->setConsumerType(Consumer::ConsumerShared);
         $config->setSchema(SchemaType::AVRO, static::SCHEMA_NAME, $this->getSchema(), []);
+
+        $topic = 'legacy-queue-' . strtolower($topicRegex);
 
         $consumer = $this->client()->subscribe("persistent://$tenant/$namespace/$topic", $subscriptionId, $config);
 
         while (true) {
             try {
                 $message = $consumer->receive();
-                $data = json_decode($message->getDataAsString(), true);
+                $eventData = json_decode($message->getDataAsString(), true);
 
-                $event = new EntitiesOpsEvent();
-                $event->setEntityUrn($data['entity_urn'])
-                    ->setOp($data['op'])
-                    ->setTimestamp($message->getEventTimestamp());
+                $data = json_decode($eventData['data'], true);
 
-                // Multi tenant support
-
-                if (isset($data['tenant_id']) && $tenantId = $data['tenant_id']) {
-                    $this->getMultiTenantBootService()->bootFromTenantId($tenantId);
-                }
-
-                if (isset($data['entity_serialized'])) {
-                    $event->setEntitySerialized($data['entity_serialized']);
-                }
+                $event = new Message(
+                    queueName: $topicRegex,
+                    data: $data,
+                    delaySecs: 0,
+                    tenantId: $eventData['tenant_id'],
+                );
+                $event->setTimestamp($message->getEventTimestamp());
 
                 if (call_user_func($callback, $event, $message) === true) {
                     $consumer->acknowledge($message);
                 }
             } catch (\Exception $e) {
                 $this->logger->error("Topic(Consume): Uncaught error: " . $e->getMessage());
-            } finally {
-                // Reset Multi Tenant support
-                if ($tenantId) {
-                    $this->getMultiTenantBootService()->resetRootConfigs();
-                }
             }
         }
-    }
-
-    /**
-     * @return Producer
-     */
-    protected function getProducer(): Producer
-    {
-        if ($this->producer) {
-            return $this->producer;
-        }
-
-        $tenant = $this->getPulsarTenant();
-        $namespace = $this->getPulsarNamespace();
-        $topic = static::TOPIC_NAME;
-
-        // Build the config and include the schema
-
-        $config = new ProducerConfiguration();
-        $config->setSchema(SchemaType::AVRO, static::SCHEMA_NAME, $this->getSchema(), []);
-
-        $schema = json_encode([
-            'type' => 'AVRO',
-            'schema' => $this->getSchema(),
-            'properties' => (object) []
-        ]);
-
-
-        return $this->producer = $this->client()->createProducer("persistent://$tenant/$namespace/$topic", $config);
     }
 
     /**
@@ -178,15 +154,7 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
             'namespace' => 'engine',
             'fields' => [
                 [
-                    'name' => 'op',
-                    'type' => 'string',
-                ],
-                [
-                    'name' => 'entity_urn',
-                    'type' => 'string',
-                ],
-                [
-                    'name' => 'entity_json',
+                    'name' => 'data',
                     'type' => 'string',
                 ],
                 [
@@ -195,11 +163,6 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                 ],
             ]
         ]);
-    }
-
-    protected function getMultiTenantBootService(): MultiTenantBootService
-    {
-        return $this->multiTenantBootService ??= Di::_()->get(MultiTenantBootService::class);
     }
 
 }
