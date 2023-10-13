@@ -54,7 +54,10 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     CASE 
                         WHEN 
                             e.type='activity' AND (
-                                SELECT 1 FROM minds_votes WHERE minds_votes.entity_guid = e.guid AND user_guid=:loggedInUser
+                                SELECT 1 FROM minds_votes
+                                WHERE minds_votes.entity_guid = e.guid
+                                AND user_guid=:loggedInUser
+                                AND deleted = False
                             )
                         THEN TRUE 
                         ELSE FALSE
