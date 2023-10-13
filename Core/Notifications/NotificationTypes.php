@@ -281,9 +281,11 @@ class NotificationTypes
      * Gift Cards
      */
     public const TYPE_GIFT_CARD_RECIPIENT_NOTIFIED = 'gift_card_recipient_notified';
+    public const TYPE_GIFT_CARD_CLAIMED_ISSUER_NOTIFIED = 'gift_card_claimed_issuer_notified';
 
     public const GROUPING_GIFT_CARDS = [
         self::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED,
+        self::TYPE_GIFT_CARD_CLAIMED_ISSUER_NOTIFIED
     ];
 
     public const GROUPING_TYPE_GIFT_CARDS = 'gift_cards';
@@ -381,6 +383,7 @@ class NotificationTypes
 
         // Gift Cards
         self::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED,
+        self::TYPE_GIFT_CARD_CLAIMED_ISSUER_NOTIFIED
     ];
 
     /** @var array */

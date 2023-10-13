@@ -319,7 +319,8 @@ class ManagerSpec extends ObjectBehavior
             paymentTxId: "trial-id",
             isPlus: true,
             isPro: false,
-            sourceActivity: null
+            sourceActivity: null,
+            paidWithGiftCard: false
         )
             ->shouldBeCalledOnce()
             ->willReturn($paymentDetailsMock);
@@ -377,7 +378,8 @@ class ManagerSpec extends ObjectBehavior
             paymentTxId: "trial-id",
             isPlus: true,
             isPro: false,
-            sourceActivity: null
+            sourceActivity: null,
+            paidWithGiftCard: false
         )
             ->shouldBeCalledOnce()
             ->willReturn($paymentDetailsMock);
@@ -437,7 +439,8 @@ class ManagerSpec extends ObjectBehavior
             paymentTxId: "123",
             isPlus: true,
             isPro: false,
-            sourceActivity: null
+            sourceActivity: null,
+            paidWithGiftCard: false
         )
             ->shouldBeCalledOnce()
             ->willReturn($paymentDetailsMock);
@@ -502,7 +505,8 @@ class ManagerSpec extends ObjectBehavior
             paymentTxId: "123",
             isPlus: false,
             isPro: false,
-            sourceActivity: null
+            sourceActivity: null,
+            paidWithGiftCard: false
         )
             ->shouldBeCalledOnce()
             ->willReturn($paymentDetailsMock);
@@ -580,7 +584,8 @@ class ManagerSpec extends ObjectBehavior
             paymentTxId: "123",
             isPlus: false,
             isPro: false,
-            sourceActivity: null
+            sourceActivity: null,
+            paidWithGiftCard: false
         )
             ->shouldBeCalledOnce()
             ->willReturn($paymentDetailsMock);
@@ -643,7 +648,8 @@ class ManagerSpec extends ObjectBehavior
             paymentTxId: "123",
             isPlus: true,
             isPro: false,
-            sourceActivity: null
+            sourceActivity: null,
+            paidWithGiftCard: false
         )
             ->shouldBeCalledOnce()
             ->willReturn($paymentDetailsMock);
@@ -705,7 +711,8 @@ class ManagerSpec extends ObjectBehavior
             paymentTxId: "123",
             isPlus: false,
             isPro: true,
-            sourceActivity: null
+            sourceActivity: null,
+            paidWithGiftCard: false
         )
             ->shouldBeCalledOnce()
             ->willReturn($paymentDetailsMock);
