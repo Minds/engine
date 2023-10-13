@@ -4,10 +4,15 @@ namespace Spec\Minds\Core\Torrent\TorrentBuilders;
 
 use Minds\Core\Media\Services\AWS;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 
 class S3Spec extends ObjectBehavior
 {
+    public function let(
+        AWS $aws
+    ): void {
+        $this->beConstructedWith($aws);
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Torrent\TorrentBuilders\S3');

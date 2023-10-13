@@ -103,11 +103,13 @@ class Manager
         string $paymentTxId,
         bool $isPlus = false,
         bool $isPro = false,
-        ?Activity $sourceActivity = null
+        ?Activity $sourceActivity = null,
+        bool $paidWithGiftCard = false
     ): PaymentDetails {
         $affiliateUserGuid = null;
         $paymentType = PaymentType::WIRE_PAYMENT;
 
+        $paymentMethod = PaymentMethod::CASH;
         if ($isPlus || $isPro) {
             if ($sourceActivity) {
                 $affiliateUserGuid = ((int) $sourceActivity->getOwnerGuid()) ?? null;
@@ -130,6 +132,12 @@ class Manager
             if ($isPro) {
                 $paymentType = PaymentType::MINDS_PRO_PAYMENT;
             }
+
+            if ($paidWithGiftCard) {
+                $paymentMethod = PaymentMethod::GIFT_CARD;
+            }
+        } elseif ($paidWithGiftCard) {
+            throw new InvalidPaymentMethodException('Cannot use gift card as payment method for wire');
         }
 
         $paymentDetails = new PaymentDetails([
@@ -137,7 +145,7 @@ class Manager
             'affiliateUserGuid' => $affiliateUserGuid,
             'affiliateType' => $affiliateType ?? null, // Only set if it's a valid type, otherwise 'null' is fine
             'paymentType' => $paymentType,
-            'paymentMethod' => PaymentMethod::getValidatedPaymentMethod(PaymentMethod::CASH),
+            'paymentMethod' => $paymentMethod,
             'paymentAmountMillis' => (int) ($wire->getAmount() * 10), // Already in cents, so multiply by 10
             'paymentTxId' => $paymentTxId,
             'paymentStatus' => !$wire->getTrialDays() ? PaymentStatus::COMPLETED : PaymentStatus::PENDING,

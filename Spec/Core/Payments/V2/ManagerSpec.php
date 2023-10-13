@@ -271,6 +271,8 @@ class ManagerSpec extends ObjectBehavior
 
         $wire->getTrialDays()
             ->willReturn(0);
+        $wire->getAddress()
+            ->willReturn("usd");
 
         $this->repositoryMock->createPayment(
             Argument::that(
@@ -315,6 +317,8 @@ class ManagerSpec extends ObjectBehavior
 
         $wire->getTrialDays()
             ->willReturn(0);
+        $wire->getAddress()
+            ->willReturn("usd");
 
         $this->repositoryMock->createPayment(
             Argument::that(
@@ -367,6 +371,8 @@ class ManagerSpec extends ObjectBehavior
 
         $wire->getTrialDays()
             ->willReturn(0);
+        $wire->getAddress()
+            ->willReturn("usd");
 
         $this->repositoryMock->createPayment(
             Argument::that(
@@ -419,6 +425,8 @@ class ManagerSpec extends ObjectBehavior
 
         $wire->getTrialDays()
             ->willReturn(0);
+        $wire->getAddress()
+            ->willReturn('usd');
 
         $this->repositoryMock->createPayment(
             Argument::that(

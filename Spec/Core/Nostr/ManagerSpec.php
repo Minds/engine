@@ -2,7 +2,6 @@
 
 namespace Spec\Minds\Core\Nostr;
 
-use Minds\Common\Urn;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Elastic\Manager as ElasticSearchManager;
@@ -123,15 +122,23 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
     }
 
-    public function it_should_build_a_nostr_event_for_user()
-    {
-        $user = new User();
-        $user->username = 'phpspec';
-        $user->briefdescription = 'dont feel like saying much';
-        $user->time_created = 1653047334;
-        $user->icontime = 1653047334;
+    public function it_should_build_a_nostr_event_for_user(
+        User $userMock
+    ): void {
+        $userMock->getUsername()
+            ->willReturn('phpspec');
+        $userMock->set('briefdescription', 'dont feel like saying much')
+            ->willReturn($userMock);
+        $userMock->get('briefdescription')
+            ->willReturn('dont feel like saying much');
+        $userMock->set('icontime', 1653047334)
+            ->willReturn($userMock);
+        $userMock->get('icontime')
+            ->willReturn(1653047334);
+        $userMock->getIconURL(Argument::any())
+            ->willReturn("");
 
-        $this->keys->withUser($user)
+        $this->keys->withUser($userMock)
             ->willReturn($this->keys);
         $this->keys->getSecp256k1PublicKey()
             ->willReturn('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715');
@@ -140,11 +147,11 @@ class ManagerSpec extends ObjectBehavior
         $this->keys->getNip26DelegationToken('4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715')
             ->willReturn(null);
 
-        $nostrEvent = $this->buildNostrEvent($user);
-        $nostrEvent->getId()->shouldBe('9a6632c7bd77040c167241bc9796836914532bc669e7f56170d37a7c91f4a1a2');
+        $nostrEvent = $this->buildNostrEvent($userMock);
+        $nostrEvent->getId()->shouldBe('ae8538720950dea5420f20b25eade1a7b29da5e5012e6fb19cad6f91f8894c19');
         $nostrEvent->getKind()->shouldBe(0);
         $nostrEvent->getPubKey()->shouldBe("4b716d963e51cae83e59748197829f1842d3d0a04e916258b26d53bf852b8715");
-        $nostrEvent->getSig()->shouldBe("4711a52137e39ab65e9e5cd0bc9932d50b03bc239cf7bd810bee6ba42355a6f795c8ea247f2515f323c65db18787b609bfe42406ade659548425b1dea21761b0");
+        $nostrEvent->getSig()->shouldBe("3c0e802c92f3a00adc734af79812d80750a5d3de8dc9434b218b0612d95b9fb2caeae093ca709e8f9da5aa26b6d067f0b0d80b88825781a3644cadd6a5f4f6e8");
     }
 
     public function it_should_build_a_nostr_event_for_activity(Activity $activity, User $user)
