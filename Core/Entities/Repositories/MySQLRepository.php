@@ -387,6 +387,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'guid' => MySQLDataTypeEnum::BIGINT,
                     'username' => MySQLDataTypeEnum::TEXT,
                     'name' => MySQLDataTypeEnum::TEXT,
+                    'email' => MySQLDataTypeEnum::TEXT,
                     'briefdescription' => MySQLDataTypeEnum::TEXT,
                     'password' => MySQLDataTypeEnum::TEXT,
                     'liquidity_spot_opt_out' => MySQLDataTypeEnum::BOOL,

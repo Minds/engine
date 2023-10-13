@@ -441,6 +441,7 @@ CREATE TABLE `minds_entities_user` (
   `username` varchar(128) DEFAULT NULL,
   `name` text,
   `briefdescription` text,
+  `email` varchar(256) DEFAULT NULL,
   `password` varchar(256) DEFAULT NULL,
   `liquidity_spot_opt_out` tinyint(1) DEFAULT '0',
   `disabled_boost` tinyint(1) DEFAULT '0',
