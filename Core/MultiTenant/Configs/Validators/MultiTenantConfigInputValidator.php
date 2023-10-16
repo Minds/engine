@@ -44,7 +44,7 @@ class MultiTenantConfigInputValidator implements InputTypeValidatorInterface
                 throw new GraphQLException("Primary color must start with #", 400, null, "Validation", ['field' => 'primaryColor']);
             }
             // validate length of hex colour is valid.
-            if (in_array(strlen($input->primaryColor), [3, 6, 8], true)) {
+            if (!in_array(strlen($input->primaryColor), [4, 7, 9], true)) {
                 throw new GraphQLException("Invalid primary color length", 400, null, "Validation", ['field' => 'primaryColor']);
             }
             // validate the value is valid hex.

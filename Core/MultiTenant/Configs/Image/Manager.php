@@ -71,7 +71,7 @@ class Manager
      * Gets the owner guid for the tenant.
      * @return int - owner guid of the tenant.
      */
-    private function getTenantOwnerGuid(): int
+    public function getTenantOwnerGuid(): int
     {
         return ((int) $this->config->get('tenant_owner_guid')) ?? 0;
     }

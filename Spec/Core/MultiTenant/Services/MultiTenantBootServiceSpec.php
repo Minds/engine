@@ -3,6 +3,8 @@
 namespace Spec\Minds\Core\MultiTenant\Services;
 
 use Minds\Core\Config\Config;
+use Minds\Core\MultiTenant\Configs\Enums\MultiTenantColorScheme;
+use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
@@ -37,6 +39,22 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
 
     public function it_should_setup_a_tenant(ServerRequest $requestMock, UriInterface $uriMock)
     {
+        $siteName = 'Test site';
+        $siteEmail = 'noreply@minds.com';
+        $colorScheme = MultiTenantColorScheme::DARK;
+        $primaryColor = '#fff000';
+        $updatedTimestamp = time();
+
+        $this->configMock->get('email')
+            ->shouldBeCalled()
+            ->willReturn(
+                [
+                'sender' => [
+                    'email' => $siteEmail
+                ]
+            ]
+            );
+
         $requestMock->getUri()->willReturn($uriMock);
 
         $uriMock->getScheme()
@@ -49,7 +67,18 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
 
         $this->domainServiceMock->getTenantFromDomain('phpspec.local')
             ->shouldBeCalled()
-            ->willReturn(new Tenant(123, 'phpspec.local'));
+            ->willReturn(new Tenant(
+                id: 123,
+                domain: 'phpspec.local',
+                ownerGuid: 234,
+                config: new MultiTenantConfig(
+                    siteName: $siteName,
+                    siteEmail: $siteEmail,
+                    colorScheme: $colorScheme,
+                    primaryColor: $primaryColor,
+                    updatedTimestamp: $updatedTimestamp
+                )
+            ));
 
         $this->domainServiceMock->buildDomain(Argument::any())
             ->willReturn('phpspec.local');
@@ -68,6 +97,9 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
         $this->configMock->set('tenant_id', 123)
             ->shouldBeCalled();
 
+        $this->configMock->set('tenant_owner_guid', 234)
+            ->shouldBeCalled();
+
         $this->configMock->set('dataroot', '/dataroot/tenant/123/')
             ->shouldBeCalled();
 
@@ -77,6 +109,21 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
 
         $this->configMock->get('tenant_id')
             ->willReturn(123);
+
+        $this->configMock->set('email', [
+            'sender' => [
+                'email' => $siteEmail,
+                "name" => $siteName
+            ]
+        ])->shouldBeCalled();
+
+        $this->configMock->set('site_name', $siteName)
+            ->shouldBeCalled();
+
+        $this->configMock->set('theme', [
+            'color_scheme' => $colorScheme->value,
+            'primary_color' => $primaryColor
+        ])->shouldBeCalled();
 
         $this->bootFromRequest($requestMock);
     }
