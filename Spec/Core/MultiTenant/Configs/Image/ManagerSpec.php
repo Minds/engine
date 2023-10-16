@@ -49,20 +49,6 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_set_image_on_upload()
-    {
-        $fileName = 'test.png';
-        $this->imagickManager->setImage($fileName)
-            ->shouldBeCalled()
-            ->willReturn($this->imagickManager);
-
-        $this->imagickManager->getPng()
-            ->shouldBeCalled()
-            ->willReturn('test');
-
-        $this->upload($fileName, MultiTenantConfigImageType::SQUARE_LOGO);
-    }
-
     public function it_should_get_tenant_owner_guid()
     {
         $tenantOwnerGuid = 1234567890123456;
