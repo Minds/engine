@@ -120,7 +120,7 @@ class MultiTenantBootService
                 $themeConfig['primary_color'] = $tenant->config->primaryColor;
             }
 
-            $this->setConfig('theme', [
+            $this->setConfig('theme_override', [
                 'color_scheme' => $tenant->config->colorScheme?->value,
                 'primary_color' => $tenant->config->primaryColor
             ]);

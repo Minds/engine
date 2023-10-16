@@ -166,7 +166,7 @@ class Exported
 
         if ((bool) $this->config->get('tenant_id')) {
             $exported['is_tenant'] = true;
-            $exported['theme'] = $this->config->get('theme');
+            $exported['theme_override'] = $this->config->get('theme_override');
         }
 
         return $exported;

@@ -120,7 +120,7 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
         $this->configMock->set('site_name', $siteName)
             ->shouldBeCalled();
 
-        $this->configMock->set('theme', [
+        $this->configMock->set('theme_override', [
             'color_scheme' => $colorScheme->value,
             'primary_color' => $primaryColor
         ])->shouldBeCalled();
