@@ -119,8 +119,7 @@ class Exported
             ],
             'livepeer_api_key' => $this->config->get('livepeer_api_key'),
             'onboarding_v5_release_timestamp' => $this->config->get('onboarding_v5_release_timestamp'),
-            'is_tenant' => !!$this->config->get('tenant_id'),
-            'theme' => $this->config->get('theme')
+            'is_tenant' => false // overridden below.
         ];
 
         if (Session::isLoggedIn()) {
@@ -164,6 +163,11 @@ class Exported
         unset($boost['offchain_wallet_guid']);
         $exported['boost'] = $boost;
         $exported['boost']['rejection_reasons'] = BoostRejectionReason::rejectionReasonsWithLabels();
+
+        if ((bool) $this->config->get('tenant_id')) {
+            $exported['is_tenant'] = true;
+            $exported['theme'] = $this->config->get('theme');
+        }
 
         return $exported;
     }
