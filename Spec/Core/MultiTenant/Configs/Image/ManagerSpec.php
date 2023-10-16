@@ -5,7 +5,6 @@ namespace Spec\Minds\Core\MultiTenant\Configs\Image;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Media\Imagick\Manager as ImagickManager;
-use Minds\Core\MultiTenant\Configs\Enums\MultiTenantConfigImageType;
 use Minds\Core\MultiTenant\Configs\Image\Manager;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
