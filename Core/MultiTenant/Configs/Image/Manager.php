@@ -59,7 +59,7 @@ class Manager
      */
     public function getImageContentsFromFile(ElggFile $file): mixed
     {
-        $contents = isset($file) ? $file->read() : null;
+        $contents = $file->read();
         if (empty($contents)) {
             $filepath = $this->config->get('path') . "engine/Assets/avatars/default-master.png";
             $contents = file_get_contents($filepath);
