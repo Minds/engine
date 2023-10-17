@@ -65,6 +65,7 @@ class Repository extends AbstractRepository
         ?string $primaryColor
     ): bool {
         $boundValues = [ 'tenant_id' => $tenantId ];
+        $rawValues = [];
 
         if ($siteName !== null) {
             $rawValues['site_name'] = new RawExp(':site_name');
