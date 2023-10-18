@@ -379,23 +379,10 @@ class Controller
         $xml = simplexml_load_string(file_get_contents('php://input'), 'SimpleXMLElement', LIBXML_NOCDATA);
         $videoId = substr((string) $xml->entry->id, 9);
         $channelId = substr((string) $xml->entry->author->uri, 32);
-        $publishedDateTimeString = (string) $xml->entry->published;
-        $publishedTimestamp = strtotime($publishedDateTimeString);
-        $updatedTimestamp = strtotime((string) $xml->entry->updated);
-
-        $maxPublishUpdateInterval = $this->config->get('google')['youtube']['max_publish_update_interval'] ?? 86400;
-
-        if (($updatedTimestamp - $publishedTimestamp) > $maxPublishUpdateInterval) {
-            $this->logger->info('[YouTubeImporter][PubSub]: Video with id: '.$videoId.' for channel '.$channelId.' updated - ignoring.');
-            return new JsonResponse([
-                'status' => 'success',
-            ]);
-        }
 
         $video = (new YTVideo())
             ->setVideoId($videoId)
-            ->setChannelId($channelId)
-            ->setYoutubeCreationDate($publishedDateTimeString);
+            ->setChannelId($channelId);
 
         $this->ytSubscription->onNewVideo($video);
 

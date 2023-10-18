@@ -111,6 +111,9 @@ class Manager
         $this->logger->info("Start processing wire deposits");
         yield from $this->issueWireReferralDeposits($opts);
 
+        $this->logger->info("Start processing plus deposits");
+        yield from $this->issuePlusDeposits($opts);
+
         $this->logger->info("Start processing boost partner deposits");
         yield from $this->issueBoostPartnerDeposits($opts);
 
@@ -170,6 +173,38 @@ class Manager
                 $this->repository->add($deposit);
             } else {
                 $this->logger->info('-------------- WIRE PAYOUT DEPOSIT ----------------');
+                $this->logger->info('Deposit', $deposit->export());
+                $this->logger->info('---------------------------------------------------');
+            }
+
+            yield $deposit;
+        }
+    }
+
+    /**
+     * Issue deposits for plus
+     * @param array $opts
+     * @return iterable
+     */
+    protected function issuePlusDeposits(array $opts): iterable
+    {
+        $revenueUsd = $this->plusManager->getDailyRevenue($opts['from']) * (self::PLUS_SHARE_PCT / 100);
+        $revenueCents = round($revenueUsd * 100, 0);
+        $this->logger->info('Fetched daily revenue');
+
+        $this->logger->info('Processing deposits');
+        foreach ($this->plusManager->getScores($opts['from']) as $unlock) {
+            $shareCents = $revenueCents * $unlock['sharePct'];
+            $deposit = new EarningsDeposit();
+            $deposit->setTimestamp($opts['from'])
+                ->setUserGuid($unlock['user_guid'])
+                ->setAmountCents($shareCents)
+                ->setItem('plus');
+
+            if (!($opts['dry-run'] ?? false)) {
+                $this->repository->add($deposit);
+            } else {
+                $this->logger->info('-------------- PLUS PAYOUT DEPOSIT ----------------');
                 $this->logger->info('Deposit', $deposit->export());
                 $this->logger->info('---------------------------------------------------');
             }
