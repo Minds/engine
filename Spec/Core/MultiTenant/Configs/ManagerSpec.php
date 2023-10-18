@@ -114,6 +114,7 @@ class ManagerSpec extends ObjectBehavior
         $primaryColor = '#000000';
         $domain = 'localhost';
         $result = true;
+        $tenant = new Tenant($tenantId, $domain);
 
         $this->config->get('tenant_id')
             ->shouldBeCalled()
@@ -130,8 +131,12 @@ class ManagerSpec extends ObjectBehavior
 
         $this->multiTenantDataService->getTenantFromId($tenantId)
             ->shouldBeCalled()
-            ->willReturn(new Tenant($tenantId, $domain));
+            ->willReturn($tenant);
         
+        $this->domainService->buildDomain($tenant)
+            ->shouldBeCalled()
+            ->willReturn($domain);
+
         $this->domainService->invalidateGlobalTenantCache($domain)
             ->shouldBeCalled();
 
