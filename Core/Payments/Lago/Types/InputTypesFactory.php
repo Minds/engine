@@ -6,7 +6,9 @@ namespace Minds\Core\Payments\Lago\Types;
 use Minds\Core\Payments\Lago\Enums\PaymentProviderEnum;
 use Minds\Core\Payments\Lago\Enums\SubscriptionBillingTimeEnum;
 use Minds\Core\Payments\Lago\Enums\SubscriptionStatusEnum;
+use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\Factory;
+use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 
 class InputTypesFactory
 {
@@ -19,13 +21,13 @@ class InputTypesFactory
      */
     #[Factory(name: "CustomerInput", default: true)]
     public function createCustomer(
-        int $mindsGuid,
+        #[InjectUser] User $loggedInUser,
         string $name,
         ?BillingConfiguration $billingConfiguration = null,
         ?string $email = null,
     ): Customer {
         return new Customer(
-            mindsGuid: $mindsGuid,
+            userGuid: (int) $loggedInUser->getGuid(),
             lagoCustomerId: "",
             name: $name,
             createdAt: time(),
@@ -62,17 +64,25 @@ class InputTypesFactory
         );
     }
 
+    /**
+     * @param SubscriptionBillingTimeEnum $billingTime
+     * @param string $userGuid
+     * @param string $mindsSubscriptionId
+     * @param string $planCodeId
+     * @param string $name
+     * @return Subscription
+     */
     #[Factory(name: "SubscriptionInput", default: true)]
     public function createSubscription(
         SubscriptionBillingTimeEnum $billingTime,
-        int $mindsCustomerId,
+        string $userGuid,
         string $mindsSubscriptionId,
         string $planCodeId,
         string $name = "",
     ): Subscription {
         return new Subscription(
             billingTime: $billingTime,
-            mindsCustomerId: $mindsCustomerId,
+            userGuid: (int) $userGuid,
             mindsSubscriptionId: $mindsSubscriptionId,
             planCodeId: $planCodeId,
             status: SubscriptionStatusEnum::ACTIVE,

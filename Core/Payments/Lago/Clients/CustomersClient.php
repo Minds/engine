@@ -32,7 +32,7 @@ class CustomersClient extends ApiClient
             options: [
                 'json' => [
                     'customer' => [
-                        'external_id' => $customer->mindsGuid,
+                        'external_id' => $customer->userGuid,
 
                         'name' => $customer->name,
                         'billing_configuration' => [
@@ -53,7 +53,7 @@ class CustomersClient extends ApiClient
         $payload = json_decode($response->getBody()->getContents());
 
         return new Customer(
-            mindsGuid: (int) $payload->customer->external_id,
+            userGuid: (int) $payload->customer->external_id,
             lagoCustomerId: $payload->customer->lago_id,
             name: $payload->customer->name,
             createdAt: strtotime($payload->customer->created_at),

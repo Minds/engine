@@ -10,7 +10,10 @@ use TheCodingMachine\GraphQLite\Annotations\Type;
 class Customer
 {
     public function __construct(
-        #[Field] public readonly int $mindsGuid,
+        /**
+         * @var int $userGuid The Minds user guid
+         */
+        #[Field(outputType: "String!")] public readonly int $userGuid,
         #[Field] public readonly string $lagoCustomerId,
         #[Field] public readonly string $name,
         #[Field] public readonly int $createdAt,

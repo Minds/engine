@@ -6,6 +6,7 @@ namespace Minds\Core\Payments\Lago\Clients;
 use Exception;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Psr7\Query;
 use Minds\Core\Payments\Lago\Enums\SubscriptionBillingTimeEnum;
 use Minds\Core\Payments\Lago\Enums\SubscriptionStatusEnum;
 use Minds\Core\Payments\Lago\Types\Subscription;
@@ -32,7 +33,7 @@ class SubscriptionsClient extends ApiClient
                 'json' => [
                     'subscription' => [
                         'external_id' => $subscription->mindsSubscriptionId,
-                        'external_customer_id' => $subscription->mindsCustomerId,
+                        'external_customer_id' => $subscription->userGuid,
                         'plan_code' => $subscription->planCodeId,
                         'billing_time' => $subscription->billingTime->value,
 
@@ -50,7 +51,7 @@ class SubscriptionsClient extends ApiClient
 
         return new Subscription(
             billingTime: SubscriptionBillingTimeEnum::tryFrom($payload->subscription->billing_time),
-            mindsCustomerId: (int) $payload->subscription->external_customer_id,
+            userGuid: (int) $payload->subscription->external_customer_id,
             mindsSubscriptionId: $payload->subscription->external_id,
             planCodeId: $payload->subscription->plan_code,
             status: SubscriptionStatusEnum::tryFrom($payload->subscription->status),
@@ -73,7 +74,7 @@ class SubscriptionsClient extends ApiClient
     public function getSubscriptions(
         int $page = 1,
         int $perPage = 12,
-        ?int $mindsCustomerId = null,
+        ?int $userGuid = null,
         ?string $planCodeId = null,
         ?SubscriptionStatusEnum $status = null,
     ): iterable {
@@ -82,20 +83,22 @@ class SubscriptionsClient extends ApiClient
             'per_page' => $perPage,
         ];
 
-        if ($mindsCustomerId) {
-            $params['external_customer_id'] = $mindsCustomerId;
+        if ($userGuid) {
+            $params['external_customer_id'] = $userGuid;
         }
         if ($planCodeId) {
             $params['plan_code'] = $planCodeId;
         }
         if ($status) {
-            $params['status'] = $status->value;
+            $params['status[]'] = [$status->value];
         }
+
+        $query = Query::build($params);
 
         $response = $this->httpClient->get(
             uri: "/api/v1/subscriptions",
             options: [
-                'query' => $params
+                'query' => $query
             ]
         );
 
@@ -108,7 +111,7 @@ class SubscriptionsClient extends ApiClient
         foreach ($payload->subscriptions as $subscription) {
             yield new Subscription(
                 billingTime: SubscriptionBillingTimeEnum::tryFrom($subscription->billing_time),
-                mindsCustomerId: (int) $subscription->external_customer_id,
+                userGuid: (int) $subscription->external_customer_id,
                 mindsSubscriptionId: $subscription->external_id,
                 planCodeId: $subscription->plan_code,
                 status: SubscriptionStatusEnum::tryFrom($subscription->status),

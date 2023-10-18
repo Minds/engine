@@ -1,22 +1,17 @@
 <?php
 declare(strict_types=1);
 
-namespace Minds\Core\Payments\Lago\Controllers;
+namespace Minds\Core\Payments\Lago\Services;
 
 use GuzzleHttp\Exception\GuzzleException;
-use Minds\Core\Log\Logger;
+use Minds\Core\Payments\Lago\Clients\SubscriptionsClient;
 use Minds\Core\Payments\Lago\Enums\SubscriptionStatusEnum;
-use Minds\Core\Payments\Lago\Services\SubscriptionsService;
 use Minds\Core\Payments\Lago\Types\Subscription;
-use TheCodingMachine\GraphQLite\Annotations\Logged;
-use TheCodingMachine\GraphQLite\Annotations\Mutation;
-use TheCodingMachine\GraphQLite\Annotations\Query;
 
-class SubscriptionsController
+class SubscriptionsService
 {
     public function __construct(
-        private readonly SubscriptionsService $service,
-        private readonly Logger $logger
+        private readonly SubscriptionsClient $subscriptionsClient
     ) {
     }
 
@@ -25,12 +20,9 @@ class SubscriptionsController
      * @return Subscription
      * @throws GuzzleException
      */
-    #[Mutation]
-    #[Logged]
-    public function createSubscription(
-        Subscription $subscription
-    ): Subscription {
-        return $this->service->createSubscription($subscription);
+    public function createSubscription(Subscription $subscription): Subscription
+    {
+        return $this->subscriptionsClient->createSubscription($subscription);
     }
 
     /**
@@ -42,7 +34,6 @@ class SubscriptionsController
      * @return Subscription[]
      * @throws GuzzleException
      */
-    #[Query]
     public function getSubscriptions(
         int $page = 1,
         int $perPage = 12,
@@ -50,12 +41,14 @@ class SubscriptionsController
         ?string $planCodeId = null,
         ?SubscriptionStatusEnum $status = null,
     ): array {
-        return $this->service->getSubscriptions(
-            page: $page,
-            perPage: $perPage,
-            mindsCustomerId: $mindsCustomerId,
-            planCodeId: $planCodeId,
-            status: $status
+        return iterator_to_array(
+            iterator: $this->subscriptionsClient->getSubscriptions(
+                page: $page,
+                perPage: $perPage,
+                mindsCustomerId: $mindsCustomerId,
+                planCodeId: $planCodeId,
+                status: $status
+            )
         );
     }
 }

@@ -13,7 +13,7 @@ class Subscription
 {
     /**
      * @param SubscriptionBillingTimeEnum $billingTime
-     * @param int $mindsCustomerId
+     * @param int $userGuid
      * @param string $mindsSubscriptionId
      * @param string $planCodeId
      * @param SubscriptionStatusEnum $status
@@ -23,7 +23,7 @@ class Subscription
      */
     public function __construct(
         #[Field] public readonly SubscriptionBillingTimeEnum $billingTime,
-        #[Field] public readonly int $mindsCustomerId,
+        #[Field(outputType: "String!")] public readonly int $userGuid,
         #[Field] public readonly string $mindsSubscriptionId,
         #[Field] public readonly string $planCodeId,
         #[Field] public readonly SubscriptionStatusEnum $status,

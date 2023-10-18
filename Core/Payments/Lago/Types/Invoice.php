@@ -21,6 +21,8 @@ class Invoice
         #[Field] public readonly InvoiceTypeEnum $invoiceType,
         #[Field] public readonly InvoiceStatusEnum $invoiceStatus,
         #[Field] public readonly InvoicePaymentStatusEnum $invoicePaymentStatus,
+        #[Field] public readonly int $totalAmountInCents,
+        #[Field] public readonly Customer $customer,
     ) {
     }
 }
