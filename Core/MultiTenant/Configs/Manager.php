@@ -82,6 +82,7 @@ class Manager
     private function invalidateCache(int $tenantId): void
     {
         $tenant = $this->multiTenantDataService->getTenantFromId($tenantId);
-        $this->domainService->invalidateGlobalTenantCache($tenant->domain);
+        $domain = $this->domainService->buildDomain($tenant);
+        $this->domainService->invalidateGlobalTenantCache($domain);
     }
 }
