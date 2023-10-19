@@ -122,7 +122,7 @@ class Manager
             ->setEmailConfirmationToken('')
             ->setEmailConfirmedAt(time());
 
-        $this->save->setEntity($this->user)
+        $this->save->setEntity($user)
             ->withMutatedAttributes([
                 'email_confirmation_token',
                 'email_confirmed_at'

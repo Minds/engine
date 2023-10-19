@@ -4,34 +4,35 @@ namespace Spec\Minds\Core\MultiTenant\Services;
 
 use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
 use Minds\Core\MultiTenant\Models\Tenant;
-use Minds\Core\MultiTenant\Repository;
 use Minds\Core\MultiTenant\Services\DomainService;
+use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 
 class DomainServiceSpec extends ObjectBehavior
 {
     private Collaborator $configMock;
-    private Collaborator $repositoryMock;
+    private Collaborator $dataServiceMock;
     private Collaborator $cacheMock;
 
-    function let(Config $configMock, Repository $repositoryMock, PsrWrapper $cacheMock)
+    public function let(Config $configMock, MultiTenantDataService $dataServiceMock, PsrWrapper $cacheMock)
     {
-        $this->beConstructedWith($configMock, $repositoryMock, $cacheMock);
+        $this->beConstructedWith($configMock, $dataServiceMock, $cacheMock);
         $this->configMock = $configMock;
-        $this->repositoryMock = $repositoryMock;
+        $this->dataServiceMock = $dataServiceMock;
         $this->cacheMock = $cacheMock;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(DomainService::class);
     }
 
-    function it_should_return_a_tenant_from_custom_domain()
+    public function it_should_return_a_tenant_from_custom_domain()
     {
-        $this->repositoryMock->getTenantFromDomain('phpspec.local')
+        $this->dataServiceMock->getTenantFromDomain('phpspec.local')
             ->willReturn(new Tenant(
                 id: 123,
                 domain: 'phpspec.local'
@@ -42,14 +43,14 @@ class DomainServiceSpec extends ObjectBehavior
         $tenant->domain->shouldBe('phpspec.local');
     }
 
-    function it_should_return_a_tenant_from_subdomain()
+    public function it_should_return_a_tenant_from_subdomain()
     {
         $this->configMock->get('multi_tenant')
             ->willReturn([
                 'subdomain_suffix' => 'networks.phpspec.local',
             ]);
 
-        $this->repositoryMock->getTenantFromHash('202cb962ac59075b964b07152d234b70')
+        $this->dataServiceMock->getTenantFromHash('202cb962ac59075b964b07152d234b70')
             ->willReturn(new Tenant(
                 id: 123,
                 domain: null,
@@ -60,7 +61,7 @@ class DomainServiceSpec extends ObjectBehavior
         $tenant->domain->shouldBe(null);
     }
 
-    function it_should_not_return_tenant_if_reserved_domain()
+    public function it_should_not_return_tenant_if_reserved_domain()
     {
         $this->configMock->get('multi_tenant')
             ->willReturn([
@@ -69,7 +70,23 @@ class DomainServiceSpec extends ObjectBehavior
                 ]
             ]);
 
-        $tenant = $this->getTenantFromDomain('phpspec.public');
-        $tenant->shouldBe(null);
+        $this->shouldThrow(ReservedDomainException::class)->duringGetTenantFromDomain('phpspec.public');
+    }
+
+    public function it_should_build_custom_domain()
+    {
+        $tenant = new Tenant(
+            id: 123,
+            domain: 'custom.domain',
+        );
+        $this->buildDomain($tenant)->shouldbe('custom.domain');
+    }
+
+    public function it_should_build_temp_subdomain()
+    {
+        $tenant = new Tenant(
+            id: 123,
+        );
+        $this->buildDomain($tenant)->shouldbe('202cb962ac59075b964b07152d234b70.minds.com');
     }
 }
