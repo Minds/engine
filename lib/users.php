@@ -98,7 +98,7 @@ function validate_username($username, bool $isActivityPub = false)
     }
 
     // Blacklist non-alpha chars
-    if (preg_match('/[^a-zA-Z0-9_-@]+/', $username)) {
+    if (preg_match('/[^a-zA-Z0-9_\-@]+/', $username)) {
         throw new RegistrationException('Invalid username! Alphanumerics only please.');
     }
 
@@ -212,7 +212,7 @@ function register_user(
     $friend_guid = 0,
     $invitecode = '',
     $validatePassword = true,
-    $isActivityPub = false,
+    $isActivityPub = false
 ) {
 
     // no need to trim password.

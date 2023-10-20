@@ -416,7 +416,7 @@ ALTER TABLE minds_activitypub_uris
     ADD updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP;
 
 CREATE TABLE `minds_tenants` (
-  `tenant_id` int NOT NULL,
+  `tenant_id` bigint NOT NULL,
   `owner_guid` bigint DEFAULT NULL,
   `domain` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`tenant_id`),
@@ -424,7 +424,7 @@ CREATE TABLE `minds_tenants` (
 );
 
 CREATE TABLE IF NOT EXISTS minds_tenant_configs (
-    tenant_id int,
+    tenant_id bigint,
     site_name varchar(64),
     site_email varchar(128),
     primary_color varchar(16),
@@ -434,7 +434,7 @@ CREATE TABLE IF NOT EXISTS minds_tenant_configs (
 );
 
 CREATE TABLE `minds_entities` (
-  `tenant_id` int NOT NULL,
+  `tenant_id` bigint NOT NULL,
   `guid` bigint NOT NULL,
   `owner_guid` bigint DEFAULT NULL,
   `type` varchar(32) DEFAULT NULL,
@@ -446,7 +446,7 @@ CREATE TABLE `minds_entities` (
 
 CREATE TABLE `minds_entities_user` (
   `guid` bigint NOT NULL,
-  `tenant_id` int NOT NULL,
+  `tenant_id` bigint NOT NULL,
   `username` varchar(128) DEFAULT NULL,
   `name` text,
   `briefdescription` text,
@@ -484,7 +484,7 @@ CREATE TABLE `minds_entities_user` (
 );
 
 CREATE TABLE `minds_entities_group` (
-  `tenant_id` int NOT NULL,
+  `tenant_id` bigint NOT NULL,
   `guid` bigint NOT NULL,
   `name` varchar(128) DEFAULT NULL,
   `brief_description` text,
@@ -502,7 +502,7 @@ CREATE TABLE `minds_entities_group` (
 );
 
 CREATE TABLE `minds_entities_activity` (
-  `tenant_id` int NOT NULL,
+  `tenant_id` bigint NOT NULL,
   `guid` bigint NOT NULL,
   `message` text,
   `title` text,
@@ -527,7 +527,7 @@ CREATE TABLE `minds_entities_activity` (
 );
 
 CREATE TABLE `minds_entities_object_image` (
-  `tenant_id` int NOT NULL,
+  `tenant_id` bigint NOT NULL,
   `guid` bigint NOT NULL,
   `message` text,
   `title` text,
@@ -541,7 +541,7 @@ CREATE TABLE `minds_entities_object_image` (
 );
 
 CREATE TABLE `minds_entities_object_video` (
-  `tenant_id` int NOT NULL,
+  `tenant_id` bigint NOT NULL,
   `guid` bigint NOT NULL,
   `deleted` tinyint(1) DEFAULT '0',
   `time_created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -552,3 +552,9 @@ CREATE TABLE `minds_entities_object_video` (
   `auto_caption` text,
   PRIMARY KEY (`tenant_id`,`guid`)
 );
+
+ALTER TABLE `minds_tenants`
+    ADD root_user_guid bigint DEFAULT NULL
+    AFTER owner_guid;
+ALTER TABLE `minds_tenants`
+    modify tenant_id bigint NOT NULL PRIMARY KEY;
