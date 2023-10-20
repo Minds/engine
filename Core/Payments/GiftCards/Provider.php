@@ -41,7 +41,7 @@ class Provider extends DiProvider
                 $di->get(NotificationDelegate::class),
                 $di->get('EntitiesBuilder'),
             );
-        }, ['factory' => true]);
+        }, ['factory' => false]);
 
         $this->di->bind(Controller::class, function (Di $di): Controller {
             return new Controller(

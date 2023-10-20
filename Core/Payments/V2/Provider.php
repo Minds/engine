@@ -24,7 +24,7 @@ class Provider extends DiProvider
             function (Di $di): Manager {
                 return new Manager();
             },
-            ['factory' => true]
+            ['factory' => false]
         );
 
         $this->di->bind(
