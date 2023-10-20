@@ -2,13 +2,11 @@
 
 namespace Spec\Minds\Core\Payments\Subscriptions;
 
-use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Payments\Manager;
+use Minds\Core\Events\Dispatcher;
+use Minds\Core\Payments\Subscriptions\Delegates;
 use Minds\Core\Payments\Subscriptions\Repository;
 use Minds\Core\Payments\Subscriptions\Subscription;
-use Minds\Core\Payments\Subscriptions\Delegates;
-use Minds\Core\Events\Dispatcher;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -59,6 +57,18 @@ class ManagerSpec extends ObjectBehavior
         $this->entitiesBuilder->single(Argument::any(), Argument::any())
             ->shouldBeCalled()
             ->willReturn($sender);
+
+        $subscription->getId()
+            ->shouldBecalled()
+            ->willReturn('sub_test');
+
+        $subscription->getUser()
+            ->shouldBeCalled()
+            ->willReturn($sender);
+
+        $subscription->getNextBilling()
+            ->shouldBeCalled()
+            ->willReturn(time());
         
         $subscription->getPlanId()
             ->shouldBeCalled()
@@ -72,6 +82,10 @@ class ManagerSpec extends ObjectBehavior
 
         $subscription->setStatus('active')
             ->shouldBeCalled();
+        
+        $this->repository->get('sub_test')
+            ->shouldBeCalledOnce()
+            ->willReturn($subscription);
 
         $this->repository->add($subscription)
             ->shouldBeCalled();
@@ -201,6 +215,10 @@ class ManagerSpec extends ObjectBehavior
             ->setPaymentMethod('spec')
             ->setUser($user);
 
+        $this->repository->get('sub_test')
+            ->shouldBeCalledOnce()
+            ->willReturn($subscription);
+
         $this->repository->add($subscription)
             ->shouldBeCalled()
             ->willReturn(true);
@@ -227,7 +245,12 @@ class ManagerSpec extends ObjectBehavior
             ->setPaymentMethod('spec')
             ->setUser($user)
             ->setLastBilling(1)
+            ->setNextBilling(time() + 86400)
             ->setTrialDays(7);
+
+        $this->repository->get('sub_test')
+            ->shouldBeCalledOnce()
+            ->willReturn($subscription);
 
         // Will bill next in 7 days, as expected
         $this->repository->add(Argument::that(function ($subscription) {
@@ -255,7 +278,12 @@ class ManagerSpec extends ObjectBehavior
             ->setPaymentMethod('spec')
             ->setInterval('daily')
             ->setLastBilling(time())
+            ->setNextBilling(time() + 86400)
             ->setUser($user);
+
+        $this->repository->get('sub_test')
+            ->shouldBeCalledOnce()
+            ->willReturn($subscription);
 
         $this->repository->add($subscription)
             ->shouldBeCalled()

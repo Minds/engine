@@ -119,6 +119,8 @@ class ACLSpec extends ObjectBehavior
         $entity->getType()->willReturn('specy');
         $entity->get('access_id')->willReturn(0);
         $entity->get('owner_guid')->willReturn(123);
+        $entity->getAccessId()->willReturn(Access::PUBLIC);
+        $entity->getContainerEntity()->willReturn($user);
         $entity->getOwnerGUID()->wilLReturn(123);
         $entity->get('type')->willReturn('activity');
         $this->read($entity)->shouldReturn(false);
@@ -154,6 +156,9 @@ class ACLSpec extends ObjectBehavior
     public function it_should_allow_write_for_own_entities(Entity $entity)
     {
         $this->mock_session(true);
+
+        $entity->getGuid()
+            ->willReturn(1234);
 
         $entity->getType()
             ->willReturn('activity');

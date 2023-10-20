@@ -151,6 +151,9 @@ class UpgradesDelegate
         }
 
         $expires = strtotime("+{$days} days", $wire->getTimestamp());
+        if ($user->plus_expires > time()) {
+            $expires = strtotime("+{$days} days", $user->plus_expires);
+        }
 
         $user->setPlusExpires($expires);
 
@@ -211,6 +214,10 @@ class UpgradesDelegate
         }
 
         $expires = strtotime("+{$days} days", $wire->getTimestamp());
+        if ($user->pro_expires > time()) {
+            $expires = strtotime("+{$days} days", $user->pro_expires);
+        }
+
 
         $this->proManager->setUser($user)
             ->enable($expires);
