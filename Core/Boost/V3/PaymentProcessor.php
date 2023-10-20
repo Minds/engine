@@ -23,6 +23,8 @@ use Minds\Core\Payments\GiftCards\Exceptions\GiftCardInsufficientFundsException;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
+use Minds\Core\Payments\InAppPurchases\Enums\InAppPurchasePaymentMethodIdsEnum;
+use Minds\Core\Payments\InAppPurchases\Models\ProductPurchase;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\Stripe\Intents\ManagerV2 as IntentsManagerV2;
 use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
@@ -110,11 +112,14 @@ class PaymentProcessor
      * @throws InvalidPaymentMethodException
      * @throws ServerErrorException
      */
-    public function createMindsPayment(Boost $boost, User $user): PaymentDetails
-    {
+    public function createMindsPayment(
+        Boost $boost,
+        User $user,
+        ?ProductPurchase $iapProductPurchaseDetails = null
+    ): PaymentDetails {
         return $this->paymentsManager
             ->setUser($user)
-            ->createPaymentFromBoost($boost);
+            ->createPaymentFromBoost($boost, $iapProductPurchaseDetails);
     }
 
     /**
@@ -129,6 +134,11 @@ class PaymentProcessor
      */
     private function setupCashPaymentIntent(Boost $boost, PaymentDetails $paymentDetails, User $user): bool
     {
+        if (InAppPurchasePaymentMethodIdsEnum::tryFrom($boost->getPaymentMethodId())) {
+            $boost->setPaymentTxId($boost->getPaymentMethodId());
+            return true;
+        }
+
         if ($boost->getPaymentMethodId() === GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID) {
             $boost->setPaymentTxId(GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID);
             $this->giftCardsManager->setInTransaction($this->inTransaction);
@@ -251,6 +261,10 @@ class PaymentProcessor
      */
     private function captureCashPaymentIntent(Boost $boost): bool
     {
+        if (InAppPurchasePaymentMethodIdsEnum::tryFrom($boost->getPaymentTxId())) {
+            return true;
+        }
+
         $boostOwner = $this->entitiesBuilder->single($boost->getOwnerGuid());
         if (!$boostOwner || !$boostOwner instanceof User) {
             $boostOwner = null;
@@ -325,6 +339,10 @@ class PaymentProcessor
      */
     private function refundCashPaymentIntent(Boost $boost): bool
     {
+        if (InAppPurchasePaymentMethodIdsEnum::tryFrom($boost->getPaymentTxId())) {
+            return true;
+        }
+        
         $boostOwner = $this->entitiesBuilder->single($boost->getOwnerGuid());
         if (!$boostOwner || !$boostOwner instanceof User) {
             $boostOwner = null;
