@@ -126,11 +126,17 @@ class Controller
             if (!$this->acl->interact($remind, $user)) {
                 throw new UnauthorizedException();
             }
+
             $shouldBeQuotedPost = $payload['message'] || (
                 is_array($payload['attachment_guids']) &&
                 count($payload['attachment_guids'])
             );
-            // $shouldBeQuotedPost = $payload['message'] || count($payload['attachment_guids']);
+
+            if (!$shouldBeQuotedPost && $this->manager->countRemindsOfActivityByUser($remind, $user) > 0) {
+                throw new UserErrorException("You've already reminded this post'");
+            }
+
+
             $remindIntent = new RemindIntent();
             $remindIntent->setGuid($remind->getGuid())
                         ->setOwnerGuid($remind->getOwnerGuid())
@@ -434,7 +440,7 @@ class Controller
     }
 
     /**
-     * Delete entity enpoint
+     * Delete entity endpoint
      * @param ServerRequest $request
      * @return JsonResponse
      */
@@ -471,6 +477,91 @@ class Controller
         return new JsonResponse([
             'status' => 'error',
             'message' => 'There was an unknown error deleting this post',
+        ]);
+    }
+
+    /**
+     * Delete all user's reminds of entity endpoint
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
+    public function deleteRemindsOfActivityByUser(ServerRequest $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->getAttribute('_user');
+
+        $parameters = $request->getAttribute('parameters');
+
+        if (!($parameters['guid'] ?? null)) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => ':guid of original post not provided'
+            ]);
+        }
+
+        /** @var string */
+        $guid = $parameters['guid'];
+
+        /** @var Activity */
+        $activity = $this->entitiesBuilder->single($guid);
+
+        if (!$activity) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'The post does not appear to exist',
+            ]);
+        }
+
+        if ($this->manager->deleteRemindsOfActivityByUser($activity, $user)) {
+            return new JsonResponse([
+                'status' => 'success',
+            ]);
+        }
+
+        return new JsonResponse([
+            'status' => 'error',
+            'message' => 'There was an unknown error undoing this remind',
+        ]);
+    }
+
+    /**
+     * Get whether user has reminded this activity
+     * @param ServerRequest $request
+     * @return JsonResponse
+     */
+    public function getUserHasRemindedActivity(ServerRequest $request): JsonResponse
+    {
+
+        /** @var User $user */
+        $user = $request->getAttribute('_user');
+
+        $parameters = $request->getAttribute('parameters');
+
+        if (!($parameters['guid'] ?? null)) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => ':guid of original post not provided'
+            ]);
+        }
+
+        /** @var string */
+        $guid = $parameters['guid'];
+
+        /** @var Activity */
+        $activity = $this->entitiesBuilder->single($guid);
+
+        if (!$activity) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'The post does not appear to exist',
+            ]);
+        }
+
+        $hasReminded = $this->manager->countRemindsOfActivityByUser($activity, $user) > 0;
+
+        return new JsonResponse([
+            'status' => 'success',
+            'has_reminded' => $hasReminded
         ]);
     }
 
