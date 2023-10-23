@@ -23,10 +23,37 @@ class MultiTenantConfigInputValidatorSpec extends ObjectBehavior
     {
         $siteName = 'Test site';
         $primaryColor = '#fff000';
+        $communityGuidelines = str_repeat('a', 65000);
 
         $this->validate(new MultiTenantConfigInput(
             siteName: $siteName,
-            primaryColor: $primaryColor
+            primaryColor: $primaryColor,
+            communityGuidelines: $communityGuidelines
+        ))->shouldBe(null);
+    }
+
+    public function it_should_validate_a_valid_input_with_no_community_guidelines()
+    {
+        $siteName = 'Test site';
+        $primaryColor = '#fff000';
+
+        $this->validate(new MultiTenantConfigInput(
+            siteName: $siteName,
+            primaryColor: $primaryColor,
+        ))->shouldBe(null);
+    }
+
+
+    public function it_should_validate_a_valid_input_with_empty_community_guidelines()
+    {
+        $siteName = 'Test site';
+        $primaryColor = '#fff000';
+        $communityGuidelines = '';
+
+        $this->validate(new MultiTenantConfigInput(
+            siteName: $siteName,
+            primaryColor: $primaryColor,
+            communityGuidelines: $communityGuidelines
         ))->shouldBe(null);
     }
 
@@ -103,6 +130,21 @@ class MultiTenantConfigInputValidatorSpec extends ObjectBehavior
             new MultiTenantConfigInput(
                 siteName: $siteName,
                 primaryColor: '#abcdez'
+            )
+        );
+    }
+
+    public function it_should_NOT_validate_an_input_with_community_guidelines_of_more_than_65000_characters()
+    {
+        $siteName = 'Test site';
+        $primaryColor = '#fff000';
+        $communityGuidelines = str_repeat('a', 65001);
+        
+        $this->shouldThrow(GraphQLException::class)->duringValidate(
+            new MultiTenantConfigInput(
+                siteName: $siteName,
+                primaryColor: $primaryColor,
+                communityGuidelines: $communityGuidelines
             )
         );
     }

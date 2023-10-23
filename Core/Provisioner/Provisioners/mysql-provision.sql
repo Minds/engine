@@ -429,6 +429,7 @@ CREATE TABLE IF NOT EXISTS minds_tenant_configs (
     site_email varchar(128),
     primary_color varchar(16),
     color_scheme varchar(32),
+    community_guidelines text,
     updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (tenant_id)
 );

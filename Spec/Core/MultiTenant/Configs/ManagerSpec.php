@@ -115,6 +115,7 @@ class ManagerSpec extends ObjectBehavior
         $domain = 'localhost';
         $result = true;
         $tenant = new Tenant($tenantId, $domain);
+        $communityGuidelines = 'Test community guidelines';
 
         $this->config->get('tenant_id')
             ->shouldBeCalled()
@@ -125,6 +126,7 @@ class ManagerSpec extends ObjectBehavior
             $siteName,
             $colorScheme,
             $primaryColor,
+            $communityGuidelines
         )
             ->shouldBeCalled()
             ->willReturn($result);
@@ -143,7 +145,8 @@ class ManagerSpec extends ObjectBehavior
         $this->upsertConfigs(
             $siteName,
             $colorScheme,
-            $primaryColor
+            $primaryColor,
+            $communityGuidelines
         )->shouldBe($result);
     }
 
@@ -154,6 +157,7 @@ class ManagerSpec extends ObjectBehavior
         $colorScheme = MultiTenantColorScheme::DARK;
         $primaryColor = '#000000';
         $result = false;
+        $communityGuidelines = 'Test community guidelines';
 
         $this->config->get('tenant_id')
             ->shouldBeCalled()
@@ -164,6 +168,7 @@ class ManagerSpec extends ObjectBehavior
             $siteName,
             $colorScheme,
             $primaryColor,
+            $communityGuidelines
         )
             ->shouldBeCalled()
             ->willReturn($result);
@@ -177,7 +182,8 @@ class ManagerSpec extends ObjectBehavior
         $this->upsertConfigs(
             $siteName,
             $colorScheme,
-            $primaryColor
+            $primaryColor,
+            $communityGuidelines
         )->shouldBe($result);
     }
 }
