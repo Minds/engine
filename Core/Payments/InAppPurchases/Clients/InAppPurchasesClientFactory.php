@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\InAppPurchases\Clients;
 
+use Minds\Core\Di\Di;
 use Minds\Core\Payments\InAppPurchases\Apple\AppleInAppPurchasesClient;
 use Minds\Core\Payments\InAppPurchases\Google\GoogleInAppPurchasesClient;
 use NotImplementedException;
@@ -21,7 +22,7 @@ class InAppPurchasesClientFactory
     {
         return match ($clientClassName) {
             GoogleInAppPurchasesClient::class => new GoogleInAppPurchasesClient(),
-            AppleInAppPurchasesClient::class => new AppleInAppPurchasesClient(),
+            AppleInAppPurchasesClient::class => Di::_()->get(AppleInAppPurchasesClient::class),
             default => throw new NotImplementedException()
         };
     }

@@ -345,6 +345,32 @@ class NotificationsEventStreamsSubscription implements SubscriptionInterface
                 ]);
                 $notifications[] = $notification;
                 break;
+            case ActionEvent::ACTION_GIFT_CARD_ISSUER_CLAIMED_NOTIFICATION:
+                $issuer = $entity;
+                $claimantGuid = $event->getActionData()['claimant_guid'];
+                $giftCardGuid = $event->getActionData()['gift_card_guid'];
+
+                $claimant = $this->entitiesBuilder->single($claimantGuid);
+                if (!$claimant || !($claimant instanceof User)) {
+                    $this->logger->error("Gift card claimant not found with guid: $claimantGuid, skipping...");
+                    return true;
+                }
+
+                $giftCard = $this->getGiftCardsManager()->getGiftCard((int) $giftCardGuid);
+                if (!$giftCard) {
+                    $this->logger->error("Gift card not found with guid: $giftCardGuid, skipping...");
+                    return true;
+                }
+
+                $notification->setToGuid($issuer->getGuid())
+                    ->setFromGuid(SystemUser::GUID)
+                    ->setType(NotificationTypes::TYPE_GIFT_CARD_CLAIMED_ISSUER_NOTIFIED)
+                    ->setData([
+                        'gift_card' => get_object_vars($giftCard),
+                        'claimant' => $claimant->export()
+                    ]);
+                $notifications[] = $notification;
+                break;
                 // case ActionEvent::ACTION_SUPERMIND_REQUEST_EXPIRE:
                 //     $notification->setToGuid($entity->getSenderGuid());
                 //     $notification->setFromGuid($entity->getReceiverGuid());
