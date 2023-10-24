@@ -8,12 +8,8 @@
 
 namespace Minds\Core\Payments\Subscriptions;
 
-use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
-use Minds\Core\Guid;
-use Minds\Core\Payments;
 use Minds\Core\Events\Dispatcher;
-use Minds\Entities\Factory;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 
@@ -179,7 +175,7 @@ class Manager
         $success = (bool) $this->repository->add($this->subscription);
 
         //
-
+        // Shouldn't probably trigger delegates when extending existing subscription
         $this->snowplowDelegate->onCreate($this->subscription);
 
         $this->emailDelegate->onCreate($this->subscription);
@@ -227,6 +223,18 @@ class Manager
         if (!$this->subscription->getLastBilling()) {
             return null;
         }
+
+        // TODO: Ask Mark if he is happy with this check being here
+        if ($subscription = $this->get($this->subscription->getId())) {
+            if ($this->subscription->getUser()->pro_expires > $subscription->getNextBilling()) {
+                return $this->subscription->getUser()->pro_expires;
+            }
+
+            if ($this->subscription->getUser()->plus_expires > $subscription->getNextBilling()) {
+                return $this->subscription->getUser()->plus_expires;
+            }
+        }
+
 
         $date = new \DateTime("@{$this->subscription->getLastBilling()}");
 

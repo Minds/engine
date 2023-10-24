@@ -9,8 +9,10 @@ class InAppPurchase
 {
     public function __construct(
         public string $source = "",
-        public string $subscriptionId = "",
         public string $purchaseToken = "",
+        public readonly string $subscriptionId = "",
+        public readonly string $productId = "",
+        public readonly string $transactionId = "",
         public ?User $user = null,
         public ?int $expiresMillis = null
     ) {

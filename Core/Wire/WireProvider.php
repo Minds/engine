@@ -19,12 +19,16 @@ class WireProvider extends Provider
         $this->di->bind('Wire', function ($di) {
         }, ['useFactory' => true]);
 
-        $this->di->bind('Wire\Manager', function ($di) {
-            return new Manager();
+        $this->di->bind('Wire\Manager', function (Di $di): Manager {
+            return new Manager(
+                giftCardsManager: $di->get(\Minds\Core\Payments\GiftCards\Manager::class)
+            );
         }, ['useFactory' => true]);
 
-        $this->di->bind('Wire\Subscriptions\Manager', function ($di) {
-            return new \Minds\Core\Wire\Subscriptions\Manager();
+        $this->di->bind('Wire\Subscriptions\Manager', function (Di $di): Subscriptions\Manager {
+            return new Subscriptions\Manager(
+                giftCardsManager: $di->get(\Minds\Core\Payments\GiftCards\Manager::class)
+            );
         }, ['useFactory' => true]);
 
         $this->di->bind('Wire\Repository', function ($di) {
