@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\InAppPurchases;
 
+use GuzzleHttp\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
@@ -21,7 +22,7 @@ class Provider extends DiProvider
                 giftCardsManager: $di->get(GiftCardsManager::class),
                 config: $di->get('Config'),
             );
-        }, ['factory' => true]);
+        }, ['factory' => false]);
         $this->di->bind(InAppPurchasesClientFactory::class, function (Di $di): InAppPurchasesClientFactory {
             return new InAppPurchasesClientFactory();
         }, ['factory' => true]);
@@ -30,6 +31,19 @@ class Provider extends DiProvider
         }, ['factory' => true]);
         $this->di->bind(Google\GoogleInAppPurchasesPubSub::class, function (Di $di): Google\GoogleInAppPurchasesPubSub {
             return new Google\GoogleInAppPurchasesPubSub();
+        }, ['factory' => true]);
+
+        $this->di->bind(Apple\AppleInAppPurchasesClient::class, function (Di $di): Apple\AppleInAppPurchasesClient {
+            $mindsConfig = $di->get('Config');
+            $client = new Client([
+                'base_uri' => $mindsConfig->get('apple')['iap']['base_uri'],
+                'timeout' => 30,
+            ]);
+            return new Apple\AppleInAppPurchasesClient(
+                $mindsConfig,
+                $client,
+                $di->get('Logger'),
+            );
         }, ['factory' => true]);
     }
 }

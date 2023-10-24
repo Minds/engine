@@ -6,8 +6,18 @@
  */
 namespace Minds\Core\Search\SortingAlgorithms;
 
+use Minds\Core\Di\Di;
+use Minds\Core\Experiments\Manager as ExperimentsManager;
+use Minds\Core\Session;
+
 class TopV2 implements SortingAlgorithm
 {
+    public function __construct(
+        private ?ExperimentsManager $experimentsManager = null
+    ) {
+        $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
+    }
+
     /**
      * @return bool
      */
@@ -65,6 +75,13 @@ class TopV2 implements SortingAlgorithm
      */
     public function getFunctionScores(): array
     {
+        $weight = 0;
+        if ($user = Session::getLoggedinUser()) {
+            if ($experimentWeight = $this->experimentsManager->setUser($user)->getVariation('minds-4344-top-video-weight')) {
+                $weight = $experimentWeight;
+            }
+        }
+
         return [
             [
                 'filter' => [
@@ -72,7 +89,7 @@ class TopV2 implements SortingAlgorithm
                         'custom_type' => 'video',
                     ],
                 ],
-                'weight' => 2,
+                'weight' => $weight,
             ],
             [
                 'field_value_factor' => [
