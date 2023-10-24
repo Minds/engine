@@ -17,7 +17,7 @@ class RepositoriesProvider extends Provider
     {
         $this->di->bind(
             TenantUsersRepository::class,
-            function(Di $di): TenantUsersRepository {
+            function (Di $di): TenantUsersRepository {
                 return new TenantUsersRepository(
                     mysqlHandler: $di->get('Database\MySQL\Client'),
                     logger: $di->get('Logger')

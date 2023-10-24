@@ -13,7 +13,6 @@ use TheCodingMachine\GraphQLite\Types\InputTypeValidatorInterface;
 
 class NetworkUserInputValidator implements InputTypeValidatorInterface
 {
-
     public function __construct(
         private readonly UsernameLengthValidator $usernameLengthValidator,
         private readonly MultiTenantDataService $multiTenantDataService,

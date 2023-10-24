@@ -9,7 +9,6 @@ use TheCodingMachine\GraphQLite\Types\InputTypeValidatorInterface;
 
 class TenantInputValidator implements InputTypeValidatorInterface
 {
-
     /**
      * @inheritDoc
      */
