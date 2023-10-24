@@ -27,7 +27,8 @@ class FeaturedUser extends FeaturedEntity
      * @return string user's display name, or username.
      */
     #[Field]
-    public function getName(): string {
+    public function getName(): string
+    {
         return $this->name ?? $this->username ?? '';
     }
 }

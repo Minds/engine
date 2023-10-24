@@ -42,7 +42,7 @@ class FeaturedEntitiesRepository extends AbstractRepository
         if ($type === FeaturedEntityTypeEnum::GROUP) {
             $query->innerJoin(['groups' => 'minds_entities_group'], 'entities.guid', Operator::EQ, 'groups.guid');
         } else {
-            $query->innerJoin(['users' => 'minds_entities_user'], 'entities.guid', Operator::EQ, 'users.guid');    
+            $query->innerJoin(['users' => 'minds_entities_user'], 'entities.guid', Operator::EQ, 'users.guid');
         }
 
         $query->where('minds_tenant_featured_entities.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
@@ -126,7 +126,8 @@ class FeaturedEntitiesRepository extends AbstractRepository
      * @param integer $entityGuid - The entityGuid.
      * @return bool - Whether the entity was deleted.
      */
-    public function deleteFeaturedEntity(int $tenantId, int $entityGuid): bool {
+    public function deleteFeaturedEntity(int $tenantId, int $entityGuid): bool
+    {
         $query = $this->mysqlClientWriterHandler
             ->delete()
             ->from('minds_tenant_featured_entities')
@@ -147,7 +148,8 @@ class FeaturedEntitiesRepository extends AbstractRepository
      * @param array $row - The row to build from.
      * @return FeaturedUser|FeaturedGroup - The built featured entity.
      */
-    private function buildFeaturedEntity(array $row): FeaturedUser|FeaturedGroup {
+    private function buildFeaturedEntity(array $row): FeaturedUser|FeaturedGroup
+    {
         return match($row['type']) {
             'user' => new FeaturedUser(
                 tenantId: $row['tenant_id'],

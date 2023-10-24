@@ -17,25 +17,25 @@ class FactoriesProvider extends Provider
     {
         $this->di->bind(
             TenantFactory::class,
-            function(Di $di): TenantFactory {
+            function (Di $di): TenantFactory {
                 return new TenantFactory();
             }
         );
         $this->di->bind(
             NetworkUserFactory::class,
-            function(Di $di): NetworkUserFactory {
+            function (Di $di): NetworkUserFactory {
                 return new NetworkUserFactory();
             }
         );
         $this->di->bind(
             NetworkUserFactory::class,
-            function(Di $di): NetworkUserFactory {
+            function (Di $di): NetworkUserFactory {
                 return new NetworkUserFactory();
             }
         );
         $this->di->bind(
             FeaturedEntityFactory::class,
-            function(Di $di): FeaturedEntityFactory {
+            function (Di $di): FeaturedEntityFactory {
                 return new FeaturedEntityFactory(
                     $di->get('Config')
                 );

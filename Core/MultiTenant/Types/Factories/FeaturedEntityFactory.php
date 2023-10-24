@@ -12,7 +12,9 @@ use TheCodingMachine\GraphQLite\Annotations\Factory;
  */
 class FeaturedEntityFactory
 {
-    public function __construct(private readonly Config $config) {}
+    public function __construct(private readonly Config $config)
+    {
+    }
 
     /**
      * Creates FeaturedEntity.

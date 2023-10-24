@@ -22,14 +22,16 @@ class FeaturedEntity implements NodeInterface
         #[Field] public readonly bool $autoSubscribe,
         #[Field] public readonly bool $recommended,
         private readonly ?string $name = null,
-    ) {}
+    ) {
+    }
 
     /**
      * Gets entity name.
      * @return string entity name.
      */
     #[Field]
-    public function getName(): string {
+    public function getName(): string
+    {
         return $this->name ?? '';
     }
 
@@ -37,7 +39,8 @@ class FeaturedEntity implements NodeInterface
      * Gets ID for GraphQL.
      * @return ID - ID for GraphQL.
      */
-    public function getId(): ID {
+    public function getId(): ID
+    {
         return new ID($this->tenantId . $this->entityGuid);
     }
 }

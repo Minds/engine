@@ -29,7 +29,8 @@ class FeaturedGroup extends FeaturedEntity
      * @return string group name.
      */
     #[Field]
-    public function getName(): string {
+    public function getName(): string
+    {
         return $this->name ?? '';
     }
 
@@ -38,7 +39,8 @@ class FeaturedGroup extends FeaturedEntity
      * @return int count of members.
      */
     #[Field]
-    public function getMembersCount(): int {
+    public function getMembersCount(): int
+    {
         return Di::_()->get(GroupMembership::class)->getMembersCountByGuid($this->entityGuid) ?? 0;
     }
 }

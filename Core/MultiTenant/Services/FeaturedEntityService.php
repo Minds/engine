@@ -19,7 +19,8 @@ class FeaturedEntityService
     public function __construct(
         private FeaturedEntitiesRepository $repository,
         private Config $config
-    ) {}
+    ) {
+    }
 
     /**
      * Gets featured entities.
@@ -55,7 +56,7 @@ class FeaturedEntityService
             ->setPageInfo(new PageInfo(
                 hasNextPage: $hasMore,
                 hasPreviousPage: false, // not supported.
-                startCursor: (string) $loadAfter, 
+                startCursor: (string) $loadAfter,
                 endCursor: (string) ($limit + $loadAfter),
             ));
     }
@@ -65,7 +66,8 @@ class FeaturedEntityService
      * @param FeaturedEntity $featuredEntity - featured entity to store.
      * @return FeaturedEntity - stored featured entity.
      */
-    public function storeFeaturedEntity(FeaturedEntity $featuredEntity): FeaturedEntity {
+    public function storeFeaturedEntity(FeaturedEntity $featuredEntity): FeaturedEntity
+    {
         return $this->repository->upsertFeaturedEntity($featuredEntity);
     }
 
@@ -75,7 +77,8 @@ class FeaturedEntityService
      * @param integer|null $tenantId - id of the tenant.
      * @return bool - true if featured entity was deleted, false otherwise.
      */
-    public function deleteFeaturedEntity(int $entityGuid, ?int $tenantId = null): bool {
+    public function deleteFeaturedEntity(int $entityGuid, ?int $tenantId = null): bool
+    {
         if (!$tenantId) {
             $tenantId = $this->config->get('tenant_id');
         }
@@ -92,7 +95,8 @@ class FeaturedEntityService
      * @param string $cursor - cursor used to load these entities.
      * @return array - array of edges.
      */
-    private function buildEdges(iterable $entities, string $cursor = ''): array {
+    private function buildEdges(iterable $entities, string $cursor = ''): array
+    {
         $edges = [];
         foreach ($entities as $entity) {
             $edges[] = new FeaturedEntityEdge(

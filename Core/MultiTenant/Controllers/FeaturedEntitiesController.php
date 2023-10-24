@@ -18,7 +18,8 @@ class FeaturedEntitiesController
 {
     public function __construct(
         private readonly FeaturedEntityService $service
-    ) {}
+    ) {
+    }
 
     /**
      * Gets featured entities.
