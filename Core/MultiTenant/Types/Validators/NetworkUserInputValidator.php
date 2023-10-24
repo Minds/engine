@@ -17,7 +17,8 @@ class NetworkUserInputValidator implements InputTypeValidatorInterface
     private MultiTenantDataService $multiTenantDataService;
     private UsernameLengthValidator $usernameLengthValidator;
 
-    public function __construct() {
+    public function __construct()
+    {
     }
     /**
      * @inheritDoc
