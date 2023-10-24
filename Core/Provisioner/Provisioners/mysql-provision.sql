@@ -558,3 +558,13 @@ ALTER TABLE `minds_tenants`
     AFTER owner_guid;
 ALTER TABLE `minds_tenants`
     modify tenant_id bigint NOT NULL PRIMARY KEY;
+
+CREATE TABLE IF NOT EXISTS minds_tenant_featured_entities (
+    `tenant_id` int,
+    `entity_guid` bigint,
+    `auto_subscribe` boolean DEFAULT FALSE,
+    `recommended` boolean DEFAULT FALSE,
+    `created_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP,
+    `updated_timestamp` timestamp DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`tenant_id`, `entity_guid`)
+);

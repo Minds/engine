@@ -8,6 +8,7 @@ use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
 use Minds\Core\MultiTenant\Services\NetworksService;
 use Minds\Core\MultiTenant\Services\NetworkUsersService;
+use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 
 class ControllersProvider extends Provider
 {
@@ -25,6 +26,11 @@ class ControllersProvider extends Provider
         $this->di->bind(NetworkUsersController::class, function (Di $di): NetworkUsersController {
             return new NetworkUsersController(
                 $di->get(NetworkUsersService::class)
+            );
+        });
+        $this->di->bind(FeaturedEntitiesController::class, function (Di $di): FeaturedEntitiesController {
+            return new FeaturedEntitiesController(
+                $di->get(FeaturedEntityService::class)
             );
         });
     }

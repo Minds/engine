@@ -8,6 +8,7 @@ use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
+use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
 use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
 use Minds\Core\MultiTenant\Repository;
 
@@ -56,6 +57,16 @@ class ServicesProvider extends Provider
                 return new NetworkUsersService(
                     $di->get(TenantUsersRepository::class),
                     new Save(),
+                    $di->get('Config')
+                );
+            }
+        );
+
+        $this->di->bind(
+            FeaturedEntityService::class,
+            function (Di $di): FeaturedEntityService {
+                return new FeaturedEntityService(
+                    $di->get(FeaturedEntitiesRepository::class),
                     $di->get('Config')
                 );
             }

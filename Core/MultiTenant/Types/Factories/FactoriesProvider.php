@@ -33,5 +33,13 @@ class FactoriesProvider extends Provider
                 return new NetworkUserFactory();
             }
         );
+        $this->di->bind(
+            FeaturedEntityFactory::class,
+            function(Di $di): FeaturedEntityFactory {
+                return new FeaturedEntityFactory(
+                    $di->get('Config')
+                );
+            }
+        );
     }
 }
