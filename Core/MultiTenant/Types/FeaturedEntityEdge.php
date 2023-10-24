@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\MultiTenant\Types;
 
 use Minds\Core\GraphQL\Types\EdgeInterface;
+use Minds\Core\GraphQL\Types\NodeInterface;
 use Minds\Core\Guid;
 use Minds\Core\MultiTenant\Types\FeaturedGroup;
 use Minds\Core\MultiTenant\Types\FeaturedUser;
@@ -55,10 +56,10 @@ class FeaturedEntityEdge implements EdgeInterface
 
     /**
      * Gets node - can be either a FeaturedUser or FeaturedGroup.
-     * @return FeaturedUser|FeaturedGroup - node.
+     * @return NodeInterface - node.
      */
     #[Field]
-    public function getNode(): FeaturedUser|FeaturedGroup
+    public function getNode(): ?NodeInterface
     {
         return $this->node;
     }
