@@ -212,10 +212,15 @@ class Manager
         } else {
             return false;
         }
-        $giftCardBalance = $this->giftCardsManager->getUserBalanceForProduct(
-            user: $sender,
-            productIdEnum: $productIdEnum
-        );
+
+        try {
+            $giftCardBalance = $this->giftCardsManager->getUserBalanceForProduct(
+                user: $sender,
+                productIdEnum: $productIdEnum
+            );
+        } catch (GiftCardNotFoundException) {
+            return false;
+        }
 
         if ($giftCardBalance < ($amount / 100)) {
             return false;
