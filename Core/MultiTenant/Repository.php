@@ -2,8 +2,6 @@
 namespace Minds\Core\MultiTenant;
 
 use Minds\Core\Data\MySQL\AbstractRepository;
-use Minds\Core\MultiTenant\Configs\Enums\MultiTenantColorScheme;
-use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
 use Minds\Core\MultiTenant\Models\Tenant;
 use PDO;
 use Selective\Database\Operator;
@@ -71,33 +69,47 @@ class Repository extends AbstractRepository
             ]);
     }
 
-    private function buildTenantModel(array $row)
+    private function buildTenantModel(array $row): Tenant
     {
-        $tenantId = $row['tenant_id'];
-        $domain = $row['domain'];
-        $tenantOwnerGuid = $row['owner_guid'];
-        $siteName = $row['site_name'] ?? null;
-        $siteEmail = $row['site_email'] ?? null;
-        $primaryColor = $row['primary_color'] ?? null;
-        $colorScheme = $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null;
-        $updatedTimestamp = $row['updated_timestamp'] ?? null;
-
-        return new Tenant(
-            id: $tenantId,
-            domain: $domain,
-            ownerGuid: $tenantOwnerGuid,
-            config: new MultiTenantConfig(
-                siteName: $siteName,
-                siteEmail: $siteEmail,
-                primaryColor: $primaryColor,
-                colorScheme: $colorScheme,
-                updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null
-            )
-        );
+        return Tenant::fromData($row);
     }
 
     public function getTenantFromId(int $id): ?Tenant
     {
         return $this->getTenantFromHash(md5($id));
+    }
+
+    public function getTenants(
+        int $limit,
+        int $offset,
+        ?int $ownerGuid = null
+    ): iterable {
+        $query = $this->buildGetTenantQuery()
+            ->limit($limit)
+            ->offset($offset);
+
+        if ($ownerGuid) {
+            $query->where('owner_guid', Operator::EQ, $ownerGuid);
+        }
+
+        $stmt = $query->execute();
+
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $tenant) {
+            yield $this->buildTenantModel($tenant);
+        }
+    }
+
+    public function createTenant(Tenant $tenant): Tenant
+    {
+        $this->mysqlClientWriterHandler->insert()
+            ->into('minds_tenants')
+            ->set([
+                'tenant_id' => $tenant->id,
+                'owner_guid' => $tenant->ownerGuid,
+                'domain' => $tenant->domain,
+            ])
+            ->execute();
+
+        return $tenant;
     }
 }
