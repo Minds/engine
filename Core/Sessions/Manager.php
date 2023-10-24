@@ -257,6 +257,8 @@ class Manager
 
         $this->userLanguageDelegate->setCookie($this->user);
 
+        Core\Session::setUser($this->user);
+
         return $this;
     }
 

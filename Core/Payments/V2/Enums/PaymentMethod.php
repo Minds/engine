@@ -12,6 +12,8 @@ class PaymentMethod
     public const ONCHAIN_TOKENS = 3;
 
     public const GIFT_CARD = 4;
+    public const ANDROID_IAP = 5;
+    public const IOS_IAP = 6;
 
     /**
      * @var array A list of valid values for the enum - To be used for validation purposes
@@ -21,6 +23,8 @@ class PaymentMethod
         self::OFFCHAIN_TOKENS,
         self::ONCHAIN_TOKENS,
         self::GIFT_CARD,
+        self::ANDROID_IAP,
+        self::IOS_IAP,
     ];
 
     /**
@@ -35,6 +39,8 @@ class PaymentMethod
             self::OFFCHAIN_TOKENS => self::OFFCHAIN_TOKENS,
             self::ONCHAIN_TOKENS => self::ONCHAIN_TOKENS,
             self::GIFT_CARD => self::GIFT_CARD,
+            self::ANDROID_IAP => self::ANDROID_IAP,
+            self::IOS_IAP => self::IOS_IAP,
             default => throw new InvalidPaymentMethodException()
         };
     }
