@@ -17,7 +17,7 @@ class Module implements ModuleInterface
      */
     public function onInit(): void
     {
-        (new Provider())->register();
         (new GraphQLMappings())->register();
+        (new Provider())->register();
     }
 }
