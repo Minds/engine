@@ -457,6 +457,12 @@ class Manager
                    'tenant_id' => $tenantId,
                 ],
             ];
+        } else {
+            $mustNot[] = [
+                'exists' => [
+                   'field' => 'tenant_id',
+                ],
+            ];
         }
 
         // Feeds should always return posts less than current time
