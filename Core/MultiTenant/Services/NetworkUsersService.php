@@ -6,7 +6,7 @@ namespace Minds\Core\MultiTenant\Services;
 use Exception;
 use Minds\Core\Config\Config;
 use Minds\Core\Entities\Actions\Save as SaveAction;
-use Minds\Core\MultiTenant\Configs\Enums\NetworkUserRoleEnum;
+use Minds\Core\MultiTenant\Enums\NetworkUserRoleEnum;
 use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
 use Minds\Core\MultiTenant\Types\NetworkUser;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Minds\Core\MultiTenant\Configs\Enums;
+namespace Minds\Core\MultiTenant\Enums;
 
 use Exception;
 
