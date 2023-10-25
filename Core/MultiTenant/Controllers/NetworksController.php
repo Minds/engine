@@ -36,7 +36,6 @@ class NetworksController
             ownerGuid: (int) $loggedInUser->getGuid(),
             limit: $last,
             offset: $first,
-
         );
     }
 
