@@ -5,6 +5,9 @@ namespace Minds\Core\MultiTenant\Repositories;
 
 use Exception;
 use Minds\Core\Data\MySQL\AbstractRepository;
+use Minds\Core\MultiTenant\Enums\NetworkUserRoleEnum;
+use Minds\Core\MultiTenant\Types\NetworkUser;
+use PDO;
 use Selective\Database\Operator;
 
 class TenantUsersRepository extends AbstractRepository
@@ -28,5 +31,41 @@ class TenantUsersRepository extends AbstractRepository
         if (!$statement) {
             throw new Exception('Failed to set tenant root account.');
         }
+    }
+
+    /**
+     * @param int $tenantId
+     * @return NetworkUser|null
+     * @throws Exception
+     */
+    public function getTenantRootAccount(int $tenantId): ?NetworkUser
+    {
+        $statement = $this->mysqlClientReaderHandler->select()
+            ->from('minds_tenants')
+            ->columns([
+                'tenant_id',
+                'root_user_guid',
+                'owner_guid',
+                'domain',
+            ])
+            ->where('tenant_id', Operator::EQ, $tenantId)
+            ->execute();
+
+        if ($statement->rowCount() === 0) {
+            throw new Exception('Tenant not found.');
+        }
+
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row['root_user_guid']) {
+            return null;
+        }
+
+        return new NetworkUser(
+            guid: $row['root_user_guid'],
+            username: '',
+            tenantId: (int) $row['tenant_id'],
+            role:  NetworkUserRoleEnum::OWNER,
+        );
     }
 }

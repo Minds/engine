@@ -56,7 +56,8 @@ class ServicesProvider extends Provider
                 return new NetworkUsersService(
                     $di->get(TenantUsersRepository::class),
                     new Save(),
-                    $di->get('Config')
+                    $di->get('Config'),
+                    $di->get(MultiTenantBootService::class),
                 );
             }
         );

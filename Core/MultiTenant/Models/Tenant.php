@@ -10,9 +10,10 @@ use TheCodingMachine\GraphQLite\Annotations\Type;
 class Tenant
 {
     public function __construct(
-        #[Field(outputType: 'String!')] public readonly int $id,
+        #[Field] public readonly int $id,
         #[Field] public readonly ?string $domain = null,
         #[Field] public readonly ?int $ownerGuid = null,
+        #[Field] public readonly ?int $rootUserGuid = null,
         #[Field] public readonly ?MultiTenantConfig $config = null
     ) {
     }

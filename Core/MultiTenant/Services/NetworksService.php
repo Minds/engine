@@ -41,7 +41,7 @@ class NetworksService
      */
     public function createNetwork(Tenant $tenant): Tenant
     {
-        $this->repository->createTenant($tenant);
+        $tenant = $this->repository->createTenant($tenant);
 
         if ($tenant->config) {
             $this->tenantConfigRepository->upsert(

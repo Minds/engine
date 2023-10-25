@@ -13,7 +13,7 @@ class NetworkUser
     public function __construct(
         #[Field(outputType: 'String!')] public readonly int $guid,
         #[Field] public readonly string $username,
-        #[Field(outputType: 'String!')] public readonly int $tenantId,
+        #[Field] public readonly int $tenantId,
         #[Field] public NetworkUserRoleEnum $role = NetworkUserRoleEnum::USER,
         public readonly string $plainPassword = '',
     ) {

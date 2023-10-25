@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Types\Factories;
 
-use Minds\Core\Guid;
 use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfigInput;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Entities\User;
@@ -20,7 +19,7 @@ class TenantFactory
         #[InjectUser] ?User $loggedInUser = null,
     ): Tenant {
         return new Tenant(
-            id: (int) Guid::build(),
+            id: 0,
             domain: $domain,
             ownerGuid: $ownerGuid ?? (int) $loggedInUser->getGuid(),
             config: $config,
