@@ -29,10 +29,14 @@ class NetworksController
     #[Logged]
     public function getNetworks(
         #[InjectUser] User $loggedInUser,
-        int $limit = 12,
-        int $offset = 0,
+        int $first = 12,
+        int $last = 0,
     ): array {
-        return $this->networksService->getTenantsByOwnerGuid((int) $loggedInUser->getGuid());
+        return $this->networksService->getTenantsByOwnerGuid(
+            ownerGuid: (int) $loggedInUser->getGuid(),
+            limit: $last,
+            offset: $first,
+        );
     }
 
     #[Mutation]

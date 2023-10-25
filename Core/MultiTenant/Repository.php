@@ -79,6 +79,12 @@ class Repository extends AbstractRepository
         return $this->getTenantFromHash(md5($id));
     }
 
+    /**
+     * @param int $limit
+     * @param int $offset
+     * @param int|null $ownerGuid
+     * @return Tenant[]
+     */
     public function getTenants(
         int $limit,
         int $offset,
@@ -101,15 +107,21 @@ class Repository extends AbstractRepository
 
     public function createTenant(Tenant $tenant): Tenant
     {
-        $this->mysqlClientWriterHandler->insert()
+        $statement = $this->mysqlClientWriterHandler->insert()
             ->into('minds_tenants')
             ->set([
                 'tenant_id' => $tenant->id,
                 'owner_guid' => $tenant->ownerGuid,
                 'domain' => $tenant->domain,
             ])
-            ->execute();
+            ->prepare();
+        $statement->execute();
 
-        return $tenant;
+        return new Tenant(
+            id: $this->mysqlClientWriter->lastInsertId(),
+            domain: $tenant->domain,
+            ownerGuid: $tenant->ownerGuid,
+            config: $tenant->config
+        );
     }
 }

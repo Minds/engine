@@ -14,13 +14,13 @@ class NetworkUserFactory
     #[Factory(name: 'NetworkUserInput')]
     public function createTenant(
         ?string $username = null,
-        ?string $tenantId = null,
+        ?int $tenantId = null,
         #[InjectUser] ?User $loggedInUser = null,
     ): NetworkUser {
         return new NetworkUser(
             guid: (int) Guid::build(),
             username: $username,
-            tenantId: (int) $tenantId,
+            tenantId: $tenantId,
             plainPassword: openssl_random_pseudo_bytes(128)
         );
     }

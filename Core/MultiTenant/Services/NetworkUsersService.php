@@ -6,19 +6,23 @@ namespace Minds\Core\MultiTenant\Services;
 use Exception;
 use Minds\Core\Config\Config;
 use Minds\Core\Entities\Actions\Save as SaveAction;
-use Minds\Core\MultiTenant\Configs\Enums\NetworkUserRoleEnum;
+use Minds\Core\MultiTenant\Enums\NetworkUserRoleEnum;
+use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
 use Minds\Core\MultiTenant\Types\NetworkUser;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Entities\User;
 use Minds\Exceptions\StopEventException;
+use RegistrationException;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class NetworkUsersService
 {
     public function __construct(
         private readonly TenantUsersRepository $tenantUsersRepository,
         private readonly SaveAction $saveAction,
-        private readonly Config $mindsConfig
+        private readonly Config $mindsConfig,
+        private readonly MultiTenantBootService $multiTenantBootService,
     ) {
     }
 
@@ -33,6 +37,10 @@ class NetworkUsersService
      */
     public function createNetworkRootUser(NetworkUser $networkUser, User $sourceUser): NetworkUser
     {
+        if ($this->tenantUsersRepository->getTenantRootAccount($networkUser->tenantId)) {
+            throw new GraphQLException('Root account already exists.');
+        }
+
         // create the user.
         $newUser = $this->buildUser($networkUser, $sourceUser);
 
@@ -51,13 +59,15 @@ class NetworkUsersService
      * @param NetworkUser $networkUser - network user to generate from.
      * @param User $sourceUser - source user to generate from.
      * @return User - build user.
+     * @throws NoTenantFoundException
+     * @throws RegistrationException
      */
     private function buildUser(
         NetworkUser $networkUser,
         User $sourceUser
     ): User {
         // DO NOT REMOVE THIS CONFIG SETTING
-        $this->mindsConfig->set('tenant_id', $networkUser->tenantId);
+        $this->multiTenantBootService->bootFromTenantId($networkUser->tenantId);
 
         // Create the user
         $user = register_user(
@@ -71,6 +81,9 @@ class NetworkUsersService
 
         $user->set('tenant_id', $networkUser->tenantId);
         $user->set('admin', true);
+
+        $this->multiTenantBootService->resetRootConfigs();
+
         return $user;
     }
 }

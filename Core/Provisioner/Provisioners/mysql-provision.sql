@@ -416,7 +416,7 @@ ALTER TABLE minds_activitypub_uris
     ADD updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP;
 
 CREATE TABLE `minds_tenants` (
-  `tenant_id` bigint NOT NULL,
+  `tenant_id` int NOT NULL AUTO_INCREMENT,
   `owner_guid` bigint DEFAULT NULL,
   `domain` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`tenant_id`),
@@ -450,7 +450,7 @@ CREATE TABLE `minds_entities_user` (
   `username` varchar(128) DEFAULT NULL,
   `name` text,
   `briefdescription` text,
-  `email` varchar(256) DEFAULT NULL,
+  `email` text DEFAULT NULL,
   `password` varchar(256) DEFAULT NULL,
   `liquidity_spot_opt_out` tinyint(1) DEFAULT '0',
   `disabled_boost` tinyint(1) DEFAULT '0',
@@ -556,5 +556,3 @@ CREATE TABLE `minds_entities_object_video` (
 ALTER TABLE `minds_tenants`
     ADD root_user_guid bigint DEFAULT NULL
     AFTER owner_guid;
-ALTER TABLE `minds_tenants`
-    modify tenant_id bigint NOT NULL PRIMARY KEY;
