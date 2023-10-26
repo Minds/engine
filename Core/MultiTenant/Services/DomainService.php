@@ -1,22 +1,38 @@
 <?php
 namespace Minds\Core\MultiTenant\Services;
 
+use Exception;
+use GuzzleHttp\Exception\GuzzleException;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
 use Minds\Core\MultiTenant\Models\Tenant;
+use Minds\Core\MultiTenant\Repositories\DomainsRepository;
+use Minds\Core\MultiTenant\Types\CustomHostname;
+use Minds\Core\MultiTenant\Types\Domain;
+use Psr\SimpleCache\InvalidArgumentException;
 
 class DomainService
 {
     public function __construct(
-        private Config $config,
-        private MultiTenantDataService $dataService,
-        private PsrWrapper $cache,
+        private readonly Config $config,
+        private readonly MultiTenantDataService $dataService,
+        private readonly PsrWrapper $cache,
+        private readonly CloudflareClient $cloudflareClient,
+        private readonly DomainsRepository $domainsRepository
     ) {
         
     }
 
+    /**
+     * @param string $domain
+     * @return Tenant|null
+     * @throws NoTenantFoundException
+     * @throws ReservedDomainException
+     * @throws InvalidArgumentException
+     */
     public function getTenantFromDomain(string $domain): ?Tenant
     {
         $domain = strtolower($domain);
@@ -135,5 +151,57 @@ class DomainService
     protected function getCacheKey(string $domain): string
     {
         return strtolower('global:tenant:domain:' . $domain);
+    }
+
+    /**
+     * @param int $tenantId
+     * @param string $hostname
+     * @return CustomHostname
+     * @throws GuzzleException
+     * @throws Exception
+     */
+    public function setupCustomHostname(string $hostname): CustomHostname
+    {
+        $tenantId = $this->config->get('tenant_id');
+        $customHostname = $this->cloudflareClient->createCustomHostname($hostname, $tenantId);
+
+        $this->domainsRepository->storeDomainDetails(
+            tenantId: $tenantId,
+            cloudflareId: $customHostname->id,
+            domain: $customHostname->hostname,
+            status: $customHostname->status,
+        );
+
+        return $customHostname;
+    }
+
+    /**
+     * @param int|null $tenantId
+     * @return Domain
+     * @throws Exception
+     */
+    public function getDomainDetails(?int $tenantId = null): Domain
+    {
+        return $this->domainsRepository->getDomainDetails(
+            tenantId: $tenantId ?? $this->config->get('tenant_id')
+        );
+    }
+
+    /**
+     * @param int $tenantId
+     * @param string $hostname
+     * @return CustomHostname
+     * @throws GuzzleException
+     * @throws Exception
+     */
+    public function updateCustomHostname(int $tenantId, string $hostname): CustomHostname
+    {
+        $currentDomain = $this->getDomainDetails($tenantId);
+
+        return $this->cloudflareClient->updateCustomHostnameDetails(
+            cloudflareId: $currentDomain->$tenantId,
+            hostname: $hostname,
+            tenantId: $tenantId
+        );
     }
 }

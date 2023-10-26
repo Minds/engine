@@ -28,9 +28,9 @@ class FactoriesProvider extends Provider
             }
         );
         $this->di->bind(
-            NetworkUserFactory::class,
-            function (Di $di): NetworkUserFactory {
-                return new NetworkUserFactory();
+            CustomHostnameFactory::class,
+            function (Di $di): CustomHostnameFactory {
+                return new CustomHostnameFactory();
             }
         );
     }

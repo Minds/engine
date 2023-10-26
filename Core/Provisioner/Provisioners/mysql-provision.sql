@@ -556,3 +556,29 @@ CREATE TABLE `minds_entities_object_video` (
 ALTER TABLE `minds_tenants`
     ADD root_user_guid bigint DEFAULT NULL
     AFTER owner_guid;
+
+CREATE TABLE IF NOT EXISTS `minds_tenants_domain_details` (
+    `tenant_id` bigint NOT NULL PRIMARY KEY,
+    `domain` varchar(128) NOT NULL,
+    `cloudflare_id` varchar(64) NOT NULL,
+    `status` enum(
+        'active',
+        'pending',
+        'active_redeploying',
+        'moved',
+        'pending_deletion',
+        'deleted',
+        'pending_blocked',
+        'pending_migration',
+        'pending_provisioned',
+        'test_pending',
+        'test_active',
+        'test_active_apex',
+        'test_blocked',
+        'test_failed',
+        'provisioned',
+        'blocked'
+        ) NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+);

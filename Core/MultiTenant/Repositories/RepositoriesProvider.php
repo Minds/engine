@@ -24,5 +24,14 @@ class RepositoriesProvider extends Provider
                 );
             }
         );
+        $this->di->bind(
+            DomainsRepository::class,
+            function(Di $di): DomainsRepository {
+                return new DomainsRepository(
+                    mysqlHandler: $di->get('Database\MySQL\Client'),
+                    logger: $di->get('Logger')
+                );
+            }
+        );
     }
 }
