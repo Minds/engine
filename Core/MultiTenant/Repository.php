@@ -61,6 +61,7 @@ class Repository extends AbstractRepository
                 'minds_tenants.tenant_id',
                 'domain',
                 'owner_guid',
+                'root_user_guid',
                 'site_name',
                 'site_email',
                 'primary_color',

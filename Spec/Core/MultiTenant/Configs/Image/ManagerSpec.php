@@ -6,6 +6,8 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Media\Imagick\Manager as ImagickManager;
 use Minds\Core\MultiTenant\Configs\Image\Manager;
+use Minds\Core\MultiTenant\Models\Tenant;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 
@@ -13,14 +15,17 @@ class ManagerSpec extends ObjectBehavior
 {
     private Collaborator $imagickManager;
     private Collaborator $config;
+    private Collaborator $multiTenantBootServiceMock;
 
     public function let(
         ImagickManager $imagickManager,
         Config $config,
+        MultiTenantBootService $multiTenantBootServiceMock,
     ) {
-        $this->beConstructedWith($imagickManager, $config);
+        $this->beConstructedWith($imagickManager, $config, $multiTenantBootServiceMock);
         $this->imagickManager = $imagickManager;
         $this->config = $config;
+        $this->multiTenantBootServiceMock = $multiTenantBootServiceMock;
 
         Di::_()->bind('Storage\S3', function ($di) {
             return new class {
@@ -48,15 +53,18 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_get_tenant_owner_guid()
+    public function it_should_get_tenant_root_user_guid()
     {
-        $tenantOwnerGuid = 1234567890123456;
+        $tenant = new Tenant(
+            id: 1,
+            rootUserGuid: 1234567890123456,
+        );
 
-        $this->config->get('tenant_owner_guid')
+        $this->multiTenantBootServiceMock->getTenant()
             ->shouldBeCalled()
-            ->willReturn($tenantOwnerGuid);
+            ->willReturn($tenant);
 
         $this->getTenantOwnerGuid()
-            ->shouldBe($tenantOwnerGuid);
+            ->shouldBe(1234567890123456);
     }
 }

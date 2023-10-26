@@ -24,6 +24,7 @@ class Tenant
             id: $row['tenant_id'],
             domain: $row['domain'],
             ownerGuid: $row['owner_guid'],
+            rootUserGuid: $row['root_user_guid'],
             config: new MultiTenantConfig(
                 siteName: $row['site_name'] ?? null,
                 siteEmail: $row['site_email'] ?? null,
