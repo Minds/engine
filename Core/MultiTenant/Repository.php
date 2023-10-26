@@ -63,6 +63,7 @@ class Repository extends AbstractRepository
                 'minds_tenants.tenant_id',
                 'domain',
                 'owner_guid',
+                'root_user_guid',
                 'site_name',
                 'site_email',
                 'primary_color',
@@ -76,6 +77,7 @@ class Repository extends AbstractRepository
         $tenantId = $row['tenant_id'];
         $domain = $row['domain'];
         $tenantOwnerGuid = $row['owner_guid'];
+        $rootUserGuid = $row['root_user_guid'];
         $siteName = $row['site_name'] ?? null;
         $siteEmail = $row['site_email'] ?? null;
         $primaryColor = $row['primary_color'] ?? null;
@@ -86,6 +88,7 @@ class Repository extends AbstractRepository
             id: $tenantId,
             domain: $domain,
             ownerGuid: $tenantOwnerGuid,
+            rootUserGuid: $rootUserGuid,
             config: new MultiTenantConfig(
                 siteName: $siteName,
                 siteEmail: $siteEmail,

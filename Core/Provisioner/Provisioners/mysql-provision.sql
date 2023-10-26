@@ -555,3 +555,7 @@ CREATE TABLE `minds_entities_object_video` (
 
 ALTER TABLE `minds_votes` ADD COLUMN `tenant_id` int DEFAULT NULL AFTER `user_guid`;
 CREATE INDEX `tenant_id` ON `minds_votes` (`tenant_id`);
+
+ALTER TABLE `minds_tenants`
+    ADD root_user_guid bigint DEFAULT NULL
+    AFTER owner_guid;
