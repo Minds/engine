@@ -64,6 +64,19 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                         ELSE FALSE
                     END
                 "),
+                'vote_count' => new RawExp("
+                    CASE 
+                        WHEN 
+                            e.type='activity' AND (
+                                SELECT COUNT(*) FROM minds_votes
+                                WHERE minds_votes.entity_guid = e.guid
+                                AND deleted = False
+                                AND direction = 1
+                            )
+                        THEN TRUE 
+                        ELSE FALSE
+                    END
+                "),
                 'has_voted_down' => new RawExp("
                     CASE 
                         WHEN 
@@ -616,6 +629,11 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     }
                     if ($tableMappedRow['']['has_voted_down'] ?? false) {
                         $row['thumbs:down:user_guids'] = [(string) $this->activeSession->getUserGuid()];
+                    }
+
+                    // An ugly hack for passing the comment count to the activity post
+                    if ($tableMappedRow['']['vote_count'] ?? false) {
+                        $row['thumbs:up:count'] = (int) $tableMappedRow['']['vote_count'];
                     }
 
                     $mapToUnix = ['time_created', 'time_updated', ];

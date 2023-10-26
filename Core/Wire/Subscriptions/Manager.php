@@ -2,12 +2,18 @@
 
 namespace Minds\Core\Wire\Subscriptions;
 
+use Exception;
+use Minds\Common\Urn;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
+use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
+use Minds\Core\Payments\GiftCards\Models\GiftCard;
+use Minds\Core\Payments\Subscriptions\Subscription;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;
-use Minds\Common\Urn;
-use Minds\Entities;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 
 class Manager
 {
@@ -46,7 +52,8 @@ class Manager
         $subscriptionsManager = null,
         $subscriptionsRepository = null,
         $config = null,
-        $stripePaymentMethodsManager = null
+        $stripePaymentMethodsManager = null,
+        private readonly ?GiftCardsManager $giftCardsManager = null
     ) {
         $this->wireManager = $wireManager ?: Di::_()->get('Wire\Manager');
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Payments\Subscriptions\Manager');
@@ -118,8 +125,11 @@ class Manager
     /**
      * Call when a recurring wire is triggered.
      *
-     * @param Core\Payments\Subscriptions\Subscription $subscription
+     * @param Subscription $subscription
      * @return bool
+     * @throws GiftCardNotFoundException
+     * @throws ServerErrorException
+     * @throws WalletNotSetupException
      */
     public function onRecurring($subscription): bool
     {
@@ -143,36 +153,12 @@ class Manager
                 ]);
                 break;
             case "stripe":
-                $paymentMethods = $this->stripePaymentMethodsManager->getList(['user_guid' => $sender->getGuid()]);
-                $paymentMethod = $paymentMethods[0]; // Todo: Remember the exact card
-                if (!$paymentMethod) {
+                if (!$this->processPaymentWithGiftCard($sender, $receiver, $amount) && !$this->processPaymentWithCash($sender)) {
                     return false;
                 }
-                $this->wireManager->setPayload([
-                    'method' => 'usd',
-                    'paymentMethodId' => $paymentMethod->getId(),
-                ]);
+
                 break;
             default:
-                // $txHash = $this->client->sendRawTransaction(
-                //     $this->config->get('blockchain')['contracts']['wire']['wallet_pkey'],
-                //     [
-                //         'from' => $this->config->get('blockchain')['contracts']['wire']['wallet_address'],
-                //         'to' => $this->config->get('blockchain')['contracts']['wire']['contract_address'],
-                //         'gasLimit' => BigNumber::_(200000)->toHex(true),
-                //         'data' => $this->client->encodeContractMethod('wireFromDelegate(address,address,uint256)', [
-                //             $address,
-                //             $receiver->getEthWallet(),
-                //             BigNumber::_($this->token->toTokenUnit($amount))->toHex(true),
-                //         ]),
-                //     ]
-                // );
-                // $this->wireManager->setPayload([
-                //     'method' => 'onchain',
-                //     'address' => $address, //sender address
-                //     'receiver' => $receiver->getEthWallet(),
-                //     'txHash' => $txHash,
-                // ]);
         }
 
         // Manager acts as factory
@@ -184,6 +170,66 @@ class Manager
         // Create the wire
         $this->wireManager->create();
 
+        return true;
+    }
+
+    /**
+     * @param User $sender
+     * @return bool
+     * @throws Exception
+     */
+    private function processPaymentWithCash(
+        User $sender
+    ): bool {
+        $paymentMethods = $this->stripePaymentMethodsManager->getList(['user_guid' => $sender->getGuid()]);
+        if (count($paymentMethods) === 0) {
+            return false;
+        }
+        $this->wireManager->setPayload([
+            'method' => 'usd',
+            'paymentMethodId' => $paymentMethods[0]->getId(),
+        ]);
+        return true;
+    }
+
+    /**
+     * @param User $sender
+     * @param User $receiver
+     * @param float $amount
+     * @return bool
+     * @throws Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException
+     * @throws ServerErrorException
+     */
+    private function processPaymentWithGiftCard(
+        User $sender,
+        User $receiver,
+        float $amount
+    ): bool {
+        if ($this->wireManager->isProReceiver($receiver->getGuid())) {
+            $productIdEnum = GiftCardProductIdEnum::PRO;
+        } elseif ($this->wireManager->isPlusReceiver($receiver->getGuid())) {
+            $productIdEnum = GiftCardProductIdEnum::PLUS;
+        } else {
+            return false;
+        }
+
+        try {
+            $giftCardBalance = $this->giftCardsManager->getUserBalanceForProduct(
+                user: $sender,
+                productIdEnum: $productIdEnum
+            );
+        } catch (GiftCardNotFoundException) {
+            return false;
+        }
+
+        if ($giftCardBalance < ($amount / 100)) {
+            return false;
+        }
+
+        $this->wireManager->setPayload([
+            'method' => 'usd',
+            'paymentMethodId' => GiftCard::DEFAULT_GIFT_CARD_PAYMENT_METHOD_ID,
+        ]);
         return true;
     }
 

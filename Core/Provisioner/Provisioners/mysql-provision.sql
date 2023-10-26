@@ -552,3 +552,6 @@ CREATE TABLE `minds_entities_object_video` (
   `auto_caption` text,
   PRIMARY KEY (`tenant_id`,`guid`)
 );
+
+ALTER TABLE `minds_votes` ADD COLUMN `tenant_id` int DEFAULT NULL AFTER `user_guid`;
+CREATE INDEX `tenant_id` ON `minds_votes` (`tenant_id`);

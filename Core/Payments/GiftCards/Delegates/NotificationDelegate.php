@@ -12,6 +12,7 @@ use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Models\GiftCard;
 use Minds\Core\Payments\GiftCards\Types\GiftCardTarget;
+use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class NotificationDelegate
@@ -62,6 +63,44 @@ class NotificationDelegate
         $this->logger->info('Gift card recipient notification event sent.', [
             'gift_card_guid' => $giftCard->guid,
             'recipient_user_guid' => $recipientUser->getGuid(),
+        ]);
+    }
+
+    /**
+     * Generates a new notification event for for issuer of a gift card
+     * when it is claimed.
+     * @param GiftCard $giftCard - gift card that was claimed.
+     * @param User $claimant - user who claimed the gift card.
+     * @return void
+     */
+    public function onGiftCardClaimed(
+        GiftCard $giftCard,
+        User $claimant,
+    ): void {
+        $issuer = $this->entitiesBuilder->single($giftCard->issuedByGuid);
+
+        if (!$issuer || !($issuer instanceof User)) {
+            $this->logger->error('Gift card issuer not found, unable to send a notification on claim.', [
+                'gift_card_guid' => $giftCard->guid,
+                'issuer_guid' => $giftCard->issuedByGuid,
+            ]);
+            return;
+        }
+
+        $this->actionEventsTopic->send(
+            (new ActionEvent())
+                ->setUser(new SystemUser())
+                ->setAction(ActionEvent::ACTION_GIFT_CARD_ISSUER_CLAIMED_NOTIFICATION)
+                ->setEntity($issuer)
+                ->setActionData([
+                    'gift_card_guid' => $giftCard->guid,
+                    'claimant_guid' => $claimant->getGuid()
+                ])
+        );
+
+        $this->logger->info('Gift card recipient notification event sent.', [
+            'gift_card_guid' => $giftCard->guid,
+            'claimant_guid' => $claimant->getGuid(),
         ]);
     }
 }

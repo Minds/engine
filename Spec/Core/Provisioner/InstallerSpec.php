@@ -4,7 +4,6 @@ namespace Spec\Minds\Core\Provisioner;
 
 use Minds\Core\Config\Config;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 
 use Minds\Core\Minds;
 use Minds\Entities\Site;
