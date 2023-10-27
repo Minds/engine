@@ -24,8 +24,8 @@ class FeaturedEntitiesController
     /**
      * Gets featured entities.
      * @param FeaturedEntityTypeEnum $type - type of featured entities.
-     * @param int $loadAfter - load after cursor.
-     * @param int $limit - limit of entities to load.
+     * @param int $after - load after cursor.
+     * @param int $first - limit of entities to load.
      * @return FeaturedEntityConnection - featured entities connection.
      */
     #[Query]

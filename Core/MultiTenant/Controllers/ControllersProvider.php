@@ -6,8 +6,6 @@ namespace Minds\Core\MultiTenant\Controllers;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
-use Minds\Core\MultiTenant\Services\NetworksService;
-use Minds\Core\MultiTenant\Services\NetworkUsersService;
 use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Core\MultiTenant\Services\TenantsService;
 use Minds\Core\MultiTenant\Services\TenantUsersService;

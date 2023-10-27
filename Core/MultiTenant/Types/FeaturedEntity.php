@@ -41,6 +41,6 @@ class FeaturedEntity implements NodeInterface
      */
     public function getId(): ID
     {
-        return new ID($this->tenantId . $this->entityGuid);
+        return new ID($this->tenantId . '-' . $this->entityGuid);
     }
 }
