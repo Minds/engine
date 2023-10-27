@@ -7,7 +7,7 @@ use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Repository;
 
-class NetworksService
+class TenantsService
 {
     public function __construct(
         private readonly Repository $repository,

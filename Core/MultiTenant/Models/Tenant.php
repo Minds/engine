@@ -12,8 +12,8 @@ class Tenant
     public function __construct(
         #[Field] public readonly int $id,
         #[Field] public readonly ?string $domain = null,
-        #[Field] public readonly ?int $ownerGuid = null,
-        #[Field] public readonly ?int $rootUserGuid = null,
+        #[Field(outputType: 'String')] public readonly ?int $ownerGuid = null,
+        #[Field(outputType: 'String')] public readonly ?int $rootUserGuid = null,
         #[Field] public readonly ?MultiTenantConfig $config = null
     ) {
     }

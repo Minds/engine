@@ -22,15 +22,15 @@ class FactoriesProvider extends Provider
             }
         );
         $this->di->bind(
-            NetworkUserFactory::class,
-            function (Di $di): NetworkUserFactory {
-                return new NetworkUserFactory();
+            TenantUserFactory::class,
+            function (Di $di): TenantUserFactory {
+                return new TenantUserFactory();
             }
         );
         $this->di->bind(
-            NetworkUserFactory::class,
-            function (Di $di): NetworkUserFactory {
-                return new NetworkUserFactory();
+            TenantUserFactory::class,
+            function (Di $di): TenantUserFactory {
+                return new TenantUserFactory();
             }
         );
     }

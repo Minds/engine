@@ -5,14 +5,14 @@ namespace Minds\Core\MultiTenant\Types\Validators;
 
 use Minds\Core\Di\Di;
 use Minds\Core\MultiTenant\Services\MultiTenantDataService;
-use Minds\Core\MultiTenant\Types\NetworkUser;
+use Minds\Core\MultiTenant\Types\TenantUser;
 use Minds\Core\Session;
 use Minds\Exceptions\StringLengthException;
 use Minds\Helpers\StringLengthValidators\UsernameLengthValidator;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 use TheCodingMachine\GraphQLite\Types\InputTypeValidatorInterface;
 
-class NetworkUserInputValidator implements InputTypeValidatorInterface
+class TenantUserInputValidator implements InputTypeValidatorInterface
 {
     private MultiTenantDataService $multiTenantDataService;
     private UsernameLengthValidator $usernameLengthValidator;
@@ -34,7 +34,7 @@ class NetworkUserInputValidator implements InputTypeValidatorInterface
      */
     public function validate(object $input): void
     {
-        if (!($input instanceof NetworkUser)) {
+        if (!($input instanceof TenantUser)) {
             return;
         }
 

@@ -4,7 +4,7 @@ namespace Minds\Core\MultiTenant\Enums;
 
 use Exception;
 
-enum NetworkUserRoleEnum: int
+enum TenantUserRoleEnum: int
 {
     case OWNER = 1;
     case ADMIN = 2;

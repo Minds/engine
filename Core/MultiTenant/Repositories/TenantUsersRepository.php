@@ -5,8 +5,8 @@ namespace Minds\Core\MultiTenant\Repositories;
 
 use Exception;
 use Minds\Core\Data\MySQL\AbstractRepository;
-use Minds\Core\MultiTenant\Enums\NetworkUserRoleEnum;
-use Minds\Core\MultiTenant\Types\NetworkUser;
+use Minds\Core\MultiTenant\Enums\TenantUserRoleEnum;
+use Minds\Core\MultiTenant\Types\TenantUser;
 use PDO;
 use Selective\Database\Operator;
 
@@ -35,10 +35,10 @@ class TenantUsersRepository extends AbstractRepository
 
     /**
      * @param int $tenantId
-     * @return NetworkUser|null
+     * @return TenantUser|null
      * @throws Exception
      */
-    public function getTenantRootAccount(int $tenantId): ?NetworkUser
+    public function getTenantRootAccount(int $tenantId): ?TenantUser
     {
         $statement = $this->mysqlClientReaderHandler->select()
             ->from('minds_tenants')
@@ -61,11 +61,11 @@ class TenantUsersRepository extends AbstractRepository
             return null;
         }
 
-        return new NetworkUser(
+        return new TenantUser(
             guid: $row['root_user_guid'],
             username: '',
             tenantId: (int) $row['tenant_id'],
-            role:  NetworkUserRoleEnum::OWNER,
+            role:  TenantUserRoleEnum::OWNER,
         );
     }
 }
