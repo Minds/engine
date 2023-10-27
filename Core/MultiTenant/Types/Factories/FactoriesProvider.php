@@ -27,11 +27,5 @@ class FactoriesProvider extends Provider
                 return new TenantUserFactory();
             }
         );
-        $this->di->bind(
-            TenantUserFactory::class,
-            function (Di $di): TenantUserFactory {
-                return new TenantUserFactory();
-            }
-        );
     }
 }
