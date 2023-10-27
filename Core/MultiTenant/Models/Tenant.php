@@ -1,7 +1,6 @@
 <?php
 namespace Minds\Core\MultiTenant\Models;
 
-use Minds\Core\MultiTenant\Configs\Enums\MultiTenantColorScheme;
 use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
