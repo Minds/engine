@@ -1,6 +1,7 @@
 <?php
 
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\UndeliveredEventException;
 use Minds\Entities\CommentableEntityInterface;
 use Minds\Entities\EntityInterface;
@@ -337,7 +338,7 @@ abstract class ElggEntity extends ElggData implements
      */
     public function getContainerEntity()
     {
-        return get_entity($this->getContainerGUID());
+        return Di::_()->get(EntitiesBuilder::class)->single($this->getContainerGUID());
     }
 
     /**

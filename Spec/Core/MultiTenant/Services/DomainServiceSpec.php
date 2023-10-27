@@ -89,4 +89,18 @@ class DomainServiceSpec extends ObjectBehavior
         );
         $this->buildDomain($tenant)->shouldbe('202cb962ac59075b964b07152d234b70.minds.com');
     }
+
+    public function it_should_invalidate_global_tenant_cache()
+    {
+        $domain = 'custom.domain';
+
+        $this->cacheMock->withTenantPrefix(false)
+            ->shouldBeCalled()
+            ->willReturn($this->cacheMock);
+
+        $this->cacheMock->delete("global:tenant:domain:$domain")
+            ->shouldBeCalled();
+
+        $this->invalidateGlobalTenantCache($domain);
+    }
 }

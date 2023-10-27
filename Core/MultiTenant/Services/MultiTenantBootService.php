@@ -12,6 +12,8 @@ class MultiTenantBootService
 {
     private $rootConfigs = [];
 
+    private Tenant $tenant;
+
     public function __construct(
         private Config $config,
         private DomainService $domainService,
@@ -47,6 +49,8 @@ class MultiTenantBootService
             scheme: $scheme,
             port: $port,
         );
+
+        $this->tenant = $tenant;
     }
 
     /**
@@ -61,6 +65,8 @@ class MultiTenantBootService
         }
 
         $this->setupConfigs($tenant);
+
+        $this->tenant = $tenant;
     }
 
     /**
@@ -72,6 +78,14 @@ class MultiTenantBootService
         foreach ($this->rootConfigs as $key => $value) {
             $this->config->set($key, $value);
         }
+    }
+
+    /**
+     * Returns the booted tenant
+     */
+    public function getTenant(): Tenant
+    {
+        return $this->tenant;
     }
 
     private function setupConfigs(
@@ -94,8 +108,39 @@ class MultiTenantBootService
         $this->setConfig('tenant_id', $tenant->id);
 
         $this->setConfig('dataroot', $this->config->get('dataroot') . 'tenant/' . $this->config->get('tenant_id') . '/');
-    }
 
+        if ($tenantConfig = $tenant->config) {
+            if ($tenantConfig->siteEmail) {
+                $emailConfig = $this->config->get('email');
+                $emailConfig['sender']['email'] = $tenant->config->siteEmail;
+
+                if ($tenantConfig->siteName) {
+                    $emailConfig['sender']['name'] = $tenant->config->siteName;
+                }
+                $this->setConfig('email', $emailConfig);
+            }
+
+            if ($tenantConfig->siteName) {
+                $this->setConfig('site_name', $tenant->config->siteName);
+            }
+
+            $themeConfig = [];
+
+            if ($tenant->config->colorScheme) {
+                $themeConfig['color_scheme'] = $tenant->config->colorScheme?->value;
+            }
+
+            if ($tenant->config->primaryColor) {
+                $themeConfig['primary_color'] = $tenant->config->primaryColor;
+            }
+
+            $this->setConfig('theme_override', [
+                'color_scheme' => $tenant->config->colorScheme?->value,
+                'primary_color' => $tenant->config->primaryColor
+            ]);
+        }
+    }
+    
     private function setConfig(string $key, mixed $value): void
     {
         // If not a multi tenant, then we will save the configs for resetting later (if needed)
@@ -104,5 +149,4 @@ class MultiTenantBootService
         }
         $this->config->set($key, $value);
     }
-
 }
