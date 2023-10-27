@@ -113,6 +113,10 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
         
         $query->where('e.tenant_id', Operator::EQ, $this->config->get('tenant_id'));
 
+        if (is_array($guid)) {
+            $query->orderBy('e.guid desc');
+        }
+
         $statement = $query->prepare();
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, [
