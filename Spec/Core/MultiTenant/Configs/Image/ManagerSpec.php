@@ -53,12 +53,13 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldHaveType(Manager::class);
     }
 
-    public function it_should_get_tenant_owner_guid()
+    public function it_should_get_tenant_root_user_guid()
     {
-        $tenantOwnerGuid = 1234567890123456;
+        $tenant = new Tenant(
+            id: 1,
+            rootUserGuid: 1234567890123456,
+        );
 
-        $this->config->get('tenant_owner_guid')
-            ->shouldBeCalled()
         $this->multiTenantBootServiceMock->getTenant()
             ->shouldBeCalled()
             ->willReturn($tenant);
