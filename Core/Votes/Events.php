@@ -20,6 +20,8 @@ use Minds\Core\Session;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Entities;
 use Minds\Entities\Activity;
+use Minds\Entities\Group;
+use Minds\Entities\User;
 use Minds\Helpers;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\ServerRequestFactory;
@@ -27,6 +29,7 @@ use Zend\Diactoros\ServerRequestFactory;
 class Events
 {
     public function __construct(
+        private ?Manager $manager = null,
         private ?ExperimentsManager $experimentsManager = null
     ) {
     }
@@ -265,6 +268,10 @@ class Events
                 return;
             }
 
+            if ($entity instanceof User || $entity instanceof Group) {
+                return;
+            }
+
             $guid = $entity->getGuid();
 
             switch (get_class($entity)) {
@@ -284,8 +291,7 @@ class Events
                     break;
             }
 
-            $upCount = Helpers\Counters::get($guid, 'thumbs:up');
-
+            $upCount = $this->getVotesManager()->count($entity);
 
             $export['thumbs:up:count'] = $upCount;
 
@@ -308,6 +314,11 @@ class Events
     private function getExperimentsManager(): ExperimentsManager
     {
         return $this->experimentsManager ??= Di::_()->get("Experiments\Manager");
+    }
+
+    private function getVotesManager(): Manager
+    {
+        return $this->manager ??= Di::_()->get('Votes\Manager');
     }
 
     private function retrieveServerRequest(): ServerRequestInterface

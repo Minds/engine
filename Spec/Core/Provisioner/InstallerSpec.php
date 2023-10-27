@@ -3,9 +3,9 @@
 namespace Spec\Minds\Core\Provisioner;
 
 use Minds\Core\Config\Config;
-use PhpSpec\ObjectBehavior;
 use Minds\Core\Minds;
 use Minds\Entities\Site;
+use PhpSpec\ObjectBehavior;
 
 class InstallerSpec extends ObjectBehavior
 {

@@ -3,17 +3,14 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant;
 
-use Minds\Core\Di\Di;
 use Minds\Core\GraphQL\AbstractGraphQLMappings;
 use Minds\Core\MultiTenant\Models\Tenant;
-use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Core\MultiTenant\Types\FeaturedEntity;
 use Minds\Core\MultiTenant\Types\FeaturedGroup;
 use Minds\Core\MultiTenant\Types\FeaturedUser;
 use Minds\Core\MultiTenant\Types\FeaturedEntityEdge;
 use Minds\Core\MultiTenant\Types\FeaturedEntityConnection;
-use Minds\Core\MultiTenant\Types\NetworkUser;
-use Minds\Helpers\StringLengthValidators\UsernameLengthValidator;
+use Minds\Core\MultiTenant\Types\TenantUser;
 use TheCodingMachine\GraphQLite\Mappers\StaticClassListTypeMapperFactory;
 
 class GraphQLMappings extends AbstractGraphQLMappings
@@ -28,7 +25,7 @@ class GraphQLMappings extends AbstractGraphQLMappings
         $this->schemaFactory->addTypeNamespace('Minds\\Core\\MultiTenant\\Types\\Factories');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             Tenant::class,
-            NetworkUser::class,
+            TenantUser::class,
             FeaturedEntity::class,
             FeaturedUser::class,
             FeaturedGroup::class,
@@ -37,9 +34,6 @@ class GraphQLMappings extends AbstractGraphQLMappings
         ]));
 
         $this->schemaFactory->setInputTypeValidator(new Types\Validators\TenantInputValidator());
-        $this->schemaFactory->setInputTypeValidator(new Types\Validators\NetworkUserInputValidator(
-            new UsernameLengthValidator(),
-            Di::_()->get(MultiTenantDataService::class),
-        ));
+        $this->schemaFactory->setInputTypeValidator(new Types\Validators\TenantUserInputValidator());
     }
 }

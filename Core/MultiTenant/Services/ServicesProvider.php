@@ -42,9 +42,9 @@ class ServicesProvider extends Provider
         }, ['useFactory' => true]);
 
         $this->di->bind(
-            NetworksService::class,
-            function (Di $di): NetworksService {
-                return new NetworksService(
+            TenantsService::class,
+            function (Di $di): TenantsService {
+                return new TenantsService(
                     $di->get(Repository::class),
                     $di->get(TenantConfigRepository::class)
                 );
@@ -52,12 +52,13 @@ class ServicesProvider extends Provider
         );
 
         $this->di->bind(
-            NetworkUsersService::class,
-            function (Di $di): NetworkUsersService {
-                return new NetworkUsersService(
+            TenantUsersService::class,
+            function (Di $di): TenantUsersService {
+                return new TenantUsersService(
                     $di->get(TenantUsersRepository::class),
                     new Save(),
-                    $di->get('Config')
+                    $di->get('Config'),
+                    $di->get(MultiTenantBootService::class),
                 );
             }
         );

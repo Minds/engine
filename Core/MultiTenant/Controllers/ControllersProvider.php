@@ -9,6 +9,8 @@ use Minds\Core\Di\Provider;
 use Minds\Core\MultiTenant\Services\NetworksService;
 use Minds\Core\MultiTenant\Services\NetworkUsersService;
 use Minds\Core\MultiTenant\Services\FeaturedEntityService;
+use Minds\Core\MultiTenant\Services\TenantsService;
+use Minds\Core\MultiTenant\Services\TenantUsersService;
 
 class ControllersProvider extends Provider
 {
@@ -18,14 +20,14 @@ class ControllersProvider extends Provider
      */
     public function register(): void
     {
-        $this->di->bind(NetworksController::class, function (Di $di): NetworksController {
-            return new NetworksController(
-                $di->get(NetworksService::class)
+        $this->di->bind(TenantsController::class, function (Di $di): TenantsController {
+            return new TenantsController(
+                $di->get(TenantsService::class)
             );
         });
-        $this->di->bind(NetworkUsersController::class, function (Di $di): NetworkUsersController {
-            return new NetworkUsersController(
-                $di->get(NetworkUsersService::class)
+        $this->di->bind(TenantUsersController::class, function (Di $di): TenantUsersController {
+            return new TenantUsersController(
+                $di->get(TenantUsersService::class)
             );
         });
         $this->di->bind(FeaturedEntitiesController::class, function (Di $di): FeaturedEntitiesController {
