@@ -31,13 +31,13 @@ class FeaturedEntitiesController
     #[Query]
     public function getFeaturedEntities(
         FeaturedEntityTypeEnum $type,
-        int $loadAfter = 0,
-        int $limit = 12
+        int $after = 0,
+        int $first = 12
     ): FeaturedEntityConnection {
         return $this->service->getFeaturedEntities(
             type: $type,
-            loadAfter: $loadAfter,
-            limit: $limit
+            loadAfter: $after,
+            limit: $first
         );
     }
 
