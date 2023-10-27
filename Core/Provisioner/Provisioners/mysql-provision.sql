@@ -429,7 +429,10 @@ CREATE TABLE IF NOT EXISTS minds_tenant_configs (
     site_email varchar(128),
     primary_color varchar(16),
     color_scheme varchar(32),
+<<<<<<< HEAD
     community_guidelines text,
+=======
+>>>>>>> 9d7439879999b5678cb18c65c48a4955f682547b
     updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (tenant_id)
 );
@@ -553,3 +556,10 @@ CREATE TABLE `minds_entities_object_video` (
   `auto_caption` text,
   PRIMARY KEY (`tenant_id`,`guid`)
 );
+
+ALTER TABLE `minds_votes` ADD COLUMN `tenant_id` int DEFAULT NULL AFTER `user_guid`;
+CREATE INDEX `tenant_id` ON `minds_votes` (`tenant_id`);
+
+ALTER TABLE `minds_tenants`
+    ADD root_user_guid bigint DEFAULT NULL
+    AFTER owner_guid;
