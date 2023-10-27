@@ -212,7 +212,7 @@ function register_user(
     $friend_guid = 0,
     $invitecode = '',
     $validatePassword = true,
-    $isActivityPub = false
+    $isActivityPub = false,
 ) {
 
     // no need to trim password.
