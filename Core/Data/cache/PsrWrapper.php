@@ -13,6 +13,9 @@ use Psr\SimpleCache\CacheInterface;
 
 class PsrWrapper implements CacheInterface
 {
+    /** @var boolean - whether tenant prefix should be used. */
+    protected $useTenantPrefix = true;
+    
     /** @var abstractCacher */
     protected $cache;
 
@@ -103,5 +106,19 @@ class PsrWrapper implements CacheInterface
     public function has($key)
     {
         return $this->cache->get($key) !== null;
+    }
+    
+    /**
+     * Allows specification of whether cache entries should have a tenant_id scoped prefix.
+     * @param boolean $useTenantPrefix - whether tenant prefix should be used.
+     * @return PsrWrapper
+     */
+    public function withTenantPrefix(bool $useTenantPrefix): PsrWrapper
+    {
+        $instance = clone $this;
+        if ($this->cache instanceof Redis) {
+            $instance->cache = $this->cache->withTenantPrefix($useTenantPrefix);
+        }
+        return $instance;
     }
 }
