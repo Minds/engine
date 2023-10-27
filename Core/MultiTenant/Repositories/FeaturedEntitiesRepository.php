@@ -35,7 +35,7 @@ class FeaturedEntitiesRepository extends AbstractRepository
         int $loadAfter = null,
         ?bool &$hasMore = null
     ): iterable {
-        $query = $this->mysqlClientWriterHandler->select()
+        $query = $this->mysqlClientReaderHandler->select()
             ->from('minds_tenant_featured_entities')
             ->innerJoin(['entities' => 'minds_entities'], 'minds_tenant_featured_entities.entity_guid', Operator::EQ, 'entities.guid');
 
@@ -152,16 +152,16 @@ class FeaturedEntitiesRepository extends AbstractRepository
     {
         return match($row['type']) {
             'user' => new FeaturedUser(
-                tenantId: $row['tenant_id'],
-                entityGuid: $row['entity_guid'],
+                tenantId: (int) $row['tenant_id'],
+                entityGuid: (int) $row['entity_guid'],
                 autoSubscribe: (bool) $row['auto_subscribe'],
                 recommended: (bool) $row['recommended'],
                 username: $row['username'],
                 name: $row['name']
             ),
             'group' => new FeaturedGroup(
-                tenantId: $row['tenant_id'],
-                entityGuid: $row['entity_guid'],
+                tenantId: (int) $row['tenant_id'],
+                entityGuid: (int) $row['entity_guid'],
                 autoSubscribe: (bool) $row['auto_subscribe'],
                 recommended: (bool) $row['recommended'],
                 name: $row['name']
