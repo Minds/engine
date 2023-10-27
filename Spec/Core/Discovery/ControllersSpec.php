@@ -75,7 +75,7 @@ class ControllersSpec extends ObjectBehavior
                 'type' => ''
             ]);
 
-        $response = new Response([
+        $expectedResponse = new Response([
             (new Activity())
                 ->set('guid', '123'),
             (new Activity())
@@ -88,21 +88,14 @@ class ControllersSpec extends ObjectBehavior
             'use_legacy_time_ranges' => false,
             'exclude_scheduled' => true,
         ])
-            ->willReturn($response);
+            ->willReturn($expectedResponse);
 
         $response = $this->getSearch($request);
         $json = $response->getBody()->getContents();
 
         $json->shouldBe(json_encode([
             'status' => 'success',
-            'entities' => [
-                (new Activity())
-                    ->set('guid', '123')
-                    ->export(),
-                (new Activity())
-                    ->set('guid', '456')
-                    ->export(),
-            ]
+            'entities' => array_map(fn ($entity) => $entity->export(), $expectedResponse->toArray()),
         ]));
     }
 
