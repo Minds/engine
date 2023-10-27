@@ -11,7 +11,7 @@ use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 
 class TenantUserFactory
 {
-    #[Factory(name: 'NetworkUserInput')]
+    #[Factory(name: 'TenantUserInput')]
     public function createTenant(
         ?string $username = null,
         ?int $tenantId = null,
