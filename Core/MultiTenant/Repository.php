@@ -2,6 +2,8 @@
 namespace Minds\Core\MultiTenant;
 
 use Minds\Core\Data\MySQL\AbstractRepository;
+use Minds\Core\MultiTenant\Configs\Enums\MultiTenantColorScheme;
+use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
 use Minds\Core\MultiTenant\Models\Tenant;
 use PDO;
 use Selective\Database\Operator;

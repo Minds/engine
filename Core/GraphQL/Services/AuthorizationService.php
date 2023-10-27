@@ -4,8 +4,8 @@ declare(strict_types=1);
 namespace Minds\Core\GraphQL\Services;
 
 use Exception;
-use Minds\Core\MultiTenant\Configs\Enums\NetworkUserRoleEnum;
-use Minds\Core\MultiTenant\Types\NetworkUser;
+use Minds\Core\MultiTenant\Enums\TenantUserRoleEnum;
+use Minds\Core\MultiTenant\Types\TenantUser;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Security\AuthorizationServiceInterface;
 
@@ -21,12 +21,12 @@ class AuthorizationService implements AuthorizationServiceInterface
             'ROLE_ADMIN' => $subject instanceof User && $subject->isAdmin(),
             'ROLE_TENANT_OWNER',
             'ROLE_TENANT_ADMIN',
-            'ROLE_TENANT_USER' => $this->tenantUserACL(NetworkUserRoleEnum::fromRoleLabel($right, $subject)),
+            'ROLE_TENANT_USER' => $this->tenantUserACL(TenantUserRoleEnum::fromRoleLabel($right), $subject),
             default => false,
         };
     }
 
-    private function tenantUserACL(NetworkUserRoleEnum $requiredRole, NetworkUser $user): bool
+    private function tenantUserACL(TenantUserRoleEnum $requiredRole, TenantUser $user): bool
     {
         return $user->role === $requiredRole;
     }
