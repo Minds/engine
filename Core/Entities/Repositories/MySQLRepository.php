@@ -546,12 +546,6 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
         $columnsMap = [];
 
         foreach ($data as $k => $v) {
-            
-            if ($k === 'ip') {
-                $columnsMap[$k] = new RawExp("INET_ATON(:$k)");
-                continue;
-            }
-
             $columnsMap[$k] = new RawExp(':' . $k);
         }
 

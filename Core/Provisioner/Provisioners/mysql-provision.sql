@@ -559,3 +559,5 @@ CREATE INDEX `tenant_id` ON `minds_votes` (`tenant_id`);
 ALTER TABLE `minds_tenants`
     ADD root_user_guid bigint DEFAULT NULL
     AFTER owner_guid;
+
+ALTER TABLE `minds_entities_user` MODIFY COLUMN ip varchar(40);
