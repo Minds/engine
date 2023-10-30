@@ -91,6 +91,28 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                         ELSE FALSE
                     END
                 "),
+                'friends_count' => new RawExp("
+                    CASE 
+                        WHEN 
+                            e.type='user' AND (
+                                SELECT COUNT(*) FROM friends
+                                WHERE friends.user_guid = e.guid
+                            )
+                        THEN TRUE 
+                        ELSE FALSE
+                    END
+                "),
+                'friendsof_count' => new RawExp("
+                    CASE 
+                        WHEN 
+                            e.type='user' AND (
+                                SELECT COUNT(*) FROM friends
+                                WHERE friends.friend_guid = e.guid
+                            )
+                        THEN TRUE 
+                        ELSE FALSE
+                    END
+                "),
             ])
             ->from(new RawExp('minds_entities as e'))
             ->leftJoin(['u' => 'minds_entities_user'], 'e.guid', Operator::EQ, 'u.guid')

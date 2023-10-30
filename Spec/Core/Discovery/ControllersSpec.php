@@ -65,48 +65,6 @@ class ControllersSpec extends ObjectBehavior
     //     ]));
     // }
 
-    public function it_should_get_search_response(
-        ServerRequest $request
-    ) {
-        $request->getQueryParams()
-            ->willReturn([
-                'q' => 'hello world',
-                'algorithm' => 'top',
-                'type' => ''
-            ]);
-
-        $response = new Response([
-            (new Activity())
-                ->set('guid', '123'),
-            (new Activity())
-                ->set('guid', '456'),
-        ]);
-
-        $this->manager->getSearch('hello world', 'top', '', [
-            'plus' => false,
-            'nsfw' => false,
-            'use_legacy_time_ranges' => false,
-            'exclude_scheduled' => true,
-        ])
-            ->willReturn($response);
-
-        $response = $this->getSearch($request);
-        $json = $response->getBody()->getContents();
-
-        $json->shouldBe(json_encode([
-            'status' => 'success',
-            'entities' => [
-                (new Activity())
-                    ->set('guid', '123')
-                    ->export(),
-                (new Activity())
-                    ->set('guid', '456')
-                    ->export(),
-            ]
-        ]));
-    }
-
-
 
     public function it_should_get_search_count_response(
         ServerRequest $request

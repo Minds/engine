@@ -561,3 +561,5 @@ ALTER TABLE `minds_tenants`
     AFTER owner_guid;
 
 ALTER TABLE `minds_entities_user` MODIFY COLUMN ip varchar(40);
+
+ALTER TABLE `friends` ADD COLUMN tenant_id int AFTER friend_guid;
