@@ -120,7 +120,7 @@ class ManagerV2
         $setupIntent = new StripeSetupIntent();
         $setupIntent->usage = 'off_session';
 
-        $stripeIntent = $this->getStripeClient->setupIntents->create($setupIntent->toArray());
+        $stripeIntent = $this->getStripeClient()->setupIntents->create($setupIntent->toArray());
 
         $intent
             ->setId($stripeIntent->id)
@@ -137,7 +137,7 @@ class ManagerV2
      */
     public function cancelPaymentIntent(string $paymentIntentId, User $sender = null): bool
     {
-        $paymentIntent = $this->getStripeClient->withUser($sender)->paymentIntents->cancel($paymentIntentId);
+        $paymentIntent = $this->getStripeClient()->withUser($sender)->paymentIntents->cancel($paymentIntentId);
         return $paymentIntent->status === "canceled";
     }
 
@@ -153,7 +153,7 @@ class ManagerV2
      */
     public function capturePaymentIntent(string $paymentIntentId, User $sender = null): bool
     {
-        $stripeClient = $this->getStripeClient->withUser($sender);
+        $stripeClient = $this->getStripeClient()->withUser($sender);
         $paymentIntent = $stripeClient->paymentIntents->retrieve($paymentIntentId);
 
         // is manual in this context refers to a manual transfer method rather than capture method.
@@ -221,7 +221,7 @@ class ManagerV2
      */
     public function getPaymentIntentByPaymentId(string $paymentId): array
     {
-        return $this->getStripeClient->paymentIntents->retrieve(
+        return $this->getStripeClient()->paymentIntents->retrieve(
             $paymentId
         )->toArray();
     }
@@ -233,7 +233,7 @@ class ManagerV2
      */
     public function getPaymentIntents(GetPaymentsOpts $opts): array
     {
-        return $this->getStripeClient->paymentIntents->all(
+        return $this->getStripeClient()->paymentIntents->all(
             $opts->export()
         )->toArray();
     }
@@ -245,7 +245,7 @@ class ManagerV2
      */
     public function getPaymentIntentsGenerator(GetPaymentsOpts $opts): Generator
     {
-        return $this->getStripeClient->paymentIntents->all(
+        return $this->getStripeClient()->paymentIntents->all(
             $opts->export()
         )->autoPagingIterator();
     }
@@ -258,7 +258,7 @@ class ManagerV2
      */
     public function updatePaymentIntentById(string $paymentIntentId, array $payload): StripePaymentIntent
     {
-        return $this->getStripeClient->paymentIntents->update(
+        return $this->getStripeClient()->paymentIntents->update(
             $paymentIntentId,
             $payload
         );
