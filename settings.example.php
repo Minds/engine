@@ -941,3 +941,12 @@ $CONFIG->set('uniswap', [
 ]);
 
 $CONFIG->set('livepeer_api_key', '');
+
+$CONFIG->set('expo', [
+    'account_id' => '',
+    'account_name' => '',
+    'project_id' => '',
+    'bearer_token' => '',
+    'apple_team_id' => '',
+    'api_url' => 'https://api.expo.dev/graphql'
+]);

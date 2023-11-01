@@ -88,6 +88,7 @@ class Minds extends base
         Webfinger\Module::class,
         ActivityPub\Module::class,
         Admin\Module::class,
+        Expo\Module::class
     ];
 
     /**
