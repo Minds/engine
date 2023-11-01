@@ -35,9 +35,6 @@ class ManagerV2
         private ?EntitiesBuilder        $entitiesBuilder = null
     ) {
         $this->mindsConfig ??= Di::_()->get('Config');
-        $this->stripeClient ??= Di::_()->get(StripeClient::class);
-        $this->stripeCustomersManager ??= new StripeCustomersManager();
-        $this->stripeConnectManager ??= new StripeConnectManager();
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
     }
 
@@ -65,7 +62,7 @@ class ManagerV2
     {
         $customerId = $intent->getCustomerId();
         if (!$customerId) {
-            $customer = $this->stripeCustomersManager->getFromUserGuid($intent->getUserGuid());
+            $customer = $this->getStripeCustomersManager()->getFromUserGuid($intent->getUserGuid());
             if (!$customer) {
                 throw new UserErrorException('Customer was not found');
             }
@@ -123,7 +120,7 @@ class ManagerV2
         $setupIntent = new StripeSetupIntent();
         $setupIntent->usage = 'off_session';
 
-        $stripeIntent = $this->stripeClient->setupIntents->create($setupIntent->toArray());
+        $stripeIntent = $this->getStripeClient()->setupIntents->create($setupIntent->toArray());
 
         $intent
             ->setId($stripeIntent->id)
@@ -140,7 +137,7 @@ class ManagerV2
      */
     public function cancelPaymentIntent(string $paymentIntentId, User $sender = null): bool
     {
-        $paymentIntent = $this->stripeClient->withUser($sender)->paymentIntents->cancel($paymentIntentId);
+        $paymentIntent = $this->getStripeClient()->withUser($sender)->paymentIntents->cancel($paymentIntentId);
         return $paymentIntent->status === "canceled";
     }
 
@@ -156,7 +153,7 @@ class ManagerV2
      */
     public function capturePaymentIntent(string $paymentIntentId, User $sender = null): bool
     {
-        $stripeClient = $this->stripeClient->withUser($sender);
+        $stripeClient = $this->getStripeClient()->withUser($sender);
         $paymentIntent = $stripeClient->paymentIntents->retrieve($paymentIntentId);
 
         // is manual in this context refers to a manual transfer method rather than capture method.
@@ -177,7 +174,7 @@ class ManagerV2
                 throw new ServerErrorException("Unable to find user for future account payment");
             }
 
-            $stripeFutureAccount = $this->stripeConnectManager->getByUser($futureAccountUser);
+            $stripeFutureAccount = $this->getStripeConnectManager()->getByUser($futureAccountUser);
 
             if (!$stripeFutureAccount) {
                 throw new UserErrorException("Stripe account not found. It may not be created yet");
@@ -224,7 +221,7 @@ class ManagerV2
      */
     public function getPaymentIntentByPaymentId(string $paymentId): array
     {
-        return $this->stripeClient->paymentIntents->retrieve(
+        return $this->getStripeClient()->paymentIntents->retrieve(
             $paymentId
         )->toArray();
     }
@@ -236,7 +233,7 @@ class ManagerV2
      */
     public function getPaymentIntents(GetPaymentsOpts $opts): array
     {
-        return $this->stripeClient->paymentIntents->all(
+        return $this->getStripeClient()->paymentIntents->all(
             $opts->export()
         )->toArray();
     }
@@ -248,7 +245,7 @@ class ManagerV2
      */
     public function getPaymentIntentsGenerator(GetPaymentsOpts $opts): Generator
     {
-        return $this->stripeClient->paymentIntents->all(
+        return $this->getStripeClient()->paymentIntents->all(
             $opts->export()
         )->autoPagingIterator();
     }
@@ -261,7 +258,7 @@ class ManagerV2
      */
     public function updatePaymentIntentById(string $paymentIntentId, array $payload): StripePaymentIntent
     {
-        return $this->stripeClient->paymentIntents->update(
+        return $this->getStripeClient()->paymentIntents->update(
             $paymentIntentId,
             $payload
         );
@@ -277,11 +274,36 @@ class ManagerV2
      */
     public function getPaymentIntentsByUserGuid(string $userGuid, GetPaymentsOpts $opts = null): array
     {
-        $customer = $this->stripeCustomersManager->getFromUserGuid($userGuid);
+        $customer = $this->getStripeCustomersManager()->getFromUserGuid($userGuid);
         if (!$customer) {
             throw new UserErrorException("Customer was not found: $userGuid");
         }
         $opts->setCustomerId($customer->getId());
         return $this->getPaymentIntents($opts);
     }
+
+    /**
+     * Lazy load as it will try and decrypt the email on every graphql call
+     */
+    private function getStripeClient(): StripeClient
+    {
+        return $this->stripeClient ??= Di::_()->get(StripeClient::class);
+    }
+
+    /**
+     * Lazy load as it will try and decrypt the email on every graphql call
+     */
+    private function getStripeCustomersManager(): StripeCustomersManager
+    {
+        return $this->stripeCustomersManager ??= new StripeCustomersManager();
+    }
+
+    /**
+     * Lazy load as it will try and decrypt the email on every graphql call
+     */
+    private function getStripeConnectManager(): StripeConnectManager
+    {
+        return $this->stripeConnectManager ??= new StripeConnectManager();
+    }
+
 }
