@@ -429,7 +429,6 @@ CREATE TABLE IF NOT EXISTS minds_tenant_configs (
     site_email varchar(128),
     primary_color varchar(16),
     color_scheme varchar(32),
-    community_guidelines text,
     updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (tenant_id)
 );
@@ -560,3 +559,11 @@ CREATE INDEX `tenant_id` ON `minds_votes` (`tenant_id`);
 ALTER TABLE `minds_tenants`
     ADD root_user_guid bigint DEFAULT NULL
     AFTER owner_guid;
+
+ALTER TABLE `minds_entities_user` MODIFY COLUMN ip varchar(40);
+
+ALTER TABLE `friends` ADD COLUMN tenant_id int AFTER friend_guid;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD community_guidelines text DEFAULT NULL
+    AFTER color_scheme;

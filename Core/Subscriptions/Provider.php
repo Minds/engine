@@ -11,7 +11,7 @@ class Provider extends DiProvider
 {
     public function register()
     {
-        $this->di->bind('Subscriptions\Manager', function ($di) {
+        $this->di->bind(Manager::class, function ($di) {
             return new Manager();
         }, [ 'useFactory'=>false ]);
 

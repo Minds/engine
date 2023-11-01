@@ -106,7 +106,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         ]);
     }
 
-    public function __construct($guid = null, $entitiesBuilder = null, $activityManager = null)
+    public function __construct($guid = null, $cache = null, $entitiesBuilder = null, $activityManager = null)
     {
         parent::__construct($guid);
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
@@ -221,7 +221,10 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             $export['subtype'] = 'remind';
 
             // TODO: when we support collapsing of reminds, add the other ownerObj's
-            $export['remind_users'] = [$this->ownerObj];
+
+            $remindOwner = $this->entitiesBuilder->single($this->getOwnerGuid()); // Move to export extender
+
+            $export['remind_users'] = [$remindOwner->export()];
             $export['urn'] = $this->getUrn();
             return $export;
         } else {
@@ -740,16 +743,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     {
         $this->hide_impressions = (bool) $value;
         return $this;
-    }
-
-    public function getOwnerObj()
-    {
-        if (!$this->ownerObj && $this->owner_guid) {
-            $user = new User($this->owner_guid);
-            $this->ownerObj = $user->export();
-        }
-
-        return $this->ownerObj;
     }
 
     /**

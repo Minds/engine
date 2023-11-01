@@ -147,48 +147,6 @@ class ElggUser extends ElggEntity
     }
 
     /**
-     * Return a count of the users subscriber
-     *
-     * @return
-     */
-    public function getSubscribersCount()
-    {
-        $cacher = \Minds\Core\Data\cache\factory::build();
-        if ($cache = $cacher->get("$this->guid:friendsofcount")) {
-            return $cache;
-        }
-
-        $db = new Minds\Core\Data\Call('friendsof');
-        $count = $db->countRow($this->guid);
-        if (!$count) {
-            $count = 1;
-        }
-        $cacher->set("$this->guid:friendsofcount", $count);
-        return $count;
-    }
-
-    /**
-     * Return a count of the users subscriptions
-     *
-     * @return
-     */
-    public function getSubscriptionsCount()
-    {
-        $cacher = \Minds\Core\Data\cache\factory::build();
-        if ($cache = $cacher->get("$this->guid:friendscount")) {
-            return $cache;
-        }
-
-        $db = new Minds\Core\Data\Call('friends');
-        $count = $db->countRow($this->guid);
-        if (!$count) {
-            $count = 1;
-        }
-        $cacher->set("$this->guid:friendscount", $count);
-        return $count;
-    }
-
-    /**
      * Get a user's owner GUID
      *
      * Returns it's own GUID if the user is not owned.
