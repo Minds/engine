@@ -3,19 +3,19 @@ declare(strict_types=1);
 
 namespace Minds\Core\Expo\Services;
 
-use Minds\Core\Expo\ExpoClient;
+use Minds\Core\Expo\Clients\ExpoGqlClient;
 use Minds\Core\Expo\ExpoConfig;
-use Minds\Core\Expo\Queries\iOS\Credentials\CreateAppleAppIdentifierQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\CreateAppleDistributionCertificateQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\CreateAppleProvisioningProfileQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\CreateApplePushKeyQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\CreateAscApiKeyQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\CreateIosAppBuildCredentialsQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\CreateIosAppCredentialsQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\DeleteIosAppCredentialsQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\GetAllAppleAppIdentifiersQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\SetAscApiKeyForIosAppCredentialsQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\SetPushKeyForIosAppCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\CreateAppleAppIdentifierQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\CreateAppleDistributionCertificateQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\CreateAppleProvisioningProfileQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\CreateApplePushKeyQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\CreateAscApiKeyQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\CreateIosAppBuildCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\CreateIosAppCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\DeleteIosAppCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\GetAllAppleAppIdentifiersQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\SetAscApiKeyForIosAppCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\SetPushKeyForIosAppCredentialsQuery;
 use Minds\Exceptions\ServerErrorException;
 
 /**
@@ -24,7 +24,7 @@ use Minds\Exceptions\ServerErrorException;
 class iOSCredentialsService
 {
     public function __construct(
-        private ExpoClient $expoClient,
+        private ExpoGqlClient $expoGqlClient,
         private ExpoConfig $config,
         private GetAllAppleAppIdentifiersQuery $getAllAppleAppIdentifiersQuery,
         private CreateAppleAppIdentifierQuery $createAppleAppIdentifierQuery,
@@ -135,7 +135,7 @@ class iOSCredentialsService
      */
     public function deleteProjectCredentials(string $iosAppCredentialsId): ?array
     {
-        $response = $this->expoClient->request('POST', $this->deleteIosAppCredentialsQuery->build(
+        $response = $this->expoGqlClient->request($this->deleteIosAppCredentialsQuery->build(
             iosAppCredentialsId: $iosAppCredentialsId
         ));
 
@@ -197,7 +197,7 @@ class iOSCredentialsService
             accountId: $accountId
         );
       
-        $batchResponse = $this->expoClient->request('POST', [
+        $batchResponse = $this->expoGqlClient->request([
             $preparedCreateAppleDistributionCertificateResponse,
             $preparedCreateAppleProvisioningProfileResponse,
             $preparedCreateApplePushKeyResponse,
@@ -218,7 +218,7 @@ class iOSCredentialsService
      */
     private function getAllAppleAppIdentifiers(): array
     {
-        $response = $this->expoClient->request('POST', $this->getAllAppleAppIdentifiersQuery->build(
+        $response = $this->expoGqlClient->request($this->getAllAppleAppIdentifiersQuery->build(
             accountName: $this->config->accountName
         ));
         return $response['data']['account']['byName']['appleAppIdentifiers'] ?? null;
@@ -270,7 +270,7 @@ class iOSCredentialsService
         string $bundleIdentifier,
         string $accountId,
     ): ?array {
-        $response = $this->expoClient->request('POST', $this->createAppleAppIdentifierQuery->build(
+        $response = $this->expoGqlClient->request($this->createAppleAppIdentifierQuery->build(
             bundleIdentifier: $bundleIdentifier,
             accountId: $accountId
         ));
@@ -291,7 +291,7 @@ class iOSCredentialsService
         ?string $pushKeyId,
         ?string $ascKeyId
     ): ?array {
-        $response = $this->expoClient->request('POST', $this->createIosAppCredentialsQuery->build(
+        $response = $this->expoGqlClient->request($this->createIosAppCredentialsQuery->build(
             appleAppIdentifierId: $appleAppIdentifierId,
             appId: $appId,
             pushKeyId: $pushKeyId,
@@ -314,7 +314,7 @@ class iOSCredentialsService
         string $iosAppCredentialsId,
         string $iosDistributionType = 'DEVELOPMENT'
     ): ?array {
-        $response = $this->expoClient->request('POST', $this->createIosAppBuildCredentialsQuery->build(
+        $response = $this->expoGqlClient->request($this->createIosAppBuildCredentialsQuery->build(
             distributionCertificateId: $distributionCertificateId,
             provisioningProfileId: $provisioningProfileId,
             iosAppCredentialsId: $iosAppCredentialsId,
@@ -335,7 +335,7 @@ class iOSCredentialsService
         string $distributionCertPassword,
         string $accountId,
     ): ?array {
-        $response = $this->expoClient->request('POST', $this->createAppleDistributionCertificateQuery->build(
+        $response = $this->expoGqlClient->request($this->createAppleDistributionCertificateQuery->build(
             certP12: $distributionCertP12,
             certPassword: $distributionCertPassword,
             accountId: $accountId
@@ -355,7 +355,7 @@ class iOSCredentialsService
         string $appleAppIdentifierId,
         string $accountId
     ): ?array {
-        $response = $this->expoClient->request('POST', $this->createAppleProvisioningProfileQuery->build(
+        $response = $this->expoGqlClient->request($this->createAppleProvisioningProfileQuery->build(
             appleProvisioningProfile: $appleProvisioningProfile,
             appleAppIdentifierId: $appleAppIdentifierId,
             accountId: $accountId
@@ -375,7 +375,7 @@ class iOSCredentialsService
         string $pushKeyP8,
         string $accountId
     ): ?array {
-        $response = $this->expoClient->request('POST', $this->createApplePushKeyQuery->build(
+        $response = $this->expoGqlClient->request($this->createApplePushKeyQuery->build(
             keyIdentifier: $pushKeyIdentifier,
             keyP8: $pushKeyP8,
             accountId: $accountId,
@@ -400,7 +400,7 @@ class iOSCredentialsService
         string $ascName,
         string $accountId
     ): ?array {
-        $response = $this->expoClient->request('POST', $this->createAscApiKeyQuery->build(
+        $response = $this->expoGqlClient->request($this->createAscApiKeyQuery->build(
             keyP8: $ascKeyP8,
             keyIdentifier: $ascKeyIdentifier,
             issuerIdentifier: $ascKeyIssuerIdentifier,
@@ -420,7 +420,7 @@ class iOSCredentialsService
         string $iosAppCredentialsId,
         string $ascKeyId
     ): ?array {
-        $response = $this->expoClient->request('POST', $this->setAscApiKeyForIosAppCredentialsQuery->build(
+        $response = $this->expoGqlClient->request($this->setAscApiKeyForIosAppCredentialsQuery->build(
             iosAppCredentialsId: $iosAppCredentialsId,
             ascApiKeyId: $ascKeyId
         ));
@@ -437,7 +437,7 @@ class iOSCredentialsService
         string $iosAppCredentialsId,
         string $pushKeyId
     ): ?array {
-        $response = $this->expoClient->request('POST', $this->setPushKeyForIosAppCredentialsQuery->build(
+        $response = $this->expoGqlClient->request($this->setPushKeyForIosAppCredentialsQuery->build(
             iosAppCredentialsId: $iosAppCredentialsId,
             pushKeyId: $pushKeyId
         ));

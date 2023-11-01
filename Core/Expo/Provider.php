@@ -7,27 +7,29 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Expo\Services\AndroidCredentialsService;
 use \GuzzleHttp\Client as GuzzleClient;
-use Minds\Core\Expo\Controllers\AndroidController;
-use Minds\Core\Expo\Controllers\iOSController;
-use Minds\Core\Expo\Queries\Android\Credentials\CreateAndroidAppBuildCredentialsQuery;
-use Minds\Core\Expo\Queries\Android\Credentials\CreateAndroidAppCredentialsQuery;
-use Minds\Core\Expo\Queries\Android\Credentials\CreateAndroidKeystoreQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\CreateAppleAppIdentifierQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\CreateAppleDistributionCertificateQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\CreateAppleProvisioningProfileQuery;
-use Minds\Core\Expo\Queries\Android\Credentials\CreateFcmKeyQuery;
-use Minds\Core\Expo\Queries\Android\Credentials\CreateGoogleServiceAccountKeyQuery;
-use Minds\Core\Expo\Queries\Android\Credentials\DeleteAndroidAppCredentialsQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\CreateIosAppBuildCredentialsQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\CreateIosAppCredentialsQuery;
-use Minds\Core\Expo\Queries\Android\Credentials\SetFcmKeyOnAndroidAppCredentialsQuery;
-use Minds\Core\Expo\Queries\Android\Credentials\SetGoogleServiceAccountKeyOnAndroidAppCredentialsQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\CreateApplePushKeyQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\CreateAscApiKeyQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\DeleteIosAppCredentialsQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\GetAllAppleAppIdentifiersQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\SetAscApiKeyForIosAppCredentialsQuery;
-use Minds\Core\Expo\Queries\iOS\Credentials\SetPushKeyForIosAppCredentialsQuery;
+use Minds\Core\Expo\Clients\ExpoGqlClient;
+use Minds\Core\Expo\Clients\ExpoHttpClient;
+use Minds\Core\Expo\Controllers\AndroidCredentialsController;
+use Minds\Core\Expo\Controllers\iOSCredentialsController;
+use Minds\Core\Expo\Queries\Credentials\Android\CreateAndroidAppBuildCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\Android\CreateAndroidAppCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\Android\CreateAndroidKeystoreQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\CreateAppleAppIdentifierQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\CreateAppleDistributionCertificateQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\CreateAppleProvisioningProfileQuery;
+use Minds\Core\Expo\Queries\Credentials\Android\CreateFcmKeyQuery;
+use Minds\Core\Expo\Queries\Credentials\Android\CreateGoogleServiceAccountKeyQuery;
+use Minds\Core\Expo\Queries\Credentials\Android\DeleteAndroidAppCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\CreateIosAppBuildCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\CreateIosAppCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\Android\SetFcmKeyOnAndroidAppCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\Android\SetGoogleServiceAccountKeyOnAndroidAppCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\CreateApplePushKeyQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\CreateAscApiKeyQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\DeleteIosAppCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\GetAllAppleAppIdentifiersQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\SetAscApiKeyForIosAppCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\iOS\SetPushKeyForIosAppCredentialsQuery;
 use Minds\Core\Expo\Services\iOSCredentialsService;
 
 class Provider extends DiProvider
@@ -38,8 +40,16 @@ class Provider extends DiProvider
      */
     public function register(): void
     {
-        $this->di->bind(ExpoClient::class, function (Di $di): ExpoClient {
-            return new ExpoClient(
+        $this->di->bind(ExpoGqlClient::class, function (Di $di): ExpoGqlClient {
+            return new ExpoGqlClient(
+                guzzleClient: $di->get(GuzzleClient::class),
+                config: $di->get(ExpoConfig::class),
+                logger: $di->get('Logger')
+            );
+        });
+
+        $this->di->bind(ExpoHttpClient::class, function (Di $di): ExpoHttpClient {
+            return new ExpoHttpClient(
                 guzzleClient: $di->get(GuzzleClient::class),
                 config: $di->get(ExpoConfig::class),
                 logger: $di->get('Logger')
@@ -48,7 +58,7 @@ class Provider extends DiProvider
 
         $this->di->bind(AndroidCredentialsService::class, function (Di $di): AndroidCredentialsService {
             return new AndroidCredentialsService(
-                expoClient: $di->get(ExpoClient::class),
+                expoGqlClient: $di->get(ExpoGqlClient::class),
                 config: $di->get(ExpoConfig::class),
                 createAndroidKeystoreQuery: $di->get(CreateAndroidKeystoreQuery::class),
                 createAndroidAppCredentialsQuery: $di->get(CreateAndroidAppCredentialsQuery::class),
@@ -63,7 +73,7 @@ class Provider extends DiProvider
 
         $this->di->bind(iOSCredentialsService::class, function (Di $di): iOSCredentialsService {
             return new iOSCredentialsService(
-                expoClient: $di->get(ExpoClient::class),
+                expoGqlClient: $di->get(ExpoGqlClient::class),
                 config: $di->get(ExpoConfig::class),
                 getAllAppleAppIdentifiersQuery: $di->get(GetAllAppleAppIdentifiersQuery::class),
                 createAppleAppIdentifierQuery: $di->get(CreateAppleAppIdentifierQuery::class),
@@ -85,15 +95,15 @@ class Provider extends DiProvider
             );
         });
 
-        $this->di->bind(AndroidController::class, function (Di $di): AndroidController {
-            return new AndroidController(
+        $this->di->bind(AndroidCredentialsController::class, function (Di $di): AndroidCredentialsController {
+            return new AndroidCredentialsController(
                 androidCredentialsService: $di->get(AndroidCredentialsService::class)
             );
         });
 
 
-        $this->di->bind(iOSController::class, function (Di $di): iOSController {
-            return new iOSController(
+        $this->di->bind(iOSCredentialsController::class, function (Di $di): iOSCredentialsController {
+            return new iOSCredentialsController(
                 iosCredentialsService: $di->get(iosCredentialsService::class)
             );
         });

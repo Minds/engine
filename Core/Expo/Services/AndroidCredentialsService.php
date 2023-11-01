@@ -3,16 +3,16 @@ declare(strict_types=1);
 
 namespace Minds\Core\Expo\Services;
 
-use Minds\Core\Expo\ExpoClient;
+use Minds\Core\Expo\Clients\ExpoGqlClient;
 use Minds\Core\Expo\ExpoConfig;
-use Minds\Core\Expo\Queries\Android\Credentials\CreateAndroidAppBuildCredentialsQuery;
-use Minds\Core\Expo\Queries\Android\Credentials\CreateAndroidAppCredentialsQuery;
-use Minds\Core\Expo\Queries\Android\Credentials\CreateAndroidKeystoreQuery;
-use Minds\Core\Expo\Queries\Android\Credentials\CreateFcmKeyQuery;
-use Minds\Core\Expo\Queries\Android\Credentials\CreateGoogleServiceAccountKeyQuery;
-use Minds\Core\Expo\Queries\Android\Credentials\DeleteAndroidAppCredentialsQuery;
-use Minds\Core\Expo\Queries\Android\Credentials\SetFcmKeyOnAndroidAppCredentialsQuery;
-use Minds\Core\Expo\Queries\Android\Credentials\SetGoogleServiceAccountKeyOnAndroidAppCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\Android\CreateAndroidAppBuildCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\Android\CreateAndroidAppCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\Android\CreateAndroidKeystoreQuery;
+use Minds\Core\Expo\Queries\Credentials\Android\CreateFcmKeyQuery;
+use Minds\Core\Expo\Queries\Credentials\Android\CreateGoogleServiceAccountKeyQuery;
+use Minds\Core\Expo\Queries\Credentials\Android\DeleteAndroidAppCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\Android\SetFcmKeyOnAndroidAppCredentialsQuery;
+use Minds\Core\Expo\Queries\Credentials\Android\SetGoogleServiceAccountKeyOnAndroidAppCredentialsQuery;
 use Minds\Exceptions\ServerErrorException;
 
 /**
@@ -21,7 +21,7 @@ use Minds\Exceptions\ServerErrorException;
 class AndroidCredentialsService
 {
     public function __construct(
-        private ExpoClient $expoClient,
+        private ExpoGqlClient $expoGqlClient,
         private ExpoConfig $config,
         private CreateAndroidKeystoreQuery $createAndroidKeystoreQuery,
         private CreateAndroidAppCredentialsQuery $createAndroidAppCredentialsQuery,
@@ -140,7 +140,7 @@ class AndroidCredentialsService
             androidBase64EncodedKeystore: $androidBase64EncodedKeystore
         );
 
-        $batchResponse = $this->expoClient->request('POST', [
+        $batchResponse = $this->expoGqlClient->request([
             $preparedCreateGoogleServiceAccountKeyQuery,
             $preparedCreateFcmKeyQuery,
             $preparedCreateAndroidKeystoreQuery
@@ -160,7 +160,7 @@ class AndroidCredentialsService
      */
     public function deleteProjectCredentials(string $androidAppCredentialsId): ?array
     {
-        $response = $this->expoClient->request('POST', $this->deleteAndroidAppCredentialsQuery->build(
+        $response = $this->expoGqlClient->request($this->deleteAndroidAppCredentialsQuery->build(
             androidAppCredentialsId: $androidAppCredentialsId
         ));
         return $response ?? null;
@@ -180,7 +180,7 @@ class AndroidCredentialsService
         ?string $fcmKeyId = null,
         ?string $googleServiceAccountKeyId  = null
     ): ?array {
-        $response =  $this->expoClient->request('POST', $this->createAndroidAppCredentialsQuery->build(
+        $response =  $this->expoGqlClient->request($this->createAndroidAppCredentialsQuery->build(
             projectId: $projectId,
             applicationIdentifier: $applicationIdentifier,
             fcmKeyId: $fcmKeyId,
@@ -201,7 +201,7 @@ class AndroidCredentialsService
         string $keystoreId,
         string $name
     ): ?array {
-        $response =  $this->expoClient->request('POST', $this->createAndroidAppBuildCredentialsQuery->build(
+        $response =  $this->expoGqlClient->request($this->createAndroidAppBuildCredentialsQuery->build(
             androidAppCredentialsId: $androidAppCredentialsId,
             keystoreId: $keystoreId,
             name: $name
@@ -225,7 +225,7 @@ class AndroidCredentialsService
         string $androidKeystoreKeyPassword,
         string $androidBase64EncodedKeystore
     ): ?array {
-        $response = $this->expoClient->request('POST', $this->createAndroidKeystoreQuery->build(
+        $response = $this->expoGqlClient->request($this->createAndroidKeystoreQuery->build(
             accountId: $accountId,
             androidKeystorePassword: $androidKeystorePassword,
             androidKeystoreKeyAlias: $androidKeystoreKeyAlias,
@@ -245,7 +245,7 @@ class AndroidCredentialsService
         string $accountId,
         array $googleServiceAccountCredentials
     ): ?array {
-        $response =  $this->expoClient->request('POST', $this->createGoogleServiceAccountKeyQuery->build(
+        $response =  $this->expoGqlClient->request($this->createGoogleServiceAccountKeyQuery->build(
             accountId: $accountId,
             googleServiceAccountCredentials: $googleServiceAccountCredentials
         ));
@@ -262,7 +262,7 @@ class AndroidCredentialsService
         string $accountId,
         string $googleCloudMessagingToken
     ): ?array {
-        $response =  $this->expoClient->request('POST', $this->createFcmKeyQuery->build(
+        $response =  $this->expoGqlClient->request($this->createFcmKeyQuery->build(
             accountId: $accountId,
             googleCloudMessagingToken: $googleCloudMessagingToken
         ));
@@ -279,7 +279,7 @@ class AndroidCredentialsService
         string $androidAppCredentialsId,
         string $googleServiceAccountKeyId
     ): ?array {
-        $response = $this->expoClient->request('POST', $this->setGoogleServiceAccountKeyOnAndroidAppCredentialsQuery->build(
+        $response = $this->expoGqlClient->request($this->setGoogleServiceAccountKeyOnAndroidAppCredentialsQuery->build(
             androidAppCredentialsId: $androidAppCredentialsId,
             googleServiceAccountKeyId: $googleServiceAccountKeyId
         ));
@@ -296,7 +296,7 @@ class AndroidCredentialsService
         string $androidAppCredentialsId,
         string $fcmKeyId
     ): ?array {
-        $response =  $this->expoClient->request('POST', $this->setFcmKeyOnAndroidAppCredentialsQuery->build(
+        $response =  $this->expoGqlClient->request($this->setFcmKeyOnAndroidAppCredentialsQuery->build(
             androidAppCredentialsId: $androidAppCredentialsId,
             fcmKeyId: $fcmKeyId
         ));
