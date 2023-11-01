@@ -563,3 +563,7 @@ ALTER TABLE `minds_tenants`
 ALTER TABLE `minds_entities_user` MODIFY COLUMN ip varchar(40);
 
 ALTER TABLE `friends` ADD COLUMN tenant_id int AFTER friend_guid;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD community_guidelines text DEFAULT NULL
+    AFTER color_scheme;
