@@ -41,7 +41,10 @@ class CreateEventDispatcherSpec extends ObjectBehavior
     {
         $comment->getEntityGuid()->willReturn('654');
         $comment->getUrn()->willReturn('urn:comment:123');
-        $comment->getOwnerEntity()->willReturn(new User());
+        
+        $comment->getOwnerGuid()->willReturn(456);
+
+        $this->entitiesBuilder->single(456)->willReturn(new User());
 
         $entity = new Entity();
         $entity->guid = '654';

@@ -3,9 +3,11 @@
 namespace Spec\Minds\Core\Channels\Delegates;
 
 use Minds\Core\Channels\Delegates\Ban;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class BanSpec extends ObjectBehavior
@@ -13,10 +15,13 @@ class BanSpec extends ObjectBehavior
     /** @var EventsDispatcher */
     protected $eventsDispatcher;
 
-    public function let(EventsDispatcher $eventsDispatcher)
+    protected Collaborator $saveMock;
+
+    public function let(EventsDispatcher $eventsDispatcher, Save $saveMock)
     {
-        $this->beConstructedWith($eventsDispatcher);
+        $this->beConstructedWith($eventsDispatcher, $saveMock);
         $this->eventsDispatcher = $eventsDispatcher;
+        $this->saveMock = $saveMock;
     }
 
     public function it_is_initializable()
@@ -35,9 +40,9 @@ class BanSpec extends ObjectBehavior
         $user->set('code', '')
             ->shouldBeCalled();
 
-        $user->save()
-            ->shouldBeCalled()
-            ->willReturn(true);
+        $this->saveMock->setEntity($user)->willReturn($this->saveMock);
+        $this->saveMock->withMutatedAttributes(['ban_reason', 'banned'])->willReturn($this->saveMock);
+        $this->saveMock->save()->shouldBeCalled()->willReturn(true);
 
         $this->eventsDispatcher->trigger('ban', 'user', $user)
             ->shouldBeCalled();

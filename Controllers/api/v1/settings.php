@@ -11,6 +11,8 @@ use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Confirmation\Manager as EmailConfirmation;
+use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Settings\Manager as SettingsManager;
 use Minds\Entities;
 use Minds\Exceptions\TwoFactorRequired;
@@ -19,6 +21,13 @@ use Zend\Diactoros\ServerRequestFactory;
 
 class settings implements Interfaces\Api
 {
+    protected Save $save;
+
+    public function __construct()
+    {
+        $this->save = new Save();
+    }
+
     /**
      * Extended channel
      *
@@ -33,7 +42,7 @@ class settings implements Interfaces\Api
         Factory::isLoggedIn();
 
         if (Core\Session::getLoggedInUser()->isAdmin() && isset($pages[0])) {
-            $user = new Entities\User($pages[0]);
+            $user = Di::_()->get(EntitiesBuilder::class)->single($pages[0]);
         } else {
             $user = Core\Session::getLoggedInUser();
         }
@@ -217,7 +226,7 @@ class settings implements Interfaces\Api
             }
 
             $response = [];
-            if (!$user->save()) {
+            if (!$this->save->setEntity($user)->save()) {
                 $response['status'] = 'error';
             }
 

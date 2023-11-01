@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Payments\InAppPurchases;
 
 use Minds\Core\Config;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
 use Minds\Core\Payments\InAppPurchases\Clients\InAppPurchasesClientFactory;
@@ -20,22 +21,27 @@ class ManagerSpec extends ObjectBehavior
     private Collaborator $configMock;
     private Collaborator $iapFactoryMock;
     private Collaborator $entitiesBuilderMock;
+    private Collaborator $saveMock;
 
     public function let(
         GiftCardsManager $giftCardsManager,
         Config $config,
         InAppPurchasesClientFactory $iapFactory,
-        EntitiesBuilder $entitiesBuilderMock
+        EntitiesBuilder $entitiesBuilderMock,
+        Save $saveMock,
     ): void {
         $this->giftCardsManagerMock = $giftCardsManager;
         $this->configMock = $config;
         $this->iapFactoryMock = $iapFactory;
         $this->entitiesBuilderMock = $entitiesBuilderMock;
+        $this->saveMock = $saveMock;
         $this->beConstructedWith(
             $this->giftCardsManagerMock,
             $this->configMock,
             $this->iapFactoryMock,
-            $this->entitiesBuilderMock
+            $this->entitiesBuilderMock,
+            null,
+            $this->saveMock = $saveMock,
         );
     }
 
@@ -52,7 +58,25 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
         $userMock->setPlusExpires(Argument::type('int'))
             ->shouldBeCalled();
-        $userMock->save()->shouldBeCalled();
+    
+
+        $this->saveMock->setEntity($userMock)
+            ->shouldBeCalled()
+            ->willReturn($this->saveMock);
+
+        $this->saveMock->withMutatedAttributes([
+                'pro_method',
+                'pro_expires',
+                'plus_method',
+                'plus_expires',
+            ])
+            ->shouldBeCalled()
+            ->willReturn($this->saveMock);
+
+        $this->saveMock->save()
+            ->shouldBeCalled()
+            ->willReturn(true);
+    
         $userMock->getPlusExpires()
             ->shouldBeCalledOnce()
             ->willReturn(time());

@@ -6,8 +6,10 @@
 namespace Minds\Core\Messenger;
 
 use Minds\Entities;
+use Minds\Entities\User;
 use Minds\Core\Messenger;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 
 class Keystore
 {
@@ -22,14 +24,17 @@ class Keystore
     /** @var Session $sessions **/
     private $sessions;
 
+    private Save $save;
+
     /** @var User $user **/
     private $user;
 
-    public function __construct($handler = null, $cache = null, $sessions = null)
+    public function __construct($handler = null, $cache = null, $sessions = null, $save = null)
     {
         $this->handler = $handler ?: new Messenger\Encryption\OpenSSL();
         $this->cache = $cache ?: Di::_()->get('Cache');
         $this->sessions = $sessions ?: Di::_()->get('Sessions\Manager');
+        $this->save = $save ?? new Save();
     }
 
     public function setUser($user)
@@ -86,8 +91,13 @@ class Keystore
 
     public function save()
     {
-        //todo
-        $this->user->save();
+        $this->save->setEntity($this->user)
+            ->withMutatedAttributes([
+                'plugin:user_setting:gatherings:publickey',
+                'plugin:user_setting:gatherings:privatekey',
+            ])
+            ->save();
+    
         return $this;
     }
 }

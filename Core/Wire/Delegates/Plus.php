@@ -6,6 +6,7 @@ namespace Minds\Core\Wire\Delegates;
 
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 
 class Plus
 {
@@ -15,10 +16,16 @@ class Plus
     /** @var EntitiesBuilder $entitiesBuilder */
     private $entitiesBuilder;
 
-    public function __construct($config = null, $entitiesBuilder = null)
-    {
+    private Save $save;
+
+    public function __construct(
+        $config = null,
+        $entitiesBuilder = null,
+        $save = null,
+    ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
+        $this->save = $save ?? new Save();
     }
 
     /**
@@ -60,7 +67,13 @@ class Plus
         }
 
         $user->setPlusExpires(strtotime('+31 days', $wire->getTimestamp()));
-        $user->save();
+
+        $this->save
+            ->setEntity($user)
+            ->withMutatedAttributes([
+                'plus_expires',
+            ])
+            ->save();
 
         //$wire->setSender($user);
         return $wire;

@@ -3,11 +3,13 @@
 namespace Spec\Minds\Core\Onboarding;
 
 use Minds\Core\Config;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Onboarding\Steps\OnboardingStepInterface;
 use Minds\Core\Onboarding\OnboardingGroups;
 use Minds\Core\Onboarding\Manager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -17,11 +19,14 @@ class ManagerSpec extends ObjectBehavior
     /** @var Config */
     protected $config;
 
+    protected Collaborator $saveMock;
+
     public function let(
         OnboardingStepInterface $onboardingDelegate1,
         OnboardingStepInterface $onboardingDelegate2,
         OnboardingStepInterface $onboardingDelegate3,
-        Config $config
+        Config $config,
+        Save $saveMock,
     ) {
         $this->delegates = [
             'delegate1' => $onboardingDelegate1,
@@ -30,8 +35,9 @@ class ManagerSpec extends ObjectBehavior
         ];
 
         $this->config = $config;
+        $this->saveMock = $saveMock;
 
-        $this->beConstructedWith($this->delegates, $this->config);
+        $this->beConstructedWith($this->delegates, $this->config, null, null, $saveMock);
     }
 
     public function it_is_initializable()
@@ -151,9 +157,11 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($user);
 
-        $user->save()
-            ->shouldBeCalled()
-            ->willReturn(1000);
+        $this->saveMock->setEntity($user)->shouldBeCalled()->willReturn($this->saveMock);
+        $this->saveMock->withMutatedAttributes([
+            'creator_frequency',
+        ])->shouldBeCalled()->willReturn($this->saveMock);
+        $this->saveMock->save()->shouldBeCalled()->willReturn(true);
 
         $this
             ->setUser($user)

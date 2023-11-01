@@ -17,17 +17,13 @@ class InitializeSettingsDelegateSpec extends ObjectBehavior
     /** @var Repository */
     protected $repository;
 
-    /** @var SetupRoutingDelegate */
-    protected $setupRoutingDelegate;
 
     public function let(
         Repository $repository,
-        SetupRoutingDelegate $setupRoutingDelegate
     ) {
         $this->repository = $repository;
-        $this->setupRoutingDelegate = $setupRoutingDelegate;
 
-        $this->beConstructedWith($repository, $setupRoutingDelegate);
+        $this->beConstructedWith($repository);
     }
 
     public function it_is_initializable()
@@ -65,9 +61,6 @@ class InitializeSettingsDelegateSpec extends ObjectBehavior
         $settings->setTitle('PHPSpec')
             ->shouldBeCalled()
             ->willReturn($settings);
-
-        $this->setupRoutingDelegate->onUpdate($settings)
-            ->shouldBeCalled();
 
         $this->repository->add($settings)
             ->shouldBeCalled()

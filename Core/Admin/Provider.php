@@ -27,6 +27,7 @@ class Provider extends DiProvider
                 spamFilter: $di->get('Email\SpamFilter'),
                 emailVerifyManager: $di->get('Email\Verify\Manager'),
                 logger: $di->get('Logger'),
+                save: new Save(),
             );
         });
     }

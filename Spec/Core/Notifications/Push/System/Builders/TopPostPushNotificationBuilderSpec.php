@@ -5,22 +5,28 @@ namespace Spec\Minds\Core\Notifications\Push\System\Builders;
 use Minds\Core\Config;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\Blogs\Blog;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Notifications\Push\System\Builders\TopPostPushNotificationBuilder;
 use Minds\Entities\Activity;
 use Minds\Entities\Image;
 use Minds\Entities\User;
 use Minds\Entities\Video;
+use PhpSpec\Wrapper\Collaborator;
 
 class TopPostPushNotificationBuilderSpec extends ObjectBehavior
 {
     /** @var Config */
     protected $config;
 
+    protected Collaborator $entitiesBuilderMock;
+
     public function let(
-        Config $config = null
+        Config $config,
+        EntitiesBuilder $entitiesBuilderMock,
     ) {
-        $this->beConstructedWith($config);
+        $this->beConstructedWith($config, $entitiesBuilderMock);
         $this->config = $config;
+        $this->entitiesBuilderMock = $entitiesBuilderMock;
     }
 
     public function it_is_initializable()
@@ -48,9 +54,11 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $activity->getOwnerEntity()
+        $this->entitiesBuilderMock->single(456)->willReturn($user);
+
+        $activity->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
 
         $activity->getMessage()
             ->shouldBeCalled()
@@ -90,9 +98,12 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('Test');
 
-        $blog->getOwnerEntity()
+
+        $this->entitiesBuilderMock->single(456)->willReturn($user);
+
+        $blog->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
 
         $blog->getTitle()
             ->shouldBeCalled()
@@ -136,9 +147,11 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('Test');
 
-        $image->getOwnerEntity()
+        $this->entitiesBuilderMock->single(456)->willReturn($user);
+
+        $image->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
 
         $image->getTitle()
             ->shouldBeCalled()
@@ -181,10 +194,12 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
         $user->getName()
             ->shouldBeCalled()
             ->willReturn('Test');
+    
+        $this->entitiesBuilderMock->single(456)->willReturn($user);
 
-        $image->getOwnerEntity()
+        $image->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
 
         $image->getTitle()
             ->shouldBeCalled()
@@ -233,9 +248,11 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('Test');
 
-        $image->getOwnerEntity()
+        $this->entitiesBuilderMock->single(456)->willReturn($user);
+
+        $image->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
 
         $image->getTitle()
             ->shouldBeCalled()
@@ -279,9 +296,11 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('Test');
 
-        $image->getOwnerEntity()
+        $this->entitiesBuilderMock->single(456)->willReturn($user);
+
+        $image->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
 
         $image->getTitle()
             ->shouldBeCalled()
@@ -329,9 +348,11 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('Test');
 
-        $video->getOwnerEntity()
+        $this->entitiesBuilderMock->single(456)->willReturn($user);
+
+        $video->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
 
         $video->getTitle()
             ->shouldBeCalled()
@@ -376,9 +397,11 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('Test');
 
-        $video->getOwnerEntity()
+        $this->entitiesBuilderMock->single(456)->willReturn($user);
+
+        $video->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
 
         $video->getTitle()
             ->shouldBeCalled()
@@ -426,9 +449,11 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
          ->willReturn('Test');
 
-        $video->getOwnerEntity()
+        $this->entitiesBuilderMock->single(456)->willReturn($user);
+
+        $video->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
 
         $video->getTitle()
             ->shouldBeCalled()
@@ -473,9 +498,11 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('Test');
 
-        $video->getOwnerEntity()
+        $this->entitiesBuilderMock->single(456)->willReturn($user);
+
+        $video->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
 
         $video->getTitle()
             ->shouldBeCalled()
@@ -523,9 +550,11 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(str_repeat("A", 100));
 
-        $blog->getOwnerEntity()
+        $this->entitiesBuilderMock->single(456)->willReturn($user);
+
+        $blog->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
 
         $blog->getTitle()
             ->shouldBeCalled()
@@ -569,9 +598,11 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $activity->getOwnerEntity()
+        $this->entitiesBuilderMock->single(456)->willReturn($user);
+
+        $activity->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
 
         $activity->getMessage()
             ->shouldBeCalled()
@@ -611,9 +642,11 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('http://test.com/test');
 
-        $activity->getOwnerEntity()
+        $this->entitiesBuilderMock->single(456)->willReturn($user);
+
+        $activity->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
 
         $activity->getTitle()
             ->shouldBeCalled()
@@ -657,9 +690,11 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('http://test.com/test');
 
-        $activity->getOwnerEntity()
+        $this->entitiesBuilderMock->single(456)->willReturn($user);
+
+        $activity->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
 
         $activity->getTitle()
             ->shouldBeCalled()
@@ -703,9 +738,11 @@ class TopPostPushNotificationBuilderSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('http://test.com/test');
 
-        $activity->getOwnerEntity()
+        $this->entitiesBuilderMock->single(456)->willReturn($user);
+
+        $activity->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
 
         $activity->getTitle()
             ->shouldBeCalled()

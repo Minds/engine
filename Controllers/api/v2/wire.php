@@ -21,6 +21,7 @@ use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Util\BigNumber;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;
 use Minds\Entities;
+use Minds\Entities\User;
 use Minds\Interfaces;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -56,12 +57,12 @@ class wire implements Interfaces\Api
 
         $entity = Entities\Factory::build($pages[0]);
 
-        if (!$entity) {
-            Factory::response(['status' => 'error', 'message' => 'Entity not found']);
+        if (!$entity instanceof User) {
+            Factory::response(['status' => 'error', 'message' => 'User not found']);
             return;
         }
 
-        $user = $entity->type == 'user' ? $entity : $entity->getOwnerEntity();
+        $user = $entity;
         if (Core\Session::getLoggedInUserGuid() === $user->guid) {
             Factory::response(['status' => 'error', 'message' => 'You cannot send a wire to yourself!']);
             return;

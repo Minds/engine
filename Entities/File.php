@@ -105,47 +105,6 @@ class File extends \ElggFile implements Flaggable, PaywallEntityInterface
         return (bool) $this->deleted || $this->getFlag('deleted');
     }
 
-    public function save($index = true)
-    {
-        if ($this->getFlag('deleted')) {
-            $index = false;
-
-            if ($this->dirtyIndexes) {
-                $db = new Core\Data\Call('entities_by_time');
-
-                foreach ($this->getIndexKeys(true) as $idx) {
-                    $db->removeAttributes($idx, [$this->guid], false);
-                }
-            }
-        } else {
-            if ($this->dirtyIndexes) {
-                // Re-add to indexes, force as true
-                $index = true;
-            }
-        }
-
-        $return = parent::save($index);
-
-        // Allow attachment unpublishing
-        if ($this->guid && $this->hidden && $this->access_id != ACCESS_PUBLIC) {
-            // @todo: migrate to Prepared\Timeline()
-            $db = new Core\Data\Call('entities_by_time');
-            $remove = [
-                "$this->type",
-                "$this->type:$this->subtype",
-                "$this->type:$this->super_subtype",
-                "$this->type:$this->super_subtype:user:$this->owner_guid",
-                "$this->type:$this->subtype:user:$this->owner_guid",
-            ];
-
-            foreach ($remove as $index) {
-                $db->removeAttributes($index, [$this->guid], false);
-            }
-        }
-
-        return $return;
-    }
-
     /**
      * Returns the sum of every wire that's been made to this entity
      */

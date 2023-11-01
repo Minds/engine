@@ -9,23 +9,31 @@ use Minds\Core\Groups\V2\Membership;
 use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use Minds\Core\Data\Cassandra\Thrift\Relationships;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Core\Groups\V2\Membership\Membership as MembershipMembership;
 use Minds\Entities\Group as GroupEntity;
+use PhpSpec\Wrapper\Collaborator;
 
 class ManagementSpec extends ObjectBehavior
 {
     protected $dbMock;
     protected $aclMock;
     protected $membershipsManagerMock;
+    protected Collaborator $saveMock;
 
-    public function let(Relationships $dbMock, ACL $aclMock, Membership\Manager $membershipsManagerMock)
-    {
-        $this->beConstructedWith($dbMock, $aclMock, $membershipsManagerMock);
+    public function let(
+        Relationships $dbMock,
+        ACL $aclMock,
+        Membership\Manager $membershipsManagerMock,
+        Save $saveMock,
+    ) {
+        $this->beConstructedWith($dbMock, $aclMock, $membershipsManagerMock, $saveMock);
 
         $this->dbMock = $dbMock;
         $this->aclMock = $aclMock;
         $this->membershipsManagerMock = $membershipsManagerMock;
+        $this->saveMock = $saveMock;
     }
 
     public function it_is_initializable()
@@ -45,7 +53,9 @@ class ManagementSpec extends ObjectBehavior
         $membershipMock->isMember()->willReturn(true);
 
         $group->pushOwnerGuid(1)->shouldBeCalled();
-        $group->save()->shouldBeCalled()->willReturn(true);
+
+        $this->saveMock->setEntity($group)->shouldBeCalled()->willReturn($this->saveMock);
+        $this->saveMock->save()->shouldBeCalled()->willReturn(true);
 
         $this->dbMock->setGuid(1)->shouldBeCalled();
         $this->dbMock->create('group:owner', 50)->shouldBeCalled()->willReturn(true);
@@ -69,7 +79,9 @@ class ManagementSpec extends ObjectBehavior
 
         $group->getGuid()->willReturn(50);
         $group->removeOwnerGuid(1)->shouldBeCalled();
-        $group->save()->shouldBeCalled()->willReturn(true);
+
+        $this->saveMock->setEntity($group)->shouldBeCalled()->willReturn($this->saveMock);
+        $this->saveMock->save()->shouldBeCalled()->willReturn(true);
 
         $this->dbMock->setGuid(1)->shouldBeCalled();
         $this->dbMock->remove('group:owner', 50)->shouldBeCalled()->willReturn(true);
@@ -100,7 +112,9 @@ class ManagementSpec extends ObjectBehavior
         $membershipMock->isMember()->willReturn(true);
 
         $group->pushModeratorGuid(1)->shouldBeCalled();
-        $group->save()->shouldBeCalled()->willReturn(true);
+
+        $this->saveMock->setEntity($group)->shouldBeCalled()->willReturn($this->saveMock);
+        $this->saveMock->save()->shouldBeCalled()->willReturn(true);
 
         $this->dbMock->setGuid(1)->shouldBeCalled();
         $this->dbMock->create('group:moderator', 50)->shouldBeCalled()->willReturn(true);
@@ -125,7 +139,9 @@ class ManagementSpec extends ObjectBehavior
     
         $group->getGuid()->willReturn(50);
         $group->removeModeratorGuid(1)->shouldBeCalled();
-        $group->save()->shouldBeCalled()->willReturn(true);
+
+        $this->saveMock->setEntity($group)->shouldBeCalled()->willReturn($this->saveMock);
+        $this->saveMock->save()->shouldBeCalled()->willReturn(true);
 
         $this->dbMock->setGuid(1)->shouldBeCalled();
         $this->dbMock->remove('group:moderator', 50)->shouldBeCalled()->willReturn(true);

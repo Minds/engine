@@ -23,7 +23,7 @@ class SubscribersList implements SendGridListInterface
     public function __construct(
         private ?Manager $subscriptionsManager = null
     ) {
-        $this->subscriptionsManager ??= Di::_()->get('Subscriptions\Manager');
+        $this->subscriptionsManager ??= Di::_()->get(Manager::class);
     }
 
     /**

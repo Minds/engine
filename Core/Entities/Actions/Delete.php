@@ -9,7 +9,10 @@
 namespace Minds\Core\Entities\Actions;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
 use Minds\Core\Events\Dispatcher;
+use Minds\Core\Router\Exceptions\UnauthorizedException;
+use Minds\Core\Security\ACL;
 
 class Delete
 {
@@ -24,9 +27,13 @@ class Delete
      * @param null $eventsDispatcher
      */
     public function __construct(
-        $eventsDispatcher = null
+        $eventsDispatcher = null,
+        private ?EntitiesRepositoryInterface $entitiesRepository = null,
+        private ?ACL $acl = null,
     ) {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
+        $this->entitiesRepository ??= Di::_()->get(EntitiesRepositoryInterface::class);
+        $this->acl ??= Di::_()->get(ACL::class);
     }
 
     /**
@@ -51,10 +58,24 @@ class Delete
             return false;
         }
 
-        //// DELETES ARE SCARY SO NO FALLBACK?
-        //if (method_exists($this->entity, 'delete')) {
-        //    return $this->entity->delete(...$args);
-        //}
+        if (!$this->acl->write($this->entity)) {
+            throw new UnauthorizedException();
+        }
+
+        $delete = $this->eventsDispatcher->trigger('delete', $this->entity->getType(), [ 'entity' => $this->entity ]);
+
+        $success = $delete && $this->entitiesRepository->delete($this->entity);
+
+        if ($success) {
+            $this->eventsDispatcher->trigger('entities-ops', 'delete', [
+                'entityUrn' => $this->entity->getUrn(),
+                'entity' => $this->entity,
+            ]);
+        }
+
+        return $success;
+
+        // TODO: remove after here
 
         $namespace = $this->entity->type;
 

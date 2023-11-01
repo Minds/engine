@@ -43,7 +43,6 @@ use Minds\Helpers;
  * @property string $urn
  * @property int $time_sent
  * @property string $license
- * @property string $permaweb_id
  * @property string $blurhash
  * @property array $attachments
  * @property array $supermind
@@ -92,13 +91,11 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'edited' => false,
             'comments_enabled' => true,
             'wire_threshold' => null,
-            'boost_rejection_reason' => -1,
             'pending' => false,
             'rating' => 2, //open by default
             'ephemeral' => false,
             'time_sent' => null,
             'license' => '',
-            'permaweb_id' => '',
             'blurhash' => null,
             'attachments' => null,
             'supermind' => null,
@@ -114,103 +111,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         parent::__construct($guid);
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->activityManager = $activityManager ?? Di::_()->get('Feeds\Activity\Manager');
-        if ($cache) {
-        }
     }
 
-    /**
-     * Saves the activity
-     * @param  bool  $index - save to index
-     * @return mixed        - the GUID
-     */
-    public function save($index = true)
-    {
-        if ($this->getEphemeral()) {
-            throw new \Exception('Cannot save an ephemeral activity');
-        }
-
-        //cache owner_guid for brief
-        if (!$this->ownerObj && $owner = $this->getOwnerEntity(false)) {
-            $this->ownerObj = $owner->export();
-        }
-
-        if ($this->getDeleted()) {
-            $index = false;
-
-            if ($this->dirtyIndexes) {
-                $indexes = $this->getIndexKeys(true);
-
-                $db = new Core\Data\Call('entities_by_time');
-                foreach ($indexes as $idx) {
-                    $db->removeAttributes($idx, [$this->guid]);
-                }
-
-                Queue\Client::build()->setQueue("FeedCleanup")
-                    ->send([
-                        "guid" => $this->guid,
-                        "owner_guid" => $this->owner_guid,
-                        "type" => "activity"
-                    ]);
-            }
-        } else {
-            if ($this->dirtyIndexes) {
-                // Re-add to indexes, force as true
-                $index = true;
-            }
-        }
-
-        $guid = parent::save($index);
-
-        if ($this->isPayWall()) {
-            (new Core\Payments\Plans\PaywallReview())
-                ->setEntityGuid($guid)
-                ->add();
-        }
-
-        return $guid;
-    }
-
-    /**
-     * Deletes the activity entity and indexes
-     * @return bool
-     */
-    public function delete()
-    {
-        if ($this->getEphemeral()) {
-            throw new \Exception('Cannot save an ephemeral activity');
-        }
-
-        if ($this->p2p_boosted) {
-            return false;
-        }
-
-        $indexes = $this->getIndexKeys(true);
-        $db = new Core\Data\Call('entities');
-        $res = $db->removeRow($this->guid);
-
-        $db = new Core\Data\Call('entities_by_time');
-        foreach ($indexes as $index) {
-            $db->removeAttributes($index, [$this->guid]);
-        }
-
-        (new Core\Translation\Storage())->purge($this->guid);
-
-        Core\Events\Dispatcher::trigger('entities-ops', 'delete', [
-            'entityUrn' => $this->getUrn(),
-            'entity' => $this,
-        ]);
-
-        Queue\Client::build()->setQueue("FeedCleanup")
-            ->send([
-                "guid" => $this->guid,
-                "owner_guid" => $this->owner_guid,
-                "type" => "activity"
-            ]);
-
-        Core\Events\Dispatcher::trigger('delete', 'activity', ['entity' => $this]);
-
-        return true;
-    }
     /**
      * Returns an array of indexes into which this entity is stored
      *
@@ -227,14 +129,14 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             $this->type
         ];
 
-        $owner = $this->getOwnerEntity();
+        $ownerGuid = $this->getOwnerGuid();
 
-        array_push($indexes, "$this->type:user:$owner->guid");
-        array_push($indexes, "$this->type:network:$owner->guid");
+        array_push($indexes, "$this->type:user:$ownerGuid");
+        array_push($indexes, "$this->type:network:$ownerGuid");
 
 
-        if ($this->to_guid == $owner->guid) {
-            array_push($indexes, "$this->type:user:own:$owner->guid");
+        if ($this->to_guid == $ownerGuid) {
+            array_push($indexes, "$this->type:user:own:$ownerGuid");
         }
 
         /**
@@ -283,7 +185,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'p2p_boosted',
                 'mature',
                 'monetized',
-                'paywall',
+                //'paywall',
                 'edited',
                 'wire_totals',
                 'wire_threshold',
@@ -319,7 +221,10 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             $export['subtype'] = 'remind';
 
             // TODO: when we support collapsing of reminds, add the other ownerObj's
-            $export['remind_users'] = [$this->ownerObj];
+
+            $remindOwner = $this->entitiesBuilder->single($this->getOwnerGuid(), [ 'cacheTtl' => 259200 ]); // Move to export extender
+
+            $export['remind_users'] = [$remindOwner->export()];
             $export['urn'] = $this->getUrn();
             return $export;
         } else {
@@ -361,7 +266,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             $export['boost_rejection_reason'] = $this->getBoostRejectionReason() ?: -1;
             $export['rating'] = $this->getRating();
             $export['ephemeral'] = $this->getEphemeral();
-            $export['ownerObj'] = $this->getOwnerObj();
+            // $export['ownerObj'] = $this->getOwnerObj();
             $export['time_sent'] = $this->getTimeSent();
             $export['license'] = $this->license;
             $export['blurhash'] = $this->blurhash;
@@ -369,8 +274,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             if ($this->hide_impressions) {
                 $export['hide_impressions'] = $this->hide_impressions;
             }
-
-            $export['permaweb_id'] = $this->getPermawebId();
 
             if (Helpers\Flags::shouldDiscloseStatus($this)) {
                 $export['spam'] = (bool) $this->getSpam();
@@ -415,15 +318,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getURL()
     {
         return Di::_()->get('Config')->get('site_url') . 'newsfeed/' . $this->guid;
-    }
-
-    /**
-     * Returns the owner entity
-     * @return mixed
-     */
-    public function getOwnerEntity($brief = false)
-    {
-        return parent::getOwnerEntity(true);
     }
 
     /**
@@ -851,16 +745,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         return $this;
     }
 
-    public function getOwnerObj()
-    {
-        if (!$this->ownerObj && $this->owner_guid) {
-            $user = new User($this->owner_guid);
-            $this->ownerObj = $user->export();
-        }
-
-        return $this->ownerObj;
-    }
-
     /**
      * Return thumbnails array to be used with export
      * TODO: Possibly deprecate now we have ->attachment support
@@ -964,26 +848,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getAccessId(): string
     {
         return $this->access_id;
-    }
-
-    /**
-     * Sets `permaweb_id`
-     * @param string $permaweb_id
-     * @return Activity
-     */
-    public function setPermawebId(string $permaweb_id): Activity
-    {
-        $this->permaweb_id = $permaweb_id;
-        return $this;
-    }
-
-    /**
-     * Gets `permaweb_id`
-     * @return string
-     */
-    public function getPermawebId(): string
-    {
-        return $this->permaweb_id;
     }
 
     //

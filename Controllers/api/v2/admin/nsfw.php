@@ -54,7 +54,11 @@ class nsfw implements Interfaces\Api, Interfaces\ApiAdminPam
 
         $save = new Save();
         $save->setEntity($entity)
-          ->save();
+            ->withMutatedAttributes([
+                'nsfw',
+                'nsfw_lock',
+            ])
+            ->save();
 
         if ($entity->entity_guid) {
             $child = Entities\Factory::build($entity->entity_guid);
@@ -62,6 +66,10 @@ class nsfw implements Interfaces\Api, Interfaces\ApiAdminPam
             $child->setNsfwLock($_POST['nsfw']);
 
             $save->setEntity($child)
+                ->withMutatedAttributes([
+                    'nsfw',
+                    'nsfw_lock',
+                ])
                 ->save();
         }
 

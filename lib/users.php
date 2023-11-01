@@ -7,6 +7,12 @@
  * @subpackage DataModel.User
  */
 
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
+use Minds\Core\Entities\Services\EntitiesRepositoryService;
+
 /// Map a username to a cached GUID
 global $USERNAME_TO_GUID_MAP_CACHE;
 $USERNAME_TO_GUID_MAP_CACHE = [];
@@ -15,91 +21,31 @@ $USERNAME_TO_GUID_MAP_CACHE = [];
 global $CODE_TO_GUID_MAP_CACHE;
 $CODE_TO_GUID_MAP_CACHE = [];
 
-/**
- * Ban a user
- *
- * @param int    $user_guid The user guid
- * @param string $reason    A reason
- *
- * @return bool
- */
-function ban_user($user_guid, $reason = "")
-{
-    global $CONFIG;
-
-    $user = get_entity($user_guid, 'user');
-
-    if (($user) && ($user->canEdit()) && ($user instanceof ElggUser)) {
-        if (elgg_trigger_event('ban', 'user', $user)) {
-
-            // Add reason
-            $user->ban_reason = $reason;
-
-            //set ban flag
-            $user->banned = 'yes';
-
-            // clear "remember me" cookie code so user cannot login in using it
-            $user->code = "";
-
-            $user->save();
-          
-            return true;
-        }
-
-        return false;
-    }
-
-    return false;
-}
-
-/**
- * Unban a user.
- *
- * @param int $user_guid Unban a user.
- *
- * @return bool
- */
-function unban_user($user_guid)
-{
-    global $CONFIG;
-
-    $user = get_entity($user_guid, 'user');
-
-    if (($user) && ($user->canEdit()) && ($user instanceof ElggUser)) {
-        if (elgg_trigger_event('unban', 'user', $user)) {
-            create_metadata($user_guid, 'ban_reason', '', '', 0, ACCESS_PUBLIC);
-
-            $user->ban_reason = '';
-            $user->banned = 'no';
-
-            $user->save();
-
-            return true;
-        }
-
-        return false;
-    }
-
-    return false;
-}
-
 
 /**
  * GET INDEX TO GUID
  */
 function get_user_index_to_guid($index)
 {
-    try {
-        $db = new Minds\Core\Data\Call('user_index_to_guid');
-        $row = $db->getRow($index);
-        if (!$row || !is_array($row)) {
+    $isMultiTenant = !!Di::_()->get(Config::class)->get('tenant_id');
+
+    if ($isMultiTenant) {
+        /** @var EntitiesRepositoryInterface */
+        $entitiesRepository = Di::_()->get(EntitiesRepositoryInterface::class);
+        return !!$entitiesRepository->loadFromIndex('username', $index);
+    } else {
+        try {
+            $db = new Minds\Core\Data\Call('user_index_to_guid');
+            $row = $db->getRow($index);
+            if (!$row || !is_array($row)) {
+                return false;
+            }
+            foreach ($row as $k=>$v) {
+                return $k;
+            }
+        } catch (Exception $e) {
             return false;
         }
-        foreach ($row as $k=>$v) {
-            return $k;
-        }
-    } catch (Exception $e) {
-        return false;
     }
 }
 
@@ -309,25 +255,11 @@ function register_user(
     $user->owner_guid = 0; // Users aren't owned by anyone, even if they are admin created.
     $user->container_guid = 0; // Users aren't contained by anyone, even if they are admin created.
     $user->language = 'en';
-    $guid = $user->save();
 
-    $user->enable();
-    /*// If $friend_guid has been set, make mutual friends
-    if ($friend_guid) {
-        if ($friend_user = get_user($friend_guid)) {
-            if ($invitecode == generate_invite_code($friend_user->username)) {
-                $user->addFriend($friend_guid);
-                $friend_user->addFriend($user->guid);
+    $user->enabled = 'yes';
 
-                // @todo Should this be in addFriend?
-                add_to_river('river/relationship/friend/create', 'friend', $user->getGUID(), $friend_guid);
-                add_to_river('river/relationship/friend/create', 'friend', $friend_guid, $user->getGUID());
-            }
-        }
-    }*/
-
-    // Turn on email notifications by default
-    //set_user_notification_setting($user->getGUID(), 'email', true);
+    $save = new Save();
+    $save->setEntity($user)->save();
 
     return $user;
 }
@@ -345,5 +277,13 @@ function set_last_login($user)
 
     $user->last_login = $time;
     $user->ip = $_SERVER['REMOTE_ADDR'];
-    $user->save();
+    
+    $save = new Save();
+    
+    $save->setEntity($user)
+        ->withMutatedAttributes([
+            'last_login',
+            'ip',
+        ])
+        ->save();
 }

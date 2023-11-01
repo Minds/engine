@@ -205,7 +205,7 @@ class ActionEventNsfwLockStreamsSubscription implements SubscriptionInterface
                 } elseif (isset($attachment->nsfw_lock)) {
                     $attachment->nsfw_lock = $value;
                 }
-                $attachment->save();
+                $this->save->setEntity($attachment)->save();
             }
         }
 

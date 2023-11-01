@@ -400,7 +400,9 @@ class Manager
 
         $createdAtTimestamp = time();
 
-        $this->repository->beginTransaction();
+        if (!$this->inTransaction) {
+            $this->repository->beginTransaction();
+        }
 
         $paymentSuccessful = false;
         foreach ($giftCards as $giftCard) {

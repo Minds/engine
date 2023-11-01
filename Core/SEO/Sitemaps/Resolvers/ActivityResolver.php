@@ -4,7 +4,6 @@
 namespace Minds\Core\SEO\Sitemaps\Resolvers;
 
 use Minds\Entities\Activity;
-use Minds\Core\Entities\Manager as EntitiesManager;
 use Minds\Core\SEO\Sitemaps\SitemapUrl;
 use Minds\Core\SEO\Manager;
 

@@ -164,9 +164,6 @@ class ElggFile extends ElggObject {
 		// Get the filestore
 		$fs = $this->getFilestore();
 
-		// Ensure that we save the file details to object store
-		//$this->save();
-
 		// Open the file handle
 		$this->handle = $fs->open($this, $mode);
 

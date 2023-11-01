@@ -11,6 +11,8 @@ use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Delete;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Entities\User;
@@ -26,10 +28,12 @@ class group implements Interfaces\Api
 {
     public function __construct(
         protected ?Manager $membershipManager = null,
-        protected ?EntitiesBuilder $entitiesBuilder = null
+        protected ?EntitiesBuilder $entitiesBuilder = null,
+        protected ?Save $save = null,
     ) {
         $this->membershipManager = Di::_()->get(Manager::class);
         $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
+        $this->save = new Save();
     }
 
     /**
@@ -256,7 +260,7 @@ class group implements Interfaces\Api
               ->setOwnerObj($user);
         }
 
-        $group->save();
+        $this->save->setEntity($group)->save();
 
         if ($creation) {
             // Join group
@@ -334,7 +338,7 @@ class group implements Interfaces\Api
         }
 
         try {
-            $group->delete();
+            (new Delete())->setEntity($group)->delete();
 
             return Factory::response([
                 'done' => true
@@ -376,7 +380,8 @@ class group implements Interfaces\Api
         }
 
         $group->setIconTime(time());
-        $group->save();
+
+        $this->save->setEntity($group)->save();
 
         return $group;
     }
@@ -412,7 +417,7 @@ class group implements Interfaces\Api
             ->setBanner(time())
             ->setBannerPosition($banner_position);
 
-        $group->save();
+        $this->save->setEntity($group)->save();
 
         return $group;
     }

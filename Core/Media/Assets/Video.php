@@ -2,16 +2,24 @@
 namespace Minds\Core\Media\Assets;
 
 use Minds\Core;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Entities;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 
 class Video implements AssetsInterface
 {
-    /** @var Entity */
+    /** @var EntityInterface */
     protected $entity;
 
     /** @var bool */
     protected $doSave = true;
+
+    public function __construct(
+        private ?Save $save = null,
+    ) {
+        $this->save ??= new Save();
+    }
 
     public function setEntity($entity): self
     {
@@ -86,7 +94,13 @@ class Video implements AssetsInterface
             if ($this->doSave) {
                 $this->entity->thumbnail = $filename;
                 $this->entity->last_updated = time();
-                $this->entity->save();
+                $this->save
+                    ->setEntity($this->entity)
+                    ->withMutatedAttributes([
+                        'thumbnail',
+                        'last_updated',
+                    ])
+                    ->save();
             }
 
             $assets['thumbnail'] = $filename;

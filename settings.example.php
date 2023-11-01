@@ -4,6 +4,16 @@ $CONFIG = Minds\Core\Di\Di::_()->get('Config');
 
 $CONFIG->minds_debug = true;
 
+$CONFIG->set('multi_tenant', [
+    'enabled' => false,
+    'reserved_domains' => [
+        'minds.com',
+        'www.minds.com',
+        'localhost',
+    ],
+    'subdomain_suffix' => 'networks.localhost',
+]);
+
 /*
  * Cassandra configuration
  */
@@ -509,9 +519,7 @@ $CONFIG->set('blockchain', [
 ]);
 
 $CONFIG->set('blockchain_override', [
-    'pledge' => [
-        // ...
-    ],
+
 ]);
 
 $CONFIG->set('token_exchange_rate', 1.25);
@@ -743,10 +751,6 @@ $CONFIG->set('transcoder', [
     ],
 ]);
 
-$CONFIG->cinemr_url = 'https://cinemr.s3.amazonaws.com/cinemr_dev/';
-
-$CONFIG->mongodb_servers = ['minds_mongo_1'];
-
 $CONFIG->set('last_tos_update', 1);
 
 $CONFIG->set('gitlab', [
@@ -759,9 +763,6 @@ $CONFIG->set('gitlab', [
 
 $CONFIG->set('pro', [
     'handler' => '',
-    'root_domains' => ['minds.com', 'www.minds.com', 'localhost', 'localhost:8080', 'localhost:4200', 'nginx', 'host.docker.internal'],
-    'subdomain_suffix' => 'minds.com',
-    'dynamodb_table_name' => 'traefik',
 ]);
 
 $CONFIG->set('contact_details', [
@@ -966,11 +967,18 @@ $CONFIG->set('uniswap', [
 
 $CONFIG->set('livepeer_api_key', '');
 
+
+$CONFIG->set('theme_override', [
+    'color_scheme' => 'LIGHT',
+    'primary_color' => '#1b85d6'
+]);
+
 $CONFIG->set('expo', [
     'account_id' => '',
     'account_name' => '',
     'project_id' => '',
     'bearer_token' => '',
     'apple_team_id' => '',
-    'api_url' => 'https://api.expo.dev/graphql'
+    'gql_api_url' => 'https://api.expo.dev/graphql',
+    'http_api_base_url' => 'https://api.expo.dev'
 ]);

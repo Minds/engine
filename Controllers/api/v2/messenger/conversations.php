@@ -281,7 +281,7 @@ class conversations implements Interfaces\Api
             if ($participant == Session::getLoggedInUserGuid()) {
                 continue;
             }
-            Core\Queue\Client::build()->setExchange("mindsqueue")
+            Core\Queue\Client::build()
                                       ->setQueue("Push")
                                       ->send([
                                             "user_guid"=>$participant,
@@ -319,7 +319,7 @@ class conversations implements Interfaces\Api
                 break;
 
             case 'call':
-                \Minds\Core\Queue\Client::build()->setExchange("mindsqueue")
+                \Minds\Core\Queue\Client::build()
                                                  ->setQueue("Push")
                                                  ->send([
                                                       "user_guid"=>$pages[1],

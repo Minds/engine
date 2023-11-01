@@ -6,6 +6,8 @@
 namespace Minds\Controllers;
 
 use Minds\Core;
+use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities;
 use Minds\Interfaces;
 
@@ -28,7 +30,7 @@ class icon extends core\page implements Interfaces\page
         //if ($cached = $cacher->get("usericon:$guid")) {
         //    $join_date = $cached;
         //} else {
-        $user = new Entities\User($guid);
+        $user = Di::_()->get(EntitiesBuilder::class)->single($guid, [ 'cacheTtl' => 259200 ]);
 
         if (isset($user->legacy_guid) && $user->legacy_guid) {
             $guid = $user->legacy_guid;

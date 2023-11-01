@@ -7,6 +7,8 @@ use Minds\Core\Media\Imagick;
 use Minds\Core\Media\Thumbnails;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security\ACL;
+use Minds\Entities\Activity;
+use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response\TextResponse;
 use Zend\Diactoros\ServerRequest;
@@ -44,6 +46,13 @@ class OgImagesController
             /** @var Activity */
             $activity = $this->entitiesBuilder->single($activityGuid);
 
+            if (!$activity instanceof Activity) {
+                throw new NotFoundException();
+            }
+
+            /** @var User */
+            $owner = $this->entitiesBuilder->single($activity->getOwnerGuid());
+
             if (!$this->acl->read($activity)) {
                 throw new UnauthorizedException();
             }
@@ -52,7 +61,7 @@ class OgImagesController
                 $image = $this->imagickManager->annotate(
                     width: 1000,
                     text: $activity->getMessage(),
-                    username: $activity->getOwnerEntity()->getUsername(),
+                    username: $owner->getUsername(),
                 );
 
                 $imageBlob = $image->getImageBlob();

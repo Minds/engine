@@ -8,13 +8,13 @@
 
 namespace Minds\Controllers\api\v2\blockchain;
 
-use Minds\Core\Blockchain\Wallets\OnChain\Incentive;
 use Minds\Core\Data\cache\abstractCacher;
 use Minds\Core\Di\Di;
 use Minds\Core\Session;
 use Minds\Core\Util\BigNumber;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Entities\Actions\Save;
 
 class wallet implements Interfaces\Api
 {
@@ -124,7 +124,7 @@ class wallet implements Interfaces\Api
 
         $user = Session::getLoggedinUser();
         $user->setEthWallet($_POST['address']);
-        $user->save();
+        (new Save())->setEntity($user)->withMutatedAttributes(['eth_wallet'])->save();
 
         return Factory::response([]);
     }

@@ -313,17 +313,6 @@ class blog implements Interfaces\Api
             }
         }
 
-        if ((isset($_POST['nsfw']) && $_POST['nsfw'])
-            || (isset($_POST['mature']) && $_POST['mature'])) {
-            $user = Core\Session::getLoggedInUser();
-
-            if (!$user->getMatureContent()) {
-                $user->setMatureContent(true);
-                $user->save();
-            }
-        }
-
-
         // if (isset($_POST['time_created'])) {
         //     try {
         //         $timeCreatedDelegate = new Core\Blogs\Delegates\TimeCreatedDelegate();

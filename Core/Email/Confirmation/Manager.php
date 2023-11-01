@@ -13,6 +13,7 @@ use Minds\Core\Config;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared\Search;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Entities\Resolver;
 use Minds\Core\Queue\Client as QueueClientFactory;
 use Minds\Core\Queue\Interfaces\QueueClient;
@@ -44,6 +45,8 @@ class Manager
     /** @var Resolver */
     protected $resolver;
 
+    protected Save $save;
+
     /** @var User */
     protected $user;
 
@@ -64,6 +67,7 @@ class Manager
         $elasticsearch = null,
         $userFactory = null,
         $resolver = null,
+        $save = null,
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->jwt = $jwt ?: new Jwt();
@@ -71,6 +75,7 @@ class Manager
         $this->es = $elasticsearch ?: Di::_()->get('Database\ElasticSearch');
         $this->userFactory = $userFactory ?: new UserFactory();
         $this->resolver = $resolver ?: new Resolver();
+        $this->save = $save ?? new Save();
     }
 
     /**
@@ -97,7 +102,11 @@ class Manager
             ->setEmailConfirmationToken('')
             ->setEmailConfirmedAt(0);
 
-        return (bool) $this->user
+        return (bool) $this->save->setEntity($this->user)
+            ->withMutatedAttributes([
+                'email_confirmation_token',
+                'email_confirmed_at'
+            ])
             ->save();
     }
 
@@ -111,7 +120,13 @@ class Manager
     {
         $user
             ->setEmailConfirmationToken('')
-            ->setEmailConfirmedAt(time())
+            ->setEmailConfirmedAt(time());
+
+        $this->save->setEntity($user)
+            ->withMutatedAttributes([
+                'email_confirmation_token',
+                'email_confirmed_at'
+            ])
             ->save();
 
         $this->queue
@@ -213,7 +228,12 @@ class Manager
             ], $expires, $now);
 
         $this->user
-            ->setEmailConfirmationToken($token)
+            ->setEmailConfirmationToken($token);
+
+        $this->save->setEntity($this->user)
+            ->withMutatedAttributes([
+                'email_confirmation_token',
+            ])
             ->save();
 
         return $this;

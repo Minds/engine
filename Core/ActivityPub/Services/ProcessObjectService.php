@@ -10,6 +10,7 @@ use Minds\Core\ActivityPub\Types\Object\DocumentType;
 use Minds\Core\ActivityPub\Types\Object\NoteType;
 use Minds\Core\Comments\Comment;
 use Minds\Core\Config\Config;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
 use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Log\Logger;
@@ -41,6 +42,7 @@ class ProcessObjectService
         protected MetascraperService $metascraperService,
         protected Config $config,
         protected Logger $logger,
+        protected Save $save,
     ) {
         
     }
@@ -351,7 +353,13 @@ class ProcessObjectService
             }
 
             // Save the image with our new parent
-            $image->save();
+            $this->save
+                ->setEntity($image)
+                ->withMutatedAttributes([
+                    'access_id',
+                    'container_guid',
+                ])
+                ->save();
         }
     }
 }

@@ -36,6 +36,9 @@ class RepositorySpec extends ObjectBehavior
         $config->get('plus')
             ->shouldBeCalled()
             ->willReturn(['support_tier_urn' => 'urn:support-tier:fake/plus']);
+
+        $config->get('tenant_id')
+            ->willReturn(123);
     }
 
     public function it_is_initializable()

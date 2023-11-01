@@ -176,4 +176,43 @@ class Repository
 
         return $subscription;
     }
+
+    /**
+     * Return the count of subscriptions a user has
+     */
+    public function getSubscriptionsCount(int $userGuid): int
+    {
+        $statement = "SELECT count(*) as c FROM friends WHERE key=?";
+        $values = [ (string) $userGuid ];
+    
+        $query = new Prepared\Custom();
+        $query->query($statement, $values);
+
+        try {
+            $result = $this->client->request($query);
+            return $result[0]['c']->toInt();
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Return the count of subscribers a user has
+     */
+    public function getSubscribersCount(int $userGuid): int
+    {
+        $statement = "SELECT count(*) as c FROM friendsof WHERE key=?";
+        $values = [ (string) $userGuid ];
+    
+        $query = new Prepared\Custom();
+        $query->query($statement, $values);
+
+        try {
+            $result = $this->client->request($query);
+            return $result[0]['c']->toInt();
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
 }
