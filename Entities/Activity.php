@@ -222,7 +222,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
 
             // TODO: when we support collapsing of reminds, add the other ownerObj's
 
-            $remindOwner = $this->entitiesBuilder->single($this->getOwnerGuid()); // Move to export extender
+            $remindOwner = $this->entitiesBuilder->single($this->getOwnerGuid(), [ 'cacheTtl' => 259200 ]); // Move to export extender
 
             $export['remind_users'] = [$remindOwner->export()];
             $export['urn'] = $this->getUrn();
