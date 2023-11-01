@@ -23,14 +23,15 @@ class ExpoHttpClient
     /**
      * Make a request to the Expo API.
      * @param string $method - request method.
+     * @param string $method - API path.
      * @param array|null $body - body to send with the request.
      * @throws ServerErrorException - if the Expo API returns errors.
      * @return array|null - response or null on error during making request (no value returned).
      */
-    public function request($method, array $body = null): ?array
+    public function request(string $method, string $path, array $body = null): ?array
     {
         try {
-            $response = $this->guzzleClient->request($method, $this->config->apiUrl, [
+            $response = $this->guzzleClient->request($method, $this->config->httpApiBaseUrl . $path, [
                 'headers' => [
                     'Content-Type' => 'application/json',
                     'Authorization' => "Bearer {$this->config->bearerToken}"

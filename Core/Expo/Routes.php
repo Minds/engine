@@ -23,6 +23,7 @@ class Routes extends ModuleRoutes
                 // AdminMiddleware::class
             ])
             ->do(function (Route $route) {
+                // Android credentials
                 $route->post(
                     'credentials/android',
                     Ref::_(AndroidCredentialsController::class, 'setProjectCredentials')
@@ -31,6 +32,8 @@ class Routes extends ModuleRoutes
                     'credentials/android/:appCredentialsId',
                     Ref::_(AndroidCredentialsController::class, 'deleteProjectCredentials')
                 );
+
+                // iOS credentials
                 $route->post(
                     'credentials/ios',
                     Ref::_(iOSCredentialsController::class, 'setProjectCredentials')
@@ -38,6 +41,13 @@ class Routes extends ModuleRoutes
                 $route->delete(
                     'credentials/ios/:appCredentialsId',
                     Ref::_(iOSCredentialsController::class, 'deleteProjectCredentials')
+                );
+
+                // Projects
+
+                $route->post(
+                    'projects/new',
+                    Ref::_(ProjectsController::class, 'setProjectCredentials')
                 );
             });
     }

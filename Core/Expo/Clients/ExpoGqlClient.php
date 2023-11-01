@@ -30,7 +30,7 @@ class ExpoGqlClient
     public function request(array $body = null): ?array
     {
         try {
-            $response = $this->guzzleClient->request('POST', $this->config->apiUrl, [
+            $response = $this->guzzleClient->request('POST', $this->config->gqlApiUrl, [
                 'headers' => [
                     'Content-Type' => 'application/json',
                     'Authorization' => "Bearer {$this->config->bearerToken}"

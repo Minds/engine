@@ -7,10 +7,12 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Expo\Services\AndroidCredentialsService;
 use \GuzzleHttp\Client as GuzzleClient;
+use Minds\Core\Config;
 use Minds\Core\Expo\Clients\ExpoGqlClient;
 use Minds\Core\Expo\Clients\ExpoHttpClient;
 use Minds\Core\Expo\Controllers\AndroidCredentialsController;
 use Minds\Core\Expo\Controllers\iOSCredentialsController;
+use Minds\Core\Expo\Controllers\ProjectsController;
 use Minds\Core\Expo\Queries\Credentials\Android\CreateAndroidAppBuildCredentialsQuery;
 use Minds\Core\Expo\Queries\Credentials\Android\CreateAndroidAppCredentialsQuery;
 use Minds\Core\Expo\Queries\Credentials\Android\CreateAndroidKeystoreQuery;
@@ -31,6 +33,7 @@ use Minds\Core\Expo\Queries\Credentials\iOS\GetAllAppleAppIdentifiersQuery;
 use Minds\Core\Expo\Queries\Credentials\iOS\SetAscApiKeyForIosAppCredentialsQuery;
 use Minds\Core\Expo\Queries\Credentials\iOS\SetPushKeyForIosAppCredentialsQuery;
 use Minds\Core\Expo\Services\iOSCredentialsService;
+use Minds\Core\Expo\Services\ProjectsService;
 
 class Provider extends DiProvider
 {
@@ -40,6 +43,8 @@ class Provider extends DiProvider
      */
     public function register(): void
     {
+        // Clients
+
         $this->di->bind(ExpoGqlClient::class, function (Di $di): ExpoGqlClient {
             return new ExpoGqlClient(
                 guzzleClient: $di->get(GuzzleClient::class),
@@ -51,10 +56,21 @@ class Provider extends DiProvider
         $this->di->bind(ExpoHttpClient::class, function (Di $di): ExpoHttpClient {
             return new ExpoHttpClient(
                 guzzleClient: $di->get(GuzzleClient::class),
-                config: $di->get(ExpoConfig::class),
+                expoConfig: $di->get(ExpoConfig::class),
+                config: $di->get(Config::class),
                 logger: $di->get('Logger')
             );
         });
+
+        // Config
+
+        $this->di->bind(ExpoConfig::class, function (Di $di): ExpoConfig {
+            return new ExpoConfig(
+                config: $di->get('Config')
+            );
+        });
+
+        // Services
 
         $this->di->bind(AndroidCredentialsService::class, function (Di $di): AndroidCredentialsService {
             return new AndroidCredentialsService(
@@ -89,11 +105,14 @@ class Provider extends DiProvider
             );
         });
 
-        $this->di->bind(ExpoConfig::class, function (Di $di): ExpoConfig {
-            return new ExpoConfig(
-                config: $di->get('Config')
+        $this->di->bind(ProjectsService::class, function (Di $di): ProjectsService {
+            return new ProjectsService(
+                expoHttpClient: $di->get(ExpoHttpClient::class),
+                config: $di->get(ExpoConfig::class)
             );
         });
+
+        // Controllers
 
         $this->di->bind(AndroidCredentialsController::class, function (Di $di): AndroidCredentialsController {
             return new AndroidCredentialsController(
@@ -105,6 +124,12 @@ class Provider extends DiProvider
         $this->di->bind(iOSCredentialsController::class, function (Di $di): iOSCredentialsController {
             return new iOSCredentialsController(
                 iosCredentialsService: $di->get(iosCredentialsService::class)
+            );
+        });
+
+        $this->di->bind(ProjectsController::class, function (Di $di): ProjectsController {
+            return new ProjectsController(
+                projectsService: $di->get(ProjectsService::class)
             );
         });
 

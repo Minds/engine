@@ -11,8 +11,11 @@ use Minds\Exceptions\ServerErrorException;
  */
 class ExpoConfig
 {
-    /** The url of the API. */
-    public readonly string $apiUrl;
+    /** The url of the Expo GQL API. */
+    public readonly string $gqlApiUrl;
+
+    /** The base url of the Expo HTTP API. */
+    public readonly string $httpApiBaseUrl;
 
     /** The ID of the expo account. */
     public readonly string $accountId;
@@ -31,7 +34,8 @@ class ExpoConfig
 
     public function __construct(private Config $config)
     {
-        $this->apiUrl = $this->config->get('expo')['api_url'] ?? 'https://api.expo.dev/graphql';
+        $this->gqlApiUrl = $this->config->get('expo')['gql_api_url'] ?? 'https://api.expo.dev/graphql';
+        $this->httpApiBaseUrl = $this->config->get('expo')['http_api_base_url'] ?? 'https://api.expo.dev/graphql';
         $this->accountId = $this->config->get('expo')['account_id'] ?? throw new ServerErrorException('No Expo account_id is configured.');
         $this->accountName = $this->config->get('expo')['account_name'] ?? throw new ServerErrorException('No Expo account_name is configured.');
         $this->projectId = $this->config->get('expo')['project_id'] ?? throw new ServerErrorException('No Expo project_id is configured.');
