@@ -30,19 +30,21 @@ class ProjectsService
      * @return bool - true on success.
      */
     public function newProject(
-        ?string $privacy = null,
+        ?string $displayName = null,
         ?string $slug = null,
-        ?string $displayName = null
+        ?string $privacy = null
     ): bool {
-        $tenantId = $this->config->get('tenant_id') ?? throw new ServerErrorException('No tenant id set. Ensure that you are on a tenant domain.');
+        $tenantId = $this->config->get('tenant_id') ??
+            throw new ServerErrorException('No tenant id set. Ensure that you are on a tenant domain.');
+
         $multiTenantConfigs = $this->multiTenantConfigsManager->getConfigs();
         
-        if ($multiTenantConfigs->expoProjectId) {
+        if ($multiTenantConfigs?->expoProjectId) {
             throw new ServerErrorException('Tenant is already linked to an Expo project with the ID: ' . $multiTenantConfigs->expoProjectId);
         }
 
         if (!$slug) {
-            $slug = $this->buildSlug($tenantId);
+            $slug = $this->buildSlug((string) $tenantId);
         }
 
         if (!$displayName) {

@@ -14,6 +14,7 @@ use Minds\Core\Expo\Queries\Credentials\Android\CreateGoogleServiceAccountKeyQue
 use Minds\Core\Expo\Queries\Credentials\Android\DeleteAndroidAppCredentialsQuery;
 use Minds\Core\Expo\Queries\Credentials\Android\SetFcmKeyOnAndroidAppCredentialsQuery;
 use Minds\Core\Expo\Queries\Credentials\Android\SetGoogleServiceAccountKeyOnAndroidAppCredentialsQuery;
+use Minds\Core\Expo\Services\BatchExpoGqlQueryHandler as ServicesBatchExpoGqlQueryHandler;
 use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigsManager;
 use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Exceptions\ServerErrorException;
@@ -21,7 +22,7 @@ use Minds\Exceptions\ServerErrorException;
 /**
  * Service for managing Android credentials in Expo.
  */
-class AndroidCredentialsService
+class AndroidCredentialsService extends ServicesBatchExpoGqlQueryHandler
 {
     public function __construct(
         private ExpoGqlClient $expoGqlClient,
@@ -68,8 +69,8 @@ class AndroidCredentialsService
 
         $decodedGoogleServiceAccountJson = json_decode($googleServiceAccountJson ?? '', true) ?? null;
 
+        // create resources for the different credentials that we want to set up.
         $batchPreAppCredentialCreationQueriesResponse = $this->batchPreAppCredentialCreationQueries(
-            accountId: $this->expoConfig->accountId,
             androidKeystorePassword: $androidKeystorePassword,
             androidKeystoreKeyAlias: $androidKeystoreKeyAlias,
             androidKeystoreKeyPassword: $androidKeystoreKeyPassword,
@@ -85,6 +86,7 @@ class AndroidCredentialsService
         $keystoreId = $batchPreAppCredentialCreationQueriesResponse['createAndroidKeystore']['id'] ??
             throw new ServerErrorException('Failed to create android keystore');
 
+        // for optional values provided, check that they were successfully created in the batch query.
         if ($decodedGoogleServiceAccountJson) {
             $googleServiceAccountKeyId = $batchPreAppCredentialCreationQueriesResponse['createGoogleServiceAccountKey']['id'] ??
                 throw new ServerErrorException('Failed to create google service account credentials');
@@ -95,6 +97,7 @@ class AndroidCredentialsService
                 throw new ServerErrorException('Failed to create fcm key');
         }
 
+        // Create Android app credentials object (with the created resources if provided).
         $createAndroidAppCredentialsResponse = $this->createAndroidAppCredentials(
             projectId: $projectId,
             applicationIdentifier: $applicationIdentifier,
@@ -126,14 +129,14 @@ class AndroidCredentialsService
             'android_app_build_credentials_id' => $androidAppBuildCredentialsId,
             'keystore_id' => $keystoreId,
             'google_service_account_key_id' => $googleServiceAccountKeyId,
-            'fcm_key_ud' => $fcmKeyId
+            'fcm_key_id' => $fcmKeyId
         ];
     }
 
     /**
      * Update project credentials.
-     * @param string|null $googleServiceAccountJson - the json for the google service account.
-     * @param string|null $googleCloudMessagingToken - the token for google cloud messaging for push support.
+     * @param string|null $googleServiceAccountJson - json for the google service account.
+     * @param string|null $googleCloudMessagingToken - token for google cloud messaging for push support.
      * @return array - the ids of the created credentials.
      */
     public function updateProjectCredentials(
@@ -147,8 +150,8 @@ class AndroidCredentialsService
         
         $decodedGoogleServiceAccountJson = json_decode($googleServiceAccountJson ?? '', true) ?? null;
 
+        // create resources for the different credentials that we want to set up.
         $batchUpdateQueriesResponse = $this->batchUpdateCreationQueries(
-            accountId: $this->expoConfig->accountId,
             googleServiceAccountCredentials: $decodedGoogleServiceAccountJson,
             googleCloudMessagingToken: $googleCloudMessagingToken
         );
@@ -202,7 +205,6 @@ class AndroidCredentialsService
 
     /**
      * Batch the pre-app credential creation queries.
-     * @param string $accountId - the id of the account to create the credentials for.
      * @param string $androidKeystorePassword - the password for the keystore.
      * @param string $androidKeystoreKeyAlias - the alias for the keystore key.
      * @param string $androidKeystoreKeyPassword - the password for the keystore key.
@@ -212,7 +214,6 @@ class AndroidCredentialsService
      * @return array - the responses from the queries.
      */
     private function batchPreAppCredentialCreationQueries(
-        string $accountId,
         string $androidKeystorePassword,
         string $androidKeystoreKeyAlias,
         string $androidKeystoreKeyPassword,
@@ -222,7 +223,7 @@ class AndroidCredentialsService
     ): array {
         $queries = [];
         $queries[] = $this->createAndroidKeystoreQuery->build(
-            accountId: $accountId,
+            accountId: $this->expoConfig->accountId,
             androidKeystorePassword: $androidKeystorePassword,
             androidKeystoreKeyAlias: $androidKeystoreKeyAlias,
             androidKeystoreKeyPassword: $androidKeystoreKeyPassword,
@@ -231,40 +232,29 @@ class AndroidCredentialsService
 
         if ($googleServiceAccountCredentials) {
             $queries[] = $this->createGoogleServiceAccountKeyQuery->build(
-                accountId: $accountId,
+                accountId: $this->expoConfig->accountId,
                 googleServiceAccountCredentials: $googleServiceAccountCredentials
             );
         }
 
         if ($googleCloudMessagingToken) {
             $queries[] = $this->createFcmKeyQuery->build(
-                accountId: $accountId,
+                accountId: $this->expoConfig->accountId,
                 googleCloudMessagingToken: $googleCloudMessagingToken
             );
         }
 
         $batchResponse = $this->expoGqlClient->request($queries);
-
-        $response = [];
-
-        foreach ($batchResponse as $responseItem) {
-            $arrayKey = array_key_first($responseItem['data']);
-            $innerArrayKey = array_key_first($responseItem['data'][$arrayKey]);
-            $response[$innerArrayKey] = $responseItem['data'][$arrayKey][$innerArrayKey];
-        }
-
-        return $response;
+        return $this->formatBatchResponse($batchResponse);
     }
 
     /**
      * Batch the creation queries for an update to existing credentials.
-     * @param string $accountId - the id of the account to create the credentials for.
      * @param array|null $googleServiceAccountCredentials - the credentials for the google service account (an array from the decoded JSON file).
      * @param string|null $googleCloudMessagingToken - the token for google cloud messaging for push support.
      * @return array - the responses from the queries.
      */
     private function batchUpdateCreationQueries(
-        string $accountId,
         ?array $googleServiceAccountCredentials = null,
         ?string $googleCloudMessagingToken = null
     ): array {
@@ -272,29 +262,20 @@ class AndroidCredentialsService
 
         if ($googleServiceAccountCredentials) {
             $queries[] = $this->createGoogleServiceAccountKeyQuery->build(
-                accountId: $accountId,
+                accountId: $this->expoConfig->accountId,
                 googleServiceAccountCredentials: $googleServiceAccountCredentials
             );
         }
 
         if ($googleCloudMessagingToken) {
             $queries[] = $this->createFcmKeyQuery->build(
-                accountId: $accountId,
+                accountId: $this->expoConfig->accountId,
                 googleCloudMessagingToken: $googleCloudMessagingToken
             );
         }
 
         $batchResponse = $this->expoGqlClient->request($queries);
-
-        $response = [];
-
-        foreach ($batchResponse as $responseItem) {
-            $arrayKey = array_key_first($responseItem['data']);
-            $innerArrayKey = array_key_first($responseItem['data'][$arrayKey]);
-            $response[$innerArrayKey] = $responseItem['data'][$arrayKey][$innerArrayKey];
-        }
-
-        return $response;
+        return $this->formatBatchResponse($batchResponse);
     }
 
     /**
@@ -330,16 +311,7 @@ class AndroidCredentialsService
         }
 
         $batchResponse = $this->expoGqlClient->request($queries);
-
-        $response = [];
-
-        foreach ($batchResponse as $responseItem) {
-            $arrayKey = array_key_first($responseItem['data']);
-            $innerArrayKey = array_key_first($responseItem['data'][$arrayKey]);
-            $response[$innerArrayKey] = $responseItem['data'][$arrayKey][$innerArrayKey];
-        }
-
-        return $response;
+        return $this->formatBatchResponse($batchResponse);
     }
 
     /**
