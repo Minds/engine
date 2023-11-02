@@ -3,10 +3,9 @@
 namespace Spec\Minds\Core\Provisioner;
 
 use Minds\Core\Config\Config;
-use PhpSpec\ObjectBehavior;
-
 use Minds\Core\Minds;
 use Minds\Entities\Site;
+use PhpSpec\ObjectBehavior;
 
 class InstallerSpec extends ObjectBehavior
 {
@@ -39,6 +38,9 @@ class InstallerSpec extends ObjectBehavior
             'phone-number-public-key' => __FILE__,
             'phone-number-private-key' => __FILE__
         ]);
+
+        $config->site_name = 'PHPSpec Minds';
+        $config->set('site_url', 'https://phpspec.minds.io/');
     }
 
     public function it_should_check_options_valid()

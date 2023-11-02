@@ -2,34 +2,31 @@
 
 namespace Minds\Core\MultiTenant;
 
-use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Di\Di;
-use Minds\Core\MultiTenant\Services\MultiTenantDataService;
+use Minds\Core\Di\ImmutableException;
+use Minds\Core\Di\Provider as DiProvider;
 
 class Provider extends DiProvider
 {
-    public function register()
+    /**
+     * @return void
+     * @throws ImmutableException
+     */
+    public function register(): void
     {
-        $this->di->bind(Services\DomainService::class, function (Di $di): Services\DomainService {
-            return new Services\DomainService(
-                $di->get('Config'),
-                $di->get(MultiTenantDataService::class),
-                $di->get('Cache\PsrWrapper')
-            );
-        });
+        ####### Controllers #######
+        (new Controllers\ControllersProvider())->register();
 
-        $this->di->bind(Services\MultiTenantDataService::class, function (Di $di): Services\MultiTenantDataService {
-            return new Services\MultiTenantDataService($di->get(Repository::class));
-        });
+        ####### Services #######
+        (new Services\ServicesProvider())->register();
 
-        $this->di->bind(Services\MultiTenantBootService::class, function (Di $di): Services\MultiTenantBootService {
-            return new Services\MultiTenantBootService(
-                $di->get('Config'),
-                $di->get(Services\DomainService::class),
-                $di->get(MultiTenantDataService::class),
-            );
-        }, ['useFactory' => true]);
+        ####### Repositories #######
+        (new Repositories\RepositoriesProvider())->register();
 
+        ####### Types Factories #######
+        (new Types\Factories\FactoriesProvider())->register();
+
+        ####### Other dependencies #######
         $this->di->bind(Repository::class, function (Di $di): Repository {
             return new Repository(
                 mysqlHandler: $di->get('Database\MySQL\Client'),
