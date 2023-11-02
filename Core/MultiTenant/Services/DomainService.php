@@ -10,8 +10,8 @@ use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Repositories\DomainsRepository;
-use Minds\Core\MultiTenant\Types\CustomHostname;
-use Minds\Core\MultiTenant\Types\Domain;
+use Minds\Core\MultiTenant\Types\MultiTenantCustomHostname;
+use Minds\Core\MultiTenant\Types\MultiTenantDomain;
 use Psr\SimpleCache\InvalidArgumentException;
 
 class DomainService
@@ -156,31 +156,31 @@ class DomainService
     /**
      * @param int $tenantId
      * @param string $hostname
-     * @return CustomHostname
+     * @return MultiTenantCustomHostname
      * @throws GuzzleException
      * @throws Exception
      */
-    public function setupCustomHostname(string $hostname): CustomHostname
+    public function setupMultiTenantCustomHostname(string $hostname): MultiTenantCustomHostname
     {
         $tenantId = $this->config->get('tenant_id');
-        $customHostname = $this->cloudflareClient->createCustomHostname($hostname, $tenantId);
+        $MultiTenantCustomHostname = $this->cloudflareClient->createMultiTenantCustomHostname($hostname, $tenantId);
 
         $this->domainsRepository->storeDomainDetails(
             tenantId: $tenantId,
-            cloudflareId: $customHostname->id,
-            domain: $customHostname->hostname,
-            status: $customHostname->status,
+            cloudflareId: $MultiTenantCustomHostname->id,
+            domain: $MultiTenantCustomHostname->hostname,
+            status: $MultiTenantCustomHostname->status,
         );
 
-        return $customHostname;
+        return $MultiTenantCustomHostname;
     }
 
     /**
      * @param int|null $tenantId
-     * @return Domain
+     * @return MultiTenantDomain
      * @throws Exception
      */
-    public function getDomainDetails(?int $tenantId = null): Domain
+    public function getDomainDetails(?int $tenantId = null): MultiTenantDomain
     {
         return $this->domainsRepository->getDomainDetails(
             tenantId: $tenantId ?? $this->config->get('tenant_id')
@@ -190,15 +190,15 @@ class DomainService
     /**
      * @param int $tenantId
      * @param string $hostname
-     * @return CustomHostname
+     * @return MultiTenantCustomHostname
      * @throws GuzzleException
      * @throws Exception
      */
-    public function updateCustomHostname(int $tenantId, string $hostname): CustomHostname
+    public function updateMultiTenantCustomHostname(int $tenantId, string $hostname): MultiTenantCustomHostname
     {
         $currentDomain = $this->getDomainDetails($tenantId);
 
-        return $this->cloudflareClient->updateCustomHostnameDetails(
+        return $this->cloudflareClient->updateMultiTenantCustomHostnameDetails(
             cloudflareId: $currentDomain->$tenantId,
             hostname: $hostname,
             tenantId: $tenantId

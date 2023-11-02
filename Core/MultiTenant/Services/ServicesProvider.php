@@ -30,7 +30,9 @@ class ServicesProvider extends Provider
             return new DomainService(
                 $di->get('Config'),
                 $di->get(MultiTenantDataService::class),
-                $di->get('Cache\PsrWrapper')
+                $di->get('Cache\PsrWrapper'),
+                $di->get(CloudflareClient::class),
+                $di->get(DomainsRepository::class),
             );
         });
 

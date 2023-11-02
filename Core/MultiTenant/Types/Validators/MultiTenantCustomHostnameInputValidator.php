@@ -3,11 +3,11 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Types\Validators;
 
-use Minds\Core\MultiTenant\Types\CustomHostname;
+use Minds\Core\MultiTenant\Types\MultiTenantCustomHostname;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 use TheCodingMachine\GraphQLite\Types\InputTypeValidatorInterface;
 
-class CustomHostnameInputValidator implements InputTypeValidatorInterface
+class MultiTenantCustomHostnameInputValidator implements InputTypeValidatorInterface
 {
     /**
      * @inheritDoc
@@ -22,7 +22,7 @@ class CustomHostnameInputValidator implements InputTypeValidatorInterface
      */
     public function validate(object $input): void
     {
-        if (!($input instanceof CustomHostname)) {
+        if (!($input instanceof MultiTenantCustomHostname)) {
             return;
         }
 

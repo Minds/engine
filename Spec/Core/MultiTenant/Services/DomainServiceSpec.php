@@ -25,8 +25,7 @@ class DomainServiceSpec extends ObjectBehavior
         PsrWrapper $cacheMock,
         CloudflareClient $cloudflareClientMock,
         DomainsRepository $domainsRepositoryMock,
-    )
-    {
+    ) {
         $this->beConstructedWith($configMock, $dataServiceMock, $cacheMock, $cloudflareClientMock, $domainsRepositoryMock);
         $this->configMock = $configMock;
         $this->dataServiceMock = $dataServiceMock;

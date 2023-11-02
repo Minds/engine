@@ -15,7 +15,9 @@ class Provider extends DiProvider
         $this->di->bind(SchemaFactory::class, function (Di $di, array $args = []): SchemaFactory {
             $cache = new APCuCache();
 
-            $cache->clear();
+            if ($di->get('Config')->minds_debug) {
+                $cache->clear();
+            }
 
             /**
              * PSR-11 Container Wrapper

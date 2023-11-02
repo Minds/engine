@@ -5,8 +5,8 @@ namespace Minds\Core\MultiTenant\Repositories;
 
 use Exception;
 use Minds\Core\Data\MySQL\AbstractRepository;
-use Minds\Core\MultiTenant\Enums\CustomHostnameStatusEnum;
-use Minds\Core\MultiTenant\Types\Domain;
+use Minds\Core\MultiTenant\Enums\MultiTenantCustomHostnameStatusEnum;
+use Minds\Core\MultiTenant\Types\MultiTenantDomain;
 use PDO;
 use Selective\Database\Operator;
 
@@ -18,7 +18,7 @@ class DomainsRepository extends AbstractRepository
      * @param int $tenantId
      * @param string $cloudflareId
      * @param string $domain
-     * @param CustomHostnameStatusEnum $status
+     * @param MultiTenantCustomHostnameStatusEnum $status
      * @return void
      * @throws Exception
      */
@@ -26,7 +26,7 @@ class DomainsRepository extends AbstractRepository
         int $tenantId,
         string $cloudflareId,
         string $domain,
-        CustomHostnameStatusEnum $status,
+        MultiTenantCustomHostnameStatusEnum $status,
     ): void {
         $statement = $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
@@ -50,12 +50,12 @@ class DomainsRepository extends AbstractRepository
 
     /**
      * @param int $tenantId
-     * @return Domain
+     * @return MultiTenantDomain
      * @throws Exception
      */
     public function getDomainDetails(
         int $tenantId
-    ): Domain {
+    ): MultiTenantDomain {
         $statement = $this->mysqlClientReaderHandler->select()
             ->from(self::TABLE_NAME)
             ->columns([
@@ -74,10 +74,10 @@ class DomainsRepository extends AbstractRepository
 
         $item = $statement->fetch(PDO::FETCH_ASSOC);
 
-        return new Domain(
+        return new MultiTenantDomain(
             tenantId: $item['tenant_id'],
             domain: $item['domain'],
-            status: CustomHostnameStatusEnum::from($item['status']),
+            status: MultiTenantCustomHostnameStatusEnum::from($item['status']),
             createdAt: strtotime($item['created_at']),
             cloudflareId: $item['cloudflare_id']
         );

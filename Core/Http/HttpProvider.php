@@ -37,12 +37,16 @@ class HttpProvider extends Provider
 
         $this->di->bind(
             CloudflareClient::class,
-            function(Di $di): CloudflareClient {
+            function (Di $di): CloudflareClient {
                 /** @var Config $mindsConfig */
                 $mindsConfig = $di->get('Config');
 
+                $apexProxyConfig = $mindsConfig->get('cloudflare')['apex_proxy'] ?? [
+                    'zone_url' => null,
+                ];
+
                 $httpClient = new GuzzleClient([
-                    'base_uri' => $mindsConfig->get('cloudflare')['apex_proxy']['zone_url'],
+                    'base_uri' => $apexProxyConfig['zone_url'],
                     'headers' => [
                         'X-Auth-Email' => $mindsConfig->get('cloudflare')['email'],
                         'X-Auth-Key' => $mindsConfig->get('cloudflare')['api_key'],

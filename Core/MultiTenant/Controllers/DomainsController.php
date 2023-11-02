@@ -3,10 +3,11 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Controllers;
 
+use GraphQL\Error\UserError;
 use GuzzleHttp\Exception\GuzzleException;
 use Minds\Core\MultiTenant\Services\DomainService;
-use Minds\Core\MultiTenant\Types\CustomHostname;
-use Minds\Core\MultiTenant\Types\Domain;
+use Minds\Core\MultiTenant\Types\MultiTenantCustomHostname;
+use Minds\Core\MultiTenant\Types\MultiTenantDomain;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Query;
@@ -19,25 +20,28 @@ class DomainsController
     }
 
     /**
-     * @return Domain
+     * @return MultiTenantDomain
      */
     #[Query]
     #[Logged]
-    public function getDomain(): Domain
+    public function getMultiTenantDomain(): MultiTenantDomain
     {
-        return $this->domainService->getDomainDetails();
+        try {
+            return $this->domainService->getDomainDetails();
+        } catch (\Exception $e) {
+            throw new UserError($e->getMessage());
+        }
     }
 
     /**
-     * @param CustomHostname $input
-     * @return CustomHostname
+     * @param MultiTenantCustomHostname $input
+     * @return MultiTenantCustomHostname
      * @throws GuzzleException
      */
     #[Mutation]
-    public function createCustomDomain(
-        CustomHostname $input
-    ): CustomHostname
-    {
-        return $this->domainService->setupCustomHostname($input->hostname);
+    public function createMultiTenantDomain(
+        MultiTenantCustomHostname $input
+    ): MultiTenantCustomHostname {
+        return $this->domainService->setupMultiTenantCustomHostname($input->hostname);
     }
 }

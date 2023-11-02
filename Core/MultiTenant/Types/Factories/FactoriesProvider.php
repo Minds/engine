@@ -28,9 +28,9 @@ class FactoriesProvider extends Provider
             }
         );
         $this->di->bind(
-            CustomHostnameFactory::class,
-            function (Di $di): CustomHostnameFactory {
-                return new CustomHostnameFactory();
+            MultiTenantCustomHostnameFactory::class,
+            function (Di $di): MultiTenantCustomHostnameFactory {
+                return new MultiTenantCustomHostnameFactory();
             }
         );
     }

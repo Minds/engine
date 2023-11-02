@@ -2,7 +2,7 @@
 
 namespace Minds\Core\MultiTenant\Enums;
 
-enum CustomHostnameStatusEnum: string
+enum MultiTenantCustomHostnameStatusEnum: string
 {
     case ACTIVE = 'active';
     case PENDING = 'pending';

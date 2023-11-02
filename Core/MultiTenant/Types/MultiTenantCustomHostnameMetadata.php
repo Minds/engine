@@ -8,7 +8,7 @@ use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 
 #[Type]
-class CustomHostnameMetadata implements ArrayAccess
+class MultiTenantCustomHostnameMetadata implements ArrayAccess
 {
     public function __construct(
         private array $metadata,

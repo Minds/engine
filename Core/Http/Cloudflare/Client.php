@@ -6,9 +6,9 @@ namespace Minds\Core\Http\Cloudflare;
 use Exception;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\GuzzleException;
-use Minds\Core\MultiTenant\Enums\CustomHostnameStatusEnum;
-use Minds\Core\MultiTenant\Types\CustomHostname;
-use Minds\Core\MultiTenant\Types\CustomHostnameMetadata;
+use Minds\Core\MultiTenant\Enums\MultiTenantCustomHostnameStatusEnum;
+use Minds\Core\MultiTenant\Types\MultiTenantCustomHostname;
+use Minds\Core\MultiTenant\Types\MultiTenantCustomHostnameMetadata;
 use Psr\Http\Message\ResponseInterface;
 
 class Client
@@ -21,11 +21,11 @@ class Client
     /**
      * @param string $hostname
      * @param int $tenantId
-     * @return CustomHostname
+     * @return MultiTenantCustomHostname
      * @throws GuzzleException
      * @throws Exception
      */
-    public function createCustomHostname(string $hostname, int $tenantId): CustomHostname
+    public function createMultiTenantCustomHostname(string $hostname, int $tenantId): MultiTenantCustomHostname
     {
         $response = $this->client->post(
             uri: "custom_hostnames",
@@ -41,40 +41,40 @@ class Client
             ]
         );
 
-        return $this->processCustomHostnamePayload($response);
+        return $this->processMultiTenantCustomHostnamePayload($response);
     }
 
     /**
      * @param string $cloudflareId
-     * @return CustomHostname
+     * @return MultiTenantCustomHostname
      * @throws GuzzleException
      * @throws Exception
      */
-    public function getCustomHostnameDetails(string $cloudflareId): CustomHostname
+    public function getMultiTenantCustomHostnameDetails(string $cloudflareId): MultiTenantCustomHostname
     {
         $response = $this->client->get(
             uri: "custom_hostnames/$cloudflareId",
         );
 
-        return $this->processCustomHostnamePayload($response);
+        return $this->processMultiTenantCustomHostnamePayload($response);
     }
 
     /**
      * @param string $cloudflareId
      * @param string $hostname
      * @param int $tenantId
-     * @return CustomHostname
+     * @return MultiTenantCustomHostname
      * @throws GuzzleException
      */
-    public function updateCustomHostnameDetails(
+    public function updateMultiTenantCustomHostnameDetails(
         string $cloudflareId,
         string $hostname,
         int $tenantId
-    ): CustomHostname {
+    ): MultiTenantCustomHostname {
         // Delete existing custom hostname first
-        $this->deleteCustomHostname($cloudflareId);
+        $this->deleteMultiTenantCustomHostname($cloudflareId);
 
-        return $this->createCustomHostname(
+        return $this->createMultiTenantCustomHostname(
             hostname: $hostname,
             tenantId: $tenantId
         );
@@ -86,7 +86,7 @@ class Client
      * @throws GuzzleException
      * @throws Exception
      */
-    private function deleteCustomHostname(string $cloudflareId): void
+    private function deleteMultiTenantCustomHostname(string $cloudflareId): void
     {
         $response = $this->client->delete(
             uri: "custom_hostnames/$cloudflareId",
@@ -99,10 +99,10 @@ class Client
 
     /**
      * @param ResponseInterface $response
-     * @return CustomHostname
+     * @return MultiTenantCustomHostname
      * @throws Exception
      */
-    private function processCustomHostnamePayload(ResponseInterface $response): CustomHostname
+    private function processMultiTenantCustomHostnamePayload(ResponseInterface $response): MultiTenantCustomHostname
     {
         if ($response->getStatusCode() !== 201) {
             throw new Exception("Failed to create custom hostname");
@@ -114,12 +114,12 @@ class Client
             throw new Exception("Failed to create custom hostname");
         }
 
-        return new CustomHostname(
+        return new MultiTenantCustomHostname(
             id: $payload->result->id,
             hostname: $payload->result->hostname,
             customOriginServer: $payload->result->custom_origin_server ?? "",
-            status: CustomHostnameStatusEnum::tryFrom($payload->result->status),
-            metadata: new CustomHostnameMetadata($payload->result->custom_metadata ?? []),
+            status: MultiTenantCustomHostnameStatusEnum::tryFrom($payload->result->status),
+            metadata: new MultiTenantCustomHostnameMetadata($payload->result->custom_metadata ?? []),
             createdAt: strtotime($payload->result->created_at)
         );
     }
