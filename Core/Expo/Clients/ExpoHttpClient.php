@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Expo\Clients;
 
 use \GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\Exception\ClientException;
 use Minds\Core\Expo\ExpoConfig;
 use Minds\Core\Log\Logger;
 use Minds\Exceptions\ServerErrorException;
@@ -13,9 +14,12 @@ use Minds\Exceptions\ServerErrorException;
  */
 class ExpoHttpClient
 {
+    /** Path for V2 projects endpoint */
+    public const V2_PROJECTS_PATH = '/v2/projects';
+
     public function __construct(
         private GuzzleClient $guzzleClient,
-        private ExpoConfig $config,
+        private ExpoConfig $expoConfig,
         private Logger $logger
     ) {
     }
@@ -31,30 +35,20 @@ class ExpoHttpClient
     public function request(string $method, string $path, array $body = null): ?array
     {
         try {
-            $response = $this->guzzleClient->request($method, $this->config->httpApiBaseUrl . $path, [
+            $response = $this->guzzleClient->request($method, $this->expoConfig->httpApiBaseUrl . $path, [
                 'headers' => [
                     'Content-Type' => 'application/json',
-                    'Authorization' => "Bearer {$this->config->bearerToken}"
+                    'Authorization' => "Bearer {$this->expoConfig->bearerToken}"
                 ],
                 'body' => json_encode($body)
             ]);
-        } catch(\Exception $e) {
+        } catch(ClientException $e) {
             $this->logger->error($e);
-            return null;
+            $response = json_decode($e->getResponse()->getBody()->getContents(), true) ?? null;
+            throw new ServerErrorException($response['errors'][0]['message'] ?? 'An error occurred when calling the Expo API');
         }
 
         $response = json_decode($response->getBody()->getContents(), true);
-        
-        // if (isset($response['errors'])) {
-        //     $error = $response['errors'][0];
-        //     $errorMessagePrefix = '';
-        //     if (isset($error['extensions'])) {
-        //         $errorMessagePrefix = $error['extensions']['code'] . '; ' . $error['extensions']['errorCode'] . '; ';
-        //     }
-        //     $this->logger->error(json_encode($error));
-        //     throw new ServerErrorException($errorMessagePrefix . $response['errors'][0]['message']);
-        // }
-
-        return $response;
+        return $response['data'];
     }
 }

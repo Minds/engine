@@ -47,6 +47,7 @@ class Repository extends AbstractRepository
             colorScheme: $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null,
             primaryColor: $row['primary_color'] ?? null,
             communityGuidelines: $row['community_guidelines'] ?? null,
+            expoProjectId: $row['expo_project_id'] ?? null,
             updatedTimestamp: strtotime($row['updated_timestamp']) ?? null
         );
     }
@@ -65,7 +66,8 @@ class Repository extends AbstractRepository
         ?string $siteName,
         ?MultiTenantColorScheme $colorScheme,
         ?string $primaryColor,
-        ?string $communityGuidelines
+        ?string $communityGuidelines,
+        ?string $expoProjectId
     ): bool {
         $boundValues = [ 'tenant_id' => $tenantId ];
         $rawValues = [];
@@ -88,6 +90,11 @@ class Repository extends AbstractRepository
         if ($communityGuidelines !== null) {
             $rawValues['community_guidelines'] = new RawExp(':community_guidelines');
             $boundValues['community_guidelines'] = $communityGuidelines;
+        }
+
+        if ($expoProjectId !== null) {
+            $rawValues['expo_project_id'] = new RawExp(':expo_project_id');
+            $boundValues['expo_project_id'] = $expoProjectId;
         }
 
         $query = $this->mysqlClientWriterHandler

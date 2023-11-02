@@ -34,6 +34,8 @@ use Minds\Core\Expo\Queries\Credentials\iOS\SetAscApiKeyForIosAppCredentialsQuer
 use Minds\Core\Expo\Queries\Credentials\iOS\SetPushKeyForIosAppCredentialsQuery;
 use Minds\Core\Expo\Services\iOSCredentialsService;
 use Minds\Core\Expo\Services\ProjectsService;
+use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigsManager;
+use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 
 class Provider extends DiProvider
 {
@@ -48,7 +50,7 @@ class Provider extends DiProvider
         $this->di->bind(ExpoGqlClient::class, function (Di $di): ExpoGqlClient {
             return new ExpoGqlClient(
                 guzzleClient: $di->get(GuzzleClient::class),
-                config: $di->get(ExpoConfig::class),
+                expoConfig: $di->get(ExpoConfig::class),
                 logger: $di->get('Logger')
             );
         });
@@ -57,7 +59,6 @@ class Provider extends DiProvider
             return new ExpoHttpClient(
                 guzzleClient: $di->get(GuzzleClient::class),
                 expoConfig: $di->get(ExpoConfig::class),
-                config: $di->get(Config::class),
                 logger: $di->get('Logger')
             );
         });
@@ -75,7 +76,9 @@ class Provider extends DiProvider
         $this->di->bind(AndroidCredentialsService::class, function (Di $di): AndroidCredentialsService {
             return new AndroidCredentialsService(
                 expoGqlClient: $di->get(ExpoGqlClient::class),
-                config: $di->get(ExpoConfig::class),
+                expoConfig: $di->get(ExpoConfig::class),
+                config: $di->get('Config'),
+                multiTenantDataService: $di->get(MultiTenantDataService::class),
                 createAndroidKeystoreQuery: $di->get(CreateAndroidKeystoreQuery::class),
                 createAndroidAppCredentialsQuery: $di->get(CreateAndroidAppCredentialsQuery::class),
                 createAndroidAppBuildCredentialsQuery: $di->get(CreateAndroidAppBuildCredentialsQuery::class),
@@ -90,7 +93,9 @@ class Provider extends DiProvider
         $this->di->bind(iOSCredentialsService::class, function (Di $di): iOSCredentialsService {
             return new iOSCredentialsService(
                 expoGqlClient: $di->get(ExpoGqlClient::class),
-                config: $di->get(ExpoConfig::class),
+                expoConfig: $di->get(ExpoConfig::class),
+                config: $di->get('Config'),
+                multiTenantDataService: $di->get(MultiTenantDataService::class),
                 getAllAppleAppIdentifiersQuery: $di->get(GetAllAppleAppIdentifiersQuery::class),
                 createAppleAppIdentifierQuery: $di->get(CreateAppleAppIdentifierQuery::class),
                 createAppleDistributionCertificateQuery: $di->get(CreateAppleDistributionCertificateQuery::class),
@@ -108,7 +113,9 @@ class Provider extends DiProvider
         $this->di->bind(ProjectsService::class, function (Di $di): ProjectsService {
             return new ProjectsService(
                 expoHttpClient: $di->get(ExpoHttpClient::class),
-                config: $di->get(ExpoConfig::class)
+                expoConfig: $di->get(ExpoConfig::class),
+                config: $di->get('Config'),
+                multiTenantConfigsManager: $di->get(MultiTenantConfigsManager::class)
             );
         });
 

@@ -10,6 +10,7 @@ use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
 use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Exceptions\NotFoundException;
+use Minds\Exceptions\ServerErrorException;
 
 /**
  * Manager for multi-tenant configs.
@@ -34,6 +35,10 @@ class Manager
     ): ?MultiTenantConfig {
         $tenantId = $this->config->get('tenant_id');
 
+        if (!$tenantId) {
+            throw new ServerErrorException('There is no tenant id set. Ensure that you are on a tenant domain.');
+        }
+
         try {
             return $this->repository->get(
                 tenantId: $tenantId,
@@ -55,10 +60,11 @@ class Manager
      * @return bool - true on success.
      */
     public function upsertConfigs(
-        ?string $siteName,
-        ?MultiTenantColorScheme $colorScheme,
-        ?string $primaryColor,
-        ?string $communityGuidelines
+        ?string $siteName = null,
+        ?MultiTenantColorScheme $colorScheme = null,
+        ?string $primaryColor = null,
+        ?string $communityGuidelines = null,
+        ?string $expoProjectId = null
     ): bool {
         $tenantId = $this->config->get('tenant_id');
 
@@ -67,7 +73,8 @@ class Manager
             siteName: $siteName,
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
-            communityGuidelines: $communityGuidelines
+            communityGuidelines: $communityGuidelines,
+            expoProjectId: $expoProjectId
         );
 
         if ($result) {

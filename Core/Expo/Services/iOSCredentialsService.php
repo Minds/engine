@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Expo\Services;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Expo\Clients\ExpoGqlClient;
 use Minds\Core\Expo\ExpoConfig;
 use Minds\Core\Expo\Queries\Credentials\iOS\CreateAppleAppIdentifierQuery;
@@ -16,6 +17,7 @@ use Minds\Core\Expo\Queries\Credentials\iOS\DeleteIosAppCredentialsQuery;
 use Minds\Core\Expo\Queries\Credentials\iOS\GetAllAppleAppIdentifiersQuery;
 use Minds\Core\Expo\Queries\Credentials\iOS\SetAscApiKeyForIosAppCredentialsQuery;
 use Minds\Core\Expo\Queries\Credentials\iOS\SetPushKeyForIosAppCredentialsQuery;
+use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Exceptions\ServerErrorException;
 
 /**
@@ -25,7 +27,9 @@ class iOSCredentialsService
 {
     public function __construct(
         private ExpoGqlClient $expoGqlClient,
-        private ExpoConfig $config,
+        private ExpoConfig $expoConfig,
+        private Config $config,
+        private MultiTenantDataService $multiTenantDataService,
         private GetAllAppleAppIdentifiersQuery $getAllAppleAppIdentifiersQuery,
         private CreateAppleAppIdentifierQuery $createAppleAppIdentifierQuery,
         private CreateAppleDistributionCertificateQuery $createAppleDistributionCertificateQuery,
@@ -69,8 +73,10 @@ class iOSCredentialsService
         string $ascKeyIssuerIdentifier,
         string $ascName
     ): array {
-        $accountId = $this->config->accountId;
-        $projectId = $this->config->projectId;
+        $accountId = $this->expoConfig->accountId;
+        $tenantId = $this->config->get('tenant_id') ?? throw new ServerErrorException('No tenant id set');
+        $tenantConfigs = $this->multiTenantDataService->getTenantFromId($tenantId);
+        $projectId = $tenantConfigs?->config?->expoProjectId ?? throw new ServerErrorException('No expo_project_id configured for tenant');
 
         $appleAppIdentifierId = $this->getOrCreateAppleAppIdentifier(
             bundleIdentifier: $bundleIdentifier,
@@ -87,7 +93,7 @@ class iOSCredentialsService
             ascKeyIdentifier: $ascKeyIdentifier,
             ascKeyIssuerIdentifier: $ascKeyIssuerIdentifier,
             ascName: $ascName,
-            accountId: $this->config->accountId,
+            accountId: $this->expoConfig->accountId,
             appleAppIdentifierId: $appleAppIdentifierId
         );
 
@@ -186,7 +192,7 @@ class iOSCredentialsService
             keyIdentifier: $pushKeyIdentifier,
             keyP8: $pushKeyP8,
             accountId: $accountId,
-            appleTeamId: $this->config->appleTeamId
+            appleTeamId: $this->expoConfig->appleTeamId
         );
 
         $preparedCreateAscApiKeyResponse = $this->createAscApiKeyQuery->build(
@@ -219,7 +225,7 @@ class iOSCredentialsService
     private function getAllAppleAppIdentifiers(): array
     {
         $response = $this->expoGqlClient->request($this->getAllAppleAppIdentifiersQuery->build(
-            accountName: $this->config->accountName
+            accountName: $this->expoConfig->accountName
         ));
         return $response['data']['account']['byName']['appleAppIdentifiers'] ?? null;
     }
@@ -379,7 +385,7 @@ class iOSCredentialsService
             keyIdentifier: $pushKeyIdentifier,
             keyP8: $pushKeyP8,
             accountId: $accountId,
-            appleTeamId: $this->config->appleTeamId
+            appleTeamId: $this->expoConfig->appleTeamId
         ));
         return $response['data']['applePushKey']['createApplePushKey'] ?? null;
     }

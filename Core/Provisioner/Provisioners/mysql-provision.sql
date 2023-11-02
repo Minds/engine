@@ -429,6 +429,8 @@ CREATE TABLE IF NOT EXISTS minds_tenant_configs (
     site_email varchar(128),
     primary_color varchar(16),
     color_scheme varchar(32),
+    community_guidelines text
+    expo_project_id varchar(64),
     updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (tenant_id)
 );
@@ -567,3 +569,7 @@ ALTER TABLE `friends` ADD COLUMN tenant_id int AFTER friend_guid;
 ALTER TABLE `minds_tenant_configs`
     ADD community_guidelines text DEFAULT NULL
     AFTER color_scheme;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD expo_project_id varchar(64) DEFAULT NULL
+    AFTER community_guidelines;

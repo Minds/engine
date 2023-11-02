@@ -47,21 +47,23 @@ class AndroidCredentialsController
         return new JsonResponse($response);
     }
 
-    /**
-     * Delete project credentials in expo for an Android app.
-     * @param ServerRequest $request - The request.
-     * @return JsonResponse - The response.
-     */
-    public function deleteProjectCredentials(ServerRequest $request): JsonResponse
-    {
-        $parameters = $request->getAttribute('parameters');
+    // /**
+    //  * Delete project credentials in expo for an Android app.
+    //  * @param ServerRequest $request - The request.
+    //  * @return JsonResponse - The response.
+    //  */
+    // public function deleteProjectCredentials(ServerRequest $request): JsonResponse
+    // {
+    //     // TODO: This endpoint needs to be secured to release if we need it - we may want to pull the
+    //     // androidAppCredentials from tenant configs rather than having it as an input parameter.
+    //     $parameters = $request->getAttribute('parameters');
 
-        $androidAppCredentialsId = $parameters['appCredentialsId'] ?? throw new UserErrorException('Missing appCredentialsId');
+    //     $androidAppCredentialsId = $parameters['appCredentialsId'] ?? throw new UserErrorException('Missing appCredentialsId');
 
-        $this->androidCredentialsService->deleteProjectCredentials(
-            androidAppCredentialsId: $androidAppCredentialsId,
-        );
+    //     $this->androidCredentialsService->deleteProjectCredentials(
+    //         androidAppCredentialsId: $androidAppCredentialsId,
+    //     );
 
-        return new JsonResponse([]);
-    }
+    //     return new JsonResponse([]);
+    // }
 }

@@ -15,7 +15,7 @@ class ExpoGqlClient
 {
     public function __construct(
         private GuzzleClient $guzzleClient,
-        private ExpoConfig $config,
+        private ExpoConfig $expoConfig,
         private Logger $logger
     ) {
     }
@@ -30,10 +30,10 @@ class ExpoGqlClient
     public function request(array $body = null): ?array
     {
         try {
-            $response = $this->guzzleClient->request('POST', $this->config->gqlApiUrl, [
+            $response = $this->guzzleClient->request('POST', $this->expoConfig->gqlApiUrl, [
                 'headers' => [
                     'Content-Type' => 'application/json',
-                    'Authorization' => "Bearer {$this->config->bearerToken}"
+                    'Authorization' => "Bearer {$this->expoConfig->bearerToken}"
                 ],
                 'body' => json_encode($body)
             ]);

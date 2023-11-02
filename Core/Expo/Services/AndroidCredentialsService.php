@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Expo\Services;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Expo\Clients\ExpoGqlClient;
 use Minds\Core\Expo\ExpoConfig;
 use Minds\Core\Expo\Queries\Credentials\Android\CreateAndroidAppBuildCredentialsQuery;
@@ -13,6 +14,7 @@ use Minds\Core\Expo\Queries\Credentials\Android\CreateGoogleServiceAccountKeyQue
 use Minds\Core\Expo\Queries\Credentials\Android\DeleteAndroidAppCredentialsQuery;
 use Minds\Core\Expo\Queries\Credentials\Android\SetFcmKeyOnAndroidAppCredentialsQuery;
 use Minds\Core\Expo\Queries\Credentials\Android\SetGoogleServiceAccountKeyOnAndroidAppCredentialsQuery;
+use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Exceptions\ServerErrorException;
 
 /**
@@ -22,7 +24,9 @@ class AndroidCredentialsService
 {
     public function __construct(
         private ExpoGqlClient $expoGqlClient,
-        private ExpoConfig $config,
+        private ExpoConfig $expoConfig,
+        private Config $config,
+        private MultiTenantDataService $multiTenantDataService,
         private CreateAndroidKeystoreQuery $createAndroidKeystoreQuery,
         private CreateAndroidAppCredentialsQuery $createAndroidAppCredentialsQuery,
         private CreateAndroidAppBuildCredentialsQuery $createAndroidAppBuildCredentialsQuery,
@@ -55,10 +59,14 @@ class AndroidCredentialsService
         string $googleServiceAccountJson,
         string $googleCloudMessagingToken
     ): array {
+        $tenantId = $this->config->get('tenant_id') ?? throw new ServerErrorException('No tenant id set');
+        $tenantConfigs = $this->multiTenantDataService->getTenantFromId($tenantId);
+        $projectId = $tenantConfigs?->config?->expoProjectId ?? throw new ServerErrorException('No expo project id configured for tenant');
+
         $decodedGoogleServiceAccountJson = json_decode($googleServiceAccountJson, true);
 
         $batchPreAppCredentialCreationQueriesResponse = $this->batchPreAppCredentialCreationQueries(
-            accountId: $this->config->accountId,
+            accountId: $this->expoConfig->accountId,
             androidKeystorePassword: $androidKeystorePassword,
             androidKeystoreKeyAlias: $androidKeystoreKeyAlias,
             androidKeystoreKeyPassword: $androidKeystoreKeyPassword,
@@ -76,7 +84,7 @@ class AndroidCredentialsService
         $fcmKeyId = $batchPreAppCredentialCreationQueriesResponse["createFcmKey"]['id'] ?? throw new ServerErrorException('Failed to create fcm key');
 
         $createAndroidAppCredentialsResponse = $this->createAndroidAppCredentials(
-            projectId: $this->config->projectId,
+            projectId: $projectId,
             applicationIdentifier: $applicationIdentifier,
             fcmKeyId: $fcmKeyId,
             googleServiceAccountKeyId: $googleServiceAccountKeyId

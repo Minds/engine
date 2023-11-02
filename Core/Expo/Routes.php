@@ -6,6 +6,7 @@ namespace Minds\Core\Expo;
 use Minds\Core\Di\Ref;
 use Minds\Core\Expo\Controllers\AndroidCredentialsController;
 use Minds\Core\Expo\Controllers\iOSCredentialsController;
+use Minds\Core\Expo\Controllers\ProjectsController;
 use Minds\Core\Router\Middleware\AdminMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
@@ -28,26 +29,26 @@ class Routes extends ModuleRoutes
                     'credentials/android',
                     Ref::_(AndroidCredentialsController::class, 'setProjectCredentials')
                 );
-                $route->delete(
-                    'credentials/android/:appCredentialsId',
-                    Ref::_(AndroidCredentialsController::class, 'deleteProjectCredentials')
-                );
+                // $route->delete(
+                //     'credentials/android/:appCredentialsId',
+                //     Ref::_(AndroidCredentialsController::class, 'deleteProjectCredentials')
+                // );
 
                 // iOS credentials
                 $route->post(
                     'credentials/ios',
                     Ref::_(iOSCredentialsController::class, 'setProjectCredentials')
                 );
-                $route->delete(
-                    'credentials/ios/:appCredentialsId',
-                    Ref::_(iOSCredentialsController::class, 'deleteProjectCredentials')
-                );
+                // $route->delete(
+                //     'credentials/ios/:appCredentialsId',
+                //     Ref::_(iOSCredentialsController::class, 'deleteProjectCredentials')
+                // );
 
                 // Projects
 
                 $route->post(
                     'projects/new',
-                    Ref::_(ProjectsController::class, 'setProjectCredentials')
+                    Ref::_(ProjectsController::class, 'newProject')
                 );
             });
     }

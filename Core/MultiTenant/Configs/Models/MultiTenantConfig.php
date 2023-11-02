@@ -19,7 +19,9 @@ class MultiTenantConfig
         #[Field] public readonly ?MultiTenantColorScheme $colorScheme = null,
         #[Field] public readonly ?string $primaryColor = null,
         #[Field] public readonly ?string $communityGuidelines = null,
-        #[Field] public readonly ?int $updatedTimestamp = null
+        #[Field] public readonly ?string $termsOfService = null,
+        #[Field] public readonly ?int $updatedTimestamp = null,
+        public readonly ?string $expoProjectId = null
     ) {
     }
 }

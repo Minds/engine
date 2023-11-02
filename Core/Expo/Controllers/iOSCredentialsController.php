@@ -55,21 +55,23 @@ class iOSCredentialsController
         return new JsonResponse($result);
     }
 
-    /**
-     * Delete project credentials in expo for an iOS app.
-     * @param ServerRequest $request - The request.
-     * @return JsonResponse - The response.
-     */
-    public function deleteProjectCredentials(ServerRequest $request): JsonResponse
-    {
-        $parameters = $request->getAttribute('parameters');
+    // /**
+    //  * Delete project credentials in expo for an iOS app.
+    //  * @param ServerRequest $request - The request.
+    //  * @return JsonResponse - The response.
+    //  */
+    // public function deleteProjectCredentials(ServerRequest $request): JsonResponse
+    // {
+    //     // TODO: This endpoint needs to be secured to release if we need it - we may want to pull the
+    //     // iosAppCredentials from tenant configs rather than having it as an input parameter.
+    //     $parameters = $request->getAttribute('parameters');
 
-        $iosAppCredentialsId = $parameters['appCredentialsId'] ?? throw new UserErrorException('Missing appCredentialsId');
+    //     $iosAppCredentialsId = $parameters['appCredentialsId'] ?? throw new UserErrorException('Missing appCredentialsId');
 
-        $this->iosCredentialsService->deleteProjectCredentials(
-            iosAppCredentialsId: $iosAppCredentialsId,
-        );
+    //     $this->iosCredentialsService->deleteProjectCredentials(
+    //         iosAppCredentialsId: $iosAppCredentialsId,
+    //     );
 
-        return new JsonResponse([]);
-    }
+    //     return new JsonResponse([]);
+    // }
 }

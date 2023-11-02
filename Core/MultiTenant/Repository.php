@@ -68,6 +68,8 @@ class Repository extends AbstractRepository
                 'site_email',
                 'primary_color',
                 'color_scheme',
+                'community_guidelines',
+                'expo_project_id',
                 'updated_timestamp'
             ]);
     }
@@ -82,6 +84,8 @@ class Repository extends AbstractRepository
         $siteEmail = $row['site_email'] ?? null;
         $primaryColor = $row['primary_color'] ?? null;
         $colorScheme = $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null;
+        $communityGuidelines = $row['community_guidelines'] ?? null;
+        $expoProjectId = $row['expo_project_id'] ?? null;
         $updatedTimestamp = $row['updated_timestamp'] ?? null;
 
         return new Tenant(
@@ -94,6 +98,8 @@ class Repository extends AbstractRepository
                 siteEmail: $siteEmail,
                 primaryColor: $primaryColor,
                 colorScheme: $colorScheme,
+                communityGuidelines: $communityGuidelines,
+                expoProjectId: $expoProjectId,
                 updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null
             )
         );
