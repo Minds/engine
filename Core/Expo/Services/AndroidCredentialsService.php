@@ -45,8 +45,8 @@ class AndroidCredentialsService
      * @param string $androidKeystoreKeyAlias - the alias for the keystore key.
      * @param string $androidKeystoreKeyPassword - the password for the keystore key.
      * @param string $androidBase64EncodedKeystore - the base64 encoded keystore.
-     * @param string $googleServiceAccountJson - the json for the google service account.
-     * @param string $googleCloudMessagingToken - the token for google cloud messaging for push support.
+     * @param string|null $googleServiceAccountJson - the json for the google service account.
+     * @param string|null $googleCloudMessagingToken - the token for google cloud messaging for push support.
      * @throws ServerErrorException - if any of the steps fail.
      * @return array - the ids of the created credentials.
      */
@@ -56,14 +56,15 @@ class AndroidCredentialsService
         string $androidKeystoreKeyAlias,
         string $androidKeystoreKeyPassword,
         string $androidBase64EncodedKeystore,
-        string $googleServiceAccountJson,
-        string $googleCloudMessagingToken
+        ?string $googleServiceAccountJson = null,
+        ?string $googleCloudMessagingToken  = null
     ): array {
         $tenantId = $this->config->get('tenant_id') ?? throw new ServerErrorException('No tenant id set');
         $tenantConfigs = $this->multiTenantDataService->getTenantFromId($tenantId);
-        $projectId = $tenantConfigs?->config?->expoProjectId ?? throw new ServerErrorException('No expo project id configured for tenant');
+        $projectId = $tenantConfigs?->config?->expoProjectId ??
+            throw new ServerErrorException('No expo project id configured for tenant');
 
-        $decodedGoogleServiceAccountJson = json_decode($googleServiceAccountJson, true);
+        $decodedGoogleServiceAccountJson = json_decode($googleServiceAccountJson ?? '', true) ?? null;
 
         $batchPreAppCredentialCreationQueriesResponse = $this->batchPreAppCredentialCreationQueries(
             accountId: $this->expoConfig->accountId,
@@ -79,9 +80,18 @@ class AndroidCredentialsService
             throw new ServerErrorException('Failed to create pre-requisits for android app credentials');
         }
 
-        $googleServiceAccountKeyId = $batchPreAppCredentialCreationQueriesResponse['createGoogleServiceAccountKey']['id'] ?? throw new ServerErrorException('Failed to create google service account credentials');
-        $keystoreId = $batchPreAppCredentialCreationQueriesResponse['createAndroidKeystore']['id'] ?? throw new ServerErrorException('Failed to create android keystore');
-        $fcmKeyId = $batchPreAppCredentialCreationQueriesResponse["createFcmKey"]['id'] ?? throw new ServerErrorException('Failed to create fcm key');
+        $keystoreId = $batchPreAppCredentialCreationQueriesResponse['createAndroidKeystore']['id'] ??
+            throw new ServerErrorException('Failed to create android keystore');
+
+        if ($decodedGoogleServiceAccountJson) {
+            $googleServiceAccountKeyId = $batchPreAppCredentialCreationQueriesResponse['createGoogleServiceAccountKey']['id'] ??
+                throw new ServerErrorException('Failed to create google service account credentials');
+        }
+
+        if ($googleCloudMessagingToken) {
+            $fcmKeyId = $batchPreAppCredentialCreationQueriesResponse["createAndroidFcm"]['id'] ??
+                throw new ServerErrorException('Failed to create fcm key');
+        }
 
         $createAndroidAppCredentialsResponse = $this->createAndroidAppCredentials(
             projectId: $projectId,
@@ -113,55 +123,6 @@ class AndroidCredentialsService
     }
 
     /**
-     * Batch the pre-app credential creation queries.
-     * @param string $accountId - the id of the account to create the credentials for.
-     * @param string $androidKeystorePassword - the password for the keystore.
-     * @param string $androidKeystoreKeyAlias - the alias for the keystore key.
-     * @param string $androidKeystoreKeyPassword - the password for the keystore key.
-     * @param string $androidBase64EncodedKeystore - the base64 encoded keystore.
-     * @param string $googleCloudMessagingToken - the token for google cloud messaging for push support.
-     * @param array $googleServiceAccountCredentials - the credentials for the google service account (an array from the decoded JSON file).
-     * @return array - the responses from the queries.
-     */
-    private function batchPreAppCredentialCreationQueries(
-        string $accountId,
-        string $androidKeystorePassword,
-        string $androidKeystoreKeyAlias,
-        string $androidKeystoreKeyPassword,
-        string $androidBase64EncodedKeystore,
-        string $googleCloudMessagingToken,
-        array $googleServiceAccountCredentials
-    ): array {
-        $preparedCreateGoogleServiceAccountKeyQuery = $this->createGoogleServiceAccountKeyQuery->build(
-            accountId: $accountId,
-            googleServiceAccountCredentials: $googleServiceAccountCredentials
-        );
-        $preparedCreateFcmKeyQuery = $this->createFcmKeyQuery->build(
-            accountId: $accountId,
-            googleCloudMessagingToken: $googleCloudMessagingToken
-        );
-        $preparedCreateAndroidKeystoreQuery = $this->createAndroidKeystoreQuery->build(
-            accountId: $accountId,
-            androidKeystorePassword: $androidKeystorePassword,
-            androidKeystoreKeyAlias: $androidKeystoreKeyAlias,
-            androidKeystoreKeyPassword: $androidKeystoreKeyPassword,
-            androidBase64EncodedKeystore: $androidBase64EncodedKeystore
-        );
-
-        $batchResponse = $this->expoGqlClient->request([
-            $preparedCreateGoogleServiceAccountKeyQuery,
-            $preparedCreateFcmKeyQuery,
-            $preparedCreateAndroidKeystoreQuery
-        ]);
-
-        return [
-            'createGoogleServiceAccountKey' => $batchResponse[0]['data']['googleServiceAccountKey']['createGoogleServiceAccountKey'],
-            'createFcmKey' => $batchResponse[1]['data']['androidFcm']['createAndroidFcm'],
-            'createAndroidKeystore' => $batchResponse[2]['data']['androidKeystore']['createAndroidKeystore']
-        ];
-    }
-
-    /**
      * Delete the android app credentials.
      * @param string $androidAppCredentialsId - the id of the android app credentials to delete.
      * @return array|null - the response from the query or null on error.
@@ -172,6 +133,62 @@ class AndroidCredentialsService
             androidAppCredentialsId: $androidAppCredentialsId
         ));
         return $response ?? null;
+    }
+
+    /**
+     * Batch the pre-app credential creation queries.
+     * @param string $accountId - the id of the account to create the credentials for.
+     * @param string $androidKeystorePassword - the password for the keystore.
+     * @param string $androidKeystoreKeyAlias - the alias for the keystore key.
+     * @param string $androidKeystoreKeyPassword - the password for the keystore key.
+     * @param string $androidBase64EncodedKeystore - the base64 encoded keystore.
+     * @param string|null $googleCloudMessagingToken - the token for google cloud messaging for push support.
+     * @param array|null $googleServiceAccountCredentials - the credentials for the google service account (an array from the decoded JSON file).
+     * @return array - the responses from the queries.
+     */
+    private function batchPreAppCredentialCreationQueries(
+        string $accountId,
+        string $androidKeystorePassword,
+        string $androidKeystoreKeyAlias,
+        string $androidKeystoreKeyPassword,
+        string $androidBase64EncodedKeystore,
+        ?string $googleCloudMessagingToken,
+        ?array $googleServiceAccountCredentials
+    ): array {
+        $queries = [];
+        $queries[] = $this->createAndroidKeystoreQuery->build(
+            accountId: $accountId,
+            androidKeystorePassword: $androidKeystorePassword,
+            androidKeystoreKeyAlias: $androidKeystoreKeyAlias,
+            androidKeystoreKeyPassword: $androidKeystoreKeyPassword,
+            androidBase64EncodedKeystore: $androidBase64EncodedKeystore
+        );
+
+        if ($googleServiceAccountCredentials) {
+            $queries[] = $this->createGoogleServiceAccountKeyQuery->build(
+                accountId: $accountId,
+                googleServiceAccountCredentials: $googleServiceAccountCredentials
+            );
+        }
+
+        if ($googleCloudMessagingToken) {
+            $queries[] = $this->createFcmKeyQuery->build(
+                accountId: $accountId,
+                googleCloudMessagingToken: $googleCloudMessagingToken
+            );
+        }
+
+        $batchResponse = $this->expoGqlClient->request($queries);
+
+        $response = [];
+
+        foreach ($batchResponse as $responseItem) {
+            $arrayKey = array_key_first($responseItem['data']);
+            $innerArrayKey = array_key_first($responseItem['data'][$arrayKey]);
+            $response[$innerArrayKey] = $responseItem['data'][$arrayKey][$innerArrayKey];
+        }
+
+        return $response;
     }
 
     /**

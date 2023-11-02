@@ -31,12 +31,12 @@ class iOSCredentialsController
         $distributionCertP12 = $requestBody['distribution_cert_p12'] ?? throw new UserErrorException('Missing distribution_cert_p12');
         $distributionCertPassword = $requestBody['distribution_cert_password'] ?? throw new UserErrorException('Missing distribution_cert_password');
         $appleProvisioningProfile = $requestBody['provisioning_profile'] ?? throw new UserErrorException('Missing provisioning_profile');
-        $pushKeyP8 = $requestBody['push_key_p8'] ?? throw new UserErrorException('Missing push_key_p8');
-        $pushKeyIdentifier = $requestBody['push_key_identifier'] ?? throw new UserErrorException('Missing push_key_identifier');
-        $ascKeyP8 = $requestBody['asc_key_p8'] ?? throw new UserErrorException('Missing asc_key_p8');
-        $ascKeyIdentifier = $requestBody['asc_key_identifier'] ?? throw new UserErrorException('Missing asc_key_identifier');
-        $ascKeyIssuerIdentifier = $requestBody['asc_issuer_identifier'] ?? throw new UserErrorException('Missing asc_issuer_identifier');
-        $ascName = $requestBody['asc_name'] ?? throw new UserErrorException('Missing asc_name');
+        $pushKeyP8 = $requestBody['push_key_p8'] ?? null;
+        $pushKeyIdentifier = $requestBody['push_key_identifier'] ?? null;
+        $ascKeyP8 = $requestBody['asc_key_p8'] ?? null;
+        $ascKeyIdentifier = $requestBody['asc_key_identifier'] ?? null;
+        $ascKeyIssuerIdentifier = $requestBody['asc_issuer_identifier'] ?? null;
+        $ascName = $requestBody['asc_name'] ?? null;
 
         $result = $this->iosCredentialsService->setupProjectCredentials(
             bundleIdentifier: $bundleIdentifier,

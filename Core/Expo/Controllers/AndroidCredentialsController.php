@@ -31,8 +31,8 @@ class AndroidCredentialsController
         $androidKeystoreKeyAlias = $requestBody['android_keystore_key_alias'] ?? throw new UserErrorException('Missing android_keystore_key_alias');
         $androidKeystoreKeyPassword = $requestBody['android_keystore_key_password'] ?? throw new UserErrorException('Missing android_keystore_key_password');
         $androidBase64EncodedKeystore = $requestBody['android_base64_keystore'] ?? throw new UserErrorException('Missing android_base64_keystore');
-        $googleServiceAccountJson = $requestBody['google_service_account_json'] ?? throw new UserErrorException('Missing google_service_account_json');
-        $googleCloudMessagingToken = $requestBody['google_cloud_messaging_token'] ?? throw new UserErrorException('Missing google_cloud_messaging_token');
+        $googleServiceAccountJson = $requestBody['google_service_account_json'] ?? null;
+        $googleCloudMessagingToken = $requestBody['google_cloud_messaging_token'] ?? null;
 
         $response = $this->androidCredentialsService->setupProjectCredentials(
             applicationIdentifier: $applicationIdentifier,
