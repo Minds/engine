@@ -35,4 +35,16 @@ class MultiTenantDataService
     {
         return $this->repository->getTenantFromId($id);
     }
+
+    public function getTenants(
+        int $limit = 12,
+        int $offset = 0,
+        ?int $ownerGuid = null,
+    ): iterable {
+        return $this->repository->getTenants(
+            limit: $limit,
+            offset: $offset,
+            ownerGuid: $ownerGuid,
+        );
+    }
 }

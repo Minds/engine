@@ -71,8 +71,7 @@ class Repository extends AbstractRepository
                 'updated_timestamp'
             ]);
     }
-
-    private function buildTenantModel(array $row)
+    private function buildTenantModel(array $row): Tenant
     {
         $tenantId = $row['tenant_id'];
         $domain = $row['domain'];
@@ -92,8 +91,8 @@ class Repository extends AbstractRepository
             config: new MultiTenantConfig(
                 siteName: $siteName,
                 siteEmail: $siteEmail,
-                primaryColor: $primaryColor,
                 colorScheme: $colorScheme,
+                primaryColor: $primaryColor,
                 updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null
             )
         );
@@ -102,5 +101,51 @@ class Repository extends AbstractRepository
     public function getTenantFromId(int $id): ?Tenant
     {
         return $this->getTenantFromHash(md5($id));
+    }
+
+    /**
+     * @param int $limit
+     * @param int $offset
+     * @param int|null $ownerGuid
+     * @return Tenant[]
+     */
+    public function getTenants(
+        int $limit,
+        int $offset,
+        ?int $ownerGuid = null
+    ): iterable {
+        $query = $this->buildGetTenantQuery()
+            ->limit($limit)
+            ->offset($offset);
+
+        if ($ownerGuid) {
+            $query->where('owner_guid', Operator::EQ, $ownerGuid);
+        }
+
+        $stmt = $query->execute();
+
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $tenant) {
+            yield $this->buildTenantModel($tenant);
+        }
+    }
+
+    public function createTenant(Tenant $tenant): Tenant
+    {
+        $statement = $this->mysqlClientWriterHandler->insert()
+            ->into('minds_tenants')
+            ->set([
+                'tenant_id' => $tenant->id,
+                'owner_guid' => $tenant->ownerGuid,
+                'domain' => $tenant->domain,
+            ])
+            ->prepare();
+        $statement->execute();
+
+        return new Tenant(
+            id: $this->mysqlClientWriter->lastInsertId(),
+            domain: $tenant->domain,
+            ownerGuid: $tenant->ownerGuid,
+            config: $tenant->config
+        );
     }
 }
