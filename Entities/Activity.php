@@ -111,6 +111,9 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         parent::__construct($guid);
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->activityManager = $activityManager ?? Di::_()->get('Feeds\Activity\Manager');
+        if ($cache) {
+            // Do nothing, stops static analysis falure until we refactor not having this value
+        }
     }
 
     /**
