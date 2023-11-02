@@ -185,7 +185,8 @@ class AndroidCredentialsService
      * Delete the android app credentials.
      * @return bool - true if there is a response.
      */
-    public function deleteProjectCredentials(): bool {
+    public function deleteProjectCredentials(): bool
+    {
         $tenantId = $this->config->get('tenant_id') ?? throw new ServerErrorException('No tenant id set');
         $tenant = $this->multiTenantDataService->getTenantFromId($tenantId);
 
@@ -266,8 +267,7 @@ class AndroidCredentialsService
         string $accountId,
         ?array $googleServiceAccountCredentials = null,
         ?string $googleCloudMessagingToken = null
-    ): array
-    {
+    ): array {
         $queries = [];
 
         if ($googleServiceAccountCredentials) {

@@ -55,11 +55,11 @@ class iOSCredentialsController
         return new JsonResponse($result);
     }
 
-     /**
-     * Update project credentials in Expo for an iOS app.
-     * @param ServerRequest $request - The request.
-     * @return JsonResponse - The response.
-     */
+    /**
+    * Update project credentials in Expo for an iOS app.
+    * @param ServerRequest $request - The request.
+    * @return JsonResponse - The response.
+    */
     public function updateProjectCredentials(ServerRequest $request): JsonResponse
     {
         $requestBody = $request->getParsedBody();
