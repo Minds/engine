@@ -1,8 +1,22 @@
 <?php
 namespace Minds\Core\Notifications;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
+
 class NotificationTypes
 {
+
+    /**
+     * Constructor.
+     */
+    public function __construct(
+        private ?Config $config = null,
+    ) {
+        $this->config ??= Di::_()->get(Config::class);
+    }
+
+
     /**
      * *******************************************
      * Votes
@@ -330,7 +344,6 @@ class NotificationTypes
      * All notifications
      * *******************************************
      * *******************************************
-     *
      */
 
     /** @var string[] */
@@ -405,4 +418,35 @@ class NotificationTypes
         self::GROUPING_TYPE_AFFILIATE_EARNINGS => self::GROUPING_AFFILIATE_EARNINGS,
         self::GROUPING_TYPE_GIFT_CARDS => self::GROUPING_GIFT_CARDS,
     ];
+
+
+    /**
+     * Get allowed types groupings
+     * Based on whether is_tenant
+     * @return array - array of grouping arrays
+     */
+    public function getTypesGroupings(): array
+    {
+        $defaultTypesGroupings = self::TYPES_GROUPINGS;
+
+        if (!$this->isMultiTenant()){
+            return $defaultTypesGroupings;
+        } else {
+            $forbiddenTenantTypes = [
+                self::GROUPING_TYPE_TOKENS,
+                self::GROUPING_TYPE_CHATS,
+                self::GROUPING_TYPE_TOP_POSTS,
+                self::GROUPING_TYPE_SUPERMIND,
+                self::GROUPING_TYPE_AFFILIATE_EARNINGS,
+                self::GROUPING_TYPE_GIFT_CARDS
+            ];
+
+            return array_diff($defaultTypesGroupings, $forbiddenTenantTypes);
+        }
+    }
+
+    private function isMultiTenant(): bool
+    {
+        return !!$this->config->get('tenant_id');
+    }
 }

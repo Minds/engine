@@ -28,13 +28,21 @@ class PushSetting
     /** @var bool */
     protected $enabled = true;
 
+    /** @var NotificationTypes */
+    private $notificationTypes;
+
+    public function __construct(NotificationTypes $notificationTypes = null)
+    {
+        $this->notificationTypes = $notificationTypes ?? new NotificationTypes;
+    }
+
     /**
      * @param string
      * @return self
      */
     public function setNotificationGroup(string $notificationGroup): self
     {
-        if (!isset(NotificationTypes::TYPES_GROUPINGS[$notificationGroup]) && $notificationGroup != self::ALL) {
+        if (!isset($this->notificationTypes->getTypesGroupings()[$notificationGroup]) && $notificationGroup != self::ALL) {
             throw new \Exception("NotificationGroup $notificationGroup not found in NotificationTypes::TYPES_GROUPINGS");
         }
         $this->notificationGroup = $notificationGroup;
