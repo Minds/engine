@@ -26,11 +26,17 @@ class AndroidCredentialsController
     public function setProjectCredentials(ServerRequest $request): JsonResponse
     {
         $requestBody = $request->getParsedBody();
-        $applicationIdentifier = $requestBody['application_identifier'] ?? throw new UserErrorException('Missing application_identifier');
-        $androidKeystorePassword = $requestBody['android_keystore_password'] ?? throw new UserErrorException('Missing android_keystore_password');
-        $androidKeystoreKeyAlias = $requestBody['android_keystore_key_alias'] ?? throw new UserErrorException('Missing android_keystore_key_alias');
-        $androidKeystoreKeyPassword = $requestBody['android_keystore_key_password'] ?? throw new UserErrorException('Missing android_keystore_key_password');
-        $androidBase64EncodedKeystore = $requestBody['android_base64_keystore'] ?? throw new UserErrorException('Missing android_base64_keystore');
+        $applicationIdentifier = $requestBody['application_identifier'] ??
+            throw new UserErrorException('Missing application_identifier');
+        $androidKeystorePassword = $requestBody['android_keystore_password'] ??
+            throw new UserErrorException('Missing android_keystore_password');
+        $androidKeystoreKeyAlias = $requestBody['android_keystore_key_alias'] ??
+            throw new UserErrorException('Missing android_keystore_key_alias');
+        $androidKeystoreKeyPassword = $requestBody['android_keystore_key_password'] ??
+            throw new UserErrorException('Missing android_keystore_key_password');
+        $androidBase64EncodedKeystore = $requestBody['android_base64_keystore'] ??
+            throw new UserErrorException('Missing android_base64_keystore');
+
         $googleServiceAccountJson = $requestBody['google_service_account_json'] ?? null;
         $googleCloudMessagingToken = $requestBody['google_cloud_messaging_token'] ?? null;
 

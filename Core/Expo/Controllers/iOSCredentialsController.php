@@ -26,11 +26,16 @@ class iOSCredentialsController
     public function setProjectCredentials(ServerRequest $request): JsonResponse
     {
         $requestBody = $request->getParsedBody();
-        $bundleIdentifier = $requestBody['bundle_identifier'] ?? throw new UserErrorException('Missing bundle_identifier');
+        $bundleIdentifier = $requestBody['bundle_identifier'] ??
+            throw new UserErrorException('Missing bundle_identifier');
+        $distributionCertP12 = $requestBody['distribution_cert_p12'] ??
+            throw new UserErrorException('Missing distribution_cert_p12');
+        $distributionCertPassword = $requestBody['distribution_cert_password'] ??
+            throw new UserErrorException('Missing distribution_cert_password');
+        $appleProvisioningProfile = $requestBody['provisioning_profile'] ??
+            throw new UserErrorException('Missing provisioning_profile');
+
         $iosDistributionType = $requestBody['ios_distribution_type'] ?? 'DEVELOPMENT';
-        $distributionCertP12 = $requestBody['distribution_cert_p12'] ?? throw new UserErrorException('Missing distribution_cert_p12');
-        $distributionCertPassword = $requestBody['distribution_cert_password'] ?? throw new UserErrorException('Missing distribution_cert_password');
-        $appleProvisioningProfile = $requestBody['provisioning_profile'] ?? throw new UserErrorException('Missing provisioning_profile');
         $pushKeyP8 = $requestBody['push_key_p8'] ?? null;
         $pushKeyIdentifier = $requestBody['push_key_identifier'] ?? null;
         $ascKeyP8 = $requestBody['asc_key_p8'] ?? null;
