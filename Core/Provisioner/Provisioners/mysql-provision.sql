@@ -434,7 +434,7 @@ CREATE TABLE IF NOT EXISTS minds_tenant_configs (
 );
 
 CREATE TABLE `minds_entities` (
-  `tenant_id` bigint NOT NULL,
+  `tenant_id` int NOT NULL,
   `guid` bigint NOT NULL,
   `owner_guid` bigint DEFAULT NULL,
   `type` varchar(32) DEFAULT NULL,
@@ -446,7 +446,7 @@ CREATE TABLE `minds_entities` (
 
 CREATE TABLE `minds_entities_user` (
   `guid` bigint NOT NULL,
-  `tenant_id` bigint NOT NULL,
+  `tenant_id` int NOT NULL,
   `username` varchar(128) DEFAULT NULL,
   `name` text,
   `briefdescription` text,
@@ -484,7 +484,7 @@ CREATE TABLE `minds_entities_user` (
 );
 
 CREATE TABLE `minds_entities_group` (
-  `tenant_id` bigint NOT NULL,
+  `tenant_id` int NOT NULL,
   `guid` bigint NOT NULL,
   `name` varchar(128) DEFAULT NULL,
   `brief_description` text,
@@ -502,7 +502,7 @@ CREATE TABLE `minds_entities_group` (
 );
 
 CREATE TABLE `minds_entities_activity` (
-  `tenant_id` bigint NOT NULL,
+  `tenant_id` int NOT NULL,
   `guid` bigint NOT NULL,
   `message` text,
   `title` text,
@@ -527,7 +527,7 @@ CREATE TABLE `minds_entities_activity` (
 );
 
 CREATE TABLE `minds_entities_object_image` (
-  `tenant_id` bigint NOT NULL,
+  `tenant_id` int NOT NULL,
   `guid` bigint NOT NULL,
   `message` text,
   `title` text,
@@ -541,7 +541,7 @@ CREATE TABLE `minds_entities_object_image` (
 );
 
 CREATE TABLE `minds_entities_object_video` (
-  `tenant_id` bigint NOT NULL,
+  `tenant_id` int NOT NULL,
   `guid` bigint NOT NULL,
   `deleted` tinyint(1) DEFAULT '0',
   `time_created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -558,7 +558,7 @@ ALTER TABLE `minds_tenants`
     AFTER owner_guid;
 
 CREATE TABLE IF NOT EXISTS `minds_tenants_domain_details` (
-    `tenant_id` bigint NOT NULL PRIMARY KEY,
+    `tenant_id` int NOT NULL PRIMARY KEY,
     `domain` varchar(128) NOT NULL,
     `cloudflare_id` varchar(64) NOT NULL,
     `status` enum(
