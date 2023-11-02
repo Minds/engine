@@ -184,7 +184,8 @@ class Minds extends base
      */
     public function checkInstalled()
     {
-        if (Di::_()->get(Config\Config::class)->get('multi_tenant')['enabled']) {
+        $multiTenantConfig = Di::_()->get(Config\Config::class)->get('multi_tenant') ?? [];
+        if ($multiTenantConfig['enabled'] ?? false) {
             /** @var MultiTenant\Services\MultiTenantBootService */
             $service = Di::_()->get(MultiTenant\Services\MultiTenantBootService::class);
             $service

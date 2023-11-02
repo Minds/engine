@@ -271,7 +271,7 @@ CREATE TABLE IF NOT EXISTS minds_comments (
     guid bigint,
     entity_guid bigint,
     owner_guid bigint,
-    parent_guid bigint REFERENCES minds_comment(guid),
+    parent_guid bigint REFERENCES minds_comments(guid),
     parent_depth int,
     body text,
     attachments json,
@@ -416,7 +416,7 @@ ALTER TABLE minds_activitypub_uris
     ADD updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP;
 
 CREATE TABLE `minds_tenants` (
-  `tenant_id` int NOT NULL,
+  `tenant_id` int NOT NULL AUTO_INCREMENT,
   `owner_guid` bigint DEFAULT NULL,
   `domain` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`tenant_id`),
@@ -456,7 +456,7 @@ CREATE TABLE `minds_entities_user` (
   `username` varchar(128) DEFAULT NULL,
   `name` text,
   `briefdescription` text,
-  `email` varchar(256) DEFAULT NULL,
+  `email` text DEFAULT NULL,
   `password` varchar(256) DEFAULT NULL,
   `liquidity_spot_opt_out` tinyint(1) DEFAULT '0',
   `disabled_boost` tinyint(1) DEFAULT '0',
@@ -559,12 +559,12 @@ CREATE TABLE `minds_entities_object_video` (
   PRIMARY KEY (`tenant_id`,`guid`)
 );
 
-ALTER TABLE `minds_votes` ADD COLUMN `tenant_id` int DEFAULT NULL AFTER `user_guid`;
-CREATE INDEX `tenant_id` ON `minds_votes` (`tenant_id`);
-
 ALTER TABLE `minds_tenants`
     ADD root_user_guid bigint DEFAULT NULL
     AFTER owner_guid;
+
+ALTER TABLE `minds_votes` ADD COLUMN `tenant_id` int DEFAULT NULL AFTER `user_guid`;
+CREATE INDEX `tenant_id` ON `minds_votes` (`tenant_id`);
 
 ALTER TABLE `minds_entities_user` MODIFY COLUMN ip varchar(40);
 
