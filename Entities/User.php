@@ -8,6 +8,7 @@ use Minds\Core\Di\Di;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Core\Monetization\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
 use Minds\Core\Supermind\Settings\Models\Settings;
+use Minds\Core\Subscriptions;
 use Minds\Helpers;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
 
@@ -977,12 +978,9 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
             return false;
         }
 
-        $return = 0;
-        $db = new Core\Data\Call('friendsof');
-        $row = $db->getRow($this->guid, ['limit' => 1, 'offset' => $guid]);
-        if ($row && key($row) == $guid) {
-            $return = true;
-        }
+        /** @var Subscriptions\Manager */
+        $manager = Di::_()->get(Subscriptions\Manager::class);
+        $return = $manager->setSubscriber((new User)->set('guid', $guid))->isSubscribed($this);
 
         $cacher->set("$this->guid:isSubscriber:$guid", $return);
 
@@ -1008,12 +1006,9 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
             return false;
         }
 
-        $return = 0;
-        $db = new Core\Data\Call('friendsof');
-        $row = $db->getRow($guid, ['limit' => 1, 'offset' => $this->guid]);
-        if ($row && key($row) == $this->guid) {
-            $return = true;
-        }
+        /** @var Subscriptions\Manager */
+        $manager = Di::_()->get(Subscriptions\Manager::class);
+        $return = $manager->setSubscriber($this)->isSubscribed((new User)->set('guid', $guid));
 
         $cacher->set("$this->guid:isSubscribed:$guid", $return);
 
@@ -1022,16 +1017,9 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
 
     public function getSubscribersCount()
     {
-        $cacher = Core\Data\cache\factory::build();
-        if ($cache = $cacher->get("$this->guid:friendsofcount")) {
-            return $cache;
-        }
-
-        $db = new Core\Data\Call('friendsof');
-        $return = (int) $db->countRow($this->guid);
-        $cacher->set("$this->guid:friendsofcount", $return, 259200); //cache for 3 days
-
-        return (int) $return;
+        /** @var Subscriptions\Manager */
+        $manager = Di::_()->get(Subscriptions\Manager::class);
+        return $manager->setSubscriber($this)->getSubscribersCount();
     }
 
     /**
@@ -1039,18 +1027,11 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
      *
      * @return int
      */
-    public function getSubscriptonsCount()
+    public function getSubscriptionsCount()
     {
-        $cacher = Core\Data\cache\factory::build();
-        if ($cache = $cacher->get("$this->guid:friendscount")) {
-            return $cache;
-        }
-
-        $db = new Core\Data\Call('friends');
-        $return = (int) $db->countRow($this->guid);
-        $cacher->set("$this->guid:friendscount", $return, 259200); //cache for 3 days
-
-        return (int) $return;
+        /** @var Subscriptions\Manager */
+        $manager = Di::_()->get(Subscriptions\Manager::class);
+        return $manager->setSubscriber($this)->getSubscriptionsCount();
     }
 
     public function getMerchant()
@@ -2009,4 +1990,5 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
 
         return $array;
     }
+
 }

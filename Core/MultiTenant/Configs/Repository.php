@@ -46,6 +46,7 @@ class Repository extends AbstractRepository
             siteEmail: $row['site_email'] ?? null,
             colorScheme: $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null,
             primaryColor: $row['primary_color'] ?? null,
+            communityGuidelines: $row['community_guidelines'] ?? null,
             updatedTimestamp: strtotime($row['updated_timestamp']) ?? null
         );
     }
@@ -56,13 +57,15 @@ class Repository extends AbstractRepository
      * @param ?string $siteName - site name.
      * @param ?MultiTenantColorScheme $colorScheme - color scheme.
      * @param ?string $primaryColor - primary color.
+     * @param ?string $communityGuidelines - community guidelines.
      * @return bool - true on success.
      */
     public function upsert(
         int $tenantId,
         ?string $siteName,
         ?MultiTenantColorScheme $colorScheme,
-        ?string $primaryColor
+        ?string $primaryColor,
+        ?string $communityGuidelines
     ): bool {
         $boundValues = [ 'tenant_id' => $tenantId ];
         $rawValues = [];
@@ -80,6 +83,11 @@ class Repository extends AbstractRepository
         if ($primaryColor !== null) {
             $rawValues['primary_color'] = new RawExp(':primary_color');
             $boundValues['primary_color'] = $primaryColor;
+        }
+
+        if ($communityGuidelines !== null) {
+            $rawValues['community_guidelines'] = new RawExp(':community_guidelines');
+            $boundValues['community_guidelines'] = $communityGuidelines;
         }
 
         $query = $this->mysqlClientWriterHandler

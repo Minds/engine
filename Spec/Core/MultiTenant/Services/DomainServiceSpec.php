@@ -8,6 +8,8 @@ use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\MultiTenantDataService;
+use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
+use Minds\Core\MultiTenant\Repositories\DomainsRepository;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 
@@ -17,9 +19,15 @@ class DomainServiceSpec extends ObjectBehavior
     private Collaborator $dataServiceMock;
     private Collaborator $cacheMock;
 
-    public function let(Config $configMock, MultiTenantDataService $dataServiceMock, PsrWrapper $cacheMock)
+    public function let(
+        Config $configMock,
+        MultiTenantDataService $dataServiceMock,
+        PsrWrapper $cacheMock,
+        CloudflareClient $cloudflareClientMock,
+        DomainsRepository $domainsRepositoryMock,
+    )
     {
-        $this->beConstructedWith($configMock, $dataServiceMock, $cacheMock);
+        $this->beConstructedWith($configMock, $dataServiceMock, $cacheMock, $cloudflareClientMock, $domainsRepositoryMock);
         $this->configMock = $configMock;
         $this->dataServiceMock = $dataServiceMock;
         $this->cacheMock = $cacheMock;

@@ -795,6 +795,30 @@ $CONFIG->set('upgrades', [
             'tokens' => 2500
         ],
     ],
+    'networks_team' => [
+        'monthly' => [
+            'usd' => 60,
+        ],
+        'yearly' => [
+            'usd' => 600,
+        ]
+    ],
+    'networks_community' => [
+        'monthly' => [
+            'usd' => 600,
+        ],
+        'yearly' => [
+            'usd' => 6000,
+        ]
+    ],
+    'networks_enterprise' => [
+        'monthly' => [
+            'usd' => 1200,
+        ],
+        'yearly' => [
+            'usd' => 12000,
+        ]
+    ]
 ]);
 
 $CONFIG->set('email_confirmation', [

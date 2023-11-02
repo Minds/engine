@@ -30,7 +30,7 @@ class icon extends core\page implements Interfaces\page
         //if ($cached = $cacher->get("usericon:$guid")) {
         //    $join_date = $cached;
         //} else {
-        $user = Di::_()->get(EntitiesBuilder::class)->single($guid);
+        $user = Di::_()->get(EntitiesBuilder::class)->single($guid, [ 'cacheTtl' => 259200 ]);
 
         if (isset($user->legacy_guid) && $user->legacy_guid) {
             $guid = $user->legacy_guid;

@@ -8,7 +8,7 @@ use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Types\CustomHostname;
 use Minds\Core\MultiTenant\Types\CustomHostnameMetadata;
 use Minds\Core\MultiTenant\Types\Domain;
-use Minds\Core\MultiTenant\Types\NetworkUser;
+use Minds\Core\MultiTenant\Types\TenantUser;
 use TheCodingMachine\GraphQLite\Mappers\StaticClassListTypeMapperFactory;
 
 class GraphQLMappings extends AbstractGraphQLMappings
@@ -23,14 +23,14 @@ class GraphQLMappings extends AbstractGraphQLMappings
         $this->schemaFactory->addTypeNamespace('Minds\\Core\\MultiTenant\\Types\\Factories');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             Tenant::class,
-            NetworkUser::class,
+            TenantUser::class,
             CustomHostname::class,
             CustomHostnameMetadata::class,
             Domain::class
         ]));
 
         $this->schemaFactory->setInputTypeValidator(new Types\Validators\TenantInputValidator());
-        $this->schemaFactory->setInputTypeValidator(new Types\Validators\NetworkUserInputValidator());
+        $this->schemaFactory->setInputTypeValidator(new Types\Validators\TenantUserInputValidator());
         $this->schemaFactory->setInputTypeValidator(new Types\Validators\CustomHostnameInputValidator());
     }
 }

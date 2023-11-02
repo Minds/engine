@@ -2,6 +2,8 @@
 namespace Minds\Core\MultiTenant;
 
 use Minds\Core\Data\MySQL\AbstractRepository;
+use Minds\Core\MultiTenant\Configs\Enums\MultiTenantColorScheme;
+use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
 use Minds\Core\MultiTenant\Models\Tenant;
 use PDO;
 use Selective\Database\Operator;
@@ -61,6 +63,7 @@ class Repository extends AbstractRepository
                 'minds_tenants.tenant_id',
                 'domain',
                 'owner_guid',
+                'root_user_guid',
                 'site_name',
                 'site_email',
                 'primary_color',
@@ -68,10 +71,31 @@ class Repository extends AbstractRepository
                 'updated_timestamp'
             ]);
     }
-
     private function buildTenantModel(array $row): Tenant
     {
-        return Tenant::fromData($row);
+        $tenantId = $row['tenant_id'];
+        $domain = $row['domain'];
+        $tenantOwnerGuid = $row['owner_guid'];
+        $rootUserGuid = $row['root_user_guid'];
+        $siteName = $row['site_name'] ?? null;
+        $siteEmail = $row['site_email'] ?? null;
+        $primaryColor = $row['primary_color'] ?? null;
+        $colorScheme = $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null;
+        $updatedTimestamp = $row['updated_timestamp'] ?? null;
+
+        return new Tenant(
+            id: $tenantId,
+            domain: $domain,
+            ownerGuid: $tenantOwnerGuid,
+            rootUserGuid: $rootUserGuid,
+            config: new MultiTenantConfig(
+                siteName: $siteName,
+                siteEmail: $siteEmail,
+                colorScheme: $colorScheme,
+                primaryColor: $primaryColor,
+                updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null
+            )
+        );
     }
 
     public function getTenantFromId(int $id): ?Tenant

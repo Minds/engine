@@ -25,8 +25,8 @@ class Manager
         $paymentMethodInstance = null
     ) {
         $this->lookup = $lookup ?: Di::_()->get('Database\Cassandra\Lookup');
-        $this->customersManager = $customersManager ?? new CustomersManager;
-        $this->paymentMethodInstance = $paymentMethodInstance ?? new PaymentMethodInstance();
+        $this->customersManager = $customersManager;
+        $this->paymentMethodInstance = $paymentMethodInstance;
     }
 
     /**
@@ -39,13 +39,13 @@ class Manager
         if (!$opts['user_guid']) {
             throw new \Exception('User_guid not specified');
         }
-        $customer = $this->customersManager->getFromUserGuid($opts['user_guid']);
+        $customer = $this->getCustomersManager()->getFromUserGuid($opts['user_guid']);
 
         if (!$customer) {
             return new Response();
         }
 
-        $stripePaymentMethods = $this->paymentMethodInstance->all([
+        $stripePaymentMethods = $this->getPaymentMethodInstance()->all([
             'customer' => $customer->getId(),
             'type' => 'card',
         ]);
@@ -71,7 +71,7 @@ class Manager
      */
     public function checkPaymentMethodOwnership(string $userGuid, string $paymentMethodId): bool
     {
-        $customerDetails = $this->customersManager->getFromUserGuid($userGuid);
+        $customerDetails = $this->getCustomersManager()->getFromUserGuid($userGuid);
         if (!$customerDetails) {
             return false;
         }
@@ -95,13 +95,13 @@ class Manager
     public function add(PaymentMethod $paymentMethod) : PaymentMethod
     {
         if ($paymentMethod->getCustomerId()) {
-            $stripePaymentMethod = $this->paymentMethodInstance->retrieve($paymentMethod->getId());
+            $stripePaymentMethod = $this->getPaymentMethodInstance()->retrieve($paymentMethod->getId());
             $stripePaymentMethod->attach([ 'customer' => $paymentMethod->getCustomerId() ]);
         } else {
             $customer = new Customer();
             $customer->setPaymentMethod($paymentMethod->getId())
                 ->setUserGuid($paymentMethod->getUserGuid());
-            $customer = $this->customersManager->add($customer);
+            $customer = $this->getCustomersManager()->add($customer);
             $paymentMethod->setCustomerId($customer->getId());
         }
 
@@ -115,7 +115,23 @@ class Manager
      */
     public function delete($id) : bool
     {
-        $stripePaymentMethod = $this->paymentMethodInstance->retrieve($id);
+        $stripePaymentMethod = $this->getPaymentMethodInstance()->retrieve($id);
         return (bool) $stripePaymentMethod->detach();
+    }
+
+    /**
+     * Lazy load for performance
+     */
+    private function getCustomersManager(): CustomersManager
+    {
+        return $this->customersManager ??= new CustomersManager;
+    }
+
+    /**
+     * Lazy load for performance
+     */
+    private function getPaymentMethodInstance(): PaymentMethodInstance
+    {
+        return $this->paymentMethodInstance ??= new PaymentMethodInstance();
     }
 }

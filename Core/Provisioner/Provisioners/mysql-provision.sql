@@ -271,7 +271,7 @@ CREATE TABLE IF NOT EXISTS minds_comments (
     guid bigint,
     entity_guid bigint,
     owner_guid bigint,
-    parent_guid bigint REFERENCES minds_comment(guid),
+    parent_guid bigint REFERENCES minds_comments(guid),
     parent_depth int,
     body text,
     attachments json,
@@ -424,7 +424,7 @@ CREATE TABLE `minds_tenants` (
 );
 
 CREATE TABLE IF NOT EXISTS minds_tenant_configs (
-    tenant_id bigint,
+    tenant_id int,
     site_name varchar(64),
     site_email varchar(128),
     primary_color varchar(16),
@@ -582,3 +582,14 @@ CREATE TABLE IF NOT EXISTS `minds_tenants_domain_details` (
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 );
+
+ALTER TABLE `minds_votes` ADD COLUMN `tenant_id` int DEFAULT NULL AFTER `user_guid`;
+CREATE INDEX `tenant_id` ON `minds_votes` (`tenant_id`);
+
+ALTER TABLE `minds_entities_user` MODIFY COLUMN ip varchar(40);
+
+ALTER TABLE `friends` ADD COLUMN tenant_id int AFTER friend_guid;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD community_guidelines text DEFAULT NULL
+    AFTER color_scheme;

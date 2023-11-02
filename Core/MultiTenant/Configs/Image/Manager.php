@@ -7,6 +7,7 @@ use ElggFile;
 use Minds\Core\Config\Config;
 use Minds\Core\Media\Imagick\Manager as ImagickManager;
 use Minds\Core\MultiTenant\Configs\Enums\MultiTenantConfigImageType;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Entities\File;
 
 /**
@@ -16,7 +17,8 @@ class Manager
 {
     public function __construct(
         private ImagickManager $imagickManager,
-        private Config $config
+        private Config $config,
+        private MultiTenantBootService $multiTenantBootService,
     ) {
     }
 
@@ -73,6 +75,6 @@ class Manager
      */
     public function getTenantOwnerGuid(): int
     {
-        return ((int) $this->config->get('tenant_owner_guid')) ?? 0;
+        return $this->multiTenantBootService->getTenant()->rootUserGuid;
     }
 }

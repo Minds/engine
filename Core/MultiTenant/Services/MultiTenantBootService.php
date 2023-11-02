@@ -12,6 +12,8 @@ class MultiTenantBootService
 {
     private $rootConfigs = [];
 
+    private Tenant $tenant;
+
     public function __construct(
         private Config $config,
         private DomainService $domainService,
@@ -47,6 +49,8 @@ class MultiTenantBootService
             scheme: $scheme,
             port: $port,
         );
+
+        $this->tenant = $tenant;
     }
 
     /**
@@ -61,6 +65,8 @@ class MultiTenantBootService
         }
 
         $this->setupConfigs($tenant);
+
+        $this->tenant = $tenant;
     }
 
     /**
@@ -72,6 +78,14 @@ class MultiTenantBootService
         foreach ($this->rootConfigs as $key => $value) {
             $this->config->set($key, $value);
         }
+    }
+
+    /**
+     * Returns the booted tenant
+     */
+    public function getTenant(): Tenant
+    {
+        return $this->tenant;
     }
 
     private function setupConfigs(
