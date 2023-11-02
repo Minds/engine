@@ -106,7 +106,8 @@ class iOSCredentialsServiceSpec extends ObjectBehavior
 
     // setup project credentials
 
-    public function it_should_set_up_full_project_credentials() {
+    public function it_should_set_up_full_project_credentials()
+    {
         $tenantId = 1234567890123456;
         $projectId = '2234567890123456';
         $accountId = '31234567890123456';
@@ -317,7 +318,8 @@ class iOSCredentialsServiceSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_set_up_partial_project_credentials() {
+    public function it_should_set_up_partial_project_credentials()
+    {
         $tenantId = 1234567890123456;
         $projectId = '2234567890123456';
         $accountId = '31234567890123456';
@@ -504,7 +506,8 @@ class iOSCredentialsServiceSpec extends ObjectBehavior
 
     // updateProjectCredentials
 
-    public function it_should_update_project_credentials() {
+    public function it_should_update_project_credentials()
+    {
         $tenantId = 1234567890123456;
         $projectId = '2234567890123456';
         $accountId = '31234567890123456';
@@ -538,10 +541,10 @@ class iOSCredentialsServiceSpec extends ObjectBehavior
             ->willReturn($tenantConfigs);
 
         $this->createApplePushKeyQuery->build(
-                keyIdentifier: $pushKeyIdentifier,
-                keyP8: $pushKeyP8,
-                appleTeamId: $appleTeamId,
-                accountId: $accountId
+            keyIdentifier: $pushKeyIdentifier,
+            keyP8: $pushKeyP8,
+            appleTeamId: $appleTeamId,
+            accountId: $accountId
         )->shouldBeCalled()->willReturn(['query' => 'createApplePushKeyQuery']);
 
         $this->createAscApiKeyQuery->build(
@@ -629,7 +632,8 @@ class iOSCredentialsServiceSpec extends ObjectBehavior
 
     // deleteProjectCredentials
 
-    public function deleteProjectCredentials() {
+    public function deleteProjectCredentials()
+    {
         $tenantId = 1234567890123456;
         $projectId = '2234567890123456';
         $accountId = '31234567890123456';

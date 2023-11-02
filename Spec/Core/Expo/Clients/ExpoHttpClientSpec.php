@@ -21,7 +21,7 @@ class ExpoHttpClientSpec extends ObjectBehavior
     private Collaborator $logger;
     private Collaborator $expoConfig;
 
-    function let(
+    public function let(
         GuzzleClient $guzzleClient,
         Logger $logger,
         ExpoConfig $expoConfig
@@ -33,12 +33,12 @@ class ExpoHttpClientSpec extends ObjectBehavior
         $this->beConstructedWith($guzzleClient, $expoConfig, $logger);
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(ExpoHttpClient::class);
     }
 
-    function it_can_make_a_request()
+    public function it_can_make_a_request()
     {
         $method = 'POST';
         $path = $this->V2_PROJECTS_PATH;
@@ -61,7 +61,7 @@ class ExpoHttpClientSpec extends ObjectBehavior
         $this->request($method, $path, $body)->shouldReturn($responseBody['data']);
     }
 
-    function it_throws_an_exception_when_the_api_returns_an_error()
+    public function it_throws_an_exception_when_the_api_returns_an_error()
     {
         $method = 'POST';
         $path = $this->V2_PROJECTS_PATH;

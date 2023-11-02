@@ -53,7 +53,6 @@ class AndroidCredentialsServiceSpec extends ObjectBehavior
         CreateFcmKeyQuery $createFcmKeyQuery,
         SetFcmKeyOnAndroidAppCredentialsQuery $setFcmKeyOnAndroidAppCredentialsQuery,
         DeleteAndroidAppCredentialsQuery $deleteAndroidAppCredentialsQuery,
-
     ) {
         $this->expoGqlClient = $expoGqlClient;
         $this->expoConfig = $expoConfig;
@@ -94,7 +93,8 @@ class AndroidCredentialsServiceSpec extends ObjectBehavior
 
     // setup project credentials
 
-    public function it_should_set_up_full_project_credentials() {
+    public function it_should_set_up_full_project_credentials()
+    {
         $tenantId = 1234567890123456;
         $projectId = '2234567890123456';
         $accountId = '31234567890123456';
@@ -142,11 +142,11 @@ class AndroidCredentialsServiceSpec extends ObjectBehavior
             googleCloudMessagingToken: $googleCloudMessagingToken
         )->shouldBeCalled()->willReturn(['query3' => true]);
 
-        $this->expoGqlClient->request(array (
+        $this->expoGqlClient->request([
             ['query1' => true],
             ['query2' => true],
             ['query3' => true]
-          ))
+          ])
             ->shouldBeCalled()
             ->willReturn(
                 [
@@ -254,7 +254,8 @@ class AndroidCredentialsServiceSpec extends ObjectBehavior
         ]);
     }
 
-    public function it_should_set_up_partial_project_credentials() {
+    public function it_should_set_up_partial_project_credentials()
+    {
         $tenantId = 1234567890123456;
         $projectId = '2234567890123456';
         $accountId = '31234567890123456';
@@ -291,7 +292,8 @@ class AndroidCredentialsServiceSpec extends ObjectBehavior
         )->shouldBeCalled()->willReturn(['query1' => true]);
 
         $this->createGoogleServiceAccountKeyQuery->build(
-            Argument::any(), Argument::any()
+            Argument::any(),
+            Argument::any()
         )->shouldNotBeCalled();
 
         $this->createFcmKeyQuery->build(
@@ -299,9 +301,9 @@ class AndroidCredentialsServiceSpec extends ObjectBehavior
             googleCloudMessagingToken: $googleCloudMessagingToken
         )->shouldNotBeCalled();
 
-        $this->expoGqlClient->request(array (
+        $this->expoGqlClient->request([
             ['query1' => true]
-          ))
+          ])
             ->shouldBeCalled()
             ->willReturn(
                 [
@@ -393,7 +395,8 @@ class AndroidCredentialsServiceSpec extends ObjectBehavior
 
     // updateProjectCredentials
 
-    public function it_should_update_project_credentials() {
+    public function it_should_update_project_credentials()
+    {
         $tenantId = 1234567890123456;
         $projectId = '2234567890123456';
         $accountId = '31234567890123456';
@@ -440,10 +443,10 @@ class AndroidCredentialsServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(['query2' => true]);
      
-        $this->expoGqlClient->request(array (
+        $this->expoGqlClient->request([
             ['query1' => true],
             ['query2' => true]
-        ))
+        ])
             ->shouldBeCalled()
             ->willReturn(
                 [
@@ -517,7 +520,8 @@ class AndroidCredentialsServiceSpec extends ObjectBehavior
             ]);
     }
 
-    public function deleteProjectCredentials() {
+    public function deleteProjectCredentials()
+    {
         $tenantId = 1234567890123456;
         $projectId = '2234567890123456';
         $accountId = '31234567890123456';
