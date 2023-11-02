@@ -8,6 +8,8 @@
 
 namespace Minds\Core\Search\Mappings;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Exceptions\BannedException;
 use Minds\Helpers\Flags;
 
@@ -124,6 +126,12 @@ class UserMapping extends EntityMapping implements MappingInterface
 
         if ($this->entity->icontime == $this->entity->time_created) {
             $map['weight'] = 0; //no avatar
+        }
+
+        if ($tenantId = Di::_()->get(Config::class)->get('tenant_id')) {
+            $map['contexts'] = [
+                'tenant_id' => (string) $tenantId,
+            ];
         }
 
         return $map;
