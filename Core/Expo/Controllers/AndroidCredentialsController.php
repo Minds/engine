@@ -47,23 +47,38 @@ class AndroidCredentialsController
         return new JsonResponse($response);
     }
 
-    // /**
-    //  * Delete project credentials in expo for an Android app.
-    //  * @param ServerRequest $request - The request.
-    //  * @return JsonResponse - The response.
-    //  */
-    // public function deleteProjectCredentials(ServerRequest $request): JsonResponse
-    // {
-    //     // TODO: This endpoint needs to be secured to release if we need it - we may want to pull the
-    //     // androidAppCredentials from tenant configs rather than having it as an input parameter.
-    //     $parameters = $request->getAttribute('parameters');
+    /**
+     * Update project credentials in expo for an Android app.
+     * @param ServerRequest $request - The request.
+     * @return JsonResponse - The response.
+     */
+    public function updateProjectCredentials(ServerRequest $request): JsonResponse
+    {
+        $requestBody = $request->getParsedBody();
 
-    //     $androidAppCredentialsId = $parameters['appCredentialsId'] ?? throw new UserErrorException('Missing appCredentialsId');
+        $googleServiceAccountJson = $requestBody['google_service_account_json'] ?? null;
+        $googleCloudMessagingToken = $requestBody['google_cloud_messaging_token'] ?? null;
+    
+        if (!$googleCloudMessagingToken && !$googleServiceAccountJson) {
+            throw new UserErrorException('Must provide either google_cloud_messaging_token or google_service_account_json');
+        }
 
-    //     $this->androidCredentialsService->deleteProjectCredentials(
-    //         androidAppCredentialsId: $androidAppCredentialsId,
-    //     );
+        $response = $this->androidCredentialsService->updateProjectCredentials(
+            googleServiceAccountJson: $googleServiceAccountJson,
+            googleCloudMessagingToken: $googleCloudMessagingToken
+        );
 
-    //     return new JsonResponse([]);
-    // }
+        return new JsonResponse($response);
+    }
+
+    /**
+     * Delete project credentials in expo for an Android app.
+     * @param ServerRequest $request - The request.
+     * @return JsonResponse - The response.
+     */
+    public function deleteProjectCredentials(ServerRequest $request): JsonResponse
+    {
+        $this->androidCredentialsService->deleteProjectCredentials();
+        return new JsonResponse([]);
+    }
 }

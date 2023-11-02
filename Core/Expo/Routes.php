@@ -29,23 +29,30 @@ class Routes extends ModuleRoutes
                     'credentials/android',
                     Ref::_(AndroidCredentialsController::class, 'setProjectCredentials')
                 );
-                // $route->delete(
-                //     'credentials/android/:appCredentialsId',
-                //     Ref::_(AndroidCredentialsController::class, 'deleteProjectCredentials')
-                // );
+                $route->put(
+                    'credentials/android',
+                    Ref::_(AndroidCredentialsController::class, 'updateProjectCredentials')
+                );
+                $route->delete(
+                    'credentials/android',
+                    Ref::_(AndroidCredentialsController::class, 'deleteProjectCredentials')
+                );
 
                 // iOS credentials
                 $route->post(
                     'credentials/ios',
                     Ref::_(iOSCredentialsController::class, 'setProjectCredentials')
                 );
-                // $route->delete(
-                //     'credentials/ios/:appCredentialsId',
-                //     Ref::_(iOSCredentialsController::class, 'deleteProjectCredentials')
-                // );
+                $route->put(
+                    'credentials/ios',
+                    Ref::_(iOSCredentialsController::class, 'updateProjectCredentials')
+                );
+                $route->delete(
+                    'credentials/ios',
+                    Ref::_(iOSCredentialsController::class, 'deleteProjectCredentials')
+                );
 
                 // Projects
-
                 $route->post(
                     'projects/new',
                     Ref::_(ProjectsController::class, 'newProject')

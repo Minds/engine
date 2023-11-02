@@ -64,7 +64,11 @@ class Manager
         ?MultiTenantColorScheme $colorScheme = null,
         ?string $primaryColor = null,
         ?string $communityGuidelines = null,
-        ?string $expoProjectId = null
+        ?string $expoProjectId = null,
+        ?string $androidAppCredentialsId = null,
+        ?string $iosAppCredentialsId = null,
+        ?string $androidAppBuildCredentialsId = null,
+        ?string $iosAppBuildCredentialsId = null,
     ): bool {
         $tenantId = $this->config->get('tenant_id');
 
@@ -74,7 +78,11 @@ class Manager
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
             communityGuidelines: $communityGuidelines,
-            expoProjectId: $expoProjectId
+            expoProjectId: $expoProjectId,
+            androidAppCredentialsId: $androidAppCredentialsId,
+            iosAppCredentialsId: $iosAppCredentialsId,
+            androidAppBuildCredentialsId: $androidAppBuildCredentialsId,
+            iosAppBuildCredentialsId: $iosAppBuildCredentialsId
         );
 
         if ($result) {

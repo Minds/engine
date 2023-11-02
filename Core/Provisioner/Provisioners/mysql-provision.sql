@@ -431,6 +431,10 @@ CREATE TABLE IF NOT EXISTS minds_tenant_configs (
     color_scheme varchar(32),
     community_guidelines text
     expo_project_id varchar(64),
+    expo_android_app_credentials_id varchar(64),
+    expo_ios_app_credentials_id varchar(64),
+    expo_android_app_build_credentials_id varchar(64),
+    expo_ios_app_build_credentials_id varchar(64),
     updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (tenant_id)
 );
@@ -573,3 +577,20 @@ ALTER TABLE `minds_tenant_configs`
 ALTER TABLE `minds_tenant_configs`
     ADD expo_project_id varchar(64) DEFAULT NULL
     AFTER community_guidelines;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD expo_android_app_credentials_id varchar(64) DEFAULT NULL
+    AFTER expo_project_id;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD expo_ios_app_credentials_id varchar(64) DEFAULT NULL
+    AFTER expo_android_app_credentials_id;
+    
+ALTER TABLE `minds_tenant_configs`
+    ADD expo_android_app_build_credentials_id varchar(64) DEFAULT NULL
+    AFTER expo_ios_app_credentials_id;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD expo_ios_app_build_credentials_id varchar(64) DEFAULT NULL
+    AFTER expo_android_app_build_credentials_id;
+    

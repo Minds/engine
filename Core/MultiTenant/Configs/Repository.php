@@ -48,6 +48,10 @@ class Repository extends AbstractRepository
             primaryColor: $row['primary_color'] ?? null,
             communityGuidelines: $row['community_guidelines'] ?? null,
             expoProjectId: $row['expo_project_id'] ?? null,
+            expoAndroidAppCredentialsId: $row['expo_android_app_credentials_id'] ?? null,
+            expoIosAppCredentialsId: $row['expo_ios_app_credentials_id'] ?? null,
+            expoAndroidAppBuildCredentialsId: $row['expo_android_app_build_credentials_id'] ?? null,
+            expoIosAppBuildCredentialsId: $row['expo_ios_app_build_credentials_id'] ?? null,
             updatedTimestamp: strtotime($row['updated_timestamp']) ?? null
         );
     }
@@ -67,7 +71,11 @@ class Repository extends AbstractRepository
         ?MultiTenantColorScheme $colorScheme,
         ?string $primaryColor,
         ?string $communityGuidelines,
-        ?string $expoProjectId
+        ?string $expoProjectId,
+        ?string $androidAppCredentialsId,
+        ?string $iosAppCredentialsId,
+        ?string $androidAppBuildCredentialsId,
+        ?string $iosAppBuildCredentialsId
     ): bool {
         $boundValues = [ 'tenant_id' => $tenantId ];
         $rawValues = [];
@@ -95,6 +103,26 @@ class Repository extends AbstractRepository
         if ($expoProjectId !== null) {
             $rawValues['expo_project_id'] = new RawExp(':expo_project_id');
             $boundValues['expo_project_id'] = $expoProjectId;
+        }
+
+        if ($androidAppCredentialsId !== null) {
+            $rawValues['expo_android_app_credentials_id'] = new RawExp(':expo_android_app_credentials_id');
+            $boundValues['expo_android_app_credentials_id'] = $androidAppCredentialsId;
+        }
+
+        if ($iosAppCredentialsId !== null) {
+            $rawValues['expo_ios_app_build_credentials_id'] = new RawExp(':expo_ios_app_build_credentials_id');
+            $boundValues['expo_ios_app_build_credentials_id'] = $iosAppBuildCredentialsId;
+        }
+
+        if ($androidAppBuildCredentialsId !== null) {
+            $rawValues['expo_android_app_build_credentials_id'] = new RawExp(':expo_android_app_build_credentials_id');
+            $boundValues['expo_android_app_build_credentials_id'] = $androidAppBuildCredentialsId;
+        }
+
+        if ($iosAppBuildCredentialsId !== null) {
+            $rawValues['expo_ios_app_credentials_id'] = new RawExp(':expo_ios_app_credentials_id');
+            $boundValues['expo_ios_app_credentials_id'] = $iosAppCredentialsId;
         }
 
         $query = $this->mysqlClientWriterHandler

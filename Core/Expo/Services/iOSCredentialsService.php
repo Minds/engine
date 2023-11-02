@@ -17,8 +17,10 @@ use Minds\Core\Expo\Queries\Credentials\iOS\DeleteIosAppCredentialsQuery;
 use Minds\Core\Expo\Queries\Credentials\iOS\GetAllAppleAppIdentifiersQuery;
 use Minds\Core\Expo\Queries\Credentials\iOS\SetAscApiKeyForIosAppCredentialsQuery;
 use Minds\Core\Expo\Queries\Credentials\iOS\SetPushKeyForIosAppCredentialsQuery;
+use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigsManager;
 use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
 
 /**
  * Service for managing iOS credentials in Expo.
@@ -30,6 +32,7 @@ class iOSCredentialsService
         private ExpoConfig $expoConfig,
         private Config $config,
         private MultiTenantDataService $multiTenantDataService,
+        private MultiTenantConfigsManager $multiTenantConfigsManager,
         private GetAllAppleAppIdentifiersQuery $getAllAppleAppIdentifiersQuery,
         private CreateAppleAppIdentifierQuery $createAppleAppIdentifierQuery,
         private CreateAppleDistributionCertificateQuery $createAppleDistributionCertificateQuery,
@@ -127,13 +130,19 @@ class iOSCredentialsService
             iosAppCredentialsId: $iosAppCredentialsId
         );
 
-        if (!$createIosAppBuildCredentialsResponse) {
+        if (!$createIosAppBuildCredentialsResponse || !$iosAppBuildCredentialsId = $createIosAppBuildCredentialsResponse['id']) {
             throw new ServerErrorException('Failed to create build creditials');
         }
+
+        $this->multiTenantConfigsManager->upsertConfigs(
+            iosAppCredentialsId: $iosAppCredentialsId,
+            iosAppBuildCredentialsId: $iosAppBuildCredentialsId
+        );
 
         return [
             'apple_app_identifier_id' => $appleAppIdentifierId,
             'ios_app_credentials_id' => $iosAppCredentialsId,
+            'ios_app_build_credentials_id' => $iosAppBuildCredentialsId,
             'asc_key_id' => $ascKeyId,
             'distribution_cert_id' => $distributionCertId,
             'provisioning_profile_id' => $provisioningProfileId,
@@ -142,17 +151,88 @@ class iOSCredentialsService
     }
 
     /**
-     * Deletes the iOS credentials for a project.
-     * @param string $iosAppCredentialsId - the id of the iOS app credentials to delete.
-     * @return array|null - the response from the server.
+     * Update project credentials.
+     * @param string|null $pushKeyP8 - the push key in p8 format.
+     * @param string|null $pushKeyIdentifier - the identifier for the push key.
+     * @param string|null $ascKeyP8 - the ASC API key in p8 format.
+     * @param string|null $ascKeyIdentifier - the identifier for the ASC API key.
+     * @param string|null $ascKeyIssuerIdentifier - the issuer identifier for the ASC API key.
+     * @param string|null $ascName - the name for the ASC API key.
+     * @return array - the ids of the created credentials.
      */
-    public function deleteProjectCredentials(string $iosAppCredentialsId): ?array
+    public function updateProjectCredentials(
+        ?string $pushKeyP8,
+        ?string $pushKeyIdentifier,
+        ?string $ascKeyP8,
+        ?string $ascKeyIdentifier,
+        ?string $ascKeyIssuerIdentifier,
+        ?string $ascName,
+    ): array {
+        $hasFullPushKey = $pushKeyP8 && $pushKeyIdentifier;
+        $hasFullAscKey = $ascKeyP8 && $ascKeyIdentifier && $ascKeyIssuerIdentifier && $ascName;
+
+        if (!$hasFullPushKey && !$hasFullAscKey) {
+            throw new UserErrorException('Must fully provide either push key params or asc key params');
+        }
+
+        $tenantId = $this->config->get('tenant_id') ?? throw new ServerErrorException('No tenant id set');
+        $tenantConfigs = $this->multiTenantDataService->getTenantFromId($tenantId);
+        $iosAppCredentialsId = $tenantConfigs?->config?->expoIosAppCredentialsId ??
+            throw new ServerErrorException('No iOS app credentials id configured for tenant');
+
+        $batchUpdateQueriesResponse = $this->batchUpdateCreationQueries(
+            accountId: $this->expoConfig->accountId,
+            pushKeyP8: $pushKeyP8,
+            pushKeyIdentifier: $pushKeyIdentifier,
+            ascKeyP8: $ascKeyP8,
+            ascKeyIdentifier: $ascKeyIdentifier,
+            ascKeyIssuerIdentifier: $ascKeyIssuerIdentifier,
+            ascName: $ascName
+        );
+
+        if (!$batchUpdateQueriesResponse) {
+            throw new ServerErrorException('Failed to create pre-requisite resources to update android app credentials');
+        }
+
+        $pushKeyId = $batchUpdateQueriesResponse['createApplePushKey']['id'] ?? null;
+        $ascKeyId = $batchUpdateQueriesResponse['createAppStoreConnectApiKey']['id'] ?? null;
+        
+        $batchUpdateApplyQueriesResponse = $this->batchAppCredentialUpdateApplyQueries(
+            iosAppCredentialsId: $iosAppCredentialsId,
+            pushKeyId: $pushKeyId,
+            ascKeyId: $ascKeyId,
+        );
+
+        if (!$batchUpdateApplyQueriesResponse) {
+            throw new ServerErrorException('Failed to apply updates to iOS app credentials');
+        }
+
+        return [
+            'ios_app_credentials_id' => $iosAppCredentialsId,
+            'asc_key_id' => $ascKeyId,
+            'push_key_ud' => $pushKeyId
+        ];
+
+        return [];
+    }
+
+    /**
+     * Deletes the iOS credentials for a project.
+     * @return bool - true if there is a response.
+     */
+    public function deleteProjectCredentials(): bool
     {
+        $tenantId = $this->config->get('tenant_id') ?? throw new ServerErrorException('No tenant id set');
+        $tenant = $this->multiTenantDataService->getTenantFromId($tenantId);
+
+        $iosAppCredentialsId = $tenant?->config?->expoIosAppCredentialsId ??
+            throw new ServerErrorException('No iOS app credentials id configured.');
+
         $response = $this->expoGqlClient->request($this->deleteIosAppCredentialsQuery->build(
             iosAppCredentialsId: $iosAppCredentialsId
         ));
 
-        return $response ?? null;
+        return (bool) $response;
     }
 
     /**
@@ -216,6 +296,105 @@ class iOSCredentialsService
             );
         }
       
+        $batchResponse = $this->expoGqlClient->request($queries);
+
+        $response = [];
+
+        foreach ($batchResponse as $responseItem) {
+            $arrayKey = array_key_first($responseItem['data']);
+            $innerArrayKey = array_key_first($responseItem['data'][$arrayKey]);
+            $response[$innerArrayKey] = $responseItem['data'][$arrayKey][$innerArrayKey];
+        }
+
+        return $response;
+    }
+
+    /**
+     * Batch the creation queries for an update to existing credentials.
+     * @param string $accountId - the id of the account to create the credentials for.
+     * @param string|null $pushKeyIdentifier - the identifier for the push key.
+     * @param string|null $pushKeyP8 - the push key in p8 format.
+     * @param string|null $ascKeyP8 - the ASC API key in p8 format.
+     * @param string|null $ascKeyIdentifier - the identifier for the ASC API key.
+     * @param string|null $ascKeyIssuerIdentifier - the issuer identifier for the ASC API key.
+     * @param string|null $ascName - the name for the ASC API key.
+     * @return array - the ids of the created credentials.
+     */
+    private function batchUpdateCreationQueries(
+        string $accountId,
+        ?string $pushKeyIdentifier = null,
+        ?string $pushKeyP8 = null,
+        ?string $ascKeyP8 = null,
+        ?string $ascKeyIdentifier = null,
+        ?string $ascKeyIssuerIdentifier = null,
+        ?string $ascName = null,
+    ): array {
+        $queries = [];
+
+        if ($pushKeyIdentifier && $pushKeyP8) {
+            $queries[] = $this->createApplePushKeyQuery->build(
+                keyIdentifier: $pushKeyIdentifier,
+                keyP8: $pushKeyP8,
+                accountId: $accountId,
+                appleTeamId: $this->expoConfig->appleTeamId
+            );
+        }
+
+        if ($ascKeyP8 && $ascKeyIdentifier && $ascKeyIssuerIdentifier && $ascName) {
+            $queries[] = $this->createAscApiKeyQuery->build(
+                keyP8: $ascKeyP8,
+                keyIdentifier: $ascKeyIdentifier,
+                issuerIdentifier: $ascKeyIssuerIdentifier,
+                name: $ascName,
+                accountId: $accountId
+            );
+        }
+
+        $batchResponse = $this->expoGqlClient->request($queries);
+
+        $response = [];
+
+        foreach ($batchResponse as $responseItem) {
+            $arrayKey = array_key_first($responseItem['data']);
+            $innerArrayKey = array_key_first($responseItem['data'][$arrayKey]);
+            $response[$innerArrayKey] = $responseItem['data'][$arrayKey][$innerArrayKey];
+        }
+
+        return $response;
+    }
+
+    /**
+     * Batch queries that apply created credentials to this tenants credentials in Expo.
+     * @param string $iosAppCredentialsId - the id of the iOS app credentials to apply the updates to.
+     * @param string|null $pushKeyId - the id of the push key to apply.
+     * @param string|null $ascKeyId - the id of the ASC API key to apply.
+     * @return array - the responses from the queries.
+     */
+    private function batchAppCredentialUpdateApplyQueries(
+        string $iosAppCredentialsId = null,
+        ?string $pushKeyId,
+        ?string $ascKeyId = null,
+    ): ?array {
+        if (!$ascKeyId && !$pushKeyId) {
+            throw new ServerErrorException('No updates to apply');
+        }
+
+        $queries = [];
+
+        if ($pushKeyId) {
+            $queries[] = $this->setPushKeyForIosAppCredentialsQuery->build(
+                iosAppCredentialsId: $iosAppCredentialsId,
+                pushKeyId: $pushKeyId
+            );
+        }
+
+        if ($ascKeyId) {
+            $queries[] = $this->setAscApiKeyForIosAppCredentialsQuery->build(
+                iosAppCredentialsId: $iosAppCredentialsId,
+                ascApiKeyId: $ascKeyId
+            );
+        }
+
         $batchResponse = $this->expoGqlClient->request($queries);
 
         $response = [];
@@ -338,126 +517,5 @@ class iOSCredentialsService
             iosDistributionType: $iosDistributionType
         ));
         return $response['data']['iosAppBuildCredentials']['createIosAppBuildCredentials'] ?? null;
-    }
-
-    /**
-     * Creates a new apple distribution certificate.
-     * @param string $distributionCertP12 - the distribution certificate in p12 format.
-     * @param string $distributionCertPassword - the password for the distribution certificate.
-     * @param string $accountId - the id of the account to create the distribution certificate for.
-     * @return array|null - the response from the server.
-     */
-    private function createAppleDistributionCertificate(
-        string $distributionCertP12,
-        string $distributionCertPassword,
-        string $accountId,
-    ): ?array {
-        $response = $this->expoGqlClient->request($this->createAppleDistributionCertificateQuery->build(
-            certP12: $distributionCertP12,
-            certPassword: $distributionCertPassword,
-            accountId: $accountId
-        ));
-        return $response['data']['appleDistributionCertificate']['createAppleDistributionCertificate'] ?? null;
-    }
-
-    /**
-     * Creates a new apple provisioning profile.
-     * @param string $appleProvisioningProfile - the provisioning profile for the app.
-     * @param string $appleAppIdentifierId - the id of the apple app identifier to create the provisioning profile for.
-     * @param string $accountId - the id of the account to create the provisioning profile for.
-     * @return array|null - the response from the server.
-     */
-    private function createAppleProvisioningProfile(
-        string $appleProvisioningProfile,
-        string $appleAppIdentifierId,
-        string $accountId
-    ): ?array {
-        $response = $this->expoGqlClient->request($this->createAppleProvisioningProfileQuery->build(
-            appleProvisioningProfile: $appleProvisioningProfile,
-            appleAppIdentifierId: $appleAppIdentifierId,
-            accountId: $accountId
-        ));
-        return $response['data']['appleProvisioningProfile']['createAppleProvisioningProfile'] ?? null;
-    }
-
-    /**
-     * Creates a new apple push key.
-     * @param string $pushKeyIdentifier - the identifier for the push key.
-     * @param string $pushKeyP8 - the push key in p8 format.
-     * @param string $accountId - the id of the account to create the push key for.
-     * @return array|null - the response from the server.
-     */
-    private function createApplePushKey(
-        string $pushKeyIdentifier,
-        string $pushKeyP8,
-        string $accountId
-    ): ?array {
-        $response = $this->expoGqlClient->request($this->createApplePushKeyQuery->build(
-            keyIdentifier: $pushKeyIdentifier,
-            keyP8: $pushKeyP8,
-            accountId: $accountId,
-            appleTeamId: $this->expoConfig->appleTeamId
-        ));
-        return $response['data']['applePushKey']['createApplePushKey'] ?? null;
-    }
-
-    /**
-     * Creates a new ASC API key.
-     * @param string $ascKeyP8 - the ASC API key in p8 format.
-     * @param string $ascKeyIdentifier - the identifier for the ASC API key.
-     * @param string $ascKeyIssuerIdentifier - the issuer identifier for the ASC API key.
-     * @param string $ascName - the name for the ASC API key.
-     * @param string $accountId - the id of the account to create the ASC API key for.
-     * @return array|null - the response from the server.
-     */
-    private function createAscApiKey(
-        string $ascKeyP8,
-        string $ascKeyIdentifier,
-        string $ascKeyIssuerIdentifier,
-        string $ascName,
-        string $accountId
-    ): ?array {
-        $response = $this->expoGqlClient->request($this->createAscApiKeyQuery->build(
-            keyP8: $ascKeyP8,
-            keyIdentifier: $ascKeyIdentifier,
-            issuerIdentifier: $ascKeyIssuerIdentifier,
-            name: $ascName,
-            accountId: $accountId
-        ));
-        return $response['data']['appStoreConnectApiKey']['createAppStoreConnectApiKey'] ?? null;
-    }
-
-    /**
-     * Sets the ASC API key for the given ios app credentials id.
-     * @param string $iosAppCredentialsId - the id of the ios app credentials to set the ASC API key for.
-     * @param string $ascKeyId - the id of the ASC API key to set.
-     * @return array|null - the response from the server.
-     */
-    private function setAscApiKeyForIosAppCredentials(
-        string $iosAppCredentialsId,
-        string $ascKeyId
-    ): ?array {
-        $response = $this->expoGqlClient->request($this->setAscApiKeyForIosAppCredentialsQuery->build(
-            iosAppCredentialsId: $iosAppCredentialsId,
-            ascApiKeyId: $ascKeyId
-        ));
-        return $response['data']['iosAppCredentials']['setAppStoreConnectApiKeyForSubmissions'] ?? null;
-    }
-
-    /**
-     * Sets the push key for the given ios app credentials id.
-     * @param string $iosAppCredentialsId - the id of the ios app credentials to set the push key for.
-     * @param string $pushKeyId - the id of the push key to set.
-     * @return array|null - the response from the server.
-     */
-    private function setPushKeyForIosAppCredentials(
-        string $iosAppCredentialsId,
-        string $pushKeyId
-    ): ?array {
-        $response = $this->expoGqlClient->request($this->setPushKeyForIosAppCredentialsQuery->build(
-            iosAppCredentialsId: $iosAppCredentialsId,
-            pushKeyId: $pushKeyId
-        ));
-        return $response['data']['iosAppCredentials']['setPushKey'] ?? null;
     }
 }

@@ -21,7 +21,11 @@ class MultiTenantConfig
         #[Field] public readonly ?string $communityGuidelines = null,
         #[Field] public readonly ?string $termsOfService = null,
         #[Field] public readonly ?int $updatedTimestamp = null,
-        public readonly ?string $expoProjectId = null
+        public readonly ?string $expoProjectId = null,
+        public readonly ?string $expoAndroidAppCredentialsId = null,
+        public readonly ?string $expoIosAppCredentialsId = null,
+        public readonly ?string $expoAndroidAppBuildCredentialsId = null,
+        public readonly ?string $expoIosAppBuildCredentialsId = null
     ) {
     }
 }

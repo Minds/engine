@@ -70,6 +70,10 @@ class Repository extends AbstractRepository
                 'color_scheme',
                 'community_guidelines',
                 'expo_project_id',
+                'expo_android_app_credentials_id',
+                'expo_ios_app_credentials_id',
+                'expo_android_app_build_credentials_id',
+                'expo_ios_app_build_credentials_id',
                 'updated_timestamp'
             ]);
     }
@@ -86,6 +90,10 @@ class Repository extends AbstractRepository
         $colorScheme = $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null;
         $communityGuidelines = $row['community_guidelines'] ?? null;
         $expoProjectId = $row['expo_project_id'] ?? null;
+        $expoAndroidAppCredentialsId = $row['expo_android_app_credentials_id'] ?? null;
+        $expoIosAppCredentialsId = $row['expo_ios_app_credentials_id'] ?? null;
+        $expoAndroidAppBuildCredentialsId = $row['expo_android_app_build_credentials_id'] ?? null;
+        $expoIosAppBuildCredentialsId = $row['expo_ios_app_build_credentials_id'] ?? null;
         $updatedTimestamp = $row['updated_timestamp'] ?? null;
 
         return new Tenant(
@@ -100,6 +108,10 @@ class Repository extends AbstractRepository
                 colorScheme: $colorScheme,
                 communityGuidelines: $communityGuidelines,
                 expoProjectId: $expoProjectId,
+                expoAndroidAppCredentialsId: $expoAndroidAppCredentialsId,
+                expoIosAppCredentialsId: $expoIosAppCredentialsId,
+                expoAndroidAppBuildCredentialsId: $expoAndroidAppBuildCredentialsId,
+                expoIosAppBuildCredentialsId: $expoIosAppBuildCredentialsId,
                 updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null
             )
         );
