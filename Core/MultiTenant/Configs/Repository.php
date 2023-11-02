@@ -117,12 +117,12 @@ class Repository extends AbstractRepository
 
         if ($iosAppCredentialsId !== null) {
             $rawValues['expo_ios_app_credentials_id'] = new RawExp(':expo_ios_app_credentials_id');
-            $boundValues['expo_ios_app_credentials_id'] = $iosAppBuildCredentialsId;
+            $boundValues['expo_ios_app_credentials_id'] = $iosAppCredentialsId;
         }
 
         if ($iosAppBuildCredentialsId !== null) {
             $rawValues['expo_ios_app_build_credentials_id'] = new RawExp(':expo_ios_app_build_credentials_id');
-            $boundValues['expo_ios_app_build_credentials_id'] = $iosAppCredentialsId;
+            $boundValues['expo_ios_app_build_credentials_id'] = $iosAppBuildCredentialsId;
         }
 
         $query = $this->mysqlClientWriterHandler

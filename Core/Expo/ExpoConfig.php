@@ -12,22 +12,22 @@ use Minds\Exceptions\ServerErrorException;
 class ExpoConfig
 {
     /** The url of the Expo GQL API. */
-    public readonly string $gqlApiUrl;
+    public string $gqlApiUrl;
 
     /** The base url of the Expo HTTP API. */
-    public readonly string $httpApiBaseUrl;
+    public string $httpApiBaseUrl;
 
     /** The ID of the expo account. */
-    public readonly string $accountId;
+    public string $accountId;
 
     /** The name of the expo account. */
-    public readonly string $accountName;
+    public string $accountName;
 
     /** The bearer token that provides access to the project. */
-    public readonly string $bearerToken;
+    public string $bearerToken;
 
     /** The Expo ID for the apple team we are using. */
-    public readonly string $appleTeamId;
+    public string $appleTeamId;
 
     public function __construct(private Config $config)
     {

@@ -117,8 +117,8 @@ class iOSCredentialsService extends BatchExpoGqlQueryHandler
         $createIosAppCredentialsResponse = $this->createIosAppCredentials(
             appleAppIdentifierId: $appleAppIdentifierId,
             appId: $projectId,
-            pushKeyId: $pushKeyId,
-            ascKeyId: $ascKeyId
+            pushKeyId: $pushKeyId ?? null,
+            ascKeyId: $ascKeyId ?? null
         );
 
         if (!$createIosAppCredentialsResponse || !$iosAppCredentialsId = $createIosAppCredentialsResponse['id']) {
@@ -145,10 +145,10 @@ class iOSCredentialsService extends BatchExpoGqlQueryHandler
             'apple_app_identifier_id' => $appleAppIdentifierId,
             'ios_app_credentials_id' => $iosAppCredentialsId,
             'ios_app_build_credentials_id' => $iosAppBuildCredentialsId,
-            'asc_key_id' => $ascKeyId,
+            'asc_key_id' => $ascKeyId ?? null,
             'distribution_cert_id' => $distributionCertId,
             'provisioning_profile_id' => $provisioningProfileId,
-            'push_key_id' => $pushKeyId
+            'push_key_id' => $pushKeyId ?? null
         ];
     }
 
@@ -211,7 +211,7 @@ class iOSCredentialsService extends BatchExpoGqlQueryHandler
         return [
             'ios_app_credentials_id' => $iosAppCredentialsId,
             'asc_key_id' => $ascKeyId,
-            'push_key_ud' => $pushKeyId
+            'push_key_id' => $pushKeyId
         ];
     }
 
@@ -385,7 +385,7 @@ class iOSCredentialsService extends BatchExpoGqlQueryHandler
         $response = $this->expoGqlClient->request($this->getAllAppleAppIdentifiersQuery->build(
             accountName: $this->expoConfig->accountName
         ));
-        return $response['data']['account']['byName']['appleAppIdentifiers'] ?? null;
+        return $response['data']['account']['byName']['appleAppIdentifiers'] ?? [];
     }
 
     /**
@@ -400,9 +400,11 @@ class iOSCredentialsService extends BatchExpoGqlQueryHandler
         $appleAppIdentifierId = null;
 
         $getAllAppleAppIdentifiersResponse = $this->getAllAppleAppIdentifiers();
-        $existingAppleIdentifier = reset(array_filter($getAllAppleAppIdentifiersResponse, function ($appleAppIdentifier) use ($bundleIdentifier) {
+
+        $existingAppleIdentifier = array_filter($getAllAppleAppIdentifiersResponse, function ($appleAppIdentifier) use ($bundleIdentifier) {
             return $appleAppIdentifier['bundleIdentifier'] === $bundleIdentifier;
-        }));
+        });
+        $existingAppleIdentifier = reset($existingAppleIdentifier);
 
         if ($existingAppleIdentifier) {
             $appleAppIdentifierId = $existingAppleIdentifier['id'];

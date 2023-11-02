@@ -119,6 +119,11 @@ class RepositorySpec extends ObjectBehavior
         $colorScheme = MultiTenantColorScheme::DARK;
         $primaryColor = '#fff000';
         $communityGuidelines = 'Test community guidelines';
+        $expoProjectId = 'test-expo-project-id';
+        $androidAppCredentialsId = 'test-android-app-credentials-id';
+        $iosAppCredentialsId =  'test-ios-app-credentials-id';
+        $androidAppBuildCredentialsId = 'test-android-app-build-credentials-id';
+        $iosAppBuildCredentialsId = 'test-ios-app-build-credentials-id';
 
         $this->mysqlMasterMock->prepare(Argument::any())
             ->willReturn($statement);
@@ -128,7 +133,12 @@ class RepositorySpec extends ObjectBehavior
             'site_name' => $siteName,
             'color_scheme' => $colorScheme->value,
             'primary_color' => $primaryColor,
-            'community_guidelines' => $communityGuidelines
+            'community_guidelines' => $communityGuidelines,
+            'expo_project_id' => $expoProjectId,
+            'expo_android_app_credentials_id' => $androidAppCredentialsId,
+            'expo_android_app_build_credentials_id' => $androidAppBuildCredentialsId,
+            'expo_ios_app_credentials_id' => $iosAppCredentialsId,
+            'expo_ios_app_build_credentials_id' => $iosAppBuildCredentialsId,
         ])->shouldBeCalled();
 
         $statement->execute()
@@ -140,7 +150,12 @@ class RepositorySpec extends ObjectBehavior
             siteName: $siteName,
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
-            communityGuidelines: $communityGuidelines
+            communityGuidelines: $communityGuidelines,
+            expoProjectId: $expoProjectId,
+            androidAppCredentialsId: $androidAppCredentialsId,
+            iosAppCredentialsId: $iosAppCredentialsId,
+            androidAppBuildCredentialsId: $androidAppBuildCredentialsId,
+            iosAppBuildCredentialsId: $iosAppBuildCredentialsId,
         )->shouldBe(true);
     }
 }

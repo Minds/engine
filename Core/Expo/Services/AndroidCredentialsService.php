@@ -63,8 +63,8 @@ class AndroidCredentialsService extends ServicesBatchExpoGqlQueryHandler
         ?string $googleCloudMessagingToken  = null
     ): array {
         $tenantId = $this->config->get('tenant_id') ?? throw new ServerErrorException('No tenant id set');
-        $tenantConfigs = $this->multiTenantDataService->getTenantFromId($tenantId);
-        $projectId = $tenantConfigs?->config?->expoProjectId ??
+        $tenant = $this->multiTenantDataService->getTenantFromId($tenantId);
+        $projectId = $tenant?->config?->expoProjectId ??
             throw new ServerErrorException('No expo project id configured for tenant');
 
         $decodedGoogleServiceAccountJson = json_decode($googleServiceAccountJson ?? '', true) ?? null;
@@ -101,8 +101,8 @@ class AndroidCredentialsService extends ServicesBatchExpoGqlQueryHandler
         $createAndroidAppCredentialsResponse = $this->createAndroidAppCredentials(
             projectId: $projectId,
             applicationIdentifier: $applicationIdentifier,
-            fcmKeyId: $fcmKeyId,
-            googleServiceAccountKeyId: $googleServiceAccountKeyId
+            fcmKeyId: $fcmKeyId ?? null,
+            googleServiceAccountKeyId: $googleServiceAccountKeyId ?? null
         );
 
         if (!$createAndroidAppCredentialsResponse || !$androidAppCredentialsId = $createAndroidAppCredentialsResponse['id']) {
@@ -128,8 +128,8 @@ class AndroidCredentialsService extends ServicesBatchExpoGqlQueryHandler
             'android_app_credentials_id' => $androidAppCredentialsId,
             'android_app_build_credentials_id' => $androidAppBuildCredentialsId,
             'keystore_id' => $keystoreId,
-            'google_service_account_key_id' => $googleServiceAccountKeyId,
-            'fcm_key_id' => $fcmKeyId
+            'google_service_account_key_id' => $googleServiceAccountKeyId ?? null,
+            'fcm_key_id' => $fcmKeyId ?? null
         ];
     }
 
@@ -144,8 +144,8 @@ class AndroidCredentialsService extends ServicesBatchExpoGqlQueryHandler
         ?string $googleCloudMessagingToken = null
     ): array {
         $tenantId = $this->config->get('tenant_id') ?? throw new ServerErrorException('No tenant id set');
-        $tenantConfigs = $this->multiTenantDataService->getTenantFromId($tenantId);
-        $androidAppCredentialsId = $tenantConfigs?->config?->expoAndroidAppCredentialsId ??
+        $tenant = $this->multiTenantDataService->getTenantFromId($tenantId);
+        $androidAppCredentialsId = $tenant?->config?->expoAndroidAppCredentialsId ??
             throw new ServerErrorException('No android app credentials id configured for tenant');
         
         $decodedGoogleServiceAccountJson = json_decode($googleServiceAccountJson ?? '', true) ?? null;
@@ -180,7 +180,7 @@ class AndroidCredentialsService extends ServicesBatchExpoGqlQueryHandler
         return [
             'android_app_credentials_id' => $androidAppCredentialsId,
             'google_service_account_key_id' => $googleServiceAccountKeyId,
-            'fcm_key_ud' => $fcmKeyId
+            'fcm_key_id' => $fcmKeyId
         ];
     }
 
@@ -349,7 +349,7 @@ class AndroidCredentialsService extends ServicesBatchExpoGqlQueryHandler
         string $keystoreId,
         string $name
     ): ?array {
-        $response =  $this->expoGqlClient->request($this->createAndroidAppBuildCredentialsQuery->build(
+        $response = $this->expoGqlClient->request($this->createAndroidAppBuildCredentialsQuery->build(
             androidAppCredentialsId: $androidAppCredentialsId,
             keystoreId: $keystoreId,
             name: $name

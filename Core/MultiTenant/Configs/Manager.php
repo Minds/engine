@@ -57,6 +57,11 @@ class Manager
      * @param ?MultiTenantColorScheme $colorScheme - color scheme to set.
      * @param ?string $primaryColor - primary color to set.
      * @param ?string $communityGuidelines - community guidelines.
+     * @param ?string $expoProjectId - expo project id.
+     * @param ?string $androidAppCredentialsId - expo android app credentials id.
+     * @param ?string $iosAppCredentialsId - expo ios app credentials id.
+     * @param ?string $androidAppBuildCredentialsId - expo android app build credentials id.
+     * @param ?string $iosAppBuildCredentialsId - expo ios app build credentials id.
      * @return bool - true on success.
      */
     public function upsertConfigs(

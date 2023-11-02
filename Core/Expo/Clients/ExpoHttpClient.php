@@ -49,6 +49,6 @@ class ExpoHttpClient
         }
 
         $response = json_decode($response->getBody()->getContents(), true);
-        return $response['data'];
+        return $response['data'] ?? null;
     }
 }
