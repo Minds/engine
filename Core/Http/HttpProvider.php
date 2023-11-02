@@ -41,7 +41,7 @@ class HttpProvider extends Provider
                 /** @var Config $mindsConfig */
                 $mindsConfig = $di->get('Config');
 
-                $apexProxyConfig = $mindsConfig->get('cloudflare')['apex_proxy'] ?? [
+                $apexProxyConfig = $mindsConfig->get('cloudflare')['custom_hostnames'] ?? [
                     'zone_url' => null,
                 ];
 

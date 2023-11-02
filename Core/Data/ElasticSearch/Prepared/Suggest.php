@@ -41,18 +41,34 @@ class Suggest implements PreparedMethodInterface
     {
         // Query
 
-        $body = [
-            'suggest' => [
-                'autocomplete' => [
-                    'prefix' => $this->_query,
-                    'completion' => [
-                        'field' => 'suggest'
+        if ($tenantId = $this->_params['tenant_id'] ?? null) {
+            $body = [
+                'suggest' => [
+                    'autocomplete' => [
+                        'prefix' => $this->_query,
+                        'completion' => [
+                            'field' => 'suggest_v2',
+                            'contexts' => [
+                                'tenant_id' => [(string) $tenantId],
+                            ]
+                        ],
                     ]
                 ]
-            ]
-        ];
+            ];
+        } else {
+            $body = [
+                'suggest' => [
+                    'autocomplete' => [
+                        'prefix' => $this->_query,
+                        'completion' => [
+                            'field' => 'suggest'
+                        ]
+                    ]
+                ]
+            ];
+        }
 
-        //
+        
         if (isset($this->_params['size'])) {
             $body['suggest']['autocomplete']['completion']['size'] = $this->_params['size'];
         }

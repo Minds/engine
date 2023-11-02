@@ -163,16 +163,16 @@ class DomainService
     public function setupMultiTenantCustomHostname(string $hostname): MultiTenantCustomHostname
     {
         $tenantId = $this->config->get('tenant_id');
-        $MultiTenantCustomHostname = $this->cloudflareClient->createMultiTenantCustomHostname($hostname, $tenantId);
+        $multiTenantCustomHostname = $this->cloudflareClient->createCustomHostname($hostname);
 
         $this->domainsRepository->storeDomainDetails(
             tenantId: $tenantId,
-            cloudflareId: $MultiTenantCustomHostname->id,
-            domain: $MultiTenantCustomHostname->hostname,
-            status: $MultiTenantCustomHostname->status,
+            cloudflareId: $multiTenantCustomHostname->id,
+            domain: $multiTenantCustomHostname->hostname,
+            status: $multiTenantCustomHostname->status,
         );
 
-        return $MultiTenantCustomHostname;
+        return $multiTenantCustomHostname;
     }
 
     /**

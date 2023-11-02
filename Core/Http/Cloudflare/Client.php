@@ -25,7 +25,7 @@ class Client
      * @throws GuzzleException
      * @throws Exception
      */
-    public function createMultiTenantCustomHostname(string $hostname, int $tenantId): MultiTenantCustomHostname
+    public function createCustomHostname(string $hostname): MultiTenantCustomHostname
     {
         $response = $this->client->post(
             uri: "custom_hostnames",
@@ -41,7 +41,7 @@ class Client
             ]
         );
 
-        return $this->processMultiTenantCustomHostnamePayload($response);
+        return $this->processCustomHostnamePayload($response);
     }
 
     /**
@@ -50,13 +50,13 @@ class Client
      * @throws GuzzleException
      * @throws Exception
      */
-    public function getMultiTenantCustomHostnameDetails(string $cloudflareId): MultiTenantCustomHostname
+    public function getCustomHostnameDetails(string $cloudflareId): MultiTenantCustomHostname
     {
         $response = $this->client->get(
             uri: "custom_hostnames/$cloudflareId",
         );
 
-        return $this->processMultiTenantCustomHostnamePayload($response);
+        return $this->processCustomHostnamePayload($response);
     }
 
     /**
@@ -66,17 +66,16 @@ class Client
      * @return MultiTenantCustomHostname
      * @throws GuzzleException
      */
-    public function updateMultiTenantCustomHostnameDetails(
+    public function updateCustomHostnameDetails(
         string $cloudflareId,
         string $hostname,
         int $tenantId
     ): MultiTenantCustomHostname {
         // Delete existing custom hostname first
-        $this->deleteMultiTenantCustomHostname($cloudflareId);
+        $this->deleteCustomHostname($cloudflareId);
 
-        return $this->createMultiTenantCustomHostname(
-            hostname: $hostname,
-            tenantId: $tenantId
+        return $this->creatCustomHostname(
+            hostname: $hostname
         );
     }
 
@@ -86,7 +85,7 @@ class Client
      * @throws GuzzleException
      * @throws Exception
      */
-    private function deleteMultiTenantCustomHostname(string $cloudflareId): void
+    private function deleteCustomHostname(string $cloudflareId): void
     {
         $response = $this->client->delete(
             uri: "custom_hostnames/$cloudflareId",
@@ -102,7 +101,7 @@ class Client
      * @return MultiTenantCustomHostname
      * @throws Exception
      */
-    private function processMultiTenantCustomHostnamePayload(ResponseInterface $response): MultiTenantCustomHostname
+    private function processCustomHostnamePayload(ResponseInterface $response): MultiTenantCustomHostname
     {
         if ($response->getStatusCode() !== 201) {
             throw new Exception("Failed to create custom hostname");

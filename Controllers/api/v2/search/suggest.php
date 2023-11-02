@@ -53,7 +53,7 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
                 }
                 
                 if ($guids) {
-                    $entities = array_filter(Di::_()->get('Entities')->get([ 'guids' => $guids ]), function ($entity) {
+                    $entities = array_filter(Di::_()->get('EntitiesBuilder')->get([ 'guids' => $guids ]) ?: [], function ($entity) {
                         if (count($entity->getNsfw())) {
                             return false;
                         }
