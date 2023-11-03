@@ -9,6 +9,7 @@ class Module implements ModuleInterface
     /** @var array */
     public $submodules = [
         Configs\Module::class,
+        AutoLogin\Module::class,
     ];
 
     /**
