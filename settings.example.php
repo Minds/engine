@@ -12,7 +12,6 @@ $CONFIG->set('multi_tenant', [
         'localhost',
     ],
     'subdomain_suffix' => 'networks.localhost',
-    'dns' => 
 ]);
 
 /*
