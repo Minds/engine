@@ -1,14 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Minds\Core\MultiTenant\Types;
+namespace Minds\Core\Http\Cloudflare\Models;
 
 use ArrayAccess;
-use TheCodingMachine\GraphQLite\Annotations\Field;
-use TheCodingMachine\GraphQLite\Annotations\Type;
 
-#[Type]
-class MultiTenantCustomHostnameMetadata implements ArrayAccess
+class CustomHostnameMetadata implements ArrayAccess
 {
     public function __construct(
         private array $metadata,
@@ -35,15 +32,4 @@ class MultiTenantCustomHostnameMetadata implements ArrayAccess
         unset($this->metadata[$offset]);
     }
 
-    /**
-     * @return int|null
-     */
-    #[Field]
-    public function getTenantId(): ?int
-    {
-        if (!$this->offsetExists('tenantId')) {
-            return null;
-        }
-        return $this->offsetGet('tenantId');
-    }
 }

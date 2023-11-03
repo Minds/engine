@@ -1,8 +1,8 @@
 <?php
 
-namespace Minds\Core\MultiTenant\Enums;
+namespace Minds\Core\Http\Cloudflare\Enums;
 
-enum MultiTenantCustomHostnameStatusEnum: string
+enum CustomHostnameStatusEnum: string
 {
     case ACTIVE = 'active';
     case PENDING = 'pending';

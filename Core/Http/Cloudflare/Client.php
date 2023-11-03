@@ -6,9 +6,10 @@ namespace Minds\Core\Http\Cloudflare;
 use Exception;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\GuzzleException;
-use Minds\Core\MultiTenant\Enums\MultiTenantCustomHostnameStatusEnum;
-use Minds\Core\MultiTenant\Types\MultiTenantCustomHostname;
-use Minds\Core\MultiTenant\Types\MultiTenantCustomHostnameMetadata;
+use Minds\Core\Http\Cloudflare\Enums\CustomHostnameStatusEnum;
+use Minds\Core\Http\Cloudflare\Models\CustomHostname;
+use Minds\Core\Http\Cloudflare\Models\CustomHostnameMetadata;
+use Minds\Core\Http\Cloudflare\Models\CustomHostnameOwnershipVerification;
 use Psr\Http\Message\ResponseInterface;
 
 class Client
@@ -21,11 +22,11 @@ class Client
     /**
      * @param string $hostname
      * @param int $tenantId
-     * @return MultiTenantCustomHostname
+     * @return CustomHostname
      * @throws GuzzleException
      * @throws Exception
      */
-    public function createCustomHostname(string $hostname): MultiTenantCustomHostname
+    public function createCustomHostname(string $hostname): CustomHostname
     {
         $response = $this->client->post(
             uri: "custom_hostnames",
@@ -46,11 +47,11 @@ class Client
 
     /**
      * @param string $cloudflareId
-     * @return MultiTenantCustomHostname
+     * @return CustomHostname
      * @throws GuzzleException
      * @throws Exception
      */
-    public function getCustomHostnameDetails(string $cloudflareId): MultiTenantCustomHostname
+    public function getCustomHostnameDetails(string $cloudflareId): CustomHostname
     {
         $response = $this->client->get(
             uri: "custom_hostnames/$cloudflareId",
@@ -63,18 +64,17 @@ class Client
      * @param string $cloudflareId
      * @param string $hostname
      * @param int $tenantId
-     * @return MultiTenantCustomHostname
+     * @return CustomHostname
      * @throws GuzzleException
      */
     public function updateCustomHostnameDetails(
         string $cloudflareId,
-        string $hostname,
-        int $tenantId
-    ): MultiTenantCustomHostname {
+        string $hostname
+    ): CustomHostname {
         // Delete existing custom hostname first
         $this->deleteCustomHostname($cloudflareId);
 
-        return $this->creatCustomHostname(
+        return $this->createCustomHostname(
             hostname: $hostname
         );
     }
@@ -98,27 +98,32 @@ class Client
 
     /**
      * @param ResponseInterface $response
-     * @return MultiTenantCustomHostname
+     * @return CustomHostname
      * @throws Exception
      */
-    private function processCustomHostnamePayload(ResponseInterface $response): MultiTenantCustomHostname
+    private function processCustomHostnamePayload(ResponseInterface $response): CustomHostname
     {
-        if ($response->getStatusCode() !== 201) {
-            throw new Exception("Failed to create custom hostname");
+        if (!in_array($response->getStatusCode(), [200,201], true)) {
+            throw new Exception("Failed to process custom hostname");
         }
 
         $payload = json_decode($response->getBody()->getContents());
 
         if (!$payload->success) {
-            throw new Exception("Failed to create custom hostname");
+            throw new Exception("Failed to process custom hostname");
         }
 
-        return new MultiTenantCustomHostname(
+        return new CustomHostname(
             id: $payload->result->id,
             hostname: $payload->result->hostname,
             customOriginServer: $payload->result->custom_origin_server ?? "",
-            status: MultiTenantCustomHostnameStatusEnum::tryFrom($payload->result->status),
-            metadata: new MultiTenantCustomHostnameMetadata($payload->result->custom_metadata ?? []),
+            status: CustomHostnameStatusEnum::tryFrom($payload->result->status),
+            metadata: new CustomHostnameMetadata($payload->result->custom_metadata ?? []),
+            ownershipVerification: new CustomHostnameOwnershipVerification(
+                name: $payload->result->ownership_verification->name,
+                type: $payload->result->ownership_verification->type,
+                value: $payload->result->ownership_verification->value,
+            ),
             createdAt: strtotime($payload->result->created_at)
         );
     }

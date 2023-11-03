@@ -27,11 +27,5 @@ class FactoriesProvider extends Provider
                 return new TenantUserFactory();
             }
         );
-        $this->di->bind(
-            MultiTenantCustomHostnameFactory::class,
-            function (Di $di): MultiTenantCustomHostnameFactory {
-                return new MultiTenantCustomHostnameFactory();
-            }
-        );
     }
 }

@@ -5,7 +5,7 @@ namespace Minds\Core\MultiTenant\Repositories;
 
 use Exception;
 use Minds\Core\Data\MySQL\AbstractRepository;
-use Minds\Core\MultiTenant\Enums\MultiTenantCustomHostnameStatusEnum;
+use Minds\Core\Http\Cloudflare\Enums\CustomHostnameStatusEnum;
 use Minds\Core\MultiTenant\Types\MultiTenantDomain;
 use PDO;
 use Selective\Database\Operator;
@@ -18,7 +18,7 @@ class DomainsRepository extends AbstractRepository
      * @param int $tenantId
      * @param string $cloudflareId
      * @param string $domain
-     * @param MultiTenantCustomHostnameStatusEnum $status
+     * @param CustomHostnameStatusEnum $status
      * @return void
      * @throws Exception
      */
@@ -26,7 +26,6 @@ class DomainsRepository extends AbstractRepository
         int $tenantId,
         string $cloudflareId,
         string $domain,
-        MultiTenantCustomHostnameStatusEnum $status,
     ): void {
         $statement = $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
@@ -34,12 +33,10 @@ class DomainsRepository extends AbstractRepository
                 'tenant_id' => $tenantId,
                 'cloudflare_id' => $cloudflareId,
                 'domain' => $domain,
-                'status' => $status->value,
             ])
             ->onDuplicateKeyUpdate([
                 'domain' => $domain,
                 'cloudflare_id' => $cloudflareId,
-                'status' => $status->value,
             ])
             ->execute();
 
@@ -62,8 +59,6 @@ class DomainsRepository extends AbstractRepository
                 'tenant_id',
                 'cloudflare_id',
                 'domain',
-                'status',
-                'created_at',
             ])
             ->where('tenant_id', Operator::EQ, $tenantId)
             ->execute();
@@ -77,8 +72,6 @@ class DomainsRepository extends AbstractRepository
         return new MultiTenantDomain(
             tenantId: $item['tenant_id'],
             domain: $item['domain'],
-            status: MultiTenantCustomHostnameStatusEnum::from($item['status']),
-            createdAt: strtotime($item['created_at']),
             cloudflareId: $item['cloudflare_id']
         );
     }

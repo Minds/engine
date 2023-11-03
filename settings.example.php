@@ -12,6 +12,7 @@ $CONFIG->set('multi_tenant', [
         'localhost',
     ],
     'subdomain_suffix' => 'networks.localhost',
+    'dns' => 
 ]);
 
 /*
@@ -50,6 +51,11 @@ $CONFIG->set('cloudflare', [
     'email' => '',
     'account_id' => '',
     'cdn_url' => 'https://customer-gh08u53vbkhozibb.cloudflarestream.com/',
+    'custom_hostnames' => [
+        'zone_url' => '',
+        'apex_ip' => '127.0.0.1',
+        'cname_hostname' => 'set-me-up.minds.com',
+    ],
 ]);
 
 $CONFIG->disable_secure_cookies = true;

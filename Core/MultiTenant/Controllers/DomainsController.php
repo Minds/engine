@@ -6,11 +6,12 @@ namespace Minds\Core\MultiTenant\Controllers;
 use GraphQL\Error\UserError;
 use GuzzleHttp\Exception\GuzzleException;
 use Minds\Core\MultiTenant\Services\DomainService;
-use Minds\Core\MultiTenant\Types\MultiTenantCustomHostname;
+use Minds\Core\MultiTenant\Types\CustomHostname;
 use Minds\Core\MultiTenant\Types\MultiTenantDomain;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Query;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class DomainsController
 {
@@ -27,21 +28,32 @@ class DomainsController
     public function getMultiTenantDomain(): MultiTenantDomain
     {
         try {
-            return $this->domainService->getDomainDetails();
+            return $this->domainService->getCustomHostname();
         } catch (\Exception $e) {
             throw new UserError($e->getMessage());
         }
     }
 
     /**
-     * @param MultiTenantCustomHostname $input
-     * @return MultiTenantCustomHostname
      * @throws GuzzleException
      */
     #[Mutation]
     public function createMultiTenantDomain(
-        MultiTenantCustomHostname $input
-    ): MultiTenantCustomHostname {
-        return $this->domainService->setupMultiTenantCustomHostname($input->hostname);
+        string $hostname
+    ): MultiTenantDomain {
+
+        if (!filter_var($hostname, FILTER_VALIDATE_DOMAIN)) {
+            throw new GraphQLException("Invalid hostname provided", 400, null, "Validation", ['field' => 'hostname']);
+        }
+
+        try {
+            if (!!$this->domainService->getDomainDetails()) {
+                return $this->domainService->updateCustomHostname($hostname);
+            }
+        } catch (\Exception $e) {
+         
+        }
+
+        return $this->domainService->setupCustomHostname($hostname);
     }
 }
