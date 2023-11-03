@@ -24,9 +24,9 @@ class ProjectsService
 
     /**
      * Creates a new Expo project for the tenant.
-     * @param string|null $privacy - privacy setting of the project e.g. 'unlisted'.
-     * @param string|null $slug - slug for the project.
      * @param string|null $displayName - display name for the project.
+     * @param string|null $slug - slug for the project.
+     * @param string|null $privacy - privacy setting of the project e.g. 'unlisted'.
      * @return bool - true on success.
      */
     public function newProject(

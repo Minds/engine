@@ -26,9 +26,9 @@ class ProjectsController
     public function newProject(ServerRequest $request): JsonResponse
     {
         $requestBody = $request->getParsedBody();
-        $displayName = $requestBody['display_name'];
-        $slug = $requestBody['slug'];
-        $privacy = $requestBody['privacy'];
+        $displayName = $requestBody['display_name'] ?? null;
+        $slug = $requestBody['slug'] ?? null;
+        $privacy = $requestBody['privacy'] ?? null;
 
         $success = $this->projectsService->newProject(
             displayName: $displayName,

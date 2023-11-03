@@ -98,9 +98,9 @@ class iOSCredentialsService extends BatchExpoGqlQueryHandler
         );
 
         $distributionCertId = $batchPreAppCredentialCreationQueriesResponse['createAppleDistributionCertificate']['id'] ??
-            throw new ServerErrorException('Failed to create distribution certificate');
+            throw new ServerErrorException('Failed to create distribution certificate in Expo');
         $provisioningProfileId = $batchPreAppCredentialCreationQueriesResponse['createAppleProvisioningProfile']['id'] ??
-            throw new ServerErrorException('Failed to create distribution certificate');
+            throw new ServerErrorException('Failed to create provisioning profile in Expo');
         
         // for optional values provided, check that they were successfully created in the batch query.
         if ($pushKeyP8 && $pushKeyIdentifier) {
@@ -110,7 +110,7 @@ class iOSCredentialsService extends BatchExpoGqlQueryHandler
 
         if ($ascKeyP8 && $ascKeyIdentifier && $ascKeyIssuerIdentifier && $ascName) {
             $ascKeyId = $batchPreAppCredentialCreationQueriesResponse['createAppStoreConnectApiKey']['id'] ??
-                throw new ServerErrorException('Failed to create ASC API key');
+                throw new ServerErrorException('Failed to create ASC API key in Expo');
         }
 
         // Create iOS app credentials (with the created resources if provided).
@@ -458,7 +458,7 @@ class iOSCredentialsService extends BatchExpoGqlQueryHandler
             pushKeyId: $pushKeyId,
             ascKeyId: $ascKeyId
         ));
-        return $response['data']['iosAppCredentials']['createIosAppCredentials']?? null;
+        return $response['data']['iosAppCredentials']['createIosAppCredentials'] ?? null;
     }
 
     /**

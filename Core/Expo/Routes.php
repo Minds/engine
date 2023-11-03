@@ -21,7 +21,7 @@ class Routes extends ModuleRoutes
         $this->route
             ->withPrefix('api/v3/expo')
             ->withMiddleware([
-                // AdminMiddleware::class
+                AdminMiddleware::class
             ])
             ->do(function (Route $route) {
                 // Android credentials
