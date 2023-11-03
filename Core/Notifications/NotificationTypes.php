@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\Notifications;
 
 use Minds\Core\Config\Config;
@@ -6,7 +7,6 @@ use Minds\Core\Di\Di;
 
 class NotificationTypes
 {
-
     /**
      * Constructor.
      */
@@ -31,7 +31,7 @@ class NotificationTypes
     const TYPE_VOTE_DOWN = 'vote_down';
 
     /** @var string[] */
-    const GROUPING_VOTES = [ self::TYPE_VOTE_UP, self::TYPE_VOTE_DOWN ];
+    const GROUPING_VOTES = [self::TYPE_VOTE_UP, self::TYPE_VOTE_DOWN];
 
     /** @var string */
     const GROUPING_TYPE_VOTES = 'votes';
@@ -45,7 +45,7 @@ class NotificationTypes
     const TYPE_TAG = 'tag';
 
     /** @var string[] */
-    const GROUPING_TAGS = [ self::TYPE_TAG ];
+    const GROUPING_TAGS = [self::TYPE_TAG];
 
     /** @var string */
     const GROUPING_TYPE_TAGS = 'tags';
@@ -87,7 +87,7 @@ class NotificationTypes
     const TYPE_COMMENT = 'comment';
 
     /** @var string[] */
-    const GROUPING_COMMENTS = [ self::TYPE_COMMENT ];
+    const GROUPING_COMMENTS = [self::TYPE_COMMENT];
 
     /** @var string */
     const GROUPING_TYPE_COMMENTS = 'comments';
@@ -104,7 +104,7 @@ class NotificationTypes
     const TYPE_QUOTE = 'quote';
 
     /** @var string[] */
-    const GROUPING_REMINDS = [ self::TYPE_REMIND, self::TYPE_QUOTE ];
+    const GROUPING_REMINDS = [self::TYPE_REMIND, self::TYPE_QUOTE];
 
     /** @var string */
     const GROUPING_TYPE_REMINDS = 'reminds';
@@ -178,7 +178,7 @@ class NotificationTypes
     const TYPE_CHAT_INVITE = 'chat_invite';
 
     /** @var string[] */
-    const GROUPING_CHATS = [ self::TYPE_CHAT_INVITE];
+    const GROUPING_CHATS = [self::TYPE_CHAT_INVITE];
 
     /** @var string */
     const GROUPING_TYPE_CHATS = 'chats';
@@ -224,7 +224,7 @@ class NotificationTypes
     const TYPE_REPORT_ACTIONED = 'report_actioned';
 
     /** @var string[] */
-    const GROUPING_REPORTS = [ self::TYPE_REPORT_ACTIONED];
+    const GROUPING_REPORTS = [self::TYPE_REPORT_ACTIONED];
 
     /** @var string */
     const GROUPING_TYPE_REPORTS = 'reports';
@@ -239,7 +239,7 @@ class NotificationTypes
     const TYPE_TOP_POSTS = 'top_posts';
 
     /** @var string */
-    const GROUPING_TOP_POSTS = [ self::TYPE_TOP_POSTS ];
+    const GROUPING_TOP_POSTS = [self::TYPE_TOP_POSTS];
 
     /** @var string */
     const GROUPING_TYPE_TOP_POSTS = 'top_posts';
@@ -313,7 +313,7 @@ class NotificationTypes
     const TYPE_COMMUNITY_UPDATES = 'community_updates';
 
     /** @var string */
-    const GROUPING_COMMUNITY_UPDATES = [ self::TYPE_COMMUNITY_UPDATES ];
+    const GROUPING_COMMUNITY_UPDATES = [self::TYPE_COMMUNITY_UPDATES];
 
     /** @var string */
     const GROUPING_TYPE_COMMUNITY_UPDATES = 'community_updates';
@@ -333,7 +333,7 @@ class NotificationTypes
     const TYPE_WIRE_RECEIVED = 'wire_received';
 
     /** @var string[] */
-    const GROUPING_WIRES = [ self::TYPE_WIRE_PAYOUT, self::TYPE_WIRE_RECEIVED ];
+    const GROUPING_WIRES = [self::TYPE_WIRE_PAYOUT, self::TYPE_WIRE_RECEIVED];
 
     /** @var string */
     const GROUPING_TYPE_WIRES = 'wires';
@@ -429,16 +429,18 @@ class NotificationTypes
     {
         $defaultTypesGroupings = self::TYPES_GROUPINGS;
 
-        if (!$this->isMultiTenant()){
+        if (!$this->isMultiTenant()) {
             return $defaultTypesGroupings;
         } else {
             $forbiddenTenantTypes = [
+                self::GROUPING_TYPE_BOOSTS,
                 self::GROUPING_TYPE_TOKENS,
                 self::GROUPING_TYPE_CHATS,
+                self::GROUPING_TYPE_WIRES,
                 self::GROUPING_TYPE_TOP_POSTS,
                 self::GROUPING_TYPE_SUPERMIND,
                 self::GROUPING_TYPE_AFFILIATE_EARNINGS,
-                self::GROUPING_TYPE_GIFT_CARDS
+                self::GROUPING_TYPE_GIFT_CARDS,
             ];
 
             return array_diff($defaultTypesGroupings, $forbiddenTenantTypes);
