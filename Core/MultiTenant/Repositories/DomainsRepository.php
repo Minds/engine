@@ -15,11 +15,6 @@ class DomainsRepository extends AbstractRepository
     private const TABLE_NAME = 'minds_tenants_domain_details';
 
     /**
-     * @param int $tenantId
-     * @param string $cloudflareId
-     * @param string $domain
-     * @param CustomHostnameStatusEnum $status
-     * @return void
      * @throws Exception
      */
     public function storeDomainDetails(
@@ -46,8 +41,6 @@ class DomainsRepository extends AbstractRepository
     }
 
     /**
-     * @param int $tenantId
-     * @return MultiTenantDomain
      * @throws Exception
      */
     public function getDomainDetails(
