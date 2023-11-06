@@ -271,7 +271,7 @@ CREATE TABLE IF NOT EXISTS minds_comments (
     guid bigint,
     entity_guid bigint,
     owner_guid bigint,
-    parent_guid bigint REFERENCES minds_comment(guid),
+    parent_guid bigint REFERENCES minds_comments(guid),
     parent_depth int,
     body text,
     attachments json,
@@ -415,13 +415,22 @@ ALTER TABLE minds_activitypub_actors
 ALTER TABLE minds_activitypub_uris
     ADD updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP;
 
-
 CREATE TABLE `minds_tenants` (
-  `tenant_id` int NOT NULL,
+  `tenant_id` int NOT NULL AUTO_INCREMENT,
   `owner_guid` bigint DEFAULT NULL,
   `domain` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`tenant_id`),
   UNIQUE KEY `domain` (`domain`)
+);
+
+CREATE TABLE IF NOT EXISTS minds_tenant_configs (
+    tenant_id int,
+    site_name varchar(64),
+    site_email varchar(128),
+    primary_color varchar(16),
+    color_scheme varchar(32),
+    updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (tenant_id)
 );
 
 CREATE TABLE `minds_entities` (
@@ -441,7 +450,7 @@ CREATE TABLE `minds_entities_user` (
   `username` varchar(128) DEFAULT NULL,
   `name` text,
   `briefdescription` text,
-  `email` varchar(256) DEFAULT NULL,
+  `email` text DEFAULT NULL,
   `password` varchar(256) DEFAULT NULL,
   `liquidity_spot_opt_out` tinyint(1) DEFAULT '0',
   `disabled_boost` tinyint(1) DEFAULT '0',
@@ -543,3 +552,18 @@ CREATE TABLE `minds_entities_object_video` (
   `auto_caption` text,
   PRIMARY KEY (`tenant_id`,`guid`)
 );
+
+ALTER TABLE `minds_tenants`
+    ADD root_user_guid bigint DEFAULT NULL
+    AFTER owner_guid;
+
+ALTER TABLE `minds_votes` ADD COLUMN `tenant_id` int DEFAULT NULL AFTER `user_guid`;
+CREATE INDEX `tenant_id` ON `minds_votes` (`tenant_id`);
+
+ALTER TABLE `minds_entities_user` MODIFY COLUMN ip varchar(40);
+
+ALTER TABLE `friends` ADD COLUMN tenant_id int AFTER friend_guid;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD community_guidelines text DEFAULT NULL
+    AFTER color_scheme;

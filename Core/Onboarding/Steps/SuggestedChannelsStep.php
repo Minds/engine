@@ -17,6 +17,6 @@ class SuggestedChannelsStep implements OnboardingStepInterface
      */
     public function isCompleted(User $user)
     {
-        return $user->getSubscriptonsCount() > 1; // Channels are always subscribed to @minds
+        return $user->getSubscriptionsCount() > 1; // Channels are always subscribed to @minds
     }
 }

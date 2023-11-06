@@ -64,6 +64,19 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                         ELSE FALSE
                     END
                 "),
+                'vote_count' => new RawExp("
+                    CASE 
+                        WHEN 
+                            e.type='activity' AND (
+                                SELECT COUNT(*) FROM minds_votes
+                                WHERE minds_votes.entity_guid = e.guid
+                                AND deleted = False
+                                AND direction = 1
+                            )
+                        THEN TRUE 
+                        ELSE FALSE
+                    END
+                "),
                 'has_voted_down' => new RawExp("
                     CASE 
                         WHEN 
@@ -73,6 +86,28 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                                 AND user_guid=:loggedInUser
                                 AND deleted = False
                                 AND direction = 2
+                            )
+                        THEN TRUE 
+                        ELSE FALSE
+                    END
+                "),
+                'friends_count' => new RawExp("
+                    CASE 
+                        WHEN 
+                            e.type='user' AND (
+                                SELECT COUNT(*) FROM friends
+                                WHERE friends.user_guid = e.guid
+                            )
+                        THEN TRUE 
+                        ELSE FALSE
+                    END
+                "),
+                'friendsof_count' => new RawExp("
+                    CASE 
+                        WHEN 
+                            e.type='user' AND (
+                                SELECT COUNT(*) FROM friends
+                                WHERE friends.friend_guid = e.guid
                             )
                         THEN TRUE 
                         ELSE FALSE
@@ -99,6 +134,10 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
         }
         
         $query->where('e.tenant_id', Operator::EQ, $this->config->get('tenant_id'));
+
+        if (is_array($guid)) {
+            $query->orderBy('e.guid desc');
+        }
 
         $statement = $query->prepare();
 
@@ -529,12 +568,6 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
         $columnsMap = [];
 
         foreach ($data as $k => $v) {
-            
-            if ($k === 'ip') {
-                $columnsMap[$k] = new RawExp("INET_ATON(:$k)");
-                continue;
-            }
-
             $columnsMap[$k] = new RawExp(':' . $k);
         }
 
@@ -616,6 +649,11 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     }
                     if ($tableMappedRow['']['has_voted_down'] ?? false) {
                         $row['thumbs:down:user_guids'] = [(string) $this->activeSession->getUserGuid()];
+                    }
+
+                    // An ugly hack for passing the comment count to the activity post
+                    if ($tableMappedRow['']['vote_count'] ?? false) {
+                        $row['thumbs:up:count'] = (int) $tableMappedRow['']['vote_count'];
                     }
 
                     $mapToUnix = ['time_created', 'time_updated', ];

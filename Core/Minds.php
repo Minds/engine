@@ -23,8 +23,8 @@ class Minds extends base
     private $modules = [
         Log\Module::class,
         Events\Module::class,
-        MultiTenant\Module::class,
         GraphQL\Module::class,
+        MultiTenant\Module::class,
         EventStreams\Module::class,
         Security\Module::class,
         OAuth\Module::class,
@@ -183,7 +183,8 @@ class Minds extends base
      */
     public function checkInstalled()
     {
-        if (Di::_()->get(Config\Config::class)->get('multi_tenant')['enabled']) {
+        $multiTenantConfig = Di::_()->get(Config\Config::class)->get('multi_tenant') ?? [];
+        if ($multiTenantConfig['enabled'] ?? false) {
             /** @var MultiTenant\Services\MultiTenantBootService */
             $service = Di::_()->get(MultiTenant\Services\MultiTenantBootService::class);
             $service

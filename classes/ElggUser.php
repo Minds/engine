@@ -124,7 +124,7 @@ class ElggUser extends ElggEntity
     {
         $config = Minds\Core\Di\Di::_()->get('Config');
 
-        if ($config->get('development_mode') !== true) {
+        if ($config->get('development_mode') !== true && !$config->get('tenant_id')) {
             $ip = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : null;
 
             if (!$ip) {
@@ -144,48 +144,6 @@ class ElggUser extends ElggEntity
         //var_dump($this->admin);
         //return $this->admin == 'yes';
         return $this->attributes['admin'] == 'yes';
-    }
-
-    /**
-     * Return a count of the users subscriber
-     *
-     * @return
-     */
-    public function getSubscribersCount()
-    {
-        $cacher = \Minds\Core\Data\cache\factory::build();
-        if ($cache = $cacher->get("$this->guid:friendsofcount")) {
-            return $cache;
-        }
-
-        $db = new Minds\Core\Data\Call('friendsof');
-        $count = $db->countRow($this->guid);
-        if (!$count) {
-            $count = 1;
-        }
-        $cacher->set("$this->guid:friendsofcount", $count);
-        return $count;
-    }
-
-    /**
-     * Return a count of the users subscriptions
-     *
-     * @return
-     */
-    public function getSubscriptionsCount()
-    {
-        $cacher = \Minds\Core\Data\cache\factory::build();
-        if ($cache = $cacher->get("$this->guid:friendscount")) {
-            return $cache;
-        }
-
-        $db = new Minds\Core\Data\Call('friends');
-        $count = $db->countRow($this->guid);
-        if (!$count) {
-            $count = 1;
-        }
-        $cacher->set("$this->guid:friendscount", $count);
-        return $count;
     }
 
     /**

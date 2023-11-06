@@ -61,6 +61,7 @@ class RepositorySpec extends ObjectBehavior
             'votes_up' => null,
             'votes_down' => null,
             'flags' => null,
+            'tenant_id' => null,
         ];
 
         $rows = new Rows([ $row, $row ], 'phpspec');
@@ -99,6 +100,7 @@ class RepositorySpec extends ObjectBehavior
             'votes_up' => null,
             'votes_down' => null,
             'flags' => null,
+            'tenant_id' => null,
         ];
 
         $rows = new Rows([ $row, $row ], 'phpspec');

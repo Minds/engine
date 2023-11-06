@@ -100,4 +100,19 @@ class Factory
 
         self::$entitiesCache[$cacheKey] = $entity;
     }
+
+    /**
+     * Caches an entity (currently just in memory)
+     */
+    public static function invalidateCache(EntityInterface $entity): void
+    {
+        $guid = $entity->getGuid();
+
+        $cacheKey = $guid;
+
+        unset(self::$entitiesCache[$cacheKey]);
+
+        $psrCache = Di::_()->get('Cache\PsrWrapper');
+        $psrCache->delete('entity:' . $cacheKey);
+    }
 }

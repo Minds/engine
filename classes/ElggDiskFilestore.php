@@ -1,4 +1,8 @@
 <?php
+
+use Minds\Core\Di\Di;
+use Minds\Entities\User;
+
 /**
  * A filestore that uses disk as storage.
  *
@@ -348,9 +352,9 @@ class ElggDiskFilestore extends ElggFilestore
      */
     protected function makeFileMatrix($guid)
     {
-        $entity = get_entity($guid, 'user');
+        $entity = Di::_()->get(EntitiesBuilder::class)->single($guid, [ 'cacheTtl' => 259200 ]);
 
-        if (!($entity instanceof ElggEntity) || !$entity->time_created) {
+        if (!($entity instanceof User) || !$entity->time_created) {
             return false;
         }
 
