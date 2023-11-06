@@ -7,6 +7,7 @@ use Minds\Core\Comments\Comment;
 use Minds\Core\Comments\Legacy\Repository as LegacyRepository;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use PhpSpec\Exception\Example\FailureException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
