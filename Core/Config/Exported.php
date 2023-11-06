@@ -147,9 +147,7 @@ class Exported
         }
 
         // @deprecated
-        // tell frontend to redirect. Pro needed this ;/
         $exported['redirect_to_root_on_init'] = false;
-        
 
         $defaultSupermindSettings = new SupermindSettings();
         $exported['supermind'] = [
