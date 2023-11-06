@@ -66,7 +66,7 @@ class settings implements Interfaces\Api
                 ]);
             }
 
-            $user = new User(strtolower($pages[0]));
+            $user = Di::_()->get(EntitiesBuilder::class)->getByUserByIndex(strtolower($pages[0]));
         }
 
         /** @var Manager $manager */

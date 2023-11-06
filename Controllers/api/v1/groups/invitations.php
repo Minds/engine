@@ -231,7 +231,7 @@ class invitations implements Interfaces\Api
             ]);
         }
 
-        $invitee = new User(strtolower($payload['invitee']));
+        $invitee = $this->entitiesBuilder->getByUserByIndex(strtolower($payload['invitee']));
 
         if (!$invitee || !$invitee->guid) {
             return Factory::response([

@@ -15,6 +15,7 @@ use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Rewards\Withdraw;
 use Minds\Exceptions\TwoFactorRequired;
 
@@ -38,7 +39,7 @@ class transactions implements Interfaces\Api
                 ]);
             }
 
-            $user = new User(strtolower($_GET['remote']));
+            $user = Di::_()->get(EntitiesBuilder::class)->getByUserByIndex(strtolower($_GET['remote']));
 
             if (!$user || !$user->guid) {
                 return Factory::response([
