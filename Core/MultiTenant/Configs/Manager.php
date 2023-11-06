@@ -52,13 +52,15 @@ class Manager
      * @param ?MultiTenantColorScheme $colorScheme - color scheme to set.
      * @param ?string $primaryColor - primary color to set.
      * @param ?string $communityGuidelines - community guidelines.
+     * @param ?int $lastCacheTimestamp - last cache timestamp.
      * @return bool - true on success.
      */
     public function upsertConfigs(
-        ?string $siteName,
-        ?MultiTenantColorScheme $colorScheme,
-        ?string $primaryColor,
-        ?string $communityGuidelines
+        ?string $siteName = null,
+        ?MultiTenantColorScheme $colorScheme = null,
+        ?string $primaryColor = null,
+        ?string $communityGuidelines = null,
+        ?int $lastCacheTimestamp = null
     ): bool {
         $tenantId = $this->config->get('tenant_id');
 
@@ -67,7 +69,8 @@ class Manager
             siteName: $siteName,
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
-            communityGuidelines: $communityGuidelines
+            communityGuidelines: $communityGuidelines,
+            lastCacheTimestamp: $lastCacheTimestamp
         );
 
         if ($result) {

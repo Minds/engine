@@ -5,6 +5,7 @@ namespace Minds\Core\MultiTenant\Configs;
 
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigManager;
 use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\MultiTenant\Services\MultiTenantDataService;
@@ -45,6 +46,7 @@ class Provider extends DiProvider
                 $di->get('Media\Imagick\Manager'),
                 $di->get(Config::class),
                 $di->get(MultiTenantBootService::class),
+                $di->get(MultiTenantConfigManager::class)
             );
         });
     }

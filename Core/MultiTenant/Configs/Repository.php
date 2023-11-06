@@ -47,7 +47,8 @@ class Repository extends AbstractRepository
             colorScheme: $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null,
             primaryColor: $row['primary_color'] ?? null,
             communityGuidelines: $row['community_guidelines'] ?? null,
-            updatedTimestamp: strtotime($row['updated_timestamp']) ?? null
+            lastCacheTimestamp: $row['last_cache_timestamp'] ? strtotime($row['last_cache_timestamp']) : null,
+            updatedTimestamp: $row['updated_timestamp'] ? strtotime($row['updated_timestamp']) : null
         );
     }
 
@@ -58,6 +59,7 @@ class Repository extends AbstractRepository
      * @param ?MultiTenantColorScheme $colorScheme - color scheme.
      * @param ?string $primaryColor - primary color.
      * @param ?string $communityGuidelines - community guidelines.
+     * @param ?int $lastCacheTimestamp - timestamp of last caching.
      * @return bool - true on success.
      */
     public function upsert(
@@ -65,7 +67,8 @@ class Repository extends AbstractRepository
         ?string $siteName,
         ?MultiTenantColorScheme $colorScheme,
         ?string $primaryColor,
-        ?string $communityGuidelines
+        ?string $communityGuidelines,
+        ?int $lastCacheTimestamp
     ): bool {
         $boundValues = [ 'tenant_id' => $tenantId ];
         $rawValues = [];
@@ -88,6 +91,11 @@ class Repository extends AbstractRepository
         if ($communityGuidelines !== null) {
             $rawValues['community_guidelines'] = new RawExp(':community_guidelines');
             $boundValues['community_guidelines'] = $communityGuidelines;
+        }
+
+        if ($lastCacheTimestamp !== null) {
+            $rawValues['last_cache_timestamp'] = new RawExp(':last_cache_timestamp');
+            $boundValues['last_cache_timestamp'] = date('c', $lastCacheTimestamp);
         }
 
         $query = $this->mysqlClientWriterHandler
