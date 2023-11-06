@@ -225,7 +225,7 @@ class Repository
 
                 $comment->setRepliesCount($this->countReplies($comment));
 
-                if ($row['tenant_id'] ?? null !== $this->getTenantId()) {
+                if (($row['tenant_id'] ?? null) !== $this->getTenantId()) {
                     // This is the wrong tenant, should not allow
                     $this->logger->error("Comment found for wrong tenant_id", [
                         'tenant_id' => $this->getTenantId(),
