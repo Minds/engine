@@ -65,9 +65,6 @@ class ElggSite extends ElggEntity {
 	function __construct($guid = null) {
 		$this->initializeAttributes();
 
-		// compatibility for 1.7 api.
-		$this->initialise_attributes(false);
-
 		if (!empty($guid)) {
 			// Is $guid is a DB entity table row
 			if ($guid instanceof stdClass) {
@@ -129,24 +126,6 @@ class ElggSite extends ElggEntity {
 			return; //the site is not an entitiy, it is static from settings
 		}
 		$this->guid = 1;
-		return parent::save();
-	}
-
-	/**
-	 * Delete the site.
-	 *
-	 * @note You cannot delete the current site.
-	 *
-	 * @return bool
-	 * @throws SecurityException
-	 */
-	public function delete() {
-		global $CONFIG;
-		if ($CONFIG->site->getGUID() == $this->guid) {
-			throw new SecurityException('SecurityException:deletedisablecurrentsite');
-		}
-
-		return parent::delete();
 	}
 
 	/**

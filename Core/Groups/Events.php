@@ -5,7 +5,9 @@
 namespace Minds\Core\Groups;
 
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\Dispatcher;
+use Minds\Core\Groups\Delegates\ElasticSearchDelegate;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Entities\Group as GroupEntity;
 use Minds\Entities\Activity;
@@ -258,8 +260,10 @@ class Events
             $group = $params['container'];
             $activity = $params['activity'];
 
+            $owner = Di::_()->get(EntitiesBuilder::class)->single($activity->getOwnerGuid());
+
             try {
-                $membership = $this->getGroupMembershipManager()->getMembership($group, $activity->getOwnerEntity());
+                $membership = $this->getGroupMembershipManager()->getMembership($group, $owner);
             } catch (NotFoundException $ex) {
                 return;
             }
@@ -337,6 +341,14 @@ class Events
             $export['is:awaiting'] = $membership?->membershipLevel === GroupMembershipLevelEnum::REQUESTED;
 
             $e->setResponse($export);
+        });
+
+        Dispatcher::register('entity:save', 'group', function ($e) {
+            $params = $e->getParameters();
+            $group = $params['entity'];
+
+            $elasticSearchDelegate = new ElasticSearchDelegate();
+            $elasticSearchDelegate->onSave($group);
         });
     }
 

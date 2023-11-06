@@ -19,11 +19,23 @@ use ElggFile;
 use Minds\Common\Regex;
 use Minds\Core\ActivityPub\Services\ProcessActorService;
 use Minds\Core\Channels\AvatarService;
+use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
+use Minds\Entities\User;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
 use Zend\Diactoros\ServerRequestFactory;
 
 class channel implements Interfaces\Api
 {
+    private EntitiesBuilder $entitiesBuilder;
+    private Save $save;
+
+    public function __construct()
+    {
+        $this->entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
+        $this->save = new Save();
+    }
+
     /**
      * Return channel profile information
      * @param array $pages
@@ -40,14 +52,18 @@ class channel implements Interfaces\Api
             $pages[0] = strtolower($pages[0]);
         }
 
-        $user = new Entities\User($pages[0]);
+        if (is_numeric($pages[0])) {
+            $user = $this->entitiesBuilder->single((int) $pages[0]);
+        } else {
+            $user = $this->entitiesBuilder->getByUserByIndex($pages[0]);
+        }
 
         /**
          * If we can't find the user, and it looks like an ActivityPub style username (mark@minds.com),
          * and the current user is logged and trusted, try to fetch the profile
          */
         if (
-            !$user->username
+            !$user instanceof User
             && Core\Session::getLoggedinUser()
             && Core\Session::getLoggedinUser()->isTrusted()
         ) {
@@ -228,7 +244,10 @@ class channel implements Interfaces\Api
                 $item->title = '';
                 $item->owner_guid = elgg_get_logged_in_user_guid();
                 $item->access_id = ACCESS_PUBLIC;
-                $item->save();
+
+                $this->save
+                    ->setEntity($item)
+                    ->save();
 
                 if (is_uploaded_file($_FILES['file']['tmp_name'])) {
                     $manager->setImage($_FILES['file']['tmp_name'])
@@ -244,36 +263,6 @@ class channel implements Interfaces\Api
 
                     $response['uploaded'] = true;
                 }
-
-                break;
-            case "carousel":
-                $item = new \Minds\Entities\Object\Carousel(isset($_POST['guid']) ? $_POST['guid'] : null);
-                $item->access_id = ACCESS_PUBLIC;
-                $item->top_offset = $_POST['top'];
-                $item->last_updated = time();
-                $item->save();
-
-                $response['carousel'] = [
-                   'guid' => (string) $item->guid,
-                   'top_offset' => $item->top_offset,
-                   'src'=> Core\Config::build()->cdn_url . "fs/v1/banners/$item->guid/fat/$item->last_updated"
-                ];
-
-                if ($item->canEdit() && is_uploaded_file($_FILES['file']['tmp_name'])) {
-                    $manager->setImage($_FILES['file']['tmp_name'])
-                        ->autorotate()
-                        ->resize(2000, 10000);
-
-                    $file = new Entities\File();
-                    $file->owner_guid = $item->owner_guid;
-                    $file->setFilename("banners/{$item->guid}.jpg");
-                    $file->open('write');
-                    $file->write($manager->getJpeg());
-                    $file->close();
-
-                    $response['uploaded'] = true;
-                }
-
 
                 break;
             case "info":
@@ -370,8 +359,10 @@ class channel implements Interfaces\Api
                 $update['icontime'] = time();
                 $owner->icontime = time();
 
-                $db = new Core\Data\Call('entities');
-                $db->insert($owner->guid, $update);
+                $this->save
+                    ->setEntity($owner)
+                    ->withMutatedAttributes(array_keys($update))
+                    ->save();
         }
 
         Core\Events\Dispatcher::trigger('entities-ops', 'update', [
@@ -402,16 +393,14 @@ class channel implements Interfaces\Api
         $twoFactorManager->gatekeeper($user, ServerRequestFactory::fromGlobals());
 
         switch ($pages[0]) {
-            case "carousel":
-                $db = new Core\Data\Call('entities_by_time');
-                //  $db->removeAttributes("object:carousel:user:" . elgg_get_logged_in_user_guid());
-                $item = new \Minds\Entities\Object\Carousel($pages[1]);
-                $item->delete();
-                break;
             default:
                 $channel = $user;
                 $channel->enabled = 'no';
-                $channel->save();
+
+                $this->save
+                    ->setEntity($channel)
+                    ->withMutatedAttributes(['enabled'])
+                    ->save();
 
                 (new Core\Sessions\CommonSessions\Manager())->deleteAll($channel);
         }

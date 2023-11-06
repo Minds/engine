@@ -4,9 +4,7 @@ namespace Minds\Core\Router\PrePsr7;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
-use Minds\Core\Router\PrePsr7\Middleware\ProMiddleware;
 use Minds\Core\Router\PrePsr7\Middleware\RouterMiddleware;
-use Minds\Core\Router\PrePsr7\Middleware\SEOMiddleware;
 use Minds\Core\Session;
 use Minds\Helpers;
 use Zend\Diactoros\Response\JsonResponse;
@@ -79,7 +77,6 @@ class Router
 
         /** @var RouterMiddleware[] $prePsr7Middleware */
         $prePsr7Middleware = [
-            new ProMiddleware(),
             new AutoSupermindRouterMiddleware(),
         ];
 

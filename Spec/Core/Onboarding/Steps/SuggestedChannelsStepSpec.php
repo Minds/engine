@@ -16,7 +16,7 @@ class SuggestedChannelsStepSpec extends ObjectBehavior
 
     public function it_should_check_if_completed(User $user)
     {
-        $user->getSubscriptonsCount()
+        $user->getSubscriptionsCount()
             ->shouldBeCalled()
             ->willReturn(500);
 
@@ -27,7 +27,7 @@ class SuggestedChannelsStepSpec extends ObjectBehavior
 
     public function it_should_check_if_not_completed(User $user)
     {
-        $user->getSubscriptonsCount()
+        $user->getSubscriptionsCount()
             ->shouldBeCalled()
             ->willReturn(1);
 

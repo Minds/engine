@@ -223,7 +223,8 @@ class Controller
      */
     private function getAuthorName($entity): string
     {
-        return $entity->getOwnerEntity()->getUsername();
+        $owner = $this->entitiesBuilder->single($entity->getOwnerGuid());
+        return $owner->getUsername();
     }
 
     /**

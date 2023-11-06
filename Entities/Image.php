@@ -79,6 +79,7 @@ class Image extends File implements MutatableEntityInterface, CommentableEntityI
         $this->attributes['auto_caption'] = null;
         $this->attributes['allow_comments'] = true;
         $this->attributes['gif'] = false;
+        $this->attributes['batch_guid'] = 0;
     }
 
     public function getUrl()
@@ -116,16 +117,6 @@ class Image extends File implements MutatableEntityInterface, CommentableEntityI
         parent::save($index);
 
         return $this->guid;
-    }
-
-    /**
-     * Extend the default delete function to remove from the remote service
-     */
-    public function delete()
-    {
-        return parent::delete();
-
-        //remove from the filestore
     }
 
     /**

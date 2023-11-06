@@ -79,27 +79,6 @@ class Album extends MindsObject
         $db->insert("object:container:$this->guid", $guids);
     }
 
-    /**
-     * Extend the default entity save function to update the remote service
-     *
-     */
-    public function save($public = true)
-    {
-        $this->super_subtype = 'archive';
-        //$this->access_id = 2;
-        parent::save($public);
-        return $this->guid;
-    }
-
-    /**
-     * Extend the default delete function to remove from the remote service
-     */
-    public function delete()
-    {
-        return parent::delete();
-        //delete all children too.
-    }
-
     public function getFilePath()
     {
     }

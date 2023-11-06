@@ -71,41 +71,4 @@ abstract class LegacyEntityCompat
         return false;
     }
 
-    /**
-     * Gets the entity's owner entity
-     * @param bool $useOwnerObj
-     * @return User|null
-     * @throws \Exception
-     */
-    public function getOwnerEntity($useOwnerObj = true)
-    {
-        if (
-            $useOwnerObj &&
-            (
-                (method_exists($this, '_magicAttributes') && property_exists($this, 'ownerObj')) ||
-                method_exists($this, 'getOwnerObj')
-            )
-        ) {
-            $ownerObj = $this->getOwnerObj();
-
-            if ($ownerObj) {
-                return new User($ownerObj, true);
-            }
-        } elseif ($useOwnerObj && property_exists($this, 'ownerObj') && $this->ownerObj) {
-            return new User($this->ownerObj, true);
-        } elseif (
-            (method_exists($this, '_magicAttributes') && property_exists($this, 'ownerGuid')) ||
-            method_exists($this, 'getOwnerGuid')
-        ) {
-            $ownerGuid = $this->getOwnerGuid();
-
-            if ($ownerGuid) {
-                return new User($ownerGuid, false);
-            }
-        } elseif (property_exists($this, 'ownerGuid') && $this->ownerGuid) {
-            return new User($this->ownerGuid, false);
-        }
-
-        return null;
-    }
 }

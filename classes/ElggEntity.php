@@ -1,9 +1,11 @@
 <?php
 
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\UndeliveredEventException;
 use Minds\Entities\CommentableEntityInterface;
 use Minds\Entities\EntityInterface;
+use Minds\Exceptions\ObsoleteCodeException;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
 use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
 
@@ -25,7 +27,7 @@ use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
  * @property int    $time_updated   A UNIX timestamp of when the entity was last updated (automatically updated on save)
  * @property int    $moderator_guid The GUID of the moderator
  * @property int    $moderated_at   A UNIX timestamp of when the entity was moderated
- * @property-read string $enabled
+ * @property string $enabled
  */
 abstract class ElggEntity extends ElggData implements
     EntityInterface
@@ -83,7 +85,6 @@ abstract class ElggEntity extends ElggData implements
         $this->attributes['time_created'] = time();
         $this->attributes['time_updated'] = time();
         $this->attributes['last_action'] = null;
-        $this->attributes['enabled'] = "yes";
         $this->attributes['tags'] = null;
         $this->attributes['nsfw'] = [];
         $this->attributes['nsfw_lock'] = [];
@@ -94,28 +95,18 @@ abstract class ElggEntity extends ElggData implements
     /**
      * Entity constructor
      */
-    public function __construct($guid = null)
+    public function __construct($data = null)
     {
         $this->initializeAttributes();
 
-        if ($guid) {
-            if (is_numeric($guid)) {
-                $this->loadFromGUID($guid);
-            } elseif (is_object($guid)) {
-                $this->loadFromObject($guid);
-            } elseif (is_array($guid)) {
-                $this->loadFromArray($guid);
+        if ($data) {
+            if (is_numeric($data)) {
+                throw new ObsoleteCodeException();
+            } elseif (is_object($data)) {
+                $this->loadFromObject($data);
+            } elseif (is_array($data)) {
+                $this->loadFromArray($data);
             }
-        }
-    }
-
-    protected function loadFromGUID($guid)
-    {
-        $db = new Minds\Core\Data\Call('entities');
-        $row = $db->getRow($guid, ['limit'=>400]);
-        if ($row) {
-            $row['guid'] = $guid;
-            $this->loadFromArray($row);
         }
     }
 
@@ -207,9 +198,7 @@ abstract class ElggEntity extends ElggData implements
                 $this->attributes[$name] = $value;
                 break;
         }
-        if ($this->guid) {
-            //		$this->save();
-        }
+
         return $this;
     }
 
@@ -317,30 +306,6 @@ abstract class ElggEntity extends ElggData implements
     }
 
     /**
-     * Gets the ElggEntity that owns this entity.
-     *
-     * @return ElggEntity The owning entity
-     */
-    public function getOwnerEntity($brief = false)
-    {
-        if ($brief && isset($this->ownerObj)) {
-            $owner = is_array($this->ownerObj) || is_object($this->ownerObj) ? $this->ownerObj : json_decode($this->ownerObj, true);
-            if (is_object($this->ownerObj)) {
-                $owner = json_decode(json_encode($this->ownerObj), true);
-            }
-            if (isset($owner['name']) || (is_object($owner) && $owner->name)) {
-                return new Minds\Entities\User($owner);
-            } else {
-                if ($this->canEdit()) {
-                    //$this->save();
-                }
-            }
-        }
-
-        return new Minds\Entities\User($this->owner_guid);
-    }
-
-    /**
      * Set the container for this object.
      *
      * @param int $container_guid The ID of the container.
@@ -355,40 +320,12 @@ abstract class ElggEntity extends ElggData implements
     }
 
     /**
-     * Set the container for this object.
-     *
-     * @param int $container_guid The ID of the container.
-     *
-     * @return bool
-     * @deprecated 1.8 use setContainerGUID()
-     */
-    public function setContainer($container_guid)
-    {
-        elgg_deprecated_notice("ElggObject::setContainer deprecated for ElggEntity::setContainerGUID", 1.8);
-        $container_guid = (int)$container_guid;
-
-        return $this->set('container_guid', $container_guid);
-    }
-
-    /**
      * Gets the container GUID for this entity.
      *
      * @return int
      */
-    public function getContainerGUID()
+    public function getContainerGuid()
     {
-        return $this->get('container_guid');
-    }
-
-    /**
-     * Gets the container GUID for this entity.
-     *
-     * @return int
-     * @deprecated 1.8 Use getContainerGUID()
-     */
-    public function getContainer()
-    {
-        elgg_deprecated_notice("ElggObject::getContainer deprecated for ElggEntity::getContainerGUID", 1.8);
         return $this->get('container_guid');
     }
 
@@ -401,7 +338,7 @@ abstract class ElggEntity extends ElggData implements
      */
     public function getContainerEntity()
     {
-        return get_entity($this->getContainerGUID());
+        return Di::_()->get(EntitiesBuilder::class)->single($this->getContainerGUID());
     }
 
     /**
@@ -522,57 +459,6 @@ abstract class ElggEntity extends ElggData implements
     }
 
     /**
-     * Save an entity.
-     *
-     * @return bool|int
-     * @throws IOException
-     */
-    public function save($timebased = true)
-    {
-        $isUpdate = false;
-        if ($this->guid) {
-            if (!$this->canEdit()) {
-                return false;
-            }
-            $isUpdate = true;
-            $this->time_updated = time();
-            elgg_trigger_event('update', $this->type, $this);
-        } else {
-            $this->guid = Minds\Core\Guid::build();
-            elgg_trigger_event('create', $this->type, $this);
-            if (!$this->canEdit()) {
-                return false;
-            }
-        }
-
-        $db = new Minds\Core\Data\Call('entities');
-        $result = $db->insert($this->guid, $this->toArray());
-        if ($result && $timebased) {
-            $db = new Minds\Core\Data\Call('entities_by_time');
-            $data = [$result => $result];
-
-            foreach ($this->getIndexKeys() as $index) {
-                $db->insert($index, $data);
-            }
-        }
-
-        try {
-            \Minds\Core\Events\Dispatcher::trigger('entities-ops', $isUpdate ? 'update' : 'create', [
-                'entityUrn' => $this->getUrn()
-            ]);
-        } catch (UndeliveredEventException $e) {
-            if (!$isUpdate) {
-                // This is a new entity, so we will delete it
-                $db->removeRow($this->guid);
-            }
-            // Rethrow
-            throw $e;
-        } 
-
-        return $this->guid;
-    }
-
-    /**
      * Loads attributes from the entities table into the object.
      *
      * @param mixed $guid GUID of entity or stdClass object from entities table
@@ -626,46 +512,6 @@ abstract class ElggEntity extends ElggData implements
     public function isEnabled()
     {
         if ($this->enabled == 'yes') {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Delete this entity.
-     *
-     * @return bool
-     */
-    public function delete()
-    {
-        global $CONFIG, $ENTITY_CACHE;
-
-        //some plugins may want to halt the delete...
-        $delete = Minds\Core\Events\Dispatcher::trigger('delete', $this->type, [ 'entity' => $this ]);
-
-        if ($delete && $this->canEdit()) {
-
-            // delete cache
-            if (isset($ENTITY_CACHE[$this->guid])) {
-                invalidate_cache_for_entity($this->guid);
-            }
-
-            // Now delete the entity itself
-            $db = new Minds\Core\Data\Call('entities');
-            $res = $db->removeRow($this->guid);
-
-
-            $db = new Minds\Core\Data\Call('entities_by_time');
-            foreach ($this->getIndexKeys() as $rowkey) {
-                $db->removeAttributes($rowkey, [$this->guid], false);
-            }
-
-            \Minds\Core\Events\Dispatcher::trigger('entities-ops', 'delete', [
-                'entityUrn' => $this->getUrn(),
-                'entity' => $this,
-            ]);
-
             return true;
         }
 
@@ -796,54 +642,6 @@ abstract class ElggEntity extends ElggData implements
     {
         $this->tags = $value;
         return $this;
-    }
-
-    /**
-     * Feature
-     *
-     * @return int $guid
-     */
-    public function feature()
-    {
-        $db = new Minds\Core\Data\Call('entities_by_time');
-
-        $this->featured_id = Minds\Core\Guid::build();
-
-        $db->insert($this->type.':featured', [$this->featured_id => $this->getGUID()]);
-        $db->insert($this->type. ':'.$this->subtype.':featured', [$this->featured_id => $this->getGUID()]);
-        if (in_array($this->subtype, ['video', 'image', 'album', 'audio'], true)) {
-            $db->insert('object:archive:featured', [$this->featured_id => $this->guid]);
-        }
-
-        $this->featured = 1;
-        $this->save();
-
-        return $this->featured_id;
-    }
-
-    /**
-     * Unfeature
-     *
-     * @return bool
-     */
-    public function unFeature()
-    {
-        $db = new Minds\Core\Data\Call('entities_by_time');
-
-        if ($this->featured_id) {
-            //supports legacy imports
-            $db->removeAttributes("$this->type:featured", [$this->featured_id]);
-            $db->removeAttributes("$this->type:$this->subtype:featured", [$this->featured_id]);
-            $this->featured_id = null;
-        }
-
-        $this->featured = 0;
-        $this->save();
-
-        $db = new Minds\Core\Data\Call('entities');
-        $result = $db->removeAttributes($this->guid, ['featured_id']);
-
-        return true;
     }
 
     public function getRating()

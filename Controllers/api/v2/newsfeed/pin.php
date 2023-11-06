@@ -5,6 +5,7 @@ namespace Minds\Controllers\api\v2\newsfeed;
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Groups\V2\Membership\Manager;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities;
@@ -17,10 +18,12 @@ class pin implements Interfaces\Api
 {
     public function __construct(
         protected ?Manager $membershipManager = null,
-        protected ?EntitiesBuilder $entitiesBuilder = null
+        protected ?EntitiesBuilder $entitiesBuilder = null,
+        protected ?Save $save = null,
     ) {
         $this->membershipManager = Di::_()->get(Manager::class);
         $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
+        $this->save = new Save();
     }
 
     public function get($pages)
@@ -53,7 +56,7 @@ class pin implements Interfaces\Api
 
             if ($membership->isModerator() || $membership->isOwner()) {
                 $group->addPinned($activity->guid);
-                $group->save();
+                $this->save->setEntity($group)->withMutatedAttributes(['pinned_posts'])->save();
             } else {
                 return Factory::response([
                     'status' => 'error',
@@ -62,7 +65,7 @@ class pin implements Interfaces\Api
             }
         } else {
             $user->addPinned($activity->guid);
-            $user->save();
+            $this->save->setEntity($user)->withMutatedAttributes(['pinned_posts'])->save();
         }
 
         return Factory::response([]);
@@ -96,7 +99,7 @@ class pin implements Interfaces\Api
         
             if ($membership->isModerator() || $membership->isOwner()) {
                 $group->removePinned($activity->guid);
-                $group->save();
+                $this->save->setEntity($group)->withMutatedAttributes(['pinned_posts'])->save();
             } else {
                 return Factory::response([
                     'status' => 'error',
@@ -105,7 +108,7 @@ class pin implements Interfaces\Api
             }
         } else {
             $user->removePinned($activity->guid);
-            $user->save();
+            $this->save->setEntity($user)->withMutatedAttributes(['pinned_posts'])->save();
         }
 
         return Factory::response([]);

@@ -147,6 +147,8 @@ class PaymentProcessor
                 GiftCardProductIdEnum::BOOST,
                 $paymentDetails
             );
+            // Reset the inTransaction state
+            $this->giftCardsManager->setInTransaction(!$this->inTransaction);
             return true;
         }
 

@@ -34,7 +34,7 @@ class Repository
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?Connection $mysqlClientWriterHandler = null
     ) {
-        $this->mysqlHandler ??= Di::_()->get("Database\MySQL\Client");
+        $this->mysqlHandler ??= Di::_()->get(MySQLClient::class);
         $this->mysqlClientReader = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_REPLICA);
         $this->mysqlClientWriter = $this->mysqlHandler->getConnection(MySQLClient::CONNECTION_MASTER);
         $this->mysqlClientWriterHandler ??= new Connection($this->mysqlClientWriter);

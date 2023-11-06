@@ -41,30 +41,6 @@ class Events
         });
 
         /**
-         * Delete action event handler for images
-         */
-        Dispatcher::register('entity:delete', 'object:image', function (Event $event) {
-            $params = $event->getParameters();
-
-            /** @var Entities\Image $entity */
-            $entity = $params['entity'];
-
-            $event->setResponse($entity->delete());
-        });
-
-        /**
-         * Delete action event handler for videos
-         */
-        Dispatcher::register('entity:delete', 'object:video', function (Event $event) {
-            $params = $event->getParameters();
-
-            /** @var Entities\Video $entity */
-            $entity = $params['entity'];
-
-            $event->setResponse($entity->delete());
-        });
-
-        /**
          * ACL for when images have activity as container_guid
          */
         Dispatcher::register('acl:read', 'object', function (Event $event) {

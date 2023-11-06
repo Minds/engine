@@ -7,6 +7,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use Minds\Common\SystemUser;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardPaymentFailedException;
@@ -34,11 +35,13 @@ class Manager
         private readonly Config $config,
         private ?InAppPurchasesClientFactory $inAppPurchasesClientFactory = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?Logger $logger = null
+        private ?Logger $logger = null,
+        private ?Save $save = null,
     ) {
         $this->inAppPurchasesClientFactory ??= Di::_()->get(InAppPurchasesClientFactory::class);
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->logger ??= Di::_()->get('Logger');
+        $this->save ??= new Save();
     }
 
     /**
@@ -103,7 +106,15 @@ class Manager
 
         $subscriptionType = $result();
 
-        $inAppPurchase->user->save();
+        $this->save
+            ->setEntity($inAppPurchase->user)
+            ->withMutatedAttributes([
+                'pro_method',
+                'pro_expires',
+                'plus_method',
+                'plus_expires',
+            ])
+            ->save();
 
         $sender = match ($inAppPurchase->subscriptionId) {
             "plus.yearly.001",

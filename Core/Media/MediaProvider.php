@@ -9,6 +9,7 @@ use Aws\S3\S3Client;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
+use Minds\Core\Entities\Actions\Save;
 use Oracle\Oci\Common\Auth\UserAuthProvider;
 use Oracle\Oci\ObjectStorage\ObjectStorageClient;
 
@@ -159,7 +160,11 @@ class MediaProvider extends Provider
         }, ['useFactory' => true]);
 
         $this->di->bind(Image\ProcessExternalImageService::class, function (Di $di): Image\ProcessExternalImageService {
-            return new Image\ProcessExternalImageService($di->get(\GuzzleHttp\Client::class), new Assets\Image());
+            return new Image\ProcessExternalImageService(
+                $di->get(\GuzzleHttp\Client::class),
+                new Assets\Image(),
+                new Save(),
+            );
         });
     }
 }

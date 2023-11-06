@@ -4,10 +4,12 @@
  */
 namespace Minds\Core\Entities\Ops;
 
+use Minds\Core\Di\Di;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\Topics\AbstractTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\EventStreams\UndeliveredEventException;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Pulsar\Consumer;
 use Pulsar\ConsumerConfiguration;
 use Pulsar\MessageBuilder;
@@ -27,6 +29,8 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
     /** @var Producer */
     protected $producer;
 
+    protected MultiTenantBootService $multiTenantBootService;
+
     /**
      * Sends notifications events to our stream
      * @param EventInterface $event
@@ -39,15 +43,21 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
 
         // Build the message
 
+        $data = [
+            'op' => $event->getOp(),
+            'entity_urn' => $event->getEntityUrn(),
+            'entity_serialized' => $event->getEntitySerialized(),
+        ];
+
+        if ($tenantId = $this->config->get('tenant_id')) {
+            $data['tenant_id'] = $tenantId;
+        }
+
         $builder = new MessageBuilder();
         $message = $builder
             //->setPartitionKey(0)
             ->setEventTimestamp($event->getTimestamp() ?: time())
-            ->setContent(json_encode([
-                'op' => $event->getOp(),
-                'entity_urn' => $event->getEntityUrn(),
-                'entity_serialized' => $event->getEntitySerialized(),
-            ]))
+            ->setContent(json_encode($data))
             ->build();
 
         // Send the event to the stream
@@ -102,6 +112,12 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                     ->setOp($data['op'])
                     ->setTimestamp($message->getEventTimestamp());
 
+                // Multi tenant support
+
+                if (isset($data['tenant_id']) && $tenantId = $data['tenant_id']) {
+                    $this->getMultiTenantBootService()->bootFromTenantId($tenantId);
+                }
+
                 if (isset($data['entity_serialized'])) {
                     $event->setEntitySerialized($data['entity_serialized']);
                 }
@@ -111,6 +127,11 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                 }
             } catch (\Exception $e) {
                 $this->logger->error("Topic(Consume): Uncaught error: " . $e->getMessage());
+            } finally {
+                // Reset Multi Tenant support
+                if ($tenantId) {
+                    $this->getMultiTenantBootService()->resetRootConfigs();
+                }
             }
         }
     }
@@ -132,7 +153,6 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
 
         $config = new ProducerConfiguration();
         $config->setSchema(SchemaType::AVRO, static::SCHEMA_NAME, $this->getSchema(), []);
-        //$config->setSchema(SchemaType::AVRO, static::SCHEMA_NAME . 'v2', $this->getSchemaV2(), []);
 
         $schema = json_encode([
             'type' => 'AVRO',
@@ -154,7 +174,7 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
     {
         return json_encode([
             'type' => 'record',
-            'name' => static::SCHEMA_NAME ,
+            'name' => static::SCHEMA_NAME,
             'namespace' => 'engine',
             'fields' => [
                 [
@@ -169,22 +189,17 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                     'name' => 'entity_json',
                     'type' => 'string',
                 ],
-            ]
-        ]);
-    }
-
-    protected function getSchemaV2(): string
-    {
-        return json_encode([
-            'type' => 'record',
-            'name' => static::SCHEMA_NAME . 'v2',
-            'namespace' => 'engine',
-            'fields' => [
                 [
-                    'name' => 'entity_json',
-                    'type' => 'string',
+                    'name' => 'tenant_id',
+                    'type' => 'int'
                 ],
             ]
         ]);
     }
+
+    protected function getMultiTenantBootService(): MultiTenantBootService
+    {
+        return $this->multiTenantBootService ??= Di::_()->get(MultiTenantBootService::class);
+    }
+
 }

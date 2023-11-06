@@ -12,11 +12,20 @@ use Minds\Entities\User;
 use Minds\Helpers;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Payments;
 use Minds\Entities;
 
 class plus implements Interfaces\Api
 {
+    private Save $save;
+
+    public function __construct(
+    
+    ) {
+        $this->save = new Save();
+    }
+
     /**
      * Returns plus info
      * @param array $pages
@@ -129,7 +138,11 @@ class plus implements Interfaces\Api
 
                     $user = Core\Session::getLoggedInUser();
                     $user->plus = true;
-                    $user->save();
+
+                    $this->save
+                        ->setEntity($user)
+                        ->withMutatedAttributes(['plus'])
+                        ->save();
 
                     $plusGuid = "730071191229833224";
                     $user->subscribe($plusGuid);
@@ -156,7 +169,11 @@ class plus implements Interfaces\Api
         switch ($pages[0]) {
             case "boost":
                 $user->disabled_boost = true;
-                $user->save();
+                
+                $this->save
+                    ->setEntity($user)
+                    ->withMutatedAttributes(['disabled_boost'])
+                    ->save();
                 break;
         }
         return Factory::response([]);
@@ -176,7 +193,11 @@ class plus implements Interfaces\Api
                 break;
             case "boost":
                 $user->disabled_boost = false;
-                $user->save();
+                
+                $this->save
+                    ->setEntity($user)
+                    ->withMutatedAttributes(['disabled_boost'])
+                    ->save();
                 break;
         }
         return Factory::response([]);

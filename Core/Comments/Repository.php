@@ -15,9 +15,11 @@ use Cassandra\Timestamp;
 use Cassandra\Type;
 use Cassandra\Varint;
 use Minds\Common\Repository\Response;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared\Custom;
 use Minds\Core\Di\Di;
+use Minds\Core\Log\Logger;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Helpers\Cql;
 
@@ -59,10 +61,16 @@ class Repository
      * @param Client $cql
      * @param Legacy\Repository $legacyRepository
      */
-    public function __construct($cql = null, $legacyRepository = null)
-    {
+    public function __construct(
+        $cql = null,
+        $legacyRepository = null,
+        private ?Config $config = null,
+        private ?Logger $logger = null,
+    ) {
         $this->cql = $cql ?: Di::_()->get('Database\Cassandra\Cql');
         $this->legacyRepository = $legacyRepository ?: new Legacy\Repository();
+        $this->config ??= Di::_()->get(Config::class);
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -216,6 +224,15 @@ class Repository
                     ->markAllAsPristine();
 
                 $comment->setRepliesCount($this->countReplies($comment));
+
+                if ($row['tenant_id'] !== $this->getTenantId()) {
+                    // This is the wrong tenant, should not allow
+                    $this->logger->error("Comment found for wrong tenant_id", [
+                        'tenant_id' => $this->getTenantId(),
+                        'comment_urn' => $comment->getUrn(),
+                    ]);
+                    continue;
+                }
 
                 $comments[] = $comment;
             }
@@ -480,6 +497,7 @@ class Repository
             'parent_guid_l2' => new Varint($comment->getParentGuidL2()),
             'parent_guid_l3' => new Varint(0),
             'guid' => new Varint($comment->getGuid()),
+            'tenant_id' => $this->getTenantId(),
         ]);
 
         $cql = "INSERT INTO comments (";
@@ -557,5 +575,10 @@ class Repository
         $comment->setEphemeral(true);
 
         return true;
+    }
+
+    private function getTenantId(): ?int
+    {
+        return $this->config->get('tenant_id');
     }
 }

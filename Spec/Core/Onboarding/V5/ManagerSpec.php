@@ -89,6 +89,7 @@ class ManagerSpec extends ObjectBehavior
         $user->getGuid()->willReturn(123);
         $user->setOnboardingInterest('example')->shouldBeCalled();
         $this->save->setEntity($user)->shouldBeCalled()->willReturn($this->save);
+        $this->save->withMutatedAttributes(['onboarding_interest'])->shouldBeCalled()->willReturn($this->save);
         $this->save->save()->shouldBeCalled();
 
         $this->completeOnboardingStep($user, $stepKey, 'step_type', $additionalData)

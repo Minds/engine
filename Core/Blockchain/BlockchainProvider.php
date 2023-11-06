@@ -106,18 +106,6 @@ class BlockchainProvider extends Provider
             return new Services\CoinMarketCap();
         });
 
-        $this->di->bind('Blockchain\Purchase\Manager', function () {
-            return new Purchase\Manager();
-        });
-
-        $this->di->bind('Blockchain\Purchase\Repository', function () {
-            return new Purchase\Repository();
-        });
-
-        $this->di->bind('Blockchain\Purchase\Sums', function () {
-            return new Purchase\Sums();
-        });
-
         $this->di->bind('Blockchain\GasPrice', function () {
             return new GasPrice();
         });
