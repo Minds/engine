@@ -8,6 +8,8 @@
 namespace Minds\Controllers\api\v2\admin;
 
 use Minds\Api\Factory;
+use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities;
 use Minds\Interfaces;
 
@@ -20,7 +22,7 @@ class user implements Interfaces\Api, Interfaces\ApiAdminPam
      */
     public function get($pages)
     {
-        $user = new Entities\User(strtolower($pages[0]));
+        $user = Di::_()->get(EntitiesBuilder::class)->getByUserByIndex(strtolower($pages[0]));
 
         if (!$user || !$user->guid) {
             return Factory::response([
