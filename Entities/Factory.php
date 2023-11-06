@@ -4,6 +4,7 @@ namespace Minds\Entities;
 use Minds\Core;
 use Minds\Core\Data;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
 
 /**
  * Entities Factory
@@ -55,9 +56,9 @@ class Factory
 
             $canBeCached = true;
 
-            $db = new Data\Call('entities');
-            $row = $db->getRow($value);
-            $row['guid'] = $value;
+            /** @var EntitiesRepositoryInterface */
+            $entitiesRepository = Di::_()->get(EntitiesRepositoryInterface::class);
+            $entity = $entitiesRepository->loadFromGuid((int) $value);
         } elseif (is_object($value) || is_array($value)) {
             // @todo Check if we can just read ->guid and if not empty we'll load from cache
             $row = $value;
@@ -86,5 +87,32 @@ class Factory
         }
 
         return $entity;
+    }
+
+    /**
+     * Caches an entity (currently just in memory)
+     */
+    public static function cache(EntityInterface $entity): void
+    {
+        $guid = $entity->getGuid();
+
+        $cacheKey = $guid;
+
+        self::$entitiesCache[$cacheKey] = $entity;
+    }
+
+    /**
+     * Caches an entity (currently just in memory)
+     */
+    public static function invalidateCache(EntityInterface $entity): void
+    {
+        $guid = $entity->getGuid();
+
+        $cacheKey = $guid;
+
+        unset(self::$entitiesCache[$cacheKey]);
+
+        $psrCache = Di::_()->get('Cache\PsrWrapper');
+        $psrCache->delete('entity:' . $cacheKey);
     }
 }

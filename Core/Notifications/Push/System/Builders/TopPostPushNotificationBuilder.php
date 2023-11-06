@@ -6,6 +6,7 @@ use Minds\Core\Blogs\Blog;
 use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Entity;
 use Minds\Entities\Image;
 use Minds\Entities\Video;
@@ -28,9 +29,12 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
      * Constructor.
      * @param ?Config $config - config.
      */
-    public function __construct(private ?Config $config = null)
-    {
+    public function __construct(
+        private ?Config $config = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
+    ) {
         $this->config ??= Di::_()->get('Config');
+        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
     }
 
     /**
@@ -171,7 +175,8 @@ class TopPostPushNotificationBuilder implements EntityPushNotificationBuilderInt
      */
     protected function getOwnerNameString(): string
     {
-        $entityOwner = $this->entity->getOwnerEntity();
+        /** @var User */
+        $entityOwner = $this->entitiesBuilder->single($this->entity->getOwnerGuid());
         $ownerName = $entityOwner->getName();
         $ownerUsername = $entityOwner->getUsername();
         $name = $ownerName ?: '@' . $ownerUsername;

@@ -5,9 +5,11 @@ namespace Spec\Minds\Core\Blogs\Delegates;
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Data\Call;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class CreateActivitySpec extends ObjectBehavior
@@ -18,13 +20,17 @@ class CreateActivitySpec extends ObjectBehavior
     /** @var Call */
     protected $db;
 
+    protected Collaborator $entitiesBuilder;
+
     public function let(
         Save $saveAction,
-        Call $db
+        Call $db,
+        EntitiesBuilder $entitiesBuilder,
     ) {
-        $this->beConstructedWith($saveAction, $db);
+        $this->beConstructedWith($saveAction, $db, $entitiesBuilder);
         $this->saveAction = $saveAction;
         $this->db = $db;
+        $this->entitiesBuilder = $entitiesBuilder;
     }
 
     public function it_is_initializable()
@@ -36,9 +42,11 @@ class CreateActivitySpec extends ObjectBehavior
         Blog $blog,
         User $user
     ) {
-        $blog->getOwnerEntity()
+        $blog->getOwnerGuid()
             ->shouldBeCalled()
-            ->willReturn($user);
+            ->willReturn(456);
+
+        $this->entitiesBuilder->single(456)->willReturn($user);
 
         $blog->getTitle()
             ->shouldBeCalled()

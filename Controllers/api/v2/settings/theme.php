@@ -9,6 +9,7 @@ namespace Minds\Controllers\api\v2\settings;
 
 use Minds\Api\Factory;
 use Minds\Core\Config;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Session;
 use Minds\Interfaces;
 
@@ -28,7 +29,8 @@ class theme implements Interfaces\Api
         $user = Session::getLoggedInUser();
         
         $user->setTheme($_POST['theme']);
-        $user->save();
+        
+        (new Save())->setEntity($user)->withMutatedAttributes(['theme'])->save();
     }
 
     public function put($pages)

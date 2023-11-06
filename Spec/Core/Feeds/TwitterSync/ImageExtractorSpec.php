@@ -12,7 +12,9 @@ use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Zend\Diactoros\Response\JsonResponse;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\TwitterSync\MediaData;
+use PhpSpec\Wrapper\Collaborator;
 
 class ImageExtractorSpec extends ObjectBehavior
 {
@@ -21,17 +23,21 @@ class ImageExtractorSpec extends ObjectBehavior
     protected $attachmentDelegate;
     protected $saveAction;
 
+    protected Collaborator $entitiesBuilderMock;
+
     public function let(
         Client $httpClient,
         Logger $logger,
         AttachmentDelegate $attachmentDelegate,
         Save $saveAction,
+        EntitiesBuilder $entitiesBuilderMock,
     ) {
-        $this->beConstructedWith($httpClient, $logger, $attachmentDelegate, $saveAction);
+        $this->beConstructedWith($httpClient, $logger, $attachmentDelegate, $saveAction, $entitiesBuilderMock);
         $this->httpClient = $httpClient;
         $this->logger = $logger;
         $this->attachmentDelegate = $attachmentDelegate;
         $this->saveAction = $saveAction;
+        $this->entitiesBuilderMock = $entitiesBuilderMock;
     }
 
     public function it_is_initializable()
@@ -49,7 +55,9 @@ class ImageExtractorSpec extends ObjectBehavior
         $url = 'https://pbs.twimg.com/media/abc123photo.jpg';
 
         $user->guid = 123;
-        $activity->getOwnerEntity()->shouldBeCalled()->willReturn($user);
+        $activity->getOwnerGuid()->shouldBeCalled()->willReturn(123);
+
+        $this->entitiesBuilderMock->single(123)->willReturn($user);
 
         $mediaData->getUrl()
             ->shouldBeCalled()

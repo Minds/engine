@@ -582,11 +582,6 @@ class Membership
         $membership = $user->getGroupMembership();
         $membership = array_merge($membership, $addGroupGuids); // add
         $membership = array_diff($membership, $removeGroupGuids); // remove
-
-        $user->context('search');
-        $user->setGroupMembership(array_values($membership));
-        $user->save();
-        $user->context('');
     }
 
     public function getGroupGuidsByMember($opts = [])

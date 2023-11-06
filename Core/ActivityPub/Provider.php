@@ -14,6 +14,7 @@ use Minds\Core\ActivityPub\Services\ProcessActivityService;
 use Minds\Core\ActivityPub\Services\ProcessActorService;
 use Minds\Core\ActivityPub\Services\ProcessCollectionService;
 use Minds\Core\ActivityPub\Services\ProcessObjectService;
+use Minds\Core\Subscriptions;
 use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
@@ -81,7 +82,7 @@ class Provider extends DiProvider
                 emitActivityService: $di->get(EmitActivityService::class),
                 acl: $di->get('Security\ACL'),
                 activityManager: $di->get('Feeds\Activity\Manager'),
-                subscriptionsManager: $di->get('Subscriptions\Manager'),
+                subscriptionsManager: $di->get(Subscriptions\Manager::class),
                 votesManager: $di->get('Votes\Manager'),
                 userReportsManager: $di->get('Moderation\UserReports\Manager'),
                 processExternalImageService: $di->get(ProcessExternalImageService::class),
@@ -98,11 +99,12 @@ class Provider extends DiProvider
                 objectFactory: $di->get(ObjectFactory::class),
                 acl: $di->get('Security\ACL'),
                 activityManager: $di->get('Feeds\Activity\Manager'),
-                subscriptionsManager: $di->get('Subscriptions\Manager'),
+                subscriptionsManager: $di->get(Subscriptions\Manager::class),
                 votesManager: $di->get('Votes\Manager'),
                 processExternalImageService: $di->get(ProcessExternalImageService::class),
                 config: $di->get('Config'),
                 logger: $di->get('Logger'),
+                save: new Save(),
             );
         });
         $this->di->bind(ProcessCollectionService::class, function ($di) {

@@ -3,6 +3,7 @@ namespace Minds\Core\Wire;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
@@ -16,10 +17,14 @@ class Thresholds
     /** @var Config */
     protected $config;
 
-    public function __construct($supportTiersManager = null, $config = null)
-    {
+    public function __construct(
+        $supportTiersManager = null,
+        $config = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null,
+    ) {
         $this->supportTiersManager = $supportTiersManager ?? new SupportTiers\Manager();
         $this->config = $config ?? Di::_()->get('Config');
+        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
     }
 
     /**
@@ -35,7 +40,7 @@ class Thresholds
             throw new \Exception('Entity cannot be paywalled');
         }
 
-        if ($user && ($user->guid == $entity->getOwnerEntity()->guid || $user->isAdmin())) {
+        if ($user && ($user->guid == $entity->getOwnerGuid() || $user->isAdmin())) {
             return true;
         }
 
@@ -52,9 +57,10 @@ class Thresholds
         $threshold = $entity->getWireThreshold();
 
         if (!$threshold && $isPaywall) {
+            $owner = $this->entitiesBuilder->single($entity->getOwnerGuid());
             $threshold = [
                 'type' => 'money',
-                'min' => $entity->getOwnerEntity()->getMerchant()['exclusive']['amount']
+                'min' => $owner->getMerchant()['exclusive']['amount']
             ];
         }
 

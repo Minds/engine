@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\Wire\Delegates;
 
 use Minds\Entities\User;
 use Minds\Core\Config\Config;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Wire\Wire;
 use Minds\Core\Wire\Delegates\Plus;
 use Minds\Core\EntitiesBuilder;
@@ -21,9 +22,10 @@ class PlusSpec extends ObjectBehavior
         Config $config,
         User $receiver,
         User $sender,
-        EntitiesBuilder $entitiesBuilder
+        EntitiesBuilder $entitiesBuilder,
+        Save $save
     ) {
-        $this->beConstructedWith($config, $entitiesBuilder);
+        $this->beConstructedWith($config, $entitiesBuilder, $save);
 
         $config->get('blockchain')
             ->willReturn([
@@ -48,7 +50,18 @@ class PlusSpec extends ObjectBehavior
 
         $sender->setPlusExpires(Argument::any())
             ->shouldBeCalled();
-        $sender->save()
+
+        $save->setEntity($sender)
+            ->shouldBeCalled()
+            ->willReturn($save);
+
+        $save->withMutatedAttributes([
+            'plus_expires'
+        ])
+            ->shouldBeCalled()
+            ->willReturn($save);
+
+        $save->save()
             ->shouldBeCalled();
 
         $wire = new Wire();
@@ -94,9 +107,10 @@ class PlusSpec extends ObjectBehavior
         Config $config,
         User $receiver,
         User $sender,
-        EntitiesBuilder $entitiesBuilder
+        EntitiesBuilder $entitiesBuilder,
+        Save $save,
     ) {
-        $this->beConstructedWith($config, $entitiesBuilder);
+        $this->beConstructedWith($config, $entitiesBuilder, $save);
 
         $config->get('blockchain')
             ->willReturn([
@@ -120,8 +134,19 @@ class PlusSpec extends ObjectBehavior
 
         $sender->setPlusExpires(Argument::any())
             ->shouldBeCalled();
-        $sender->save()
-            ->shouldBeCalled();
+
+        $save->setEntity(Argument::type(User::class))
+            ->shouldBeCalled()
+            ->willReturn($save);
+
+        $save->withMutatedAttributes([
+            'plus_expires'
+        ])
+            ->shouldBeCalled()
+            ->willReturn($save);
+
+        $save->save()
+             ->shouldBeCalled();
 
         $wire = new Wire();
 

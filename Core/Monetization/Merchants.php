@@ -4,14 +4,17 @@ namespace Minds\Core\Monetization;
 use Minds\Core;
 use Minds\Entities;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 
 class Merchants
 {
     /** @var Entities\User */
     private $user;
 
-    public function __construct()
-    {
+    public function __construct(
+        protected ?Save $save = null,
+    ) {
+        $this->save ??= new Save();
     }
 
     public function setUser($user)
@@ -69,7 +72,8 @@ class Merchants
         }
 
         $this->user->ban_monetization = 'yes';
-        $this->user->save();
+
+        $this->save->setEntity($this->user)->withMutatedAttributes(['ban_monetization'])->save();
 
         return true;
     }
@@ -81,7 +85,8 @@ class Merchants
         }
 
         $this->user->ban_monetization = 'no';
-        $this->user->save();
+
+        $this->save->setEntity($this->user)->withMutatedAttributes(['ban_monetization'])->save();
 
         return true;
     }

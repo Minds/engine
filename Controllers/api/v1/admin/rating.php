@@ -51,6 +51,9 @@ class rating implements Interfaces\Api
         
         $save = new Save();
         $save->setEntity($entity)
+            ->withMutatedAttributes([
+                'rating',
+            ])
             ->save();
 
         return Factory::response([]);

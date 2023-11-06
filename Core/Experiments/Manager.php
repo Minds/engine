@@ -114,7 +114,7 @@ class Manager
         // If we have a cached version use that
         if ($useCached) {
             $cached = $this->psrCache->get(static::FEATURES_CACHE_KEY);
-            if ($cached) {
+            if ($cached && is_array($cached)) {
                 return $cached;
             }
         }
@@ -162,17 +162,6 @@ class Manager
     public function isOn(string $featureKey): bool
     {
         return $this->growthbook->isOn($featureKey);
-    }
-
-    /**
-     * Get assigned variation for a given feature key.
-     * @param string $featureKey - feature key to get assigned variation for.
-     * @return mixed variation.
-     */
-    public function getVariation(string $featureKey): mixed
-    {
-        $defaultValue = $this->growthbook->getFeatures()[$featureKey]->defaultValue ?? false;
-        return $this->growthbook->getValue($featureKey, $defaultValue);
     }
 
     /**

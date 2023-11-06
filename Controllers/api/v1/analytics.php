@@ -90,7 +90,7 @@ class analytics implements Interfaces\Api, Interfaces\ApiIgnorePam
             ->setEntityGuid((string) $entity->getGUID())
             ->setEntityType($entity->type)
             ->setEntitySubtype($entity->subtype)
-            ->setEntityOwnerGuid($entity->getOwnerEntity()->getGUID())
+            ->setEntityOwnerGuid($entity->getOwnerGuid())
             ->push();
 
         return Factory::response([]);

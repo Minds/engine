@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Feeds\TwitterSync\Delegates;
 
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
 use Minds\Core\Feeds\TwitterSync\ConnectedAccount;
@@ -34,6 +35,8 @@ class ChannelLinksDelegate implements TwitterSyncDelegateInterface
             'value' => $connectedAccount->getTwitterUser()->getUsername(),
         ];
 
-        $user->setSocialProfiles(array_values($socialProfiles))->save();
+        $user->setSocialProfiles(array_values($socialProfiles));
+        
+        (new Save())->setEntity($user)->withMutatedAttributes(['social_profiles'])->save();
     }
 }

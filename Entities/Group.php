@@ -78,24 +78,17 @@ class Group extends NormalizedEntity implements EntityInterface
     ];
 
     /**
-     * Save
-     * @return boolean
+     * Returns the entity in an associative array
      */
-    public function save(array $opts = [])
+    public function toArray(): array
     {
-        $creation = false;
-
         if (!$this->guid) {
             $this->guid = Guid::build();
             $this->time_created = time();
             $creation = true;
         }
 
-        if (!$this->canEdit()) {
-            return false;
-        }
-
-        $saved = $this->saveToDb([
+        $data = [
             'type' => $this->type,
             'guid' => $this->guid,
             'owner_guid' => $this->owner_guid,
@@ -112,7 +105,7 @@ class Group extends NormalizedEntity implements EntityInterface
             'icon_time' => $this->icon_time,
             'featured' => $this->featured,
             'featured_id' => $this->featured_id,
-            'tags' => $this->tags,
+            'tags' => $this->getTags(),
             'owner_guids' => $this->owner_guids,
             'moderator_guids' => $this->moderator_guids,
             'boost_rejection_reason' => $this->boost_rejection_reason,
@@ -124,65 +117,14 @@ class Group extends NormalizedEntity implements EntityInterface
             'nsfw' => $this->getNSFW(),
             'nsfw_lock' => $this->getNSFWLock(),
             'time_created' => $this->getTimeCreated(),
-        ]);
+        ];
 
-        if (!$saved) {
-            throw new \Exception("We couldn't save the entity to the database");
-        }
-
-        $this->saveToIndex();
-        \elgg_trigger_event($creation ? 'create' : 'update', $this->type, $this);
-
-        // Temporary until this is refactored into a Manager
-        (new ElasticSearchDelegate())->onSave($this);
-
-        try {
-            Di::_()->get('EventsDispatcher')->trigger('entities-ops', $creation ? 'create' : 'update', [
-                'entityUrn' => $this->getUrn()
-            ]);
-        } catch (UndeliveredEventException $e) {
-            $this->db->removeRow($this->getGuid());
-            // Rethrow
-            throw $e;
-        }
-
-        return $saved;
-    }
-
-    /**
-     * Deletes from DB
-     * @return boolean
-     */
-    public function delete()
-    {
-        if (!$this->canEdit()) {
-            return false;
-        }
-
-        $this->unFeature();
-
-        Di::_()->get('Queue')
-          ->setExchange('mindsqueue')
-          ->setQueue('FeedCleanup')
-          ->send([
-              'guid' => $this->getGuid(),
-              'owner_guid' => $this->getOwnerObj()->guid,
-              'type' => $this->getType()
-          ]);
-
-        Di::_()->get('Queue')
-          ->setExchange('mindsqueue')
-          ->setQueue('CleanupDispatcher')
-          ->send([
-              'type' => 'group',
-              'group' => $this->export()
-          ]);
-
-        Di::_()->get('EventsDispatcher')->trigger('entities-ops', 'delete', [
-            'entityUrn' => $this->getUrn()
-        ]);
-
-        return (bool) $this->db->removeRow($this->getGuid());
+        return array_map(function ($val) {
+            if (is_array($val)) {
+                $val = json_encode($val);
+            }
+            return $val;
+        }, $data);
     }
 
     /**
@@ -515,6 +457,9 @@ class Group extends NormalizedEntity implements EntityInterface
      */
     public function getOwnerGuid(): string
     {
+        if ($this->owner_guid) {
+            return $this->owner_guid;
+        }
         $guids = $this->getOwnerGuids();
         return $guids
             ? (string) $guids[0]
@@ -723,6 +668,7 @@ class Group extends NormalizedEntity implements EntityInterface
         $this->pinned_posts = $pinned;
         return $this;
     }
+
     /**
      * Gets the group's pinned posts
      * @return array

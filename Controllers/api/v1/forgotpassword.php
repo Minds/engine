@@ -13,6 +13,8 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
+use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -20,6 +22,14 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
     /** @var ActionButton */
     protected $actionButton;
+
+    public function __construct(
+        private ?EntitiesBuilder $entitiesBuilder = null,
+        private ?Save $save = null,
+    ) {
+        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
+        $this->save ??= new Save();
+    }
 
     /**
      * NOT AVAILABLE
@@ -50,21 +60,21 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
         switch ($pages[0]) {
             case "request":
 
-                try {
-                    $rateLimitCheck = Di::_()->get("Security\RateLimits\KeyValueLimiter")
-                        ->setKey('forgot-password-ips')
-                        ->setValue($_SERVER['HTTP_X_FORWARDED_FOR'])
-                        ->setSeconds(86400) // Day
-                        ->setMax(5)
-                        ->checkAndIncrement();
-                } catch (RateLimitExceededException $e) {
-                    $response['status'] = "error";
-                    $response['message'] = $e->getMessage();
-                    break;
-                }
+                // try {
+                //     $rateLimitCheck = Di::_()->get("Security\RateLimits\KeyValueLimiter")
+                //         ->setKey('forgot-password-ips')
+                //         ->setValue($_SERVER['HTTP_X_FORWARDED_FOR'])
+                //         ->setSeconds(86400) // Day
+                //         ->setMax(5)
+                //         ->checkAndIncrement();
+                // } catch (RateLimitExceededException $e) {
+                //     $response['status'] = "error";
+                //     $response['message'] = $e->getMessage();
+                //     break;
+                // }
 
-                $user = new Entities\User(strtolower($_POST['username']));
-                if (!$user->guid) {
+                $user = $this->entitiesBuilder->getByUserByIndex(strtolower($_POST['username']));
+                if (!$user) {
                     $response['status'] = "error";
                     $response['message'] = "Could not find @" . $_POST['username'];
                     break;
@@ -155,7 +165,14 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
                 $user->password = Core\Security\Password::generate($user, $_POST['password']);
                 $user->password_reset_code = "";
                 $user->override_password = true;
-                $user->save();
+
+                $this->save
+                    ->setEntity($user)
+                    ->withMutatedAttributes([
+                        'password',
+                        'password_reset_code'
+                    ])
+                    ->save();
 
                 (new \Minds\Core\Sessions\CommonSessions\Manager())->deleteAll($user);
 

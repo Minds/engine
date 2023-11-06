@@ -14,9 +14,17 @@ use Minds\Helpers;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Entities\Actions\Save;
 
 class verify implements Interfaces\Api, Interfaces\ApiAdminPam
 {
+    protected Save $save;
+
+    public function __construct()
+    {
+        $this->save = new Save();
+    }
+
     /**
      *
      */
@@ -81,7 +89,8 @@ class verify implements Interfaces\Api, Interfaces\ApiAdminPam
         }
 
         $user->verified = true;
-        $user->save();
+
+        $this->save->setEntity($user)->withMutatedAttributes(['verified'])->save();
 
         \cache_entity($user);
 
@@ -115,7 +124,8 @@ class verify implements Interfaces\Api, Interfaces\ApiAdminPam
         }
 
         $user->verified = false;
-        $user->save();
+
+        $this->save->setEntity($user)->withMutatedAttributes(['verified'])->save();
 
         \cache_entity($user);
 

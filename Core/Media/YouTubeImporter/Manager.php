@@ -22,6 +22,7 @@ use Minds\Entities\Video;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service as MetascraperService;
 use Minds\Entities\Activity;
 
@@ -60,7 +61,7 @@ class Manager
     /** @var VideoAssets */
     protected $videoAssets;
 
-    /** @var EntitiesFactory */
+    /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
     /** @var Logger */
@@ -160,10 +161,12 @@ class Manager
                 /** @var Video $video */
                 $video = $response[0];
 
+                $owner = $this->entitiesBuilder->single($video->getOwnerGuid());
+
                 $YTVideo
                     ->setEntity($video)
                     ->setOwnerGuid($video->owner_guid)
-                    ->setOwner($video->getOwnerEntity())
+                    ->setOwner($owner)
                     ->setStatus($video->getTranscodingStatus());
             }
         }

@@ -23,29 +23,6 @@ class Feeds
         return $this;
     }
 
-    public function createActivity(): Entities\Activity
-    {
-        if (!$this->entity) {
-            throw new \Exception('Entity not set');
-        }
-
-        $activity = new Entities\Activity();
-        $saved = $activity
-            ->setCustom(...$this->entity->getActivityParameters())
-            ->setFromEntity($this->entity)
-            ->setTitle($this->entity->title)
-            ->setBlurb($this->entity->description)
-            ->save();
-
-        if (!$saved) {
-            throw new \Exception('Cannot save newsfeed activity');
-        }
-
-        Helpers\Wallet::createTransaction($this->entity->owner_guid, 15, $this->entity->guid, 'Post');
-
-        return $activity;
-    }
-
     public function updateActivities()
     {
         if (!$this->entity) {

@@ -11,6 +11,7 @@ use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecomme
 use Minds\Entities\User;
 use Minds\Core\Security\Block;
 use Minds\Core\Security\RateLimits\InteractionsLimiter;
+use Minds\Core\Subscriptions;
 use Minds\Core\Suggestions\DefaultTagMapping\Manager as DefaultTagMappingManager;
 
 class Manager
@@ -21,7 +22,7 @@ class Manager
     /** @var EntitiesBuilder $entitiesBuilder */
     private $entitiesBuilder;
 
-    /** @var \Minds\Core\Subscriptions\Manager */
+    /** @var Subscriptions\Manager */
     private $subscriptionsManager;
 
     /** @var User $user */
@@ -53,7 +54,7 @@ class Manager
         $this->repository = $repository ?: new Repository();
         $this->entitiesBuilder = $entitiesBuilder ?: new EntitiesBuilder();
         //$this->suggestedFeedsManager = $suggestedFeedsManager ?: Di::_()->get('Feeds\Suggested\Manager');
-        $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Subscriptions\Manager');
+        $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get(Subscriptions\Manager::class);
         $this->interactionsLimiter = $interactionsLimiter ?: new InteractionsLimiter();
         $this->blockManager = $blockManager ?? Di::_()->get('Security\Block\Manager');
         $this->config = $config ?? Di::_()->get('Config');

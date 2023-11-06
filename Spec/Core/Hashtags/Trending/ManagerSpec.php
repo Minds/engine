@@ -3,10 +3,12 @@
 namespace Spec\Minds\Core\Hashtags\Trending;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Config\Config;
 use Minds\Core\Hashtags\Trending\Manager;
 use Minds\Core\Hashtags\Trending\Repository;
 use Minds\Interfaces\BasicCacheInterface;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
@@ -14,13 +16,17 @@ class ManagerSpec extends ObjectBehavior
     public $repository;
     public $cache;
 
+    private Collaborator $configMock;
+
     public function let(
         Repository $repository,
-        BasicCacheInterface $cache
+        BasicCacheInterface $cache,
+        Config $configMock,
     ) {
         $this->repository = $repository;
         $this->cache = $cache;
-        $this->beConstructedWith($repository, $cache);
+        $this->configMock = $configMock;
+        $this->beConstructedWith($repository, $cache, $configMock);
     }
 
     public function it_is_initializable()
@@ -67,6 +73,8 @@ class ManagerSpec extends ObjectBehavior
         }))
             ->shouldBeCalledTimes(1)
             ->willReturn($currentlyTrendingResponse);
+
+        $this->configMock->get('trending_tags_development_mode')->willReturn(false);
     
         $this->cache->get()->shouldBeCalled()->willReturn([]);
 

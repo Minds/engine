@@ -12,9 +12,6 @@ use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireSent\WireSent;
 use Minds\Core\Email\V2\Delegates\DigestSender;
 use Minds\Core\Reports;
-use Minds\Core\Blockchain\Purchase\Delegates\IssuedTokenEmail;
-use Minds\Core\Blockchain\Purchase\Delegates\NewPurchaseEmail;
-use Minds\Core\Blockchain\Purchase\Purchase;
 use Minds\Core\Supermind;
 use Minds\Core\Email\V2\Campaigns\Recurring\Supermind\Supermind as SupermindEmail;
 
@@ -278,28 +275,6 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             $message = $emailDelegate->getCampaign()->getMessage();
             file_put_contents($output, $message->buildHtml());
         }
-    }
-
-    public function testTokenPurchase()
-    {
-        $issued = $this->getOpt('issued');
-        $amount = $this->getOpt('amount') ?: 10 ** 18;
-
-
-        $userGuid = $this->getOpt('userGuid');
-        $user = new User($userGuid);
-
-        $purchase = new Purchase();
-        $purchase->setUserGuid($userGuid)
-            ->setRequestedAmount($amount);
-
-        if ($issued) {
-            $delegate = new IssuedTokenEmail();
-        } else {
-            $delegate = new NewPurchaseEmail();
-        }
-
-        $delegate->send($purchase);
     }
 
     public function testDigest()

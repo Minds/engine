@@ -10,6 +10,7 @@ namespace Minds\Controllers\api\v1;
 use Minds\Api\Exportable;
 use Minds\Api\Factory;
 use Minds\Core;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Minds\Core\Sockets;
@@ -256,7 +257,7 @@ class comments implements Interfaces\Api
                     $attachment->setFlag('mature', $mature);
                 }
 
-                $attachment->save();
+                (new Save())->setEntity($attachment)->save();
 
                 $siteUrl = Core\Di\Di::_()->get('Config')->get('site_url');
 

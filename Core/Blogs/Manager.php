@@ -24,9 +24,6 @@ class Manager
     /** @var Repository */
     protected $repository;
 
-    /** @var Delegates\PaywallReview */
-    protected $paywallReview;
-
     /** @var Delegates\Slug */
     protected $slug;
 
@@ -48,7 +45,6 @@ class Manager
     /**
      * Manager constructor.
      * @param null $repository
-     * @param null $paywallReview
      * @param null $slug
      * @param null $feeds
      * @param null $spam
@@ -57,7 +53,6 @@ class Manager
      */
     public function __construct(
         $repository = null,
-        $paywallReview = null,
         $slug = null,
         $feeds = null,
         $spam = null,
@@ -69,7 +64,6 @@ class Manager
         private ?Logger $logger = null
     ) {
         $this->repository = $repository ?: new Repository();
-        $this->paywallReview = $paywallReview ?: new Delegates\PaywallReview();
         $this->slug = $slug ?: new Delegates\Slug();
         $this->feeds = $feeds ?: new Delegates\Feeds();
         $this->spam = $spam ?: Di::_()->get('Security\Spam');
@@ -153,7 +147,6 @@ class Manager
                 $this->feeds->dispatch($blog);
             }
 
-            $this->paywallReview->queue($blog);
             $this->propagateProperties->from($blog);
 
             $this->eventsDispatcher->trigger('entities-ops', 'create', [
@@ -192,7 +185,6 @@ class Manager
                 }
             }
 
-            $this->paywallReview->queue($blog);
             $this->propagateProperties->from($blog);
 
             $this->eventsDispatcher->trigger('entities-ops', 'update', [

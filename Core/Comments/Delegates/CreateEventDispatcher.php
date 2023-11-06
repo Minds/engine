@@ -31,7 +31,6 @@ class CreateEventDispatcher
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->actionEventTopic = $actionEventTopic ?? Di::_()->get('EventStreams\Topics\ActionEventsTopic');
-        ;
     }
 
     public function dispatch(Comment $comment)
@@ -46,6 +45,9 @@ class CreateEventDispatcher
     {
         $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
 
+        /** @var User */
+        $owner = $this->entitiesBuilder->single($comment->getOwnerGuid());
+
         $actionEvent = new ActionEvent();
         $actionEvent
             ->setAction(ActionEvent::ACTION_COMMENT)
@@ -53,7 +55,7 @@ class CreateEventDispatcher
                 'comment_urn' => $comment->getUrn(),
             ])
             ->setEntity($entity)
-            ->setUser($comment->getOwnerEntity());
+            ->setUser($owner);
 
         $this->actionEventTopic->send($actionEvent);
     }

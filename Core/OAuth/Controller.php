@@ -169,14 +169,6 @@ class Controller
             if ($refreshToken) {
                 $this->refreshTokenRepository->revokeRefreshToken($refreshToken->getIdentifier());
             }
-
-            // remove surge token for push notifications.
-            $user = $request->getAttribute('_user');
-            $user->setSurgeToken('');
-            
-            $save = new Save();
-            $save->setEntity($user)
-              ->save();
             
             $response = new JsonResponse([]);
         } catch (\Exception $e) {

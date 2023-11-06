@@ -1,15 +1,16 @@
 <?php
 namespace Minds\Common;
 
+use Minds\Entities\EntityInterface;
 use Minds\Entities\MutatableEntityInterface;
 use Minds\Helpers;
 
 class EntityMutation
 {
-    /** @var MutatableEntityInterface */
+    /** @var EntityInterface */
     protected $originalEntity;
 
-    /** @var MutatableEntityInterface */
+    /** @var EntityInterface */
     protected $mutatedEntity;
 
     /** @var array */
@@ -118,7 +119,7 @@ class EntityMutation
     * Returns the original entity
     * @return MutatableEntityInterface
     */
-    public function getOriginalEntity(): MutatableEntityInterface
+    public function getOriginalEntity(): EntityInterface
     {
         return $this->originalEntity;
     }
@@ -127,7 +128,7 @@ class EntityMutation
      * Returns the fully mutated entity
      * @return MutatableEntityInterface
      */
-    public function getMutatedEntity(): MutatableEntityInterface
+    public function getMutatedEntity(): EntityInterface
     {
         return $this->mutatedEntity;
     }

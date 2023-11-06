@@ -7,6 +7,7 @@ namespace Minds\Core\Rewards;
 
 use Minds\Core\Di\Di;
 use Minds\Core;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Referrals\Referral;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
@@ -62,6 +63,8 @@ class Join
     /** @var JoinedValidator */
     private $joinedValidator;
 
+    private Save $save;
+
     public function __construct(
         $twofactor = null,
         $sms = null,
@@ -74,6 +77,7 @@ class Join
         $testnetBalance = null,
         $referralDelegate = null,
         KeyValueLimiter  $kvLimiter = null,
+        $save = null,
     ) {
         $this->twofactor = $twofactor ?: Di::_()->get('Security\TwoFactor');
         $this->sms = $sms ?: Di::_()->get('SMS');
@@ -86,6 +90,7 @@ class Join
         $this->testnetBalance = $testnetBalance ?: Di::_()->get('Blockchain\Wallets\OffChain\TestnetBalance');
         $this->referralDelegate = $referralDelegate ?: new Delegates\ReferralDelegate;
         $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
+        $this->save = $save ?? new Save();
     }
 
     public function setUser(&$user)
@@ -187,7 +192,13 @@ class Join
         if ($valid) {
             $hash = hash('sha256', $this->number . $this->config->get('phone_number_hash_salt'));
             $this->user->setPhoneNumberHash($hash);
-            $this->user->save();
+
+            $this->save
+                ->setEntity($this->user)
+                ->withMutatedAttributes([
+                    'phone_number_hash',
+                ])
+                ->save();
 
             $this->joinedValidator->setHash($hash);
             if ($this->joinedValidator->validate()) {

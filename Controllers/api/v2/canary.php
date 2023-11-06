@@ -8,6 +8,7 @@ use Minds\Api\Factory;
 use Minds\Common\Cookie;
 use Minds\Core\Di\Di;
 use Minds\Core\Config;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Session;
 use Minds\Interfaces;
 
@@ -41,7 +42,7 @@ class canary implements Interfaces\Api
     {
         $user = Session::getLoggedInUser();
         $user->setCanary(true);
-        $user->save();
+        (new Save())->setEntity($user)->withMutatedAttributes(['canary'])->save();
 
         $message = 'Welcome to Canary! You will now receive the latest Minds features before everyone else.';
         $dispatcher = Di::_()->get('EventsDispatcher');
@@ -67,7 +68,7 @@ class canary implements Interfaces\Api
     {
         $user = Session::getLoggedInUser();
         $user->setCanary(false);
-        $user->save();
+        (new Save())->setEntity($user)->withMutatedAttributes(['canary'])->save();
 
         // Set the canary cookie
         Di::_()->get('Features\Canary')

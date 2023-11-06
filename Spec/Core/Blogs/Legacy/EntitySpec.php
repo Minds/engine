@@ -19,7 +19,7 @@ class EntitySpec extends ObjectBehavior
             ->build([
                 'type' => '',
                 'subtype' => '',
-                'guid' => '',
+                'guid' => null,
                 'owner_guid' => '',
                 'container_guid' => '',
                 'access_id' => '',

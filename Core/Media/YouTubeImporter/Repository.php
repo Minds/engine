@@ -138,7 +138,7 @@ class Repository
                 $guids[] = $entry['_source']['guid'];
             }
 
-            $response = new Response($this->entitiesBuilder->get(['guid' => $guids]));
+            $response = new Response($this->entitiesBuilder->get(['guids' => $guids]));
             $response->setPagingToken((int) $opts['offset'] + (int) $opts['limit']);
         } catch (\Exception $e) {
             error_log('[YouTubeImporter\Repository]' . $e->getMessage());

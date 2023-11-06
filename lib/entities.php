@@ -7,6 +7,9 @@
  * @link http://docs.elgg.org/DataModel/Entities
  */
 
+use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
+
 /**
  * Cache entities in memory once loaded.
  *
@@ -140,62 +143,6 @@ function entity_row_to_elggstar($row, $cache = true) {
     //cache_entity($new_entity);
     return $new_entity;
 }
-
-/**
- * Loads and returns an entity object from a guid.
- *
- * @param int $guid The GUID of the entity
- *
- * @return ElggEntity The correct Elgg or custom object based upon entity type and subtype
- * @link http://docs.elgg.org/DataModel/Entities
- */
-function get_entity($guid, $type = 'object') {
-
-    if(!$guid || $guid == 0){
-        return;
-    }
-
-    //legacy style guid?
-    if((strlen($guid) < 18) && ($type!='site') && ($type!='plugin') && ($type!='api_user')){
-        $newguid = new GUID();
-        $guid = $newguid->migrate($guid);
-    }
-
-    // Check local cache first
-    $new_entity = retrieve_cached_entity($guid);
-    if ($new_entity)
-        return $new_entity;
-
-    $cached_entity = null;
-
-    if ($cached_entity) {
-        error_log("loaded $guid from memcached");
-        // @todo use ACL and cached entity access_id to determine if user can see it
-        return $cached_entity;
-    }
-
-    $db = new Minds\Core\Data\Call('entities');
-    $row = $db->getRow($guid);
-    if(!$row){
-        return false;
-    }
-    $row['guid'] = $guid;
-    if(!isset($row['type'])){
-        $row['type'] = $type;
-    }
-    $new_entity = entity_row_to_elggstar($db->createObject($row));
-
-    //check access permissions
-    if(!Minds\Core\Security\ACL::_()->read($new_entity)){
-        return false; //@todo return error too
-    }
-
-    if ($new_entity) {
-        cache_entity($new_entity);
-    }
-    return $new_entity;
-}
-
 
 /**
  * Returns an array of entities with optional filtering.
