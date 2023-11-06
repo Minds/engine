@@ -47,8 +47,8 @@ class Repository extends AbstractRepository
             colorScheme: $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null,
             primaryColor: $row['primary_color'] ?? null,
             communityGuidelines: $row['community_guidelines'] ?? null,
-            lastCacheTimestamp: $row['last_cache_timestamp'] ? strtotime($row['last_cache_timestamp']) : null,
-            updatedTimestamp: $row['updated_timestamp'] ? strtotime($row['updated_timestamp']) : null
+            lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
+            updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
         );
     }
 
@@ -64,11 +64,11 @@ class Repository extends AbstractRepository
      */
     public function upsert(
         int $tenantId,
-        ?string $siteName,
-        ?MultiTenantColorScheme $colorScheme,
-        ?string $primaryColor,
-        ?string $communityGuidelines,
-        ?int $lastCacheTimestamp
+        ?string $siteName = null,
+        ?MultiTenantColorScheme $colorScheme = null,
+        ?string $primaryColor = null,
+        ?string $communityGuidelines = null,
+        ?int $lastCacheTimestamp = null
     ): bool {
         $boundValues = [ 'tenant_id' => $tenantId ];
         $rawValues = [];
