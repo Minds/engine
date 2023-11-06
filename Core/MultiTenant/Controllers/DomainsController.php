@@ -47,7 +47,7 @@ class DomainsController
         }
 
         try {
-            if (!!$this->domainService->getDomainDetails()) {
+            if (!!$this->domainService->getCustomHostname()) {
                 return $this->domainService->updateCustomHostname($hostname);
             }
         } catch (\Exception $e) {
