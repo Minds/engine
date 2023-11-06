@@ -17,8 +17,7 @@ class Provider extends DiProvider
     {
         $this->di->bind(Controller::class, function (Di $di): Controller {
             return new Controller(
-                $di->get(AutoLoginService::class),
-                $di->get('Logger')
+                $di->get(AutoLoginService::class)
             );
         });
         $this->di->bind(AutoLoginService::class, function ($di) {
