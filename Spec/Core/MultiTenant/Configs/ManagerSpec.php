@@ -133,9 +133,13 @@ class ManagerSpec extends ObjectBehavior
             $primaryColor,
             $communityGuidelines,
             $expoProjectId,
+            $androidAppCredentialsId,
             $iosAppCredentialsId,
             $androidAppBuildCredentialsId,
             $iosAppBuildCredentialsId
+        )
+            ->shouldBeCalled()
+            ->willReturn($result);
 
         $this->multiTenantDataService->getTenantFromId($tenantId)
             ->shouldBeCalled()
@@ -172,9 +176,12 @@ class ManagerSpec extends ObjectBehavior
         $expoProjectId = 'test-expo-project-id';
         $androidAppCredentialsId = 'test-android-app-credentials-id';
         $iosAppCredentialsId =  'test-ios-app-credentials-id';
+        $androidAppBuildCredentialsId = 'test-android-app-build-credentials-id';
         $iosAppBuildCredentialsId = 'test-ios-app-build-credentials-id';
 
         $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn($tenantId);
 
         $this->repository->upsert(
             $tenantId,
