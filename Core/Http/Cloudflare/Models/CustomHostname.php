@@ -13,8 +13,8 @@ class CustomHostname
         public readonly string $customOriginServer,
         public readonly CustomHostnameStatusEnum $status,
         public readonly CustomHostnameMetadata $metadata,
-        public readonly CustomHostnameOwnershipVerification $ownershipVerification,
         public readonly int $createdAt,
+        public readonly ?CustomHostnameOwnershipVerification $ownershipVerification = null,
     ) {
     }
 }

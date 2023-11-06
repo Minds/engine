@@ -119,11 +119,11 @@ class Client
             customOriginServer: $payload->result->custom_origin_server ?? "",
             status: CustomHostnameStatusEnum::tryFrom($payload->result->status),
             metadata: new CustomHostnameMetadata($payload->result->custom_metadata ?? []),
-            ownershipVerification: new CustomHostnameOwnershipVerification(
+            ownershipVerification: isset($payload->result->ownership_verification) ? new CustomHostnameOwnershipVerification(
                 name: $payload->result->ownership_verification->name,
                 type: $payload->result->ownership_verification->type,
                 value: $payload->result->ownership_verification->value,
-            ),
+            ) : null,
             createdAt: strtotime($payload->result->created_at)
         );
     }

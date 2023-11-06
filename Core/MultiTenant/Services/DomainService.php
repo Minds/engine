@@ -235,7 +235,7 @@ class DomainService
             status: $customHostname->status,
             cloudflareId: $customHostname->id,
             dnsRecord: $this->buildDnsRecord($customHostname->hostname),
-            ownershipVerificationDnsRecord: $this->buildOwnershipVerificationDnsRecord($customHostname->ownershipVerification)
+            ownershipVerificationDnsRecord: isset($customHostname->ownershipVerification) ? $this->buildOwnershipVerificationDnsRecord($customHostname->ownershipVerification) : null
         );
     }
 
