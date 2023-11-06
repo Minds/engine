@@ -119,7 +119,7 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
  
                 break;
             case "reset":
-                $user = new Entities\User(strtolower($_POST['username']));
+                $user = $this->entitiesBuilder->getByUserByIndex(strtolower($_POST['username']));
                 if (!$user->guid) {
                     $response['status'] = "error";
                     $response['message'] = "Could not find @" . $_POST['username'];
