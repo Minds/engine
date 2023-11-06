@@ -11,6 +11,7 @@ use Minds\Core\Session;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Events\Event;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\Security\Block\BlockEntry;
@@ -54,7 +55,7 @@ class Events
                 $to = [];
 
                 foreach ($usernames as $username) {
-                    $user = new Entities\User(strtolower($username));
+                    $user = Di::_()->get(EntitiesBuilder::class)->getByUserByIndex(strtolower($username));
 
                     if ($user->guid && Core\Security\ACL::_()->interact($user, Core\Session::getLoggedinUser())) {
                         $to[] = $user;

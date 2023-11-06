@@ -2,20 +2,19 @@
 
 namespace Spec\Minds\Core\MultiTenant\Services;
 
-use Minds\Controllers\Cli\Cloudflare;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\PsrWrapper;
-use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
-use Minds\Core\MultiTenant\Models\Tenant;
-use Minds\Core\MultiTenant\Services\DomainService;
-use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
 use Minds\Core\Http\Cloudflare\Enums\CustomHostnameStatusEnum;
 use Minds\Core\Http\Cloudflare\Models\CustomHostname;
 use Minds\Core\Http\Cloudflare\Models\CustomHostnameMetadata;
 use Minds\Core\Http\Cloudflare\Models\CustomHostnameOwnershipVerification;
 use Minds\Core\MultiTenant\Enums\DnsRecordEnum;
+use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
+use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Repositories\DomainsRepository;
+use Minds\Core\MultiTenant\Services\DomainService;
+use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Core\MultiTenant\Types\MultiTenantDomain;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;

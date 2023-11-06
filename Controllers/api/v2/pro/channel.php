@@ -15,6 +15,7 @@ use Minds\Entities\User;
 use Minds\Helpers\Campaigns\Referrals;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\EntitiesBuilder;
 
 class channel implements Interfaces\Api
 {
@@ -30,7 +31,7 @@ class channel implements Interfaces\Api
     {
         $currentUser = Session::getLoggedinUser();
 
-        $channel = new User(strtolower($pages[0]));
+        $channel = Di::_()->get(EntitiesBuilder::class)->getByUserByIndex(strtolower($pages[0]));
         $channel->fullExport = true; //get counts
         $channel->exportCounts = true;
 

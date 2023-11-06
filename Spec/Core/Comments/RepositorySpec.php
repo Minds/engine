@@ -11,7 +11,6 @@ use PhpSpec\Exception\Example\FailureException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Spec\Minds\Mocks\Cassandra\Rows;
-use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 
 class RepositorySpec extends ObjectBehavior
 {
