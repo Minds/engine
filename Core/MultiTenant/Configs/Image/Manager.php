@@ -7,6 +7,7 @@ use ElggFile;
 use Minds\Core\Config\Config;
 use Minds\Core\Media\Imagick\Manager as ImagickManager;
 use Minds\Core\MultiTenant\Configs\Enums\MultiTenantConfigImageType;
+use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigManager;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Entities\File;
 
@@ -19,6 +20,7 @@ class Manager
         private ImagickManager $imagickManager,
         private Config $config,
         private MultiTenantBootService $multiTenantBootService,
+        private MultiTenantConfigManager $multiTenantConfigManager
     ) {
     }
 
@@ -39,6 +41,10 @@ class Manager
         $file->open('write');
         $file->write($imageFile);
         $file->close();
+
+        $this->multiTenantConfigManager->upsertConfigs(
+            lastCacheTimestamp: time()
+        );
     }
 
     /**
