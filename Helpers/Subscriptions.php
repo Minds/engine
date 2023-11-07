@@ -5,6 +5,7 @@ use Minds\Core;
 use Minds\Core\Security;
 use Minds\Core\Di\Di;
 use Minds\Core\Events;
+use Minds\Core\Subscriptions\Manager;
 use Minds\Entities\User;
 use Minds\Helpers\Wallet;
 
@@ -27,7 +28,7 @@ class Subscriptions
             return false;
         }
 
-        $manager = Di::_()->get('Subscriptions\Manager');
+        $manager = Di::_()->get(Manager::class);
         $manager->setSubscriber((new User())->set('guid', $user_guid));
         $return = $manager->subscribe((new User())->set('guid', $to_guid));
 
@@ -46,7 +47,7 @@ class Subscriptions
             return false;
         }
 
-        $manager = Di::_()->get('Subscriptions\Manager');
+        $manager = Di::_()->get(Manager::class);
         $manager->setSubscriber((new User())->set('guid', $user));
         $return = $manager->unSubscribe((new User())->set('guid', $from));
 
@@ -61,74 +62,12 @@ class Subscriptions
      */
     public static function isSubscribed($user, $to)
     {
-        $cacher = Core\Data\cache\factory::build();
-
-        if ($cacher->get("$user:isSubscribed:$to")) {
-            return true;
-        }
-        if ($cacher->get("$user:isSubscribed:$to") === 0) {
-            return false;
-        }
-
-        $return = 0;
-        $db = new Core\Data\Call('friendsof');
-        $row = $db->getRow($to, ['limit' => 1, 'offset' => $user]);
-        if ($row && key($row) == $user) {
-            $return = true;
-        }
-
-        $cacher->set("$user:isSubscribed:$to", $return);
-
-        return (bool) $return;
+        /** @var Manager */
+        $manager = Di::_()->get(Manager::class);
+        $manager->setSubscriber((new User())->set('guid', $user));
+        return $manager->isSubscribed((new User())->set('guid', $to));
     }
 
-    /**
-     * Checks if a user is subscribed to another in a
-     * reversed way than isSubscribed()
-     * @param  mixed $user - the user who is doing the action, eg. me
-     * @param  mixed $to   - the user to check subscription to
-     * @return boolean
-     */
-    public static function isSubscriber($user, $to)
-    {
-        $cacher = Core\Data\cache\factory::build();
-
-        if ($cacher->get("$user:isSubscriber:$to")) {
-            return true;
-        }
-        if ($cacher->get("$user:isSubscriber:$to") === 0) {
-            return false;
-        }
-
-        $return = 0;
-        $db = new Core\Data\Call('friendsof');
-        $row = $db->getRow($user, ['limit'=> 1, 'offset'=>$to]);
-        if ($row && key($row) == $to) {
-            $return = true;
-        }
-
-        $cacher->set("$user:isSubscriber:$to", $return);
-
-        return (bool) $return;
-    }
-
-    /**
-     * TBD. Not implemented.
-     * @param  mixed $user
-     * @return mixed
-     */
-    public static function getSubscriptions($user)
-    {
-    }
-
-    /**
-     * TBD. Not implemented.
-     * @param  mixed $user
-     * @return mixed
-     */
-    public static function getSubscribers($user)
-    {
-    }
 
     public static function registerEvents()
     {

@@ -23,6 +23,7 @@ use Minds\Helpers\MagicAttributes;
 use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Entities\EntityInterface;
+use Minds\Entities\Factory;
 
 /**
  * Save Action
@@ -156,6 +157,9 @@ class Save
             // Rethrow
             throw $e;
         }
+
+        // Invalidate the cache
+        Factory::invalidateCache($this->entity);
 
         $namespace = $this->entity->getType();
 

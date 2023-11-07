@@ -53,7 +53,8 @@ class Controller
         return $this->manager->upsertConfigs(
             siteName: $multiTenantConfigInput->siteName,
             colorScheme: $multiTenantConfigInput->colorScheme,
-            primaryColor: $multiTenantConfigInput->primaryColor
+            primaryColor: $multiTenantConfigInput->primaryColor,
+            communityGuidelines: $multiTenantConfigInput->communityGuidelines
         );
     }
 }

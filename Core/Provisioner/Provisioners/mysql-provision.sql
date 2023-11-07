@@ -569,3 +569,11 @@ CREATE TABLE IF NOT EXISTS minds_tenant_featured_entities (
     `updated_timestamp` timestamp DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`tenant_id`, `entity_guid`)
 );
+
+ALTER TABLE `minds_entities_user` MODIFY COLUMN ip varchar(40);
+
+ALTER TABLE `friends` ADD COLUMN tenant_id int AFTER friend_guid;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD community_guidelines text DEFAULT NULL
+    AFTER color_scheme;

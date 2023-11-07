@@ -85,6 +85,8 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($subscription);
 
+        $this->repository->getSubscriptionsCount(123)->willReturn(0);
+
         $publisher = (new User)->set('guid', 456);
         $this->setSubscriber((new User)->set('guid', 123));
 
@@ -115,6 +117,8 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_not_allow_if_over_5000_subscriptions(User $subscriber)
     {
+        $this->repository->getSubscriptionsCount(123)->willReturn(6000);
+
         $publisher = (new User)->set('guid', 456);
 
         $subscriber->getSubscriptionsCount()

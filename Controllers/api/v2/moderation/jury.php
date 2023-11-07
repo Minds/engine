@@ -26,6 +26,10 @@ class jury implements Interfaces\Api
             exit;
         }
 
+        if (!!$config->get('tenant_id')) {
+            exit;
+        }
+
         $juryManager = Di::_()->get('Moderation\Jury\Manager');
         $juryManager->setJuryType($juryType)
             ->setUser(Session::getLoggedInUser());
@@ -56,6 +60,11 @@ class jury implements Interfaces\Api
 
     public function post($pages)
     {
+        $config = Di::_()->get("Config");
+        if (!!$config->get('tenant_id')) {
+            exit;
+        }
+
         $request = ServerRequestFactory::fromGlobals();
         $juryType = $pages[0] ?? null;
         $urn = $pages[1] ?? null;

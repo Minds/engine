@@ -42,20 +42,11 @@ class EntitiesBuilder
     {
         $user = $this->getEntitiesRepository()->loadFromIndex('username', strtolower($key));
 
-        Factory::cache($user);
+        if ($user) {
+            Factory::cache($user);
+        }
     
         return $user;
-        
-        // $values = $this->lookup->get(strtolower($key));
-
-        // $userGuid = key($values);
-        // $user = $this->single($userGuid);
-
-        // if ($user && $user instanceof User) {
-        //     return $user;
-        // }
-
-        // return null;
     }
 
     public function getByUrn(string $urn): ?EntityInterface

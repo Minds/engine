@@ -113,7 +113,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
     protected $subtype = 'blog';
 
     /** @var int */
-    public ?int $guid = null;
+    public $guid = null;
 
     /** @var int */
     protected $ownerGuid;

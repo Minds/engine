@@ -111,6 +111,9 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
         parent::__construct($guid);
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->activityManager = $activityManager ?? Di::_()->get('Feeds\Activity\Manager');
+        if ($cache) {
+            // Do nothing, stops static analysis falure until we refactor not having this value
+        }
     }
 
     /**
@@ -221,7 +224,10 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             $export['subtype'] = 'remind';
 
             // TODO: when we support collapsing of reminds, add the other ownerObj's
-            $export['remind_users'] = [$this->ownerObj];
+
+            $remindOwner = $this->entitiesBuilder->single($this->getOwnerGuid(), [ 'cacheTtl' => 259200 ]); // Move to export extender
+
+            $export['remind_users'] = [$remindOwner->export()];
             $export['urn'] = $this->getUrn();
             return $export;
         } else {
@@ -740,16 +746,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     {
         $this->hide_impressions = (bool) $value;
         return $this;
-    }
-
-    public function getOwnerObj()
-    {
-        if (!$this->ownerObj && $this->owner_guid) {
-            $user = new User($this->owner_guid);
-            $this->ownerObj = $user->export();
-        }
-
-        return $this->ownerObj;
     }
 
     /**

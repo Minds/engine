@@ -352,7 +352,7 @@ class ElggDiskFilestore extends ElggFilestore
      */
     protected function makeFileMatrix($guid)
     {
-        $entity = Di::_()->get(EntitiesBuilder::class)->single($guid);
+        $entity = Di::_()->get(EntitiesBuilder::class)->single($guid, [ 'cacheTtl' => 259200 ]);
 
         if (!($entity instanceof User) || !$entity->time_created) {
             return false;

@@ -68,9 +68,16 @@ class Index
             }
 
             if ($suggest = $mapper->suggestMap()) {
-                $body = array_merge($body, [
-                    'suggest' => $suggest
-                ]);
+
+                if ($this->config->get('tenant_id')) {
+                    $body = array_merge($body, [
+                        'suggest_v2' => $suggest
+                    ]);
+                } else {
+                    $body = array_merge($body, [
+                        'suggest' => $suggest
+                    ]);
+                }
             }
 
             $query = [

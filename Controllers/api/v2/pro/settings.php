@@ -13,6 +13,7 @@ use Minds\Core\Session;
 use Minds\Entities\User;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\EntitiesBuilder;
 
 class settings implements Interfaces\Api
 {
@@ -33,7 +34,7 @@ class settings implements Interfaces\Api
                 ]);
             }
 
-            $user = new User(strtolower($pages[0]));
+            $user = Di::_()->get(EntitiesBuilder::class)->getByUserByIndex(strtolower($pages[0]));
         }
 
         /** @var Manager $manager */
@@ -65,7 +66,7 @@ class settings implements Interfaces\Api
                 ]);
             }
 
-            $user = new User(strtolower($pages[0]));
+            $user = Di::_()->get(EntitiesBuilder::class)->getByUserByIndex(strtolower($pages[0]));
         }
 
         /** @var Manager $manager */

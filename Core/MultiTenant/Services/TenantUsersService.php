@@ -80,7 +80,7 @@ class TenantUsersService
         );
 
         $user->set('tenant_id', $networkUser->tenantId);
-        $user->set('admin', true);
+        $user->set('admin', 'yes');
 
         $this->multiTenantBootService->resetRootConfigs();
 
