@@ -1990,4 +1990,5 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
 
         return $array;
     }
+
 }
