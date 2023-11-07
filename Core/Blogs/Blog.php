@@ -13,6 +13,7 @@ namespace Minds\Core\Blogs;
 
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Guid;
 use Minds\Core\Security\ACL;
@@ -338,7 +339,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
     public function getOwnerObj()
     {
         if (!$this->ownerObj && $this->ownerGuid) {
-            $user = new User($this->ownerGuid);
+            $user = Di::_()->get(EntitiesBuilder::class)->single($this->ownerGuid);
             $this->setOwnerObj($user->export());
         }
 
