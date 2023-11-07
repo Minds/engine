@@ -63,21 +63,36 @@ class DomainService
             return $tenant->domain;
         }
 
-        $domainSuffix = $this->getDomainSuffix();
-
-        return md5($tenant->id) . '.' . $domainSuffix;
-
+        return $this->buildTmpSubdomain($tenant);
     }
 
     /**
      * Invalidate the global tenant cache entry for a given domain.
      * @param string $domain - domain to scope invalidation to.
-     * @return self
+     * @return bool
      */
-    public function invalidateGlobalTenantCache(string $domain): self
+    public function invalidateGlobalTenantCache(Tenant $tenant): bool
     {
+        $domain = $this->buildDomain($tenant);
+        $tmpSubdomain = $this->buildTmpSubdomain($tenant);
+    
         $this->cache->withTenantPrefix(false)->delete($this->getCacheKey($domain));
-        return $this;
+
+        if ($domain !== $tmpSubdomain) {
+            $this->cache->withTenantPrefix(false)->delete($this->getCacheKey($tmpSubdomain));
+        }
+
+        return true;
+    }
+
+    /**
+     * Temporary subdomain builder
+     */
+    private function buildTmpSubdomain(Tenant $tenant): string
+    {
+        $domainSuffix = $this->getDomainSuffix();
+
+        return md5($tenant->id) . '.' . $domainSuffix;
     }
 
     /**

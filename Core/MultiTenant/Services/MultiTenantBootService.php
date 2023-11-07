@@ -134,7 +134,7 @@ class MultiTenantBootService
                 $themeConfig['primary_color'] = $tenant->config->primaryColor;
             }
 
-            if ($tenant->config->lastCacheTimestamp) {
+            if (isset($tenant->config->lastCacheTimestamp)) {
                 $this->setConfig('lastcache', $tenant->config->lastCacheTimestamp);
             }
 

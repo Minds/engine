@@ -137,11 +137,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($tenant);
         
-        $this->domainService->buildDomain($tenant)
-            ->shouldBeCalled()
-            ->willReturn($domain);
-
-        $this->domainService->invalidateGlobalTenantCache($domain)
+        $this->domainService->invalidateGlobalTenantCache($tenant)
             ->shouldBeCalled();
 
         $this->upsertConfigs(
