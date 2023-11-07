@@ -8,6 +8,7 @@ use Minds\Core\Wire\Manager as WireManager;
 use Minds\Entities\User;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Di\Di;
 
 class leaderboard implements Interfaces\Api, Interfaces\ApiAdminPam
 {
@@ -69,7 +70,7 @@ class leaderboard implements Interfaces\Api, Interfaces\ApiAdminPam
         }
 
         $counts[$type] = array_map(function ($item) {
-            $item['user'] = (new User($item['user_guid']))->export();
+            $item['user'] = (Di::_()->get(EntitiesBuilder::class)->single($item['user_guid']))->export();
             return $item;
         }, $result);
 
