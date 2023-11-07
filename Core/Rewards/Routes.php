@@ -6,6 +6,7 @@ use Minds\Core\Router\Middleware\AdminMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 use Minds\Core\Router\Middleware\LoggedInMiddleware;
+use Minds\Core\Router\Middleware\NotMultiTenantMiddleware;
 use Minds\Exceptions\UserErrorException;
 
 /**
@@ -24,6 +25,7 @@ class Routes extends ModuleRoutes
             ->withPrefix('api/v3/rewards')
             ->withMiddleware([
                 LoggedInMiddleware::class,
+                NotMultiTenantMiddleware::class,
             ])
             ->do(function (Route $route) {
                 $route->get(
@@ -41,6 +43,7 @@ class Routes extends ModuleRoutes
             ->withPrefix('api/v3/rewards/admin')
             ->withMiddleware([
                 AdminMiddleware::class,
+                NotMultiTenantMiddleware::class,
             ])
             ->do(function (Route $route) {
                 $route->post(
