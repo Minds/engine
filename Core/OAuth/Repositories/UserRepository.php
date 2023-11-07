@@ -13,6 +13,7 @@ use Minds\Core\Security\Password;
 use Minds\Core\Security\TwoFactor;
 use Minds\Entities\User;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Zend\Diactoros\ServerRequestFactory;
 
 class UserRepository implements UserRepositoryInterface
@@ -33,11 +34,13 @@ class UserRepository implements UserRepositoryInterface
         Password $password = null,
         Delegates\SentryScopeDelegate $sentryScopeDelegate = null,
         $twoFactorManager = null,
-        protected ?PseudonymousIdentifier $pseudonymousIdentifier = null
+        protected ?PseudonymousIdentifier $pseudonymousIdentifier = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null,
     ) {
         $this->password = $password ?: Di::_()->get('Security\Password');
         $this->sentryScopeDelegate = $sentryScopeDelegate ?? new Delegates\SentryScopeDelegate;
         $this->twoFactorManager = $twoFactorManager ?? Di::_()->get('Security\TwoFactor\Manager');
+        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
     }
 
     /**
@@ -56,7 +59,7 @@ class UserRepository implements UserRepositoryInterface
         if ($this->mockUser) {
             $user = $this->mockUser;
         } else {
-            $user = new User(strtolower($username));
+            $user = $this->entitiesBuilder->getByUserByIndex(strtolower($username));
         }
 
         if (!$user->getGuid()) {
