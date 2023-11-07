@@ -567,3 +567,7 @@ ALTER TABLE `friends` ADD COLUMN tenant_id int AFTER friend_guid;
 ALTER TABLE `minds_tenant_configs`
     ADD community_guidelines text DEFAULT NULL
     AFTER color_scheme;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD last_cache_timestamp timestamp DEFAULT NULL
+    AFTER updated_timestamp;
