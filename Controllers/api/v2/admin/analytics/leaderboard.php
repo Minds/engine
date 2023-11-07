@@ -9,6 +9,7 @@ use Minds\Entities\User;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 
 class leaderboard implements Interfaces\Api, Interfaces\ApiAdminPam
 {
