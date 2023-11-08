@@ -432,7 +432,7 @@ class NotificationTypes
         if (!$this->isMultiTenant()) {
             return $defaultTypesGroupings;
         } else {
-            $forbiddenTenantTypes = [
+            $forbiddenTenantTypeKeys = [
                 self::GROUPING_TYPE_BOOSTS,
                 self::GROUPING_TYPE_TOKENS,
                 self::GROUPING_TYPE_CHATS,
@@ -443,7 +443,7 @@ class NotificationTypes
                 self::GROUPING_TYPE_GIFT_CARDS,
             ];
 
-            return array_diff($defaultTypesGroupings, $forbiddenTenantTypes);
+            return array_diff_key($defaultTypesGroupings, array_flip($forbiddenTenantTypeKeys));
         }
     }
 
