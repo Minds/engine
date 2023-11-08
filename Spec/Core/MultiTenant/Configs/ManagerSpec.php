@@ -116,6 +116,7 @@ class ManagerSpec extends ObjectBehavior
         $result = true;
         $tenant = new Tenant($tenantId, $domain);
         $communityGuidelines = 'Test community guidelines';
+        $lastCacheTimestamp = time();
 
         $this->config->get('tenant_id')
             ->shouldBeCalled()
@@ -126,7 +127,8 @@ class ManagerSpec extends ObjectBehavior
             $siteName,
             $colorScheme,
             $primaryColor,
-            $communityGuidelines
+            $communityGuidelines,
+            $lastCacheTimestamp
         )
             ->shouldBeCalled()
             ->willReturn($result);
@@ -135,18 +137,15 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($tenant);
         
-        $this->domainService->buildDomain($tenant)
-            ->shouldBeCalled()
-            ->willReturn($domain);
-
-        $this->domainService->invalidateGlobalTenantCache($domain)
+        $this->domainService->invalidateGlobalTenantCache($tenant)
             ->shouldBeCalled();
 
         $this->upsertConfigs(
             $siteName,
             $colorScheme,
             $primaryColor,
-            $communityGuidelines
+            $communityGuidelines,
+            $lastCacheTimestamp
         )->shouldBe($result);
     }
 
@@ -158,6 +157,7 @@ class ManagerSpec extends ObjectBehavior
         $primaryColor = '#000000';
         $result = false;
         $communityGuidelines = 'Test community guidelines';
+        $lastCacheTimestamp = time();
 
         $this->config->get('tenant_id')
             ->shouldBeCalled()
@@ -168,7 +168,8 @@ class ManagerSpec extends ObjectBehavior
             $siteName,
             $colorScheme,
             $primaryColor,
-            $communityGuidelines
+            $communityGuidelines,
+            $lastCacheTimestamp
         )
             ->shouldBeCalled()
             ->willReturn($result);
@@ -183,7 +184,8 @@ class ManagerSpec extends ObjectBehavior
             $siteName,
             $colorScheme,
             $primaryColor,
-            $communityGuidelines
+            $communityGuidelines,
+            $lastCacheTimestamp
         )->shouldBe($result);
     }
 }

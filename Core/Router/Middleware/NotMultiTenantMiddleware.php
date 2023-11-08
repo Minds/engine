@@ -4,6 +4,7 @@ namespace Minds\Core\Router\Middleware;
 
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -35,7 +36,7 @@ class NotMultiTenantMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if (!!$this->config->get('tenant_id')) {
-            throw new UnauthorizedException();
+            throw new ForbiddenException();
         }
 
         return $handler

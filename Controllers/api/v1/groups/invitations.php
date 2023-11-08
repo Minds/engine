@@ -153,7 +153,7 @@ class invitations implements Interfaces\Api
             ]);
         }
 
-        $invitee = new User($payload['guid']);
+        $invitee = $this->entitiesBuilder->single($payload['guid']);
 
         if (!$invitee || !$invitee->username) {
             return Factory::response([
@@ -268,7 +268,7 @@ class invitations implements Interfaces\Api
         }
 
         $user = Session::getLoggedInUser();
-        $invitee = new User($_POST['user']);
+        $invitee = $this->entitiesBuilder->single($_POST['user']);
 
         if (!$invitee || !$invitee->guid) {
             return Factory::response([

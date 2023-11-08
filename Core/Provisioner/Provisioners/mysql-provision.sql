@@ -584,3 +584,7 @@ CREATE TABLE `minds_reports` (
   PRIMARY KEY (`report_guid`)
   INDEX (tenant_id),
 );
+
+ALTER TABLE `minds_tenant_configs`
+    ADD last_cache_timestamp timestamp DEFAULT NULL
+    AFTER updated_timestamp;

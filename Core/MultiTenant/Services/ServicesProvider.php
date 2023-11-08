@@ -45,7 +45,8 @@ class ServicesProvider extends Provider
             function (Di $di): TenantsService {
                 return new TenantsService(
                     $di->get(Repository::class),
-                    $di->get(TenantConfigRepository::class)
+                    $di->get(TenantConfigRepository::class),
+                    $di->get('Config'),
                 );
             }
         );

@@ -4,6 +4,7 @@ namespace Minds\Helpers;
 use Minds\Core;
 use Minds\Core\Security;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events;
 use Minds\Core\Subscriptions\Manager;
 use Minds\Entities\User;
@@ -74,7 +75,7 @@ class Subscriptions
         Events\Dispatcher::register('subscription:dispatch', 'all', function (Events\Event $event) {
             $params = $event->getParameters();
 
-            $currentUser = new User($params['currentUser']);
+            $currentUser = Di::_()->get(EntitiesBuilder::class)->single($params['currentUser']);
             $guids = $params['guids'];
 
             if (!is_array($guids)) {
@@ -90,7 +91,7 @@ class Subscriptions
 
             foreach ($guids as $guid) {
                 try {
-                    $target = new User($guid);
+                    $target = Di::_()->get(EntitiesBuilder::class)->single($guid);
 
                     if (!($target instanceof User) || !$target->guid) {
                         $results[] = [

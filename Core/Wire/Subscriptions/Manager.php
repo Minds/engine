@@ -6,6 +6,7 @@ use Exception;
 use Minds\Common\Urn;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
@@ -53,13 +54,15 @@ class Manager
         $subscriptionsRepository = null,
         $config = null,
         $stripePaymentMethodsManager = null,
-        private readonly ?GiftCardsManager $giftCardsManager = null
+        private readonly ?GiftCardsManager $giftCardsManager = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
     ) {
         $this->wireManager = $wireManager ?: Di::_()->get('Wire\Manager');
         $this->subscriptionsManager = $subscriptionsManager ?: Di::_()->get('Payments\Subscriptions\Manager');
         $this->subscriptionsRepository = $subscriptionsRepository ?: Di::_()->get('Payments\Subscriptions\Repository');
         $this->config = $config ?: Di::_()->get('Config');
         $this->stripePaymentMethodsManager = $stripePaymentMethodsManager ?? Di::_()->get('Stripe\PaymentMethods\Manager');
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get(EntitiesBuilder::class);
     }
 
     public function setAmount($amount): Manager
@@ -133,8 +136,8 @@ class Manager
      */
     public function onRecurring($subscription): bool
     {
-        $sender = new User($subscription->getUser()->guid);
-        $receiver = new User($subscription->getEntity()->guid);
+        $sender = $this->entitiesBuilder->single($subscription->getUser()->guid);
+        $receiver = $this->entitiesBuilder->single($subscription->getEntity()->guid);
         $amount = $subscription->getAmount();
 
         $id = $subscription->getId();

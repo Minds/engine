@@ -94,6 +94,11 @@ class DomainServiceSpec extends ObjectBehavior
     {
         $domain = 'custom.domain';
 
+        $tenant = new Tenant(
+            id: 123,
+            domain: $domain
+        );
+
         $this->cacheMock->withTenantPrefix(false)
             ->shouldBeCalled()
             ->willReturn($this->cacheMock);
@@ -101,6 +106,9 @@ class DomainServiceSpec extends ObjectBehavior
         $this->cacheMock->delete("global:tenant:domain:$domain")
             ->shouldBeCalled();
 
-        $this->invalidateGlobalTenantCache($domain);
+        $this->cacheMock->delete("global:tenant:domain:202cb962ac59075b964b07152d234b70.minds.com")
+            ->shouldBeCalled();
+
+        $this->invalidateGlobalTenantCache($tenant)->shouldBe(true);
     }
 }
