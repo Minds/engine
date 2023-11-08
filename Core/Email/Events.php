@@ -9,11 +9,14 @@ use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Analytics\UserStates\UserActivityBuckets;
 use Minds\Core\Email\V2\Delegates\DigestSender;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
 use Minds\Interfaces\SenderInterface;
 
 class Events
 {
+    private EntitiesBuilder $entitiesBuilder;
+
     public function register()
     {
         Dispatcher::register('user_state_change', 'all', function ($opts) {
@@ -47,7 +50,14 @@ class Events
 
     private function sendCampaign(SenderInterface $sender, $params)
     {
-        $user = new User($params['user_guid'], $params['cache'] ?? true);
-        $sender->send($user);
+        $user = $this->getEntitiesBuilder()->single($params['user_guid'], $params['cache'] ?? true);
+        if ($user instanceof User) {
+            $sender->send($user);
+        }
+    }
+
+    private function getEntitiesBuilder(): EntitiesBuilder
+    {
+        return $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
     }
 }

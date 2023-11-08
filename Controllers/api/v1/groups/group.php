@@ -302,7 +302,7 @@ class group implements Interfaces\Api
             foreach ($invitees as $invitee) {
                 if (is_numeric($invitee)) {
                     try {
-                        $invitee = new User($invitee);
+                        $invitee = $this->entitiesBuilder->single($invitee);
                         $invitations->invite($invitee);
                     } catch (GroupOperationException $e) {
                     }

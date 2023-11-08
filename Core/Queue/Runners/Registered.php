@@ -6,6 +6,7 @@ use Minds\Common\Urn;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Email\Repository;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Queue;
 use Minds\Core\Queue\Interfaces\QueueRunner;
 use Minds\Entities\User;
@@ -19,14 +20,18 @@ class Registered implements QueueRunner
         /** @var Repository $repository */
         $repository = Di::_()->get('Email\Repository');
 
+        /** @var EntitiesBuilder */
+        $entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
+
         $client = Queue\Client::Build();
         $client->setQueue("Registered")
-            ->receive(function ($data) use ($subscriptions, $repository) {
+            ->receive(function ($data) use ($subscriptions, $repository, $entitiesBuilder) {
                 $data = $data->getData();
                 $user_guid = $data['user_guid'];
 
                 //subscribe to minds channel
-                $subscriber = new User($user_guid);
+                /** @var User */
+                $subscriber = $entitiesBuilder->single($user_guid);
                 $subscriber->subscribe('100000000000000519');
 
                 echo "[registered]: User registered $user_guid\n";
