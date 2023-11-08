@@ -85,7 +85,7 @@ class ActionService
     public function deleteEntity(mixed $entity)
     {
         if ($entity instanceof Comment) {
-            (new \Minds\Core\Comments\Manager())->delete($entity);
+            $this->commentManager->delete($entity);
             return;
         }
         $this->deleteAction->setEntity($entity)->delete();
