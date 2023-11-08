@@ -567,3 +567,20 @@ ALTER TABLE `friends` ADD COLUMN tenant_id int AFTER friend_guid;
 ALTER TABLE `minds_tenant_configs`
     ADD community_guidelines text DEFAULT NULL
     AFTER color_scheme;
+
+CREATE TABLE `minds_reports` (
+  `tenant_id` int NOT NULL,
+  `report_guid` bigint NOT NULL,
+  `entity_guid` bigint NOT NULL,
+  `entity_urn` varchar(256) NOT NULL,
+  `reported_by_guid` bigint NOT NULL,
+  `moderated_by_guid` bigint DEFAULT NULL,
+  `reason` tinyint NOT NULL,
+  `sub_reason` tinyint DEFAULT NULL,
+  `status` tinyint NOT NULL,
+  `action` tinyint NOT NULL,
+  `created_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `updated_timestamp` timestamp DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`report_guid`)
+  INDEX (tenant_id),
+);
