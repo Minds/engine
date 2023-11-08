@@ -33,7 +33,7 @@ class ReportService
 
     /**
      * Get a single report.
-     * @param integer $reportGuid - guid of the report.
+     * @param int $reportGuid - guid of the report.
      * @param ReportStatusEnum|null $status - status of the report. Allows checking whether a report is in a given status.
      * @return Report|null - the report.
      */
