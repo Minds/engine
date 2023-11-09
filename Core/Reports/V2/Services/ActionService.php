@@ -12,6 +12,7 @@ use Minds\Core\Comments\Manager as CommentManager;
 use Minds\Core\Reports\Enums\ReportActionEnum;
 use Minds\Core\Reports\V2\Types\Report;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 /**
@@ -37,7 +38,7 @@ class ActionService
     public function handleReport(Report $report, ReportActionEnum $action): void
     {
         if (!$entity = $this->entitiesResolver->single($report->entityUrn)) {
-            throw new GraphQLException('Entity not found with urn: ' . $report->entityUrn);
+            throw new NotFoundException('Entity not found with urn: ' . $report->entityUrn);
         }
 
         switch ($action) {
@@ -48,7 +49,7 @@ class ActionService
                     }
 
                     if (!$entity || !$entity instanceof User) {
-                        throw new GraphQLException('Entity owner not found');
+                        throw new NotFoundException('Entity owner not found');
                     }
                 }
                 $this->banUser(user: $entity, report: $report);

@@ -16,6 +16,7 @@ use Minds\Core\Reports\V2\Repositories\ReportRepository;
 use Minds\Core\Reports\V2\Types\Report;
 use Minds\Core\Reports\V2\Types\ReportEdge;
 use Minds\Core\Reports\V2\Types\ReportsConnection;
+use Minds\Exceptions\NotFoundException;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 /**
@@ -131,7 +132,12 @@ class ReportService
             throw new GraphQLException('No report found in pending state. Has it already been moderated?');
         }
 
-        $this->actionService->handleReport($report, $action);
+        try {
+            $this->actionService->handleReport($report, $action);
+        } catch(NotFoundException $e) {
+            // if the entity cannot be handled, ignore the report.
+            $action = ReportActionEnum::IGNORE;
+        }
 
         return $this->repository->updateWithVerdict(
             tenantId: $tenantId,
