@@ -581,8 +581,8 @@ CREATE TABLE `minds_reports` (
   `action` tinyint NOT NULL,
   `created_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP,
   `updated_timestamp` timestamp DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`report_guid`)
-  INDEX (tenant_id),
+  PRIMARY KEY (`report_guid`),
+  INDEX (tenant_id)
 );
 
 ALTER TABLE `minds_tenant_configs`
