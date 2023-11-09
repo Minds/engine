@@ -47,7 +47,6 @@ class ReportController
         );
     }
 
-
     /**
      * Create a new report.
      * @param ReportInput $reportInput - report input.
