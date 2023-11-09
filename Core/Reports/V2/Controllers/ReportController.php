@@ -35,8 +35,8 @@ class ReportController
     #[Logged]
     #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
     public function getReports(
-        ?int $first = 12,
-        ?int $after = null,
+        int $first = 12,
+        int $after = null,
         ?ReportStatusEnum $status = ReportStatusEnum::PENDING,
         #[InjectUser] ?User $loggedInUser = null // Do not add in docblock as it will break GraphQL
     ): ReportsConnection {
