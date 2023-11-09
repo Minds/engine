@@ -578,7 +578,7 @@ CREATE TABLE `minds_reports` (
   `reason` tinyint NOT NULL,
   `sub_reason` tinyint DEFAULT NULL,
   `status` tinyint NOT NULL,
-  `action` tinyint NOT NULL,
+  `action` tinyint DEFAULT NULL,
   `created_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP,
   `updated_timestamp` timestamp DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`report_guid`),
