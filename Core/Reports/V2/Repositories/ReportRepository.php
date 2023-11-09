@@ -31,7 +31,7 @@ class ReportRepository extends AbstractRepository
     public function getReport(
         int $tenantId,
         int $reportGuid,
-        ReportStatusEnum $status = null
+        ?ReportStatusEnum $status = null
     ): ?Report {
         $values = [
             'tenant_id' => $tenantId,
@@ -74,26 +74,41 @@ class ReportRepository extends AbstractRepository
         int $tenantId,
         ReportStatusEnum $status = null,
         int $limit = 12,
-        int $loadAfter = null,
+        int &$loadAfter = null,
         ?bool &$hasMore = null
     ): ?iterable {
         $values = [ 'tenant_id' => $tenantId ];
 
-        $query = $this->mysqlClientReaderHandler
-            ->select()
+        $query = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'report_guid' => new RawExp("MIN(report_guid)"),
+                'tenant_id',
+                'entity_guid',
+                'entity_urn' => new RawExp("MIN(entity_urn)"),
+                'reported_by_guid' => new RawExp("MIN(reported_by_guid)"),
+                'moderated_by_guid' => new RawExp("MIN(moderated_by_guid)"),
+                'reason',
+                'sub_reason',
+                'status' => new RawExp("MIN(status)"),
+                'action' => new RawExp("MIN(action)"),
+                'created_timestamp' => new RawExp("MAX(created_timestamp)"),
+                'updated_timestamp' => new RawExp("MIN(updated_timestamp)"),
+            ])
             ->from('minds_reports')
-            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
-            ->orderBy('created_timestamp ASC')
-            ->limit($limit);
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
 
         if ($loadAfter) {
-            $query->offset($loadAfter);
+            $query->where('created_timestamp', Operator::GT, date('c', $loadAfter));
         }
 
         if (isset($status)) {
             $query->where('status', Operator::EQ, new RawExp(':status'));
             $values['status'] = $status->value;
         }
+
+        $query->orderBy('created_timestamp ASC')
+            ->groupBy('entity_guid', 'reason', 'sub_reason')
+            ->limit($limit + 1);
 
         $statement = $query->prepare();
 
@@ -103,9 +118,13 @@ class ReportRepository extends AbstractRepository
 
         $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-        $hasMore = count($rows) >= $limit;
+        foreach ($rows as $i => $row) {
+            if ($i === $limit) {
+                $hasMore = true;
+                $loadAfter = strtotime($rows[$i - 1]['created_timestamp']);
+                break;
+            }
 
-        foreach ($rows as $row) {
             yield $this->buildReport($row);
         }
     }

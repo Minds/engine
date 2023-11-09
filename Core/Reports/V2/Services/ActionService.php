@@ -40,7 +40,7 @@ class ActionService
             throw new GraphQLException('Entity not found with guid: ' . $report->entityGuid);
         }
 
-        switch ($report->action) {
+        switch ($action) {
             case ReportActionEnum::BAN:
                 if (!$entity instanceof User) {
                     if ($entity->getOwnerGuid()) {
@@ -70,7 +70,7 @@ class ActionService
      * @param Report $report - report to ban user for.
      * @return void
      */
-    public function banUser(User $user, Report $report): void
+    private function banUser(User $user, Report $report): void
     {
         $this->channelsBanManager
             ->setUser($user)
@@ -82,7 +82,7 @@ class ActionService
      * @param mixed $entity - entity to delete.
      * @return void
      */
-    public function deleteEntity(mixed $entity)
+    private function deleteEntity(mixed $entity)
     {
         if ($entity instanceof Comment) {
             $this->commentManager->delete($entity);

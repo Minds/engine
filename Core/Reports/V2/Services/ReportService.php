@@ -64,6 +64,7 @@ class ReportService
     ): ReportsConnection {
         $tenantId = $this->getTenantId();
         $hasMore = false;
+        $initialLoadAfter = $loadAfter;
 
         $reports = $this->repository->getReports(
             tenantId: $tenantId,
@@ -80,8 +81,8 @@ class ReportService
             ->setPageInfo(new PageInfo(
                 hasNextPage: $hasMore,
                 hasPreviousPage: false, // not supported.
-                startCursor: (string) $loadAfter,
-                endCursor: (string) ($limit + $loadAfter),
+                startCursor: (string) $initialLoadAfter,
+                endCursor: (string) $loadAfter,
             ));
 
     }
@@ -103,7 +104,7 @@ class ReportService
         $tenantId = $this->getTenantId();
         return $this->repository->createNewReport(
             tenantId: $tenantId,
-            entityGuid: (int) $this->getEntityGuidFromUrn($entityUrn),
+            entityGuid: $this->getEntityGuidFromUrn($entityUrn),
             entityUrn: $entityUrn,
             reportedByGuid: $reportedByGuid,
             reason: $reason,
@@ -179,6 +180,7 @@ class ReportService
      */
     private function getEntityGuidFromUrn(string $entityUrn): ?int
     {
-        return (int) end(explode(':', $entityUrn)) ?? null;
+        $urnSegments = explode(':', $entityUrn);
+        return (int) end($urnSegments) ?? null;
     }
 }
