@@ -37,7 +37,7 @@ class ActionService
     public function handleReport(Report $report, ReportActionEnum $action): void
     {
         if (!$entity = $this->entitiesResolver->single($report->entityUrn)) {
-            throw new GraphQLException('Entity not found with guid: ' . $report->entityGuid);
+            throw new GraphQLException('Entity not found with urn: ' . $report->entityUrn);
         }
 
         switch ($action) {

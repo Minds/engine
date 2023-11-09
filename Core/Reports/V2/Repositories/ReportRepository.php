@@ -65,7 +65,8 @@ class ReportRepository extends AbstractRepository
      * @param int $tenantId - id of the tenant.
      * @param ReportStatusEnum|null $status - status of the reports.
      * @param int $limit - limit of reports to load.
-     * @param int $loadAfter - load after cursor.
+     * @param int $loadAfter - load after cursor - passed by reference, will be updated
+     * to indicate the next cursor for pagination.
      * @param bool|null $hasMore - passed by reference, will be updated to indicate
      * whether there are more pages to load.
      * @return iterable<Report> - iterable of reports.
@@ -178,7 +179,7 @@ class ReportRepository extends AbstractRepository
     }
 
     /**
-     * Update a report fields for a verdict.
+     * Update ALL pending status rows for a verdict with matching entity_guid, reason and subreasons.
      * @param int $tenantId - id of the tenant.
      * @param int $entityGuid - guid of the entity.
      * @param int $moderatedByGuid - guid of the user who moderated the report.

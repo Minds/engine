@@ -38,7 +38,7 @@ class ReportEdge implements EdgeInterface
     #[Field]
     public function getType(): string
     {
-        return "report";
+        return "report-edge";
     }
 
     /**

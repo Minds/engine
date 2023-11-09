@@ -128,7 +128,7 @@ class ReportService
         $report = $this->getReport($reportGuid, ReportStatusEnum::PENDING);
 
         if (!$report) {
-            throw new GraphQLException('No report found in pending state.');
+            throw new GraphQLException('No report found in pending state. Has it already been moderated?');
         }
 
         $this->actionService->handleReport($report, $action);
