@@ -21,7 +21,7 @@ use Minds\Core\Security\ACL;
 use Minds\Exceptions\StopEventException;
 use Minds\Helpers\MagicAttributes;
 use Minds\Core\Log\Logger;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\Factory;
 
@@ -111,7 +111,7 @@ class Save
         }
 
         if (!$this->acl->write($this->entity)) {
-            throw new UnauthorizedException();
+            throw new ForbiddenException();
         }
 
         $this->beforeSave();
