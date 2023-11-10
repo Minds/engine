@@ -82,6 +82,8 @@ class TenantUsersService
         $user->set('tenant_id', $networkUser->tenantId);
         $user->set('admin', 'yes');
 
+        $this->saveAction->setEntity($user)->withMutatedAttributes(['admin'])->save();
+
         $this->multiTenantBootService->resetRootConfigs();
 
         return $user;

@@ -7,7 +7,9 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
+use Minds\Core\MultiTenant\Repositories\DomainsRepository;
 use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
 use Minds\Core\MultiTenant\Repository;
 
@@ -28,7 +30,9 @@ class ServicesProvider extends Provider
             return new DomainService(
                 $di->get('Config'),
                 $di->get(MultiTenantDataService::class),
-                $di->get('Cache\PsrWrapper')
+                $di->get('Cache\PsrWrapper'),
+                $di->get(CloudflareClient::class),
+                $di->get(DomainsRepository::class),
             );
         });
 
