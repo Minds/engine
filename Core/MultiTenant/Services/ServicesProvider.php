@@ -9,6 +9,7 @@ use Minds\Core\Di\Provider;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
+use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
 use Minds\Core\MultiTenant\Repositories\DomainsRepository;
 use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
 use Minds\Core\MultiTenant\Repository;
@@ -63,6 +64,16 @@ class ServicesProvider extends Provider
                     new Save(),
                     $di->get('Config'),
                     $di->get(MultiTenantBootService::class),
+                );
+            }
+        );
+
+        $this->di->bind(
+            FeaturedEntityService::class,
+            function (Di $di): FeaturedEntityService {
+                return new FeaturedEntityService(
+                    $di->get(FeaturedEntitiesRepository::class),
+                    $di->get('Config')
                 );
             }
         );

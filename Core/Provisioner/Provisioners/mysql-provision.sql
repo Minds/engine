@@ -568,6 +568,16 @@ CREATE TABLE IF NOT EXISTS `minds_tenants_domain_details` (
 ALTER TABLE `minds_votes` ADD COLUMN `tenant_id` int DEFAULT NULL AFTER `user_guid`;
 CREATE INDEX `tenant_id` ON `minds_votes` (`tenant_id`);
 
+CREATE TABLE IF NOT EXISTS minds_tenant_featured_entities (
+    `tenant_id` int,
+    `entity_guid` bigint,
+    `auto_subscribe` boolean DEFAULT FALSE,
+    `recommended` boolean DEFAULT FALSE,
+    `created_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP,
+    `updated_timestamp` timestamp DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`tenant_id`, `entity_guid`)
+);
+
 ALTER TABLE `minds_entities_user` MODIFY COLUMN ip varchar(40);
 
 ALTER TABLE `friends` ADD COLUMN tenant_id int AFTER friend_guid;
