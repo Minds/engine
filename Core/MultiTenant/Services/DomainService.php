@@ -1,22 +1,41 @@
 <?php
 namespace Minds\Core\MultiTenant\Services;
 
+use Exception;
+use GuzzleHttp\Exception\GuzzleException;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
+use Minds\Core\Http\Cloudflare\Models\CustomHostnameOwnershipVerification;
+use Minds\Core\Http\Cloudflare\Models\CustomHostname;
+use Minds\Core\MultiTenant\Enums\DnsRecordEnum;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
 use Minds\Core\MultiTenant\Models\Tenant;
+use Minds\Core\MultiTenant\Repositories\DomainsRepository;
+use Minds\Core\MultiTenant\Types\MultiTenantDomain;
+use Minds\Core\MultiTenant\Types\MultiTenantDomainDnsRecord;
+use Psr\SimpleCache\InvalidArgumentException;
 
 class DomainService
 {
     public function __construct(
-        private Config $config,
-        private MultiTenantDataService $dataService,
-        private PsrWrapper $cache,
+        private readonly Config $config,
+        private readonly MultiTenantDataService $dataService,
+        private readonly PsrWrapper $cache,
+        private readonly CloudflareClient $cloudflareClient,
+        private readonly DomainsRepository $domainsRepository
     ) {
         
     }
 
+    /**
+     * @param string $domain
+     * @return Tenant|null
+     * @throws NoTenantFoundException
+     * @throws ReservedDomainException
+     * @throws InvalidArgumentException
+     */
     public function getTenantFromDomain(string $domain): ?Tenant
     {
         $domain = strtolower($domain);
@@ -135,5 +154,121 @@ class DomainService
     protected function getCacheKey(string $domain): string
     {
         return strtolower('global:tenant:domain:' . $domain);
+    }
+
+    /**
+     * Sets up a custom hostname and returns a model with the DNS records required
+     * @throws GuzzleException
+     * @throws Exception
+     */
+    public function setupCustomHostname(string $hostname): MultiTenantDomain
+    {
+        $tenantId = $this->config->get('tenant_id');
+        $customHostname = $this->cloudflareClient->createCustomHostname($hostname);
+
+        $this->domainsRepository->storeDomainDetails(
+            tenantId: $tenantId,
+            cloudflareId: $customHostname->id,
+            domain: $customHostname->hostname,
+        );
+
+        $multiTenantDomain = $this->buildMultiTenantDomainFromCfCustomHostname($tenantId, $customHostname);
+
+        return $multiTenantDomain;
+    }
+
+    /**
+     * Returns DNS records and status of the hostname
+     * @return MultiTenantDomain
+     * @throws Exception
+     */
+    public function getCustomHostname(): MultiTenantDomain
+    {
+        $tenantId = $this->config->get('tenant_id');
+    
+        $multiTenantDomain = $this->domainsRepository->getDomainDetails(
+            tenantId: $tenantId
+        );
+
+        $customHostname = $this->cloudflareClient->getCustomHostnameDetails($multiTenantDomain->cloudflareId);
+
+        $multiTenantDomain = $this->buildMultiTenantDomainFromCfCustomHostname($tenantId, $customHostname);
+
+        return $multiTenantDomain;
+    }
+
+    /**
+     * Updates a hostname. This will delete and recreate the record on Cloudflare
+     * @throws Exception
+     */
+    public function updateCustomHostname(string $hostname): MultiTenantDomain
+    {
+        $tenantId = $this->config->get('tenant_id');
+        $currentDomain = $this->getCustomHostname();
+
+        $customHostname = $this->cloudflareClient->updateCustomHostnameDetails(
+            cloudflareId: $currentDomain->cloudflareId,
+            hostname: $hostname
+        );
+
+        $this->domainsRepository->storeDomainDetails(
+            tenantId: $tenantId,
+            cloudflareId: $customHostname->id,
+            domain: $customHostname->hostname,
+        );
+
+        $multiTenantDomain = $this->buildMultiTenantDomainFromCfCustomHostname($tenantId, $customHostname);
+
+        return $multiTenantDomain;
+    }
+
+    /**
+     * Builds a MultiTenantDomain model from a cloudflare model
+     */
+    private function buildMultiTenantDomainFromCfCustomHostname(
+        int $tenantId,
+        CustomHostname $customHostname
+    ): MultiTenantDomain {
+        return new MultiTenantDomain(
+            tenantId: $tenantId,
+            domain: $customHostname->hostname,
+            status: $customHostname->status,
+            cloudflareId: $customHostname->id,
+            dnsRecord: $this->buildDnsRecord($customHostname->hostname),
+            ownershipVerificationDnsRecord: isset($customHostname->ownershipVerification) ? $this->buildOwnershipVerificationDnsRecord($customHostname->ownershipVerification) : null
+        );
+    }
+
+    /**
+     * Returns the DNS record that a custom should point to.
+     * Apex domains will use a static ip, subdomains will use a cname
+     */
+    private function buildDnsRecord(string $hostname): MultiTenantDomainDnsRecord
+    {
+        $parts = explode('.', $hostname);
+        $isApex = count($parts) == 2;
+
+        $cloudflareConfig = $this->config->get('cloudflare')['custom_hostnames'] ?? [
+            'apex_ip' => '127.0.0.1',
+            'cname_hostname' => 'set-me-up.minds.com',
+        ];
+
+        if ($isApex) {
+            return new MultiTenantDomainDnsRecord($hostname, DnsRecordEnum::A, $cloudflareConfig['apex_ip']);
+        } else {
+            return new MultiTenantDomainDnsRecord($hostname, DnsRecordEnum::CNAME, $cloudflareConfig['cname_hostname']);
+        }
+    }
+
+    /**
+     * Returns the TXT record that a user needs to apply to their domain
+     */
+    private function buildOwnershipVerificationDnsRecord(CustomHostnameOwnershipVerification $ownershipVerification): MultiTenantDomainDnsRecord
+    {
+        return new MultiTenantDomainDnsRecord(
+            name: $ownershipVerification->name,
+            type: DnsRecordEnum::from($ownershipVerification->type),
+            value: $ownershipVerification->value
+        );
     }
 }
