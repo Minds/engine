@@ -27,5 +27,13 @@ class FactoriesProvider extends Provider
                 return new TenantUserFactory();
             }
         );
+        $this->di->bind(
+            FeaturedEntityFactory::class,
+            function (Di $di): FeaturedEntityFactory {
+                return new FeaturedEntityFactory(
+                    $di->get('Config')
+                );
+            }
+        );
     }
 }
