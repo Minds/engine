@@ -137,7 +137,6 @@ class Repository extends AbstractRepository
         $statement = $this->mysqlClientWriterHandler->insert()
             ->into('minds_tenants')
             ->set([
-                'tenant_id' => $tenant->id,
                 'owner_guid' => $tenant->ownerGuid,
                 'domain' => $tenant->domain,
             ])

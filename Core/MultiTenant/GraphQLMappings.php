@@ -10,6 +10,8 @@ use Minds\Core\MultiTenant\Types\FeaturedGroup;
 use Minds\Core\MultiTenant\Types\FeaturedUser;
 use Minds\Core\MultiTenant\Types\FeaturedEntityEdge;
 use Minds\Core\MultiTenant\Types\FeaturedEntityConnection;
+use Minds\Core\MultiTenant\Types\MultiTenantDomain;
+use Minds\Core\MultiTenant\Types\MultiTenantDomainDnsRecord;
 use Minds\Core\MultiTenant\Types\TenantUser;
 use TheCodingMachine\GraphQLite\Mappers\StaticClassListTypeMapperFactory;
 
@@ -31,6 +33,8 @@ class GraphQLMappings extends AbstractGraphQLMappings
             FeaturedGroup::class,
             FeaturedEntityEdge::class,
             FeaturedEntityConnection::class,
+            MultiTenantDomain::class,
+            MultiTenantDomainDnsRecord::class,
         ]));
 
         $this->schemaFactory->setInputTypeValidator(new Types\Validators\TenantInputValidator());
