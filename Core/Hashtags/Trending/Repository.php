@@ -56,11 +56,6 @@ class Repository
                     ],
                 ],
             ],
-            [
-                'terms'=> [
-                    'language'=> $opts['languages'],
-                ],
-            ],
         ];
 
         $mustNot = [
@@ -89,6 +84,9 @@ class Repository
         } else {
             $mustNot[]['exists'] = [
                 'field' => 'tenant_id'
+            ];
+            $must[]['terms'] = [
+                'language'=> $opts['languages'],
             ];
         }
 
