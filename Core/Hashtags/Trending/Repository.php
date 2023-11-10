@@ -47,7 +47,7 @@ class Repository
             'exclude_tags' => [], // tags to exclude.
         ], $opts);
 
-        $must= [
+        $must = [
             [
                 'range'=> [
                     '@timestamp'=> [
@@ -63,9 +63,32 @@ class Repository
             ],
         ];
 
+        $mustNot = [
+            [
+                'term' => [
+                    'deleted' => true,
+                ]
+            ],
+            [
+                'terms' => [
+                    'nsfw'=> [ 1, 2, 3, 4, 5, 6],
+                ],
+            ],
+        ];
+
         if ($opts['wire_support_tier']) {
             $must[]['term'] = [
                 'wire_support_tier'=> $opts['wire_support_tier']
+            ];
+        }
+
+        if ($this->config->get('tenant_id')) {
+            $must[]['term'] = [
+                'tenant_id' => $this->config->get('tenant_id'),
+            ];
+        } else {
+            $mustNot[]['exists'] = [
+                'field' => 'tenant_id'
             ];
         }
 
@@ -73,18 +96,7 @@ class Repository
             'query'=> [
                 'bool'=> [
                     'must'=> $must,
-                    'must_not'=> [
-                        [
-                            'term' => [
-                                'deleted' => true,
-                            ]
-                        ],
-                        [
-                            'terms' => [
-                                'nsfw'=> [ 1, 2, 3, 4, 5, 6],
-                            ],
-                        ],
-                    ],
+                    'must_not'=> $mustNot,
                 ],
             ],
             'aggs' => [
