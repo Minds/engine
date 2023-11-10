@@ -77,10 +77,14 @@ class Notification
     /** @var Resolver */
     private $entitiesRevolver;
 
-    public function __construct(EntitiesBuilder $entitiesBuilder = null, Resolver $resolver = null)
+    /** @var NotificationTypes */
+    private $notificationTypes;
+
+    public function __construct(EntitiesBuilder $entitiesBuilder = null, Resolver $resolver = null, NotificationTypes $notificationTypes = null)
     {
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->entitiesRevolver = $resolver ?? new Resolver();
+        $this->notificationTypes = $notificationTypes ?? new NotificationTypes;
     }
 
     /**
@@ -176,7 +180,7 @@ class Notification
      */
     public function getGroupingType(): string
     {
-        foreach (NotificationTypes::TYPES_GROUPINGS as $groupingType => $types) {
+        foreach ($this->notificationTypes->getTypesGroupings() as $groupingType => $types) {
             if (in_array($this->type, $types, true)) {
                 return $groupingType;
             }
