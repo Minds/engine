@@ -2,16 +2,16 @@
 
 namespace Spec\Minds\Core\Hashtags\Trending;
 
+use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Hashtags\Trending\Cache;
 use PhpSpec\ObjectBehavior;
-use Minds\Core\Data\Redis\Client as RedisClient;
 
 class CacheSpec extends ObjectBehavior
 {
     public $redis;
 
     public function let(
-        RedisClient $redis
+        PsrWrapper $redis
     ) {
         $this->redis = $redis;
         $this->beConstructedWith($redis);
