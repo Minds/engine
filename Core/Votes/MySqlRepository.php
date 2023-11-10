@@ -105,10 +105,15 @@ class MySqlRepository
         $query = $this->mysqlQueryReplicaBuilder
             ->select()
             ->from('minds_votes')
-            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id'))
             ->where('direction', Operator::EQ, new RawExp(':direction'))
             ->where('deleted', Operator::EQ, false)
             ->orderBy('updated_timestamp DESC');
+
+        if ($this->isMultiTenant()) {
+            $query->where('tenant_id', Operator::EQ, $this->config->get('tenant_id'));
+        } else {
+            $query->where('tenant_id', Operator::IS, null);
+        }
 
         if ($userGuid) {
             $query = $query->where('user_guid', Operator::EQ, new RawExp(':user_guid'));
@@ -137,5 +142,42 @@ class MySqlRepository
                 ->setActor($this->entitiesBuilder->single($row['user_guid']))
                 ->setEntity($entity);
         }
+    }
+
+    public function getCount(int $guid, VoteEnum $direction = VoteEnum::UP): int
+    {
+        $values = [
+            'entity_guid' => $guid,
+            'direction' => $direction->value === 'up' ? 1 : 2,
+        ];
+
+        $query = $this->mysqlQueryReplicaBuilder
+            ->select()
+            ->columns([
+                'count' => new RawExp("count(*)"),
+            ])
+            ->from('minds_votes')
+            ->where('direction', Operator::EQ, new RawExp(':direction'))
+            ->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'));
+
+        if ($this->isMultiTenant()) {
+            $query->where('tenant_id', Operator::EQ, $this->config->get('tenant_id'));
+        } else {
+            // The following line make metric sync break. Needs to be fixed but acceptable for now
+            // to not include the IS NULL
+            // $query->where('tenant_id', Operator::IS, null);
+        }
+
+        $stmt = $query->prepare();
+
+        $stmt->execute($values);
+
+        $row = $stmt->fetchAll()[0];
+        return $row['count'];
+    }
+
+    private function isMultiTenant(): bool
+    {
+        return !!$this->config->get('tenant_id');
     }
 }
