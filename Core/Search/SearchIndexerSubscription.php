@@ -11,33 +11,23 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\Ops\EntitiesOpsEvent;
 use Minds\Core\Entities\Ops\EntitiesOpsTopic;
 use Minds\Core\Entities\Resolver;
-use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\TopicInterface;
-use Minds\Core\Feeds\User\Manager as FeedsUserManager;
-use Minds\Core\Log\Logger;
 use Minds\Entities\Activity;
 use Minds\Entities\Group;
 use Minds\Entities\Image;
 use Minds\Entities\User;
 use Minds\Entities\Video;
-use Minds\Exceptions\ServerErrorException;
 
 class SearchIndexerSubscription implements SubscriptionInterface
 {
     public function __construct(
         protected ?Index $index = null,
-        protected ?Resolver $entitiesResolver = null,
-        protected ?EntitiesBuilder $entitiesBuilder = null,
-        protected ?FeedsUserManager $feedUserManager = null,
-        protected ?Logger $logger = null
+        protected ?Resolver $entitiesResolver = null
     ) {
         $this->index ??= Di::_()->get(Index::class);
         $this->entitiesResolver ??= new Resolver();
-        $this->entitiesBuilder ??= new EntitiesBuilder();
-        $this->feedUserManager ??= Di::_()->get('Feeds\User\Manager');
-        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -86,19 +76,18 @@ class SearchIndexerSubscription implements SubscriptionInterface
 
         if (!$entity) {
             // Entity not found
-            return true; // Acknowledge as its likely this entity has been deleted
+            return true; // Awknowledge as its likely this entity has been deleted
         }
 
         // We are only concerned to index the following
+
         switch (get_class($entity)) {
             case Activity::class:
-                $this->patchActivity($entity, $event->getOp());
-                break;
-            case Image::class:
-            case Blog::class:
-            case Video::class:
             case User::class:
             case Group::class:
+            case Image::class:
+            case Video::class:
+            case Blog::class:
                 break;
             default:
                 return true; // Will not index anything else
@@ -114,58 +103,6 @@ class SearchIndexerSubscription implements SubscriptionInterface
                 break;
         }
        
-        return true; // Return true to acknowledge the event from the stream (stop it being redelivered)
-    }
-
-    /**
-     * Applies patches to activity.
-     * @param Activity $activity - activity to patch.
-     * @param string $opsEventType - entity operation string e.g. `EntitiesOpsEvent::OP_CREATE`.
-     * @return void
-     */
-    private function patchActivity(Activity &$activity, string $opsEventType): void
-    {
-        try {
-            if (
-                $opsEventType === EntitiesOpsEvent::OP_CREATE &&
-                !$this->hasMadeActivityPosts($activity->getOwnerGuid())
-            ) {
-                $tags = $activity->getTags() ?? [];
-                $tags[] = 'hellominds';
-                $activity->setTags($tags);
-            }
-        } catch (\Exception $e) {
-            $this->logger->error($e);
-        }
-    }
-
-    /**
-     * Whether user has made a single activity post.
-     * @param string $ownerGuid - guid of the owner.
-     * @throws ServerErrorException - if no user is found.
-     * @return bool - true if user has made a single activity post.
-     */
-    private function hasMadeActivityPosts(string $ownerGuid): bool
-    {
-        if ($this->feedUserManager->getHasMadePostsFromCache($ownerGuid)) {
-            return true;
-        }
-
-        $owner = $this->entitiesBuilder->single($ownerGuid);
-        if (!$owner || !($owner instanceof User)) {
-            throw new ServerErrorException("No user found for owner guid: $ownerGuid");
-        }
-
-        try {
-            $hasMadePosts = $this->feedUserManager->setUser($owner)
-                ->hasMadePosts();
-
-            $this->feedUserManager->setHasMadePostsInCache($ownerGuid);
-
-            return $hasMadePosts;
-        } catch (\Exception $e) {
-            // presume true so we don't wrongly index a users post who already has other posts.
-            return true;
-        };
+        return true; // Return true to awknowledge the event from the stream (stop it being redelivered)
     }
 }
