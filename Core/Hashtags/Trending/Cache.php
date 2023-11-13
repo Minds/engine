@@ -44,6 +44,6 @@ class Cache implements BasicCacheInterface
     public function get(): array
     {
         $cached = $this->cache->get(self::CACHE_KEY);
-        return $cached ?? [];
+        return is_array($cached) ? $cached : [];
     }
 }
