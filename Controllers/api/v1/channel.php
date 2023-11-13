@@ -83,8 +83,10 @@ class channel implements Interfaces\Api
         $isPublic = $isLoggedIn && $user->isPublicDateOfBirth();
 
         // Flush the cache when viewing a channel page
-        $channelsManager = Di::_()->get('Channels\Manager');
-        $channelsManager->flushCache($user);
+        if ($user) {
+            $channelsManager = Di::_()->get('Channels\Manager');
+            $channelsManager->flushCache($user);
+        }
 
         if (!$user->username ||
             (Helpers\Flags::shouldFail($user) && !$isAdmin)
