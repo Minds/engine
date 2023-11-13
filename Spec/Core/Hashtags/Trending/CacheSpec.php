@@ -51,7 +51,7 @@ class CacheSpec extends ObjectBehavior
         
         $this->redis->set(
             'hashtags:trending:daily',
-            json_encode($dailyTrending),
+            $dailyTrending,
             600
         )->shouldBeCalled();
 
