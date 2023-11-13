@@ -10,6 +10,7 @@ use Minds\Entities\Factory;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\Group;
 use Minds\Entities\Image;
+use Minds\Entities\Object\Carousel;
 use Minds\Entities\User;
 
 class CassandraRepository implements EntitiesRepositoryInterface
@@ -73,7 +74,8 @@ class CassandraRepository implements EntitiesRepositoryInterface
             case Image::class:
             case Video::class:
             case Group::class:
-                /**  @var User|Activity|Image|Video|Group */
+            case Carousel::class:
+                /**  @var User|Activity|Image|Video|Group|Carousel */
                 $entity = $entity;
                 $data = $entity->toArray();
                 break;
