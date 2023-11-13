@@ -80,10 +80,10 @@ class channel implements Interfaces\Api
         $isAdmin = Core\Session::isAdmin();
         $isLoggedIn = Core\Session::isLoggedin();
         $isOwner = $isLoggedIn && ((string) Core\Session::getLoggedinUser()->guid === (string) $user->guid);
-        $isPublic = $isLoggedIn && $user->isPublicDateOfBirth();
+        $isPublic = $isLoggedIn && $user instanceof User && $user->isPublicDateOfBirth();
 
         // Flush the cache when viewing a channel page
-        if ($user) {
+        if ($user instanceof User) {
             $channelsManager = Di::_()->get('Channels\Manager');
             $channelsManager->flushCache($user);
         }
