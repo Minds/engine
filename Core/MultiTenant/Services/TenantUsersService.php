@@ -11,6 +11,7 @@ use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
 use Minds\Core\MultiTenant\Types\TenantUser;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
+use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use Minds\Exceptions\StopEventException;
 use RegistrationException;
@@ -23,6 +24,7 @@ class TenantUsersService
         private readonly SaveAction $saveAction,
         private readonly Config $mindsConfig,
         private readonly MultiTenantBootService $multiTenantBootService,
+        private readonly ACL $acl,
     ) {
     }
 
@@ -44,11 +46,8 @@ class TenantUsersService
         // create the user.
         $newUser = $this->buildUser($networkUser, $sourceUser);
 
-        // write to entities table & write to users table.
-        $this->saveAction->setEntity($newUser)->save();
-
         // update tenant table with generated owner_guid.
-        $this->tenantUsersRepository->setTenantRootAccount($networkUser->tenantId, (int) $newUser->guid);
+        $this->tenantUsersRepository->setTenantRootAccount($networkUser->tenantId, (int) $newUser->getGuid());
 
         $networkUser->role = TenantUserRoleEnum::OWNER;
         return $networkUser;
@@ -69,18 +68,23 @@ class TenantUsersService
         // DO NOT REMOVE THIS CONFIG SETTING
         $this->multiTenantBootService->bootFromTenantId($networkUser->tenantId);
 
+        $ia = $this->acl->setIgnore(true);
+
         // Create the user
         $user = register_user(
             username: $networkUser->username,
             password: $networkUser->plainPassword,
-            name: $sourceUser->getName(),
+            name: $networkUser->username,
             email: $sourceUser->getEmail(),
             validatePassword: false,
             isActivityPub: false
         );
 
-        $user->set('tenant_id', $networkUser->tenantId);
         $user->set('admin', 'yes');
+
+        $this->saveAction->setEntity($user)->withMutatedAttributes(['admin'])->save(isUpdate: true);
+
+        $this->acl->setIgnore($ia);
 
         $this->multiTenantBootService->resetRootConfigs();
 

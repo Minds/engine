@@ -100,6 +100,8 @@ class Manager
 
             //update indexes
             $done = $this->indexes->insert($vote);
+        } else {
+            $done = true;
         }
 
         // Save to MySQL
@@ -159,6 +161,8 @@ class Manager
 
             //update indexes
             $done = $this->indexes->remove($vote);
+        } else {
+            $done = true;
         }
         
         // Save to MySQL

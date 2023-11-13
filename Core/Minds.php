@@ -4,6 +4,7 @@ namespace Minds\Core;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
+use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Helpers;
 use Minds\Helpers\Env;
@@ -189,8 +190,17 @@ class Minds extends base
         if (php_sapi_name() !== 'cli' && ($multiTenantConfig['enabled'] ?? false)) {
             /** @var MultiTenant\Services\MultiTenantBootService */
             $service = Di::_()->get(MultiTenant\Services\MultiTenantBootService::class);
-            $service
-                ->bootFromRequest(ServerRequestFactory::fromGlobals());
+            
+            try {
+                $service
+                    ->bootFromRequest(ServerRequestFactory::fromGlobals());
+            } catch (NoTenantFoundException $e) {
+                if (ob_get_contents()) {
+                    ob_end_clean();
+                }
+                header('Not found', true, 404);
+                exit;
+            }
         }
 
         if (!file_exists(__MINDS_ROOT__ . '/settings.php') && !defined('__MINDS_INSTALLING__') && php_sapi_name() !== 'cli') {

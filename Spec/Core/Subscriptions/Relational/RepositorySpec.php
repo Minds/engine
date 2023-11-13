@@ -70,7 +70,7 @@ class RepositorySpec extends ObjectBehavior
         $stmtMock->execute([
             'user_guid' => '123',
             'friend_guid' => '456',
-            'tenant_id' => null,
+            //'tenant_id' => null,
         ])
             ->shouldBeCalled()
             ->willReturn(true);

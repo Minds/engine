@@ -38,9 +38,9 @@ class Controller
 
         $opts = new SettingsListOpts();
         $opts->setUserGuid($user->getGuid());
-    
+
         $settings = $this->manager->getList($opts);
-        
+
         return new JsonResponse([
             'status' => 'success',
             'settings' => Exportable::_($settings),
