@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\InAppPurchases\Models;
 
+use Minds\Core\Payments\InAppPurchases\Enums\InAppPurchaseTypeEnum;
 use Minds\Entities\User;
 
 class InAppPurchase
@@ -13,8 +14,11 @@ class InAppPurchase
         public readonly string $subscriptionId = "",
         public readonly string $productId = "",
         public readonly string $transactionId = "",
+        public readonly ?string $iosTransactionPayload = null,
         public ?User $user = null,
-        public ?int $expiresMillis = null
+        public ?int $expiresMillis = null,
+        public ?int $transactionTimestamp = null,
+        public ?InAppPurchaseTypeEnum $purchaseType = null,
     ) {
     }
 

@@ -77,7 +77,9 @@ class Manager
          */
         $result = match ($inAppPurchase->subscriptionId) {
             "plus.yearly.001",
-            "plus.monthly.001" => function () use ($inAppPurchase, $method, &$amount): string {
+            "plus.monthly.001",
+            "plus.yearly.01",
+            "plus.monthly.01"=> function () use ($inAppPurchase, $method, &$amount): string {
                 $amount = $this->config->get('upgrades')['plus']['monthly']['usd'];
                 $inAppPurchase->setExpiresMillis(strtotime("+1 month") * 1000);
                 if ($inAppPurchase->subscriptionId === "plus.yearly.001") {
@@ -89,6 +91,7 @@ class Manager
                 $inAppPurchase->user->setPlusExpires($inAppPurchase->expiresMillis / 1000);
                 return "plus";
             },
+            "pro.monthly.01",
             "pro.monthly.001" => function () use ($inAppPurchase, $method, &$amount): string {
                 $amount = $this->config->get('upgrades')['pro']['monthly']['usd'];
                 $inAppPurchase->setExpiresMillis(strtotime("+1 month") * 1000);
@@ -118,8 +121,11 @@ class Manager
 
         $sender = match ($inAppPurchase->subscriptionId) {
             "plus.yearly.001",
+            "plus.yearly.01",
+            "plus.monthly.01",
             "plus.monthly.001" => $this->entitiesBuilder->single($this->config->get('plus')['handler']),
             "pro.yearly.001",
+            "pro.monthly.01",
             "pro.monthly.001" => $this->entitiesBuilder->single($this->config->get('pro')['handler']),
         };
 

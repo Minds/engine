@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\InAppPurchases\Clients;
 
+use Lcobucci\JWT\UnencryptedToken;
 use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
 
 interface InAppPurchaseClientInterface
@@ -13,4 +14,6 @@ interface InAppPurchaseClientInterface
 
     public function getSubscription(InAppPurchase $inAppPurchase): mixed;
     public function getInAppPurchaseProductPurchase(InAppPurchase $inAppPurchase): mixed;
+
+    public function decodeSignedPayload(string $payload): UnencryptedToken;
 }

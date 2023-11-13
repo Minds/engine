@@ -45,8 +45,9 @@ class Controller
 
         $inAppPurchase = new InAppPurchase(
             source: $service,
-            subscriptionId: $subscriptionId,
             purchaseToken: $purchaseToken,
+            subscriptionId: $subscriptionId,
+            iosTransactionPayload: $payload['verificationResultIOS'] ?? null,
             user: $user
         );
 
