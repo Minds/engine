@@ -15,6 +15,7 @@ use Minds\Api\Factory;
 use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Security\ACL;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -161,6 +162,8 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
                     enableEmail: false
                 );
 
+                $ia = ACL::_()->setIgnore(true);
+
                 //$user->salt = Core\Security\Password::salt();
                 $user->password = Core\Security\Password::generate($user, $_POST['password']);
                 $user->password_reset_code = "";
@@ -173,6 +176,8 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
                         'password_reset_code'
                     ])
                     ->save();
+
+                ACL::_()->setIgnore($ia);
 
                 (new \Minds\Core\Sessions\CommonSessions\Manager())->deleteAll($user);
 

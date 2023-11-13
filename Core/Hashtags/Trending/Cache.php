@@ -31,7 +31,7 @@ class Cache implements BasicCacheInterface
     {
         $this->cache->set(
             self::CACHE_KEY,
-            json_encode($dailyTrending),
+            $dailyTrending,
             self::CACHE_TIME_SECONDS
         );
         return $this;
@@ -44,6 +44,6 @@ class Cache implements BasicCacheInterface
     public function get(): array
     {
         $cached = $this->cache->get(self::CACHE_KEY);
-        return json_decode($cached, false) ?? [];
+        return is_array($cached) ? $cached : [];
     }
 }

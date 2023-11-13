@@ -69,10 +69,6 @@ class Thumbnails
         $user = $this->entitiesBuilder->single($entity->getOwnerGuid());
         $userGuid = $user->guid;
 
-        if ($user->legacy_guid) {
-            $userGuid = $user->legacy_guid;
-        }
-
         $thumbnail = new \ElggFile();
         $thumbnail->owner_guid = $userGuid;
         $thumbnail->setFilename("/archive/thumbnails/$entity->guid.jpg");

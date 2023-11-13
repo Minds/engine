@@ -110,7 +110,7 @@ class block extends Controller implements Interfaces\Api
     {
         Factory::isLoggedIn();
 
-        $target = new Entities\User($pages[0]);
+        $target = $this->di->get('EntitiesBuilder')->single($pages[0]);
 
         if (!$target || !$target->guid || $target->isAdmin()) {
             return Factory::response([
