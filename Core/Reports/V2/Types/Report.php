@@ -7,6 +7,7 @@ use Minds\Core\Comments\Comment;
 use Minds\Core\Comments\GraphQL\Types\CommentEdge;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\GraphQL\Types\ActivityEdge;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\GraphQL\Types\NodeInterface;
@@ -80,6 +81,17 @@ class Report implements NodeInterface
             default:
                 return null;
         }
+    }
+
+    /**
+     * Gets reported user edge from reportedByGuid.
+     * @return UserEdge|null - user edge.
+     */
+    #[Field]
+    public function getReportedByUserEdge(): UserEdge|null
+    {
+        $user = Di::_()->get(EntitiesBuilder::class)->single($this->reportedByGuid);
+        return $user ? new UserEdge($user, $this->cursor) : null;
     }
 
     /**
