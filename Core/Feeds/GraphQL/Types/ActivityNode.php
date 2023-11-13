@@ -2,6 +2,7 @@
 namespace Minds\Core\Feeds\GraphQL\Types;
 
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Session;
 use Minds\Core\Votes;
 use Minds\Entities\Activity;
@@ -19,10 +20,12 @@ class ActivityNode extends AbstractEntityNode
         protected Activity $activity,
         protected ?User $loggedInUser = null,
         protected ?Votes\Manager $votesManager = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null,
     ) {
         $this->entity = $activity;  // Pass 'entity' through to abstract lower layer
         $this->loggedInUser ??= Session::getLoggedinUser();
         $this->votesManager ??= Di::_()->get('Votes\Manager');
+        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
     }
 
     #[Field]
@@ -34,7 +37,9 @@ class ActivityNode extends AbstractEntityNode
     #[Field]
     public function getOwner(): UserNode
     {
-        return new UserNode($this->activity->getOwnerEntity());
+        /** @var User */
+        $owner = $this->entitiesBuilder->single($this->activity->getOwnerGuid());
+        return new UserNode($owner);
     }
 
     #[Field(description: 'Relevant for images/video posts')]

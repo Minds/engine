@@ -14,6 +14,7 @@ use Minds\Core\Session;
 use Minds\Entities\User;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\EntitiesBuilder;
 use Zend\Diactoros\ServerRequest;
 
 class assets implements Interfaces\Api
@@ -53,7 +54,7 @@ class assets implements Interfaces\Api
                 ]);
             }
 
-            $user = new User(strtolower($pages[1]));
+            $user = Di::_()->get(EntitiesBuilder::class)->getByUserByIndex(strtolower($pages[1]));
         }
 
         // Check uploaded file

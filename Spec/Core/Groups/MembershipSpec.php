@@ -54,6 +54,16 @@ class MembershipSpec extends ObjectBehavior
         $this->getMembersCount()->shouldReturn(2);
     }
 
+    public function it_should_get_members_count_by_guid()
+    {
+        $guid = 1234567890123456;
+
+        $this->_db->setGuid($guid)->shouldBeCalled();
+        $this->_db->countInverse('member')->shouldBeCalled()->willReturn(2);
+
+        $this->getMembersCountByGuid($guid)->shouldReturn(2);
+    }
+
     public function it_should_get_requests(GroupEntity $group, Relationships $db)
     {
         $this->_db->setGuid(50)->shouldBeCalled();
@@ -80,9 +90,6 @@ class MembershipSpec extends ObjectBehavior
     {
         $user->get('guid')->willReturn(1);
         $user->getGroupMembership()->willReturn([]);
-        $user->context(Argument::type('string'))->willReturn();
-        $user->setGroupMembership(Argument::any())->willReturn($user);
-        $user->save()->willReturn(true);
 
         $group->getGuid()->willReturn(50);
         $group->isPublic()->shouldBeCalled()->willReturn(true);
@@ -120,9 +127,6 @@ class MembershipSpec extends ObjectBehavior
     {
         $user->get('guid')->willReturn(1);
         $user->getGroupMembership()->willReturn([]);
-        $user->context(Argument::type('string'))->willReturn();
-        $user->setGroupMembership(Argument::any())->willReturn($user);
-        $user->save()->willReturn(true);
 
         $group->getGuid()->willReturn(50);
         $group->isPublic()->shouldBeCalled()->willReturn(false);
@@ -145,9 +149,6 @@ class MembershipSpec extends ObjectBehavior
     {
         $user->get('guid')->willReturn(1);
         $user->getGroupMembership()->willReturn([]);
-        $user->context(Argument::type('string'))->willReturn();
-        $user->setGroupMembership(Argument::any())->willReturn($user);
-        $user->save()->willReturn(true);
 
         $group->getGuid()->willReturn(50);
         $group->isPublic()->shouldBeCalled()->willReturn(false);
@@ -170,9 +171,6 @@ class MembershipSpec extends ObjectBehavior
     {
         $user->get('guid')->willReturn(1);
         $user->getGroupMembership()->willReturn([]);
-        $user->context(Argument::type('string'))->willReturn();
-        $user->setGroupMembership(Argument::any())->willReturn($user);
-        $user->save()->willReturn(true);
 
         $group->getGuid()->willReturn(50);
 
@@ -191,9 +189,6 @@ class MembershipSpec extends ObjectBehavior
     {
         $user->get('guid')->willReturn(1);
         $user->getGroupMembership()->willReturn([]);
-        $user->context(Argument::type('string'))->willReturn();
-        $user->setGroupMembership(Argument::any())->willReturn($user);
-        $user->save()->willReturn(true);
 
         $actor->get('guid')->willReturn(2);
         $group->getGuid()->willReturn(50);
@@ -263,9 +258,6 @@ class MembershipSpec extends ObjectBehavior
     {
         $user->get('guid')->willReturn(1);
         $user->getGroupMembership()->willReturn([]);
-        $user->context(Argument::type('string'))->willReturn();
-        $user->setGroupMembership(Argument::any())->willReturn($user);
-        $user->save()->willReturn(true);
 
         $actor->get('guid')->willReturn(2);
         $group->getGuid()->willReturn(50);

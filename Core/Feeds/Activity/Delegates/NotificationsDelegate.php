@@ -6,8 +6,10 @@ use Minds\Core;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Entities\Activity;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Entities\User;
 
 class NotificationsDelegate
 {
@@ -20,10 +22,14 @@ class NotificationsDelegate
     /**
      * @param EventsDispatcher $eventsDispatcher
      */
-    public function __construct($eventsDispatcher = null, ActionEventsTopic $actionEventsTopic = null)
-    {
+    public function __construct(
+        $eventsDispatcher = null,
+        ActionEventsTopic $actionEventsTopic = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null,
+    ) {
         $this->eventsDispatcher = $eventsDispatcher ?? Di::_()->get('EventsDispatcher');
         $this->actionEventsTopic = $actionEventsTopic ?? new ActionEventsTopic();
+        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
     }
 
     /**
@@ -59,10 +65,13 @@ class NotificationsDelegate
                 $actionData['is_supermind_reply'] = true;
             }
 
+            /** @var User */
+            $owner = $this->entitiesBuilder->single($activity->getOwnerGuid());
+
             // New style events system
             $actionEvent = new ActionEvent();
             $actionEvent
-                ->setUser($activity->getOwnerEntity())
+                ->setUser($owner)
                 ->setEntity($remind)
                 ->setAction($activity->isRemind() ? ActionEvent::ACTION_REMIND : ActionEvent::ACTION_QUOTE)
                 ->setActionData($actionData);

@@ -37,6 +37,7 @@ class GoogleInAppPurchasesClientSpec extends ObjectBehavior
             ]
         ]);
         $this->beConstructedWith($configMock, $googleClientMock, $androidPublisherMock);
+        $androidPublisherMock->purchases_subscriptions = $purchasesSubscriptionsMock;
         $this->androidPublisherMock = $androidPublisherMock;
         $this->purchasesSubscriptionsMock = $purchasesSubscriptionsMock;
 
@@ -49,10 +50,13 @@ class GoogleInAppPurchasesClientSpec extends ObjectBehavior
         $this->shouldHaveType(GoogleInAppPurchasesClient::class);
     }
 
-    public function it_should_not_process_expired_subscriptions()
+    public function it_should_not_process_expired_subscriptions(): void
     {
-        $iapModel = new InAppPurchase(GoogleInAppPurchasesClient::class, 'plus.monthly.001', 'hneelmickjdkkonpiekipohg.AO-J1OxcIWRz9T_Btw6N-ZSzyJqVx6_G_6fuxXQO8AE40VMY6pPL4bWx3tDajcqiUXkn1rRZ0Lek85ohoXVhQVssDy_Bfpl_RA');
-        $this->androidPublisherMock->purchases_subscriptions = $this->purchasesSubscriptionsMock;
+        $iapModel = new InAppPurchase(
+            source: GoogleInAppPurchasesClient::class,
+            subscriptionId: 'plus.monthly.001',
+            purchaseToken: 'hneelmickjdkkonpiekipohg.AO-J1OxcIWRz9T_Btw6N-ZSzyJqVx6_G_6fuxXQO8AE40VMY6pPL4bWx3tDajcqiUXkn1rRZ0Lek85ohoXVhQVssDy_Bfpl_RA'
+        );
 
         $subscriptionPurchase = new SubscriptionPurchase();
         $subscriptionPurchase->expiryTimeMillis = (string) time() - 100;
@@ -60,6 +64,8 @@ class GoogleInAppPurchasesClientSpec extends ObjectBehavior
         $this->purchasesSubscriptionsMock
             ->get('com.minds.mobile', 'plus.monthly.001', 'hneelmickjdkkonpiekipohg.AO-J1OxcIWRz9T_Btw6N-ZSzyJqVx6_G_6fuxXQO8AE40VMY6pPL4bWx3tDajcqiUXkn1rRZ0Lek85ohoXVhQVssDy_Bfpl_RA')
             ->willReturn($subscriptionPurchase);
+
+        $this->androidPublisherMock->purchases_subscriptions = $this->purchasesSubscriptionsMock;
 
         $this->shouldThrow(UserErrorException::class)->duringAcknowledgeSubscription($iapModel);
     }
@@ -69,7 +75,12 @@ class GoogleInAppPurchasesClientSpec extends ObjectBehavior
         $user = new User();
         $user->guid = '122';
 
-        $iapModel = new InAppPurchase(GoogleInAppPurchasesClient::class, 'plus.monthly.001', 'hneelmickjdkkonpiekipohg.AO-J1OxcIWRz9T_Btw6N-ZSzyJqVx6_G_6fuxXQO8AE40VMY6pPL4bWx3tDajcqiUXkn1rRZ0Lek85ohoXVhQVssDy_Bfpl_RA', $user);
+        $iapModel = new InAppPurchase(
+            source: GoogleInAppPurchasesClient::class,
+            subscriptionId: 'plus.monthly.001',
+            purchaseToken: 'hneelmickjdkkonpiekipohg.AO-J1OxcIWRz9T_Btw6N-ZSzyJqVx6_G_6fuxXQO8AE40VMY6pPL4bWx3tDajcqiUXkn1rRZ0Lek85ohoXVhQVssDy_Bfpl_RA',
+            user: $user
+        );
         $this->androidPublisherMock->purchases_subscriptions = $this->purchasesSubscriptionsMock;
 
         $subscriptionPurchase = new SubscriptionPurchase();
@@ -88,7 +99,12 @@ class GoogleInAppPurchasesClientSpec extends ObjectBehavior
         $user = new User();
         $user->guid = '123';
 
-        $iapModel = new InAppPurchase(GoogleInAppPurchasesClient::class, 'plus.monthly.001', 'hneelmickjdkkonpiekipohg.AO-J1OxcIWRz9T_Btw6N-ZSzyJqVx6_G_6fuxXQO8AE40VMY6pPL4bWx3tDajcqiUXkn1rRZ0Lek85ohoXVhQVssDy_Bfpl_RA', $user);
+        $iapModel = new InAppPurchase(
+            source: GoogleInAppPurchasesClient::class,
+            subscriptionId: 'plus.monthly.001',
+            purchaseToken: 'hneelmickjdkkonpiekipohg.AO-J1OxcIWRz9T_Btw6N-ZSzyJqVx6_G_6fuxXQO8AE40VMY6pPL4bWx3tDajcqiUXkn1rRZ0Lek85ohoXVhQVssDy_Bfpl_RA',
+            user: $user
+        );
         $this->androidPublisherMock->purchases_subscriptions = $this->purchasesSubscriptionsMock;
 
         $subscriptionPurchase = new SubscriptionPurchase();

@@ -36,7 +36,7 @@ class IpAddress
         if (is_array($ipHeader) && count($ipHeader)) {
             $ip = strtok($ipHeader[0], ",");
         } else {
-            $ip = 'local';
+            $ip = '127.0.0.1';
         }
         return $ip;
     }

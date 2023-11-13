@@ -2,6 +2,7 @@
 namespace Minds\Core\Media;
 
 use Minds\Core;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Entities;
 
 class Albums
@@ -28,7 +29,7 @@ class Albums
             $album = new Entities\Album();
             $album->title = "My Album";
             $album->owner_guid = $ownerGuid;
-            $album->save();
+            (new Save())->setEntity($album)->save();
 
             $entities = [ $album ];
         }
@@ -67,7 +68,7 @@ class Albums
     {
         $album = new Entities\Album();
         $album->title = $data['title'];
-        $album->save();
+        (new Save())->setEntity($album)->save();
 
         return $album;
     }

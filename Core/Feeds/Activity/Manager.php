@@ -50,6 +50,7 @@ use Minds\Exceptions\UserErrorException;
 use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
 use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
 use Stripe\Exception\ApiErrorException;
+use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 
 class Manager
 {
@@ -105,7 +106,8 @@ class Manager
         $notificationsDelegate = null,
         $entitiesBuilder = null,
         private ?MessageLengthValidator $messageLengthValidator = null,
-        private ?TitleLengthValidator $titleLengthValidator = null
+        private ?TitleLengthValidator $titleLengthValidator = null,
+        private ?ElasticManager $elasticManager = null
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -121,6 +123,7 @@ class Manager
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->messageLengthValidator = $messageLengthValidator ?? new MessageLengthValidator();
         $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
+        $this->elasticManager ??= Di::_()->get('Feeds\Elastic\Manager');
     }
 
     public function getSupermindManager(): SupermindManager
@@ -367,6 +370,91 @@ class Manager
     }
 
     /**
+     * Delete all of the user's reminds of an activity
+     * @param Activity $activity that was reminded
+     * @param User $user
+     * @return bool
+     */
+    public function deleteRemindsOfActivityByUser(Activity $activity, User $user): bool
+    {
+        // Get all of the reminds
+        $reminds = $this->getRemindsOfActivityByUser($activity, $user);
+
+        $success = true;
+
+        if ($reminds) {
+            // Delete each remind
+            foreach($reminds as $remind) {
+                if (!$this->delete($remind)) {
+                    $success = false;
+                };
+            }
+        }
+
+        return $success;
+    }
+
+    /**
+     * Get all the reminds a user has made of an activity.
+     * @param Activity $activity that was reminded
+     * @param User $user
+     * @return array
+     */
+    public function getRemindsOfActivityByUser(Activity $activity, User $user): array
+    {
+        $hasMore = true;
+        $fromTimestamp = null;
+
+        $reminds = [];
+
+        while($hasMore) {
+
+            $response = $this->elasticManager->getList([
+                'algorithm' => 'latest',
+                'period' => 'all',
+                'type' => 'activity',
+                'limit' => 24,
+                'remind_guid' => $activity->getGuid(),
+                'owner_guid' => $user->getGuid(),
+                'from_timestamp' => $fromTimestamp
+            ]);
+
+            $entities = array_map(function ($feedItem) {
+                return $feedItem->getEntity();
+            }, $response->toArray());
+
+            if ($entities) {
+                $reminds = array_merge($reminds, $entities);
+                $fromTimestamp = $response->getPagingToken();
+                $hasMore = true;
+            } else {
+                $hasMore = false;
+            }
+        }
+
+        return $reminds;
+    }
+
+    /**
+     * Get the count of all reminds a user has made of an activity.
+     * @param Activity $activity that was reminded
+     * @param User $user
+     * @return array
+     */
+    public function countRemindsOfActivityByUser(Activity $activity, User $user): int
+    {
+        $count = $this->elasticManager->getCount([
+            'algorithm' => 'latest',
+            'type' => 'activity',
+            'period' => 'all',
+            'remind_guid' => $activity->getGuid(),
+            'owner_guid' => $user->getGuid(),
+        ]);
+
+        return $count;
+    }
+
+    /**
      * Get by urn
      * @param string $urn
      * @return Activity|null
@@ -392,9 +480,20 @@ class Manager
      */
     public function update(EntityMutation $activityMutation): bool
     {
+        /** @var Activity */
         $activity = $activityMutation->getMutatedEntity();
 
         $this->validateStringLengths($activity);
+
+        /** @var string[] */
+        $mutatedAttributes = array_filter(array_map(function ($attr) {
+            return match($attr) {
+                'wireThreshold' => 'wire_threshold',
+                'entityGuid' => 'entity_guid',
+                'thumbnail' => null,
+                default => $attr,
+            };
+        }, array_keys($activityMutation->getMutatedValues())));
 
         if ($activity->type !== 'activity' && in_array($activity->subtype, [
             'video', 'image'
@@ -419,6 +518,8 @@ class Manager
 
         if ($activityMutation->hasMutated('timeCreated')) {
             $this->timeCreatedDelegate->onUpdate($activityMutation->getOriginalEntity(), $activity->getTimeCreated(), $activity->getTimeSent());
+        
+            $mutatedAttributes[] = 'time_created';
         }
 
         // - Attachment
@@ -436,9 +537,14 @@ class Manager
                 ->setURL('')
                 ->setThumbnail('');
 
+            $mutatedAttributes[] = 'blurb';
+            $mutatedAttributes[] = 'perma_url';
+            $mutatedAttributes[] = 'thumbnail_src';
+
             if (!$activityMutation->hasMutated('title')) {
                 $activity->setTitle('');
             }
+            
         }
 
         if ($activityMutation->hasMutated('videoPosterBase64Blob')) {
@@ -449,8 +555,13 @@ class Manager
             $this->paywallDelegate->onUpdate($activity);
         }
 
+        if (empty($mutatedAttributes)) {
+            return true; // Nothing changed
+        }
+
         $success = $this->save
             ->setEntity($activity)
+            ->withMutatedAttributes($mutatedAttributes)
             ->save();
 
         // Will no longer be relevant for new media posts without entity_guid
@@ -506,7 +617,13 @@ class Manager
      */
     public function patchAttachmentEntity(Activity $activity, EntityInterface $entity): bool
     {
-        return $this->save->setEntity($entity)->save();
+        return $this->save
+            ->setEntity($entity)
+            ->withMutatedAttributes([
+                'access_id',
+                'container_guid',
+            ])
+            ->save(isUpdate: true);
     }
 
     /**

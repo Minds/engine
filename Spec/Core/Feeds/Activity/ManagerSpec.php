@@ -193,6 +193,32 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->save);
 
+        $this->save->withMutatedAttributes(Argument::that(function ($mutatedAttributes) {
+            $success = true;
+            foreach ($mutatedAttributes as $attr) {
+                if (!in_array($attr, [
+                        'message',
+                        'title',
+                        'entity_guid',
+                        'tags',
+                        'blurb',
+                        'perma_url',
+                        'thumbnail_src',
+                        'time_created',
+                        'wire_threshold',
+                        'paywall',
+                        'nsfw',
+                    ], true)) {
+                    var_dump($attr);
+                    $success = false;
+                    error_log('Not found attribute ' . $attr);
+                }
+            }
+            return $success;
+        }))
+            ->shouldBeCalled()
+            ->willReturn($this->save);
+
         $this->save->save()
             ->shouldBeCalled()
             ->willReturn(true);
@@ -251,6 +277,13 @@ class ManagerSpec extends ObjectBehavior
                 ]
             ];
         }))
+            ->shouldBeCalled()
+            ->willReturn($this->save);
+
+        $this->save->withMutatedAttributes([
+                'wire_threshold',
+                'paywall',
+            ])
             ->shouldBeCalled()
             ->willReturn($this->save);
 

@@ -9,6 +9,7 @@
 namespace Minds\Core\Search;
 
 use Minds\Core;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch\Prepared;
 use Minds\Core\Di\Di;
 
@@ -28,11 +29,12 @@ class Search
      * @param null $client
      * @param null $index
      */
-    public function __construct($client = null, $index = null)
+    public function __construct($client = null, $index = null, protected ?Config $config = null)
     {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
         $this->esIndex = $index ?: Di::_()->get('Config')->get('elasticsearch')['indexes']['search_prefix']  . '-user';
         $this->tagsIndex = $index ?: Di::_()->get('Config')->get('elasticsearch')['indexes']['tags'];
+        $this->config ??= Di::_()->get(Config::class);
     }
 
 
@@ -49,6 +51,10 @@ class Search
         }
         if ($taxonomy === 'group') {
             $index = 'minds-search-group';
+        }
+
+        if ($tenantId = $this->config->get('tenant_id')) {
+            $params['tenant_id'] = $tenantId;
         }
 
         $prepared = new Prepared\Suggest();

@@ -70,7 +70,7 @@ class Transaction
     {
         $export = [
             'user_guid' => $this->userGuid,
-            'user' => (new User($this->userGuid))->export(),
+            'user' => EntityFactory::build($this->userGuid)->export(),
             'wallet_address' => $this->walletAddress,
             'tx' => $this->tx,
             'amount' => $this->amount,

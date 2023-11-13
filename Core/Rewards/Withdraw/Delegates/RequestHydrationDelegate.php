@@ -7,11 +7,19 @@
 namespace Minds\Core\Rewards\Withdraw\Delegates;
 
 use Exception;
+use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Rewards\Withdraw\Request;
 use Minds\Entities\User;
 
 class RequestHydrationDelegate
 {
+    public function __construct(
+        private ?EntitiesBuilder $entitiesBuilder = null
+    ) {
+        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
+    }
+
     /**
      * @param Request $request
      * @return Request
@@ -26,7 +34,7 @@ class RequestHydrationDelegate
         }
 
         try {
-            $user = new User($userGuid);
+            $user = $this->entitiesBuilder->single($userGuid);
         } catch (Exception $exception) {
             $user = null;
         }
@@ -52,7 +60,7 @@ class RequestHydrationDelegate
         }
 
         try {
-            $user = new User($referrerGuid);
+            $user = $this->entitiesBuilder->single($referrerGuid);
         } catch (Exception $exception) {
             // Faux user in case of banned/deleted accounts
             $user = new User();

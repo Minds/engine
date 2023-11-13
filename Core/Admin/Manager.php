@@ -30,6 +30,7 @@ class Manager
         private readonly SpamFilter $spamFilter,
         private readonly EmailVerifyManager $emailVerifyManager,
         private readonly Logger $logger,
+        private readonly Save $save,
     ) {
     }
 
@@ -104,7 +105,9 @@ class Manager
             throw new GraphQLException("Invalid email");
         }
 
-        $targetUser->setEmail($newEmail)->save();
+        $targetUser->setEmail($newEmail);
+        
+        $this->save->setEntity($targetUser)->withMutatedAttributes(['email'])->save();
 
         $this
             ->emailConfirmationManager
@@ -127,7 +130,15 @@ class Manager
 
         $targetUser->telno = null;
         $targetUser->twofactor = false;
-        $targetUser->save();
+
+        $this->save
+            ->setEntity($targetUser)
+            ->withMutatedAttributes([
+                'email',
+                'telno',
+                'twofactor'
+            ])
+            ->save();
     }
 
     /**
@@ -153,7 +164,13 @@ class Manager
         $oldUsername = $targetUser->username;
 
         $targetUser->username = $newUsername;
-        $targetUser->save();
+
+        $this->save
+            ->setEntity($targetUser)
+            ->withMutatedAttributes([
+                'username'
+            ])
+            ->save();
 
         // Free up old username
         $db = new Call('user_index_to_guid');

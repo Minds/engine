@@ -5,23 +5,31 @@ namespace Spec\Minds\Core\Search\MetricsSync\Resolvers;
 use Minds\Core\Search\MetricsSync\Resolvers\VotesDownMetricResolver;
 use Minds\Core\Trending\Aggregates\DownVotes;
 use Minds\Core\Counters;
+use Minds\Core\Votes\Enums\VoteEnum;
+use Minds\Core\Votes\MySqlRepository;
+use Minds\Core\Votes\Vote;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 class VotesDownMetricResolverSpec extends ObjectBehavior
 {
+    public function let(MySqlRepository $repository, DownVotes $aggregator)
+    {
+        $this->beConstructedWith($repository, $aggregator);
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(VotesDownMetricResolver::class);
     }
 
-    public function it_should_return_metric_sync_iterable(Counters $counters, DownVotes $aggregator)
+    public function it_should_return_metric_sync_iterable(MySqlRepository $repository, DownVotes $aggregator)
     {
-        $this->beConstructedWith($counters, $aggregator);
-        $counters->get('123', 'thumbs:down')
+        $this->beConstructedWith($repository, $aggregator);
+        $repository->getCount(123, VoteEnum::DOWN)
             ->shouldBeCalled()
             ->willReturn(10);
-        $counters->get('456', 'thumbs:down')
+        $repository->getCount(456, VoteEnum::DOWN)
             ->shouldBeCalled()
             ->willReturn(1);
 

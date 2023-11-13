@@ -42,8 +42,8 @@ class Events
              * @type EntityInterface $entity
              */
             $entity = $params['entity'];
-
-            if (count($boostManager->getBoosts(limit: 1, targetStatus: BoostStatus::APPROVED, entityGuid: $entity->getGuid()))) {
+    
+            if ($entity->getGuid() && count($boostManager->getBoosts(limit: 1, targetStatus: BoostStatus::APPROVED, entityGuid: $entity->getGuid()))) {
                 $event->setResponse(true);
             }
         });

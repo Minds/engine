@@ -61,7 +61,7 @@ class UsersResolver extends AbstractEntitiesResolver
     {
         $i = 0;
         foreach ($this->getRawData() as $raw) {
-            $entity = new User($raw);
+            $entity = $this->entitiesBuilder->single($raw);
 
             if (!$entity->username) {
                 continue;

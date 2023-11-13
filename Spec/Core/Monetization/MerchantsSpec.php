@@ -6,11 +6,22 @@ use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Monetization;
 use Minds\Entities;
+use PhpSpec\Wrapper\Collaborator;
 
 class MerchantsSpec extends ObjectBehavior
 {
+    private Collaborator $saveMock;
+
+    public function let(Save $saveMock)
+    {
+        $this->beConstructedWith($saveMock);
+
+        $this->saveMock = $saveMock;
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType('Minds\Core\Monetization\Merchants');
@@ -65,7 +76,10 @@ class MerchantsSpec extends ObjectBehavior
     ) {
         $user->get('guid')->shouldBeCalled()->willReturn(10);
         $user->set('ban_monetization', 'yes')->shouldBeCalled();
-        $user->save()->shouldBeCalled()->willReturn(true);
+
+        $this->saveMock->setEntity($user)->shouldBeCalled()->willReturn($this->saveMock);
+        $this->saveMock->withMutatedAttributes(['ban_monetization'])->shouldBeCalled()->willReturn($this->saveMock);
+        $this->saveMock->save()->shouldBeCalled()->willReturn(true);
 
         $this->setUser($user);
         $this->ban()->shouldReturn(true);
@@ -76,8 +90,11 @@ class MerchantsSpec extends ObjectBehavior
     ) {
         $user->get('guid')->shouldBeCalled()->willReturn(10);
         $user->set('ban_monetization', 'yes')->shouldBeCalled();
-        $user->save()->shouldBeCalled()->willReturn(true);
 
+        $this->saveMock->setEntity($user)->shouldBeCalled()->willReturn($this->saveMock);
+        $this->saveMock->withMutatedAttributes(['ban_monetization'])->shouldBeCalled()->willReturn($this->saveMock);
+        $this->saveMock->save()->shouldBeCalled()->willReturn(true);
+        
         $this->setUser($user);
         $this->ban()->shouldReturn(true);
     }
@@ -86,7 +103,10 @@ class MerchantsSpec extends ObjectBehavior
     {
         $user->get('guid')->shouldBeCalled()->willReturn(10);
         $user->set('ban_monetization', 'no')->shouldBeCalled();
-        $user->save()->shouldBeCalled()->willReturn(true);
+
+        $this->saveMock->setEntity($user)->shouldBeCalled()->willReturn($this->saveMock);
+        $this->saveMock->withMutatedAttributes(['ban_monetization'])->shouldBeCalled()->willReturn($this->saveMock);
+        $this->saveMock->save()->shouldBeCalled()->willReturn(true);
 
         $this->setUser($user);
         $this->unban()->shouldReturn(true);

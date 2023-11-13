@@ -43,7 +43,12 @@ class Controller
         $subscriptionId = $payload['subscriptionId'] ?? "";
         $purchaseToken = $payload['purchaseToken'] ?? "";
 
-        $inAppPurchase = new InAppPurchase($service, $subscriptionId, $purchaseToken, $user);
+        $inAppPurchase = new InAppPurchase(
+            source: $service,
+            subscriptionId: $subscriptionId,
+            purchaseToken: $purchaseToken,
+            user: $user
+        );
 
         $this->manager->acknowledgeSubscription($inAppPurchase);
 

@@ -245,7 +245,8 @@ class ActionDelegate
         // Deactivate account
         $user = $this->entitiesBuilder->single($report->getEntityOwnerGuid());
         $user->enabled = 'no';
-        $user->save();
+
+        $this->saveAction->setEntity($user)->withMutatedAttributes(['enabled'])->save();
 
         // Force change to random password
         $this->password->randomReset($user);
@@ -311,7 +312,8 @@ class ActionDelegate
 
         $user->setNsfw(array_merge($user->getNsfw(), [ $subReason ]));
         $user->setNsfwLock(array_merge($user->getNsfwLock(), [ $subReason ]));
-        $user->save();
+        
+        $this->saveAction->setEntity($user)->withMutatedAttributes(['nsfw', 'nsfw_lock'])->save();
     }
 
     /**

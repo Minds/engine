@@ -5,23 +5,30 @@ namespace Spec\Minds\Core\Search\MetricsSync\Resolvers;
 use Minds\Core\Search\MetricsSync\Resolvers\VotesUpMetricResolver;
 use Minds\Core\Trending\Aggregates\Votes;
 use Minds\Core\Counters;
+use Minds\Core\Votes\Enums\VoteEnum;
+use Minds\Core\Votes\MySqlRepository;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 class VotesUpMetricResolverSpec extends ObjectBehavior
 {
+    public function let(MySqlRepository $repository, Votes $aggregator)
+    {
+        $this->beConstructedWith($repository, $aggregator);
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(VotesUpMetricResolver::class);
     }
 
-    public function it_should_return_metric_sync_iterable(Counters $counters, Votes $aggregator)
+    public function it_should_return_metric_sync_iterable(MySqlRepository $repository, Votes $aggregator)
     {
-        $this->beConstructedWith($counters, $aggregator);
-        $counters->get('123', 'thumbs:up')
+        $this->beConstructedWith($repository, $aggregator);
+        $repository->getCount(123, VoteEnum::UP)
             ->shouldBeCalled()
             ->willReturn(10);
-        $counters->get('456', 'thumbs:up')
+        $repository->getCount(456, VoteEnum::UP)
             ->shouldBeCalled()
             ->willReturn(1);
 

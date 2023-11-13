@@ -105,6 +105,9 @@ class MatureBatch implements Interfaces\QueueRunner
 
         $save = new Save();
         $saved = $save->setEntity($entity)
+            ->withMutatedAttributes([
+                'mature',
+            ])
             ->save();
     }
 }

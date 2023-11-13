@@ -36,10 +36,12 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlClientMock = $mysqlClientMock;
 
         $this->mysqlClientMock->getConnection(MySQLConnectionEnum::MASTER)
+            ->shouldBeCalled()
             ->willReturn($mysqlMasterMock);
         $this->mysqlMasterMock = $mysqlMasterMock;
 
         $this->mysqlClientMock->getConnection(MySQLConnectionEnum::REPLICA)
+            ->shouldBeCalled()
             ->willReturn($mysqlReplicaMock);
         $this->mysqlReplicaMock = $mysqlReplicaMock;
     }

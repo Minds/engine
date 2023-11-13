@@ -93,7 +93,10 @@ class Manager
         foreach ($additionalData as $data) {
             if ($stepKey === 'onboarding_interest_survey' && $data->key === 'onboarding_interest' && $data->value) {
                 $user->setOnboardingInterest($data->value);
-                $this->save->setEntity($user)->save();
+                $this->save
+                    ->setEntity($user)
+                    ->withMutatedAttributes(['onboarding_interest'])
+                    ->save();
             }
         }
     }

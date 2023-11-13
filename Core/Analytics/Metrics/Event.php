@@ -6,6 +6,7 @@ use Minds\Common\PseudonymousIdentifier;
 use Minds\Core;
 use Minds\Core\AccountQuality\ManagerInterface as AccountQualityManagerInterface;
 use Minds\Core\Analytics\Snowplow;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
@@ -67,7 +68,8 @@ class Event
         $snowplowManager = null,
         $entitiesBuilder = null,
         AccountQualityManagerInterface $accountQualityManager = null,
-        protected ?PseudonymousIdentifier $pseudoId = null
+        protected ?PseudonymousIdentifier $pseudoId = null,
+        protected ?Config $config = null,
     ) {
         $this->elastic = $elastic ?: Core\Di\Di::_()->get('Database\ElasticSearch');
         $this->index = 'minds-metrics-'.date('m-Y', time());
@@ -75,6 +77,7 @@ class Event
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->accountQualityManager = $accountQualityManager ?? Di::_()->get('AccountQuality\Manager');
         $this->pseudoId = $pseudoId ?? new PseudonymousIdentifier();
+        $this->config ??= Di::_()->get(Config::class);
     }
 
     /**
@@ -110,6 +113,10 @@ class Event
     public function push(bool $shouldIndex = true)
     {
         $this->data['@timestamp'] = (int) microtime(true) * 1000;
+
+        if ($tenantId = $this->config->get('tenant_id')) {
+            $this->data['tenant_id'] = $tenantId;
+        }
 
         if ($this->user) {
             $this->data['user_is_plus'] = (bool) $this->user->isPlus();

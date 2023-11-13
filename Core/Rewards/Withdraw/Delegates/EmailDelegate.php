@@ -9,6 +9,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Rewards\Withdraw\Request;
 use Minds\Core\Util\BigNumber;
 use Minds\Core\Email\V2\Campaigns\Custom\Custom;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
 
 class EmailDelegate
@@ -17,9 +18,11 @@ class EmailDelegate
     protected $campaign;
 
     public function __construct(
-        $campaign = null
+        $campaign = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
     ) {
         $this->campaign = $campaign ?: new Custom;
+        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
     }
 
     /**
@@ -32,7 +35,7 @@ class EmailDelegate
         $amount = $this->getAmount($request);
 
         $this->campaign
-            ->setUser(new User($request->getUserGuid()))
+            ->setUser($this->entitiesBuilder->single($request->getUserGuid()))
             ->setSubject($subject)
             ->setTemplate('withdraw-requested')
             ->setTopic('billing')
@@ -56,7 +59,7 @@ class EmailDelegate
         $amount = $this->getAmount($request);
 
         $this->campaign
-            ->setUser(new User($request->getUserGuid()))
+            ->setUser($this->entitiesBuilder->single($request->getUserGuid()))
             ->setSubject($subject)
             ->setTemplate('withdraw-confirmed')
             ->setTopic('billing')
@@ -80,7 +83,7 @@ class EmailDelegate
         $amount = $this->getAmount($request);
 
         $this->campaign
-            ->setUser(new User($request->getUserGuid()))
+            ->setUser($this->entitiesBuilder->single($request->getUserGuid()))
             ->setSubject($subject)
             ->setTemplate('withdraw-failed')
             ->setTopic('billing')
@@ -105,7 +108,7 @@ class EmailDelegate
         $amount = $this->getAmount($request);
 
         $this->campaign
-            ->setUser(new User($request->getUserGuid()))
+            ->setUser($this->entitiesBuilder->single($request->getUserGuid()))
             ->setSubject($subject)
             ->setTemplate('withdraw-approved')
             ->setTopic('billing')
@@ -130,7 +133,7 @@ class EmailDelegate
         $amount = $this->getAmount($request);
 
         $this->campaign
-            ->setUser(new User($request->getUserGuid()))
+            ->setUser($this->entitiesBuilder->single($request->getUserGuid()))
             ->setSubject($subject)
             ->setTemplate('withdraw-rejected')
             ->setTopic('billing')

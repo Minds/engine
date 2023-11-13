@@ -114,6 +114,24 @@ class Membership
     }
 
     /**
+     * Count the group members by guid.
+     * @param int $guid - group guid.
+     * @param bool $cached - use cache, defaults to true.
+     * @return int - count of members.
+     */
+    public function getMembersCountByGuid(int $guid, $cached = true): int
+    {
+        if (($count = $this->cache->get("group:{$guid}:members:count")) !== false) {
+            return $count;
+        }
+        $this->relDB->setGuid($guid);
+
+        $count = $this->relDB->countInverse('member');
+        $this->cache->set("group:{$guid}:members:count", $count);
+        return $count;
+    }
+
+    /**
      * Fetch the group's membership requests
      * @param  array $opts
      * @return array
@@ -582,11 +600,6 @@ class Membership
         $membership = $user->getGroupMembership();
         $membership = array_merge($membership, $addGroupGuids); // add
         $membership = array_diff($membership, $removeGroupGuids); // remove
-
-        $user->context('search');
-        $user->setGroupMembership(array_values($membership));
-        $user->save();
-        $user->context('');
     }
 
     public function getGroupGuidsByMember($opts = [])

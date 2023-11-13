@@ -4,7 +4,9 @@ namespace Minds\Core;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
+use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Interfaces\ModuleInterface;
+use Zend\Diactoros\ServerRequestFactory;
 
 /**
  * Core Minds Engine.
@@ -20,11 +22,11 @@ class Minds extends base
         Log\Module::class,
         Events\Module::class,
         GraphQL\Module::class,
+        MultiTenant\Module::class,
         EventStreams\Module::class,
         Security\Module::class,
         OAuth\Module::class,
         Features\Module::class,
-        SSO\Module::class,
         Email\Module::class,
         Experiments\Module::class,
         Onboarding\Module::class,
@@ -36,7 +38,6 @@ class Minds extends base
         Reports\Module::class,
         VideoChat\Module::class,
         Feeds\Module::class,
-        Front\Module::class,
         Captcha\Module::class,
         SEO\Sitemaps\Module::class,
         Discovery\Module::class,
@@ -146,7 +147,6 @@ class Minds extends base
         (new Categories\CategoriesProvider())->register();
         (new Storage\StorageProvider())->register();
         (new Monetization\MonetizationProvider())->register();
-        (new Programs\ProgramsProvider())->register();
         (new Wire\WireProvider())->register();
         (new Trending\TrendingProvider())->register();
         (new Media\MediaProvider())->register();
@@ -182,9 +182,23 @@ class Minds extends base
      */
     public function checkInstalled()
     {
-        /*
-         * If we are a multisite, we get the install status from the multisite settings
-         */
+        $multiTenantConfig = Di::_()->get(Config\Config::class)->get('multi_tenant') ?? [];
+        if (php_sapi_name() !== 'cli' && ($multiTenantConfig['enabled'] ?? false)) {
+            /** @var MultiTenant\Services\MultiTenantBootService */
+            $service = Di::_()->get(MultiTenant\Services\MultiTenantBootService::class);
+            
+            try {
+                $service
+                    ->bootFromRequest(ServerRequestFactory::fromGlobals());
+            } catch (NoTenantFoundException $e) {
+                if (ob_get_contents()) {
+                    ob_end_clean();
+                }
+                header('Not found', true, 404);
+                exit;
+            }
+        }
+
         if (!file_exists(__MINDS_ROOT__ . '/settings.php') && !defined('__MINDS_INSTALLING__') && php_sapi_name() !== 'cli') {
             ob_end_clean();
             header('Fatal error', true, 500);
@@ -246,19 +260,6 @@ class Minds extends base
         }
     }
 
-    /**
-     * Detects if there are multisite settings present.
-     *
-     * @return bool
-     */
-    public function detectMultisite()
-    {
-        if (file_exists(__MINDS_ROOT__ . '/multi.settings.php')) {
-            return true;
-        }
-
-        return false;
-    }
 
     /**
      * TBD. Not used.

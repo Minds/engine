@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Votes;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Votes\Enums\VoteEnum;
@@ -17,6 +18,7 @@ class MySqlRepository
 
     public function __construct(
         private readonly EntitiesBuilder $entitiesBuilder,
+        private readonly Config $config,
         private ?Client $mysqlClient = null
     ) {
         $this->mysqlClient ??= new Client();
@@ -33,6 +35,7 @@ class MySqlRepository
     ): bool {
         $values = [
             'user_guid' => $vote->getActor()->getGuid(),
+            'tenant_id' => $this->config->get('tenant_id'),
             'entity_guid' => $vote->getEntity()->getGuid(),
             'entity_type' => $vote->getEntity()->getType(),
             'direction' => $vote->getDirection(asEnum: true),
@@ -64,6 +67,7 @@ class MySqlRepository
     ): bool {
         $values = [
             'user_guid' => $vote->getActor()->getGuid(),
+            'tenant_id' => $this->config->get('tenant_id'),
             'entity_guid' => $vote->getEntity()->getGuid(),
             'entity_type' => $vote->getEntity()->getType(),
             'direction' => $vote->getDirection(asEnum: true),
@@ -85,33 +89,52 @@ class MySqlRepository
     /**
      * @param int $userGuid
      * @param VoteEnum $direction
-     * @return iterable<array>
+     * @return iterable<Vote>
      * @throws ServerErrorException
      */
     public function getList(
-        int $userGuid,
+        int $userGuid = null,
+        int $entityGuid = null,
         VoteEnum $direction = VoteEnum::UP
     ): iterable {
-        $stmt = $this->mysqlQueryReplicaBuilder
+
+        $values = [
+            'direction' => 1,
+        ];
+
+        $query = $this->mysqlQueryReplicaBuilder
             ->select()
             ->from('minds_votes')
-            ->where('user_guid', Operator::EQ, new RawExp(':user_guid'))
             ->where('direction', Operator::EQ, new RawExp(':direction'))
             ->where('deleted', Operator::EQ, false)
-            ->orderBy('updated_timestamp DESC')
-            ->prepare();
+            ->orderBy('updated_timestamp DESC');
 
-        $this->mysqlClient->bindValuesToPreparedStatement($stmt, [
-            'user_guid' => $userGuid,
-            'direction' => 1,
-        ]);
+        if ($this->isMultiTenant()) {
+            $query->where('tenant_id', Operator::EQ, $this->config->get('tenant_id'));
+        } else {
+            $query->where('tenant_id', Operator::IS, null);
+        }
+
+        if ($userGuid) {
+            $query = $query->where('user_guid', Operator::EQ, new RawExp(':user_guid'));
+            $values['user_guid'] = $userGuid;
+        }
+
+        if ($entityGuid) {
+            $query = $query->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'));
+            $values['entity_guid'] = $entityGuid;
+        }
+
+        $stmt = $query->prepare();
+
+        $this->mysqlClient->bindValuesToPreparedStatement($stmt, $values);
 
         $stmt->execute();
 
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $urn = "urn:comment:{$row['entity_guid']}";
+            $urnIfComment = "urn:comment:{$row['entity_guid']}";
             $entity = match ($row['entity_type']) {
-                'comment' => $this->entitiesBuilder->getByUrn($urn),
+                'comment' => $this->entitiesBuilder->getByUrn($urnIfComment),
                 default => $this->entitiesBuilder->single($row['entity_guid'])
             };
             yield (new Vote())
@@ -119,5 +142,42 @@ class MySqlRepository
                 ->setActor($this->entitiesBuilder->single($row['user_guid']))
                 ->setEntity($entity);
         }
+    }
+
+    public function getCount(int $guid, VoteEnum $direction = VoteEnum::UP): int
+    {
+        $values = [
+            'entity_guid' => $guid,
+            'direction' => $direction->value === 'up' ? 1 : 2,
+        ];
+
+        $query = $this->mysqlQueryReplicaBuilder
+            ->select()
+            ->columns([
+                'count' => new RawExp("count(*)"),
+            ])
+            ->from('minds_votes')
+            ->where('direction', Operator::EQ, new RawExp(':direction'))
+            ->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'));
+
+        if ($this->isMultiTenant()) {
+            $query->where('tenant_id', Operator::EQ, $this->config->get('tenant_id'));
+        } else {
+            // The following line make metric sync break. Needs to be fixed but acceptable for now
+            // to not include the IS NULL
+            // $query->where('tenant_id', Operator::IS, null);
+        }
+
+        $stmt = $query->prepare();
+
+        $stmt->execute($values);
+
+        $row = $stmt->fetchAll()[0];
+        return $row['count'];
+    }
+
+    private function isMultiTenant(): bool
+    {
+        return !!$this->config->get('tenant_id');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Security;
 
+use Minds\Core\Entities\Actions\Save;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -72,12 +73,18 @@ class PasswordSpec extends ObjectBehavior
         $this::check($user, "foofoo")->shouldReturn(false);
     }
 
-    public function it_should_reset_to_a_random_password(User $user)
+    public function it_should_reset_to_a_random_password(User $user, Save $save)
     {
+        $this->beConstructedWith(null, $save);
+
         $user->set('password', Argument::type('string'))
             ->shouldBeCalled();
 
-        $user->save()
+        $save->setEntity($user)->willReturn($save);
+
+        $save->withMutatedAttributes(['password'])->willReturn($save);
+
+        $save->save()
             ->shouldBeCalled();
 
         $this::randomReset($user)->shouldReturn(true);

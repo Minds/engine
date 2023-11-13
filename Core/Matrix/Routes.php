@@ -3,6 +3,7 @@ namespace Minds\Core\Matrix;
 
 use Minds\Core\Di\Ref;
 use Minds\Core\Router\Middleware\LoggedInMiddleware;
+use Minds\Core\Router\Middleware\NotMultiTenantMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 
@@ -20,6 +21,7 @@ class Routes extends ModuleRoutes
         $this->route
             ->withPrefix('.well-known/matrix')
             ->withMiddleware([
+                NotMultiTenantMiddleware::class,
             ])
             ->do(function (Route $route) {
                 $route->get(
@@ -35,6 +37,7 @@ class Routes extends ModuleRoutes
             ->withPrefix('api/v3/matrix')
             ->withMiddleware([
                 LoggedInMiddleware::class,
+                NotMultiTenantMiddleware::class,
             ])
             ->do(function (Route $route) {
                 $route->get(

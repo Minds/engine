@@ -16,7 +16,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function let(SubscriptionDelegate $subscriptionDelegate, Save $saveAction)
     {
-        $this->beConstructedWith(null, $saveAction, null, null, null, null, $subscriptionDelegate);
+        $this->beConstructedWith(null, $saveAction, null, null, null, $subscriptionDelegate);
         $this->subscriptionDelegate = $subscriptionDelegate;
         $this->saveAction = $saveAction;
     }
@@ -37,6 +37,12 @@ class ManagerSpec extends ObjectBehavior
         $this->saveAction
             ->setEntity($user)
             ->shouldBeCalled()
+            ->willReturn($this->saveAction);
+
+        $this->saveAction
+            ->withMutatedAttributes([
+                'pro_expires',
+            ])
             ->willReturn($this->saveAction);
 
         $this->saveAction

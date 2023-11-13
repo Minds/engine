@@ -7,6 +7,7 @@ use Elasticsearch\ClientBuilder;
 use Minds\Cli;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities;
 use Minds\Helpers\Flags;
 use Minds\Interfaces;
@@ -55,7 +56,7 @@ class Contributions extends Cli\Controller implements Interfaces\CliControllerIn
             if (!$guid) {
                 continue;
             }
-            $user = new Entities\User((string) $guid, false);
+            $user = Di::_()->get(EntitiesBuilder::class)->single($guid, ['cache' => false]);
 
             if (!$user->getPhoneNumberHash()) {
                 // Avoid users without a phone number hash

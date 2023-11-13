@@ -182,6 +182,7 @@ class FeedsSpec extends ObjectBehavior
         Activity $activity
     ) {
         $activity->get('guid')->willReturn(5000);
+        $activity->getOwnerGuid()->willReturn(123);
 
         $this->adminQueueMock->add($group, $activity)
             ->shouldBeCalled()

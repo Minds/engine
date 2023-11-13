@@ -150,11 +150,6 @@ class newsfeed implements Interfaces\Api
             ]);
         }
 
-        //daily campaign reward
-        if (Core\Session::isLoggedIn()) {
-            Helpers\Campaigns\HourlyRewards::reward();
-        }
-
         $activity = Core\Entities::get(array_merge([
             'type' => 'activity',
             'limit' => get_input('limit', 5),
@@ -558,28 +553,6 @@ class newsfeed implements Interfaces\Api
 
     public function delete($pages)
     {
-        $activity = new Activity($pages[0]);
-        if (!$activity->guid) {
-            return Factory::response(['status' => 'error', 'message' => 'could not find activity post']);
-        }
-
-        if (!$activity->canEdit()) {
-            return Factory::response(['status' => 'error', 'message' => 'you don\'t have permission']);
-        }
-
-        // Delete attachment, if applicable
-        $activity = (new Core\Feeds\Activity\Delegates\AttachmentDelegate())
-            ->setActor(Core\Session::getLoggedinUser())
-            ->onDelete($activity);
-
-        // remove from pinned
-
-        $activity->getOwnerEntity()->removePinned($activity->guid);
-
-        if ($activity->delete()) {
-            return Factory::response(['message' => 'removed ' . $pages[0]]);
-        }
-
         return Factory::response(['status' => 'error', 'message' => 'could not delete']);
     }
 }

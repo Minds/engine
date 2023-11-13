@@ -45,6 +45,9 @@ class address implements Interfaces\Api
             
         $user->setBtcAddress($_POST['address']);
         $save->setEntity($user)
+            ->withMutatedAttributes([
+                'btc_address'
+            ])
             ->save();
 
         return Factory::response($response);

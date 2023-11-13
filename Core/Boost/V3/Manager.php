@@ -37,6 +37,11 @@ use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardInsufficientFundsException;
 use Minds\Core\Payments\GiftCards\Exceptions\GiftCardNotFoundException;
+use Minds\Core\Payments\InAppPurchases\Apple\AppleInAppPurchasesClient;
+use Minds\Core\Payments\InAppPurchases\Enums\InAppPurchasePaymentMethodIdsEnum;
+use Minds\Core\Payments\InAppPurchases\Google\GoogleInAppPurchasesClient;
+use Minds\Core\Payments\InAppPurchases\Manager as InAppPurchasesManager;
+use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
 use Minds\Core\Payments\V2\Exceptions\InvalidPaymentMethodException;
 use Minds\Core\Security\ACL;
@@ -67,6 +72,7 @@ class Manager
         private ?GuidLinkResolver    $guidLinkResolver = null,
         private ?UserSettingsManager $userSettingsManager = null,
         private ?ExperimentsManager  $experimentsManager = null,
+        private ?InAppPurchasesManager $inAppPurchasesManager = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
         $this->paymentProcessor ??= new PaymentProcessor();
@@ -79,6 +85,7 @@ class Manager
         $this->guidLinkResolver ??= Di::_()->get(GuidLinkResolver::class);
         $this->userSettingsManager ??= Di::_()->get('Settings\Manager');
         $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
+        $this->inAppPurchasesManager ??= Di::_()->get(InAppPurchasesManager::class);
     }
 
     /**
@@ -150,7 +157,7 @@ class Manager
             ->setOwnerGuid($this->user->getGuid())
             ->setPaymentMethodId($data['payment_method_id'] ?? null);
 
-        $this->processNewBoost($boost, $data['payment_tx_id'] ?? null);
+        $this->processNewBoost($boost, $data['payment_tx_id'] ?? null, $data['iap_transaction'] ?? null);
 
         $this->actionEventDelegate->onCreate($boost);
 
@@ -177,14 +184,31 @@ class Manager
      * @throws ServerErrorException
      * @throws GiftCardNotFoundException
      */
-    private function processNewBoostPayment(Boost $boost, bool $isOnchainBoost, ?string $paymentTxId = null) : void
-    {
+    private function processNewBoostPayment(
+        Boost $boost,
+        bool $isOnchainBoost,
+        ?string $paymentTxId = null,
+        ?string $iapTransaction = null
+    ) : void {
+        $purchaseProductDetails = null;
+        if ($iapTransaction) {
+            $iapTransactionDetails = json_decode($iapTransaction);
+
+            $purchaseProductDetails = $this->inAppPurchasesManager->getProductPurchaseDetails(
+                new InAppPurchase(
+                    source: $boost->getPaymentMethodId() === InAppPurchasePaymentMethodIdsEnum::GOOGLE->value ? GoogleInAppPurchasesClient::class : AppleInAppPurchasesClient::class,
+                    purchaseToken: $iapTransactionDetails->purchaseToken ?? "",
+                    productId: $iapTransactionDetails->productId ?? "",
+                    transactionId: $iapTransaction,
+                )
+            );
+        }
         /**
          * Boost payment entry into `minds_payments` had to be separated into its own method
          * and outside the main transaction to avoid causing an issue with the foreign key
          * in the `minds_gift_card_transactions` table.
          */
-        $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user);
+        $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user, $purchaseProductDetails);
         $boost->setPaymentGuid($paymentDetails->paymentGuid);
 
         $this->repository->beginTransaction();
@@ -217,17 +241,20 @@ class Manager
      * @throws StripeTransferFailedException
      * @throws UserErrorException
      */
-    private function processNewBoost(Boost $boost, ?string $paymentTxId = null): void
-    {
+    private function processNewBoost(
+        Boost $boost,
+        ?string $paymentTxId = null,
+        ?string $iapTransaction = null
+    ): void {
         try {
             $isOnchainBoost = $boost->getPaymentMethod() === BoostPaymentMethod::ONCHAIN_TOKENS;
 
             if (!$isOnchainBoost && $this->preApprovalManager->shouldPreApprove($this->user)) {
-                $this->preApprove($boost);
+                $this->preApprove($boost, $paymentTxId, $iapTransaction);
                 return;
             }
 
-            $this->processNewBoostPayment($boost, $isOnchainBoost, $paymentTxId);
+            $this->processNewBoostPayment($boost, $isOnchainBoost, $paymentTxId, $iapTransaction);
 
             if (!$this->repository->createBoost($boost)) {
                 throw new BoostCreationFailedException();
@@ -265,15 +292,32 @@ class Manager
      * @throws StripeTransferFailedException
      * @throws UserErrorException
      */
-    private function preApprove(Boost $boost): void
-    {
+    private function preApprove(
+        Boost $boost,
+        ?string $paymentTxId = null,
+        ?string $iapTransaction = null
+    ): void {
         $presetTimestamp = strtotime(date('c', time()));
         $boost->setStatus(BoostStatus::APPROVED)
             ->setCreatedTimestamp($presetTimestamp)
             ->setUpdatedTimestamp($presetTimestamp)
             ->setApprovedTimestamp($presetTimestamp);
 
-        $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user);
+        $purchaseProductDetails = null;
+        if ($iapTransaction) {
+            $iapTransactionDetails = json_decode($iapTransaction);
+
+            $purchaseProductDetails = $this->inAppPurchasesManager->getProductPurchaseDetails(
+                new InAppPurchase(
+                    source: $boost->getPaymentMethodId() === InAppPurchasePaymentMethodIdsEnum::GOOGLE->value ? GoogleInAppPurchasesClient::class : AppleInAppPurchasesClient::class,
+                    purchaseToken: $iapTransactionDetails->purchaseToken ?? "",
+                    productId: $iapTransactionDetails->productId ?? "",
+                    transactionId: $iapTransaction,
+                )
+            );
+        }
+
+        $paymentDetails = $this->paymentProcessor->createMindsPayment($boost, $this->user, $purchaseProductDetails);
 
         $this->repository->beginTransaction();
         $this->paymentProcessor->beginTransaction();

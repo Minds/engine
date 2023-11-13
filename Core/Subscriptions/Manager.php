@@ -4,6 +4,9 @@
  */
 namespace Minds\Core\Subscriptions;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\Di\Di;
 use Minds\Core\Subscriptions\Delegates\CacheDelegate;
 use Minds\Core\Subscriptions\Delegates\CopyToElasticSearchDelegate;
 use Minds\Core\Subscriptions\Delegates\EventsDelegate;
@@ -46,7 +49,9 @@ class Manager
         $cacheDelegate = null,
         $eventsDelegate = null,
         $feedsDelegate = null,
-        protected ?Relational\Repository $relationalRepository = null
+        protected ?Relational\Repository $relationalRepository = null,
+        protected ?PsrWrapper $cache = null,
+        protected ?Config $config = null,
     ) {
         $this->repository = $repository ?: new Repository;
         $this->copyToElasticSearchDelegate = $copyToElasticSearchDelegate ?: new Delegates\CopyToElasticSearchDelegate;
@@ -55,6 +60,8 @@ class Manager
         $this->eventsDelegate = $eventsDelegate ?: new Delegates\EventsDelegate;
         $this->feedsDelegate = $feedsDelegate ?: new Delegates\FeedsDelegate;
         $this->relationalRepository ??= new Relational\Repository();
+        $this->cache ??= Di::_()->get('Cache\PsrWrapper');
+        $this->config ??= Di::_()->get(Config::class);
     }
 
     /**
@@ -110,6 +117,14 @@ class Manager
         $subscription = new Subscription();
         $subscription->setSubscriberGuid($this->subscriber->getGuid())
             ->setPublisherGuid($publisher->getGuid());
+
+        //if ($this->isMultiTenant()) {
+        return $this->relationalRepository->isSubscribed(
+            userGuid: $this->subscriber->getGuid(),
+            friendGuid: $publisher->getGuid(),
+        );
+        //}
+
         return $this->repository->get($subscription);
     }
 
@@ -129,10 +144,12 @@ class Manager
             throw new TooManySubscriptionsException();
         }
 
-        $subscription = $this->repository->add($subscription);
+        if (!$this->isMultiTenant()) {
+            $subscription = $this->repository->add($subscription);
+        }
 
         $this->eventsDelegate->trigger($subscription);
-        //$this->feedsDelegate->copy($subscription);
+
         $this->copyToElasticSearchDelegate->copy($subscription);
         $this->cacheDelegate->cache($subscription);
 
@@ -158,7 +175,9 @@ class Manager
             ->setPublisher($publisher)
             ->setActive(false);
 
-        $subscription = $this->repository->delete($subscription);
+        if (!$this->isMultiTenant()) {
+            $subscription = $this->repository->delete($subscription);
+        }
 
         $this->eventsDelegate->trigger($subscription);
         $this->feedsDelegate->remove($subscription);
@@ -177,7 +196,18 @@ class Manager
      */
     public function getSubscriptionsCount()
     {
-        return $this->subscriber->getSubscriptionsCount(); //TODO: Refactor so we are the source of truth
+        $userGuid = $this->subscriber->getGuid();
+        if ($cache = $this->cache->get("$userGuid:friendscount")) {
+            //return $cache;
+        }
+
+        $repository = $this->isMultiTenant() ? $this->relationalRepository : $this->repository;
+
+        $count = $repository->getSubscriptionsCount($userGuid);
+   
+        $this->cache->set("$userGuid:friendscount", $count, 259200); //cache for 3 days
+
+        return $count;
     }
 
     /**
@@ -186,6 +216,22 @@ class Manager
      */
     public function getSubscribersCount(): int
     {
-        return (int) $this->subscriber->getSubscribersCount(); //TODO: Refactor so we are the source of truth
+        $userGuid = $this->subscriber->getGuid();
+        if ($cache = $this->cache->get("$userGuid:friendsofcount")) {
+            return $cache;
+        }
+    
+        $repository = $this->isMultiTenant() ? $this->relationalRepository : $this->repository;
+
+        $count = $repository->getSubscribersCount($userGuid);
+
+        $this->cache->set("$userGuid:friendsofcount", $count, 259200); //cache for 3 days
+
+        return $count;
+    }
+
+    private function isMultiTenant(): bool
+    {
+        return !!$this->config->get('tenant_id');
     }
 }
