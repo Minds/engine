@@ -32,6 +32,9 @@ class icon extends core\page implements Interfaces\page
         //} else {
         $user = Di::_()->get(EntitiesBuilder::class)->single($guid, [ 'cacheTtl' => 259200 ]);
 
+        if (isset($user->legacy_guid) && $user->legacy_guid) {
+            $guid = $user->legacy_guid;
+        }
         $join_date = $user->time_created;
         //    $cacher->set("usericon:$guid", $join_date);
         //}
@@ -55,7 +58,7 @@ class icon extends core\page implements Interfaces\page
         $data_root = $CONFIG->dataroot;
 
         $file = new \ElggFile();
-        $file->owner_guid = $guid;
+        $file->owner_guid = $user->getGuid();
         $file->setFilename("profile/{$guid}{$size}.jpg");
         $file->open("read");
 
