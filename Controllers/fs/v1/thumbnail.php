@@ -79,6 +79,11 @@ class thumbnail extends Core\page implements Interfaces\page
                 $contents = file_get_contents($mediaThumbnails->getDefaultBlurred());
             }
 
+            if (!$contents) {
+                // Could not load image
+                exit;
+            }
+
             try {
                 $contentType = File::getMime($contents);
             } catch (\Exception $e) {

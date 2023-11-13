@@ -13,8 +13,7 @@ class Repository
     public function __construct(
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?Delete $deleteAction = null,
-    )
-    {
+    ) {
         $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
         $this->deleteAction ??= new Delete();
     }
