@@ -60,7 +60,7 @@ class CacheSpec extends ObjectBehavior
 
     public function it_should_get_from_cache(
     ) {
-        $json = '[{"selected":false,"value":"hashtag1","posts_count":0,"votes_count":0,"type":"trending"},{"selected":false,"value":"hashtag3","posts_count":0,"votes_count":0,"type":"trending"},{"selected":false,"value":"hashtag5","posts_count":0,"votes_count":0,"type":"trending"}]';
+        $json = json_decode('[{"selected":false,"value":"hashtag1","posts_count":0,"votes_count":0,"type":"trending"},{"selected":false,"value":"hashtag3","posts_count":0,"votes_count":0,"type":"trending"},{"selected":false,"value":"hashtag5","posts_count":0,"votes_count":0,"type":"trending"}]');
         $this->redis->get('hashtags:trending:daily')->willReturn($json);
         $this->get()->shouldHaveCount(3);
     }
