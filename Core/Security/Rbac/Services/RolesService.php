@@ -41,15 +41,28 @@ class RolesService
         } else {
             // Host site, all users will have the default role
             $allRoles = $this->getAllRoles();
-            $roles = [
-                RolesEnum::DEFAULT->value => $allRoles[RolesEnum::DEFAULT->value],
-            ];
             if ($user->isAdmin()) {
                 $roles[RolesEnum::ADMIN->value] = $allRoles[RolesEnum::ADMIN->value];
             }
         }
+
+        // All users will have a default role
+        if (!isset($roles[RolesEnum::DEFAULT->value])) {
+            $allRoles = $this->getAllRoles();
+            $roles[RolesEnum::DEFAULT->value] = $allRoles[RolesEnum::DEFAULT->value];
+        }
     
         return $roles;
+    }
+
+    /**
+     * Returns a role by its id
+     *
+     */
+    public function getRoleById(int $roleId): ?Role
+    {
+        $roles = $this->buildRoles();
+        return $roles[$roleId] ?? null;
     }
 
     /**
@@ -71,6 +84,55 @@ class RolesService
     }
 
     /**
+     * Returns true if the user has a permission (as inherited from their roles)
+     */
+    public function hasPermission(User $user, PermissionsEnum $permission): bool
+    {
+        $permissions = $this->getUserPermissions($user);
+    
+        return in_array($permission->name, $permissions, true);
+    }
+
+    /**
+     * Assigns a user to a role
+     */
+    public function assignUserToRole(User $user, Role $role): bool
+    {
+        if (!$this->isMultiTenant()) {
+            return false;
+        }
+    
+        return $this->repository->assignUserToRole(
+            userGuid: (int) $user->getGuid(),
+            roleId: $role->id,
+        );
+    }
+
+    /**
+     * Un-assigns a user from a role
+     */
+    public function unassignUserFromRole(User $user, Role $role): bool
+    {
+        if (!$this->isMultiTenant()) {
+            return false;
+        }
+    
+        return $this->repository->unassignUserFromRole(
+            userGuid: (int) $user->getGuid(),
+            roleId: $role->id,
+        );
+    }
+
+    public function setRolePermissions(array $permissions, Role $role): bool
+    {
+        if (!$this->isMultiTenant()) {
+            return false;
+        }
+
+        return $this->repository->setRolePermissions($permissions, $role->id);
+    }
+
+    /**
      * Returns a list of all roles and fetches customised roles if multi tenant
      */
     private function buildRoles(): array
@@ -89,6 +151,7 @@ class RolesService
                     PermissionsEnum::CAN_UPLOAD_VIDEO,
                     PermissionsEnum::CAN_INTERACT,
                     PermissionsEnum::CAN_BOOST,
+                    PermissionsEnum::CAN_ASSIGN_PERMISSIONS,
                 ]
             ),
             RolesEnum::ADMIN->value => new Role(

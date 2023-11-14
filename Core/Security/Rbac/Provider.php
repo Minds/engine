@@ -5,6 +5,7 @@ namespace Minds\Core\Security\Rbac;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\EntitiesBuilder;
 use  Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Security\Rbac\Controllers\PermissionsController;
 use Minds\Core\Security\Rbac\Entities;
@@ -18,7 +19,10 @@ class Provider extends DiProvider
         });
 
         $this->di->bind(PermissionsController::class, function ($di) {
-            return new PermissionsController($di->get(RolesService::class));
+            return new PermissionsController(
+                $di->get(RolesService::class),
+                $di->get(EntitiesBuilder::class)
+            );
         });
 
         $this->di->bind(RolesService::class, function ($di) {

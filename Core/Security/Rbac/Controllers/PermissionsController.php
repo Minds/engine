@@ -1,18 +1,22 @@
 <?php
 namespace Minds\Core\Security\Rbac\Controllers;
 
+use GraphQL\Error\UserError;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Models\Role;
 use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
+use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Query;
 
 class PermissionsController
 {
     public function __construct(
-        private readonly RolesService $rolesService
+        private readonly RolesService $rolesService,
+        private readonly EntitiesBuilder $entitiesBuilder,
     ) {
         
     }
@@ -60,4 +64,81 @@ class PermissionsController
     {
         return $this->rolesService->getAllPermissions();
     }
+
+    /**
+     * Assigns a user to a role
+     */
+    #[Mutation]
+    #[Logged]
+    public function assignUserToRole(
+        string $userGuid,
+        int $roleId,
+        #[InjectUser] ?User $loggedInUser = null,
+    ): Role {
+        // Only the Owner can assign permissions
+        if (!$this->rolesService->hasPermission($loggedInUser, PermissionsEnum::CAN_ASSIGN_PERMISSIONS)) {
+            throw new UserError("You don't have permission to assign roles");
+        }
+
+        $user = $this->entitiesBuilder->single($userGuid);
+        if (!$user instanceof User) {
+            throw new UserError("User not found");
+        }
+        
+        $role = $this->rolesService->getRoleById($roleId);
+
+        $this->rolesService->assignUserToRole($user, $role);
+
+        return $role;
+    }
+
+    /**
+     * Un-ssigns a user to a role
+     */
+    #[Mutation]
+    #[Logged]
+    public function unassignUserFromRole(
+        string $userGuid,
+        int $roleId,
+        #[InjectUser] ?User $loggedInUser = null,
+    ): bool {
+        // Only the Owner can assign permissions
+        if (!$this->rolesService->hasPermission($loggedInUser, PermissionsEnum::CAN_ASSIGN_PERMISSIONS)) {
+            throw new UserError("You don't have permission to assign roles");
+        }
+
+        $user = $this->entitiesBuilder->single($userGuid);
+        if (!$user instanceof User) {
+            throw new UserError("User not found");
+        }
+        
+        $role = $this->rolesService->getRoleById($roleId);
+
+        return $this->rolesService->unassignUserFromRole($user, $role);
+    }
+
+    /**
+     * Sets (and overwrites) the permissions that a role has
+     * @param PermissionsEnum[] $permissions
+     */
+    #[Mutation]
+    #[Logged]
+    public function setRolePermissions(
+        array $permissions,
+        int $roleId,
+        #[InjectUser] ?User $loggedInUser = null,
+    ): Role {
+        // Only the Owner can assign permissions
+        if (!$this->rolesService->hasPermission($loggedInUser, PermissionsEnum::CAN_ASSIGN_PERMISSIONS)) {
+            throw new UserError("You don't have permission to assign roles");
+        }
+        
+        $role = $this->rolesService->getRoleById($roleId);
+        $role->permissions = $permissions;
+
+        $this->rolesService->setRolePermissions($permissions, $role);
+
+        return $role;
+    }
+
 }

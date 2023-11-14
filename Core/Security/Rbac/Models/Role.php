@@ -12,7 +12,7 @@ class Role
         #[Field] public readonly int $id,
         #[Field] public readonly string $name,
         /** @var PermissionsEnum[] $permissions */
-        #[Field] public readonly array $permissions,
+        #[Field] public array $permissions,
     ) {
     }
 }
