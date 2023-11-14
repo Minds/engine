@@ -60,8 +60,6 @@ class ActionService
                 }
                 $this->deleteEntity($entity);
                 break;
-            default:
-                throw new GraphQLException('Invalid action provided');
         }
     }
 
