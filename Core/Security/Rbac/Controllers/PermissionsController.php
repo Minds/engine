@@ -118,14 +118,14 @@ class PermissionsController
     }
 
     /**
-     * Sets (and overwrites) the permissions that a role has
-     * @param PermissionsEnum[] $permissions
+     * Sets a permission for that a role has
      */
     #[Mutation]
     #[Logged]
-    public function setRolePermissions(
-        array $permissions,
+    public function setRolePermission(
+        PermissionsEnum $permission,
         int $roleId,
+        bool $enabled = true,
         #[InjectUser] ?User $loggedInUser = null,
     ): Role {
         // Only the Owner can assign permissions
@@ -134,9 +134,14 @@ class PermissionsController
         }
         
         $role = $this->rolesService->getRoleById($roleId);
-        $role->permissions = $permissions;
 
-        $this->rolesService->setRolePermissions($permissions, $role);
+        $newPermissions = $enabled ? [...$role->permissions, $permission] : array_filter($role->permissions, function ($val) use ($permission) {
+            return ($val !== $permission);
+        });
+
+        $role->permissions = array_unique($newPermissions, flags: SORT_REGULAR);
+
+        $this->rolesService->setRolePermissions($role->permissions, $role, $enabled);
 
         return $role;
     }
