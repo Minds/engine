@@ -3,7 +3,7 @@
  * Permissions module.
  */
 
-namespace Minds\Core\Permissions;
+namespace Minds\Core\Security\Rbac;
 
 use Minds\Interfaces\ModuleInterface;
 
@@ -13,5 +13,6 @@ class Module implements ModuleInterface
     {
         $provider = new Provider();
         $provider->register();
+        (new GraphQLMappings)->register();
     }
 }

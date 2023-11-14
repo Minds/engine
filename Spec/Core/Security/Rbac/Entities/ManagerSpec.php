@@ -1,10 +1,10 @@
 <?php
 
-namespace Spec\Minds\Core\Permissions\Entities;
+namespace Spec\Minds\Core\Security\Rbac\Entities;
 
 use Minds\Core\Blogs\Blog;
-use Minds\Core\Permissions\Entities\Manager;
-use Minds\Core\Permissions\Entities\EntityPermissions;
+use Minds\Core\Security\Rbac\Entities\Manager;
+use Minds\Core\Security\Rbac\Entities\EntityPermissions;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Minds\Core\EntitiesBuilder;

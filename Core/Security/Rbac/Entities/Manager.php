@@ -1,6 +1,6 @@
 <?php
 
-namespace Minds\Core\Permissions\Entities;
+namespace Minds\Core\Security\Rbac\Entities;
 
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
