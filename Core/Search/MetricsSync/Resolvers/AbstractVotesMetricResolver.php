@@ -2,20 +2,23 @@
 namespace Minds\Core\Search\MetricsSync\Resolvers;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Counters;
+use Minds\Core\Votes\Enums\VoteEnum;
+use Minds\Core\Votes\MySqlRepository;
 
 abstract class AbstractVotesMetricResolver extends AbstractMetricResolver
 {
-    /** @var Counters */
-    protected $counters;
+    /** @var MySqlRepository */
+    protected $votesRepository;
 
     /** @var string */
     protected $counterMetricId;
 
-    public function __construct($counters = null, $db = null)
-    {
+    public function __construct(
+        $votesRepository = null,
+        $db = null,
+    ) {
         parent::__construct($db);
-        $this->counters = $counters ?? Di::_()->get('Entities\Counters');
+        $this->votesRepository = $votesRepository ?? Di::_()->get(MySqlRepository::class);
     }
 
     /**
@@ -39,7 +42,7 @@ abstract class AbstractVotesMetricResolver extends AbstractMetricResolver
     protected function getTotalCount(string $guid): int
     {
         try {
-            return $this->counters->get($guid, $this->counterMetricId);
+            return $this->votesRepository->getCount((int) $guid, $this->counterMetricId === 'thumbs:up' ? VoteEnum::UP : VoteEnum::DOWN);
         } catch (\Exception $e) {
             return 0;
         }

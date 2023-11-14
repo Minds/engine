@@ -62,6 +62,7 @@ class Manager
      * @param ?string $iosAppCredentialsId - expo ios app credentials id.
      * @param ?string $androidAppBuildCredentialsId - expo android app build credentials id.
      * @param ?string $iosAppBuildCredentialsId - expo ios app build credentials id.
+     * @param ?int $lastCacheTimestamp - last cache timestamp.
      * @return bool - true on success.
      */
     public function upsertConfigs(
@@ -74,6 +75,7 @@ class Manager
         ?string $iosAppCredentialsId = null,
         ?string $androidAppBuildCredentialsId = null,
         ?string $iosAppBuildCredentialsId = null,
+        ?int $lastCacheTimestamp = null
     ): bool {
         $tenantId = $this->config->get('tenant_id');
 
@@ -87,7 +89,8 @@ class Manager
             androidAppCredentialsId: $androidAppCredentialsId,
             iosAppCredentialsId: $iosAppCredentialsId,
             androidAppBuildCredentialsId: $androidAppBuildCredentialsId,
-            iosAppBuildCredentialsId: $iosAppBuildCredentialsId
+            iosAppBuildCredentialsId: $iosAppBuildCredentialsId,
+            lastCacheTimestamp: $lastCacheTimestamp
         );
 
         if ($result) {
@@ -105,7 +108,6 @@ class Manager
     private function invalidateCache(int $tenantId): void
     {
         $tenant = $this->multiTenantDataService->getTenantFromId($tenantId);
-        $domain = $this->domainService->buildDomain($tenant);
-        $this->domainService->invalidateGlobalTenantCache($domain);
+        $this->domainService->invalidateGlobalTenantCache($tenant);
     }
 }

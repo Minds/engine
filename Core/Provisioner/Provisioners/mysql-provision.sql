@@ -563,8 +563,26 @@ ALTER TABLE `minds_tenants`
     ADD root_user_guid bigint DEFAULT NULL
     AFTER owner_guid;
 
+CREATE TABLE IF NOT EXISTS `minds_tenants_domain_details` (
+    `tenant_id` int NOT NULL PRIMARY KEY,
+    `domain` varchar(128) NOT NULL,
+    `cloudflare_id` varchar(64) NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+);
+
 ALTER TABLE `minds_votes` ADD COLUMN `tenant_id` int DEFAULT NULL AFTER `user_guid`;
 CREATE INDEX `tenant_id` ON `minds_votes` (`tenant_id`);
+
+CREATE TABLE IF NOT EXISTS minds_tenant_featured_entities (
+    `tenant_id` int,
+    `entity_guid` bigint,
+    `auto_subscribe` boolean DEFAULT FALSE,
+    `recommended` boolean DEFAULT FALSE,
+    `created_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP,
+    `updated_timestamp` timestamp DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`tenant_id`, `entity_guid`)
+);
 
 ALTER TABLE `minds_entities_user` MODIFY COLUMN ip varchar(40);
 
@@ -593,3 +611,7 @@ ALTER TABLE `minds_tenant_configs`
 ALTER TABLE `minds_tenant_configs`
     ADD expo_ios_app_build_credentials_id varchar(64) DEFAULT NULL
     AFTER expo_ios_app_credentials_id;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD last_cache_timestamp timestamp DEFAULT NULL
+    AFTER updated_timestamp;

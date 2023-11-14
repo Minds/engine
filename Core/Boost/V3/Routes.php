@@ -6,6 +6,7 @@ namespace Minds\Core\Boost\V3;
 use Minds\Core\Di\Ref;
 use Minds\Core\Router\Middleware\AdminMiddleware;
 use Minds\Core\Router\Middleware\LoggedInMiddleware;
+use Minds\Core\Router\Middleware\NotMultiTenantMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 
@@ -16,7 +17,8 @@ class Routes extends ModuleRoutes
         $this->route
             ->withPrefix('api/v3/boosts')
             ->withMiddleware([
-                LoggedInMiddleware::class
+                LoggedInMiddleware::class,
+                NotMultiTenantMiddleware::class,
             ])
             ->do(function (Route $route): void {
                 $route->get(

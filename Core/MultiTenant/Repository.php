@@ -74,6 +74,7 @@ class Repository extends AbstractRepository
                 'expo_ios_app_credentials_id',
                 'expo_android_app_build_credentials_id',
                 'expo_ios_app_build_credentials_id',
+                'last_cache_timestamp',
                 'updated_timestamp'
             ]);
     }
@@ -94,6 +95,7 @@ class Repository extends AbstractRepository
         $expoAndroidAppBuildCredentialsId = $row['expo_android_app_build_credentials_id'] ?? null;
         $expoIosAppBuildCredentialsId = $row['expo_ios_app_build_credentials_id'] ?? null;
         $updatedTimestamp = $row['updated_timestamp'] ?? null;
+        $lastCacheTimestamp = $row['last_cache_timestamp'] ?? null;
 
         return new Tenant(
             id: $tenantId,
@@ -111,6 +113,7 @@ class Repository extends AbstractRepository
                 expoIosAppCredentialsId: $expoIosAppCredentialsId,
                 expoAndroidAppBuildCredentialsId: $expoAndroidAppBuildCredentialsId,
                 expoIosAppBuildCredentialsId: $expoIosAppBuildCredentialsId,
+                lastCacheTimestamp: $lastCacheTimestamp ? strtotime($lastCacheTimestamp) : null,
                 updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null
             )
         );
@@ -152,7 +155,6 @@ class Repository extends AbstractRepository
         $statement = $this->mysqlClientWriterHandler->insert()
             ->into('minds_tenants')
             ->set([
-                'tenant_id' => $tenant->id,
                 'owner_guid' => $tenant->ownerGuid,
                 'domain' => $tenant->domain,
             ])

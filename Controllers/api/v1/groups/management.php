@@ -62,7 +62,7 @@ class management implements Interfaces\Api
             ]);
         }
 
-        $member = new User($pages[1]);
+        $member = $this->entitiesBuilder->single($pages[1]);
 
         if (!$member || !$member->getGuid()) {
             return Factory::response([
@@ -149,7 +149,7 @@ class management implements Interfaces\Api
             ]);
         }
 
-        $member = new User($pages[1]);
+        $member = $this->entitiesBuilder->single($pages[1]);
 
         if (!$member || !$member->getGuid()) {
             return Factory::response([

@@ -81,6 +81,9 @@ class Video extends MindsObject implements CommentableEntityInterface
      */
     public function getTranscoder(): string
     {
+        if (isset($this->attributes['cloudflare_id'])) {
+            $this->attributes['transcoder'] = 'cloudflare';
+        }
         return $this->attributes['transcoder'] ?: 'minds_ffmpeg';
     }
 

@@ -3,7 +3,6 @@
 namespace Minds\Core\MultiTenant\AutoLogin;
 
 use Minds\Core\Di\Ref;
-use Minds\Core\Router\Middleware\AdminMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 

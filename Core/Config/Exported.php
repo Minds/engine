@@ -119,7 +119,8 @@ class Exported
             ],
             'livepeer_api_key' => $this->config->get('livepeer_api_key'),
             'onboarding_v5_release_timestamp' => $this->config->get('onboarding_v5_release_timestamp'),
-            'is_tenant' => false // overridden below.
+            'is_tenant' => false, // overridden below.
+            'last_cache' => $this->config->get('lastcache') ?? 0
         ];
 
         if (Session::isLoggedIn()) {
@@ -147,6 +148,7 @@ class Exported
         }
 
         // @deprecated
+        // tell frontend to redirect. Pro needed this ;/
         $exported['redirect_to_root_on_init'] = false;
 
         $defaultSupermindSettings = new SupermindSettings();

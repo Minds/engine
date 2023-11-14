@@ -7,7 +7,11 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Entities\Repositories\MySQLRepository;
+use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
+use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
+use Minds\Core\MultiTenant\Repositories\DomainsRepository;
 use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
 use Minds\Core\MultiTenant\Repository;
 
@@ -28,7 +32,9 @@ class ServicesProvider extends Provider
             return new DomainService(
                 $di->get('Config'),
                 $di->get(MultiTenantDataService::class),
-                $di->get('Cache\PsrWrapper')
+                $di->get('Cache\PsrWrapper'),
+                $di->get(CloudflareClient::class),
+                $di->get(DomainsRepository::class),
             );
         });
 
@@ -45,7 +51,8 @@ class ServicesProvider extends Provider
             function (Di $di): TenantsService {
                 return new TenantsService(
                     $di->get(Repository::class),
-                    $di->get(TenantConfigRepository::class)
+                    $di->get(TenantConfigRepository::class),
+                    $di->get('Config'),
                 );
             }
         );
@@ -55,9 +62,20 @@ class ServicesProvider extends Provider
             function (Di $di): TenantUsersService {
                 return new TenantUsersService(
                     $di->get(TenantUsersRepository::class),
-                    new Save(),
+                    new Save(entitiesRepository: $di->get(MySQLRepository::class)),
                     $di->get('Config'),
                     $di->get(MultiTenantBootService::class),
+                    $di->get('Security\ACL'),
+                );
+            }
+        );
+
+        $this->di->bind(
+            FeaturedEntityService::class,
+            function (Di $di): FeaturedEntityService {
+                return new FeaturedEntityService(
+                    $di->get(FeaturedEntitiesRepository::class),
+                    $di->get('Config')
                 );
             }
         );

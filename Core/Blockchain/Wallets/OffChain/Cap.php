@@ -10,6 +10,7 @@ namespace Minds\Core\Blockchain\Wallets\OffChain;
 
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities\User;
 
@@ -27,10 +28,14 @@ class Cap
     /** @var string */
     protected $contract;
 
-    public function __construct($config = null, $offchainBalance = null)
-    {
+    public function __construct(
+        $config = null,
+        $offchainBalance = null,
+        private ?EntitiesBuilder $entitiesBuilder = null,
+    ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->offChainBalance = $offchainBalance ?: Di::_()->get('Blockchain\Wallets\OffChain\Balance');
+        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
     }
 
     /**
@@ -40,7 +45,7 @@ class Cap
     public function setUser($user)
     {
         if (is_numeric($user)) {
-            $user = new User($user);
+            $user = $this->entitiesBuilder->single($user);
         }
 
         $this->user = $user;

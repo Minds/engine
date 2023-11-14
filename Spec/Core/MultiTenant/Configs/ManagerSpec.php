@@ -121,6 +121,7 @@ class ManagerSpec extends ObjectBehavior
         $iosAppCredentialsId =  'test-ios-app-credentials-id';
         $androidAppBuildCredentialsId = 'test-android-app-build-credentials-id';
         $iosAppBuildCredentialsId = 'test-ios-app-build-credentials-id';
+        $lastCacheTimestamp = time();
 
         $this->config->get('tenant_id')
             ->shouldBeCalled()
@@ -136,7 +137,8 @@ class ManagerSpec extends ObjectBehavior
             $androidAppCredentialsId,
             $iosAppCredentialsId,
             $androidAppBuildCredentialsId,
-            $iosAppBuildCredentialsId
+            $iosAppBuildCredentialsId,
+            $lastCacheTimestamp
         )
             ->shouldBeCalled()
             ->willReturn($result);
@@ -145,11 +147,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($tenant);
         
-        $this->domainService->buildDomain($tenant)
-            ->shouldBeCalled()
-            ->willReturn($domain);
-
-        $this->domainService->invalidateGlobalTenantCache($domain)
+        $this->domainService->invalidateGlobalTenantCache($tenant)
             ->shouldBeCalled();
 
         $this->upsertConfigs(
@@ -161,7 +159,8 @@ class ManagerSpec extends ObjectBehavior
             $androidAppCredentialsId,
             $iosAppCredentialsId,
             $androidAppBuildCredentialsId,
-            $iosAppBuildCredentialsId
+            $iosAppBuildCredentialsId,
+            $lastCacheTimestamp
         )->shouldBe($result);
     }
 
@@ -175,12 +174,11 @@ class ManagerSpec extends ObjectBehavior
         $communityGuidelines = 'Test community guidelines';
         $expoProjectId = 'test-expo-project-id';
         $androidAppCredentialsId = 'test-android-app-credentials-id';
-        $iosAppCredentialsId =  'test-ios-app-credentials-id';
         $androidAppBuildCredentialsId = 'test-android-app-build-credentials-id';
+        $iosAppCredentialsId = 'test-ios-app-credentials-id';
         $iosAppBuildCredentialsId = 'test-ios-app-build-credentials-id';
-
+        $lastCacheTimestamp = time();
         $this->config->get('tenant_id')
-            ->shouldBeCalled()
             ->willReturn($tenantId);
 
         $this->repository->upsert(
@@ -193,7 +191,8 @@ class ManagerSpec extends ObjectBehavior
             $androidAppCredentialsId,
             $iosAppCredentialsId,
             $androidAppBuildCredentialsId,
-            $iosAppBuildCredentialsId
+            $iosAppBuildCredentialsId,
+            $lastCacheTimestamp
         )
             ->shouldBeCalled()
             ->willReturn($result);
@@ -213,7 +212,8 @@ class ManagerSpec extends ObjectBehavior
             $androidAppCredentialsId,
             $iosAppCredentialsId,
             $androidAppBuildCredentialsId,
-            $iosAppBuildCredentialsId
+            $iosAppBuildCredentialsId,
+            $lastCacheTimestamp
         )->shouldBe($result);
     }
 }

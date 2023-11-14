@@ -7,6 +7,7 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\Cassandra\Prepared;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
 
 class Repository
@@ -14,9 +15,12 @@ class Repository
     /** @var Client */
     protected $client;
 
-    public function __construct(Client $client = null)
-    {
+    public function __construct(
+        Client $client = null,
+        protected ?EntitiesBuilder $entitiesBuilder = null,
+    ) {
         $this->client = $client ?: Di::_()->get('Database\Cassandra\Cql');
+        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
     }
 
     /**
@@ -76,7 +80,7 @@ class Repository
             }
 
             foreach ($rows as $row) {
-                $user = $opts['hydrate'] ? new User($row['column1']) : $row['column1'];
+                $user = $opts['hydrate'] ? $this->entitiesBuilder->single($row['column1']) : $row['column1'];
                 $response[] = $user;
             }
 

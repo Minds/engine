@@ -52,7 +52,8 @@ class Repository extends AbstractRepository
             expoIosAppCredentialsId: $row['expo_ios_app_credentials_id'] ?? null,
             expoAndroidAppBuildCredentialsId: $row['expo_android_app_build_credentials_id'] ?? null,
             expoIosAppBuildCredentialsId: $row['expo_ios_app_build_credentials_id'] ?? null,
-            updatedTimestamp: strtotime($row['updated_timestamp']) ?? null
+            lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
+            updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
         );
     }
 
@@ -63,7 +64,13 @@ class Repository extends AbstractRepository
      * @param ?MultiTenantColorScheme $colorScheme - color scheme.
      * @param ?string $primaryColor - primary color.
      * @param ?string $communityGuidelines - community guidelines.
-     * @return bool - true on success.
+     * @param ?string $expoProjectId - expo project id.
+     * @param ?string $androidAppCredentialsId -  android app credentials id.
+     * @param ?string $iosAppCredentialsId - ios app credentials id.
+     * @param ?string $androidAppBuildCredentialsId - android app build credentials id.
+     * @param ?string $iosAppBuildCredentialsId - ios app build credentials id.
+     * @param ?int $lastCacheTimestamp - timestamp of last caching.
+     * @return bool true on success.
      */
     public function upsert(
         int $tenantId,
@@ -75,7 +82,8 @@ class Repository extends AbstractRepository
         ?string $androidAppCredentialsId,
         ?string $iosAppCredentialsId,
         ?string $androidAppBuildCredentialsId,
-        ?string $iosAppBuildCredentialsId
+        ?string $iosAppBuildCredentialsId,
+        ?int $lastCacheTimestamp = null
     ): bool {
         $boundValues = [ 'tenant_id' => $tenantId ];
         $rawValues = [];
@@ -123,6 +131,11 @@ class Repository extends AbstractRepository
         if ($iosAppBuildCredentialsId !== null) {
             $rawValues['expo_ios_app_build_credentials_id'] = new RawExp(':expo_ios_app_build_credentials_id');
             $boundValues['expo_ios_app_build_credentials_id'] = $iosAppBuildCredentialsId;
+        }
+
+        if ($lastCacheTimestamp !== null) {
+            $rawValues['last_cache_timestamp'] = new RawExp(':last_cache_timestamp');
+            $boundValues['last_cache_timestamp'] = date('c', $lastCacheTimestamp);
         }
 
         $query = $this->mysqlClientWriterHandler

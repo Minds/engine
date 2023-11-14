@@ -9,9 +9,13 @@ class Manager
     /** @var Repository */
     protected $repository;
 
-    public function __construct(Repository $repository = null)
+    /** @var NotificationTypes */
+    private $notificationTypes;
+
+    public function __construct(Repository $repository = null, NotificationTypes $notificationTypes = null)
     {
         $this->repository = $repository ?? new Repository();
+        $this->notificationTypes = $notificationTypes ?? new NotificationTypes;
     }
 
     /**
@@ -31,6 +35,10 @@ class Manager
             if ($pushSetting->getNotificationGroup() === $pushNotification->getGroup() && $pushSetting->getEnabled() === false) {
                 return false;
             }
+
+            if (!isset($this->notificationTypes->getTypesGroupings()[$pushSetting->getNotificationGroup()])) {
+                return false;
+            }
         }
 
         return true;
@@ -47,7 +55,7 @@ class Manager
             $pushSetting = new PushSetting();
             $pushSetting->setNotificationGroup($notificationGroup);
             return $pushSetting;
-        }, array_keys(array_merge(NotificationTypes::TYPES_GROUPINGS, [PushSetting::ALL => []])));
+        }, array_keys(array_merge($this->notificationTypes->getTypesGroupings(), [PushSetting::ALL => []])));
 
         $keyValue = [];
 

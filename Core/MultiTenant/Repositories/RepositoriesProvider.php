@@ -24,5 +24,25 @@ class RepositoriesProvider extends Provider
                 );
             }
         );
+
+        $this->di->bind(
+            FeaturedEntitiesRepository::class,
+            function (Di $di): FeaturedEntitiesRepository {
+                return new FeaturedEntitiesRepository(
+                    mysqlHandler: $di->get('Database\MySQL\Client'),
+                    logger: $di->get('Logger')
+                );
+            }
+        );
+
+        $this->di->bind(
+            DomainsRepository::class,
+            function (Di $di): DomainsRepository {
+                return new DomainsRepository(
+                    mysqlHandler: $di->get('Database\MySQL\Client'),
+                    logger: $di->get('Logger')
+                );
+            }
+        );
     }
 }

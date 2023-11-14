@@ -5,14 +5,20 @@
 
 namespace Minds\Core\Http;
 
-use Minds\Core\Di\Provider;
 use GuzzleHttp\Client as GuzzleClient;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
-use Minds\Config\Config;
+use Minds\Core\Di\ImmutableException;
+use Minds\Core\Di\Provider;
+use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
 
 class HttpProvider extends Provider
 {
-    public function register()
+    /**
+     * @return void
+     * @throws ImmutableException
+     */
+    public function register(): void
     {
         /**
          * HTTP bindings
@@ -29,8 +35,31 @@ class HttpProvider extends Provider
             return new Curl\JsonRpc\Client();
         }, ['useFactory'=>true]);
 
+        $this->di->bind(
+            CloudflareClient::class,
+            function (Di $di): CloudflareClient {
+                /** @var Config $mindsConfig */
+                $mindsConfig = $di->get('Config');
+
+                $apexProxyConfig = $mindsConfig->get('cloudflare')['custom_hostnames'] ?? [
+                    'zone_url' => null,
+                ];
+
+                $httpClient = new GuzzleClient([
+                    'base_uri' => $apexProxyConfig['zone_url'],
+                    'headers' => [
+                        'X-Auth-Email' => $mindsConfig->get('cloudflare')['email'],
+                        'X-Auth-Key' => $mindsConfig->get('cloudflare')['api_key'],
+                    ],
+                ]);
+
+                return new CloudflareClient($httpClient);
+            }
+        );
+
+
         $this->di->bind(GuzzleClient::class, function (Di $di): GuzzleClient {
-            /** @var Config */
+            /** @var Config $config */
             $config = $di->get('Config');
 
             $guzzleConfig = [];

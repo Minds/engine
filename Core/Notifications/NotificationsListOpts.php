@@ -41,6 +41,14 @@ class NotificationsListOpts extends AbstractRepositoryOpts
     /** @var string */
     protected $groupingType;
 
+    /** @var NotificationTypes */
+    private $notificationTypes;
+
+    public function __construct(NotificationTypes $notificationTypes = null)
+    {
+        $this->notificationTypes = $notificationTypes ?? new NotificationTypes;
+    }
+
     /**
      * Set the type
      * @param string $groupingType
@@ -48,7 +56,7 @@ class NotificationsListOpts extends AbstractRepositoryOpts
      */
     public function setGroupingType(string $groupingType): self
     {
-        if (!isset(NotificationTypes::TYPES_GROUPINGS[$groupingType])) {
+        if (!isset($this->notificationTypes->getTypesGroupings()[$groupingType])) {
             throw new \Exception("GroupingType $groupingType not found in NotificationTypes::TYPES_GROUPINGS");
         }
         $this->groupingType = $groupingType;

@@ -47,7 +47,7 @@ class Repository
             'exclude_tags' => [], // tags to exclude.
         ], $opts);
 
-        $must= [
+        $must = [
             [
                 'range'=> [
                     '@timestamp'=> [
@@ -56,9 +56,17 @@ class Repository
                     ],
                 ],
             ],
+        ];
+
+        $mustNot = [
             [
-                'terms'=> [
-                    'language'=> $opts['languages'],
+                'term' => [
+                    'deleted' => true,
+                ]
+            ],
+            [
+                'terms' => [
+                    'nsfw'=> [ 1, 2, 3, 4, 5, 6],
                 ],
             ],
         ];
@@ -69,22 +77,24 @@ class Repository
             ];
         }
 
+        if ($this->config->get('tenant_id')) {
+            $must[]['term'] = [
+                'tenant_id' => $this->config->get('tenant_id'),
+            ];
+        } else {
+            $mustNot[]['exists'] = [
+                'field' => 'tenant_id'
+            ];
+            $must[]['terms'] = [
+                'language'=> $opts['languages'],
+            ];
+        }
+
         $body= [
             'query'=> [
                 'bool'=> [
                     'must'=> $must,
-                    'must_not'=> [
-                        [
-                            'term' => [
-                                'deleted' => true,
-                            ]
-                        ],
-                        [
-                            'terms' => [
-                                'nsfw'=> [ 1, 2, 3, 4, 5, 6],
-                            ],
-                        ],
-                    ],
+                    'must_not'=> $mustNot,
                 ],
             ],
             'aggs' => [
