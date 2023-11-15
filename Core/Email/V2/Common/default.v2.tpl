@@ -207,51 +207,53 @@
     <!--dark mode styles-->
     <!--these are just example classes that can be used.-->
     <style>
-        @media (prefers-color-scheme: dark) {
+        <?php if (!isset($vars['color_scheme'])) { ?>
+            @media (prefers-color-scheme: dark) {
+        <?php } ?>
+            <?php if (!isset($vars['color_scheme']) || $vars['color_scheme'] === 'DARK') { ?>
+                /* Shows Dark Mode-Only Content, Like Images */
+                .dark-img {
+                    display: block !important;
+                    width: auto !important;
+                    overflow: visible !important;
+                    float: none !important;
+                    max-height: inherit !important;
+                    max-width: inherit !important;
+                    line-height: auto !important;
+                    margin-top: 0px !important;
+                    visibility: inherit !important;
+                }
 
-            /* Shows Dark Mode-Only Content, Like Images */
-            .dark-img {
-                display: block !important;
-                width: auto !important;
-                overflow: visible !important;
-                float: none !important;
-                max-height: inherit !important;
-                max-width: inherit !important;
-                line-height: auto !important;
-                margin-top: 0px !important;
-                visibility: inherit !important;
-            }
+                /* Hides Light Mode-Only Content, Like Images */
+                .light-img {
+                    display: none;
+                    display: none !important;
+                }
 
-            /* Hides Light Mode-Only Content, Like Images */
-            .light-img {
-                display: none;
-                display: none !important;
-            }
+                /* Custom Dark Mode Background Color */
+                .darkmode {
+                    background-color: #100E11 !important;
+                }
 
-            /* Custom Dark Mode Background Color */
-            .darkmode {
-                background-color: #100E11 !important;
-            }
+                .darkmode2 {
+                    background-color: #000000 !important;
+                }
 
-            .darkmode2 {
-                background-color: #000000 !important;
-            }
-
-            /* Custom Dark Mode Font Colors */
-            h1, h2, h3, p, span, a, li {
-                color: #fdfdfd !important;
-            }
+                /* Custom Dark Mode Font Colors */
+                h1, h2, h3, p, span, a, li {
+                    color: #fdfdfd !important;
+                }
 
 
-            /* Custom Dark Mode Text Link Color */
-            .link {
-                color: #028383 !important;
-            }
+                /* Custom Dark Mode Text Link Color */
+                .link {
+                    color: #028383 !important;
+                }
 
-            .footer a.link {
-                color: #fdfdfd !important;
-            }
-        }
+                .footer a.link {
+                    color: #fdfdfd !important;
+                }
+        <?php } ?>
 
         /* Copy dark mode styles for android support */
         /* Shows Dark Mode-Only Content, Like Images */
@@ -309,7 +311,7 @@
 </head>
 
 <body id="body" class="darkmode body body-fix" bgcolor="#ffffff" style="background-color:#ffffff;">
-    <div role="article" aria-roledescription="email" aria-label="Email from Minds" xml:lang="en" lang="en">
+    <div role="article" aria-roledescription="email" aria-label="Email from <?php echo $vars['site_name'] ?? 'Minds'; ?>" xml:lang="en" lang="en">
         <?php
         if ($vars['preheader']) {
             ?>
@@ -333,23 +335,32 @@
                         <!--header-->
                         <tr>
                             <td align="center" valign="top" <?= $emailStylesV2->getStyles(['m-mainContent__header']) ?>>
-                                <!--light mode logo image-->
                                 <a href="<?php echo $vars['site_url']; ?>?utm_medium=email&utm_source=verify&utm_content=logo&__e_ct_guid=<?= $vars['guid']?>"
                                    target="_blank">
-                                   <img class="light-img" src="<?php echo $vars['cdn_assets_url']; ?>/assets/logos/logo-light-mode.png" width="130" height="50"
-                                        alt="Minds"
-                                        <?= $emailStylesV2->getStyles(['m-mainContent__imageAltText']) ?> >
+                                   <!-- manually set logo image-->
+                                    <?php if(isset($vars['logo_url'])) { ?>
+                                        <img class="<?php echo $vars['color_scheme'] === 'DARK' ? 'dark-img' : 'light-img' ?>" src="<?= $vars['logo_url'] ?>" height="50"
+                                                alt="<?= $vars['site_name'] ?? 'Minds' ?>"
+                                                <?= $emailStylesV2->getStyles(['m-mainContent__imageAltText']) ?>
+                                        >
+                                    <!-- Minds logo image-->
+                                    <?php } else { ?>
+                                        <!--light mode logo image-->
+                                        <img class="light-img" src="<?php echo $vars['cdn_assets_url']; ?>/assets/logos/logo-light-mode.png" width="130" height="50"
+                                                alt="Minds"
+                                                <?= $emailStylesV2->getStyles(['m-mainContent__imageAltText']) ?>
+                                        >
 
-                                    <!--dark mode logo image-->
-                                    <!--[if !mso]><! -->
-                                    <div class="dark-img"
-                                         <?= $emailStylesV2->getStyles(['dark-img']) ?>
-                                         align="center">
-                                        <img src="<?php echo $vars['cdn_assets_url']; ?>/assets/logos/logo-dark-mode.png" width="130" height="50" alt="Minds"
-                                            <?= $emailStylesV2->getStyles(['m-mainContent__imageAltText']) ?>
-                                            border="0"/>
-                                    </div>
-                                    <!--<![endif]--></a>
+                                        <!--dark mode logo image-->
+                                        <!--[if !mso]><! -->
+                                        <div class="dark-img" <?= $emailStylesV2->getStyles(['dark-img']) ?> align="center">
+                                            <img src="<?php echo $vars['cdn_assets_url']; ?>/assets/logos/logo-dark-mode.png" width="130" height="50" alt="Minds"
+                                                <?= $emailStylesV2->getStyles(['m-mainContent__imageAltText']) ?>
+                                                border="0"/>
+                                        </div>
+                                        <!--<![endif]-->
+                                    <?php } ?>
+                                </a>
                             </td>
                         </tr>
 
@@ -367,13 +378,20 @@
             <tr>
                 <td class="footer" align="center" valign="top" <?= $emailStylesV2->getStyles(['m-footer']) ?> >
                     <p <?= $emailStylesV2->getStyles(['m-footer__paragraph']) ?>>
-                        Minds Inc © 2023 - PO Box 7681, Wilton, CT 06897<br><br>
-                        <a href="<?php echo $vars['site_url']; ?>settings/canary/account/email-notifications" class="link" target="_blank"
+                        <?php if (isset($vars['copyright_text'])) {
+                            echo $vars['copyright_text'];    
+                        } else { ?>
+                            Minds Inc © 2023 - PO Box 7681, Wilton, CT 06897
+                        <?php } ?>
+                        
+                        <br><br>
+
+                        <a href="<?php echo $vars['site_url']; ?>settings/account/email-notifications" class="link" target="_blank"
                            <?= $emailStylesV2->getStyles(['m-footer__link']) ?>>
                             <?= $vars['translator']->trans('Manage email settings') ?>
                         </a>
                         <?php
-                        if (isset($vars['campaign'])) {
+                        if (isset($vars['campaign']) && !$vars['hide_unsubscribe_link']) {
                             ?>
                             &nbsp;&nbsp;|&nbsp;&nbsp;
                             <a href="<?php echo $vars['site_url']; ?>emails/unsubscribe/<?= $vars['guid']?>/<?= urlencode($vars['email'])?>/<?= $vars['campaign']?><?= '/' . $vars['topic']?>?__e_ct_guid=<?= $vars['guid']?>&campaign=<?= $vars['campaign'] ?>&topic=<?= $vars['topic'] ?>&state=<?= $vars['state']?>"

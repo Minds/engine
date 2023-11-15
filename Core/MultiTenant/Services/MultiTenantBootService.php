@@ -110,13 +110,17 @@ class MultiTenantBootService
         $this->setConfig('dataroot', $this->config->get('dataroot') . 'tenant/' . $this->config->get('tenant_id') . '/');
 
         if ($tenantConfig = $tenant->config) {
-            if ($tenantConfig->siteEmail) {
-                $emailConfig = $this->config->get('email');
-                $emailConfig['sender']['email'] = $tenant->config->siteEmail;
+            $emailConfig = $this->config->get('email');
+
+            if ($tenantConfig->siteEmail || $tenantConfig->siteName) {
+                if ($tenantConfig->siteEmail) {
+                    $emailConfig['sender']['email'] = $tenant->config->siteEmail;
+                }
 
                 if ($tenantConfig->siteName) {
                     $emailConfig['sender']['name'] = $tenant->config->siteName;
                 }
+
                 $this->setConfig('email', $emailConfig);
             }
 
