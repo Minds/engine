@@ -589,3 +589,15 @@ ALTER TABLE `minds_tenant_configs`
 ALTER TABLE `minds_tenant_configs`
     ADD last_cache_timestamp timestamp DEFAULT NULL
     AFTER updated_timestamp;
+
+ALTER TABLE `minds_entities_activity`
+    ADD `blurb` TEXT DEFAULT NULL
+    AFTER `title`;
+
+ALTER TABLE `minds_entities_activity`
+    ADD `perma_url` TEXT DEFAULT NULL
+    AFTER `blurb`;
+
+ALTER TABLE `minds_entities_activity`
+    ADD `thumbnail_src` TEXT DEFAULT NULL
+    AFTER `perma_url`;
