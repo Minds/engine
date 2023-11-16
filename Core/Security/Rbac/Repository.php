@@ -73,6 +73,49 @@ class Repository extends AbstractRepository
     }
 
     /**
+     * Return a list of all users
+     */
+    public function getUsersByRole(
+        ?int $roleId = null,
+        int $limit = 12,
+        int $offset = 0,
+    ): iterable {
+        $values = [
+            'tenant_id' => $this->config->get('tenant_id'),
+        ];
+
+        $query = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'user_guid' => 'minds_entities_user.guid',
+                'role_ids' => new RawExp("GROUP_CONCAT(role_id)"),
+            ])
+            ->from('minds_entities_user')
+            ->innerJoin('minds_entities', 'minds_entities_user.guid', Operator::EQ, 'minds_entities.guid')
+            ->leftJoin('minds_role_user_assignments', 'minds_entities_user.guid', Operator::EQ, 'minds_role_user_assignments.user_guid')
+            ->where('minds_entities.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->groupBy('minds_entities_user.guid')
+            ->orderBy("minds_entities_user.guid ASC")
+            ->limit($limit)
+            ->offset($offset);
+
+        if ($roleId) {
+            $query->where('role_id', Operator::EQ, new RawExp(':role_id'));
+            $values['role_id'] = $roleId;
+        }
+
+        $stmt = $query->prepare();
+
+        $stmt->execute($values);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($rows as $row) {
+            $rowIds = isset($row['role_ids']) ? array_map('intval', explode(',', $row['role_ids'])) : [];
+            yield $row['user_guid'] => $rowIds;
+        }
+    }
+
+    /**
      * Assigns a user from a role
      */
     public function assignUserToRole(int $userGuid, int $roleId): bool

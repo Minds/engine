@@ -3,9 +3,12 @@ namespace Minds\Core\Security\Rbac\Controllers;
 
 use GraphQL\Error\UserError;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\GraphQL\Types\PageInfo;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Models\Role;
 use Minds\Core\Security\Rbac\Services\RolesService;
+use Minds\Core\Security\Rbac\Types\UserRoleConnection;
+use Minds\Core\Security\Rbac\Types\UserRoleEdge;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
@@ -63,6 +66,47 @@ class PermissionsController
     public function getAllPermissions(): array
     {
         return $this->rolesService->getAllPermissions();
+    }
+
+    /**
+     * Returns users and their roles
+     */
+    #[Query]
+    #[Logged]
+    public function getUsersByRole(
+        ?int $roleId = null,
+        ?int $first = null,
+        ?string $after = null,
+        #[InjectUser] ?User $loggedInUser = null,
+    ): UserRoleConnection {
+        // Only the Owner can assign permissions
+        if (!$this->rolesService->hasPermission($loggedInUser, PermissionsEnum::CAN_ASSIGN_PERMISSIONS)) {
+            throw new UserError("You don't have permission to assign roles");
+        }
+
+        $loadAfter = $after ?: 0;
+        $hasMore = false;
+
+        $edges = iterator_to_array($this->rolesService->getUsersByRole(
+            roleId: $roleId,
+            limit: $first ?: 12,
+            loadAfter: $loadAfter,
+            hasMore: $hasMore,
+        ));
+
+        $pageInfo = new PageInfo(
+            hasNextPage: $hasMore,
+            hasPreviousPage: !$loadAfter,
+            startCursor: $after ? $after : null,
+            endCursor: $loadAfter,
+        );
+
+        $connection = new UserRoleConnection();
+        $connection
+            ->setEdges($edges)
+            ->setPageInfo($pageInfo);
+
+        return $connection;
     }
 
     /**

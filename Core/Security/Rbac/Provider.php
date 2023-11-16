@@ -29,6 +29,7 @@ class Provider extends DiProvider
             return new RolesService(
                 $di->get(Config::class),
                 $di->get(Repository::class),
+                $di->get(EntitiesBuilder::class),
             );
         });
 

@@ -2,10 +2,12 @@
 namespace Minds\Core\Security\Rbac\Services;
 
 use Minds\Core\Config\Config;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Enums\RolesEnum;
 use Minds\Core\Security\Rbac\Models\Role;
 use Minds\Core\Security\Rbac\Repository;
+use Minds\Core\Security\Rbac\Types\UserRoleEdge;
 use Minds\Entities\User;
 
 class RolesService
@@ -13,6 +15,7 @@ class RolesService
     public function __construct(
         private readonly Config $config,
         private readonly Repository $repository,
+        private readonly EntitiesBuilder $entitiesBuilder,
     ) {
         
     }
@@ -91,6 +94,69 @@ class RolesService
         $permissions = $this->getUserPermissions($user);
     
         return in_array($permission->name, $permissions, true);
+    }
+
+    /**
+    * Return a list of all users
+    */
+    public function getUsersByRole(
+        ?int $roleId = null,
+        int $limit = 12,
+        string &$loadAfter = null,
+        bool &$hasMore = null
+    ): iterable {
+        // First, gather all the roles and their permissions
+        $allRoles = $this->buildRoles();
+
+        $offset = 0;
+
+        if ($loadAfter) {
+            $offset = (int) base64_decode($loadAfter, true);
+        }
+
+        // Run through users matching query and hyrate the roles
+        $i = 0;
+        $userGuidsAndRoles = iterator_to_array($this->repository->getUsersByRole(
+            roleId: $roleId,
+            limit: $limit + 1, // Max iteration size
+            offset: $offset
+        ));
+
+        if (count($userGuidsAndRoles) > $limit) {
+            $hasMore = true;
+        } else {
+            $hasMore = false;
+        }
+
+        foreach ($userGuidsAndRoles as $userGuid => $roleIds) {
+            $user = $this->entitiesBuilder->single($userGuid);
+
+            if (!$user instanceof User) {
+                continue;
+            }
+
+            $userRoles = [];
+
+            foreach ($roleIds as $roleId) {
+                $userRoles[$roleId] = $allRoles[$roleId];
+            }
+
+            if (!isset($userRoles[RolesEnum::DEFAULT->value])) {
+                $userRoles[RolesEnum::DEFAULT->value] = $allRoles[RolesEnum::DEFAULT->value];
+            }
+
+            $loadAfter = base64_encode(++$offset);
+
+            yield new UserRoleEdge(
+                user: $user,
+                roles: $userRoles,
+                cursor: $loadAfter,
+            );
+            
+            if (++$i >= $limit) {
+                break;
+            }
+        }
     }
 
     /**
