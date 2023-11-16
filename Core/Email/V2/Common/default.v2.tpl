@@ -391,7 +391,7 @@
                             <?= $vars['translator']->trans('Manage email settings') ?>
                         </a>
                         <?php
-                        if (isset($vars['campaign']) && !$vars['hide_unsubscribe_link']) {
+                        if (isset($vars['campaign']) && !isset($vars['hide_unsubscribe_link']) && !$vars['hide_unsubscribe_link']) {
                             ?>
                             &nbsp;&nbsp;|&nbsp;&nbsp;
                             <a href="<?php echo $vars['site_url']; ?>emails/unsubscribe/<?= $vars['guid']?>/<?= urlencode($vars['email'])?>/<?= $vars['campaign']?><?= '/' . $vars['topic']?>?__e_ct_guid=<?= $vars['guid']?>&campaign=<?= $vars['campaign'] ?>&topic=<?= $vars['topic'] ?>&state=<?= $vars['state']?>"
