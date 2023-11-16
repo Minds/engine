@@ -91,6 +91,8 @@ class Minds extends base
         Webfinger\Module::class,
         ActivityPub\Module::class,
         Admin\Module::class,
+        Comments\GraphQL\Module::class,
+        Reports\V2\Module::class
     ];
 
     /**

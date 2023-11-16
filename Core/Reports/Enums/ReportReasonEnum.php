@@ -2,6 +2,9 @@
 
 namespace Minds\Core\Reports\Enums;
 
+use TheCodingMachine\GraphQLite\Annotations\Type;
+
+#[Type]
 enum ReportReasonEnum: int
 {
     case ILLEGAL = 1;
