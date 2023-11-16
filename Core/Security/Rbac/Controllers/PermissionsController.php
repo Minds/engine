@@ -43,9 +43,20 @@ class PermissionsController
     #[Query]
     #[Logged]
     public function getAssignedRoles(
+        ?string $userGuid = null,
         #[InjectUser] ?User $loggedInUser = null,
     ): array {
-        return $this->rolesService->getRoles($loggedInUser);
+        if ($userGuid) {
+            // Only those with permissions can view someone elses role
+            if (!$this->rolesService->hasPermission($loggedInUser, PermissionsEnum::CAN_ASSIGN_PERMISSIONS)) {
+                throw new UserError("You don't have permission to assign roles");
+            }
+
+            $user = $this->entitiesBuilder->single($userGuid);
+        } else {
+            $user = $loggedInUser;
+        }
+        return $this->rolesService->getRoles($user);
     }
 
     /**
