@@ -70,7 +70,9 @@ class TwoFactor extends EmailCampaign
 
         $translator = $this->template->getTranslator();
 
-        $siteName = $this->config->get('site_name') ?? 'Minds';
+        if(!$siteName = $this->config->get('site_name')) {
+            $siteName = 'Minds';
+        }
 
         $subject = $this->code . ' is your verification code for ' . $siteName;
         $previewText = 'Verify your email to get started';

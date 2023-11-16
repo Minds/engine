@@ -66,7 +66,9 @@ class ForgotPasswordEmailer extends EmailCampaign
 
         $this->template->setLocale($this->user->getLanguage());
 
-        $siteName = $this->config->get('site_name') ?? 'Minds';
+        if(!$siteName = $this->config->get('site_name')) {
+            $siteName = 'Minds';
+        }
 
         $subject = 'Password reset';
         $link = $this->config->get('site_url') . "forgot-password;username=" . $this->user->getUsername() . ";code=" . $this->code;
