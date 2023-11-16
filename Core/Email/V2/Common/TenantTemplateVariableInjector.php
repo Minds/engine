@@ -30,7 +30,9 @@ class TenantTemplateVariableInjector
             $template->set('logo_url', $siteUrl . 'api/v3/multi-tenant/configs/image/square_logo');
         }
 
-        if ($themeOverride = $this->config->get('theme_override')) {
+        $themeOverride = $this->config->get('theme_override');
+
+        if (is_array($themeOverride) && $themeOverride['color_scheme']) {
             $template->set('color_scheme', $themeOverride['color_scheme']);
         }
 
