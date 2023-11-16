@@ -141,7 +141,9 @@ class Exported
             $exported['upgrades']['plus']['monthly']['can_have_trial'] = $canHavePlusTrial;
             $exported['upgrades']['plus']['yearly']['can_have_trial'] = $canHavePlusTrial;
 
-            $exported['permissions'] = $this->rolesService->getUserPermissions($user);
+            $exported['permissions'] = array_map(function ($permission) {
+                return $permission->name;
+            }, $this->rolesService->getUserPermissions($user));
         } else {
             $exported['permissions'] = [];
         }

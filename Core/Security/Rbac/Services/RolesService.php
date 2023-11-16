@@ -20,13 +20,18 @@ class RolesService
         
     }
 
+    /**
+     * Returns all the roles (and their permissions)
+     */
     public function getAllRoles(): array
     {
 
         return $this->buildRoles();
     }
 
-    
+    /**
+     * Returns all the permissions that exist
+     */
     public function getAllPermissions(): array
     {
         return PermissionsEnum::cases();
@@ -40,7 +45,7 @@ class RolesService
         $roles = [];
 
         if ($this->isMultiTenant()) {
-            $roles = $this->repository->getUserRoles($user->getGuid());
+            $roles = $this->repository->getUserRoles((int) $user->getGuid());
         } else {
             // Host site, all users will have the default role
             $allRoles = $this->getAllRoles();
@@ -70,7 +75,7 @@ class RolesService
 
     /**
      * Return a list of all the permission the user has access to, as derived from their role
-     * @return string[]
+     * @return PermissionsEnum[]
      */
     public function getUserPermissions(User $user): array
     {
@@ -79,11 +84,11 @@ class RolesService
 
         foreach ($roles as $role) {
             array_push($permissions, ...array_map(function ($permission) {
-                return $permission->name;
+                return $permission;
             }, $role->permissions));
         }
 
-        return array_unique($permissions);
+        return array_unique($permissions, flags: SORT_REGULAR);
     }
 
     /**
@@ -93,7 +98,7 @@ class RolesService
     {
         $permissions = $this->getUserPermissions($user);
     
-        return in_array($permission->name, $permissions, true);
+        return in_array($permission, $permissions, true);
     }
 
     /**
