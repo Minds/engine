@@ -6,6 +6,7 @@
 namespace Minds\Core\Data;
 
 use Minds\Core\Data\cache\InMemoryCache;
+use Minds\Core\Data\cache\RssFeedCache;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
 
@@ -19,6 +20,12 @@ class DataProvider extends Provider
         $this->di->bind('Cache', function ($di) {
             return cache\factory::build('Redis');
         }, ['useFactory'=>true]);
+        $this->di->bind(
+            RssFeedCache::class,
+            fn (Di $di): RssFeedCache => new RssFeedCache(
+                cache: $di->get('Cache')->withTenantPrefix(true)
+            )
+        );
         $this->di->bind('Cache\Redis', function ($di) {
             return new cache\Redis();
         }, ['useFactory'=>true]);
