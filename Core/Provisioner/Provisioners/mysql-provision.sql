@@ -589,3 +589,7 @@ ALTER TABLE `minds_tenant_configs`
 ALTER TABLE `minds_tenant_configs`
     ADD last_cache_timestamp timestamp DEFAULT NULL
     AFTER updated_timestamp;
+
+ALTER TABLE `minds_entities_user`
+	ADD `password_reset_code` text
+	AFTER `email_confirmed_at`;
