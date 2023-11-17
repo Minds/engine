@@ -5,6 +5,7 @@ namespace Minds\Core\Feeds\RSS\Repositories;
 
 use DateTime;
 use DateTimeInterface;
+use Exception;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Data\MySQL\Client;
@@ -43,27 +44,48 @@ class MySQLRepository extends AbstractRepository
         Uri $rssFeedUrl,
         string $title,
         User $user
-    ): bool {
+    ): RssFeed {
+        $feedId = Guid::build();
+        $createTimestamp = time();
         $statement = $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
             ->set([
-                'feed_id' => Guid::build(),
+                'feed_id' => $feedId,
                 'user_guid' => new RawExp(':user_guid'),
                 'tenant_id' => new RawExp(':tenant_id'),
                 'title' => new RawExp(':title'),
                 'url' => new RawExp(':url'),
+                'created_at' => date('c', $createTimestamp),
             ])
             ->prepare();
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, [
             'user_guid' => (int) $user->getGuid(),
-            'tenant_id' => $this->config->get('tenant_id') ?? 0,
+            'tenant_id' => $this->config->get('tenant_id') ?? null,
             'title' => $title,
             'url' => (string) $rssFeedUrl,
         ]);
 
 
-        return $statement->execute();
+        try {
+            if (!$statement->execute()) {
+                throw new ServerErrorException('Failed to create feed');
+            }
+
+            return new RssFeed(
+                feedId: (int) $feedId,
+                userGuid: (int) $user->getGuid(),
+                title: $title,
+                url: (string) $rssFeedUrl,
+                tenantId: $this->config->get('tenant_id') ?? null,
+                createdAtTimestamp: $createTimestamp,
+            );
+        } catch (Exception $e) {
+            if ($statement->errorCode() === '23000') {
+                throw new ServerErrorException('You have already added this feed to your account');
+            }
+            throw $e;
+        }
     }
 
     /**
@@ -168,6 +190,28 @@ class MySQLRepository extends AbstractRepository
                 'last_fetch_at' => date('c', time()),
                 'last_fetch_status' => $status->value,
                 'last_fetch_entry_timestamp' => date('c', $lastFetchEntryDate?->getTimestamp())
+            ])
+            ->where('feed_id', Operator::EQ, new RawExp(':feed_id'))
+            ->prepare();
+
+        return $statement->execute([
+            'feed_id' => $feedId,
+        ]);
+    }
+
+    /**
+     * @param int $feedId
+     * @param RssFeedLastFetchStatusEnum $status
+     * @return bool
+     */
+    public function updateRssFeedStatus(
+        int $feedId,
+        RssFeedLastFetchStatusEnum $status
+    ): bool {
+        $statement = $this->mysqlClientWriterHandler->update()
+            ->table(self::TABLE_NAME)
+            ->set([
+                'last_fetch_status' => $status->value,
             ])
             ->where('feed_id', Operator::EQ, new RawExp(':feed_id'))
             ->prepare();

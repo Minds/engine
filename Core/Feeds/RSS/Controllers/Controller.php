@@ -24,7 +24,9 @@ class Controller
 
     /**
      * @param RssFeed $rssFeed
-     * @return void
+     * @return RssFeed
+     * @throws GraphQLException
+     * @throws RssFeedFailedFetchException
      * @throws ServerErrorException
      */
     #[Mutation]
@@ -32,8 +34,8 @@ class Controller
     public function createRssFeed(
         RssFeed $rssFeed,
         #[InjectUser] User $loggedInUser,
-    ): void {
-        $this->service->createRssFeed($rssFeed, $loggedInUser);
+    ): RssFeed {
+        return $this->service->createRssFeed($rssFeed, $loggedInUser);
     }
 
     /**
@@ -54,6 +56,7 @@ class Controller
      * @throws RssFeedNotFoundException
      * @throws ServerErrorException
      * @throws RssFeedFailedFetchException
+     * @throws GraphQLException
      */
     #[Query]
     #[Logged]
@@ -93,6 +96,6 @@ class Controller
         string $feedId,
         #[InjectUser] User $loggedInUser,
     ): void {
-        $this->service->removeRssFeed((int)$feedId);
+        $this->service->removeRssFeed((int)$feedId, $loggedInUser);
     }
 }

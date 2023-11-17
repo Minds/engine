@@ -35,16 +35,23 @@ class Service
      * @param User $user
      * @return RssFeed
      * @throws ServerErrorException
+     * @throws RssFeedFailedFetchException
+     * @throws GraphQLException
      */
     public function createRssFeed(RssFeed $rssFeed, User $user): RssFeed
     {
-        $rssFeedDetails = $this->processRssFeedService->getFeedDetails($rssFeed->url);
-        $this->repository->createRssFeed(
-            rssFeedUrl: new Uri($rssFeed->url),
-            title: $rssFeedDetails->getTitle(),
-            user: $user
-        );
-        return $rssFeed;
+        try {
+            $rssFeedDetails = $this->processRssFeedService->getFeedDetails($rssFeed->url);
+            return $this->repository->createRssFeed(
+                rssFeedUrl: new Uri($rssFeed->url),
+                title: $rssFeedDetails->getTitle(),
+                user: $user
+            );
+        } catch (RssFeedFailedFetchException $e) {
+            throw $e;
+        } catch (Exception $e) {
+            throw new GraphQLException($e->getMessage(), 500);
+        }
     }
 
     /**
@@ -53,10 +60,15 @@ class Service
      * @throws RssFeedNotFoundException
      * @throws ServerErrorException
      * @throws RssFeedFailedFetchException
+     * @throws GraphQLException
      */
     public function getRssFeed(int $feedId, User $user): RssFeed
     {
         $rssFeed = $this->repository->getFeed($feedId);
+        if ($rssFeed->userGuid !== (int) $user->getGuid()) {
+            throw new GraphQLException("The feed provided does not belong to the user", 403);
+        }
+
         $this->processRssFeedService->fetchFeed($rssFeed);
         return $rssFeed;
     }
@@ -152,6 +164,11 @@ class Service
         User $user,
         bool $dryRun = false
     ): void {
+        if ($rssFeed->lastFetchStatus === RssFeedLastFetchStatusEnum::FETCH_IN_PROGRESS) {
+            return;
+        }
+        $this->repository->updateRssFeedStatus($rssFeed->feedId, RssFeedLastFetchStatusEnum::FETCH_IN_PROGRESS);
+        
         $this->logger->info('Processing RSS feed', [
             'feed_id' => $rssFeed->feedId,
             'url' => $rssFeed->url,

@@ -64,10 +64,15 @@ class ProcessRssFeedService
     /**
      * @param string $url
      * @return FeedInterface|FeedAtom|FeedRss
+     * @throws RssFeedFailedFetchException
      */
     public function getFeedDetails(string $url): FeedInterface|FeedAtom|FeedRss
     {
-        return $this->reader->import($url);
+        try {
+            return $this->reader->import($url);
+        } catch (Exception $e) {
+            throw new RssFeedFailedFetchException();
+        }
     }
 
     /**
