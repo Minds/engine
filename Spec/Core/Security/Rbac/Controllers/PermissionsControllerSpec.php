@@ -242,9 +242,8 @@ class PermissionsControllerSpec extends ObjectBehavior
             ->willReturn(new Role(RolesEnum::ADMIN->value, RolesEnum::ADMIN->name, [ PermissionsEnum::CAN_BOOST ]));
 
         $this->rolesServiceMock->setRolePermissions([
-            PermissionsEnum::CAN_BOOST,
-            PermissionsEnum::CAN_CREATE_POST,
-        ], Argument::type(Role::class), true)
+            PermissionsEnum::CAN_CREATE_POST->name => true,
+        ], Argument::type(Role::class))
             ->shouldBeCalled()
             ->willReturn(true);
 

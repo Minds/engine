@@ -196,7 +196,7 @@ class PermissionsController
 
         $role->permissions = array_unique($newPermissions, flags: SORT_REGULAR);
 
-        $this->rolesService->setRolePermissions($role->permissions, $role, $enabled);
+        $this->rolesService->setRolePermissions([ $permission->name => $enabled ], $role);
 
         return $role;
     }

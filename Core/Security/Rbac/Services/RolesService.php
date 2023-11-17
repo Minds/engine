@@ -3,8 +3,10 @@ namespace Minds\Core\Security\Rbac\Services;
 
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Enums\RolesEnum;
+use Minds\Core\Security\Rbac\Exceptions\RbacNotConfigured;
 use Minds\Core\Security\Rbac\Models\Role;
 use Minds\Core\Security\Rbac\Repository;
 use Minds\Core\Security\Rbac\Types\UserRoleEdge;
@@ -21,11 +23,18 @@ class RolesService
     }
 
     /**
+     * Initialise the default permissions. This is a run once function.
+     */
+    public function initPermissions(): void
+    {
+
+    }
+
+    /**
      * Returns all the roles (and their permissions)
      */
     public function getAllRoles(): array
     {
-
         return $this->buildRoles();
     }
 
@@ -45,19 +54,24 @@ class RolesService
         $roles = [];
 
         if ($this->isMultiTenant()) {
-            $roles = $this->repository->getUserRoles((int) $user->getGuid());
+            try {
+                $roles = $this->repository->getUserRoles((int) $user->getGuid());
+            } catch (RbacNotConfigured) {
+                // Build the roles
+                $this->buildRoles();
+
+                // Re-run this function
+                return $this->getRoles($user);
+            }
         } else {
             // Host site, all users will have the default role
             $allRoles = $this->getAllRoles();
             if ($user->isAdmin()) {
-                $roles[RolesEnum::ADMIN->value] = $allRoles[RolesEnum::ADMIN->value];
+                $roles[] = $allRoles[RolesEnum::ADMIN->value];
             }
-        }
 
-        // All users will have a default role
-        if (!isset($roles[RolesEnum::DEFAULT->value])) {
-            $allRoles = $this->getAllRoles();
-            $roles[RolesEnum::DEFAULT->value] = $allRoles[RolesEnum::DEFAULT->value];
+            // All users will have a default role
+            $roles[] = $allRoles[RolesEnum::DEFAULT->value];
         }
     
         return $roles;
@@ -194,13 +208,17 @@ class RolesService
         );
     }
 
-    public function setRolePermissions(array $permissions, Role $role): bool
+    /**
+     * Sets all the permissions a role will have, or wont have
+     * @param array<string,bool> $permissionsMap
+     */
+    public function setRolePermissions(array $permissionsMap, Role $role): bool
     {
         if (!$this->isMultiTenant()) {
             return false;
         }
 
-        return $this->repository->setRolePermissions($permissions, $role->id);
+        return $this->repository->setRolePermissions($permissionsMap, $role->id);
     }
 
     /**
@@ -279,8 +297,15 @@ class RolesService
          * For tenants we fetch from the database too, and ovewrite the default roles
          */
         if ($this->isMultiTenant()) {
-            foreach ($this->repository->getRoles() as $id => $role) {
-                $roles[$id] = $role;
+            try {
+                foreach ($this->repository->getRoles() as $id => $role) {
+                    $roles[$id] = $role;
+                }
+            } catch (RbacNotConfigured) {
+                // If not setup, we will set the default static roles above and save them
+                $this->repository->init($roles);
+
+                return $this->buildRoles();
             }
         }
 

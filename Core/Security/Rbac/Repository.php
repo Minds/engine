@@ -3,8 +3,10 @@ namespace Minds\Core\Security\Rbac;
 
 use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\AbstractRepository;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Enums\RolesEnum;
+use Minds\Core\Security\Rbac\Exceptions\RbacNotConfigured;
 use Minds\Core\Security\Rbac\Models\Role;
 use PDO;
 use Selective\Database\Operator;
@@ -18,9 +20,36 @@ class Repository extends AbstractRepository
 
     public function __construct(
         private Config $config,
+        private MultiTenantBootService $multiTenantBootService,
         ... $args
     ) {
         parent::__construct(...$args);
+    }
+
+    /**
+     * @param array<int, Role> $roles
+     */
+    public function init(array $roles): bool
+    {
+        $this->beginTransaction();
+        foreach ($roles as $roleId => $role) {
+
+            $permissionsMap = [];
+            foreach ($role->permissions as $permission) {
+                $permissionsMap[$permission->name] = true;
+            }
+
+            $success = $this->setRolePermissions($permissionsMap, $roleId, useTransaction: false);
+
+            if (!$success) {
+                $this->rollbackTransaction();
+                return false;
+            }
+        }
+
+        $this->commitTransaction();
+
+        return true;
     }
 
     /**
@@ -39,6 +68,11 @@ class Repository extends AbstractRepository
 
         $stmt->execute();
 
+        // If no results, its not been configured correctly
+        if ($stmt->rowCount() === 0) {
+            throw new RbacNotConfigured();
+        }
+
         $roles = $this->buildRolesFromRows($stmt->fetchAll(PDO::FETCH_ASSOC));
         $this->rolesCache = $roles;
 
@@ -54,7 +88,13 @@ class Repository extends AbstractRepository
         $query = $this->buildGetRolesQuery()
              ->leftJoinRaw('minds_role_user_assignments', 'minds_role_permissions.role_id = minds_role_user_assignments.role_id')
              ->where('user_guid', Operator::EQ, new RawExp(':user_guid'))
+             // Users are always in the default role
              ->orWhere('minds_role_permissions.role_id', Operator::EQ, RolesEnum::DEFAULT->value);
+
+        //  If the tenant root user is the requested user, they will always be an owner
+        if ($userGuid === $this->multiTenantBootService->getTenant()->rootUserGuid) {
+            $query->orWhere('minds_role_permissions.role_id', Operator::EQ, RolesEnum::OWNER->value);
+        }
     
         $stmt = $query->prepare();
 
@@ -62,10 +102,13 @@ class Repository extends AbstractRepository
             'user_guid' => $userGuid
         ]);
 
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // There will always be at least one role that is returned, the default role.
+        // If none are returned, then we are not configured correctly
+        if ($stmt->rowCount() === 0) {
+            throw new RbacNotConfigured();
+        }
 
-        // Save to roles cache as we may need for later, if the user isn't in any roles
-        $this->rolesCache = $this->buildRolesFromRows($rows);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $roles = $this->buildRolesFromRows($rows);
 
@@ -162,59 +205,50 @@ class Repository extends AbstractRepository
 
     /**
      * Sets (and overwrites) permissions of role
+     * Only set $useTransaction to false if a transaction is used by a calling function
+     * @param array<string,bool> $permissionsMap
      */
-    public function setRolePermissions(array $permissions, int $roleId): bool
+    public function setRolePermissions(array $permissionsMap, int $roleId, bool $useTransaction = true): bool
     {
-        $this->beginTransaction();
-
-        // Remove existing permissions
-    
-        $query = $this->mysqlClientWriterHandler->delete()
-            ->from('minds_role_permissions')
-            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
-            ->where('role_id', Operator::EQ, new RawExp(':role_id'));
-
-        $stmt = $query->prepare();
-
-        $success = $stmt->execute([
-            'tenant_id' => $this->config->get('tenant_id'),
-            'role_id' => $roleId,
-        ]);
-
-        if (!$success) {
-            $this->rollbackTransaction();
-            return false;
+        if ($useTransaction) {
+            $this->beginTransaction();
         }
-    
+
         // Add the permissions back
 
-        foreach ($permissions as $permission) {
+        foreach ($permissionsMap as $permission => $enabled) {
             $query = $this->mysqlClientWriterHandler->insert()
                 ->into('minds_role_permissions')
                 ->set([
                     'tenant_id' => new RawExp(':tenant_id'),
                     'permission_id' => new RawExp(':permission'),
                     'role_id ' => new RawExp(':role_id'),
+                    'enabled' => new RawExp(':enabled'),
                 ])
                 ->onDuplicateKeyUpdate([
-                    'permission_id' => new RawExp(':permission'),
+                    'enabled' => new RawExp(':enabled'),
                 ]);
 
             $stmt = $query->prepare();
 
             $success = $stmt->execute([
                 'tenant_id' => $this->config->get('tenant_id'),
-                'permission' => $permission->name,
+                'permission' => $permission,
                 'role_id' => $roleId,
+                'enabled' => (int) $enabled,
             ]);
 
             if (!$success) {
-                $this->rollbackTransaction();
+                if ($useTransaction) {
+                    $this->rollbackTransaction();
+                }
                 return false;
             }
         }
     
-        $this->commitTransaction();
+        if ($useTransaction) {
+            $this->commitTransaction();
+        }
     
         return true;
     }
@@ -224,7 +258,7 @@ class Repository extends AbstractRepository
         $query = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'role_id' => 'minds_role_permissions.role_id',
-                'permissions' => new RawExp("GROUP_CONCAT(permission_id)"),
+                'permissions' => new RawExp("GROUP_CONCAT(IF (enabled, permission_id, null))"),
             ])
             ->from('minds_role_permissions')
             ->where('minds_role_permissions.tenant_id', Operator::EQ, (int) $this->config->get('tenant_id'))
@@ -237,9 +271,9 @@ class Repository extends AbstractRepository
     {
         $roles = [];
         foreach ($rows as $row) {
-            $permissions = array_map(function ($permissionId) {
+            $permissions = $row['permissions'] ? array_map(function ($permissionId) {
                 return constant(PermissionsEnum::class . "::$permissionId");
-            }, explode(',', $row['permissions']));
+            }, explode(',', $row['permissions'])) : [];
 
             $role = new Role(
                 $row['role_id'],

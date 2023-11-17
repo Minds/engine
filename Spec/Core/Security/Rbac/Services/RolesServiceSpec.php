@@ -90,24 +90,15 @@ class RolesServiceSpec extends ObjectBehavior
         $this->repositoryMock->getUserRoles(Argument::any())
             ->shouldBeCalled()
             ->willReturn([
-                new Role(RolesEnum::ADMIN->value, RolesEnum::ADMIN->name, [])
-            ]);
-
-        $this->repositoryMock->getRoles()
-            ->willReturn([
-                RolesEnum::DEFAULT->value => new Role(
-                    RolesEnum::DEFAULT->value,
-                    RolesEnum::DEFAULT->name,
-                    [
-                        PermissionsEnum::CAN_CREATE_POST,
-                    ]
-                ),
+                new Role(RolesEnum::ADMIN->value, RolesEnum::ADMIN->name, []),
+                new Role(RolesEnum::DEFAULT->value, RolesEnum::DEFAULT->name, [])
             ]);
 
         $roles = $this->getRoles($subjectUser);
         $roles->shouldHaveCount(2);
 
-        $roles[RolesEnum::DEFAULT->value]->id->shouldBe(RolesEnum::DEFAULT->value);
+        $roles[0]->id->shouldBe(RolesEnum::ADMIN->value);
+        $roles[1]->id->shouldBe(RolesEnum::DEFAULT->value);
     }
 
     public function it_should_return_roles_for_non_multi_tenant_user()
@@ -117,7 +108,7 @@ class RolesServiceSpec extends ObjectBehavior
         $roles = $this->getRoles($subjectUser);
         $roles->shouldHaveCount(1);
 
-        $roles[RolesEnum::DEFAULT->value]->id->shouldBe(RolesEnum::DEFAULT->value);
+        $roles[0]->id->shouldBe(RolesEnum::DEFAULT->value);
     }
 
     public function it_should_return_roles_for_non_multi_tenant_admin(User $subjectUser)
@@ -127,7 +118,8 @@ class RolesServiceSpec extends ObjectBehavior
         $roles = $this->getRoles($subjectUser);
         $roles->shouldHaveCount(2);
 
-        $roles[RolesEnum::DEFAULT->value]->id->shouldBe(RolesEnum::DEFAULT->value);
+        $roles[0]->id->shouldBe(RolesEnum::ADMIN->value);
+        $roles[1]->id->shouldBe(RolesEnum::DEFAULT->value);
     }
 
     public function it_should_return_user_permissions_for_multi_tenant_user()
@@ -140,14 +132,14 @@ class RolesServiceSpec extends ObjectBehavior
         $this->repositoryMock->getUserRoles(Argument::any())
             ->shouldBeCalled()
             ->willReturn([
-                new Role(RolesEnum::ADMIN->value, RolesEnum::ADMIN->name, [
-                    PermissionsEnum::CAN_BOOST
-                ])
-            ]);
-
-        $this->repositoryMock->getRoles()
-            ->willReturn([
-                RolesEnum::DEFAULT->value => new Role(
+                new Role(
+                    RolesEnum::ADMIN->value,
+                    RolesEnum::ADMIN->name,
+                    [
+                        PermissionsEnum::CAN_BOOST
+                    ]
+                ),
+                new Role(
                     RolesEnum::DEFAULT->value,
                     RolesEnum::DEFAULT->name,
                     [
