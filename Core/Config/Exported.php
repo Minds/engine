@@ -14,6 +14,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\I18n\Manager as I18nManager;
 use Minds\Core\Rewards\Contributions\ContributionValues;
+use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Session;
 use Minds\Core\Supermind\Settings\Models\Settings as SupermindSettings;
 use Minds\Core\ThirdPartyNetworks\Manager as ThirdPartyNetworksManager;
@@ -51,12 +52,14 @@ class Exported
         $i18n = null,
         $blockchain = null,
         private ?ExperimentsManager $experimentsManager = null,
+        private ?RolesService $rolesService = null,
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
         $this->i18n = $i18n ?: Di::_()->get('I18n\Manager');
         $this->blockchain = $blockchain ?: Di::_()->get('Blockchain\Manager');
         $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
+        $this->rolesService ??= Di::_()->get(RolesService::class);
     }
 
     /**
@@ -137,6 +140,12 @@ class Exported
             $canHavePlusTrial = !$user->plus_expires || $user->plus_expires <= strtotime(Wire\Manager::TRIAL_THRESHOLD_DAYS . ' days ago');
             $exported['upgrades']['plus']['monthly']['can_have_trial'] = $canHavePlusTrial;
             $exported['upgrades']['plus']['yearly']['can_have_trial'] = $canHavePlusTrial;
+
+            $exported['permissions'] = array_map(function ($permission) {
+                return $permission->name;
+            }, $this->rolesService->getUserPermissions($user));
+        } else {
+            $exported['permissions'] = [];
         }
 
         if ($context === 'embed') {
