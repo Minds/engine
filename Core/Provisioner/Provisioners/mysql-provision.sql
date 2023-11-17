@@ -586,9 +586,38 @@ ALTER TABLE `minds_tenant_configs`
     ADD community_guidelines text DEFAULT NULL
     AFTER color_scheme;
 
+CREATE TABLE `minds_reports` (
+  `tenant_id` int NOT NULL,
+  `report_guid` bigint NOT NULL,
+  `entity_guid` bigint NOT NULL,
+  `entity_urn` varchar(256) NOT NULL,
+  `reported_by_guid` bigint NOT NULL,
+  `moderated_by_guid` bigint DEFAULT NULL,
+  `reason` tinyint NOT NULL,
+  `sub_reason` tinyint DEFAULT NULL,
+  `status` tinyint NOT NULL,
+  `action` tinyint DEFAULT NULL,
+  `created_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `updated_timestamp` timestamp DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`report_guid`),
+  INDEX (tenant_id)
+);
+
 ALTER TABLE `minds_tenant_configs`
     ADD last_cache_timestamp timestamp DEFAULT NULL
     AFTER updated_timestamp;
+
+ALTER TABLE `minds_entities_activity`
+    ADD `blurb` TEXT DEFAULT NULL
+    AFTER `title`;
+
+ALTER TABLE `minds_entities_activity`
+    ADD `perma_url` TEXT DEFAULT NULL
+    AFTER `blurb`;
+
+ALTER TABLE `minds_entities_activity`
+    ADD `thumbnail_src` TEXT DEFAULT NULL
+    AFTER `perma_url`;
 
 ALTER TABLE `minds_entities_user`
     ADD `language` varchar(32) DEFAULT 'en'
