@@ -589,3 +589,20 @@ ALTER TABLE `minds_tenant_configs`
 ALTER TABLE `minds_tenant_configs`
     ADD last_cache_timestamp timestamp DEFAULT NULL
     AFTER updated_timestamp;
+
+CREATE TABLE  IF NOT EXISTS  minds_role_permissions(
+    `tenant_id` int,
+    `permission_id` varchar(64),
+    `role_id` tinyint,
+    `enabled`       boolean,
+    `created_at` timestamp DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (`tenant_id`, `permission_id`, `role_id`)
+);
+
+CREATE TABLE  IF NOT EXISTS  minds_role_user_assignments(
+    `tenant_id` int,
+    `role_id` tinyint,
+    `user_guid` bigint,
+    `created_at` timestamp DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (`tenant_id`, `role_id`, `user_guid`)
+);
