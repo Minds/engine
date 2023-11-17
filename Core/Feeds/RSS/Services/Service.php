@@ -140,16 +140,16 @@ class Service
         $currentUser = null;
         $lastTenantId = null;
         foreach ($this->repository->getFeeds() as $rssFeed) {
-            if (!$currentUser || (int) $currentUser->getGuid() === $rssFeed->userGuid) {
-                $currentUser = $this->entitiesBuilder->single($rssFeed->userGuid);
-            }
-
             if ((!$lastTenantId && $rssFeed->tenantId !== null) || $lastTenantId !== $rssFeed->tenantId) {
                 if ($lastTenantId) {
                     $this->multiTenantBootService->resetRootConfigs();
                 }
                 $lastTenantId = $rssFeed->tenantId;
                 $this->multiTenantBootService->bootFromTenantId($rssFeed->tenantId);
+            }
+
+            if (!$currentUser || (int) $currentUser->getGuid() === $rssFeed->userGuid) {
+                $currentUser = $this->entitiesBuilder->single($rssFeed->userGuid);
             }
 
             $this->processRssFeed(
