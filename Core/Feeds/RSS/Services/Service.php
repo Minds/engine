@@ -138,15 +138,8 @@ class Service
     public function processFeeds(bool $dryRun = false): void
     {
         $currentUser = null;
-        $lastTenantId = null;
         foreach ($this->repository->getFeeds() as $rssFeed) {
-            if ((!$lastTenantId && $rssFeed->tenantId !== null) || $lastTenantId !== $rssFeed->tenantId) {
-                if ($lastTenantId) {
-                    $this->multiTenantBootService->resetRootConfigs();
-                }
-                $lastTenantId = $rssFeed->tenantId;
-                $this->multiTenantBootService->bootFromTenantId($rssFeed->tenantId);
-            }
+            $this->multiTenantBootService->bootFromTenantId($rssFeed->tenantId);
 
             if (!$currentUser || (int) $currentUser->getGuid() === $rssFeed->userGuid) {
                 $currentUser = $this->entitiesBuilder->single($rssFeed->userGuid);
@@ -157,8 +150,7 @@ class Service
                 user: $currentUser,
                 dryRun: $dryRun
             );
-        }
-        if ($lastTenantId) {
+
             $this->multiTenantBootService->resetRootConfigs();
         }
     }
