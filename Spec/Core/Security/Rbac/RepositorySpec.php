@@ -120,49 +120,69 @@ class RepositorySpec extends ObjectBehavior
         ]);
     }
 
-    // public function it_should_return_a_list_of_users(PDOStatement $stmtMock)
-    // {
-    //     $this->mysqlReplicaMock->quote(Argument::any())->willReturn("");
-    //     $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($stmtMock);
+    public function it_should_return_a_list_of_users(PDOStatement $stmtMock)
+    {
+        $this->mysqlReplicaMock->quote(Argument::any())->willReturn("");
+        $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($stmtMock);
 
-    //     $stmtMock->execute(Argument::any())->willReturn(true);
+        $stmtMock->execute(Argument::any())->willReturn(true);
 
-    //     $stmtMock->fetchAll(PDO::FETCH_ASSOC)->willReturn([
-    //         [
-    //             'user_guid' => 1,
-    //             'role_ids' => "0,4",
-    //         ],
-    //         [
-    //             'user_guid' => 2,
-    //             'role_ids' => "2",
-    //         ]
-    //     ]);
+        $stmtMock->fetchAll(PDO::FETCH_ASSOC)->willReturn([
+            [
+                'user_guid' => 1,
+                'role_ids' => "0,4",
+            ],
+            [
+                'user_guid' => 2,
+                'role_ids' => "2",
+            ]
+        ]);
 
-    //     $roles = $this->getUsersByRole(1);
-    //     $roles->shouldHaveCount(2);
+        $roles = $this->getUsersByRole(1);
 
-    //     $roles[RolesEnum::OWNER->value]->permissions->shouldBe([
-    //         PermissionsEnum::CAN_BOOST,
-    //         PermissionsEnum::CAN_CREATE_POST,
-    //     ]);
+        $roles->shouldYieldLike(new \ArrayIterator([
+            '1' => [0,4],
+            '2' => [2]
+        ]));
+    }
 
-    //     $roles[RolesEnum::DEFAULT->value]->permissions->shouldBe([
-    //         PermissionsEnum::CAN_CREATE_POST,
-    //     ]);
-    // }
+    public function it_should_assign_user_to_a_role(PDOStatement $stmtMock)
+    {
+        $this->mysqlMasterMock->quote(Argument::any())->willReturn("");
+        $this->mysqlMasterMock->prepare(Argument::any())->willReturn($stmtMock);
 
-    // public function it_should_assign_user_to_a_role()
-    // {
+        $stmtMock->execute(Argument::any())->willReturn(true);
 
-    // }
+        $this->assignUserToRole(1, 0)
+            ->shouldBe(true);
+    }
 
-    // public function it_should_unassign_user_to_a_role()
-    // {
-        
-    // }
+    public function it_should_unassign_user_to_a_role(PDOStatement $stmtMock)
+    {
+        $this->mysqlMasterMock->quote(Argument::any())->willReturn("");
+        $this->mysqlMasterMock->prepare(Argument::any())->willReturn($stmtMock);
 
-    // public function it_should_set_role_permissions()
-    // {
+        $stmtMock->execute(Argument::any())->willReturn(true);
 
-    // }
+        $this->unassignUserFromRole(1, 0)
+            ->shouldBe(true);
+    }
+
+    public function it_should_set_role_permissions(PDOStatement $stmtMock)
+    {
+        $this->mysqlMasterMock->quote(Argument::any())->willReturn("");
+        $this->mysqlMasterMock->prepare(Argument::any())->willReturn($stmtMock);
+
+        $this->mysqlMasterMock->inTransaction()->willReturn(false);
+        $this->mysqlMasterMock->beginTransaction()->willReturn(true);
+        $this->mysqlMasterMock->commit()->willReturn(true);
+
+        $stmtMock->execute(Argument::any())->willReturn(true);
+
+        $this->setRolePermissions([
+            PermissionsEnum::CAN_COMMENT->name,
+            PermissionsEnum::CAN_CREATE_POST->name,
+        ], 0)
+            ->shouldBe(true);
+    }
 }

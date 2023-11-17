@@ -117,6 +117,7 @@ class Repository extends AbstractRepository
 
     /**
      * Return a list of all users
+     * @return iterable<int,int[]>
      */
     public function getUsersByRole(
         ?int $roleId = null,
@@ -154,7 +155,7 @@ class Repository extends AbstractRepository
 
         foreach ($rows as $row) {
             $rowIds = isset($row['role_ids']) ? array_map('intval', explode(',', $row['role_ids'])) : [];
-            yield $row['user_guid'] => $rowIds;
+            yield (int) $row['user_guid'] => $rowIds;
         }
     }
 
