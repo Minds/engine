@@ -5,7 +5,6 @@ namespace Minds\Core\Feeds\RSS;
 
 use GuzzleHttp\Client;
 use Laminas\Feed\Reader\Reader;
-use Minds\Core\Data\cache\RssFeedCache;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
@@ -47,8 +46,6 @@ class Provider extends DiProvider
             function (Di $di): ProcessRssFeedService {
                 $reader = new Reader();
                 $reader->setHttpClient($di->get(Psr7RssFeedReaderHttpClient::class));
-                $reader->setCache($di->get(RssFeedCache::class));
-                $reader->useHttpConditionalGet();
 
                 return new ProcessRssFeedService(
                     reader: $reader,

@@ -117,6 +117,10 @@ class Service
             throw new GraphQLException("The feed provided does not belong to the user", 403);
         }
 
+        if ($rssFeed->lastFetchStatus === RssFeedLastFetchStatusEnum::FETCH_IN_PROGRESS) {
+            throw new GraphQLException("The feed is already being refreshed", 403);
+        }
+
         $this->processRssFeed(
             rssFeed: $rssFeed,
             user: $user
@@ -168,7 +172,7 @@ class Service
             return;
         }
         $this->repository->updateRssFeedStatus($rssFeed->feedId, RssFeedLastFetchStatusEnum::FETCH_IN_PROGRESS);
-        
+
         $this->logger->info('Processing RSS feed', [
             'feed_id' => $rssFeed->feedId,
             'url' => $rssFeed->url,
@@ -179,7 +183,7 @@ class Service
 
         try {
             $lastFetchEntryDate = null;
-            foreach ($this->processRssFeedService->fetchFeed(rssFeed: $rssFeed, lastModifiedOffset: date('r', $rssFeed->lastFetchEntryTimestamp)) as $entry) {
+            foreach ($this->processRssFeedService->fetchFeed(rssFeed: $rssFeed) as $entry) {
                 if (!$lastFetchEntryDate || $lastFetchEntryDate != $entry->getDateModified()) {
                     $lastFetchEntryDate = DateTimeImmutable::createFromFormat('U', (string) max($lastFetchEntryDate?->getTimestamp(), $entry->getDateModified()->getTimestamp()));
                     if ($lastFetchEntryDate->getTimestamp() <= $rssFeed->lastFetchEntryTimestamp) {

@@ -611,7 +611,7 @@ CREATE TABLE IF NOT EXISTS `minds_user_rss_feeds` (
     `feed_id` bigint NOT NULL PRIMARY KEY,
     `user_guid` bigint NOT NULL,
     `tenant_id` int DEFAULT NULL,
-    'title' text NOT NULL,
+    `title` text NOT NULL,
     `url` varchar(512) NOT NULL,
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `last_fetch_at` timestamp DEFAULT NULL,

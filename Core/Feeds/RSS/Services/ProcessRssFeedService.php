@@ -36,21 +36,15 @@ class ProcessRssFeedService
 
     /**
      * @param RssFeed $rssFeed
-     * @param string|null $etagOffset
-     * @param string|null $lastModifiedOffset
      * @return iterable|int
      * @throws RssFeedFailedFetchException
      */
     public function fetchFeed(
-        RssFeed $rssFeed,
-        ?string $etagOffset = null,
-        ?string $lastModifiedOffset = null
+        RssFeed $rssFeed
     ): iterable|int {
         try {
             $feed = $this->reader->import(
-                $rssFeed->url,
-                $etagOffset,
-                $lastModifiedOffset
+                $rssFeed->url
             );
         } catch (Exception $e) {
             throw new RssFeedFailedFetchException();
