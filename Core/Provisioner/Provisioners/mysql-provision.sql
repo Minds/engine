@@ -589,3 +589,7 @@ ALTER TABLE `minds_tenant_configs`
 ALTER TABLE `minds_tenant_configs`
     ADD last_cache_timestamp timestamp DEFAULT NULL
     AFTER updated_timestamp;
+
+ALTER TABLE `minds_entities_user`
+    ADD `language` varchar(32) DEFAULT 'en'
+    AFTER `ip`;

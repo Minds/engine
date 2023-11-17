@@ -1154,6 +1154,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         $export['yt_channels'] = $this->getYouTubeChannels();
 
         $export['liquidity_spot_opt_out'] = $this->getLiquiditySpotOptOut();
+        $export['language'] = $this->getLanguage();
 
         return $export;
     }
