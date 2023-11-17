@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Entities\Repositories\MySQLRepository;
 use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
 use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
@@ -61,9 +62,10 @@ class ServicesProvider extends Provider
             function (Di $di): TenantUsersService {
                 return new TenantUsersService(
                     $di->get(TenantUsersRepository::class),
-                    new Save(),
+                    new Save(entitiesRepository: $di->get(MySQLRepository::class)),
                     $di->get('Config'),
                     $di->get(MultiTenantBootService::class),
+                    $di->get('Security\ACL'),
                 );
             }
         );

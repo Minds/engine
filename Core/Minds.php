@@ -30,7 +30,6 @@ class Minds extends base
         Email\Module::class,
         Experiments\Module::class,
         Onboarding\Module::class,
-        Permissions\Module::class,
         Subscriptions\Module::class,
         SendWyre\Module::class,
         Suggestions\Module::class,
@@ -89,6 +88,8 @@ class Minds extends base
         ActivityPub\Module::class,
         Admin\Module::class,
         Storage\Quotas\Module::class,
+        Comments\GraphQL\Module::class,
+        Reports\V2\Module::class
     ];
 
     /**

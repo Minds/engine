@@ -15,7 +15,7 @@ class Repository extends AbstractRepository
     public function getTenantFromDomain(string $domain): ?Tenant
     {
         $query = $this->buildGetTenantQuery()
-            ->where('domain', Operator::EQ, new RawExp(':domain'));
+            ->where('minds_tenants_domain_details.domain', Operator::EQ, new RawExp(':domain'));
             
         $domain = strtolower($domain);
 
@@ -59,9 +59,10 @@ class Repository extends AbstractRepository
         return $this->mysqlClientReaderHandler->select()
             ->from('minds_tenants')
             ->leftJoin('minds_tenant_configs', 'minds_tenants.tenant_id', Operator::EQ, 'minds_tenant_configs.tenant_id')
+            ->leftJoin('minds_tenants_domain_details', 'minds_tenants.tenant_id', Operator::EQ, 'minds_tenants_domain_details.tenant_id')
             ->columns([
                 'minds_tenants.tenant_id',
-                'domain',
+                'minds_tenants_domain_details.domain',
                 'owner_guid',
                 'root_user_guid',
                 'site_name',
@@ -138,14 +139,12 @@ class Repository extends AbstractRepository
             ->into('minds_tenants')
             ->set([
                 'owner_guid' => $tenant->ownerGuid,
-                'domain' => $tenant->domain,
             ])
             ->prepare();
         $statement->execute();
 
         return new Tenant(
             id: $this->mysqlClientWriter->lastInsertId(),
-            domain: $tenant->domain,
             ownerGuid: $tenant->ownerGuid,
             config: $tenant->config
         );

@@ -2,6 +2,9 @@
 
 namespace Minds\Core\Reports\Enums\Reasons\Illegal;
 
+use TheCodingMachine\GraphQLite\Annotations\Type;
+
+#[Type(name: 'IllegalSubReasonEnum')]
 enum SubReasonEnum: int
 {
     case TERRORISM = 1;
