@@ -176,6 +176,8 @@ class RolesService
                 break;
             }
         }
+
+        return;
     }
 
     /**
