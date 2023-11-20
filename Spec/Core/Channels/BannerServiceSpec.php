@@ -34,7 +34,7 @@ class BannerServiceSpec extends ObjectBehavior
         $this->config = $config;
         $this->logger = $logger;
 
-        Di::_()->bind('Storage\S3', function ($di) {
+        Di::_()->bind('Storage', function ($di) {
             return new class {
                 public function __construct()
                 {
