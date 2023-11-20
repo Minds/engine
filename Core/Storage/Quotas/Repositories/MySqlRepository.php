@@ -38,7 +38,7 @@ class MySqlRepository extends AbstractRepository
     public function storeAsset(
         int $assetOwnerGuid,
         int $assetGuid,
-        int $tenantId,
+        ?int $tenantId,
         string $filename,
         AssetTypeEnum $assetTypeEnum,
         int $assetSizeInBytes,
@@ -238,5 +238,28 @@ class MySqlRepository extends AbstractRepository
         }
 
         return $stmt;
+    }
+
+    /**
+     * @param int $assetGuid
+     * @param float $durationInSeconds
+     * @param int|null $tenantId
+     * @return void
+     */
+    public function storeVideoDuration(
+        int $assetGuid,
+        float $durationInSeconds,
+        ?int $tenantId
+    ): void {
+        $this->mysqlClientWriterHandler->update()
+            ->table(self::DB_TABLE)
+            ->set([
+                    'duration_seconds' => $durationInSeconds
+            ])
+            ->where('tenant_id', Operator::EQ, $tenantId)
+            ->where('entity_guid', Operator::EQ, $assetGuid)
+            ->where('filename', Operator::EQ, "cinemr/$assetGuid/source")
+            ->execute();
+
     }
 }

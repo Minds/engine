@@ -2,9 +2,12 @@
 
 namespace Minds\Core\Media\Video\CloudflareStreams;
 
-use Minds\Core\Di;
 
-class Provider extends Di\Provider
+use Minds\Core\Di\Di;
+use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\Storage\Quotas\Manager as StorageQuotasManager;
+
+class Provider extends DiProvider
 {
     public function register()
     {
@@ -14,8 +17,10 @@ class Provider extends Di\Provider
         $this->di->bind('Media\Video\CloudflareStreams\Controllers', function ($di) {
             return new Controllers();
         });
-        $this->di->bind('Media\Video\CloudflareStreams\Webhooks', function ($di) {
-            return new Webhooks();
+        $this->di->bind('Media\Video\CloudflareStreams\Webhooks', function (Di $di) {
+            return new Webhooks(
+                storageQuotasManager: $di->get(StorageQuotasManager::class)
+            );
         });
     }
 }

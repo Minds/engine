@@ -50,6 +50,18 @@ class Manager
         };
     }
 
+    public function storeVideoDuration(
+        Video $asset,
+        float $durationInSeconds,
+        ?int $tenantId
+    ): void {
+        $this->mysqlRepository->storeVideoDuration(
+            (int) $asset->getGuid(),
+            $durationInSeconds,
+            $tenantId
+        );
+    }
+
     /**
      * @param Video $asset
      * @param string|false $filename
@@ -67,7 +79,7 @@ class Manager
         $this->mysqlRepository->storeAsset(
             (int) $asset->getOwnerGuid(),
             (int) $asset->getGuid(),
-            (int) $this->config->get('tenant_id') ?? 0,
+            ((int) $this->config->get('tenant_id')) ?? null,
             $filename,
             AssetTypeEnum::VIDEO,
             $assetSize,
@@ -185,7 +197,7 @@ class Manager
      */
     public function getTenantQuotaUsage(): QuotaDetails
     {
-        $quotaUsage = $this->mysqlRepository->getTenantQuotaUsage($this->config->get('tenant_id') ?? 0);
+        $quotaUsage = $this->mysqlRepository->getTenantQuotaUsage(((int) $this->config->get('tenant_id')) ?? null);
 
         return new QuotaDetails(
             $quotaUsage
@@ -214,7 +226,7 @@ class Manager
         $edges = [];
         foreach (
             $this->mysqlRepository->getTenantAssetsMetadata(
-                tenantId: $this->config->get('tenant_id') ?? 0,
+                tenantId: ((int) $this->config->get('tenant_id')) ?? null,
                 limit: $limit,
                 offset: $offset,
                 hasNextPage: $hasNextPage

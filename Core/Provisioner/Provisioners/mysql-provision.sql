@@ -420,7 +420,7 @@ CREATE TABLE IF NOT EXISTS minds_asset_storage (
     entity_type int NOT NULL,
     filename varchar(256) NOT NULL,
     owner_guid bigint NOT NULL,
-    tenant_id bigint NOT NULL,
+    tenant_id bigint DEFAULT NULL,
     size_bytes bigint NOT NULL,
     created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
     updated_timestamp timestamp DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
@@ -603,7 +603,7 @@ ALTER TABLE `minds_tenant_configs`
 CREATE TABLE `minds_reports` (
   `tenant_id` int NOT NULL,
   `report_guid` bigint NOT NULL,
-  `entity_guid` bigint NOT NULL,
+]  `entity_guid` bigint NOT NULL,
   `entity_urn` varchar(256) NOT NULL,
   `reported_by_guid` bigint NOT NULL,
   `moderated_by_guid` bigint DEFAULT NULL,
