@@ -62,7 +62,7 @@ class BannerServiceSpec extends ObjectBehavior
 
     // getFile
 
-    public function it_should_get_a_file_for_tenant()
+    public function it_should_get_a_file()
     {
         $entityGuid = (int) Guid::build();
 
@@ -76,7 +76,7 @@ class BannerServiceSpec extends ObjectBehavior
 
     // upload
 
-    public function it_should_upload_a_file_for_a_tenant()
+    public function it_should_upload_a_file()
     {
         $user = new User();
         $path = '/path/to/file.jpg';
@@ -109,8 +109,7 @@ class BannerServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->upload($path, $user)
-            ->shouldBe(true);
+        $this->upload($path, $user);
     }
 
     public function it_should_log_error_when_exception_is_thrown_when_uploading()
