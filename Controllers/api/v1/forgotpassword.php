@@ -9,14 +9,13 @@ namespace Minds\Controllers\api\v1;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Email\V2\Campaigns\Recurring\ForgotPassword\ForgotPasswordEmailer;
 use Minds\Core\Email\V2\Partials\ActionButton\ActionButton;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Security\ACL;
-use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Zend\Diactoros\ServerRequestFactory;
 
 class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
@@ -27,9 +26,11 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
     public function __construct(
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?Save $save = null,
+        private ?ForgotPasswordEmailer $forgotPasswordEmailer = null
     ) {
         $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
         $this->save ??= new Save();
+        $this->forgotPasswordEmailer ??= new ForgotPasswordEmailer();
     }
 
     /**
@@ -81,43 +82,10 @@ class forgotpassword implements Interfaces\Api, Interfaces\ApiIgnorePam
                     break;
                 }
                 $code = Core\Security\Password::reset($user);
-                $link = Di::_()->get('Config')->get('site_url') . "forgot-password;username=" . $user->username . ";code=" . $code;
 
-                //now send an email
-                $mailer = Di::_()->get('Mailer');
-                $message = new Core\Email\V2\Common\Message();
-                $template = new Core\Email\V2\Common\Template();
-                $translator = $template->getTranslator();
-
-                $subject = $translator->trans('Password reset');
-
-                //prepare the action button
-                $actionButton = (new ActionButton())
-                 ->setPath($link)
-                 ->setLabel($translator->trans('Reset Password'));
-
-                $template
-                  ->setLocale($user->getLanguage())
-                  ->setTemplate('default.tpl')
-                  ->setBody(dirname(dirname(dirname(dirname(__FILE__)))) . '/Core/Email/V2/Campaigns/Recurring/ForgotPassword/template.tpl')
-                  ->set('user', $user)
-                  ->set('username', $user->username)
-                  ->set('link', $link)
-                  ->set('signoff', $translator->trans('Thank you,'))
-                  ->set('preheader', $translator->trans('Reset your password by clicking this link.'))
-                  ->set('title', $subject)
-                  ->set('actionButton', $actionButton->build());
-                $message->setTo($user)
-                  ->setSubject($subject)
-                  ->setHtml($template);
-                $mailer->queue($message, true);
-
-                error_log(
-                    "ForgotPasswordRequest "
-                    .", guid: {$user->guid}"
-                    .", addr: " . $_SERVER['HTTP_X_FORWARDED_FOR']
-                );
- 
+                $this->forgotPasswordEmailer->setUser($user)
+                    ->setCode($code)
+                    ->send();
                 break;
             case "reset":
                 $user = $this->entitiesBuilder->getByUserByIndex(strtolower($_POST['username']));
