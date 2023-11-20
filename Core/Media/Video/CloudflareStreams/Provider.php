@@ -2,7 +2,6 @@
 
 namespace Minds\Core\Media\Video\CloudflareStreams;
 
-
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Storage\Quotas\Manager as StorageQuotasManager;
