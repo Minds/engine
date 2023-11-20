@@ -33,7 +33,6 @@ class Minds extends base
         Email\Module::class,
         Experiments\Module::class,
         Onboarding\Module::class,
-        Permissions\Module::class,
         Subscriptions\Module::class,
         SendWyre\Module::class,
         Suggestions\Module::class,

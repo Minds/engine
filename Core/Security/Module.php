@@ -16,6 +16,7 @@ class Module implements ModuleInterface
         TOTP\Module::class,
         TwoFactor\Module::class,
         Password\Module::class,
+        Rbac\Module::class,
     ];
 
     /**
