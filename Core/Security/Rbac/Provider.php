@@ -10,6 +10,8 @@ use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use  Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Security\Rbac\Controllers\PermissionsController;
 use Minds\Core\Security\Rbac\Entities;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
+use Minds\Core\Sessions\ActiveSession;
 
 class Provider extends DiProvider
 {
@@ -42,5 +44,9 @@ class Provider extends DiProvider
                 $di->get('Logger')
             );
         });
+
+        $this->di->bind(RbacGatekeeperService::class, function ($di) {
+            return new RbacGatekeeperService($di->get(RolesService::class), new ActiveSession());
+        }, ['useFactory' => true]);
     }
 }

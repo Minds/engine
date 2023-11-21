@@ -86,16 +86,19 @@ class Repository extends AbstractRepository
     public function getUserRoles(int $userGuid): array
     {
         $query = $this->buildGetRolesQuery()
-             ->leftJoinRaw('minds_role_user_assignments', 'minds_role_permissions.role_id = minds_role_user_assignments.role_id')
-             ->where('user_guid', Operator::EQ, new RawExp(':user_guid'))
-             // Users are always in the default role
-             ->orWhere('minds_role_permissions.role_id', Operator::EQ, RolesEnum::DEFAULT->value);
+             ->leftJoinRaw('minds_role_user_assignments', 'minds_role_permissions.role_id = minds_role_user_assignments.role_id');
+
+        $where = "user_guid = :user_guid";
+
+        $where .= " OR minds_role_permissions.role_id = " . RolesEnum::DEFAULT->value;
 
         //  If the tenant root user is the requested user, they will always be an owner
         if ($userGuid === $this->multiTenantBootService->getTenant()->rootUserGuid) {
-            $query->orWhere('minds_role_permissions.role_id', Operator::EQ, RolesEnum::OWNER->value);
+            $where .= " OR minds_role_permissions.role_id = " . RolesEnum::OWNER->value;
         }
-    
+
+        $query->whereRaw("($where)");
+        
         $stmt = $query->prepare();
 
         $stmt->execute([
@@ -154,8 +157,22 @@ class Repository extends AbstractRepository
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($rows as $row) {
-            $rowIds = isset($row['role_ids']) ? array_map('intval', explode(',', $row['role_ids'])) : [];
-            yield (int) $row['user_guid'] => $rowIds;
+            $roleIds = isset($row['role_ids']) ? array_map('intval', explode(',', $row['role_ids'])) : [];
+            
+            // If no roles, User will always have the default role
+            if (empty($roleIds)) {
+                $roleIds[] = RolesEnum::DEFAULT->value;
+            }
+
+            // Site owner will always have the owner role
+            if (
+                (int) $row['user_guid'] === $this->multiTenantBootService->getTenant()->rootUserGuid
+                && !in_array(RolesEnum::OWNER->value, $roleIds, true)
+            ) {
+                $roleIds[] = RolesEnum::OWNER->value;
+            }
+            
+            yield (int) $row['user_guid'] => $roleIds;
         }
     }
 

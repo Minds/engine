@@ -20,6 +20,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
+use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Session;
 use Minds\Entities;
 use Minds\Interfaces;
@@ -171,6 +172,11 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         $response['status'] = 'success';
         $response['user'] = $user->export();
+
+        // Return permissions
+        $response['permissions'] = array_map(function ($permission) {
+            return $permission->name;
+        }, Di::_()->get(RolesService::class)->getUserPermissions($user));
 
         return Factory::response($response);
     }

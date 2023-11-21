@@ -26,7 +26,7 @@ class PermissionsController
 
     /**
      * Returns the permissions that the current session holds
-     * @return string[]
+     * @return PermissionsEnum[]
      */
     #[Query]
     #[Logged]

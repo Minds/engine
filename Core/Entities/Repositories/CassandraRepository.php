@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Entities\Repositories;
 
+use Minds\Core\Blogs\Blog;
 use Minds\Core\Data\Call;
 use Minds\Core\Data\Cassandra\Thrift\Indexes;
 use Minds\Core\Data\lookup;
@@ -122,7 +123,8 @@ class CassandraRepository implements EntitiesRepositoryInterface
             case Image::class:
             case Video::class:
             case Group::class:
-                /**  @var User|Activity|Image|Video|Group */
+            case Blog::class:
+                /**  @var User|Activity|Image|Video|Group|Blog */
                 $entity = $entity;
                 $data = $entity->toArray();
                 break;

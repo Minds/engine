@@ -12,9 +12,11 @@ use Minds\Core\Feeds\Elastic\Manager as ElasticFeedsManager;
 use Minds\Core\Feeds\FeedSyncEntity;
 use Minds\Common\Repository\Response;
 use Minds\Core\Discovery\Manager;
+use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
@@ -34,9 +36,11 @@ class ManagerSpec extends ObjectBehavior
     /** @var User */
     private $user;
 
-    public function let(ElasticSearch\Client $es, EntitiesBuilder $entitiesBuilder, HashtagManager $hashtagManager, ElasticFeedsManager $elasticFeedsManager, User $user)
+    private Collaborator $aclMock;
+
+    public function let(ElasticSearch\Client $es, EntitiesBuilder $entitiesBuilder, HashtagManager $hashtagManager, ElasticFeedsManager $elasticFeedsManager, User $user, ACL $aclMock)
     {
-        $this->beConstructedWith($es, $entitiesBuilder, null, $hashtagManager, $elasticFeedsManager, $user);
+        $this->beConstructedWith($es, $entitiesBuilder, null, $hashtagManager, $elasticFeedsManager, $user, $aclMock);
         $this->es = $es;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->hashtagManager = $hashtagManager;
@@ -45,6 +49,7 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($this->hashtagManager);
         $this->elasticFeedsManager = $elasticFeedsManager;
         $this->user = $user;
+        $this->aclMock = $aclMock;
     }
 
     public function it_is_initializable()
@@ -133,7 +138,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(100);
     }
 
-    public function it_should_return_post_trends()
+    public function it_should_return_post_trends(Activity $activityMock)
     {
         $this->es->request(Argument::any())
             ->willReturn([
@@ -161,21 +166,35 @@ class ManagerSpec extends ObjectBehavior
                 ]
             ]);
 
+        $activityMock->getType()->willReturn('activity');
+        $activityMock->getGuid()->willReturn(123);
+        $activityMock->getOwnerGuid()->willReturn(1);
+        $activityMock->get("owner_guid")->willReturn(1);
+        $activityMock->getSpam()->willReturn(false);
+        $activityMock->getDeleted()->willReturn(false);
+        $activityMock->get("access_id")->willReturn("2");
+        $activityMock->get(Argument::any())->willReturn("");
+        $activityMock->getTimeCreated()->willReturn(time());
+        $activityMock->export()->willReturn([
+            'thumbnail_src' => 'test',
+        ]);
+
         $this->entitiesBuilder
             ->single(123)
             ->willReturn(
-                (new Activity())
-                    ->set('guid', '123')
-                    ->setThumbnail('test')
+                $activityMock
+                // (new Activity())
+                //     ->set('guid', '123')
+                //     ->setThumbnail('test')
             );
 
         $this->entitiesBuilder
             ->single(456)
             ->willReturn(
-                (new Activity())
-                    ->set('guid', '456')
-                    ->setThumbnail('test')
+                $activityMock
             );
+
+        $this->aclMock->read(Argument::any())->willReturn(true);
 
         $postTrends = $this->getPostTrends([ 'music' ], [ 'shuffle' => false ]);
         $postTrends[0]

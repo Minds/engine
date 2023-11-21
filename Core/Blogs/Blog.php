@@ -11,6 +11,7 @@
 
 namespace Minds\Core\Blogs;
 
+use Minds\Core\Blogs\Legacy\Entity;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
@@ -770,5 +771,17 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
         $this->allowComments = $allowComments;
         $this->markAsDirty('allowComments');
         return $this;
+    }
+
+    /**
+     * Convert the modal to an assoc array
+     */
+    public function toArray(): array
+    {
+        $array = [];
+        foreach (Entity::$attributeMap as $key => $remap) {
+            $array[$remap] = $this->$key;
+        }
+        return $array;
     }
 }
