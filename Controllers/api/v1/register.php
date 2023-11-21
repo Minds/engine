@@ -143,7 +143,6 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 'friend_guid' => "",
                 'invitecode' => "",
                 'referrer' => isset($_COOKIE['referrer']) ? $_COOKIE['referrer'] : '',
-                'tenant_id' => Di::_()->get('Config')->get('tenant_id') ?? null
             ];
 
             (new PseudonymousIdentifier())

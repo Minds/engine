@@ -115,7 +115,6 @@ class Register
                 Core\Queue\Client::build()->setQueue('Registered')
                     ->send([
                         'user_guid' => (string) $params['user']->guid,
-                        'tenant_id' => $params['tenant_id'] ?? null,
                     ]);
             } catch (\Exception $e) {
             }
