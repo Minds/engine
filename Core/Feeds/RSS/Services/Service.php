@@ -176,8 +176,8 @@ class Service
         try {
             $lastFetchEntryDate = null;
             foreach ($this->processRssFeedService->fetchFeed(rssFeed: $rssFeed) as $entry) {
-                if (!$lastFetchEntryDate || $lastFetchEntryDate != $entry->getDateModified()) {
-                    $lastFetchEntryDate = DateTimeImmutable::createFromFormat('U', (string) max($lastFetchEntryDate?->getTimestamp(), $entry->getDateModified()->getTimestamp()));
+                if (!$lastFetchEntryDate || ($entry->getDateModified() && $lastFetchEntryDate != $entry->getDateModified())) {
+                    $lastFetchEntryDate = DateTimeImmutable::createFromFormat('U', (string) $entry->getDateModified()->getTimestamp());
                     if ($lastFetchEntryDate->getTimestamp() <= $rssFeed->lastFetchEntryTimestamp) {
                         $lastFetchEntryDate = DateTimeImmutable::createFromFormat('U', (string) $rssFeed->lastFetchEntryTimestamp);
                         $this->logger->info("Skipping entry {$entry->getTitle()} as it is older than last fetch entry timestamp");
