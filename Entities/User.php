@@ -153,6 +153,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         $this->attributes['dismissed_widgets'] = [];
         $this->attributes['liquidity_spot_opt_out'] = 0;
         $this->attributes['supermind_settings'] = [];
+        $this->attributes['language'] = 'en';
         $this->attributes['source'] = FederatedEntitySourcesEnum::LOCAL->value;
         $this->attributes['canonical_url'] = null;
 
