@@ -104,7 +104,7 @@ class Entity
                 } elseif ($column == 'published') {
                     $value = $value === '' || !!$value;
                 }
-                if ($setter === "CustomMeta") {
+                if ($setter === "setCustomMeta") {
                     $value ??= [];
                 }
 
