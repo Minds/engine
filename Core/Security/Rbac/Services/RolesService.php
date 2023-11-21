@@ -160,10 +160,6 @@ class RolesService
                 $userRoles[$roleId] = $allRoles[$roleId];
             }
 
-            if (!isset($userRoles[RolesEnum::DEFAULT->value])) {
-                $userRoles[RolesEnum::DEFAULT->value] = $allRoles[RolesEnum::DEFAULT->value];
-            }
-
             $loadAfter = base64_encode(++$offset);
 
             yield new UserRoleEdge(

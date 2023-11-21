@@ -51,6 +51,8 @@ use Minds\Helpers\StringLengthValidators\MessageLengthValidator;
 use Minds\Helpers\StringLengthValidators\TitleLengthValidator;
 use Stripe\Exception\ApiErrorException;
 use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 
 class Manager
 {
@@ -107,7 +109,8 @@ class Manager
         $entitiesBuilder = null,
         private ?MessageLengthValidator $messageLengthValidator = null,
         private ?TitleLengthValidator $titleLengthValidator = null,
-        private ?ElasticManager $elasticManager = null
+        private ?ElasticManager $elasticManager = null,
+        private ?RbacGatekeeperService $rbacGatekeeperService = null,
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -124,6 +127,7 @@ class Manager
         $this->messageLengthValidator = $messageLengthValidator ?? new MessageLengthValidator();
         $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
         $this->elasticManager ??= Di::_()->get('Feeds\Elastic\Manager');
+        $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
     }
 
     public function getSupermindManager(): SupermindManager
@@ -142,6 +146,14 @@ class Manager
      */
     public function add(Activity $activity, bool $fromV2Controller = false): bool
     {
+        // Check RBAC
+        // Reminds are interactions, quote post and original posts are create post
+        if ($activity->isRemind()) {
+            $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_INTERACT);
+        } else {
+            $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_CREATE_POST);
+        }
+
         $this->validateStringLengths($activity);
 
         // Ensure reminds & quoted posts inherit the NSFW settings
