@@ -7,6 +7,7 @@ use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Log\Logger;
 use Minds\Core\Storage\Quotas\Enums\AssetTypeEnum;
+use Minds\Core\Storage\Quotas\Enums\VideoQualityEnum;
 use Minds\Core\Storage\Quotas\Types\AssetMetadata;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
@@ -258,7 +259,7 @@ class MySqlRepository extends AbstractRepository
             ])
             ->where('tenant_id', Operator::EQ, $tenantId)
             ->where('entity_guid', Operator::EQ, $assetGuid)
-            ->where('filename', Operator::EQ, "cinemr/$assetGuid/source")
+            ->where('filename', Operator::EQ, VideoQualityEnum::SOURCE->value)
             ->execute();
 
     }

@@ -12,6 +12,7 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Storage\Quotas\Enums\AssetTypeEnum;
 use Minds\Core\Storage\Quotas\Enums\VideoAssetQuality;
 use Minds\Core\Storage\Quotas\Enums\VideoAssetQualityEnum;
+use Minds\Core\Storage\Quotas\Enums\VideoQualityEnum;
 use Minds\Core\Storage\Quotas\Repositories\MySqlRepository;
 use Minds\Core\Storage\Quotas\Types\AssetConnection;
 use Minds\Core\Storage\Quotas\Types\AssetMetadata;
@@ -74,13 +75,15 @@ class Manager
             $filename = $this->config->get('transcoder')['dir'] . "/" . $asset->get('cinemr_guid') . "/source";
         }
 
+        $videoQuality = VideoQualityEnum::fromFilenameSuffix($filename);
+
         $assetSize = $this->getAssetSize($asset, $filename);
 
         $this->mysqlRepository->storeAsset(
             (int) $asset->getOwnerGuid(),
             (int) $asset->getGuid(),
             ((int) $this->config->get('tenant_id')) ?? null,
-            $filename,
+            $videoQuality->value,
             AssetTypeEnum::VIDEO,
             $assetSize,
             false
