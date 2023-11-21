@@ -481,6 +481,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'last_login' => MySQLDataTypeEnum::TIMESTAMP,
                     'email_confirmation_token' => MySQLDataTypeEnum::TEXT,
                     'email_confirmed_at' => MySQLDataTypeEnum::TIMESTAMP,
+                    'password_reset_code' => MySQLDataTypeEnum::TEXT,
                     'merchant' => MySQLDataTypeEnum::JSON,
                     'social_profiles' => MySQLDataTypeEnum::JSON,
                     'tags' => MySQLDataTypeEnum::JSON,

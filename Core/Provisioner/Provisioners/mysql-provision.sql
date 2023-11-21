@@ -622,6 +622,10 @@ CREATE TABLE IF NOT EXISTS `minds_user_rss_feeds` (
     UNIQUE KEY (`user_guid`, `url`)
 );
 
+ALTER TABLE `minds_entities_user`
+	ADD `password_reset_code` text
+	AFTER `email_confirmed_at`;
+
 ALTER TABLE `minds_entities_activity`
     ADD `blurb` TEXT DEFAULT NULL
     AFTER `title`;
