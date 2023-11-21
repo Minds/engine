@@ -104,6 +104,9 @@ class Entity
                 } elseif ($column == 'published') {
                     $value = $value === '' || !!$value;
                 }
+                if ($setter === "CustomMeta") {
+                    $value ??= [];
+                }
 
                 $blog->$setter($value);
             }
