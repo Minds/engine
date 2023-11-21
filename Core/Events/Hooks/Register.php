@@ -3,11 +3,11 @@
 namespace Minds\Core\Events\Hooks;
 
 use Minds\Core;
-use Minds\Core\Referrals\Referral;
-use Minds\Entities;
-use Minds\Core\Events\Dispatcher;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Events\Dispatcher;
+use Minds\Core\Referrals\Referral;
+use Minds\Entities;
 
 class Register
 {
@@ -115,6 +115,7 @@ class Register
                 Core\Queue\Client::build()->setQueue('Registered')
                     ->send([
                         'user_guid' => (string) $params['user']->guid,
+                        'tenant_id' => $params['tenant_id'] ?? null,
                     ]);
             } catch (\Exception $e) {
             }
