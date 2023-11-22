@@ -130,19 +130,22 @@ class RepositorySpec extends ObjectBehavior
         $stmtMock->fetchAll(PDO::FETCH_ASSOC)->willReturn([
             [
                 'user_guid' => 1,
-                'role_ids' => "0,4",
+                'role_ids' => "4",
             ],
             [
                 'user_guid' => 2,
-                'role_ids' => "2",
+                'role_ids' => "1,2",
             ]
         ]);
+
+        $this->multiTenantBootServiceMock->getTenant()
+            ->willReturn(new Tenant(id: 1, rootUserGuid: 1));
 
         $roles = $this->getUsersByRole(1);
 
         $roles->shouldYieldLike(new \ArrayIterator([
-            '1' => [0,4],
-            '2' => [2]
+            '1' => [4,0],
+            '2' => [1,2]
         ]));
     }
 

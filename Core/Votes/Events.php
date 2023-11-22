@@ -20,6 +20,7 @@ use Minds\Core\Session;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Entities;
 use Minds\Entities\Activity;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\Group;
 use Minds\Entities\User;
 use Minds\Helpers;
@@ -263,6 +264,10 @@ class Events
             $export = $event->response() ?: [];
             $params = $event->getParameters();
             $entity = $params['entity'];
+
+            if (!$entity instanceof EntityInterface) {
+                return;
+            }
 
             if ($entity instanceof Comment) {
                 return;

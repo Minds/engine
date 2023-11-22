@@ -15,12 +15,15 @@ use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Luid;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Core\Security\Spam;
 use Minds\Entities\Activity;
 use Minds\Entities\Entity;
 use Minds\Entities\User;
 use Minds\Exceptions\BlockedUserException;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
@@ -54,6 +57,8 @@ class ManagerSpec extends ObjectBehavior
 
     /** @var KeyValueLimiter */
     protected $kvLimiter;
+
+    private Collaborator $rbacGatekeeperServiceMock;
     
     public function let(
         Repository $repository,
@@ -68,6 +73,7 @@ class ManagerSpec extends ObjectBehavior
         KeyValueLimiter $kvLimiter,
         EventsDispatcher $eventsDispatcher,
         RelationalRepository $relationalRepository,
+        RbacGatekeeperService $rbacGatekeeperServiceMock,
     ) {
         $this->beConstructedWith(
             $repository,
@@ -82,6 +88,7 @@ class ManagerSpec extends ObjectBehavior
             $kvLimiter,
             $eventsDispatcher,
             $relationalRepository,
+            $rbacGatekeeperServiceMock,
         );
 
         $this->repository = $repository;
@@ -94,6 +101,7 @@ class ManagerSpec extends ObjectBehavior
         $this->entitiesBuilder = $entitiesBuilder;
         $this->spam = $spam;
         $this->kvLimiter = $kvLimiter;
+        $this->rbacGatekeeperServiceMock = $rbacGatekeeperServiceMock;
     }
 
     public function it_is_initializable()
@@ -124,6 +132,8 @@ class ManagerSpec extends ObjectBehavior
 
         $comment->getUrn()
             ->willReturn('urn:comment:fake');
+
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_COMMENT)->willReturn(true);
 
         $this->entitiesBuilder->single(5000)
             ->shouldBeCalled()
@@ -189,6 +199,8 @@ class ManagerSpec extends ObjectBehavior
         Entity $entity,
         User $owner
     ) {
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_COMMENT)->willReturn(true);
+    
         $comment->getEntityGuid()
             ->shouldBeCalled()
             ->willReturn(5000);
@@ -222,6 +234,8 @@ class ManagerSpec extends ObjectBehavior
         Entity $entity,
         User $owner
     ) {
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_COMMENT)->willReturn(true);
+
         $comment->getOwnerGuid()
             ->shouldBeCalled()
             ->willReturn(1000);
