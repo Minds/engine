@@ -139,7 +139,9 @@ class Service
     {
         $currentUser = null;
         foreach ($this->repository->getFeeds() as $rssFeed) {
-            $this->multiTenantBootService->bootFromTenantId($rssFeed->tenantId);
+            if ($rssFeed->tenantId) {
+                $this->multiTenantBootService->bootFromTenantId($rssFeed->tenantId);
+            }
 
             if (!$currentUser || (int) $currentUser->getGuid() === $rssFeed->userGuid) {
                 $currentUser = $this->entitiesBuilder->single($rssFeed->userGuid);
@@ -151,7 +153,9 @@ class Service
                 dryRun: $dryRun
             );
 
-            $this->multiTenantBootService->resetRootConfigs();
+            if ($rssFeed->tenantId) {
+                $this->multiTenantBootService->resetRootConfigs();
+            }
         }
     }
 
@@ -161,8 +165,14 @@ class Service
         bool $dryRun = false
     ): void {
         if ($rssFeed->lastFetchStatus === RssFeedLastFetchStatusEnum::FETCH_IN_PROGRESS) {
+            $this->logger->info('Skipping RSS feed as it is already being processed', [
+                'feed_id' => $rssFeed->feedId,
+                'url' => $rssFeed->url,
+                'tenant' => $rssFeed->tenantId,
+            ]);
             return;
         }
+
         $this->repository->updateRssFeedStatus($rssFeed->feedId, RssFeedLastFetchStatusEnum::FETCH_IN_PROGRESS);
 
         $this->logger->info('Processing RSS feed', [
