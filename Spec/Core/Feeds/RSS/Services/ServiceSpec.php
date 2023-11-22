@@ -83,9 +83,9 @@ class ServiceSpec extends ObjectBehavior
             ->willReturn($rssEntryMock);
 
         $this->mySQLRepositoryMock->createRssFeed(
-            Argument::that(fn(Uri $uri): bool => (string) $uri === 'https://test.com'),
-            Argument::that(fn(string $title): bool => $title === 'Test'),
-            Argument::that(fn(User $user): bool => $user->getGuid() === '123')
+            Argument::that(fn (Uri $uri): bool => (string) $uri === 'https://test.com'),
+            Argument::that(fn (string $title): bool => $title === 'Test'),
+            Argument::that(fn (User $user): bool => $user->getGuid() === '123')
         )
             ->shouldBeCalledOnce()
             ->willReturn($rssFeedMock);
@@ -205,7 +205,7 @@ class ServiceSpec extends ObjectBehavior
         );
 
         $this->mySQLRepositoryMock->getFeeds(
-            Argument::that(fn(User $user): bool => $user->getGuid() === '123')
+            Argument::that(fn (User $user): bool => $user->getGuid() === '123')
         )
             ->shouldBeCalledOnce()
             ->willYield([$rssFeedMock]);
@@ -307,8 +307,8 @@ class ServiceSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->mySQLRepositoryMock->updateRssFeed(
-            Argument::that(fn(int $feedId): bool => $feedId === 0),
-            Argument::that(fn(DateTimeImmutable $lastFetchEntryDate): bool => $lastFetchEntryDate->getTimestamp() === $entryTimestamp),
+            Argument::that(fn (int $feedId): bool => $feedId === 0),
+            Argument::that(fn (DateTimeImmutable $lastFetchEntryDate): bool => $lastFetchEntryDate->getTimestamp() === $entryTimestamp),
             RssFeedLastFetchStatusEnum::SUCCESS
         )
             ->shouldBeCalledOnce()
