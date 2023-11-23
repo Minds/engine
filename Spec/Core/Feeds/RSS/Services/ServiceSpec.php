@@ -308,7 +308,7 @@ class ServiceSpec extends ObjectBehavior
 
         $this->mySQLRepositoryMock->updateRssFeed(
             Argument::that(fn (int $feedId): bool => $feedId === 0),
-            Argument::that(fn (DateTimeImmutable $lastFetchEntryDate): bool => $lastFetchEntryDate->getTimestamp() === $entryTimestamp),
+            null,
             RssFeedLastFetchStatusEnum::SUCCESS
         )
             ->shouldBeCalledOnce()

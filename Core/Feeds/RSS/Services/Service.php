@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\Feeds\RSS\Services;
 
-use DateTimeImmutable;
 use Exception;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\RSS\Enums\RssFeedLastFetchStatusEnum;
@@ -188,19 +187,9 @@ class Service
         try {
             $lastFetchEntryDate = null;
             foreach ($this->processRssFeedService->fetchFeed(rssFeed: $rssFeed) as $entry) {
-                if (!$lastFetchEntryDate || ($entry->getDateModified() && $lastFetchEntryDate != $entry->getDateModified())) {
-                    $lastFetchEntryDate = DateTimeImmutable::createFromFormat('U', (string) max($lastFetchEntryDate?->getTimestamp() , $entry->getDateModified()->getTimestamp()));
-                    if ($lastFetchEntryDate->getTimestamp() <= $rssFeed->lastFetchEntryTimestamp) {
-                        $lastFetchEntryDate = DateTimeImmutable::createFromFormat('U', (string) $rssFeed->lastFetchEntryTimestamp);
-                        $this->logger->info("Skipping entry {$entry->getTitle()} as it is older than last fetch entry timestamp");
-                        continue;
-                    }
+                if ($entry->getDateModified()->getTimestamp() <= $rssFeed->lastFetchAtTimestamp) {
+                    $this->logger->info("Skipping entry {$entry->getTitle()} as it is older than last fetch timestamp");
                 }
-
-                $this->logger->info("===================================");
-                $this->logger->info("Title: {$entry->getTitle()}");
-                $this->logger->info("Link: {$entry->getLink()}");
-                $this->logger->info("Date: {$entry->getDateModified()->format('Y-m-d H:i:s')}");
 
                 if ($dryRun) {
                     continue;
@@ -224,7 +213,7 @@ class Service
             if ($dryRun) {
                 $this->logger->info('Dry run, not updating last fetch status');
             } else {
-                $this->repository->updateRssFeed($rssFeed->feedId, $lastFetchEntryDate, $status);
+                $this->repository->updateRssFeed($rssFeed->feedId, null, $status);
             }
         }
     }
