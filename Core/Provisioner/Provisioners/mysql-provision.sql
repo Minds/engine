@@ -423,6 +423,7 @@ CREATE TABLE IF NOT EXISTS minds_asset_storage (
     `owner_guid` bigint NOT NULL,
     `tenant_id` bigint DEFAULT NULL,
     `size_bytes` bigint NOT NULL,
+    `duration_seconds` int DEFAULT NULL,
     `created_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP,
     `updated_timestamp` timestamp DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     `deleted` boolean NOT NULL DEFAULT FALSE,
