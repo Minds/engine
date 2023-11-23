@@ -487,6 +487,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'tags' => MySQLDataTypeEnum::JSON,
                     'eth_wallet' => MySQLDataTypeEnum::TEXT,
                     'ip' =>  MySQLDataTypeEnum::INT,
+                    'language' => MySQLDataTypeEnum::TEXT,
                     'canonical_url' => MySQLDataTypeEnum::TEXT,
                     'source' => MySQLDataTypeEnum::TEXT,
                 ];

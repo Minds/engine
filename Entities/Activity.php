@@ -5,6 +5,7 @@ namespace Minds\Entities;
 use Minds\Core;
 use Minds\Core\Analytics;
 use Minds\Core\Di\Di;
+use Minds\Core\Feeds\Activity\Manager;
 use Minds\Core\Feeds\Activity\RemindIntent;
 use Minds\Core\Queue;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
@@ -110,7 +111,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     {
         parent::__construct($guid);
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
-        $this->activityManager = $activityManager ?? Di::_()->get('Feeds\Activity\Manager');
+        $this->activityManager = $activityManager;
         if ($cache) {
             // Do nothing, stops static analysis falure until we refactor not having this value
         }
@@ -894,7 +895,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
 
         if (!$entity instanceof Activity) {
             $guid = $entity->getGuid();
-            $entity = $this->activityManager->createFromEntity($entity);
+            $entity = $this->getActivityManager()->createFromEntity($entity);
             $entity->guid = $guid; // Not ideal hack here
         }
 
@@ -1090,7 +1091,6 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function __wakeup()
     {
         $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
-        $this->activityManager = Di::_()->get('Feeds\Activity\Manager');
     }
 
     /**
@@ -1161,5 +1161,13 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getCanonicalUrl(): ?string
     {
         return $this->canonical_url;
+    }
+
+    /**
+     * Returns the ActivityManager, but lazy loaded
+     */
+    private function getActivityManager(): Manager
+    {
+        return $this->activityManager ??= Di::_()->get('Feeds\Activity\Manager');
     }
 }

@@ -7,10 +7,13 @@ use Minds\Core\Media\ClientUpload\ClientUploadLease;
 use Minds\Core\Media\Video\Transcoder;
 use Minds\Core\GuidBuilder;
 use Minds\Core\Media\Video\Manager as VideoManager;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Entities\User;
 use Minds\Entities\Video;
 
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
@@ -24,12 +27,15 @@ class ManagerSpec extends ObjectBehavior
     /** @var GuidBuilder */
     private $guid;
 
-    public function let(Transcoder\Manager $transcoderManager, VideoManager $videoManager, GuidBuilder $guid)
+    private Collaborator $rbacGatekeeperServiceMock;
+
+    public function let(Transcoder\Manager $transcoderManager, VideoManager $videoManager, GuidBuilder $guid, RbacGatekeeperService $rbacGatekeeperServiceMock)
     {
-        $this->beConstructedWith($transcoderManager, $videoManager, $guid);
+        $this->beConstructedWith($transcoderManager, $videoManager, $guid, $rbacGatekeeperServiceMock);
         $this->transcoderManager = $transcoderManager;
         $this->videoManager = $videoManager;
         $this->guid = $guid;
+        $this->rbacGatekeeperServiceMock = $rbacGatekeeperServiceMock;
     }
 
     public function it_is_initializable()
@@ -39,6 +45,8 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_return_an_upload_lease()
     {
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_UPLOAD_VIDEO)->willReturn(true);
+
         $this->guid->build()
             ->willReturn(123);
 

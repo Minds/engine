@@ -11,8 +11,12 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Entities\PropagateProperties;
 use Minds\Core\Session;
 use Minds\Core\Feeds\Activity\Delegates;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Exceptions\RbacNotAllowed;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
@@ -35,6 +39,8 @@ class ManagerSpec extends ObjectBehavior
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
+    private Collaborator $rbacGatekeeperServiceMock;
+
     public function let(
         Delegates\ForeignEntityDelegate $foreignEntityDelegate,
         Save $save,
@@ -42,7 +48,8 @@ class ManagerSpec extends ObjectBehavior
         Delegates\PaywallDelegate $paywallDelegate,
         Delegates\MetricsDelegate $metricsDelegate,
         Delegates\NotificationsDelegate $notificationsDelegate,
-        EntitiesBuilder $entitiesBuilder
+        EntitiesBuilder $entitiesBuilder,
+        RbacGatekeeperService $rbacGatekeeperServiceMock,
     ) {
         $this->beConstructedWith(
             $foreignEntityDelegate,
@@ -58,7 +65,9 @@ class ManagerSpec extends ObjectBehavior
             $notificationsDelegate,
             $entitiesBuilder,
             null,
-            null
+            null,
+            null,
+            $rbacGatekeeperServiceMock,
         );
         $this->foreignEntityDelegate = $foreignEntityDelegate;
 
@@ -67,6 +76,7 @@ class ManagerSpec extends ObjectBehavior
         $this->paywallDelegate = $paywallDelegate;
         $this->metricsDelegate = $metricsDelegate;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->rbacGatekeeperServiceMock = $rbacGatekeeperServiceMock;
 
         Session::setUser((new User())->set('guid', 123)->set('username', 'test'));
     }
@@ -86,6 +96,8 @@ class ManagerSpec extends ObjectBehavior
         $activity = new Activity();
         $activity->guid = 123;
         $activity->message = 'hello world';
+
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_CREATE_POST)->willReturn(true);
 
         $this->save->setEntity(Argument::that(function ($activity) {
             return $activity->getGuid() === '123';
@@ -108,6 +120,8 @@ class ManagerSpec extends ObjectBehavior
         $activity->guid = 123;
         $activity->title = 'hello world';
         $activity->message = null;
+
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_CREATE_POST)->willReturn(true);
 
         $this->save->setEntity(Argument::that(function ($activity) {
             return $activity->getGuid() === '123';
@@ -132,6 +146,8 @@ class ManagerSpec extends ObjectBehavior
         $activity->message = null;
         $activity->thumbnail_src = '~thumbnail~';
 
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_CREATE_POST)->willReturn(true);
+
         $this->save->setEntity(Argument::that(function ($activity) {
             return $activity->getGuid() === '123';
         }))
@@ -149,6 +165,8 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_apply_remind_delegates_and_nsfw(Activity $activity)
     {
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_INTERACT)->willReturn(true);
+
         $this->save->setEntity(Argument::that(function ($activity) {
             return $activity->getGuid() === '123';
         }))
@@ -315,6 +333,8 @@ class ManagerSpec extends ObjectBehavior
         $activity->thumbnail_src = '';
         $activity->attachments = null;
 
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_CREATE_POST)->willReturn(true);
+
         $this->save->setEntity(Argument::any())
             ->shouldNotBeCalled();
 
@@ -326,5 +346,13 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow(new UserErrorException(
             'Activities must have either attachments, a thumbnail or a message'
         ))->during('add', [ $activity ]);
+    }
+
+    public function it_should_not_allow_created_post_if_no_permission()
+    {
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_CREATE_POST)->willThrow(new RbacNotAllowed(PermissionsEnum::CAN_CREATE_POST));
+
+        $activity = new Activity();
+        $this->shouldThrow(RbacNotAllowed::class)->duringAdd($activity);
     }
 }

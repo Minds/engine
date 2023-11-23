@@ -16,6 +16,7 @@ use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Security\ACL;
+use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Helpers\StringLengthValidators\UsernameLengthValidator;
 use Minds\Interfaces;
 
@@ -165,6 +166,12 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 'guid' => $guid,
                 'user' => $user->export(),
             ];
+
+            // Return permissions
+            $response['permissions'] = array_map(function ($permission) {
+                return $permission->name;
+            }, Di::_()->get(RolesService::class)->getUserPermissions($user));
+
         } catch (\Exception $e) {
             if (isset($user)) {
                 error_log(

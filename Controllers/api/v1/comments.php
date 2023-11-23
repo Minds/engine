@@ -11,6 +11,7 @@ use Minds\Api\Exportable;
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Minds\Core\Sockets;
@@ -219,6 +220,11 @@ class comments implements Interfaces\Api
                     $response = [
                         'status' => 'error',
                         'message' => "Please wait before making another comment."
+                    ];
+                } catch (ForbiddenException $e) {
+                    $response = [
+                        'status' => 'error',
+                        'message' => $e->getMessage(),
                     ];
                 } catch (\Exception $e) {
                     error_log($e);
