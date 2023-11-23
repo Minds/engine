@@ -73,7 +73,7 @@ class OidcProvidersRepository extends AbstractRepository
     private function buildProviderFromRow(array $row): OidcProvider
     {
         return new OidcProvider(
-            id: (int) $row['id'],
+            id: (int) $row['provider_id'],
             name: $row['name'] ?: "Oidc",
             issuer: $row['issuer'],
             clientId: $row['client_id'],

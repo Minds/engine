@@ -2,33 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Minds\Core\Authentication\Oidc;
+namespace Minds\Core\Authentication\Oidc\Controllers;
 
-use Exception;
-use GuzzleHttp\Client;
 use Minds\Common\Cookie;
-use Minds\Core\Authentication\Builders\Response\AuthenticationResponseBuilder;
-use Minds\Core\Authentication\Exceptions\AuthenticationAttemptsExceededException;
-use Minds\Core\Authentication\Oidc\Models\OidcProvider;
 use Minds\Core\Authentication\Oidc\Services\OidcAuthService;
 use Minds\Core\Authentication\Oidc\Services\OidcProvidersService;
-use Minds\Core\Authentication\Validators\AuthenticationRequestValidator;
-use Minds\Core\Di\Di;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
-use Minds\Core\Security\Exceptions\UserNotSetupException;
-use Minds\Core\Security\TwoFactor\TwoFactorInvalidCodeException;
-use Minds\Core\Security\TwoFactor\TwoFactorRequiredException;
-use Minds\Exceptions\NotFoundException;
-use Minds\Exceptions\UserErrorException;
-use Psr\Http\Message\ServerRequestInterface;
-use RedisException;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\Response\HtmlResponse;
-use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\Response\RedirectResponse;
 use Zend\Diactoros\ServerRequest;
 
-class Controller
+class OidcPsr7Controller
 {
     public function __construct(
         private OidcAuthService $oidcAuthService,

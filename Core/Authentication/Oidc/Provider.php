@@ -5,17 +5,15 @@ declare(strict_types=1);
 namespace Minds\Core\Authentication\Oidc;
 
 use GuzzleHttp\Client;
-use Minds\Controllers\api\v1\entities\entity;
-use Minds\Controllers\api\v2\oauth\session;
+use Minds\Core\Authentication\Oidc\Controllers\OidcGqlController;
+use Minds\Core\Authentication\Oidc\Controllers\OidcPsr7Controller;
 use Minds\Core\Authentication\Oidc\Repositories\OidcProvidersRepository;
 use Minds\Core\Authentication\Oidc\Repositories\OidcUserRepository;
 use Minds\Core\Authentication\Oidc\Services\OidcAuthService;
 use Minds\Core\Authentication\Oidc\Services\OidcProvidersService;
 use Minds\Core\Authentication\Oidc\Services\OidcUserService;
 use Minds\Core\Config\Config;
-use Minds\Core\Di\Container;
 use Minds\Core\Di\Di;
-use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\EntitiesBuilder;
 
@@ -23,10 +21,21 @@ class Provider extends DiProvider
 {
     public function register(): void
     {
-        $this->di->bind(Controller::class, function (Di $di): Controller {
-            return new Controller(
+        /**
+         * Controllers
+         */
+
+        $this->di->bind(OidcPsr7Controller::class, function (Di $di): OidcPsr7Controller {
+            return new OidcPsr7Controller(
                 oidcAuthService: $di->get(OidcAuthService::class),
                 oidcProvidersService: $di->get(OidcProvidersService::class),
+            );
+        });
+
+        $this->di->bind(OidcGqlController::class, function (Di $di): OidcGqlController {
+            return new OidcGqlController(
+                oidcProvidersService: $di->get(OidcProvidersService::class),
+                config: $di->get(Config::class),
             );
         });
 

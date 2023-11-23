@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Authentication\Oidc;
 
+use Minds\Core\Authentication\Oidc\Controllers\OidcPsr7Controller;
 use Minds\Core\Di\Ref;
 use Minds\Core\Router\Route;
 
@@ -19,12 +20,12 @@ class Routes extends \Minds\Core\Router\ModuleRoutes
             ->do(function (Route $route): void {
                 $route->get(
                     'login',
-                    Ref::_(Controller::class, 'oidcLogin')
+                    Ref::_(OidcPsr7Controller::class, 'oidcLogin')
                 );
 
                 $route->get(
                     'callback',
-                    Ref::_(Controller::class, 'oidcCallback')
+                    Ref::_(OidcPsr7Controller::class, 'oidcCallback')
                 );
             });
     }
