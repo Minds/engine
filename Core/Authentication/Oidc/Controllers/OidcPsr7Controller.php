@@ -46,7 +46,8 @@ class OidcPsr7Controller
         (new Cookie())
             ->setName('oidc_provider_id')
             ->setValue($providerId)
-            ->setPath('/');
+            ->setPath('/')
+            ->create();
 
         // Set the Csrf State Token
         $csrfStateToken = hash('sha256', openssl_random_pseudo_bytes(128));
