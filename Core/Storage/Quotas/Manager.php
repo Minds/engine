@@ -104,7 +104,7 @@ class Manager
 
         $response = $this->ociObjectStorageClient
             ->headObject([
-                'namespaceName' => $this->config->get('storage')['oci_namespace'],
+                'namespaceName' => $this->config->get('oci')['api_auth']['bucket_namespace'],
                 'bucketName' => $this->config->get('storage')['oci_bucket_name'],
                 'objectName' => $key
             ]);
