@@ -143,7 +143,7 @@ class Service
                 $this->multiTenantBootService->bootFromTenantId($rssFeed->tenantId);
             }
 
-            if (!$currentUser || (int) $currentUser->getGuid() === $rssFeed->userGuid) {
+            if (!$currentUser || (int) $currentUser->getGuid() !== $rssFeed->userGuid) {
                 $currentUser = $this->entitiesBuilder->single($rssFeed->userGuid);
             }
 
