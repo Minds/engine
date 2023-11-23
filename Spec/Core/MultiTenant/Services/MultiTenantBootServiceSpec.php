@@ -55,6 +55,9 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
             ]
             );
 
+        $requestMock->getHeader('X-FORWARDED-PROTO')
+            ->willReturn(null);
+
         $requestMock->getUri()->willReturn($uriMock);
 
         $uriMock->getScheme()
