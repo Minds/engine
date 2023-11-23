@@ -82,7 +82,7 @@ class Manager
         $this->mysqlRepository->storeAsset(
             (int) $asset->getOwnerGuid(),
             (int) $asset->getGuid(),
-            ((int) $this->config->get('tenant_id')) ?? null,
+            ($this->config->get('tenant_id')) ? (int) $this->config->get('tenant_id') : null,
             $videoQuality->value,
             AssetTypeEnum::VIDEO,
             $assetSize,
@@ -229,7 +229,7 @@ class Manager
         $edges = [];
         foreach (
             $this->mysqlRepository->getTenantAssetsMetadata(
-                tenantId: ((int) $this->config->get('tenant_id')) ?? null,
+                tenantId: ($this->config->get('tenant_id')) ? (int) $this->config->get('tenant_id') : null,
                 limit: $limit,
                 offset: $offset,
                 hasNextPage: $hasNextPage
