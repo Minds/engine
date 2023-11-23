@@ -655,3 +655,7 @@ CREATE TABLE  IF NOT EXISTS  minds_role_user_assignments(
     `created_at` timestamp DEFAULT CURRENT_TIMESTAMP(),
     PRIMARY KEY (`tenant_id`, `role_id`, `user_guid`)
 );
+
+ALTER TABLE `minds_entities_user`
+    ADD `language` varchar(32) DEFAULT 'en'
+    AFTER `ip`;

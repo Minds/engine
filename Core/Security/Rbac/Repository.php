@@ -157,8 +157,22 @@ class Repository extends AbstractRepository
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($rows as $row) {
-            $rowIds = isset($row['role_ids']) ? array_map('intval', explode(',', $row['role_ids'])) : [];
-            yield (int) $row['user_guid'] => $rowIds;
+            $roleIds = isset($row['role_ids']) ? array_map('intval', explode(',', $row['role_ids'])) : [];
+            
+            // If no roles, User will always have the default role
+            if (empty($roleIds)) {
+                $roleIds[] = RolesEnum::DEFAULT->value;
+            }
+
+            // Site owner will always have the owner role
+            if (
+                (int) $row['user_guid'] === $this->multiTenantBootService->getTenant()->rootUserGuid
+                && !in_array(RolesEnum::OWNER->value, $roleIds, true)
+            ) {
+                $roleIds[] = RolesEnum::OWNER->value;
+            }
+            
+            yield (int) $row['user_guid'] => $roleIds;
         }
     }
 

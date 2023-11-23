@@ -129,7 +129,7 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                 $this->logger->error("Topic(Consume): Uncaught error: " . $e->getMessage());
             } finally {
                 // Reset Multi Tenant support
-                if ($tenantId) {
+                if ($tenantId ?? null) {
                     $this->getMultiTenantBootService()->resetRootConfigs();
                 }
             }

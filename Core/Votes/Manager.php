@@ -22,6 +22,8 @@ use Minds\Core\Events\Dispatcher;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Core\Votes\Enums\VoteEnum;
 use Minds\Helpers;
 use Minds\Entities\EntityInterface;
@@ -55,6 +57,7 @@ class Manager
         private ?ExperimentsManager $experimentsManager = null,
         private ?MySqlRepository $mySqlRepository = null,
         private ?Config $config = null,
+        private ?RbacGatekeeperService $rbacGatekeeperService = null,
     ) {
         $this->counters = $counters ?: Di::_()->get('Votes\Counters');
         $this->indexes = $indexes ?: Di::_()->get('Votes\Indexes');
@@ -63,6 +66,7 @@ class Manager
         $this->friendlyCaptchaManager ??= Di::_()->get('FriendlyCaptcha\Manager');
         $this->experimentsManager ??= new ExperimentsManager();
         $this->config ??= Di::_()->get(Config::class);
+        $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
     }
 
     public function setUser(User $user): self
@@ -86,6 +90,9 @@ class Manager
      */
     public function cast($vote, VoteOptions $options = new VoteOptions())
     {
+        // Check RBAC
+        $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_INTERACT);
+
         if (!$this->acl->interact($vote->getEntity(), $vote->getActor(), "vote{$vote->getDirection()}")) {
             throw new \Exception('Actor cannot interact with entity');
         }

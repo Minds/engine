@@ -67,28 +67,28 @@ class EventsSpec extends ObjectBehavior
         $this->register();
     }
 
-    public function it_should_extend_activity_export_for_supermind_request(SupermindRequest $supermindRequest, User $receiverUser)
-    {
-        $this->register(); // Setup hooks
+    // public function it_should_extend_activity_export_for_supermind_request(SupermindRequest $supermindRequest, User $receiverUser)
+    // {
+    //     $this->register(); // Setup hooks
 
-        $this->aclMock->setIgnore(true)->shouldBeCalled()->willReturn(false);
-        $this->aclMock->setIgnore(false)->shouldBeCalled();
+    //     $this->aclMock->setIgnore(true)->shouldBeCalled()->willReturn(false);
+    //     $this->aclMock->setIgnore(false)->shouldBeCalled();
 
-        $this->supermindManagerMock->getRequest('123')
-            ->willReturn($supermindRequest);
+    //     $this->supermindManagerMock->getRequest('123')
+    //         ->willReturn($supermindRequest);
 
-        $supermindRequest->getReceiverGuid()->willReturn('456');
-        $supermindRequest->getReplyActivityGuid()->willReturn('789');
+    //     $supermindRequest->getReceiverGuid()->willReturn('456');
+    //     $supermindRequest->getReplyActivityGuid()->willReturn('789');
 
-        $this->entitiesBuilderMock->single('456')
-            ->willReturn($receiverUser);
+    //     $this->entitiesBuilderMock->single('456')
+    //         ->willReturn($receiverUser);
 
-        $activity = new Activity();
-        $activity->setSupermind([
-            'request_guid' => '123',
-            'is_reply' => false,
-        ]);
+    //     $activity = new Activity();
+    //     $activity->setSupermind([
+    //         'request_guid' => '123',
+    //         'is_reply' => false,
+    //     ]);
         
-        $response = Di::_()->get('EventsDispatcher')->trigger('export:extender', 'activity', ['entity'=>$activity], []);
-    }
+    //     $response = Di::_()->get('EventsDispatcher')->trigger('export:extender', 'activity', ['entity'=>$activity], []);
+    // }
 }

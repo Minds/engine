@@ -8,22 +8,12 @@
 namespace Minds\Controllers\fs\v1;
 
 use Minds\Core;
+use Minds\Core\Channels\BannerService;
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Helpers\File;
-
-define('DEFAULT_BANNER_PATHS', [
-    'Assets/banners/0.jpg',
-    'Assets/banners/1.jpg',
-    'Assets/banners/2.jpg',
-    'Assets/banners/3.jpg',
-    'Assets/banners/4.jpg',
-    'Assets/banners/5.jpg',
-    'Assets/banners/6.jpg',
-    'Assets/banners/7.jpg',
-    'Assets/banners/8.jpg',
-    'Assets/banners/9.jpg',
-]);
 
 class banners implements Interfaces\Fs
 {
@@ -32,6 +22,25 @@ class banners implements Interfaces\Fs
         $entity = Entities\Factory::build($pages[0]);
 
         if (!$entity) {
+            exit;
+        }
+
+        // Tenants banners are from the V2 banner system.
+        if ((bool) Di::_()->get(Config::class)->get('tenant_id')) {
+            $bannerV2Service = Di::_()->get(BannerService::class);
+
+            $file = $bannerV2Service->getFile($entity->getGuid());
+            $content = $file?->open('read')?->read();
+
+            if (!$content) {
+                $content = $bannerV2Service->getDefaultBannerContent($entity->getGuid());
+            }
+
+            header('Content-Type: ' . $file->getMimeType($content));
+            header('Expires: ' . date('r', time() + 864000));
+            header("Pragma: public");
+            header("Cache-Control: public");
+            echo $content;
             exit;
         }
 
@@ -62,9 +71,8 @@ class banners implements Interfaces\Fs
                         $content = $f->read();
                     }
                 } else {
-                    $content = file_get_contents(
-                        Core\Config::build()->path . 'engine/' . $this->getSeededBannerPath($entity->guid)
-                    );
+                    $content = Di::_()->get(BannerService::class)
+                        ->getDefaultBannerContent($entity->getGuid());
                 }
                 break;
             case "group":
@@ -126,16 +134,5 @@ class banners implements Interfaces\Fs
         header("Cache-Control: public");
         echo $content;
         exit;
-    }
-
-    /**
-     * Derives the seeded banner path for the user.
-     *
-     * @param string $guid - guid
-     * @return string - banner path.
-     */
-    private function getSeededBannerPath(string $guid = '0'): string
-    {
-        return DEFAULT_BANNER_PATHS[$guid % count(DEFAULT_BANNER_PATHS)];
     }
 }
