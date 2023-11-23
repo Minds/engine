@@ -74,6 +74,10 @@ class ManagerSpec extends ObjectBehavior
                     ]
                 ],
             ]));
+
+        $this->psrCache->withTenantPrefix(false)->willReturn($this->psrCache);
+        $this->psrCache->get('growthbook-features')->willReturn(null);
+        $this->psrCache->set('growthbook-features', Argument::type('array'))->willReturn(true);
     }
 
     public function it_is_initializable()
