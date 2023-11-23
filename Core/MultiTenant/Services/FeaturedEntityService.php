@@ -10,6 +10,7 @@ use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
 use Minds\Core\MultiTenant\Types\FeaturedEntity;
 use Minds\Core\MultiTenant\Types\FeaturedEntityConnection;
 use Minds\Core\MultiTenant\Types\FeaturedEntityEdge;
+use Minds\Core\MultiTenant\Types\FeaturedUser;
 
 /**
  * Service for featured entities.
@@ -105,5 +106,22 @@ class FeaturedEntityService
             );
         }
         return $edges;
+    }
+
+    /**
+     * @param int|null $tenantId
+     * @return FeaturedUser[]
+     */
+    public function getAllFeaturedEntities(?int $tenantId = null): iterable
+    {
+        if (!$tenantId) {
+            $tenantId = $this->config->get('tenant_id');
+        }
+
+        return $this->repository->getFeaturedEntities(
+            tenantId: $tenantId,
+            type: FeaturedEntityTypeEnum::USER,
+            withPagination: false
+        );
     }
 }
