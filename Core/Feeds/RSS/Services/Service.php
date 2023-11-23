@@ -173,7 +173,9 @@ class Service
             return;
         }
 
-        $this->repository->updateRssFeedStatus($rssFeed->feedId, RssFeedLastFetchStatusEnum::FETCH_IN_PROGRESS);
+        if (!$dryRun) {
+            $this->repository->updateRssFeedStatus($rssFeed->feedId, RssFeedLastFetchStatusEnum::FETCH_IN_PROGRESS);
+        }
 
         $this->logger->info('Processing RSS feed', [
             'feed_id' => $rssFeed->feedId,
