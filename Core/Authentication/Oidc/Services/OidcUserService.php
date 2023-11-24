@@ -12,6 +12,7 @@ class OidcUserService
     public function __construct(
         private OidcUserRepository $oidcUserRepository,
         private EntitiesBuilder $entitiesBuilder,
+        private ACL $acl,
     ) {
         
     }
@@ -45,7 +46,7 @@ class OidcUserService
         string $displayName,
         string $email,
     ): ?User {
-        ACL::_()->setIgnore(true);
+        $this->acl->setIgnore(true);
 
         try {
             validate_username($preferredUsername);

@@ -3,9 +3,6 @@ namespace Minds\Core\Authentication\Oidc\Services;
 
 use Minds\Core\Authentication\Oidc\Models\OidcProvider;
 use Minds\Core\Authentication\Oidc\Repositories\OidcProvidersRepository;
-use Minds\Core\Security\ACL;
-use Minds\Entities\User;
-use RegistrationException;
 
 class OidcProvidersService
 {

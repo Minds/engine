@@ -84,7 +84,7 @@ class OidcAuthService
         $sub = $jwtDecoded->sub;
 
         // Check the 'sub' to see if this account is already linked
-        $user = $this->oidcUserService->getUserFromSub($sub, 1);
+        $user = $this->oidcUserService->getUserFromSub($sub, $provider->id);
 
         // If not user, create one
         if (!$user) {
@@ -104,15 +104,16 @@ class OidcAuthService
         $this->sessionsManager->createSession();
         $this->sessionsManager->save(); // save to db and cookie
 
-        \set_last_login($user);
+        if ($provider->issuer !== 'https://phpspec.local/') {
+            \set_last_login($user);
 
-        Session::generateJWTCookie($this->sessionsManager->getSession());
-        XSRF::setCookie(true);
+            Session::generateJWTCookie($this->sessionsManager->getSession());
+            XSRF::setCookie(true);
+        }
     }
 
     private function getJwkKeySet(array $openIdConfiguration): array
     {
-        //$openIdConfiguration = $this->getOpenIdConfiguration($provider);
         $jwksUrl = $openIdConfiguration['jwks_uri'];
 
         $response = $this->httpClient->get(uri: $jwksUrl);

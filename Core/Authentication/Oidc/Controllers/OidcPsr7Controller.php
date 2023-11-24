@@ -7,6 +7,7 @@ namespace Minds\Core\Authentication\Oidc\Controllers;
 use Minds\Common\Cookie;
 use Minds\Core\Authentication\Oidc\Services\OidcAuthService;
 use Minds\Core\Authentication\Oidc\Services\OidcProvidersService;
+use Minds\Exceptions\UserErrorException;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Diactoros\Response\RedirectResponse;
@@ -76,13 +77,13 @@ class OidcPsr7Controller
         $queryParams = $request->getQueryParams();
 
         if ($queryParams['error'] ?? null) {
-            return new HtmlResponse('Error: ' . $queryParams['error_description']);
+            throw new UserErrorException($queryParams['error_description']);
         }
 
         $providerId = $request->getCookieParams()['oidc_provider_id'] ?? null;
 
         if (!$providerId) {
-            return new HtmlResponse('Error: Could not locate the oidc_provider_id cookie');
+            throw new UserErrorException('Error: Could not locate the oidc_provider_id cookie');
         }
 
         $provider = $this->oidcProvidersService->getProviderById((int) $providerId);
@@ -90,11 +91,11 @@ class OidcPsr7Controller
         $state = $queryParams['state'] ?? null;
 
         if (!$state) {
-            return new HtmlResponse('Error: Not state token provided');
+            throw new UserErrorException('Error: Not state token provided');
         }
 
         if ($state !== $request->getCookieParams()['oidc_csrf_state']) {
-            return new HtmlResponse('Error: Invalid state token');
+            throw new UserErrorException('Error: Invalid state token');
         }
 
         $code = $queryParams['code'] ?? null;

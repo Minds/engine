@@ -56,6 +56,7 @@ class Provider extends DiProvider
             return new OidcUserService(
                 oidcUserRepository: $di->get(OidcUserRepository::class),
                 entitiesBuilder: $di->get(EntitiesBuilder::class),
+                acl: $di->get('Security\ACL'),
             );
         });
 
