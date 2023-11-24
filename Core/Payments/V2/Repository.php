@@ -256,7 +256,7 @@ class Repository
             ->from('minds_payments')
             ->where('updated_timestamp', Operator::GTE, date('c', $options->getFromTimestamp()))
             // Exclude gift card payments (the lazy way - ie. should do left join on gift tx table)
-            ->where('payment_tx_id', Operator::IS_NOT, null);
+            ->where('payment_tx_id', Operator::NOT_EQ, 'gift_card');
 
         if ($options->getWithAffiliate()) {
             if ($options->getAffiliateGuid()) {
