@@ -217,8 +217,10 @@ class Manager
         if ($isOnchainBoost) {
             $boost->setStatus(BoostStatus::PENDING_ONCHAIN_CONFIRMATION)
                 ->setPaymentTxId($paymentTxId);
-        } elseif (!$this->paymentProcessor->setupBoostPayment($boost, $this->user, $paymentDetails)) {
-            throw new BoostPaymentSetupFailedException();
+        } else {
+            if (!$this->paymentProcessor->setupBoostPayment($boost, $this->user, $paymentDetails)) {
+                throw new BoostPaymentSetupFailedException();
+            }
         }
     }
 

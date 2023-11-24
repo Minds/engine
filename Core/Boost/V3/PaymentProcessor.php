@@ -102,6 +102,9 @@ class PaymentProcessor
 
         $boost->setPaymentGuid($paymentDetails->paymentGuid);
 
+        // Update the paymentTxId
+        $this->paymentsManager->updatePaymentTxId($paymentDetails->paymentGuid, $boost->getPaymentTxId());
+
         return $result;
     }
 
