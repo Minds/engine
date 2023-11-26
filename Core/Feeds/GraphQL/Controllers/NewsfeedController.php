@@ -18,6 +18,7 @@ use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
 use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 use Minds\Core\Feeds\Elastic\V2\QueryOpts;
 use Minds\Core\Feeds\GraphQL\Enums\NewsfeedAlgorithmsEnum;
+use Minds\Core\Feeds\GraphQL\Services\TenantGuestModeFeedsService;
 use Minds\Core\Feeds\GraphQL\TagRecommendations\Manager as TagRecommendationsManager;
 use Minds\Core\Feeds\GraphQL\Types\ActivityEdge;
 use Minds\Core\Feeds\GraphQL\Types\ActivityNode;
@@ -51,7 +52,8 @@ class NewsfeedController
         protected SuggestedGroupsRecommendationsAlgorithm $suggestedGroupsRecommendationsAlgorithm,
         protected ExperimentsManager $experimentsManager,
         protected Votes\Manager $votesManager,
-        protected TagRecommendationsManager $tagRecommendationsManager
+        protected TagRecommendationsManager $tagRecommendationsManager,
+        private readonly TenantGuestModeFeedsService $tenantGuestModeFeedsService,
     ) {
     }
 
@@ -106,10 +108,26 @@ class NewsfeedController
         $hasMore = false;
 
         if (!$loggedInUser) {
-            throw new UserError("You must be logged in", 403);
+            $edges = $this->tenantGuestModeFeedsService->getTenantGuestModeTopActivities(
+                limit: $limit,
+                loadAfter: $loadAfter,
+                loadBefore: $loadBefore,
+                hasMore: $hasMore,
+            );
+            $pageInfo = new Types\PageInfo(
+                hasNextPage: $hasMore, // Always will be newer data on latest or if we are paging forward
+                hasPreviousPage: $after && $loadBefore,
+                startCursor: $loadBefore,
+                endCursor: $loadAfter,
+            );
+
+            $connection = new NewsfeedConnection();
+            $connection->setEdges($edges);
+            $connection->setPageInfo($pageInfo);
+            return $connection;
         }
 
-        $allowedNsfw = $loggedInUser->getViewMature() ? [1,2,3,4,5,6] : [];
+        $allowedNsfw = $loggedInUser?->getViewMature() ? [1,2,3,4,5,6] : [];
 
         $edges = [];
         $hasMore = false;

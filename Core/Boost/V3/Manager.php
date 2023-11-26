@@ -220,6 +220,8 @@ class Manager
         } elseif (!$this->paymentProcessor->setupBoostPayment($boost, $this->user, $paymentDetails)) {
             throw new BoostPaymentSetupFailedException();
         }
+
+        // Update minds payment with tx_id for non IAP purchases
     }
 
     /**
