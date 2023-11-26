@@ -102,8 +102,10 @@ class PaymentProcessor
 
         $boost->setPaymentGuid($paymentDetails->paymentGuid);
 
-        // Update the paymentTxId
-        $this->paymentsManager->updatePaymentTxId($paymentDetails->paymentGuid, $boost->getPaymentTxId());
+        // Update the paymentTxId if txID is not null
+        if ($boost->getPaymentMethod() === BoostPaymentMethod::CASH && $boost->getPaymentTxId()) {
+            $this->paymentsManager->updatePaymentTxId($paymentDetails->paymentGuid, $boost->getPaymentTxId());
+        }
 
         return $result;
     }
