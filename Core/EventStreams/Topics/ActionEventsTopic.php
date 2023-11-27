@@ -43,20 +43,26 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
 
         // Build the message
 
+        $data = [
+            'action' => $event->getAction(),
+            'action_data' => $event->getActionData(),
+            'user_guid' => (string) $event->getUser()->getGuid(),
+            'entity_urn' => (string) $event->getEntity()->getUrn(),
+            'entity_guid' => (string) $event->getEntity()->getGuid(),
+            'entity_owner_guid' => (string) $event->getEntity()->getOwnerGuid(),
+            'entity_type' => MagicAttributes::getterExists($event->getEntity(), 'getType') ? (string) $event->getEntity()->getType() : '',
+            'entity_subtype' => MagicAttributes::getterExists($event->getEntity(), 'getSubtype') ? (string) $event->getEntity()->getSubtype() : '',
+        ];
+
+        if ($tenantId = $this->config->get('tenant_id')) {
+            $data['tenant_id'] = $tenantId;
+        }
+
         $builder = new MessageBuilder();
         $message = $builder
             //->setPartitionKey(0)
             ->setEventTimestamp($event->getTimestamp() ?: time())
-            ->setContent(json_encode([
-                'action' => $event->getAction(),
-                'action_data' => $event->getActionData(),
-                'user_guid' => (string) $event->getUser()->getGuid(),
-                'entity_urn' => (string) $event->getEntity()->getUrn(),
-                'entity_guid' => (string) $event->getEntity()->getGuid(),
-                'entity_owner_guid' => (string) $event->getEntity()->getOwnerGuid(),
-                'entity_type' => MagicAttributes::getterExists($event->getEntity(), 'getType') ? (string) $event->getEntity()->getType() : '',
-                'entity_subtype' => MagicAttributes::getterExists($event->getEntity(), 'getSubtype') ? (string) $event->getEntity()->getSubtype() : '',
-            ]))
+            ->setContent(json_encode($data))
             ->build();
 
         // Send the event to the stream
@@ -107,6 +113,12 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                 $message = $consumer->receive();
                 $data = json_decode($message->getDataAsString(), true);
 
+                // Multi tenant support
+
+                if (isset($data['tenant_id']) && $tenantId = $data['tenant_id']) {
+                    $this->getMultiTenantBootService()->bootFromTenantId($tenantId);
+                }
+
                 /** @var User */
                 $user = $this->entitiesBuilder->single($data['user_guid']);
 
@@ -147,6 +159,11 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
             } catch (\Exception $e) {
                 $consumer->negativeAcknowledge($message);
                 $this->logger->error("Topic(Consume): Uncaught error: " . $e->getMessage());
+            } finally {
+                // Reset Multi Tenant support
+                if ($tenantId ?? null) {
+                    $this->getMultiTenantBootService()->resetRootConfigs();
+                }
             }
         }
     }
@@ -193,6 +210,10 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
                 [
                     'name' => 'entity_subtype',
                     'type' => 'string'
+                ],
+                [
+                    'name' => 'tenant_id',
+                    'type' => 'int'
                 ],
             ]
         ]);
