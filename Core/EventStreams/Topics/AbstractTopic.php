@@ -10,6 +10,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Pulsar\Client as PulsarClient;
 use Pulsar\Consumer;
 use Pulsar\Exception\IOException;
@@ -22,10 +23,10 @@ abstract class AbstractTopic
     private static int $startTime = 0;
 
     /** @var Config */
-    protected $config;
+    protected Config $config;
 
     /** @var EntitiesBuilder */
-    protected $entitiesBuilder;
+    protected EntitiesBuilder $entitiesBuilder;
 
     /** @var Resolver */
     protected $entitiesResolver;
@@ -35,13 +36,16 @@ abstract class AbstractTopic
         Config            $config = null,
         EntitiesBuilder   $entitiesBuilder = null,
         Resolver          $entitiesResolver = null,
-        protected ?Logger $logger = null
+        protected ?Logger $logger = null,
+        protected ?MultiTenantBootService $multiTenantBootService = null
     ) {
         $this->config = $config ?? Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->entitiesResolver = $entitiesResolver ?? new Resolver();
 
         $this->logger ??= Di::_()->get('Logger');
+
+        $this->multiTenantBootService = $multiTenantBootService;
     }
 
     /**
@@ -175,5 +179,10 @@ abstract class AbstractTopic
     public function getTotalMessagesProcessedInBatch(): int
     {
         return count(self::$processedMessages);
+    }
+
+    protected function getMultiTenantBootService(): MultiTenantBootService
+    {
+        return $this->multiTenantBootService ??= Di::_()->get(MultiTenantBootService::class);
     }
 }

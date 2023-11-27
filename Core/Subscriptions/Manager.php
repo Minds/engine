@@ -146,6 +146,8 @@ class Manager
 
         if (!$this->isMultiTenant()) {
             $subscription = $this->repository->add($subscription);
+        } else {
+            $subscription->setActive(true);
         }
 
         $this->eventsDelegate->trigger($subscription);
