@@ -29,7 +29,7 @@ class MultiTenantBootService
     {
         $uri = $request->getUri();
 
-        $scheme = $uri->getScheme();
+        $scheme = $request->getHeader('X-FORWARDED-PROTO') === 'https' ? 'https' : $uri->getScheme();
         $domain = $uri->getHost();
         $port = $uri->getPort();
 
