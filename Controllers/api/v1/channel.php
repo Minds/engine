@@ -31,11 +31,13 @@ class channel implements Interfaces\Api
 {
     private EntitiesBuilder $entitiesBuilder;
     private Save $save;
+    private Config $config;
 
     public function __construct()
     {
         $this->entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
         $this->save = new Save();
+        $this->config = Di::_()->get(Config::class);
     }
 
     /**
@@ -196,11 +198,11 @@ class channel implements Interfaces\Api
             }
         }
 
-        $response['require_login'] = !$isLoggedIn && Di::_()->get('Blockchain\Wallets\Balance')
-            ->setUser($user)
-            ->count() === 0;
-
-        $response['foo'] = 'bar';
+        if (!$this->config->get('tenant_id')) {
+            $response['require_login'] = !$isLoggedIn && Di::_()->get('Blockchain\Wallets\Balance')
+                ->setUser($user)
+                ->count() === 0;
+        }
         
         return Factory::response($response);
     }

@@ -10,18 +10,22 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Media\Video\Manager;
+use Minds\Core\Storage\Quotas\Manager as StorageQuotasManager;
 use Oracle\Oci\Common\Auth\UserAuthProvider;
 use Oracle\Oci\ObjectStorage\ObjectStorageClient;
 
 class MediaProvider extends Provider
 {
-    public function register()
+    public function register(): void
     {
         $this->di->bind('Media\Image\Manager', function ($di) {
             return new Image\Manager();
         }, ['useFactory' => true]);
-        $this->di->bind('Media\Video\Manager', function ($di) {
-            return new Video\Manager();
+        $this->di->bind('Media\Video\Manager', function (Di $di): Manager {
+            return new Video\Manager(
+                storageQuotasManager: $di->get(StorageQuotasManager::class)
+            );
         }, ['useFactory' => true]);
         $this->di->bind('Media\Albums', function ($di) {
             return new Albums(new Core\Data\Call('entities_by_time'));
@@ -148,6 +152,10 @@ class MediaProvider extends Provider
                 ],
                 'use_accelerate_endpoint' => true,
             ];
+
+            if (!empty($awsConfig['endpoint'])) {
+                $opts['endpoint'] = $awsConfig['endpoint'];
+            }
 
             if (!isset($awsConfig['useRoles']) || !$awsConfig['useRoles']) {
                 $opts['credentials'] = [

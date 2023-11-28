@@ -33,7 +33,8 @@ class FeaturedEntitiesRepository extends AbstractRepository
         FeaturedEntityTypeEnum $type,
         int $limit = 12,
         int $loadAfter = null,
-        ?bool &$hasMore = null
+        ?bool &$hasMore = null,
+        bool $withPagination = true
     ): iterable {
         $query = $this->mysqlClientReaderHandler->select()
             ->from('minds_tenant_featured_entities')
@@ -49,11 +50,13 @@ class FeaturedEntitiesRepository extends AbstractRepository
             ->where('type', Operator::EQ, new RawExp(':type'))
             ->where('auto_subscribe', Operator::EQ, true)
             ->orWhere('recommended', Operator::EQ, true)
-            ->orderBy('updated_timestamp ASC')
-            ->limit($limit);
+            ->orderBy('updated_timestamp ASC');
 
-        if ($loadAfter) {
-            $query->offset($loadAfter);
+        if ($withPagination) {
+            $query->limit($limit);
+            if ($loadAfter) {
+                $query->offset($loadAfter);
+            }
         }
 
         $statement = $query->prepare();

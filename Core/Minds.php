@@ -5,9 +5,6 @@ namespace Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
-use Minds\Core\MultiTenant\Services\MultiTenantBootService;
-use Minds\Helpers;
-use Minds\Helpers\Env;
 use Minds\Interfaces\ModuleInterface;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -90,6 +87,7 @@ class Minds extends base
         Webfinger\Module::class,
         ActivityPub\Module::class,
         Admin\Module::class,
+        Storage\Quotas\Module::class,
         Comments\GraphQL\Module::class,
         Reports\V2\Module::class
     ];
