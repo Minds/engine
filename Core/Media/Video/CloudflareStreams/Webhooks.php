@@ -10,6 +10,7 @@ use Minds\Core\Log;
 use Minds\Core\Media\Feeds;
 use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Core\Security\ACL;
+use Minds\Core\Storage\Quotas\Manager as StorageQuotasManager;
 use Minds\Entities\Activity;
 use Minds\Entities\Video;
 use Minds\Exceptions\UserErrorException;
@@ -40,11 +41,12 @@ class Webhooks
     protected $feeds;
 
     public function __construct(
+        private readonly StorageQuotasManager $storageQuotasManager,
         $client = null,
         $config = null,
         $entitiesBuilder = null,
         $save = null,
-        ?ACL $acl = null
+        ?ACL $acl = null,
     ) {
         $this->client = $client ?? new Client();
         $this->config = $config ?? Di::_()->get('Config');
@@ -52,6 +54,7 @@ class Webhooks
         $this->save = $save ?? new Save();
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
+
     }
 
     /**
@@ -108,6 +111,8 @@ class Webhooks
         // Update the width / height
         $video->width = $body['input']['width'];
         $video->height = $body['input']['height'];
+        $duration = (float) $body['duration'];
+        $tenantId = $this->config->get('tenant_id');
 
         $video->setTranscodingStatus($transcodingState === 'ready' ? TranscodeStates::COMPLETED : TranscodeStates::FAILED);
 
@@ -117,6 +122,12 @@ class Webhooks
             ->save();
 
         $this->patchLinkedActivity($video);
+
+        $this->storageQuotasManager->storeVideoDuration(
+            asset: $video,
+            durationInSeconds: $duration,
+            tenantId: $tenantId
+        );
 
         $this->acl->setIgnore($ia); // Set the ignore state back to what it was
     

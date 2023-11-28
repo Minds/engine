@@ -195,6 +195,17 @@ class Manager
     }
 
     /**
+     * Updates the payment tx for payment
+     */
+    public function updatePaymentTxId(int $paymentGuid, string $paymentTxId): bool
+    {
+        return $this->repository->updatePaymentTxId(
+            paymentGuid: $paymentGuid,
+            paymentTxId: $paymentTxId,
+        );
+    }
+
+    /**
      * @return ServerRequest
      */
     private function getServerRequest(): ServerRequest

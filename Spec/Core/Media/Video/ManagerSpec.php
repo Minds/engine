@@ -2,18 +2,21 @@
 
 namespace Spec\Minds\Core\Media\Video;
 
-use Minds\Core\Config;
 use Aws\S3\S3Client;
+use Minds\Common\Repository\Response;
+use Minds\Core\Config;
+use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Media\Video\CloudflareStreams;
 use Minds\Core\Media\Video\Manager;
 use Minds\Core\Media\Video\Transcoder;
-use Minds\Core\Media\Video\CloudflareStreams;
+use Minds\Core\Storage\Quotas\Manager as StorageQuotasManager;
 use Minds\Entities\Video;
-use Minds\Core\EntitiesBuilder;
-use Minds\Common\Repository\Response;
-use Minds\Core\Entities\Actions\Save;
-use Psr\Http\Message\RequestInterface;
+use Oracle\Oci\ObjectStorage\ObjectStorageClient;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use Psr\Http\Message\RequestInterface;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -24,15 +27,32 @@ class ManagerSpec extends ObjectBehavior
     private $save;
     private $cloudflareStreamsManager;
 
+    private Collaborator $objectStorageClientMock;
+    private Collaborator $storageQuotasManagerMock;
+
     public function let(
         Config $config,
         S3Client $s3,
         EntitiesBuilder $entitiesBuilder,
         Transcoder\Manager $transcoderManager,
         Save $save,
-        CloudflareStreams\Manager $cloudflareStreamsManager
+        CloudflareStreams\Manager $cloudflareStreamsManager,
+        ObjectStorageClient $objectStorageClientMock,
+        StorageQuotasManager $storageQuotasManagerMock
     ) {
-        $this->beConstructedWith($config, $s3, $entitiesBuilder, $transcoderManager, $save, $cloudflareStreamsManager);
+        $this->objectStorageClientMock = $objectStorageClientMock;
+        $this->storageQuotasManagerMock = $storageQuotasManagerMock;
+
+        $this->beConstructedWith(
+            $config,
+            $s3,
+            $entitiesBuilder,
+            $transcoderManager,
+            $save,
+            $cloudflareStreamsManager,
+            $this->objectStorageClientMock,
+            $this->storageQuotasManagerMock
+        );
         $this->config = $config;
         $this->s3 = $s3;
         $this->entitiesBuilder = $entitiesBuilder;
@@ -172,6 +192,9 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn($this->save);
         $this->save->save()
             ->willReturn(true);
+
+        $this->storageQuotasManagerMock->storeAssetQuota($video)
+            ->shouldBeCalledOnce();
 
         $this->transcoderManager->createTranscodes($video)
             ->shouldBeCalled();

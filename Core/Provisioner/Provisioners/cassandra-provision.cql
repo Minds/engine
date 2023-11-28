@@ -1719,3 +1719,5 @@ ALTER TABLE comments ADD source text;
 ALTER TABLE comments ADD canonical_url text;
 
 ALTER TABLE comments ADD tenant_id int;
+
+ALTER TABLE notifications_mergeable ADD tenant_id int;
