@@ -12,7 +12,6 @@ use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
-use Minds\Core\Security\ACL;
 
 class Provider extends DiProvider
 {
@@ -40,7 +39,7 @@ class Provider extends DiProvider
 
         $this->di->bind(
             alias: TenantGuestModeFeedMySQLRepository::class,
-            function: fn(Di $di): TenantGuestModeFeedMySQLRepository => new TenantGuestModeFeedMySQLRepository(
+            function: fn (Di $di): TenantGuestModeFeedMySQLRepository => new TenantGuestModeFeedMySQLRepository(
                 mysqlHandler: $di->get('Database\MySQL\Client'),
                 logger: $di->get('Logger')
             )
@@ -48,11 +47,10 @@ class Provider extends DiProvider
 
         $this->di->bind(
             alias: TenantGuestModeFeedsService::class,
-            function: fn(Di $di): TenantGuestModeFeedsService => new TenantGuestModeFeedsService(
+            function: fn (Di $di): TenantGuestModeFeedsService => new TenantGuestModeFeedsService(
                 featuredEntityService: $di->get(FeaturedEntityService::class),
                 tenantGuestModeFeedMySQLRepository: $di->get(TenantGuestModeFeedMySQLRepository::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
-                acl: $di->get(ACL::class),
                 config: $di->get('Config')
             )
         );

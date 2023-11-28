@@ -1,26 +1,21 @@
 <?php
 namespace Minds\Core\Entities\Repositories;
 
-use Minds\Common\Access;
 use Minds\Core\Config\Config;
-use Minds\Core\Data\Call;
-use Minds\Core\Data\Cassandra\Thrift\Indexes;
-use Minds\Core\Data\lookup;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Data\MySQL\MySQLDataTypeEnum;
 use Minds\Core\Entities\Enums\EntitySubtypeEnum;
 use Minds\Core\Entities\Enums\EntityTypeEnum;
 use Minds\Core\Log\Logger;
-use Minds\Core\Session;
 use Minds\Core\Sessions\ActiveSession;
-use Minds\Entities\Video;
 use Minds\Entities\Activity;
-use Minds\Entities\Factory;
 use Minds\Entities\EntityInterface;
+use Minds\Entities\Factory;
 use Minds\Entities\Group;
 use Minds\Entities\Image;
 use Minds\Entities\User;
+use Minds\Entities\Video;
 use PDO;
 use PDOStatement;
 use Selective\Database\Operator;
@@ -73,7 +68,12 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                                 AND deleted = False
                                 AND direction = 1
                             )
-                        THEN TRUE 
+                        THEN (
+                                SELECT COUNT(*) FROM minds_votes
+                                WHERE minds_votes.entity_guid = e.guid
+                                AND deleted = False
+                                AND direction = 1
+                            ) 
                         ELSE FALSE
                     END
                 "),
@@ -98,7 +98,10 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                                 SELECT COUNT(*) FROM friends
                                 WHERE friends.user_guid = e.guid
                             )
-                        THEN TRUE 
+                        THEN (
+                                SELECT COUNT(*) FROM friends
+                                WHERE friends.user_guid = e.guid
+                            ) 
                         ELSE FALSE
                     END
                 "),
@@ -109,7 +112,10 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                                 SELECT COUNT(*) FROM friends
                                 WHERE friends.friend_guid = e.guid
                             )
-                        THEN TRUE 
+                        THEN (
+                                SELECT COUNT(*) FROM friends
+                                WHERE friends.friend_guid = e.guid
+                            ) 
                         ELSE FALSE
                     END
                 "),

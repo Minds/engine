@@ -9,7 +9,6 @@ use Minds\Core\Feeds\GraphQL\Repositories\TenantGuestModeFeedMySQLRepository;
 use Minds\Core\Feeds\GraphQL\Types\ActivityEdge;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Services\FeaturedEntityService;
-use Minds\Core\Security\ACL;
 use Minds\Entities\Activity;
 
 class TenantGuestModeFeedsService
@@ -18,7 +17,6 @@ class TenantGuestModeFeedsService
         private readonly FeaturedEntityService $featuredEntityService,
         private readonly TenantGuestModeFeedMySQLRepository $tenantGuestModeFeedMySQLRepository,
         private readonly EntitiesBuilder $entitiesBuilder,
-        private readonly ACL $acl,
         private readonly Config $config
     ) {
     }
@@ -39,9 +37,15 @@ class TenantGuestModeFeedsService
 
         $onlyFeaturedUsers = iterator_count($this->featuredEntityService->getAllFeaturedEntities()) > 0;
 
+        $offset = $loadAfter ?? 0;
+
         $topActivities = $this->tenantGuestModeFeedMySQLRepository->getTopActivities(
-            $this->config->get('tenant_id'),
-            $onlyFeaturedUsers
+            tenantId: $this->config->get('tenant_id'),
+            limit: $limit,
+            offset: (int) $offset,
+            onlyFeaturedUsers: $onlyFeaturedUsers,
+            hasMore: $hasMore,
+            loadAfter: $loadAfter
         );
 
         $edges = [];
@@ -52,7 +56,7 @@ class TenantGuestModeFeedsService
             }
             $cursor = $loadAfter;
 
-            $edges[] = new ActivityEdge($activity, $cursor ?? "", false);
+            $edges[] = new ActivityEdge($activity, (string) $cursor ?? "", false);
         }
 
         return $edges;

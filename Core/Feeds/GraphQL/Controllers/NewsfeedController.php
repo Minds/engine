@@ -30,6 +30,7 @@ use Minds\Core\Feeds\GraphQL\Types\PublisherRecsEdge;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\GraphQL\Types;
 use Minds\Core\Groups\V2\GraphQL\Types\GroupEdge;
+use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\Recommendations\Algorithms\SuggestedChannels\SuggestedChannelsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Algorithms\SuggestedGroups\SuggestedGroupsRecommendationsAlgorithm;
 use Minds\Core\Recommendations\Injectors\BoostSuggestionInjector;
@@ -39,6 +40,7 @@ use Minds\Entities\Group;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Query;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class NewsfeedController
 {
@@ -65,6 +67,7 @@ class NewsfeedController
 
     /**
      * @param string[]|null $inFeedNoticesDelivered
+     * @throws GraphQLException
      */
     #[Query]
     public function getNewsfeed(
@@ -107,30 +110,36 @@ class NewsfeedController
 
         $hasMore = false;
 
+        /**
+         * If we are in guest mode, we will use a different service to get the newsfeed
+         */
         if (!$loggedInUser) {
-            $edges = $this->tenantGuestModeFeedsService->getTenantGuestModeTopActivities(
-                limit: $limit,
-                loadAfter: $loadAfter,
-                loadBefore: $loadBefore,
-                hasMore: $hasMore,
-            );
-            $pageInfo = new Types\PageInfo(
-                hasNextPage: $hasMore, // Always will be newer data on latest or if we are paging forward
-                hasPreviousPage: $after && $loadBefore,
-                startCursor: $loadBefore,
-                endCursor: $loadAfter,
-            );
+            try {
+                $edges = $this->tenantGuestModeFeedsService->getTenantGuestModeTopActivities(
+                    limit: $limit,
+                    loadAfter: $loadAfter,
+                    loadBefore: $loadBefore,
+                    hasMore: $hasMore,
+                );
+                $pageInfo = new Types\PageInfo(
+                    hasNextPage: $hasMore, // Always will be newer data on latest or if we are paging forward
+                    hasPreviousPage: $after && $loadBefore,
+                    startCursor: $loadBefore,
+                    endCursor: $loadAfter,
+                );
 
-            $connection = new NewsfeedConnection();
-            $connection->setEdges($edges);
-            $connection->setPageInfo($pageInfo);
-            return $connection;
+                $connection = new NewsfeedConnection();
+                $connection->setEdges($edges);
+                $connection->setPageInfo($pageInfo);
+                return $connection;
+            } catch (NoTenantFoundException $e) {
+                throw new GraphQLException('No tenant found');
+            }
         }
 
         $allowedNsfw = $loggedInUser?->getViewMature() ? [1,2,3,4,5,6] : [];
 
         $edges = [];
-        $hasMore = false;
 
         /**
          * @var Iterator<Activity> $activities

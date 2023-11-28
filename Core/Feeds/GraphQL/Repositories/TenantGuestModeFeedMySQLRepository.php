@@ -18,39 +18,71 @@ class TenantGuestModeFeedMySQLRepository extends AbstractRepository
      */
     public function getTopActivities(
         int $tenantId,
+        int $limit = 12,
+        int $offset = 0,
         bool $onlyFeaturedUsers = false,
+        bool &$hasMore = false,
+        ?string &$loadAfter = null
     ): iterable {
         $query = $this->mysqlClientReaderHandler->select()
             ->from(new RawExp('minds_entities e'))
             ->columns([
                 'e.guid',
-                'vote_count' => new RawExp("
-                    CASE 
-                        WHEN 
-                            e.type='activity' AND (
+                'rank' => new RawExp("
+                    (
+                        GREATEST(
+                            (
                                 SELECT COUNT(*) FROM minds_votes
                                 WHERE minds_votes.entity_guid = e.guid
                                 AND deleted = False
                                 AND direction = 1
-                            )
-                        THEN TRUE 
-                        ELSE FALSE
-                    END
+                            ),
+                            1
+                        )
+                    )
+                    *
+                    (
+                        IF(a.time_created >= TIMESTAMP(DATE_SUB(NOW(), INTERVAL 12 HOUR)), 4, 1)
+                    )
+                    *
+                    (
+                        IF(
+                            a.time_created < TIMESTAMP(DATE_SUB(NOW(), INTERVAL 12 HOUR)) AND
+                            a.time_created >= TIMESTAMP(DATE_SUB(NOW(), INTERVAL 36 HOUR)),
+                            2,
+                            1
+                        )
+                    )
                 "),
             ])
             ->innerJoin(['a' => 'minds_entities_activity'], 'e.guid', Operator::EQ, 'a.guid')
-            ->where('e.tenant_id', Operator::EQ, $tenantId);
+            ->where('e.tenant_id', Operator::EQ, $tenantId)
+            ->limit($limit + 1)
+            ->offset($offset);
 
         if ($onlyFeaturedUsers) {
-            $query->innerJoin(['feat_usrs' => 'minds_tenant_featured_entities'], "feat_usrs.entity_guid", Operator::EQ , "e.owner_guid");
+            $query->innerJoin(['feat_usrs' => 'minds_tenant_featured_entities'], "feat_usrs.entity_guid", Operator::EQ, "e.owner_guid");
         }
 
-        $query->orderBy('vote_count DESC', 'a.time_created DESC');
+        $query->orderBy('rank DESC', 'a.time_created DESC');
 
         try {
             $statement = $query->execute();
 
-            foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if ($statement->rowCount() > $limit) {
+                $hasMore = true;
+            }
+
+            if ($loadAfter === null) {
+                $loadAfter = $offset;
+            }
+
+            foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $i => $row) {
+                if ($i === $limit) {
+                    break;
+                }
+
+                $loadAfter++;
                 yield (int) $row['guid'];
             }
         } catch (RuntimeException $e) {
@@ -62,4 +94,3 @@ class TenantGuestModeFeedMySQLRepository extends AbstractRepository
         }
     }
 }
-
