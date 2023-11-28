@@ -185,10 +185,10 @@ class Service
         $status = RssFeedLastFetchStatusEnum::SUCCESS;
 
         try {
-            $lastFetchEntryDate = null;
             foreach ($this->processRssFeedService->fetchFeed(rssFeed: $rssFeed) as $entry) {
                 if ($entry->getDateModified()->getTimestamp() <= $rssFeed->lastFetchAtTimestamp) {
                     $this->logger->info("Skipping entry {$entry->getTitle()} as it is older than last fetch timestamp");
+                    continue;
                 }
 
                 if ($dryRun) {
