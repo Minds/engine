@@ -624,6 +624,21 @@ ALTER TABLE `minds_tenant_configs`
     ADD last_cache_timestamp timestamp DEFAULT NULL
     AFTER updated_timestamp;
 
+CREATE TABLE IF NOT EXISTS `minds_user_rss_feeds` (
+    `feed_id` bigint NOT NULL PRIMARY KEY,
+    `user_guid` bigint NOT NULL,
+    `tenant_id` int DEFAULT NULL,
+    `title` text NOT NULL,
+    `url` varchar(512) NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `last_fetch_at` timestamp DEFAULT NULL,
+    `last_fetch_status` tinyint DEFAULT NULL,
+    `last_fetch_entry_timestamp` timestamp DEFAULT NULL,
+    KEY (`tenant_id`),
+    KEY (`user_guid`),
+    UNIQUE KEY (`user_guid`, `url`)
+);
+
 ALTER TABLE `minds_entities_user`
 	ADD `password_reset_code` text
 	AFTER `email_confirmed_at`;
