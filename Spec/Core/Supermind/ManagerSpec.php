@@ -27,7 +27,9 @@ use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
 use Minds\Core\Supermind\Repository;
 use Minds\Core\Supermind\SupermindRequestPaymentMethod;
 use Minds\Core\Supermind\SupermindRequestStatus;
+use Minds\Core\Wire\Exceptions\RemoteUserException;
 use Minds\Entities\Activity;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\UserNotFoundException;
 use PhpSpec\ObjectBehavior;
@@ -123,6 +125,10 @@ class ManagerSpec extends ObjectBehavior
 
         $supermindRequest->getReceiverGuid($receiverGuid);
 
+        $receiver->getSource()
+            ->shouldBeCalled()
+            ->willReturn(FederatedEntitySourcesEnum::LOCAL);
+
         $this->entitiesBuilder->single($receiverGuid)
             ->shouldBeCalled()
             ->willReturn($receiver);
@@ -181,6 +187,74 @@ class ManagerSpec extends ObjectBehavior
         $this->shouldThrow(ForbiddenException::class)->duringAddSupermindRequest($supermindRequest, $paymentMethodId);
     }
 
+    public function it_should_throw_remote_user_exception_when_adding_a_supermind_request_for_an_activitypub_user(
+        SupermindRequest $supermindRequest,
+        User $sender,
+        User $receiver
+    ) {
+        $paymentMethodId = SupermindRequestPaymentMethod::CASH;
+        $receiverGuid = '123';
+
+        $supermindRequest->getReceiverGuid()
+            ->shouldBeCalled()
+            ->willReturn($receiverGuid);
+
+        $this->paymentProcessor->setUser($sender)
+            ->shouldBeCalled();
+
+        $this->setUser($sender);
+
+        $supermindRequest->getReceiverGuid($receiverGuid);
+
+        $receiver->getSource()
+            ->shouldBeCalled()
+            ->willReturn(FederatedEntitySourcesEnum::ACTIVITY_PUB);
+    
+        $this->entitiesBuilder->single($receiverGuid)
+            ->shouldBeCalled()
+            ->willReturn($receiver);
+
+        $this->acl->interact($receiver, $sender)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->shouldThrow(RemoteUserException::class)->duringAddSupermindRequest($supermindRequest, $paymentMethodId);
+    }
+
+    public function it_should_throw_remote_user_exception_when_adding_a_supermind_request_for_a_nostr_user(
+        SupermindRequest $supermindRequest,
+        User $sender,
+        User $receiver
+    ) {
+        $paymentMethodId = SupermindRequestPaymentMethod::CASH;
+        $receiverGuid = '123';
+
+        $supermindRequest->getReceiverGuid()
+            ->shouldBeCalled()
+            ->willReturn($receiverGuid);
+
+        $this->paymentProcessor->setUser($sender)
+            ->shouldBeCalled();
+
+        $this->setUser($sender);
+
+        $supermindRequest->getReceiverGuid($receiverGuid);
+
+        $receiver->getSource()
+            ->shouldBeCalled()
+            ->willReturn(FederatedEntitySourcesEnum::NOSTR);
+    
+        $this->entitiesBuilder->single($receiverGuid)
+            ->shouldBeCalled()
+            ->willReturn($receiver);
+
+        $this->acl->interact($receiver, $sender)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->shouldThrow(RemoteUserException::class)->duringAddSupermindRequest($supermindRequest, $paymentMethodId);
+    }
+
     public function it_should_cancel_a_supermind_request_for_cash_if_adding_request_fails(
         SupermindRequest $supermindRequest,
         User $sender,
@@ -209,6 +283,10 @@ class ManagerSpec extends ObjectBehavior
 
         $supermindRequest->getReceiverGuid($receiverGuid);
 
+        $receiver->getSource()
+            ->shouldBeCalled()
+            ->willReturn(FederatedEntitySourcesEnum::LOCAL);
+            
         $this->entitiesBuilder->single($receiverGuid)
             ->shouldBeCalled()
             ->willReturn($receiver);
@@ -266,6 +344,10 @@ class ManagerSpec extends ObjectBehavior
 
         $supermindRequest->getReceiverGuid($receiverGuid);
 
+        $receiver->getSource()
+            ->shouldBeCalled()
+            ->willReturn(FederatedEntitySourcesEnum::LOCAL);
+
         $this->entitiesBuilder->single($receiverGuid)
             ->shouldBeCalled()
             ->willReturn($receiver);
@@ -309,6 +391,10 @@ class ManagerSpec extends ObjectBehavior
         $this->setUser($sender);
 
         $supermindRequest->getReceiverGuid($receiverGuid);
+
+        $receiver->getSource()
+            ->shouldBeCalled()
+            ->willReturn(FederatedEntitySourcesEnum::LOCAL);
 
         $this->entitiesBuilder->single($receiverGuid)
             ->shouldBeCalled()
@@ -354,6 +440,10 @@ class ManagerSpec extends ObjectBehavior
         $this->setUser($sender);
 
         $supermindRequest->getReceiverGuid($receiverGuid);
+
+        $receiver->getSource()
+            ->shouldBeCalled()
+            ->willReturn(FederatedEntitySourcesEnum::LOCAL);
 
         $this->entitiesBuilder->single($receiverGuid)
             ->shouldBeCalled()
@@ -403,6 +493,10 @@ class ManagerSpec extends ObjectBehavior
         $this->setUser($sender);
 
         $supermindRequest->getReceiverGuid($receiverGuid);
+
+        $receiver->getSource()
+            ->shouldBeCalled()
+            ->willReturn(FederatedEntitySourcesEnum::LOCAL);
 
         $this->entitiesBuilder->single($receiverGuid)
             ->shouldBeCalled()
@@ -461,6 +555,10 @@ class ManagerSpec extends ObjectBehavior
 
         $supermindRequest->getReceiverGuid($receiverGuid);
 
+        $receiver->getSource()
+            ->shouldBeCalled()
+            ->willReturn(FederatedEntitySourcesEnum::LOCAL);
+
         $this->entitiesBuilder->single($receiverGuid)
             ->shouldBeCalled()
             ->willReturn($receiver);
@@ -512,6 +610,10 @@ class ManagerSpec extends ObjectBehavior
 
         $supermindRequest->getReceiverGuid($receiverGuid);
 
+        $receiver->getSource()
+            ->shouldBeCalled()
+            ->willReturn(FederatedEntitySourcesEnum::LOCAL);
+ 
         $this->entitiesBuilder->single($receiverGuid)
             ->shouldBeCalled()
             ->willReturn($receiver);
@@ -559,6 +661,10 @@ class ManagerSpec extends ObjectBehavior
 
         $supermindRequest->getReceiverGuid($receiverGuid);
 
+        $receiver->getSource()
+            ->shouldBeCalled()
+            ->willReturn(FederatedEntitySourcesEnum::LOCAL);
+    
         $this->entitiesBuilder->single($receiverGuid)
             ->shouldBeCalled()
             ->willReturn($receiver);
@@ -611,6 +717,10 @@ class ManagerSpec extends ObjectBehavior
         $this->setUser($sender);
 
         $supermindRequest->getReceiverGuid($receiverGuid);
+
+        $receiver->getSource()
+            ->shouldBeCalled()
+            ->willReturn(FederatedEntitySourcesEnum::LOCAL);
 
         $this->entitiesBuilder->single($receiverGuid)
             ->shouldBeCalled()
