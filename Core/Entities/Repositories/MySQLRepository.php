@@ -5,12 +5,10 @@ use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Data\MySQL\MySQLDataTypeEnum;
-use Minds\Core\Di\Di;
 use Minds\Core\Entities\Enums\EntitySubtypeEnum;
 use Minds\Core\Entities\Enums\EntityTypeEnum;
 use Minds\Core\Log\Logger;
 use Minds\Core\Security\Rbac\Enums\RolesEnum;
-use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Sessions\ActiveSession;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
@@ -23,6 +21,7 @@ use PDO;
 use PDOStatement;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
+use Selective\Database\SelectQuery;
 
 class MySQLRepository extends AbstractRepository implements EntitiesRepositoryInterface
 {
@@ -111,13 +110,29 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                         ELSE FALSE
                     END
                 "),
+                'rbac_roles.role_ids',
             ])
             ->from(new RawExp('minds_entities as e'))
             ->leftJoin(['u' => 'minds_entities_user'], 'e.guid', Operator::EQ, 'u.guid')
             ->leftJoin(['a' => 'minds_entities_activity'], 'e.guid', Operator::EQ, 'a.guid')
             ->leftJoin(['i' => 'minds_entities_object_image'], 'e.guid', Operator::EQ, 'i.guid')
             ->leftJoin(['v' => 'minds_entities_object_video'], 'e.guid', Operator::EQ, 'v.guid')
-            ->leftJoin(['g' => 'minds_entities_group'], 'e.guid', Operator::EQ, 'g.guid');
+            ->leftJoin(['g' => 'minds_entities_group'], 'e.guid', Operator::EQ, 'g.guid')
+            ->leftJoin(
+                function (SelectQuery $query): void {
+                    $query
+                        ->from('minds_role_user_assignments')
+                        ->columns([
+                            'user_guid',
+                            'role_ids' => new RawExp('GROUP_CONCAT(role_id)'),
+                        ])
+                        ->groupBy('user_guid')
+                        ->alias('rbac_roles');
+                },
+                'rbac_roles.user_guid',
+                Operator::EQ,
+                'u.guid'
+            );
 
         if (is_array($guid)) {
             //$query->where('e.guid', Operator::IN, new RawExp(':guid'));
@@ -157,10 +172,30 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
     public function loadFromIndex(string $index, string $value): ?EntityInterface
     {
         $query = $this->mysqlClientReaderHandler->select()
-             ->from(new RawExp('minds_entities as e'))
-             ->leftJoin(['u' => 'minds_entities_user'], 'e.guid', Operator::EQ, 'u.guid')
-             ->where($index, Operator::EQ, new RawExp(':val'))
-             ->where('e.tenant_id', Operator::EQ, $this->config->get('tenant_id'));
+            ->from(new RawExp('minds_entities as e'))
+            ->columns([
+                'e.*',
+                'u.*',
+                'rbac_roles.role_ids'
+            ])
+            ->leftJoin(['u' => 'minds_entities_user'], 'e.guid', Operator::EQ, 'u.guid')
+            ->leftJoin(
+                function (SelectQuery $query): void {
+                    $query
+                        ->from('minds_role_user_assignments')
+                        ->columns([
+                            'user_guid',
+                            'role_ids' => new RawExp('GROUP_CONCAT(role_id)'),
+                        ])
+                        ->groupBy('user_guid')
+                        ->alias('rbac_roles');
+                },
+                'rbac_roles.user_guid',
+                Operator::EQ,
+                'u.guid'
+            )
+            ->where($index, Operator::EQ, new RawExp(':val'))
+            ->where('e.tenant_id', Operator::EQ, $this->config->get('tenant_id'));
 
         $statement = $query->prepare();
 
@@ -586,6 +621,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
         $entities = [];
 
         $rows = $pdoStatement->fetchAll(PDO::FETCH_NUM);
+        // $rows2 = $pdoStatement->fetchAll(PDO::FETCH_ASSOC);
 
         if (!$pdoStatement->rowCount()) {
             return null;
@@ -631,6 +667,9 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
             switch (EntityTypeEnum::tryFrom($row['type'])) {
                 case EntityTypeEnum::USER:
                     $row = [...$row, ...$tableMappedRow['u']];
+                    if (array_key_exists('rbac_roles', $tableMappedRow)) {
+                        $row = array_merge($row, $tableMappedRow['rbac_roles']);
+                    }
 
                     $mapToUnix = ['time_created', 'time_updated', 'last_login', 'last_accepted_tos', 'icontime'];
 
@@ -638,9 +677,13 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
    
                     foreach ($mapToYesNo as $k) {
                         if (isset($row[$k])) {
-
-
                             $row[$k] = $row[$k] ? 'yes' : 'no';
+
+                            if ($k === 'admin') {
+                                $userRoles = explode(',', $row['role_ids'] ?? '');
+                                $isAdmin = (bool) count(array_intersect($userRoles, [RolesEnum::ADMIN->value, RolesEnum::OWNER->value]));
+                                $row['admin'] = $isAdmin ? 'yes' : 'no';
+                            }
                         }
                     }
 
@@ -690,19 +733,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 }
             }
 
-            $entity = Factory::build($row);
-
-            if ($entity instanceof User) {
-                /**
-                 * @var RolesService $rolesService
-                 */
-                $rolesService = Di::_()->get(RolesService::class);
-                $userRoles = $rolesService->getRoles($entity);
-                $isAdmin = (bool) count(array_intersect(array_keys($userRoles), [RolesEnum::ADMIN->value, RolesEnum::OWNER->value]));
-                $entity->set('admin', $isAdmin ? 'yes' : 'no');
-            }
-
-            $entities[] = $entity;
+            $entities[] = Factory::build($row);
 
         }
 
