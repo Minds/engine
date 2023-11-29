@@ -222,8 +222,6 @@ class Manager
                 throw new BoostPaymentSetupFailedException();
             }
         }
-
-        // Update minds payment with tx_id for non IAP purchases
     }
 
     /**
