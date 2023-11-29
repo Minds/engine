@@ -64,13 +64,13 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 'vote_count' => new RawExp("
                     CASE 
                         WHEN 
-                            e.type='activity' AND (
+                            e.type='activity'
+                        THEN (
                                 SELECT COUNT(*) FROM minds_votes
                                 WHERE minds_votes.entity_guid = e.guid
                                 AND deleted = False
                                 AND direction = 1
-                            )
-                        THEN TRUE 
+                            ) 
                         ELSE FALSE
                     END
                 "),
@@ -91,22 +91,22 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 'friends_count' => new RawExp("
                     CASE 
                         WHEN 
-                            e.type='user' AND (
+                            e.type='user'
+                        THEN (
                                 SELECT COUNT(*) FROM friends
                                 WHERE friends.user_guid = e.guid
-                            )
-                        THEN TRUE 
+                            ) 
                         ELSE FALSE
                     END
                 "),
                 'friendsof_count' => new RawExp("
                     CASE 
                         WHEN 
-                            e.type='user' AND (
+                            e.type='user'
+                        THEN (
                                 SELECT COUNT(*) FROM friends
                                 WHERE friends.friend_guid = e.guid
-                            )
-                        THEN TRUE 
+                            ) 
                         ELSE FALSE
                     END
                 "),
