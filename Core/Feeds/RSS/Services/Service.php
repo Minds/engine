@@ -147,7 +147,7 @@ class Service
                 $currentUser = $this->entitiesBuilder->single($rssFeed->userGuid);
             }
 
-            (function() use ($rssFeed, $currentUser, $dryRun): void {
+            (function () use ($rssFeed, $currentUser, $dryRun): void {
                 /**
                  * @var Service $service
                  */
