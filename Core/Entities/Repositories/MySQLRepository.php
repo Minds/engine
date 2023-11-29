@@ -1,26 +1,24 @@
 <?php
 namespace Minds\Core\Entities\Repositories;
 
-use Minds\Common\Access;
 use Minds\Core\Config\Config;
-use Minds\Core\Data\Call;
-use Minds\Core\Data\Cassandra\Thrift\Indexes;
-use Minds\Core\Data\lookup;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Data\MySQL\MySQLDataTypeEnum;
+use Minds\Core\Di\Di;
 use Minds\Core\Entities\Enums\EntitySubtypeEnum;
 use Minds\Core\Entities\Enums\EntityTypeEnum;
 use Minds\Core\Log\Logger;
-use Minds\Core\Session;
+use Minds\Core\Security\Rbac\Enums\RolesEnum;
+use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Sessions\ActiveSession;
-use Minds\Entities\Video;
 use Minds\Entities\Activity;
-use Minds\Entities\Factory;
 use Minds\Entities\EntityInterface;
+use Minds\Entities\Factory;
 use Minds\Entities\Group;
 use Minds\Entities\Image;
 use Minds\Entities\User;
+use Minds\Entities\Video;
 use PDO;
 use PDOStatement;
 use Selective\Database\Operator;
@@ -640,6 +638,8 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
    
                     foreach ($mapToYesNo as $k) {
                         if (isset($row[$k])) {
+
+
                             $row[$k] = $row[$k] ? 'yes' : 'no';
                         }
                     }
@@ -690,7 +690,19 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 }
             }
 
-            $entities[] = Factory::build($row);
+            $entity = Factory::build($row);
+
+            if ($entity instanceof User) {
+                /**
+                 * @var RolesService $rolesService
+                 */
+                $rolesService = Di::_()->get(RolesService::class);
+                $userRoles = $rolesService->getRoles($entity);
+                $isAdmin = (bool) count(array_intersect(array_keys($userRoles), [RolesEnum::ADMIN->value, RolesEnum::OWNER->value]));
+                $entity->set('admin', $isAdmin ? 'yes' : 'no');
+            }
+
+            $entities[] = $entity;
 
         }
 
