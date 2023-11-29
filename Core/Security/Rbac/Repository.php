@@ -145,10 +145,25 @@ class Repository extends AbstractRepository
             ->limit($limit)
             ->offset($offset);
 
-        if ($roleId) {
-            $query->where('role_id', Operator::EQ, new RawExp(':role_id'));
-            $values['role_id'] = $roleId;
+        if ($roleId !== null) {
+            switch (RolesEnum::tryFrom($roleId)) {
+                case RolesEnum::DEFAULT:
+                    // If default role selected, include all users (as everyone has the default role)
+                    // noop
+                    break;
+                case RolesEnum::OWNER:
+                    // If owner role, we do a query for that role and the root user
+                    $query->whereRaw("(minds_role_user_assignments.role_id = " . RolesEnum::OWNER->value . " OR minds_entities_user.guid = :root_user_guid)");
+                    $values['root_user_guid'] = $this->multiTenantBootService->getTenant()->rootUserGuid;
+                    break;
+                default:
+                    $query->where('role_id', Operator::EQ, new RawExp(':role_id'));
+                    $values['role_id'] = $roleId;
+                    break;
+            }
         }
+
+
 
         $stmt = $query->prepare();
 
