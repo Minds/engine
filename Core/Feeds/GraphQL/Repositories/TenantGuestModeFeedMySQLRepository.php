@@ -30,29 +30,13 @@ class TenantGuestModeFeedMySQLRepository extends AbstractRepository
                 'e.guid',
                 'rank' => new RawExp("
                     (
-                        GREATEST(
-                            (
-                                SELECT COUNT(*) FROM minds_votes
-                                WHERE minds_votes.entity_guid = e.guid
-                                AND deleted = False
-                                AND direction = 1
-                            ),
-                            1
-                        )
+                        SELECT COUNT(*) FROM minds_votes
+                        WHERE minds_votes.entity_guid = e.guid
+                        AND deleted = False
+                        AND direction = 1
                     )
-                    *
-                    (
-                        IF(a.time_created >= TIMESTAMP(DATE_SUB(NOW(), INTERVAL 12 HOUR)), 4, 1)
-                    )
-                    *
-                    (
-                        IF(
-                            a.time_created < TIMESTAMP(DATE_SUB(NOW(), INTERVAL 12 HOUR)) AND
-                            a.time_created >= TIMESTAMP(DATE_SUB(NOW(), INTERVAL 36 HOUR)),
-                            2,
-                            1
-                        )
-                    )
+                    /
+                    (NOW() - a.time_created)
                 "),
             ])
             ->innerJoin(['a' => 'minds_entities_activity'], 'e.guid', Operator::EQ, 'a.guid')
