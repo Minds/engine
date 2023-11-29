@@ -621,7 +621,6 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
         $entities = [];
 
         $rows = $pdoStatement->fetchAll(PDO::FETCH_NUM);
-        // $rows2 = $pdoStatement->fetchAll(PDO::FETCH_ASSOC);
 
         if (!$pdoStatement->rowCount()) {
             return null;
