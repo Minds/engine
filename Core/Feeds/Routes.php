@@ -22,11 +22,17 @@ class Routes extends ModuleRoutes
         $this->route
             ->withPrefix('api/v3/newsfeed')
             ->do(function (Route $route) {
+                /**
+                 * @deprecated
+                 */
                 $route->get(
                     'default-feed',
                     Ref::_('Feeds\Controller', 'getDefaultFeed')
                 );
 
+                /**
+                 * @deprecated
+                 */
                 $route->get(
                     'logged-out', // alias
                     Ref::_('Feeds\Controller', 'getDefaultFeed'),
