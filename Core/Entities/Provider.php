@@ -49,9 +49,7 @@ class Provider extends \Minds\Core\Di\Provider
 
         $this->di->bind(
             EntitiesRepositoryFactory::class,
-            fn (Di $di): EntitiesRepositoryFactory => new EntitiesRepositoryFactory(
-                $di->get(Config::class)
-            )
+            fn (Di $di): EntitiesRepositoryFactory => new EntitiesRepositoryFactory()
         );
 
         $this->di->bind(CassandraRepository::class, function (Di $di): CassandraRepository {
