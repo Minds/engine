@@ -85,6 +85,9 @@ class Actions
         if ($dirty) {
             $this->saveAction
                 ->setEntity($entity)
+                ->withMutatedAttributes([
+                    'mature',
+                ])
                 ->save();
         }
 
@@ -101,6 +104,9 @@ class Actions
                     if ($dirty) {
                         $this->saveAction
                             ->setEntity($rel)
+                            ->withMutatedAttributes([
+                                'mature',
+                            ])
                             ->save();
                     }
                 }
@@ -161,6 +167,9 @@ class Actions
         if ($dirty) {
             $this->saveAction
                 ->setEntity($entity)
+                ->withMutatedAttributes([
+                    'spam',
+                ])
                 ->save();
         }
 
@@ -177,6 +186,9 @@ class Actions
                     if ($dirty) {
                         $this->saveAction
                             ->setEntity($rel)
+                            ->withMutatedAttributes([
+                                'spam',
+                            ])
                             ->save();
                     }
                 }
@@ -237,6 +249,9 @@ class Actions
         if ($dirty) {
             $this->saveAction
                 ->setEntity($entity)
+                ->withMutatedAttributes([
+                    'deleted',
+                ])
                 ->save();
         }
 
@@ -253,6 +268,9 @@ class Actions
                     if ($dirty) {
                         $this->saveAction
                             ->setEntity($rel)
+                            ->withMutatedAttributes([
+                                'deleted',
+                            ])
                             ->save();
                     }
                 }
@@ -304,6 +322,9 @@ class Actions
                 if ($dirty) {
                     $this->saveAction
                         ->setEntity($entity)
+                        ->withMutatedAttributes([
+                            'mature',
+                        ])
                         ->save();
                 }
 
@@ -320,6 +341,9 @@ class Actions
                             if ($dirty) {
                                 $this->saveAction
                                     ->setEntity($rel)
+                                    ->withMutatedAttributes([
+                                        'spam',
+                                    ])
                                     ->save();
                             }
                         }
@@ -334,6 +358,9 @@ class Actions
                 if ($dirty) {
                     $this->saveAction
                         ->setEntity($entity)
+                        ->withMutatedAttributes([
+                            'spam',
+                        ])
                         ->save();
                 }
 
@@ -350,6 +377,9 @@ class Actions
                             if ($dirty) {
                                 $this->saveAction
                                     ->setEntity($rel)
+                                    ->withMutatedAttributes([
+                                        'spam',
+                                    ])
                                     ->save();
                             }
                         }
@@ -364,6 +394,9 @@ class Actions
                 if ($dirty) {
                     $this->saveAction
                         ->setEntity($entity)
+                        ->withMutatedAttributes([
+                            'deleted',
+                        ])
                         ->save();
                 }
 
@@ -380,6 +413,9 @@ class Actions
                             if ($dirty) {
                                 $this->saveAction
                                     ->setEntity($rel)
+                                    ->withMutatedAttributes([
+                                        'deleted',
+                                    ])
                                     ->save();
                             }
                         }

@@ -7,6 +7,7 @@ namespace Minds\Controllers\api\v2\settings;
 
 use Minds\Api\Factory;
 use Minds\Core;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Interfaces;
 
 class tos implements Interfaces\Api
@@ -20,9 +21,12 @@ class tos implements Interfaces\Api
     {
         $user = Core\Session::getLoggedinUser();
 
-        $user->setLastAcceptedTOS(Core\Config::_()->get('last_tos_update'))
-            ->save();
+        $user->setLastAcceptedTOS(Core\Config::_()->get('last_tos_update'));
 
+        (new Save())
+            ->setEntity($user)
+            ->withMutatedAttributes(['last_accepted_tos'])
+            ->save();
 
         return Factory::response(['status' => 'success', 'timestamp' => $user->getLastAcceptedTOS()]);
     }

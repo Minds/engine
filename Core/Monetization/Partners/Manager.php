@@ -248,7 +248,7 @@ class Manager
             // Build the affiliate to see if they have a referrer themselves
             $affiliateUser = $this->entitiesBuilder->single($item['affiliate_user_guid']);
 
-            if ($affiliateUser instanceof User && !empty($affiliateUser->referrer) && ((time() - $affiliateUser->time_created) < 3650 * 86400)) {
+            if ($affiliateUser instanceof User && !empty($affiliateUser->referrer) && ((time() - $affiliateUser->time_created) < 365 * 86400)) {
                 if (!isset($referrersDeposits[$affiliateUser->referrer])) {
                     $referrersDeposits[$affiliateUser->getGuid()] = 0;
                 }
@@ -432,6 +432,6 @@ class Manager
     {
         $user->setPartnerRpm($rpmCents);
         $save = new Entities\Actions\Save();
-        $save->setEntity($user)->save();
+        $save->setEntity($user)->withMutatedAttributes(['partner_rpm'])->save();
     }
 }

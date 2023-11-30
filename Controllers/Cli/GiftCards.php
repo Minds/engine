@@ -6,6 +6,7 @@ namespace Minds\Controllers\Cli;
 use Exception;
 use InvalidArgumentException;
 use Minds\Cli;
+use Minds\Common\SystemUser;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
@@ -72,15 +73,19 @@ class GiftCards extends Cli\Controller implements Interfaces\CliControllerInterf
     {
         $userGuid = $this->getOpt('user_guid');
 
-        $user = $this->entitiesBuilder->single($userGuid);
+        $user = new SystemUser();
+        if ($userGuid) {
+            $user = $this->entitiesBuilder->single($userGuid);
 
-        if (!$user instanceof User) {
-            throw new Exception("Invalid user");
+            if (!$user instanceof User) {
+                throw new Exception("Invalid user");
+            }
         }
+
 
         $giftCard = $this->giftCardsManager->createGiftCard(
             issuer: $user,
-            productId: GiftCardProductIdEnum::BOOST,
+            productId: GiftCardProductIdEnum::tryFrom((int)$this->getOpt('product_id')) ?? throw new InvalidArgumentException('Invalid product id'),
             amount: (float) $this->getOpt('amount') ?? 10,
             stripePaymentMethodId: $this->getOpt('stripe_payment_method_id') ?? "",
             giftCardPaymentTypeEnum: GiftCardPaymentTypeEnum::tryFrom((int)$this->getOpt('payment_type')) ?? throw new InvalidArgumentException('Invalid payment type')
@@ -90,7 +95,7 @@ class GiftCards extends Cli\Controller implements Interfaces\CliControllerInterf
             sender: $user,
             recipient: new GiftCardTarget(
                 targetUserGuid: ((int) $this->getOpt('recipient_user_guid')) ?? null,
-                targetEmail: $this->getOpt('recipient_email'),
+                targetEmail: $this->getOpt('recipient_email') ?? null,
             ),
             giftCard: $giftCard,
         );
@@ -135,6 +140,7 @@ class GiftCards extends Cli\Controller implements Interfaces\CliControllerInterf
 
         //$hasMore = false;
 
+        // TODO: implement getUserTransactions - currently not implemented
         $transactions = iterator_to_array($this->giftCardsManager->getUserTransactions($user, limit: 5, hasMore: $hasMore));
 
         var_dump($transactions, $hasMore);

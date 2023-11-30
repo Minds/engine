@@ -9,6 +9,7 @@ use Minds\Core\Rewards\Withdraw\Request;
 use Minds\Entities\User;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\EntitiesBuilder;
 
 class withdrawals implements Interfaces\Api, Interfaces\ApiAdminPam
 {
@@ -26,7 +27,7 @@ class withdrawals implements Interfaces\Api, Interfaces\ApiAdminPam
         $userGuid = null;
 
         if ($_GET['user']) {
-            $userGuid = (new User(strtolower($_GET['user'])))->guid;
+            $userGuid = (Di::_()->get(EntitiesBuilder::class)->getByUserByIndex(strtolower($_GET['user'])))->guid;
         }
 
         $status = $_GET['status'] ?? null;

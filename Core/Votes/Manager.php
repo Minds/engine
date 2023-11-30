@@ -8,6 +8,7 @@
 
 namespace Minds\Core\Votes;
 
+use Minds\Common\Repository\IterableEntity;
 use Minds\Core\Captcha\FriendlyCaptcha\Classes\DifficultyScalingType;
 use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
 use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\PuzzleExpiredException;
@@ -15,12 +16,17 @@ use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\PuzzleReusedException;
 use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\SignatureMismatchException;
 use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\SolutionAlreadySeenException;
 use Minds\Core\Captcha\FriendlyCaptcha\Manager as FriendlyCaptchaManager;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Core\Votes\Enums\VoteEnum;
+use Minds\Helpers;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\StopEventException;
 
@@ -50,6 +56,8 @@ class Manager
         private ?FriendlyCaptchaManager $friendlyCaptchaManager = null,
         private ?ExperimentsManager $experimentsManager = null,
         private ?MySqlRepository $mySqlRepository = null,
+        private ?Config $config = null,
+        private ?RbacGatekeeperService $rbacGatekeeperService = null,
     ) {
         $this->counters = $counters ?: Di::_()->get('Votes\Counters');
         $this->indexes = $indexes ?: Di::_()->get('Votes\Indexes');
@@ -57,7 +65,8 @@ class Manager
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->friendlyCaptchaManager ??= Di::_()->get('FriendlyCaptcha\Manager');
         $this->experimentsManager ??= new ExperimentsManager();
-        $this->mySqlRepository ??= Di::_()->get(MySqlRepository::class);
+        $this->config ??= Di::_()->get(Config::class);
+        $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
     }
 
     public function setUser(User $user): self
@@ -81,6 +90,9 @@ class Manager
      */
     public function cast($vote, VoteOptions $options = new VoteOptions())
     {
+        // Check RBAC
+        $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_INTERACT);
+
         if (!$this->acl->interact($vote->getEntity(), $vote->getActor(), "vote{$vote->getDirection()}")) {
             throw new \Exception('Actor cannot interact with entity');
         }
@@ -89,16 +101,18 @@ class Manager
             'vote' => $vote
         ], null);
 
-        if ($done === null) {
+        if ($done === null && !$this->isMultiTenant()) {
             //update counts
             $this->counters->update($vote);
 
             //update indexes
             $done = $this->indexes->insert($vote);
+        } else {
+            $done = true;
         }
 
         // Save to MySQL
-        $done = $this->mySqlRepository->add($vote) && $done;
+        $done = $this->getMySqlRepository()->add($vote) && $done;
 
         $this->experimentsManager->setUser($this->user);
         $eventOptions = [
@@ -148,16 +162,18 @@ class Manager
             'vote' => $vote
         ], null);
 
-        if ($done === null) {
+        if ($done === null && !$this->isMultiTenant()) {
             //update counts
             $this->counters->update($vote, -1);
 
             //update indexes
             $done = $this->indexes->remove($vote);
+        } else {
+            $done = true;
         }
         
         // Save to MySQL
-        $done = $this->mySqlRepository->delete($vote) && $done;
+        $done = $this->getMySqlRepository()->delete($vote) && $done;
 
         if ($done && $options->events) {
             $this->eventsDispatcher->trigger('vote:cancel', $vote->getDirection(), [
@@ -181,7 +197,7 @@ class Manager
         ], null);
 
         if ($value === null) {
-            // First, check MySQL if the vote exists. If not then check against Cassandra
+            // Checks the entity model (works for multi tenant and host)
             $value = $this->indexes->exists($vote);
         }
 
@@ -206,23 +222,61 @@ class Manager
     }
 
     /**
+     * Returns a count of votes
+     */
+    public function count(EntityInterface $entity): int
+    {
+        if ($this->isMultiTenant()) {
+            return $this->counters->get($entity, 'up');
+        }
+
+        return Helpers\Counters::get($entity->getGuid(), 'thumbs:up');
+    }
+
+    /**
      * @return iterable<IterableEntity>
      */
     public function getList(VoteListOpts $opts): iterable
     {
-        return $this->indexes->getList($opts);
+        if ($this->isMultiTenant()) {
+            foreach (
+                $this->getMySqlRepository()->getList(
+                    userGuid: null,
+                    entityGuid: (int) $opts->getEntityGuid(),
+                    direction: VoteEnum::UP,
+                ) as $item
+            ) {
+                $iterableEntity = new IterableEntity($item, null);
+                yield $iterableEntity;
+            }
+        } else {
+            yield from $this->indexes->getList($opts);
+        }
     }
 
     public function getVotesFromRelationalRepository(
         User $user,
     ): iterable {
         foreach (
-            $this->mySqlRepository->getList(
+            $this->getMySqlRepository()->getList(
                 (int) $user->getGuid(),
                 VoteEnum::UP
             ) as $item
         ) {
             yield $item;
         }
+    }
+
+    /**
+     * Not ideal, but avoid connecting to mysql when we might not need to
+     */
+    private function getMySqlRepository(): MySqlRepository
+    {
+        return $this->mySqlRepository ??= Di::_()->get(MySqlRepository::class);
+    }
+
+    private function isMultiTenant(): bool
+    {
+        return !!$this->config->get('tenant_id');
     }
 }

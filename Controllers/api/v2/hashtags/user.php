@@ -5,6 +5,7 @@ namespace Minds\Controllers\api\v2\hashtags;
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Interfaces;
 
 class user implements Interfaces\Api
@@ -57,7 +58,14 @@ class user implements Interfaces\Api
 
         // set opted in hashtags.
         $user->setOptedInHashtags(1);
-        $user->save();
+        
+        
+        (new Save())->setEntity($user)
+            ->withMutatedAttributes([
+                'tags',
+                'opted_in_hashtags',
+            ])
+            ->save();
 
         return Factory::response([
             'status' => 'success',
@@ -104,7 +112,13 @@ class user implements Interfaces\Api
 
         // remove opted in hashtag.
         $user->setOptedInHashtags(-1);
-        $user->save();
+
+        (new Save())->setEntity($user)
+            ->withMutatedAttributes([
+                'tags',
+                'opted_in_hashtags',
+            ])
+            ->save();
 
         return Factory::response([
             'status' => 'success',

@@ -66,6 +66,11 @@ class UserStorageRepository implements RepositoryInterface
     private function upsert(User $user, Settings $settings): bool
     {
         $user->setSupermindSettings(json_encode($settings));
-        return (bool) $this->saveAction->setEntity($user)->save();
+        return (bool) $this->saveAction
+            ->setEntity($user)
+            ->withMutatedAttributes([
+                'supermind_settings'
+            ])
+            ->save();
     }
 }

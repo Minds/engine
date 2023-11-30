@@ -8,6 +8,7 @@ use Minds\Core\Di\Ref;
 use Minds\Core\Router\Middleware\AdminMiddleware;
 use Minds\Core\Router\Middleware\LoggedInMiddleware;
 use Minds\Core\Router\Middleware\MauticWebhookMiddleware;
+use Minds\Core\Router\Middleware\NotMultiTenantMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 
@@ -18,7 +19,8 @@ class Routes extends ModuleRoutes
         $this->route
             ->withPrefix('api/v3/supermind')
             ->withMiddleware([
-                MauticWebhookMiddleware::class
+                MauticWebhookMiddleware::class,
+                NotMultiTenantMiddleware::class,
             ])
             ->do(function (Route $route): void {
                 $route->post(
@@ -29,7 +31,8 @@ class Routes extends ModuleRoutes
         $this->route
             ->withPrefix('api/v3/supermind')
             ->withMiddleware([
-                LoggedInMiddleware::class
+                LoggedInMiddleware::class,
+                NotMultiTenantMiddleware::class,
             ])
             ->do(function (Route $route) {
                 $route->get(

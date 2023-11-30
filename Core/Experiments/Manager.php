@@ -113,8 +113,8 @@ class Manager
 
         // If we have a cached version use that
         if ($useCached) {
-            $cached = $this->psrCache->get(static::FEATURES_CACHE_KEY);
-            if ($cached) {
+            $cached = $this->psrCache->withTenantPrefix(false)->get(static::FEATURES_CACHE_KEY);
+            if ($cached && is_array($cached)) {
                 return $cached;
             }
         }
@@ -130,7 +130,7 @@ class Manager
             $features = $responseData['features'] ?? [];
 
             // Set the cache
-            $this->psrCache->set(static::FEATURES_CACHE_KEY, $features);
+            $this->psrCache->withTenantPrefix(false)->set(static::FEATURES_CACHE_KEY, $features);
         } catch (\Exception $e) {
             return [];
         }
@@ -209,7 +209,7 @@ class Manager
 
         $cacheKey = $this->getTrackingCacheKey($experimentId);
 
-        if ($this->psrCache->get($cacheKey) !== false) {
+        if ($this->psrCache->withTenantPrefix(false)->get($cacheKey) !== false) {
             return; // Skip as we've seen in last 24 hours.
         }
 
@@ -220,7 +220,7 @@ class Manager
         $user = $this->getUser();
         $this->snowplowManager->setSubject($user)->emit($spGrowthbookEvent);
 
-        $this->psrCache->set($cacheKey, $variationId, self::TRACKING_CACHE_TTL);
+        $this->psrCache->withTenantPrefix(false)->set($cacheKey, $variationId, self::TRACKING_CACHE_TTL);
     }
 
     /**

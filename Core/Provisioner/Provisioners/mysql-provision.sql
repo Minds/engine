@@ -271,7 +271,7 @@ CREATE TABLE IF NOT EXISTS minds_comments (
     guid bigint,
     entity_guid bigint,
     owner_guid bigint,
-    parent_guid bigint REFERENCES minds_comment(guid),
+    parent_guid bigint REFERENCES minds_comments(guid),
     parent_depth int,
     body text,
     attachments json,
@@ -414,3 +414,264 @@ ALTER TABLE minds_activitypub_actors
 
 ALTER TABLE minds_activitypub_uris
     ADD updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP;
+
+CREATE TABLE IF NOT EXISTS minds_asset_storage (
+    `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+    `entity_guid` bigint NOT NULL,
+    `entity_type` int NOT NULL,
+    `filename` varchar(256) NOT NULL,
+    `owner_guid` bigint NOT NULL,
+    `tenant_id` bigint DEFAULT NULL,
+    `size_bytes` bigint NOT NULL,
+    `duration_seconds` int DEFAULT NULL,
+    `created_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP,
+    `updated_timestamp` timestamp DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    `deleted` boolean NOT NULL DEFAULT FALSE,
+    UNIQUE KEY (`tenant_id`, `entity_guid`, `filename`),
+    INDEX (`owner_guid`),
+    INDEX (`deleted`)
+);
+
+CREATE TABLE `minds_tenants` (
+  `tenant_id` int NOT NULL AUTO_INCREMENT,
+  `owner_guid` bigint DEFAULT NULL,
+  `domain` varchar(128) DEFAULT NULL,
+  PRIMARY KEY (`tenant_id`),
+  UNIQUE KEY `domain` (`domain`)
+);
+
+CREATE TABLE IF NOT EXISTS minds_tenant_configs (
+    tenant_id int,
+    site_name varchar(64),
+    site_email varchar(128),
+    primary_color varchar(16),
+    color_scheme varchar(32),
+    updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (tenant_id)
+);
+
+CREATE TABLE `minds_entities` (
+  `tenant_id` int NOT NULL,
+  `guid` bigint NOT NULL,
+  `owner_guid` bigint DEFAULT NULL,
+  `type` varchar(32) DEFAULT NULL,
+  `subtype` varchar(32) DEFAULT NULL,
+  `access_id` bigint DEFAULT NULL,
+  `container_guid` bigint DEFAULT NULL,
+  PRIMARY KEY (`tenant_id`,`guid`)
+);
+
+CREATE TABLE `minds_entities_user` (
+  `guid` bigint NOT NULL,
+  `tenant_id` int NOT NULL,
+  `username` varchar(128) DEFAULT NULL,
+  `name` text,
+  `briefdescription` text,
+  `email` text DEFAULT NULL,
+  `password` varchar(256) DEFAULT NULL,
+  `liquidity_spot_opt_out` tinyint(1) DEFAULT '0',
+  `disabled_boost` tinyint(1) DEFAULT '0',
+  `mature` tinyint(1) DEFAULT '0',
+  `spam` tinyint(1) DEFAULT '0',
+  `deleted` tinyint(1) DEFAULT '0',
+  `enabled` tinyint(1) DEFAULT '1',
+  `admin` tinyint(1) DEFAULT '0',
+  `banned` tinyint(1) DEFAULT '0',
+  `canary` tinyint(1) DEFAULT '0',
+  `verified` tinyint(1) DEFAULT '0',
+  `founder` tinyint(1) DEFAULT '0',
+  `last_accepted_tos` timestamp NULL DEFAULT NULL,
+  `time_created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `time_updated` timestamp NULL DEFAULT NULL,
+  `last_login` timestamp NULL DEFAULT NULL,
+  `icontime` timestamp NULL DEFAULT NULL,
+  `email_confirmation_token` text,
+  `email_confirmed_at` timestamp NULL DEFAULT NULL,
+  `merchant` json DEFAULT NULL,
+  `tags` json DEFAULT NULL,
+  `city` varchar(64) DEFAULT NULL,
+  `public_dob` varchar(64) DEFAULT NULL,
+  `social_profiles` json DEFAULT NULL,
+  `eth_wallet` varchar(128) DEFAULT NULL,
+  `ip` int unsigned DEFAULT NULL,
+  `canonical_url` text,
+  `source` text,
+  PRIMARY KEY (`tenant_id`,`guid`),
+  UNIQUE KEY `username` (`username`)
+);
+
+CREATE TABLE `minds_entities_group` (
+  `tenant_id` int NOT NULL,
+  `guid` bigint NOT NULL,
+  `name` varchar(128) DEFAULT NULL,
+  `brief_description` text,
+  `deleted` tinyint(1) DEFAULT '0',
+  `banner` tinyint(1) DEFAULT '0',
+  `membership` int DEFAULT NULL,
+  `moderated` tinyint(1) DEFAULT '0',
+  `icon_time` timestamp NULL DEFAULT NULL,
+  `time_created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `time_updated` timestamp NULL DEFAULT NULL,
+  `tags` json DEFAULT NULL,
+  `show_boost` tinyint(1) DEFAULT '1',
+  PRIMARY KEY (`tenant_id`,`guid`),
+  UNIQUE KEY `name` (`name`)
+);
+
+CREATE TABLE `minds_entities_activity` (
+  `tenant_id` int NOT NULL,
+  `guid` bigint NOT NULL,
+  `message` text,
+  `title` text,
+  `remind_object` blob,
+  `comments_enabled` tinyint(1) DEFAULT '1',
+  `paywall` tinyint(1) DEFAULT '0',
+  `edited` tinyint(1) DEFAULT '0',
+  `spam` tinyint(1) DEFAULT '0',
+  `deleted` tinyint(1) DEFAULT '0',
+  `pending` tinyint(1) DEFAULT '0',
+  `mature` tinyint(1) DEFAULT '0',
+  `time_created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `time_updated` timestamp NULL DEFAULT NULL,
+  `time_sent` timestamp NULL DEFAULT NULL,
+  `license` text,
+  `inferred_tags` json DEFAULT NULL,
+  `tags` json DEFAULT NULL,
+  `attachments` json DEFAULT NULL,
+  `canonical_url` text,
+  `source` text,
+  PRIMARY KEY (`tenant_id`,`guid`)
+);
+
+CREATE TABLE `minds_entities_object_image` (
+  `tenant_id` int NOT NULL,
+  `guid` bigint NOT NULL,
+  `message` text,
+  `title` text,
+  `deleted` tinyint(1) DEFAULT '0',
+  `time_created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `time_updated` timestamp NULL DEFAULT NULL,
+  `auto_caption` text,
+  `width` int DEFAULT NULL,
+  `height` int DEFAULT NULL,
+  PRIMARY KEY (`tenant_id`,`guid`)
+);
+
+CREATE TABLE `minds_entities_object_video` (
+  `tenant_id` int NOT NULL,
+  `guid` bigint NOT NULL,
+  `deleted` tinyint(1) DEFAULT '0',
+  `time_created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `time_updated` timestamp NULL DEFAULT NULL,
+  `cloudflare_id` varchar(128) DEFAULT NULL,
+  `width` int DEFAULT NULL,
+  `height` int DEFAULT NULL,
+  `auto_caption` text,
+  PRIMARY KEY (`tenant_id`,`guid`)
+);
+
+ALTER TABLE `minds_tenants`
+    ADD root_user_guid bigint DEFAULT NULL
+    AFTER owner_guid;
+
+CREATE TABLE IF NOT EXISTS `minds_tenants_domain_details` (
+    `tenant_id` int NOT NULL PRIMARY KEY,
+    `domain` varchar(128) NOT NULL,
+    `cloudflare_id` varchar(64) NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+);
+
+ALTER TABLE `minds_votes` ADD COLUMN `tenant_id` int DEFAULT NULL AFTER `user_guid`;
+CREATE INDEX `tenant_id` ON `minds_votes` (`tenant_id`);
+
+CREATE TABLE IF NOT EXISTS minds_tenant_featured_entities (
+    `tenant_id` int,
+    `entity_guid` bigint,
+    `auto_subscribe` boolean DEFAULT FALSE,
+    `recommended` boolean DEFAULT FALSE,
+    `created_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP,
+    `updated_timestamp` timestamp DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`tenant_id`, `entity_guid`)
+);
+
+ALTER TABLE `minds_entities_user` MODIFY COLUMN ip varchar(40);
+
+ALTER TABLE `friends` ADD COLUMN tenant_id int AFTER friend_guid;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD community_guidelines text DEFAULT NULL
+    AFTER color_scheme;
+
+CREATE TABLE `minds_reports` (
+  `tenant_id` int NOT NULL,
+  `report_guid` bigint NOT NULL,
+  `entity_guid` bigint NOT NULL,
+  `entity_urn` varchar(256) NOT NULL,
+  `reported_by_guid` bigint NOT NULL,
+  `moderated_by_guid` bigint DEFAULT NULL,
+  `reason` tinyint NOT NULL,
+  `sub_reason` tinyint DEFAULT NULL,
+  `status` tinyint NOT NULL,
+  `action` tinyint DEFAULT NULL,
+  `created_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `updated_timestamp` timestamp DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`report_guid`),
+  INDEX (tenant_id)
+);
+
+ALTER TABLE `minds_tenant_configs`
+    ADD last_cache_timestamp timestamp DEFAULT NULL
+    AFTER updated_timestamp;
+
+CREATE TABLE IF NOT EXISTS `minds_user_rss_feeds` (
+    `feed_id` bigint NOT NULL PRIMARY KEY,
+    `user_guid` bigint NOT NULL,
+    `tenant_id` int DEFAULT NULL,
+    `title` text NOT NULL,
+    `url` varchar(512) NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `last_fetch_at` timestamp DEFAULT NULL,
+    `last_fetch_status` tinyint DEFAULT NULL,
+    `last_fetch_entry_timestamp` timestamp DEFAULT NULL,
+    KEY (`tenant_id`),
+    KEY (`user_guid`),
+    UNIQUE KEY (`user_guid`, `url`)
+);
+
+ALTER TABLE `minds_entities_user`
+	ADD `password_reset_code` text
+	AFTER `email_confirmed_at`;
+
+ALTER TABLE `minds_entities_activity`
+    ADD `blurb` TEXT DEFAULT NULL
+    AFTER `title`;
+
+ALTER TABLE `minds_entities_activity`
+    ADD `perma_url` TEXT DEFAULT NULL
+    AFTER `blurb`;
+
+ALTER TABLE `minds_entities_activity`
+    ADD `thumbnail_src` TEXT DEFAULT NULL
+    AFTER `perma_url`;
+
+CREATE TABLE  IF NOT EXISTS  minds_role_permissions(
+    `tenant_id` int,
+    `permission_id` varchar(64),
+    `role_id` tinyint,
+    `enabled`       boolean,
+    `created_at` timestamp DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (`tenant_id`, `permission_id`, `role_id`)
+);
+
+CREATE TABLE  IF NOT EXISTS  minds_role_user_assignments(
+    `tenant_id` int,
+    `role_id` tinyint,
+    `user_guid` bigint,
+    `created_at` timestamp DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (`tenant_id`, `role_id`, `user_guid`)
+);
+
+ALTER TABLE `minds_entities_user`
+    ADD `language` varchar(32) DEFAULT 'en'
+    AFTER `ip`;

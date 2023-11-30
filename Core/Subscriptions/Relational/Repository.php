@@ -1,20 +1,24 @@
 <?php
 namespace Minds\Core\Subscriptions\Relational;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Subscriptions\Subscription;
 use Minds\Entities\User;
+use PDO;
 
 class Repository
 {
     public function __construct(
         protected ?Client $client = null,
-        protected ?EntitiesBuilder $entitiesBuilder = null
+        protected ?EntitiesBuilder $entitiesBuilder = null,
+        protected ?Config $config = null,
     ) {
         $this->client ??= Di::_()->get('Database\MySQL\Client');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->config ??= Di::_()->get(Config::class);
     }
 
 
@@ -25,13 +29,14 @@ class Repository
      */
     public function add(Subscription $subscription): bool
     {
-        $statement = "INSERT INTO friends (user_guid, friend_guid, timestamp) VALUES (:user_guid, :friend_guid, CURRENT_TIMESTAMP()) ON DUPLICATE KEY UPDATE user_guid=user_guid";
+        $statement = "INSERT INTO friends (user_guid, friend_guid, tenant_id, timestamp) VALUES (:user_guid, :friend_guid, :tenant_id, CURRENT_TIMESTAMP()) ON DUPLICATE KEY UPDATE user_guid=user_guid";
         
         $prepared = $this->client->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
         
         return $prepared->execute([
             'user_guid' => $subscription->getSubscriberGuid(),
             'friend_guid' => $subscription->getPublisherGuid(),
+            'tenant_id' => $this->getTenantId(),
         ]);
     }
 
@@ -43,13 +48,110 @@ class Repository
     public function delete(Subscription $subscription): bool
     {
         $statement = "DELETE FROM friends
-                        WHERE user_guid = :user_guid and friend_guid = :friend_guid";
-        $prepared = $this->client->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
+                        WHERE user_guid = :user_guid
+                        AND friend_guid = :friend_guid";
 
-        return $prepared->execute([
+        $values = [
             'user_guid' => $subscription->getSubscriberGuid(),
             'friend_guid' => $subscription->getPublisherGuid(),
-        ]);
+        ];
+
+        if ($tenantId = $this->getTenantId()) {
+            $statement .= " AND tenant_id = :tenant_id";
+            $values['tenant_id'] = $tenantId;
+        } else {
+            $statement .= " AND tenant_id IS NULL";
+        }
+
+        $prepared = $this->client->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
+
+        return $prepared->execute($values);
+    }
+
+    /**
+     * Checks if a user is subscribed to another user
+     */
+    public function isSubscribed(int $userGuid, int $friendGuid): bool
+    {
+        $statement = "SELECT * FROM friends
+            WHERE user_guid = :user_guid
+            AND friend_guid = :friend_guid";
+
+        $values = [
+            'user_guid' => $userGuid,
+            'friend_guid' => $friendGuid,
+        ];
+
+        if ($tenantId = $this->getTenantId()) {
+            $statement .= " AND tenant_id = :tenant_id";
+            $values['tenant_id'] = $tenantId;
+        } else {
+            $statement .= " AND tenant_id IS NULL";
+        }
+
+        $prepared = $this->client->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
+
+        $prepared->execute($values);
+
+        return ($prepared->rowCount() > 0);
+    }
+
+    /**
+     * Returns a count of users a user is subscribed to
+     */
+    public function getSubscriptionsCount(int $userGuid): int
+    {
+        $statement = "SELECT count(*) as c 
+            FROM friends
+            WHERE user_guid = :user_guid";
+
+        $values = [
+            'user_guid' => $userGuid,
+        ];
+
+        if ($this->getTenantId()) {
+            $statement .= " AND tenant_id = :tenant_id";
+            $values['tenant_id'] = $this->getTenantId();
+        } else {
+            $statement .= " AND tenant_id IS NULL";
+        }
+
+        $prepared = $this->client->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
+
+        $prepared->execute($values);
+
+        $result = $prepared->fetchAll(PDO::FETCH_BOTH);
+
+        return $result[0]['c'];
+    }
+
+    /**
+     * Returns a count of users that are subscribed to a user
+     */
+    public function getSubscribersCount(int $userGuid): int
+    {
+        $statement = "SELECT count(*) as c 
+            FROM friends
+            WHERE friend_guid = :user_guid";
+
+        $values = [
+            'user_guid' => $userGuid,
+        ];
+
+        if ($this->getTenantId()) {
+            $statement .= " AND tenant_id = :tenant_id";
+            $values['tenant_id'] = $this->getTenantId();
+        } else {
+            $statement .= " AND tenant_id IS NULL";
+        }
+
+        $prepared = $this->client->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
+
+        $prepared->execute($values);
+
+        $result = $prepared->fetchAll(PDO::FETCH_BOTH);
+
+        return $result[0]['c'];
     }
 
     /**
@@ -198,6 +300,11 @@ class Repository
             WHERE own.user_guid = :user_guid 
                 AND others.friend_guid = :friend_guid
                 AND own.friend_guid != :user_guid";
+    }
+
+    private function getTenantId(): ?int
+    {
+        return $this->config->get('tenant_id');
     }
 
     /**

@@ -8,6 +8,7 @@ use Minds\Core\Di\Di;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Core\Monetization\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
 use Minds\Core\Supermind\Settings\Models\Settings;
+use Minds\Core\Subscriptions;
 use Minds\Helpers;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
 
@@ -125,7 +126,6 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         $this->attributes['icontime'] = 0;
         $this->attributes['briefdescription'] = '';
         $this->attributes['rating'] = 1;
-        $this->attributes['p2p_media_enabled'] = 0;
         $this->attributes['is_mature'] = 0;
         $this->attributes['mature_lock'] = 0;
         $this->attributes['opted_in_hashtags'] = 0;
@@ -153,6 +153,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         $this->attributes['dismissed_widgets'] = [];
         $this->attributes['liquidity_spot_opt_out'] = 0;
         $this->attributes['supermind_settings'] = [];
+        $this->attributes['language'] = 'en';
         $this->attributes['source'] = FederatedEntitySourcesEnum::LOCAL->value;
         $this->attributes['canonical_url'] = null;
 
@@ -978,12 +979,9 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
             return false;
         }
 
-        $return = 0;
-        $db = new Core\Data\Call('friendsof');
-        $row = $db->getRow($this->guid, ['limit' => 1, 'offset' => $guid]);
-        if ($row && key($row) == $guid) {
-            $return = true;
-        }
+        /** @var Subscriptions\Manager */
+        $manager = Di::_()->get(Subscriptions\Manager::class);
+        $return = $manager->setSubscriber((new User)->set('guid', $guid))->isSubscribed($this);
 
         $cacher->set("$this->guid:isSubscriber:$guid", $return);
 
@@ -1009,12 +1007,9 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
             return false;
         }
 
-        $return = 0;
-        $db = new Core\Data\Call('friendsof');
-        $row = $db->getRow($guid, ['limit' => 1, 'offset' => $this->guid]);
-        if ($row && key($row) == $this->guid) {
-            $return = true;
-        }
+        /** @var Subscriptions\Manager */
+        $manager = Di::_()->get(Subscriptions\Manager::class);
+        $return = $manager->setSubscriber($this)->isSubscribed((new User)->set('guid', $guid));
 
         $cacher->set("$this->guid:isSubscribed:$guid", $return);
 
@@ -1023,16 +1018,9 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
 
     public function getSubscribersCount()
     {
-        $cacher = Core\Data\cache\factory::build();
-        if ($cache = $cacher->get("$this->guid:friendsofcount")) {
-            return $cache;
-        }
-
-        $db = new Core\Data\Call('friendsof');
-        $return = (int) $db->countRow($this->guid);
-        $cacher->set("$this->guid:friendsofcount", $return, 259200); //cache for 3 days
-
-        return (int) $return;
+        /** @var Subscriptions\Manager */
+        $manager = Di::_()->get(Subscriptions\Manager::class);
+        return $manager->setSubscriber($this)->getSubscribersCount();
     }
 
     /**
@@ -1040,18 +1028,11 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
      *
      * @return int
      */
-    public function getSubscriptonsCount()
+    public function getSubscriptionsCount()
     {
-        $cacher = Core\Data\cache\factory::build();
-        if ($cache = $cacher->get("$this->guid:friendscount")) {
-            return $cache;
-        }
-
-        $db = new Core\Data\Call('friends');
-        $return = (int) $db->countRow($this->guid);
-        $cacher->set("$this->guid:friendscount", $return, 259200); //cache for 3 days
-
-        return (int) $return;
+        /** @var Subscriptions\Manager */
+        $manager = Di::_()->get(Subscriptions\Manager::class);
+        return $manager->setSubscriber($this)->getSubscriptionsCount();
     }
 
     public function getMerchant()
@@ -1066,18 +1047,6 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
     public function setMerchant($merchant)
     {
         $this->merchant = $merchant;
-
-        return $this;
-    }
-
-    public function isP2PMediaEnabled()
-    {
-        return (bool) $this->attributes['p2p_media_enabled'];
-    }
-
-    public function setP2PMediaEnabled($value)
-    {
-        $this->attributes['p2p_media_enabled'] = (bool) $value;
 
         return $this;
     }
@@ -1137,7 +1106,6 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
 
         $export['tags'] = $this->getHashtags();
         $export['rewards'] = (bool) $this->getPhoneNumberHash();
-        $export['p2p_media_enabled'] = $this->isP2PMediaEnabled();
         $export['is_mature'] = $this->isMature();
         $export['mature_lock'] = $this->getMatureLock();
         $export['mature'] = (int) $this->getViewMature();
@@ -1187,6 +1155,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         $export['yt_channels'] = $this->getYouTubeChannels();
 
         $export['liquidity_spot_opt_out'] = $this->getLiquiditySpotOptOut();
+        $export['language'] = $this->getLanguage();
 
         return $export;
     }
@@ -2000,4 +1969,28 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
     {
         return $this->canonical_url;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function toArray(): array
+    {
+        $array = parent::toArray();
+        
+        if (!$this->override_password && !$this->guid) {
+            unset($array['password']);
+            unset($array['salt']);
+        }
+        
+        if (!$this->plus_expires || $this->plus_expires < time()) { //ensure we don't update this field
+            unset($array['plus_expires']);
+        }
+
+        if (!$this->merchant || !is_array($this->merchant)) {
+            unset($array['merchant']); //HACK: only allow updating of merchant if it's an array
+        }
+
+        return $array;
+    }
+
 }

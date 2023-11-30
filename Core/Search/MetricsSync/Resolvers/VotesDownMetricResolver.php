@@ -14,9 +14,9 @@ class VotesDownMetricResolver extends AbstractVotesMetricResolver
     /** @var string */
     protected $metricId = 'votes:down';
 
-    public function __construct($counters = null, $aggregator = null)
+    public function __construct($repository = null, $aggregator = null)
     {
-        parent::__construct($counters);
+        parent::__construct($repository);
         $this->aggregator = $aggregator ?? new Aggregates\Votes();
     }
 }

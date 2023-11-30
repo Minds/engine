@@ -16,20 +16,14 @@ class InitializeSettingsDelegate
     /** @var Repository */
     protected $repository;
 
-    /** @var SetupRoutingDelegate */
-    protected $setupRoutingDelegate;
-
     /**
      * InitializeSettingsDelegate constructor.
      * @param Repository $repository
-     * @param SetupRoutingDelegate $setupRoutingDelegate
      */
     public function __construct(
         $repository = null,
-        $setupRoutingDelegate = null
     ) {
         $this->repository = $repository ?: new Repository();
-        $this->setupRoutingDelegate = $setupRoutingDelegate ?: new SetupRoutingDelegate();
     }
 
     /**
@@ -53,8 +47,6 @@ class InitializeSettingsDelegate
             $settings->setTitle($user->name ?: $user->username);
         }
 
-        $this->setupRoutingDelegate
-            ->onUpdate($settings);
 
         $this->repository
             ->add($settings);

@@ -89,6 +89,11 @@ class ActionsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->saveAction);
 
+        $this->saveAction->withMutatedAttributes([
+            'mature',
+        ])
+            ->willReturn($this->saveAction);
+
         $this->saveAction->save()
             ->shouldBeCalled()
             ->willReturn(true);
@@ -143,6 +148,11 @@ class ActionsSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($activity)
             ->shouldBeCalled()
+            ->willReturn($this->saveAction);
+
+        $this->saveAction->withMutatedAttributes([
+            'spam',
+        ])
             ->willReturn($this->saveAction);
 
         $this->saveAction->save()
@@ -201,6 +211,11 @@ class ActionsSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($this->saveAction);
 
+        $this->saveAction->withMutatedAttributes([
+            'deleted',
+        ])
+            ->willReturn($this->saveAction);
+
         $this->saveAction->save()
             ->shouldBeCalled()
             ->willReturn(true);
@@ -252,6 +267,11 @@ class ActionsSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($activity)
             ->shouldBeCalled()
+            ->willReturn($this->saveAction);
+
+        $this->saveAction->withMutatedAttributes([
+            'mature',
+        ])
             ->willReturn($this->saveAction);
 
         $this->saveAction->save()

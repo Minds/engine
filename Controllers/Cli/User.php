@@ -9,6 +9,7 @@ use Minds\Exceptions;
 use Minds\Entities;
 use Minds\Core\Channels\Ban;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 
 class User extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -24,33 +25,6 @@ class User extends Cli\Controller implements Interfaces\CliControllerInterface
     public function exec()
     {
         $this->out('Missing subcommand');
-    }
-
-    public function set_feature_flags()
-    {
-        if (!$this->args) {
-            throw new Exceptions\CliException('Missing users');
-        }
-
-        $username = array_shift($this->args);
-        $features = $this->args;
-
-        $user = new Entities\User($username);
-
-        if (!$user || !$user->guid) {
-            throw new Exceptions\CliException('User not found');
-        }
-
-        // TODO: Logout all sessions
-
-        $user->setFeatureFlags($features);
-        $user->save();
-
-        if (!$features) {
-            $this->out("Removed all feature flags for {$user->username}");
-        } else {
-            $this->out("Set feature flags for {$user->username}: " . implode(', ', $features));
-        }
     }
 
     /**
@@ -75,7 +49,8 @@ class User extends Cli\Controller implements Interfaces\CliControllerInterface
             $user->password = Core\Security\Password::generate($user, $password);
             $user->password_reset_code = "";
             $user->override_password = true;
-            $user->save();
+
+            (new Save())->setEntity($user)->withMutatedAttributes(['password', 'password_reset_code'])->save();
 
             $this->out("Password changed successfuly for user ".$username);
         } catch (\Exception $e) {
@@ -97,7 +72,8 @@ class User extends Cli\Controller implements Interfaces\CliControllerInterface
             $user = new Entities\User($username);
         
             $user->email = $email;
-            $user->save();
+
+            (new Save())->setEntity($user)->withMutatedAttributes(['email'])->save();
 
             $this->out("Email changed successfuly for user ".$username);
         } catch (\Exception $e) {

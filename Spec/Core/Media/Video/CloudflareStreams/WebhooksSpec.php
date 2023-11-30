@@ -9,6 +9,7 @@ use Minds\Core\Media\Video\CloudflareStreams\Client;
 use Minds\Core\Media\Video\CloudflareStreams\Webhooks;
 use Minds\Core\Media\Video\Transcoder\TranscodeStates;
 use Minds\Core\Security\ACL;
+use Minds\Core\Storage\Quotas\Manager as StorageQuotasManager;
 use Minds\Entities\Activity;
 use Minds\Entities\Video;
 use PhpSpec\ObjectBehavior;
@@ -17,6 +18,9 @@ use Zend\Diactoros\ServerRequest;
 
 class WebhooksSpec extends ObjectBehavior
 {
+    /** @var StorageQuotasManager */
+    protected $storageQuotasManager;
+
     /** @var Client */
     protected $client;
 
@@ -37,14 +41,16 @@ class WebhooksSpec extends ObjectBehavior
         Config $config,
         EntitiesBuilder $entitiesBuilder,
         Save $save,
-        ACL $acl
+        ACL $acl,
+        StorageQuotasManager $storageQuotasManager
     ) {
-        $this->beConstructedWith($client, $config, $entitiesBuilder, $save, $acl);
+        $this->beConstructedWith($storageQuotasManager, $client, $config, $entitiesBuilder, $save, $acl);
         $this->client = $client;
         $this->config = $config;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->save = $save;
         $this->acl = $acl;
+        $this->storageQuotasManager = $storageQuotasManager;
     }
 
     public function it_is_initializable()
@@ -78,6 +84,9 @@ class WebhooksSpec extends ObjectBehavior
         $this->config->get('cloudflare')
             ->willReturn(['webhook_secret' => 'cf-signature']);
 
+        $this->config->get('tenant_id')
+            ->willReturn(123);
+
         $requestBody = json_encode([
                 'meta' => [
                     'guid' => '123'
@@ -88,7 +97,8 @@ class WebhooksSpec extends ObjectBehavior
                 ],
                 'status' => [
                     'state' => 'ready',
-                ]
+                ],
+                'duration' => 1.5
             ]);
 
         $request->getBody()->willReturn($requestBody);

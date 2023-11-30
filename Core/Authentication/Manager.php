@@ -11,6 +11,7 @@ use Minds\Common\Repository\Response;
 use Minds\Core\Analytics\Metrics\Event;
 use Minds\Core\Authentication\Exceptions\AuthenticationAttemptsExceededException;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Features\Canary;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
@@ -38,7 +39,8 @@ class Manager
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?Canary $canary = null,
         private ?SessionsManager $sessionsManager = null,
-        private ?TwoFactorManager $twoFactorManager = null
+        private ?TwoFactorManager $twoFactorManager = null,
+        private ?Save $save = null,
     ) {
         $this->keyValueLimiter ??= Di::_()->get('Security\RateLimits\KeyValueLimiter');
         $this->loginAttempts ??= Di::_()->get('Security\LoginAttempts');
@@ -46,6 +48,7 @@ class Manager
         $this->canary ??= Di::_()->get('Features\Canary');
         $this->sessionsManager ??= Di::_()->get('Sessions\Manager');
         $this->twoFactorManager ??= Di::_()->get('Security\TwoFactor\Manager');
+        $this->save ??= new Save();
     }
 
     /**
@@ -83,7 +86,12 @@ class Manager
         }
 
         if (!$user->isEnabled() && !$user->isBanned()) {
-            $user->enable();
+            $user->enabled = 'yes';
+
+            $this->save
+                ->setEntity($user)
+                ->withMutatedAttributes(['enabled'])
+                ->save();
         }
 
         try {
@@ -94,7 +102,11 @@ class Manager
         } catch (PasswordRequiresHashUpgradeException $e) {
             $user->password = PasswordSecurityService::generate($user, $password);
             $user->override_password = true;
-            $user->save();
+           
+            $this->save
+                ->setEntity($user)
+                ->withMutatedAttributes(['password'])
+                ->save();
         }
 
         $this->loginAttempts->resetFailuresCount();

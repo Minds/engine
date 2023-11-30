@@ -11,8 +11,10 @@
 
 namespace Minds\Core\Blogs;
 
+use Minds\Core\Blogs\Legacy\Entity;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Guid;
 use Minds\Core\Security\ACL;
@@ -113,7 +115,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
     protected $subtype = 'blog';
 
     /** @var int */
-    protected $guid;
+    public ?int $guid = null;
 
     /** @var int */
     protected $ownerGuid;
@@ -338,7 +340,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
     public function getOwnerObj()
     {
         if (!$this->ownerObj && $this->ownerGuid) {
-            $user = new User($this->ownerGuid);
+            $user = Di::_()->get(EntitiesBuilder::class)->single($this->ownerGuid);
             $this->setOwnerObj($user->export());
         }
 
@@ -769,5 +771,17 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
         $this->allowComments = $allowComments;
         $this->markAsDirty('allowComments');
         return $this;
+    }
+
+    /**
+     * Convert the modal to an assoc array
+     */
+    public function toArray(): array
+    {
+        $array = [];
+        foreach (Entity::$attributeMap as $key => $remap) {
+            $array[$remap] = $this->$key;
+        }
+        return $array;
     }
 }

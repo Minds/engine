@@ -23,9 +23,6 @@ class ManagerSpec extends ObjectBehavior
     /** @var Repository */
     protected $repository;
 
-    /** @var Delegates\PaywallReview */
-    protected $paywallReview;
-
     /** @var Delegates\Slug */
     protected $slug;
 
@@ -58,7 +55,6 @@ class ManagerSpec extends ObjectBehavior
 
     public function let(
         Repository $repository,
-        Delegates\PaywallReview $paywallReview,
         Delegates\Slug $slug,
         Delegates\Feeds $feeds,
         Spam $spam,
@@ -71,7 +67,6 @@ class ManagerSpec extends ObjectBehavior
     ) {
         $this->beConstructedWith(
             $repository,
-            $paywallReview,
             $slug,
             $feeds,
             $spam,
@@ -84,7 +79,6 @@ class ManagerSpec extends ObjectBehavior
         );
 
         $this->repository = $repository;
-        $this->paywallReview = $paywallReview;
         $this->slug = $slug;
         $this->feeds = $feeds;
         $this->spam = $spam;
@@ -237,10 +231,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->paywallReview->queue($blog)
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this
             ->add($blog)
             ->shouldReturn(true);
@@ -276,10 +266,6 @@ class ManagerSpec extends ObjectBehavior
             ->willReturn(null);
 
         $this->repository->update($blog)
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->paywallReview->queue($blog)
             ->shouldBeCalled()
             ->willReturn(true);
 

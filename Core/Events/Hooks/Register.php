@@ -3,10 +3,11 @@
 namespace Minds\Core\Events\Hooks;
 
 use Minds\Core;
+use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Events\Dispatcher;
 use Minds\Core\Referrals\Referral;
 use Minds\Entities;
-use Minds\Core\Events\Dispatcher;
-use Minds\Core\Di\Di;
 
 class Register
 {
@@ -23,33 +24,24 @@ class Register
         Dispatcher::register('register', 'user', function ($event) {
             $params = $event->getParameters();
 
-            //$guid = $params['user']->guid;
-            //subscribe to minds channel
-            //$minds = new Entities\User('minds');
-            //$params['user']->subscribe($minds->guid);
-
-            //setup chat keys
-            /*$openssl = new Core\Messenger\Encryption\OpenSSL();
-            $keystore = (new Core\Messenger\Keystore($openssl))
-                ->setUser($params['user']);
-            $keypair = $openssl->generateKeypair($params['password']);
-
-            $keystore->setPublicKey($keypair['public'])
-                ->setPrivateKey($keypair['private'])
-                ->save();*/
-
             //@todo again, maybe in a background task?
-            if ($params['referrer']) {
+
+            $referrer = $params['referrer'];
+            $user = $params['user'];
+
+            if ($referrer) {
                 try {
-                    $user = new Entities\User(strtolower(ltrim($params['referrer'], '@')));
+                    $user = new Entities\User(strtolower(ltrim($referrer, '@')));
                     if ($user->guid) {
-                        $params['user']->referrer = (string) $user->guid;
-                        $params['user']->save();
-                        $params['user']->subscribe($user->guid);
+                        $user->referrer = (string) $user->guid;
+
+                        (new Save())->setEntity($user)->withMutatedAttributes(['referrer'])->save();
+
+                        $user->subscribe($user->guid);
                     }
 
                     $referral = new Referral();
-                    $referral->setProspectGuid($params['user']->getGuid())
+                    $referral->setProspectGuid($user->getGuid())
                         ->setReferrerGuid((string) $user->guid)
                         ->setRegisterTimestamp(time());
 

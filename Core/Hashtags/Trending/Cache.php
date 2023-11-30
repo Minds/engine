@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Hashtags\Trending;
 
+use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\Redis\Client as RedisClient;
 use Minds\Interfaces\BasicCacheInterface;
@@ -16,9 +17,9 @@ class Cache implements BasicCacheInterface
     // Storage time in whole seconds.
     const CACHE_TIME_SECONDS = 600;
 
-    public function __construct(private ?RedisClient $redis = null)
+    public function __construct(private ?PsrWrapper $cache = null)
     {
-        $this->redis = $redis ?? Di::_()->get('Redis');
+        $this->cache = $cache ?? Di::_()->get('Cache\PsrWrapper');
     }
     
     /**
@@ -28,9 +29,9 @@ class Cache implements BasicCacheInterface
      */
     public function set($dailyTrending): self
     {
-        $this->redis->set(
+        $this->cache->set(
             self::CACHE_KEY,
-            json_encode($dailyTrending),
+            $dailyTrending,
             self::CACHE_TIME_SECONDS
         );
         return $this;
@@ -42,7 +43,7 @@ class Cache implements BasicCacheInterface
      */
     public function get(): array
     {
-        $cached = $this->redis->get(self::CACHE_KEY);
-        return json_decode($cached, false) ?? [];
+        $cached = $this->cache->get(self::CACHE_KEY);
+        return is_array($cached) ? $cached : [];
     }
 }

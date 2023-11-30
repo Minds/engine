@@ -11,8 +11,12 @@ use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Delete;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Entities\User;
 use Minds\Entities\File as FileEntity;
 use Minds\Entities\Factory as EntitiesFactory;
@@ -26,10 +30,12 @@ class group implements Interfaces\Api
 {
     public function __construct(
         protected ?Manager $membershipManager = null,
-        protected ?EntitiesBuilder $entitiesBuilder = null
+        protected ?EntitiesBuilder $entitiesBuilder = null,
+        protected ?Save $save = null,
     ) {
         $this->membershipManager = Di::_()->get(Manager::class);
         $this->entitiesBuilder = Di::_()->get('EntitiesBuilder');
+        $this->save = new Save();
     }
 
     /**
@@ -127,6 +133,10 @@ class group implements Interfaces\Api
         } else {
             $creation = true;
             $group = new GroupEntity();
+
+            /** @var RbacGatekeeperService */
+            $rbacGatekeeperService = Di::_()->get(RbacGatekeeperService::class);
+            $rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_CREATE_GROUP);
         }
 
         if (isset($pages[1]) && $group->getGuid()) {
@@ -256,7 +266,7 @@ class group implements Interfaces\Api
               ->setOwnerObj($user);
         }
 
-        $group->save();
+        $this->save->setEntity($group)->save();
 
         if ($creation) {
             // Join group
@@ -298,7 +308,7 @@ class group implements Interfaces\Api
             foreach ($invitees as $invitee) {
                 if (is_numeric($invitee)) {
                     try {
-                        $invitee = new User($invitee);
+                        $invitee = $this->entitiesBuilder->single($invitee);
                         $invitations->invite($invitee);
                     } catch (GroupOperationException $e) {
                     }
@@ -334,7 +344,7 @@ class group implements Interfaces\Api
         }
 
         try {
-            $group->delete();
+            (new Delete())->setEntity($group)->delete();
 
             return Factory::response([
                 'done' => true
@@ -376,7 +386,8 @@ class group implements Interfaces\Api
         }
 
         $group->setIconTime(time());
-        $group->save();
+
+        $this->save->setEntity($group)->save();
 
         return $group;
     }
@@ -412,7 +423,7 @@ class group implements Interfaces\Api
             ->setBanner(time())
             ->setBannerPosition($banner_position);
 
-        $group->save();
+        $this->save->setEntity($group)->save();
 
         return $group;
     }

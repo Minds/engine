@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Queue\Interfaces;
 use Minds\Core\Queue;
 use Minds\Core\Channels\Manager;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
 
 class ChannelDeferredOps implements Interfaces\QueueRunner
@@ -25,6 +26,8 @@ class ChannelDeferredOps implements Interfaces\QueueRunner
                 /** @var Ban $channelsBanManager */
                 $channelsBanManager = Di::_()->get('Channels\Ban');
 
+                $entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
+
                 $data = $data->getData();
                 $type = $data['type'] ?? null;
 
@@ -42,7 +45,7 @@ class ChannelDeferredOps implements Interfaces\QueueRunner
 
                         try {
                             $done = $channelsManager
-                                ->setUser(new User($userGuid, false))
+                                ->setUser($entitiesBuilder->single($userGuid, [ 'cache' => false]))
                                 ->deleteCleanup();
                         } catch (\Exception $e) {
                             echo (string) $e;
@@ -70,7 +73,7 @@ class ChannelDeferredOps implements Interfaces\QueueRunner
 
                         try {
                             $done = $channelsBanManager
-                                ->setUser(new User($userGuid, false))
+                                ->setUser($entitiesBuilder->single($userGuid, [ 'cache' => false]))
                                 ->banCleanup();
                         } catch (\Exception $e) {
                             echo (string) $e;
@@ -98,7 +101,7 @@ class ChannelDeferredOps implements Interfaces\QueueRunner
 
                         try {
                             $done = $channelsBanManager
-                                ->setUser(new User($userGuid, false))
+                                ->setUser($entitiesBuilder->single($userGuid, [ 'cache' => false]))
                                 ->unbanRestore();
                         } catch (\Exception $e) {
                             echo (string) $e;

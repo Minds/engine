@@ -14,6 +14,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\I18n\Manager as I18nManager;
 use Minds\Core\Rewards\Contributions\ContributionValues;
+use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Session;
 use Minds\Core\Supermind\Settings\Models\Settings as SupermindSettings;
 use Minds\Core\ThirdPartyNetworks\Manager as ThirdPartyNetworksManager;
@@ -50,15 +51,15 @@ class Exported
         $thirdPartyNetworks = null,
         $i18n = null,
         $blockchain = null,
-        $proDomain = null,
         private ?ExperimentsManager $experimentsManager = null,
+        private ?RolesService $rolesService = null,
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
         $this->i18n = $i18n ?: Di::_()->get('I18n\Manager');
         $this->blockchain = $blockchain ?: Di::_()->get('Blockchain\Manager');
-        $this->proDomain = $proDomain ?: Di::_()->get('Pro\Domain');
         $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
+        $this->rolesService ??= Di::_()->get(RolesService::class);
     }
 
     /**
@@ -69,13 +70,12 @@ class Exported
         $context = defined('__MINDS_CONTEXT__') ? __MINDS_CONTEXT__ : 'app';
 
         $exported = [
-            'MindsContext' => $context,
             'LoggedIn' => Session::isLoggedIn() ? true : false,
             'Admin' => Session::isAdmin() ? true : false,
             'cdn_url' => $this->config->get('cdn_url'),
             'cdn_assets_url' => $this->config->get('cdn_assets_url'),
             'site_url' => $this->config->get('site_url'),
-            'cinemr_url' => $this->config->get('cinemr_url'),
+            'site_name' => $this->config->get('site_name'),
             'socket_server' => $this->config->get('sockets')['server_uri'] ?: 'ha-socket-io-us-east-1.minds.com:3030',
             'language' => $this->i18n->getLanguage(),
             'languages' => $this->i18n->getLanguages(),
@@ -86,11 +86,9 @@ class Exported
             'max_video_file_size' => $this->config->get('max_video_file_size'),
             'max_name_length' => $this->config->get('max_name_length') ?? 50,
             'blockchain' => (object) $this->blockchain->getPublicSettings(),
-            'sale' => $this->config->get('blockchain')['sale'],
             'last_tos_update' => $this->config->get('last_tos_update') ?: time(),
             'tags' => $this->config->get('tags') ?: [],
             'plus' => $this->config->get('plus'),
-            'sendwyre' => $this->config->get('sendwyre'),
             'report_reasons' => $this->config->get('report_reasons'),
             'handlers' => [
                 'plus' => $this->config->get('plus')['handler'] ?? null,
@@ -123,7 +121,9 @@ class Exported
                 'url' => $this->config->get('strapi')['url'],
             ],
             'livepeer_api_key' => $this->config->get('livepeer_api_key'),
-            'onboarding_v5_release_timestamp' => $this->config->get('onboarding_v5_release_timestamp')
+            'onboarding_v5_release_timestamp' => $this->config->get('onboarding_v5_release_timestamp'),
+            'is_tenant' => false, // overridden below.
+            'last_cache' => $this->config->get('lastcache') ?? 0
         ];
 
         if (Session::isLoggedIn()) {
@@ -140,6 +140,12 @@ class Exported
             $canHavePlusTrial = !$user->plus_expires || $user->plus_expires <= strtotime(Wire\Manager::TRIAL_THRESHOLD_DAYS . ' days ago');
             $exported['upgrades']['plus']['monthly']['can_have_trial'] = $canHavePlusTrial;
             $exported['upgrades']['plus']['yearly']['can_have_trial'] = $canHavePlusTrial;
+
+            $exported['permissions'] = array_map(function ($permission) {
+                return $permission->name;
+            }, $this->rolesService->getUserPermissions($user));
+        } else {
+            $exported['permissions'] = [];
         }
 
         if ($context === 'embed') {
@@ -150,14 +156,9 @@ class Exported
             $exported['from_email_confirmation'] = true;
         }
 
-        // Pro export
-
-        if ($pro = $this->proDomain->lookup($_SERVER['HTTP_HOST'] ?? null)) {
-            $exported['pro'] = $pro;
-        } elseif (!$this->proDomain->isRoot($_SERVER['HTTP_HOST'] ?? null)) {
-            // If not a pro site and not root then tell frontend to redirect
-            $exported['redirect_to_root_on_init'] = true;
-        }
+        // @deprecated
+        // tell frontend to redirect. Pro needed this ;/
+        $exported['redirect_to_root_on_init'] = false;
 
         $defaultSupermindSettings = new SupermindSettings();
         $exported['supermind'] = [
@@ -171,6 +172,11 @@ class Exported
         unset($boost['offchain_wallet_guid']);
         $exported['boost'] = $boost;
         $exported['boost']['rejection_reasons'] = BoostRejectionReason::rejectionReasonsWithLabels();
+
+        if ((bool) $this->config->get('tenant_id')) {
+            $exported['is_tenant'] = true;
+            $exported['theme_override'] = $this->config->get('theme_override');
+        }
 
         return $exported;
     }

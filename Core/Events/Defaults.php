@@ -12,6 +12,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Entities;
+use Minds\Entities\User;
 use Minds\Helpers;
 
 class Defaults
@@ -40,8 +41,8 @@ class Defaults
 
             $export = $event->response() ?: [];
 
-            if ($params['entity']->ownerObj && is_array($params['entity']->ownerObj)) {
-                $ownerObj = $this->entitiesBuilder->single($params['entity']->ownerObj['guid'], [
+            if ($params['entity']->getOwnerGuid() && !$params['entity'] instanceof User) {
+                $ownerObj = $this->entitiesBuilder->single($params['entity']->getOwnerGuid(), [
                     'cache' => true,
                     'cacheTtl' => 259200 // Cache for 3 day.
                 ]);

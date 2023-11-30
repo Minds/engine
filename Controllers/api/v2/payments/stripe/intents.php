@@ -70,9 +70,6 @@ class intents implements Interfaces\Api
 
     public function delete($pages)
     {
-        $user = Session::getLoggedInUser();
-        $user->setCanary(false);
-        $user->save();
         return Factory::response([]);
     }
 }

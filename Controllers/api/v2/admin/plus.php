@@ -8,6 +8,7 @@ use Minds\Core\Plus\Subscription as PlusSubscription;
 use Minds\Entities\User as UserEntity;
 use Minds\Interfaces;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Security\ACL;
 use Minds\Core\Log\Logger;
 
@@ -126,7 +127,7 @@ class plus implements Interfaces\Api, Interfaces\ApiAdminPam
 
         $logger->warning('AdminPlus | saving...');
         
-        $success = $target->save();
+        $success = (new Save())->setEntity($target)->withMutatedAttributes(['plus_expires'])->save();
         ACL::_()->setIgnore($isAllowed); // set back to previous state.
 
         if (!$success) {

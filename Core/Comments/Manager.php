@@ -20,6 +20,8 @@ use Minds\Exceptions\InvalidLuidException;
 use Minds\Common\Repository\Response;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\EventStreams\UndeliveredEventException;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 
 class Manager
 {
@@ -79,6 +81,7 @@ class Manager
         $kvLimiter = null,
         protected ?EventsDispatcher $eventsDispatcher = null,
         protected ?RelationalRepository $relationalRepository = null,
+        protected ?RbacGatekeeperService $rbacGatekeeperService = null,
     ) {
         $this->repository = $repository ?: new Repository();
         $this->legacyRepository = $legacyRepository ?: new Legacy\Repository();
@@ -92,6 +95,7 @@ class Manager
         $this->kvLimiter = $kvLimiter ?? Di::_()->get("Security\RateLimits\KeyValueLimiter");
         $this->eventsDispatcher ??= Di::_()->get('EventsDispatcher');
         $this->relationalRepository ??= Di::_()->get(RelationalRepository::class);
+        $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
     }
 
     public function get($entity_guid, $parent_path, $guid)
@@ -192,9 +196,13 @@ class Manager
      */
     public function add(Comment $comment)
     {
+        // Check RBAC
+        $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_COMMENT);
+
         $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
 
-        $owner = $comment->getOwnerEntity(false);
+        /** @var User */
+        $owner = $this->entitiesBuilder->single($comment->getOwnerGuid());
 
         //if (!$this->acl->interact($entity, $owner, "comment")) {
         //    throw new \Exception();
@@ -296,7 +304,8 @@ class Manager
     {
         $entity = $this->entitiesBuilder->single($comment->getEntityGuid());
 
-        $owner = $comment->getOwnerEntity(false);
+        /** @var User */
+        $owner = $this->entitiesBuilder->single($comment->getOwnerGuid());
 
         if (
             !$comment->getOwnerGuid() ||
@@ -459,7 +468,8 @@ class Manager
      */
     private function canInteractWithParentTree(Comment $comment): bool
     {
-        $owner = $comment->getOwnerEntity(false);
+        /** @var User */
+        $owner = $this->entitiesBuilder->single($comment->getOwnerGuid());
 
         if ($comment->getParentGuidL2()) {
             $parent = $this->get($comment->getEntityGuid(), $comment->getParentPath(), $comment->getParentGuidL2());

@@ -19,6 +19,13 @@ use Minds\Core;
 
 class explicit implements Interfaces\Api
 {
+    private Save $save;
+
+    public function __construct()
+    {
+        $this->save = new Save();
+    }
+
     public function get($pages)
     {
         return Factory::response([]);
@@ -102,7 +109,7 @@ class explicit implements Interfaces\Api
                     if (isset($attachment->mature)) {
                         $attachment->mature = $value;
                     }
-                    $attachment->save();
+                    $this->save->setEntity($attachment)->save();
                 }
             }
         }

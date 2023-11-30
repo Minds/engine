@@ -2,6 +2,9 @@
 
 namespace Minds\Core\Reports\Enums\Reasons\Nsfw;
 
+use TheCodingMachine\GraphQLite\Annotations\Type;
+
+#[Type(name: 'NsfwSubReasonEnum')]
 enum SubReasonEnum: int
 {
     case NUDITY = 1;

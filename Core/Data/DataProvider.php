@@ -68,20 +68,17 @@ class DataProvider extends Provider
         $this->di->bind('Database\Cassandra\Relationships', function ($di) {
             return new Cassandra\Thrift\Relationships(new Call('relationships'));
         }, ['useFactory'=>false]);
-        $this->di->bind('Database\MongoDB', function ($di) {
-            return new MongoDB\Client();
-        }, ['useFactory'=>true]);
         $this->di->bind('Database\ElasticSearch', function ($di) {
             return new ElasticSearch\Client();
         }, ['useFactory'=>true]);
         $this->di->bind('Database\ElasticSearch\Scroll', function ($di) {
             return new ElasticSearch\Scroll();
         }, ['useFactory'=>true]);
-        $this->di->bind('Database\MySQL\Client', function ($di) {
-            return new MySQL\Client();
-        }, ['useFactory'=>true]);
         $this->di->bind(MySQL\Client::class, function ($di) {
             return new MySQL\Client();
+        }, ['useFactory'=>true]);
+        $this->di->bind('Database\MySQL\Client', function ($di) {
+            return $di->get(MySQL\Client::class);
         }, ['useFactory'=>true]);
         /**
          * Locks

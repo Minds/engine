@@ -13,8 +13,12 @@ class SecurityProvider extends Provider
 {
     public function register()
     {
-        $this->di->bind('Security\ACL', function ($di) {
+        $this->di->bind(ACL::class, function (Di $di): ACL {
             return ACL::_();
+        }, ['useFactory'=>true]);
+
+        $this->di->bind('Security\ACL', function ($di) {
+            return $di->get(ACL::class);
         }, ['useFactory'=>true]);
 
         $this->di->bind('Security\ACL\Block', function ($di) {

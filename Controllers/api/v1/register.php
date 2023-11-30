@@ -11,15 +11,24 @@ namespace Minds\Controllers\api\v1;
 use Minds\Api\Factory;
 use Minds\Common\PseudonymousIdentifier;
 use Minds\Core;
-use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
 use Minds\Core\Captcha\FriendlyCaptcha\Classes\DifficultyScalingType;
+use Minds\Core\Captcha\FriendlyCaptcha\Exceptions\InvalidSolutionException;
 use Minds\Core\Di\Di;
-use Minds\Entities\User;
+use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Security\ACL;
+use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Helpers\StringLengthValidators\UsernameLengthValidator;
 use Minds\Interfaces;
 
 class register implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    private Save $save;
+
+    public function __construct(
+    ) {
+        $this->save = new Save();
+    }
+
     /**
      * NOT AVAILABLE
      */
@@ -78,6 +87,8 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                 return Factory::response(['status'=>'error', 'message' => "Please refresh your browser or update you app. We don't recognise your platform."]);
             }
 
+            $ia = ACL::_()->setIgnore(true);
+
             $user = register_user($_POST['username'], $_POST['password'], $_POST['username'], $_POST['email'], false);
 
             if (!$user) {
@@ -112,7 +123,15 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             }
 
             if ($hasSignupTags) {
-                $user->save();
+                $this->save
+                    ->setEntity($user)
+                    ->withMutatedAttributes([
+                        'signupParentId',
+                        'signupPreviousUrl',
+                        'signupParentId',
+                        'language',
+                    ])
+                    ->save();
             } else {
                 return Factory::response(['status'=>'error', 'message' => "Please refresh your browser or update you app. We don't recognise your platform."]);
             }
@@ -140,10 +159,19 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             $sessions->createSession();
             $sessions->save(); // Save to db and cookie
 
+            // Reset Access
+            ACL::_()->setIgnore($ia);
+
             $response = [
                 'guid' => $guid,
                 'user' => $user->export(),
             ];
+
+            // Return permissions
+            $response['permissions'] = array_map(function ($permission) {
+                return $permission->name;
+            }, Di::_()->get(RolesService::class)->getUserPermissions($user));
+
         } catch (\Exception $e) {
             if (isset($user)) {
                 error_log(

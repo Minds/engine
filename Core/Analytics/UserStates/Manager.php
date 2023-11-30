@@ -11,7 +11,7 @@ class Manager
     /** @var ElasticSearch\Client */
     private $es;
 
-    /** @var Queue\RabbitMQ\Client */
+    /** @var Queue\Interfaces\QueueClient*/
     private $queue;
 
     /** @var int $referenceDate */

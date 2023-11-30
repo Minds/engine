@@ -334,8 +334,14 @@ class ActionDelegateSpec extends ObjectBehavior
         $user->set('enabled', 'no')
             ->shouldBeCalled();
 
-        $user->save()
-            ->shouldBeCalled();
+        $this->saveAction->setEntity($user)
+            ->willReturn($this->saveAction);
+
+        $this->saveAction->withMutatedAttributes(['enabled'])
+            ->willReturn($this->saveAction);
+        
+        $this->saveAction->save()
+             ->shouldBeCalled();
 
         $this->password->randomReset($user)
             ->shouldBeCalled();

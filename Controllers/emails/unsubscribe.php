@@ -5,8 +5,9 @@
 namespace Minds\Controllers\emails;
 
 use Minds\Core;
+use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Security\ACL;
-use Minds\Entities\User;
 use Minds\Interfaces;
 
 class unsubscribe extends core\page implements Interfaces\page
@@ -25,14 +26,13 @@ class unsubscribe extends core\page implements Interfaces\page
             $topic = strtolower($pages[3]);
             $email = strtolower(urldecode($pages[1]));
             $userGuid = strtolower($pages[0]);
-            $user = new User($userGuid);
+            $user = Di::_()->get(EntitiesBuilder::class)->single($userGuid);
 
             if ($user->getEmail() == $email) {
                 /** @var Core\Email\Manager $manager */
                 $manager = Core\Di\Di::_()->get('Email\Manager');
 
                 $manager->unsubscribe($user, [ $campaign ], [ $topic ]);
-                $user->save();
             } else {
                 throw new \Exception('UnsubscribeSaveException');
             }

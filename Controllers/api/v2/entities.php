@@ -12,6 +12,7 @@ use Minds\Api\Factory;
 use Minds\Common\Urn;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Boost\V3\Models\BoostEntityWrapper;
+use Minds\Core\Config\Config;
 use Minds\Core\Entities\Resolver;
 use Minds\Core\Session;
 use Minds\Interfaces;
@@ -100,6 +101,10 @@ class entities implements Interfaces\Api
         $user = $entities[0] instanceof User ? $entities[0] : Di::_()->get('EntitiesBuilder')->single($entities[0]->owner_guid);
 
         if (!$user) {
+            return false;
+        }
+
+        if (Di::_()->get(Config::class)->get('tenant_id')) {
             return false;
         }
 

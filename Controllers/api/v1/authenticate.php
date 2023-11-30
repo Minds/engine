@@ -14,9 +14,13 @@ use Minds\Common\PseudonymousIdentifier;
 use Minds\Core;
 use Minds\Core\Analytics;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
+use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Session;
 use Minds\Entities;
 use Minds\Interfaces;
@@ -27,6 +31,15 @@ use Zend\Diactoros\ServerRequestFactory;
  */
 class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    private EntitiesBuilder $entitiesBuilder;
+    private Save $save;
+
+    public function __construct()
+    {
+        $this->entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
+        $this->save = new Save();
+    }
+
     /**
      * NOT AVAILABLE
      */
@@ -63,7 +76,7 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         //
 
-        $user = new Entities\User(strtolower($_POST['username']));
+        $user = $this->entitiesBuilder->getByUserByIndex(strtolower($_POST['username']));
 
         /** @var Core\Security\LoginAttempts $attempts */
         $attempts = Core\Di\Di::_()->get('Security\LoginAttempts');
@@ -92,7 +105,11 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         if (!$user->isEnabled() && !$user->isBanned()) {
-            $user->enable();
+            $user->enabled = 'yes';
+            $this->save
+                ->setEntity($user)
+                ->withMutatedAttributes(['enabled'])
+                ->save();
         }
 
         $password = $_POST['password'];
@@ -107,7 +124,10 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
         } catch (Core\Security\Exceptions\PasswordRequiresHashUpgradeException $e) {
             $user->password = Core\Security\Password::generate($user, $password);
             $user->override_password = true;
-            $user->save();
+            $this->save
+                ->setEntity($user)
+                ->withMutatedAttributes(['password'])
+                ->save();
         }
 
         $attempts->resetFailuresCount(); // Reset any previous failed login attempts
@@ -152,6 +172,11 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         $response['status'] = 'success';
         $response['user'] = $user->export();
+
+        // Return permissions
+        $response['permissions'] = array_map(function ($permission) {
+            return $permission->name;
+        }, Di::_()->get(RolesService::class)->getUserPermissions($user));
 
         return Factory::response($response);
     }

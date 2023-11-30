@@ -7,6 +7,9 @@ use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Exceptions\RbacNotAllowed;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Core\Votes\Counters;
 use Minds\Core\Votes\Indexes;
 use Minds\Core\Votes\MySqlRepository;
@@ -15,6 +18,7 @@ use Minds\Core\Votes\VoteOptions;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
@@ -34,6 +38,8 @@ class ManagerSpec extends ObjectBehavior
     /** @var MySqlRepository */
     private $mySqlRepositoryMock;
 
+    private Collaborator $rbacGatekeeperServiceMock;
+
     public function let(
         ACL $acl,
         Counters $counters,
@@ -42,6 +48,7 @@ class ManagerSpec extends ObjectBehavior
         FriendlyCaptchaManager $friendlyCaptchaManager,
         ExperimentsManager $experimentsManager,
         MySqlRepository $mySqlRepositoryMock,
+        RbacGatekeeperService $rbacGatekeeperServiceMock,
     ) {
         $this->acl = $acl;
         $this->counters = $counters;
@@ -50,8 +57,9 @@ class ManagerSpec extends ObjectBehavior
         $this->friendlyCaptchaManager = $friendlyCaptchaManager;
         $this->experimentsManager = $experimentsManager;
         $this->mySqlRepositoryMock = $mySqlRepositoryMock;
+        $this->rbacGatekeeperServiceMock = $rbacGatekeeperServiceMock;
 
-        $this->beConstructedWith($counters, $indexes, $acl, $dispatcher, $this->friendlyCaptchaManager, $this->experimentsManager, $this->mySqlRepositoryMock);
+        $this->beConstructedWith($counters, $indexes, $acl, $dispatcher, $this->friendlyCaptchaManager, $this->experimentsManager, $this->mySqlRepositoryMock, null, $rbacGatekeeperServiceMock);
     }
 
     public function it_is_initializable()
@@ -69,6 +77,8 @@ class ManagerSpec extends ObjectBehavior
         $vote->getDirection()->willReturn('up');
 
         $this->setUser($user);
+
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_INTERACT)->willReturn(true);
 
         $this->experimentsManager->setUser($user)
             ->willReturn($this->experimentsManager);
@@ -109,6 +119,8 @@ class ManagerSpec extends ObjectBehavior
         $vote->getDirection()->willReturn('up');
 
         $this->setUser($user);
+
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_INTERACT)->willReturn(true);
 
         $this->experimentsManager->setUser($user)
             ->willReturn($this->experimentsManager);
@@ -155,6 +167,8 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('up');
 
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_INTERACT)->willReturn(true);
+
         $this->acl->interact($entity, $user, 'voteup')
             ->shouldBeCalled()
             ->willThrow(UnverifiedEmailException::class);
@@ -173,6 +187,8 @@ class ManagerSpec extends ObjectBehavior
         $vote->getActor()->willReturn($user);
         $vote->getDirection()->willReturn('up');
 
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_INTERACT)->willReturn(true);
+
         $this->acl->interact($entity, $user, 'voteup')
             ->shouldBeCalled()
             ->willReturn(false);
@@ -187,6 +203,30 @@ class ManagerSpec extends ObjectBehavior
         $options->events = false;
 
         $this->shouldThrow(new \Exception('Actor cannot interact with entity'))
+            ->duringCast($vote, $options);
+    }
+
+    public function it_should_throw_during_insert_if_cannot_interact_rbac(
+        Vote $vote,
+        Activity $entity,
+        User $user
+    ) {
+        $vote->getEntity()->willReturn($entity);
+        $vote->getActor()->willReturn($user);
+        $vote->getDirection()->willReturn('up');
+
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_INTERACT)->willThrow(new RbacNotAllowed(PermissionsEnum::CAN_INTERACT));
+
+        $this->counters->update($vote)
+            ->shouldNotBeCalled();
+
+        $this->indexes->insert($vote)
+            ->shouldNotBeCalled();
+
+        $options = new VoteOptions();
+        $options->events = false;
+
+        $this->shouldThrow(RbacNotAllowed::class)
             ->duringCast($vote, $options);
     }
 
@@ -284,6 +324,8 @@ class ManagerSpec extends ObjectBehavior
         $vote->getDirection()->willReturn('up');
 
         $this->setUser($user);
+
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_INTERACT)->willReturn(true);
 
         $this->experimentsManager->setUser($user)
             ->willReturn($this->experimentsManager);

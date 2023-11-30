@@ -2,13 +2,15 @@
 
 namespace Minds\Core\Storage\Services;
 
+use NotImplementedException;
+
 class Disk implements ServiceInterface
 {
     private $filepath;
     public $resource; //filepointer
     protected $redirect = false;
 
-    public function open($path, $mode)
+    public function open($path, $mode): self
     {
         switch ($mode) {
             case "write":
@@ -65,6 +67,15 @@ class Disk implements ServiceInterface
         }
 
         return fread($this->resource, $length);
+    }
+
+    /**
+     * @return array
+     * @throws NotImplementedException
+     */
+    public function stats(): array
+    {
+        throw new NotImplementedException();
     }
 
     public function seek($offset = 0)

@@ -59,7 +59,10 @@ class OgImagesControllerSpec extends ObjectBehavior
             ]);
         $activityMock->getMessage()
             ->willReturn('hello world');
-        $activityMock->getOwnerEntity()
+        $activityMock->getOwnerGuid()
+            ->willReturn(456);
+
+        $this->entitiesBuilderMock->single(456)
             ->willReturn($ownerMock);
 
         $ownerMock->getUsername()
@@ -88,6 +91,12 @@ class OgImagesControllerSpec extends ObjectBehavior
 
         $this->aclMock->read($activityMock)
             ->willReturn(true);
+
+        $activityMock->getOwnerGuid()
+            ->willReturn(456);
+
+        $this->entitiesBuilderMock->single(456)
+            ->willReturn($ownerMock);
 
         $activityMock->getSupermind()
             ->willReturn(null);

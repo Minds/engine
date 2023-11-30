@@ -10,6 +10,7 @@ namespace Minds\Controllers\api\v1\translation;
 use Minds\Core;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Entities\Actions\Save;
 
 class translate implements Interfaces\Api
 {
@@ -34,7 +35,7 @@ class translate implements Interfaces\Api
         $changed = (new Core\Translation\Languages())->changeUserLanguage($user, $target);
 
         if ($changed) {
-            $user->save();
+            (new Save())->setEntity($user)->withMutatedAttributes(['language'])->save();
         }
 
         return Factory::response([

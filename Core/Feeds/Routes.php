@@ -22,11 +22,17 @@ class Routes extends ModuleRoutes
         $this->route
             ->withPrefix('api/v3/newsfeed')
             ->do(function (Route $route) {
+                /**
+                 * @deprecated
+                 */
                 $route->get(
                     'default-feed',
                     Ref::_('Feeds\Controller', 'getDefaultFeed')
                 );
 
+                /**
+                 * @deprecated
+                 */
                 $route->get(
                     'logged-out', // alias
                     Ref::_('Feeds\Controller', 'getDefaultFeed'),
@@ -58,6 +64,10 @@ class Routes extends ModuleRoutes
                             'subscribed/latest/count',
                             Ref::_('Feeds\Subscribed\Controller', 'getLatestCount')
                         );
+                        $route->get(
+                            'activity/has-reminded/:guid',
+                            Ref::_('Feeds\Activity\Controller', 'getUserHasRemindedActivity'),
+                        );
                         $route->put(
                             'activity',
                             Ref::_('Feeds\Activity\Controller', 'createNewActivity'),
@@ -65,6 +75,10 @@ class Routes extends ModuleRoutes
                         $route->post(
                             'activity/:guid',
                             Ref::_('Feeds\Activity\Controller', 'updateExistingActivity'),
+                        );
+                        $route->delete(
+                            'activity/remind/:guid',
+                            Ref::_('Feeds\Activity\Controller', 'deleteRemindsOfActivityByUser')
                         );
                         $route->delete(
                             'activity/:urn',

@@ -49,7 +49,10 @@ class MetadataDelegate
         $video->width = $transcode->getProfile()->getWidth();
         $video->height = $transcode->getProfile()->getHeight();
 
-        $video->save();
+        $this->save
+            ->setEntity($video)
+            ->withMutatedAttributes(['width', 'height'])
+            ->save();
 
         $activities = $this->db->getRow("activity:entitylink:{$video->getGuid()}");
 

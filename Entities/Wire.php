@@ -42,10 +42,10 @@ class Wire extends NormalizedEntity
     ];
 
     /**
-     * Saves the entity
-     * @return mixed|bool
+     * Converts the entity into an array format
+     * @return array
      */
-    public function save()
+    public function toArray(): array
     {
         if (!$this->entity) {
             throw new \Exception('Missing wire entity');
@@ -73,27 +73,13 @@ class Wire extends NormalizedEntity
             'amount' => $this->amount
         ];
 
-        $saved = $this->saveToDb($data);
-
-        $this->indexes = [
-          'wire:sent:' . $this->from->guid,
-          'wire:received:' . $this->to->guid,
-          'wire:entity:' . $this->entity->guid
-        ];
-        $this->saveToIndex();
-
-        return $saved;
+        return array_map(function ($val) {
+            if (is_array($val)) {
+                return json_encode($val);
+            }
+        }, $data);
     }
 
-    /**
-     * Writes an array of data to DB
-     * @param  array $data
-     * @return mixed|bool
-     */
-    public function saveToDb($data)
-    {
-        return parent::saveToDb($data);
-    }
 
     /**
      * Gets `type`

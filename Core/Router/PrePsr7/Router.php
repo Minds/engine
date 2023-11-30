@@ -4,9 +4,7 @@ namespace Minds\Core\Router\PrePsr7;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
-use Minds\Core\Router\PrePsr7\Middleware\ProMiddleware;
 use Minds\Core\Router\PrePsr7\Middleware\RouterMiddleware;
-use Minds\Core\Router\PrePsr7\Middleware\SEOMiddleware;
 use Minds\Core\Session;
 use Minds\Helpers;
 use Zend\Diactoros\Response\JsonResponse;
@@ -79,7 +77,6 @@ class Router
 
         /** @var RouterMiddleware[] $prePsr7Middleware */
         $prePsr7Middleware = [
-            new ProMiddleware(),
             new AutoSupermindRouterMiddleware(),
         ];
 
@@ -122,7 +119,7 @@ class Router
 
         if (isset($_GET['__e_ct_guid']) && is_numeric($_GET['__e_ct_guid'])) {
             Helpers\Analytics::increment('active', $_GET['__e_ct_guid']);
-            Helpers\Campaigns\EmailRewards::reward($_GET['campaign'], $_GET['__e_ct_guid']);
+            // Helpers\Campaigns\EmailRewards::reward($_GET['campaign'], $_GET['__e_ct_guid']);
         }
 
         Di::_()->get('Email\RouterHooks')

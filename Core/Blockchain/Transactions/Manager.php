@@ -33,7 +33,7 @@ class Manager
     /** @var Repository $repo */
     private $repo;
 
-    /** @var Queue\RabbitMQ\Client */
+    /** @var Queue\Interfaces\QueueClient*/
     private $queue;
 
     /** @var abstractCacher */

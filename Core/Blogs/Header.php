@@ -95,7 +95,12 @@ class Header
 
         return $this->saveAction
             ->setEntity($blog)
-            ->save();
+            ->withMutatedAttributes([
+                'header_bg',
+                'header_top',
+                'last_updated',
+            ])
+            ->save(isUpdate: true);
     }
 
     /**

@@ -9,6 +9,7 @@ namespace Minds\Core\Wire\Delegates;
 use Minds\Common\SystemUser;
 use Minds\Core\Config;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
 use Minds\Core\Plus\Subscription as PlusSubscription;
 use Minds\Core\Pro\Manager as ProManager;
@@ -29,18 +30,21 @@ class UpgradesDelegate
     /** @var Logger */
     private $logger;
 
+    private Save $save;
+
     public function __construct(
         $config = null,
         $entitiesBuilder = null,
         $proManager = null,
         $logger = null,
-        private ?GiftCardsManager $giftCardsManager = null
+        private ?GiftCardsManager $giftCardsManager = null,
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->proManager = $proManager ?? Di::_()->get('Pro\Manager');
         $this->giftCardsManager ??= Di::_()->get(GiftCardsManager::class);
         $this->logger = $logger ?? Di::_()->get('Logger');
+        $this->save = new Save();
     }
 
     /**
@@ -147,9 +151,18 @@ class UpgradesDelegate
         }
 
         $expires = strtotime("+{$days} days", $wire->getTimestamp());
+        if ($user->plus_expires > time()) {
+            $expires = strtotime("+{$days} days", $user->plus_expires);
+        }
 
         $user->setPlusExpires($expires);
-        $user->save();
+
+        $this->save
+            ->setEntity($user)
+            ->withMutatedAttributes([
+                'plus_expires',
+            ])
+            ->save();
 
         $wire->getSender()->setPlusExpires($expires);
 
@@ -201,6 +214,10 @@ class UpgradesDelegate
         }
 
         $expires = strtotime("+{$days} days", $wire->getTimestamp());
+        if ($user->pro_expires > time()) {
+            $expires = strtotime("+{$days} days", $user->pro_expires);
+        }
+
 
         $this->proManager->setUser($user)
             ->enable($expires);

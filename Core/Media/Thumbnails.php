@@ -66,12 +66,8 @@ class Thumbnails
             // don't do anything if the entity cannot be paywalled
         }
 
-        $user = $entity->getOwnerEntity(false);
+        $user = $this->entitiesBuilder->single($entity->getOwnerGuid());
         $userGuid = $user->guid;
-
-        if ($user->legacy_guid) {
-            $userGuid = $user->legacy_guid;
-        }
 
         $thumbnail = new \ElggFile();
         $thumbnail->owner_guid = $userGuid;

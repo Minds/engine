@@ -51,7 +51,6 @@ class PropagateProperties
         $this->addPropagator(Core\Feeds\Delegates\PropagateProperties::class);
         $this->addPropagator(Core\Media\Delegates\PropagateProperties::class);
         $this->addPropagator(Core\Entities\Delegates\PropagateProperties::class);
-        $this->addPropagator(Core\Permissions\Delegates\PropagateProperties::class);
     }
 
     public function clearPropogators(): void

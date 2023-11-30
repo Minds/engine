@@ -11,6 +11,7 @@ namespace Minds\Controllers\api\v1;
 use Minds\Api\Factory;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Security;
 use Minds\Core\Security\TwoFactor\TwoFactorRequiredException;
 use Minds\Core\SMS\Exceptions\VoIpPhoneException;
@@ -55,63 +56,6 @@ class twofactor implements Interfaces\Api
         }
 
         switch ($pages[0]) {
-            case "setup":
-                try {
-                    $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
-                    $twoFactorManager->gatekeeper(Core\Session::getLoggedinUser(), ServerRequestFactory::fromGlobals());
-                } catch (\Exception $e) {
-                    header('HTTP/1.1 ' . $e->getCode(), true, $e->getCode());
-                    $response['status'] = "error";
-                    $response['code'] = $e->getCode();
-                    $response['message'] = $e->getMessage();
-                    $response['errorId'] = str_replace('\\', '::', get_class($e));
-                    return Factory::response($response);
-                }
-
-                $secret = $twofactor->createSecret();
-
-                /** @var Core\SMS\SMSServiceInterface $sms */
-                $sms = Core\Di\Di::_()->get('SMS');
-
-                try {
-                    if (!$sms->verify($_POST['tel'])) {
-                        throw new VoIpPhoneException();
-                    }
-                } catch (\Exception $e) {
-                    return Factory::response([
-                        'status' => 'error',
-                        'message' => $e->getMessage(),
-                    ]);
-                }
-
-                $message = 'Minds TwoFactor code: '. $twofactor->getCode($secret);
-                $number = FormatPhoneNumber::format($_POST['tel']);
-
-                if ($sms->send($number, $message)) {
-                    $response['secret'] = $secret;
-                } else {
-                    $response['status'] = "error";
-                    $response['message'] = "Invalid number";
-                }
-
-                break;
-            case "check":
-                $secret = $_POST['secret'];
-                $code = $_POST['code'];
-                $telno = FormatPhoneNumber::format($_POST['telno']);
-
-                if ($twofactor->verifyCode($secret, $code, 1)) {
-                    $response['status'] = "success";
-                    $response['message'] = "2factor now setup";
-                    $user->twofactor = true;
-                    $user->telno = $telno;
-                } else {
-                    $response['status'] = "error";
-                    $response['message'] = "2factor code failed";
-                    $user->twofactor = false;
-                }
-                $user->save();
-                break;
             case "remove":
                 $validator = Di::_()->get('Security\Password');
 
@@ -125,7 +69,17 @@ class twofactor implements Interfaces\Api
                 $user = Core\Session::getLoggedInUser();
                 $user->twofactor = false;
                 $user->telno = false;
-                $user->save();
+
+                $save = new Save();
+
+                $save
+                    ->setEntity($user)
+                    ->withMutatedAttributes([
+                        'twofactor',
+                        'telno',
+                    ])
+                    ->save();
+
                 break;
         }
 

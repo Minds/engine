@@ -50,7 +50,7 @@ class Session extends base
             'guid' => (string) $session->getUserGuid(),
             'expires' => $expires,
             'sessionId' => $session->getId(),
-        ], Config::_()->get('sockets')['jwt_secret'] ?? '');
+        ], Config::_()->get('sockets')['jwt_secret'] ?? '', 'HS512');
 
         $cookie = new Cookie();
         $cookie
@@ -86,7 +86,7 @@ class Session extends base
      */
     public static function setUserByGuid($user_guid)
     {
-        $user = new User($user_guid);
+        $user = Di::_()->get(EntitiesBuilder::class)->single($user_guid, [ 'cacheTtl' => 259200 ]);
         static::setUser($user);
     }
 

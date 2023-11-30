@@ -79,7 +79,8 @@ class token implements Interfaces\Api, Interfaces\ApiIgnorePam
             
             $save = new Save();
             $save->setEntity($user)
-              ->save();
+                ->withMutatedAttributes(['surge_token'])
+                ->save();
             
             $response = new JsonResponse([]);
         } catch (\Exception $e) {

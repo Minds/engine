@@ -3,10 +3,13 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\V2;
 
+use GuzzleHttp\Exception\GuzzleException;
 use Iterator;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
+use Minds\Core\Payments\InAppPurchases\Enums\InAppPurchasePaymentMethodIdsEnum;
+use Minds\Core\Payments\InAppPurchases\Models\ProductPurchase;
 use Minds\Core\Payments\V2\Enums\PaymentAffiliateType;
 use Minds\Core\Payments\V2\Enums\PaymentMethod;
 use Minds\Core\Payments\V2\Enums\PaymentStatus;
@@ -18,7 +21,9 @@ use Minds\Core\Referrals\ReferralCookie;
 use Minds\Core\Wire\Wire;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
+use Minds\Exceptions\InAppPurchaseNotAcknowledgedException;
 use Minds\Exceptions\ServerErrorException;
+use NotImplementedException;
 use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -27,9 +32,9 @@ class Manager
     private ?User $user = null;
 
     public function __construct(
-        private ?Repository $repository = null,
-        private ?ReferralCookie $referralCookie = null,
-        private ?Logger $logger = null
+        private ?Repository                    $repository = null,
+        private ?ReferralCookie                $referralCookie = null,
+        private ?Logger                        $logger = null
     ) {
         $this->repository ??= Di::_()->get(Repository::class);
 
@@ -57,11 +62,15 @@ class Manager
 
     /**
      * @param Boost $boost
+     * @param string|null $iapTransaction
      * @return PaymentDetails
+     * @throws InAppPurchaseNotAcknowledgedException
      * @throws InvalidPaymentMethodException
+     * @throws NotImplementedException
      * @throws ServerErrorException
+     * @throws GuzzleException
      */
-    public function createPaymentFromBoost(Boost $boost): PaymentDetails
+    public function createPaymentFromBoost(Boost $boost, ?ProductPurchase $iapProductPurchaseDetails = null): PaymentDetails
     {
         $affiliateUserGuid = $this->referralCookie->withRouterRequest($this->getServerRequest())->getAffiliateGuid();
         $affiliateType = PaymentAffiliateType::REFERRAL_COOKIE;
@@ -73,14 +82,25 @@ class Manager
             $affiliateType = $affiliateUserGuid ? PaymentAffiliateType::SIGNUP : null;
         }
 
+        $paymentMethod = match ($boost->getPaymentMethodId()) {
+            InAppPurchasePaymentMethodIdsEnum::GOOGLE->value => PaymentMethod::ANDROID_IAP,
+            InAppPurchasePaymentMethodIdsEnum::APPLE->value => PaymentMethod::IOS_IAP,
+            default => PaymentMethod::getValidatedPaymentMethod($boost->getPaymentMethod()),
+        };
+
+        $paymentTxId = $boost->getPaymentTxId();
+        if ($iapProductPurchaseDetails) {
+            $paymentTxId = $iapProductPurchaseDetails->transactionId;
+        }
+
         $paymentDetails = new PaymentDetails([
             'userGuid' => (int) $boost->getOwnerGuid(),
             'affiliateUserGuid' => $affiliateUserGuid,
             'affiliateType' => $affiliateType ?? null, // Only set if it's a valid type, otherwise 'null' is fine
             'paymentType' => PaymentType::BOOST_PAYMENT,
-            'paymentMethod' => PaymentMethod::getValidatedPaymentMethod($boost->getPaymentMethod()),
+            'paymentMethod' => $paymentMethod,
             'paymentAmountMillis' => (int) ($boost->getPaymentAmount() * 1000), // In dollars, so multiply by 1000
-            'paymentTxId' => $boost->getPaymentTxId(),
+            'paymentTxId' => $paymentTxId,
         ]);
 
         $this->createPayment($paymentDetails);
@@ -103,11 +123,13 @@ class Manager
         string $paymentTxId,
         bool $isPlus = false,
         bool $isPro = false,
-        ?Activity $sourceActivity = null
+        ?Activity $sourceActivity = null,
+        bool $paidWithGiftCard = false
     ): PaymentDetails {
         $affiliateUserGuid = null;
         $paymentType = PaymentType::WIRE_PAYMENT;
 
+        $paymentMethod = PaymentMethod::CASH;
         if ($isPlus || $isPro) {
             if ($sourceActivity) {
                 $affiliateUserGuid = ((int) $sourceActivity->getOwnerGuid()) ?? null;
@@ -130,6 +152,12 @@ class Manager
             if ($isPro) {
                 $paymentType = PaymentType::MINDS_PRO_PAYMENT;
             }
+
+            if ($paidWithGiftCard) {
+                $paymentMethod = PaymentMethod::GIFT_CARD;
+            }
+        } elseif ($paidWithGiftCard) {
+            throw new InvalidPaymentMethodException('Cannot use gift card as payment method for wire');
         }
 
         $paymentDetails = new PaymentDetails([
@@ -137,7 +165,7 @@ class Manager
             'affiliateUserGuid' => $affiliateUserGuid,
             'affiliateType' => $affiliateType ?? null, // Only set if it's a valid type, otherwise 'null' is fine
             'paymentType' => $paymentType,
-            'paymentMethod' => PaymentMethod::getValidatedPaymentMethod(PaymentMethod::CASH),
+            'paymentMethod' => $paymentMethod,
             'paymentAmountMillis' => (int) ($wire->getAmount() * 10), // Already in cents, so multiply by 10
             'paymentTxId' => $paymentTxId,
             'paymentStatus' => !$wire->getTrialDays() ? PaymentStatus::COMPLETED : PaymentStatus::PENDING,
@@ -163,6 +191,17 @@ class Manager
             paymentGuid: $paymentGuid,
             paymentStatus: $paymentStatus,
             isCaptured: $isCaptured
+        );
+    }
+
+    /**
+     * Updates the payment tx for payment
+     */
+    public function updatePaymentTxId(int $paymentGuid, string $paymentTxId): bool
+    {
+        return $this->repository->updatePaymentTxId(
+            paymentGuid: $paymentGuid,
+            paymentTxId: $paymentTxId,
         );
     }
 

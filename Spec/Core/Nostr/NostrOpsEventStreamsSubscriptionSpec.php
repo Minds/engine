@@ -18,7 +18,7 @@ use Minds\Core\Nostr\Keys;
 
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\Entities\Ops\EntitiesOpsEvent;
-
+use Minds\Entities\User;
 use Prophecy\Argument;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -82,7 +82,11 @@ class NostrOpsEventStreamsSubscriptionSpec extends ObjectBehavior
         $this->entitiesResolver->single(Argument::any())
             ->shouldBeCalled()
             ->willReturn($entity);
+            
+        $this->entitiesBuilder->single($ownerGuid)
+            ->willReturn(new User());
 
+    
         // Check if NIP-26 is enabled, in this case it is not
         $this->manager->getPublicKeyFromUser(Argument::any())->willReturn('publicKey');
         $this->keys->getNip26DelegationToken(Argument::any())->willReturn(null);
@@ -113,6 +117,9 @@ class NostrOpsEventStreamsSubscriptionSpec extends ObjectBehavior
         $this->entitiesResolver->single(Argument::any())
             ->shouldBeCalled()
             ->willReturn($entity);
+
+        $this->entitiesBuilder->single($ownerGuid)
+            ->willReturn(new User());
 
         // Check if NIP-26 is enabled, in this case it is
         $this->manager->getPublicKeyFromUser(Argument::any())->willReturn('publicKey');
@@ -153,6 +160,9 @@ class NostrOpsEventStreamsSubscriptionSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($entity);
 
+        $this->entitiesBuilder->single($ownerGuid)
+            ->willReturn(new User());
+
         // Check if NIP-26 is enabled, in this case it is
         $this->manager->getPublicKeyFromUser(Argument::any())->willReturn('publicKey');
         $this->keys->getNip26DelegationToken(Argument::any())->willReturn($token);
@@ -192,6 +202,9 @@ class NostrOpsEventStreamsSubscriptionSpec extends ObjectBehavior
         $this->entitiesResolver->single(Argument::any())
             ->shouldBeCalled()
             ->willReturn($entity);
+
+        $this->entitiesBuilder->single($ownerGuid)
+            ->willReturn(new User());
 
         // Check if NIP-26 is enabled, in this case it is
         $this->manager->getPublicKeyFromUser(Argument::any())->willReturn('publicKey');

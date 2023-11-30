@@ -10,6 +10,7 @@ namespace Minds\Controllers\api\v1\payments;
 
 use Minds\Api\Factory;
 use Minds\Core;
+use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Payments;
 use Minds\Entities;
 use Minds\Interfaces;
@@ -107,7 +108,7 @@ class subscriptions implements Interfaces\Api
         if ($subscription->getPlanId() == 'plus') {
             $user = Core\Session::getLoggedInUser();
             $user->plus = false;
-            $user->save();
+            (new Save())->setEntity($user)->withMutatedAttributes(['plus'])->save();
         }
 
         return Factory::response([

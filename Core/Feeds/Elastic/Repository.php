@@ -297,6 +297,19 @@ class Repository
             'sort' => [],
         ];
 
+        // Multi tenant
+
+        if ($tenantId = $this->config->get('tenant_id')) {
+            if (!isset($body['query']['function_score']['query']['bool']['must'])) {
+                $body['query']['function_score']['query']['bool']['must'] = [];
+            }
+
+            $body['query']['function_score']['query']['bool']['must'][] = [
+                'term' => [
+                   'tenant_id' => $tenantId,
+                ],
+            ];
+        }
 
         //
 
