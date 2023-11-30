@@ -37,10 +37,16 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         $query = str_replace('#', '', $_GET['q']);
 
-        // TODO: get strict taxonomy from pages[0] when multiple suggests are implemented
+        $entityType = $pages[0] ?? 'user';
+
+        // Rather than throwing an error, we are just defaulting to user to avoid potential
+        // breaking changes across clients following this addition.
+        if ($entityType !== 'user' || $entityType !== 'group') {
+            $entityType = 'user';
+        }
 
         try {
-            $entities = $search->suggest('user', $query, $limit);
+            $entities = $search->suggest($entityType, $query, $limit);
             $entities = array_values(array_filter($entities, function ($entity) {
                 return isset($entity['guid']) && !$entity['nsfw'];
             }));
