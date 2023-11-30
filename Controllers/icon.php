@@ -5,14 +5,96 @@
 
 namespace Minds\Controllers;
 
+use LasseRafn\InitialAvatarGenerator\InitialAvatar;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
-use Minds\Entities;
+use Minds\Entities\User;
 use Minds\Interfaces;
 
 class icon extends core\page implements Interfaces\page
 {
+    private const DEFAULT_AVATAR_COLORS = [
+        [
+            'color' => '#C60906',
+            'background' => '#FF8C82'
+        ],
+        [
+            'color' => '#CC2900',
+            'background' => '#FFC27D'
+        ],
+        [
+            'color' => '#CC7000',
+            'background' => '#FFF394'
+        ],
+        [
+            'color' => '#2B8F00',
+            'background' => '#D1FF82'
+        ],
+        [
+            'color' => '#2B8F00',
+            'background' => '#D1FF82'
+        ],
+        [
+            'color' => '#008F81',
+            'background' => '#89FFDD'
+        ],
+        [
+            'color' => '#0037B8',
+            'background' => '#8CD5FF'
+        ],
+        [
+            'color' => '#53319B',
+            'background' => '#E4C6FA'
+        ],
+        [
+            'color' => '#A71140',
+            'background' => '#FE9AB8'
+        ],
+        [
+            'color' => '#7A0000',
+            'background' => '#FF8C82'
+        ],
+        [
+            'color' => '#A62100',
+            'background' => '#FFC27D'
+        ],
+        [
+            'color' => '#AD5F00',
+            'background' => '#FFF394'
+        ],
+        [
+            'color' => '#206B00',
+            'background' => '#D1FF82'
+        ],
+        [
+            'color' => '#007367',
+            'background' => '#89FFDD'
+        ],
+        [
+            'color' => '#002E99',
+            'background' => '#8CD5FF'
+        ],
+        [
+            'color' => '#452981',
+            'background' => '#E4C6FA'
+        ],
+        [
+            'color' => '#910E38',
+            'background' => '#FE9AB8'
+        ],
+    ];
+
+    private const SIZES = [
+        'xlarge' => 960,
+        'large' => 425,
+        'medium' => 100,
+        'small' => 40,
+        'tiny' => 25,
+        'master' => 425,
+        'topbar' => 100,
+    ];
+
     /**
      * Get requests
      */
@@ -45,7 +127,7 @@ class icon extends core\page implements Interfaces\page
             exit;
         }
         $size = strtolower($pages[1]);
-        if (!in_array($size, ['xlarge', 'large', 'medium', 'small', 'tiny', 'master', 'topbar'], true)) {
+        if (!in_array($size, array_keys(self::SIZES), true)) {
             $size = "medium";
         }
 
@@ -65,7 +147,8 @@ class icon extends core\page implements Interfaces\page
         $contents = $file->read();
 
         if (empty($contents)) {
-            $contents = file_get_contents(Core\Config::build()->path . "engine/Assets/avatars/default-$size.png");
+            $contents = $this->generateDefaultUserAvatar($user, $size);
+            // $contents = file_get_contents(Core\Config::build()->path . "engine/Assets/avatars/default-$size.png");
         }
 
         $this->returnImage($contents, $etag);
@@ -100,5 +183,41 @@ class icon extends core\page implements Interfaces\page
 
     public function delete($pages)
     {
+    }
+
+    private function generateDefaultUserAvatar(User $user, string $size): string
+    {
+        $avatarColorDetails = self::DEFAULT_AVATAR_COLORS[mt_rand(0, count(self::DEFAULT_AVATAR_COLORS) - 1)];
+        $avatar = new InitialAvatar();
+
+        $avatar
+            ->name($user->getUsername())
+            ->length(1)
+            ->color($avatarColorDetails['color'])
+            ->background($avatarColorDetails['background'])
+            ->preferBold()
+            ->fontSize(0.45)
+            ->imagick();
+
+        foreach (self::SIZES as $sizeLabel => $sizePixels) {
+            $content = $avatar
+                ->size($sizePixels)
+                ->generate()
+                ->stream('jpg', 100)
+                ->getContents();
+
+            $file = new \ElggFile();
+            $file->owner_guid = $user->getGuid();
+            $file->setFilename("profile/{$user->getGuid()}{$sizeLabel}.jpg");
+            $file->open('write');
+            $file->write($content);
+        }
+
+
+        return $avatar
+            ->size(self::SIZES[$size])
+            ->generate()
+            ->stream('jpg', 100)
+            ->getContents();
     }
 }
