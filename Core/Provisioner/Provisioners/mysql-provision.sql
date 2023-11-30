@@ -675,3 +675,15 @@ CREATE TABLE  IF NOT EXISTS  minds_role_user_assignments(
 ALTER TABLE `minds_entities_user`
     ADD `language` varchar(32) DEFAULT 'en'
     AFTER `ip`;
+
+
+ALTER TABLE minds_activitypub_uris ADD COLUMN tenant_id int DEFAULT -1 FIRST;
+ALTER TABLE minds_activitypub_actors ADD COLUMN tenant_id int DEFAULT -1 FIRST;
+ALTER TABLE minds_activitypub_keys ADD COLUMN tenant_id int DEFAULT -1 FIRST;
+
+ALTER TABLE minds_activitypub_actors DROP FOREIGN KEY minds_activitypub_actors_ibfk_1;
+
+ALTER TABLE minds_activitypub_uris DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, uri);
+ALTER TABLE minds_activitypub_actors DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, uri);
+ALTER TABLE minds_activitypub_keys DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, user_guid);
+ALTER TABLE minds_activitypub_actors ADD CONSTRAINT minds_activitypub_actors_ibfk_1 FOREIGN KEY (tenant_id, uri) REFERENCES minds_activitypub_uris(tenant_id, uri);
