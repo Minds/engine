@@ -57,7 +57,7 @@ class Repository extends AbstractRepository
             ])
             ->from('minds_activitypub_uris')
             ->where('entity_urn', Operator::EQ, new RawExp(':entityUrn'))
-            ->where('tenant_id', Operator::EQ, ':tenant_id');
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
 
         $stmt = $query->prepare();
         $stmt->execute([

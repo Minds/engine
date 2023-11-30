@@ -46,7 +46,7 @@ class JsonLdHelper
         $host = $parsed['host'];
 
         // Very nasty hack to make ...@minds.com usernames exclude the www.
-        // TODO:
+        // TODO: https://gitlab.com/minds/engine/-/issues/2686
         if ($host === 'www.minds.com') {
             $host = 'minds.com';
         }
