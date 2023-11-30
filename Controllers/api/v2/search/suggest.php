@@ -41,7 +41,7 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         // Rather than throwing an error, we are just defaulting to user to avoid potential
         // breaking changes across clients following this addition.
-        if (!in_array($entityType, ['user', 'group'])) {
+        if (!in_array($entityType, ['user', 'group'], true)) {
             $entityType = 'user';
         }
 
