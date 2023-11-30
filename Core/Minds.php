@@ -195,7 +195,7 @@ class Minds extends base
                 if (ob_get_contents()) {
                     ob_end_clean();
                 }
-                header('Not found', true, 404);
+                header('HTTP/1.0 404 Not Found', true, 404);
                 exit;
             }
         }
