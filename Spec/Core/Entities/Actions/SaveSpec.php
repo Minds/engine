@@ -4,7 +4,8 @@ namespace Spec\Minds\Core\Entities\Actions;
 
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Entities\Actions\Save;
-use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
+use Minds\Core\Entities\Repositories\EntitiesRepositoryFactory;
+use Minds\Core\Entities\Repositories\MySQLRepository;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Security\ACL;
@@ -21,19 +22,19 @@ class SaveSpec extends ObjectBehavior
     protected $dispatcher;
 
     protected Collaborator $entitiesBuilderMock;
-    protected Collaborator $entitiesRepositoryMock;#
+    protected Collaborator $entitiesRepositoryFactoryMock;#
     protected Collaborator $aclMock;
 
     public function let(
         EventsDispatcher $dispatcher,
         EntitiesBuilder $entitiesBuilderMock,
-        EntitiesRepositoryInterface $entitiesRepositoryMock,
+        EntitiesRepositoryFactory $entitiesRepositoryFactoryMock,
         ACL $aclMock,
     ) {
-        $this->beConstructedWith($dispatcher, null, $entitiesBuilderMock, $entitiesRepositoryMock, $aclMock);
+        $this->beConstructedWith($dispatcher, null, $entitiesBuilderMock, $entitiesRepositoryFactoryMock, $aclMock);
         $this->dispatcher = $dispatcher;
         $this->entitiesBuilderMock = $entitiesBuilderMock;
-        $this->entitiesRepositoryMock = $entitiesRepositoryMock;
+        $this->entitiesRepositoryFactoryMock = $entitiesRepositoryFactoryMock;
         $this->aclMock = $aclMock;
 
         $this->aclMock->write(Argument::any())->willReturn(true);
@@ -44,8 +45,10 @@ class SaveSpec extends ObjectBehavior
         $this->shouldHaveType(Save::class);
     }
 
-    public function it_should_save_an_entity_using_its_save_method(User $user)
-    {
+    public function it_should_save_an_entity_using_its_save_method(
+        User $user,
+        MySQLRepository $entitiesRepositoryMock
+    ) {
         $user->getGuid()
             ->willReturn(null);
             
@@ -89,9 +92,12 @@ class SaveSpec extends ObjectBehavior
 
         //
         
-        $this->entitiesRepositoryMock->create($user)
+        $entitiesRepositoryMock->create($user)
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->entitiesRepositoryFactoryMock->getInstance()
+            ->willReturn($entitiesRepositoryMock);
 
         $this->dispatcher->trigger('create', Argument::any(), Argument::any())
             ->willReturn(true);
@@ -109,8 +115,10 @@ class SaveSpec extends ObjectBehavior
         $this->save()->shouldReturn(true);
     }
 
-    public function it_should_save_an_entity_via_the_entity_save_event(Blog $blog)
-    {
+    public function it_should_save_an_entity_via_the_entity_save_event(
+        Blog $blog,
+        MySQLRepository $entitiesRepositoryMock
+    ): void {
         $blog->getGuid()
             ->willReturn('');
 
@@ -155,14 +163,19 @@ class SaveSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->entitiesRepositoryMock->create($blog)->willReturn(false);
+        $entitiesRepositoryMock->create($blog)->willReturn(false);
+        $this->entitiesRepositoryFactoryMock->getInstance()
+            ->willReturn($entitiesRepositoryMock);
 
         $this->setEntity($blog);
         $this->save()->shouldReturn(true);
     }
 
-    public function it_should_save_an_entity_using_its_save_method_with_NSFW_from_owner(Activity $activity, User $owner)
-    {
+    public function it_should_save_an_entity_using_its_save_method_with_NSFW_from_owner(
+        Activity $activity,
+        User $owner,
+        MySQLRepository $entitiesRepositoryMock
+    ): void {
         $nsfw = [1, 2, 3, 4, 5, 6];
 
         $activity->getGuid()
@@ -222,9 +235,11 @@ class SaveSpec extends ObjectBehavior
 
         //
         
-        $this->entitiesRepositoryMock->create($activity)
+        $entitiesRepositoryMock->create($activity)
             ->shouldBeCalled()
             ->willReturn(true);
+        $this->entitiesRepositoryFactoryMock->getInstance()
+            ->willReturn($entitiesRepositoryMock);
 
         $this->dispatcher->trigger('create', Argument::any(), Argument::any())
             ->willReturn(true);
@@ -242,8 +257,11 @@ class SaveSpec extends ObjectBehavior
         $this->save()->shouldReturn(true);
     }
 
-    public function it_should_save_an_entity_using_its_save_method_with_NsfwLock_from_owner(Activity $activity, User $owner)
-    {
+    public function it_should_save_an_entity_using_its_save_method_with_NsfwLock_from_owner(
+        Activity $activity,
+        User $owner,
+        MySQLRepository $entitiesRepositoryMock
+    ): void {
         $nsfw = [1, 2, 3, 4, 5, 6];
 
         $activity->getGuid()
@@ -303,9 +321,11 @@ class SaveSpec extends ObjectBehavior
 
         //
         
-        $this->entitiesRepositoryMock->create($activity)
+        $entitiesRepositoryMock->create($activity)
             ->shouldBeCalled()
             ->willReturn(true);
+        $this->entitiesRepositoryFactoryMock->getInstance()
+            ->willReturn($entitiesRepositoryMock);
 
         $this->dispatcher->trigger('create', Argument::any(), Argument::any())
             ->willReturn(true);
@@ -323,8 +343,11 @@ class SaveSpec extends ObjectBehavior
         $this->save()->shouldReturn(true);
     }
 
-    public function it_should_save_an_entity_using_its_save_method_with_NSFW_from_container(Activity $activity, Group $container)
-    {
+    public function it_should_save_an_entity_using_its_save_method_with_NSFW_from_container(
+        Activity $activity,
+        Group $container,
+        MySQLRepository $entitiesRepositoryMock
+    ): void {
         $nsfw = [1, 2, 3, 4, 5, 6];
         
         $activity->getGuid()
@@ -376,9 +399,11 @@ class SaveSpec extends ObjectBehavior
 
         //
         
-        $this->entitiesRepositoryMock->create($activity)
+        $entitiesRepositoryMock->create($activity)
             ->shouldBeCalled()
             ->willReturn(true);
+        $this->entitiesRepositoryFactoryMock->getInstance()
+            ->willReturn($entitiesRepositoryMock);
 
         $this->dispatcher->trigger('create', Argument::any(), Argument::any())
             ->willReturn(true);
@@ -396,8 +421,11 @@ class SaveSpec extends ObjectBehavior
         $this->save()->shouldReturn(true);
     }
 
-    public function it_should_save_an_entity_using_its_save_method_with_NSFW_from_group(Activity $activity, Group $container)
-    {
+    public function it_should_save_an_entity_using_its_save_method_with_NSFW_from_group(
+        Activity $activity,
+        Group $container,
+        MySQLRepository $entitiesRepositoryMock
+    ): void {
         $nsfw = [1, 2, 3, 4, 5, 6];
 
         $activity->getGuid()
@@ -449,9 +477,11 @@ class SaveSpec extends ObjectBehavior
 
         //
         
-        $this->entitiesRepositoryMock->create($activity)
+        $entitiesRepositoryMock->create($activity)
             ->shouldBeCalled()
             ->willReturn(true);
+        $this->entitiesRepositoryFactoryMock->getInstance()
+            ->willReturn($entitiesRepositoryMock);
 
         $this->dispatcher->trigger('create', Argument::any(), Argument::any())
             ->willReturn(true);
@@ -470,8 +500,11 @@ class SaveSpec extends ObjectBehavior
     }
 
 
-    public function it_should_save_an_entity_using_its_save_method_with_merged_NSFW_from_container(Activity $activity, Group $container)
-    {
+    public function it_should_save_an_entity_using_its_save_method_with_merged_NSFW_from_container(
+        Activity $activity,
+        Group $container,
+        MySQLRepository $entitiesRepositoryMock
+    ): void {
         $nsfw = [1, 2, 3];
         $nsfwLock = [4, 5, 6];
 
@@ -524,9 +557,11 @@ class SaveSpec extends ObjectBehavior
 
         $this->setEntity($activity);
 
-        $this->entitiesRepositoryMock->create($activity)
+        $entitiesRepositoryMock->create($activity)
             ->shouldBeCalled()
             ->willReturn(true);
+        $this->entitiesRepositoryFactoryMock->getInstance()
+            ->willReturn($entitiesRepositoryMock);
 
         $this->dispatcher->trigger('create', Argument::any(), Argument::any())
             ->willReturn(true);

@@ -9,21 +9,21 @@
 namespace Minds\Core\Entities\Actions;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
+use Minds\Core\Entities\Repositories\EntitiesRepositoryFactory;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\EventStreams\UndeliveredEventException;
 use Minds\Core\Guid;
-use Minds\Entities\Entity;
-use Minds\Entities\User;
-use Minds\Core\Router\Exceptions\UnverifiedEmailException;
-use Minds\Core\Security\ACL;
-use Minds\Exceptions\StopEventException;
-use Minds\Helpers\MagicAttributes;
 use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\ForbiddenException;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
+use Minds\Core\Security\ACL;
+use Minds\Entities\Entity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\Factory;
+use Minds\Entities\User;
+use Minds\Exceptions\StopEventException;
+use Minds\Helpers\MagicAttributes;
 
 /**
  * Save Action
@@ -51,13 +51,13 @@ class Save
         $eventsDispatcher = null,
         $logger = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?EntitiesRepositoryInterface $entitiesRepository = null,
-        private ?ACL $acl = null,
+        private ?EntitiesRepositoryFactory $entitiesRepositoryFactory = null,
+        private ?ACL $acl = null
     ) {
         $this->eventsDispatcher = $eventsDispatcher ?: Di::_()->get('EventsDispatcher');
         $this->logger = $logger ?: Di::_()->get('Logger');
         $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
-        $this->entitiesRepository ??= Di::_()->get(EntitiesRepositoryInterface::class);
+        $this->entitiesRepositoryFactory ??= Di::_()->get(EntitiesRepositoryFactory::class);
         $this->acl ??= Di::_()->get(ACL::class);
     }
 
@@ -116,12 +116,12 @@ class Save
 
         $this->beforeSave();
 
-        //
+        $entitiesRepository = $this->entitiesRepositoryFactory->getInstance();
 
         if ($isUpdate === null) {
             if ($this->entity->getGuid()) {
                 // Ambigous if we should update or create. Perform a SELECT query to see if the entity exists
-                $isUpdate = !!$this->entitiesRepository->loadFromGuid($this->entity->getGuid());
+                $isUpdate = !!$entitiesRepository->loadFromGuid($this->entity->getGuid());
             } else {
                 $isUpdate = false;
             }
@@ -137,12 +137,12 @@ class Save
         }
 
         if ($isUpdate) {
-            $success = $this->entitiesRepository->update(
+            $success = $entitiesRepository->update(
                 entity: $this->entity,
                 columns: $this->mutatedAttributes
             );
         } else {
-            $success = $this->entitiesRepository->create($this->entity);
+            $success = $entitiesRepository->create($this->entity);
         }
 
         try {
@@ -152,7 +152,7 @@ class Save
         } catch (UndeliveredEventException $e) {
             if (!$isUpdate) {
                 // This is a new entity, so we will delete it
-                $this->entitiesRepository->delete($this->entity);
+                $entitiesRepository->delete($this->entity);
             }
             // Rethrow
             throw $e;

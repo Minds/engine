@@ -8,6 +8,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Entities\Repositories\CassandraRepository;
+use Minds\Core\Entities\Repositories\EntitiesRepositoryFactory;
 use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
 use Minds\Core\Entities\Repositories\MySQLRepository;
 
@@ -45,6 +46,13 @@ class Provider extends \Minds\Core\Di\Provider
                 return $di->get(CassandraRepository::class);
             }
         });
+
+        $this->di->bind(
+            EntitiesRepositoryFactory::class,
+            fn (Di $di): EntitiesRepositoryFactory => new EntitiesRepositoryFactory(
+                $di->get(Config::class)
+            )
+        );
 
         $this->di->bind(CassandraRepository::class, function (Di $di): CassandraRepository {
             return new CassandraRepository(

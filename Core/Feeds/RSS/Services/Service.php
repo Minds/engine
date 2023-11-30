@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Minds\Core\Feeds\RSS\Services;
 
 use Exception;
-use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\RSS\Enums\RssFeedLastFetchStatusEnum;
 use Minds\Core\Feeds\RSS\Exceptions\RssFeedFailedFetchException;
@@ -147,13 +146,8 @@ class Service
                 $currentUser = $this->entitiesBuilder->single($rssFeed->userGuid);
             }
 
-            (function () use ($rssFeed, $currentUser, $dryRun): void {
-                /**
-                 * @var Service $service
-                 */
-                $service = Di::_()->get(Service::class);
-                $service->processRssFeed($rssFeed, $currentUser, $dryRun);
-            })();
+
+            $this->processRssFeed($rssFeed, $currentUser, $dryRun);
 
             if ($rssFeed->tenantId) {
                 $this->multiTenantBootService->resetRootConfigs();
