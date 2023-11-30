@@ -8,6 +8,8 @@ use Minds\Core\Media\Video\Transcoder;
 use Minds\Core\Media\Video\Manager as VideoManager;
 use Minds\Core\GuidBuilder;
 use Minds\Core\Di\Di;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Entities\Video;
 
 class Manager
@@ -24,11 +26,13 @@ class Manager
     public function __construct(
         Transcoder\Manager $transcoderManager = null,
         VideoManager $videoManager = null,
-        GuidBuilder $guid = null
+        GuidBuilder $guid = null,
+        private ?RbacGatekeeperService $rbacGatekeeperService = null,
     ) {
         $this->transcoderManager = $transcoderManager ?? Di::_()->get('Media\Video\Transcoder\Manager');
         $this->videoManager = $videoManager ?: Di::_()->get('Media\Video\Manager');
         $this->guid = $guid ?: new GuidBuilder();
+        $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
     }
 
     /**
@@ -41,6 +45,9 @@ class Manager
         if ($type != 'video') {
             throw new \Exception("$type is not currently supported for client based uploads");
         }
+
+        // Do not allow video uploads
+        $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_UPLOAD_VIDEO);
 
         $video = new Video();
         $video->set('guid', $this->guid->build());

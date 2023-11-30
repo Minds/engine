@@ -33,7 +33,7 @@ class Manager
 
     // Priority notices, to be shown first, in order specified by array.
     private const PRIORITY_NOTICES = [
-        VerifyEmailNotice::class,
+        // VerifyEmailNotice::class, // Commented out as currently we are relying on the v5 onboarding flow.
         SupermindPendingNotice::class,
         InAppVerifyUniquenessNotice::class,
     ];

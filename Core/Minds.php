@@ -5,9 +5,6 @@ namespace Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
-use Minds\Core\MultiTenant\Services\MultiTenantBootService;
-use Minds\Helpers;
-use Minds\Helpers\Env;
 use Minds\Interfaces\ModuleInterface;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -33,7 +30,6 @@ class Minds extends base
         Email\Module::class,
         Experiments\Module::class,
         Onboarding\Module::class,
-        Permissions\Module::class,
         Subscriptions\Module::class,
         SendWyre\Module::class,
         Suggestions\Module::class,
@@ -91,6 +87,9 @@ class Minds extends base
         Webfinger\Module::class,
         ActivityPub\Module::class,
         Admin\Module::class,
+        Storage\Quotas\Module::class,
+        Comments\GraphQL\Module::class,
+        Reports\V2\Module::class
     ];
 
     /**
@@ -196,7 +195,7 @@ class Minds extends base
                 if (ob_get_contents()) {
                     ob_end_clean();
                 }
-                header('Not found', true, 404);
+                header('HTTP/1.0 404 Not Found', true, 404);
                 exit;
             }
         }

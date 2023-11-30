@@ -30,3 +30,6 @@ parameters:
         -
             message: '#Variable \$[a-zA-Z]+ on left side of \?\? always exists and is not [a-zA-Z]+.#'
             path: %currentWorkingDirectory%
+        -
+            message: '#Class Minds\\Core\\Log\\Logger extends @final class Monolog\\Logger.#'
+            path: %currentWorkingDirectory%

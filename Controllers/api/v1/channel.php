@@ -19,6 +19,8 @@ use ElggFile;
 use Minds\Common\Regex;
 use Minds\Core\ActivityPub\Services\ProcessActorService;
 use Minds\Core\Channels\AvatarService;
+use Minds\Core\Channels\BannerService;
+use Minds\Core\Config\Config;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\User;
@@ -29,11 +31,13 @@ class channel implements Interfaces\Api
 {
     private EntitiesBuilder $entitiesBuilder;
     private Save $save;
+    private Config $config;
 
     public function __construct()
     {
         $this->entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
         $this->save = new Save();
+        $this->config = Di::_()->get(Config::class);
     }
 
     /**
@@ -194,11 +198,11 @@ class channel implements Interfaces\Api
             }
         }
 
-        $response['require_login'] = !$isLoggedIn && Di::_()->get('Blockchain\Wallets\Balance')
-            ->setUser($user)
-            ->count() === 0;
-
-        $response['foo'] = 'bar';
+        if (!$this->config->get('tenant_id')) {
+            $response['require_login'] = !$isLoggedIn && Di::_()->get('Blockchain\Wallets\Balance')
+                ->setUser($user)
+                ->count() === 0;
+        }
         
         return Factory::response($response);
     }
@@ -235,6 +239,17 @@ class channel implements Interfaces\Api
 
                 break;
             case "banner":
+                // Tenants upload banners through V2 banner system.
+                if ((bool) Di::_()->get(Config::class)->get('tenant_id')) {
+                    if (is_uploaded_file($_FILES['file']['tmp_name'])) {
+                        $response['uploaded'] = Di::_()->get(BannerService::class)
+                            ->upload(
+                                path: $_FILES['file']['tmp_name'],
+                                user: $owner
+                            );
+                    }
+                    break;
+                }
                 //remove all older banners
                 try {
                     $db = new Core\Data\Call('entities_by_time');

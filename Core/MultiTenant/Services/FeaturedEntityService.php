@@ -6,10 +6,12 @@ namespace Minds\Core\MultiTenant\Services;
 use Minds\Core\Config\Config;
 use Minds\Core\GraphQL\Types\PageInfo;
 use Minds\Core\MultiTenant\Enums\FeaturedEntityTypeEnum;
+use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
 use Minds\Core\MultiTenant\Types\FeaturedEntity;
 use Minds\Core\MultiTenant\Types\FeaturedEntityConnection;
 use Minds\Core\MultiTenant\Types\FeaturedEntityEdge;
+use Minds\Core\MultiTenant\Types\FeaturedUser;
 
 /**
  * Service for featured entities.
@@ -105,5 +107,25 @@ class FeaturedEntityService
             );
         }
         return $edges;
+    }
+
+    /**
+     * @param int|null $tenantId
+     * @return FeaturedUser[]
+     * @throws NoTenantFoundException
+     */
+    public function getAllFeaturedEntities(?int $tenantId = null): iterable
+    {
+        $tenantId ??= $this->config->get('tenant_id');
+
+        if (!$tenantId) {
+            throw new NoTenantFoundException();
+        }
+
+        return $this->repository->getFeaturedEntities(
+            tenantId: $tenantId,
+            type: FeaturedEntityTypeEnum::USER,
+            withPagination: false
+        );
     }
 }

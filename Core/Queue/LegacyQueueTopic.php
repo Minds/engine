@@ -9,7 +9,6 @@ use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\Topics\AbstractTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\EventStreams\UndeliveredEventException;
-use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Pulsar\Consumer;
 use Pulsar\ConsumerConfiguration;
 use Pulsar\MessageBuilder;
@@ -28,8 +27,6 @@ class LegacyQueueTopic extends AbstractTopic implements TopicInterface
 
     /** @var Producer */
     protected $producer;
-
-    protected MultiTenantBootService $multiTenantBootService;
 
     /**
      * Sends notifications events to our stream

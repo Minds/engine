@@ -7,6 +7,11 @@ use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
 {
+    /** @var array $submodules */
+    public $submodules = [
+        Oidc\Module::class,
+    ];
+
     /**
      * @inheritDoc
      * @throws ImmutableException

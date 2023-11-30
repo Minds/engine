@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Email\V2;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
@@ -10,6 +11,7 @@ use Minds\Core\Email\Mailer;
 use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\Emailer;
 use Minds\Core\Email\V2\Campaigns\Recurring\GiftCard\Issuer\Emailer as IssuerEmailer;
 use Minds\Core\Email\V2\Common\Template;
+use Minds\Core\Email\V2\Common\TenantTemplateVariableInjector;
 use Minds\Core\Payments\Manager as PaymentManager;
 
 class Provider extends DiProvider
@@ -46,5 +48,11 @@ class Provider extends DiProvider
                     $di->get('Email\Manager')
                 )
         );
+
+        $this->di->bind(TenantTemplateVariableInjector::class, function (Di $di): TenantTemplateVariableInjector {
+            return new TenantTemplateVariableInjector(
+                $di->get(Config::class)
+            );
+        }, ['useFactory' => true]);
     }
 }

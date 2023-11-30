@@ -814,7 +814,7 @@ class Group extends NormalizedEntity implements EntityInterface
         }
 
         // Compatibility keys
-        $export['owner_guid'] = $this->getOwnerObj()->guid;
+        $export['owner_guid'] = $this->getOwnerObj()?->guid;
         $export['icontime'] = $export['icon_time'];
         $export['briefdescription'] = $export['brief_description'];
         $export['boost_rejection_reason'] = $this->getBoostRejectionReason() ?: -1;

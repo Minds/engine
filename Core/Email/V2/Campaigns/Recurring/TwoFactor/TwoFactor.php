@@ -7,11 +7,13 @@
 
 namespace Minds\Core\Email\V2\Campaigns\Recurring\TwoFactor;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Core\Email\Campaigns\EmailCampaign;
-use Minds\Core\Email\Confirmation\Url as ConfirmationUrl;
 use Minds\Core\Email\Mailer;
 use Minds\Core\Email\V2\Common\Message;
 use Minds\Core\Email\V2\Common\Template;
+use Minds\Core\Email\V2\Common\TenantTemplateVariableInjector;
 
 class TwoFactor extends EmailCampaign
 {
@@ -25,17 +27,22 @@ class TwoFactor extends EmailCampaign
     protected $code;
 
     /**
-     * Confirmation constructor.
+     * TwoFactor constructor.
      * @param Template $template
      * @param Mailer $mailer
-     * @param ConfirmationUrl $confirmationUrl
+     * @param Config|null $config
+     * @param TenantTemplateVariableInjector|null
      */
     public function __construct(
         $template = null,
         $mailer = null,
+        private ?Config $config = null,
+        private ?TenantTemplateVariableInjector $tenantTemplateVariableInjector = null
     ) {
         $this->template = $template ?: new Template();
         $this->mailer = $mailer ?: new Mailer();
+        $this->config ??= Di::_()->get(Config::class);
+        $this->tenantTemplateVariableInjector ??= Di::_()->get(TenantTemplateVariableInjector::class);
 
         $this->campaign = 'global';
         $this->topic = 'confirmation';
@@ -63,20 +70,25 @@ class TwoFactor extends EmailCampaign
 
         $translator = $this->template->getTranslator();
 
-        $subject = $this->code . ' is your verification code for Minds';
-        $previewText = 'Verify your email address with Minds';
+        if(!$siteName = $this->config->get('site_name')) {
+            $siteName = 'Minds';
+        }
+
+        $subject = $this->code . ' is your verification code for ' . $siteName;
+        $previewText = 'Verify your email to get started';
 
         $trackingQuery = http_build_query($tracking);
 
         $this->template->setTemplate('default.v2.tpl');
         if ($this->user->isTrusted()) {
             $this->template->setBody('./template.v2.2fa.tpl');
-            $previewText = "Verify your action with Minds";
+            $previewText = "Verify your action";
         } else {
             $this->template->setBody('./template.v2.verify.tpl');
         }
         $this->template->set('user', $this->user);
         $this->template->set('username', $this->user->username);
+        $this->template->set('site_name', $siteName);
         $this->template->set('email', $this->user->getEmail());
         $this->template->set('guid', $this->user->guid);
         $this->template->set('tracking', $trackingQuery);
@@ -84,6 +96,11 @@ class TwoFactor extends EmailCampaign
         $this->template->set('title', $subject);
 
         $this->template->set('code', $this->code);
+
+        if ((bool) $this->config->get('tenant_id')) {
+            $this->template->set('hide_unsubscribe_link', true);
+            $this->template = $this->tenantTemplateVariableInjector->inject($this->template);
+        }
 
         $message = new Message();
         $message

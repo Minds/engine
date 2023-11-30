@@ -11,6 +11,7 @@ use Cassandra\Timestamp;
 use Cassandra\Timeuuid;
 use Cassandra\Type\Set;
 use Minds\Common\Urn;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\Cassandra\Client;
 use Minds\Core\Data\Cassandra\Prepared;
 use Minds\Core\Data\Cassandra\Scroll;
@@ -30,11 +31,16 @@ class Repository
     /** @var Urn */
     private $urn;
 
-    public function __construct(Client $cql = null, Scroll $scroll = null, Urn $urn = null)
-    {
+    public function __construct(
+        Client $cql = null,
+        Scroll $scroll = null,
+        Urn $urn = null,
+        private ?Config $config = null,
+    ) {
         $this->cql = $cql ?: Di::_()->get('Database\Cassandra\Cql');
         $this->scroll = $scroll ?? Di::_()->get('Database\Cassandra\Cql\Scroll');
         $this->urn = $urn ?: new Urn;
+        $this->config ??= Di::_()->get(Config::class);
     }
 
     /**
@@ -84,6 +90,11 @@ class Repository
             foreach ($this->scroll->request($query, $pagingToken) as $row) {
                 if ($row['type'] === NotificationTypes::TYPE_VOTE_DOWN) {
                     continue; // Skip vote downs
+                }
+
+                if (($row['tenant_id'] ??  null) !== $this->config->get('tenant_id')) {
+                    // Skip, the tenant id doesn't match what was stored
+                    continue;
                 }
 
                 $notification = new Notification();
@@ -151,8 +162,9 @@ class Repository
             read_timestamp,
             data,
             merged_from_guids,
-            merged_count
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?)
+            merged_count,
+            tenant_id
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
             USING TTL ?';
 
         $mergedFromGuids = new CassandraSet(Set::bigint());
@@ -169,6 +181,7 @@ class Repository
             json_encode($notification->getData()),
             $mergedFromGuids,
             0,
+            $this->config->get('tenant_id'),
             static::NOTIFICATION_TTL,
         ];
 
