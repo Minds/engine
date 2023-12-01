@@ -5,6 +5,7 @@ use Minds\Common\Access;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Types\Core\ObjectType;
 use Minds\Core\ActivityPub\Helpers\ContentParserBuilder;
+use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Object\DocumentType;
 use Minds\Core\ActivityPub\Types\Object\NoteType;
@@ -19,6 +20,7 @@ use Minds\Core\Security\ACL;
 use Minds\Core\Subscriptions;
 use Minds\Core\Votes\Manager as VotesManager;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service as MetascraperService;
+use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
@@ -43,6 +45,7 @@ class ProcessObjectService
         protected Config $config,
         protected Logger $logger,
         protected Save $save,
+        protected DomainService $tenantDomainService,
     ) {
         
     }
@@ -80,6 +83,7 @@ class ProcessObjectService
                 $requireMinSubscribers
                 && !isset($this->object->inReplyTo)
                 && $this->subscriptionsManager->setSubscriber($owner)->getSubscribersCount() === 0
+                && !$this->isTrustedNetwork()
             ) {
                 $this->logger->info("$logPrefix Can not pull in post for {$owner->getGuid()}: No subscribers");
                 return;
@@ -360,6 +364,34 @@ class ProcessObjectService
                     'container_guid',
                 ])
                 ->save();
+        }
+    }
+
+    /**
+     * If the object belongs to a trusted network or not
+     * We currently do not have a whitelist, however if the site is inside the Minds Networks, we allow all
+     * events, comments and posts
+     */
+    private function isTrustedNetwork(): bool
+    {
+        $uri = $this->object->attributedTo;
+        $actorDomain = JsonLdHelper::getDomainFromUri($uri);
+
+        // Check against a list of trusted domain (we should have this in a database in the future)
+
+        $trustedDomains = [
+            'minds.com',
+        ];
+
+        if (in_array($actorDomain, $trustedDomains, true)) {
+            return true;
+        }
+
+        // If not a trusted domain above, is it a Minds tenant?
+        try {
+            return !!$this->tenantDomainService->getTenantFromDomain($actorDomain);
+        } catch (\Exception) {
+            return false;
         }
     }
 }

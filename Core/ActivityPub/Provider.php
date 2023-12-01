@@ -22,6 +22,7 @@ use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 use Minds\Core\Media\Image\ProcessExternalImageService;
+use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\Webfinger;
 
 class Provider extends DiProvider
@@ -110,6 +111,7 @@ class Provider extends DiProvider
                 config: $di->get('Config'),
                 logger: $di->get('Logger'),
                 save: new Save(),
+                tenantDomainService: $di->get(DomainService::class),
             );
         });
         $this->di->bind(ProcessCollectionService::class, function ($di) {

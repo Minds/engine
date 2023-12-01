@@ -266,9 +266,15 @@ class Repository extends AbstractRepository
             ])
             ->from('minds_activitypub_actors')
             ->joinRaw('minds_activitypub_uris', "minds_activitypub_uris.uri = minds_activitypub_actors.uri AND minds_activitypub_uris.tenant_id = minds_activitypub_actors.tenant_id")
-            ->joinRaw('friends', "friends.user_guid = minds_activitypub_uris.entity_guid AND friends.tenant_id = minds_activitypub_uris.tenant_id")
             ->where('friends.friend_guid', Operator::EQ, new RawExp(':userGuid'))
             ->where('minds_activitypub_actors.tenant_id', Operator::EQ, new RawExp(':tenantId'));
+
+        // We need to do a different type of join for friends table, as it uses null for tenant_id
+        if ($this->getTenantId() > -1) {
+            $query->joinRaw('friends', "friends.user_guid = minds_activitypub_uris.entity_guid AND friends.tenant_id = minds_activitypub_uris.tenant_id");
+        } else {
+            $query->joinRaw('friends', "friends.user_guid = minds_activitypub_uris.entity_guid AND friends.tenant_id IS NULL");
+        }
 
         $stmt = $query->prepare();
         $stmt->execute([
