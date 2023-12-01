@@ -50,6 +50,6 @@ class SetupChannelNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return !($user->getName() && $user->briefdescription);
+        return !$this->isTenantContext() && !($user->getName() && $user->briefdescription);
     }
 }

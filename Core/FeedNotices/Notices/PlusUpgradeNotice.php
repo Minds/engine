@@ -56,7 +56,8 @@ class PlusUpgradeNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return $user->getAge() > self::MINIMUM_ACCOUNT_AGE &&
+        return !$this->isTenantContext() &&
+            $user->getAge() > self::MINIMUM_ACCOUNT_AGE &&
             !$user->isPlus();
     }
 }

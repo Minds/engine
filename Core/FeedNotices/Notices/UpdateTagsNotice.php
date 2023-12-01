@@ -2,6 +2,7 @@
 
 namespace Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Hashtags\User\Manager as UserHashtagsManager;
 use Minds\Entities\User;
 
@@ -20,11 +21,14 @@ class UpdateTagsNotice extends AbstractNotice
     /**
      * Constructor.
      * @param ?UserHashtagsManager $userHashtagsManager - manager for user hashtags.
+     * @param ?Config $config - config.
      */
     public function __construct(
-        private ?UserHashtagsManager $userHashtagsManager = null
+        private ?UserHashtagsManager $userHashtagsManager = null,
+        private ?Config $config = null
     ) {
         $this->userHashtagsManager ??= new UserHashtagsManager();
+        parent::__construct(config: $config);
     }
 
     /**
@@ -62,6 +66,7 @@ class UpdateTagsNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return !($this->userHashtagsManager->setUser($user)->hasSetHashtags());
+        return !$this->isTenantContext() &&
+            !($this->userHashtagsManager->setUser($user)->hasSetHashtags());
     }
 }
