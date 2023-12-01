@@ -14,6 +14,7 @@ use Minds\Core\ActivityPub\Services\ProcessActivityService;
 use Minds\Core\ActivityPub\Services\ProcessActorService;
 use Minds\Core\ActivityPub\Services\ProcessCollectionService;
 use Minds\Core\ActivityPub\Services\ProcessObjectService;
+use Minds\Core\Config\Config;
 use Minds\Core\Subscriptions;
 use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Di\Di;
@@ -38,7 +39,11 @@ class Provider extends DiProvider
             );
         });
         $this->di->bind(Repository::class, function ($di) {
-            return new Repository($di->get('Database\MySQL\Client'), $di->get('Logger'));
+            return new Repository(
+                $di->get(Config::class),
+                $di->get('Database\MySQL\Client'),
+                $di->get('Logger')
+            );
         });
         $this->di->bind(Manager::class, function ($di) {
             return new Manager(
