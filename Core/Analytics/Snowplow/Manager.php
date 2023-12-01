@@ -2,6 +2,7 @@
 namespace Minds\Core\Analytics\Snowplow;
 
 use Minds\Common\PseudonymousIdentifier;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Snowplow\Tracker\Emitters\CurlEmitter;
@@ -19,10 +20,13 @@ class Manager
     /** @var Tracker */
     protected $tracker;
 
-    public function __construct($emitter = null, $config = null, protected ?PseudonymousIdentifier $pseudonymousIdentifier = null)
-    {
-        $config = $config ?? Di::_()->get('Config');
-        $this->emitter = $emitter ?? new CurlEmitter($config->get('snowplow')['collector_uri']?? '', $config->get('snowplow')['proto'] ?? 'https', "POST", 2, false);
+    public function __construct(
+        $emitter = null,
+        protected ?Config $config = null,
+        protected ?PseudonymousIdentifier $pseudonymousIdentifier = null
+    ) {
+        $this->config ??= Di::_()->get(Config::class);
+        $this->emitter = $emitter ?? new CurlEmitter($this->config->get('snowplow')['collector_uri']?? '', $this->config->get('snowplow')['proto'] ?? 'https', "POST", 2, false);
     }
 
     /**
@@ -52,8 +56,15 @@ class Manager
             $subject->setLanguage($user->getLanguage());
         }
 
+        // App Id
+        if ($tenantId = $this->config->get('tenant_id')) {
+            $appId = 'minds-tenant-' . $tenantId;
+        } else {
+            $appId = 'minds';
+        }
+
         // Tracker
-        $tracker = new Tracker($this->emitter, $subject, 'ma', 'minds');
+        $tracker = new Tracker($this->emitter, $subject, 'ma', $appId);
 
         // Manager Clone / Setup
         $manager = clone $this;
