@@ -49,6 +49,9 @@ class ManagerSpec extends ObjectBehavior
             ['tag' => 'hashtag5']
         ];
 
+        $this->configMock->get('tenant_id')
+            ->willReturn(null);
+
         $previouslyTrendingResponse->toArray()
             ->shouldBeCalled()
             ->willReturn($previouslyTrendingTags);
