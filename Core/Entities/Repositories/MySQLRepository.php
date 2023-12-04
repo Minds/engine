@@ -678,7 +678,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                         if (isset($row[$k])) {
                             $row[$k] = $row[$k] ? 'yes' : 'no';
 
-                            if ($k === 'admin') {
+                            if ($k === 'admin' && $row[$k] === 'no') {
                                 $userRoles = explode(',', $row['role_ids'] ?? '');
                                 $isAdmin = (bool) count(array_intersect($userRoles, [RolesEnum::ADMIN->value, RolesEnum::OWNER->value]));
                                 $row['admin'] = $isAdmin ? 'yes' : 'no';
