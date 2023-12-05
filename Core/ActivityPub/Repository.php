@@ -2,6 +2,7 @@
 namespace Minds\Core\ActivityPub;
 
 use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use PDO;
 use PDOException;
@@ -10,6 +11,13 @@ use Selective\Database\RawExp;
 
 class Repository extends AbstractRepository
 {
+    public function __construct(
+        private Config $config,
+        ...$args
+    ) {
+        parent::__construct(...$args);
+    }
+
     public function getUrnFromUri(string $uri): ?string
     {
         $query = $this->mysqlClientReaderHandler
@@ -20,11 +28,13 @@ class Repository extends AbstractRepository
                 'entity_urn',
             ])
             ->from('minds_activitypub_uris')
-            ->where('uri', Operator::EQ, new RawExp(':uri'));
+            ->where('uri', Operator::EQ, new RawExp(':uri'))
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id')); // Scope to tenant (-1 will be the root minds)
 
         $stmt = $query->prepare();
         $stmt->execute([
-            'uri' => $uri
+            'uri' => $uri,
+            'tenant_id' => $this->getTenantId(),
         ]);
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -46,11 +56,13 @@ class Repository extends AbstractRepository
                 'uri',
             ])
             ->from('minds_activitypub_uris')
-            ->where('entity_urn', Operator::EQ, new RawExp(':entityUrn'));
+            ->where('entity_urn', Operator::EQ, new RawExp(':entityUrn'))
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
 
         $stmt = $query->prepare();
         $stmt->execute([
-            'entityUrn' => $urn
+            'entityUrn' => $urn,
+            'tenant_id' => $this->getTenantId(),
         ]);
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -75,7 +87,7 @@ class Repository extends AbstractRepository
                 'entity_urn',
             ])
             ->from('minds_activitypub_uris')
-            ->innerJoin('minds_activitypub_actors', 'minds_activitypub_actors.uri', Operator::EQ, 'minds_activitypub_uris.uri');
+            ->joinRaw('minds_activitypub_actors', 'minds_activitypub_actors.uri = minds_activitypub_uris.uri AND minds_activitypub_actors.tenant_id = minds_activitypub_uris.tenant_id');
 
         $stmt = $query->prepare();
         $stmt->execute();
@@ -98,6 +110,7 @@ class Repository extends AbstractRepository
             ->into('minds_activitypub_uris')
             ->set([
                 'uri' => new RawExp(':uri'),
+                'tenant_id' => new RawExp(':tenant_id'),
                 'domain' => new RawExp(':domain'),
                 'entity_urn' => new RawExp(':entityUrn'),
                 'entity_guid' => new RawExp(':entityGuid'),
@@ -111,6 +124,7 @@ class Repository extends AbstractRepository
     
         return $stmt->execute([
             'uri' => $uri,
+            'tenant_id' => $this->getTenantId(),
             'domain' => $domain,
             'entityUrn' => $entityUrn,
             'entityGuid' => $entityGuid,
@@ -135,6 +149,7 @@ class Repository extends AbstractRepository
             ->into('minds_activitypub_actors')
             ->set([
                 'uri' => new RawExp(':uri'),
+                'tenant_id' => new RawExp(':tenant_id'),
                 'type' => new RawExp(':type'),
                 ...$updatable
             ])
@@ -144,6 +159,7 @@ class Repository extends AbstractRepository
     
         return $stmt->execute([
             'uri' => $actor->id,
+            'tenant_id' => $this->getTenantId(),
             'type' => $actor->getType(),
             'inbox' => $actor->inbox,
             'outbox' => $actor->outbox,
@@ -164,11 +180,13 @@ class Repository extends AbstractRepository
                 'icon_url',
             ])
             ->from('minds_activitypub_actors')
-            ->where('uri', Operator::EQ, new RawExp(':uri'));
+            ->where('uri', Operator::EQ, new RawExp(':uri'))
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
 
         $stmt = $query->prepare();
         $stmt->execute([
             'uri' => $actor->id,
+            'tenant_id' => $this->getTenantId(),
         ]);
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -193,11 +211,13 @@ class Repository extends AbstractRepository
                 'private_key',
             ])
             ->from('minds_activitypub_keys')
-            ->where('user_guid', Operator::EQ, new RawExp(':userGuid'));
+            ->where('user_guid', Operator::EQ, new RawExp(':userGuid'))
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenantId'));
 
         $stmt = $query->prepare();
         $stmt->execute([
-            'userGuid' => $userGuid
+            'userGuid' => $userGuid,
+            'tenantId' => $this->getTenantId(),
         ]);
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -223,6 +243,7 @@ class Repository extends AbstractRepository
             ->into('minds_activitypub_keys')
             ->set([
                 'user_guid' => new RawExp(':userGuid'),
+                'tenant_id' => new RawExp(':tenantId'),
                 'private_key' => new RawExp(':privateKey'),
             ]);
 
@@ -230,6 +251,7 @@ class Repository extends AbstractRepository
     
         return $stmt->execute([
             'userGuid' => $userGuid,
+            'tenantId' => $this->getTenantId(),
             'privateKey' => $privateKey,
         ]);
     }
@@ -243,13 +265,21 @@ class Repository extends AbstractRepository
                 'inbox' => new RawExp('coalesce(shared_inbox, inbox)'),
             ])
             ->from('minds_activitypub_actors')
-            ->innerJoin('minds_activitypub_uris', 'minds_activitypub_uris.uri', Operator::EQ, 'minds_activitypub_actors.uri')
-            ->innerJoin('friends', 'friends.user_guid', Operator::EQ, 'minds_activitypub_uris.entity_guid')
-            ->where('friends.friend_guid', Operator::EQ, new RawExp(':userGuid'));
+            ->joinRaw('minds_activitypub_uris', "minds_activitypub_uris.uri = minds_activitypub_actors.uri AND minds_activitypub_uris.tenant_id = minds_activitypub_actors.tenant_id")
+            ->where('friends.friend_guid', Operator::EQ, new RawExp(':userGuid'))
+            ->where('minds_activitypub_actors.tenant_id', Operator::EQ, new RawExp(':tenantId'));
+
+        // We need to do a different type of join for friends table, as it uses null for tenant_id
+        if ($this->getTenantId() > -1) {
+            $query->joinRaw('friends', "friends.user_guid = minds_activitypub_uris.entity_guid AND friends.tenant_id = minds_activitypub_uris.tenant_id");
+        } else {
+            $query->joinRaw('friends', "friends.user_guid = minds_activitypub_uris.entity_guid AND friends.tenant_id IS NULL");
+        }
 
         $stmt = $query->prepare();
         $stmt->execute([
-            'userGuid' => $userGuid
+            'userGuid' => $userGuid,
+            'tenantId' => $this->getTenantId(),
         ]);
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -257,6 +287,14 @@ class Repository extends AbstractRepository
         foreach ($rows as $row) {
             yield $row['inbox'];
         }
+    }
+
+    /**
+     * Returns the tenant_id, or -1 if not set
+     */
+    private function getTenantId(): int
+    {
+        return $this->config->get('tenant_id') ?: -1;
     }
 
 }

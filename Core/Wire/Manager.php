@@ -21,10 +21,12 @@ use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Util\BigNumber;
+use Minds\Core\Wire\Exceptions\RemoteUserException;
 use Minds\Core\Wire\Exceptions\WalletNotSetupException;
 use Minds\Core\Wire\SupportTiers\Manager as SupportTiersManager;
 use Minds\Entities;
 use Minds\Entities\Activity;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 
@@ -246,6 +248,10 @@ class Manager
     {
         if ($this->payload['method'] == 'onchain' && (!$this->receiver->getEthWallet() || $this->receiver->getEthWallet() != $this->payload['receiver'])) {
             throw new WalletNotSetupException();
+        }
+
+        if ($this->receiver->getSource() !== FederatedEntitySourcesEnum::LOCAL) {
+            throw new RemoteUserException();
         }
 
         $wire = new Wire();

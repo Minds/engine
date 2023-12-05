@@ -2,6 +2,7 @@
 
 namespace Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
@@ -20,10 +21,12 @@ class VerifyUniquenessNotice extends AbstractNotice
 
     public function __construct(
         private ?EligibilityManager $eligibilityManager = null,
-        private ?ExperimentsManager $experimentsManager = null
+        private ?ExperimentsManager $experimentsManager = null,
+        private ?Config $config = null
     ) {
         $this->eligibilityManager ??= Di::_()->get('Rewards\Eligibility\Manager');
         $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
+        parent::__construct(config: $config);
     }
 
     /**
@@ -61,7 +64,8 @@ class VerifyUniquenessNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return !$user->getPhoneNumberHash() &&
+        return !$this->isTenantContext() &&
+            !$user->getPhoneNumberHash() &&
             $this->isEligibleForRewards($user) &&
             !$this->experimentsManager->setUser($user)->isOn('epic-275-in-app-verification');
     }

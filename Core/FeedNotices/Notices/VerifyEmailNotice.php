@@ -49,6 +49,6 @@ class VerifyEmailNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return !$user->isTrusted();
+        return !$this->isTenantContext() && !$user->isTrusted();
     }
 }

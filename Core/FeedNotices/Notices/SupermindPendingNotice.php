@@ -2,6 +2,7 @@
 
 namespace Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Core\Supermind\Manager as SupermindManager;
@@ -19,9 +20,11 @@ class SupermindPendingNotice extends AbstractNotice
     private const KEY = 'supermind-pending';
 
     public function __construct(
-        private ?SupermindManager $supermindManager = null
+        private ?SupermindManager $supermindManager = null,
+        private ?Config $config = null
     ) {
         $this->supermindManager ??= Di::_()->get('Supermind\Manager');
+        parent::__construct(config: $config);
     }
 
     /**
@@ -60,7 +63,8 @@ class SupermindPendingNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return $this->supermindManager->setUser($user)
-            ->countReceivedRequests(SupermindRequestStatus::CREATED) > 0;
+        return !$this->isTenantContext() &&
+            $this->supermindManager->setUser($user)
+                ->countReceivedRequests(SupermindRequestStatus::CREATED) > 0;
     }
 }

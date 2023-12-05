@@ -50,6 +50,10 @@ class ObjectFactory
         try {
             $response = $this->client->request('GET', $uri);
             $json = json_decode($response->getBody()->getContents(), true);
+
+            if (!is_array($json)) {
+                throw new UserErrorException("Bad response from server");
+            }
         } catch (ConnectException $e) {
             throw new UserErrorException("Could not connect to $uri");
         } catch (ClientException|ServerException $e) {

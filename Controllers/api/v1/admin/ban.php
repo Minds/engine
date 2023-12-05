@@ -10,15 +10,18 @@ namespace Minds\Controllers\api\v1\admin;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Helpers;
-use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
-use Minds\Core\Events\Dispatcher;
-use Minds\Core\Config;
+use Minds\Core\EntitiesBuilder;
+use Minds\Entities\User;
 
 class ban implements Interfaces\Api, Interfaces\ApiAdminPam
 {
+    public function __construct(private ?EntitiesBuilder $entitiesBuilder = null)
+    {
+        $this->entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
+    }
+
     /**
      *
      */
@@ -47,9 +50,9 @@ class ban implements Interfaces\Api, Interfaces\ApiAdminPam
             ];
         }
 
-        $user = new Entities\User($pages[0]);
+        $user = $this->entitiesBuilder->single($pages[0]);
 
-        if (!$user || !$user->guid) {
+        if (!$user instanceof User) {
             return [
                 'error' => true
             ];
@@ -83,9 +86,9 @@ class ban implements Interfaces\Api, Interfaces\ApiAdminPam
             ];
         }
 
-        $user = new Entities\User($pages[0]);
+        $user = $this->entitiesBuilder->single($pages[0]);
 
-        if (!$user || !$user->guid) {
+        if (!$user instanceof User) {
             return [
                 'error' => true
             ];

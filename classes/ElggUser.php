@@ -118,6 +118,11 @@ class ElggUser extends ElggEntity
     /**
      * Is this user admin?
      *
+     * Note: This value is set to true for
+     * - all Minds admins
+     * - Tenant Owners
+     * - Tenant Admins
+     *
      * @return bool
      */
     public function isAdmin()

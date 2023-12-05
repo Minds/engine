@@ -55,6 +55,9 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
             ]
             );
 
+        $this->configMock->get('did')
+            ->willReturn([]);
+
         $requestMock->getHeader('X-FORWARDED-PROTO')
             ->willReturn(null);
 
@@ -95,6 +98,11 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $this->configMock->set('cdn_assets_url', 'http://phpspec.local/')
+            ->shouldBeCalled();
+
+        $this->configMock->set('did', [
+            'domain' => 'phpspec.local',
+        ])
             ->shouldBeCalled();
 
         $this->configMock->set('tenant_id', 123)

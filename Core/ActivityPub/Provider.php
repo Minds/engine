@@ -14,6 +14,7 @@ use Minds\Core\ActivityPub\Services\ProcessActivityService;
 use Minds\Core\ActivityPub\Services\ProcessActorService;
 use Minds\Core\ActivityPub\Services\ProcessCollectionService;
 use Minds\Core\ActivityPub\Services\ProcessObjectService;
+use Minds\Core\Config\Config;
 use Minds\Core\Subscriptions;
 use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Di\Di;
@@ -21,6 +22,7 @@ use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 use Minds\Core\Media\Image\ProcessExternalImageService;
+use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\Webfinger;
 
 class Provider extends DiProvider
@@ -38,7 +40,11 @@ class Provider extends DiProvider
             );
         });
         $this->di->bind(Repository::class, function ($di) {
-            return new Repository($di->get('Database\MySQL\Client'), $di->get('Logger'));
+            return new Repository(
+                $di->get(Config::class),
+                $di->get('Database\MySQL\Client'),
+                $di->get('Logger')
+            );
         });
         $this->di->bind(Manager::class, function ($di) {
             return new Manager(
@@ -105,6 +111,7 @@ class Provider extends DiProvider
                 config: $di->get('Config'),
                 logger: $di->get('Logger'),
                 save: new Save(),
+                tenantDomainService: $di->get(DomainService::class),
             );
         });
         $this->di->bind(ProcessCollectionService::class, function ($di) {

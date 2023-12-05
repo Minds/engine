@@ -60,6 +60,11 @@ class Manager implements ManagerInterface
             $to = strtotime('-1 year', time());
         }
 
+        if ($this->config->get('tenant_id')) {
+            $from = strtotime('-60 days', time());
+            $to = strtotime('-30 days', time());
+        }
+
         $response = $this->repository->getList([
             'from' => $from,
             'to' => $to,
@@ -79,6 +84,10 @@ class Manager implements ManagerInterface
 
         if ($this->config->get('trending_tags_development_mode')) {
             $from = strtotime('-1 year', time());
+        }
+
+        if ($this->config->get('tenant_id')) {
+            $from = strtotime('-30 days', time());
         }
 
         $response = $this->repository->getList([
