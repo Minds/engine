@@ -1,6 +1,7 @@
 <?php
 namespace Spec\Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Config\Config;
 use Minds\Core\FeedNotices\Notices\NoGroupsNotice;
 use Minds\Core\Groups\Membership as GroupMembershipManager;
 use Minds\Entities\User;
@@ -11,11 +12,17 @@ class NoGroupsNoticeSpec extends ObjectBehavior
     /** @var GroupMembershipManager */
     protected $groupMembershipManager;
 
+    /** @var Config */
+    protected $config;
+
     public function let(
-        GroupMembershipManager $groupMembershipManager
+        GroupMembershipManager $groupMembershipManager,
+        Config $config
     ) {
         $this->groupMembershipManager = $groupMembershipManager;
-        $this->beConstructedWith($groupMembershipManager);
+        $this->config = $config;
+
+        $this->beConstructedWith($groupMembershipManager, $config);
     }
 
     public function it_is_initializable()
@@ -41,6 +48,10 @@ class NoGroupsNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_show(
         User $user
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->groupMembershipManager->getGroupGuidsByMember([
                 'user_guid' => $user->guid,
                 'limit' => 1
@@ -52,15 +63,30 @@ class NoGroupsNoticeSpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    public function it_should_determine_if_notice_should_NOT_show(
+    public function it_should_determine_if_notice_should_NOT_show_because_a_user_is_already_a_member_of_groups(
         User $user
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->groupMembershipManager->getGroupGuidsByMember([
                 'user_guid' => $user->guid,
                 'limit' => 1
             ])
             ->shouldBeCalled()
             ->willReturn(['123']);
+
+        $this->callOnWrappedObject('shouldShow', [$user])
+            ->shouldBe(false);
+    }
+
+    public function it_should_determine_if_notice_should_NOT_show_because_this_is_a_tenant_context(
+        User $user
+    ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn('123');
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);

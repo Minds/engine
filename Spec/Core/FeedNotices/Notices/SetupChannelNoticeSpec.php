@@ -2,12 +2,23 @@
 
 namespace Spec\Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Config\Config;
 use Minds\Core\FeedNotices\Notices\SetupChannelNotice;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 
 class SetupChannelNoticeSpec extends ObjectBehavior
 {
+    private Collaborator $config;
+
+    public function let(
+        Config $config
+    ) {
+        $this->config = $config;
+        $this->beConstructedWith($config);
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(SetupChannelNotice::class);
@@ -31,6 +42,10 @@ class SetupChannelNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_show_because_no_name(
         User $user
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $user->getName()
             ->shouldBeCalled()
             ->willReturn('');
@@ -42,6 +57,10 @@ class SetupChannelNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_show_because_no_description(
         User $user
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $user->getName()
             ->shouldBeCalled()
             ->willReturn('123');
@@ -54,9 +73,13 @@ class SetupChannelNoticeSpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    public function it_should_determine_if_notice_should_NOT_show(
+    public function it_should_determine_if_notice_should_NOT_show_because_name_and_description_are_set(
         User $user
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $user->getName()
             ->shouldBeCalled()
             ->willReturn('123');
@@ -65,6 +88,17 @@ class SetupChannelNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('321');
     
+        $this->callOnWrappedObject('shouldShow', [$user])
+            ->shouldBe(false);
+    }
+
+    public function it_should_determine_if_notice_should_NOT_show_because_this_is_a_tenant_context(
+        User $user
+    ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn('123');
+
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);
     }

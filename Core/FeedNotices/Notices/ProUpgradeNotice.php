@@ -54,6 +54,8 @@ class ProUpgradeNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return $user->isPlus() && (!$user->getProExpires() || $user->getProExpires() < time());
+        return !$this->isTenantContext() &&
+            $user->isPlus() &&
+            (!$user->getProExpires() || $user->getProExpires() < time());
     }
 }

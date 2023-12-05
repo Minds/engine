@@ -2,6 +2,8 @@
 
 namespace Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Entities\User;
 
 /**
@@ -11,6 +13,12 @@ abstract class AbstractNotice
 {
     // instance user.
     protected ?User $user = null;
+
+    public function __construct(
+        private ?Config $config = null
+    ) {
+        $this->config ??= Di::_()->get('Config');
+    }
 
     /**
      * Get location of notice in feed.
@@ -46,6 +54,15 @@ abstract class AbstractNotice
     {
         $this->user = $user;
         return $this;
+    }
+
+    /**
+     * Whether is from the context of a tenant.
+     * @return bool - true if this is from a tenant context.
+     */
+    public function isTenantContext(): bool
+    {
+        return (bool) $this->config->get('tenant_id');
     }
 
     /**
