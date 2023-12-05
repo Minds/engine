@@ -38,6 +38,8 @@ use Minds\Core\Supermind\Exceptions\SupermindUnauthorizedSenderException;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\Payments\SupermindPaymentProcessor;
 use Minds\Core\Twitter\Exceptions\TwitterDetailsNotFoundException;
+use Minds\Core\Wire\Exceptions\RemoteUserException;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\StopEventException;
@@ -99,17 +101,21 @@ class Manager
      */
     public function addSupermindRequest(SupermindRequest $supermindRequest, ?string $paymentMethodId = null): bool
     {
+        $receiver = $this->buildUser($supermindRequest->getReceiverGuid());
+
         if (
             !$this->acl->interact(
-                $this->buildUser(
-                    $supermindRequest->getReceiverGuid()
-                ),
+                $receiver,
                 $this->user
             )
         ) {
             throw new ForbiddenException();
         }
 
+        if ($receiver->getSource() !== FederatedEntitySourcesEnum::LOCAL) {
+            throw new RemoteUserException();
+        }
+    
         $this->repository->beginTransaction();
 
         try {
