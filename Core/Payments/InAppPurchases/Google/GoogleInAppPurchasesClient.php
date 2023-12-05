@@ -122,4 +122,14 @@ class GoogleInAppPurchasesClient implements InAppPurchaseClientInterface
     {
         throw new NotImplementedException();
     }
+
+    /**
+     * @param string $transactionId
+     * @return InAppPurchase
+     * @throws NotImplementedException
+     */
+    public function getOriginalSubscriptionDetails(string $transactionId): InAppPurchase
+    {
+        throw new NotImplementedException();
+    }
 }

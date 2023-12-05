@@ -19,7 +19,10 @@ use Minds\Core\Payments\InAppPurchases\Google\GoogleInAppPurchasesClient;
 use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
 use Minds\Core\Payments\InAppPurchases\Models\ProductPurchase;
 use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
+use Minds\Core\Session;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserErrorException;
 use NotImplementedException;
 use Stripe\Exception\ApiErrorException;
@@ -47,13 +50,15 @@ class Manager
     /**
      * @param InAppPurchase $inAppPurchase
      * @return bool
-     * @throws NotImplementedException
-     * @throws GiftCardPaymentFailedException
-     * @throws StripeTransferFailedException
-     * @throws ServerErrorException
-     * @throws UserErrorException
      * @throws ApiErrorException
+     * @throws GiftCardPaymentFailedException
      * @throws GraphQLException
+     * @throws NotImplementedException
+     * @throws ServerErrorException
+     * @throws StopEventException
+     * @throws StripeTransferFailedException
+     * @throws UnverifiedEmailException
+     * @throws UserErrorException
      */
     public function acknowledgeSubscription(InAppPurchase $inAppPurchase): bool
     {
@@ -68,73 +73,9 @@ class Manager
             AppleInAppPurchasesClient::class => 'iap_apple',
         };
 
-        $amount = null;
-
         // TODO: purchaseToken is not used and we should store it for reconciliation
 
-        /**
-         * Not ideal, but short term solution
-         */
-        $result = match ($inAppPurchase->subscriptionId) {
-            "plus.yearly.001",
-            "plus.monthly.001",
-            "plus.yearly.01",
-            "plus.monthly.01"=> function () use ($inAppPurchase, $method, &$amount): string {
-                $amount = $this->config->get('upgrades')['plus']['monthly']['usd'];
-                $inAppPurchase->setExpiresMillis(strtotime("+1 month") * 1000);
-                if ($inAppPurchase->subscriptionId === "plus.yearly.001") {
-                    $amount = $this->config->get('upgrades')['plus']['yearly']['usd'];
-                    $inAppPurchase->setExpiresMillis(strtotime("+1 year") * 1000);
-                }
-
-                $inAppPurchase->user->setPlusMethod($method);
-                $inAppPurchase->user->setPlusExpires($inAppPurchase->expiresMillis / 1000);
-                return "plus";
-            },
-            "pro.monthly.01",
-            "pro.monthly.001" => function () use ($inAppPurchase, $method, &$amount): string {
-                $amount = $this->config->get('upgrades')['pro']['monthly']['usd'];
-                $inAppPurchase->setExpiresMillis(strtotime("+1 month") * 1000);
-
-                $inAppPurchase->user->setProMethod($method);
-                $inAppPurchase->user->setProExpires($inAppPurchase->expiresMillis / 1000);
-                return "pro";
-            },
-            default => null
-        };
-
-        if (!$result) {
-            throw new UserErrorException("Invalid subscriptionId");
-        }
-
-        $subscriptionType = $result();
-
-        $this->save
-            ->setEntity($inAppPurchase->user)
-            ->withMutatedAttributes([
-                'pro_method',
-                'pro_expires',
-                'plus_method',
-                'plus_expires',
-            ])
-            ->save();
-
-        $sender = match ($inAppPurchase->subscriptionId) {
-            "plus.yearly.001",
-            "plus.yearly.01",
-            "plus.monthly.01",
-            "plus.monthly.001" => $this->entitiesBuilder->single($this->config->get('plus')['handler']),
-            "pro.yearly.001",
-            "pro.monthly.01",
-            "pro.monthly.001" => $this->entitiesBuilder->single($this->config->get('pro')['handler']),
-        };
-
-        $this->giftCardsManager->issueMindsPlusAndProGiftCards(
-            sender: $sender ?? new SystemUser(),
-            recipient: $inAppPurchase->user,
-            amount: $amount,
-            expiryTimestamp: $subscriptionType === "plus" ? $inAppPurchase->user->getPlusExpires() : $inAppPurchase->user->getProExpires()
-        );
+        $this->processSubscriptionPurchase($inAppPurchase, $method);
 
         return true;
     }
@@ -194,6 +135,122 @@ class Manager
             productId: $inAppPurchase->productId,
             transactionId: $androidProductPurchase->getOrderId() . ":" . ($androidProductPurchase->getPurchaseToken() ?? $inAppPurchase->purchaseToken),
             acknowledged: (bool) $androidProductPurchase->getAcknowledgementState()
+        );
+    }
+
+
+    /**
+     * @param string $payload
+     * @return void
+     * @throws ApiErrorException
+     * @throws GiftCardPaymentFailedException
+     * @throws GraphQLException
+     * @throws NotImplementedException
+     * @throws ServerErrorException
+     * @throws StopEventException
+     * @throws StripeTransferFailedException
+     * @throws UnverifiedEmailException
+     * @throws UserErrorException
+     */
+    public function renewIOSSubscription(string $payload): void
+    {
+        $client = $this->inAppPurchasesClientFactory->createClient(AppleInAppPurchasesClient::class);
+        $claims = $client->decodeSignedPayload($payload)->claims();
+
+        if ($claims->get('notificationType') !== 'DID_RENEW') {
+            throw new UserErrorException("renewIOSSubscription", 400);
+        }
+
+        $signedTransactionInfo = $client->decodeSignedPayload($claims->get('data')['signedTransactionInfo']);
+        $originalInAppPurchase = $client->getOriginalSubscriptionDetails($signedTransactionInfo->claims()->get('originalTransactionId'));
+
+        $this->processSubscriptionPurchase($originalInAppPurchase, 'iap_apple');
+    }
+
+    /**
+     * @param InAppPurchase $inAppPurchase
+     * @param string $method
+     * @return void
+     * @throws ApiErrorException
+     * @throws GiftCardPaymentFailedException
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     * @throws StopEventException
+     * @throws StripeTransferFailedException
+     * @throws UnverifiedEmailException
+     * @throws UserErrorException
+     */
+    private function processSubscriptionPurchase(InAppPurchase $inAppPurchase, string $method): void
+    {
+        $amount = null;
+        $subscriptionId = $inAppPurchase->subscriptionId ?: $inAppPurchase->productId;
+
+        /**
+         * Not ideal, but short term solution
+         */
+        $result = match ($subscriptionId) {
+            "plus.yearly.001",
+            "plus.monthly.001",
+            "plus.yearly.01",
+            "plus.monthly.01" => function () use ($inAppPurchase, $method, &$amount, $subscriptionId): string {
+                $amount = $this->config->get('upgrades')['plus']['monthly']['usd'];
+                $inAppPurchase->setExpiresMillis(strtotime("+1 month") * 1000);
+                if ($subscriptionId === "plus.yearly.001" || $subscriptionId === "plus.yearly.01") {
+                    $amount = $this->config->get('upgrades')['plus']['yearly']['usd'];
+                    $inAppPurchase->setExpiresMillis(strtotime("+1 year") * 1000);
+                }
+
+                $inAppPurchase->user->setPlusMethod($method);
+                $inAppPurchase->user->setPlusExpires($inAppPurchase->expiresMillis / 1000);
+                return "plus";
+            },
+            "pro.monthly.01",
+            "pro.monthly.001" => function () use ($inAppPurchase, $method, &$amount): string {
+                $amount = $this->config->get('upgrades')['pro']['monthly']['usd'];
+                $inAppPurchase->setExpiresMillis(strtotime("+1 month") * 1000);
+
+                $inAppPurchase->user->setProMethod($method);
+                $inAppPurchase->user->setProExpires($inAppPurchase->expiresMillis / 1000);
+                return "pro";
+            },
+            default => null
+        };
+
+        if (!$result) {
+            throw new UserErrorException("Invalid subscriptionId");
+        }
+
+        $subscriptionType = $result();
+
+        if (!Session::getLoggedinUser()) {
+            Session::setUser($inAppPurchase->user);
+        }
+
+        $this->save
+            ->setEntity($inAppPurchase->user)
+            ->withMutatedAttributes([
+                'pro_method',
+                'pro_expires',
+                'plus_method',
+                'plus_expires',
+            ])
+            ->save();
+
+        $sender = match ($subscriptionId) {
+            "plus.yearly.001",
+            "plus.yearly.01",
+            "plus.monthly.01",
+            "plus.monthly.001" => $this->entitiesBuilder->single($this->config->get('plus')['handler']),
+            "pro.yearly.001",
+            "pro.monthly.01",
+            "pro.monthly.001" => $this->entitiesBuilder->single($this->config->get('pro')['handler']),
+        };
+
+        $this->giftCardsManager->issueMindsPlusAndProGiftCards(
+            sender: $sender ?? new SystemUser(),
+            recipient: $inAppPurchase->user,
+            amount: $amount,
+            expiryTimestamp: $subscriptionType === "plus" ? $inAppPurchase->user->getPlusExpires() : $inAppPurchase->user->getProExpires()
         );
     }
 }

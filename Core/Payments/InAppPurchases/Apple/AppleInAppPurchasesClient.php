@@ -171,4 +171,15 @@ class AppleInAppPurchasesClient implements InAppPurchaseClientInterface
     {
         throw new NotImplementedException();
     }
+
+
+    /**
+     * @param string $transactionId
+     * @return InAppPurchase
+     * @throws ServerErrorException
+     */
+    public function getOriginalSubscriptionDetails(string $transactionId): InAppPurchase
+    {
+        return $this->relationalRepository->getInAppPurchaseTransaction($transactionId);
+    }
 }
