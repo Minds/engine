@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\FeedNotices\Notices\InAppVerifyUniquenessNotice;
 use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
@@ -20,15 +21,21 @@ class InAppVerifyUniquenessNoticeSpec extends ObjectBehavior
     /** @var VerificationManager */
     protected $verificationManager;
 
+    /** @var Config */
+    protected $config;
+
     public function let(
         EligibilityManager $eligibilityManager,
         ExperimentsManager $experimentsManager,
-        VerificationManager $verificationManager
+        VerificationManager $verificationManager,
+        Config $config
     ) {
         $this->eligibilityManager = $eligibilityManager;
         $this->experimentsManager = $experimentsManager;
         $this->verificationManager = $verificationManager;
-        $this->beConstructedWith($eligibilityManager, $experimentsManager, $verificationManager);
+        $this->config = $config;
+
+        $this->beConstructedWith($eligibilityManager, $experimentsManager, $verificationManager, $config);
     }
 
     public function it_is_initializable(): void
@@ -54,6 +61,10 @@ class InAppVerifyUniquenessNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_show(
         User $user
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->experimentsManager->setUser($user)
             ->shouldBeCalled()
             ->willReturn($this->experimentsManager);
@@ -77,6 +88,10 @@ class InAppVerifyUniquenessNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_NOT_show_because_the_experiment_is_off(
         User $user
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->experimentsManager->setUser($user)
             ->shouldBeCalled()
             ->willReturn($this->experimentsManager);
@@ -92,6 +107,10 @@ class InAppVerifyUniquenessNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_NOT_show_because_the_user_is_already_verified(
         User $user
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->experimentsManager->setUser($user)
             ->shouldBeCalled()
             ->willReturn($this->experimentsManager);
@@ -107,6 +126,17 @@ class InAppVerifyUniquenessNoticeSpec extends ObjectBehavior
         $this->verificationManager->isVerified()
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->callOnWrappedObject('shouldShow', [$user])
+            ->shouldBe(false);
+    }
+
+    public function it_should_determine_if_notice_should_NOT_show_because_this_is_a_tenant_context(
+        User $user
+    ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn('123');
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);

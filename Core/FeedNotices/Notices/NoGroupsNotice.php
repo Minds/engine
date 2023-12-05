@@ -2,6 +2,7 @@
 
 namespace Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Config\Config;
 use Minds\Entities\User;
 use Minds\Core\Groups\Membership as GroupMembershipManager;
 
@@ -21,12 +22,15 @@ class NoGroupsNotice extends AbstractNotice
 
     /**
      * Constructor.
-     * @param ?GroupMembershipManager $groupMembershipManager - manager for group membership
+     * @param ?GroupMembershipManager $groupMembershipManager - manager for group membership.
+     * @param ?Config $config - config.
      */
     public function __construct(
-        private ?GroupMembershipManager $groupMembershipManager = null
+        private ?GroupMembershipManager $groupMembershipManager = null,
+        private ?Config $config = null
     ) {
         $this->groupMembershipManager ??= new GroupMembershipManager();
+        parent::__construct(config: $config);
     }
 
 
@@ -65,6 +69,10 @@ class NoGroupsNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
+        if ($this->isTenantContext()) {
+            return false;
+        }
+
         $groupGuids = $this->groupMembershipManager->getGroupGuidsByMember([
             'user_guid' => $user->guid,
             'limit' => 1
