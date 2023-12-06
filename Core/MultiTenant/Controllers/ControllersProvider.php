@@ -6,8 +6,9 @@ namespace Minds\Core\MultiTenant\Controllers;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
-use Minds\Core\MultiTenant\Services\FeaturedEntityService;
+use Minds\Core\MultiTenant\Services\CheckoutService;
 use Minds\Core\MultiTenant\Services\DomainService;
+use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Core\MultiTenant\Services\TenantsService;
 use Minds\Core\MultiTenant\Services\TenantUsersService;
 
@@ -38,6 +39,12 @@ class ControllersProvider extends Provider
         $this->di->bind(DomainsController::class, function (Di $di): DomainsController {
             return new DomainsController(
                 $di->get(DomainService::class)
+            );
+        });
+
+        $this->di->bind(CheckoutController::class, function (Di $di): CheckoutController {
+            return new CheckoutController(
+                checkoutService: $di->get(CheckoutService::class),
             );
         });
     }

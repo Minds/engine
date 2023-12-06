@@ -89,7 +89,8 @@ class Minds extends base
         Admin\Module::class,
         Storage\Quotas\Module::class,
         Comments\GraphQL\Module::class,
-        Reports\V2\Module::class
+        Reports\V2\Module::class,
+        Strapi\Module::class,
     ];
 
     /**

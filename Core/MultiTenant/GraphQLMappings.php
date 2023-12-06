@@ -5,11 +5,17 @@ namespace Minds\Core\MultiTenant;
 
 use Minds\Core\GraphQL\AbstractGraphQLMappings;
 use Minds\Core\MultiTenant\Models\Tenant;
+use Minds\Core\MultiTenant\Types\Checkout\AddOn;
+use Minds\Core\MultiTenant\Types\Checkout\AddOnSummary;
+use Minds\Core\MultiTenant\Types\Checkout\CheckoutPage;
+use Minds\Core\MultiTenant\Types\Checkout\Plan;
+use Minds\Core\MultiTenant\Types\Checkout\PlanSummary;
+use Minds\Core\MultiTenant\Types\Checkout\Summary;
 use Minds\Core\MultiTenant\Types\FeaturedEntity;
+use Minds\Core\MultiTenant\Types\FeaturedEntityConnection;
+use Minds\Core\MultiTenant\Types\FeaturedEntityEdge;
 use Minds\Core\MultiTenant\Types\FeaturedGroup;
 use Minds\Core\MultiTenant\Types\FeaturedUser;
-use Minds\Core\MultiTenant\Types\FeaturedEntityEdge;
-use Minds\Core\MultiTenant\Types\FeaturedEntityConnection;
 use Minds\Core\MultiTenant\Types\MultiTenantDomain;
 use Minds\Core\MultiTenant\Types\MultiTenantDomainDnsRecord;
 use Minds\Core\MultiTenant\Types\TenantUser;
@@ -35,6 +41,14 @@ class GraphQLMappings extends AbstractGraphQLMappings
             FeaturedEntityConnection::class,
             MultiTenantDomain::class,
             MultiTenantDomainDnsRecord::class,
+
+            // Checkout types
+            CheckoutPage::class,
+            Plan::class,
+            AddOn::class,
+            Summary::class,
+            PlanSummary::class,
+            AddOnSummary::class
         ]));
 
         $this->schemaFactory->setInputTypeValidator(new Types\Validators\TenantInputValidator());
