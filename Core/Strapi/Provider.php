@@ -11,17 +11,18 @@ use Minds\Core\Strapi\Services\StrapiService;
 class Provider extends DiProvider
 {
     /*
-     * 
+     *
      */
     public function register(): void
     {
         $this->di->bind(
             StrapiService::class,
             function (Di $di): StrapiService {
-            return new StrapiService(
-                client: $di->get(StrapiGraphQLClient::class),
-            );
-        });
+                return new StrapiService(
+                    client: $di->get(StrapiGraphQLClient::class),
+                );
+            }
+        );
 
         $this->di->bind(
             StrapiGraphQLClient::class,

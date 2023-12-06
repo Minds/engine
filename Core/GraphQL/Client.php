@@ -5,5 +5,4 @@ namespace Minds\Core\GraphQL;
 
 class Client
 {
-
 }

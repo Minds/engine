@@ -66,7 +66,7 @@ class StrapiService
             name: $planDetails['title'],
             description: $planDetails['subtitle'],
             perksTitle: $planDetails['perksTitle'],
-            perks: array_map(fn($perk) => $perk['text'], $planDetails['perks'])
+            perks: array_map(fn ($perk) => $perk['text'], $planDetails['perks'])
         );
     }
 
@@ -124,7 +124,7 @@ class StrapiService
                 name: $addonDetails['name'],
                 description: $addonDetails['description'],
                 perksTitle: $addonDetails['perksTitle'],
-                perks: array_map(fn($perk) => $perk['text'], $addonDetails['perks'])
+                perks: array_map(fn ($perk) => $perk['text'], $addonDetails['perks'])
             );
         }
     }

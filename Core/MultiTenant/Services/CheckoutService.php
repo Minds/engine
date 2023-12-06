@@ -212,7 +212,7 @@ class CheckoutService
             ),
         ];
 
-        return array_map(fn(string $addonId) => $addonsSummary[$addonId], $addonIds ?? []);
+        return array_map(fn (string $addonId) => $addonsSummary[$addonId], $addonIds ?? []);
     }
 
     public function testStrapiIntegration(string $planId): void
