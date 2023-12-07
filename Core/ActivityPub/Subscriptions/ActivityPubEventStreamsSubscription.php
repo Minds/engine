@@ -122,7 +122,7 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
                 $actor = $this->actorFactory->fromEntity($user);
                 $object = $this->objectFactory->fromEntity($entity);
 
-                if (!$object->attributedTo) {
+                if (!isset($object->attributedTo)) {
                     return true; // No owner, so we will skip
                 }
 
