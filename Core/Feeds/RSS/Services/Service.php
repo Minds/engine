@@ -146,11 +146,8 @@ class Service
                 $currentUser = $this->entitiesBuilder->single($rssFeed->userGuid);
             }
 
-            $this->processRssFeed(
-                rssFeed: $rssFeed,
-                user: $currentUser,
-                dryRun: $dryRun
-            );
+
+            $this->processRssFeed($rssFeed, $currentUser, $dryRun);
 
             if ($rssFeed->tenantId) {
                 $this->multiTenantBootService->resetRootConfigs();
@@ -158,7 +155,7 @@ class Service
         }
     }
 
-    private function processRssFeed(
+    public function processRssFeed(
         RssFeed $rssFeed,
         User $user,
         bool $dryRun = false
