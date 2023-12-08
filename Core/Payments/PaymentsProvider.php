@@ -5,11 +5,10 @@
 
 namespace Minds\Core\Payments;
 
-use Minds\Core;
-use Minds\Core\Data;
+use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
-use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
+use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Entities\User;
 
 class PaymentsProvider extends Provider
@@ -37,7 +36,7 @@ class PaymentsProvider extends Provider
                     null
             );
             \Stripe\Stripe::setApiKey($apiKey);
-            \Stripe\Stripe::setApiVersion('2020-03-02');
+            \Stripe\Stripe::setApiVersion($args['api_version'] ?? '2020-03-02');
         }, ['useFactory' => false]);
 
         $this->di->bind(StripeApiKeyConfig::class, function ($di) {
@@ -94,11 +93,16 @@ class PaymentsProvider extends Provider
             return new Stripe\Customers\ManagerV2();
         }, ['useFactory'=>true]);
 
+        $this->di->bind(
+            Stripe\Checkout\Manager::class,
+            fn (Di $di): Stripe\Checkout\Manager => new Stripe\Checkout\Manager(),
+            ['useFactory'=>true]
+        );
         /**
          * Checkout
          */
         $this->di->bind('Stripe\Checkout\Manager', function ($di) {
-            return new Stripe\Checkout\Manager();
+            return $di->get(Stripe\Checkout\Manager::class);
         }, ['useFactory'=>true]);
         $this->di->bind('Stripe\Checkout\Controller', function ($di) {
             return new Stripe\Checkout\Controller();

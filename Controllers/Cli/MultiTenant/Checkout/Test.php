@@ -7,6 +7,7 @@ use Minds\Cli\Controller;
 use Minds\Core\Di\Di;
 use Minds\Core\MultiTenant\Services\CheckoutService;
 use Minds\Interfaces\CliControllerInterface;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class Test extends Controller implements CliControllerInterface
 {
@@ -15,7 +16,11 @@ class Test extends Controller implements CliControllerInterface
         // TODO: Implement help() method.
     }
 
-    public function exec()
+    /**
+     * @return void
+     * @throws GraphQLException
+     */
+    public function exec(): void
     {
         /**
          * @var CheckoutService $checkoutService

@@ -4,10 +4,10 @@ declare(strict_types=1);
 namespace Minds\Core\Strapi\Services;
 
 use GraphQL\Client as StrapiGraphQLClient;
-use Minds\Core\MultiTenant\Enums\CheckoutPageKeyEnum;
-use Minds\Core\MultiTenant\Types\Checkout\AddOn;
-use Minds\Core\MultiTenant\Types\Checkout\CheckoutPage;
-use Minds\Core\MultiTenant\Types\Checkout\Plan;
+use Minds\Core\Payments\Checkout\Enums\CheckoutPageKeyEnum;
+use Minds\Core\Payments\Checkout\Types\AddOn;
+use Minds\Core\Payments\Checkout\Types\CheckoutPage;
+use Minds\Core\Payments\Checkout\Types\Plan;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class StrapiService
@@ -49,7 +49,6 @@ class StrapiService
               }
             }
         QUERY;
-
 
         $results = $this->client->runRawQuery($query);
         $results->reformatResults(true);

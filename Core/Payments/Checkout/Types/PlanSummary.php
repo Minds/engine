@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Minds\Core\MultiTenant\Types\Checkout;
+namespace Minds\Core\Payments\Checkout\Types;
 
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;

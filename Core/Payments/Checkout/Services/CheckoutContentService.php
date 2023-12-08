@@ -1,23 +1,26 @@
 <?php
 declare(strict_types=1);
 
-namespace Minds\Core\MultiTenant\Services;
+namespace Minds\Core\Payments\Checkout\Services;
 
-use Minds\Core\MultiTenant\Enums\CheckoutPageKeyEnum;
-use Minds\Core\MultiTenant\Enums\CheckoutTimePeriodEnum;
-use Minds\Core\MultiTenant\Types\Checkout\AddOn;
-use Minds\Core\MultiTenant\Types\Checkout\AddOnSummary;
-use Minds\Core\MultiTenant\Types\Checkout\CheckoutPage;
-use Minds\Core\MultiTenant\Types\Checkout\Plan;
-use Minds\Core\MultiTenant\Types\Checkout\PlanSummary;
-use Minds\Core\MultiTenant\Types\Checkout\Summary;
+use Minds\Core\Payments\Checkout\Enums\CheckoutPageKeyEnum;
+use Minds\Core\Payments\Checkout\Enums\CheckoutTimePeriodEnum;
+use Minds\Core\Payments\Checkout\Types\AddOn;
+use Minds\Core\Payments\Checkout\Types\AddOnSummary;
+use Minds\Core\Payments\Checkout\Types\CheckoutPage;
+use Minds\Core\Payments\Checkout\Types\Plan;
+use Minds\Core\Payments\Checkout\Types\PlanSummary;
+use Minds\Core\Payments\Checkout\Types\Summary;
 use Minds\Core\Strapi\Services\StrapiService;
+use Minds\Entities\User;
+use Psr\SimpleCache\CacheInterface;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
-class CheckoutService
+class CheckoutContentService
 {
     public function __construct(
         private readonly StrapiService $strapiService,
+        private readonly CacheInterface $cache
     ) {
     }
 
@@ -33,9 +36,22 @@ class CheckoutService
         string $planId,
         CheckoutPageKeyEnum $page,
         CheckoutTimePeriodEnum $timePeriod,
+        User $user,
         ?array $addOnIds = null,
     ): CheckoutPage {
-        // TODO: to be replaced with integration with Lago
+        if ($page === CheckoutPageKeyEnum::CONFIRMATION) {
+            $checkoutSession = $this->cache->get("checkout_session_{$user->getGuid()}");
+            if (!$checkoutSession) {
+                throw new GraphQLException('No completed checkout has been found', 400);
+            }
+            $checkoutSession = json_decode($checkoutSession, true);
+
+            $planId = $checkoutSession['plan_id'];
+            $timePeriod = CheckoutTimePeriodEnum::from($checkoutSession['time_period']);
+            $addOnIds = $checkoutSession['add_on_ids'];
+        }
+
+        // TODO: to be replaced with integration to Lago
         if (!in_array($planId, array_keys($this->getPlans()), true)) {
             throw new GraphQLException('Invalid plan', 400);
         }
@@ -188,33 +204,10 @@ class CheckoutService
     }
 
     /**
-     * @param array|null $addonIds
-     * @return array
+     * @param string $planId
+     * @return void
+     * @throws GraphQLException
      */
-    private function summaryAddons(?array $addonIds): array
-    {
-        $addonsSummary = [
-            'mobile_app' => new AddOnSummary(
-                id: 'mobile_app',
-                name: 'Mobile app',
-                monthlyFeeCents: 100000,
-                oneTimeFeeCents: 500000,
-            ),
-            'technical_support' => new AddOnSummary(
-                id: 'technical_support',
-                name: 'Technical Support',
-                monthlyFeeCents: 100000,
-            ),
-            'moderation' => new AddOnSummary(
-                id: 'moderation',
-                name: 'Moderation',
-                monthlyFeeCents: 10000,
-            ),
-        ];
-
-        return array_map(fn (string $addonId) => $addonsSummary[$addonId], $addonIds ?? []);
-    }
-
     public function testStrapiIntegration(string $planId): void
     {
         $this->strapiService->getTenantPlan($planId);

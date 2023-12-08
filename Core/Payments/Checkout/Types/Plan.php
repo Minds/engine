@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Minds\Core\MultiTenant\Types\Checkout;
+namespace Minds\Core\Payments\Checkout\Types;
 
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 
 #[Type]
-class AddOn
+class Plan
 {
     public function __construct(
         #[Field] public readonly string $id,
@@ -15,9 +15,8 @@ class AddOn
         #[Field] public readonly string $description,
         #[Field] public readonly string $perksTitle,
         private readonly array $perks,
-        #[Field(outputType: 'Int!')] public ?int $monthlyFeeCents = null,
+        #[Field(outputType: "Int!")] public ?int $monthlyFeeCents = null,
         #[Field] public ?int $oneTimeFeeCents = null,
-        #[Field] public bool $inBasket = false,
     ) {
     }
 

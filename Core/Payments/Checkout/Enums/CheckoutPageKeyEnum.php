@@ -1,6 +1,6 @@
 <?php
 
-namespace Minds\Core\MultiTenant\Enums;
+namespace Minds\Core\Payments\Checkout\Enums;
 
 enum CheckoutPageKeyEnum: string
 {

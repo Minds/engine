@@ -1,0 +1,14 @@
+<?php
+declare(strict_types=1);
+
+namespace Minds\Core\Payments\Stripe;
+
+use Minds\Core\Di\Provider as DiProvider;
+
+class Provider extends DiProvider
+{
+    public function register(): void
+    {
+        (new Checkout\Products\Services\ServicesProvider())->register();
+    }
+}

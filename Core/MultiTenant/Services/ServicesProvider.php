@@ -14,7 +14,6 @@ use Minds\Core\MultiTenant\Repositories\DomainsRepository;
 use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
 use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
 use Minds\Core\MultiTenant\Repository;
-use Minds\Core\Strapi\Services\StrapiService;
 
 class ServicesProvider extends Provider
 {
@@ -79,14 +78,6 @@ class ServicesProvider extends Provider
                     $di->get('Config')
                 );
             }
-        );
-
-        $this->di->bind(
-            CheckoutService::class,
-            fn (Di $di): CheckoutService =>
-                new CheckoutService(
-                    strapiService: $di->get(StrapiService::class)
-                )
         );
     }
 }

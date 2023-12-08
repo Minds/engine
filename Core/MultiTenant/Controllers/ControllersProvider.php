@@ -41,11 +41,5 @@ class ControllersProvider extends Provider
                 $di->get(DomainService::class)
             );
         });
-
-        $this->di->bind(CheckoutController::class, function (Di $di): CheckoutController {
-            return new CheckoutController(
-                checkoutService: $di->get(CheckoutService::class),
-            );
-        });
     }
 }
