@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\MultiTenant\Models;
 
 use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
@@ -16,4 +17,5 @@ class Tenant
         #[Field] public readonly ?MultiTenantConfig $config = null
     ) {
     }
+    // test
 }
