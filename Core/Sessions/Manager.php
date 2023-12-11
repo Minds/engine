@@ -288,6 +288,7 @@ class Manager
             ->setExpire($this->session->getExpires())
             ->setSecure(true) //only via ssl
             ->setHttpOnly(true) //never by browser
+            ->setSameSite('None')
             ->setPath('/')
             ->create();
 
