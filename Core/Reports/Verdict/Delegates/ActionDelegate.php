@@ -8,6 +8,7 @@ use Minds\Common\Urn;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Manager as BoostManager;
+use Minds\Core\Comments\Comment;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save as SaveAction;
 use Minds\Core\Log\Logger;
@@ -109,11 +110,17 @@ class ActionDelegate
 
         $entity = $this->entitiesBuilder->single($entityGuid);
 
+        $reportEntity = $verdict->getReport()->getEntity();
+        // scope to only comments to reduce regression scope.
+        if (!$entity && $reportEntity && $reportEntity instanceof Comment) {
+            $entity = $reportEntity;
+        }
+
         switch ($report->getReasonCode()) {
             case 1: // Illegal (not appealable)
                 if ($entity->type !== 'user') {
                     $this->actions->setDeletedFlag($entity, true);
-                    $this->saveAction->setEntity($entity)->save();
+                    $this->saveAction->setEntity($entity)->save(isUpdate: true);
                 }
                 // Ban the owner of the post too
                 $this->applyBan($report);
@@ -122,7 +129,7 @@ class ActionDelegate
                 $nsfw = $report->getSubReasonCode();
                 $entity->setNsfw(array_merge([$nsfw], $entity->getNsfw()));
                 $entity->setNsfwLock(array_merge([$nsfw], $entity->getNsfwLock()));
-                $this->saveAction->setEntity($entity)->save();
+                $this->saveAction->setEntity($entity)->save(isUpdate: true);
                 // Apply a strike to the owner
                 $this->applyStrike($report);
 
@@ -130,14 +137,14 @@ class ActionDelegate
                 // We also removed
                 if ($entity instanceof PaywallEntityInterface && $this->plusManager->isPlusEntity($entity)) {
                     $this->actions->setDeletedFlag($entity, true);
-                    $this->saveAction->setEntity($entity)->save();
+                    $this->saveAction->setEntity($entity)->save(isUpdate: true);
                 }
 
                 break;
             case 3: // Incites violence
                 if ($entity->type !== 'user') {
                     $this->actions->setDeletedFlag($entity, true);
-                    $this->saveAction->setEntity($entity)->save();
+                    $this->saveAction->setEntity($entity)->save(isUpdate: true);
                 }
                 // Ban the owner of the post
                 $this->applyBan($report);
@@ -145,7 +152,7 @@ class ActionDelegate
             case 4:  // Harrasment
                 if ($entity->type !== 'user') {
                     $this->actions->setDeletedFlag($entity, true);
-                    $this->saveAction->setEntity($entity)->save();
+                    $this->saveAction->setEntity($entity)->save(isUpdate: true);
                 }
                 // Apply a strike to the owner
                 $this->applyStrike($report);
@@ -153,7 +160,7 @@ class ActionDelegate
             case 5: // Personal and confidential information (not appelable)
                 if ($entity->type !== 'user') {
                     $this->actions->setDeletedFlag($entity, true);
-                    $this->saveAction->setEntity($entity)->save();
+                    $this->saveAction->setEntity($entity)->save(isUpdate: true);
                 }
                 // Ban the owner of the post too
                 $this->applyBan($report);
@@ -165,7 +172,7 @@ class ActionDelegate
             case 8: // Spam
                 if ($entity->type !== 'user') {
                     $this->actions->setDeletedFlag($entity, true);
-                    $this->saveAction->setEntity($entity)->save();
+                    $this->saveAction->setEntity($entity)->save(isUpdate: true);
 
                     // Apply a strike to the owner
                     $this->applyStrike($report);
@@ -179,7 +186,7 @@ class ActionDelegate
                     $this->applyBan($report);
                 } else {
                     $this->actions->setDeletedFlag($entity, true);
-                    $this->saveAction->setEntity($entity)->save();
+                    $this->saveAction->setEntity($entity)->save(isUpdate: true);
                     $this->applyStrike($report);
                 }
                 break;
@@ -190,7 +197,7 @@ class ActionDelegate
             case 13: // Malware
                 if ($entity->type !== 'user') {
                     $this->actions->setDeletedFlag($entity, true);
-                    $this->saveAction->setEntity($entity)->save();
+                    $this->saveAction->setEntity($entity)->save(isUpdate: true);
                 }
                 // Ban the owner
                 $this->applyBan($report);
@@ -246,7 +253,7 @@ class ActionDelegate
         $user = $this->entitiesBuilder->single($report->getEntityOwnerGuid());
         $user->enabled = 'no';
 
-        $this->saveAction->setEntity($user)->withMutatedAttributes(['enabled'])->save();
+        $this->saveAction->setEntity($user)->withMutatedAttributes(['enabled'])->save(isUpdate: true);
 
         // Force change to random password
         $this->password->randomReset($user);
@@ -313,7 +320,7 @@ class ActionDelegate
         $user->setNsfw(array_merge($user->getNsfw(), [ $subReason ]));
         $user->setNsfwLock(array_merge($user->getNsfwLock(), [ $subReason ]));
         
-        $this->saveAction->setEntity($user)->withMutatedAttributes(['nsfw', 'nsfw_lock'])->save();
+        $this->saveAction->setEntity($user)->withMutatedAttributes(['nsfw', 'nsfw_lock'])->save(isUpdate: true);
     }
 
     /**
