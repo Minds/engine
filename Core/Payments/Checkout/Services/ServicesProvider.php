@@ -7,7 +7,8 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
 use Minds\Core\Payments\Stripe\Checkout\Manager as StripeCheckoutManager;
-use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService;
+use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService as StripeProductPriceService;
+use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
 use Minds\Core\Strapi\Services\StrapiService;
 
 class ServicesProvider extends Provider
@@ -22,6 +23,8 @@ class ServicesProvider extends Provider
             CheckoutContentService::class,
             fn (Di $di): CheckoutContentService => new CheckoutContentService(
                 strapiService: $di->get(StrapiService::class),
+                stripeProductService: $di->get(StripeProductService::class),
+                stripeProductPriceService: $di->get(StripeProductPriceService::class),
                 cache: $di->get('Cache\Cassandra'),
             ),
         );
@@ -29,7 +32,7 @@ class ServicesProvider extends Provider
             CheckoutService::class,
             fn (Di $di): CheckoutService => new CheckoutService(
                 stripeCheckoutManager: $di->get(StripeCheckoutManager::class),
-                productPriceService: $di->get(ProductPriceService::class),
+                productPriceService: $di->get(StripeProductPriceService::class),
                 cache: $di->get('Cache\Cassandra'),
             ),
         );

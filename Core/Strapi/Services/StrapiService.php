@@ -22,7 +22,7 @@ class StrapiService
      * @return Plan
      * @throws GraphQLException
      */
-    public function getTenantPlan(string $planId): Plan
+    public function getPlan(string $planId): Plan
     {
         $query = <<<QUERY
             query {
@@ -74,7 +74,7 @@ class StrapiService
      * @return AddOn[]
      * @throws GraphQLException
      */
-    public function getTenantPlanAddons(array $addonIds): iterable
+    public function getPlanAddons(array $addonIds): iterable
     {
         $query = <<<QUERY
             query (\$addons: [String!]){
