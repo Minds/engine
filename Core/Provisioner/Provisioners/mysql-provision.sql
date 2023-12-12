@@ -687,3 +687,11 @@ ALTER TABLE minds_activitypub_uris DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, 
 ALTER TABLE minds_activitypub_actors DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, uri);
 ALTER TABLE minds_activitypub_keys DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, user_guid);
 ALTER TABLE minds_activitypub_actors ADD CONSTRAINT minds_activitypub_actors_ibfk_1 FOREIGN KEY (tenant_id, uri) REFERENCES minds_activitypub_uris(tenant_id, uri);
+
+ALTER TABLE `minds_entities_activity`
+    ADD `nsfw` json DEFAULT NULL
+    AFTER `attachments`;
+
+ALTER TABLE `minds_entities_activity`
+    ADD `nsfw_lock` json DEFAULT NULL
+    AFTER `nsfw`;
