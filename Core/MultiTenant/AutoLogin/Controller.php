@@ -48,7 +48,7 @@ class Controller
 
         $this->autoLoginService->performLogin($jwtToken);
 
-        return new RedirectResponse('/');
+        return new RedirectResponse('/network/admin');
     }
 
 }
