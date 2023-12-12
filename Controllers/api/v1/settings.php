@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Minds Settings API
  *
  * @version 1
  * @author Mark Harding
  */
+
 namespace Minds\Controllers\api\v1;
 
 use Minds\Api\Factory;
@@ -95,7 +97,7 @@ class settings implements Interfaces\Api
         Factory::isLoggedIn();
 
         if (Core\Session::getLoggedInUser()->isAdmin() && isset($pages[0])) {
-            $user = new entities\User($pages[0]);
+            $user = Di::_()->get(EntitiesBuilder::class)->single($pages[0]);
         } else {
             $user = Core\Session::getLoggedInUser();
         }
@@ -173,9 +175,9 @@ class settings implements Interfaces\Api
                     // Rate limit checked in here too
                     if (!$password->check($user, $_POST['password'])) {
                         return Factory::response([
-                        'status' => 'error',
-                        'message' => 'You current password is incorrect'
-                    ]);
+                            'status' => 'error',
+                            'message' => 'You current password is incorrect'
+                        ]);
                     }
                 } catch (Core\Security\Exceptions\PasswordRequiresHashUpgradeException $e) {
                 }
@@ -183,7 +185,7 @@ class settings implements Interfaces\Api
                 try {
                     validate_password($_POST['new_password']);
                 } catch (\Exception $e) {
-                    $response = ['status'=>'error', 'message'=>$e->getMessage()];
+                    $response = ['status' => 'error', 'message' => $e->getMessage()];
 
                     return Factory::response($response);
                 }
@@ -234,10 +236,10 @@ class settings implements Interfaces\Api
                 /** @var EmailConfirmation $emailConfirmation */
                 $emailConfirmation = Di::_()->get('Email\Confirmation');
                 $emailConfirmation
-                ->setUser($user);
+                    ->setUser($user);
 
                 $reset = $emailConfirmation
-                ->reset();
+                    ->reset();
 
                 if ($reset) {
                     $emailConfirmation->generateConfirmationToken();
