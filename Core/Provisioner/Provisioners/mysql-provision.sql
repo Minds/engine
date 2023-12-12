@@ -688,10 +688,21 @@ ALTER TABLE minds_activitypub_actors DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id
 ALTER TABLE minds_activitypub_keys DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, user_guid);
 ALTER TABLE minds_activitypub_actors ADD CONSTRAINT minds_activitypub_actors_ibfk_1 FOREIGN KEY (tenant_id, uri) REFERENCES minds_activitypub_uris(tenant_id, uri);
 
-
 CREATE TABLE IF NOT EXISTS  minds_embedded_comments_activity_map (
     tenant_id int DEFAULT -1,
+    user_guid bigint NOT NULL,
     url varchar(256) NOT NULL,
-    activity_guid bigint DEFAULT NULL,
-    PRIMARY KEY (tenant_id, url)
+    activity_guid bigint NOT NULL,
+    PRIMARY KEY (tenant_id, user_guid, url)
 );
+
+CREATE TABLE IF NOT EXISTS  `minds_oidc_providers` (
+  `tenant_id` int NOT NULL,
+  `provider_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) DEFAULT NULL,
+  `issuer` varchar(128) DEFAULT NULL,
+  `client_id` varchar(128) DEFAULT NULL,
+  `client_secret` varchar(512) DEFAULT NULL,
+  PRIMARY KEY (`tenant_id`, `provider_id`),
+  INDEX (provider_id)
+) ENGINE=InnoDB AUTO_INCREMENT=1;
