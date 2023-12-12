@@ -261,14 +261,16 @@ class Manager
         $should = $prepared['should'];
         $functionScores = [...$topAlgo->getFunctionScores(), ...$prepared['functionScores']];
 
-        // Min 1 vote
-        $must[] = [
-            'range' => [
-                'votes:up' => [
-                    'gte' => 1,
+        if (!(bool) $this->config->get('tenant_id')) {
+            // Min 1 vote
+            $must[] = [
+                'range' => [
+                    'votes:up' => [
+                        'gte' => 1,
+                    ]
                 ]
-            ]
-        ];
+            ];
+        }
 
         // For search performance, only go back 90d
         $must[] = [
