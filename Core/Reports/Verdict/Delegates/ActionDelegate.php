@@ -127,8 +127,8 @@ class ActionDelegate
                 break;
             case 2: // NSFW
                 $nsfw = $report->getSubReasonCode();
-                $entity->setNsfw(array_merge([$nsfw], $entity->getNsfw()));
-                $entity->setNsfwLock(array_merge([$nsfw], $entity->getNsfwLock()));
+                $entity->setNsfw(array_merge([$nsfw], $entity->getNsfw() ?? []));
+                $entity->setNsfwLock(array_merge([$nsfw], $entity->getNsfwLock() ?? []));
                 $this->saveAction->setEntity($entity)->save(isUpdate: true);
                 // Apply a strike to the owner
                 $this->applyStrike($report);
