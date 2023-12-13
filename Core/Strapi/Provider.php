@@ -20,6 +20,7 @@ class Provider extends DiProvider
             function (Di $di): StrapiService {
                 return new StrapiService(
                     client: $di->get(StrapiGraphQLClient::class),
+                    cache: $di->get('Cache')
                 );
             }
         );

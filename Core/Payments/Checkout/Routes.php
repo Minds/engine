@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\Checkout;
 
 use Minds\Core\Di\Ref;
-use Minds\Core\Payments\Checkout\Controllers\CheckoutController;
+use Minds\Core\Payments\Checkout\Controllers\CheckoutPsrController;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 
@@ -17,7 +17,7 @@ class Routes extends ModuleRoutes
                 $route
                     ->get(
                         route: 'complete',
-                        binding: Ref::_(CheckoutController::class, 'completeCheckout')
+                        binding: Ref::_(CheckoutPsrController::class, 'completeCheckout')
                     );
             });
     }

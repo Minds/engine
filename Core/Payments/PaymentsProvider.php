@@ -9,6 +9,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
 use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Core\Payments\Stripe\StripeClient;
+use Minds\Core\Session;
 use Minds\Entities\User;
 
 class PaymentsProvider extends Provider
@@ -43,8 +44,11 @@ class PaymentsProvider extends Provider
             return new StripeApiKeyConfig();
         });
 
-        $this->di->bind(StripeClient::class, function ($di) {
-            return new StripeClient();
+        $this->di->bind(StripeClient::class, function ($di, $args) {
+            $loggedInUser = Session::getLoggedinUser();
+            return (new StripeClient())->withUser($loggedInUser ?? null, [
+                'stripe_version' => $args['stripe_version'] ?? '2020-03-02',
+            ]);
         });
 
         /**

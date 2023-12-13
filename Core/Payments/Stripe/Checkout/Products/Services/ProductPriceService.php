@@ -4,36 +4,48 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\Stripe\Checkout\Products\Services;
 
 use Exception;
-use Minds\Core\Payments\Stripe\Instances\ProductPriceInstance;
+use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
+use Psr\SimpleCache\CacheInterface;
 use Stripe\Price;
 use Stripe\SearchResult;
 
 class ProductPriceService
 {
+    private const CACHE_TTL = 60 * 5; // 5 minutes
     public function __construct(
-        private readonly ProductPriceInstance $priceInstance
+        private readonly StripeClient $stripeClient,
+        private readonly CacheInterface $cache
     ) {
     }
 
     public function getPriceDetailsByLookupKey(
-        User $user,
         string $lookUpKey
     ): ?Price {
+        if ($price = $this->cache->get("product_price_$lookUpKey")) {
+            return unserialize($price);
+        }
+
         try {
-            $results = $this->priceInstance
-                ->withUser($user)
-                ->search([
-                    'query' => "lookup_key:'$lookUpKey'",
-                ]);
+            $results = $this->stripeClient
+                ->prices
+                ->search(
+                    params: [
+                        'query' => "lookup_key:'$lookUpKey'",
+                    ]
+                );
 
             if (!$results->count()) {
                 return null;
             }
 
-            return $results->first();
+            $price = $results->first();
+
+            $this->cache->set("product_price_$lookUpKey", serialize($price), self::CACHE_TTL);
+
+            return $price;
         } catch (Exception $e) {
             return null;
         }
@@ -45,12 +57,19 @@ class ProductPriceService
      * @return Price|null
      * @throws ServerErrorException
      */
-    public function getPriceDetailsById(User $user, string $priceId): ?Price
+    public function getPriceDetailsById(string $priceId): ?Price
     {
+        if ($price = $this->cache->get("product_price_$priceId")) {
+            return unserialize($price);
+        }
+
         try {
-            $price = $this->priceInstance
-                ->withUser($user)
+            $price = $this->stripeClient
+                ->prices
                 ->retrieve($priceId);
+
+            $this->cache->set("product_price_$priceId", serialize($price), self::CACHE_TTL);
+
             return $price;
         } catch (Exception $e) {
             throw new ServerErrorException($e->getMessage(), $e->getCode(), $e);
@@ -63,18 +82,25 @@ class ProductPriceService
      * @return SearchResult
      * @throws ServerErrorException
      */
-    public function getPricesByProduct(User $user, string $productId): SearchResult
+    public function getPricesByProduct(string $productId): SearchResult
     {
+        if ($prices = $this->cache->get("product_prices_$productId")) {
+            return unserialize($prices);
+        }
         try {
-            $prices = $this->priceInstance
-                ->withUser($user)
-                ->search([
-                    'query' => "product:'$productId' AND active:'true'"
-                ]);
+            $prices = $this->stripeClient
+                ->prices
+                ->search(
+                    params: [
+                        'query' => "product:'$productId' AND active:'true'"
+                    ]
+                );
 
             if ($prices->count() === 0) {
                 throw new NotFoundException('No prices found for product');
             }
+
+            $this->cache->set("product_prices_$productId", serialize($prices), self::CACHE_TTL);
 
             return $prices;
         } catch (Exception $e) {

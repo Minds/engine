@@ -7,11 +7,13 @@
 
 namespace Minds\Core\Data\cache;
 
-use Minds\Core\Di\Di;
 use Minds\Core\Config;
+use Minds\Core\Di\Di;
+use NotImplementedException;
+use Psr\SimpleCache\CacheInterface;
 use Redis as RedisServer;
 
-class Redis extends abstractCacher
+class Redis extends abstractCacher implements CacheInterface
 {
     private $redisMaster;
     private $redisSlave;
@@ -71,7 +73,7 @@ class Redis extends abstractCacher
         return $this->redisSlave;
     }
 
-    public function get($key)
+    public function get($key, $default = null)
     {
         if (isset($this->local[$key])) {
             return $this->local[$key];
@@ -203,5 +205,35 @@ class Redis extends abstractCacher
             $key = "tenant:$tenantId:$key";
         }
         return $key;
+    }
+
+    public function delete($key)
+    {
+        throw new NotImplementedException();
+    }
+
+    public function clear()
+    {
+        throw new NotImplementedException();
+    }
+
+    public function getMultiple($keys, $default = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public function setMultiple($values, $ttl = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public function deleteMultiple($keys)
+    {
+        throw new NotImplementedException();
+    }
+
+    public function has($key): bool
+    {
+        return (bool) $this->get($key);
     }
 }

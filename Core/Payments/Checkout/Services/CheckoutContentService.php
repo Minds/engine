@@ -69,7 +69,7 @@ class CheckoutContentService
         if (count($planInfo['addons'])) {
             $addons = $this->strapiService->getPlanAddons(array_keys($planInfo['addons']));
         }
-        $page = $this->strapiService->getTenantCheckoutPage($page);
+        $page = $this->strapiService->getCheckoutPage($page);
 
         return $this->buildResponse($planInfo, $planDetails, $addons, $page, $timePeriod, $addOnIds);
     }
@@ -83,75 +83,98 @@ class CheckoutContentService
     private function getCheckoutProduct(User $user, string $planId): array
     {
         try {
-            $product = $this->stripeProductService->getProductByKey($user, $planId);
-            $productPrices = $this->stripeProductPriceService->getPricesByProduct($user, $product->id);
+            $product = $this->stripeProductService->getProductByKey($planId);
+            $productPrices = $this->stripeProductPriceService->getPricesByProduct($product->id);
 
             $productAddons = $this->stripeProductService->getProductsByType(
-                user: $user,
-                productType: ProductTypeEnum::NETWORK,
+                productType: ProductTypeEnum::tryFrom($product->metadata['type']),
                 productSubType: ProductSubTypeEnum::ADDON
             );
 
             return [
-                'price' => (function (SearchResult $productPrices, string $planId): array {
-                    $prices = [];
-
-                    /**
-                     * @var Price $price
-                     */
-                    foreach ($productPrices->data as $price) {
-                        switch ($price->lookup_key) {
-                            case "{$planId}_" . strtolower(CheckoutTimePeriodEnum::MONTHLY->name):
-                                $prices[CheckoutTimePeriodEnum::MONTHLY->name] = $price->unit_amount;
-                                break;
-                            case "{$planId}_" . strtolower(CheckoutTimePeriodEnum::YEARLY->name):
-                                $prices[CheckoutTimePeriodEnum::YEARLY->name] = $price->unit_amount;
-                                break;
-                        }
-                    }
-
-                    return $prices;
-                })($productPrices, $planId),
-                'addons' => (function (SearchResult $productAddons, User $user): array {
-                    $addons = [];
-
-                    /**
-                     * @var Product $addon
-                     */
-                    foreach ($productAddons->data as $addon) {
-                        $addonPrices = $this->stripeProductPriceService->getPricesByProduct($user, $addon->id);
-
-                        $addons[$addon->metadata['key']] = [
-                            CheckoutTimePeriodEnum::MONTHLY->name => (function (SearchResult $addonPrices): array {
-                                $prices = [];
-
-                                /**
-                                 * @var Price $price
-                                 */
-                                foreach ($addonPrices->data as $price) {
-                                    switch ($price->type) {
-                                        case "recurring":
-                                            $prices["monthly_fee_cents"] = $price->unit_amount;
-                                            break;
-                                        case "one_time":
-                                            $prices["one_time_fee_cents"] = $price->unit_amount;
-                                            break;
-                                    }
-                                }
-
-                                return $prices;
-                            })($addonPrices)
-                        ];
-                    }
-
-                    return $addons;
-                })($productAddons, $user),
+                'price' => $this->getCheckoutProductPrices($productPrices, $planId),
+                'addons' => $this->getCheckoutStripeAddons($productAddons),
             ];
         } catch (NotFoundException $e) {
             throw new GraphQLException('Invalid plan', 400);
         } catch (ServerErrorException $e) {
             throw new GraphQLException('An error occurred whilst fetching the product\'s price', 500);
         }
+    }
+
+    /**
+     * @param SearchResult $productPrices
+     * @param string $planId
+     * @return array
+     */
+    private function getCheckoutProductPrices(SearchResult $productPrices, string $planId): array
+    {
+        $prices = [];
+
+        /**
+         * @var Price $price
+         */
+        foreach ($productPrices->data as $price) {
+            switch ($price->lookup_key) {
+                case "{$planId}:" . strtolower(CheckoutTimePeriodEnum::MONTHLY->name):
+                    $prices[CheckoutTimePeriodEnum::MONTHLY->name] = $price->unit_amount;
+                    break;
+                case "{$planId}:" . strtolower(CheckoutTimePeriodEnum::YEARLY->name):
+                    $prices[CheckoutTimePeriodEnum::YEARLY->name] = $price->unit_amount;
+                    break;
+            }
+        }
+
+        return $prices;
+    }
+
+    /**
+     * @param SearchResult $productAddons
+     * @param User $user
+     * @return array
+     * @throws ServerErrorException
+     */
+    private function getCheckoutStripeAddons(SearchResult $productAddons): array
+    {
+        $addons = [];
+
+        /**
+         * @var Product $addon
+         */
+        foreach ($productAddons->data as $addon) {
+            $addonPrices = $this->stripeProductPriceService->getPricesByProduct($addon->id);
+
+            $addons[$addon->metadata['key']] = [
+                CheckoutTimePeriodEnum::MONTHLY->name => $this->getCheckoutStripeAddonPrices($addonPrices)
+            ];
+        }
+
+        return $addons;
+    }
+
+    /**
+     * @param SearchResult $addonPrices
+     * @return array
+     */
+    private function getCheckoutStripeAddonPrices(SearchResult $addonPrices): array
+    {
+        $prices = [];
+
+        /**
+         * @var Price $price
+         */
+        foreach ($addonPrices->data as $price) {
+            switch ($price->type) {
+                case "recurring":
+                    $prices["monthly_fee_cents"] = $price->unit_amount;
+                    break;
+                case "one_time":
+                    $prices["one_time_fee_cents"] = $price->unit_amount;
+                    break;
+            }
+        }
+
+        return $prices;
     }
 
     /**
@@ -183,6 +206,7 @@ class CheckoutContentService
             $addon->monthlyFeeCents = $planInfo['addons'][$addon->id][CheckoutTimePeriodEnum::MONTHLY->name]['monthly_fee_cents'];
             $addon->oneTimeFeeCents = $planInfo['addons'][$addon->id][CheckoutTimePeriodEnum::MONTHLY->name]['one_time_fee_cents'] ?? null;
 
+            $addon->inBasket = false;
             if ($addonIds && in_array($addon->id, $addonIds, true)) {
                 $totalMonthlyCost += $addon->monthlyFeeCents;
                 $totalOneFeeCost += $addon->oneTimeFeeCents ?? 0;
@@ -226,24 +250,9 @@ class CheckoutContentService
      */
     public function testStrapiIntegration(string $planId): void
     {
-        $this->strapiService->getTenantPlan($planId);
-        foreach ($this->strapiService->getTenantPlanAddons(['mobile_app']) as $addon) {
+        $this->strapiService->getPlan($planId);
+        foreach ($this->strapiService->getPlanAddons(['mobile_app']) as $addon) {
             echo $addon->name;
-        }
-    }
-
-    /**
-     * @param User $user
-     * @param string $priceId
-     * @return Price
-     * @throws GraphQLException
-     */
-    private function getCheckoutProductPrice(User $user, string $priceId): Price
-    {
-        try {
-            return $this->stripeProductPriceService->getPriceDetailsById($user, $priceId);
-        } catch (ServerErrorException $e) {
-            throw new GraphQLException('An error occurred while fetching the product price', 500);
         }
     }
 }

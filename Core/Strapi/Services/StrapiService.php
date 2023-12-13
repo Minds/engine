@@ -8,12 +8,16 @@ use Minds\Core\Payments\Checkout\Enums\CheckoutPageKeyEnum;
 use Minds\Core\Payments\Checkout\Types\AddOn;
 use Minds\Core\Payments\Checkout\Types\CheckoutPage;
 use Minds\Core\Payments\Checkout\Types\Plan;
+use Psr\SimpleCache\CacheInterface;
+use Psr\SimpleCache\InvalidArgumentException;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class StrapiService
 {
+    private const CACHE_TTL = 60 * 30; // 30 minutes
     public function __construct(
-        private readonly StrapiGraphQLClient $client
+        private readonly StrapiGraphQLClient $client,
+        private readonly CacheInterface $cache
     ) {
     }
 
@@ -21,14 +25,19 @@ class StrapiService
      * @param string $planId
      * @return Plan
      * @throws GraphQLException
+     * @throws InvalidArgumentException
      */
     public function getPlan(string $planId): Plan
     {
+        if ($plan = $this->cache->get("strapi_product_plan_$planId")) {
+            return unserialize($plan);
+        }
+
         $query = <<<QUERY
             query {
               productPlans(
                 filters: {
-                  tier: {
+                  stripeProductKey: {
                       eq: "$planId"
                   }
                 },
@@ -38,6 +47,7 @@ class StrapiService
                   id
                   attributes {
                     tier
+                    stripeProductKey
                     title
                     subtitle
                     perksTitle
@@ -60,25 +70,46 @@ class StrapiService
 
         $planDetails = $data[0]['attributes'];
 
-        return new Plan(
-            id: $planDetails['tier'],
+        $plan = new Plan(
+            id: $planDetails['stripeProductKey'],
             name: $planDetails['title'],
             description: $planDetails['subtitle'],
             perksTitle: $planDetails['perksTitle'],
             perks: array_map(fn ($perk) => $perk['text'], $planDetails['perks'])
         );
+
+        $this->cache->set("strapi_product_plan_$planId", serialize($plan), self::CACHE_TTL);
+
+        return $plan;
     }
 
     /**
      * @param array $addonIds
      * @return AddOn[]
      * @throws GraphQLException
+     * @throws InvalidArgumentException
      */
     public function getPlanAddons(array $addonIds): iterable
     {
+        if (count($addonIds) === 0) {
+            return [];
+        }
+
+        $cachedItems = [];
+        foreach ($addonIds as $addonId) {
+            if ($addon = $this->cache->get("strapi_product_addon_$addonId")) {
+                $cachedItems[] = $addonId;
+                yield unserialize($addon);
+            }
+        }
+
+        if (count($cachedItems) === count($addonIds)) {
+            return [];
+        }
+
         $query = <<<QUERY
             query (\$addons: [String!]){
-              tenantAddOns (
+              productAddOns (
                 filters: {
                   key: {
                     in: \$addons
@@ -105,11 +136,11 @@ class StrapiService
             queryString: $query,
             resultsAsArray: true,
             variables: [
-                'addons' => $addonIds
+                'addons' => array_diff($addonIds, $cachedItems)
             ]
         );
 
-        $data = $results->getData()['tenantAddOns']['data'];
+        $data = $results->getData()['productAddOns']['data'];
 
         if (!count($data)) {
             return throw new GraphQLException('Addons not found', 404);
@@ -118,13 +149,15 @@ class StrapiService
         foreach ($data as $addon) {
             $addonDetails = $addon['attributes'];
 
-            yield new AddOn(
+            yield $addon =  new AddOn(
                 id: $addonDetails['key'],
                 name: $addonDetails['name'],
                 description: $addonDetails['description'],
                 perksTitle: $addonDetails['perksTitle'],
                 perks: array_map(fn ($perk) => $perk['text'], $addonDetails['perks'])
             );
+
+            $this->cache->set("strapi_product_addon_{$addonDetails['key']}", serialize($addon), self::CACHE_TTL);
         }
     }
 
@@ -132,12 +165,17 @@ class StrapiService
      * @param CheckoutPageKeyEnum $page
      * @return CheckoutPage
      * @throws GraphQLException
+     * @throws InvalidArgumentException
      */
-    public function getTenantCheckoutPage(CheckoutPageKeyEnum $page): CheckoutPage
+    public function getCheckoutPage(CheckoutPageKeyEnum $page): CheckoutPage
     {
+        if ($cachedPage = $this->cache->get("strapi_checkout_page_{$page->value}")) {
+            return unserialize($cachedPage);
+        }
+
         $query = <<<QUERY
             query(\$pageKey: String!) {
-              networksCheckoutPages(
+              checkoutPages(
                 filters: {
                   key: {
                     eq: \$pageKey
@@ -165,7 +203,7 @@ class StrapiService
             ]
         );
 
-        $data = $results->getData()['networksCheckoutPages']['data'];
+        $data = $results->getData()['checkoutPages']['data'];
 
         if (!count($data)) {
             return throw new GraphQLException('Checkout page not found', 404);
@@ -173,11 +211,15 @@ class StrapiService
 
         $planDetails = $data[0]['attributes'];
 
-        return new CheckoutPage(
+        $checkoutPage = new CheckoutPage(
             id: $page,
             title: $planDetails['title'],
             description: $planDetails['description'],
             termsMarkdown: $planDetails['termsMarkdown'] ?? null
         );
+
+        $this->cache->set("strapi_checkout_page_{$page->value}", serialize($checkoutPage), self::CACHE_TTL);
+
+        return $checkoutPage;
     }
 }

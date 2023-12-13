@@ -9,9 +9,8 @@ use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Query;
-use Zend\Diactoros\Response\RedirectResponse;
 
-class CheckoutController
+class CheckoutGqlController
 {
     public function __construct(
         private readonly CheckoutService $checkoutService,
@@ -38,10 +37,5 @@ class CheckoutController
             timePeriod: $timePeriod,
             addOnIds: $addOnIds
         );
-    }
-
-    public function completeCheckout(): RedirectResponse
-    {
-        return new RedirectResponse('http://localhost:4200/networks/checkout?confirmed=true');
     }
 }

@@ -24,10 +24,16 @@ class ControllersProvider extends Provider
             ),
         );
         $this->di->bind(
-            CheckoutController::class,
-            fn (Di $di): CheckoutController => new CheckoutController(
+            CheckoutGqlController::class,
+            fn (Di $di): CheckoutGqlController => new CheckoutGqlController(
                 checkoutService: $di->get(CheckoutService::class),
             ),
+        );
+        $this->di->bind(
+            CheckoutPsrController::class,
+            fn (Di $di): CheckoutPsrController => new CheckoutPsrController(
+                checkoutService: $di->get(CheckoutService::class)
+            )
         );
     }
 }
