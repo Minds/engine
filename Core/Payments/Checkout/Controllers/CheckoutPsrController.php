@@ -6,6 +6,7 @@ namespace Minds\Core\Payments\Checkout\Controllers;
 use Minds\Core\Payments\Checkout\Services\CheckoutService;
 use Psr\Http\Message\ServerRequestInterface;
 use Stripe\Exception\ApiErrorException;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 use Zend\Diactoros\Response\RedirectResponse;
 
 class CheckoutPsrController
@@ -19,6 +20,7 @@ class CheckoutPsrController
      * @param ServerRequestInterface $request
      * @return RedirectResponse
      * @throws ApiErrorException
+     * @throws GraphQLException
      */
     public function completeCheckout(ServerRequestInterface $request): RedirectResponse
     {

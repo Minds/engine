@@ -16,5 +16,6 @@ class Provider extends DiProvider
     {
         (new Checkout\Products\Services\ServicesProvider())->register();
         (new Checkout\Session\Services\ServicesProvider())->register();
+        (new Subscriptions\Services\ServicesProvider())->register();
     }
 }

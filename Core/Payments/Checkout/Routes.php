@@ -5,6 +5,7 @@ namespace Minds\Core\Payments\Checkout;
 
 use Minds\Core\Di\Ref;
 use Minds\Core\Payments\Checkout\Controllers\CheckoutPsrController;
+use Minds\Core\Router\Middleware\LoggedInMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 
@@ -13,6 +14,9 @@ class Routes extends ModuleRoutes
     public function register(): void
     {
         $this->route->withPrefix('api/v3/payments/checkout')
+            ->withMiddleware([
+                LoggedInMiddleware::class
+            ])
             ->do(function (Route $route) {
                 $route
                     ->get(

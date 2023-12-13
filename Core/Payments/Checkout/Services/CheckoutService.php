@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\Checkout\Services;
 
+use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Services\TenantsService;
 use Minds\Core\Payments\Checkout\Enums\CheckoutTimePeriodEnum;
 use Minds\Core\Payments\Stripe\Checkout\Enums\CheckoutModeEnum;
@@ -12,6 +13,7 @@ use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductTypeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService as StripeProductPriceService;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
 use Minds\Core\Payments\Stripe\Checkout\Session\Services\SessionService as StripeCheckoutSessionService;
+use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
@@ -27,12 +29,13 @@ class CheckoutService
     private const CACHE_TTL = 60 * 5; // 5 minutes
 
     public function __construct(
-        private readonly StripeCheckoutManager     $stripeCheckoutManager,
-        private readonly StripeProductPriceService $stripeProductPriceService,
-        private readonly StripeProductService      $stripeProductService,
+        private readonly StripeCheckoutManager        $stripeCheckoutManager,
+        private readonly StripeProductPriceService    $stripeProductPriceService,
+        private readonly StripeProductService         $stripeProductService,
         private readonly StripeCheckoutSessionService $stripeCheckoutSessionService,
-        private readonly TenantsService            $tenantsService,
-        private readonly CacheInterface            $cache,
+        private readonly TenantsService               $tenantsService,
+        private readonly SubscriptionsService         $stripeSubscriptionsService,
+        private readonly CacheInterface               $cache,
     ) {
     }
 
@@ -48,10 +51,10 @@ class CheckoutService
      * @throws ApiErrorException
      */
     public function generateCheckoutLink(
-        User $user,
-        string $planId,
+        User                   $user,
+        string                 $planId,
         CheckoutTimePeriodEnum $timePeriod,
-        ?array $addOnIds
+        ?array                 $addOnIds
     ): string {
         $lineItems = [];
 
@@ -70,7 +73,7 @@ class CheckoutService
         $checkoutSession = $this->stripeCheckoutManager->createSession(
             user: $user,
             mode: CheckoutModeEnum::SUBSCRIPTION,
-            successUrl: "http://localhost:8080/api/v3/payments/checkout/complete?session_id={CHECKOUT_SESSION_ID}",
+            successUrl: "api/v3/payments/checkout/complete?session_id={CHECKOUT_SESSION_ID}",
             lineItems: $lineItems,
             paymentMethodTypes: [
                 'card',
@@ -104,8 +107,8 @@ class CheckoutService
      */
     private function prepareCheckoutAddonsLineItems(
         ProductTypeEnum $productType,
-        array $addOnIds,
-        array &$lineItems
+        array           $addOnIds,
+        array           &$lineItems
     ): void {
         try {
             $productAddons = $this->stripeProductService->getProductsByType(
@@ -142,9 +145,9 @@ class CheckoutService
      * @throws GraphQLException
      */
     private function prepareCheckoutProductLineItems(
-        string $planId,
+        string                 $planId,
         CheckoutTimePeriodEnum $timePeriod,
-        array &$lineItems
+        array                  &$lineItems
     ): Product {
         try {
             $product = $this->stripeProductService->getProductByKey($planId);
@@ -170,11 +173,24 @@ class CheckoutService
      * @param string $stripeCheckoutSessionId
      * @return void
      * @throws ApiErrorException
+     * @throws GraphQLException
      */
     public function completeCheckout(User $user, string $stripeCheckoutSessionId): void
     {
+        $tenant = $this->tenantsService->createNetwork(
+            tenant: new Tenant(
+                id: 0,
+                ownerGuid: (int)$user->getGuid(),
+            )
+        );
+
         $checkoutSession = $this->stripeCheckoutSessionService->retrieveCheckoutSession($stripeCheckoutSessionId);
 
-        $user->getGuid();
+        $this->stripeSubscriptionsService->updateSubscription(
+            subscriptionId: $checkoutSession->subscription,
+            metadata: [
+                'tenant_id' => $tenant->id,
+            ]
+        );
     }
 }
