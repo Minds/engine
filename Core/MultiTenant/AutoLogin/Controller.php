@@ -27,15 +27,21 @@ class Controller
             throw new ForbiddenException();
         }
 
-        $tenantId = (int) $request->getParsedBody()['tenant_id'];
+        $tenantId = (int) $request->getQueryParams()['tenant_id'];
 
         $loginUrl = $this->autoLoginService->buildLoginUrl(
             tenantId: $tenantId,
             loggedInUser: $loggedInUser
         );
-    
+
+        $jwtToken = $this->autoLoginService->buildJwtToken(
+            tenantId: $tenantId,
+            loggedInUser: $loggedInUser
+        );
+
         return new JsonResponse([
             'login_url' => $loginUrl,
+            'jwt_token' => $jwtToken
         ]);
     }
 
@@ -44,7 +50,7 @@ class Controller
      */
     public function login(ServerRequest $request): RedirectResponse
     {
-        $jwtToken = $request->getQueryParams()['jwtToken'];
+        $jwtToken = $request->getParsedBody()['jwt_token'];
 
         $this->autoLoginService->performLogin($jwtToken);
 

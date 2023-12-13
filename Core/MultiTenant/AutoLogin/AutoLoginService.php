@@ -30,7 +30,10 @@ class AutoLoginService
     }
 
     /**
-     * Generate a url for autologin
+     * Build the URL for autologin.
+     * @param int $tenantId - the tenant id.
+     * @param User $loggedInUser - the currently logged in user.
+     * @return string - login URL.
      */
     public function buildLoginUrl(
         int $tenantId,
@@ -44,6 +47,25 @@ class AutoLoginService
 
         $domain = $this->tenantDomainService->buildDomain($tenant);
 
+        return "https://$domain/api/v3/multi-tenant/auto-login/login";
+    }
+
+    /**
+     * Generate a jwt for autologin.
+     * @param int $tenantId - the tenant id.
+     * @param User $loggedInUser - the currently logged in user.
+     * @return string - jwt token
+     */
+    public function buildJwtToken(
+        int $tenantId,
+        User $loggedInUser
+    ): string {
+        $tenant = $this->tenantDataService->getTenantFromId($tenantId);
+
+        if (!$tenant) {
+            throw new NotFoundException("Could not find tenant");
+        }
+
         if ($tenant->ownerGuid !== (int) $loggedInUser->getGuid()) {
             throw new ForbiddenException("Current user does not have ownership of the tenant");
         }
@@ -56,7 +78,7 @@ class AutoLoginService
         // Store the sso token server side to verify at a later date
         $this->tmpStore->set('multi-tenant-autologin:' . $ssoToken, true, 60);
 
-        $jwtToken = $this->jwt
+        return $this->jwt
             ->setKey($this->getEncryptionKey())
             ->encode(
                 payload: [
@@ -67,8 +89,6 @@ class AutoLoginService
                 exp: $expires,
                 nbf: time()
             );
-
-        return "https://$domain/api/v3/multi-tenant/auto-login/login?jwtToken=$jwtToken";
     }
 
     /**
