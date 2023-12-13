@@ -18,7 +18,7 @@ class Controller
     /**
      * Generates a login url for a tenant site
      */
-    public function generate(ServerRequest $request): JsonResponse
+    public function getLoginUrl(ServerRequest $request): JsonResponse
     {
         /** @var User */
         $loggedInUser = $request->getAttribute('_user');
@@ -30,8 +30,7 @@ class Controller
         $tenantId = (int) $request->getQueryParams()['tenant_id'];
 
         $loginUrl = $this->autoLoginService->buildLoginUrl(
-            tenantId: $tenantId,
-            loggedInUser: $loggedInUser
+            tenantId: $tenantId
         );
 
         $jwtToken = $this->autoLoginService->buildJwtToken(

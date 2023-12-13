@@ -18,8 +18,8 @@ class Routes extends ModuleRoutes
             ->do(function (Route $route) {
                 // logged-out routes.
                 $route->get(
-                    'generate',
-                    Ref::_(Controller::class, 'generate')
+                    'login-url',
+                    Ref::_(Controller::class, 'getLoginUrl')
                 );
 
                 $route->post(

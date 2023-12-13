@@ -32,12 +32,10 @@ class AutoLoginService
     /**
      * Build the URL for autologin.
      * @param int $tenantId - the tenant id.
-     * @param User $loggedInUser - the currently logged in user.
      * @return string - login URL.
      */
     public function buildLoginUrl(
-        int $tenantId,
-        User $loggedInUser
+        int $tenantId
     ): string {
         $tenant = $this->tenantDataService->getTenantFromId($tenantId);
 
