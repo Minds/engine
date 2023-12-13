@@ -118,10 +118,12 @@ class Redis extends abstractCacher implements CacheInterface
             } else {
                 $redis->set($key, json_encode($value));
             }
+            return true;
         } catch (\Exception $e) {
             //error_log("could not write ($key) to redis $this->master");
             //error_log($e->getMessage());
         }
+        return false;
     }
 
     /** Iterate over redis keys that return a cursor

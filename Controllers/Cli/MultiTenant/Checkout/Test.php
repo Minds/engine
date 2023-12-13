@@ -25,8 +25,8 @@ class Test extends Controller implements CliControllerInterface
         /**
          * @var CheckoutService $checkoutService
          */
-        $checkoutService = Di::_()->get(CheckoutService::class);
+        // $checkoutService = Di::_()->get(CheckoutService::class);
 
-        $checkoutService->testStrapiIntegration('networks_community');
+        // $checkoutService->testStrapiIntegration('networks_community');
     }
 }

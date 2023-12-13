@@ -116,7 +116,7 @@ class CheckoutService
             throw new GraphQLException($e->getMessage(), 404);
         }
 
-        $checkoutAddons = array_filter($productAddons->data, fn(Product $addon) => in_array($addon->metadata['key'], $addOnIds ?? []));
+        $checkoutAddons = array_filter($productAddons->data, fn (Product $addon) => in_array($addon->metadata['key'], $addOnIds ?? [], true));
 
         foreach ($checkoutAddons as $addon) {
             $addonPrices = $this->stripeProductPriceService->getPricesByProduct($addon->id);
@@ -155,7 +155,7 @@ class CheckoutService
             throw new GraphQLException($e->getMessage(), 500);
         }
 
-        $productPrice = array_filter($productPrices->data, fn(Price $price) => $price->lookup_key === $planId . ":" . strtolower($timePeriod->name));
+        $productPrice = array_filter($productPrices->data, fn (Price $price) => $price->lookup_key === $planId . ":" . strtolower($timePeriod->name));
 
         $lineItems[] = [
             'price' => array_pop($productPrice)->id,
