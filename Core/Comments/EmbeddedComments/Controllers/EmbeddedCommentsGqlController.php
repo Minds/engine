@@ -51,6 +51,7 @@ class EmbeddedCommentsGqlController
         $loadAfter = $after;
         $loadBefore = $before;
         $hasMore = false;
+        $totalCount = 0;
 
         // Find (or create) the activity post
         $activity = $this->embeddedCommentsActivityService
@@ -66,12 +67,14 @@ class EmbeddedCommentsGqlController
             loadAfter: $loadAfter,
             loadBefore: $loadBefore,
             hasMore: $hasMore,
+            totalCount: $totalCount,
         ) as $comment) {
             $edges[] = new CommentEdge($comment, "");
         }
 
         $connection = new EmbeddedCommentsConnection();
-
+        $connection->setTotalCount($totalCount);
+        $connection->setActivityUrl($activity->getURL());
         $connection->setEdges($edges);
         $connection->setPageInfo(new PageInfo(
             hasNextPage: $hasMore,

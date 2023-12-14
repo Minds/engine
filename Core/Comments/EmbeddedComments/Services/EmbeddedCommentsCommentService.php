@@ -42,8 +42,14 @@ class EmbeddedCommentsCommentService
         int $limit = 12,
         string &$loadAfter = null,
         string &$loadBefore = null,
-        bool &$hasMore = null
+        bool &$hasMore = null,
+        int &$totalCount = 0,
     ): iterable {
+        // Get the total count
+        $totalCount = $this->commentsManager->count($activity->getGuid(), $parentPath);
+
+        // Find comments
+
         $response = $this->commentsManager->getList([
             'entity_guid' => $activity->getGuid(),
             'parent_path' => $parentPath,
