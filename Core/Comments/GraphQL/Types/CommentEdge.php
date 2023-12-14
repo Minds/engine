@@ -68,4 +68,10 @@ class CommentEdge implements EdgeInterface
     {
         return in_array($this->loggedInUser?->getGuid(), $this->comment->getVotesDown() ?: [], true);
     }
+
+    #[Field]
+    public function votesUpCount(): int
+    {
+        return count($this->comment->getVotesUp() ?: []);
+    }
 }
