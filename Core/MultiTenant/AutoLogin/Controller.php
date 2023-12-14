@@ -18,7 +18,7 @@ class Controller
     /**
      * Generates a login url for a tenant site
      */
-    public function generate(ServerRequest $request): JsonResponse
+    public function getLoginUrl(ServerRequest $request): JsonResponse
     {
         /** @var User */
         $loggedInUser = $request->getAttribute('_user');
@@ -27,15 +27,20 @@ class Controller
             throw new ForbiddenException();
         }
 
-        $tenantId = (int) $request->getParsedBody()['tenant_id'];
+        $tenantId = (int) $request->getQueryParams()['tenant_id'];
 
         $loginUrl = $this->autoLoginService->buildLoginUrl(
+            tenantId: $tenantId
+        );
+
+        $jwtToken = $this->autoLoginService->buildJwtToken(
             tenantId: $tenantId,
             loggedInUser: $loggedInUser
         );
-    
+
         return new JsonResponse([
             'login_url' => $loginUrl,
+            'jwt_token' => $jwtToken
         ]);
     }
 
@@ -44,11 +49,11 @@ class Controller
      */
     public function login(ServerRequest $request): RedirectResponse
     {
-        $jwtToken = $request->getQueryParams()['jwtToken'];
+        $jwtToken = $request->getParsedBody()['jwt_token'];
 
         $this->autoLoginService->performLogin($jwtToken);
 
-        return new RedirectResponse('/');
+        return new RedirectResponse('/network/admin');
     }
 
 }
