@@ -593,7 +593,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'icon_time' => MySQLDataTypeEnum::TIMESTAMP,
                     'tags' => MySQLDataTypeEnum::JSON,
                     'show_boost' => MySQLDataTypeEnum::BOOL,
-                    'banner' => MySQLDataTypeEnum::BOOL,
+                    'banner' => MySQLDataTypeEnum::TIMESTAMP,
                     //'nsfw' => MySQLDataTypeEnum::JSON,
                     //'nsfw__lock' => MySQLDataTypeEnum::JSON,
                     'time_created' => MySQLDataTypeEnum::TIMESTAMP,
