@@ -721,7 +721,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 case EntityTypeEnum::GROUP:
                     $row = [...$row, ...$tableMappedRow['g']];
 
-                    $mapToUnix = ['time_created', 'time_updated', 'icon_time'];
+                    $mapToUnix = ['time_created', 'time_updated', 'icon_time', 'banner'];
 
                     break;
 
