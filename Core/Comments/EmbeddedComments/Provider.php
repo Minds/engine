@@ -6,7 +6,9 @@ use Minds\Core\Comments\EmbeddedComments\Controllers\EmbeddedCommentsGqlControll
 use Minds\Core\Comments\EmbeddedComments\Controllers\EmbeddedCommentsPsrController;
 use Minds\Core\Comments\EmbeddedComments\Services\EmbeddedCommentsActivityService;
 use Minds\Core\Comments\EmbeddedComments\Repositories\EmbeddedCommentsRepository;
+use Minds\Core\Comments\EmbeddedComments\Repositories\EmbeddedCommentsSettingsRepository;
 use Minds\Core\Comments\EmbeddedComments\Services\EmbeddedCommentsCommentService;
+use Minds\Core\Comments\EmbeddedComments\Services\EmbeddedCommentsSettingsService;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di\Di;
@@ -24,6 +26,7 @@ class Provider extends DiProvider
             return new EmbeddedCommentsGqlController(
                 embeddedCommentsActivityService: $di->get(EmbeddedCommentsActivityService::class),
                 embeddedCommentsCommentService: $di->get(EmbeddedCommentsCommentService::class),
+                embeddedCommentsSettingsService: $di->get(EmbeddedCommentsSettingsService::class),
             );
         });
 
@@ -34,6 +37,7 @@ class Provider extends DiProvider
         $this->di->bind(EmbeddedCommentsActivityService::class, function (Di $di): EmbeddedCommentsActivityService {
             return new EmbeddedCommentsActivityService(
                 repository: $di->get(EmbeddedCommentsRepository::class),
+                embeddedCommentsSettingsService: $di->get(EmbeddedCommentsSettingsService::class),
                 config: $di->get(Config::class),
                 acl: $di->get('Security\ACL'),
                 entitiesBuilder: $di->get(EntitiesBuilder::class),
@@ -52,8 +56,23 @@ class Provider extends DiProvider
             );
         });
 
+        $this->di->bind(EmbeddedCommentsSettingsService::class, function (Di $di): EmbeddedCommentsSettingsService {
+            return new EmbeddedCommentsSettingsService(
+                repository: $di->get(EmbeddedCommentsSettingsRepository::class),
+                cache: $di->get('Cache\PsrWrapper'),
+            );
+        });
+
         $this->di->bind(EmbeddedCommentsRepository::class, function (Di $di): EmbeddedCommentsRepository {
             return new EmbeddedCommentsRepository(
+                $di->get(Config::class),
+                $di->get(Client::class),
+                $di->get('Logger')
+            );
+        });
+
+        $this->di->bind(EmbeddedCommentsSettingsRepository::class, function (Di $di): EmbeddedCommentsSettingsRepository {
+            return new EmbeddedCommentsSettingsRepository(
                 $di->get(Config::class),
                 $di->get(Client::class),
                 $di->get('Logger')

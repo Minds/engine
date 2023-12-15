@@ -13,6 +13,7 @@ class GraphQLMappings extends AbstractGraphQLMappings
         $this->schemaFactory->addControllerNamespace('Minds\\Core\\Comments\\EmbeddedComments\\Controllers');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             Types\EmbeddedCommentsConnection::class,
+            Models\EmbeddedCommentsSettings::class,
         ]));
     }
 }

@@ -5,6 +5,9 @@ use Exception;
 use GuzzleHttp\Exception\ClientException;
 use Minds\Common\Access;
 use Minds\Core\Comments\EmbeddedComments\Exceptions\InvalidScrapeException;
+use Minds\Core\Comments\EmbeddedComments\Exceptions\InvalidUrlPatternException;
+use Minds\Core\Comments\EmbeddedComments\Exceptions\OwnerDisabledAutoImportsException;
+use Minds\Core\Comments\EmbeddedComments\Exceptions\OwnerNotConfiguredException;
 use Minds\Core\Comments\EmbeddedComments\Repositories\EmbeddedCommentsRepository;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
@@ -26,6 +29,7 @@ class EmbeddedCommentsActivityService
 
     public function __construct(
         private EmbeddedCommentsRepository $repository,
+        private EmbeddedCommentsSettingsService $embeddedCommentsSettingsService,
         private Config $config,
         private ACL $acl,
         private EntitiesBuilder $entitiesBuilder,
@@ -52,7 +56,7 @@ class EmbeddedCommentsActivityService
     public function withUrl(string $url): EmbeddedCommentsActivityService
     {
         $instance = clone $this;
-        $instance->url = $url;
+        $instance->url = urldecode($url);
         return $instance;
     }
 
@@ -77,9 +81,20 @@ class EmbeddedCommentsActivityService
             throw new Exception("Activity post was not found");
         }
 
+        // Does the user allow auto imports?
+        $settings = $this->embeddedCommentsSettingsService->getSettings($this->ownerGuid);
+        
+        if (!$settings) {
+            throw new OwnerNotConfiguredException();
+        }
+
+        if (!$settings->autoImportsEnabled) {
+            throw new OwnerDisabledAutoImportsException();
+        }
+
         // Does the url match our approved path pattern?
         if (!$this->isApprovedUrl()) {
-            throw new \Exception("Invalid url pattern");
+            throw new InvalidUrlPatternException();
         }
 
         $activity = $this->proccessActivity();
@@ -92,7 +107,22 @@ class EmbeddedCommentsActivityService
      */
     private function isApprovedUrl(): bool
     {
+        $settings = $this->embeddedCommentsSettingsService->getSettings($this->ownerGuid);
+
         $urlParts = parse_url($this->url);
+
+        $validHost = $settings->domain;
+        $validPathRegex = $settings->pathRegex;
+
+        if ($urlParts['host'] !== $validHost) {
+            return false;
+        }
+
+        preg_match_all("/$validPathRegex/m", $urlParts['path'], $matches, PREG_SET_ORDER, 0);
+
+        if (!$matches) {
+            return false;
+        }
 
         return true;
     }
@@ -124,7 +154,9 @@ class EmbeddedCommentsActivityService
             if ($canonicalUrl !== $this->url) {
                 // The canonical url does not match, abort the import and try to fetch the activity with the
                 // correct canonical url
-                return $this->getActivityFromUrl($canonicalUrl);
+                return $this
+                    ->withUrl($canonicalUrl)
+                    ->getActivityFromUrl(import: true);
             }
 
             $activity
