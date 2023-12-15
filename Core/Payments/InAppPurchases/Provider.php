@@ -20,7 +20,7 @@ class Provider extends DiProvider
         $this->di->bind(Manager::class, function (Di $di): Manager {
             return new Manager(
                 giftCardsManager: $di->get(GiftCardsManager::class),
-                config: $di->get('Config'),
+                config: $di->get('Config')
             );
         }, ['factory' => false]);
         $this->di->bind(InAppPurchasesClientFactory::class, function (Di $di): InAppPurchasesClientFactory {
@@ -42,7 +42,16 @@ class Provider extends DiProvider
             return new Apple\AppleInAppPurchasesClient(
                 $mindsConfig,
                 $client,
+                $di->get(RelationalRepository::class),
                 $di->get('Logger'),
+            );
+        }, ['factory' => true]);
+
+        $this->di->bind(RelationalRepository::class, function (Di $di): RelationalRepository {
+            return new RelationalRepository(
+                mysqlHandler: $di->get('Database\MySQL\Client'),
+                logger: $di->get('Logger'),
+                entitiesBuilder: $di->get('EntitiesBuilder'),
             );
         }, ['factory' => true]);
     }

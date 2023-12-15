@@ -70,6 +70,26 @@ class AutoLoginServiceSpec extends ObjectBehavior
 
         //
 
+        $url = $this->buildLoginUrl(1, $userMock);
+        $url->shouldContain('phpspec.local');
+    }
+
+    public function it_should_build_a_jwt_token(User $userMock)
+    {
+        $tenant = new Tenant(
+            id: 1,
+            ownerGuid: 123,
+            rootUserGuid: 456
+        );
+    
+        $this->tenantDataServiceMock->getTenantFromId(1)
+            ->willReturn($tenant);
+
+        $userMock->getGuid()
+            ->willReturn(123);
+
+        //
+
         $this->jwtMock->randomString()->willReturn('random');
 
         $this->tmpStoreMock->set(Argument::type('string'), Argument::any(), Argument::type('int'))
@@ -91,8 +111,8 @@ class AutoLoginServiceSpec extends ObjectBehavior
 
         //
 
-        $url = $this->buildLoginUrl(1, $userMock);
-        $url->shouldContain('phpspec.local');
+        $url = $this->buildJwtToken(1, $userMock);
+        $url->shouldContain('jwt-token');
     }
 
     public function it_should_perform_login()

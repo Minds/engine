@@ -9,6 +9,7 @@ use Minds\Common\Urn;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
 use Minds\Common\SystemUser;
+use Minds\Core\Comments\Comment;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Reports\Verdict\Verdict;
@@ -62,6 +63,12 @@ class NotificationDelegate
             $entityGuid = $this->urn->setUrn($entityUrn)->getNss();
 
             $entity = $this->entitiesBuilder->single($entityGuid);
+        }
+
+        $reportEntity = $verdict->getReport()->getEntity();
+        // scope to only comments to reduce regression scope.
+        if (!$entity && $reportEntity && $reportEntity instanceof Comment) {
+            $entity = $reportEntity;
         }
 
         if ($verdict->isUpheld()) {

@@ -17,12 +17,12 @@ class Routes extends ModuleRoutes
             ->withPrefix('api/v3/multi-tenant/auto-login')
             ->do(function (Route $route) {
                 // logged-out routes.
-                $route->post(
-                    'generate',
-                    Ref::_(Controller::class, 'generate')
+                $route->get(
+                    'login-url',
+                    Ref::_(Controller::class, 'getLoginUrl')
                 );
 
-                $route->get(
+                $route->post(
                     'login',
                     Ref::_(Controller::class, 'login')
                 );
