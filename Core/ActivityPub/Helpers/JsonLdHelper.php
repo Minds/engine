@@ -51,6 +51,10 @@ class JsonLdHelper
             $host = 'minds.com';
         }
 
+        if ($host === 'www.threads.net') {
+            $host = 'threads.net';
+        }
+
         return $host;
     }
 }
