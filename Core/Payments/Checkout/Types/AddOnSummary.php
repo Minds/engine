@@ -12,7 +12,7 @@ class AddOnSummary
     public function __construct(
         #[Field] public readonly string $id,
         #[Field] public readonly string $name,
-        #[Field] public int $monthlyFeeCents,
+        #[Field] public ?int $monthlyFeeCents = null,
         #[Field] public ?int $oneTimeFeeCents = null,
     ) {
     }

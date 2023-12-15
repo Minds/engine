@@ -28,7 +28,8 @@ class ServicesProvider extends Provider
                 strapiService: $di->get(StrapiService::class),
                 stripeProductService: $di->get(StripeProductService::class),
                 stripeProductPriceService: $di->get(StripeProductPriceService::class),
-                cache: $di->get('Cache\Cassandra'),
+                persistentCache: $di->get('Cache\Cassandra'),
+                cache: $di->get('Cache'),
             ),
         );
         $this->di->bind(

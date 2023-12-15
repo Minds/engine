@@ -95,6 +95,37 @@ class CheckoutService
         return $checkoutSession->url;
     }
 
+    /**
+     * @param string $planId
+     * @param CheckoutTimePeriodEnum $timePeriod
+     * @param array $lineItems
+     * @return Product
+     * @throws ApiErrorException
+     * @throws GraphQLException
+     */
+    private function prepareCheckoutProductLineItems(
+        string                 $planId,
+        CheckoutTimePeriodEnum $timePeriod,
+        array                  &$lineItems
+    ): Product {
+        try {
+            $product = $this->stripeProductService->getProductByKey($planId);
+            $productPrices = $this->stripeProductPriceService->getPricesByProduct($product->id);
+        } catch (NotFoundException $e) {
+            throw new GraphQLException($e->getMessage(), 404);
+        } catch (ServerErrorException $e) {
+            throw new GraphQLException($e->getMessage(), 500);
+        }
+
+        $productPrice = array_filter($productPrices->data, fn (Price $price) => $price->lookup_key === $planId . ":" . strtolower($timePeriod->name));
+
+        $lineItems[] = [
+            'price' => array_pop($productPrice)->id,
+            'quantity' => 1,
+        ];
+
+        return $product;
+    }
 
     /**
      * @param ProductTypeEnum $productType
@@ -127,45 +158,19 @@ class CheckoutService
              * @var Price $addonPrice
              */
             foreach ($addonPrices->data as $addonPrice) {
-                $lineItems[] = [
+                $details = [
                     'price' => $addonPrice->id,
                     'quantity' => 1,
                 ];
+
+                if ($addonPrice->recurring?->usage_type === 'metered') {
+                    unset($details['quantity']);
+                }
+
+                $lineItems[] = $details;
             }
         }
 
-    }
-
-    /**
-     * @param string $planId
-     * @param CheckoutTimePeriodEnum $timePeriod
-     * @param array $lineItems
-     * @return Product
-     * @throws ApiErrorException
-     * @throws GraphQLException
-     */
-    private function prepareCheckoutProductLineItems(
-        string                 $planId,
-        CheckoutTimePeriodEnum $timePeriod,
-        array                  &$lineItems
-    ): Product {
-        try {
-            $product = $this->stripeProductService->getProductByKey($planId);
-            $productPrices = $this->stripeProductPriceService->getPricesByProduct($product->id);
-        } catch (NotFoundException $e) {
-            throw new GraphQLException($e->getMessage(), 404);
-        } catch (ServerErrorException $e) {
-            throw new GraphQLException($e->getMessage(), 500);
-        }
-
-        $productPrice = array_filter($productPrices->data, fn (Price $price) => $price->lookup_key === $planId . ":" . strtolower($timePeriod->name));
-
-        $lineItems[] = [
-            'price' => array_pop($productPrice)->id,
-            'quantity' => 1,
-        ];
-
-        return $product;
     }
 
     /**

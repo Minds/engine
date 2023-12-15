@@ -14,10 +14,10 @@ class AddOn
         #[Field] public readonly string $name,
         #[Field] public readonly string $description,
         #[Field] public readonly string $perksTitle,
-        private readonly array $perks,
-        #[Field(outputType: 'Int!')] public ?int $monthlyFeeCents = null,
-        #[Field] public ?int $oneTimeFeeCents = null,
-        #[Field] public bool $inBasket = false,
+        private readonly array          $perks,
+        #[Field] public ?int            $monthlyFeeCents = null,
+        #[Field] public ?int            $oneTimeFeeCents = null,
+        #[Field] public bool            $inBasket = false,
     ) {
     }
 
