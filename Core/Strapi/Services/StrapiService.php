@@ -15,9 +15,10 @@ use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 class StrapiService
 {
     private const CACHE_TTL = 60 * 30; // 30 minutes
+
     public function __construct(
         private readonly StrapiGraphQLClient $client,
-        private readonly CacheInterface $cache
+        private readonly CacheInterface      $cache
     ) {
     }
 
@@ -64,7 +65,7 @@ class StrapiService
         $results->reformatResults(true);
         $data = $results->getData()['productPlans']['data'];
 
-        if(!count($data)) {
+        if (!count($data)) {
             throw new GraphQLException('Plan not found', 404);
         }
 
@@ -149,12 +150,12 @@ class StrapiService
         foreach ($data as $addon) {
             $addonDetails = $addon['attributes'];
 
-            yield $addon =  new AddOn(
+            yield $addon = new AddOn(
                 id: $addonDetails['key'],
                 name: $addonDetails['name'],
                 description: $addonDetails['description'],
                 perksTitle: $addonDetails['perksTitle'],
-                perks: array_map(fn ($perk) => $perk['text'], $addonDetails['perks'])
+                perks: $addonDetails['perks'] ? array_map(fn ($perk) => $perk['text'], $addonDetails['perks']) : null,
             );
 
             $this->cache->set("strapi_product_addon_{$addonDetails['key']}", serialize($addon), self::CACHE_TTL);

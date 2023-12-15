@@ -14,7 +14,7 @@ class AddOn
         #[Field] public readonly string $name,
         #[Field] public readonly string $description,
         #[Field] public readonly string $perksTitle,
-        private readonly array          $perks,
+        private readonly ?array         $perks = null,
         #[Field] public ?int            $monthlyFeeCents = null,
         #[Field] public ?int            $oneTimeFeeCents = null,
         #[Field] public bool            $inBasket = false,
@@ -22,11 +22,11 @@ class AddOn
     }
 
     /**
-     * @return string[]
+     * @return string[]|null
      */
     #[Field]
-    public function getPerks(): array
+    public function getPerks(): ?array
     {
-        return $this->perks;
+        return $this->perks; // Consider returning an empty array instead of null
     }
 }
