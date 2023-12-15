@@ -6,7 +6,6 @@ use Minds\Core\Config\Config;
 use GuzzleHttp;
 use GuzzleHttp\Psr7\Request;
 use HttpSignatures\Context;
-use Minds\Core\Di\Di;
 use Psr\Http\Message\ResponseInterface;
 
 class Client
@@ -16,7 +15,8 @@ class Client
 
     public function __construct(
         protected GuzzleHttp\Client $httpClient,
-        protected Config $config
+        protected Config $config,
+        protected Manager $manager,
     ) {
     }
     
@@ -46,14 +46,20 @@ class Client
             body: json_encode($body),
         );
 
-        if (isset($this->privateKeys)) {
-            $context = new Context([
-                'keys' => $this->privateKeys,
-                'algorithm' => 'rsa-sha256',
-                'headers' => ['(request-target)', 'Date', 'Accept'],
-            ]);
-            $request = $context->signer()->signWithDigest($request);
+        if (!isset($this->privateKeys)) {
+            $privateKey = $this->manager->getPrivateKeyByUserGuid(0);
+            $this->privateKeys = [
+                $this->config->get('site_url') . 'api/activitypub/actor' . '#main-key' => (string) $privateKey,
+            ];
         }
+
+        $context = new Context([
+            'keys' => $this->privateKeys,
+            'algorithm' => 'rsa-sha256',
+            'headers' => ['(request-target)', 'Date', 'Accept'],
+        ]);
+
+        $request = $context->signer()->signWithDigest($request);
 
         $opts = [
             'connect_timeout' => 5
