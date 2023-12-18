@@ -23,6 +23,8 @@ use Minds\Core\Channels\BannerService;
 use Minds\Core\Config\Config;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Router\Exceptions\ForbiddenException;
+use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
 use Zend\Diactoros\ServerRequestFactory;
@@ -32,12 +34,14 @@ class channel implements Interfaces\Api
     private EntitiesBuilder $entitiesBuilder;
     private Save $save;
     private Config $config;
+    private ACL $acl;
 
     public function __construct()
     {
         $this->entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
         $this->save = new Save();
         $this->config = Di::_()->get(Config::class);
+        $this->acl = Di::_()->get(ACL::class);
     }
 
     /**
@@ -411,13 +415,23 @@ class channel implements Interfaces\Api
 
         switch ($pages[0]) {
             default:
+                // check ACL BEFORE changing the enabled property.
+                if (!$this->acl->write($user)) {
+                    throw new ForbiddenException();
+                }
+
                 $channel = $user;
                 $channel->enabled = 'no';
+
+                $ignore = $this->acl::$ignore;
+                $this->acl::$ignore = true;
 
                 $this->save
                     ->setEntity($channel)
                     ->withMutatedAttributes(['enabled'])
                     ->save();
+
+                $this->acl::$ignore = $ignore;
 
                 (new Core\Sessions\CommonSessions\Manager())->deleteAll($channel);
         }
