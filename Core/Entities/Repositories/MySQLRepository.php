@@ -126,6 +126,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                             'user_guid',
                             'role_ids' => new RawExp('GROUP_CONCAT(role_id)'),
                         ])
+                        ->where('tenant_id', Operator::EQ, new RawExp(':tenantId'))
                         ->groupBy('user_guid')
                         ->alias('rbac_roles');
                 },
@@ -146,7 +147,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
             $query->where('e.guid', Operator::EQ, new RawExp(':guid'));
         }
         
-        $query->where('e.tenant_id', Operator::EQ, $this->config->get('tenant_id'));
+        $query->where('e.tenant_id', Operator::EQ, new RawExp(':tenantId'));
 
         if (is_array($guid)) {
             $query->orderBy('e.guid desc');
@@ -156,6 +157,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, [
             'guid' => $guid,
+            'tenantId' => $this->config->get('tenant_id'),
             'loggedInUser' => $this->activeSession->getUserGuid(),
         ]);
 
@@ -591,7 +593,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'icon_time' => MySQLDataTypeEnum::TIMESTAMP,
                     'tags' => MySQLDataTypeEnum::JSON,
                     'show_boost' => MySQLDataTypeEnum::BOOL,
-                    'banner' => MySQLDataTypeEnum::BOOL,
+                    'banner' => MySQLDataTypeEnum::TIMESTAMP,
                     //'nsfw' => MySQLDataTypeEnum::JSON,
                     //'nsfw__lock' => MySQLDataTypeEnum::JSON,
                     'time_created' => MySQLDataTypeEnum::TIMESTAMP,
@@ -719,7 +721,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 case EntityTypeEnum::GROUP:
                     $row = [...$row, ...$tableMappedRow['g']];
 
-                    $mapToUnix = ['time_created', 'time_updated', 'icon_time'];
+                    $mapToUnix = ['time_created', 'time_updated', 'icon_time', 'banner'];
 
                     break;
 

@@ -16,6 +16,7 @@ use Minds\Entities\Activity;
 use Minds\Core\Entities\Actions\Save as SaveAction;
 use Minds\Core\Channels\Ban;
 use Minds\Core\Boost\V3\Manager as BoostManager;
+use Minds\Core\Comments\Comment;
 use Minds\Core\Log\Logger;
 use Minds\Core\Monetization\Demonetization\DemonetizationContext;
 use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePlusUserStrategy;
@@ -136,7 +137,7 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
         
-        $this->saveAction->save()
+        $this->saveAction->save(true)
             ->shouldBeCalled();
 
         $this->strikesManager->countStrikesInTimeWindow(Argument::any(), Argument::any())
@@ -196,7 +197,7 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
         
-        $this->saveAction->save()
+        $this->saveAction->save(true)
             ->shouldBeCalled();
 
         $this->boostManager->forceRejectByEntityGuid(
@@ -238,7 +239,45 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
         
-        $this->saveAction->save()
+        $this->saveAction->save(true)
+            ->shouldBeCalled();
+
+        $this->boostManager->forceRejectByEntityGuid(
+            entityGuid: '123',
+            reason: BoostRejectionReason::REPORT_UPHELD,
+            statuses: [BoostStatus::APPROVED, BoostStatus::PENDING]
+        )->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->onAction($verdict);
+    }
+
+    public function it_should_removed_if_a_spam_comment()
+    {
+        $entity = (new Comment())
+            ->setGuid('123');
+
+        $report = new Report;
+        $report->setEntityUrn('urn:activity:123')
+            ->setReasonCode(8)
+            ->setEntity($entity);
+
+        $verdict = new Verdict;
+        $verdict->setReport($report)
+            ->setUphold(true)
+            ->setAction('8');
+
+        $this->entitiesBuilder->single(123)
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $this->actions->setDeletedFlag($entity, true)
+            ->shouldBeCalled();
+
+        $this->saveAction->setEntity($entity)
+            ->willReturn($this->saveAction);
+        
+        $this->saveAction->save(true)
             ->shouldBeCalled();
 
         $this->boostManager->forceRejectByEntityGuid(
@@ -298,7 +337,7 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
         
-        $this->saveAction->save()
+        $this->saveAction->save(true)
             ->shouldBeCalled();
 
         $this->boostManager->forceRejectByEntityGuid(
@@ -340,7 +379,7 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->saveAction->withMutatedAttributes(['enabled'])
             ->willReturn($this->saveAction);
         
-        $this->saveAction->save()
+        $this->saveAction->save(true)
              ->shouldBeCalled();
 
         $this->password->randomReset($user)
@@ -472,7 +511,7 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
         
-        $this->saveAction->save()
+        $this->saveAction->save(true)
             ->shouldBeCalled();
 
         $this->strikesManager->countStrikesInTimeWindow(Argument::any(), Argument::any())
@@ -524,7 +563,7 @@ class ActionDelegateSpec extends ObjectBehavior
         $this->saveAction->setEntity($user)
             ->shouldNotBeCalled();
         
-        $this->saveAction->save()
+        $this->saveAction->save(true)
             ->shouldNotBeCalled();
 
         $this->strikesManager->countStrikesInTimeWindow(Argument::any(), Argument::any())

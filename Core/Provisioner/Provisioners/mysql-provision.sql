@@ -497,7 +497,7 @@ CREATE TABLE `minds_entities_user` (
   `canonical_url` text,
   `source` text,
   PRIMARY KEY (`tenant_id`,`guid`),
-  UNIQUE KEY `username` (`username`)
+  UNIQUE KEY `username` (`tenant_id`, `username`)
 );
 
 CREATE TABLE `minds_entities_group` (
@@ -624,6 +624,15 @@ ALTER TABLE `minds_tenant_configs`
     ADD last_cache_timestamp timestamp DEFAULT NULL
     AFTER updated_timestamp;
 
+CREATE TABLE IF NOT EXISTS `minds_in_app_purchases` (
+    `transaction_id` varchar(128) NOT NULL PRIMARY KEY ,
+    `user_guid` bigint NOT NULL,
+    `product_id` varchar(128) NOT NULL,
+    `purchase_type` tinyint NOT NULL,
+    `purchase_timestamp` timestamp NOT NULL,
+    INDEX (`user_guid`)
+);
+
 CREATE TABLE IF NOT EXISTS `minds_user_rss_feeds` (
     `feed_id` bigint NOT NULL PRIMARY KEY,
     `user_guid` bigint NOT NULL,
@@ -687,3 +696,5 @@ ALTER TABLE minds_activitypub_uris DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, 
 ALTER TABLE minds_activitypub_actors DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, uri);
 ALTER TABLE minds_activitypub_keys DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, user_guid);
 ALTER TABLE minds_activitypub_actors ADD CONSTRAINT minds_activitypub_actors_ibfk_1 FOREIGN KEY (tenant_id, uri) REFERENCES minds_activitypub_uris(tenant_id, uri);
+
+ALTER TABLE `minds_entities_group` MODIFY COLUMN banner timestamp;

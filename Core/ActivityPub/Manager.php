@@ -24,7 +24,6 @@ class Manager
         protected Repository       $repository,
         protected EntitiesBuilder  $entitiesBuilder,
         protected Config           $config,
-        protected Client           $client,
         protected WebfingerManager $webfingerManager,
     ) {
     }

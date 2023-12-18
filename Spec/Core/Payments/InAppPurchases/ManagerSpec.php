@@ -10,6 +10,7 @@ use Minds\Core\Payments\InAppPurchases\Clients\InAppPurchasesClientFactory;
 use Minds\Core\Payments\InAppPurchases\Google\GoogleInAppPurchasesClient;
 use Minds\Core\Payments\InAppPurchases\Manager;
 use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
+use Minds\Core\Session;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -45,6 +46,11 @@ class ManagerSpec extends ObjectBehavior
         );
     }
 
+    public function letGo(): void
+    {
+        Session::setUser(null);
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
@@ -58,6 +64,18 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled();
         $userMock->setPlusExpires(Argument::type('int'))
             ->shouldBeCalled();
+        $userMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+        $userMock->get('username')
+            ->shouldBeCalled()
+            ->willReturn('test');
+        $userMock->isBanned()
+            ->shouldBeCalled()
+            ->willReturn(false);
+        $userMock->isEnabled()
+            ->shouldBeCalled()
+            ->willReturn(true);
     
 
         $this->saveMock->setEntity($userMock)
@@ -83,10 +101,10 @@ class ManagerSpec extends ObjectBehavior
 
         $iapModel = new InAppPurchase(
             source: GoogleInAppPurchasesClient::class,
-            subscriptionId: "plus.monthly.001",
             purchaseToken: "purchase-token",
-            user: $userMock->getWrappedObject(),
-            transactionId: time() * 1000
+            subscriptionId: "plus.monthly.001",
+            transactionId: time() * 1000,
+            user: $userMock->getWrappedObject()
         );
 
         $this->configMock->get('upgrades')

@@ -8,10 +8,11 @@
 namespace Minds\Controllers\fs\v1;
 
 use Minds\Core;
-use Minds\Core\Channels\BannerService;
+use Minds\Core\Channels\BannerService as UserBannerService;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities;
+use Minds\Entities\User;
 use Minds\Interfaces;
 use Minds\Helpers\File;
 
@@ -25,9 +26,9 @@ class banners implements Interfaces\Fs
             exit;
         }
 
-        // Tenants banners are from the V2 banner system.
-        if ((bool) Di::_()->get(Config::class)->get('tenant_id')) {
-            $bannerV2Service = Di::_()->get(BannerService::class);
+        // Tenants user banners are from the V2 user banner system.
+        if ($entity instanceof User && (bool) Di::_()->get(Config::class)->get('tenant_id')) {
+            $bannerV2Service = Di::_()->get(UserBannerService::class);
 
             $file = $bannerV2Service->getFile($entity->getGuid());
             $content = $file?->open('read')?->read();
@@ -71,7 +72,7 @@ class banners implements Interfaces\Fs
                         $content = $f->read();
                     }
                 } else {
-                    $content = Di::_()->get(BannerService::class)
+                    $content = Di::_()->get(UserBannerService::class)
                         ->getDefaultBannerContent($entity->getGuid());
                 }
                 break;
