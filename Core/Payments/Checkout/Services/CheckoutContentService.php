@@ -119,7 +119,7 @@ class CheckoutContentService
         /**
          * @var Price $price
          */
-        foreach ($productPrices->data as $price) {
+        foreach ($productPrices->getIterator() as $price) {
             switch ($price->lookup_key) {
                 case "{$planId}:" . strtolower(CheckoutTimePeriodEnum::MONTHLY->name):
                     $prices[CheckoutTimePeriodEnum::MONTHLY->name] = $price->unit_amount;
@@ -145,7 +145,7 @@ class CheckoutContentService
         /**
          * @var Product $addon
          */
-        foreach ($productAddons->data as $addon) {
+        foreach ($productAddons->getIterator() as $addon) {
             $addonPrices = $this->stripeProductPriceService->getPricesByProduct($addon->id);
 
             $addons[$addon->metadata['key']] = [
@@ -171,7 +171,7 @@ class CheckoutContentService
         /**
          * @var Price $price
          */
-        foreach ($addonPrices->data as $price) {
+        foreach ($addonPrices->getIterator() as $price) {
             switch ($price->type) {
                 case "recurring":
                     $prices["monthly_fee_cents"] = $price->unit_amount;
