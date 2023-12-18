@@ -11,6 +11,7 @@ use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
 use Minds\Core\MultiTenant\Repositories\DomainsRepository;
 use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
+use Minds\Core\MultiTenant\Repositories\InvitesRepository;
 use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
 use Minds\Core\MultiTenant\Repository;
 
@@ -77,6 +78,13 @@ class ServicesProvider extends Provider
                     $di->get('Config')
                 );
             }
+        );
+
+        $this->di->bind(
+            InvitesService::class,
+            fn (Di $di): InvitesService => new InvitesService(
+                invitesRepository: $di->get(InvitesRepository::class),
+            )
         );
     }
 }

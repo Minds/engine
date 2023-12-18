@@ -44,5 +44,16 @@ class RepositoriesProvider extends Provider
                 );
             }
         );
+
+        $this->di->bind(
+            InvitesRepository::class,
+            function (Di $di): InvitesRepository {
+                return new InvitesRepository(
+                    mysqlHandler: $di->get('Database\MySQL\Client'),
+                    logger: $di->get('Logger'),
+                    config: $di->get('Config')
+                );
+            }
+        );
     }
 }
