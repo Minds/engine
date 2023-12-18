@@ -35,7 +35,7 @@ class Group extends NormalizedEntity implements EntityInterface
     protected $moderated = 0;
     protected $show_boosts = 1;
     protected $default_view = 0;
-    protected $banner = false;
+    protected $banner;
     protected $banner_position;
     protected $icon_time;
     protected $featured = 0;

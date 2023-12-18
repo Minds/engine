@@ -163,8 +163,8 @@ class group implements Interfaces\Api
                 case "banner":
                     if (is_uploaded_file($_FILES['file']['tmp_name'])) {
                         try {
-                            $group = $this->uploadBanner($group, $_POST['banner_position']);
-                            $response['banner'] = $group->banner;
+                            $group = $this->uploadBanner($group, $_POST['banner_position'] ?? null);
+                            $response['banner'] = $group->getBanner();
                             $response['banner_position'] = $group->getBannerPosition();
                         } catch (\Exception $e) {
                             return Factory::response([
@@ -423,7 +423,7 @@ class group implements Interfaces\Api
             ->setBanner(time())
             ->setBannerPosition($banner_position);
 
-        $this->save->setEntity($group)->save();
+        $this->save->setEntity($group)->save(isUpdate: true);
 
         return $group;
     }
