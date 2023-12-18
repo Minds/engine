@@ -2,7 +2,6 @@
 namespace Minds\Core\Comments\EmbeddedComments\Services;
 
 use Exception;
-use GuzzleHttp\Exception\ClientException;
 use Minds\Common\Access;
 use Minds\Core\Comments\EmbeddedComments\Exceptions\InvalidScrapeException;
 use Minds\Core\Comments\EmbeddedComments\Exceptions\InvalidUrlPatternException;
@@ -15,7 +14,6 @@ use Minds\Entities\Activity;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service as MetascraperService;
 use Minds\Core\Log\Logger;
-use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Security\ACL;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
@@ -207,7 +205,7 @@ class EmbeddedCommentsActivityService
         $user = $this->entitiesBuilder->single($this->ownerGuid);
 
         if (!$user instanceof User) {
-            throw new Exception("Invalid root user");
+            throw new Exception("Invalid owner provided");
         }
 
         return $user;

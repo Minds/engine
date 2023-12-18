@@ -52,6 +52,10 @@ class EmbeddedCommentsGqlController
             throw new UserError("after and before supplied, can only provide one cursor");
         }
 
+        if (!$first && !$last) {
+            $first = 12;
+        }
+
         $loadAfter = $after;
         $loadBefore = $before;
         $hasMore = false;
@@ -128,7 +132,7 @@ class EmbeddedCommentsGqlController
     public function getEmbeddedCommentsSettings(
         #[InjectUser] ?User $loggedInUser = null,
     ): ?EmbeddedCommentsSettings {
-        return  $this->embeddedCommentsSettingsService->getSettings($loggedInUser->getGuid(), useCache: false);
+        return $this->embeddedCommentsSettingsService->getSettings($loggedInUser->getGuid(), useCache: false);
     }
 
     /**
