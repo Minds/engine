@@ -138,14 +138,14 @@ prepare:all:sentry:
 container_scanning:
   stage: scan
   variables:
-    DOCKER_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
+    CS_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
 
 
 container_scanning_runners:
   extends: container_scanning
   stage: scan
   variables:
-    DOCKER_IMAGE: $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
+    CS_IMAGE: $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
 
 dependency_scanning:
   stage: scan
