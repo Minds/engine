@@ -237,6 +237,10 @@ integration_testing:
       fi
     - export BYPASS_SIGNING_KEY=$BYPASS_SIGNING_KEY
     - sh integration_tests/setup_and_run.sh
+  artifacts:
+    when: always
+    paths:
+      - integration_tests/tests/_output
   allow_failure: true
 
 # qa:manual:
