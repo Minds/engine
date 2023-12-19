@@ -14,6 +14,7 @@ use Minds\Traits\MagicAttributes;
  * @method Cookie setDomain(string $domain)
  * @method Cookie setSecure(bool $secure)
  * @method Cookie setHttpOnly(bool $httpOnly)
+ * @method Cookie setSameSite(string $sameSite)
  */
 class Cookie
 {
@@ -43,6 +44,9 @@ class Cookie
     /** @var bool $httOonly */
     private $httpOnly = true;
 
+    /** @var string */
+    private $sameSite = null;
+
     public function __construct($config = null)
     {
         $this->config = $config ?: Di::_()->get('Config');
@@ -67,7 +71,14 @@ class Cookie
             $this->value = '';
         }
 
-        setcookie($this->name, $this->value, $this->expire, $this->path, $this->domain, $this->secure, $this->httpOnly);
+        setcookie($this->name, $this->value, [
+            'expires' => $this->expire,
+            'path' => $this->path,
+            'domain' => $this->domain,
+            'secure' => $this->secure,
+            'httponly' => $this->httpOnly,
+            'samesite' => !$this->secure && $this->sameSite === 'None' ? null : $this->sameSite, // You can't have non-secure and sameSite=None
+        ]);
         $_COOKIE[$this->name] = $this->value; //set the global cookie
     }
 }

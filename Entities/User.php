@@ -1157,6 +1157,8 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         $export['liquidity_spot_opt_out'] = $this->getLiquiditySpotOptOut();
         $export['language'] = $this->getLanguage();
 
+        $export['icon_url'] = $this->getIcon();
+
         return $export;
     }
 
