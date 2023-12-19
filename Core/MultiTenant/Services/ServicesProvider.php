@@ -79,12 +79,5 @@ class ServicesProvider extends Provider
                 );
             }
         );
-
-        $this->di->bind(
-            InvitesService::class,
-            fn (Di $di): InvitesService => new InvitesService(
-                invitesRepository: $di->get(InvitesRepository::class),
-            )
-        );
     }
 }

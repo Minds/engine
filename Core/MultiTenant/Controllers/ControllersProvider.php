@@ -6,8 +6,8 @@ namespace Minds\Core\MultiTenant\Controllers;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
-use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Core\MultiTenant\Services\DomainService;
+use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Core\MultiTenant\Services\InvitesService;
 use Minds\Core\MultiTenant\Services\TenantsService;
 use Minds\Core\MultiTenant\Services\TenantUsersService;
@@ -41,12 +41,5 @@ class ControllersProvider extends Provider
                 $di->get(DomainService::class)
             );
         });
-
-        $this->di->bind(
-            InvitesController::class,
-            fn (Di $di): InvitesController => new InvitesController(
-                $di->get(InvitesService::class)
-            )
-        );
     }
 }
