@@ -10,6 +10,7 @@ use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Diactoros\Response\RedirectResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -79,7 +80,7 @@ class OidcPsr7ControllerSpec extends ObjectBehavior
             ->shouldBeCalled();
 
         $response = $this->oidcCallback($requestMock);
-        $response->shouldBeAnInstanceOf(RedirectResponse::class);
+        $response->shouldBeAnInstanceOf(HtmlResponse::class);
     }
 
     public function it_should_throw_error_if_csrf_fails(ServerRequest $requestMock)

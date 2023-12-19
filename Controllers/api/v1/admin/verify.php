@@ -15,6 +15,7 @@ use Minds\Entities;
 use Minds\Interfaces;
 use Minds\Api\Factory;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
 
 class verify implements Interfaces\Api, Interfaces\ApiAdminPam
 {
@@ -80,7 +81,7 @@ class verify implements Interfaces\Api, Interfaces\ApiAdminPam
 
         $db = new Core\Data\Call('entities_by_time');
 
-        $user = new Entities\User($pages[0]);
+        $user = Di::_()->get(EntitiesBuilder::class)->single($pages[0]);
 
         if (!$user || !$user->guid) {
             return [

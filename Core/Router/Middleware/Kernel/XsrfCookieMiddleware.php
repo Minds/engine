@@ -6,6 +6,7 @@
 
 namespace Minds\Core\Router\Middleware\Kernel;
 
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\XSRF;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -14,6 +15,20 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class XsrfCookieMiddleware implements MiddlewareInterface
 {
+    /** @var callable */
+    private $xsrfValidateRequest;
+
+    /** @var callable */
+    private $xsrfSetCookie;
+
+    public function __construct(
+        $xsrfValidateRequest = null,
+        $xsrfSetCookie = null
+    ) {
+        $this->xsrfValidateRequest = $xsrfValidateRequest ?: [XSRF::class, 'validateRequest'];
+        $this->xsrfSetCookie = $xsrfSetCookie ?: [XSRF::class, 'setCookie'];
+    }
+
     /**
      * Process an incoming server request.
      *
@@ -26,7 +41,16 @@ class XsrfCookieMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        XSRF::setCookie();
+        // Set the XSRF cookie
+        call_user_func($this->xsrfSetCookie);
+
+        if (
+            $request->getAttribute('_user') && // If logged in
+            !$request->getAttribute('oauth_user_id') && // And not OAuth
+            !call_user_func($this->xsrfValidateRequest) // And xsrf validatio fails
+        ) {
+            throw new ForbiddenException();
+        }
 
         return $handler
             ->handle($request);
