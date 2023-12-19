@@ -226,7 +226,7 @@ review:stop:
 
 integration_testing:
   stage: qa
-  image: minds/php:pdo
+  image: "$default_php_image"
   script:
     - apk add --no-cache git
     - >
