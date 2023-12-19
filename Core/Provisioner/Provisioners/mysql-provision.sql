@@ -705,6 +705,15 @@ CREATE TABLE IF NOT EXISTS  minds_embedded_comments_activity_map (
     PRIMARY KEY (tenant_id, user_guid, url)
 );
 
+CREATE TABLE IF NOT EXISTS  minds_embedded_comments_settings (
+    tenant_id int NOT NULL,
+    user_guid bigint NOT NULL,
+    auto_imports_enabled boolean DEFAULT TRUE,
+    domain varchar(128) DEFAULT NULL,
+    path_regex varchar(256) DEFAULT NULL,
+    PRIMARY KEY (tenant_id, user_guid)
+);
+
 CREATE TABLE IF NOT EXISTS  `minds_oidc_providers` (
   `tenant_id` int NOT NULL,
   `provider_id` int NOT NULL AUTO_INCREMENT,
