@@ -8,7 +8,6 @@ use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
 use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\FeaturedEntityService;
-use Minds\Core\MultiTenant\Services\InvitesService;
 use Minds\Core\MultiTenant\Services\TenantsService;
 use Minds\Core\MultiTenant\Services\TenantUsersService;
 
