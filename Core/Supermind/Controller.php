@@ -298,7 +298,7 @@ class Controller
 
         $this->manager->setUser($loggedInUser);
 
-        $status = $request->getQueryParams()['status'] ?? null;
+        $status = (int) ($request->getQueryParams()['status'] ?? null);
 
         $count = $this->manager->countSentRequests(
             status: $status ? SupermindRequestStatus::from($status) : null
