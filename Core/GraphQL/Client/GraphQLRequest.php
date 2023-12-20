@@ -3,22 +3,42 @@ declare(strict_types=1);
 
 namespace Minds\Core\GraphQL\Client;
 
+/**
+ * Immutable GraphQL request.
+ */
 class GraphQLRequest
 {
     public function __construct(
-        private readonly string  $body = '',
-        private readonly array   $variables = [],
-        private readonly ?string $operationName = null,
+        public readonly string  $body = '',
+        public readonly array   $variables = [],
+        public readonly ?string $operationName = null,
     ) {
     }
 
-    public function setVariables(array $variables): static
+    /**
+     * @param string $body
+     * @return self
+     */
+    public function setBody(string $body): self
     {
-        return new static($this->body, $variables, $this->operationName);
+        return new self($body, $this->variables, $this->operationName);
     }
 
-    public function setOperationName(?string $operationName): static
+    /**
+     * @param array $variables
+     * @return self
+     */
+    public function setVariables(array $variables): self
     {
-        return new static($this->body, $this->variables, $operationName);
+        return new self($this->body, $variables, $this->operationName);
+    }
+
+    /**
+     * @param string|null $operationName
+     * @return self
+     */
+    public function setOperationName(?string $operationName): self
+    {
+        return new self($this->body, $this->variables, $operationName);
     }
 }

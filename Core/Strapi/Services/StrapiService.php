@@ -5,7 +5,7 @@ namespace Minds\Core\Strapi\Services;
 
 use GuzzleHttp\Exception\GuzzleException;
 use Minds\Core\GraphQL\Client\Client as GraphQLClient;
-use Minds\Core\GraphQL\Client\GraphQLQueryRequest;
+use Minds\Core\GraphQL\Client\GraphQLRequest;
 use Minds\Core\Payments\Checkout\Enums\CheckoutPageKeyEnum;
 use Minds\Core\Payments\Checkout\Types\AddOn;
 use Minds\Core\Payments\Checkout\Types\CheckoutPage;
@@ -64,8 +64,8 @@ class StrapiService
             }
         QUERY;
 
-        $request = (new GraphQLQueryRequest())
-            ->setQuery($query);
+        $request = (new GraphQLRequest())
+            ->setBody($query);
 
         $results = $this->client->runQuery($request);
         $data = $results->toArray()['productPlans']['data'];
@@ -139,8 +139,8 @@ class StrapiService
             }
         QUERY;
 
-        $request = (new GraphQLQueryRequest())
-            ->setQuery($query)
+        $request = (new GraphQLRequest())
+            ->setBody($query)
             ->setVariables(['addons' => array_diff($addonIds, $cachedItems)]);
 
         $results = $this->client->runQuery($request);
@@ -201,8 +201,8 @@ class StrapiService
             }
         QUERY;
 
-        $request = (new GraphQLQueryRequest())
-            ->setQuery($query)
+        $request = (new GraphQLRequest())
+            ->setBody($query)
             ->setVariables(['pageKey' => $page->value]);
 
         $results = $this->client->runQuery($request);

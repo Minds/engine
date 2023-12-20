@@ -20,13 +20,13 @@ class Client
      * @return GraphQLResponse
      * @throws GuzzleException
      */
-    public function runQuery(GraphQLQueryRequest $request): GraphQLResponse
+    public function runQuery(GraphQLRequest $request): GraphQLResponse
     {
         $response = $this->httpClient->post(
             '',
             [
                 'json' => [
-                    'query' => $request->query,
+                    'query' => $request->body,
                     'variables' => $request->variables,
                     'operationName' => $request->operationName,
                 ],
@@ -56,13 +56,13 @@ class Client
      * @return GraphQLResponse
      * @throws GuzzleException
      */
-    public function runMutation(GraphQLMutationRequest $request): GraphQLResponse
+    public function runMutation(GraphQLRequest $request): GraphQLResponse
     {
         $response = $this->httpClient->post(
             '',
             [
                 'json' => [
-                    'query' => $request->mutation,
+                    'query' => $request->body,
                     'variables' => $request->variables,
                     'operationName' => $request->operationName,
                 ],
