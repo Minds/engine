@@ -50,6 +50,7 @@ class XSRF
             ->setExpire(0)
             ->setPath('/')
             ->setHttpOnly(false) //must be able to read in JS
+            ->setSameSite('None')
             ->create();
     }
 }

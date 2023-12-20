@@ -30,7 +30,6 @@ class OidcPsr7Controller
         $queryParams = $request->getQueryParams();
 
         $providerId = $queryParams['providerId'] ?? null;
-        // $returnUrl = $queryParams['returnUrl'] ?? 'http://localhost:8080/newsfeed/subscriptions/top';
 
         if (!$providerId) {
             return new HtmlResponse('Error: providerId must be provided');
@@ -106,9 +105,12 @@ class OidcPsr7Controller
             state: $state,
         );
 
-        $returnUrl = '/newsfeed/subscriptions/top';
-
-        return new RedirectResponse($returnUrl);
+        return new HtmlResponse(
+            <<<HTML
+<script>window.close();</script>
+<p>Please close this window/tab.</p>
+HTML
+        );
     }
 
 }

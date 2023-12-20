@@ -101,4 +101,10 @@ class UserNode extends AbstractEntityNode
     {
         return $this->user->getSubscriptionsCount();
     }
+
+    #[Field]
+    public function getIconUrl(): string
+    {
+        return $this->user->getIconURL();
+    }
 }
