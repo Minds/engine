@@ -20,7 +20,7 @@ class Invite implements NodeInterface
      * @param string $bespokeMessage
      * @param int $createdTimestamp
      * @param int|null $sendTimestamp
-     * @param RolesEnum[]|null $roles
+     * @param int[]|null $roles
      * @param int[]|null $groups
      */
     public function __construct(
@@ -42,7 +42,7 @@ class Invite implements NodeInterface
     }
 
     /**
-     * @return RolesEnum[]|null
+     * @return int[]|null
      */
     #[Field]
     public function getRoles(): ?array

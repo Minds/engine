@@ -66,7 +66,7 @@ class InvitesRepository extends AbstractRepository
             if (
                 !$stmt->execute([
                     'email' => $email,
-                    'roles' => $roles ? implode(',', array_map(fn (RolesEnum $role): int => $role->value, $roles)) : null,
+                    'roles' => $roles ? implode(',', array_map(fn (int $role): int => RolesEnum::from($role)->value, $roles)) : null,
                     'groups' => $groups ? implode(',', $groups) : null,
                     'token' => $this->generateInviteToken((int)$this->mysqlClientWriter->lastInsertId()),
                 ])
@@ -128,9 +128,34 @@ class InvitesRepository extends AbstractRepository
             bespokeMessage: $data['custom_message'],
             createdTimestamp: (int)$data['created_timestamp'],
             sendTimestamp: $data['send_timestamp'] ? strtotime($data['send_timestamp']) : null,
-            roles: $data['target_roles'] ? array_map(fn (int $role): RolesEnum => RolesEnum::from($role), explode(',', $data['target_roles'])) : null,
+            roles: $data['target_roles'] ? explode(',', $data['target_roles']) : null,
             groups: $data['target_group_guids'] ? explode(',', $data['target_group_guids']) : null,
         );
+    }
+
+    /**
+     * @param int $inviteId
+     * @return Invite
+     * @throws NotFoundException
+     * @throws ServerErrorException
+     */
+    public function getInviteById(int $inviteId): Invite
+    {
+        $statement = $this->mysqlClientReaderHandler->select()
+            ->from('minds_tenant_invites')
+            ->where('id', Operator::EQ, new RawExp(":id"))
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->prepare();
+
+        if (!$statement->execute(['id' => $inviteId])) {
+            throw new ServerErrorException("Failed to fetch invite");
+        }
+
+        if ($statement->rowCount() === 0) {
+            throw new NotFoundException("Invite not found");
+        }
+
+        return $this->buildInvite($statement->fetch(PDO::FETCH_ASSOC));
     }
 
     /**
@@ -153,10 +178,17 @@ class InvitesRepository extends AbstractRepository
             ->where('status', Operator::IN, [InviteEmailStatusEnum::PENDING->value, InviteEmailStatusEnum::SENT->value, InviteEmailStatusEnum::FAILED->value])
             ->orderBy('send_timestamp DESC', 'created_timestamp DESC')
             ->limit($first + 1)
-            ->offset($after)
-            ->prepare();
+            ->offset($after);
+        $values = [];
 
-        if (!$statement->execute()) {
+        if ($search) {
+            $statement->where('email', Operator::LIKE, new RawExp(":search"));
+            $values['search'] = "%$search%";
+        }
+
+        $statement = $statement->prepare();
+
+        if (!$statement->execute($values)) {
             throw new ServerErrorException("Failed to fetch invites");
         }
 
@@ -166,8 +198,30 @@ class InvitesRepository extends AbstractRepository
             if ($index === $first) {
                 break;
             }
-            
+
             yield $this->buildInvite($invite);
         }
+    }
+
+    /**
+     * @param int $inviteId
+     * @param InviteEmailStatusEnum $status
+     * @return bool
+     */
+    public function updateInviteStatus(
+        int                   $inviteId,
+        InviteEmailStatusEnum $status
+    ): bool {
+        $stmt = $this->mysqlClientWriterHandler->update()
+            ->table('minds_tenant_invites')
+            ->set([
+                'status' => $status->value,
+                'send_timestamp' => $status === InviteEmailStatusEnum::SENT ? date('c', time()) : null,
+            ])
+            ->where('id', Operator::EQ, $inviteId)
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->prepare();
+
+        return $stmt->execute();
     }
 }

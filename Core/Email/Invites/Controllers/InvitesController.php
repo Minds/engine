@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 namespace Minds\Core\Email\Invites\Controllers;
 
+use Minds\Core\Email\Invites\Enums\InviteEmailStatusEnum;
 use Minds\Core\Email\Invites\Services\InvitesService;
 use Minds\Core\Email\Invites\Types\Invite;
 use Minds\Core\Email\Invites\Types\InviteConnection;
-use Minds\Core\Security\Rbac\Enums\RolesEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
@@ -26,7 +26,7 @@ class InvitesController
     /**
      * @param string $emails
      * @param string $bespokeMessage
-     * @param RolesEnum[]|null $roles
+     * @param int[]|null $roles
      * @param int[]|null $groups
      * @return void
      * @throws ServerErrorException
@@ -51,16 +51,14 @@ class InvitesController
     }
 
     /**
-     * @param string $inviteToken
+     * @param int $inviteId
      * @return Invite
-     * @throws ServerErrorException
-     * @throws NotFoundException
      */
     #[Query]
     public function getInvite(
-        string $inviteToken
+        int $inviteId
     ): Invite {
-        return $this->invitesService->getInviteByToken($inviteToken);
+        return $this->invitesService->getInviteById($inviteId);
     }
 
     /**
@@ -68,6 +66,7 @@ class InvitesController
      * @param string|null $after
      * @param string|null $search
      * @return InviteConnection
+     * @throws ServerErrorException
      */
     #[Query]
     #[Logged]
@@ -82,6 +81,40 @@ class InvitesController
             first: $first,
             after: $after,
             search: $search,
+        );
+    }
+
+    /**
+     * @param int $inviteId
+     * @return void
+     * @throws ServerErrorException
+     */
+    #[Mutation]
+    #[Logged]
+    #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
+    public function cancelInvite(
+        int $inviteId
+    ): void {
+        $this->invitesService->updateInviteStatus(
+            inviteId: $inviteId,
+            status: InviteEmailStatusEnum::CANCELLED
+        );
+    }
+
+    /**
+     * @param int $inviteId
+     * @return void
+     * @throws ServerErrorException
+     * @throws NotFoundException
+     */
+    #[Mutation]
+    #[Logged]
+    #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
+    public function resendInvite(
+        int $inviteId
+    ): void {
+        $this->invitesService->resendInvite(
+            inviteId: $inviteId,
         );
     }
 }

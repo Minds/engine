@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Email\Invites\Services;
 
+use Minds\Core\Email\Invites\Enums\InviteEmailStatusEnum;
 use Minds\Core\Email\Invites\Repositories\InvitesRepository;
 use Minds\Core\Email\Invites\Types\Invite;
 use Minds\Core\Email\Invites\Types\InviteConnection;
@@ -80,6 +81,13 @@ class InvitesService
         return $this->invitesRepository->getInviteByToken($inviteToken);
     }
 
+    /**
+     * @param int $first
+     * @param string|null $after
+     * @param string|null $search
+     * @return InviteConnection
+     * @throws ServerErrorException
+     */
     public function getInvites(
         int     $first,
         ?string $after = null,
@@ -111,5 +119,40 @@ class InvitesService
                     endCursor: !$hasMore ? null : (string)((int)$after + $first),
                 )
             );
+    }
+
+    /**
+     * @param int $inviteId
+     * @param InviteEmailStatusEnum $status
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function updateInviteStatus(int $inviteId, InviteEmailStatusEnum $status): bool
+    {
+        return $this->invitesRepository->updateInviteStatus($inviteId, $status);
+    }
+
+    /**
+     * @param int $inviteId
+     * @return void
+     * @throws NotFoundException
+     * @throws ServerErrorException
+     */
+    public function resendInvite(int $inviteId): void
+    {
+        $invite = $this->getInviteById($inviteId);
+
+        // resend invite
+    }
+
+    /**
+     * @param int $inviteId
+     * @return Invite
+     * @throws NotFoundException
+     * @throws ServerErrorException
+     */
+    public function getInviteById(int $inviteId): Invite
+    {
+        return $this->invitesRepository->getInviteById($inviteId);
     }
 }
