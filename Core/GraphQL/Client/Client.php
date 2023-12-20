@@ -36,7 +36,7 @@ class Client
         return $this->buildResponse($response);
     }
 
-    public function buildResponse(ResponseInterface $response): GraphQLResponse
+    private function buildResponse(ResponseInterface $response): GraphQLResponse
     {
         $data = json_decode($response->getBody()->getContents(), true);
 
