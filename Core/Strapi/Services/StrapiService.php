@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace Minds\Core\Strapi\Services;
 
-use GraphQL\Client as StrapiGraphQLClient;
+use GuzzleHttp\Exception\GuzzleException;
+use Minds\Core\GraphQL\Client\Client as GraphQLClient;
+use Minds\Core\GraphQL\Client\GraphQLQueryRequest;
 use Minds\Core\Payments\Checkout\Enums\CheckoutPageKeyEnum;
 use Minds\Core\Payments\Checkout\Types\AddOn;
 use Minds\Core\Payments\Checkout\Types\CheckoutPage;
@@ -17,8 +19,8 @@ class StrapiService
     private const CACHE_TTL = 60 * 30; // 30 minutes
 
     public function __construct(
-        private readonly StrapiGraphQLClient $client,
-        private readonly CacheInterface      $cache
+        private readonly GraphQLClient  $client,
+        private readonly CacheInterface $cache
     ) {
     }
 
@@ -26,6 +28,7 @@ class StrapiService
      * @param string $planId
      * @return Plan
      * @throws GraphQLException
+     * @throws GuzzleException
      * @throws InvalidArgumentException
      */
     public function getPlan(string $planId): Plan
@@ -61,9 +64,11 @@ class StrapiService
             }
         QUERY;
 
-        $results = $this->client->runRawQuery($query);
-        $results->reformatResults(true);
-        $data = $results->getData()['productPlans']['data'];
+        $request = (new GraphQLQueryRequest())
+            ->setQuery($query);
+
+        $results = $this->client->runQuery($request);
+        $data = $results->toArray()['productPlans']['data'];
 
         if (!count($data)) {
             throw new GraphQLException('Plan not found', 404);
@@ -88,6 +93,7 @@ class StrapiService
      * @param array $addonIds
      * @return AddOn[]
      * @throws GraphQLException
+     * @throws GuzzleException
      * @throws InvalidArgumentException
      */
     public function getPlanAddons(array $addonIds): iterable
@@ -133,15 +139,13 @@ class StrapiService
             }
         QUERY;
 
-        $results = $this->client->runRawQuery(
-            queryString: $query,
-            resultsAsArray: true,
-            variables: [
-                'addons' => array_diff($addonIds, $cachedItems)
-            ]
-        );
+        $request = (new GraphQLQueryRequest())
+            ->setQuery($query)
+            ->setVariables(['addons' => array_diff($addonIds, $cachedItems)]);
 
-        $data = $results->getData()['productAddOns']['data'];
+        $results = $this->client->runQuery($request);
+
+        $data = $results->toArray()['productAddOns']['data'];
 
         if (!count($data)) {
             return throw new GraphQLException('Addons not found', 404);
@@ -166,6 +170,7 @@ class StrapiService
      * @param CheckoutPageKeyEnum $page
      * @return CheckoutPage
      * @throws GraphQLException
+     * @throws GuzzleException
      * @throws InvalidArgumentException
      */
     public function getCheckoutPage(CheckoutPageKeyEnum $page): CheckoutPage
@@ -196,15 +201,13 @@ class StrapiService
             }
         QUERY;
 
-        $results = $this->client->runRawQuery(
-            queryString: $query,
-            resultsAsArray: true,
-            variables: [
-                'pageKey' => $page->value
-            ]
-        );
+        $request = (new GraphQLQueryRequest())
+            ->setQuery($query)
+            ->setVariables(['pageKey' => $page->value]);
 
-        $data = $results->getData()['checkoutPages']['data'];
+        $results = $this->client->runQuery($request);
+
+        $data = $results->toArray()['checkoutPages']['data'];
 
         if (!count($data)) {
             return throw new GraphQLException('Checkout page not found', 404);

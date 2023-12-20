@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace Minds\Core\Strapi;
 
-use GraphQL\Client as StrapiGraphQLClient;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\GraphQL\Client\Client as GraphQLClient;
 use Minds\Core\Strapi\Services\StrapiService;
 
 class Provider extends DiProvider
@@ -19,18 +19,13 @@ class Provider extends DiProvider
             StrapiService::class,
             function (Di $di): StrapiService {
                 return new StrapiService(
-                    client: $di->get(StrapiGraphQLClient::class),
+                    client: $di->get(
+                        GraphQLClient::class,
+                        [
+                            'base_uri' => $di->get('Config')->get('strapi')['url'] . "/graphql"
+                        ]
+                    ),
                     cache: $di->get('Cache')
-                );
-            }
-        );
-
-        $this->di->bind(
-            StrapiGraphQLClient::class,
-            function (Di $di): StrapiGraphQLClient {
-                $strapiUrl = $di->get('Config')->get('strapi')['url'];
-                return new StrapiGraphQLClient(
-                    endpointUrl: $strapiUrl . '/graphql',
                 );
             }
         );

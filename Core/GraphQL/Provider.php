@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\GraphQL;
 
 use GraphQL\Type\Schema;
@@ -6,6 +7,7 @@ use Minds\Core\Data\cache\APCuCache;
 use Minds\Core\Di\Container;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\GraphQL\Client\Client;
 use TheCodingMachine\GraphQLite\SchemaFactory;
 
 class Provider extends DiProvider
@@ -21,7 +23,7 @@ class Provider extends DiProvider
             $container = new Container($di);
 
             return new SchemaFactory($cache, $container);
-        }, [ 'useFactory' => true ]);
+        }, ['useFactory' => true]);
 
         $this->di->bind(Schema::class, function (Di $di, array $args = []): Schema {
             /** @var SchemaFactory $factory */
@@ -37,7 +39,7 @@ class Provider extends DiProvider
              * The library requires some default namespaces
              */
             $factory->addControllerNamespace('Minds\\Core\\GraphQL\\Controllers')
-                    ->addTypeNamespace('Minds\\Core\\GraphQL\\Types');
+                ->addTypeNamespace('Minds\\Core\\GraphQL\\Types');
 
             if (isset($args['auth_service'])) {
                 $factory->setAuthenticationService($args['auth_service']);
@@ -48,10 +50,23 @@ class Provider extends DiProvider
             }
 
             return $factory->createSchema();
-        }, ['useFactory' => true ]);
+        }, ['useFactory' => true]);
 
         $this->di->bind(Controller::class, function (Di $di): Controller {
             return new Controller();
         });
+
+        $this->di->bind(
+            Client::class,
+            function (Di $di, array $args = []): Client {
+                $httpClient = new \GuzzleHttp\Client([
+                    'base_uri' => $args['base_uri'] ?? '',
+                ]);
+                
+                return new Client(
+                    httpClient: $httpClient
+                );
+            }
+        );
     }
 }
