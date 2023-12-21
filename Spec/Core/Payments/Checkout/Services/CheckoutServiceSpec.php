@@ -95,7 +95,7 @@ class CheckoutServiceSpec extends ObjectBehavior
                 )
             );
 
-        $stripeProductPricesMock->getIterator()->willReturn([
+        $stripeProductPricesMock->getIterator()->willYield([
             $this->generateStripeProductPriceMock(
                 id: 'plan-id',
                 unitAmount: 1000,
@@ -108,7 +108,7 @@ class CheckoutServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($stripeProductPricesMock);
 
-        $stripeProductAddonsMock->getIterator()->willReturn([
+        $stripeProductAddonsMock->getIterator()->willYield([
             $this->generateStripeProductMock(
                 id: 'add-on-id',
                 key: 'add-on-id',
@@ -133,7 +133,7 @@ class CheckoutServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($this->generateStripeCheckoutSessionMock());
 
-        $stripeProductAddonsPricesMock->getIterator()->willReturn([
+        $stripeProductAddonsPricesMock->getIterator()->willYield([
             $this->generateStripeProductPriceMock(
                 id: 'add-on-id',
                 unitAmount: 100,
