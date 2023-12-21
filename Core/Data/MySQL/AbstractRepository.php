@@ -50,4 +50,5 @@ abstract class AbstractRepository
     {
         $this->mysqlClientWriter->commit();
     }
+
 }
