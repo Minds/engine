@@ -2,23 +2,21 @@
 
 namespace Minds\Controllers\Cli;
 
-use Minds\Core;
 use Minds\Cli;
-use Minds\Interfaces;
-use Minds\Entities\User;
-use Minds\Core\Email\EmailSubscribersIterator;
+use Minds\Core;
+use Minds\Core\Di\Di;
+use Minds\Core\Email\Invites\Services\InvitesService;
 use Minds\Core\Email\V2\Campaigns;
+use Minds\Core\Email\V2\Campaigns\Recurring\Supermind\Supermind as SupermindEmail;
+use Minds\Core\Email\V2\Campaigns\Recurring\SupermindBulkIncentive\SupermindBulkIncentive;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireReceived\WireReceived;
 use Minds\Core\Email\V2\Campaigns\Recurring\WireSent\WireSent;
 use Minds\Core\Email\V2\Delegates\DigestSender;
+use Minds\Core\Email\V2\SendLists;
 use Minds\Core\Reports;
 use Minds\Core\Supermind;
-use Minds\Core\Email\V2\Campaigns\Recurring\Supermind\Supermind as SupermindEmail;
-
-use Minds\Core\Suggestions\Manager;
-use Minds\Core\Di\Di;
-use Minds\Core\Email\V2\Campaigns\Recurring\SupermindBulkIncentive\SupermindBulkIncentive;
-use Minds\Core\Email\V2\SendLists;
+use Minds\Entities\User;
+use Minds\Interfaces;
 
 class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -86,9 +84,9 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             if ($campaign instanceof SupermindBulkIncentive) {
                 $campaign = $campaign
                     ->withActivityGuid($this->getOpt('activity-guid'))
-                    ->withReplyType((int) $this->getOpt('reply-type'))
-                    ->withPaymentMethod((int) $this->getOpt('payment-method'))
-                    ->withPaymentAmount((int) $this->getOpt('payment-amount'));
+                    ->withReplyType((int)$this->getOpt('reply-type'))
+                    ->withPaymentMethod((int)$this->getOpt('payment-method'))
+                    ->withPaymentAmount((int)$this->getOpt('payment-amount'));
             }
 
             $campaign->setUser($user);
@@ -326,10 +324,10 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
         $supermindRequest = new Supermind\Models\SupermindRequest();
 
         $supermindRequest->setActivityGuid($activityGuid)
-        ->setSenderGuid($senderGuid)
-        ->setReceiverGuid($receiverGuid)
-        ->setPaymentMethod($paymentMethod)
-        ->setPaymentAmount($paymentAmount);
+            ->setSenderGuid($senderGuid)
+            ->setReceiverGuid($receiverGuid)
+            ->setPaymentMethod($paymentMethod)
+            ->setPaymentAmount($paymentAmount);
 
         $supermindEmailer = new SupermindEmail();
         $supermindEmailer->setTopic($topic)
@@ -375,5 +373,16 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 
         $mautic = Di::_()->get(Core\Email\Mautic\Manager::class);
         $mautic->sync(fromTs: $fromTs, offset: $offset);
+    }
+
+    public function sendInvites(): void
+    {
+        (function () {
+            /**
+             * @var InvitesService $invitesService
+             */
+            $invitesService = Di::_()->get(InvitesService::class);
+            $invitesService->sendInvites();
+        })();
     }
 }

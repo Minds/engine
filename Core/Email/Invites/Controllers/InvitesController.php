@@ -111,10 +111,12 @@ class InvitesController
     #[Logged]
     #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
     public function resendInvite(
-        int $inviteId
+        int                $inviteId,
+        #[InjectUser] User $loggedInUser,
     ): void {
         $this->invitesService->resendInvite(
             inviteId: $inviteId,
+            sender: $loggedInUser,
         );
     }
 }

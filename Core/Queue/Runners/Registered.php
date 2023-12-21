@@ -80,11 +80,7 @@ class Registered implements QueueRunner
                         foreach ($invite->getRoles() as $role) {
                             $rolesService->assignUserToRole(
                                 $subscriber,
-                                new Role(
-                                    id: $role,
-                                    name: RolesEnum::tryFrom($role)?->name ?? '',
-                                    permissions: []
-                                )
+                                $role
                             );
                         }
                     }

@@ -6,6 +6,7 @@ namespace Minds\Core\Email\Invites\Types;
 use Minds\Core\Email\Invites\Enums\InviteEmailStatusEnum;
 use Minds\Core\GraphQL\Types\NodeInterface;
 use Minds\Core\Security\Rbac\Enums\RolesEnum;
+use Minds\Core\Security\Rbac\Models\Role;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 use TheCodingMachine\GraphQLite\Types\ID;
@@ -25,7 +26,10 @@ class Invite implements NodeInterface
      */
     public function __construct(
         #[Field] public readonly int                   $inviteId,
+        public readonly int                            $tenantId,
+        public readonly int                            $ownerGuid,
         #[Field] public readonly string                $email,
+        public readonly string                         $inviteToken,
         #[Field] public readonly InviteEmailStatusEnum $status,
         #[Field] public readonly string                $bespokeMessage,
         #[Field] public readonly int                   $createdTimestamp,
@@ -42,12 +46,21 @@ class Invite implements NodeInterface
     }
 
     /**
-     * @return int[]|null
+     * @return Role[]|null
      */
     #[Field]
     public function getRoles(): ?array
     {
-        return $this->roles;
+        $roles = [];
+        foreach ($this->roles as $roleId) {
+            $roleEnum = RolesEnum::from($roleId);
+            $roles[$roleEnum->value] = new Role(
+                id: $roleEnum->value,
+                name: $roleEnum->name,
+                permissions: []
+            );
+        }
+        return $roles;
     }
 
     /**

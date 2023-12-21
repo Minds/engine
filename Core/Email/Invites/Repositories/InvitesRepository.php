@@ -123,13 +123,16 @@ class InvitesRepository extends AbstractRepository
     {
         return new Invite(
             inviteId: $data['id'],
+            tenantId: $data['tenant_id'],
+            ownerGuid: $data['owner_guid'],
             email: $data['email'],
+            inviteToken: $data['invite_token'],
             status: InviteEmailStatusEnum::from((int)$data['status']),
             bespokeMessage: $data['custom_message'],
-            createdTimestamp: (int)$data['created_timestamp'],
+            createdTimestamp: (int)strtotime($data['created_timestamp']),
             sendTimestamp: $data['send_timestamp'] ? strtotime($data['send_timestamp']) : null,
-            roles: $data['target_roles'] ? explode(',', $data['target_roles']) : null,
-            groups: $data['target_group_guids'] ? explode(',', $data['target_group_guids']) : null,
+            roles: $data['target_roles'] ? array_map(fn (string $role): int => (int)$role, explode(',', $data['target_roles'])) : null,
+            groups: $data['target_group_guids'] ? array_map(fn (string $groupGuid): int => (int)$groupGuid, explode(',', $data['target_group_guids'])) : null,
         );
     }
 
@@ -212,16 +215,38 @@ class InvitesRepository extends AbstractRepository
         int                   $inviteId,
         InviteEmailStatusEnum $status
     ): bool {
+        $setColumns = [
+            'status' => $status->value,
+        ];
+        if ($status === InviteEmailStatusEnum::SENT) {
+            $setColumns['send_timestamp'] = new RawExp('NOW()');
+        }
+
         $stmt = $this->mysqlClientWriterHandler->update()
             ->table('minds_tenant_invites')
-            ->set([
-                'status' => $status->value,
-                'send_timestamp' => $status === InviteEmailStatusEnum::SENT ? date('c', time()) : null,
-            ])
+            ->set($setColumns)
             ->where('id', Operator::EQ, $inviteId)
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->prepare();
 
         return $stmt->execute();
+    }
+
+    /**
+     * Returns the oldest 1000 invites that have not been sent yet
+     * @return Invite[]
+     */
+    public function getInvitesToSend(): iterable
+    {
+        $statement = $this->mysqlClientReaderHandler->select()
+            ->from('minds_tenant_invites')
+            ->where('status', Operator::EQ, InviteEmailStatusEnum::PENDING->value)
+            ->orderBy('created_timestamp ASC')
+            ->limit(1000)
+            ->execute();
+
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $invite) {
+            yield $this->buildInvite($invite);
+        }
     }
 }

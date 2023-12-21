@@ -3,12 +3,17 @@ declare(strict_types=1);
 
 namespace Minds\Core\Email\Invites\Services;
 
+use Minds\Core\Di\Di;
 use Minds\Core\Email\Invites\Enums\InviteEmailStatusEnum;
 use Minds\Core\Email\Invites\Repositories\InvitesRepository;
 use Minds\Core\Email\Invites\Types\Invite;
 use Minds\Core\Email\Invites\Types\InviteConnection;
 use Minds\Core\Email\Invites\Types\InviteEdge;
+use Minds\Core\Email\V2\Campaigns\Recurring\Invite\InviteEmailer;
 use Minds\Core\GraphQL\Types\PageInfo;
+use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\Rbac\Enums\RolesEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
@@ -123,26 +128,26 @@ class InvitesService
 
     /**
      * @param int $inviteId
-     * @param InviteEmailStatusEnum $status
-     * @return bool
-     * @throws ServerErrorException
-     */
-    public function updateInviteStatus(int $inviteId, InviteEmailStatusEnum $status): bool
-    {
-        return $this->invitesRepository->updateInviteStatus($inviteId, $status);
-    }
-
-    /**
-     * @param int $inviteId
+     * @param User $sender
      * @return void
      * @throws NotFoundException
      * @throws ServerErrorException
      */
-    public function resendInvite(int $inviteId): void
+    public function resendInvite(int $inviteId, User $sender): void
     {
         $invite = $this->getInviteById($inviteId);
 
         // resend invite
+        $inviteEmailer = new InviteEmailer();
+        $inviteEmailer
+            ->setInvite($invite)
+            ->setSender($sender);
+
+        if (!$inviteEmailer->send()) {
+            $this->invitesRepository->updateInviteStatus($invite->inviteId, InviteEmailStatusEnum::FAILED);
+        } else {
+            $this->invitesRepository->updateInviteStatus($invite->inviteId, InviteEmailStatusEnum::SENT);
+        }
     }
 
     /**
@@ -154,5 +159,60 @@ class InvitesService
     public function getInviteById(int $inviteId): Invite
     {
         return $this->invitesRepository->getInviteById($inviteId);
+    }
+
+    /**
+     * @param int $inviteId
+     * @param InviteEmailStatusEnum $status
+     * @return bool
+     */
+    public function updateInviteStatus(int $inviteId, InviteEmailStatusEnum $status): bool
+    {
+        return $this->invitesRepository->updateInviteStatus($inviteId, $status);
+    }
+
+    /**
+     * @return void
+     * @throws ForbiddenException
+     * @throws NoTenantFoundException
+     */
+    public function sendInvites(): void
+    {
+        if (php_sapi_name() !== 'cli') {
+            throw new ForbiddenException('This endpoint is restricted');
+        }
+
+        $invites = $this->invitesRepository->getInvitesToSend();
+        $entitiesBuilder = Di::_()->get('EntitiesBuilder');
+        $inviteEmailer = new InviteEmailer();
+
+        /**
+         * @var MultiTenantBootService $multiTenantBootService
+         */
+        $multiTenantBootService = Di::_()->get(MultiTenantBootService::class);
+
+        foreach ($invites as $invite) {
+            if ($invite->tenantId > 0) {
+                $multiTenantBootService->bootFromTenantId($invite->tenantId);
+            }
+
+            $sender = $entitiesBuilder->single($invite->ownerGuid);
+
+            $this->invitesRepository->updateInviteStatus($invite->inviteId, InviteEmailStatusEnum::SENDING);
+
+            $inviteEmailer
+                ->setInvite($invite)
+                ->setSender($sender);
+
+            if (!$inviteEmailer->send()) {
+                $this->invitesRepository->updateInviteStatus($invite->inviteId, InviteEmailStatusEnum::FAILED);
+            } else {
+                $this->invitesRepository->updateInviteStatus($invite->inviteId, InviteEmailStatusEnum::SENT);
+            }
+
+            if ($invite->tenantId > 0) {
+                $multiTenantBootService->resetRootConfigs();
+            }
+        }
     }
 }

@@ -115,7 +115,7 @@ class Register
                 Core\Queue\Client::build()->setQueue('Registered')
                     ->send([
                         'user_guid' => (string)$params['user']->guid,
-                        'invite_token' => $params['invite_token'] ?? null,
+                        'invite_token' => $params['invitecode'] ?? null,
                     ]);
             } catch (\Exception $e) {
             }
