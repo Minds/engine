@@ -25,7 +25,7 @@ class EmbeddedCommentsRepositorySpec extends ObjectBehavior
         PDO $mysqlMasterMock,
         PDO $mysqlReplicaMock
     ) {
-        $this->beConstructedWith($configMock, $mysqlClientMock, Di::_()->get('Logger'));
+        $this->beConstructedWith($mysqlClientMock, $configMock, Di::_()->get('Logger'));
 
         $this->mysqlClientMock = $mysqlClientMock;
 

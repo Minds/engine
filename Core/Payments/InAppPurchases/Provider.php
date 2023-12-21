@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\InAppPurchases;
 
 use GuzzleHttp\Client;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Payments\GiftCards\Manager as GiftCardsManager;
@@ -50,6 +51,7 @@ class Provider extends DiProvider
         $this->di->bind(RelationalRepository::class, function (Di $di): RelationalRepository {
             return new RelationalRepository(
                 mysqlHandler: $di->get('Database\MySQL\Client'),
+                config: $di->get(Config::class),
                 logger: $di->get('Logger'),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
             );

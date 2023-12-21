@@ -3,11 +3,13 @@
 namespace Spec\Minds\Core\Groups\V2\Membership;
 
 use DateTime;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Groups\V2\Membership\Repository;
 use Minds\Core\Log\Logger;
 use Minds\Core\Data\MySQL;
 use Minds\Core\Data\MySQL\MySQLConnectionEnum;
+use Minds\Core\Di\Di;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Core\Groups\V2\Membership\Membership;
 use Minds\Exceptions\NotFoundException;
@@ -31,7 +33,7 @@ class RepositorySpec extends ObjectBehavior
         PDO $mysqlMasterMock,
         PDO $mysqlReplicaMock,
     ) {
-        $this->beConstructedWith($mysqlClientMock, $loggerMock, $cacheMock);
+        $this->beConstructedWith($mysqlClientMock, Di::_()->get(Config::class), $loggerMock, $cacheMock);
 
         $this->mysqlClientMock = $mysqlClientMock;
 

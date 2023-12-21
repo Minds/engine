@@ -11,13 +11,6 @@ use Selective\Database\RawExp;
 
 class Repository extends AbstractRepository
 {
-    public function __construct(
-        private Config $config,
-        ...$args
-    ) {
-        parent::__construct(...$args);
-    }
-
     public function getUrnFromUri(string $uri): ?string
     {
         $query = $this->mysqlClientReaderHandler

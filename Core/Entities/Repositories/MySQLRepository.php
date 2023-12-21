@@ -26,12 +26,12 @@ use Selective\Database\SelectQuery;
 class MySQLRepository extends AbstractRepository implements EntitiesRepositoryInterface
 {
     public function __construct(
-        private Config $config,
+        Config $config,
         private ActiveSession $activeSession,
         Client $mysqlClient,
         Logger $logger,
     ) {
-        parent::__construct($mysqlClient, $logger);
+        parent::__construct($mysqlClient, $config, $logger);
     }
 
     /**

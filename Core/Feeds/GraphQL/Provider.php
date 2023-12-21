@@ -2,6 +2,7 @@
 namespace Minds\Core\Feeds\GraphQL;
 
 use Minds\Core\Boost\V3\Manager as BoostManager;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\FeedNotices;
@@ -41,6 +42,7 @@ class Provider extends DiProvider
             alias: TenantGuestModeFeedMySQLRepository::class,
             function: fn (Di $di): TenantGuestModeFeedMySQLRepository => new TenantGuestModeFeedMySQLRepository(
                 mysqlHandler: $di->get('Database\MySQL\Client'),
+                config: $di->get(Config::class),
                 logger: $di->get('Logger')
             )
         );

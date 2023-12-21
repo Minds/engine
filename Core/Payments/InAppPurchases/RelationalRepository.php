@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\InAppPurchases;
 
 use Exception;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\EntitiesBuilder;
@@ -19,10 +20,11 @@ class RelationalRepository extends AbstractRepository
 {
     public function __construct(
         Client $mysqlHandler,
+        Config $config,
         Logger $logger,
         private readonly EntitiesBuilder $entitiesBuilder,
     ) {
-        parent::__construct($mysqlHandler, $logger);
+        parent::__construct($mysqlHandler, $config, $logger);
     }
 
     private const TABLE_NAME = 'minds_in_app_purchases';
