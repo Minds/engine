@@ -6,6 +6,7 @@ declare(strict_types=1);
  */
 namespace Minds\Core\Onboarding\V5;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
@@ -23,7 +24,7 @@ class Provider extends DiProvider
         }, ['useFactory' => false]);
 
         $this->di->bind(Repository::class, function (Di $di): Repository {
-            return new Repository($di->get(Client::class), $di->get('Logger'));
+            return new Repository($di->get(Client::class), $di->get(Config::class), $di->get('Logger'));
         }, ['factory' => true]);
     }
 }

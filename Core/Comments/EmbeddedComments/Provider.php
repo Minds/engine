@@ -65,16 +65,16 @@ class Provider extends DiProvider
 
         $this->di->bind(EmbeddedCommentsRepository::class, function (Di $di): EmbeddedCommentsRepository {
             return new EmbeddedCommentsRepository(
-                $di->get(Config::class),
                 $di->get(Client::class),
+                $di->get(Config::class),
                 $di->get('Logger')
             );
         });
 
         $this->di->bind(EmbeddedCommentsSettingsRepository::class, function (Di $di): EmbeddedCommentsSettingsRepository {
             return new EmbeddedCommentsSettingsRepository(
-                $di->get(Config::class),
                 $di->get(Client::class),
+                $di->get(Config::class),
                 $di->get('Logger')
             );
         });

@@ -12,13 +12,6 @@ class OidcProvidersRepository extends AbstractRepository
 {
     const TABLE_NAME = 'minds_oidc_providers';
 
-    public function __construct(
-        private Config $config,
-        ...$args
-    ) {
-        parent::__construct(...$args);
-    }
-
     /**
      * Return a list of providers setup for a site
      * @return OidcProviders[]

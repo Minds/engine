@@ -57,6 +57,7 @@ class Provider extends DiProvider
         $this->di->bind(ReportRepository::class, function (Di $di): ReportRepository {
             return new ReportRepository(
                 mysqlHandler: $di->get(MySQLClient::class),
+                config: $di->get(Config::class),
                 logger: $di->get('Logger')
             );
         }, ['factory' => true]);
