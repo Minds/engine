@@ -7,6 +7,8 @@ use Minds\Core\Data\Cassandra\Thrift\Lookup;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments\Stripe\StripeClient;
 use Minds\Entities\User;
+use Stripe\Customer;
+use Stripe\Exception\ApiErrorException;
 
 class ManagerV2
 {
@@ -22,14 +24,16 @@ class ManagerV2
 
     /**
      * Return a Customer from user guid. Creates one if not found.
-     * @param string $userGuid
+     * @param User $user
      * @return Customer
+     * @throws ApiErrorException
      */
     public function getByUser(User $user): \Stripe\Customer
     {
         $customerId = $this->lookup->get("{$user->getGuid()}:payments")['customer_id'];
 
         if (!$customerId) {
+            // TODO: add Minds user guid to stripe metadata
             $stripeCustomer = $this->stripeClient->customers->create([]);
 
             $this->lookup->set("{$user->getGuid()}:payments", [
