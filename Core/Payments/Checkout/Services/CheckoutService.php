@@ -74,11 +74,13 @@ class CheckoutService
             user: $user,
             mode: CheckoutModeEnum::SUBSCRIPTION,
             successUrl: "api/v3/payments/checkout/complete?session_id={CHECKOUT_SESSION_ID}",
+            cancelUrl: "networks/checkout?planId=$planId&timePeriod=" . strtolower($timePeriod->name),
             lineItems: $lineItems,
             paymentMethodTypes: [
                 'card',
                 'us_bank_account',
-            ]
+            ],
+            submitMessage: $timePeriod === CheckoutTimePeriodEnum::YEARLY ? "You are agreeing to a 12 month subscription that will be billed monthly." : null,
         );
 
         $this->cache->set(

@@ -38,8 +38,10 @@ class Manager
         User $user,
         string|CheckoutModeEnum $mode = 'setup',
         ?string $successUrl = null,
+        ?string $cancelUrl = null,
         array $lineItems = [],
-        ?array $paymentMethodTypes = null
+        ?array $paymentMethodTypes = null,
+        ?string $submitMessage = null,
     ): Session {
         $customerId = $this->customersManager->getByUser($user)->id;
 
@@ -53,7 +55,7 @@ class Manager
 
         $checkoutOptions = [
             'success_url' => $this->getSiteUrl() . ($successUrl ?? 'api/v3/payments/stripe/checkout/success'),
-            'cancel_url' => $this->getSiteUrl() . 'api/v3/payments/stripe/checkout/cancel',
+            'cancel_url' => $this->getSiteUrl() . ($cancelUrl ??'api/v3/payments/stripe/checkout/cancel'),
             'mode' => $mode->value,
             'payment_method_types' => $paymentMethodTypes ?? [ 'card' ], // we can possibly add more in the future,
             'customer' => $customerId,
@@ -61,6 +63,10 @@ class Manager
 
         if ($mode === CheckoutModeEnum::SUBSCRIPTION) {
             $checkoutOptions['line_items'] = $lineItems;
+        }
+
+        if ($submitMessage) {
+            $checkoutOptions['custom_text']['submit']['message'] = $submitMessage;
         }
 
         return $this->stripeClient->checkout->sessions->create($checkoutOptions);

@@ -127,8 +127,10 @@ class CheckoutServiceSpec extends ObjectBehavior
             $userMock,
             CheckoutModeEnum::SUBSCRIPTION,
             "api/v3/payments/checkout/complete?session_id={CHECKOUT_SESSION_ID}",
+            "networks/checkout?planId=plan-id&timePeriod=yearly",
             Argument::type('array'),
-            ['card', 'us_bank_account']
+            ['card', 'us_bank_account'],
+            Argument::type('string'),
         )
             ->shouldBeCalledOnce()
             ->willReturn($this->generateStripeCheckoutSessionMock());
