@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Configs\Image;
@@ -63,13 +64,14 @@ class Manager
     /**
      * Gets the contents of the passed in file - if one is not found will return a default image.
      * @param ElggFile $file - file object.
+     * @param MultiTenantConfigImageType $type - determines which default image to retrieve
      * @return mixed - contents of the file.
      */
-    public function getImageContentsFromFile(ElggFile $file): mixed
+    public function getImageContentsFromFile(ElggFile $file, MultiTenantConfigImageType $type): mixed
     {
         $contents = $file->read();
         if (empty($contents)) {
-            $filepath = $this->config->get('path') . "engine/Assets/avatars/default-master.png";
+            $filepath = $this->config->get('path') . "engine/Assets/logos/tenant-default/{$type->value}.png";
             $contents = file_get_contents($filepath);
         }
         return $contents;
