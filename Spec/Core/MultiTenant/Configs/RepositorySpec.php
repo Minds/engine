@@ -58,6 +58,7 @@ class RepositorySpec extends ObjectBehavior
         $siteEmail = 'noreply@minds.com';
         $colorSchemeValue = MultiTenantColorScheme::DARK->value;
         $primaryColor = '#fff000';
+        $nsfwEnabled = true;
         $updatedTimestamp = date('c', time());
 
         $this->mysqlMasterMock->prepare(Argument::any())
@@ -78,6 +79,7 @@ class RepositorySpec extends ObjectBehavior
                 'site_email' => $siteEmail,
                 'color_scheme' => $colorSchemeValue,
                 'primary_color' => $primaryColor,
+                'nsfw_enabled' => $nsfwEnabled
                 'updated_timestamp' => $updatedTimestamp,
             ]);
 
@@ -86,6 +88,7 @@ class RepositorySpec extends ObjectBehavior
             siteEmail: $siteEmail,
             colorScheme: MultiTenantColorScheme::tryFrom($colorSchemeValue),
             primaryColor: $primaryColor,
+            nsfwEnabled: $nsfwEnabled,
             updatedTimestamp: strtotime($updatedTimestamp)
         ));
     }
@@ -121,6 +124,7 @@ class RepositorySpec extends ObjectBehavior
         $colorScheme = MultiTenantColorScheme::DARK;
         $primaryColor = '#fff000';
         $communityGuidelines = 'Test community guidelines';
+        $nsfwEnabled = true;
 
         $this->mysqlMasterMock->prepare(Argument::any())
             ->willReturn($statement);
@@ -130,7 +134,8 @@ class RepositorySpec extends ObjectBehavior
             'site_name' => $siteName,
             'color_scheme' => $colorScheme->value,
             'primary_color' => $primaryColor,
-            'community_guidelines' => $communityGuidelines
+            'community_guidelines' => $communityGuidelines,
+            'nsfw_enabled' => $nsfwEnabled
         ])->shouldBeCalled();
 
         $statement->execute()
@@ -142,7 +147,8 @@ class RepositorySpec extends ObjectBehavior
             siteName: $siteName,
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
-            communityGuidelines: $communityGuidelines
+            communityGuidelines: $communityGuidelines,
+            nsfwEnabled: $nsfwEnabled
         )->shouldBe(true);
     }
 }

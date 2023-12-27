@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\MultiTenant\Services;
 
 use Minds\Core\Config\Config;
@@ -19,7 +20,6 @@ class MultiTenantBootService
         private DomainService $domainService,
         private MultiTenantDataService $dataService,
     ) {
-        
     }
 
     /**
@@ -43,7 +43,7 @@ class MultiTenantBootService
         }
 
         // Update the configs
-    
+
         $this->setupConfigs(
             tenant: $tenant,
             scheme: $scheme,
@@ -160,9 +160,13 @@ class MultiTenantBootService
                 'color_scheme' => $tenant->config->colorScheme?->value,
                 'primary_color' => $tenant->config->primaryColor
             ]);
+
+            if (isset($tenant->config->nsfwEnabled)) {
+                $this->setConfig('nsfw_enabled', $tenant->config->nsfwEnabled);
+            }
         }
     }
-    
+
     private function setConfig(string $key, mixed $value): void
     {
         // If not a multi tenant, then we will save the configs for resetting later (if needed)

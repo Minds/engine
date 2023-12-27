@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Configs;
@@ -30,17 +31,17 @@ class Manager
      * Gets multi-tenant config for the calling tenant.
      * @return ?MultiTenantConfig - null if not found.
      */
-    public function getConfigs(
-    ): ?MultiTenantConfig {
+    public function getConfigs(): ?MultiTenantConfig
+    {
         $tenantId = $this->config->get('tenant_id');
 
         try {
             return $this->repository->get(
                 tenantId: $tenantId,
             );
-        } catch(NotFoundException $e) {
+        } catch (NotFoundException $e) {
             return null;
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->logger->error($e);
             return null;
         }
@@ -52,6 +53,7 @@ class Manager
      * @param ?MultiTenantColorScheme $colorScheme - color scheme to set.
      * @param ?string $primaryColor - primary color to set.
      * @param ?string $communityGuidelines - community guidelines.
+     * @param ?bool $nsfwEnabled - whether nfsw reporting tools are enabled.
      * @param ?int $lastCacheTimestamp - last cache timestamp.
      * @return bool - true on success.
      */
@@ -60,6 +62,7 @@ class Manager
         ?MultiTenantColorScheme $colorScheme = null,
         ?string $primaryColor = null,
         ?string $communityGuidelines = null,
+        ?bool $nsfwEnabled = null,
         ?int $lastCacheTimestamp = null
     ): bool {
         $tenantId = $this->config->get('tenant_id');
@@ -70,6 +73,7 @@ class Manager
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
             communityGuidelines: $communityGuidelines,
+            nsfwEnabled: $nsfwEnabled,
             lastCacheTimestamp: $lastCacheTimestamp
         );
 

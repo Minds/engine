@@ -342,7 +342,7 @@ CREATE TABLE IF NOT EXISTS minds_group_membership (
     user_guid bigint NOT NULL,
     created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP(),
     updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP(),
-    membership_level int NOT NULL, 
+    membership_level int NOT NULL,
     PRIMARY KEY (group_guid, user_guid),
     INDEX (group_guid, membership_level),
     INDEX (user_guid, membership_level)
@@ -398,12 +398,12 @@ CREATE TABLE IF NOT EXISTS minds_activitypub_actors (
 
 CREATE TABLE IF NOT EXISTS minds_activitypub_keys (
     user_guid bigint NOT NULL PRIMARY KEY,
-    private_key text NOT NULL 
+    private_key text NOT NULL
 );
 
 ALTER TABLE minds_comments
     ADD source text DEFAULT NULL
-        AFTER access_id; 
+        AFTER access_id;
 
 ALTER TABLE minds_comments
     ADD canonical_url text DEFAULT NULL
@@ -602,6 +602,10 @@ ALTER TABLE `friends` ADD COLUMN tenant_id int AFTER friend_guid;
 ALTER TABLE `minds_tenant_configs`
     ADD community_guidelines text DEFAULT NULL
     AFTER color_scheme;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD nsfw_enabled boolean DEFAULT TRUE
+    AFTER community_guidelines;
 
 CREATE TABLE `minds_reports` (
   `tenant_id` int NOT NULL,
