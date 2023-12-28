@@ -35,14 +35,14 @@ class ConfigProvider extends Provider
             }
 
             return $CONFIG;
-        }, ['useFactory'=>true]);
+        }, ['useFactory'=>false]);
 
         $this->di->bind('Config', function ($di) {
             return $di->get(Config::class);
-        }, ['useFactory'=>true]);
+        }, ['useFactory'=>false]);
 
         $this->di->bind('Config\Exported', function ($di) {
             return new Exported();
-        }, ['useFactory' => true]);
+        }, ['useFactory' => false]);
     }
 }

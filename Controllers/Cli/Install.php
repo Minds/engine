@@ -41,7 +41,7 @@ class Install extends Cli\Controller implements Interfaces\CliControllerInterfac
                 $this->out('OK');
             }
             $this->out('- Loading new configuration:', $this::OUTPUT_INLINE);
-            $this->getApp()->loadConfigs();
+            // $this->getApp()->loadConfigs();
             $this->out('OK');
 
             // TODO: List setup parameters flag.
