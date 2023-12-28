@@ -79,7 +79,7 @@ class RepositorySpec extends ObjectBehavior
                 'site_email' => $siteEmail,
                 'color_scheme' => $colorSchemeValue,
                 'primary_color' => $primaryColor,
-                'nsfw_enabled' => $nsfwEnabled
+                'nsfw_enabled' => $nsfwEnabled,
                 'updated_timestamp' => $updatedTimestamp,
             ]);
 
