@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Storage\Quotas;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client as MySqlClient;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
@@ -23,6 +24,7 @@ class Provider extends DiProvider
             Repositories\MySqlRepository::class,
             fn (Di $di): MySqlRepository => new MySqlRepository(
                 $di->get(MySqlClient::class),
+                $di->get(Config::class),
                 $di->get('Logger')
             )
         );

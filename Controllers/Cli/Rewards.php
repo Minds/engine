@@ -8,6 +8,7 @@ use Elasticsearch\ClientBuilder;
 use Minds\Cli;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Minds;
 use Minds\Core\Util\BigNumber;
 use Minds\Entities;
@@ -61,7 +62,7 @@ class Rewards extends Cli\Controller implements Interfaces\CliControllerInterfac
     public function issue()
     {
         $username = $this->getOpt('username');
-        $user = new Entities\User($username);
+        $user = Di::_()->get(EntitiesBuilder::class)->getByUserByIndex($username);
         
         $amount = BigNumber::toPlain($this->getOpt('amount'), 18);
 

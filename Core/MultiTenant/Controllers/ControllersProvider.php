@@ -21,7 +21,8 @@ class ControllersProvider extends Provider
     {
         $this->di->bind(TenantsController::class, function (Di $di): TenantsController {
             return new TenantsController(
-                $di->get(TenantsService::class)
+                $di->get(TenantsService::class),
+                $di->get('Experiments\Manager'),
             );
         });
         $this->di->bind(TenantUsersController::class, function (Di $di): TenantUsersController {

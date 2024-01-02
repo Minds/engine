@@ -25,6 +25,11 @@ class Manager
      */
     public function canSend(PushNotification $pushNotification): bool
     {
+        // Tenants may have disabled this type of notification from being delivered
+        if (!isset($this->notificationTypes->getTypesGroupings()[$pushNotification->getGroup()])) {
+            return false;
+        }
+
         $opts = new SettingsListOpts();
         $opts->setUserGuid($pushNotification->getNotification()->getToGuid());
         foreach ($this->getList($opts) as $pushSetting) {
@@ -33,10 +38,6 @@ class Manager
             }
 
             if ($pushSetting->getNotificationGroup() === $pushNotification->getGroup() && $pushSetting->getEnabled() === false) {
-                return false;
-            }
-
-            if (!isset($this->notificationTypes->getTypesGroupings()[$pushSetting->getNotificationGroup()])) {
                 return false;
             }
         }

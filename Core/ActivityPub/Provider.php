@@ -42,8 +42,8 @@ class Provider extends DiProvider
         });
         $this->di->bind(Repository::class, function ($di) {
             return new Repository(
-                $di->get(Config::class),
                 $di->get('Database\MySQL\Client'),
+                $di->get(Config::class),
                 $di->get('Logger')
             );
         });

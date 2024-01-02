@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Onboarding\V5;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Data\MySQL\MySQLConnectionEnum;
 use Minds\Core\Di\Di;
@@ -24,7 +25,7 @@ class RepositorySpec extends ObjectBehavior
 
     public function let(MySQLClient $mysqlClient, PDO $mysqlMasterMock, PDO $mysqlReplicaMock)
     {
-        $this->beConstructedWith($mysqlClient, Di::_()->get('Logger'));
+        $this->beConstructedWith($mysqlClient, Di::_()->get(Config::class), Di::_()->get('Logger'));
         $this->mysqlClientMock = $mysqlClient;
 
         $this->mysqlClientMock->getConnection(MySQLConnectionEnum::MASTER)

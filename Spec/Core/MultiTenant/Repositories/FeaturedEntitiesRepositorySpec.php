@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\MultiTenant\Repositories;
 
+use Minds\Core\Config\Config;
 use Minds\Core\MultiTenant\Enums\FeaturedEntityTypeEnum;
 use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
 use Minds\Core\MultiTenant\Types\FeaturedUser;
@@ -22,7 +23,7 @@ class FeaturedEntitiesRepositorySpec extends ObjectBehavior
 
     public function let(MySQLClient $mysqlClient, PDO $mysqlMasterMock, PDO $mysqlReplicaMock)
     {
-        $this->beConstructedWith($mysqlClient, Di::_()->get('Logger'));
+        $this->beConstructedWith($mysqlClient, Di::_()->get(Config::class), Di::_()->get('Logger'));
         $this->mysqlClientMock = $mysqlClient;
 
         $this->mysqlClientMock->getConnection(MySQLConnectionEnum::MASTER)

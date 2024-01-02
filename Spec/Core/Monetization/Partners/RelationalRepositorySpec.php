@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Monetization\Partners;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client;
+use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Core\Monetization\Partners\EarningsBalance;
 use Minds\Core\Monetization\Partners\EarningsDeposit;
@@ -55,6 +57,7 @@ class RelationalRepositorySpec extends ObjectBehavior
 
         $this->beConstructedWith(
             $this->mysqlHandlerMock,
+            Di::_()->get(Config::class),
             $loggerMock,
             $this->mysqlClientReaderHandlerMock,
             $this->mysqlClientWriterHandlerMock

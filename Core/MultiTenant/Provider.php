@@ -2,6 +2,7 @@
 
 namespace Minds\Core\MultiTenant;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
@@ -30,6 +31,7 @@ class Provider extends DiProvider
         $this->di->bind(Repository::class, function (Di $di): Repository {
             return new Repository(
                 mysqlHandler: $di->get('Database\MySQL\Client'),
+                config: $di->get(Config::class),
                 logger: $di->get('Logger')
             );
         });

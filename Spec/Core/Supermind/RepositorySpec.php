@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\Supermind;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
@@ -38,6 +39,7 @@ class RepositorySpec extends ObjectBehavior
 
     public function let(
         MySQLClient $mysqlHandler,
+        Config $configMock,
         Logger $logger,
         EntitiesBuilder $entitiesBuilder,
         PDO $mysqlClientReader,
@@ -61,6 +63,7 @@ class RepositorySpec extends ObjectBehavior
 
         $this->beConstructedWith(
             $this->mysqlHandler,
+            $configMock,
             $this->loggerMock,
             $entitiesBuilder
         );

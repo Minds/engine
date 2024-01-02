@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Minds\Core\Supermind;
 
 use Iterator;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Di\Di;
@@ -26,12 +27,14 @@ class Repository extends AbstractRepository
      */
     public function __construct(
         ?MySQLClient $mysqlHandler = null,
+        ?Config $config = null,
         ?Logger $logger = null,
         private ?EntitiesBuilder $entitiesBuilder = null
     ) {
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         parent::__construct(
             mysqlHandler: $mysqlHandler ?? Di::_()->get('Database\MySQL\Client'),
+            config: $config ?? Di::_()->get(Config::class),
             logger: $logger ?? Di::_()->get('Logger')
         );
     }

@@ -19,13 +19,6 @@ class MySqlRepository extends AbstractRepository
 {
     private const DB_TABLE = "minds_asset_storage";
 
-    public function __construct(
-        protected Client $mysqlHandler,
-        protected Logger $logger
-    ) {
-        parent::__construct($mysqlHandler, $logger);
-    }
-
     /**
      * @param int $assetOwnerGuid
      * @param int $assetGuid

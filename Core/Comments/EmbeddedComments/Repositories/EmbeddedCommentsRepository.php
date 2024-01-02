@@ -11,13 +11,6 @@ class EmbeddedCommentsRepository extends AbstractRepository
 {
     const TABLE_NAME = 'minds_embedded_comments_activity_map';
 
-    public function __construct(
-        private Config $config,
-        ...$args,
-    ) {
-        parent::__construct(...$args);
-    }
-
     /**
      * Returns an activity guid from a url.
      */

@@ -24,9 +24,17 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
     private Save $save;
 
-    public function __construct()
-    {
+    public function __construct(
+    ) {
         $this->save = new Save();
+    }
+
+    /**
+     * NOT AVAILABLE
+     */
+    public function get($pages)
+    {
+        return Factory::response(['status' => 'error', 'message' => 'GET is not supported for this endpoint']);
     }
 
     /**
@@ -76,7 +84,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             }
 
             if (!(isset($_POST['parentId']) || isset($_POST['previousUrl']) || isset($_SERVER['HTTP_APP_VERSION']))) {
-                return Factory::response(['status' => 'error', 'message' => "Please refresh your browser or update you app. We don't recognise your platform."]);
+                return Factory::response(['status'=>'error', 'message' => "Please refresh your browser or update you app. We don't recognise your platform."]);
             }
 
             $ia = ACL::_()->setIgnore(true);
@@ -84,7 +92,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             $user = register_user($_POST['username'], $_POST['password'], $_POST['username'], $_POST['email'], false);
 
             if (!$user) {
-                return Factory::response(['status' => 'error', 'message' => "An unknown error occurred"]);
+                return Factory::response(['status'=>'error', 'message' => "An unknown error occurred"]);
             }
 
             $guid = $user->guid;
@@ -93,11 +101,11 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             $hasSignupTags = false;
 
             if (isset($_POST['parentId'])) {
-                $user->signupParentId = (string)$_POST['parentId'];
+                $user->signupParentId = (string) $_POST['parentId'];
                 $hasSignupTags = true;
             }
             if (isset($_POST['previousUrl'])) {
-                $user->signupPreviousUrl = (string)$_POST['previousUrl'];
+                $user->signupPreviousUrl = (string) $_POST['previousUrl'];
                 $hasSignupTags = true;
             }
             if (isset($_SERVER['HTTP_APP_VERSION'])) {
@@ -125,7 +133,7 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
                     ])
                     ->save();
             } else {
-                return Factory::response(['status' => 'error', 'message' => "Please refresh your browser or update you app. We don't recognise your platform."]);
+                return Factory::response(['status'=>'error', 'message' => "Please refresh your browser or update you app. We don't recognise your platform."]);
             }
 
             $password = $_POST['password'];
@@ -167,16 +175,24 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
         } catch (\Exception $e) {
             if (isset($user)) {
                 error_log(
-                    "RegistrationError | username: " . $_POST['username']
-                    . ", email:" . $_POST['email']
-                    . ", signupParentId" . $user->signupParentId
-                    . ", exception: " . $e->getMessage()
-                    . ", addr: " . $_SERVER['HTTP_X_FORWARDED_FOR']
+                    "RegistrationError | username: ".$_POST['username']
+                    .", email:".$_POST['email']
+                    .", signupParentId". $user->signupParentId
+                    .", exception: ".$e->getMessage()
+                    .", addr: " . $_SERVER['HTTP_X_FORWARDED_FOR']
                 );
             }
             $response = ['status' => 'error', 'message' => $e->getMessage()];
         }
         return Factory::response($response);
+    }
+
+    public function put($pages)
+    {
+    }
+
+    public function delete($pages)
+    {
     }
 
     /**
@@ -197,21 +213,5 @@ class register implements Interfaces\Api, Interfaces\ApiIgnorePam
             throw new InvalidSolutionException('Captcha failed');
         }
         return true;
-    }
-
-    /**
-     * NOT AVAILABLE
-     */
-    public function get($pages)
-    {
-        return Factory::response(['status' => 'error', 'message' => 'GET is not supported for this endpoint']);
-    }
-
-    public function put($pages)
-    {
-    }
-
-    public function delete($pages)
-    {
     }
 }

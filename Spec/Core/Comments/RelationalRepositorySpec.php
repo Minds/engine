@@ -8,6 +8,7 @@ use Minds\Core\Comments\RelationalRepository;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 
 use Minds\Core\Comments\Comment;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\MySQLConnectionEnum;
 use Minds\Core\Di\Di;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
@@ -31,7 +32,7 @@ class RelationalRepositorySpec extends ObjectBehavior
         PDO $mysqlReplicaMock,
         Connection $mysqlClientWriterHandlerMock,
     ) {
-        $this->beConstructedWith($mysqlClient, Di::_()->get('Logger'));
+        $this->beConstructedWith($mysqlClient, Di::_()->get(Config::class), Di::_()->get('Logger'));
 
         $this->mysqlClientMock = $mysqlClient;
 

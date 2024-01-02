@@ -72,16 +72,16 @@ class Provider extends DiProvider
 
         $this->di->bind(OidcUserRepository::class, function (Di $di): OidcUserRepository {
             return new OidcUserRepository(
-                $di->get(Config::class),
                 $di->get('Database\MySQL\Client'),
+                $di->get(Config::class),
                 $di->get('Logger'),
             );
         });
 
         $this->di->bind(OidcProvidersRepository::class, function (Di $di): OidcProvidersRepository {
             return new OidcProvidersRepository(
-                $di->get(Config::class),
                 $di->get('Database\MySQL\Client'),
+                $di->get(Config::class),
                 $di->get('Logger'),
             );
         });
