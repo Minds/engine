@@ -22,12 +22,12 @@ use Selective\Database\RawExp;
 class InvitesRepository extends AbstractRepository
 {
     public function __construct(
-        Client                  $mysqlHandler,
-        Logger                  $logger,
-        private readonly Config $config,
-        private readonly Jwt    $jwt
+        Client               $mysqlHandler,
+        Logger               $logger,
+        Config               $config,
+        private readonly Jwt $jwt
     ) {
-        parent::__construct($mysqlHandler, $logger);
+        parent::__construct($mysqlHandler, $config, $logger);
     }
 
     /**

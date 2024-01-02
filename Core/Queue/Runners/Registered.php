@@ -5,6 +5,8 @@ namespace Minds\Core\Queue\Runners;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Email\Invites\Enums\InviteEmailStatusEnum;
+use Minds\Core\Email\Invites\Services\InviteManagementService;
+use Minds\Core\Email\Invites\Services\InviteReaderService;
 use Minds\Core\Email\Invites\Services\InvitesService;
 use Minds\Core\Email\Repository;
 use Minds\Core\EntitiesBuilder;
@@ -13,8 +15,6 @@ use Minds\Core\Groups\V2\Membership\Manager as GroupsMembershipManager;
 use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Core\Queue;
 use Minds\Core\Queue\Interfaces\QueueRunner;
-use Minds\Core\Security\Rbac\Enums\RolesEnum;
-use Minds\Core\Security\Rbac\Models\Role;
 use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Entities\User;
 
@@ -66,10 +66,15 @@ class Registered implements QueueRunner
                 if ($data['invite_token']) {
                     // Fetch invite
                     /**
-                     * @var InvitesService $invitesService
+                     * @var InviteReaderService $invitesReaderService
                      */
-                    $invitesService = Di::_()->get(InvitesService::class);
-                    $invite = $invitesService->getInviteByToken($data['invite_token']);
+                    $invitesReaderService = Di::_()->get(InviteReaderService::class);
+
+                    /**
+                     * @var InviteManagementService $invitesManagementService
+                     */
+                    $invitesManagementService = Di::_()->get(InviteManagementService::class);
+                    $invite = $invitesReaderService->getInviteByToken($data['invite_token']);
 
                     // Set user roles if any
                     if ($invite->getRoles()) {
@@ -101,7 +106,7 @@ class Registered implements QueueRunner
                         }
                     }
 
-                    $invitesService->updateInviteStatus($invite->inviteId, InviteEmailStatusEnum::ACCEPTED);
+                    $invitesManagementService->updateInviteStatus($invite->inviteId, InviteEmailStatusEnum::ACCEPTED);
                 }
 
                 foreach ($subscriptions as $subscription) {

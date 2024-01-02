@@ -5,6 +5,7 @@ namespace Minds\Controllers\Cli;
 use Minds\Cli;
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Email\Invites\Services\InviteSenderService;
 use Minds\Core\Email\Invites\Services\InvitesService;
 use Minds\Core\Email\V2\Campaigns;
 use Minds\Core\Email\V2\Campaigns\Recurring\Supermind\Supermind as SupermindEmail;
@@ -379,9 +380,9 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
     {
         (function () {
             /**
-             * @var InvitesService $invitesService
+             * @var InviteSenderService $invitesService
              */
-            $invitesService = Di::_()->get(InvitesService::class);
+            $invitesService = Di::_()->get(InviteSenderService::class);
             $invitesService->sendInvites();
         })();
     }
