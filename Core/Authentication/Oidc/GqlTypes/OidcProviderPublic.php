@@ -26,6 +26,18 @@ class OidcProviderPublic
     }
 
     #[Field]
+    public function getIssuer(): string
+    {
+        return $this->oidcProvider->issuer;
+    }
+
+    #[Field]
+    public function getClientId(): string
+    {
+        return $this->oidcProvider->clientId;
+    }
+
+    #[Field]
     public function getLoginUrl(): string
     {
         return $this->config->get('site_url') . 'api/v3/authenticate/oidc/login?providerId=' . $this->oidcProvider->id;

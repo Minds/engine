@@ -31,7 +31,7 @@ class ElasticSearchDelegate
             'name' => (string) $group->getName(),
             'briefdescription' => (string) $group->getBriefDescription(),
             'members:count' => (int) $group->getMembersCount(),
-            '@timestamp' => $group->getTimeCreated() * 1000,
+            '@timestamp' => (int) $group->getTimeCreated() * 1000,
             'nsfw' => $group->getNsfw(),
         ];
 

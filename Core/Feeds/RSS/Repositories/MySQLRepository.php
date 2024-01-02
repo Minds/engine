@@ -26,14 +26,6 @@ class MySQLRepository extends AbstractRepository
 {
     private const TABLE_NAME = 'minds_user_rss_feeds';
 
-    public function __construct(
-        Client $mysqlHandler,
-        Logger $logger,
-        private readonly Config $config
-    ) {
-        parent::__construct($mysqlHandler, $logger);
-    }
-
     /**
      * @param Uri $rssFeedUrl
      * @param User $user

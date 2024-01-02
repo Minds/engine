@@ -37,12 +37,13 @@ class Provider extends DiProvider
             return new Client(
                 httpClient: $di->get(\GuzzleHttp\Client::class),
                 config: $di->get('Config'),
+                manager: $di->get(Manager::class),
             );
         });
         $this->di->bind(Repository::class, function ($di) {
             return new Repository(
-                $di->get(Config::class),
                 $di->get('Database\MySQL\Client'),
+                $di->get(Config::class),
                 $di->get('Logger')
             );
         });
@@ -51,7 +52,6 @@ class Provider extends DiProvider
                 repository: $di->get(Repository::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 config: $di->get('Config'),
-                client: $di->get(Client::class),
                 webfingerManager: $di->get(Webfinger\Manager::class),
             );
         });

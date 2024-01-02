@@ -137,10 +137,15 @@ class Save
         }
 
         if ($isUpdate) {
-            $success = $entitiesRepository->update(
-                entity: $this->entity,
-                columns: $this->mutatedAttributes
-            );
+            try {
+                $success = $entitiesRepository->update(
+                    entity: $this->entity,
+                    columns: $this->mutatedAttributes
+                );
+            } catch(\InvalidArgumentException $e) {
+                $this->logger->warning($e);
+                $success = false;
+            }
         } else {
             $success = $entitiesRepository->create($this->entity);
         }

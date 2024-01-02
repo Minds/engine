@@ -29,7 +29,7 @@ class Manager
 
     /** @var FileInstance $fileInstance */
     private $fileInstance;
-    
+
     /** @var Transactions\Manager */
     private $transactionsManager;
 
@@ -37,12 +37,12 @@ class Manager
     private $applicationFeeInstance;
 
     public function __construct(
-        Save $save = null,
-        NotificationDelegate $notificationDelegate = null,
-        AccountInstance $accountInstance = null,
-        BalanceInstance $balanceInstance = null,
-        FileInstance $fileInstance = null,
-        Transactions\Manager $transactionsManager = null,
+        Save                   $save = null,
+        NotificationDelegate   $notificationDelegate = null,
+        AccountInstance        $accountInstance = null,
+        BalanceInstance        $balanceInstance = null,
+        FileInstance           $fileInstance = null,
+        Transactions\Manager   $transactionsManager = null,
         ApplicationFeeInstance $applicationFeeInstance = null
     ) {
         $this->save = $save ?: new Save();
@@ -59,42 +59,42 @@ class Manager
      * @param Account $account
      * @return Account
      */
-    public function add(Account $account) : Account
+    public function add(Account $account): Account
     {
         $dob = explode('-', $account->getDateOfBirth());
         $data = [
-          'type' => 'custom',
-          'country' => $account->getCountry(),
-          'business_type' => 'individual',
-          'individual' => [
-            'first_name' => $account->getFirstName(),
-            'last_name' => $account->getLastName(),
-            'address' => [
-              'city' => $account->getCity(),
-              'line1' => $account->getStreet(),
-              'postal_code' => $account->getPostCode(),
-              'state' => $account->getState(),
+            'type' => 'custom',
+            'country' => $account->getCountry(),
+            'business_type' => 'individual',
+            'individual' => [
+                'first_name' => $account->getFirstName(),
+                'last_name' => $account->getLastName(),
+                'address' => [
+                    'city' => $account->getCity(),
+                    'line1' => $account->getStreet(),
+                    'postal_code' => $account->getPostCode(),
+                    'state' => $account->getState(),
+                ],
+                'dob' => [
+                    'day' => $dob[2],
+                    'month' => $dob[1],
+                    'year' => $dob[0]
+                ],
             ],
-            'dob' => [
-              'day' => $dob[2],
-              'month' => $dob[1],
-              'year' => $dob[0]
+            'metadata' => $account->getMetadata(),
+            'requested_capabilities' => ['card_payments', 'transfers'],
+            'tos_acceptance' => [
+                'date' => time(),
+                'ip' => $account->getIp(),
             ],
-          ],
-          'metadata' => $account->getMetadata(),
-          'requested_capabilities' => [ 'card_payments', 'transfers' ],
-          'tos_acceptance' => [
-            'date' => time(),
-            'ip' => $account->getIp(),
-          ],
-          'settings' => [
-            'payouts' => [
-              'schedule' => [
-                'interval' => null,
-                'monthly_anchor' => null,
-              ],
+            'settings' => [
+                'payouts' => [
+                    'schedule' => [
+                        'interval' => null,
+                        'monthly_anchor' => null,
+                    ],
+                ]
             ]
-          ]
         ];
 
         $payoutInterval = $account->getPayoutInterval();
@@ -167,7 +167,7 @@ class Manager
      * @return string Account id
      * @throws \Exception
      */
-    public function update(Account $account) : string
+    public function update(Account $account): string
     {
         try {
             $stripeAccount = $this->accountInstance->retrieve($account->getId());
@@ -230,15 +230,15 @@ class Manager
      * @return bool
      * @throws \Exception
      */
-    public function acceptTos(Account $account) : bool
+    public function acceptTos(Account $account): bool
     {
         try {
             $this->accountInstance->update($account->getId(), [
-               'tos_acceptance' => [
-                   'date' => time(),
-                   'ip' => $account->getIp(),
-               ],
-           ]);
+                'tos_acceptance' => [
+                    'date' => time(),
+                    'ip' => $account->getIp(),
+                ],
+            ]);
             return true;
         } catch (\Exception $e) {
             return false;
@@ -250,14 +250,14 @@ class Manager
      * @param Account $account
      * @return boolean
      */
-    public function addBankAccount(Account $account) : bool
+    public function addBankAccount(Account $account): bool
     {
         $stripeAccount = $this->accountInstance->retrieve($account->getId());
         $stripeAccount->external_account = [
-          'object' => 'bank_account',
-          'account_number' => $account->getAccountNumber(),
-          'country' => $account->getCountry(),
-          'currency' => Currencies::byCountry($account->getCountry())
+            'object' => 'bank_account',
+            'account_number' => $account->getAccountNumber(),
+            'country' => $account->getCountry(),
+            'currency' => Currencies::byCountry($account->getCountry())
         ];
 
         if ($account->getRoutingNumber()) {
@@ -278,7 +278,7 @@ class Manager
      * @param Account $account
      * @return bool
      */
-    public function removeBankAccount(Account $account) : bool
+    public function removeBankAccount(Account $account): bool
     {
         $stripeAccount = $this->accountInstance->retrieve($account->getId());
         $bankAccountId = $stripeAccount->external_accounts->data[0]->id;
@@ -299,14 +299,14 @@ class Manager
      * @param string $documentType
      * @return bool
      */
-    public function addDocument(Account $account, $file, string $documentType) : bool
+    public function addDocument(Account $account, $file, string $documentType): bool
     {
-        $fileId =  $this->fileInstance->create([
+        $fileId = $this->fileInstance->create([
             'purpose' => 'identity_document',
             'file' => $file,
-        ], [ 'stripe_account' => $account->getId() ]);
+        ], ['stripe_account' => $account->getId()]);
 
-        return (bool) $this->accountInstance->update($account->getId(), [
+        return (bool)$this->accountInstance->update($account->getId(), [
             'individual' => [
                 'verification' => [
                     $documentType => [
@@ -322,41 +322,42 @@ class Manager
      * @param string $id
      * @return Account
      */
-    public function getByAccountId(string $id) : ?Account
+    public function getByAccountId(string $id): ?Account
     {
         try {
             $result = $this->accountInstance->retrieve($id);
             $account = (new Account())
-              ->setId($result->id)
-              ->setStatus('active')
-              ->setCountry($result->country)
-              ->setFirstName($result->individual->first_name)
-              ->setLastName($result->individual->last_name)
-              ->setGender($result->individual->gender ?? null)
-              ->setDateOfBirth($result->individual->dob->year . '-' . str_pad($result->individual->dob->month, 2, '0', STR_PAD_LEFT) . '-' . str_pad($result->individual->dob->day, 2, '0', STR_PAD_LEFT))
-              ->setStreet($result->individual->address->line1)
-              ->setCity($result->individual->address->city)
-              ->setPostCode($result->individual->address->postal_code)
-              ->setState($result->individual->address->state)
-              ->setPhoneNumber($result->individual->phone ?? null)
-              ->setSSN($result->individual->ssn_last_4 ?? null)
-              ->setPersonalIdNumber($result->individual->id_number ?? null)
-              ->setBankAccount($result->external_accounts->data[0])
-              ->setAccountNumber($result->external_accounts->data[0]['last4'])
-              ->setRoutingNumber($result->external_accounts->data[0]['routing_number'])
-              ->setDestination('bank')
-              ->setPayoutInterval($result->settings->payouts->schedule->interval)
-              ->setPayoutDelay($result->settings->payouts->schedule->delay_days)
-              ->setPayoutAnchor($result->settings->payouts->schedule->monthly_anchor ?? null)
-              ->setMetadata($result->metadata);
+                ->setId($result->id)
+                ->setStatus('active')
+                ->setCountry($result->country)
+                ->setFirstName($result->individual->first_name)
+                ->setLastName($result->individual->last_name)
+                ->setGender($result->individual->gender ?? null)
+                ->setDateOfBirth($result->individual->dob->year . '-' . str_pad($result->individual->dob->month, 2, '0', STR_PAD_LEFT) . '-' . str_pad($result->individual->dob->day, 2, '0', STR_PAD_LEFT))
+                ->setStreet($result->individual->address->line1)
+                ->setCity($result->individual->address->city)
+                ->setPostCode($result->individual->address->postal_code)
+                ->setState($result->individual->address->state)
+                ->setPhoneNumber($result->individual->phone ?? null)
+                ->setSSN($result->individual->ssn_last_4 ?? null)
+                ->setPersonalIdNumber($result->individual->id_number ?? null)
+                ->setBankAccount($result->external_accounts->data[0])
+                ->setAccountNumber($result->external_accounts->data[0]['last4'])
+                ->setRoutingNumber($result->external_accounts->data[0]['routing_number'])
+                ->setDestination('bank')
+                ->setPayoutInterval($result->settings->payouts->schedule->interval)
+                ->setPayoutDelay($result->settings->payouts->schedule->delay_days)
+                ->setPayoutAnchor($result->settings->payouts->schedule->monthly_anchor ?? null)
+                ->setMetadata($result->metadata);
 
-            //verifiction check
-            if ($result->individual->verification->status === 'verified') {
-                $account->setVerified(true);
-            }
-
-            if (!$account->getVerified()) {
-                $account->setRequirement($result->requirements->currently_due[0]);
+            // verifiction check
+            if ($result->individual ?? null) {
+                if ($result->individual->verification->status === 'verified') {
+                    $account->setVerified(true);
+                }
+                if (!$account->getVerified()) {
+                    $account->setRequirement($result->requirements->currently_due[0]);
+                }
             }
 
             $account->setTotalBalance($this->getBalanceById($result->id, 'available'));
@@ -391,9 +392,9 @@ class Manager
      * @param string $id
      * @return Balance
      */
-    public function getBalanceById(string $id, string $type) : Balance
+    public function getBalanceById(string $id, string $type): Balance
     {
-        $stripeBalance = $this->balanceInstance->retrieve([ 'stripe_account' => $id ]);
+        $stripeBalance = $this->balanceInstance->retrieve(['stripe_account' => $id]);
         $balance = new Balance();
         $balance->setAmount($stripeBalance->$type[0]->amount)
             ->setCurrency($stripeBalance->$type[0]->currency);
@@ -415,7 +416,7 @@ class Manager
      * @param Account $account
      * @return boolean
      */
-    public function delete(Account $account) : bool
+    public function delete(Account $account): bool
     {
         $stripeAccount = $this->accountInstance->retrieve($account->getId());
         $result = $stripeAccount->delete();
@@ -423,11 +424,11 @@ class Manager
         if (!$result->deleted) {
             return false;
         }
-    
+
         // Delete id from user entity
 
         $user = $account->getUser();
-        $user->setMerchant([ 'deleted' => true ]);
+        $user->setMerchant(['deleted' => true]);
         $this->save->setEntity($user)
             ->save();
 
@@ -445,7 +446,7 @@ class Manager
             $opts = [
                 'limit' => 20,
             ];
-    
+
             $accounts = $this->accountInstance->all($opts);
             if (!$accounts) {
                 return null;
@@ -484,7 +485,7 @@ class Manager
         if ($opts['from']) {
             $instanceOpts['created']['lt'] = $opts['to'];
         }
-        
+
         $fees = $this->applicationFeeInstance->all($instanceOpts);
         if (!$fees) {
             return null;

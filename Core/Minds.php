@@ -88,8 +88,10 @@ class Minds extends base
         ActivityPub\Module::class,
         Admin\Module::class,
         Storage\Quotas\Module::class,
+        Comments\EmbeddedComments\Module::class,
         Comments\GraphQL\Module::class,
-        Reports\V2\Module::class
+        Reports\V2\Module::class,
+        Strapi\Module::class,
     ];
 
     /**

@@ -2,9 +2,9 @@
 namespace Minds\Core\Payments\InAppPurchases;
 
 use Minds\Core\Di\Ref;
+use Minds\Core\Router\Middleware\LoggedInMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
-use Minds\Core\Router\Middleware\LoggedInMiddleware;
 
 /**
  * InAppPurchases
@@ -31,6 +31,12 @@ class Routes extends ModuleRoutes
                             Ref::_(Controller::class, 'acknowledgeSubscription')
                         );
                     });
+
+                $route
+                    ->post(
+                        'apple',
+                        Ref::_(Controller::class, 'processIOSSubscriptionRenewals')
+                    );
             });
     }
 }

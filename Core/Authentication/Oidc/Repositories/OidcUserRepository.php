@@ -11,13 +11,6 @@ class OidcUserRepository extends AbstractRepository
 {
     const TABLE_NAME = 'minds_oidc_users';
 
-    public function __construct(
-        private Config $config,
-        ...$args
-    ) {
-        parent::__construct(...$args);
-    }
-
     /**
      * Return a users guid (if available) from their oidc sub field
      */

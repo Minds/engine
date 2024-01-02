@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Entities\Repositories;
 
+use InvalidArgumentException;
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Data\Call;
 use Minds\Core\Data\Cassandra\Thrift\Indexes;
@@ -129,7 +130,7 @@ class CassandraRepository implements EntitiesRepositoryInterface
                 $data = $entity->toArray();
                 break;
             default:
-                throw new \Exception('Can not save this entity type');
+                throw new InvalidArgumentException('Can not save this entity type');
         }
 
         if ($columns) {
