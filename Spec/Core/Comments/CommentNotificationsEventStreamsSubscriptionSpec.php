@@ -24,9 +24,13 @@ use Minds\Core\Luid;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notification\PostSubscriptions;
+use Minds\Core\Notifications\PostSubscriptions\Enums\PostSubscriptionFrequencyEnum;
+use Minds\Core\Notifications\PostSubscriptions\Models\PostSubscription;
+use Minds\Core\Notifications\PostSubscriptions\Services\PostSubscriptionsService;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
+use PhpSpec\Wrapper\Collaborator;
 
 class CommentNotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
 {
@@ -39,8 +43,7 @@ class CommentNotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
     
-    /** @var PostSubscriptions\Manager */
-    protected $postSubscriptionsManager;
+    protected Collaborator $postSubscriptionsServiceMock;
     
     /** @var Block\Manager */
     protected $blockManager;
@@ -55,15 +58,15 @@ class CommentNotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         Manager $manager,
         Notifications\Manager $notificationsManager,
         EntitiesBuilder $entitiesBuilder,
-        PostSubscriptions\Manager $postSubscriptionsManager,
+        PostSubscriptionsService $postSubscriptionsServiceMock,
         Block\Manager $blockManager,
         Config $config
     ) {
-        $this->beConstructedWith($manager, $notificationsManager, $entitiesBuilder, $postSubscriptionsManager, $blockManager, $config);
+        $this->beConstructedWith($manager, $notificationsManager, $entitiesBuilder, $postSubscriptionsServiceMock, $blockManager, $config);
         $this->manager = $manager;
         $this->notificationsManager = $notificationsManager;
         $this->entitiesBuilder = $entitiesBuilder;
-        $this->postSubscriptionsManager = $postSubscriptionsManager;
+        $this->postSubscriptionsServiceMock = $postSubscriptionsServiceMock;
         $this->blockManager = $blockManager;
         // $this->logger = $logger;
         $this->config = $config;
@@ -107,12 +110,13 @@ class CommentNotificationsEventStreamsSubscriptionSpec extends ObjectBehavior
         $comment->getEntityGuid()
             ->willReturn('123');
 
-        $this->postSubscriptionsManager->setEntityGuid('123')
-            ->willReturn($this->postSubscriptionsManager);
+        $this->postSubscriptionsServiceMock->withEntity($activity)
+            ->willReturn($this->postSubscriptionsServiceMock);
 
-        $this->postSubscriptionsManager->getFollowers()
-            ->willReturn(new Response([ '999' ]));
-
+        $this->postSubscriptionsServiceMock->getAllForEntity()
+            ->willYield([
+                new PostSubscription(userGuid: 999, entityGuid: 123, frequency: PostSubscriptionFrequencyEnum::ALWAYS)
+            ]);
 
         $this->blockManager->hasBlocked(Argument::that(function ($blockEntry) {
             return true;

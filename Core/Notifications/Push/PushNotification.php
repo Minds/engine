@@ -156,6 +156,8 @@ class PushNotification implements PushNotificationInterface
 
                 $product = GiftCardProductIdEnum::from($giftCard['productId']);
                 return "{$sender['name']} sent you a gift for " . GiftCardProductIDLabelEnum::fromProductIdEnum($product)->value;
+            case NotificationTypes::TYPE_POST_SUBSCRIPTION:
+                return "New post from {$from->getName()}";
             default:
                 throw new UndeliverableException("Invalid type");
         }
