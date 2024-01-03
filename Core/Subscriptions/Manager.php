@@ -13,6 +13,7 @@ use Minds\Core\Subscriptions\Delegates\EventsDelegate;
 use Minds\Core\Subscriptions\Delegates\FeedsDelegate;
 use Minds\Core\Subscriptions\Delegates\SendNotificationDelegate;
 use Minds\Entities\User;
+use NotImplementedException;
 
 class Manager
 {
@@ -86,6 +87,19 @@ class Manager
             'guid' => '',
             'type' => 'subscribers',
         ], $opts);
+
+        if ($this->isMultiTenant()) {
+            if ($opts['type'] === 'subscribers') {
+                return $this->relationalRepository->getSubscribers(
+                    userGuid: $opts['guid'],
+                    limit: $opts['limit'],
+                    loadBefore: (int) $opts['offset']
+                );
+            } else {
+                // multi-tenant subscriptions should be retrieved via subscriptions graph.
+                throw new NotImplementedException();
+            }
+        }
 
         return $this->repository->getList($opts);
     }
