@@ -91,7 +91,7 @@ class Manager
             'user_guid' => $notification->getToGuid(),
         ]);
 
-        if (!isset($result['data']) || !$result['data'][0]) {
+        if (!isset($result['data']) || !is_array($result['data']) || !$result['data'][0]) {
             $emailSubscription = new EmailSubscription([
                 'campaign' => 'when',
                 'topic' => 'unread_notification',

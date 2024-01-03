@@ -12,8 +12,28 @@ class PostSubscriptionsRepository extends AbstractRepository
 {
     const TABLE_NAME = 'minds_post_notification_subscriptions';
 
+    /**
+     * Returns a single PostSubscription, if exists
+     */
     public function get(int $userGuid, int $entityGuid): ?PostSubscription
     {
+        $rows = iterator_to_array($this->getList($userGuid, $entityGuid));
+
+        if ($rows) {
+            return $rows[0];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns multiple PostSubscription entities based on inputs
+     * @return iterable<PostSubscription>
+     */
+    public function getList(
+        int $userGuid = null,
+        int $entityGuid = null,
+    ): iterable {
         $query = $this->mysqlClientReaderHandler->select()
             ->from(static::TABLE_NAME)
             ->columns([
@@ -21,29 +41,39 @@ class PostSubscriptionsRepository extends AbstractRepository
                 'entity_guid',
                 'frequency',
             ])
-            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
-            ->where('user_guid', Operator::EQ, new RawExp(':user_guid'))
-            ->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'));
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+
+        $values = [
+            'tenant_id' => $this->getTenantId(),
+        ];
+
+        if ($userGuid) {
+            $query->where('user_guid', Operator::EQ, new RawExp(':user_guid'));
+            $values['user_guid'] = $userGuid;
+        }
+
+        if ($entityGuid) {
+            $query->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'));
+            $values['entity_guid'] = $entityGuid;
+        }
 
         $stmt = $query->prepare();
 
-        $stmt->execute([
-            'tenant_id' => $this->getTenantId(),
-            'user_guid' => $userGuid,
-            'entity_guid' => $entityGuid,
-        ]);
+        $stmt->execute($values);
 
         if (!$stmt->rowCount()) {
             return null;
         }
 
-        $row = $stmt->fetchAll(PDO::FETCH_ASSOC)[0];
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return new PostSubscription(
-            userGuid: $row['user_guid'],
-            entityGuid: $row['entity_guid'],
-            frequency: constant(PostSubscriptionFrequencyEnum::class . '::' . $row['frequency']),
-        );
+        foreach ($rows as $row) {
+            yield new PostSubscription(
+                userGuid: $row['user_guid'],
+                entityGuid: $row['entity_guid'],
+                frequency: constant(PostSubscriptionFrequencyEnum::class . '::' . $row['frequency']),
+            );
+        }
     }
 
     /**

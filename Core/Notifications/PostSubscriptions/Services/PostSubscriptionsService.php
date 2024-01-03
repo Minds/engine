@@ -78,4 +78,13 @@ class PostSubscriptionsService
         );
     }
 
+    /**
+     * Returns PostSubscription that match the provided entity
+     * @return iterable<PostSubscription>
+     */
+    public function getAllForEntity(): iterable
+    {
+        yield from $this->repository->getList(entityGuid: $this->entity->getGuid());
+    }
+
 }
