@@ -745,3 +745,13 @@ CREATE TABLE IF NOT EXISTS `minds`.`minds_tenant_invites`
     UNIQUE INDEX (tenant_id, email)
 ) ENGINE = "InnoDB";
 
+CREATE TABLE IF NOT EXISTS minds_post_notification_subscriptions (
+    tenant_id INT NOT NULL,
+    user_guid BIGINT NOT NULL,
+    entity_guid BIGINT NOT NULL,
+    frequency enum ('ALWAYS', 'HIGHLIGHTS', 'NEVER') DEFAULT 'ALWAYS',
+    created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    updated_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (tenant_id, user_guid, entity_guid),
+    INDEX (tenant_id, entity_guid)
+);

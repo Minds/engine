@@ -43,9 +43,6 @@ class Manager
     /** @var Delegates\Metrics */
     protected $metrics;
 
-    /** @var Delegates\ThreadNotifications */
-    protected $threadNotifications;
-
     /** @var Delegates\CreateEventDispatcher */
     protected $createEventDispatcher;
 
@@ -73,7 +70,6 @@ class Manager
         $legacyRepository = null,
         $acl = null,
         $metrics = null,
-        $threadNotifications = null,
         $createEventDispatcher = null,
         $countCache = null,
         $entitiesBuilder = null,
@@ -87,7 +83,6 @@ class Manager
         $this->legacyRepository = $legacyRepository ?: new Legacy\Repository();
         $this->acl = $acl ?: ACL::_();
         $this->metrics = $metrics ?: new Delegates\Metrics();
-        $this->threadNotifications = $threadNotifications ?: new Delegates\ThreadNotifications();
         $this->createEventDispatcher = $createEventDispatcher ?: new Delegates\CreateEventDispatcher();
         $this->countCache = $countCache ?: new Delegates\CountCache();
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
@@ -241,10 +236,6 @@ class Manager
         $success = $this->repository->add($comment);
 
         if ($success) {
-            // NOTE: It's important to _first_ notify, then subscribe.
-            $this->threadNotifications->notify($comment);
-            //$this->threadNotifications->subscribeOwner($comment);
-
             $this->metrics->push($comment);
 
             $this->createEventDispatcher->dispatch($comment);

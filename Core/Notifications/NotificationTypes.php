@@ -239,7 +239,13 @@ class NotificationTypes
     const TYPE_TOP_POSTS = 'top_posts';
 
     /** @var string */
-    const GROUPING_TOP_POSTS = [self::TYPE_TOP_POSTS];
+    const TYPE_POST_SUBSCRIPTION = 'post_subscription';
+
+    /** @var string */
+    const GROUPING_TOP_POSTS = [
+        self::TYPE_TOP_POSTS,
+        self::TYPE_POST_SUBSCRIPTION
+    ];
 
     /** @var string */
     const GROUPING_TYPE_TOP_POSTS = 'top_posts';
@@ -357,6 +363,7 @@ class NotificationTypes
         self::TYPE_REFERRAL_PING,
         self::TYPE_REFERRAL_PENDING,
         self::TYPE_REFERRAL_COMPLETE,
+        self::TYPE_POST_SUBSCRIPTION,
         //
         self::TYPE_COMMENT,
         //
@@ -437,7 +444,6 @@ class NotificationTypes
                 self::GROUPING_TYPE_TOKENS,
                 self::GROUPING_TYPE_CHATS,
                 self::GROUPING_TYPE_WIRES,
-                self::GROUPING_TYPE_TOP_POSTS,
                 self::GROUPING_TYPE_SUPERMIND,
                 self::GROUPING_TYPE_AFFILIATE_EARNINGS,
                 self::GROUPING_TYPE_GIFT_CARDS,
