@@ -20,6 +20,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notification\PostSubscriptions;
+use Minds\Core\Notifications\PostSubscriptions\Services\PostSubscriptionsService;
 use Minds\Entities\EntityInterface;
 
 class CommentNotificationsEventStreamsSubscription implements SubscriptionInterface
@@ -49,14 +50,14 @@ class CommentNotificationsEventStreamsSubscription implements SubscriptionInterf
         Manager $manager = null,
         Notifications\Manager $notificationsManager = null,
         EntitiesBuilder $entitiesBuilder = null,
-        PostSubscriptions\Manager $postSubscriptionsManager = null,
+        private ?PostSubscriptionsService $postSubscriptionsService = null,
         Block\Manager $blockManager = null,
         Config $config = null
     ) {
         $this->manager = $manager ?? Di::_()->get('Comments\Manager');
         $this->notificationsManager = $notificationsManager ?? Di::_()->get('Notifications\Manager');
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
-        $this->postSubscriptionsManager = $postSubscriptionsManager ?? new PostSubscriptions\Manager();
+        $this->postSubscriptionsService ??= Di::_()->get(PostSubscriptionsService::class);
         $this->blockManager = $blockManager ?: Di::_()->get('Security\Block\Manager');
         // $this->logger = $logger ?? Di::_()->get('Logger');
         $this->config = $config ?? Di::_()->get('Config');
@@ -144,20 +145,21 @@ class CommentNotificationsEventStreamsSubscription implements SubscriptionInterf
                 $subscribers = [ $parent->getOwnerGuid() ];
             }
         } else {
-            $this->postSubscriptionsManager
-                ->setEntityGuid($comment->getEntityGuid());
+            $subscribers = [];
+            
+            foreach ($this->postSubscriptionsService->withEntity($entity)->getAllForEntity() as $postSubscription) {
+                $blockEntry = new Block\BlockEntry();
+                $blockEntry->setActorGuid($comment->getOwnerGuid())
+                    ->setSubjectGuid($postSubscription->userGuid);
 
-            $subscribers = $this->postSubscriptionsManager->getFollowers()
-                ->filter(function ($userGuid) use ($comment) {
-                    $blockEntry = new Block\BlockEntry();
-                    $blockEntry->setActorGuid($comment->getOwnerGuid())
-                        ->setSubjectGuid($userGuid);
-
-                    // Exclude current comment creator
-                    return $userGuid != $comment->getOwnerGuid()
-                        && !$this->blockManager->hasBlocked($blockEntry);
-                }, false)
-                ->toArray();
+                // Exclude current comment creator and blocked users
+                if (
+                    $postSubscription->userGuid != $comment->getOwnerGuid()
+                    && !$this->blockManager->hasBlocked($blockEntry)
+                ) {
+                    $subscribers[] = $postSubscription->userGuid;
+                }
+            }
         }
 
         if (empty($subscribers)) {
