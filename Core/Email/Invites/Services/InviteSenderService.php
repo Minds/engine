@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\Email\Invites\Services;
 
-use Minds\Core\Di\Di;
 use Minds\Core\Email\Invites\Enums\InviteEmailStatusEnum;
 use Minds\Core\Email\Invites\Repositories\InvitesRepository;
 use Minds\Core\Email\V2\Campaigns\Recurring\Invite\InviteEmailer;
@@ -32,16 +31,11 @@ class InviteSenderService
      */
     public function sendInvites(): void
     {
-        if (php_sapi_name() !== 'cli') {
+        if (!$this->isCli()) {
             throw new ForbiddenException('This endpoint is restricted');
         }
 
         $invites = $this->invitesRepository->getInvitesToSend();
-
-        /**
-         * @var MultiTenantBootService $multiTenantBootService
-         */
-        $multiTenantBootService = Di::_()->get(MultiTenantBootService::class);
 
         foreach ($invites as $invite) {
             if ($invite->tenantId > 0) {
@@ -63,9 +57,14 @@ class InviteSenderService
             }
 
             if ($invite->tenantId > 0) {
-                $multiTenantBootService->resetRootConfigs();
+                $this->multiTenantBootService->resetRootConfigs();
             }
         }
+    }
+
+    public function isCli(): bool
+    {
+        return php_sapi_name() === 'cli';
     }
 
 

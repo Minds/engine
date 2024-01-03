@@ -54,7 +54,8 @@ class InvitesManagementController
     #[Logged]
     #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
     public function cancelInvite(
-        int $inviteId
+        int                $inviteId,
+        #[InjectUser] User $loggedInUser
     ): void {
         $this->inviteManagementService->updateInviteStatus(
             inviteId: $inviteId,

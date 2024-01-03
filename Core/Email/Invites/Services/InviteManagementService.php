@@ -54,17 +54,20 @@ class InviteManagementService
             array_merge(
                 ...array_values(
                     array_map(
-                        fn (string $email) => explode(
-                            "\n",
-                            $email
+                        fn (string $email) => array_filter(
+                            explode(
+                                "\n",
+                                $email
+                            ),
+                            fn (string $email) => !empty($email),
                         ),
-                        explode(',', $emails)
+                        explode(',', str_replace(" ", "", $emails))
                     )
                 )
             )
         );
     }
-    
+
     /**
      * @param int $inviteId
      * @param InviteEmailStatusEnum $status

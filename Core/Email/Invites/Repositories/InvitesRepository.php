@@ -60,7 +60,11 @@ class InvitesRepository extends AbstractRepository
                 'target_group_guids' => new RawExp(":groups"),
                 'custom_message' => $bespokeMessage,
                 'status' => InviteEmailStatusEnum::PENDING->value,
-            ])->prepare();
+            ])
+            ->onDuplicateKeyUpdate([
+                'created_timestamp' => new RawExp('created_timestamp'),
+            ])
+            ->prepare();
 
         foreach ($emails as $email) {
             if (
