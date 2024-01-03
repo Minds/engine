@@ -1,9 +1,9 @@
 <?php
 /**
- * Notifications module.
+ * Post Subscriptions (Notifications)module.
  */
 
-namespace Minds\Core\Notifications;
+namespace Minds\Core\Notifications\PostSubscriptions;
 
 use Minds\Interfaces\ModuleInterface;
 
@@ -15,9 +15,6 @@ class Module implements ModuleInterface
 {
     /** @var array $submodules */
     public $submodules = [
-        Push\Module::class,
-        EmailDigests\Module::class,
-        PostSubscriptions\Module::class,
     ];
 
     /**
@@ -25,9 +22,7 @@ class Module implements ModuleInterface
      */
     public function onInit()
     {
-        $provider = new Provider();
-        $provider->register();
-        $routes = new Routes();
-        $routes->register();
+        (new Provider())->register();
+        (new GraphQLMappings)->register();
     }
 }

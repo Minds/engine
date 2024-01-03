@@ -9,6 +9,8 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\ActionEvent;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
+use Minds\Core\Notifications\PostSubscriptions\Enums\PostSubscriptionFrequencyEnum;
+use Minds\Core\Notifications\PostSubscriptions\Services\PostSubscriptionsService;
 use Minds\Entities\User;
 
 class NotificationsDelegate
@@ -26,10 +28,12 @@ class NotificationsDelegate
         $eventsDispatcher = null,
         ActionEventsTopic $actionEventsTopic = null,
         protected ?EntitiesBuilder $entitiesBuilder = null,
+        protected ?PostSubscriptionsService $postSubscriptionsService = null,
     ) {
         $this->eventsDispatcher = $eventsDispatcher ?? Di::_()->get('EventsDispatcher');
         $this->actionEventsTopic = $actionEventsTopic ?? new ActionEventsTopic();
         $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
+        $this->postSubscriptionsService ??= Di::_()->get(PostSubscriptionsService::class);
     }
 
     /**
@@ -39,6 +43,9 @@ class NotificationsDelegate
      */
     public function onAdd(Activity $activity): void
     {
+        /** @var User */
+        $owner = $this->entitiesBuilder->single($activity->getOwnerGuid());
+
         if ($activity->isRemind() || $activity->isQuotedPost()) {
             $remind = $activity->getRemind();
 
@@ -65,9 +72,6 @@ class NotificationsDelegate
                 $actionData['is_supermind_reply'] = true;
             }
 
-            /** @var User */
-            $owner = $this->entitiesBuilder->single($activity->getOwnerGuid());
-
             // New style events system
             $actionEvent = new ActionEvent();
             $actionEvent
@@ -77,5 +81,11 @@ class NotificationsDelegate
                 ->setActionData($actionData);
             $this->actionEventsTopic->send($actionEvent);
         }
+
+        // Subscribe to notifications on this post
+        $this->postSubscriptionsService
+            ->withUser($owner)
+            ->withEntity($activity)
+            ->subscribe(PostSubscriptionFrequencyEnum::ALWAYS);
     }
 }
