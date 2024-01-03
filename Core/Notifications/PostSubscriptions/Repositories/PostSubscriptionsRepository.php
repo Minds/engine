@@ -33,6 +33,7 @@ class PostSubscriptionsRepository extends AbstractRepository
     public function getList(
         int $userGuid = null,
         int $entityGuid = null,
+        PostSubscriptionFrequencyEnum $frequency = null,
     ): iterable {
         $query = $this->mysqlClientReaderHandler->select()
             ->from(static::TABLE_NAME)
@@ -55,6 +56,11 @@ class PostSubscriptionsRepository extends AbstractRepository
         if ($entityGuid) {
             $query->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'));
             $values['entity_guid'] = $entityGuid;
+        }
+
+        if ($frequency) {
+            $query->where('frequency', Operator::EQ, new RawExp(':frequency'));
+            $values['frequency'] = $frequency->name;
         }
 
         $stmt = $query->prepare();

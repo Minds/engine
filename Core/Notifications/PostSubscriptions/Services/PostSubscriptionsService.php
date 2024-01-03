@@ -82,9 +82,13 @@ class PostSubscriptionsService
      * Returns PostSubscription that match the provided entity
      * @return iterable<PostSubscription>
      */
-    public function getAllForEntity(): iterable
-    {
-        yield from $this->repository->getList(entityGuid: $this->entity->getGuid());
+    public function getAllForEntity(
+        PostSubscriptionFrequencyEnum $frequency = null
+    ): iterable {
+        yield from $this->repository->getList(
+            entityGuid: $this->entity->getGuid(),
+            frequency: $frequency,
+        );
     }
 
 }

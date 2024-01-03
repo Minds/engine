@@ -1,6 +1,8 @@
 <?php
 /**
- * You can test by running `php cli.php EventStreams --subscription=Core\\Notifications\\PostSubscriptions\\EventsStreamsSubscriptions\\PostSubscriptionsEventStreamsSubscription`
+ * When a user makes a post, we check to see if they have an notification subscribers.
+ * This runner will only act on ALWAYS frequency. HIGHLIGHTS should be done via a cronjob.
+ * You can test by running `php cli.php EventStreams --subscription=Core\\Notifications\\PostSubscriptions\\EventStreamsSubscriptions\\PostSubscriptionsEventStreamsSubscription`
  */
 namespace Minds\Core\Notifications\PostSubscriptions\EventStreamsSubscriptions;
 
@@ -15,7 +17,10 @@ use Minds\Core\Log\Logger;
 use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Manager as NotificationsManager;
+use Minds\Core\Notifications\PostSubscriptions\Enums\PostSubscriptionFrequencyEnum;
 use Minds\Core\Notifications\PostSubscriptions\Services\PostSubscriptionsService;
+use Minds\Core\Security\RateLimits\KeyValueLimiter;
+use Minds\Core\Security\RateLimits\RateLimitExceededException;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 
@@ -26,11 +31,13 @@ class PostSubscriptionsEventStreamsSubscription implements SubscriptionInterface
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?NotificationsManager $notificationsManager = null,
         private ?Logger $logger = null,
+        private ?KeyValueLimiter $kvLimiter = null,
     ) {
         $this->service ??= Di::_()->get(PostSubscriptionsService::class);
         $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
         $this->notificationsManager ??= Di::_()->get('Notifications\Manager');
         $this->logger ??= Di::_()->get('Logger');
+        $this->kvLimiter ??= Di::_()->get("Security\RateLimits\KeyValueLimiter");
     }
 
     /**
@@ -98,7 +105,19 @@ class PostSubscriptionsEventStreamsSubscription implements SubscriptionInterface
 
         // Get an iterator of all user guids who will receive the notification
 
-        foreach ($this->service->withEntity($owner)->getAllForEntity() as $postSubscription) {
+        foreach ($this->service->withEntity($owner)->getAllForEntity(frequency: PostSubscriptionFrequencyEnum::ALWAYS) as $postSubscription) {
+            // If we have delivered more than 5 notifications in the last 24 hours then skip
+            try {
+                $this->kvLimiter
+                  ->setKey('post-subscriptions')
+                  ->setValue($postSubscription->userGuid . ':' . $postSubscription->entityGuid)
+                  ->setSeconds(86400) // Day
+                  ->setMax(5) // 5 per day
+                  ->checkAndIncrement(); // Will throw exception
+            } catch (RateLimitExceededException $e) {
+                continue;
+            }
+
             $notification = new Notification();
 
             $notification->setFromGuid((string) $owner->getGuid());
@@ -109,6 +128,6 @@ class PostSubscriptionsEventStreamsSubscription implements SubscriptionInterface
             $this->notificationsManager->add($notification);
         }
 
-        return false;
+        return true;
     }
 }
