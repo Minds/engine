@@ -308,12 +308,6 @@ class media implements Interfaces\Api, Interfaces\ApiIgnorePam
             throw new \Exception('Error saving media entity');
         }
 
-        // Follow activity
-        (new Core\Notification\PostSubscriptions\Manager())
-            ->setEntityGuid($entity->guid)
-            ->setUserGuid(Core\Session::getLoggedInUserGuid())
-            ->follow();
-
         $location = method_exists($entity, 'getFilenameOnFilestore') ? $entity->getFilenameOnFilestore() : '';
 
         // Done
