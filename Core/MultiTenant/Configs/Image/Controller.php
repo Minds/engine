@@ -34,7 +34,7 @@ class Controller
 
         $file = $this->manager->getImageFileByType($type);
         $file->open('read');
-        $contents = $this->manager->getImageContentsFromFile($file, $type);
+        $contents = $this->manager->getImageContentsFromFile($file);
 
         if (empty($contents)) {
             exit;
