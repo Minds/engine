@@ -95,7 +95,7 @@ class settings implements Interfaces\Api
         Factory::isLoggedIn();
 
         if (Core\Session::getLoggedInUser()->isAdmin() && isset($pages[0])) {
-            $user = new entities\User($pages[0]);
+            $user = Di::_()->get(EntitiesBuilder::class)->single($pages[0]);
         } else {
             $user = Core\Session::getLoggedInUser();
         }
