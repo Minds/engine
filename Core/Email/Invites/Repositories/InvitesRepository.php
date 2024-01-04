@@ -72,7 +72,7 @@ class InvitesRepository extends AbstractRepository
                     'email' => $email,
                     'roles' => $roles ? implode(',', array_map(fn (int $role): int => RolesEnum::from($role)->value, $roles)) : null,
                     'groups' => $groups ? implode(',', $groups) : null,
-                    'token' => $this->generateInviteToken((int)$this->mysqlClientWriter->lastInsertId()),
+                    'token' => $this->generateInviteToken($email, $this->config->get('tenant_id') ?? -1),
                 ])
             ) {
                 $this->rollbackTransaction();
@@ -88,11 +88,12 @@ class InvitesRepository extends AbstractRepository
      * @return string
      * @throws Exception
      */
-    private function generateInviteToken(int $inviteId): string
+    private function generateInviteToken(string $email, int $tenantId): string
     {
         return $this->jwt->encode(
             payload: [
-                'invite_id' => $inviteId,
+                'email' => $email,
+                'tenant_id' => $tenantId,
             ]
         );
     }
@@ -245,6 +246,7 @@ class InvitesRepository extends AbstractRepository
         $statement = $this->mysqlClientReaderHandler->select()
             ->from('minds_tenant_invites')
             ->where('status', Operator::EQ, InviteEmailStatusEnum::PENDING->value)
+            ->orWhere('status', Operator::EQ, InviteEmailStatusEnum::FAILED->value)
             ->orderBy('created_timestamp ASC')
             ->limit(1000)
             ->execute();
