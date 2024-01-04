@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\Media\Video\CloudflareStreams;
 
 use GuzzleHttp\Exception\ClientException;
@@ -9,6 +10,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log;
 use Minds\Core\Media\Feeds;
 use Minds\Core\Media\Video\Transcoder\TranscodeStates;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Security\ACL;
 use Minds\Core\Storage\Quotas\Manager as StorageQuotasManager;
 use Minds\Entities\Activity;
@@ -41,12 +43,13 @@ class Webhooks
     protected $feeds;
 
     public function __construct(
-        private readonly StorageQuotasManager $storageQuotasManager,
+        private readonly StorageQuotasManager    $storageQuotasManager,
         $client = null,
         $config = null,
         $entitiesBuilder = null,
         $save = null,
-        ?ACL $acl = null,
+        ?ACL                                     $acl = null,
+        private readonly ?MultiTenantBootService $multiTenantBootService = null,
     ) {
         $this->client = $client ?? new Client();
         $this->config = $config ?? Di::_()->get('Config');
@@ -54,7 +57,7 @@ class Webhooks
         $this->save = $save ?? new Save();
         $this->logger = $logger ?? Di::_()->get('Logger');
         $this->acl = $acl ?? Di::_()->get('Security\ACL');
-
+        $this->multiTenantBootService ?? Di::_()->get(MultiTenantBootService::class);
     }
 
     /**
@@ -95,10 +98,15 @@ class Webhooks
         $body = $request->getParsedBody();
         $guid = $body['meta']['guid'];
         $transcodingState = $body['status']['state'];
+        $tenantId = $body['meta']['tenant_id'] ?? null;
 
         $this->logger->info('CloudflareWebhook - Video ' . $guid);
 
         $ia = $this->acl->setIgnore(true);
+
+        if ($tenantId) {
+            $this->multiTenantBootService->bootFromTenantId($tenantId);
+        }
 
         /** @var Video */
         $video = $this->entitiesBuilder->single($guid);
@@ -111,8 +119,7 @@ class Webhooks
         // Update the width / height
         $video->width = $body['input']['width'];
         $video->height = $body['input']['height'];
-        $duration = (float) $body['duration'];
-        $tenantId = $this->config->get('tenant_id');
+        $duration = (float)$body['duration'];
 
         $video->setTranscodingStatus($transcodingState === 'ready' ? TranscodeStates::COMPLETED : TranscodeStates::FAILED);
 
@@ -130,15 +137,19 @@ class Webhooks
         );
 
         $this->acl->setIgnore($ia); // Set the ignore state back to what it was
-    
-        return new JsonResponse([ ]);
+
+        if ($tenantId) {
+            $this->multiTenantBootService->resetRootConfigs();
+        }
+
+        return new JsonResponse([]);
     }
 
     /**
      * Verifies whether the webhook is authentic
      * @param ServerRequest $request
-     * @throws UserErrorException
      * @return void
+     * @throws UserErrorException
      */
     private function verifyWebhookAuthenticity(ServerRequest $request): void
     {
@@ -173,7 +184,7 @@ class Webhooks
     private function patchLinkedActivity(Video $video): void
     {
         $activity = $this->entitiesBuilder->single($video->getContainerGuid());
-        
+
         if (!$activity || !($activity instanceof Activity)) {
             return;
         }
