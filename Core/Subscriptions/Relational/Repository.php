@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Subscriptions\Relational;
 
+use Minds\Common\Repository\Response;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di\Di;
@@ -152,6 +153,59 @@ class Repository
         $result = $prepared->fetchAll(PDO::FETCH_BOTH);
 
         return $result[0]['c'];
+    }
+
+    /**
+     * Get a list of subscribers.
+     * @param int $userGuid - the user to get subscribers for.
+     * @param int $limit - how many to return.
+     * @param int|null $loadBefore - timestamp to load before.
+     * @return Response - a response object with the users as the data.
+     */
+    public function getSubscribers(
+        int $userGuid,
+        int $limit = 12,
+        int $loadBefore = null
+    ): Response {
+        $statement = "SELECT * 
+            FROM friends
+            WHERE friend_guid = :user_guid";
+
+        $values = ['user_guid' => $userGuid];
+
+        if ($loadBefore) {
+            $statement .= " AND timestamp < :load_before";
+            $values['load_before'] = date('c', $loadBefore);
+        }
+
+        if ($this->getTenantId()) {
+            $statement .= " AND tenant_id = :tenant_id";
+            $values['tenant_id'] = $this->getTenantId();
+        } else {
+            $statement .= " AND tenant_id IS NULL";
+        }
+
+        $statement .= " ORDER BY timestamp DESC";
+        $statement .= " LIMIT :limit";
+        $values['limit'] = $limit;
+
+        $prepared = $this->client->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
+
+        $this->client->bindValuesToPreparedStatement($prepared, $values);
+
+        $prepared->execute();
+
+        $result = $prepared->fetchAll(PDO::FETCH_ASSOC);
+        $response = [];
+        $pagingToken = null;
+
+        foreach ($result as $key => $row) {
+            $response[$key] = $this->entitiesBuilder->single($row['user_guid']);
+            $pagingToken = strtotime($row['timestamp']);
+        }
+
+        return (new Response($response))
+            ->setPagingToken($pagingToken);
     }
 
     /**

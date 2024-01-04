@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2c53476c890ef2aa3620797f4eaab5d6",
+    "content-hash": "cb759f2350611834222d743413de97cb",
     "packages": [
         {
             "name": "Minds/Surge",
@@ -3667,13 +3667,13 @@
             "version": "dev-use-upstream-phpseclib",
             "source": {
                 "type": "git",
-                "url": "https://github.com/oddevan/http-signatures-php.git",
-                "reference": "1832ab4e05a6a2e5e04ef61d2fb8a851a30ca150"
+                "url": "https://github.com/Minds/http-signatures-php.git",
+                "reference": "4e4363990ca2117a418c739d3dd48b49bb2c907e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oddevan/http-signatures-php/zipball/1832ab4e05a6a2e5e04ef61d2fb8a851a30ca150",
-                "reference": "1832ab4e05a6a2e5e04ef61d2fb8a851a30ca150",
+                "url": "https://api.github.com/repos/Minds/http-signatures-php/zipball/4e4363990ca2117a418c739d3dd48b49bb2c907e",
+                "reference": "4e4363990ca2117a418c739d3dd48b49bb2c907e",
                 "shasum": ""
             },
             "require": {
@@ -3730,9 +3730,9 @@
                 "signing"
             ],
             "support": {
-                "source": "https://github.com/oddevan/http-signatures-php/tree/use-upstream-phpseclib"
+                "source": "https://github.com/Minds/http-signatures-php/tree/use-upstream-phpseclib"
             },
-            "time": "2023-06-16T13:21:21+00:00"
+            "time": "2024-01-04T13:26:23+00:00"
         },
         {
             "name": "minds/mw3",
@@ -11629,5 +11629,5 @@
         "ext-redis": "~5.1.1"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.3.0"
 }
