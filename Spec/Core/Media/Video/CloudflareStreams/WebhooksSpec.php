@@ -8,11 +8,13 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Media\Video\CloudflareStreams\Client;
 use Minds\Core\Media\Video\CloudflareStreams\Webhooks;
 use Minds\Core\Media\Video\Transcoder\TranscodeStates;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Security\ACL;
 use Minds\Core\Storage\Quotas\Manager as StorageQuotasManager;
 use Minds\Entities\Activity;
 use Minds\Entities\Video;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -36,21 +38,33 @@ class WebhooksSpec extends ObjectBehavior
     /** @var ACL */
     protected $acl;
 
+    private Collaborator $multiTenantBootServiceMock;
+
     public function let(
-        Client $client,
-        Config $config,
-        EntitiesBuilder $entitiesBuilder,
-        Save $save,
-        ACL $acl,
-        StorageQuotasManager $storageQuotasManager
+        Client                 $client,
+        Config                 $config,
+        EntitiesBuilder        $entitiesBuilder,
+        Save                   $save,
+        ACL                    $acl,
+        StorageQuotasManager   $storageQuotasManager,
+        MultiTenantBootService $multiTenantBootService
     ) {
-        $this->beConstructedWith($storageQuotasManager, $client, $config, $entitiesBuilder, $save, $acl);
+        $this->beConstructedWith(
+            $storageQuotasManager,
+            $client,
+            $config,
+            $entitiesBuilder,
+            $save,
+            $acl,
+            $multiTenantBootService
+        );
         $this->client = $client;
         $this->config = $config;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->save = $save;
         $this->acl = $acl;
         $this->storageQuotasManager = $storageQuotasManager;
+        $this->multiTenantBootServiceMock = $multiTenantBootService;
     }
 
     public function it_is_initializable()
@@ -62,14 +76,14 @@ class WebhooksSpec extends ObjectBehavior
     {
         $this->config->get('site_url')
             ->willReturn('https://minds.local/');
-    
+
         $this->client->request('PUT', 'stream/webhook', [
             'notificationUrl' => 'https://minds.local/api/v3/media/cloudflare/webhooks'
         ])
             ->willReturn(new JsonResponse([
                 'result' => [
                     'secret' => 'cf-secret'
-                    ]
+                ]
             ]));
 
         $this->registerWebhook()
@@ -78,9 +92,9 @@ class WebhooksSpec extends ObjectBehavior
 
     public function it_should_list_to_webhook_hit(
         ServerRequest $request,
-        Activity $activity,
-        Video $video
-    ) {
+        Activity      $activity,
+        Video         $video
+    ): void {
         $this->config->get('cloudflare')
             ->willReturn(['webhook_secret' => 'cf-signature']);
 
@@ -88,18 +102,18 @@ class WebhooksSpec extends ObjectBehavior
             ->willReturn(123);
 
         $requestBody = json_encode([
-                'meta' => [
-                    'guid' => '123'
-                ],
-                'input' => [
-                    'width' => 1280,
-                    'height' => 1960
-                ],
-                'status' => [
-                    'state' => 'ready',
-                ],
-                'duration' => 1.5
-            ]);
+            'meta' => [
+                'guid' => '123'
+            ],
+            'input' => [
+                'width' => 1280,
+                'height' => 1960
+            ],
+            'status' => [
+                'state' => 'ready',
+            ],
+            'duration' => 1.5
+        ]);
 
         $request->getBody()->willReturn($requestBody);
 

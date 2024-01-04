@@ -1,18 +1,18 @@
 <?php
+
 namespace Minds\Core\Media\Video\CloudflareStreams;
 
 use Composer\Semver\Comparator;
 use DateTimeImmutable;
-use Minds\Core\Config;
-use Minds\Entities\Video;
-use Minds\Core\Di\Di;
-use Minds\Core\Data\cache\PsrWrapper;
 use Lcobucci\JWT;
-use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
+use Minds\Core\Config;
+use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\Di\Di;
 use Minds\Core\Media\Video\Source;
 use Minds\Core\Media\Video\Transcoder\TranscodeStates;
+use Minds\Entities\Video;
 
 class Manager
 {
@@ -45,7 +45,8 @@ class Manager
             'meta' => [
                 'guid' => $video->getGuid(),
                 // "name" => $video->getTitle() ?: '',
-                'owner_guid' => (string) $video->getOwnerGUID(),
+                'owner_guid' => (string)$video->getOwnerGUID(),
+                'tenant_id' => $this->config->get('tenant_id'),
             ],
             'thumbnailTimestampPct' => 0.5,
             'requireSignedURLs' => true,
@@ -83,47 +84,6 @@ class Manager
     }
 
     /**
-     * @param Video $video
-     * @return string
-     */
-    public function getThumbnailUrl(Video $video): string
-    {
-        $size = 640;
-
-        $signedToken = $this->getSigningToken($video->getCloudflareId(), 86400 * 90); // 90 days ttl for thumbnails
-
-        $signedUrl = "{$this->getCdnUrl()}/$signedToken/thumbnails/thumbnail.jpg?width=$size";
-    
-        return $this->getProxyUrl() . "?size=$size&src=" . urlencode($signedUrl);
-    }
-
-    /**
-     * Returns the video transcode status
-     * @return TranscodeStatus status
-     */
-    public function getVideoTranscodeStatus(Video $video): object
-    {
-        $videoDetails = $this->getVideo($video);
-        $status = new TranscodeStatus();
-        $status->setPct($videoDetails["status"]["pct"]);
-
-        // TODO: figure out what other statuses exist and handle them
-        switch ($videoDetails["status"]["state"]) {
-            case "inprogress":
-                $status->setState(TranscodeStates::TRANSCODING);
-                break;
-            case "ready":
-                $status->setState(TranscodeStates::COMPLETED);
-                break;
-            default: // failed
-                $status->setState(TranscodeStates::FAILED);
-                break;
-        }
-        return $status;
-    }
-
-
-    /**
      * @param string $videoId
      * @param int $secondsTtl - 3600 (1 hour)
      * @return string
@@ -138,8 +98,8 @@ class Manager
         $jwtBuilder->withClaim('kid', $signingKey->getId());
         $jwtBuilder->relatedTo($videoId);
         $jwtBuilder->expiresAt(new DateTimeImmutable("+$secondsTtl seconds"));
-    
-        $token = (string) $jwtBuilder->getToken($jwtConfig->signer(), $jwtConfig->signingKey())->toString();
+
+        $token = (string)$jwtBuilder->getToken($jwtConfig->signer(), $jwtConfig->signingKey())->toString();
 
         return $token;
     }
@@ -169,27 +129,12 @@ class Manager
         $json = json_decode($response->getBody(), true);
 
         $signingKey = (new SigningKey())
-                            ->setId($json['result']['id'])
-                            ->setPem($json['result']['pem']);
+            ->setId($json['result']['id'])
+            ->setPem($json['result']['pem']);
 
         $this->cache->set('cloudflare_signing_key', serialize($signingKey));
 
         return $signingKey;
-    }
-
-    /**
-     * Returns the video details
-     * @throws \Exception
-     * @return array videoDetails from cloudflare
-     */
-    private function getVideo(Video $video): array
-    {
-        if (!$video->getCloudflareId()) {
-            throw new \Exception('Cloudflare ID not found', 404);
-        }
-
-        $response = $this->client->request('GET', 'stream/' . $video->getCloudflareId());
-        return json_decode($response->getBody(), true)["result"];
     }
 
     /**
@@ -200,8 +145,63 @@ class Manager
         return rtrim($this->config->get('cloudflare')['cdn_url'] ?? "https://customer-gh08u53vbkhozibb.cloudflarestream.com/", "/");
     }
 
+    /**
+     * @param Video $video
+     * @return string
+     */
+    public function getThumbnailUrl(Video $video): string
+    {
+        $size = 640;
+
+        $signedToken = $this->getSigningToken($video->getCloudflareId(), 86400 * 90); // 90 days ttl for thumbnails
+
+        $signedUrl = "{$this->getCdnUrl()}/$signedToken/thumbnails/thumbnail.jpg?width=$size";
+
+        return $this->getProxyUrl() . "?size=$size&src=" . urlencode($signedUrl);
+    }
+
     private function getProxyUrl(): string
     {
         return $this->config->get('cdn_url') . 'api/v2/media/proxy';
+    }
+
+    /**
+     * Returns the video transcode status
+     * @return TranscodeStatus status
+     */
+    public function getVideoTranscodeStatus(Video $video): object
+    {
+        $videoDetails = $this->getVideo($video);
+        $status = new TranscodeStatus();
+        $status->setPct($videoDetails["status"]["pct"]);
+
+        // TODO: figure out what other statuses exist and handle them
+        switch ($videoDetails["status"]["state"]) {
+            case "inprogress":
+                $status->setState(TranscodeStates::TRANSCODING);
+                break;
+            case "ready":
+                $status->setState(TranscodeStates::COMPLETED);
+                break;
+            default: // failed
+                $status->setState(TranscodeStates::FAILED);
+                break;
+        }
+        return $status;
+    }
+
+    /**
+     * Returns the video details
+     * @return array videoDetails from cloudflare
+     * @throws \Exception
+     */
+    private function getVideo(Video $video): array
+    {
+        if (!$video->getCloudflareId()) {
+            throw new \Exception('Cloudflare ID not found', 404);
+        }
+
+        $response = $this->client->request('GET', 'stream/' . $video->getCloudflareId());
+        return json_decode($response->getBody(), true)["result"];
     }
 }
