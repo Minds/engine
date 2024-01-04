@@ -67,6 +67,7 @@ class RolesServiceSpec extends ObjectBehavior
             PermissionsEnum::CAN_UPLOAD_VIDEO,
             PermissionsEnum::CAN_INTERACT,
             PermissionsEnum::CAN_BOOST,
+            PermissionsEnum::CAN_USE_RSS_SYNC,
             PermissionsEnum::CAN_ASSIGN_PERMISSIONS,
         ]);
 
@@ -161,7 +162,7 @@ class RolesServiceSpec extends ObjectBehavior
         $subjectUser = new User();
 
         $permissions = $this->getUserPermissions($subjectUser);
-        $permissions->shouldHaveCount(6);
+        $permissions->shouldHaveCount(7);
         $permissions->shouldBe([
             PermissionsEnum::CAN_CREATE_POST,
             PermissionsEnum::CAN_COMMENT,
@@ -169,6 +170,7 @@ class RolesServiceSpec extends ObjectBehavior
             PermissionsEnum::CAN_UPLOAD_VIDEO,
             PermissionsEnum::CAN_INTERACT,
             PermissionsEnum::CAN_BOOST,
+            PermissionsEnum::CAN_USE_RSS_SYNC,
         ]);
     }
 
