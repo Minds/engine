@@ -411,6 +411,7 @@ class PushNotification implements PushNotificationInterface
             case NotificationTypes::TYPE_AFFILIATE_EARNINGS_DEPOSITED:
             case NotificationTypes::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
             case NotificationTypes::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED:
+            case NotificationTypes::TYPE_POST_SUBSCRIPTION:
                 return true;
         }
         return false;
