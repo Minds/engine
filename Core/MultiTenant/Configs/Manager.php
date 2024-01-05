@@ -52,6 +52,7 @@ class Manager
      * @param ?MultiTenantColorScheme $colorScheme - color scheme to set.
      * @param ?string $primaryColor - primary color to set.
      * @param ?string $communityGuidelines - community guidelines.
+     * @param ?bool $federationDisabled - federation disabled.
      * @param ?int $lastCacheTimestamp - last cache timestamp.
      * @return bool - true on success.
      */
@@ -60,6 +61,7 @@ class Manager
         ?MultiTenantColorScheme $colorScheme = null,
         ?string $primaryColor = null,
         ?string $communityGuidelines = null,
+        ?bool $federationDisabled = null,
         ?int $lastCacheTimestamp = null
     ): bool {
         $tenantId = $this->config->get('tenant_id');
@@ -70,6 +72,7 @@ class Manager
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
             communityGuidelines: $communityGuidelines,
+            federationDisabled: $federationDisabled,
             lastCacheTimestamp: $lastCacheTimestamp
         );
 

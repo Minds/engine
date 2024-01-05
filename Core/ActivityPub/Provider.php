@@ -10,6 +10,7 @@ use Minds\Core\ActivityPub\Factories\LikeFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Factories\OutboxFactory;
 use Minds\Core\ActivityPub\Services\EmitActivityService;
+use Minds\Core\ActivityPub\Services\FederationEnabledService;
 use Minds\Core\ActivityPub\Services\ProcessActivityService;
 use Minds\Core\ActivityPub\Services\ProcessActorService;
 use Minds\Core\ActivityPub\Services\ProcessCollectionService;
@@ -23,6 +24,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 use Minds\Core\Media\Image\ProcessExternalImageService;
 use Minds\Core\MultiTenant\Services\DomainService;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Webfinger;
 
 class Provider extends DiProvider
@@ -170,6 +172,12 @@ class Provider extends DiProvider
             return new LikeFactory(
                 votesManager: $di->get('Votes\Manager'),
                 objectFactory: $di->get(ObjectFactory::class),
+            );
+        });
+        $this->di->bind(FederationEnabledService::class, function ($di) {
+            return new FederationEnabledService(
+                multiTenantBootService: $di->get(MultiTenantBootService::class),
+                config: $di->get(Config::class),
             );
         });
     }

@@ -58,6 +58,7 @@ class RepositorySpec extends ObjectBehavior
         $siteEmail = 'noreply@minds.com';
         $colorSchemeValue = MultiTenantColorScheme::DARK->value;
         $primaryColor = '#fff000';
+        $federationDisabled = true;
         $updatedTimestamp = date('c', time());
 
         $this->mysqlMasterMock->prepare(Argument::any())
@@ -78,6 +79,7 @@ class RepositorySpec extends ObjectBehavior
                 'site_email' => $siteEmail,
                 'color_scheme' => $colorSchemeValue,
                 'primary_color' => $primaryColor,
+                'federation_disabled' => $federationDisabled,
                 'updated_timestamp' => $updatedTimestamp,
             ]);
 
@@ -86,6 +88,7 @@ class RepositorySpec extends ObjectBehavior
             siteEmail: $siteEmail,
             colorScheme: MultiTenantColorScheme::tryFrom($colorSchemeValue),
             primaryColor: $primaryColor,
+            federationDisabled: $federationDisabled,
             updatedTimestamp: strtotime($updatedTimestamp)
         ));
     }
@@ -121,6 +124,7 @@ class RepositorySpec extends ObjectBehavior
         $colorScheme = MultiTenantColorScheme::DARK;
         $primaryColor = '#fff000';
         $communityGuidelines = 'Test community guidelines';
+        $federationDisabled = true;
 
         $this->mysqlMasterMock->prepare(Argument::any())
             ->willReturn($statement);
@@ -130,7 +134,8 @@ class RepositorySpec extends ObjectBehavior
             'site_name' => $siteName,
             'color_scheme' => $colorScheme->value,
             'primary_color' => $primaryColor,
-            'community_guidelines' => $communityGuidelines
+            'community_guidelines' => $communityGuidelines,
+            'federation_disabled' => $federationDisabled,
         ])->shouldBeCalled();
 
         $statement->execute()
@@ -142,7 +147,8 @@ class RepositorySpec extends ObjectBehavior
             siteName: $siteName,
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
-            communityGuidelines: $communityGuidelines
+            communityGuidelines: $communityGuidelines,
+            federationDisabled: $federationDisabled
         )->shouldBe(true);
     }
 }

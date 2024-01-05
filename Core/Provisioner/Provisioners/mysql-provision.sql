@@ -745,3 +745,7 @@ CREATE TABLE IF NOT EXISTS minds_post_notification_subscriptions (
     PRIMARY KEY (tenant_id, user_guid, entity_guid),
     INDEX (tenant_id, entity_guid)
 );
+
+ALTER TABLE `minds_tenant_configs`
+    ADD federation_disabled boolean DEFAULT false
+    AFTER color_scheme;

@@ -116,6 +116,7 @@ class ManagerSpec extends ObjectBehavior
         $result = true;
         $tenant = new Tenant($tenantId, $domain);
         $communityGuidelines = 'Test community guidelines';
+        $federationDisabled = true;
         $lastCacheTimestamp = time();
 
         $this->config->get('tenant_id')
@@ -128,6 +129,7 @@ class ManagerSpec extends ObjectBehavior
             $colorScheme,
             $primaryColor,
             $communityGuidelines,
+            $federationDisabled,
             $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -145,6 +147,7 @@ class ManagerSpec extends ObjectBehavior
             $colorScheme,
             $primaryColor,
             $communityGuidelines,
+            $federationDisabled,
             $lastCacheTimestamp
         )->shouldBe($result);
     }
@@ -157,6 +160,7 @@ class ManagerSpec extends ObjectBehavior
         $primaryColor = '#000000';
         $result = false;
         $communityGuidelines = 'Test community guidelines';
+        $federationDisabled = true;
         $lastCacheTimestamp = time();
 
         $this->config->get('tenant_id')
@@ -169,6 +173,7 @@ class ManagerSpec extends ObjectBehavior
             $colorScheme,
             $primaryColor,
             $communityGuidelines,
+            $federationDisabled,
             $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -185,6 +190,7 @@ class ManagerSpec extends ObjectBehavior
             $colorScheme,
             $primaryColor,
             $communityGuidelines,
+            $federationDisabled,
             $lastCacheTimestamp
         )->shouldBe($result);
     }

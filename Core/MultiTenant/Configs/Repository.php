@@ -47,6 +47,7 @@ class Repository extends AbstractRepository
             colorScheme: $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null,
             primaryColor: $row['primary_color'] ?? null,
             communityGuidelines: $row['community_guidelines'] ?? null,
+            federationDisabled: (bool) $row['federation_disabled'] ?? false,
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
             updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
         );
@@ -59,6 +60,7 @@ class Repository extends AbstractRepository
      * @param ?MultiTenantColorScheme $colorScheme - color scheme.
      * @param ?string $primaryColor - primary color.
      * @param ?string $communityGuidelines - community guidelines.
+     * @param ?bool $federationDisabled - federation diabled.
      * @param ?int $lastCacheTimestamp - timestamp of last caching.
      * @return bool - true on success.
      */
@@ -68,6 +70,7 @@ class Repository extends AbstractRepository
         ?MultiTenantColorScheme $colorScheme = null,
         ?string $primaryColor = null,
         ?string $communityGuidelines = null,
+        ?bool $federationDisabled = null,
         ?int $lastCacheTimestamp = null
     ): bool {
         $boundValues = [ 'tenant_id' => $tenantId ];
@@ -91,6 +94,11 @@ class Repository extends AbstractRepository
         if ($communityGuidelines !== null) {
             $rawValues['community_guidelines'] = new RawExp(':community_guidelines');
             $boundValues['community_guidelines'] = $communityGuidelines;
+        }
+
+        if ($federationDisabled !== null) {
+            $rawValues['federation_disabled'] = new RawExp(':federation_disabled');
+            $boundValues['federation_disabled'] = $federationDisabled;
         }
 
         if ($lastCacheTimestamp !== null) {
