@@ -103,6 +103,11 @@ class FeaturedEntitiesRepository extends AbstractRepository
             $boundValues['recommended'] = $featuredEntity->recommended;
         }
 
+        if (isset($featuredEntity->autoPostSubscription)) {
+            $rawValues['auto_post_subscription'] = new RawExp(':auto_post_subscription');
+            $boundValues['auto_post_subscription'] = $featuredEntity->autoPostSubscription;
+        }
+
         $query = $this->mysqlClientWriterHandler
             ->insert()
             ->into('minds_tenant_featured_entities')
@@ -159,6 +164,7 @@ class FeaturedEntitiesRepository extends AbstractRepository
                 entityGuid: (int) $row['entity_guid'],
                 autoSubscribe: (bool) $row['auto_subscribe'],
                 recommended: (bool) $row['recommended'],
+                autoPostSubscription: (bool) $row['auto_post_subscription'],
                 username: $row['username'],
                 name: $row['name']
             ),

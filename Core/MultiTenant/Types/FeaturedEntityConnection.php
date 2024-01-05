@@ -32,7 +32,7 @@ class FeaturedEntityConnection extends Connection implements NodeInterface
 
     /**
      * Gets connections edges.
-     * @return EdgeInterface[]
+     * @return FeaturedEntityEdge[]
      */
     #[Field]
     public function getEdges(): array
