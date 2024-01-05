@@ -9,7 +9,6 @@ namespace Minds\Controllers;
 use Imagick;
 use ImagickDraw;
 use ImagickPixel;
-use LasseRafn\InitialAvatarGenerator\InitialAvatar;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
