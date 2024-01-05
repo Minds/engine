@@ -23,5 +23,7 @@ class Module implements ModuleInterface
     {
         $routes = new Routes();
         $routes->register();
+
+        (new Provider())->register();
     }
 }

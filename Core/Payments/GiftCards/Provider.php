@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\GiftCards;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
@@ -22,7 +23,7 @@ class Provider extends DiProvider
     public function register(): void
     {
         $this->di->bind(Repository::class, function (Di $di): Repository {
-            return new Repository($di->get(MySQL\Client::class), $di->get('Logger'));
+            return new Repository($di->get(MySQL\Client::class), $di->get(Config::class), $di->get('Logger'));
         }, ['factory' => true]);
 
         $this->di->bind(PaymentProcessor::class, function (Di $di): PaymentProcessor {

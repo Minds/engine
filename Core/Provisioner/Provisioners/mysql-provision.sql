@@ -497,7 +497,7 @@ CREATE TABLE `minds_entities_user` (
   `canonical_url` text,
   `source` text,
   PRIMARY KEY (`tenant_id`,`guid`),
-  UNIQUE KEY `username` (`username`)
+  UNIQUE KEY `username` (`tenant_id`, `username`)
 );
 
 CREATE TABLE `minds_entities_group` (
@@ -624,6 +624,15 @@ ALTER TABLE `minds_tenant_configs`
     ADD last_cache_timestamp timestamp DEFAULT NULL
     AFTER updated_timestamp;
 
+CREATE TABLE IF NOT EXISTS `minds_in_app_purchases` (
+    `transaction_id` varchar(128) NOT NULL PRIMARY KEY ,
+    `user_guid` bigint NOT NULL,
+    `product_id` varchar(128) NOT NULL,
+    `purchase_type` tinyint NOT NULL,
+    `purchase_timestamp` timestamp NOT NULL,
+    INDEX (`user_guid`)
+);
+
 CREATE TABLE IF NOT EXISTS `minds_user_rss_feeds` (
     `feed_id` bigint NOT NULL PRIMARY KEY,
     `user_guid` bigint NOT NULL,
@@ -687,3 +696,33 @@ ALTER TABLE minds_activitypub_uris DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, 
 ALTER TABLE minds_activitypub_actors DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, uri);
 ALTER TABLE minds_activitypub_keys DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, user_guid);
 ALTER TABLE minds_activitypub_actors ADD CONSTRAINT minds_activitypub_actors_ibfk_1 FOREIGN KEY (tenant_id, uri) REFERENCES minds_activitypub_uris(tenant_id, uri);
+
+CREATE TABLE IF NOT EXISTS  minds_embedded_comments_activity_map (
+    tenant_id int DEFAULT -1,
+    user_guid bigint NOT NULL,
+    url varchar(256) NOT NULL,
+    activity_guid bigint NOT NULL,
+    PRIMARY KEY (tenant_id, user_guid, url)
+);
+
+CREATE TABLE IF NOT EXISTS  minds_embedded_comments_settings (
+    tenant_id int NOT NULL,
+    user_guid bigint NOT NULL,
+    auto_imports_enabled boolean DEFAULT TRUE,
+    domain varchar(128) DEFAULT NULL,
+    path_regex varchar(256) DEFAULT NULL,
+    PRIMARY KEY (tenant_id, user_guid)
+);
+
+CREATE TABLE IF NOT EXISTS  `minds_oidc_providers` (
+  `tenant_id` int NOT NULL,
+  `provider_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) DEFAULT NULL,
+  `issuer` varchar(128) DEFAULT NULL,
+  `client_id` varchar(128) DEFAULT NULL,
+  `client_secret` varchar(512) DEFAULT NULL,
+  PRIMARY KEY (`tenant_id`, `provider_id`),
+  INDEX (provider_id)
+) ENGINE=InnoDB AUTO_INCREMENT=1;
+
+ALTER TABLE `minds_entities_group` MODIFY COLUMN banner timestamp;

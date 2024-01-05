@@ -31,7 +31,7 @@ class RepositorySpec extends ObjectBehavior
         PDO $mysqlMasterMock,
         PDO $mysqlReplicaMock
     ) {
-        $this->beConstructedWith($configMock, $multiTenantBootServiceMock, $mysqlClientMock, Di::_()->get('Logger'));
+        $this->beConstructedWith($multiTenantBootServiceMock, $mysqlClientMock, $configMock, Di::_()->get('Logger'));
 
         $this->multiTenantBootServiceMock = $multiTenantBootServiceMock;
 

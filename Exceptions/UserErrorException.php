@@ -6,8 +6,9 @@
 namespace Minds\Exceptions;
 
 use Minds\Entities\ValidationErrorCollection;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLExceptionInterface;
 
-class UserErrorException extends \Exception
+class UserErrorException extends \Exception implements GraphQLExceptionInterface
 {
     private ?ValidationErrorCollection $errors;
 
@@ -41,5 +42,35 @@ class UserErrorException extends \Exception
     public function getErrors(): ?ValidationErrorCollection
     {
         return $this->errors;
+    }
+
+    // Graphql Interface
+
+    /**
+     * Returns true when exception message is safe to be displayed to a client.
+     */
+    public function isClientSafe(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Returns string describing a category of the error.
+     *
+     * Value "graphql" is reserved for errors produced by query parsing or validation, do not use it.
+     */
+    public function getCategory(): string
+    {
+        return 'VALIDATION';
+    }
+
+    /**
+     * Returns the "extensions" object attached to the GraphQL error.
+     *
+     * @return array<string, mixed>
+     */
+    public function getExtensions(): array
+    {
+        return [];
     }
 }

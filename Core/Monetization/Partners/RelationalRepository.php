@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Monetization\Partners;
 
 use Minds\Common\Repository\Response;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Log\Logger;
@@ -17,11 +18,12 @@ class RelationalRepository extends AbstractRepository
 {
     public function __construct(
         Client $mysqlHandler,
+        Config $config,
         Logger $logger,
         ?Connection $mysqlClientReaderHandler = null,
         ?Connection $mysqlClientWriterHandler = null
     ) {
-        parent::__construct($mysqlHandler, $logger);
+        parent::__construct($mysqlHandler, $config, $logger);
 
         $this->mysqlClientReaderHandler = $mysqlClientReaderHandler ?? $this->mysqlClientReaderHandler;
         $this->mysqlClientWriterHandler = $mysqlClientWriterHandler ?? $this->mysqlClientWriterHandler;

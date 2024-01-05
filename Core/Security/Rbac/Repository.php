@@ -19,7 +19,6 @@ class Repository extends AbstractRepository
     private $rolesCache;
 
     public function __construct(
-        private Config $config,
         private MultiTenantBootService $multiTenantBootService,
         ... $args
     ) {

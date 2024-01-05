@@ -5,5 +5,9 @@ modules:
     enabled:
         - REST:
               url: http://localhost:8080/api/
+              cookies:
+                  staging:
+                      Name: staging
+                      Value: 1
               depends: PhpBrowser
               part: Json

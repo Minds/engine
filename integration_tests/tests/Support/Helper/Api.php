@@ -123,6 +123,15 @@ class Api extends Module
             )
         );
     }
+    
+    /**
+     * @return void
+     * @throws ModuleException
+     */
+    public function setStagingCookie(): void
+    {
+        $this->setCookie('staging', 1);
+    }
 
     /**
      * @param string $method

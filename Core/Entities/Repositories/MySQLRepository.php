@@ -26,12 +26,12 @@ use Selective\Database\SelectQuery;
 class MySQLRepository extends AbstractRepository implements EntitiesRepositoryInterface
 {
     public function __construct(
-        private Config $config,
+        Config $config,
         private ActiveSession $activeSession,
         Client $mysqlClient,
         Logger $logger,
     ) {
-        parent::__construct($mysqlClient, $logger);
+        parent::__construct($mysqlClient, $config, $logger);
     }
 
     /**
@@ -593,7 +593,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'icon_time' => MySQLDataTypeEnum::TIMESTAMP,
                     'tags' => MySQLDataTypeEnum::JSON,
                     'show_boost' => MySQLDataTypeEnum::BOOL,
-                    'banner' => MySQLDataTypeEnum::BOOL,
+                    'banner' => MySQLDataTypeEnum::TIMESTAMP,
                     //'nsfw' => MySQLDataTypeEnum::JSON,
                     //'nsfw__lock' => MySQLDataTypeEnum::JSON,
                     'time_created' => MySQLDataTypeEnum::TIMESTAMP,
@@ -721,7 +721,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 case EntityTypeEnum::GROUP:
                     $row = [...$row, ...$tableMappedRow['g']];
 
-                    $mapToUnix = ['time_created', 'time_updated', 'icon_time'];
+                    $mapToUnix = ['time_created', 'time_updated', 'icon_time', 'banner'];
 
                     break;
 
