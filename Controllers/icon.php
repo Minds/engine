@@ -1,18 +1,104 @@
 <?php
+
 /**
  * Minds main page controller
  */
 
 namespace Minds\Controllers;
 
+use Imagick;
+use ImagickDraw;
+use ImagickPixel;
+use LasseRafn\InitialAvatarGenerator\InitialAvatar;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
-use Minds\Entities;
+use Minds\Entities\User;
 use Minds\Interfaces;
 
 class icon extends core\page implements Interfaces\page
 {
+    private const DEFAULT_AVATAR_COLORS = [
+        [
+            'color' => '#C60906',
+            'background' => '#FF8C82'
+        ],
+        [
+            'color' => '#CC2900',
+            'background' => '#FFC27D'
+        ],
+        [
+            'color' => '#CC7000',
+            'background' => '#FFF394'
+        ],
+        [
+            'color' => '#2B8F00',
+            'background' => '#D1FF82'
+        ],
+        [
+            'color' => '#2B8F00',
+            'background' => '#D1FF82'
+        ],
+        [
+            'color' => '#008F81',
+            'background' => '#89FFDD'
+        ],
+        [
+            'color' => '#0037B8',
+            'background' => '#8CD5FF'
+        ],
+        [
+            'color' => '#53319B',
+            'background' => '#E4C6FA'
+        ],
+        [
+            'color' => '#A71140',
+            'background' => '#FE9AB8'
+        ],
+        [
+            'color' => '#7A0000',
+            'background' => '#FF8C82'
+        ],
+        [
+            'color' => '#A62100',
+            'background' => '#FFC27D'
+        ],
+        [
+            'color' => '#AD5F00',
+            'background' => '#FFF394'
+        ],
+        [
+            'color' => '#206B00',
+            'background' => '#D1FF82'
+        ],
+        [
+            'color' => '#007367',
+            'background' => '#89FFDD'
+        ],
+        [
+            'color' => '#002E99',
+            'background' => '#8CD5FF'
+        ],
+        [
+            'color' => '#452981',
+            'background' => '#E4C6FA'
+        ],
+        [
+            'color' => '#910E38',
+            'background' => '#FE9AB8'
+        ],
+    ];
+
+    private const SIZES = [
+        'xlarge' => 960,
+        'large' => 425,
+        'medium' => 100,
+        'small' => 40,
+        'tiny' => 25,
+        'master' => 425,
+        'topbar' => 100,
+    ];
+
     /**
      * Get requests
      */
@@ -30,7 +116,7 @@ class icon extends core\page implements Interfaces\page
         //if ($cached = $cacher->get("usericon:$guid")) {
         //    $join_date = $cached;
         //} else {
-        $user = Di::_()->get(EntitiesBuilder::class)->single($guid, [ 'cacheTtl' => 259200 ]);
+        $user = Di::_()->get(EntitiesBuilder::class)->single($guid, ['cacheTtl' => 259200]);
 
         if (isset($user->legacy_guid) && $user->legacy_guid) {
             $guid = $user->legacy_guid;
@@ -45,7 +131,7 @@ class icon extends core\page implements Interfaces\page
             exit;
         }
         $size = strtolower($pages[1]);
-        if (!in_array($size, ['xlarge', 'large', 'medium', 'small', 'tiny', 'master', 'topbar'], true)) {
+        if (!in_array($size, array_keys(self::SIZES), true)) {
             $size = "medium";
         }
 
@@ -65,7 +151,7 @@ class icon extends core\page implements Interfaces\page
         $contents = $file->read();
 
         if (empty($contents)) {
-            $contents = file_get_contents(Core\Config::build()->path . "engine/Assets/avatars/default-$size.png");
+            $contents = $this->generateDefaultUserAvatar($user, $size);
         }
 
         $this->returnImage($contents, $etag);
@@ -88,6 +174,38 @@ class icon extends core\page implements Interfaces\page
             }
         }
         exit;
+    }
+
+    private function generateDefaultUserAvatar(User $user, string $size): string
+    {
+        $avatarColorDetails = self::DEFAULT_AVATAR_COLORS[mt_rand(0, count(self::DEFAULT_AVATAR_COLORS) - 1)];
+        /**
+         * @var Core\Data\cache\Redis $cache
+         */
+        $cache = Di::_()->get('Cache');
+
+        if ($cachedColorDetails = $cache->get("usericon:{$user->getGuid()}")) {
+            $avatarColorDetails = $cachedColorDetails;
+        }
+
+        $cache->set("usericon:{$user->getGuid()}", $avatarColorDetails, 86400); // cached for 1 day
+
+        $avatar = new Imagick();
+        $avatar->newImage(self::SIZES[$size], self::SIZES[$size], new ImagickPixel($avatarColorDetails['background']), 'jpg');
+        $avatarText = strtoupper(mb_str_split($user->getUsername())[0]);
+
+        $text = new ImagickDraw();
+        $text->setFont(__MINDS_ROOT__ . "/Assets/fonts/Inter/Inter-Bold.ttf");
+        $text->setFontSize(50 * self::SIZES[$size] / 100);
+        $text->setFillColor(new ImagickPixel($avatarColorDetails['color']));
+        $text->setFontWeight(700);
+        $text->setTextAntialias(true);
+        $text->setGravity(Imagick::GRAVITY_CENTER);
+        $text->setStrokeAntialias(true);
+
+        $avatar->annotateImage($text, 0, 0, 0, $avatarText);
+
+        return $avatar->getImageBlob();
     }
 
     public function post($pages)
