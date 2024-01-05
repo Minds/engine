@@ -158,7 +158,7 @@ class Repository
     /**
      * VOID
      */
-    public function update(PostSubscription $postSubscription)
+    public function update(BatchSubscription $subscription)
     {
     }
 

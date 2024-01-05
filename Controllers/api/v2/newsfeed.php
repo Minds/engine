@@ -496,20 +496,6 @@ class newsfeed implements Interfaces\Api
         }
 
         if ($success) {
-            // Follow activity
-            (new Core\Notification\PostSubscriptions\Manager())
-                        ->setEntityGuid($activity->guid)
-                        ->setUserGuid(Core\Session::getLoggedInUserGuid())
-                        ->follow();
-
-            if ($activity->getEntityGuid()) {
-                // Follow activity entity as well
-                (new Core\Notification\PostSubscriptions\Manager())
-                            ->setEntityGuid($activity->getEntityGuid())
-                            ->setUserGuid(Core\Session::getLoggedInUserGuid())
-                            ->follow();
-            }
-
             if ($container) {
                 Core\Events\Dispatcher::trigger('activity:container', $container->type, [
                             'container' => $container,

@@ -94,7 +94,7 @@
         },
         {
             "type": "vcs",
-            "url": "https://github.com/oddevan/http-signatures-php.git"
+            "url": "https://github.com/Minds/http-signatures-php.git"
         }
     ],
     "autoload": {

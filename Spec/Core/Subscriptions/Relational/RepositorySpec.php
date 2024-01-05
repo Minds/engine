@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Subscriptions\Relational;
 use ArrayIterator;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Guid;
 use Minds\Core\Subscriptions\Relational\Repository;
 use Minds\Core\Subscriptions\Subscription;
 use Minds\Entities\User;
@@ -159,6 +160,41 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->getSubscriptionsThatSubscribeTo('123', '456')
+            ->shouldYield(new ArrayIterator([
+                $user1Mock->getWrappedObject()
+            ]));
+    }
+
+    public function it_should_get_subscribers(
+        PDOStatement $stmtMock,
+        User $user1Mock
+    ) {
+        $limit = 10;
+        $loadBefore = 20;
+        $user1Guid = Guid::build();
+        $user1DateTime = date('c', time());
+
+        $this->pdoMock->prepare(Argument::any())
+            ->willReturn($stmtMock);
+
+        $this->mysqlClientMock->bindValuesToPreparedStatement(Argument::any(), Argument::any())
+            ->shouldBeCalled();
+
+        $stmtMock->execute()
+            ->shouldBeCalled();
+
+        $stmtMock->fetchAll(PDO::FETCH_ASSOC)
+            ->willReturn([
+                [
+                    'user_guid' => $user1Guid,
+                    'timestamp' => $user1DateTime
+                ]
+            ]);
+
+        $this->entitiesBuilderMock->single($user1Guid)
+            ->willReturn($user1Mock);
+
+        $this->getSubscribers($user1Guid, $limit, $loadBefore)
             ->shouldYield(new ArrayIterator([
                 $user1Mock->getWrappedObject()
             ]));

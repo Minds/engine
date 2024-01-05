@@ -6,7 +6,6 @@ use Minds\Core\Comments\Comment;
 use Minds\Core\Comments\Delegates\CountCache;
 use Minds\Core\Comments\Delegates\CreateEventDispatcher;
 use Minds\Core\Comments\Delegates\Metrics;
-use Minds\Core\Comments\Delegates\ThreadNotifications;
 use Minds\Core\Comments\Legacy\Repository as LegacyRepository;
 use Minds\Core\Comments\RelationalRepository;
 use Minds\Core\Comments\Repository;
@@ -40,9 +39,6 @@ class ManagerSpec extends ObjectBehavior
     /** @var Metrics */
     protected $metrics;
 
-    /** @var ThreadNotifications */
-    protected $threadNotifications;
-
     /** @var CreateEventDispatcher */
     protected $createEventDispatcher;
 
@@ -65,7 +61,6 @@ class ManagerSpec extends ObjectBehavior
         LegacyRepository $legacyRepository,
         ACL $acl,
         Metrics $metrics,
-        ThreadNotifications $threadNotifications,
         CreateEventDispatcher $createEventDispatcher,
         CountCache $countCache,
         EntitiesBuilder $entitiesBuilder,
@@ -80,7 +75,6 @@ class ManagerSpec extends ObjectBehavior
             $legacyRepository,
             $acl,
             $metrics,
-            $threadNotifications,
             $createEventDispatcher,
             $countCache,
             $entitiesBuilder,
@@ -95,7 +89,6 @@ class ManagerSpec extends ObjectBehavior
         $this->legacyRepository = $legacyRepository;
         $this->acl = $acl;
         $this->metrics = $metrics;
-        $this->threadNotifications = $threadNotifications;
         $this->createEventDispatcher = $createEventDispatcher;
         $this->countCache = $countCache;
         $this->entitiesBuilder = $entitiesBuilder;
@@ -168,14 +161,6 @@ class ManagerSpec extends ObjectBehavior
         $this->repository->add($comment)
             ->shouldBeCalled()
             ->willReturn(true);
-
-        $this->threadNotifications->notify($comment)
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        //$this->threadNotifications->subscribeOwner($comment)
-        //    ->shouldBeCalled()
-        //    ->willReturn(true);
 
         $this->metrics->push($comment)
             ->shouldBeCalled()

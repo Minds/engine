@@ -102,7 +102,7 @@ class RolesService
             }, $role->permissions));
         }
 
-        return array_unique($permissions, flags: SORT_REGULAR);
+        return array_values(array_unique($permissions, flags: SORT_REGULAR));
     }
 
     /**

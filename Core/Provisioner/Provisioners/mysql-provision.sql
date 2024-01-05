@@ -701,6 +701,14 @@ ALTER TABLE minds_activitypub_actors DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id
 ALTER TABLE minds_activitypub_keys DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, user_guid);
 ALTER TABLE minds_activitypub_actors ADD CONSTRAINT minds_activitypub_actors_ibfk_1 FOREIGN KEY (tenant_id, uri) REFERENCES minds_activitypub_uris(tenant_id, uri);
 
+ALTER TABLE `minds_entities_activity`
+    ADD `nsfw` json DEFAULT NULL
+    AFTER `attachments`;
+
+ALTER TABLE `minds_entities_activity`
+    ADD `nsfw_lock` json DEFAULT NULL
+    AFTER `nsfw`;
+
 CREATE TABLE IF NOT EXISTS  minds_embedded_comments_activity_map (
     tenant_id int DEFAULT -1,
     user_guid bigint NOT NULL,
@@ -730,3 +738,14 @@ CREATE TABLE IF NOT EXISTS  `minds_oidc_providers` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1;
 
 ALTER TABLE `minds_entities_group` MODIFY COLUMN banner timestamp;
+
+CREATE TABLE IF NOT EXISTS minds_post_notification_subscriptions (
+    tenant_id INT NOT NULL,
+    user_guid BIGINT NOT NULL,
+    entity_guid BIGINT NOT NULL,
+    frequency enum ('ALWAYS', 'HIGHLIGHTS', 'NEVER') DEFAULT 'ALWAYS',
+    created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    updated_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (tenant_id, user_guid, entity_guid),
+    INDEX (tenant_id, entity_guid)
+);
