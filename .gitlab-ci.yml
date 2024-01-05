@@ -138,14 +138,14 @@ prepare:all:sentry:
 container_scanning:
   stage: scan
   variables:
-    DOCKER_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
+    CS_IMAGE: $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
 
 
 container_scanning_runners:
   extends: container_scanning
   stage: scan
   variables:
-    DOCKER_IMAGE: $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
+    CS_IMAGE: $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
 
 dependency_scanning:
   stage: scan
@@ -226,7 +226,7 @@ review:stop:
 
 integration_testing:
   stage: qa
-  image: minds/php:pdo
+  image: "$default_php_image"
   script:
     - apk add --no-cache git
     - >
@@ -237,6 +237,10 @@ integration_testing:
       fi
     - export BYPASS_SIGNING_KEY=$BYPASS_SIGNING_KEY
     - sh integration_tests/setup_and_run.sh
+  artifacts:
+    when: always
+    paths:
+      - integration_tests/tests/_output
   allow_failure: true
 
 # qa:manual:

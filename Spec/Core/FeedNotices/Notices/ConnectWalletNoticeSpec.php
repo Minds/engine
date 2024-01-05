@@ -2,23 +2,31 @@
 
 namespace Spec\Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Config\Config;
 use Minds\Core\FeedNotices\Notices\ConnectWalletNotice;
 use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 
 class ConnectWalletNoticeSpec extends ObjectBehavior
 {
     /** @var EligibilityManager */
     protected $eligibilityManager;
+    
+    /** @var Config */
+    private $config;
 
     public function let(
         EligibilityManager $eligibilityManager,
+        Config $config
     ) {
         $this->eligibilityManager = $eligibilityManager;
+        $this->config = $config;
 
         $this->beConstructedWith(
             $eligibilityManager,
+            $config
         );
     }
 
@@ -46,6 +54,10 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_show(
         User $user,
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+    
         $user->getEthWallet()
             ->shouldBeCalled()
             ->willReturn(null);
@@ -65,6 +77,10 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_NOT_show_because_user_has_no_eth_wallet(
         User $user,
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $user->getEthWallet()
             ->shouldBeCalled()
             ->willReturn('123');
@@ -76,6 +92,10 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_NOT_show_because_user_is_not_eligible_for_rewards(
         User $user,
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $user->getEthWallet()
             ->shouldBeCalled()
             ->willReturn();
@@ -87,6 +107,17 @@ class ConnectWalletNoticeSpec extends ObjectBehavior
         $this->eligibilityManager->isEligible()
             ->shouldBeCalled()
             ->willReturn(false);
+
+        $this->callOnWrappedObject('shouldShow', [$user])
+            ->shouldBe(false);
+    }
+
+    public function it_should_determine_if_notice_should_NOT_show_because_this_is_a_tenant_context(
+        User $user
+    ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn('123');
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);

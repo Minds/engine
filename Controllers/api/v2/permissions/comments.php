@@ -7,8 +7,8 @@ use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Session;
-use Minds\Core\Permissions\Permissions;
-use Minds\Core\Permissions\Entities\EntityPermissions;
+use Minds\Core\Security\Rbac\Permissions;
+use Minds\Core\Security\Rbac\Entities\EntityPermissions;
 
 class comments implements Interfaces\Api
 {

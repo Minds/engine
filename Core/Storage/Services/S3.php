@@ -30,7 +30,7 @@ class S3 implements ServiceInterface
         $this->config ??= Di::_()->get('Config');
     }
 
-    public function open($path, $mode)
+    public function open($path, $mode): self
     {
         if ($mode && !in_array($mode, $this->modes, true)) {
             throw new \Exception("$mode is not a supported type");
@@ -86,6 +86,31 @@ class S3 implements ServiceInterface
                     return "";
                 }
                 break;
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function stats(): array
+    {
+        try {
+            $result = $this->ociS3Client->getObject([
+                'Bucket' => $this->config->get('storage')['oci_bucket_name'],
+                'Key' => $this->filepath
+            ]);
+            // return $result['Body'];
+            
+
+            $result = $this->ociS3Client->getObjectAttributes([
+                'Bucket' => $this->config->get('storage')['oci_bucket_name'],
+                'Key' => $this->filepath,
+                'ObjectAttributes' => ['ObjectSize']
+            ]);
+
+            return $result->toArray();
+        } catch (Exception $e) {
+            return [];
         }
     }
 

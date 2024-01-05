@@ -1,6 +1,8 @@
 <?php
 namespace Minds\Core\Entities\Repositories;
 
+use InvalidArgumentException;
+use Minds\Core\Blogs\Blog;
 use Minds\Core\Data\Call;
 use Minds\Core\Data\Cassandra\Thrift\Indexes;
 use Minds\Core\Data\lookup;
@@ -10,6 +12,7 @@ use Minds\Entities\Factory;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\Group;
 use Minds\Entities\Image;
+use Minds\Entities\Object\Carousel;
 use Minds\Entities\User;
 
 class CassandraRepository implements EntitiesRepositoryInterface
@@ -73,7 +76,8 @@ class CassandraRepository implements EntitiesRepositoryInterface
             case Image::class:
             case Video::class:
             case Group::class:
-                /**  @var User|Activity|Image|Video|Group */
+            case Carousel::class:
+                /**  @var User|Activity|Image|Video|Group|Carousel */
                 $entity = $entity;
                 $data = $entity->toArray();
                 break;
@@ -120,12 +124,13 @@ class CassandraRepository implements EntitiesRepositoryInterface
             case Image::class:
             case Video::class:
             case Group::class:
-                /**  @var User|Activity|Image|Video|Group */
+            case Blog::class:
+                /**  @var User|Activity|Image|Video|Group|Blog */
                 $entity = $entity;
                 $data = $entity->toArray();
                 break;
             default:
-                throw new \Exception('Can not save this entity type');
+                throw new InvalidArgumentException('Can not save this entity type');
         }
 
         if ($columns) {

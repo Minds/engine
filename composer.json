@@ -7,7 +7,7 @@
         "aws/aws-sdk-php": "^3.38",
         "datastax/php-driver": "^1.2.2",
         "elasticsearch/elasticsearch": "^7.13",
-        "firebase/php-jwt": "^3.0",
+        "firebase/php-jwt": "^6.9",
         "kramnorth/cinemr-php-sdk": "dev-master@dev",
         "kickbox/kickbox": "*",
         "minds/surge": "dev-master@dev",
@@ -18,7 +18,7 @@
         "twilio/sdk": "^5.26",
         "vscn/cruftflake": "dev-master#cab1b9ee9869072e7a58a1eb593b602ec5bedcd3",
         "abraham/twitteroauth": "^0.6.4",
-        "google/apiclient": "^2.0",
+        "google/apiclient": "^2.15",
         "aws/aws-php-sns-message-validator": "^1.4",
         "giggsey/libphonenumber-for-php": "^8.8",
         "php-ffmpeg/php-ffmpeg": "^1.0",
@@ -29,7 +29,7 @@
         "zendframework/zend-permissions-rbac": "^3.0",
         "php-amqplib/php-amqplib": "^3.0",
         "facebook/graph-sdk": "^5.7",
-        "psr/http-message": "1.0.1",
+        "psr/http-message": "^1.0",
         "psr/http-server-handler": "1.0.1",
         "psr/http-server-middleware": "1.0.1",
         "monolog/monolog": "^3.0",
@@ -64,7 +64,8 @@
         "liamdennehy/http-signatures-php": "dev-use-upstream-phpseclib",
         "nojimage/twitter-text-php": "^3.3",
         "soundasleep/html2text": "^2.1",
-        "psr/log": "2.0.0"
+        "psr/log": "2.0.0",
+        "laminas/laminas-feed": "^2.22"
     },
     "repositories": [
         {

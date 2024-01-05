@@ -29,8 +29,6 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
     /** @var Producer */
     protected $producer;
 
-    protected MultiTenantBootService $multiTenantBootService;
-
     /**
      * Sends notifications events to our stream
      * @param EventInterface $event
@@ -129,7 +127,7 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                 $this->logger->error("Topic(Consume): Uncaught error: " . $e->getMessage());
             } finally {
                 // Reset Multi Tenant support
-                if ($tenantId) {
+                if ($tenantId ?? null) {
                     $this->getMultiTenantBootService()->resetRootConfigs();
                 }
             }
@@ -195,11 +193,6 @@ class EntitiesOpsTopic extends AbstractTopic implements TopicInterface
                 ],
             ]
         ]);
-    }
-
-    protected function getMultiTenantBootService(): MultiTenantBootService
-    {
-        return $this->multiTenantBootService ??= Di::_()->get(MultiTenantBootService::class);
     }
 
 }

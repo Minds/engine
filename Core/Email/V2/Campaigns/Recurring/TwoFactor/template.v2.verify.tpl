@@ -4,6 +4,6 @@
 </h1>
 
 <!--subhead-->
-<p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?>>Enter this verification code on Minds to verify your email.</p>
+<p <?= $emailStylesV2->getStyles(['m-mainContent__paragraph']) ?>>Enter this verification code on <?php echo $vars['site_name']; ?> to verify your email.</p>
 
 <p <?= $emailStylesV2->getStyles(['m-mainContent__code']) ?>><?php echo $vars['code']; ?></p>

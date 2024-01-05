@@ -226,7 +226,7 @@ class ACL
         $type = method_exists($entity, 'getType') ? $entity->getType() ?? 'all' : 'all';
         $type = property_exists($entity, 'type') ? $entity->type : $type;
         if (Core\Events\Dispatcher::trigger('acl:write:blacklist', $type, ['entity' => $entity, 'user' => $user, 'additionalData' => $additionalData], false) === true) {
-            $this->logger->error('ACL Failed, acl:write:blacklist');
+            $this->logger->debug('ACL Failed, acl:write:blacklist');
             return false;
         }
 
@@ -234,7 +234,7 @@ class ACL
          * If the user is banned or in a limited state
          */
         if ($user->isBanned() || !$user->isEnabled()) {
-            $this->logger->error('ACL Failed, banned or not enabled');
+            $this->logger->debug('ACL Failed, banned or not enabled');
             return false;
         }
 
@@ -246,7 +246,7 @@ class ACL
             // $this->getTwoFactorManager()->gatekeeper($user, ServerRequestFactory::fromGlobals());
             throw new UnverifiedEmailException();
         }
-        $this->logger->error('ACL Failed, email not verified');
+        $this->logger->debug('ACL Failed, email not verified');
 
 
         /**
@@ -261,7 +261,7 @@ class ACL
         ) {
             return true;
         }
-        $this->logger->error('ACL Failed, owner or container mismatch');
+        $this->logger->debug('ACL Failed, owner or container mismatch');
 
 
         /**
@@ -272,7 +272,7 @@ class ACL
         ) {
             return true;
         }
-        $this->logger->error('ACL Failed, same entity');
+        $this->logger->debug('ACL Failed, same entity');
 
         /**
          * Is this user an admin?

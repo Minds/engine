@@ -19,8 +19,12 @@ use ElggFile;
 use Minds\Common\Regex;
 use Minds\Core\ActivityPub\Services\ProcessActorService;
 use Minds\Core\Channels\AvatarService;
+use Minds\Core\Channels\BannerService;
+use Minds\Core\Config\Config;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Router\Exceptions\ForbiddenException;
+use Minds\Core\Security\ACL;
 use Minds\Entities\User;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
 use Zend\Diactoros\ServerRequestFactory;
@@ -29,11 +33,15 @@ class channel implements Interfaces\Api
 {
     private EntitiesBuilder $entitiesBuilder;
     private Save $save;
+    private Config $config;
+    private ACL $acl;
 
     public function __construct()
     {
         $this->entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
         $this->save = new Save();
+        $this->config = Di::_()->get(Config::class);
+        $this->acl = Di::_()->get(ACL::class);
     }
 
     /**
@@ -80,11 +88,13 @@ class channel implements Interfaces\Api
         $isAdmin = Core\Session::isAdmin();
         $isLoggedIn = Core\Session::isLoggedin();
         $isOwner = $isLoggedIn && ((string) Core\Session::getLoggedinUser()->guid === (string) $user->guid);
-        $isPublic = $isLoggedIn && $user->isPublicDateOfBirth();
+        $isPublic = $isLoggedIn && $user instanceof User && $user->isPublicDateOfBirth();
 
         // Flush the cache when viewing a channel page
-        $channelsManager = Di::_()->get('Channels\Manager');
-        $channelsManager->flushCache($user);
+        if ($user instanceof User) {
+            $channelsManager = Di::_()->get('Channels\Manager');
+            $channelsManager->flushCache($user);
+        }
 
         if (!$user->username ||
             (Helpers\Flags::shouldFail($user) && !$isAdmin)
@@ -192,11 +202,11 @@ class channel implements Interfaces\Api
             }
         }
 
-        $response['require_login'] = !$isLoggedIn && Di::_()->get('Blockchain\Wallets\Balance')
-            ->setUser($user)
-            ->count() === 0;
-
-        $response['foo'] = 'bar';
+        if (!$this->config->get('tenant_id')) {
+            $response['require_login'] = !$isLoggedIn && Di::_()->get('Blockchain\Wallets\Balance')
+                ->setUser($user)
+                ->count() === 0;
+        }
         
         return Factory::response($response);
     }
@@ -233,6 +243,17 @@ class channel implements Interfaces\Api
 
                 break;
             case "banner":
+                // Tenants upload banners through V2 banner system.
+                if ((bool) Di::_()->get(Config::class)->get('tenant_id')) {
+                    if (is_uploaded_file($_FILES['file']['tmp_name'])) {
+                        $response['uploaded'] = Di::_()->get(BannerService::class)
+                            ->upload(
+                                path: $_FILES['file']['tmp_name'],
+                                user: $owner
+                            );
+                    }
+                    break;
+                }
                 //remove all older banners
                 try {
                     $db = new Core\Data\Call('entities_by_time');
@@ -394,13 +415,23 @@ class channel implements Interfaces\Api
 
         switch ($pages[0]) {
             default:
+                // check ACL BEFORE changing the enabled property.
+                if (!$this->acl->write($user)) {
+                    throw new ForbiddenException();
+                }
+
                 $channel = $user;
                 $channel->enabled = 'no';
+
+                $ignore = $this->acl::$ignore;
+                $this->acl::$ignore = true;
 
                 $this->save
                     ->setEntity($channel)
                     ->withMutatedAttributes(['enabled'])
                     ->save();
+
+                $this->acl::$ignore = $ignore;
 
                 (new Core\Sessions\CommonSessions\Manager())->deleteAll($channel);
         }

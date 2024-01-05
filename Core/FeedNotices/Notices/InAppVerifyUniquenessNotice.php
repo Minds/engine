@@ -2,6 +2,7 @@
 
 namespace Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
@@ -22,11 +23,13 @@ class InAppVerifyUniquenessNotice extends AbstractNotice
     public function __construct(
         private ?EligibilityManager $eligibilityManager = null,
         private ?ExperimentsManager $experimentsManager = null,
-        private ?VerificationManager $verificationManager = null
+        private ?VerificationManager $verificationManager = null,
+        private ?Config $config = null
     ) {
         $this->eligibilityManager ??= Di::_()->get('Rewards\Eligibility\Manager');
         $this->experimentsManager ??= Di::_()->get('Experiments\Manager');
         $this->verificationManager ??= Di::_()->get('Verification\Manager');
+        parent::__construct(config: $config);
     }
 
     /**
@@ -64,7 +67,8 @@ class InAppVerifyUniquenessNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return $this->experimentsManager->setUser($user)->isOn('epic-275-in-app-verification') &&
+        return !$this->isTenantContext() &&
+            $this->experimentsManager->setUser($user)->isOn('epic-275-in-app-verification') &&
             !$this->verificationManager->setUser($user)->isVerified();
         // TODO: Double check that the rewards eligibility is a requirement for the notice to show up
         // && $this->isEligibleForRewards($user);

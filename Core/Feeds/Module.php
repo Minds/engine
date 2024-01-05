@@ -16,6 +16,7 @@ class Module implements ModuleInterface
         Activity\RichEmbed\Module::class,
         HideEntities\Module::class,
         GraphQL\Module::class,
+        RSS\Module::class,
     ];
 
     /**

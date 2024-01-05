@@ -11,7 +11,7 @@ namespace Minds\Core\Entities\Actions;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
 use Minds\Core\Events\Dispatcher;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
 
 class Delete
@@ -59,7 +59,7 @@ class Delete
         }
 
         if (!$this->acl->write($this->entity)) {
-            throw new UnauthorizedException();
+            throw new ForbiddenException();
         }
 
         $delete = $this->eventsDispatcher->trigger('delete', $this->entity->getType(), [ 'entity' => $this->entity ]);

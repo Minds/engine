@@ -15,6 +15,8 @@ use Minds\Core\Entities\Actions\Delete;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Entities\User;
 use Minds\Entities\File as FileEntity;
 use Minds\Entities\Factory as EntitiesFactory;
@@ -131,6 +133,10 @@ class group implements Interfaces\Api
         } else {
             $creation = true;
             $group = new GroupEntity();
+
+            /** @var RbacGatekeeperService */
+            $rbacGatekeeperService = Di::_()->get(RbacGatekeeperService::class);
+            $rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_CREATE_GROUP);
         }
 
         if (isset($pages[1]) && $group->getGuid()) {
@@ -157,8 +163,8 @@ class group implements Interfaces\Api
                 case "banner":
                     if (is_uploaded_file($_FILES['file']['tmp_name'])) {
                         try {
-                            $group = $this->uploadBanner($group, $_POST['banner_position']);
-                            $response['banner'] = $group->banner;
+                            $group = $this->uploadBanner($group, $_POST['banner_position'] ?? null);
+                            $response['banner'] = $group->getBanner();
                             $response['banner_position'] = $group->getBannerPosition();
                         } catch (\Exception $e) {
                             return Factory::response([
@@ -417,7 +423,7 @@ class group implements Interfaces\Api
             ->setBanner(time())
             ->setBannerPosition($banner_position);
 
-        $this->save->setEntity($group)->save();
+        $this->save->setEntity($group)->save(isUpdate: true);
 
         return $group;
     }

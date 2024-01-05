@@ -175,13 +175,15 @@ class SearchController
             default => throw new UserError("Can not support supplied filter"),
         };
 
-
-        // If not on latest or top, we request ZERO boosts as the clients dont support yet
-        $boosts = $this->buildBoosts(
-            loggedInUser: $loggedInUser,
-            limit: in_array($filter, [ SearchFilterEnum::TOP, SearchFilterEnum::LATEST ], true) ? 3 : 0,
-            targetLocation: in_array($filter, [ SearchFilterEnum::TOP, SearchFilterEnum::LATEST ], true) ? BoostTargetLocation::NEWSFEED : BoostTargetLocation::SIDEBAR,
-        );
+        $boosts = [];
+        if ($loggedInUser) {
+            // If not on latest or top, we request ZERO boosts as the clients dont support yet
+            $boosts = $this->buildBoosts(
+                loggedInUser: $loggedInUser,
+                limit: in_array($filter, [ SearchFilterEnum::TOP, SearchFilterEnum::LATEST ], true) ? 3 : 0,
+                targetLocation: in_array($filter, [ SearchFilterEnum::TOP, SearchFilterEnum::LATEST ], true) ? BoostTargetLocation::NEWSFEED : BoostTargetLocation::SIDEBAR,
+            );
+        }
 
         $edges = [];
 

@@ -10,10 +10,12 @@ use Minds\Core\Payments\Stripe\Intents\PaymentIntent;
 use Minds\Core\Payments\V2\Manager as PaymentsManager;
 use Minds\Core\Payments\V2\Models\PaymentDetails;
 use Minds\Core\Security\ACL;
+use Minds\Core\Wire\Exceptions\RemoteUserException;
 use Minds\Core\Wire\Repository;
 use Minds\Core\Wire\SupportTiers\Manager as SupportTiersManager;
 use Minds\Core\Wire\SupportTiers\SupportTier;
 use Minds\Core\Wire\Wire as WireModel;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -723,5 +725,57 @@ class ManagerSpec extends ObjectBehavior
             ->setAmount(100001)
             ->create()
             ->shouldReturn(true);
+    }
+
+    public function it_should_throw_a_remote_user_exception_when_creating_for_an_activitypub_user(): void
+    {
+        $sender = new User();
+        $sender->guid = 123;
+
+        $receiver = new User();
+        $receiver->guid = 456;
+        $receiver->merchant = [
+            'id' => 'mock_id'
+        ];
+
+        $receiver->setSource(FederatedEntitySourcesEnum::ACTIVITY_PUB);
+
+        $payload = [
+            'method' => 'usd',
+            'paymentMethodId' => 'mockPaymentId',
+        ];
+
+        $this->setSender($sender)
+            ->setEntity($receiver)
+            ->setPayload($payload)
+            ->setAmount(100001);
+        
+        $this->shouldThrow(RemoteUserException::class)->duringCreate();
+    }
+
+    public function it_should_throw_a_remote_user_exception_when_creating_for_a_nostr_user(): void
+    {
+        $sender = new User();
+        $sender->guid = 123;
+
+        $receiver = new User();
+        $receiver->guid = 456;
+        $receiver->merchant = [
+            'id' => 'mock_id'
+        ];
+
+        $receiver->setSource(FederatedEntitySourcesEnum::NOSTR);
+
+        $payload = [
+            'method' => 'usd',
+            'paymentMethodId' => 'mockPaymentId',
+        ];
+
+        $this->setSender($sender)
+            ->setEntity($receiver)
+            ->setPayload($payload)
+            ->setAmount(100001);
+        
+        $this->shouldThrow(RemoteUserException::class)->duringCreate();
     }
 }

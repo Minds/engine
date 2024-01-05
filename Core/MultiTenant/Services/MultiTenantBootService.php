@@ -29,7 +29,7 @@ class MultiTenantBootService
     {
         $uri = $request->getUri();
 
-        $scheme = $uri->getScheme();
+        $scheme = $request->getHeader('X-FORWARDED-PROTO') === 'https' ? 'https' : $uri->getScheme();
         $domain = $uri->getHost();
         $port = $uri->getPort();
 
@@ -101,22 +101,40 @@ class MultiTenantBootService
             $siteUrl = "$scheme://$domain/";
         }
 
+        // Base urls
+
         $this->setConfig('site_url', $siteUrl);
         $this->setConfig('cdn_url', $siteUrl);
         $this->setConfig('cdn_assets_url', $siteUrl);
 
+        // Fediverse / Nostr / DID
+
+        $didConfig = $this->config->get('did') ?? [];
+        $didConfig['domain'] = $domain;
+        $this->setConfig('did', $didConfig);
+
+        // Tenant ID
+
         $this->setConfig('tenant_id', $tenant->id);
+
+        // Data root
 
         $this->setConfig('dataroot', $this->config->get('dataroot') . 'tenant/' . $this->config->get('tenant_id') . '/');
 
+        // Misc
+
         if ($tenantConfig = $tenant->config) {
-            if ($tenantConfig->siteEmail) {
-                $emailConfig = $this->config->get('email');
-                $emailConfig['sender']['email'] = $tenant->config->siteEmail;
+            $emailConfig = $this->config->get('email');
+
+            if ($tenantConfig->siteEmail || $tenantConfig->siteName) {
+                if ($tenantConfig->siteEmail) {
+                    $emailConfig['sender']['email'] = $tenant->config->siteEmail;
+                }
 
                 if ($tenantConfig->siteName) {
                     $emailConfig['sender']['name'] = $tenant->config->siteName;
                 }
+
                 $this->setConfig('email', $emailConfig);
             }
 

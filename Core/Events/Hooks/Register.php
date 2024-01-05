@@ -3,11 +3,11 @@
 namespace Minds\Core\Events\Hooks;
 
 use Minds\Core;
-use Minds\Core\Referrals\Referral;
-use Minds\Entities;
-use Minds\Core\Events\Dispatcher;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\Events\Dispatcher;
+use Minds\Core\Referrals\Referral;
+use Minds\Entities;
 
 class Register
 {

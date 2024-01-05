@@ -49,15 +49,23 @@ class Repository
     {
         $statement = "DELETE FROM friends
                         WHERE user_guid = :user_guid
-                        AND friend_guid = :friend_guid
-                        AND tenant_id = :tenant_id";
-        $prepared = $this->client->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
+                        AND friend_guid = :friend_guid";
 
-        return $prepared->execute([
+        $values = [
             'user_guid' => $subscription->getSubscriberGuid(),
             'friend_guid' => $subscription->getPublisherGuid(),
-            'tenant_id' => $this->getTenantId(),
-        ]);
+        ];
+
+        if ($tenantId = $this->getTenantId()) {
+            $statement .= " AND tenant_id = :tenant_id";
+            $values['tenant_id'] = $tenantId;
+        } else {
+            $statement .= " AND tenant_id IS NULL";
+        }
+
+        $prepared = $this->client->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
+
+        return $prepared->execute($values);
     }
 
     /**
@@ -67,16 +75,23 @@ class Repository
     {
         $statement = "SELECT * FROM friends
             WHERE user_guid = :user_guid
-            AND friend_guid = :friend_guid
-            AND tenant_id = :tenant_id";
+            AND friend_guid = :friend_guid";
+
+        $values = [
+            'user_guid' => $userGuid,
+            'friend_guid' => $friendGuid,
+        ];
+
+        if ($tenantId = $this->getTenantId()) {
+            $statement .= " AND tenant_id = :tenant_id";
+            $values['tenant_id'] = $tenantId;
+        } else {
+            $statement .= " AND tenant_id IS NULL";
+        }
 
         $prepared = $this->client->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
 
-        $prepared->execute([
-            'user_guid' => $userGuid,
-            'friend_guid' => $friendGuid,
-            'tenant_id' => $this->getTenantId(),
-        ]);
+        $prepared->execute($values);
 
         return ($prepared->rowCount() > 0);
     }

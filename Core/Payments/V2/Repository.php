@@ -195,6 +195,48 @@ class Repository
     }
 
     /**
+     * Updates the payment_tx_id record
+     */
+    public function updatePaymentTxId(int $paymentGuid, string $paymentTxId): bool
+    {
+        $statement = $this->mysqlClientWriterHandler->update()
+            ->table('minds_payments')
+            ->set([
+                'payment_tx_id' => new RawExp(':payment_tx_id'),
+                'updated_timestamp' => date('c', time()),
+            ])
+            ->where('payment_guid', Operator::EQ, $paymentGuid)
+            ->prepare();
+
+        $values = [
+            'payment_tx_id' => $paymentTxId,
+        ];
+
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
+
+        try {
+            $statement->execute();
+
+            if ($statement->rowCount() === 0) {
+                throw new PaymentNotFoundException();
+            }
+        } catch (PDOException $e) {
+            $this->logger->error(
+                "An issue was encountered whilst updating the payment information",
+                [
+                    'query' => $statement->queryString,
+                    'values' => $values,
+                    'errorMessage' => $e->getMessage(),
+                    'stackTrace' => $e->getTraceAsString(),
+                ]
+            );
+            throw new ServerErrorException("An issue was encountered whilst updating the payment information");
+        }
+
+        return true;
+    }
+
+    /**
      * Returns affiliates earnings
      * @throws ServerErrorException
      */
@@ -214,7 +256,7 @@ class Repository
             ->from('minds_payments')
             ->where('updated_timestamp', Operator::GTE, date('c', $options->getFromTimestamp()))
             // Exclude gift card payments (the lazy way - ie. should do left join on gift tx table)
-            ->where('payment_tx_id', Operator::IS_NOT, null);
+            ->where('payment_tx_id', Operator::NOT_EQ, 'gift_card');
 
         if ($options->getWithAffiliate()) {
             if ($options->getAffiliateGuid()) {

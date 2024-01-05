@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Reports\Verdict\Delegates;
 
 use Minds\Common\Urn;
+use Minds\Core\Comments\Comment;
 use Minds\Core\Entities\Resolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\EventsDispatcher;
@@ -53,6 +54,10 @@ class NotificationDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('urn:activity:123');
 
+        $report->getEntity()
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->urn->setUrn('urn:activity:123')
             ->shouldBeCalled()
             ->willReturn($this->urn);
@@ -101,6 +106,10 @@ class NotificationDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('urn:activity:123');
 
+        $report->getEntity()
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->urn->setUrn('urn:activity:123')
             ->shouldBeCalled()
             ->willReturn($this->urn);
@@ -142,6 +151,10 @@ class NotificationDelegateSpec extends ObjectBehavior
         $report->getEntityUrn()
             ->shouldBeCalled()
             ->willReturn('urn:activity:123');
+
+        $report->getEntity()
+            ->shouldBeCalled()
+            ->willReturn(null);
 
         $this->urn->setUrn('urn:activity:123')
             ->shouldBeCalled()
@@ -192,6 +205,10 @@ class NotificationDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('urn:activity:123');
 
+        $report->getEntity()
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->urn->setUrn('urn:activity:123')
             ->shouldBeCalled()
             ->willReturn($this->urn);
@@ -237,6 +254,10 @@ class NotificationDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('urn:activity:123');
 
+        $report->getEntity()
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $this->urn->setUrn('urn:activity:123')
             ->shouldBeCalled()
             ->willReturn($this->urn);
@@ -273,6 +294,10 @@ class NotificationDelegateSpec extends ObjectBehavior
         $report->getEntityUrn()
             ->shouldBeCalled()
             ->willReturn('urn:activity:123');
+
+        $report->getEntity()
+            ->shouldBeCalled()
+            ->willReturn(null);
 
         $this->urn->setUrn('urn:activity:123')
             ->shouldBeCalled()
@@ -317,6 +342,63 @@ class NotificationDelegateSpec extends ObjectBehavior
             return $opts['params']['action'] === 'removed. You can appeal this decision';
         }))
             ->shouldBeCalled();
+
+        $this->notificationsManager->add(Argument::that(function ($notification) {
+            return true;
+        }))
+            ->willReturn(true);
+
+        $this->onAction($verdict);
+    }
+
+    public function it_should_send_a_spam_notification_for_comments(
+        Verdict $verdict,
+        Report $report,
+        Comment $entity
+    ) {
+        $report->getEntityUrn()
+            ->shouldBeCalled()
+            ->willReturn('urn:activity:123');
+
+        $report->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $entity->getOwnerGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $this->urn->getNss()
+            ->shouldBeCalled()
+            ->willReturn('nss');
+
+        $this->urn->setUrn('urn:activity:123')
+            ->shouldBeCalled()
+            ->willReturn($this->urn);
+
+        $this->entitiesResolver->single($this->urn)
+            ->shouldBeCalled()
+            ->willReturn(null);
+
+        $report->getReasonCode()
+            ->shouldBeCalled()
+            ->willReturn(8);
+
+        $report->isAppeal()
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $verdict->getReport()
+            ->willReturn($report);
+
+        $verdict->isUpheld()
+            ->willReturn(true);
+
+        $this->dispatcher->trigger('notification', 'all', Argument::that(function ($opts) {
+            return $opts['params']['action'] === 'removed. You can appeal this decision';
+        }))
+            ->shouldBeCalled();
+
 
         $this->notificationsManager->add(Argument::that(function ($notification) {
             return true;

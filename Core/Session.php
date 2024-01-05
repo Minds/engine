@@ -50,7 +50,7 @@ class Session extends base
             'guid' => (string) $session->getUserGuid(),
             'expires' => $expires,
             'sessionId' => $session->getId(),
-        ], Config::_()->get('sockets')['jwt_secret'] ?? '');
+        ], Config::_()->get('sockets')['jwt_secret'] ?? '', 'HS512');
 
         $cookie = new Cookie();
         $cookie

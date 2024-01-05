@@ -10,17 +10,22 @@ use Minds\Core\Notifications\Push\Settings\PushSetting;
 use Minds\Core\Notifications\Push\Settings\Repository;
 use Minds\Core\Notifications\Push\Settings\SettingsListOpts;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class ManagerSpec extends ObjectBehavior
 {
-    /** @var Repository */
-    protected $repository;
+    protected Collaborator $repositoryMock;
+    protected Collaborator $notificationTypesMock;
 
-    public function let(Repository $repository)
+    public function let(Repository $repositoryMock, NotificationTypes $notificationTypesMock)
     {
-        $this->beConstructedWith($repository);
-        $this->repository = $repository;
+        $this->beConstructedWith($repositoryMock, $notificationTypesMock);
+        $this->repositoryMock = $repositoryMock;
+        $this->notificationTypesMock = $notificationTypesMock;
+
+        $this->notificationTypesMock->getTypesGroupings()
+            ->willReturn(NotificationTypes::TYPES_GROUPINGS);
     }
 
     public function it_is_initializable()
@@ -30,7 +35,7 @@ class ManagerSpec extends ObjectBehavior
 
     public function it_should_get_list()
     {
-        $this->repository->getList(Argument::that(function ($opts) {
+        $this->repositoryMock->getList(Argument::that(function ($opts) {
             return true;
         }))
             ->willReturn([
@@ -48,7 +53,7 @@ class ManagerSpec extends ObjectBehavior
         $settings->shouldHaveCount(count(NotificationTypes::TYPES_GROUPINGS) + 1);
     }
 
-    public function it_should_confirm_if_we_can_send_push(PushNotification $pushNotification, Notification $notification)
+    public function it_should_not_send_push_if_all_disabled(PushNotification $pushNotification, Notification $notification)
     {
         $pushNotification->getNotification()
             ->willReturn($notification);
@@ -59,21 +64,75 @@ class ManagerSpec extends ObjectBehavior
         $notification->getToGuid()
             ->willReturn('123');
 
-        $this->repository->getList(Argument::that(function ($opts) {
+        $this->repositoryMock->getList(Argument::that(function ($opts) {
             return $opts->getUserGuid() === '123';
         }))
         ->willReturn([
                 (new PushSetting)
                     ->setNotificationGroup('all')
-                    ->setEnabled(false)
+                    ->setEnabled(false),
+                (new PushSetting)
+                    ->setNotificationGroup(NotificationTypes::GROUPING_TYPE_VOTES)
+                    ->setEnabled(true)
             ]);
+        
+        $this->canSend($pushNotification)->shouldBe(false);
+    }
+
+    public function it_should_send_push_if_group_enabled(PushNotification $pushNotification, Notification $notification)
+    {
+        $pushNotification->getNotification()
+            ->willReturn($notification);
+
+        $pushNotification->getGroup()
+            ->willReturn(NotificationTypes::GROUPING_TYPE_VOTES);
+
+        $notification->getToGuid()
+            ->willReturn('123');
+
+        $this->repositoryMock->getList(Argument::that(function ($opts) {
+            return $opts->getUserGuid() === '123';
+        }))
+        ->willReturn([
+                (new PushSetting)
+                    ->setNotificationGroup('all')
+                    ->setEnabled(true),
+                (new PushSetting)
+                    ->setNotificationGroup(NotificationTypes::GROUPING_TYPE_VOTES)
+                    ->setEnabled(true)
+            ]);
+        
+        $this->canSend($pushNotification)->shouldBe(true);
+    }
+
+    public function it_should_not_send_forbidden_type_for_tenant(PushNotification $pushNotification, Notification $notification)
+    {
+        $pushNotification->getNotification()
+            ->willReturn($notification);
+
+        $pushNotification->getGroup()
+            ->willReturn(NotificationTypes::GROUPING_TYPE_BOOSTS);
+
+        $notification->getToGuid()
+            ->willReturn('123');
+
+        $this->notificationTypesMock->getTypesGroupings()
+            ->willReturn([
+                NotificationTypes::GROUPING_TYPE_VOTES => NotificationTypes::GROUPING_VOTES,
+                NotificationTypes::GROUPING_TYPE_TAGS => NotificationTypes::GROUPING_TAGS,
+            ]);
+
+        $this->repositoryMock->getList(Argument::that(function ($opts) {
+            return $opts->getUserGuid() === '123';
+        }))
+        ->shouldNotBeCalled();
         
         $this->canSend($pushNotification)->shouldBe(false);
     }
 
     public function it_should_add_setting(PushSetting $pushSetting)
     {
-        $this->repository->add($pushSetting)
+        $this->repositoryMock->add($pushSetting)
             ->willReturn(true);
 
         $this->add($pushSetting)

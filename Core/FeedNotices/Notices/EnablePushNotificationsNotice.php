@@ -2,6 +2,7 @@
 
 namespace Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Core\Notifications\Push\Settings\Manager as PushSettingsManager;
@@ -20,11 +21,14 @@ class EnablePushNotificationsNotice extends AbstractNotice
     /**
      * Constructor.
      * @param ?PushSettingsManager $pushSettingsManager - manager for push settings.
+     * @param ?Config $config - config.
      */
     public function __construct(
-        private ?PushSettingsManager $pushSettingsManager = null
+        private ?PushSettingsManager $pushSettingsManager = null,
+        private ?Config $config = null
     ) {
         $this->pushSettingsManager ??= Di::_()->get('Notifications\Push\Settings\Manager');
+        parent::__construct(config: $config);
     }
 
     /**
@@ -62,7 +66,7 @@ class EnablePushNotificationsNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return !$this->pushSettingsManager->hasEnabledAll(
+        return !$this->isTenantContext() && !$this->pushSettingsManager->hasEnabledAll(
             $user->getGuid()
         );
     }

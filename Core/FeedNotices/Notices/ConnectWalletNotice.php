@@ -2,6 +2,7 @@
 
 namespace Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
 use Minds\Entities\User;
@@ -19,9 +20,11 @@ class ConnectWalletNotice extends AbstractNotice
     private const KEY = 'connect-wallet';
 
     public function __construct(
-        private ?EligibilityManager $eligibilityManager = null
+        private ?EligibilityManager $eligibilityManager = null,
+        private ?Config $config = null
     ) {
         $this->eligibilityManager ??= Di::_()->get('Rewards\Eligibility\Manager');
+        parent::__construct(config: $config);
     }
 
     /**
@@ -59,7 +62,8 @@ class ConnectWalletNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return !$user->getEthWallet() &&
+        return !$this->isTenantContext() &&
+            !$user->getEthWallet() &&
             $this->isEligibleForRewards($user);
     }
 

@@ -118,12 +118,12 @@ class Manager
         $subscription->setSubscriberGuid($this->subscriber->getGuid())
             ->setPublisherGuid($publisher->getGuid());
 
-        if ($this->isMultiTenant()) {
-            return $this->relationalRepository->isSubscribed(
-                userGuid: $this->subscriber->getGuid(),
-                friendGuid: $publisher->getGuid(),
-            );
-        }
+        //if ($this->isMultiTenant()) {
+        return $this->relationalRepository->isSubscribed(
+            userGuid: $this->subscriber->getGuid(),
+            friendGuid: $publisher->getGuid(),
+        );
+        //}
 
         return $this->repository->get($subscription);
     }
@@ -146,6 +146,8 @@ class Manager
 
         if (!$this->isMultiTenant()) {
             $subscription = $this->repository->add($subscription);
+        } else {
+            $subscription->setActive(true);
         }
 
         $this->eventsDelegate->trigger($subscription);

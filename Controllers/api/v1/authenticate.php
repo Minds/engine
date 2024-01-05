@@ -19,7 +19,9 @@ use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Security;
+use Minds\Core\Security\ACL;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
+use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Session;
 use Minds\Entities;
 use Minds\Interfaces;
@@ -32,11 +34,13 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
     private EntitiesBuilder $entitiesBuilder;
     private Save $save;
+    private ACL $acl;
 
     public function __construct()
     {
         $this->entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
         $this->save = new Save();
+        $this->acl = Di::_()->get(ACL::class);
     }
 
     /**
@@ -103,14 +107,6 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
             ]);
         }
 
-        if (!$user->isEnabled() && !$user->isBanned()) {
-            $user->enabled = 'yes';
-            $this->save
-                ->setEntity($user)
-                ->withMutatedAttributes(['enabled'])
-                ->save();
-        }
-
         $password = $_POST['password'];
 
         try {
@@ -143,6 +139,19 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
             return Factory::response($response);
         }
 
+        if (!$user->isEnabled() && !$user->isBanned()) {
+            $ignore = $this->acl::$ignore;
+            $this->acl::$ignore = true;
+
+            $user->enabled = 'yes';
+            $this->save
+                ->setEntity($user)
+                ->withMutatedAttributes(['enabled'])
+                ->save();
+
+            $this->acl::$ignore = $ignore;
+        }
+
         $sessions = Di::_()->get('Sessions\Manager');
         $sessions->setUser($user);
         $sessions->createSession();
@@ -171,6 +180,11 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         $response['status'] = 'success';
         $response['user'] = $user->export();
+
+        // Return permissions
+        $response['permissions'] = array_map(function ($permission) {
+            return $permission->name;
+        }, Di::_()->get(RolesService::class)->getUserPermissions($user));
 
         return Factory::response($response);
     }

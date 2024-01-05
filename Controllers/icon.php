@@ -58,7 +58,7 @@ class icon extends core\page implements Interfaces\page
         $data_root = $CONFIG->dataroot;
 
         $file = new \ElggFile();
-        $file->owner_guid = $guid;
+        $file->owner_guid = $user->getGuid();
         $file->setFilename("profile/{$guid}{$size}.jpg");
         $file->open("read");
 

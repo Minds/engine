@@ -12,8 +12,11 @@ use Lcobucci\JWT\Token\Parser;
 use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Core\Payments\InAppPurchases\Apple\AppleInAppPurchasesClient;
+use Minds\Core\Payments\InAppPurchases\Apple\Enums\AppleSubscriptionStatusEnum;
 use Minds\Core\Payments\InAppPurchases\Apple\Types\AppleConsumablePurchase;
+use Minds\Core\Payments\InAppPurchases\Apple\Types\AppleSubscription;
 use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
+use Minds\Core\Payments\InAppPurchases\RelationalRepository;
 use NotImplementedException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -23,6 +26,7 @@ class AppleInAppPurchasesClientSpec extends ObjectBehavior
 {
     private Collaborator $clientMock;
     private Collaborator $loggerMock;
+    private Collaborator $relationRepositoryMock;
 
     private string $privateKeyFilepath;
 
@@ -36,7 +40,8 @@ ytJLQ68Bt5f1331SMCslX8y68/vI82UhEQ==
 
     public function let(
         HttpClient $clientMock,
-        Logger $loggerMock
+        Logger $loggerMock,
+        RelationalRepository $relationalRepositoryMock
     ): void {
         $config = Di::_()->get('Config');
 
@@ -53,11 +58,13 @@ ytJLQ68Bt5f1331SMCslX8y68/vI82UhEQ==
         ]);
 
         $this->clientMock = $clientMock;
+        $this->relationRepositoryMock = $relationalRepositoryMock;
         $this->loggerMock = $loggerMock;
 
         $this->beConstructedWith(
             $config,
             $clientMock,
+            $relationalRepositoryMock,
             $loggerMock
         );
     }
@@ -104,16 +111,110 @@ ytJLQ68Bt5f1331SMCslX8y68/vI82UhEQ==
         $this->getTransaction($transactionID)->shouldBeAnInstanceOf(AppleConsumablePurchase::class);
     }
 
-    public function it_should_throw_not_implemented_exception_when_ack_subscription(
-        InAppPurchase $inAppPurchaseMock
-    ): void {
-        $this->shouldThrow(NotImplementedException::class)->during('acknowledgeSubscription', [$inAppPurchaseMock]);
+    public function it_should_acknowledge_subscription(): void
+    {
+        $jwtBuilder = Configuration::forSymmetricSigner(new Sha256(), InMemory::plainText(self::PEM_PRIVATE_KEY));
+        $jwtBuilder->setParser(new Parser(new JoseEncoder()));
+
+        $transactionID = 'original-transaction-id';
+
+        $inAppPurchaseMock = new InAppPurchase(
+            source: AppleInAppPurchasesClient::class,
+            purchaseToken: "",
+            subscriptionId: "plus.monthly.01",
+            iosTransactionPayload: $jwtBuilder->builder()
+                ->withClaim('originalPurchaseDate', time())
+                ->withClaim('originalTransactionId', 'original-transaction-id')
+                ->getToken($jwtBuilder->signer(), $jwtBuilder->signingKey())->toString(),
+        );
+
+        $responseMock = new Response(
+            status: 200,
+            body: json_encode([
+                'data' => [
+                    [
+                        'lastTransactions' => [
+                            [
+                                'originalTransactionId' => 'original-transaction-id',
+                                'status' => AppleSubscriptionStatusEnum::ACTIVE->value,
+                                'signedRenewalInfo' => 'signed-renewal-info',
+                                'signedTransactionInfo' => 'signed-transaction-info'
+                            ]
+                        ]
+                    ]
+                ]
+            ])
+        );
+
+        $this->clientMock->get(
+            Argument::that(
+                fn (Uri $uri): bool => $uri->getPath() === "/inApps/v1/subscriptions/$transactionID"
+            ),
+            Argument::that(
+                fn (array $options): bool => isset($options['headers']['Authorization'])
+            )
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($responseMock);
+
+        $this->relationRepositoryMock->getInAppPurchaseTransaction($transactionID)
+            ->shouldBeCalledOnce()
+            ->willReturn(null);
+
+        $this->relationRepositoryMock->storeInAppPurchaseTransaction($transactionID, $inAppPurchaseMock)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->acknowledgeSubscription($inAppPurchaseMock)->shouldReturn(true);
     }
 
-    public function it_should_throw_not_implemented_exception_when_getting_a_subscription(
-        InAppPurchase $inAppPurchaseMock
-    ): void {
-        $this->shouldThrow(NotImplementedException::class)->during('getSubscription', [$inAppPurchaseMock]);
+    public function it_should_return_a_subscription_object_with_current_status(): void
+    {
+        $jwtBuilder = Configuration::forSymmetricSigner(new Sha256(), InMemory::plainText(self::PEM_PRIVATE_KEY));
+        $jwtBuilder->setParser(new Parser(new JoseEncoder()));
+
+        $transactionID = 'original-transaction-id';
+
+        $inAppPurchaseMock = new InAppPurchase(
+            source: AppleInAppPurchasesClient::class,
+            purchaseToken: "",
+            subscriptionId: "plus.monthly.01",
+            iosTransactionPayload: $jwtBuilder->builder()
+                ->withClaim('originalPurchaseDate', time())
+                ->withClaim('originalTransactionId', 'original-transaction-id')
+                ->getToken($jwtBuilder->signer(), $jwtBuilder->signingKey())->toString(),
+        );
+
+        $responseMock = new Response(
+            status: 200,
+            body: json_encode([
+                'data' => [
+                    [
+                        'lastTransactions' => [
+                            [
+                                'originalTransactionId' => 'original-transaction-id',
+                                'status' => AppleSubscriptionStatusEnum::ACTIVE->value,
+                                'signedRenewalInfo' => 'signed-renewal-info',
+                                'signedTransactionInfo' => 'signed-transaction-info'
+                            ]
+                        ]
+                    ]
+                ]
+            ])
+        );
+
+        $this->clientMock->get(
+            Argument::that(
+                fn (Uri $uri): bool => $uri->getPath() === "/inApps/v1/subscriptions/$transactionID"
+            ),
+            Argument::that(
+                fn (array $options): bool => isset($options['headers']['Authorization'])
+            )
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($responseMock);
+
+        $this->getSubscription($inAppPurchaseMock)->shouldReturnAnInstanceOf(AppleSubscription::class);
     }
 
     public function it_should_throw_not_implemented_exception_when_getting_product_purchase(

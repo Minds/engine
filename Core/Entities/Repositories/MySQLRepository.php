@@ -1,40 +1,37 @@
 <?php
 namespace Minds\Core\Entities\Repositories;
 
-use Minds\Common\Access;
 use Minds\Core\Config\Config;
-use Minds\Core\Data\Call;
-use Minds\Core\Data\Cassandra\Thrift\Indexes;
-use Minds\Core\Data\lookup;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Data\MySQL\MySQLDataTypeEnum;
 use Minds\Core\Entities\Enums\EntitySubtypeEnum;
 use Minds\Core\Entities\Enums\EntityTypeEnum;
 use Minds\Core\Log\Logger;
-use Minds\Core\Session;
+use Minds\Core\Security\Rbac\Enums\RolesEnum;
 use Minds\Core\Sessions\ActiveSession;
-use Minds\Entities\Video;
 use Minds\Entities\Activity;
-use Minds\Entities\Factory;
 use Minds\Entities\EntityInterface;
+use Minds\Entities\Factory;
 use Minds\Entities\Group;
 use Minds\Entities\Image;
 use Minds\Entities\User;
+use Minds\Entities\Video;
 use PDO;
 use PDOStatement;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
+use Selective\Database\SelectQuery;
 
 class MySQLRepository extends AbstractRepository implements EntitiesRepositoryInterface
 {
     public function __construct(
-        private Config $config,
+        Config $config,
         private ActiveSession $activeSession,
         Client $mysqlClient,
         Logger $logger,
     ) {
-        parent::__construct($mysqlClient, $logger);
+        parent::__construct($mysqlClient, $config, $logger);
     }
 
     /**
@@ -67,13 +64,13 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 'vote_count' => new RawExp("
                     CASE 
                         WHEN 
-                            e.type='activity' AND (
+                            e.type='activity'
+                        THEN (
                                 SELECT COUNT(*) FROM minds_votes
                                 WHERE minds_votes.entity_guid = e.guid
                                 AND deleted = False
                                 AND direction = 1
-                            )
-                        THEN TRUE 
+                            ) 
                         ELSE FALSE
                     END
                 "),
@@ -94,32 +91,49 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 'friends_count' => new RawExp("
                     CASE 
                         WHEN 
-                            e.type='user' AND (
+                            e.type='user'
+                        THEN (
                                 SELECT COUNT(*) FROM friends
                                 WHERE friends.user_guid = e.guid
-                            )
-                        THEN TRUE 
+                            ) 
                         ELSE FALSE
                     END
                 "),
                 'friendsof_count' => new RawExp("
                     CASE 
                         WHEN 
-                            e.type='user' AND (
+                            e.type='user'
+                        THEN (
                                 SELECT COUNT(*) FROM friends
                                 WHERE friends.friend_guid = e.guid
-                            )
-                        THEN TRUE 
+                            ) 
                         ELSE FALSE
                     END
                 "),
+                'rbac_roles.role_ids',
             ])
             ->from(new RawExp('minds_entities as e'))
             ->leftJoin(['u' => 'minds_entities_user'], 'e.guid', Operator::EQ, 'u.guid')
             ->leftJoin(['a' => 'minds_entities_activity'], 'e.guid', Operator::EQ, 'a.guid')
             ->leftJoin(['i' => 'minds_entities_object_image'], 'e.guid', Operator::EQ, 'i.guid')
             ->leftJoin(['v' => 'minds_entities_object_video'], 'e.guid', Operator::EQ, 'v.guid')
-            ->leftJoin(['g' => 'minds_entities_group'], 'e.guid', Operator::EQ, 'g.guid');
+            ->leftJoin(['g' => 'minds_entities_group'], 'e.guid', Operator::EQ, 'g.guid')
+            ->leftJoin(
+                function (SelectQuery $query): void {
+                    $query
+                        ->from('minds_role_user_assignments')
+                        ->columns([
+                            'user_guid',
+                            'role_ids' => new RawExp('GROUP_CONCAT(role_id)'),
+                        ])
+                        ->where('tenant_id', Operator::EQ, new RawExp(':tenantId'))
+                        ->groupBy('user_guid')
+                        ->alias('rbac_roles');
+                },
+                'rbac_roles.user_guid',
+                Operator::EQ,
+                'u.guid'
+            );
 
         if (is_array($guid)) {
             //$query->where('e.guid', Operator::IN, new RawExp(':guid'));
@@ -133,7 +147,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
             $query->where('e.guid', Operator::EQ, new RawExp(':guid'));
         }
         
-        $query->where('e.tenant_id', Operator::EQ, $this->config->get('tenant_id'));
+        $query->where('e.tenant_id', Operator::EQ, new RawExp(':tenantId'));
 
         if (is_array($guid)) {
             $query->orderBy('e.guid desc');
@@ -143,6 +157,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, [
             'guid' => $guid,
+            'tenantId' => $this->config->get('tenant_id'),
             'loggedInUser' => $this->activeSession->getUserGuid(),
         ]);
 
@@ -159,10 +174,30 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
     public function loadFromIndex(string $index, string $value): ?EntityInterface
     {
         $query = $this->mysqlClientReaderHandler->select()
-             ->from(new RawExp('minds_entities as e'))
-             ->leftJoin(['u' => 'minds_entities_user'], 'e.guid', Operator::EQ, 'u.guid')
-             ->where($index, Operator::EQ, new RawExp(':val'))
-             ->where('e.tenant_id', Operator::EQ, $this->config->get('tenant_id'));
+            ->from(new RawExp('minds_entities as e'))
+            ->columns([
+                'e.*',
+                'u.*',
+                'rbac_roles.role_ids'
+            ])
+            ->leftJoin(['u' => 'minds_entities_user'], 'e.guid', Operator::EQ, 'u.guid')
+            ->leftJoin(
+                function (SelectQuery $query): void {
+                    $query
+                        ->from('minds_role_user_assignments')
+                        ->columns([
+                            'user_guid',
+                            'role_ids' => new RawExp('GROUP_CONCAT(role_id)'),
+                        ])
+                        ->groupBy('user_guid')
+                        ->alias('rbac_roles');
+                },
+                'rbac_roles.user_guid',
+                Operator::EQ,
+                'u.guid'
+            )
+            ->where($index, Operator::EQ, new RawExp(':val'))
+            ->where('e.tenant_id', Operator::EQ, $this->config->get('tenant_id'));
 
         $statement = $query->prepare();
 
@@ -481,11 +516,13 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'last_login' => MySQLDataTypeEnum::TIMESTAMP,
                     'email_confirmation_token' => MySQLDataTypeEnum::TEXT,
                     'email_confirmed_at' => MySQLDataTypeEnum::TIMESTAMP,
+                    'password_reset_code' => MySQLDataTypeEnum::TEXT,
                     'merchant' => MySQLDataTypeEnum::JSON,
                     'social_profiles' => MySQLDataTypeEnum::JSON,
                     'tags' => MySQLDataTypeEnum::JSON,
                     'eth_wallet' => MySQLDataTypeEnum::TEXT,
                     'ip' =>  MySQLDataTypeEnum::INT,
+                    'language' => MySQLDataTypeEnum::TEXT,
                     'canonical_url' => MySQLDataTypeEnum::TEXT,
                     'source' => MySQLDataTypeEnum::TEXT,
                 ];
@@ -496,6 +533,9 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'guid' => MySQLDataTypeEnum::BIGINT,
                     'title' => MySQLDataTypeEnum::TEXT,
                     'message' => MySQLDataTypeEnum::TEXT,
+                    'perma_url' => MySQLDataTypeEnum::TEXT,
+                    'thumbnail_src' => MySQLDataTypeEnum::TEXT,
+                    'blurb ' => MySQLDataTypeEnum::TEXT,
                     'remind_object' => MySQLDataTypeEnum::BLOB,
                     'comments_enabled' => MySQLDataTypeEnum::BOOL,
                     'paywall' => MySQLDataTypeEnum::BOOL,
@@ -553,7 +593,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'icon_time' => MySQLDataTypeEnum::TIMESTAMP,
                     'tags' => MySQLDataTypeEnum::JSON,
                     'show_boost' => MySQLDataTypeEnum::BOOL,
-                    'banner' => MySQLDataTypeEnum::BOOL,
+                    'banner' => MySQLDataTypeEnum::TIMESTAMP,
                     //'nsfw' => MySQLDataTypeEnum::JSON,
                     //'nsfw__lock' => MySQLDataTypeEnum::JSON,
                     'time_created' => MySQLDataTypeEnum::TIMESTAMP,
@@ -628,6 +668,9 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
             switch (EntityTypeEnum::tryFrom($row['type'])) {
                 case EntityTypeEnum::USER:
                     $row = [...$row, ...$tableMappedRow['u']];
+                    if (array_key_exists('rbac_roles', $tableMappedRow)) {
+                        $row = array_merge($row, $tableMappedRow['rbac_roles']);
+                    }
 
                     $mapToUnix = ['time_created', 'time_updated', 'last_login', 'last_accepted_tos', 'icontime'];
 
@@ -636,6 +679,12 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     foreach ($mapToYesNo as $k) {
                         if (isset($row[$k])) {
                             $row[$k] = $row[$k] ? 'yes' : 'no';
+
+                            if ($k === 'admin' && $row[$k] === 'no') {
+                                $userRoles = explode(',', $row['role_ids'] ?? '');
+                                $isAdmin = (bool) count(array_intersect($userRoles, [RolesEnum::ADMIN->value, RolesEnum::OWNER->value]));
+                                $row['admin'] = $isAdmin ? 'yes' : 'no';
+                            }
                         }
                     }
 
@@ -672,7 +721,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 case EntityTypeEnum::GROUP:
                     $row = [...$row, ...$tableMappedRow['g']];
 
-                    $mapToUnix = ['time_created', 'time_updated', 'icon_time'];
+                    $mapToUnix = ['time_created', 'time_updated', 'icon_time', 'banner'];
 
                     break;
 

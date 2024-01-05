@@ -94,8 +94,12 @@ class ProcessActorService
                     return null;
                 }
 
+                $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
+
                 // Create the user
                 $user = register_user($username, $password, $username, $email, validatePassword: false, isActivityPub: true);
+
+                $this->acl->setIgnore($ia); // Reset ACL state
 
                 $user = $this->updateUser($user);
 
