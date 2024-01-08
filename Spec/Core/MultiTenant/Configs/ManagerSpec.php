@@ -98,7 +98,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willThrow(new \Exception());
 
-        
+
         $this->logger->error(Argument::any())
             ->shouldBeCalled();
 
@@ -116,6 +116,7 @@ class ManagerSpec extends ObjectBehavior
         $result = true;
         $tenant = new Tenant($tenantId, $domain);
         $communityGuidelines = 'Test community guidelines';
+        $nsfwEnabled = true;
         $lastCacheTimestamp = time();
 
         $this->config->get('tenant_id')
@@ -128,6 +129,7 @@ class ManagerSpec extends ObjectBehavior
             $colorScheme,
             $primaryColor,
             $communityGuidelines,
+            $nsfwEnabled,
             $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -136,7 +138,7 @@ class ManagerSpec extends ObjectBehavior
         $this->multiTenantDataService->getTenantFromId($tenantId)
             ->shouldBeCalled()
             ->willReturn($tenant);
-        
+
         $this->domainService->invalidateGlobalTenantCache($tenant)
             ->shouldBeCalled();
 
@@ -145,6 +147,7 @@ class ManagerSpec extends ObjectBehavior
             $colorScheme,
             $primaryColor,
             $communityGuidelines,
+            $nsfwEnabled,
             $lastCacheTimestamp
         )->shouldBe($result);
     }
@@ -157,6 +160,7 @@ class ManagerSpec extends ObjectBehavior
         $primaryColor = '#000000';
         $result = false;
         $communityGuidelines = 'Test community guidelines';
+        $nsfwEnabled = true;
         $lastCacheTimestamp = time();
 
         $this->config->get('tenant_id')
@@ -169,6 +173,7 @@ class ManagerSpec extends ObjectBehavior
             $colorScheme,
             $primaryColor,
             $communityGuidelines,
+            $nsfwEnabled,
             $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -176,7 +181,7 @@ class ManagerSpec extends ObjectBehavior
 
         $this->multiTenantDataService->getTenantFromId(Argument::any())
             ->shouldNotBeCalled();
-        
+
         $this->domainService->invalidateGlobalTenantCache(Argument::any())
             ->shouldNotBeCalled();
 
@@ -185,6 +190,7 @@ class ManagerSpec extends ObjectBehavior
             $colorScheme,
             $primaryColor,
             $communityGuidelines,
+            $nsfwEnabled,
             $lastCacheTimestamp
         )->shouldBe($result);
     }
