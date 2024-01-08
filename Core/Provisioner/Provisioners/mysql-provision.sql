@@ -763,3 +763,5 @@ CREATE TABLE IF NOT EXISTS minds_post_notification_subscriptions (
     PRIMARY KEY (tenant_id, user_guid, entity_guid),
     INDEX (tenant_id, entity_guid)
 );
+
+ALTER TABLE minds_tenant_featured_entities ADD COLUMN auto_post_subscription boolean DEFAULT FALSE AFTER recommended;

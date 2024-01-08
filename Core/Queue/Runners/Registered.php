@@ -13,6 +13,8 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Core\Groups\V2\Membership\Manager as GroupsMembershipManager;
 use Minds\Core\MultiTenant\Services\FeaturedEntityService;
+use Minds\Core\Notifications\PostSubscriptions\Enums\PostSubscriptionFrequencyEnum;
+use Minds\Core\Notifications\PostSubscriptions\Services\PostSubscriptionsService;
 use Minds\Core\Queue;
 use Minds\Core\Queue\Interfaces\QueueRunner;
 use Minds\Core\Security\Rbac\Services\RolesService;
@@ -30,13 +32,15 @@ class Registered implements QueueRunner
         /** @var EntitiesBuilder */
         $entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
 
+        /** @var PostSubscriptionsService **/
+        $postSubscriptionsService = Di::_()->get(PostSubscriptionsService::class);
+
         $client = Queue\Client::Build();
         $client->setQueue("Registered")
-            ->receive(function ($data) use ($subscriptions, $repository, $entitiesBuilder, $config) {
+            ->receive(function ($data) use ($subscriptions, $repository, $entitiesBuilder, $config, $postSubscriptionsService) {
                 $data = $data->getData();
                 $user_guid = $data['user_guid'];
                 $tenant_id = $config->get('tenant_id') ?? null;
-
 
                 //subscribe to minds channel
                 /** @var User $subscriber */
@@ -59,6 +63,15 @@ class Registered implements QueueRunner
                         }
 
                         $subscriber->subscribe($featuredUser->entityGuid);
+
+                        // Post notifications
+                        if ($featuredUser->autoPostSubscription) {
+                            $featuredUserEntity = $entitiesBuilder->single($featuredUser->entityGuid);
+
+                            $postSubscriptionsService->withEntity($featuredUserEntity)
+                                ->withUser($subscriber)
+                                ->subscribe(PostSubscriptionFrequencyEnum::ALWAYS);
+                        }
                     }
                 }
 

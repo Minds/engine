@@ -17,7 +17,8 @@ class FeaturedUser extends FeaturedEntity
         #[Field(outputType: 'String!')] public readonly int $entityGuid,
         #[Field] public readonly bool $autoSubscribe,
         #[Field] public readonly bool $recommended,
-        #[Field] public readonly ?string $username,
+        #[Field] public readonly bool $autoPostSubscription = false,
+        #[Field] public readonly ?string $username = null,
         private readonly ?string $name = null,
     ) {
     }
