@@ -21,6 +21,7 @@ class FeaturedEntity implements NodeInterface
         #[Field(outputType: 'String!', inputType: 'String!')] public readonly int $entityGuid,
         #[Field] public readonly bool $autoSubscribe,
         #[Field] public readonly bool $recommended,
+        #[Field] public readonly bool $autoPostSubscription = false,
         private readonly ?string $name = null,
     ) {
     }

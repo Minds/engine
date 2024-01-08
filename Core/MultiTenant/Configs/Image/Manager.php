@@ -65,11 +65,16 @@ class Manager
      * @param ElggFile $file - file object.
      * @return mixed - contents of the file.
      */
-    public function getImageContentsFromFile(ElggFile $file): mixed
+    public function getImageContentsFromFile(ElggFile $file, MultiTenantConfigImageType $type): mixed
     {
         $contents = $file->read();
         if (empty($contents)) {
-            $filepath = $this->config->get('path') . "engine/Assets/avatars/default-master.png";
+            $fileName = match($type) {
+                MultiTenantConfigImageType::FAVICON => 'default-favicon.png',
+                MultiTenantConfigImageType::SQUARE_LOGO => 'default-square-logo.png',
+                MultiTenantConfigImageType::HORIZONTAL_LOGO => 'default-horizontal-logo.png',
+            };
+            $filepath = $this->config->get('path') . "engine/Assets/tenant/$fileName";
             $contents = file_get_contents($filepath);
         }
         return $contents;
