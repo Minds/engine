@@ -6,7 +6,7 @@ namespace Minds\Core\ActivityPub\Services;
 use Minds\Core\Config\Config;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 
-/** 
+/**
  * Service to determine whether federation is enabled.
  */
 class FederationEnabledService
@@ -14,13 +14,15 @@ class FederationEnabledService
     public function __construct(
         private MultiTenantBootService $multiTenantBootService,
         private Config $config
-    ) {}
+    ) {
+    }
 
     /**
      * Whether federation is enabled.
      * @return boolean - whether federation is enabled.
      */
-    public function isEnabled(): bool {
+    public function isEnabled(): bool
+    {
         if (!(bool) $this->config->get('tenant_id')) {
             return true;
         }
@@ -40,5 +42,5 @@ class FederationEnabledService
         }
 
         return true;
-    } 
+    }
 }

@@ -41,7 +41,7 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
         protected ?ActorFactory $actorFactory = null,
         protected ?ActivityFactory $activityFactory = null,
         protected ?EntitiesBuilder $entitiesBuilder = null,
-        protected ?FederationEnabledService $federationEnabledService = null, 
+        protected ?FederationEnabledService $federationEnabledService = null,
         protected ?Logger $logger = null
     ) {
         $this->emitActivityService ??= Di::_()->get(EmitActivityService::class);
