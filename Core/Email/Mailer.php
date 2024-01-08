@@ -2,6 +2,7 @@
 /**
  * Email mailer
  */
+
 namespace Minds\Core\Email;
 
 use Minds\Core;
@@ -30,8 +31,8 @@ class Mailer
             $this->setup();
         }
         $this->stats = [
-          'sent' => 0,
-          'failed' => 0
+            'sent' => 0,
+            'failed' => 0
         ];
         $this->queue = $queue ?: Queue::build();
         $this->filter = $filter ?: Di::_()->get('Email\SpamFilter');
@@ -51,6 +52,19 @@ class Mailer
         $this->mailer->Port = Core\Config::_()->email['smtp']['port'];
     }
 
+    public function queue($message, $priority = false)
+    {
+        $queueName = $priority ? 'PriorityEmail' : 'Email';
+        try {
+            $this->queue->setQueue($queueName)
+                ->send([
+                    "message" => serialize($message)
+                ]);
+        } catch (\Exception $e) {
+            error_log(print_r($e, true));
+        }
+    }
+
     /**
      * Send an email
      * @param Message $message
@@ -68,7 +82,7 @@ class Mailer
                 $message->getReplyTo()['name'] ?? 'Minds'
             );
         }
-        
+
         $this->mailer->setFrom(
             $message->from['email'],
             $message->from['name'] ?? 'Minds'
@@ -91,25 +105,13 @@ class Mailer
         if ($this->mailer->Send()) {
             $this->logger->info("Sent email");
             $this->stats['sent']++;
+            $this->mailer->ErrorInfo = "";
         } else {
             $this->logger->info("Failed to send email with error: {$this->mailer->ErrorInfo}");
             $this->stats['failed']++;
         }
 
         return $this;
-    }
-
-    public function queue($message, $priority = false)
-    {
-        $queueName = $priority ? 'PriorityEmail' : 'Email';
-        try {
-            $this->queue->setQueue($queueName)
-                ->send([
-                    "message" => serialize($message)
-                ]);
-        } catch (\Exception $e) {
-            error_log(print_r($e, true));
-        }
     }
 
     public function getStats()
