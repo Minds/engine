@@ -1955,7 +1955,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         $source = FederatedEntitySourcesEnum::from($this->source ?: 'local');
 
         // Tmp fix (hack) for bug found in https://gitlab.com/minds/minds/-/issues/4582
-        if (count(explode('@', $this->username)) === 1 && $source === FederatedEntitySourcesEnum::ACTIVITY_PUB) {
+        if (count(explode('@', $this->username ?? '')) === 1 && $source === FederatedEntitySourcesEnum::ACTIVITY_PUB) {
             $source = FederatedEntitySourcesEnum::LOCAL;
         }
 
