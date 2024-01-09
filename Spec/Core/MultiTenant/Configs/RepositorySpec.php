@@ -2,8 +2,10 @@
 
 namespace Spec\Minds\Core\MultiTenant\Configs;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Data\MySQL\MySQLConnectionEnum;
+use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Core\MultiTenant\Configs\Enums\MultiTenantColorScheme;
 use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
@@ -28,7 +30,7 @@ class RepositorySpec extends ObjectBehavior
         PDO $mysqlMasterMock,
         PDO $mysqlReplicaMock,
     ) {
-        parent::beConstructedWith($mysqlClientMock, $loggerMock);
+        parent::beConstructedWith($mysqlClientMock, Di::_()->get(Config::class), $loggerMock);
 
         $this->mysqlClientMock = $mysqlClientMock;
 

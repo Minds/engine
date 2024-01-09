@@ -101,13 +101,27 @@ class MultiTenantBootService
             $siteUrl = "$scheme://$domain/";
         }
 
+        // Base urls
+
         $this->setConfig('site_url', $siteUrl);
         $this->setConfig('cdn_url', $siteUrl);
         $this->setConfig('cdn_assets_url', $siteUrl);
 
+        // Fediverse / Nostr / DID
+
+        $didConfig = $this->config->get('did') ?? [];
+        $didConfig['domain'] = $domain;
+        $this->setConfig('did', $didConfig);
+
+        // Tenant ID
+
         $this->setConfig('tenant_id', $tenant->id);
 
+        // Data root
+
         $this->setConfig('dataroot', $this->config->get('dataroot') . 'tenant/' . $this->config->get('tenant_id') . '/');
+
+        // Misc
 
         if ($tenantConfig = $tenant->config) {
             $emailConfig = $this->config->get('email');

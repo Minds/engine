@@ -2,12 +2,17 @@
 
 namespace Spec\Minds\Core\Subscriptions;
 
+use Minds\Common\Repository\Response;
+use Minds\Core\Config\Config;
+use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\Guid;
 use Minds\Core\Subscriptions\Delegates;
 use Minds\Core\Subscriptions\Manager;
 use Minds\Core\Subscriptions\Repository;
 use Minds\Core\Subscriptions\Subscription;
 use Minds\Core\Subscriptions\Relational;
 use Minds\Entities\User;
+use NotImplementedException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -20,7 +25,8 @@ class ManagerSpec extends ObjectBehavior
     private $eventsDelegate;
     private $feedsDelegate;
     private $relationalRepo;
-
+    private $cache;
+    private $config;
 
     public function let(
         Repository $repository,
@@ -29,7 +35,9 @@ class ManagerSpec extends ObjectBehavior
         Delegates\CacheDelegate $cacheDelegate,
         Delegates\EventsDelegate $eventsDelegate,
         Delegates\FeedsDelegate $feedsDelegate,
-        Relational\Repository $relationalRepository
+        Relational\Repository $relationalRepository,
+        PsrWrapper $cache,
+        Config $config
     ) {
         $this->beConstructedWith(
             $repository,
@@ -38,7 +46,9 @@ class ManagerSpec extends ObjectBehavior
             $cacheDelegate,
             $eventsDelegate,
             $feedsDelegate,
-            $relationalRepository
+            $relationalRepository,
+            $cache,
+            $config
         );
         $this->repository = $repository;
         $this->copyToElasticSearchDelegate = $copyToElasticSearchDelegate;
@@ -47,6 +57,8 @@ class ManagerSpec extends ObjectBehavior
         $this->eventsDelegate = $eventsDelegate;
         $this->feedsDelegate = $feedsDelegate;
         $this->relationalRepo = $relationalRepository;
+        $this->cache = $cache;
+        $this->config = $config;
     }
 
     public function it_is_initializable()
@@ -170,5 +182,56 @@ class ManagerSpec extends ObjectBehavior
         $newSubscription = $this->unSubscribe($publisher);
         $newSubscription->isActive()
             ->shouldBe(false);
+    }
+
+    public function it_should_get_subscribers_for_multi_tenant(Response $response)
+    {
+        $tenantId = 123;
+        $limit = 10;
+        $offset = 20;
+        $guid = Guid::build();
+        $type = 'subscribers';
+
+        $opts = [
+            'limit' => $limit,
+            'offset' => $offset,
+            'guid' => $guid,
+            'type' => $type
+        ];
+
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn($tenantId);
+
+        $this->relationalRepo->getSubscribers($guid, $limit, $offset)
+            ->shouldBeCalled()
+            ->willReturn($response);
+
+        $this->getList($opts)->shouldBe($response);
+    }
+
+    public function it_should_NOT_get_subscriptions_for_multi_tenant()
+    {
+        $tenantId = 123;
+        $limit = 10;
+        $offset = 20;
+        $guid = Guid::build();
+        $type = 'subscriptions';
+
+        $opts = [
+            'limit' => $limit,
+            'offset' => $offset,
+            'guid' => $guid,
+            'type' => $type
+        ];
+
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn($tenantId);
+
+        $this->relationalRepo->getSubscribers(Argument::any(), Argument::any(), Argument::any())
+            ->shouldNotBeCalled();
+
+        $this->shouldThrow(NotImplementedException::class)->duringGetList($opts);
     }
 }

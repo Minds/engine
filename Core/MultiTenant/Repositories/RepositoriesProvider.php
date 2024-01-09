@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Repositories;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
@@ -20,6 +21,7 @@ class RepositoriesProvider extends Provider
             function (Di $di): TenantUsersRepository {
                 return new TenantUsersRepository(
                     mysqlHandler: $di->get('Database\MySQL\Client'),
+                    config: $di->get(Config::class),
                     logger: $di->get('Logger')
                 );
             }
@@ -30,6 +32,7 @@ class RepositoriesProvider extends Provider
             function (Di $di): FeaturedEntitiesRepository {
                 return new FeaturedEntitiesRepository(
                     mysqlHandler: $di->get('Database\MySQL\Client'),
+                    config: $di->get(Config::class),
                     logger: $di->get('Logger')
                 );
             }
@@ -40,6 +43,7 @@ class RepositoriesProvider extends Provider
             function (Di $di): DomainsRepository {
                 return new DomainsRepository(
                     mysqlHandler: $di->get('Database\MySQL\Client'),
+                    config: $di->get(Config::class),
                     logger: $di->get('Logger')
                 );
             }

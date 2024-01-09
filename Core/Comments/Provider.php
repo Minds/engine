@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Comments;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di;
 
 class Provider extends Di\Provider
@@ -15,7 +16,11 @@ class Provider extends Di\Provider
             return new Manager();
         }, ['useFactory' => true]);
         $this->di->bind(RelationalRepository::class, function ($di) {
-            return new RelationalRepository($di->get('Database\MySQL\Client'), $di->get('Logger'));
+            return new RelationalRepository(
+                $di->get('Database\MySQL\Client'),
+                $di->get(Config::class),
+                $di->get('Logger')
+            );
         });
     }
 }

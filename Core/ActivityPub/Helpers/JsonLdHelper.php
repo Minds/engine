@@ -43,6 +43,18 @@ class JsonLdHelper
     public static function getDomainFromUri($uri): string
     {
         $parsed = parse_url($uri);
-        return $parsed['host'];
+        $host = $parsed['host'];
+
+        // Very nasty hack to make ...@minds.com usernames exclude the www.
+        // TODO: https://gitlab.com/minds/engine/-/issues/2686
+        if ($host === 'www.minds.com') {
+            $host = 'minds.com';
+        }
+
+        if ($host === 'www.threads.net') {
+            $host = 'threads.net';
+        }
+
+        return $host;
     }
 }

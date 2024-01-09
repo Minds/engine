@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\MultiTenant\Repositories;
 
+use Minds\Core\Config\Config;
 use Minds\Core\MultiTenant\Enums\FeaturedEntityTypeEnum;
 use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
 use Minds\Core\MultiTenant\Types\FeaturedUser;
@@ -22,7 +23,7 @@ class FeaturedEntitiesRepositorySpec extends ObjectBehavior
 
     public function let(MySQLClient $mysqlClient, PDO $mysqlMasterMock, PDO $mysqlReplicaMock)
     {
-        $this->beConstructedWith($mysqlClient, Di::_()->get('Logger'));
+        $this->beConstructedWith($mysqlClient, Di::_()->get(Config::class), Di::_()->get('Logger'));
         $this->mysqlClientMock = $mysqlClient;
 
         $this->mysqlClientMock->getConnection(MySQLConnectionEnum::MASTER)
@@ -58,6 +59,7 @@ class FeaturedEntitiesRepositorySpec extends ObjectBehavior
                     'type' => 'user',
                     'entity_guid' => '1234567890',
                     'auto_subscribe' => true,
+                    'auto_post_subscription' => true,
                     'recommended' => true,
                     'username' => 'username',
                     'name' => 'name'
@@ -67,6 +69,7 @@ class FeaturedEntitiesRepositorySpec extends ObjectBehavior
                     'type' => 'user',
                     'entity_guid' => '1234567891',
                     'auto_subscribe' => true,
+                    'auto_post_subscription' => true,
                     'recommended' => true,
                     'username' => 'username2',
                     'name' => 'name2'
@@ -91,6 +94,7 @@ class FeaturedEntitiesRepositorySpec extends ObjectBehavior
                 entityGuid: 1234567890,
                 autoSubscribe: true,
                 recommended: true,
+                autoPostSubscription: true,
                 username: 'username',
                 name: 'name'
             ),
@@ -99,6 +103,7 @@ class FeaturedEntitiesRepositorySpec extends ObjectBehavior
                 entityGuid: 1234567891,
                 autoSubscribe: true,
                 recommended: true,
+                autoPostSubscription: true,
                 username: 'username2',
                 name: 'name2'
             )
@@ -112,6 +117,7 @@ class FeaturedEntitiesRepositorySpec extends ObjectBehavior
             tenantId: 123,
             entityGuid: 1234567890,
             autoSubscribe: true,
+            autoPostSubscription: true,
             recommended: true,
             username: 'username',
             name: 'name'
@@ -125,7 +131,8 @@ class FeaturedEntitiesRepositorySpec extends ObjectBehavior
                     "tenant_id" => 123,
                     "entity_guid" => 1234567890,
                     "auto_subscribe" => true,
-                    "recommended" => true
+                    "recommended" => true,
+                    "auto_post_subscription" => true
                 ];
             })
         )->shouldBeCalled();

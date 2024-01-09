@@ -19,6 +19,7 @@ class FeaturedGroup extends FeaturedEntity
         #[Field(outputType: 'String!')] public readonly int $entityGuid,
         #[Field] public readonly bool $autoSubscribe,
         #[Field] public readonly bool $recommended,
+        #[Field] public readonly bool $autoPostSubscription = false,
         private readonly ?string $name = null,
         private readonly ?int $membersCount = null,
     ) {

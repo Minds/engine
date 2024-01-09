@@ -210,6 +210,9 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($cookie);
 
+        $cookie->setSameSite('None')
+            ->willReturn($cookie);
+
         $cookie->setPath('/')
             ->shouldBeCalled()
             ->willReturn($cookie);

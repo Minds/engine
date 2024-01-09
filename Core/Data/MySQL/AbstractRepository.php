@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Data\MySQL;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Log\Logger;
 use PDO;
 use PDOException;
@@ -19,6 +20,7 @@ abstract class AbstractRepository
      */
     public function __construct(
         protected Client $mysqlHandler,
+        protected Config $config,
         protected Logger $logger,
     ) {
         $this->mysqlClientReader = $this->mysqlHandler->getConnection(Client::CONNECTION_REPLICA);
@@ -48,4 +50,5 @@ abstract class AbstractRepository
     {
         $this->mysqlClientWriter->commit();
     }
+
 }

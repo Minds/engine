@@ -2,11 +2,20 @@
 namespace Minds\Core\Payments\InAppPurchases;
 
 use Minds\Core\Di\Di;
+use Minds\Core\Payments\GiftCards\Exceptions\GiftCardPaymentFailedException;
 use Minds\Core\Payments\InAppPurchases\Apple\AppleInAppPurchasesClient;
 use Minds\Core\Payments\InAppPurchases\Google\GoogleInAppPurchasesClient;
 use Minds\Core\Payments\InAppPurchases\Models\InAppPurchase;
+use Minds\Core\Payments\Stripe\Exceptions\StripeTransferFailedException;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserErrorException;
+use NotImplementedException;
+use Psr\Http\Message\ServerRequestInterface;
+use Stripe\Exception\ApiErrorException;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
 
@@ -45,13 +54,33 @@ class Controller
 
         $inAppPurchase = new InAppPurchase(
             source: $service,
-            subscriptionId: $subscriptionId,
             purchaseToken: $purchaseToken,
+            subscriptionId: $subscriptionId,
+            iosTransactionPayload: $payload['verificationResultIOS'] ?? null,
             user: $user
         );
 
         $this->manager->acknowledgeSubscription($inAppPurchase);
 
+        return new JsonResponse([]);
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return JsonResponse
+     * @throws NotImplementedException
+     * @throws UserErrorException
+     * @throws GiftCardPaymentFailedException
+     * @throws StripeTransferFailedException
+     * @throws UnverifiedEmailException
+     * @throws ServerErrorException
+     * @throws StopEventException
+     * @throws ApiErrorException
+     * @throws GraphQLException
+     */
+    public function processIOSSubscriptionRenewals(ServerRequestInterface $request): JsonResponse
+    {
+        $this->manager->renewIOSSubscription($request->getParsedBody()['signedPayload']);
         return new JsonResponse([]);
     }
 }

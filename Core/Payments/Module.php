@@ -12,6 +12,7 @@ class Module implements ModuleInterface
         InAppPurchases\Module::class,
         V2\Module::class,
         GiftCards\Module::class,
+        Checkout\Module::class,
     ];
     
     /**

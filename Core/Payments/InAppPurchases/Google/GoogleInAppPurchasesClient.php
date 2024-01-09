@@ -5,6 +5,7 @@ namespace Minds\Core\Payments\InAppPurchases\Google;
 
 use Google;
 use Google\Client;
+use Lcobucci\JWT\UnencryptedToken;
 use Minds\Core\Config\Config as MindsConfig;
 use Minds\Core\Di\Di;
 use Minds\Core\Payments\InAppPurchases\Clients\InAppPurchaseClientInterface;
@@ -110,5 +111,25 @@ class GoogleInAppPurchasesClient implements InAppPurchaseClientInterface
     public function getTransaction(string $transactionId): mixed
     {
         throw new NotImplementedException("GoogleInAppPurchasesClient::getTransaction");
+    }
+
+    /**
+     * @param string $payload
+     * @return UnencryptedToken
+     * @throws NotImplementedException
+     */
+    public function decodeSignedPayload(string $payload): UnencryptedToken
+    {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @param string $transactionId
+     * @return InAppPurchase
+     * @throws NotImplementedException
+     */
+    public function getOriginalSubscriptionDetails(string $transactionId): InAppPurchase
+    {
+        throw new NotImplementedException();
     }
 }

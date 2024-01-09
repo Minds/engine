@@ -56,10 +56,9 @@ class FeaturedEntityEdge implements EdgeInterface
 
     /**
      * Gets node - can be either a FeaturedUser or FeaturedGroup.
-     * @return NodeInterface - node.
      */
     #[Field]
-    public function getNode(): ?NodeInterface
+    public function getNode(): FeaturedEntity
     {
         return $this->node;
     }

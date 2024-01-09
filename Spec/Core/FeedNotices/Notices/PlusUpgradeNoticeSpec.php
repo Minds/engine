@@ -2,12 +2,23 @@
 
 namespace Spec\Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Config\Config;
 use Minds\Core\FeedNotices\Notices\PlusUpgradeNotice;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 
 class PlusUpgradeNoticeSpec extends ObjectBehavior
 {
+    private Collaborator $config;
+
+    public function let(
+        Config $config
+    ) {
+        $this->config = $config;
+        $this->beConstructedWith($config);
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(PlusUpgradeNotice::class);
@@ -31,6 +42,10 @@ class PlusUpgradeNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_show(
         User $user
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+    
         $user->getAge()
             ->shouldBeCalled()
             ->willReturn(2592001);
@@ -46,6 +61,10 @@ class PlusUpgradeNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_NOT_show_because_user_account_is_less_than_30_days_old(
         User $user
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $user->getAge()
         ->shouldBeCalled()
         ->willReturn(2591999);
@@ -60,6 +79,10 @@ class PlusUpgradeNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_NOT_show_because_user_account_is_already_plus(
         User $user
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $user->getAge()
             ->shouldBeCalled()
             ->willReturn(2592001);
@@ -67,6 +90,17 @@ class PlusUpgradeNoticeSpec extends ObjectBehavior
         $user->isPlus()
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->callOnWrappedObject('shouldShow', [$user])
+            ->shouldBe(false);
+    }
+
+    public function it_should_determine_if_notice_should_NOT_show_because_this_is_a_tenant_context(
+        User $user
+    ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn('123');
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);

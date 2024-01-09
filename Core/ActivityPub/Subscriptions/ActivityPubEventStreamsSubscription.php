@@ -122,6 +122,10 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
                 $actor = $this->actorFactory->fromEntity($user);
                 $object = $this->objectFactory->fromEntity($entity);
 
+                if (!isset($object->attributedTo)) {
+                    return true; // No owner, so we will skip
+                }
+
                 $like = new LikeType();
                 $like->id = $this->manager->getTransientId();
                 $like->actor = $actor;

@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Security\Rbac;
 
+use Error;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
@@ -19,7 +20,6 @@ class Repository extends AbstractRepository
     private $rolesCache;
 
     public function __construct(
-        private Config $config,
         private MultiTenantBootService $multiTenantBootService,
         ... $args
     ) {
@@ -86,7 +86,7 @@ class Repository extends AbstractRepository
     public function getUserRoles(int $userGuid): array
     {
         $query = $this->buildGetRolesQuery()
-             ->leftJoinRaw('minds_role_user_assignments', 'minds_role_permissions.role_id = minds_role_user_assignments.role_id');
+             ->leftJoinRaw('minds_role_user_assignments', 'minds_role_permissions.role_id = minds_role_user_assignments.role_id AND minds_role_permissions.tenant_id = minds_role_user_assignments.tenant_id');
 
         $where = "user_guid = :user_guid";
 
@@ -304,9 +304,13 @@ class Repository extends AbstractRepository
     {
         $roles = [];
         foreach ($rows as $row) {
-            $permissions = $row['permissions'] ? array_map(function ($permissionId) {
-                return constant(PermissionsEnum::class . "::$permissionId");
-            }, explode(',', $row['permissions'])) : [];
+            $permissions = $row['permissions'] ? array_filter(array_map(function ($permissionId) {
+                try {
+                    return constant(PermissionsEnum::class . "::$permissionId");
+                } catch (Error) {
+                    return null;
+                }
+            }, explode(',', $row['permissions']))) : [];
 
             $role = new Role(
                 $row['role_id'],

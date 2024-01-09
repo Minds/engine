@@ -2,6 +2,7 @@
 namespace Minds\Core\Groups\V2\Membership;
 
 use DateTime;
+use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Data\MySQL;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
@@ -17,10 +18,11 @@ class Repository extends MySQL\AbstractRepository
 
     public function __construct(
         MySQL\Client $mysqlClient,
+        Config $config,
         Logger $logger,
         protected PsrWrapper $cache
     ) {
-        parent::__construct($mysqlClient, $logger);
+        parent::__construct($mysqlClient, $config, $logger);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Spec\Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Config\Config;
 use Minds\Core\FeedNotices\Notices\VerifyUniquenessNotice;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\Rewards\Eligibility\Manager as EligibilityManager;
@@ -16,16 +17,22 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
     /** @var ExperimentsManager */
     protected $experimentsManager;
 
+    /** @var Config */
+    protected $config;
+
     public function let(
         EligibilityManager $eligibilityManager,
-        ExperimentsManager $experimentsManager
+        ExperimentsManager $experimentsManager,
+        Config $config
     ) {
         $this->eligibilityManager = $eligibilityManager;
         $this->experimentsManager = $experimentsManager;
+        $this->config = $config;
 
         $this->beConstructedWith(
             $eligibilityManager,
-            $experimentsManager
+            $experimentsManager,
+            $config
         );
     }
 
@@ -52,6 +59,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_show(
         User $user
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $user->getPhoneNumberHash()
             ->shouldBeCalled()
             ->willReturn(null);
@@ -79,6 +90,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_NOT_show_when_no_user_phone_hash(
         User $user,
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $user->getPhoneNumberHash()
             ->shouldBeCalled()
             ->willReturn('123');
@@ -90,6 +105,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_NOT_show_because_user_is_not_eligible_for_rewards(
         User $user
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $user->getPhoneNumberHash()
             ->shouldBeCalled()
             ->willReturn('123');
@@ -101,6 +120,10 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
     public function it_should_determine_if_notice_should_NOT_show_because_user_already_has_a_phone_hash_set(
         User $user
     ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn(null);
+
         $user->getPhoneNumberHash()
             ->shouldBeCalled()
             ->willReturn('');
@@ -112,6 +135,17 @@ class VerifyUniquenessNoticeSpec extends ObjectBehavior
         $this->eligibilityManager->isEligible()
             ->shouldBeCalled()
             ->willReturn(false);
+
+        $this->callOnWrappedObject('shouldShow', [$user])
+            ->shouldBe(false);
+    }
+
+    public function it_should_determine_if_notice_should_NOT_show_because_this_is_a_tenant_context(
+        User $user
+    ) {
+        $this->config->get('tenant_id')
+            ->shouldBeCalled()
+            ->willReturn('123');
 
         $this->callOnWrappedObject('shouldShow', [$user])
             ->shouldBe(false);

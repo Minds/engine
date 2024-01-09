@@ -50,6 +50,6 @@ class InviteFriendsNotice extends AbstractNotice
      */
     public function shouldShow(User $user): bool
     {
-        return true;
+        return !$this->isTenantContext();
     }
 }

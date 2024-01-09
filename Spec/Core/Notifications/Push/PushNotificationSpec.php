@@ -719,4 +719,78 @@ class PushNotificationSpec extends ObjectBehavior
 
         $this->getUri()->shouldReturn('https://www.minds.com/testuser');
     }
+
+    public function it_should_build_post_subscription_notification()
+    {
+        $this->config->get('site_url')
+            ->shouldBeCalled()
+            ->willReturn('https://www.minds.com/');
+
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_POST_SUBSCRIPTION);
+
+        $from = new User();
+        $from->setName('phpspec');
+
+        $this->notification->getFrom()
+            ->shouldBeCalled()
+            ->willReturn($from);
+
+        $activity = new Activity();
+        $activity->guid = '1';
+        $activity->setMessage('Hello tests');
+
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($activity);
+
+        $this->notification->getToGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $this->getTitle()
+            ->shouldBe('New post from phpspec');
+
+        $this->getBody()
+            ->shouldBe('Hello tests');
+
+        $this->getUri()
+            ->shouldBe('https://www.minds.com/newsfeed/1');
+    }
+
+    public function it_should_build_post_subscription_notification_that_is_a_remind()
+    {
+        $this->config->get('site_url')
+            ->shouldBeCalled()
+            ->willReturn('https://www.minds.com/');
+
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_POST_SUBSCRIPTION);
+
+        $from = new User();
+        $from->setName('phpspec');
+
+        $this->notification->getFrom()
+            ->shouldBeCalled()
+            ->willReturn($from);
+
+        $activity = new Activity();
+        $activity->guid = '1';
+
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($activity);
+
+        $this->notification->getToGuid()
+            ->shouldBeCalled()
+            ->willReturn(123);
+
+        $this->getTitle()
+            ->shouldBe('New post from phpspec');
+
+        $this->getUri()
+            ->shouldBe('https://www.minds.com/newsfeed/1');
+    }
 }

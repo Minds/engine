@@ -38,9 +38,9 @@ class Provider extends DiProvider
 
         $this->di->bind(Repository::class, function ($di) {
             return new Repository(
-                $di->get(Config::class),
                 $di->get(MultiTenantBootService::class),
                 $di->get(Client::class),
+                $di->get(Config::class),
                 $di->get('Logger')
             );
         });

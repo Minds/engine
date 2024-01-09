@@ -17,6 +17,7 @@ class Module implements ModuleInterface
     public $submodules = [
         Push\Module::class,
         EmailDigests\Module::class,
+        PostSubscriptions\Module::class,
     ];
 
     /**

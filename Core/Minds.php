@@ -88,8 +88,10 @@ class Minds extends base
         ActivityPub\Module::class,
         Admin\Module::class,
         Storage\Quotas\Module::class,
+        Comments\EmbeddedComments\Module::class,
         Comments\GraphQL\Module::class,
-        Reports\V2\Module::class
+        Reports\V2\Module::class,
+        Strapi\Module::class,
     ];
 
     /**
@@ -195,7 +197,7 @@ class Minds extends base
                 if (ob_get_contents()) {
                     ob_end_clean();
                 }
-                header('Not found', true, 404);
+                header('HTTP/1.0 404 Not Found', true, 404);
                 exit;
             }
         }

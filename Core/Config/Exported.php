@@ -173,8 +173,9 @@ class Exported
         $exported['boost'] = $boost;
         $exported['boost']['rejection_reasons'] = BoostRejectionReason::rejectionReasonsWithLabels();
 
-        if ((bool) $this->config->get('tenant_id')) {
+        if ($tenantId = $this->config->get('tenant_id')) {
             $exported['is_tenant'] = true;
+            $exported['tenant_id'] = $tenantId;
             $exported['theme_override'] = $this->config->get('theme_override');
         }
 

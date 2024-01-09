@@ -9,6 +9,7 @@ namespace Minds\Core\Reports\Verdict\Delegates;
 use Minds\Core\Di\Di;
 use Minds\Core\Reports\Report;
 use Minds\Common\Urn;
+use Minds\Core\Comments\Comment;
 use Minds\Core\Email\V2\Campaigns\Custom\Custom;
 use Minds\Core\Config;
 use Minds\Entities\User;
@@ -75,6 +76,12 @@ class EmailDelegate
         $entityGuid = $this->urn->setUrn($entityUrn)->getNss();
 
         $entity = $this->entitiesBuilder->single($entityGuid);
+
+        // scope to only comments to reduce regression scope.
+        if(!$entity && $report->getEntity() instanceof Comment) {
+            $entity = $report->getEntity();
+        }
+
         $owner = $entity->type === 'user' ? $entity : $this->entitiesBuilder->single($entity->getOwnerGuid());
 
         $template = 'moderation-banned';

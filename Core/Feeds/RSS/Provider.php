@@ -27,8 +27,8 @@ class Provider extends DiProvider
             MySQLRepository::class,
             fn (Di $di): MySQLRepository => new MySQLRepository(
                 mysqlHandler: $di->get('Database\MySQL\Client'),
+                config: $di->get('Config'),
                 logger: $di->get('Logger'),
-                config: $di->get('Config')
             )
         );
         $this->di->bind(

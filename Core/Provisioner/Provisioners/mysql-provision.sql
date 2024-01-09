@@ -342,7 +342,7 @@ CREATE TABLE IF NOT EXISTS minds_group_membership (
     user_guid bigint NOT NULL,
     created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP(),
     updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP(),
-    membership_level int NOT NULL, 
+    membership_level int NOT NULL,
     PRIMARY KEY (group_guid, user_guid),
     INDEX (group_guid, membership_level),
     INDEX (user_guid, membership_level)
@@ -398,12 +398,12 @@ CREATE TABLE IF NOT EXISTS minds_activitypub_actors (
 
 CREATE TABLE IF NOT EXISTS minds_activitypub_keys (
     user_guid bigint NOT NULL PRIMARY KEY,
-    private_key text NOT NULL 
+    private_key text NOT NULL
 );
 
 ALTER TABLE minds_comments
     ADD source text DEFAULT NULL
-        AFTER access_id; 
+        AFTER access_id;
 
 ALTER TABLE minds_comments
     ADD canonical_url text DEFAULT NULL
@@ -497,7 +497,7 @@ CREATE TABLE `minds_entities_user` (
   `canonical_url` text,
   `source` text,
   PRIMARY KEY (`tenant_id`,`guid`),
-  UNIQUE KEY `username` (`username`)
+  UNIQUE KEY `username` (`tenant_id`, `username`)
 );
 
 CREATE TABLE `minds_entities_group` (
@@ -624,6 +624,15 @@ ALTER TABLE `minds_tenant_configs`
     ADD last_cache_timestamp timestamp DEFAULT NULL
     AFTER updated_timestamp;
 
+CREATE TABLE IF NOT EXISTS `minds_in_app_purchases` (
+    `transaction_id` varchar(128) NOT NULL PRIMARY KEY ,
+    `user_guid` bigint NOT NULL,
+    `product_id` varchar(128) NOT NULL,
+    `purchase_type` tinyint NOT NULL,
+    `purchase_timestamp` timestamp NOT NULL,
+    INDEX (`user_guid`)
+);
+
 CREATE TABLE IF NOT EXISTS `minds_user_rss_feeds` (
     `feed_id` bigint NOT NULL PRIMARY KEY,
     `user_guid` bigint NOT NULL,
@@ -675,3 +684,84 @@ CREATE TABLE  IF NOT EXISTS  minds_role_user_assignments(
 ALTER TABLE `minds_entities_user`
     ADD `language` varchar(32) DEFAULT 'en'
     AFTER `ip`;
+
+
+ALTER TABLE minds_activitypub_uris ADD COLUMN tenant_id int DEFAULT -1 FIRST;
+ALTER TABLE minds_activitypub_actors ADD COLUMN tenant_id int DEFAULT -1 FIRST;
+ALTER TABLE minds_activitypub_keys ADD COLUMN tenant_id int DEFAULT -1 FIRST;
+
+ALTER TABLE minds_activitypub_actors DROP FOREIGN KEY minds_activitypub_actors_ibfk_1;
+
+ALTER TABLE minds_activitypub_uris DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, uri);
+ALTER TABLE minds_activitypub_actors DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, uri);
+ALTER TABLE minds_activitypub_keys DROP PRIMARY KEY, ADD PRIMARY KEY(tenant_id, user_guid);
+ALTER TABLE minds_activitypub_actors ADD CONSTRAINT minds_activitypub_actors_ibfk_1 FOREIGN KEY (tenant_id, uri) REFERENCES minds_activitypub_uris(tenant_id, uri);
+
+ALTER TABLE `minds_entities_activity`
+    ADD `nsfw` json DEFAULT NULL
+    AFTER `attachments`;
+
+ALTER TABLE `minds_entities_activity`
+    ADD `nsfw_lock` json DEFAULT NULL
+    AFTER `nsfw`;
+
+CREATE TABLE IF NOT EXISTS  minds_embedded_comments_activity_map (
+    tenant_id int DEFAULT -1,
+    user_guid bigint NOT NULL,
+    url varchar(256) NOT NULL,
+    activity_guid bigint NOT NULL,
+    PRIMARY KEY (tenant_id, user_guid, url)
+);
+
+CREATE TABLE IF NOT EXISTS  minds_embedded_comments_settings (
+    tenant_id int NOT NULL,
+    user_guid bigint NOT NULL,
+    auto_imports_enabled boolean DEFAULT TRUE,
+    domain varchar(128) DEFAULT NULL,
+    path_regex varchar(256) DEFAULT NULL,
+    PRIMARY KEY (tenant_id, user_guid)
+);
+
+CREATE TABLE IF NOT EXISTS  `minds_oidc_providers` (
+  `tenant_id` int NOT NULL,
+  `provider_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) DEFAULT NULL,
+  `issuer` varchar(128) DEFAULT NULL,
+  `client_id` varchar(128) DEFAULT NULL,
+  `client_secret` varchar(512) DEFAULT NULL,
+  PRIMARY KEY (`tenant_id`, `provider_id`),
+  INDEX (provider_id)
+) ENGINE=InnoDB AUTO_INCREMENT=1;
+
+ALTER TABLE `minds_entities_group` MODIFY COLUMN banner timestamp;
+
+CREATE TABLE IF NOT EXISTS `minds`.`minds_tenant_invites`
+(
+    id int PRIMARY KEY AUTO_INCREMENT,
+    tenant_id int NOT NULL,
+    owner_guid bigint NOT NULL,
+    email varchar(512) NOT NULL,
+    invite_token text NOT NULL,
+    target_roles text DEFAULT NULL,
+    target_group_guids text DEFAULT NULL,
+    custom_message text,
+    created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    send_timestamp TIMESTAMP DEFAULT NULL,
+    status tinyint(6) NOT NULL,
+    INDEX (tenant_id, owner_guid),
+    INDEX (status),
+    UNIQUE INDEX (tenant_id, email)
+) ENGINE = "InnoDB";
+
+CREATE TABLE IF NOT EXISTS minds_post_notification_subscriptions (
+    tenant_id INT NOT NULL,
+    user_guid BIGINT NOT NULL,
+    entity_guid BIGINT NOT NULL,
+    frequency enum ('ALWAYS', 'HIGHLIGHTS', 'NEVER') DEFAULT 'ALWAYS',
+    created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    updated_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (tenant_id, user_guid, entity_guid),
+    INDEX (tenant_id, entity_guid)
+);
+
+ALTER TABLE minds_tenant_featured_entities ADD COLUMN auto_post_subscription boolean DEFAULT FALSE AFTER recommended;

@@ -2,6 +2,7 @@
 
 namespace Minds\Core\FeedNotices\Notices;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Entities\User;
 use Minds\Core\Feeds\User\Manager as FeedsUserManager;
@@ -19,8 +20,10 @@ class BoostLatestPostNotice extends AbstractNotice
 
     public function __construct(
         private ?FeedsUserManager $feedsUserManager = null,
+        private ?Config $config = null
     ) {
         $this->feedsUserManager ??= Di::_()->get('Feeds\User\Manager');
+        parent::__construct(config: $config);
     }
 
     /**
@@ -59,7 +62,7 @@ class BoostLatestPostNotice extends AbstractNotice
     public function shouldShow(User $user): bool
     {
         try {
-            return $this->feedsUserManager->setUser($user)
+            return !$this->isTenantContext() && $this->feedsUserManager->setUser($user)
                 ->hasMadePosts();
         } catch (\Exception $e) {
             return false;
