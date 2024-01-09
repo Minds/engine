@@ -1159,6 +1159,8 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
 
         $export['icon_url'] = $this->getIcon();
 
+        $export['source'] = $this->getSource();
+
         return $export;
     }
 
@@ -1550,7 +1552,6 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
             'liquidity_spot_opt_out',
             'supermind_settings',
             'canonical_url',
-            'source',
         ]);
     }
 
