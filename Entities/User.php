@@ -1160,6 +1160,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         $export['icon_url'] = $this->getIcon();
 
         $export['source'] = $this->getSource();
+        $export['canonical_url'] = $this->getCanonicalUrl();
 
         return $export;
     }
@@ -1551,7 +1552,6 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
             'dismissed_widgets',
             'liquidity_spot_opt_out',
             'supermind_settings',
-            'canonical_url',
         ]);
     }
 
@@ -1977,7 +1977,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
      */
     public function getCanonicalUrl(): ?string
     {
-        return $this->canonical_url;
+        return $this->getSource() === FederatedEntitySourcesEnum::LOCAL ? null : $this->canonical_url;
     }
 
     /**
