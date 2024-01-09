@@ -5,6 +5,7 @@ namespace Minds\Core\Payments\Checkout\Services;
 
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Services\TenantsService;
+use Minds\Core\Payments\Checkout\Delegates\CheckoutEventsDelegate;
 use Minds\Core\Payments\Checkout\Enums\CheckoutTimePeriodEnum;
 use Minds\Core\Payments\Stripe\Checkout\Enums\CheckoutModeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Manager as StripeCheckoutManager;
@@ -36,6 +37,7 @@ class CheckoutService
         private readonly TenantsService               $tenantsService,
         private readonly SubscriptionsService         $stripeSubscriptionsService,
         private readonly CacheInterface               $cache,
+        private readonly CheckoutEventsDelegate       $checkoutEventsDelegate,
     ) {
     }
 
@@ -92,6 +94,13 @@ class CheckoutService
                 'add_on_ids' => $addOnIds,
             ]),
             self::CACHE_TTL
+        );
+
+        $this->checkoutEventsDelegate->sendCheckoutPaymentEvent(
+            user: $user,
+            productId: $planId,
+            timePeriod: $timePeriod,
+            addonIds: $addOnIds
         );
 
         return $checkoutSession->url;
