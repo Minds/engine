@@ -161,9 +161,8 @@ class MultiTenantBootService
                 'primary_color' => $tenant->config->primaryColor
             ]);
 
-            if (isset($tenant->config->nsfwEnabled)) {
-                $this->setConfig('nsfw_enabled', $tenant->config->nsfwEnabled);
-            }
+            $this->setConfig('nsfw_enabled', isset($tenant->config->nsfwEnabled) ? $tenant->config->nsfwEnabled : true);
+
         }
     }
 

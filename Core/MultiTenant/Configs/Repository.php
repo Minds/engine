@@ -48,7 +48,7 @@ class Repository extends AbstractRepository
             colorScheme: $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null,
             primaryColor: $row['primary_color'] ?? null,
             communityGuidelines: $row['community_guidelines'] ?? null,
-            nsfwEnabled: $row['nsfw_enabled'] ?? null,
+            nsfwEnabled: ($row['nsfw_enabled'] ?? 1) === 1,
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
             updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
         );
@@ -98,7 +98,8 @@ class Repository extends AbstractRepository
 
         if ($nsfwEnabled !== null) {
             $rawValues['nsfw_enabled'] = new RawExp(':nsfw_enabled');
-            $boundValues['nsfw_enabled'] = $nsfwEnabled;
+            // Convert bool to the format mysql is expecting
+            $boundValues['nsfw_enabled'] = ($nsfwEnabled === false) ? 0 : 1;
         }
 
         if ($lastCacheTimestamp !== null) {

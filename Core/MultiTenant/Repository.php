@@ -16,7 +16,7 @@ class Repository extends AbstractRepository
     {
         $query = $this->buildGetTenantQuery()
             ->where('minds_tenants_domain_details.domain', Operator::EQ, new RawExp(':domain'));
-            
+
         $domain = strtolower($domain);
 
         $statement = $query->prepare();
@@ -38,7 +38,7 @@ class Repository extends AbstractRepository
     {
         $query = $this->buildGetTenantQuery()
             ->where(new RawExp('md5(minds_tenants.tenant_id) = :hash'));
-            
+
         $statement = $query->prepare();
 
         $statement->execute([
