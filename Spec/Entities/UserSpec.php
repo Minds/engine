@@ -7,6 +7,7 @@ use Minds\Core\Di\Di;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Minds\Common\ChannelMode;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 
 class UserSpec extends ObjectBehavior
 {
@@ -128,4 +129,23 @@ class UserSpec extends ObjectBehavior
         
         $this->getHashtags()->shouldEqual([]);
     }
+
+    public function it_should_return_local_not_a_webfinger_user()
+    {
+        $this->beConstructedWith([
+            'username' => 'phpspec',
+            'source' => FederatedEntitySourcesEnum::ACTIVITY_PUB->value
+        ]);
+        $this->getSource()->shouldBe(FederatedEntitySourcesEnum::LOCAL);
+    }
+
+    public function it_should_not_apply_activitypub_hack_if_webfinger()
+    {
+        $this->beConstructedWith([
+            'username' => 'phpspec@phpspec.local',
+            'source' => FederatedEntitySourcesEnum::ACTIVITY_PUB->value
+        ]);
+        $this->getSource()->shouldBe(FederatedEntitySourcesEnum::ACTIVITY_PUB);
+    }
+
 }
