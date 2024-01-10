@@ -17,9 +17,9 @@ class AttachmentNode
         #[Field] public readonly string $guid,
         #[Field] public readonly string $containerGuid,
         #[Field] public readonly string $type,
-        #[Field] public readonly string $src,
-        #[Field] public readonly string $href,
         #[Field] public readonly ?bool $mature,
+        #[Field] public readonly ?string $src,
+        #[Field] public readonly ?string $href,
         #[Field] public readonly ?int $width,
         #[Field] public readonly ?int $height,
     ) {
