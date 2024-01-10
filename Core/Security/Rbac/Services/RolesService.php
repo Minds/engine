@@ -238,6 +238,7 @@ class RolesService
                     PermissionsEnum::CAN_UPLOAD_VIDEO,
                     PermissionsEnum::CAN_INTERACT,
                     PermissionsEnum::CAN_BOOST,
+                    PermissionsEnum::CAN_USE_RSS_SYNC,
                     PermissionsEnum::CAN_ASSIGN_PERMISSIONS,
                 ]
             ),
@@ -251,6 +252,7 @@ class RolesService
                     PermissionsEnum::CAN_UPLOAD_VIDEO,
                     PermissionsEnum::CAN_INTERACT,
                     PermissionsEnum::CAN_BOOST,
+                    PermissionsEnum::CAN_USE_RSS_SYNC,
                 ]
             ),
             RolesEnum::MODERATOR->value => new Role(
