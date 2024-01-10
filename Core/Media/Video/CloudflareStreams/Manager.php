@@ -45,8 +45,8 @@ class Manager
             'meta' => [
                 'guid' => $video->getGuid(),
                 // "name" => $video->getTitle() ?: '',
-                'owner_guid' => (string)$video->getOwnerGUID(),
-                'tenant_id' => $this->config->get('tenant_id'),
+                'owner_guid' => (string) $video->getOwnerGUID(),
+                'tenant_id' => (string) $this->config->get('tenant_id'),
             ],
             'thumbnailTimestampPct' => 0.5,
             'requireSignedURLs' => true,
