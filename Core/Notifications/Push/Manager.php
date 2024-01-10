@@ -100,12 +100,18 @@ class Manager
         $opts = new DeviceSubscriptions\DeviceSubscriptionListOpts();
         $opts->setUserGuid($notification->getToGuid());
         foreach ($this->getDeviceSubscriptionsManager()->getList($opts) as $deviceSubscription) {
-            $this->logger->info('Sending push notification', [
-                'deviceSubscription' => $deviceSubscription->getToken(),
-            ]);
-            $pushNotification->setDeviceSubscription($deviceSubscription);
+            
+            try {
+                $this->logger->info('Sending push notification', [
+                    'deviceSubscription' => $deviceSubscription->getToken(),
+                ]);
+                $pushNotification->setDeviceSubscription($deviceSubscription);
 
-            $this->getService($deviceSubscription->getService())->send($pushNotification);
+                $this->getService($deviceSubscription->getService())->send($pushNotification);
+
+            } catch (\Exception $e) {
+                $this->logger->error('Failed ' . $e->getMessage());
+            }
         }
     }
 
