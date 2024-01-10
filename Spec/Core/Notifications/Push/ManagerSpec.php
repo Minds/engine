@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Notifications\Push;
 
 use ArrayIterator;
+use Minds\Core\Di\Di;
 use Minds\Core\Notifications\Push\Manager;
 use Minds\Core\Notifications;
 use Minds\Core\EntitiesBuilder;
@@ -81,7 +82,9 @@ class ManagerSpec extends ObjectBehavior
         $this->settingsManager->canSend(Argument::any())
             ->willReturn(true);
 
-        $this->setApnsService($apnsService);
+        Di::_()->bind(ApnsService::class, function ($di) use ($apnsService) {
+            return $apnsService->getWrappedObject();
+        });
 
         $apnsService->send(Argument::that(function ($pushNotification) {
             return true;

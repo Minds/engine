@@ -14,6 +14,9 @@ use Psr\Http\Message\ResponseInterface;
 
 class ApnsService extends AbstractService implements PushServiceInterface
 {
+    protected string $cachedJwt;
+    protected int $cachedJwtTs = 0;
+
     /**
      * @param PushNotificationInterface $pushNotification
      * @return bool
@@ -96,14 +99,22 @@ class ApnsService extends AbstractService implements PushServiceInterface
      */
     protected function buildJwt(PushNotificationConfig $pushConfig): string
     {
+        if ($this->cachedJwtTs > time() - 3600) {
+            return $this->cachedJwt;
+        }
+
         $jwtConfig = Configuration::forSymmetricSigner(new Sha256(), InMemory::plainText($pushConfig->apnsKey));
         $builder = $jwtConfig->builder();
-        return $builder
+        $this->cachedJwt = $builder
             ->issuedBy($pushConfig->apnsTeamId)
             ->issuedAt(new DateTimeImmutable('now'))
             ->withHeader('kid', $pushConfig->apnsKeyId)
             ->getToken($jwtConfig->signer(), $jwtConfig->signingKey())
             ->toString();
+
+        $this->cachedJwtTs = time();
+
+        return $this->cachedJwt;
     }
 
     /**
