@@ -22,7 +22,8 @@ class AttachmentNode
         #[Field] public readonly ?bool $mature,
         #[Field] public readonly ?int $width,
         #[Field] public readonly ?int $height,
-    ) {}
+    ) {
+    }
 
     #[Field]
     public function getId(): ID
