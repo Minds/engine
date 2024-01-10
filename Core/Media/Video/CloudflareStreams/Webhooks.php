@@ -98,7 +98,7 @@ class Webhooks
         $body = $request->getParsedBody();
         $guid = $body['meta']['guid'];
         $transcodingState = $body['status']['state'];
-        $tenantId = $body['meta']['tenant_id'] ?? null;
+        $tenantId = (int) $body['meta']['tenant_id'] ?? null;
 
         $this->logger->info('CloudflareWebhook - Video ' . $guid);
 
