@@ -45,7 +45,7 @@ class AutoLoginService
 
         $domain = $this->tenantDomainService->buildDomain($tenant);
 
-        return "http://$domain:8080/api/v3/multi-tenant/auto-login/login";
+        return "https://$domain/api/v3/multi-tenant/auto-login/login";
     }
 
     /**
