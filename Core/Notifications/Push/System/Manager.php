@@ -45,9 +45,9 @@ class Manager
     ) {
         $this->repository ??= new Repository();
         $this->delegate ??= new AdminPushNotificationEventStreamsDelegate();
-        $this->apnsService ??= new ApnsService();
-        $this->fcmService ??= new FcmService();
-        $this->webPushService ??= new WebPushService();
+        $this->apnsService ??= Di::_()->get(ApnsService::class);
+        $this->fcmService ??= Di::_()->get(FcmService::class);
+        $this->webPushService ??= Di::_()->get(WebPushService::class);
         $this->pushSettingsManager ??= new SettingsManager();
         $this->logger = Di::_()->get("Logger");
     }

@@ -47,8 +47,8 @@ class Manager
         $this->imageProcessor ??= new ImageProcessor();
 
         // Push Notification services
-        $this->fcmService ??= new FcmService();
-        $this->apnsService ??= new ApnsService();
+        $this->fcmService ??= Di::_()->get(FcmService::class);
+        $this->apnsService ??= Di::_()->get(ApnsService::class);
         $this->logger ??= Di::_()->get('Logger');
     }
 

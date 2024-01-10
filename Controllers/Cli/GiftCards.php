@@ -61,6 +61,8 @@ class GiftCards extends Cli\Controller implements Interfaces\CliControllerInterf
     }
 
     /**
+     * To issue a gift card
+     * `source /vault/secrets/env && php engine/cli.php GiftCards createTestCard --product_id=0 --recipient_user_guid=1591486361091706892 --payment_type=2 --amount=1000`
      * @return void
      * @throws GiftCardPaymentFailedException
      * @throws StripeTransferFailedException
