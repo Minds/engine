@@ -162,17 +162,17 @@ class Manager
         switch ($service) {
             case DeviceSubscription::SERVICE_APNS:
                 if (!$this->apnsService) {
-                    $this->apnsService = new Services\ApnsService();
+                    $this->apnsService = Di::_()->get(Services\ApnsService::class);
                 }
                 return $this->apnsService;
             case DeviceSubscription::SERVICE_FCM:
                 if (!$this->fcmService) {
-                    $this->fcmService = new Services\FcmService();
+                    $this->fcmService = Di::_()->get(Services\FcmService::class);
                 }
                 return $this->fcmService;
             case DeviceSubscription::SERVICE_WEBPUSH:
                 if (!$this->webPushService) {
-                    $this->webPushService = new Services\WebPushService();
+                    $this->webPushService = Di::_()->get(Services\WebPushService::class);
                 }
                 return $this->webPushService;
         }

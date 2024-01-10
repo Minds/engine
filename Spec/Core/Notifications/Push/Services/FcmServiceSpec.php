@@ -5,10 +5,12 @@ namespace Spec\Minds\Core\Notifications\Push\Services;
 use Google_Client;
 use GuzzleHttp;
 use Minds\Core\Config\Config;
+use Minds\Core\Notifications\Push\Config\PushNotificationsConfigService;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\PushNotification;
 use Minds\Core\Notifications\Push\Services\FcmService;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 use Zend\Diactoros\Response\JsonResponse;
 
@@ -22,13 +24,16 @@ class FcmServiceSpec extends ObjectBehavior
  
     /** @var Config */
     protected $config;
+
+    protected Collaborator $pushNotificationsConfigServiceMock;
     
-    public function let(Google_Client $googleClient, GuzzleHttp\Client $client, Config $config)
+    public function let(Google_Client $googleClient, GuzzleHttp\Client $client, Config $config, PushNotificationsConfigService $pushNotificationsConfigServiceMock)
     {
-        $this->beConstructedWith($googleClient, $client, $config);
+        $this->beConstructedWith($googleClient, $client, $config, $pushNotificationsConfigServiceMock);
         $this->googleClient = $googleClient;
         $this->client = $client;
         $this->config = $config;
+        $this->pushNotificationsConfigServiceMock = $pushNotificationsConfigServiceMock;
     }
 
     public function it_is_initializable()
