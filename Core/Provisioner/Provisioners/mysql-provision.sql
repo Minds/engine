@@ -765,3 +765,13 @@ CREATE TABLE IF NOT EXISTS minds_post_notification_subscriptions (
 );
 
 ALTER TABLE minds_tenant_featured_entities ADD COLUMN auto_post_subscription boolean DEFAULT FALSE AFTER recommended;
+
+CREATE TABLE IF NOT EXISTS  minds_custom_pages(
+    `tenant_id` int NOT NULL,
+    `page_type` tinyint NOT NULL,
+    `content` text DEFAULT NULL,
+    `external_link` text DEFAULT NULL,
+    created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    updated_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (`tenant_id`, `page_type`)
+);
