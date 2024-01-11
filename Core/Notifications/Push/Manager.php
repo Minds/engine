@@ -100,12 +100,16 @@ class Manager
         $opts = new DeviceSubscriptions\DeviceSubscriptionListOpts();
         $opts->setUserGuid($notification->getToGuid());
         foreach ($this->getDeviceSubscriptionsManager()->getList($opts) as $deviceSubscription) {
-            $this->logger->info('Sending push notification', [
-                'deviceSubscription' => $deviceSubscription->getToken(),
-            ]);
-            $pushNotification->setDeviceSubscription($deviceSubscription);
+            try {
+                $this->logger->info('Sending push notification', [
+                    'deviceSubscription' => $deviceSubscription->getToken(),
+                ]);
+                $pushNotification->setDeviceSubscription($deviceSubscription);
 
-            $this->getService($deviceSubscription->getService())->send($pushNotification);
+                $this->getService($deviceSubscription->getService())->send($pushNotification);
+            } catch (\Exception $e) {
+                $this->logger->error('Failed ' . $e->getMessage());
+            }
         }
     }
 
@@ -161,41 +165,16 @@ class Manager
     {
         switch ($service) {
             case DeviceSubscription::SERVICE_APNS:
-                if (!$this->apnsService) {
-                    $this->apnsService = new Services\ApnsService();
-                }
+                $this->apnsService = Di::_()->get(Services\ApnsService::class);
                 return $this->apnsService;
             case DeviceSubscription::SERVICE_FCM:
-                if (!$this->fcmService) {
-                    $this->fcmService = new Services\FcmService();
-                }
+                $this->fcmService = Di::_()->get(Services\FcmService::class);
                 return $this->fcmService;
             case DeviceSubscription::SERVICE_WEBPUSH:
-                if (!$this->webPushService) {
-                    $this->webPushService = new Services\WebPushService();
-                }
+                $this->webPushService = Di::_()->get(Services\WebPushService::class);
                 return $this->webPushService;
         }
         throw new Exception('Invalid service');
     }
 
-    /**
-     * @param Services\ApnsService $apnsService
-     * @return self
-     */
-    public function setApnsService(Services\ApnsService $apnsService): self
-    {
-        $this->apnsService = $apnsService;
-        return $this;
-    }
-
-    /**
-     * @param Services\ApnsService $apnsService
-     * @return self
-     */
-    public function setFcmService(Services\FcmService $fcmService): self
-    {
-        $this->fcmService = $fcmService;
-        return $this;
-    }
 }

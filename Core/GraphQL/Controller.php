@@ -6,6 +6,7 @@ use GraphQL\Type\Schema;
 use Minds\Core\Di\Di;
 use Minds\Core\GraphQL\Services\AuthorizationService;
 use Minds\Core\GraphQL\Services\AuthService;
+use Minds\Core\Security\Rbac\Services\RolesService;
 use TheCodingMachine\GraphQLite\Context\Context;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
@@ -20,7 +21,9 @@ class Controller
         $variableValues = isset($input['variables']) ? $input['variables'] : null;
 
         $authService = new AuthService($request->getAttribute('_user'));
-        $authorizationService = new AuthorizationService();
+        $authorizationService = new AuthorizationService(
+            Di::_()->get(RolesService::class)
+        );
         $schema = Di::_()->get(Schema::class, ['auth_service' => $authService, 'authorization_service' => $authorizationService]);
 
         $result = GraphQL::executeQuery($schema, $query, null, new Context(), $variableValues);
