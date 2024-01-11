@@ -18,6 +18,8 @@ class Repository extends AbstractRepository
 {
     /**
      * Get the config for a tenant by tenant id.
+     * NOTE: If you are expecting these configs to be set at boot time,
+     * you must also add to the MultiTenant/Repository class
      * @param integer $tenantId - tenant id.
      * @throws NotFoundException - if no rows are found.
      * @return MultiTenantConfig - found config.
