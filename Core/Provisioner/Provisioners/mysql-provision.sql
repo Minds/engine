@@ -775,3 +775,11 @@ CREATE TABLE IF NOT EXISTS  minds_custom_pages(
     updated_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
     PRIMARY KEY (`tenant_id`, `page_type`)
 );
+
+CREATE TABLE IF NOT EXISTS minds_push_notification_config (
+    tenant_id int PRIMARY KEY,
+    apns_team_id varchar(10),
+    apns_key varchar(512),
+    apns_key_id varchar(10),
+    apns_topic varchar(128)
+);
