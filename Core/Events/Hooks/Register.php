@@ -33,7 +33,7 @@ class Register
                 try {
                     $user = new Entities\User(strtolower(ltrim($referrer, '@')));
                     if ($user->guid) {
-                        $user->referrer = (string) $user->guid;
+                        $user->referrer = (string)$user->guid;
 
                         (new Save())->setEntity($user)->withMutatedAttributes(['referrer'])->save();
 
@@ -42,7 +42,7 @@ class Register
 
                     $referral = new Referral();
                     $referral->setProspectGuid($user->getGuid())
-                        ->setReferrerGuid((string) $user->guid)
+                        ->setReferrerGuid((string)$user->guid)
                         ->setRegisterTimestamp(time());
 
                     $manager = Di::_()->get('Referrals\Manager');
@@ -69,7 +69,7 @@ class Register
                     ->setUser($params['user'])
                     ->generateConfirmationToken();
             } catch (\Exception $e) {
-                error_log((string) $e);
+                error_log((string)$e);
             }
 
             try {
@@ -108,13 +108,14 @@ class Register
 
                 $event->push();
             } catch (\Exception $e) {
-                error_log((string) $e);
+                error_log((string)$e);
             }
 
             try {
                 Core\Queue\Client::build()->setQueue('Registered')
                     ->send([
-                        'user_guid' => (string) $params['user']->guid,
+                        'user_guid' => (string)$params['user']->guid,
+                        'invite_token' => $params['invitecode'] ?? null,
                     ]);
             } catch (\Exception $e) {
             }

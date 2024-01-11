@@ -739,6 +739,24 @@ CREATE TABLE IF NOT EXISTS  `minds_oidc_providers` (
 
 ALTER TABLE `minds_entities_group` MODIFY COLUMN banner timestamp;
 
+CREATE TABLE IF NOT EXISTS `minds`.`minds_tenant_invites`
+(
+    id int PRIMARY KEY AUTO_INCREMENT,
+    tenant_id int NOT NULL,
+    owner_guid bigint NOT NULL,
+    email varchar(512) NOT NULL,
+    invite_token text NOT NULL,
+    target_roles text DEFAULT NULL,
+    target_group_guids text DEFAULT NULL,
+    custom_message text,
+    created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    send_timestamp TIMESTAMP DEFAULT NULL,
+    status tinyint(6) NOT NULL,
+    INDEX (tenant_id, owner_guid),
+    INDEX (status),
+    UNIQUE INDEX (tenant_id, email)
+) ENGINE = "InnoDB";
+
 CREATE TABLE IF NOT EXISTS minds_post_notification_subscriptions (
     tenant_id INT NOT NULL,
     user_guid BIGINT NOT NULL,
@@ -748,4 +766,14 @@ CREATE TABLE IF NOT EXISTS minds_post_notification_subscriptions (
     updated_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
     PRIMARY KEY (tenant_id, user_guid, entity_guid),
     INDEX (tenant_id, entity_guid)
+);
+
+ALTER TABLE minds_tenant_featured_entities ADD COLUMN auto_post_subscription boolean DEFAULT FALSE AFTER recommended;
+
+CREATE TABLE IF NOT EXISTS minds_push_notification_config (
+    tenant_id int PRIMARY KEY,
+    apns_team_id varchar(10),
+    apns_key varchar(512),
+    apns_key_id varchar(10),
+    apns_topic varchar(128)
 );

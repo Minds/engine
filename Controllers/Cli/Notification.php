@@ -10,6 +10,7 @@ use Minds\Core\Notifications\EmailDigests\EmailDigestMarker;
 use Minds\Core\Notifications\EmailDigests\EmailDigestOpts;
 use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
+use Minds\Core\Notifications\Push\Services\ApnsService;
 use Minds\Core\Notifications\Push\System\Manager;
 use Minds\Core\Notifications\Push\System\Models\CustomPushNotification;
 use Minds\Core\Notifications\Push\System\Targets\SystemPushNotificationTargetsList;
@@ -195,5 +196,24 @@ class Notification extends Cli\Controller implements Interfaces\CliControllerInt
             ->emit($roomName, $count);
 
         $this->out("Emitted notification count of: $count, to user with guid: $userGuid");
+    }
+
+    public function testPush()
+    {
+        $service = $this->getOpt('service');
+        $deviceToken = $this->getOpt('device-token');
+
+        $deviceSubscription = new DeviceSubscription();
+        $deviceSubscription->setService($service);
+        $deviceSubscription->setToken($deviceToken);
+
+        $pushNotification = new CustomPushNotification();
+        $pushNotification->setTitle('Hello work');
+        $pushNotification->setBody('This is Minds calling');
+        $pushNotification->setUri('https://www.minds.com/mark');
+        $pushNotification->setDeviceSubscription($deviceSubscription);
+
+        $apns = Di::_()->get(ApnsService::class);
+        $apns->send($pushNotification);
     }
 }

@@ -4,10 +4,13 @@ namespace Spec\Minds\Core\Notifications\Push\Services;
 
 use GuzzleHttp;
 use Minds\Core\Config\Config;
+use Minds\Core\Notifications\Push\Config\PushNotificationConfig;
+use Minds\Core\Notifications\Push\Config\PushNotificationsConfigService;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Core\Notifications\Push\PushNotificationInterface;
 use Minds\Core\Notifications\Push\Services\ApnsService;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 use Zend\Diactoros\Response\JsonResponse;
 
@@ -19,11 +22,14 @@ class ApnsServiceSpec extends ObjectBehavior
     /** @var Config */
     protected $config;
 
-    public function let(GuzzleHttp\Client $client, Config $config)
+    protected Collaborator $pushNotificationsConfigServiceMock;
+
+    public function let(GuzzleHttp\Client $client, Config $config, PushNotificationsConfigService $pushNotificationsConfigServiceMock)
     {
-        $this->beConstructedWith($client, $config);
+        $this->beConstructedWith($client, $config, $pushNotificationsConfigServiceMock);
         $this->client = $client;
         $this->config = $config;
+        $this->pushNotificationsConfigServiceMock = $pushNotificationsConfigServiceMock;
     }
 
     public function it_is_initializable()
@@ -61,12 +67,29 @@ class ApnsServiceSpec extends ObjectBehavior
         $this->config->get('apple')
             ->willReturn([
                 'sandbox' => false,
-                'cert' => '/path/to/cert'
             ]);
 
+        $this->config->get('tenant_id')
+            ->willReturn(null);
+        
+        $this->pushNotificationsConfigServiceMock->get(-1)
+            ->willReturn(
+                new PushNotificationConfig(
+                    apnsTeamId: 'AAAAAAAAAA',
+                    apnsKey: "-----BEGIN PRIVATE KEY-----
+                    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+                    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+                    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+                    AAAAAAAA
+                    -----END PRIVATE KEY-----",
+                    apnsKeyId: 'BBBBBBBBBB',
+                    apnsTopic: 'phpspec.app',
+                )
+            );
+        
         $this->client->request('POST', 'https://api.push.apple.com/3/device/apple-device-token', Argument::that(function ($payload) {
             return $payload['headers']['apns-collapse-id'] === 'merge-key-will-be-here'
-                && $payload['cert'] === '/path/to/cert'
+                && $payload['headers']['apns-topic'] = 'phpspec.app'
                 && $payload['json']['aps']['alert']['body'] === 'This is the title line: This is the body line'
                 && $payload['json']['uri'] === 'uri-here'
                 && $payload['json']['largeIcon'] === 'icon-here'

@@ -13,6 +13,7 @@ use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Query;
+use TheCodingMachine\GraphQLite\Annotations\Right;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class Controller
@@ -31,6 +32,7 @@ class Controller
      */
     #[Mutation]
     #[Logged]
+    #[Right('PERMISSION_RSS_SYNC')]
     public function createRssFeed(
         RssFeed $rssFeed,
         #[InjectUser] User $loggedInUser,
@@ -44,6 +46,7 @@ class Controller
      */
     #[Query]
     #[Logged]
+    #[Right('PERMISSION_RSS_SYNC')]
     public function getRssFeeds(
         #[InjectUser] User $loggedInUser,
     ): array {
@@ -60,6 +63,7 @@ class Controller
      */
     #[Query]
     #[Logged]
+    #[Right('PERMISSION_RSS_SYNC')]
     public function getRssFeed(
         string $feedId,
         #[InjectUser] User $loggedInUser,
@@ -76,6 +80,7 @@ class Controller
      */
     #[Mutation]
     #[Logged]
+    #[Right('PERMISSION_RSS_SYNC')]
     public function refreshRssFeed(
         string $feedId,
         #[InjectUser] User $loggedInUser,
@@ -92,6 +97,7 @@ class Controller
      */
     #[Mutation]
     #[Logged]
+    #[Right('PERMISSION_RSS_SYNC')]
     public function removeRssFeed(
         string $feedId,
         #[InjectUser] User $loggedInUser,

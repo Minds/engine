@@ -5,6 +5,7 @@ namespace Minds\Core\MultiTenant\Types\Factories;
 
 use Minds\Core\Config\Config;
 use Minds\Core\MultiTenant\Types\FeaturedEntity;
+use Minds\Core\MultiTenant\Types\FeaturedUser;
 use TheCodingMachine\GraphQLite\Annotations\Factory;
 
 /**
@@ -27,12 +28,14 @@ class FeaturedEntityFactory
     public function createFeaturedEntity(
         string $entityGuid,
         bool $autoSubscribe = false,
+        bool $autoPostSubscription = false,
         bool $recommended = false
     ): FeaturedEntity {
-        return new FeaturedEntity(
+        return new FeaturedUser(
             tenantId: $this->config->get('tenant_id'),
             entityGuid: (int) $entityGuid,
             autoSubscribe: $autoSubscribe,
+            autoPostSubscription: $autoPostSubscription,
             recommended: $recommended
         );
     }
