@@ -765,3 +765,5 @@ CREATE TABLE IF NOT EXISTS minds_post_notification_subscriptions (
 );
 
 ALTER TABLE minds_tenant_featured_entities ADD COLUMN auto_post_subscription boolean DEFAULT FALSE AFTER recommended;
+
+ALTER TABLE minds_entities_object_image ADD COLUMN filename text AFTER deleted;
