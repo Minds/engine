@@ -58,7 +58,7 @@ class RepositorySpec extends ObjectBehavior
         $siteEmail = 'noreply@minds.com';
         $colorSchemeValue = MultiTenantColorScheme::DARK->value;
         $primaryColor = '#fff000';
-        $nsfwEnabled = true;
+        $nsfwEnabled = 1;
         $updatedTimestamp = date('c', time());
 
         $this->mysqlMasterMock->prepare(Argument::any())
