@@ -3,6 +3,7 @@
 namespace Minds\Core\Feeds\Seen;
 
 use Minds\Common\PseudonymousIdentifier;
+use Minds\Core\Session;
 
 class Manager
 {
@@ -58,7 +59,7 @@ class Manager
      */
     public function getIdentifier(): string
     {
-        $id = (new PseudonymousIdentifier())->getId();
+        $id = (new PseudonymousIdentifier())->getId() ?: Session::getLoggedInUserGuid();
         if (!$id) {
             $id = $this->createSeenCacheKeyCookie()->getValue();
         }

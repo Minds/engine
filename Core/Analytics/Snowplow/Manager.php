@@ -51,6 +51,8 @@ class Manager
              *
              * We currently fallback to a user_guid for server side action events **ONLY** and never for observational
              * analytics such as pageviews, which are always pseudonymised.
+             *
+             * Note: Tenants will not return a psuedo id, so they will fallback to a real user id
              */
             $subject->setUserId($this->pseudonymousIdentifier?->setUser($user)->getId() ?: $user->getGuid());
             $subject->setLanguage($user->getLanguage());
