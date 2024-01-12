@@ -3,19 +3,22 @@ namespace Minds\Core\Notifications\Push\Services;
 
 use GuzzleHttp;
 use Minds\Core\Config\Config;
-use Minds\Core\Di\Di;
+use Minds\Core\Notifications\Push\Config\PushNotificationsConfigService;
 
 abstract class AbstractService
 {
-    /** @var GuzzleHttp\Client  */
-    protected $client;
+    public function __construct(
+        protected GuzzleHttp\Client $client,
+        protected Config $config,
+        protected PushNotificationsConfigService $pushNotificationsConfigService,
+    ) {
+    }
 
-    /** @var Config */
-    protected $config;
-
-    public function __construct(GuzzleHttp\Client $client = null, Config $config = null)
+    /**
+     * If not a tenant, we use -1 as our tenant id
+     */
+    protected function getTenantId(): int
     {
-        $this->client = $client ?? new GuzzleHttp\Client();
-        $this->config = $config ?? Di::_()->get('Config');
+        return $this->config->get('tenant_id') ?: -1;
     }
 }

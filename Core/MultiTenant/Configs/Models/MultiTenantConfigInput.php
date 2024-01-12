@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Configs\Models;
@@ -20,6 +21,7 @@ class MultiTenantConfigInput
         #[Field] public readonly ?string $primaryColor = null,
         #[Field] public readonly ?string $communityGuidelines = null,
         #[Field] public readonly ?bool $federationDisabled = null,
+        #[Field] public readonly ?bool $nsfwEnabled = null,
     ) {
     }
 }

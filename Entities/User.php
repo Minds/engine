@@ -1159,6 +1159,9 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
 
         $export['icon_url'] = $this->getIcon();
 
+        $export['source'] = $this->getSource();
+        $export['canonical_url'] = $this->getCanonicalUrl();
+
         return $export;
     }
 
@@ -1549,8 +1552,6 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
             'dismissed_widgets',
             'liquidity_spot_opt_out',
             'supermind_settings',
-            'canonical_url',
-            'source',
         ]);
     }
 
@@ -1952,7 +1953,14 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
      */
     public function getSource(): ?FederatedEntitySourcesEnum
     {
-        return FederatedEntitySourcesEnum::from($this->source ?: 'local');
+        $source = FederatedEntitySourcesEnum::from($this->source ?: 'local');
+
+        // Tmp fix (hack) for bug found in https://gitlab.com/minds/minds/-/issues/4582
+        if (count(explode('@', $this->username ?? '')) === 1 && $source === FederatedEntitySourcesEnum::ACTIVITY_PUB) {
+            $source = FederatedEntitySourcesEnum::LOCAL;
+        }
+
+        return $source;
     }
 
     /**
@@ -1969,7 +1977,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
      */
     public function getCanonicalUrl(): ?string
     {
-        return $this->canonical_url;
+        return $this->getSource() === FederatedEntitySourcesEnum::LOCAL ? null : $this->canonical_url;
     }
 
     /**

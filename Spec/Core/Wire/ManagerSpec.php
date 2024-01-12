@@ -734,6 +734,7 @@ class ManagerSpec extends ObjectBehavior
 
         $receiver = new User();
         $receiver->guid = 456;
+        $receiver->username = 'phpspec@phpspec.local';
         $receiver->merchant = [
             'id' => 'mock_id'
         ];

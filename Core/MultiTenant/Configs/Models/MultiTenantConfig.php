@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Configs\Models;
@@ -22,6 +23,7 @@ class MultiTenantConfig
         #[Field] public readonly ?string $primaryColor = null,
         #[Field] public readonly ?string $communityGuidelines = null,
         #[Field] public readonly ?bool $federationDisabled = false,
+        #[Field] public readonly ?bool $nsfwEnabled = null,
         #[Field] public readonly ?int $updatedTimestamp = null,
         #[Field] public readonly ?int $lastCacheTimestamp = null
     ) {

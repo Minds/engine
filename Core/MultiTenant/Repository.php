@@ -16,7 +16,7 @@ class Repository extends AbstractRepository
     {
         $query = $this->buildGetTenantQuery()
             ->where('minds_tenants_domain_details.domain', Operator::EQ, new RawExp(':domain'));
-            
+
         $domain = strtolower($domain);
 
         $statement = $query->prepare();
@@ -38,7 +38,7 @@ class Repository extends AbstractRepository
     {
         $query = $this->buildGetTenantQuery()
             ->where(new RawExp('md5(minds_tenants.tenant_id) = :hash'));
-            
+
         $statement = $query->prepare();
 
         $statement->execute([
@@ -71,7 +71,8 @@ class Repository extends AbstractRepository
                 'color_scheme',
                 'federation_disabled',
                 'last_cache_timestamp',
-                'updated_timestamp'
+                'updated_timestamp',
+                'nsfw_enabled',
             ]);
     }
     private function buildTenantModel(array $row): Tenant
@@ -87,6 +88,7 @@ class Repository extends AbstractRepository
         $federationDisabled = (bool) $row['federation_disabled'] ?? false;
         $updatedTimestamp = $row['updated_timestamp'] ?? null;
         $lastCacheTimestamp = $row['last_cache_timestamp'] ?? null;
+        $nsfwEnabled = $row['nsfw_enabled'] ?? true;
 
         return new Tenant(
             id: $tenantId,
@@ -100,7 +102,8 @@ class Repository extends AbstractRepository
                 primaryColor: $primaryColor,
                 federationDisabled: $federationDisabled,
                 lastCacheTimestamp: $lastCacheTimestamp ? strtotime($lastCacheTimestamp) : null,
-                updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null
+                updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null,
+                nsfwEnabled: $nsfwEnabled,
             )
         );
     }

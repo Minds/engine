@@ -56,6 +56,7 @@ class Controller
             primaryColor: $multiTenantConfigInput->primaryColor,
             communityGuidelines: $multiTenantConfigInput->communityGuidelines,
             federationDisabled: $multiTenantConfigInput->federationDisabled,
+            nsfwEnabled: $multiTenantConfigInput->nsfwEnabled,
         );
     }
 }

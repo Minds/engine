@@ -52,18 +52,24 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
 
         // Build the message
 
+        $data = [
+            'uuid' => $event->getNotification()->getUuid(),
+            'urn' => $event->getNotification()->getUrn(),
+            'to_guid' => $event->getNotification()->getToGuid(),
+            'from_guid' => $event->getNotification()->getFromGuid(),
+            'entity_urn' => $event->getNotification()->getEntityUrn(),
+        ];
+
+        if ($tenantId = $this->config->get('tenant_id')) {
+            $data['tenant_id'] = $tenantId;
+        }
+
         $builder = new MessageBuilder();
         $message = $builder
             ->setDeliverAfter(static::DELAY_MS) // Wait 30 seconds before consumers will see this
             //->setPartitionKey(0)
             ->setEventTimestamp($event->getTimestamp() ?: time())
-            ->setContent(json_encode([
-                'uuid' => $event->getNotification()->getUuid(),
-                'urn' => $event->getNotification()->getUrn(),
-                'to_guid' => $event->getNotification()->getToGuid(),
-                'from_guid' => $event->getNotification()->getFromGuid(),
-                'entity_urn' => $event->getNotification()->getEntityUrn(),
-            ]))
+            ->setContent(json_encode($data))
             ->build();
 
         // Send the event to the stream
@@ -113,6 +119,12 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
                 $message = $consumer->receive();
                 $data = json_decode($message->getDataAsString(), true);
 
+                // Multi tenant support
+
+                if (isset($data['tenant_id']) && $tenantId = $data['tenant_id']) {
+                    $this->getMultiTenantBootService()->bootFromTenantId($tenantId);
+                }
+
                 $notification = $this->notificationsManager->getByUrn($data['urn']);
 
                 if (!$notification) {
@@ -133,6 +145,11 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
                     $consumer->acknowledge($message);
                 }
             } catch (\Exception $e) {
+            } finally {
+                // Reset Multi Tenant support
+                if ($tenantId ?? null) {
+                    $this->getMultiTenantBootService()->resetRootConfigs();
+                }
             }
         }
     }
@@ -188,6 +205,10 @@ class NotificationsTopic extends AbstractTopic implements TopicInterface
                 [
                     'name' => 'from_guid',
                     'type' => 'string',
+                ],
+                [
+                    'name' => 'tenant_id',
+                    'type' => 'int'
                 ],
             ]
         ]);
