@@ -6,17 +6,23 @@ use Minds\Common\PseudonymousIdentifier;
 use Minds\Core\Config\Config;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 
 class PseudonymousIdentifierSpec extends ObjectBehavior
 {
-    public function let(Config $config)
-    {
-        $this->beConstructedWith(null, $config);
+    protected Collaborator $configMock;
 
-        $config->get('sessions')
+    public function let(Config $configMock)
+    {
+        $this->beConstructedWith(null, $configMock);
+        $this->configMock = $configMock;
+
+        $configMock->get('sessions')
             ->willReturn([
                 'private_key' => dirname(__FILE__) . '/spec-priv-key.pem',
             ]);
+        $configMock->get('tenant_id')
+            ->willReturn(null);
     }
 
     public function it_is_initializable()
@@ -63,5 +69,13 @@ class PseudonymousIdentifierSpec extends ObjectBehavior
         $this
             ->setUser($user)
             ->getId()->shouldBe("5058da52e5f35eab7329");
+    }
+
+    public function it_should_not_return_id_if_tenant()
+    {
+        $this->configMock->get('tenant_id')->willReturn(1);
+        $this
+            ->setUser(new User())
+            ->getId()->shouldBe(null);
     }
 }
