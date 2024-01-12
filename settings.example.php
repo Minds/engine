@@ -457,8 +457,7 @@ $CONFIG->set('blockchain', [
             'contract_address' => '0xdd10ccb3100980ecfdcbb1175033f0c8fa40548c',
             'wallet_address' => '0x14E421986C5ff2951979987Cdd82Fa3C0637D569',
             'wallet_pkey' => '',
-            'limit_exemptions' => [
-            ],
+            'limit_exemptions' => [],
             'limit' => 25000,
         ],
         'bonus' => [
@@ -523,9 +522,7 @@ $CONFIG->set('blockchain', [
     ],
 ]);
 
-$CONFIG->set('blockchain_override', [
-
-]);
+$CONFIG->set('blockchain_override', []);
 
 $CONFIG->set('token_exchange_rate', 1.25);
 
@@ -976,3 +973,5 @@ $CONFIG->set('theme_override', [
     'color_scheme' => 'LIGHT',
     'primary_color' => '#1b85d6'
 ]);
+
+$CONFIG->set('nsfw_enabled', true);

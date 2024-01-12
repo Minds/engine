@@ -177,6 +177,7 @@ class Exported
             $exported['is_tenant'] = true;
             $exported['tenant_id'] = $tenantId;
             $exported['theme_override'] = $this->config->get('theme_override');
+            $exported['nsfw_enabled'] = $this->config->get('nsfw_enabled') ?? true;
         }
 
         return $exported;
