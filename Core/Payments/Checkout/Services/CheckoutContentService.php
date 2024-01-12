@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\Checkout\Services;
 
+use GuzzleHttp\Exception\GuzzleException;
+use Minds\Core\Payments\Checkout\Delegates\CheckoutEventsDelegate;
 use Minds\Core\Payments\Checkout\Enums\CheckoutPageKeyEnum;
 use Minds\Core\Payments\Checkout\Enums\CheckoutTimePeriodEnum;
 use Minds\Core\Payments\Checkout\Types\AddOn;
@@ -34,7 +36,8 @@ class CheckoutContentService
         private readonly StripeProductService      $stripeProductService,
         private readonly StripeProductPriceService $stripeProductPriceService,
         private readonly CacheInterface            $persistentCache,
-        private readonly CacheInterface            $cache
+        private readonly CacheInterface            $cache,
+        private readonly CheckoutEventsDelegate    $checkoutEventsDelegate,
     ) {
     }
 
@@ -45,8 +48,10 @@ class CheckoutContentService
      * @param User $user
      * @param array|null $addOnIds
      * @return CheckoutPage
+     * @throws ApiErrorException
      * @throws GraphQLException
      * @throws InvalidArgumentException
+     * @throws GuzzleException
      */
     public function getCheckoutPage(
         string                 $planId,
@@ -74,9 +79,20 @@ class CheckoutContentService
         if (count($planInfo['addons'])) {
             $addons = $this->strapiService->getPlanAddons(array_keys($planInfo['addons']));
         }
-        $page = $this->strapiService->getCheckoutPage($page);
+        $checkoutPage = $this->strapiService->getCheckoutPage($page);
 
-        return $this->buildResponse($user, $planInfo, $planDetails, $addons, $page, $timePeriod, $addOnIds);
+        $response = $this->buildResponse($user, $planInfo, $planDetails, $addons, $checkoutPage, $timePeriod, $addOnIds);
+
+        if ($page === CheckoutPageKeyEnum::CONFIRMATION) {
+            $this->checkoutEventsDelegate->sendCheckoutCompletedEvent(
+                user: $user,
+                productId: $planId,
+                timePeriod: $timePeriod,
+                addonIds: $addOnIds
+            );
+        }
+        
+        return $response;
     }
 
     /**

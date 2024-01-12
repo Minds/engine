@@ -25,5 +25,9 @@ class Provider extends DiProvider
         #region Input type factories
         (new Types\Factories\FactoriesProvider())->register();
         #endregion
+
+        #region Delegates
+        (new Delegates\DelegatesProvider())->register();
+        #endregion
     }
 }
