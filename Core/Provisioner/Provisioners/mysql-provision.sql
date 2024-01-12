@@ -603,6 +603,10 @@ ALTER TABLE `minds_tenant_configs`
     ADD community_guidelines text DEFAULT NULL
     AFTER color_scheme;
 
+ALTER TABLE `minds_tenant_configs`
+    ADD nsfw_enabled boolean DEFAULT TRUE
+    AFTER community_guidelines;
+
 CREATE TABLE `minds_reports` (
   `tenant_id` int NOT NULL,
   `report_guid` bigint NOT NULL,
