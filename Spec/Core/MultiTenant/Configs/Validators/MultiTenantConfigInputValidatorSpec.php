@@ -19,6 +19,7 @@ class MultiTenantConfigInputValidatorSpec extends ObjectBehavior
         $this->isEnabled()->shouldBe(true);
     }
 
+    // ojm implement all
     public function it_should_validate_a_valid_input()
     {
         $siteName = 'Test site';
@@ -139,7 +140,7 @@ class MultiTenantConfigInputValidatorSpec extends ObjectBehavior
         $siteName = 'Test site';
         $primaryColor = '#fff000';
         $communityGuidelines = str_repeat('a', 65001);
-        
+
         $this->shouldThrow(GraphQLException::class)->duringValidate(
             new MultiTenantConfigInput(
                 siteName: $siteName,

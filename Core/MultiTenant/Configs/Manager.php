@@ -47,11 +47,11 @@ class Manager
     }
 
     /**
+     * ojm dont forget to remove community guidelines from everywhere
      * Sets multi-tenant config for the calling tenant.
      * @param ?string $siteName - site name to set.
      * @param ?MultiTenantColorScheme $colorScheme - color scheme to set.
      * @param ?string $primaryColor - primary color to set.
-     * @param ?string $communityGuidelines - community guidelines.
      * @param ?int $lastCacheTimestamp - last cache timestamp.
      * @return bool - true on success.
      */
@@ -59,7 +59,6 @@ class Manager
         ?string $siteName = null,
         ?MultiTenantColorScheme $colorScheme = null,
         ?string $primaryColor = null,
-        ?string $communityGuidelines = null,
         ?int $lastCacheTimestamp = null
     ): bool {
         $tenantId = $this->config->get('tenant_id');
@@ -69,7 +68,6 @@ class Manager
             siteName: $siteName,
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
-            communityGuidelines: $communityGuidelines,
             lastCacheTimestamp: $lastCacheTimestamp
         );
 

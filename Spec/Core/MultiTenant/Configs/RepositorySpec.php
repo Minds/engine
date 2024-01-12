@@ -120,7 +120,6 @@ class RepositorySpec extends ObjectBehavior
         $siteName = 'Test site';
         $colorScheme = MultiTenantColorScheme::DARK;
         $primaryColor = '#fff000';
-        $communityGuidelines = 'Test community guidelines';
 
         $this->mysqlMasterMock->prepare(Argument::any())
             ->willReturn($statement);
@@ -129,8 +128,7 @@ class RepositorySpec extends ObjectBehavior
             'tenant_id' => $tenantId,
             'site_name' => $siteName,
             'color_scheme' => $colorScheme->value,
-            'primary_color' => $primaryColor,
-            'community_guidelines' => $communityGuidelines
+            'primary_color' => $primaryColor
         ])->shouldBeCalled();
 
         $statement->execute()
@@ -141,8 +139,7 @@ class RepositorySpec extends ObjectBehavior
             tenantId: $tenantId,
             siteName: $siteName,
             colorScheme: $colorScheme,
-            primaryColor: $primaryColor,
-            communityGuidelines: $communityGuidelines
+            primaryColor: $primaryColor
         )->shouldBe(true);
     }
 }
