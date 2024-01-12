@@ -3,10 +3,11 @@
 namespace Minds\Core\Analytics;
 
 use Minds\Common\PseudonymousIdentifier;
-use Minds\Core\Analytics\Graphs;
-use Minds\Core\Analytics\Clicks\Manager as ClicksManager;
 use Minds\Core\Analytics\Clicks\Delegates\ActionEventsDelegate as ClickActionEventsDelegate;
 use Minds\Core\Analytics\Clicks\Delegates\SnowplowDelegate as ClickSnowplowDelegate;
+use Minds\Core\Analytics\Clicks\Manager as ClicksManager;
+use Minds\Core\Analytics\Snowplow\Manager as SnowplowManager;
+use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
 
 class AnalyticsProvider extends Provider
@@ -30,8 +31,17 @@ class AnalyticsProvider extends Provider
         }, ['useFactor' => true]);
 
         $this->di->bind('Analytics\Snowplow\Manager', function ($di) {
-            return new Snowplow\Manager(null, null, new PseudonymousIdentifier());
+            return $di->get(SnowplowManager::class);
         }, ['useFactory' => true]);
+
+        $this->di->bind(
+            SnowplowManager::class,
+            fn (Di $di): SnowplowManager => new SnowplowManager(
+                null,
+                null,
+                new PseudonymousIdentifier()
+            )
+        );
 
         $this->di->bind(Controller::class, function ($di) {
             return new Controller();

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Payments\Checkout\Services;
 
+use Minds\Core\Payments\Checkout\Delegates\CheckoutEventsDelegate;
 use Minds\Core\Payments\Checkout\Enums\CheckoutPageKeyEnum;
 use Minds\Core\Payments\Checkout\Enums\CheckoutTimePeriodEnum;
 use Minds\Core\Payments\Checkout\Services\CheckoutContentService;
@@ -30,6 +31,7 @@ class CheckoutContentServiceSpec extends ObjectBehavior
     private Collaborator $stripeProductPriceServiceMock;
     private Collaborator $persistentCacheMock;
     private Collaborator $cacheMock;
+    private Collaborator $checkoutEventsDelegateMock;
 
     private ReflectionClass $productMockFactory;
     private ReflectionClass $priceMockFactory;
@@ -39,13 +41,15 @@ class CheckoutContentServiceSpec extends ObjectBehavior
         StripeProductService      $stripeProductService,
         StripeProductPriceService $stripeProductPriceService,
         CacheInterface            $persistentCache,
-        CacheInterface            $cache
+        CacheInterface            $cache,
+        CheckoutEventsDelegate    $checkoutEventsDelegate,
     ): void {
         $this->strapiServiceMock = $strapiService;
         $this->stripeProductServiceMock = $stripeProductService;
         $this->stripeProductPriceServiceMock = $stripeProductPriceService;
         $this->persistentCacheMock = $persistentCache;
         $this->cacheMock = $cache;
+        $this->checkoutEventsDelegateMock = $checkoutEventsDelegate;
 
         $this->productMockFactory = new ReflectionClass(Product::class);
         $this->priceMockFactory = new ReflectionClass(Price::class);
@@ -55,7 +59,8 @@ class CheckoutContentServiceSpec extends ObjectBehavior
             $this->stripeProductServiceMock,
             $this->stripeProductPriceServiceMock,
             $this->persistentCacheMock,
-            $this->cacheMock
+            $this->cacheMock,
+            $this->checkoutEventsDelegateMock,
         );
     }
 
