@@ -35,10 +35,12 @@ class Repository extends AbstractRepository
      */
     public function getCustomPageByType(CustomPageTypesEnum $pageType): ?CustomPage
     {
+        $tenantId = $this->config->get('tenant_id');
+
         $statement = $this->mysqlClientReaderHandler->select()
             ->from('minds_custom_pages')
             ->where('page_type', Operator::EQ, new RawExp(":page_type"))
-            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->where('tenant_id', Operator::EQ, $tenantId)
             ->prepare();
 
         if (!$statement->execute(['page_type' => $pageType->value])) {
@@ -46,7 +48,12 @@ class Repository extends AbstractRepository
         }
 
         if ($statement->rowCount() === 0) {
-            throw new NotFoundException("Custom page not found");
+            return new CustomPage(
+                pageType: $pageType,
+                content: null,
+                externalLink: null,
+                tenantId: $tenantId
+            );
         }
 
         return $this->buildCustomPage($statement->fetch(PDO::FETCH_ASSOC));
@@ -58,24 +65,33 @@ class Repository extends AbstractRepository
      * @param CustomPageTypesEnum $pageType The type of the custom page.
      * @param string|null $content The content of the custom page.
      * @param string|null $externalLink The external link of the custom page.
-     * @return CustomPage The instance of the newly created or updated custom page.
+     * @return bool
      */
-    public function setCustomPage(CustomPageTypesEnum $pageType, ?string $content, ?string $externalLink): CustomPage
-    {
-        $stmt = $this->mysqlClientWriterHandler->prepare("REPLACE INTO minds_custom_pages (tenant_id, page_type, content, external_link) VALUES (:tenant_id, :page_type, :content, :external_link)");
-        $stmt->execute([
-            ':tenant_id' => $this->config->get('tenant_id'),
-            ':page_type' => $pageType->value,
-            ':content' => $content,
-            ':externalLink' => $externalLink
+public function setCustomPage(CustomPageTypesEnum $pageType, ?string $content, ?string $externalLink): bool
+{
+    $query = $this->mysqlClientWriterHandler->insert()
+        ->into('minds_custom_pages')
+        ->set([
+            'tenant_id' => new RawExp(':tenant_id'),
+            'page_type' => new RawExp(':page_type'),
+            'content' => new RawExp(':content'),
+            'external_link' => new RawExp(':external_link')
+        ])
+        ->onDuplicateKeyUpdate([
+            'content' => new RawExp(':content'),
+            'external_link' => new RawExp(':external_link')
         ]);
 
-        return new CustomPage(
-            pageType: $pageType,
-            content: $content,
-            externalLink: $externalLink
-        );
-    }
+
+    $stmt = $query->prepare();
+
+    return $stmt->execute([
+        ':tenant_id' => $this->config->get('tenant_id'),
+        ':page_type' => $pageType->value,
+        ':content' => $content,
+        ':external_link' => $externalLink
+    ]);
+}
 
     /**
      * Builds a CustomPage object from database row data.
@@ -89,8 +105,8 @@ class Repository extends AbstractRepository
 
         return new CustomPage(
             pageType: CustomPageTypesEnum::from((int)$row['page_type']),
-            content: $row['content'] ?? '',
-            externalLink: $row['external_link'] ?? '',
+            content: $row['content'] ?? null,
+            externalLink: $row['external_link'] ?? null,
              tenantId: $tenantId
         );
     }

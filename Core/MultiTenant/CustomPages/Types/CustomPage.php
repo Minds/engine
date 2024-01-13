@@ -19,19 +19,18 @@ class CustomPage implements NodeInterface
 
     /**
      * @param CustomPageTypesEnum $pageType
-     * @param string $content
-     * @param string $externalLink
+     * @param string|null $content
+     * @param string|null $externalLink
+     * @param int $tenantId
      */
     public function __construct(
-        /** @var CustomPageTypesEnum $pageType */
         #[Field] public readonly CustomPageTypesEnum $pageType,
-        #[Field] public readonly string $content,
-        #[Field] public readonly string $externalLink,
+        #[Field] public readonly ?string $content,
+        #[Field] public readonly ?string $externalLink,
         int $tenantId
     ) {
-         $this->tenantId = $tenantId;
+        $this->tenantId = $tenantId;
     }
-
     /**
      * Gets ID for GraphQL.
      * @return ID - ID for GraphQL.

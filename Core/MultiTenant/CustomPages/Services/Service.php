@@ -3,6 +3,7 @@ namespace Minds\Core\MultiTenant\CustomPages\Services;
 
 // ojm go through all files and ensure refs to roles, permissions, invites are gone
 use Minds\Core\MultiTenant\CustomPages\Enums\CustomPageTypesEnum;
+use Minds\Core\MultiTenant\CustomPages\Types\CustomPage;
 use Minds\Core\MultiTenant\CustomPages\Repository;
 use Minds\Entities\User;
 
@@ -32,7 +33,7 @@ class Service
     /**
      * Sets a custom page
      */
-    public function setCustomPage(CustomPageTypesEnum $pageType, ?string $content, ?string $externalLink): CustomPage
+    public function setCustomPage(CustomPageTypesEnum $pageType, ?string $content, ?string $externalLink): bool
     {
         // Normalize content and external link - convert empty strings to null
         $normalizedContent = $content !== '' ? $content : null;

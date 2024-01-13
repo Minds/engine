@@ -47,7 +47,7 @@ class Manager
     }
 
     /**
-     * ojm dont forget to remove community guidelines from everywhere
+     * ojm remove community guidelines from everywhere
      * Sets multi-tenant config for the calling tenant.
      * @param ?string $siteName - site name to set.
      * @param ?MultiTenantColorScheme $colorScheme - color scheme to set.

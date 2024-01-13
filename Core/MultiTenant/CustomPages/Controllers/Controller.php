@@ -31,15 +31,15 @@ class Controller
     public function getCustomPage(
         int $pageType
     ): CustomPage {
-        // Convert the incoming integer to the enum type
+        // Convert the incoming int to the enum type
         return $this->service->getCustomPageByType(CustomPageTypesEnum::from($pageType));
     }
 
     /**
      * @param int $pageType
-     * @param string $content
-     * @param string $externalLink
-     * @return CustomPage
+     * @param string|null $content
+     * @param string|null $externalLink
+     * @return bool
      * @throws ServerErrorException
      * @throws NotFoundException
      */
@@ -48,10 +48,10 @@ class Controller
     #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
     public function setCustomPage(
         int                 $pageType,
-        string              $content,
-        string              $externalLink,
+        ?string              $content,
+        ?string              $externalLink,
         #[InjectUser] User  $loggedInUser,
-    ): CustomPage {
+    ): bool {
         // Convert the incoming integer to the enum type
         return $this->service->setCustomPage(
             CustomPageTypesEnum::from($pageType),
