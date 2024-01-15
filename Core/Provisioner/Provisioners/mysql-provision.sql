@@ -773,3 +773,5 @@ CREATE TABLE IF NOT EXISTS minds_push_notification_config (
     apns_key_id varchar(10),
     apns_topic varchar(128)
 );
+
+ALTER TABLE minds_entities_object_image ADD COLUMN filename text AFTER deleted;
