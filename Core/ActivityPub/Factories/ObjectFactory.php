@@ -25,6 +25,7 @@ use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
 use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Exceptions\ServerErrorException;
 
 class ObjectFactory
@@ -57,6 +58,12 @@ class ObjectFactory
         } catch (ConnectException $e) {
             throw new UserErrorException("Could not connect to $uri");
         } catch (ClientException|ServerException $e) {
+            if ($e->getCode() === 404) {
+                throw new NotFoundException("Could not find remote content: $uri");
+            }
+            if ($e->getCode() === 403) {
+                throw new ForbiddenException();
+            }
             throw new ServerErrorException("Unable to fetch $uri. " . $e->getMessage());
         }
 

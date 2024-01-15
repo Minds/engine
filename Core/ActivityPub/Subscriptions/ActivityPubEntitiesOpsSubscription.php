@@ -8,6 +8,7 @@ namespace Minds\Core\ActivityPub\Subscriptions;
 use Minds\Common\Access;
 use Minds\Core\ActivityPub\Enums\ActivityFactoryOpEnum;
 use Minds\Core\ActivityPub\Exceptions\MissingEntityException;
+use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
 use Minds\Core\ActivityPub\Factories\ActivityFactory;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
@@ -26,6 +27,7 @@ use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
@@ -155,7 +157,7 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
                 entity: $entity,
                 actor: $owner
             );
-        } catch (NotFoundException|MissingEntityException $e) {
+        } catch (NotFoundException|MissingEntityException|NotImplementedException|ForbiddenException $e) {
             $this->logger->info($loggerPrefix . ' Skipping.  (' . $e->getMessage() . ')');
             return true;
         }
