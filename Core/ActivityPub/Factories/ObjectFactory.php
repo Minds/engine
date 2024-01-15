@@ -316,7 +316,7 @@ class ObjectFactory
             'Note' => new NoteType(),
             'Image' => new ImageType(),
             'Document' => new DocumentType(),
-            default => new NotImplementedException(),
+            default => throw new NotImplementedException(),
         };
 
         if (isset($json['id'])) {
