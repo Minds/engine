@@ -768,6 +768,10 @@ CREATE TABLE IF NOT EXISTS minds_post_notification_subscriptions (
     INDEX (tenant_id, entity_guid)
 );
 
+ALTER TABLE `minds_tenant_configs`
+    ADD federation_disabled boolean DEFAULT false
+    AFTER color_scheme;
+
 ALTER TABLE minds_tenant_featured_entities ADD COLUMN auto_post_subscription boolean DEFAULT FALSE AFTER recommended;
 
 CREATE TABLE IF NOT EXISTS minds_push_notification_config (
