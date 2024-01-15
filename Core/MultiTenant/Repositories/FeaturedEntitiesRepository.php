@@ -30,24 +30,32 @@ class FeaturedEntitiesRepository extends AbstractRepository
      */
     public function getFeaturedEntities(
         int $tenantId,
-        FeaturedEntityTypeEnum $type,
+        FeaturedEntityTypeEnum $type = null,
         int $limit = 12,
         int $loadAfter = null,
         ?bool &$hasMore = null,
         bool $withPagination = true
     ): iterable {
+        $values = [ 'tenant_id' => $tenantId ];
+
         $query = $this->mysqlClientReaderHandler->select()
             ->from('minds_tenant_featured_entities')
             ->innerJoin(['entities' => 'minds_entities'], 'minds_tenant_featured_entities.entity_guid', Operator::EQ, 'entities.guid');
 
-        if ($type === FeaturedEntityTypeEnum::GROUP) {
-            $query->innerJoin(['groups' => 'minds_entities_group'], 'entities.guid', Operator::EQ, 'groups.guid');
+        if ((bool) $type) {
+            if ($type === FeaturedEntityTypeEnum::GROUP) {
+                $query->innerJoin(['groups' => 'minds_entities_group'], 'entities.guid', Operator::EQ, 'groups.guid');
+            } else if ($type === FeaturedEntityTypeEnum::USER) {
+                $query->innerJoin(['users' => 'minds_entities_user'], 'entities.guid', Operator::EQ, 'users.guid');
+            }
+            $query->where('type', Operator::EQ, new RawExp(':type'));
+            $values['type'] = $type->value;
         } else {
-            $query->innerJoin(['users' => 'minds_entities_user'], 'entities.guid', Operator::EQ, 'users.guid');
+            $query->leftJoin(['groups' => 'minds_entities_group'], 'entities.guid', Operator::EQ, 'groups.guid');
+            $query->leftJoin(['users' => 'minds_entities_user'], 'entities.guid', Operator::EQ, 'users.guid');
         }
 
         $query->where('minds_tenant_featured_entities.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
-            ->where('type', Operator::EQ, new RawExp(':type'))
             ->where('auto_subscribe', Operator::EQ, true)
             ->orWhere('recommended', Operator::EQ, true)
             ->orderBy('updated_timestamp ASC');
@@ -61,10 +69,7 @@ class FeaturedEntitiesRepository extends AbstractRepository
 
         $statement = $query->prepare();
 
-        $this->mysqlHandler->bindValuesToPreparedStatement($statement, [
-            'tenant_id' => $tenantId,
-            'type' => $type->value
-        ]);
+        $this->mysqlHandler->bindValuesToPreparedStatement($statement, $values);
 
         $statement->execute();
         $rows = $statement->fetchAll(PDO::FETCH_ASSOC);

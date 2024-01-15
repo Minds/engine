@@ -10,6 +10,7 @@ use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Core\MultiTenant\Types\FeaturedEntity;
 use Minds\Core\MultiTenant\Types\FeaturedEntityConnection;
 use Minds\Core\MultiTenant\Types\FeaturedEntityEdge;
+use Minds\Core\MultiTenant\Types\FeaturedGroup;
 use Minds\Core\MultiTenant\Types\FeaturedUser;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -124,5 +125,104 @@ class FeaturedEntityServiceSpec extends ObjectBehavior
         )->willReturn(true);
 
         $this->deleteFeaturedEntity($entityGuid)->shouldBe(true);
+    }
+
+    public function it_can_get_all_featured_entities_with_type(): void
+    {
+        $featuredUser1 = new FeaturedUser(
+            tenantId: 123,
+            entityGuid: '1234567891',
+            autoSubscribe: true,
+            recommended: true,
+            username: 'username1',
+            name: 'name1'
+        );
+        $featuredUser2 = new FeaturedUser(
+            tenantId: 123,
+            entityGuid: '1234567892',
+            autoSubscribe: true,
+            recommended: true,
+            username: 'username2',
+            name: 'name2'
+        );
+
+        $tenantId = 1;
+        $type = FeaturedEntityTypeEnum::USER;
+
+        $this->repository->getFeaturedEntities(
+            $tenantId,
+            $type,
+            Argument::any(),
+            Argument::any(),
+            Argument::any(),
+            false
+        )->willReturn([
+            $featuredUser1,
+            $featuredUser2
+        ]);
+
+        $result = $this->getAllFeaturedEntities(
+            $tenantId,
+            $type            
+        );
+        
+        $result->shouldYield([
+            $featuredUser1,
+            $featuredUser2
+        ]);
+    }
+
+    public function it_can_get_all_featured_entities_with_no_type(): void
+    {
+        $featuredUser1 = new FeaturedUser(
+            tenantId: 123,
+            entityGuid: '1234567891',
+            autoSubscribe: true,
+            recommended: true,
+            username: 'username1',
+            name: 'name1'
+        );
+        $featuredUser2 = new FeaturedUser(
+            tenantId: 123,
+            entityGuid: '1234567892',
+            autoSubscribe: true,
+            recommended: true,
+            username: 'username2',
+            name: 'name2'
+        );
+        $featuredGroup = new FeaturedGroup(
+            tenantId: 123,
+            entityGuid: '1234567893',
+            autoSubscribe: true,
+            recommended: true,
+            name: 'name'
+        );
+
+        $tenantId = 1;
+        $type = null;
+
+        $this->repository->getFeaturedEntities(
+            $tenantId,
+            $type,
+            Argument::any(),
+            Argument::any(),
+            Argument::any(),
+            false
+        )->willReturn([
+            $featuredUser1,
+            $featuredUser2,
+            $featuredGroup
+        ]);
+
+        $result = $this->getAllFeaturedEntities(
+            $tenantId,
+            $type            
+        );
+        
+        $result->shouldYield([
+            $featuredUser1,
+            $featuredUser2,
+            $featuredGroup
+        ]);
     }
 }
