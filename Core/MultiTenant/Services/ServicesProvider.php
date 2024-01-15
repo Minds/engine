@@ -91,7 +91,8 @@ class ServicesProvider extends Provider
                     $di->get(GroupsMembershipManager::class),
                     $di->get(EntitiesBuilder::class)
                 );
-            }, ['useFactory' => true]
+            },
+            ['useFactory' => true]
         );
     }
 }

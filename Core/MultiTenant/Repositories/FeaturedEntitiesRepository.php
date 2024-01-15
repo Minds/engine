@@ -45,7 +45,7 @@ class FeaturedEntitiesRepository extends AbstractRepository
         if ((bool) $type) {
             if ($type === FeaturedEntityTypeEnum::GROUP) {
                 $query->innerJoin(['groups' => 'minds_entities_group'], 'entities.guid', Operator::EQ, 'groups.guid');
-            } else if ($type === FeaturedEntityTypeEnum::USER) {
+            } elseif ($type === FeaturedEntityTypeEnum::USER) {
                 $query->innerJoin(['users' => 'minds_entities_user'], 'entities.guid', Operator::EQ, 'users.guid');
             }
             $query->where('type', Operator::EQ, new RawExp(':type'));

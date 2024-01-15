@@ -163,7 +163,7 @@ class FeaturedEntityServiceSpec extends ObjectBehavior
 
         $result = $this->getAllFeaturedEntities(
             $tenantId,
-            $type            
+            $type
         );
         
         $result->shouldYield([
@@ -216,7 +216,7 @@ class FeaturedEntityServiceSpec extends ObjectBehavior
 
         $result = $this->getAllFeaturedEntities(
             $tenantId,
-            $type            
+            $type
         );
         
         $result->shouldYield([

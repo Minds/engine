@@ -42,7 +42,7 @@ class FeaturedEntityAutoSubscribeService
         foreach ($featuredEntities as $featuredEntity) {
             if ($featuredEntity instanceof FeaturedUser) {
                 $this->handleFeaturedUser($featuredEntity, $subject);
-            } else if ($featuredEntity instanceof FeaturedGroup) {
+            } elseif ($featuredEntity instanceof FeaturedGroup) {
                 $this->handleFeaturedGroup($featuredEntity, $subject);
             }
         }
@@ -54,7 +54,8 @@ class FeaturedEntityAutoSubscribeService
      * @param User $subject - subject user.
      * @return void
      */
-    private function handleFeaturedUser(FeaturedUser $featuredUser, User $subject): void {
+    private function handleFeaturedUser(FeaturedUser $featuredUser, User $subject): void
+    {
         if (!$featuredUser->autoSubscribe) {
             return;
         }
@@ -77,14 +78,17 @@ class FeaturedEntityAutoSubscribeService
      * @param User $subject - subject user.
      * @return void
      */
-    private function handleFeaturedGroup(FeaturedGroup $featuredGroup, User $subject): void {
+    private function handleFeaturedGroup(FeaturedGroup $featuredGroup, User $subject): void
+    {
         if (!$featuredGroup->autoSubscribe) {
             return;
         }
 
         $group = $this->entitiesBuilder->single($featuredGroup->entityGuid);
 
-        if (!$group instanceof Group) return;
+        if (!$group instanceof Group) {
+            return;
+        }
 
         $this->groupsMembershipManager->joinGroup(
             group: $group,

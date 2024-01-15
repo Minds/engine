@@ -30,8 +30,7 @@ class FeaturedEntityAutoSubscribeServiceSpec extends ObjectBehavior
         PostSubscriptionsService $postSubscriptionsService,
         GroupsMembershipManager $groupsMembershipManager,
         EntitiesBuilder $entitiesBuilder
-    )
-    {
+    ) {
         $this->featuredEntityService = $featuredEntityService;
         $this->postSubscriptionsService = $postSubscriptionsService;
         $this->groupsMembershipManager = $groupsMembershipManager;
