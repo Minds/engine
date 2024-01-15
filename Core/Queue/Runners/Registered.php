@@ -39,9 +39,6 @@ class Registered implements QueueRunner
                 //subscribe to minds channel
                 /** @var User $subscriber */
                 $subscriber = $entitiesBuilder->single($user_guid);
-                
-                /** @var GroupsMembershipManager $groupsMembershipManager */
-                $groupsMembershipManager = Di::_()->get(GroupsMembershipManager::class);
 
                 if (!$tenant_id) { // no tenant id means we are on the main site
                     $subscriber->subscribe('100000000000000519');
