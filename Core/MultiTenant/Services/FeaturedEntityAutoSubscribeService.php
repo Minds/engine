@@ -35,7 +35,7 @@ class FeaturedEntityAutoSubscribeService
      */
     public function autoSubscribe(
         User $subject,
-        int $tenantId = 0
+        int $tenantId
     ): void {
         $featuredEntities = $this->featuredEntityService->getAllFeaturedEntities($tenantId);
 
