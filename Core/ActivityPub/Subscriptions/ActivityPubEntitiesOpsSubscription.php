@@ -12,6 +12,7 @@ use Minds\Core\ActivityPub\Factories\ActivityFactory;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Services\EmitActivityService;
+use Minds\Core\ActivityPub\Services\FederationEnabledService;
 use Minds\Core\ActivityPub\Types\Activity\AnnounceType;
 use Minds\Core\ActivityPub\Types\Activity\CreateType;
 use Minds\Core\ActivityPub\Types\Activity\DeleteType;
@@ -40,6 +41,7 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
         protected ?ActorFactory $actorFactory = null,
         protected ?ActivityFactory $activityFactory = null,
         protected ?EntitiesBuilder $entitiesBuilder = null,
+        protected ?FederationEnabledService $federationEnabledService = null,
         protected ?Logger $logger = null
     ) {
         $this->emitActivityService ??= Di::_()->get(EmitActivityService::class);
@@ -47,6 +49,7 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
         $this->actorFactory ??= Di::_()->get(ActorFactory::class);
         $this->activityFactory ??= Di::_()->get(ActivityFactory::class);
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->federationEnabledService ??= Di::_()->get(FederationEnabledService::class);
         $this->logger ??= Di::_()->get('Logger');
     }
 
@@ -83,6 +86,11 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
     {
         if (!$event instanceof EntitiesOpsEvent) {
             return false;
+        }
+
+        if (!$this->federationEnabledService->isEnabled()) {
+            $this->logger->info('Skipping as federation is disabled');
+            return true;
         }
 
         // We may have a serialized entity (eg. if we no longer have the deleted record)
