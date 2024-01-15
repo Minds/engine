@@ -49,9 +49,9 @@ class PseudonymousIdentifier
     /**
      * Generates and returns the identifier
      * @param string $password
-     * @return string
+     * @return string|null
      */
-    public function generateWithPassword(string $password): string
+    public function generateWithPassword(string $password): ?string
     {
         // Tenants will not use psuedo id's
         if ($this->config->get('tenant_id')) {

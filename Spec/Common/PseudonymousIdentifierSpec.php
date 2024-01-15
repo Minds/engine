@@ -78,4 +78,13 @@ class PseudonymousIdentifierSpec extends ObjectBehavior
             ->setUser(new User())
             ->getId()->shouldBe(null);
     }
+
+    public function it_should_not_generate_id_from_password_if_tenant()
+    {
+        $this->configMock->get('tenant_id')->willReturn(1);
+        $this
+            ->setUser(new User())
+            ->generateWithPassword('Pa$$w0rd')
+            ->shouldBe(null);
+    }
 }
