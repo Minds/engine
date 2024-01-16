@@ -22,7 +22,8 @@ class MobileConfigAssetsService
         private readonly Config                   $config,
         private readonly MultiTenantBootService   $multiTenantBootService,
         private readonly MultiTenantConfigManager $multiTenantConfigManager
-    ) {
+    )
+    {
     }
 
     /**
@@ -65,7 +66,7 @@ class MobileConfigAssetsService
      * @param MultiTenantConfigImageType $type - type of image being retrieved.
      * @return ElggFile - file object.
      */
-    public function getImageFileByType(MultiTenantConfigImageType $type): ElggFile
+    public function getImageFileByType(MobileConfigImageTypeEnum $type): ElggFile
     {
         $file = new ElggFile();
         $file->setFilename("mobile_config/{$type->value}.png");
@@ -79,7 +80,7 @@ class MobileConfigAssetsService
      * @return mixed - contents of the file.
      * @throws Exception
      */
-    public function getImageContentsFromFile(ElggFile $file, MultiTenantConfigImageType $type): mixed
+    public function getImageContentsFromFile(ElggFile $file, MobileConfigImageTypeEnum $type): mixed
     {
         $contents = $file->read();
         if (empty($contents)) {
