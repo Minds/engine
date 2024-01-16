@@ -48,5 +48,14 @@ class RepositoriesProvider extends Provider
                 );
             }
         );
+
+        $this->di->bind(
+            MobileConfigRepository::class,
+            fn (Di $di): MobileConfigRepository => new MobileConfigRepository(
+                mysqlHandler: $di->get('Database\MySQL\Client'),
+                config: $di->get(Config::class),
+                logger: $di->get('Logger')
+            )
+        );
     }
 }

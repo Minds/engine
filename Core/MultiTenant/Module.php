@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\MultiTenant;
 
 use Minds\Core\Di\ImmutableException;
@@ -20,5 +21,6 @@ class Module implements ModuleInterface
     {
         (new GraphQLMappings())->register();
         (new Provider())->register();
+        (new Routes())->register();
     }
 }

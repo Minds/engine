@@ -25,6 +25,7 @@ class GraphQLMappings extends AbstractGraphQLMappings
         $this->schemaFactory->addControllerNamespace('Minds\Core\MultiTenant\Controllers');
         $this->schemaFactory->addTypeNamespace('Minds\\Core\\MultiTenant\\Enums');
         $this->schemaFactory->addTypeNamespace('Minds\\Core\\MultiTenant\\Types\\Factories');
+        $this->schemaFactory->addTypeNamespace('Minds\Core\MultiTenant\Types');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             Tenant::class,
             TenantUser::class,
@@ -35,6 +36,8 @@ class GraphQLMappings extends AbstractGraphQLMappings
             FeaturedEntityConnection::class,
             MultiTenantDomain::class,
             MultiTenantDomainDnsRecord::class,
+            // MobileConfig::class,
+            // AppReadyMobileConfig::class,
         ]));
 
         $this->schemaFactory->setInputTypeValidator(new Types\Validators\TenantInputValidator());
