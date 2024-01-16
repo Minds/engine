@@ -3,12 +3,12 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Services;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
-use Minds\Core\Media\Imagick\Manager as ImagickManager;
 use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigManager;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
 use Minds\Core\MultiTenant\Repositories\DomainsRepository;
@@ -85,8 +85,8 @@ class ServicesProvider extends Provider
         $this->di->bind(
             MobileConfigAssetsService::class,
             fn (Di $di): MobileConfigAssetsService => new MobileConfigAssetsService(
-                $di->get(ImagickManager::class),
-                $di->get('Config'),
+                $di->get('Media\Imagick\Manager'),
+                $di->get(Config::class),
                 $di->get(MultiTenantBootService::class),
                 $di->get(MultiTenantConfigManager::class)
             )
