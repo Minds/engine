@@ -37,7 +37,7 @@ class MobileConfigAssetsService
     public function upload(MobileConfigImageTypeEnum $imageType, string $filename): void
     {
         $file = new File();
-        $file->setFilename("config/{$imageType->value}.png");
+        $file->setFilename("mobile_config/{$imageType->value}.png");
         $file->owner_guid = $this->getTenantOwnerGuid();
         $file->open('write');
         $file->write(
@@ -68,7 +68,7 @@ class MobileConfigAssetsService
     public function getImageFileByType(MultiTenantConfigImageType $type): ElggFile
     {
         $file = new ElggFile();
-        $file->setFilename("config/{$type->value}.png");
+        $file->setFilename("mobile_config/{$type->value}.png");
         $file->owner_guid = $this->getTenantOwnerGuid();
         return $file;
     }
