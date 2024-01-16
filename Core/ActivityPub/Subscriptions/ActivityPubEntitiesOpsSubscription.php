@@ -8,10 +8,12 @@ namespace Minds\Core\ActivityPub\Subscriptions;
 use Minds\Common\Access;
 use Minds\Core\ActivityPub\Enums\ActivityFactoryOpEnum;
 use Minds\Core\ActivityPub\Exceptions\MissingEntityException;
+use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
 use Minds\Core\ActivityPub\Factories\ActivityFactory;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Services\EmitActivityService;
+use Minds\Core\ActivityPub\Services\FederationEnabledService;
 use Minds\Core\ActivityPub\Types\Activity\AnnounceType;
 use Minds\Core\ActivityPub\Types\Activity\CreateType;
 use Minds\Core\ActivityPub\Types\Activity\DeleteType;
@@ -25,6 +27,7 @@ use Minds\Core\EventStreams\EventInterface;
 use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
@@ -40,6 +43,7 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
         protected ?ActorFactory $actorFactory = null,
         protected ?ActivityFactory $activityFactory = null,
         protected ?EntitiesBuilder $entitiesBuilder = null,
+        protected ?FederationEnabledService $federationEnabledService = null,
         protected ?Logger $logger = null
     ) {
         $this->emitActivityService ??= Di::_()->get(EmitActivityService::class);
@@ -47,6 +51,7 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
         $this->actorFactory ??= Di::_()->get(ActorFactory::class);
         $this->activityFactory ??= Di::_()->get(ActivityFactory::class);
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
+        $this->federationEnabledService ??= Di::_()->get(FederationEnabledService::class);
         $this->logger ??= Di::_()->get('Logger');
     }
 
@@ -83,6 +88,11 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
     {
         if (!$event instanceof EntitiesOpsEvent) {
             return false;
+        }
+
+        if (!$this->federationEnabledService->isEnabled()) {
+            $this->logger->info('Skipping as federation is disabled');
+            return true;
         }
 
         // We may have a serialized entity (eg. if we no longer have the deleted record)
@@ -147,7 +157,7 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
                 entity: $entity,
                 actor: $owner
             );
-        } catch (NotFoundException|MissingEntityException $e) {
+        } catch (NotFoundException|MissingEntityException|NotImplementedException|ForbiddenException $e) {
             $this->logger->info($loggerPrefix . ' Skipping.  (' . $e->getMessage() . ')');
             return true;
         }

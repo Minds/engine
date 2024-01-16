@@ -768,6 +768,10 @@ CREATE TABLE IF NOT EXISTS minds_post_notification_subscriptions (
     INDEX (tenant_id, entity_guid)
 );
 
+ALTER TABLE `minds_tenant_configs`
+    ADD federation_disabled boolean DEFAULT false
+    AFTER color_scheme;
+
 ALTER TABLE minds_tenant_featured_entities ADD COLUMN auto_post_subscription boolean DEFAULT FALSE AFTER recommended;
 
 CREATE TABLE IF NOT EXISTS minds_push_notification_config (
@@ -787,3 +791,5 @@ CREATE TABLE IF NOT EXISTS `minds`.`minds_tenant_mobile_configs` (
     `preview_qr_code` text DEFAULT NULL, #TODO: check with mobile team on what format the QR code should be
     `update_timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
+
+ALTER TABLE minds_entities_object_image ADD COLUMN filename text AFTER deleted;
