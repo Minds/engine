@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Minds\Core\MultiTenant\Services;
 
 use ElggFile;
-use Exception;
 use ImagickException;
 use InvalidParameterException;
 use IOException;
@@ -78,16 +77,16 @@ class MobileConfigAssetsService
      * Gets the contents of the passed in file - if one is not found will return a default image.
      * @param ElggFile $file - file object.
      * @return mixed - contents of the file.
-     * @throws Exception
      */
     public function getImageContentsFromFile(MobileConfigImageTypeEnum $type, ElggFile $file,): mixed
     {
         $contents = $file->read();
         if (empty($contents)) {
             $fileName = match ($type) {
+                MobileConfigImageTypeEnum::ICON => 'default-square-logo.png',
+                MobileConfigImageTypeEnum::SPLASH => 'default-square-logo.png',
                 MobileConfigImageTypeEnum::SQUARE_LOGO => 'default-square-logo.png',
                 MobileConfigImageTypeEnum::HORIZONTAL_LOGO => 'default-horizontal-logo.png',
-                default => throw new Exception('Unexpected match value'),
             };
             $filepath = $this->config->get('path') . "engine/Assets/tenant/$fileName";
             $contents = file_get_contents($filepath);

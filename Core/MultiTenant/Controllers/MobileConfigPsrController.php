@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Controllers;
 
-use Exception;
 use ImagickException;
 use InvalidParameterException;
 use IOException;
@@ -17,7 +16,8 @@ class MobileConfigPsrController
 {
     public function __construct(
         private readonly MobileConfigAssetsService $mobileConfigAssetsService
-    ) {
+    )
+    {
     }
 
     /**
@@ -27,7 +27,6 @@ class MobileConfigPsrController
      * @throws UserErrorException
      * @throws IOException
      * @throws InvalidParameterException
-     * @throws Exception
      */
     public function get(ServerRequestInterface $request): void
     {
