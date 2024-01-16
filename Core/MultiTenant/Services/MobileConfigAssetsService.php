@@ -80,7 +80,7 @@ class MobileConfigAssetsService
      * @return mixed - contents of the file.
      * @throws Exception
      */
-    public function getImageContentsFromFile(ElggFile $file, MobileConfigImageTypeEnum $type): mixed
+    public function getImageContentsFromFile(MobileConfigImageTypeEnum $type, ElggFile $file,): mixed
     {
         $contents = $file->read();
         if (empty($contents)) {
