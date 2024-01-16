@@ -16,8 +16,7 @@ class MobileConfigPsrController
 {
     public function __construct(
         private readonly MobileConfigAssetsService $mobileConfigAssetsService
-    )
-    {
+    ) {
     }
 
     /**
@@ -71,7 +70,7 @@ class MobileConfigPsrController
         }
 
         return new JsonResponse([
-            'success' => true
+            'status' => 'success'
         ]);
     }
 }
