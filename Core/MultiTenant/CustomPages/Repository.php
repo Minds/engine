@@ -67,31 +67,31 @@ class Repository extends AbstractRepository
      * @param string|null $externalLink The external link of the custom page.
      * @return bool
      */
-public function setCustomPage(CustomPageTypesEnum $pageType, ?string $content, ?string $externalLink): bool
-{
-    $query = $this->mysqlClientWriterHandler->insert()
-        ->into('minds_custom_pages')
-        ->set([
-            'tenant_id' => new RawExp(':tenant_id'),
-            'page_type' => new RawExp(':page_type'),
-            'content' => new RawExp(':content'),
-            'external_link' => new RawExp(':external_link')
-        ])
-        ->onDuplicateKeyUpdate([
-            'content' => new RawExp(':content'),
-            'external_link' => new RawExp(':external_link')
+    public function setCustomPage(CustomPageTypesEnum $pageType, ?string $content, ?string $externalLink): bool
+    {
+        $query = $this->mysqlClientWriterHandler->insert()
+            ->into('minds_custom_pages')
+            ->set([
+                'tenant_id' => new RawExp(':tenant_id'),
+                'page_type' => new RawExp(':page_type'),
+                'content' => new RawExp(':content'),
+                'external_link' => new RawExp(':external_link')
+            ])
+            ->onDuplicateKeyUpdate([
+                'content' => new RawExp(':content'),
+                'external_link' => new RawExp(':external_link')
+            ]);
+
+
+        $stmt = $query->prepare();
+
+        return $stmt->execute([
+            ':tenant_id' => $this->config->get('tenant_id'),
+            ':page_type' => $pageType->value,
+            ':content' => $content,
+            ':external_link' => $externalLink
         ]);
-
-
-    $stmt = $query->prepare();
-
-    return $stmt->execute([
-        ':tenant_id' => $this->config->get('tenant_id'),
-        ':page_type' => $pageType->value,
-        ':content' => $content,
-        ':external_link' => $externalLink
-    ]);
-}
+    }
 
     /**
      * Builds a CustomPage object from database row data.
@@ -107,7 +107,7 @@ public function setCustomPage(CustomPageTypesEnum $pageType, ?string $content, ?
             pageType: CustomPageTypesEnum::from((int)$row['page_type']),
             content: $row['content'] ?? null,
             externalLink: $row['external_link'] ?? null,
-             tenantId: $tenantId
+            tenantId: $tenantId
         );
     }
 }

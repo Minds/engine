@@ -21,24 +21,24 @@ class ControllerSpec extends ObjectBehavior
         $this->shouldHaveType(Controller::class);
     }
 
-public function it_should_get_a_custom_page(Service $service)
-{
-    $pageType = CustomPageTypesEnum::PRIVACY_POLICY;
-    $content = 'Sample Content';
-    $externalLink = 'https://example.com';
-    $tenantId = 1;
+    public function it_should_get_a_custom_page(Service $service)
+    {
+        $pageType = CustomPageTypesEnum::PRIVACY_POLICY;
+        $content = 'Sample Content';
+        $externalLink = 'https://example.com';
+        $tenantId = 1;
 
-    $mockCustomPage = new CustomPage(
-        $pageType,
-        $content,
-        $externalLink,
-        $tenantId
-    );
+        $mockCustomPage = new CustomPage(
+            $pageType,
+            $content,
+            $externalLink,
+            $tenantId
+        );
 
-    $service->getCustomPageByType($pageType)->willReturn($mockCustomPage);
+        $service->getCustomPageByType($pageType)->willReturn($mockCustomPage);
 
-    $this->getCustomPage($pageType->value)->shouldReturn($mockCustomPage);
-}
+        $this->getCustomPage($pageType->value)->shouldReturn($mockCustomPage);
+    }
 
 
     public function it_should_set_a_custom_page_with_content(Service $service, User $loggedInUser)

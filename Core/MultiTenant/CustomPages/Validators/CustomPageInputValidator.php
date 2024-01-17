@@ -36,7 +36,7 @@ class CustomPageInputValidator implements InputTypeValidatorInterface
             // Convert the incoming integer to the enum type
             $pageTypeEnum = CustomPageTypesEnum::from($input->pageType);
         } catch (\ValueError $e) {
-             throw new GraphQLException("Invalid page type provided.", 400, null, "Validation", ['field' => 'pageType']);
+            throw new GraphQLException("Invalid page type provided.", 400, null, "Validation", ['field' => 'pageType']);
         }
 
         if (isset($input->externalLink) && mb_strlen($input->externalLink) > 2000) {
