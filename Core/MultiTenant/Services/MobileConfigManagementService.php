@@ -38,7 +38,7 @@ class MobileConfigManagementService
             updateTimestamp: time(),
             splashScreenType: $mobileSplashScreenType ?? $mobileConfig?->splashScreenType,
             welcomeScreenLogoType: $mobileWelcomeScreenLogoType ?? $mobileConfig?->welcomeScreenLogoType,
-            previewStatus: $mobilePreviewStatus ?? $mobileConfig?->previewStatus,
+            previewStatus: $mobilePreviewStatus ?? ($mobileConfig?->previewStatus ?? MobilePreviewStatusEnum::NO_PREVIEW),
             previewQRCode: $mobileConfig?->previewQRCode,
             previewLastUpdatedTimestamp: $mobilePreviewStatus ? time() : $mobileConfig?->previewLastUpdatedTimestamp,
         );

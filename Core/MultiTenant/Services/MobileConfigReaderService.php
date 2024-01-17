@@ -16,8 +16,7 @@ class MobileConfigReaderService
     public function __construct(
         private readonly MobileConfigRepository $mobileConfigRepository,
         private readonly MultiTenantDataService $multiTenantDataService,
-    )
-    {
+    ) {
 
     }
 
@@ -47,7 +46,6 @@ class MobileConfigReaderService
 
     /**
      * @return MobileConfig
-     * @throws NoMobileConfigFoundException
      */
     public function getMobileConfig(): MobileConfig
     {
