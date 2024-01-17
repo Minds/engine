@@ -105,6 +105,27 @@ prepare:fpm:
         docker push $CI_REGISTRY_IMAGE/fpm:latest
       fi
 
+prepare:rr:
+  stage: prepare
+  image: minds/ci:latest
+  services:
+    - docker:dind
+  script:
+    - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+    - |
+      docker build \
+        -t $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID \
+        -f containers/php-rr/Dockerfile \
+        --build-arg MINDS_VERSION=$CI_PIPELINE_ID \
+        --build-arg SENTRY_DSN=$SENTRY_DSN \
+        .
+    - docker push $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID
+    - >
+      if [ $CI_COMMIT_BRANCH == "master" ]; then
+        docker tag $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/rr:latest &&
+        docker push $CI_REGISTRY_IMAGE/rr:latest
+      fi
+
 prepare:runners:
   stage: prepare
   image: minds/ci:latest
@@ -187,6 +208,7 @@ review:start:
       --values ./minds/values-sandbox-oke.yaml \
       --reuse-values \
       --set engine.image.repository=$CI_REGISTRY_IMAGE/fpm \
+      --set engine.image.rrRepository=$CI_REGISTRY_IMAGE/rr \
       --set-string engine.image.tag=$CI_PIPELINE_ID \
       --set domain=$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
       --set cdn_domain=$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN

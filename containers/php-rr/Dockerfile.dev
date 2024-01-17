@@ -1,0 +1,25 @@
+FROM ghcr.io/roadrunner-server/roadrunner:2023.3.9 AS roadrunner
+FROM minds/php:8.1
+
+RUN echo 'zend_extension=opcache.so' > /usr/local/etc/php/conf.d/opcache.ini \
+    && mkdir --parents --mode=0777 /tmp/minds-cache/ \
+    && mkdir --parents --mode=0777 /data/
+
+RUN apk add --update linux-headers
+
+# Install xdebug
+RUN apk add --virtual .bdeps $PHPIZE_DEPS \
+    && pecl install xdebug \
+    && docker-php-ext-enable xdebug
+
+# Copy RoadRunner
+COPY --from=roadrunner /usr/bin/rr /usr/local/bin/rr
+
+# Copy config
+COPY containers/php-fpm/php.ini /usr/local/etc/php/
+COPY containers/php-fpm/opcache-dev.ini /usr/local/etc/php/conf.d/opcache-recommended.ini
+COPY containers/php-fpm/apcu.ini /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
+COPY containers/php-fpm/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+COPY containers/php-fpm/php-fpm.dev.conf /usr/local/etc/php-fpm.d/www.conf
+
+CMD ["sh", "-c", "rr -w engine serve"]

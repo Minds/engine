@@ -8,6 +8,10 @@ use Minds\Core\Di\Container;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\GraphQL\Client\Client;
+use Minds\Core\GraphQL\Services\AuthorizationService;
+use Minds\Core\GraphQL\Services\AuthService;
+use Minds\Core\Security\Rbac\Services\RolesService;
+use Minds\Core\Sessions\ActiveSession;
 use TheCodingMachine\GraphQLite\SchemaFactory;
 
 class Provider extends DiProvider
@@ -41,13 +45,9 @@ class Provider extends DiProvider
             $factory->addControllerNamespace('Minds\\Core\\GraphQL\\Controllers')
                 ->addTypeNamespace('Minds\\Core\\GraphQL\\Types');
 
-            if (isset($args['auth_service'])) {
-                $factory->setAuthenticationService($args['auth_service']);
-            }
+            $factory->setAuthenticationService($di->get(AuthService::class));
 
-            if (isset($args['authorization_service'])) {
-                $factory->setAuthorizationService($args['authorization_service']);
-            }
+            $factory->setAuthorizationService($di->get(AuthorizationService::class));
 
             return $factory->createSchema();
         }, ['useFactory' => true]);
@@ -68,5 +68,13 @@ class Provider extends DiProvider
                 );
             }
         );
+
+        $this->di->bind(AuthService::class, function (Di $di): AuthService {
+            return new AuthService(new ActiveSession());
+        });
+
+        $this->di->bind(AuthorizationService::class, function (Di $di): AuthorizationService {
+            return new AuthorizationService($di->get(RolesService::class));
+        });
     }
 }

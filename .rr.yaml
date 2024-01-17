@@ -1,0 +1,18 @@
+version: "3"
+
+server:
+  command: "php start.rr.php"
+
+http:
+  address: 0.0.0.0:9001
+  pool:
+    # debug: true
+    num_workers: 5
+
+metrics:
+  address: 0.0.0.0:2112
+
+# do not use development mode in production
+logs:
+  level: debug
+  mode: development

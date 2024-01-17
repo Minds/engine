@@ -20,12 +20,8 @@ class Controller
         $input = json_decode($rawInput, true);
         $query = $input['query'];
         $variableValues = isset($input['variables']) ? $input['variables'] : null;
-
-        $authService = new AuthService($request->getAttribute('_user'));
-        $authorizationService = new AuthorizationService(
-            Di::_()->get(RolesService::class)
-        );
-        $schema = Di::_()->get(Schema::class, ['auth_service' => $authService, 'authorization_service' => $authorizationService]);
+  
+        $schema = Di::_()->get(Schema::class);
 
         $result = GraphQL::executeQuery($schema, $query, null, new Context(), $variableValues);
         $output = $result->toArray();

@@ -66,7 +66,8 @@
         "soundasleep/html2text": "^2.1",
         "psr/log": "2.0.0",
         "laminas/laminas-feed": "^2.22",
-        "react/http": "^1.9"
+        "spiral/roadrunner-http": "^3.3",
+        "nyholm/psr7": "^1.8"
     },
     "repositories": [
         {
