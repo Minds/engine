@@ -2,9 +2,6 @@
 declare(strict_types=1);
 namespace Minds\Core\MultiTenant\CustomPages\Controllers;
 
-use GraphQL\Error\UserError;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\GraphQL\Types\PageInfo;
 use Minds\Core\MultiTenant\CustomPages\Services\Service;
 use Minds\Core\MultiTenant\CustomPages\Types\CustomPage;
 use Minds\Core\MultiTenant\CustomPages\Enums\CustomPageTypesEnum;
@@ -12,6 +9,8 @@ use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Query;
+use Minds\Entities\User;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 /**
  * MultiTenant CustomPages controller
@@ -39,9 +38,8 @@ class Controller
      * @param int $pageType
      * @param string|null $content
      * @param string|null $externalLink
-     * @return bool
-     * @throws ServerErrorException
-     * @throws NotFoundException
+     * @return bool - on success
+     * @throws GraphQLException - on error
      */
     #[Mutation]
     #[Logged]

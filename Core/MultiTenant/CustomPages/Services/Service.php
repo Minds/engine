@@ -1,11 +1,9 @@
 <?php
 namespace Minds\Core\MultiTenant\CustomPages\Services;
 
-// ojm go through all files and ensure refs to roles, permissions, invites are gone
 use Minds\Core\MultiTenant\CustomPages\Enums\CustomPageTypesEnum;
 use Minds\Core\MultiTenant\CustomPages\Types\CustomPage;
 use Minds\Core\MultiTenant\CustomPages\Repository;
-use Minds\Entities\User;
 
 /**
  * MultiTenant CustomPages service

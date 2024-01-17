@@ -6,7 +6,6 @@ use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use  Minds\Core\MultiTenant\CustomPages\Services\Service;
 use Minds\Core\MultiTenant\CustomPages\Controllers\Controller;
 use Minds\Core\Sessions\ActiveSession;
@@ -31,7 +30,6 @@ class Provider extends DiProvider
             return new Repository(
                 $di->get(Client::class),
                 $di->get(Config::class),
-                $di->get('Logger')
             );
         });
     }
