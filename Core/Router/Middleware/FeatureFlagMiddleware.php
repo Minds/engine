@@ -43,7 +43,7 @@ class FeatureFlagMiddleware implements MiddlewareInterface
         $loggedInUser = $request->getAttribute('_user');
         if (
             !$loggedInUser ||
-            (!call_user_func($this->xsrfValidateRequest) && !$request->getAttribute('oauth_user_id'))
+            (!call_user_func($this->xsrfValidateRequest, $request) && !$request->getAttribute('oauth_user_id'))
         ) {
             throw new UnauthorizedException();
         }

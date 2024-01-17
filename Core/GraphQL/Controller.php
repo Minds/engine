@@ -7,15 +7,16 @@ use Minds\Core\Di\Di;
 use Minds\Core\GraphQL\Services\AuthorizationService;
 use Minds\Core\GraphQL\Services\AuthService;
 use Minds\Core\Security\Rbac\Services\RolesService;
+use Psr\Http\Message\ServerRequestInterface;
 use TheCodingMachine\GraphQLite\Context\Context;
 use Zend\Diactoros\Response\JsonResponse;
-use Zend\Diactoros\ServerRequest;
 
 class Controller
 {
-    public function exec(ServerRequest $request): JsonResponse
+    public function exec(ServerRequestInterface $request): JsonResponse
     {
-        $rawInput = file_get_contents('php://input');
+        $rawInput = $request->getBody()->getContents();
+
         $input = json_decode($rawInput, true);
         $query = $input['query'];
         $variableValues = isset($input['variables']) ? $input['variables'] : null;

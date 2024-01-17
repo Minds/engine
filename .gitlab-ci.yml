@@ -30,7 +30,8 @@ baseimage:prepare:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: never
-    - changes:
+    - if: '$CI_COMMIT_REF_NAME != "master"'
+      changes:
         - containers/php/*
 
 baseimage:deploy:

@@ -6,6 +6,8 @@ namespace Minds\Core\Security;
 
 use Minds\Core;
 use Minds\Common\Cookie;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 class XSRF
 {
@@ -15,17 +17,19 @@ class XSRF
         return hash('sha512', $bytes);
     }
 
-    public static function validateRequest()
+    public static function validateRequest(ServerRequestInterface $request)
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        if ($request->getMethod() === 'GET') {
             return true; // XSRF only needed for modifiers
         }
 
-        if (!isset($_SERVER['HTTP_X_XSRF_TOKEN'])) {
+        $xsrfHeaderVal = $request->hasHeader('X-XSRF-TOKEN') ? $request->getHeader('X-XSRF-TOKEN')[0] : null;
+
+        if (!$xsrfHeaderVal) {
             return false;
         }
 
-        if ($_SERVER['HTTP_X_XSRF_TOKEN'] == $_COOKIE['XSRF-TOKEN']) {
+        if ($xsrfHeaderVal == $request->getCookieParams()['XSRF-TOKEN']) {
             return true;
         }
 
