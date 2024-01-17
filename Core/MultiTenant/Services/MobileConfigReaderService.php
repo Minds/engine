@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Services;
 
+use Minds\Core\Config\Config;
 use Minds\Core\GraphQL\Types\KeyValuePair;
 use Minds\Core\MultiTenant\Enums\MobileConfigImageTypeEnum;
 use Minds\Core\MultiTenant\Exceptions\NoMobileConfigFoundException;
@@ -15,7 +16,8 @@ class MobileConfigReaderService
 {
     public function __construct(
         private readonly MobileConfigRepository $mobileConfigRepository,
-        private readonly MultiTenantDataService $multiTenantDataService,
+        private readonly MultiTenantBootService $multiTenantBootService,
+        private readonly Config                 $config
     ) {
 
     }
@@ -27,21 +29,25 @@ class MobileConfigReaderService
      */
     public function getAppReadyMobileConfig(int $tenantId): AppReadyMobileConfig
     {
-        $tenant = $this->multiTenantDataService->getTenantFromId($tenantId);
+        $this->multiTenantBootService->bootFromTenantId($tenantId);
+        $tenant = $this->multiTenantBootService->getTenant();
         $mobileConfig = $this->mobileConfigRepository->getMobileConfig($tenantId);
 
-        return new AppReadyMobileConfig(
+        $config = new AppReadyMobileConfig(
             appName: $tenant->config?->siteName ?? '',
             tenantId: $tenant->id,
-            appHost: $tenant->domain,
+            appHost: $this->config->get('site_url'),
             appSplashResize: strtolower($mobileConfig->splashScreenType->name),
             accentColorLight: $tenant->config?->primaryColor ?? '',
             accentColorDark: $tenant->config?->primaryColor ?? '',
             welcomeLogoType: strtolower($mobileConfig->welcomeScreenLogoType->name),
             theme: strtolower($tenant->config?->colorScheme->value ?? ''),
-            apiUrl: $tenant->domain,
+            apiUrl: $this->config->get('site_url'),
             assets: $this->prepareAppReadyMobileConfigAssets($tenant)
         );
+
+        $this->multiTenantBootService->resetRootConfigs();
+        return $config;
     }
 
     /**
@@ -69,7 +75,7 @@ class MobileConfigReaderService
         foreach (MobileConfigImageTypeEnum::cases() as $imageType) {
             $assets[] = new KeyValuePair(
                 key: $imageType->value,
-                value: $tenant->domain . "api/v3/multi-tenant/mobile-configs/image/$imageType->value"
+                value: "{$this->config->get('site_url')}api/v3/multi-tenant/mobile-configs/image/$imageType->value"
             );
         }
 

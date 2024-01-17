@@ -95,8 +95,9 @@ class ServicesProvider extends Provider
         $this->di->bind(
             MobileConfigReaderService::class,
             fn (Di $di): MobileConfigReaderService => new MobileConfigReaderService(
-                $di->get(MobileConfigRepository::class),
-                $di->get(MultiTenantDataService::class),
+                mobileConfigRepository: $di->get(MobileConfigRepository::class),
+                multiTenantBootService: $di->get(MultiTenantBootService::class),
+                config: $di->get(Config::class)
             )
         );
 
