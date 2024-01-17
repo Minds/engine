@@ -38,7 +38,7 @@ class MobileConfigReaderService
             accentColorLight: $tenant->config?->primaryColor ?? '',
             accentColorDark: $tenant->config?->primaryColor ?? '',
             welcomeLogoType: strtolower($mobileConfig->welcomeScreenLogoType->name),
-            theme: strtolower($tenant->config?->colorScheme ?? ''),
+            theme: strtolower($tenant->config?->colorScheme->value ?? ''),
             apiUrl: $tenant->domain,
             assets: $this->prepareAppReadyMobileConfigAssets($tenant)
         );
