@@ -52,7 +52,7 @@ class CustomPageInputValidator implements InputTypeValidatorInterface
         $normalizedExternalLink = $input->externalLink !== '' ? $input->externalLink : null;
 
         if ($normalizedContent !== null && $normalizedExternalLink !== null) {
-            throw new GraphQLException("Only one of content or external link may have a value, not both.", 400, null, "Validation", ['field' => 'content', 'field' => 'externalLink']);
+            throw new GraphQLException("Only one of content or external link may have a value, not both.", 400, null, "Validation",  ['fields' => ['content', 'externalLink']]);
         }
 
         return;

@@ -9,6 +9,7 @@ use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Query;
+use TheCodingMachine\GraphQLite\Annotations\Security;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
