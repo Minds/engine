@@ -16,7 +16,8 @@ class MobileConfigReaderService
     public function __construct(
         private readonly MobileConfigRepository $mobileConfigRepository,
         private readonly MultiTenantDataService $multiTenantDataService,
-    ) {
+    )
+    {
 
     }
 
@@ -50,7 +51,18 @@ class MobileConfigReaderService
      */
     public function getMobileConfig(): MobileConfig
     {
-        return $this->mobileConfigRepository->getMobileConfig();
+        try {
+            return $this->mobileConfigRepository->getMobileConfig();
+        } catch (NoMobileConfigFoundException $e) {
+            return new MobileConfig(
+                updateTimestamp: time(),
+                splashScreenType: null,
+                welcomeScreenLogoType: null,
+                previewStatus: null,
+                previewQRCode: null,
+                previewLastUpdatedTimestamp: null,
+            );
+        }
     }
 
     /**
