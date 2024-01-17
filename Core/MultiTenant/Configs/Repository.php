@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Configs;
@@ -17,6 +18,8 @@ class Repository extends AbstractRepository
 {
     /**
      * Get the config for a tenant by tenant id.
+     * NOTE: If you are expecting these configs to be set at boot time,
+     * you must also add to the MultiTenant/Repository class
      * @param integer $tenantId - tenant id.
      * @throws NotFoundException - if no rows are found.
      * @return MultiTenantConfig - found config.
@@ -46,6 +49,8 @@ class Repository extends AbstractRepository
             siteEmail: $row['site_email'] ?? null,
             colorScheme: $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null,
             primaryColor: $row['primary_color'] ?? null,
+            federationDisabled: (bool) $row['federation_disabled'] ?? false,
+            nsfwEnabled: ($row['nsfw_enabled'] ?? 1) === 1,
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
             updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
         );
@@ -57,6 +62,7 @@ class Repository extends AbstractRepository
      * @param ?string $siteName - site name.
      * @param ?MultiTenantColorScheme $colorScheme - color scheme.
      * @param ?string $primaryColor - primary color.
+     * @param ?bool $federationDisabled - federation diabled.
      * @param ?int $lastCacheTimestamp - timestamp of last caching.
      * @return bool - true on success.
      */
@@ -65,9 +71,11 @@ class Repository extends AbstractRepository
         ?string $siteName = null,
         ?MultiTenantColorScheme $colorScheme = null,
         ?string $primaryColor = null,
+        ?bool $federationDisabled = null,
+        ?bool $nsfwEnabled = null,
         ?int $lastCacheTimestamp = null
     ): bool {
-        $boundValues = [ 'tenant_id' => $tenantId ];
+        $boundValues = ['tenant_id' => $tenantId];
         $rawValues = [];
 
         if ($siteName !== null) {
@@ -83,6 +91,17 @@ class Repository extends AbstractRepository
         if ($primaryColor !== null) {
             $rawValues['primary_color'] = new RawExp(':primary_color');
             $boundValues['primary_color'] = $primaryColor;
+        }
+
+        if ($federationDisabled !== null) {
+            $rawValues['federation_disabled'] = new RawExp(':federation_disabled');
+            $boundValues['federation_disabled'] = $federationDisabled;
+        }
+
+        if ($nsfwEnabled !== null) {
+            $rawValues['nsfw_enabled'] = new RawExp(':nsfw_enabled');
+            // Convert bool to the format mysql is expecting
+            $boundValues['nsfw_enabled'] = ($nsfwEnabled === false) ? 0 : 1;
         }
 
         if ($lastCacheTimestamp !== null) {

@@ -44,15 +44,16 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
         $colorScheme = MultiTenantColorScheme::DARK;
         $primaryColor = '#fff000';
         $updatedTimestamp = time();
+        $nsfwEnabled = true;
 
         $this->configMock->get('email')
             ->shouldBeCalled()
             ->willReturn(
                 [
-                'sender' => [
-                    'email' => $siteEmail
+                    'sender' => [
+                        'email' => $siteEmail
+                    ]
                 ]
-            ]
             );
 
         $this->configMock->get('did')
@@ -65,7 +66,7 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
 
         $uriMock->getScheme()
             ->willReturn('http');
-        
+
         $uriMock->getHost()
             ->willReturn('phpspec.local');
 
@@ -82,7 +83,8 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
                     siteEmail: $siteEmail,
                     colorScheme: $colorScheme,
                     primaryColor: $primaryColor,
-                    updatedTimestamp: $updatedTimestamp
+                    updatedTimestamp: $updatedTimestamp,
+                    nsfwEnabled: $nsfwEnabled
                 )
             ));
 
@@ -132,6 +134,10 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
             'color_scheme' => $colorScheme->value,
             'primary_color' => $primaryColor
         ])->shouldBeCalled();
+
+        $this->configMock->set('nsfw_enabled', $nsfwEnabled)
+            ->shouldBeCalled();
+
 
         $this->bootFromRequest($requestMock);
     }

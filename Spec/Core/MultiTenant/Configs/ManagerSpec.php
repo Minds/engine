@@ -115,6 +115,8 @@ class ManagerSpec extends ObjectBehavior
         $domain = 'localhost';
         $result = true;
         $tenant = new Tenant($tenantId, $domain);
+        $federationDisabled = true;
+        $nsfwEnabled = true;
         $lastCacheTimestamp = time();
 
         $this->config->get('tenant_id')
@@ -126,6 +128,8 @@ class ManagerSpec extends ObjectBehavior
             $siteName,
             $colorScheme,
             $primaryColor,
+            $federationDisabled,
+            $nsfwEnabled,
             $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -142,6 +146,8 @@ class ManagerSpec extends ObjectBehavior
             $siteName,
             $colorScheme,
             $primaryColor,
+            $federationDisabled,
+            $nsfwEnabled,
             $lastCacheTimestamp
         )->shouldBe($result);
     }
@@ -153,6 +159,8 @@ class ManagerSpec extends ObjectBehavior
         $colorScheme = MultiTenantColorScheme::DARK;
         $primaryColor = '#000000';
         $result = false;
+        $federationDisabled = true;
+        $nsfwEnabled = true;
         $lastCacheTimestamp = time();
 
         $this->config->get('tenant_id')
@@ -164,6 +172,8 @@ class ManagerSpec extends ObjectBehavior
             $siteName,
             $colorScheme,
             $primaryColor,
+            $federationDisabled,
+            $nsfwEnabled,
             $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -179,6 +189,8 @@ class ManagerSpec extends ObjectBehavior
             $siteName,
             $colorScheme,
             $primaryColor,
+            $federationDisabled,
+            $nsfwEnabled,
             $lastCacheTimestamp
         )->shouldBe($result);
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Minds\Core\ActivityPub;
 
 use Minds\Core\Di\Ref;
+use Minds\Core\Router\Middleware\FederationEnabledMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 
@@ -14,6 +15,7 @@ class Routes extends ModuleRoutes
     {
         $this->route
             ->withPrefix('api/activitypub')
+            ->withMiddleware([FederationEnabledMiddleware::class])
             ->do(function (Route $route) {
                 $route->get(
                     'users/:guid',

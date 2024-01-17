@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Configs;
@@ -30,17 +31,17 @@ class Manager
      * Gets multi-tenant config for the calling tenant.
      * @return ?MultiTenantConfig - null if not found.
      */
-    public function getConfigs(
-    ): ?MultiTenantConfig {
+    public function getConfigs(): ?MultiTenantConfig
+    {
         $tenantId = $this->config->get('tenant_id');
 
         try {
             return $this->repository->get(
                 tenantId: $tenantId,
             );
-        } catch(NotFoundException $e) {
+        } catch (NotFoundException $e) {
             return null;
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->logger->error($e);
             return null;
         }
@@ -51,6 +52,8 @@ class Manager
      * @param ?string $siteName - site name to set.
      * @param ?MultiTenantColorScheme $colorScheme - color scheme to set.
      * @param ?string $primaryColor - primary color to set.
+     * @param ?bool $federationDisabled - federation disabled.
+     * @param ?bool $nsfwEnabled - whether nfsw reporting tools are enabled.
      * @param ?int $lastCacheTimestamp - last cache timestamp.
      * @return bool - true on success.
      */
@@ -58,6 +61,8 @@ class Manager
         ?string $siteName = null,
         ?MultiTenantColorScheme $colorScheme = null,
         ?string $primaryColor = null,
+        ?bool $federationDisabled = null,
+        ?bool $nsfwEnabled = null,
         ?int $lastCacheTimestamp = null
     ): bool {
         $tenantId = $this->config->get('tenant_id');
@@ -67,6 +72,8 @@ class Manager
             siteName: $siteName,
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
+            federationDisabled: $federationDisabled,
+            nsfwEnabled: $nsfwEnabled,
             lastCacheTimestamp: $lastCacheTimestamp
         );
 

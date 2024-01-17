@@ -603,6 +603,10 @@ ALTER TABLE `minds_tenant_configs`
     ADD community_guidelines text DEFAULT NULL
     AFTER color_scheme;
 
+ALTER TABLE `minds_tenant_configs`
+    ADD nsfw_enabled boolean DEFAULT TRUE
+    AFTER community_guidelines;
+
 CREATE TABLE `minds_reports` (
   `tenant_id` int NOT NULL,
   `report_guid` bigint NOT NULL,
@@ -764,6 +768,10 @@ CREATE TABLE IF NOT EXISTS minds_post_notification_subscriptions (
     INDEX (tenant_id, entity_guid)
 );
 
+ALTER TABLE `minds_tenant_configs`
+    ADD federation_disabled boolean DEFAULT false
+    AFTER color_scheme;
+
 ALTER TABLE minds_tenant_featured_entities ADD COLUMN auto_post_subscription boolean DEFAULT FALSE AFTER recommended;
 
 CREATE TABLE IF NOT EXISTS  minds_custom_pages(
@@ -783,3 +791,5 @@ CREATE TABLE IF NOT EXISTS minds_push_notification_config (
     apns_key_id varchar(10),
     apns_topic varchar(128)
 );
+
+ALTER TABLE minds_entities_object_image ADD COLUMN filename text AFTER deleted;

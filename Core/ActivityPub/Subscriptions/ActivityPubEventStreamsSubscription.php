@@ -10,6 +10,7 @@ use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Services\EmitActivityService;
+use Minds\Core\ActivityPub\Services\FederationEnabledService;
 use Minds\Core\ActivityPub\Types\Activity\FlagType;
 use Minds\Core\ActivityPub\Types\Activity\FollowType;
 use Minds\Core\ActivityPub\Types\Activity\LikeType;
@@ -35,6 +36,7 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
         protected ?Manager $manager = null,
         protected ?EmitActivityService $emitActivityService = null,
         protected ?ActorFactory $actorFactory = null,
+        protected ?FederationEnabledService $federationEnabledService = null,
         protected ?Logger $logger = null,
         protected ?Config $config = null,
     ) {
@@ -42,6 +44,7 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
         $this->manager ??= Di::_()->get(Manager::class);
         $this->emitActivityService ??= Di::_()->get(EmitActivityService::class);
         $this->actorFactory ??= Di::_()->get(ActorFactory::class);
+        $this->federationEnabledService ??= Di::_()->get(FederationEnabledService::class);
         $this->logger ??= Di::_()->get('Logger');
         $this->config ??= Di::_()->get('Config');
     }
@@ -84,6 +87,11 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
         if (!$event instanceof ActionEvent) {
             $this->logger->info('Skipping as not an action event');
             return false;
+        }
+
+        if (!$this->federationEnabledService->isEnabled()) {
+            $this->logger->info('Skipping as federation is disabled');
+            return true;
         }
 
         $this->logger->info('Action event type: ' . $event->getAction());

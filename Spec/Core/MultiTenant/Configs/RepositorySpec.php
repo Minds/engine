@@ -58,6 +58,8 @@ class RepositorySpec extends ObjectBehavior
         $siteEmail = 'noreply@minds.com';
         $colorSchemeValue = MultiTenantColorScheme::DARK->value;
         $primaryColor = '#fff000';
+        $federationDisabled = true;
+        $nsfwEnabled = 1;
         $updatedTimestamp = date('c', time());
 
         $this->mysqlMasterMock->prepare(Argument::any())
@@ -78,6 +80,8 @@ class RepositorySpec extends ObjectBehavior
                 'site_email' => $siteEmail,
                 'color_scheme' => $colorSchemeValue,
                 'primary_color' => $primaryColor,
+                'federation_disabled' => $federationDisabled,
+                'nsfw_enabled' => $nsfwEnabled,
                 'updated_timestamp' => $updatedTimestamp,
             ]);
 
@@ -86,6 +90,8 @@ class RepositorySpec extends ObjectBehavior
             siteEmail: $siteEmail,
             colorScheme: MultiTenantColorScheme::tryFrom($colorSchemeValue),
             primaryColor: $primaryColor,
+            federationDisabled: $federationDisabled,
+            nsfwEnabled: $nsfwEnabled,
             updatedTimestamp: strtotime($updatedTimestamp)
         ));
     }
@@ -120,6 +126,8 @@ class RepositorySpec extends ObjectBehavior
         $siteName = 'Test site';
         $colorScheme = MultiTenantColorScheme::DARK;
         $primaryColor = '#fff000';
+        $federationDisabled = true;
+        $nsfwEnabled = true;
 
         $this->mysqlMasterMock->prepare(Argument::any())
             ->willReturn($statement);
@@ -128,7 +136,9 @@ class RepositorySpec extends ObjectBehavior
             'tenant_id' => $tenantId,
             'site_name' => $siteName,
             'color_scheme' => $colorScheme->value,
-            'primary_color' => $primaryColor
+            'primary_color' => $primaryColor,
+            'federation_disabled' => $federationDisabled,
+            'nsfw_enabled' => $nsfwEnabled
         ])->shouldBeCalled();
 
         $statement->execute()
@@ -139,7 +149,9 @@ class RepositorySpec extends ObjectBehavior
             tenantId: $tenantId,
             siteName: $siteName,
             colorScheme: $colorScheme,
-            primaryColor: $primaryColor
+            primaryColor: $primaryColor,
+            federationDisabled: $federationDisabled,
+            nsfwEnabled: $nsfwEnabled
         )->shouldBe(true);
     }
 }

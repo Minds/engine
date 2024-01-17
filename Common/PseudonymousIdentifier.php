@@ -49,10 +49,15 @@ class PseudonymousIdentifier
     /**
      * Generates and returns the identifier
      * @param string $password
-     * @return string
+     * @return string|null
      */
-    public function generateWithPassword(string $password): string
+    public function generateWithPassword(string $password): ?string
     {
+        // Tenants will not use psuedo id's
+        if ($this->config->get('tenant_id')) {
+            return null;
+        }
+
         // For our key we need the real password and the already salted/hashed password
         // we then hash that with our global session private key
         $key = $this->bcrypt(
@@ -92,6 +97,10 @@ class PseudonymousIdentifier
      */
     public function getId(): ?string
     {
+        // Tenants will not use psuedo id's
+        if ($this->config->get('tenant_id')) {
+            return null;
+        }
         return $_COOKIE[static::COOKIE_NAME] ?? null;
     }
 
