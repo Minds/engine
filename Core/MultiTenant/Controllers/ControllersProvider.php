@@ -9,6 +9,7 @@ use Minds\Core\Di\Provider;
 use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Core\MultiTenant\Services\MobileConfigAssetsService;
+use Minds\Core\MultiTenant\Services\MobileConfigManagementService;
 use Minds\Core\MultiTenant\Services\MobileConfigReaderService;
 use Minds\Core\MultiTenant\Services\TenantsService;
 use Minds\Core\MultiTenant\Services\TenantUsersService;
@@ -55,6 +56,13 @@ class ControllersProvider extends Provider
             MobileConfigPsrController::class,
             fn (Di $di): MobileConfigPsrController => new MobileConfigPsrController(
                 mobileConfigAssetsService: $di->get(MobileConfigAssetsService::class)
+            )
+        );
+
+        $this->di->bind(
+            MobileConfigManagementController::class,
+            fn (Di $di): MobileConfigManagementController => new MobileConfigManagementController(
+                mobileConfigManagementService: $di->get(MobileConfigManagementService::class)
             )
         );
     }

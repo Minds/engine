@@ -99,5 +99,12 @@ class ServicesProvider extends Provider
                 $di->get(MultiTenantDataService::class),
             )
         );
+
+        $this->di->bind(
+            MobileConfigManagementService::class,
+            fn (Di $di): MobileConfigManagementService => new MobileConfigManagementService(
+                mobileConfigRepository: $di->get(MobileConfigRepository::class),
+            )
+        );
     }
 }

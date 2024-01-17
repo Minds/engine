@@ -13,12 +13,12 @@ use TheCodingMachine\GraphQLite\Annotations\Type;
 class MobileConfig
 {
     public function __construct(
-        #[Field] public MobileSplashScreenTypeEnum      $splashScreenType,
-        #[Field] public MobileWelcomeScreenLogoTypeEnum $welcomeScreenLogoType,
-        #[Field] public MobilePreviewStatusEnum         $previewStatus,
-        #[Field] public int                             $updateTimestamp,
-        #[Field] public ?string                         $previewQRCode = null,
-        public ?int                                     $previewLastUpdatedTimestamp = null,
+        #[Field] public int                              $updateTimestamp,
+        #[Field] public ?MobileSplashScreenTypeEnum      $splashScreenType = null,
+        #[Field] public ?MobileWelcomeScreenLogoTypeEnum $welcomeScreenLogoType = null,
+        #[Field] public MobilePreviewStatusEnum          $previewStatus = MobilePreviewStatusEnum::NO_PREVIEW,
+        #[Field] public ?string                          $previewQRCode = null,
+        public ?int                                      $previewLastUpdatedTimestamp = null,
     ) {
     }
 }

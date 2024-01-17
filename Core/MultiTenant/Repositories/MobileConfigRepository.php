@@ -31,12 +31,12 @@ class MobileConfigRepository extends AbstractRepository
         ?string                          $previewQRCode = null,
     ): void {
         $this->mysqlClientWriterHandler->insert()
-            ->into('mobile_config')
+            ->into(self::TABLE_NAME)
             ->set([
                 'tenant_id' => $this->config->get('tenant_id') ?? -1,
                 'splash_screen_type' => $splashScreenType?->value,
                 'welcome_screen_logo_type' => $welcomeScreenLogoType?->value,
-                'preview_status' => $previewStatus?->value ?? MobilePreviewStatusEnum::NO_PREVIEW,
+                'preview_status' => $previewStatus?->value ?? MobilePreviewStatusEnum::NO_PREVIEW->value,
                 'preview_qr_code' => $previewQRCode,
                 'preview_last_updated_timestamp' => $previewStatus ? date('c', time()) : null,
             ])
@@ -69,10 +69,10 @@ class MobileConfigRepository extends AbstractRepository
 
         $entry = $stmt->fetch(PDO::FETCH_ASSOC);
         return new MobileConfig(
-            splashScreenType: MobileSplashScreenTypeEnum::tryFrom($entry['splash_screen_type']),
-            welcomeScreenLogoType: MobileWelcomeScreenLogoTypeEnum::tryFrom($entry['welcome_screen_logo_type']),
-            previewStatus: MobilePreviewStatusEnum::from($entry['preview_status']),
             updateTimestamp: strtotime($entry['update_timestamp']),
+            splashScreenType: $entry['splash_screen_type'] ? MobileSplashScreenTypeEnum::tryFrom($entry['splash_screen_type']) : null,
+            welcomeScreenLogoType: $entry['welcome_screen_logo_type'] ? MobileWelcomeScreenLogoTypeEnum::tryFrom($entry['welcome_screen_logo_type']) : null,
+            previewStatus: MobilePreviewStatusEnum::tryFrom($entry['preview_status']),
             previewQRCode: $entry['preview_qr_code'] ?? null,
             previewLastUpdatedTimestamp: $entry['preview_last_updated_timestamp'] ? strtotime($entry['preview_last_updated_timestamp']) : null,
         );
