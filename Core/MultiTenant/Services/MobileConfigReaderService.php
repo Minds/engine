@@ -56,11 +56,6 @@ class MobileConfigReaderService
         } catch (NoMobileConfigFoundException $e) {
             return new MobileConfig(
                 updateTimestamp: time(),
-                splashScreenType: null,
-                welcomeScreenLogoType: null,
-                previewStatus: null,
-                previewQRCode: null,
-                previewLastUpdatedTimestamp: null,
             );
         }
     }
