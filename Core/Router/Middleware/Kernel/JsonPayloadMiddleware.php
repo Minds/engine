@@ -32,8 +32,13 @@ class JsonPayloadMiddleware implements MiddlewareInterface
 
         // TODO: our client is sending text/plain in the Content-Type header. It should be application/json
         if ((in_array($contentType, static::JSON_MIME_TYPES, true) || $request->getAttribute('accept') === 'json') && $contentType !== 'application/x-www-form-urlencoded') {
+            $stream = $request->getBody();
+            $stream->rewind(); // Make sure we are at the start
             $request = $request
-                ->withParsedBody(json_decode($request->getBody()->getContents(), true));
+                ->withParsedBody(json_decode($stream->getContents(), true));
+
+            // Prevent future ->getContents() having no data
+            $stream->rewind();
         }
 
         return $handler
