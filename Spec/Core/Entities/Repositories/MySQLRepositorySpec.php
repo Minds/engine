@@ -198,6 +198,7 @@ class MySQLRepositorySpec extends ObjectBehavior
         $activity->guid = 123;
         $activity->owner_guid = 456;
         $activity->message = 'hello tests';
+        $activity->time_created = strtotime('1st January 2024');
 
         $this->mysqlMasterMock->inTransaction()->willReturn(false);#
         $this->mysqlMasterMock->beginTransaction()->shouldBeCalled();
@@ -215,7 +216,15 @@ class MySQLRepositorySpec extends ObjectBehavior
 
         $this->mysqlClientMock->bindValuesToPreparedStatement(
             $pdoStatementMock,
-            Argument::type('array')
+            Argument::that(function ($data) {
+                if (!is_array($data)) {
+                    return false;
+                }
+                if ($data['time_created'] !== date('c', strtotime('1st January 2024'))) {
+                    return false;
+                }
+                return true;
+            }),
         )
             ->shouldBeCalled();
 
@@ -382,7 +391,7 @@ class MySQLRepositorySpec extends ObjectBehavior
 
         $this->mysqlMasterMock->commit()->shouldBeCalled();
 
-        $this->update($activity, ['message', 'access_id'])->shouldBe(true);
+        $this->update($activity, ['message', 'access_id', 'time_created'])->shouldBe(true);
     }
 
     public function it_should_update_an_image(PDOStatement $pdoStatementMock)
