@@ -24,6 +24,8 @@ class Redis extends abstractCacher implements CacheInterface
     /** @var boolean - whether tenant prefix should be used. */
     private $useTenantPrefix = true;
 
+    const IN_MEMORY_PREFIX = "redis:";
+
     public function __construct(
         $config = null,
         private ?InMemoryCache $inMemoryCache = null,
@@ -72,11 +74,11 @@ class Redis extends abstractCacher implements CacheInterface
 
     public function get($key, $default = null)
     {
-        if ($this->inMemoryCache->has($key)) {
-            return $this->inMemoryCache->get($key);
-        }
-
         $key = $this->buildKey($key);
+
+        if ($this->inMemoryCache->has(self::IN_MEMORY_PREFIX . $key)) {
+            return $this->inMemoryCache->get(self::IN_MEMORY_PREFIX . $key);
+        }
 
         try {
             $redis = $this->getSlave();
@@ -84,11 +86,11 @@ class Redis extends abstractCacher implements CacheInterface
             if ($value !== false) {
                 $value = json_decode($value, true);
                 if (is_numeric($value)) {
-                    $this->inMemoryCache->set($key, (int) $value);
+                    $this->inMemoryCache->set(self::IN_MEMORY_PREFIX . $key, (int) $value);
                     
                     return (int) $value;
                 }
-                $this->inMemoryCache->set($key, $value);
+                $this->inMemoryCache->set(self::IN_MEMORY_PREFIX . $key, $value);
 
                 return $value;
             }
@@ -135,8 +137,8 @@ class Redis extends abstractCacher implements CacheInterface
 
     public function destroy($key)
     {
-        if ($this->inMemoryCache->has($key)) {
-            $this->inMemoryCache->delete($key);
+        if ($this->inMemoryCache->has(self::IN_MEMORY_PREFIX .  $key)) {
+            $this->inMemoryCache->delete(self::IN_MEMORY_PREFIX .  $key);
         }
 
         $key = $this->buildKey($key);
