@@ -3,7 +3,7 @@
 namespace Minds\Core\GraphQL;
 
 use GraphQL\Type\Schema;
-use Minds\Core\Data\cache\APCuCache;
+use Minds\Core\Data\cache\WorkerCache;
 use Minds\Core\Di\Container;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
@@ -19,8 +19,8 @@ class Provider extends DiProvider
     public function register(): void
     {
         $this->di->bind(SchemaFactory::class, function (Di $di, array $args = []): SchemaFactory {
-            $cache = new APCuCache();
-            // $cache->clear();
+            $cache = $di->get(WorkerCache::class);
+
             /**
              * PSR-11 Container Wrapper
              */

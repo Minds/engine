@@ -7,7 +7,7 @@ http:
   address: 0.0.0.0:9001
   pool:
     # debug: true
-    num_workers: 5
+    num_workers: 1
 
 metrics:
   address: 0.0.0.0:2112

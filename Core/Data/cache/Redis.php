@@ -21,18 +21,15 @@ class Redis extends abstractCacher implements CacheInterface
     /** @var Config */
     private $config;
 
-    /** @var array */
-    private $local = []; //a local cache before we check the remote
-
     /** @var boolean - whether tenant prefix should be used. */
     private $useTenantPrefix = true;
 
-    /** @var int */
-    const MAX_LOCAL_CACHE = 1000;
-
-    public function __construct($config = null)
-    {
+    public function __construct(
+        $config = null,
+        private ?InMemoryCache $inMemoryCache = null,
+    ) {
         $this->config = $config ?? Di::_()->get('Config');
+        $this->inMemoryCache ??= Di::_()->get(InMemoryCache::class);
     }
 
     private function getMaster()
@@ -75,11 +72,8 @@ class Redis extends abstractCacher implements CacheInterface
 
     public function get($key, $default = null)
     {
-        if (isset($this->local[$key])) {
-            return $this->local[$key];
-        }
-        if (count($this->local) > static::MAX_LOCAL_CACHE) {
-            $this->local[$key] = []; // Clear cache if we meet the max
+        if ($this->inMemoryCache->has($key)) {
+            return $this->inMemoryCache->get($key);
         }
 
         $key = $this->buildKey($key);
@@ -90,11 +84,11 @@ class Redis extends abstractCacher implements CacheInterface
             if ($value !== false) {
                 $value = json_decode($value, true);
                 if (is_numeric($value)) {
-                    $this->local[$key] = (int) $value;
-
+                    $this->inMemoryCache->set($key, (int) $value);
+                    
                     return (int) $value;
                 }
-                $this->local[$key] = $value;
+                $this->inMemoryCache->set($key, $value);
 
                 return $value;
             }
@@ -141,8 +135,8 @@ class Redis extends abstractCacher implements CacheInterface
 
     public function destroy($key)
     {
-        if (isset($this->local[$key])) {
-            unset($this->local[$key]); // Remove from local, inmemory cache
+        if ($this->inMemoryCache->has($key)) {
+            $this->inMemoryCache->delete($key);
         }
 
         $key = $this->buildKey($key);

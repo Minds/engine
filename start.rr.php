@@ -6,7 +6,9 @@ require_once(dirname(__FILE__) . "/start.php");
 
 use GraphQL\GraphQL;
 use GraphQL\Type\Schema;
+use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Di\Di;
+use Minds\Entities\Factory;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\Factory\Psr17Factory;
 
@@ -53,5 +55,13 @@ while (true) {
     } catch (\Throwable $e) {
         $psr7->respond(new Response(500, [], 'Something Went Wrong!'));
         $psr7->getWorker()->error((string)$e);
+    } finally {
+        // Clear the per-request caches
+        $cache = Di::_()->get(InMemoryCache::class);
+        $cache->clear();
+
+        // Tmp (needs refactoring at a lower level)
+        global $USERNAME_TO_GUID_MAP_CACHE;
+        $USERNAME_TO_GUID_MAP_CACHE = [];
     }
 }
