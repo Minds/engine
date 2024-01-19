@@ -19,8 +19,7 @@ class MobileConfigReaderService
         private readonly MobileConfigRepository $mobileConfigRepository,
         private readonly MultiTenantBootService $multiTenantBootService,
         private readonly Config                 $config
-    )
-    {
+    ) {
 
     }
 

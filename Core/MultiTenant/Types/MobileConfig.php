@@ -21,8 +21,7 @@ class MobileConfig
         #[Field] public MobileWelcomeScreenLogoTypeEnum $welcomeScreenLogoType = MobileWelcomeScreenLogoTypeEnum::SQUARE,
         #[Field] public MobilePreviewStatusEnum         $previewStatus = MobilePreviewStatusEnum::NO_PREVIEW,
         public ?int                                     $previewLastUpdatedTimestamp = null,
-    )
-    {
+    ) {
     }
 
     #[Field]
