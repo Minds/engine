@@ -20,7 +20,6 @@ class MobileConfig
         #[Field] public ?MobileSplashScreenTypeEnum      $splashScreenType = null,
         #[Field] public ?MobileWelcomeScreenLogoTypeEnum $welcomeScreenLogoType = null,
         #[Field] public MobilePreviewStatusEnum          $previewStatus = MobilePreviewStatusEnum::NO_PREVIEW,
-        #[Field] public ?string                          $previewQRCode = null,
         public ?int                                      $previewLastUpdatedTimestamp = null,
     ) {
     }
@@ -29,5 +28,11 @@ class MobileConfig
     public function getId(): ID
     {
         return new ID("mobile_config_" . Di::_()->get(Config::class)->get("tenant_id"));
+    }
+
+    #[Field]
+    public function getPreviewQRCode(): string
+    {
+        return "mindspreview://preview/" . Di::_()->get(Config::class)->get("tenant_id");
     }
 }
