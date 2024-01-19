@@ -465,7 +465,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 $val = $rawData[$key];
 
                 if ($dataType === MySQLDataTypeEnum::TIMESTAMP && is_numeric($val)) {
-                    $val = date('c', $val);
+                    $val = date('c', $val ?: time());
                 }
 
                 if ($dataType === MySQLDataTypeEnum::BOOL && is_numeric($val)) {
