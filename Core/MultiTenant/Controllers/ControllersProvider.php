@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Controllers;
 
+use Minds\Common\Jwt;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
@@ -48,14 +50,25 @@ class ControllersProvider extends Provider
         $this->di->bind(
             MobileConfigReaderController::class,
             fn (Di $di): MobileConfigReaderController => new MobileConfigReaderController(
-                mobileConfigReaderService: $di->get(MobileConfigReaderService::class)
+                mobileConfigReaderService: $di->get(MobileConfigReaderService::class),
+                jwt: new Jwt(),
+                config: $di->get(Config::class)
             )
         );
 
         $this->di->bind(
             MobileConfigPsrController::class,
             fn (Di $di): MobileConfigPsrController => new MobileConfigPsrController(
-                mobileConfigAssetsService: $di->get(MobileConfigAssetsService::class)
+                mobileConfigAssetsService: $di->get(MobileConfigAssetsService::class),
+            )
+        );
+
+        $this->di->bind(
+            MobileConfigPreviewPsrController::class,
+            fn (Di $di): MobileConfigPreviewPsrController => new MobileConfigPreviewPsrController(
+                mobileConfigManagementService: $di->get(MobileConfigManagementService::class),
+                jwt: new Jwt(),
+                config: $di->get(Config::class)
             )
         );
 

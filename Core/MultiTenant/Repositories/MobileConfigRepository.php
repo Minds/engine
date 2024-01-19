@@ -21,14 +21,12 @@ class MobileConfigRepository extends AbstractRepository
      * @param MobileSplashScreenTypeEnum|null $splashScreenType
      * @param MobileWelcomeScreenLogoTypeEnum|null $welcomeScreenLogoType
      * @param MobilePreviewStatusEnum|null $previewStatus
-     * @param string|null $previewQRCode
      * @return void
      */
     public function storeMobileConfig(
         ?MobileSplashScreenTypeEnum      $splashScreenType = null,
         ?MobileWelcomeScreenLogoTypeEnum $welcomeScreenLogoType = null,
         ?MobilePreviewStatusEnum         $previewStatus = null,
-        ?string                          $previewQRCode = null,
     ): void {
         $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
@@ -37,14 +35,12 @@ class MobileConfigRepository extends AbstractRepository
                 'splash_screen_type' => $splashScreenType?->value,
                 'welcome_screen_logo_type' => $welcomeScreenLogoType?->value,
                 'preview_status' => $previewStatus?->value ?? MobilePreviewStatusEnum::NO_PREVIEW->value,
-                'preview_qr_code' => $previewQRCode,
                 'preview_last_updated_timestamp' => $previewStatus ? date('c', time()) : null,
             ])
             ->onDuplicateKeyUpdate([
                 'splash_screen_type' => $splashScreenType ? $splashScreenType->value : new RawExp('splash_screen_type'),
                 'welcome_screen_logo_type' => $welcomeScreenLogoType ? $welcomeScreenLogoType->value : new RawExp('welcome_screen_logo_type'),
                 'preview_status' => $previewStatus ? $previewStatus->value : new RawExp('preview_status'),
-                'preview_qr_code' => $previewQRCode ?: new RawExp('preview_qr_code'),
                 'preview_last_updated_timestamp' => $previewStatus ? date('c', time()) : null,
             ])
             ->execute();
@@ -73,7 +69,6 @@ class MobileConfigRepository extends AbstractRepository
             splashScreenType: $entry['splash_screen_type'] ? MobileSplashScreenTypeEnum::tryFrom($entry['splash_screen_type']) : null,
             welcomeScreenLogoType: $entry['welcome_screen_logo_type'] ? MobileWelcomeScreenLogoTypeEnum::tryFrom($entry['welcome_screen_logo_type']) : null,
             previewStatus: MobilePreviewStatusEnum::tryFrom($entry['preview_status']),
-            previewQRCode: $entry['preview_qr_code'] ?? null,
             previewLastUpdatedTimestamp: $entry['preview_last_updated_timestamp'] ? strtotime($entry['preview_last_updated_timestamp']) : null,
         );
     }
