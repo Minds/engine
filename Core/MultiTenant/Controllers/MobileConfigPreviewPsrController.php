@@ -40,12 +40,10 @@ class MobileConfigPreviewPsrController
 
         ['tenantId' => $tenantId, 'status' => $status] = $request->getParsedBody();
 
-        if ($this->mobileConfigManagementService->processMobilePreviewWebhook(
+        $this->mobileConfigManagementService->processMobilePreviewWebhook(
             tenantId: $tenantId,
             status: $status
-        )) {
-            throw new ServerErrorException('Failed to process webhook');
-        }
+        );
 
         return new JsonResponse("", 200);
     }

@@ -11,7 +11,6 @@ use Minds\Core\Config\Config;
 class MobilePreviewHandler
 {
     private const BUILD_MODE = "PREVIEW";
-    private const WEBHOOK_URL = "";
 
     public function __construct(
         private readonly HttpClient $httpClient,
