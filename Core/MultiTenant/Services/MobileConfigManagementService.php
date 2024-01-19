@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Services;
 
+use GuzzleHttp\Exception\GuzzleException;
+use Minds\Core\MultiTenant\Deployments\Builds\MobilePreviewHandler;
 use Minds\Core\MultiTenant\Enums\MobilePreviewStatusEnum;
 use Minds\Core\MultiTenant\Enums\MobileSplashScreenTypeEnum;
 use Minds\Core\MultiTenant\Enums\MobileWelcomeScreenLogoTypeEnum;
@@ -14,23 +16,32 @@ class MobileConfigManagementService
 {
     public function __construct(
         private readonly MobileConfigRepository $mobileConfigRepository,
+        private readonly MobilePreviewHandler   $mobilePreviewHandler,
     ) {
     }
 
     /**
      * @param int $tenantId
      * @param string $status
-     * @return bool
+     * @return void
      */
     public function processMobilePreviewWebhook(
         int    $tenantId,
         string $status = 'success'
     ): void {
         $this->mobileConfigRepository->storeMobileConfig(
+            tenantId: $tenantId,
             previewStatus: $status === 'success' ? MobilePreviewStatusEnum::READY : MobilePreviewStatusEnum::ERROR,
         );
     }
 
+    /**
+     * @param MobileSplashScreenTypeEnum|null $mobileSplashScreenType
+     * @param MobileWelcomeScreenLogoTypeEnum|null $mobileWelcomeScreenLogoType
+     * @param MobilePreviewStatusEnum|null $mobilePreviewStatus
+     * @return MobileConfig
+     * @throws GuzzleException
+     */
     public function storeMobileConfig(
         ?MobileSplashScreenTypeEnum      $mobileSplashScreenType,
         ?MobileWelcomeScreenLogoTypeEnum $mobileWelcomeScreenLogoType,
@@ -51,6 +62,10 @@ class MobileConfigManagementService
             welcomeScreenLogoType: $mobileWelcomeScreenLogoType,
             previewStatus: $mobilePreviewStatus,
         );
+
+        if ($mobilePreviewStatus === MobilePreviewStatusEnum::PENDING) {
+            $this->mobilePreviewHandler->triggerPipeline();
+        }
 
         return new MobileConfig(
             updateTimestamp: time(),
