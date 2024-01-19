@@ -17,6 +17,20 @@ class MobileConfigManagementService
     ) {
     }
 
+    /**
+     * @param int $tenantId
+     * @param string $status
+     * @return bool
+     */
+    public function processMobilePreviewWebhook(
+        int    $tenantId,
+        string $status = 'success'
+    ): void {
+        $this->mobileConfigRepository->storeMobileConfig(
+            previewStatus: $status === 'success' ? MobilePreviewStatusEnum::READY : MobilePreviewStatusEnum::ERROR,
+        );
+    }
+
     public function storeMobileConfig(
         ?MobileSplashScreenTypeEnum      $mobileSplashScreenType,
         ?MobileWelcomeScreenLogoTypeEnum $mobileWelcomeScreenLogoType,
@@ -26,6 +40,10 @@ class MobileConfigManagementService
             $mobileConfig = $this->mobileConfigRepository->getMobileConfig();
         } catch (NoMobileConfigFoundException $e) {
             $mobileConfig = null;
+        }
+
+        if ($mobilePreviewStatus?->value !== MobilePreviewStatusEnum::PENDING) {
+            $mobilePreviewStatus = null;
         }
 
         $this->mobileConfigRepository->storeMobileConfig(
