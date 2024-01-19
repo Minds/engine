@@ -23,33 +23,21 @@ class Controller
     ) {
     }
 
-    /**
-     * @param int $pageType
-     * @return CustomPage
-     */
     #[Query]
     public function getCustomPage(
-        int $pageType
+        string $pageType
     ): CustomPage {
         // Convert the incoming int to the enum type
         return $this->service->getCustomPageByType(CustomPageTypesEnum::from($pageType));
     }
 
-    /**
-     * @param int $pageType
-     * @param string|null $content
-     * @param string|null $externalLink
-     * @return bool - on success
-     * @throws GraphQLException - on error
-     */
     #[Mutation]
     #[Logged]
     #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
     public function setCustomPage(
-        int                 $pageType,
+        string               $pageType,
         ?string              $content,
         ?string              $externalLink,
-        #[InjectUser] User  $loggedInUser,
     ): bool {
         // Convert the incoming integer to the enum type
         return $this->service->setCustomPage(

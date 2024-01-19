@@ -14,7 +14,7 @@ use TheCodingMachine\GraphQLite\Annotations\Input;
 class CustomPageInput
 {
     public function __construct(
-        #[Field] public readonly int $pageType,
+        #[Field] public readonly string $pageType,
         #[Field] public readonly ?string $content = null,
         #[Field] public readonly ?string $externalLink = null,
     ) {

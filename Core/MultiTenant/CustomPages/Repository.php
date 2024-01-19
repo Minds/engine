@@ -19,12 +19,6 @@ use PDO;
  */
 class Repository extends AbstractRepository
 {
-    public function __construct(
-        ... $args
-    ) {
-        parent::__construct(...$args);
-    }
-
     /**
      * Retrieves a custom page based on the page type and tenant ID.
      *
@@ -86,10 +80,10 @@ class Repository extends AbstractRepository
         $stmt = $query->prepare();
 
         return $stmt->execute([
-            ':tenant_id' => $this->config->get('tenant_id'),
-            ':page_type' => $pageType->value,
-            ':content' => $content,
-            ':external_link' => $externalLink
+            'tenant_id' => $this->config->get('tenant_id'),
+            'page_type' => $pageType->value,
+            'content' => $content,
+            'external_link' => $externalLink
         ]);
     }
 
@@ -101,13 +95,11 @@ class Repository extends AbstractRepository
      */
     private function buildCustomPage(array $row): CustomPage
     {
-        $tenantId = $this->config->get('tenant_id');
-
         return new CustomPage(
-            pageType: CustomPageTypesEnum::from((int)$row['page_type']),
+            pageType: CustomPageTypesEnum::from($row['page_type']),
             content: $row['content'] ?? null,
             externalLink: $row['external_link'] ?? null,
-            tenantId: $tenantId
+            tenantId: $row['tenant_id']
         );
     }
 }
