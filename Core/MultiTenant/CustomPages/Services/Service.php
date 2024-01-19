@@ -17,10 +17,6 @@ class Service
 
     /**
      * Gets a custom page, given its page type
-     * @param int $pageType
-     * @return CustomPage
-     * @throws NotFoundException
-     * @throws ServerErrorException
      */
     public function getCustomPageByType(CustomPageTypesEnum $pageType): CustomPage
     {

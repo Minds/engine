@@ -38,6 +38,7 @@ class Controller
         string               $pageType,
         ?string              $content,
         ?string              $externalLink,
+        #[InjectUser] User  $loggedInUser,
     ): bool {
         // Convert the incoming integer to the enum type
         return $this->service->setCustomPage(
