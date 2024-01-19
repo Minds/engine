@@ -53,7 +53,7 @@ class MobileConfigManagementService
             $mobileConfig = null;
         }
 
-        if ($mobilePreviewStatus?->value !== MobilePreviewStatusEnum::PENDING) {
+        if ($mobilePreviewStatus !== MobilePreviewStatusEnum::PENDING) {
             $mobilePreviewStatus = null;
         }
 

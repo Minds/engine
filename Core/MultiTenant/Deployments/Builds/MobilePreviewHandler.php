@@ -42,7 +42,7 @@ class MobilePreviewHandler
             ]
         );
 
-        if ($response->getStatusCode() !== 200) {
+        if ($response->getStatusCode() !== 201) {
             throw new Exception("Failed to request mobile preview");
         }
 
