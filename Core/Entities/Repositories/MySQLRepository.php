@@ -327,11 +327,18 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
 
         $tableName = $this->buildTableName($entity);
 
+        $set = [... $this->buildSet($data)];
+
+        // Prevent a regression where a user can lose their time_created value
+        if (isset($set['time_created'])) {
+            $this->logger->error("Attempted to overwrite time_created");
+            unset($set['time_created']);
+            unset($data['time_created']);
+        }
+
         $query = $this->mysqlClientWriterHandler->update()
             ->table($tableName)
-            ->set([
-                ... $this->buildSet($data),
-            ])
+            ->set($set)
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id'))
             ->where('guid', Operator::EQ, new RawExp(':guid'));
 
@@ -458,7 +465,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                 $val = $rawData[$key];
 
                 if ($dataType === MySQLDataTypeEnum::TIMESTAMP && is_numeric($val)) {
-                    $val = date('c', time());
+                    $val = date('c', $val ?: time());
                 }
 
                 if ($dataType === MySQLDataTypeEnum::BOOL && is_numeric($val)) {
