@@ -19,21 +19,27 @@ class MobileConfigReaderService
         private readonly MobileConfigRepository $mobileConfigRepository,
         private readonly MultiTenantBootService $multiTenantBootService,
         private readonly Config                 $config
-    ) {
+    )
+    {
 
     }
 
     /**
      * @param int $tenantId
      * @return AppReadyMobileConfig
-     * @throws NoMobileConfigFoundException
      * @throws NoTenantFoundException
      */
     public function getAppReadyMobileConfig(int $tenantId): AppReadyMobileConfig
     {
         $this->multiTenantBootService->bootFromTenantId($tenantId);
         $tenant = $this->multiTenantBootService->getTenant();
-        $mobileConfig = $this->mobileConfigRepository->getMobileConfig($tenantId);
+        try {
+            $mobileConfig = $this->mobileConfigRepository->getMobileConfig($tenantId);
+        } catch (NoMobileConfigFoundException $e) {
+            $mobileConfig = new MobileConfig(
+                updateTimestamp: time(),
+            );
+        }
 
         $config = new AppReadyMobileConfig(
             appName: $tenant->config?->siteName ?? '',
