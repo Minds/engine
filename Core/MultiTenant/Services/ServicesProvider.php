@@ -11,6 +11,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
 use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigManager;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
+use Minds\Core\MultiTenant\Deployments\Builds\MobilePreviewHandler;
 use Minds\Core\MultiTenant\Repositories\DomainsRepository;
 use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
 use Minds\Core\MultiTenant\Repositories\MobileConfigRepository;
@@ -105,6 +106,7 @@ class ServicesProvider extends Provider
             MobileConfigManagementService::class,
             fn (Di $di): MobileConfigManagementService => new MobileConfigManagementService(
                 mobileConfigRepository: $di->get(MobileConfigRepository::class),
+                mobilePreviewHandler: $di->get(MobilePreviewHandler::class),
             )
         );
     }

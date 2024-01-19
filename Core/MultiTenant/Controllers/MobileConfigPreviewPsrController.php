@@ -40,7 +40,7 @@ class MobileConfigPreviewPsrController
 
         ['tenantId' => $tenantId, 'status' => $status] = $request->getParsedBody();
 
-        if (!$this->mobileConfigManagementService->processMobilePreviewWebhook(
+        if ($this->mobileConfigManagementService->processMobilePreviewWebhook(
             tenantId: $tenantId,
             status: $status
         )) {

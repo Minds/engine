@@ -20,22 +20,24 @@ class MobilePreviewHandler
     }
 
     /**
-     * @param int $tenantId
+     * @param int|null $tenantId
      * @return void
      * @throws GuzzleException
      * @throws Exception
      */
     public function triggerPipeline(?int $tenantId = null): void
     {
+        $pipelineConfig = $this->config->get("gitlab")["mobile"]["pipeline"];
         $response = $this->httpClient->post(
             uri: '',
             options: [
                 "form_params" => [
-                    "token" => $this->config->get("gitlab")["mobile"]["pipeline"]["trigger_token"],
-                    "ref" => $this->config->get("gitlab")["mobile"]["pipeline"]["branch"],
+                    "token" => $pipelineConfig["trigger_token"],
+                    "ref" => $pipelineConfig["branch"],
                     "variables[BUILD_MODE]" => self::BUILD_MODE,
                     "variables[TENANT_ID]" => $tenantId ?? ($this->config->get("tenant_id") ?? -1),
-                    "variables[WEBHOOK_URL]" => "",
+                    "variables[WEBHOOK_URL]" => $pipelineConfig["webhook_url"],
+                    "variables[GRAPHQL_URL]" => $pipelineConfig["graphql_url"],
                 ]
             ]
         );

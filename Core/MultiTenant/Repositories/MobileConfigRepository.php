@@ -24,6 +24,7 @@ class MobileConfigRepository extends AbstractRepository
      * @return void
      */
     public function storeMobileConfig(
+        ?int                             $tenantId = null,
         ?MobileSplashScreenTypeEnum      $splashScreenType = null,
         ?MobileWelcomeScreenLogoTypeEnum $welcomeScreenLogoType = null,
         ?MobilePreviewStatusEnum         $previewStatus = null,
@@ -31,7 +32,7 @@ class MobileConfigRepository extends AbstractRepository
         $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
             ->set([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'tenant_id' => $tenantId ?? ($this->config->get('tenant_id') ?? -1),
                 'splash_screen_type' => $splashScreenType?->value,
                 'welcome_screen_logo_type' => $welcomeScreenLogoType?->value,
                 'preview_status' => $previewStatus?->value ?? MobilePreviewStatusEnum::NO_PREVIEW->value,
