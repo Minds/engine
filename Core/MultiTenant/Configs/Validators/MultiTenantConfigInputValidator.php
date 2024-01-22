@@ -53,10 +53,6 @@ class MultiTenantConfigInputValidator implements InputTypeValidatorInterface
             }
         }
 
-        if (isset($input->communityGuidelines) && mb_strlen($input->communityGuidelines) > 65000) {
-            throw new GraphQLException("Community guidelines can be at most 65000 characters", 400, null, "Validation", ['field' => 'communityGuidelines']);
-        }
-
         return;
     }
 }

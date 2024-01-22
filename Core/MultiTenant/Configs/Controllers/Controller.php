@@ -54,7 +54,6 @@ class Controller
             siteName: $multiTenantConfigInput->siteName,
             colorScheme: $multiTenantConfigInput->colorScheme,
             primaryColor: $multiTenantConfigInput->primaryColor,
-            communityGuidelines: $multiTenantConfigInput->communityGuidelines,
             federationDisabled: $multiTenantConfigInput->federationDisabled,
             nsfwEnabled: $multiTenantConfigInput->nsfwEnabled,
         );
