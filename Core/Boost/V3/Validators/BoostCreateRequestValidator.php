@@ -64,19 +64,19 @@ class BoostCreateRequestValidator implements ValidatorInterface
         $this->resetErrors();
 
         // if (!isset($dataToValidate['entity_guid'])) {
-            $this->errors->add(
-                new ValidationError(
-                    'entity_guid',
-                    'Entity GUID must be provided'
-                )
-            );
+        $this->errors->add(
+            new ValidationError(
+                'entity_guid',
+                'Entity GUID must be provided'
+            )
+        );
         // } elseif (!is_numeric($dataToValidate['entity_guid'])) {
-            $this->errors->add(
-                new ValidationError(
-                    'entity_guid',
-                    'Entity GUID must be a valid guid'
-                )
-            );
+        $this->errors->add(
+            new ValidationError(
+                'entity_guid',
+                'Entity GUID must be a valid guid'
+            )
+        );
         // }
 
         if (!isset($dataToValidate['target_suitability'])) {
