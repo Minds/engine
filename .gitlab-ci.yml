@@ -97,11 +97,6 @@ prepare:fpm:
       --destination "${CI_REGISTRY_IMAGE}/fpm:${CI_PIPELINE_ID}"
       --build-arg MINDS_VERSION=$CI_PIPELINE_ID
       --build-arg SENTRY_DSN=$SENTRY_DSN
-    # - >
-    #   if [ $CI_COMMIT_BRANCH == "master" ]; then
-    #     docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:latest &&
-    #     docker push $CI_REGISTRY_IMAGE/fpm:latest
-    #   fi
 
 prepare:runners:
   stage: prepare
@@ -115,11 +110,6 @@ prepare:runners:
       --destination "${CI_REGISTRY_IMAGE}/runners:${CI_PIPELINE_ID}"
       --build-arg MINDS_VERSION=$CI_PIPELINE_ID
       --build-arg SENTRY_DSN=$RUNNERS_SENTRY_DSN
-    # - >
-    #   if [ $CI_COMMIT_BRANCH == "master" ]; then
-    #     docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:latest &&
-    #     docker push $CI_REGISTRY_IMAGE/runners:latest
-    #   fi
 
 prepare:all:sentry:
   stage: prepare
@@ -269,6 +259,8 @@ integration_testing:
 
 staging:fpm:
   <<: *deploy
+  after_script:
+    - crane tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID latest
   stage: deploy:staging
   variables:
     IMAGE_LABEL: "staging"
@@ -311,15 +303,11 @@ production:fpm:
 production:runners:
   stage: deploy:production
   image: minds/ci:latest
-  services:
-    - docker:dind
   script:
     - IMAGE_LABEL="production"
-    - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - docker pull $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
-    # Push gitlab registry
-    - docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
-    - docker push $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
+    - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - crane tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $IMAGE_LABEL
+    - crane tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID latest
     # OKE: Rolling restart
     - *oci_prepare
     - kubectl get deployments | grep minds-runners- | awk '{print $1}' | xargs kubectl rollout restart deployment
