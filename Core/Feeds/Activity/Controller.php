@@ -65,6 +65,7 @@ class Controller
      */
     public function createNewActivity(ServerRequest $request): JsonResponse
     {
+        throw new ServerErrorException('NEW ACTIVITY')
         /** @var User $user */
         $user = $request->getAttribute('_user');
 

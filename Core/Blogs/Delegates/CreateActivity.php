@@ -14,6 +14,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\Activity;
+use Minds\Exceptions\ServerErrorException;
 
 class CreateActivity
 {
@@ -42,6 +43,7 @@ class CreateActivity
      */
     public function save(Blog $blog) : bool
     {
+        throw new ServerErrorException('Intentionally thrown exception');
         $activities = $this->db->getRow("activity:entitylink:{$blog->getGuid()}");
         if (!empty($activities)) {
             foreach ($activities as $guid) {

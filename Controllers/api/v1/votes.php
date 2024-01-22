@@ -18,6 +18,7 @@ use Minds\Core\Votes\Counters;
 use Minds\Core\Votes\Manager;
 use Minds\Core\Votes\Vote;
 use Minds\Core\Votes\VoteOptions;
+use Minds\Exceptions\ServerErrorException;
 use Minds\Interfaces;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -81,12 +82,11 @@ class votes implements Interfaces\Api
      */
     public function put($pages)
     {
-        if (!isset($pages[0]) || !$pages[0]) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'Invalid entity GUID',
-            ]);
-        }
+        return Factory::response([
+            'status' => 'error',
+            'message' => 'Invalid entity GUID',
+        ]);
+
 
         $direction = isset($pages[1]) ? $pages[1] : 'up';
 
