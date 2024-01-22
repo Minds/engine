@@ -11,6 +11,7 @@ class Module implements ModuleInterface
     public $submodules = [
         Configs\Module::class,
         AutoLogin\Module::class,
+        CustomPages\Module::class,
     ];
 
     /**

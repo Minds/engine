@@ -126,7 +126,6 @@ class RepositorySpec extends ObjectBehavior
         $siteName = 'Test site';
         $colorScheme = MultiTenantColorScheme::DARK;
         $primaryColor = '#fff000';
-        $communityGuidelines = 'Test community guidelines';
         $federationDisabled = true;
         $nsfwEnabled = true;
 
@@ -138,7 +137,6 @@ class RepositorySpec extends ObjectBehavior
             'site_name' => $siteName,
             'color_scheme' => $colorScheme->value,
             'primary_color' => $primaryColor,
-            'community_guidelines' => $communityGuidelines,
             'federation_disabled' => $federationDisabled,
             'nsfw_enabled' => $nsfwEnabled
         ])->shouldBeCalled();
@@ -152,7 +150,6 @@ class RepositorySpec extends ObjectBehavior
             siteName: $siteName,
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
-            communityGuidelines: $communityGuidelines,
             federationDisabled: $federationDisabled,
             nsfwEnabled: $nsfwEnabled
         )->shouldBe(true);
