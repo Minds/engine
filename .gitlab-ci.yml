@@ -259,7 +259,7 @@ integration_testing:
   stage: deploy:staging
   image: minds/ci:latest
   script:
-    - crane tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
+    - crane tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $IMAGE_LABEL
     # OKE: Rolling restart
     - *oci_prepare
     - kubectl -n default rollout restart deployment minds-engine-$IMAGE_LABEL
