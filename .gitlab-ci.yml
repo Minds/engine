@@ -85,45 +85,58 @@ static-analysis:
 
 prepare:fpm:
   stage: prepare
-  image: minds/ci:latest
-  services:
-    - docker:dind
+  image:
+    name: gcr.io/kaniko-project/executor:v1.14.0-debug
+    entrypoint: [""]
   script:
-    - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - |
-      docker build \
-        -t $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID \
-        -f containers/php-fpm/Dockerfile \
-        --build-arg MINDS_VERSION=$CI_PIPELINE_ID \
-        --build-arg SENTRY_DSN=$SENTRY_DSN \
-        .
-    - docker push $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
-    - >
-      if [ $CI_COMMIT_BRANCH == "master" ]; then
-        docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:latest &&
-        docker push $CI_REGISTRY_IMAGE/fpm:latest
-      fi
+    # - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+    # - |
+    #   docker build \
+    #     -t $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID \
+    #     -f containers/php-fpm/Dockerfile \
+    #     --build-arg MINDS_VERSION=$CI_PIPELINE_ID \
+    #     --build-arg SENTRY_DSN=$SENTRY_DSN \
+    #     .
+    # - docker push $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
+
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/containers/php-fpm/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/fpm:${CI_COMMIT_TAG}"
+      --build-arg MINDS_VERSION=$CI_PIPELINE_ID
+      --build-arg SENTRY_DSN=$SENTRY_DSN
+    # - >
+    #   if [ $CI_COMMIT_BRANCH == "master" ]; then
+    #     docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:latest &&
+    #     docker push $CI_REGISTRY_IMAGE/fpm:latest
+    #   fi
 
 prepare:runners:
   stage: prepare
-  image: minds/ci:latest
-  services:
-    - docker:dind
+  image:
+    name: gcr.io/kaniko-project/executor:v1.14.0-debug
+    entrypoint: [""]
   script:
-    - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - |
-      docker build \
-        -t $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID \
-        -f containers/php-runners/Dockerfile \
-        --build-arg MINDS_VERSION=$CI_PIPELINE_ID \
-        --build-arg SENTRY_DSN=$RUNNERS_SENTRY_DSN \
-        .
-    - docker push $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
-    - >
-      if [ $CI_COMMIT_BRANCH == "master" ]; then
-        docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:latest &&
-        docker push $CI_REGISTRY_IMAGE/runners:latest
-      fi
+    # - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+    # - |
+    #   docker build \
+    #     -t $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID \
+    #     -f containers/php-runners/Dockerfile \
+    #     --build-arg MINDS_VERSION=$CI_PIPELINE_ID \
+    #     --build-arg SENTRY_DSN=$RUNNERS_SENTRY_DSN \
+    #     .
+    # - docker push $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/containers/php-runners/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/runners:${CI_COMMIT_TAG}"
+      --build-arg MINDS_VERSION=$CI_PIPELINE_ID
+      --build-arg SENTRY_DSN=$RUNNERS_SENTRY_DSN
+    # - >
+    #   if [ $CI_COMMIT_BRANCH == "master" ]; then
+    #     docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:latest &&
+    #     docker push $CI_REGISTRY_IMAGE/runners:latest
+    #   fi
 
 prepare:all:sentry:
   stage: prepare
