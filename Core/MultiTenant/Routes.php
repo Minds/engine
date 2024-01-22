@@ -24,6 +24,11 @@ class Routes extends ModuleRoutes
                     Ref::_(Controllers\MobileConfigPsrController::class, 'get')
                 );
 
+                $route->post(
+                    'update-preview',
+                    Ref::_(Controllers\MobileConfigPreviewPsrController::class, 'processMobilePreviewWebhook')
+                );
+
                 // admin routes.
                 $route
                     ->withMiddleware([

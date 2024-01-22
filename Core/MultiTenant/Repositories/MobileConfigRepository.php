@@ -33,8 +33,8 @@ class MobileConfigRepository extends AbstractRepository
             ->into(self::TABLE_NAME)
             ->set([
                 'tenant_id' => $tenantId ?? ($this->config->get('tenant_id') ?? -1),
-                'splash_screen_type' => $splashScreenType?->value,
-                'welcome_screen_logo_type' => $welcomeScreenLogoType?->value,
+                'splash_screen_type' => $splashScreenType?->value ?? MobileSplashScreenTypeEnum::CONTAIN->value,
+                'welcome_screen_logo_type' => $welcomeScreenLogoType?->value ?? MobileWelcomeScreenLogoTypeEnum::SQUARE->value,
                 'preview_status' => $previewStatus?->value ?? MobilePreviewStatusEnum::NO_PREVIEW->value,
                 'preview_last_updated_timestamp' => $previewStatus ? date('c', time()) : null,
             ])

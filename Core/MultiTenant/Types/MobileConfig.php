@@ -16,12 +16,11 @@ use TheCodingMachine\GraphQLite\Types\ID;
 class MobileConfig
 {
     public function __construct(
-        #[Field] public int                              $updateTimestamp,
-        #[Field] public ?MobileSplashScreenTypeEnum      $splashScreenType = null,
-        #[Field] public ?MobileWelcomeScreenLogoTypeEnum $welcomeScreenLogoType = null,
-        #[Field] public MobilePreviewStatusEnum          $previewStatus = MobilePreviewStatusEnum::NO_PREVIEW,
-        #[Field] public ?string                          $previewQRCode = null,
-        public ?int                                      $previewLastUpdatedTimestamp = null,
+        #[Field] public int                             $updateTimestamp,
+        #[Field] public MobileSplashScreenTypeEnum      $splashScreenType = MobileSplashScreenTypeEnum::CONTAIN,
+        #[Field] public MobileWelcomeScreenLogoTypeEnum $welcomeScreenLogoType = MobileWelcomeScreenLogoTypeEnum::SQUARE,
+        #[Field] public MobilePreviewStatusEnum         $previewStatus = MobilePreviewStatusEnum::NO_PREVIEW,
+        public ?int                                     $previewLastUpdatedTimestamp = null,
     ) {
     }
 
@@ -29,5 +28,11 @@ class MobileConfig
     public function getId(): ID
     {
         return new ID("mobile_config_" . Di::_()->get(Config::class)->get("tenant_id"));
+    }
+
+    #[Field]
+    public function getPreviewQRCode(): string
+    {
+        return "mindspreview://preview/" . Di::_()->get(Config::class)->get("tenant_id");
     }
 }

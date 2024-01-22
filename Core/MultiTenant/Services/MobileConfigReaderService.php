@@ -7,6 +7,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\GraphQL\Types\KeyValuePair;
 use Minds\Core\MultiTenant\Enums\MobileConfigImageTypeEnum;
 use Minds\Core\MultiTenant\Exceptions\NoMobileConfigFoundException;
+use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Repositories\MobileConfigRepository;
 use Minds\Core\MultiTenant\Types\AppReadyMobileConfig;
@@ -25,13 +26,19 @@ class MobileConfigReaderService
     /**
      * @param int $tenantId
      * @return AppReadyMobileConfig
-     * @throws NoMobileConfigFoundException
+     * @throws NoTenantFoundException
      */
     public function getAppReadyMobileConfig(int $tenantId): AppReadyMobileConfig
     {
         $this->multiTenantBootService->bootFromTenantId($tenantId);
         $tenant = $this->multiTenantBootService->getTenant();
-        $mobileConfig = $this->mobileConfigRepository->getMobileConfig($tenantId);
+        try {
+            $mobileConfig = $this->mobileConfigRepository->getMobileConfig($tenantId);
+        } catch (NoMobileConfigFoundException $e) {
+            $mobileConfig = new MobileConfig(
+                updateTimestamp: time(),
+            );
+        }
 
         $config = new AppReadyMobileConfig(
             appName: $tenant->config?->siteName ?? '',

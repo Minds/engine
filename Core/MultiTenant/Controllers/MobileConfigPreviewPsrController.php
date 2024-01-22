@@ -38,14 +38,12 @@ class MobileConfigPreviewPsrController
             throw new ForbiddenException('Invalid token');
         }
 
-        ['tenantId' => $tenantId, 'status' => $status] = $request->getParsedBody();
+        ['TENANT_ID' => $tenantId, 'status' => $status] = $request->getParsedBody();
 
-        if ($this->mobileConfigManagementService->processMobilePreviewWebhook(
-            tenantId: $tenantId,
+        $this->mobileConfigManagementService->processMobilePreviewWebhook(
+            tenantId: (int)$tenantId,
             status: $status
-        )) {
-            throw new ServerErrorException('Failed to process webhook');
-        }
+        );
 
         return new JsonResponse("", 200);
     }
