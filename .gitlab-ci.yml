@@ -20,13 +20,14 @@ variables:
 
 baseimage:prepare:
   stage: baseimage
-  image: minds/ci:latest
-  services:
-    - docker:dind
+  image:
+    name: gcr.io/kaniko-project/executor:v1.14.0-debug
+    entrypoint: [""]
   script:
-    - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - docker build -t $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID containers/php
-    - docker push $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/containers/php/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/php:${CI_PIPELINE_ID}"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: never
@@ -35,13 +36,14 @@ baseimage:prepare:
 
 baseimage:deploy:
   stage: baseimage
-  image: minds/ci:latest
-  services:
-    - docker:dind
+  image:
+    name: gcr.io/kaniko-project/executor:v1.14.0-debug
+    entrypoint: [""]
   script:
-    - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - docker build -t $CI_REGISTRY_IMAGE/php:pdo containers/php
-    - docker push $CI_REGISTRY_IMAGE/php:pdo
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/containers/php/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/php:8.1"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
@@ -85,45 +87,29 @@ static-analysis:
 
 prepare:fpm:
   stage: prepare
-  image: minds/ci:latest
-  services:
-    - docker:dind
+  image:
+    name: gcr.io/kaniko-project/executor:v1.14.0-debug
+    entrypoint: [""]
   script:
-    - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - |
-      docker build \
-        -t $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID \
-        -f containers/php-fpm/Dockerfile \
-        --build-arg MINDS_VERSION=$CI_PIPELINE_ID \
-        --build-arg SENTRY_DSN=$SENTRY_DSN \
-        .
-    - docker push $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
-    - >
-      if [ $CI_COMMIT_BRANCH == "master" ]; then
-        docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:latest &&
-        docker push $CI_REGISTRY_IMAGE/fpm:latest
-      fi
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/containers/php-fpm/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/fpm:${CI_PIPELINE_ID}"
+      --build-arg MINDS_VERSION=$CI_PIPELINE_ID
+      --build-arg SENTRY_DSN=$SENTRY_DSN
 
 prepare:runners:
   stage: prepare
-  image: minds/ci:latest
-  services:
-    - docker:dind
+  image:
+    name: gcr.io/kaniko-project/executor:v1.14.0-debug
+    entrypoint: [""]
   script:
-    - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - |
-      docker build \
-        -t $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID \
-        -f containers/php-runners/Dockerfile \
-        --build-arg MINDS_VERSION=$CI_PIPELINE_ID \
-        --build-arg SENTRY_DSN=$RUNNERS_SENTRY_DSN \
-        .
-    - docker push $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
-    - >
-      if [ $CI_COMMIT_BRANCH == "master" ]; then
-        docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:latest &&
-        docker push $CI_REGISTRY_IMAGE/runners:latest
-      fi
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/containers/php-runners/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/runners:${CI_PIPELINE_ID}"
+      --build-arg MINDS_VERSION=$CI_PIPELINE_ID
+      --build-arg SENTRY_DSN=$RUNNERS_SENTRY_DSN
 
 prepare:all:sentry:
   stage: prepare
@@ -203,14 +189,13 @@ review:start:
   except:
     refs:
       - master
-      - feat/ci-k8s
 
 review:stop:
   stage: review
   image: minds/ci:latest
   script:
     - *oci_prepare
-    - helm del $CI_COMMIT_REF_SLUG
+    - helm -n default del $CI_COMMIT_REF_SLUG
   environment:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
@@ -262,22 +247,19 @@ integration_testing:
 .deploy: &deploy
   stage: deploy:staging
   image: minds/ci:latest
-  services:
-    - docker:dind
   script:
-    - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - docker pull $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
-    # Push to Gitlab registry
-    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
-    - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
+    - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - crane tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $IMAGE_LABEL
     # OKE: Rolling restart
     - *oci_prepare
-    - kubectl rollout restart deployment minds-engine-$IMAGE_LABEL
+    - kubectl -n default rollout restart deployment minds-engine-$IMAGE_LABEL
     # Update sentry
     - sentry-cli releases deploys $CI_PIPELINE_ID new -e $IMAGE_LABEL
 
 staging:fpm:
   <<: *deploy
+  after_script:
+    - crane tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID latest
   stage: deploy:staging
   variables:
     IMAGE_LABEL: "staging"
@@ -287,7 +269,7 @@ staging:fpm:
   only:
     refs:
       - master
-      - feat/ci-k8s
+      - test/gitlab-ci
   allow_failure: true
 
 canary:fpm:
@@ -320,21 +302,18 @@ production:fpm:
 production:runners:
   stage: deploy:production
   image: minds/ci:latest
-  services:
-    - docker:dind
   script:
     - IMAGE_LABEL="production"
-    - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - docker pull $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
-    # Push gitlab registry
-    - docker tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
-    - docker push $CI_REGISTRY_IMAGE/runners:$IMAGE_LABEL
+    - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - crane tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID $IMAGE_LABEL
+    - crane tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID latest
     # OKE: Rolling restart
     - *oci_prepare
-    - kubectl get deployments | grep minds-runners- | awk '{print $1}' | xargs kubectl rollout restart deployment
+    - kubectl -n default get deployments | grep minds-runners- | awk '{print $1}' | xargs kubectl -n default rollout restart deployment
   only:
     refs:
       - master
+      - test/gitlab-ci
   environment:
     name: runners
     url: https://www.minds.com/
