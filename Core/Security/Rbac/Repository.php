@@ -3,6 +3,7 @@ namespace Minds\Core\Security\Rbac;
 
 use Error;
 use Minds\Core\Config\Config;
+use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
@@ -16,11 +17,11 @@ use Selective\Database\SelectQuery;
 
 class Repository extends AbstractRepository
 {
-    /** @var Role[] */
-    private $rolesCache;
+    const CACHE_KEY = 'rbac:roles';
 
     public function __construct(
         private MultiTenantBootService $multiTenantBootService,
+        private InMemoryCache $cache,
         ... $args
     ) {
         parent::__construct(...$args);
@@ -58,8 +59,8 @@ class Repository extends AbstractRepository
      */
     public function getRoles(bool $useCache = true): array
     {
-        if ($useCache && isset($this->rolesCache)) {
-            return $this->rolesCache;
+        if ($useCache && $this->cache->has(self::CACHE_KEY)) {
+            return $this->cache->get(self::CACHE_KEY);
         }
 
         $query = $this->buildGetRolesQuery();
@@ -74,7 +75,8 @@ class Repository extends AbstractRepository
         }
 
         $roles = $this->buildRolesFromRows($stmt->fetchAll(PDO::FETCH_ASSOC));
-        $this->rolesCache = $roles;
+
+        $this->cache->set(self::CACHE_KEY, $roles);
 
         return $roles;
     }
