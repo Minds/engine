@@ -272,7 +272,7 @@ integration_testing:
     - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
     # OKE: Rolling restart
     - *oci_prepare
-    - kubectl rollout restart deployment minds-engine-$IMAGE_LABEL
+    - kubectl -n default rollout restart deployment minds-engine-$IMAGE_LABEL
     # Update sentry
     - sentry-cli releases deploys $CI_PIPELINE_ID new -e $IMAGE_LABEL
 
