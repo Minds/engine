@@ -203,7 +203,7 @@ review:start:
   except:
     refs:
       - master
-      - feat/ci-k8s
+      - test/gitlab-ci
 
 review:stop:
   stage: review
@@ -287,7 +287,7 @@ staging:fpm:
   only:
     refs:
       - master
-      - feat/ci-k8s
+      - test/gitlab-ci
   allow_failure: true
 
 canary:fpm:
