@@ -74,10 +74,7 @@ class EarningsDashboard implements DashboardInterface
             ->setSelectedId($this->metricId)
             ->setUser($this->user)
             ->addMetrics(
-                new Metrics\Earnings\TotalEarningsMetric(),
-                new Metrics\Earnings\ViewsEarningsMetric(),
-                new Metrics\Earnings\ReferralsEarningsMetric(),
-                new Metrics\Earnings\PlusEarningsMetric()
+                new Metrics\Earnings\TotalEarningsMetric()
             )
             ->build();
 
