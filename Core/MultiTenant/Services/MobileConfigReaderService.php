@@ -82,7 +82,7 @@ class MobileConfigReaderService
         foreach (MobileConfigImageTypeEnum::cases() as $imageType) {
             $assets[] = new KeyValuePair(
                 key: $imageType->value,
-                value: "{$this->config->get('site_url')}api/v3/multi-tenant/mobile-configs/image/$imageType->value"
+                value: "{$this->config->get('site_url')}api/v3/multi-tenant/mobile-configs/image/$imageType->value" . "?" . time()
             );
         }
 

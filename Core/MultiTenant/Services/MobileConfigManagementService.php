@@ -69,8 +69,8 @@ class MobileConfigManagementService
 
         return new MobileConfig(
             updateTimestamp: time(),
-            splashScreenType: $mobileSplashScreenType ?? $mobileConfig?->splashScreenType,
-            welcomeScreenLogoType: $mobileWelcomeScreenLogoType ?? $mobileConfig?->welcomeScreenLogoType,
+            splashScreenType: $mobileSplashScreenType ?? ($mobileConfig?->splashScreenType ?? MobileSplashScreenTypeEnum::CONTAIN),
+            welcomeScreenLogoType: $mobileWelcomeScreenLogoType ?? ($mobileConfig?->welcomeScreenLogoType ?? MobileWelcomeScreenLogoTypeEnum::SQUARE),
             previewStatus: $mobilePreviewStatus ?? ($mobileConfig?->previewStatus ?? MobilePreviewStatusEnum::NO_PREVIEW),
             previewLastUpdatedTimestamp: $mobilePreviewStatus ? time() : $mobileConfig?->previewLastUpdatedTimestamp,
         );
