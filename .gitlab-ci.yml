@@ -20,13 +20,14 @@ variables:
 
 baseimage:prepare:
   stage: baseimage
-  image: minds/ci:latest
-  services:
-    - docker:dind
+  image:
+    name: gcr.io/kaniko-project/executor:v1.14.0-debug
+    entrypoint: [""]
   script:
-    - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - docker build -t $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID containers/php
-    - docker push $CI_REGISTRY_IMAGE/php:$CI_PIPELINE_ID
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/containers/php/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/php:${CI_COMMIT_TAG}"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: never
@@ -35,13 +36,14 @@ baseimage:prepare:
 
 baseimage:deploy:
   stage: baseimage
-  image: minds/ci:latest
-  services:
-    - docker:dind
+  image:
+    name: gcr.io/kaniko-project/executor:v1.14.0-debug
+    entrypoint: [""]
   script:
-    - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - docker build -t $CI_REGISTRY_IMAGE/php:pdo containers/php
-    - docker push $CI_REGISTRY_IMAGE/php:pdo
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/containers/php/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/php:8.1"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
@@ -89,16 +91,6 @@ prepare:fpm:
     name: gcr.io/kaniko-project/executor:v1.14.0-debug
     entrypoint: [""]
   script:
-    # - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    # - |
-    #   docker build \
-    #     -t $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID \
-    #     -f containers/php-fpm/Dockerfile \
-    #     --build-arg MINDS_VERSION=$CI_PIPELINE_ID \
-    #     --build-arg SENTRY_DSN=$SENTRY_DSN \
-    #     .
-    # - docker push $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
-
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/containers/php-fpm/Dockerfile"
@@ -117,15 +109,6 @@ prepare:runners:
     name: gcr.io/kaniko-project/executor:v1.14.0-debug
     entrypoint: [""]
   script:
-    # - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    # - |
-    #   docker build \
-    #     -t $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID \
-    #     -f containers/php-runners/Dockerfile \
-    #     --build-arg MINDS_VERSION=$CI_PIPELINE_ID \
-    #     --build-arg SENTRY_DSN=$RUNNERS_SENTRY_DSN \
-    #     .
-    # - docker push $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/containers/php-runners/Dockerfile"
@@ -275,14 +258,8 @@ integration_testing:
 .deploy: &deploy
   stage: deploy:staging
   image: minds/ci:latest
-  services:
-    - docker:dind
   script:
-    - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - docker pull $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID
-    # Push to Gitlab registry
-    - docker tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
-    - docker push $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
+    - crane tag CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/fpm:$IMAGE_LABEL
     # OKE: Rolling restart
     - *oci_prepare
     - kubectl -n default rollout restart deployment minds-engine-$IMAGE_LABEL
