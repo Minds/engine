@@ -83,7 +83,7 @@ class RepositorySpec extends ObjectBehavior
 
         $stmtMock->execute([
             'tenant_id' => 1,
-            'page_type' => 'community_guidlines',
+            'page_type' => 'community_guidelines',
             'content' => "custom content",
             'external_link' => null,
         ])->willReturn(true);
