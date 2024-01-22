@@ -309,7 +309,7 @@ production:runners:
     - crane tag $CI_REGISTRY_IMAGE/runners:$CI_PIPELINE_ID latest
     # OKE: Rolling restart
     - *oci_prepare
-    - kubectl get deployments | grep minds-runners- | awk '{print $1}' | xargs kubectl rollout restart deployment
+    - kubectl -n default get deployments | grep minds-runners- | awk '{print $1}' | xargs kubectl -n default rollout restart deployment
   only:
     refs:
       - master
