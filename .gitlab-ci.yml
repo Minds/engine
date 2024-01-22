@@ -25,14 +25,14 @@ baseimage:prepare:
     entrypoint: [""]
   script:
     - /kaniko/executor
-      --context "${CI_PROJECT_DIR}"
+      --context "${CI_PROJECT_DIR}/containers/php"
       --dockerfile "${CI_PROJECT_DIR}/containers/php/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}/php:${CI_PIPELINE_ID}"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: never
     - changes:
-        - containers/php/*
+      - containers/php/*
 
 baseimage:deploy:
   stage: baseimage
@@ -41,7 +41,7 @@ baseimage:deploy:
     entrypoint: [""]
   script:
     - /kaniko/executor
-      --context "${CI_PROJECT_DIR}"
+      --context "${CI_PROJECT_DIR}/containers/php"
       --dockerfile "${CI_PROJECT_DIR}/containers/php/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}/php:8.1"
   rules:
