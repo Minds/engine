@@ -259,6 +259,7 @@ integration_testing:
   stage: deploy:staging
   image: minds/ci:latest
   script:
+    - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - crane tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $IMAGE_LABEL
     # OKE: Rolling restart
     - *oci_prepare
