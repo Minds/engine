@@ -27,7 +27,7 @@ baseimage:prepare:
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/containers/php/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}/php:${CI_COMMIT_TAG}"
+      --destination "${CI_REGISTRY_IMAGE}/php:${CI_PIPELINE_ID}"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: never
@@ -94,7 +94,7 @@ prepare:fpm:
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/containers/php-fpm/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}/fpm:${CI_COMMIT_TAG}"
+      --destination "${CI_REGISTRY_IMAGE}/fpm:${CI_PIPELINE_ID}"
       --build-arg MINDS_VERSION=$CI_PIPELINE_ID
       --build-arg SENTRY_DSN=$SENTRY_DSN
     # - >
@@ -112,7 +112,7 @@ prepare:runners:
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/containers/php-runners/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}/runners:${CI_COMMIT_TAG}"
+      --destination "${CI_REGISTRY_IMAGE}/runners:${CI_PIPELINE_ID}"
       --build-arg MINDS_VERSION=$CI_PIPELINE_ID
       --build-arg SENTRY_DSN=$RUNNERS_SENTRY_DSN
     # - >
