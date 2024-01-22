@@ -189,14 +189,13 @@ review:start:
   except:
     refs:
       - master
-      - test/gitlab-ci
 
 review:stop:
   stage: review
   image: minds/ci:latest
   script:
     - *oci_prepare
-    - helm del $CI_COMMIT_REF_SLUG
+    - helm -n default del $CI_COMMIT_REF_SLUG
   environment:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
@@ -314,6 +313,7 @@ production:runners:
   only:
     refs:
       - master
+      - test/gitlab-ci
   environment:
     name: runners
     url: https://www.minds.com/
