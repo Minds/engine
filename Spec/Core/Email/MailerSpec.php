@@ -58,7 +58,6 @@ class MailerSpec extends ObjectBehavior
         $mailer->isSMTP()->shouldBeCalled();
         $mailer->ClearAllRecipients()->shouldBeCalled();
         $mailer->clearAttachments()->shouldBeCalled();
-        $config->get('site_name')->shouldBeCalled();
         $mailer->ClearReplyTos()->shouldBeCalled();
         $mailer->addReplyTo('tenant@example.com', Argument::any())->shouldBeCalled();
         $mailer->setFrom('me@minds.com', 'Sender')->shouldBeCalled();
@@ -72,43 +71,40 @@ class MailerSpec extends ObjectBehavior
         $this->send($message);
     }
 
+public function it_should_set_replyTo_to_default_when_tenant_replyEmail_is_empty(
+    PHPMailer $mailer,
+    Queue $queue,
+    SpamFilter $filter,
+    Logger $logger,
+    Config $config,
+    TenantConfigsManager $tenantConfigsManager,
+    Message $message
+) {
+    $multiTenantConfig = new MultiTenantConfig(
+        replyEmail: ''
+    );
 
-    public function it_should_not_change_replyTo_when_tenant_replyEmail_is_empty(
-        PHPMailer $mailer,
-        Queue $queue,
-        SpamFilter $filter,
-        Logger $logger,
-        Config $config,
-        TenantConfigsManager $tenantConfigsManager,
-        Message $message
-    ) {
-        $multiTenantConfig = new MultiTenantConfig(
-            replyEmail: ''
-        );
+    $tenantConfigsManager->getConfigs()->willReturn($multiTenantConfig);
+    $config->get('tenant_id')->willReturn('123');
 
-        $tenantConfigsManager->getConfigs()->willReturn($multiTenantConfig);
-        $config->get('tenant_id')->willReturn('123');
+    $this->beConstructedWith($mailer, $queue, $filter, $logger, $config, $tenantConfigsManager);
 
-        $this->beConstructedWith($mailer, $queue, $filter, $logger, $config, $tenantConfigsManager);
+    $message->to = [['email' => 'recipient@example.com', 'name' => 'Recipient']];
+    $message->from = ['email' => 'me@minds.com', 'name' => 'Sender'];
 
-        $message->to = [['email' => 'recipient@example.com', 'name' => 'Recipient']];
-        $message->from = ['email' => 'me@minds.com', 'name' => 'Sender'];
+    $mailer->isSMTP()->shouldBeCalled();
+    $mailer->ClearAllRecipients()->shouldBeCalled();
+    $mailer->clearAttachments()->shouldBeCalled();
+    $mailer->ClearReplyTos()->shouldBeCalled();
+    $mailer->addReplyTo('no-reply@minds.com', 'Minds')->shouldBeCalled();
+    $mailer->setFrom('me@minds.com', 'Sender')->shouldBeCalled();
+    $mailer->AddAddress('recipient@example.com', 'Recipient')->shouldBeCalled();
+    $mailer->isHTML(true)->shouldBeCalled();
+    $mailer->Send()->shouldBeCalled();
 
-        $mailer->isSMTP()->shouldBeCalled();
-        $mailer->ClearAllRecipients()->shouldBeCalled();
-        $mailer->clearAttachments()->shouldBeCalled();
-        $mailer->ClearReplyTos()->shouldNotBeCalled();
-        $mailer->addReplyTo(Argument::any(), Argument::any())->shouldNotBeCalled();
-        $mailer->setFrom('me@minds.com', 'Sender')->shouldBeCalled();
-        $mailer->AddAddress(
-            'recipient@example.com',
-            'Recipient'
-        )->shouldBeCalled();
-        $mailer->isHTML(true)->shouldBeCalled();
-        $mailer->Send()->shouldBeCalled();
+    $this->send($message);
+}
 
-        $this->send($message);
-    }
 
 
     public function it_should_not_change_replyTo_when_not_a_tenant_and_no_replyTo_set(
