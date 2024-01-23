@@ -7,6 +7,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
+use Minds\Core\MultiTenant\MobileConfigs\Repositories\MobileConfigRepository;
 
 class RepositoriesProvider extends Provider
 {

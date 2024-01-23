@@ -5,13 +5,11 @@ namespace Minds\Core\MultiTenant;
 
 use Minds\Core\GraphQL\AbstractGraphQLMappings;
 use Minds\Core\MultiTenant\Models\Tenant;
-use Minds\Core\MultiTenant\Types\AppReadyMobileConfig;
 use Minds\Core\MultiTenant\Types\FeaturedEntity;
 use Minds\Core\MultiTenant\Types\FeaturedEntityConnection;
 use Minds\Core\MultiTenant\Types\FeaturedEntityEdge;
 use Minds\Core\MultiTenant\Types\FeaturedGroup;
 use Minds\Core\MultiTenant\Types\FeaturedUser;
-use Minds\Core\MultiTenant\Types\MobileConfig;
 use Minds\Core\MultiTenant\Types\MultiTenantDomain;
 use Minds\Core\MultiTenant\Types\MultiTenantDomainDnsRecord;
 use Minds\Core\MultiTenant\Types\TenantUser;
@@ -36,9 +34,7 @@ class GraphQLMappings extends AbstractGraphQLMappings
             FeaturedEntityEdge::class,
             FeaturedEntityConnection::class,
             MultiTenantDomain::class,
-            MultiTenantDomainDnsRecord::class,
-            MobileConfig::class,
-            AppReadyMobileConfig::class
+            MultiTenantDomainDnsRecord::class
         ]));
 
         $this->schemaFactory->setInputTypeValidator(new Types\Validators\TenantInputValidator());

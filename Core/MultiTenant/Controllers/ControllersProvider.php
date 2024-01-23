@@ -8,11 +8,15 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
+use Minds\Core\MultiTenant\MobileConfigs\Controllers\MobileConfigManagementController;
+use Minds\Core\MultiTenant\MobileConfigs\Controllers\MobileConfigPreviewPsrController;
+use Minds\Core\MultiTenant\MobileConfigs\Controllers\MobileConfigPsrController;
+use Minds\Core\MultiTenant\MobileConfigs\Controllers\MobileConfigReaderController;
+use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigAssetsService;
+use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigManagementService;
+use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigReaderService;
 use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\FeaturedEntityService;
-use Minds\Core\MultiTenant\Services\MobileConfigAssetsService;
-use Minds\Core\MultiTenant\Services\MobileConfigManagementService;
-use Minds\Core\MultiTenant\Services\MobileConfigReaderService;
 use Minds\Core\MultiTenant\Services\TenantsService;
 use Minds\Core\MultiTenant\Services\TenantUsersService;
 

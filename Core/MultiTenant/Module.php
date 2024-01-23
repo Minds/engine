@@ -12,6 +12,7 @@ class Module implements ModuleInterface
         Configs\Module::class,
         AutoLogin\Module::class,
         CustomPages\Module::class,
+        MobileConfigs\Module::class,
     ];
 
     /**
@@ -22,6 +23,5 @@ class Module implements ModuleInterface
     {
         (new GraphQLMappings())->register();
         (new Provider())->register();
-        (new Routes())->register();
     }
 }
