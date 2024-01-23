@@ -7,24 +7,21 @@ use Minds\Core\Di\Di;
 use Minds\Core\GraphQL\Services\AuthorizationService;
 use Minds\Core\GraphQL\Services\AuthService;
 use Minds\Core\Security\Rbac\Services\RolesService;
+use Psr\Http\Message\ServerRequestInterface;
 use TheCodingMachine\GraphQLite\Context\Context;
 use Zend\Diactoros\Response\JsonResponse;
-use Zend\Diactoros\ServerRequest;
 
 class Controller
 {
-    public function exec(ServerRequest $request): JsonResponse
+    public function exec(ServerRequestInterface $request): JsonResponse
     {
-        $rawInput = file_get_contents('php://input');
+        $rawInput = $request->getBody()->getContents();
+
         $input = json_decode($rawInput, true);
         $query = $input['query'];
         $variableValues = isset($input['variables']) ? $input['variables'] : null;
-
-        $authService = new AuthService($request->getAttribute('_user'));
-        $authorizationService = new AuthorizationService(
-            Di::_()->get(RolesService::class)
-        );
-        $schema = Di::_()->get(Schema::class, ['auth_service' => $authService, 'authorization_service' => $authorizationService]);
+  
+        $schema = Di::_()->get(Schema::class);
 
         $result = GraphQL::executeQuery($schema, $query, null, new Context(), $variableValues);
         $output = $result->toArray();

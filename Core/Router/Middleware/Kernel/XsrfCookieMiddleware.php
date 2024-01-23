@@ -47,7 +47,7 @@ class XsrfCookieMiddleware implements MiddlewareInterface
         if (
             $request->getAttribute('_user') && // If logged in
             !$request->getAttribute('oauth_user_id') && // And not OAuth
-            !call_user_func($this->xsrfValidateRequest) // And xsrf validatio fails
+            !call_user_func($this->xsrfValidateRequest, $request) // And xsrf validatio fails
         ) {
             throw new ForbiddenException();
         }

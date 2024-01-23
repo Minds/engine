@@ -87,7 +87,7 @@ class Fallback
         fwrite($stream, $response);
         rewind($stream);
 
-        return new Response(new Stream($stream), http_response_code());
+        return new Response(new Stream($stream), http_response_code() ?: 200);
     }
 
     /**
@@ -108,11 +108,4 @@ class Fallback
         return new HtmlResponse($html, 200);
     }
 
-    /**
-     * Complete routing fallback
-     */
-    public function route()
-    {
-        (new Router())->route();
-    }
 }

@@ -185,23 +185,6 @@ class Minds extends base
      */
     public function checkInstalled()
     {
-        $multiTenantConfig = Di::_()->get(Config\Config::class)->get('multi_tenant') ?? [];
-        if (php_sapi_name() !== 'cli' && ($multiTenantConfig['enabled'] ?? false)) {
-            /** @var MultiTenant\Services\MultiTenantBootService */
-            $service = Di::_()->get(MultiTenant\Services\MultiTenantBootService::class);
-            
-            try {
-                $service
-                    ->bootFromRequest(ServerRequestFactory::fromGlobals());
-            } catch (NoTenantFoundException $e) {
-                if (ob_get_contents()) {
-                    ob_end_clean();
-                }
-                header('HTTP/1.0 404 Not Found', true, 404);
-                exit;
-            }
-        }
-
         if (!file_exists(__MINDS_ROOT__ . '/settings.php') && !defined('__MINDS_INSTALLING__') && php_sapi_name() !== 'cli') {
             ob_end_clean();
             header('Fatal error', true, 500);

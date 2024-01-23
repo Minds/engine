@@ -18,6 +18,7 @@ use Lcobucci\JWT\Signer\Rsa\Sha512;
 use Lcobucci\JWT\Token\Plain;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
 use Minds\Common\Repository\Response;
+use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Entities\User;
 
 class Manager
@@ -119,6 +120,7 @@ class Manager
     {
         $cookies = $request->getCookieParams();
         if (!isset($cookies['minds_sess'])) {
+            Core\Session::setUserByGuid(null);
             return $this;
         }
 
@@ -134,7 +136,7 @@ class Manager
         try {
             $token = $this->getJwtConfig()->parser()->parse($sessionToken);
         } catch (\Exception $e) {
-            return $this;
+            throw new UnauthorizedException();
         }
 
         try {
@@ -142,14 +144,14 @@ class Manager
                 new SignedWith($this->getJwtConfig()->signer(), $this->getJwtConfig()->verificationKey()),
             ];
             if (!$this->getJwtConfig()->validator()->validate($token, ...$constraints)) {
-                return $this;
+                throw new UnauthorizedException();
             }
         } catch (InvalidKeyProvided $e) {
-            return $this;
+            throw new UnauthorizedException();
         }
 
         $id = $token->headers()->get('jti');
-        $user_guid = $token->claims()->get('user_guid');
+        $userGuid = $token->claims()->get('user_guid');
 
         /** @var \DateTimeImmutable */
         $expires = $token->claims()->get('exp');
@@ -157,18 +159,18 @@ class Manager
         $session = new Session;
         $session
             ->setId($id)
-            ->setUserGuid($user_guid)
+            ->setUserGuid($userGuid)
             ->setToken($token)
             ->setExpires($expires->getTimestamp());
 
         if (!$this->validateSession($session)) {
-            return $this;
+            throw new UnauthorizedException();
         }
 
         $this->session = $session;
 
         // Sets the global user
-        Core\Session::setUserByGuid($user_guid);
+        Core\Session::setUserByGuid($userGuid);
 
         // Generate JWT cookie for sockets
         // Hack, needs refactoring

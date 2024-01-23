@@ -3,8 +3,15 @@ namespace Minds\Core\Data\cache;
 
 use Psr\SimpleCache\CacheInterface;
 
+/**
+ * This cache is persitent for each request/run
+ * RoadRunner (start.rr.php) will clear this cache on every request
+ */
 class InMemoryCache implements CacheInterface
 {
+    /** @var int */
+    const MAX_LOCAL_CACHE = 1000;
+
     private $kvCache = [];
 
     /**
@@ -12,7 +19,7 @@ class InMemoryCache implements CacheInterface
      */
     public function get($key, $default = null)
     {
-        return $kvCache[$key] ?? $default;
+        return isset($this->kvCache[$key]) ? $this->kvCache[$key] : $default;
     }
 
     /**
@@ -20,6 +27,10 @@ class InMemoryCache implements CacheInterface
      */
     public function set($key, $value, $ttl = null)
     {
+        if (count($this->kvCache) > static::MAX_LOCAL_CACHE) {
+            $this->clear();
+        }
+
         $this->kvCache[$key] = $value;
         return true;
     }
