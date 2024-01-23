@@ -21,7 +21,6 @@ class MultiTenantConfig
         #[Field] public readonly ?string $siteEmail = null,
         #[Field] public readonly ?MultiTenantColorScheme $colorScheme = null,
         #[Field] public readonly ?string $primaryColor = null,
-        #[Field] public readonly ?string $communityGuidelines = null,
         #[Field] public readonly ?bool $federationDisabled = false,
         #[Field] public readonly ?string $replyEmail = null,
         #[Field] public readonly ?bool $nsfwEnabled = null,

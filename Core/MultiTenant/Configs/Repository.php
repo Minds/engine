@@ -49,7 +49,6 @@ class Repository extends AbstractRepository
             siteEmail: $row['site_email'] ?? null,
             colorScheme: $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null,
             primaryColor: $row['primary_color'] ?? null,
-            communityGuidelines: $row['community_guidelines'] ?? null,
             federationDisabled: (bool) $row['federation_disabled'] ?? false,
             replyEmail: $row['reply_email'] ?? null,
             nsfwEnabled: ($row['nsfw_enabled'] ?? 1) === 1,
@@ -76,7 +75,6 @@ class Repository extends AbstractRepository
         ?string $siteName = null,
         ?MultiTenantColorScheme $colorScheme = null,
         ?string $primaryColor = null,
-        ?string $communityGuidelines = null,
         ?bool $federationDisabled = null,
         ?string $replyEmail = null,
         ?bool $nsfwEnabled = null,
@@ -98,11 +96,6 @@ class Repository extends AbstractRepository
         if ($primaryColor !== null) {
             $rawValues['primary_color'] = new RawExp(':primary_color');
             $boundValues['primary_color'] = $primaryColor;
-        }
-
-        if ($communityGuidelines !== null) {
-            $rawValues['community_guidelines'] = new RawExp(':community_guidelines');
-            $boundValues['community_guidelines'] = $communityGuidelines;
         }
 
         if ($federationDisabled !== null) {

@@ -115,7 +115,6 @@ class ManagerSpec extends ObjectBehavior
         $domain = 'localhost';
         $result = true;
         $tenant = new Tenant($tenantId, $domain);
-        $communityGuidelines = 'Test community guidelines';
         $federationDisabled = true;
         $replyEmail = 'some@email.com';
         $nsfwEnabled = true;
@@ -130,7 +129,6 @@ class ManagerSpec extends ObjectBehavior
             $siteName,
             $colorScheme,
             $primaryColor,
-            $communityGuidelines,
             $federationDisabled,
             $replyEmail,
             $nsfwEnabled,
@@ -150,7 +148,6 @@ class ManagerSpec extends ObjectBehavior
             $siteName,
             $colorScheme,
             $primaryColor,
-            $communityGuidelines,
             $federationDisabled,
             $replyEmail,
             $nsfwEnabled,
@@ -165,7 +162,6 @@ class ManagerSpec extends ObjectBehavior
         $colorScheme = MultiTenantColorScheme::DARK;
         $primaryColor = '#000000';
         $result = false;
-        $communityGuidelines = 'Test community guidelines';
         $federationDisabled = true;
         $replyEmail = 'some@email.com';
         $nsfwEnabled = true;
@@ -180,7 +176,6 @@ class ManagerSpec extends ObjectBehavior
             $siteName,
             $colorScheme,
             $primaryColor,
-            $communityGuidelines,
             $federationDisabled,
             $replyEmail,
             $nsfwEnabled,
@@ -199,7 +194,6 @@ class ManagerSpec extends ObjectBehavior
             $siteName,
             $colorScheme,
             $primaryColor,
-            $communityGuidelines,
             $federationDisabled,
             $replyEmail,
             $nsfwEnabled,
