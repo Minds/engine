@@ -111,11 +111,14 @@ class FeaturedEntityService
 
     /**
      * @param int|null $tenantId
+     * @param FeaturedEntityTypeEnum $featuredEntityType - type of featured entities.
      * @return FeaturedUser[]
      * @throws NoTenantFoundException
      */
-    public function getAllFeaturedEntities(?int $tenantId = null): iterable
-    {
+    public function getAllFeaturedEntities(
+        ?int $tenantId = null,
+        ?FeaturedEntityTypeEnum $featuredEntityType = null
+    ): iterable {
         $tenantId ??= $this->config->get('tenant_id');
 
         if (!$tenantId) {
@@ -124,7 +127,7 @@ class FeaturedEntityService
 
         return $this->repository->getFeaturedEntities(
             tenantId: $tenantId,
-            type: FeaturedEntityTypeEnum::USER,
+            type: $featuredEntityType,
             withPagination: false
         );
     }
