@@ -11,6 +11,9 @@ use Minds\Core\Router\Dispatcher;
 use Minds\Core\Router\Hooks\ShutdownHandlerManager;
 use Minds\Core\Router\Middleware\Kernel;
 use Minds\Core\Router\PrePsr7\Fallback;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\ServerRequestFactory;
 use Zend\Diactoros\Uri;
 
@@ -41,33 +44,10 @@ class Router
         $this->shutdownHandlerManager->registerAll();
     }
 
-    /**
-     * @param string|null $uri
-     * @param string|null $method
-     * @param string|null $host
-     */
-    public function route(string $uri = null, string $method = null, string $host = null): void
+    public function handleRequest(RequestInterface $request): ResponseInterface
     {
-        if (!$uri) {
-            $uri = strtok($_SERVER['REDIRECT_ORIG_URI'] ?? $_SERVER['REQUEST_URI'], '?');
-        }
-
-        if (!$method) {
-            $method = $_SERVER['REQUEST_METHOD'];
-        }
-
-        if (!$host) {
-            $host = $_SERVER['HTTP_HOST'];
-        }
-
-        $request = ServerRequestFactory::fromGlobals()
-            ->withMethod($method)
-            ->withUri(
-                (new Uri($uri))
-                    ->withHost($host)
-            );
-
-        $response = $this->dispatcher
+        return $this->dispatcher
+            ->pipe(new Kernel\MultiTenantBootMiddleware())
             ->pipe(new Kernel\ContentNegotiationMiddleware())
             ->pipe(new Kernel\ErrorHandlerMiddleware())
             ->pipe(
@@ -91,6 +71,16 @@ class Router
                     ->setAttributeName('_request-handler')
             )
             ->handle($request);
+    }
+
+    /**
+     * @param string|null $uri
+     * @param string|null $method
+     * @param string|null $host
+     */
+    public function route(ServerRequestInterface $request): void
+    {
+        $response = $this->handleRequest($request);
 
         foreach ($response->getHeaders() as $header => $values) {
             foreach ($values as $value) {

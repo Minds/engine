@@ -31,6 +31,9 @@ class JsonPayloadMiddlewareSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($stream);
 
+        $stream->rewind()
+            ->shouldBeCalled();
+
         $stream->getContents()
             ->shouldBeCalled()
             ->willReturn(json_encode(['phpspec' => 1]));

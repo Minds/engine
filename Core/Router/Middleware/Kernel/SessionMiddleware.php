@@ -55,6 +55,9 @@ class SessionMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if (!$request->getAttribute($this->attributeName)) {
+            // Ensure we have cleared sessions for every request and we rebuild them
+            Session::setUser(null);
+
             $this->session
                 ->withRouterRequest($request);
 
