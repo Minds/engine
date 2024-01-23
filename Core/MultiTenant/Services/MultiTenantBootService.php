@@ -163,6 +163,14 @@ class MultiTenantBootService
 
             $this->setConfig('nsfw_enabled', isset($tenant->config->nsfwEnabled) ? $tenant->config->nsfwEnabled : true);
 
+            if (isset($tenant->config->replyEmail)) {
+                if ($tenant->config->replyEmail === '') {
+                    $this->setConfig('reply_email', 'no-reply@minds.com');
+                } else {
+                    $this->setConfig('reply_email', $tenant->config->replyEmail);
+                }
+            }
+
         }
     }
 

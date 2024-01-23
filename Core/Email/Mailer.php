@@ -10,8 +10,6 @@ use Minds\Core\Di\Di;
 use Minds\Core\Log\Logger;
 use Minds\Core\Queue\Client as Queue;
 use PHPMailer;
-use Minds\Core\Config\Config;
-use Minds\Core\MultiTenant\Configs\Manager as TenantConfigsManager;
 
 class Mailer
 {
@@ -26,9 +24,7 @@ class Mailer
         $mailer = null,
         $queue = null,
         $filter = null,
-        private ?Logger $logger = null,
-        private ?Config $config = null,
-        private ?TenantConfigsManager $tenantConfigsManager = null
+        private ?Logger $logger = null
     ) {
         $this->mailer = $mailer ?: new PHPMailer();
         if (isset(Core\Config::_()->email['smtp'])) {
@@ -41,8 +37,6 @@ class Mailer
         $this->queue = $queue ?: Queue::build();
         $this->filter = $filter ?: Di::_()->get('Email\SpamFilter');
         $this->logger ??= Di::_()->get('Logger');
-        $this->config ??= Di::_()->get(Config::class);
-        $this->tenantConfigsManager??= Di::_()->get(TenantConfigsManager::class);
     }
 
     private function setup()
@@ -81,20 +75,12 @@ class Mailer
         $this->mailer->ClearAllRecipients();
         $this->mailer->ClearAttachments();
 
-        $isTenant = (bool)$this->config->get('tenant_id');
-        $replyTo = $message->getReplyTo();
-
-        if (!empty($replyTo) && !$isTenant) {
-            // Set custom reply-to in the email
+        if ($message->getReplyTo()) {
             $this->mailer->ClearReplyTos();
-            $this->mailer->addReplyTo($replyTo['email'], $replyTo['name'] ?? 'Minds');
-        } elseif ($isTenant) {
-            $configs = $this->tenantConfigsManager->getConfigs() ?? null;
-            $replyEmail = $configs?->replyEmail ?: 'no-reply@minds.com';
-
-            $siteName = $configs?->siteName ?: 'Minds';
-            $this->mailer->ClearReplyTos();
-            $this->mailer->addReplyTo($replyEmail, $siteName);
+            $this->mailer->addReplyTo(
+                $message->getReplyTo()['email'],
+                $message->getReplyTo()['name'] ?? 'Minds'
+            );
         }
 
         $this->mailer->setFrom(

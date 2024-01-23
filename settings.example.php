@@ -975,3 +975,5 @@ $CONFIG->set('theme_override', [
 ]);
 
 $CONFIG->set('nsfw_enabled', true);
+
+$CONFIG->set('reply_email', 'no-reply@minds.com');
