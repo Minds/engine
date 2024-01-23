@@ -34,6 +34,10 @@ class MultiTenantBootMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        // Always reset configs
+        $this->bootService->resetRootConfigs();
+
+        // Process the request
         $this->bootService->bootFromRequest($request);
 
         return $handler
