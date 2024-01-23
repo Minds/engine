@@ -5,7 +5,9 @@
 
 namespace Minds\Core\Data;
 
+use Minds\Core\Data\cache\APCuCache;
 use Minds\Core\Data\cache\InMemoryCache;
+use Minds\Core\Data\cache\WorkerCache;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
 
@@ -35,6 +37,15 @@ class DataProvider extends Provider
         $this->di->bind(InMemoryCache::class, function (Di $di): InMemoryCache {
             return new InMemoryCache();
         }, ['useFactory' => true]);
+
+        $this->di->bind(WorkerCache::class, function (Di $di): WorkerCache {
+            return new WorkerCache();
+        }, ['useFactory' => true]);
+
+        $this->di->bind(APCuCache::class, function (Di $di): APCuCache {
+            return new APCuCache();
+        }, ['useFactory' => true]);
+
         /**
          * Database bindings
          */

@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Security\Rbac;
 
 use Minds\Core\Config\Config;
+use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Data\MySQL\MySQLConnectionEnum;
 use Minds\Core\Security\Rbac\Repository;
 use PhpSpec\ObjectBehavior;
@@ -27,11 +28,12 @@ class RepositorySpec extends ObjectBehavior
     public function let(
         Config $configMock,
         MultiTenantBootService $multiTenantBootServiceMock,
+        InMemoryCache $cacheMock,
         MySQLClient $mysqlClientMock,
         PDO $mysqlMasterMock,
         PDO $mysqlReplicaMock
     ) {
-        $this->beConstructedWith($multiTenantBootServiceMock, $mysqlClientMock, $configMock, Di::_()->get('Logger'));
+        $this->beConstructedWith($multiTenantBootServiceMock, $cacheMock, $mysqlClientMock, $configMock, Di::_()->get('Logger'));
 
         $this->multiTenantBootServiceMock = $multiTenantBootServiceMock;
 

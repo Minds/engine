@@ -3,6 +3,7 @@
 namespace Minds\Core\Security\Rbac;
 
 use Minds\Core\Config\Config;
+use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Data\MySQL\Client;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\EntitiesBuilder;
@@ -39,6 +40,7 @@ class Provider extends DiProvider
         $this->di->bind(Repository::class, function ($di) {
             return new Repository(
                 $di->get(MultiTenantBootService::class),
+                $di->get(InMemoryCache::class),
                 $di->get(Client::class),
                 $di->get(Config::class),
                 $di->get('Logger')

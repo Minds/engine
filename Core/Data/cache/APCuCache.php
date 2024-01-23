@@ -25,7 +25,7 @@ class APCuCache implements CacheInterface
     /**
      * @inheritDoc
      */
-    public function set($key, $value, $ttl = null)
+    public function set($key, $value, $ttl = 0)
     {
         $ok = apcu_store($key, $value, $ttl);
         return $ok;

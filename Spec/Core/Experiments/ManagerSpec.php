@@ -11,6 +11,7 @@ use Zend\Diactoros\Response\JsonResponse;
 use Minds\Core\Experiments\Cookie\Manager as CookieManager;
 use GuzzleHttp;
 use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\Data\cache\WorkerCache;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -18,28 +19,28 @@ class ManagerSpec extends ObjectBehavior
     protected $cookieManager;
     protected $httpClient;
     protected $config;
-    protected $psrCache;
+    protected $cacheMock;
 
     public function let(
         Growthbook\Growthbook $growthbook,
         CookieManager $cookieManager,
         GuzzleHttp\Client $httpClient,
         Config $config,
-        PsrWrapper $psrCache
+        WorkerCache $cacheMock,
     ) {
         $this->beConstructedWith(
             $growthbook,
             $cookieManager,
             $httpClient,
             $config,
-            $psrCache
+            $cacheMock
         );
 
         $this->growthbook = $growthbook;
         $this->cookieManager = $cookieManager;
         $this->httpClient = $httpClient;
         $this->config = $config;
-        $this->psrCache = $psrCache;
+        $this->cacheMock = $cacheMock;
 
         $_SERVER['REQUEST_URI'] = '/';
         $_SERVER['HTTP_REFERER'] = '/newsfeed/subscriptions';
@@ -75,9 +76,8 @@ class ManagerSpec extends ObjectBehavior
                 ],
             ]));
 
-        $this->psrCache->withTenantPrefix(false)->willReturn($this->psrCache);
-        $this->psrCache->get('growthbook-features')->willReturn(null);
-        $this->psrCache->set('growthbook-features', Argument::type('array'))->willReturn(true);
+        $this->cacheMock->get('growthbook-features')->willReturn(null);
+        $this->cacheMock->set('growthbook-features', Argument::type('array'))->willReturn(true);
     }
 
     public function it_is_initializable()

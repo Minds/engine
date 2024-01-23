@@ -35,6 +35,8 @@ class Authentication extends Module
          */
         $apiHelper = $this->getModule(Api::class);
 
+        $apiHelper->clearCookies();
+
         $apiHelper->setCookie("XSRF-TOKEN", "13b900e725e3fe5ea60464d3c8bf7423e2d215ed5c473ccca34118cb0e7c538432b89cecaa98c424246ca789ec464a0516166d492c82f3573b3d2446903f31e1");
         $client->haveHttpHeader("X-XSRF-TOKEN", "13b900e725e3fe5ea60464d3c8bf7423e2d215ed5c473ccca34118cb0e7c538432b89cecaa98c424246ca789ec464a0516166d492c82f3573b3d2446903f31e1");
         $apiHelper->setRateLimitBypass();
@@ -44,28 +46,17 @@ class Authentication extends Module
             'username' => $username,
             'password' => $password
         ]);
+
+        if ($xsrfCookie = $apiHelper->getCookie('XSRF-TOKEN')) {
+            $client->haveHttpHeader("X-XSRF-TOKEN", $xsrfCookie->getValue());
+        }
     }
 
     public function login(): void
     {
-        /**
-         * @var Module\REST $client
-         */
-        $client = $this->getModule("REST");
-
-        /**
-         * @var Api $apiHelper
-         */
-        $apiHelper = $this->getModule(Api::class);
-
-        $apiHelper->setCookie("XSRF-TOKEN", "13b900e725e3fe5ea60464d3c8bf7423e2d215ed5c473ccca34118cb0e7c538432b89cecaa98c424246ca789ec464a0516166d492c82f3573b3d2446903f31e1");
-        $client->haveHttpHeader("X-XSRF-TOKEN", "13b900e725e3fe5ea60464d3c8bf7423e2d215ed5c473ccca34118cb0e7c538432b89cecaa98c424246ca789ec464a0516166d492c82f3573b3d2446903f31e1");
-        $apiHelper->setRateLimitBypass();
-        $apiHelper->setStagingCookie();
-
-        $client->send("POST", self::LOGIN_URI, [
-            'username' => $_ENV['SUPERMIND_REQUESTER_USERNAME'],
-            'password' => $_ENV['SUPERMIND_REQUESTER_PASSWORD']
-        ]);
+        $this->loginWithDetails(
+            username: $_ENV['SUPERMIND_REQUESTER_USERNAME'],
+            password: $_ENV['SUPERMIND_REQUESTER_PASSWORD']
+        );
     }
 }
