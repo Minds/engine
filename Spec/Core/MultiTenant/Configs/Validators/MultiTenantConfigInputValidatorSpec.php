@@ -24,11 +24,13 @@ class MultiTenantConfigInputValidatorSpec extends ObjectBehavior
         $siteName = 'Test site';
         $primaryColor = '#fff000';
         $communityGuidelines = str_repeat('a', 65000);
+        $replyEmail = 'some@email.com';
 
         $this->validate(new MultiTenantConfigInput(
             siteName: $siteName,
             primaryColor: $primaryColor,
-            communityGuidelines: $communityGuidelines
+            communityGuidelines: $communityGuidelines,
+            replyEmail: $replyEmail
         ))->shouldBe(null);
     }
 
@@ -139,12 +141,25 @@ class MultiTenantConfigInputValidatorSpec extends ObjectBehavior
         $siteName = 'Test site';
         $primaryColor = '#fff000';
         $communityGuidelines = str_repeat('a', 65001);
-        
+
         $this->shouldThrow(GraphQLException::class)->duringValidate(
             new MultiTenantConfigInput(
                 siteName: $siteName,
                 primaryColor: $primaryColor,
                 communityGuidelines: $communityGuidelines
+            )
+        );
+    }
+
+    public function it_should_NOT_validate_an_input_with_an_invalid_reply_email_address()
+    {
+        $siteName = 'Test site';
+        $replyEmail = 'some.email@someemail';
+
+        $this->shouldThrow(GraphQLException::class)->duringValidate(
+            new MultiTenantConfigInput(
+                siteName: $siteName,
+                replyEmail: $replyEmail
             )
         );
     }

@@ -59,6 +59,7 @@ class RepositorySpec extends ObjectBehavior
         $colorSchemeValue = MultiTenantColorScheme::DARK->value;
         $primaryColor = '#fff000';
         $federationDisabled = true;
+        $replyEmail = 'some@email.com';
         $nsfwEnabled = 1;
         $updatedTimestamp = date('c', time());
 
@@ -81,6 +82,7 @@ class RepositorySpec extends ObjectBehavior
                 'color_scheme' => $colorSchemeValue,
                 'primary_color' => $primaryColor,
                 'federation_disabled' => $federationDisabled,
+                'reply_email' => $replyEmail,
                 'nsfw_enabled' => $nsfwEnabled,
                 'updated_timestamp' => $updatedTimestamp,
             ]);
@@ -91,6 +93,7 @@ class RepositorySpec extends ObjectBehavior
             colorScheme: MultiTenantColorScheme::tryFrom($colorSchemeValue),
             primaryColor: $primaryColor,
             federationDisabled: $federationDisabled,
+            replyEmail: $replyEmail,
             nsfwEnabled: $nsfwEnabled,
             updatedTimestamp: strtotime($updatedTimestamp)
         ));
@@ -128,6 +131,7 @@ class RepositorySpec extends ObjectBehavior
         $primaryColor = '#fff000';
         $communityGuidelines = 'Test community guidelines';
         $federationDisabled = true;
+        $replyEmail = 'some@email.com';
         $nsfwEnabled = true;
 
         $this->mysqlMasterMock->prepare(Argument::any())
@@ -140,6 +144,7 @@ class RepositorySpec extends ObjectBehavior
             'primary_color' => $primaryColor,
             'community_guidelines' => $communityGuidelines,
             'federation_disabled' => $federationDisabled,
+            'reply_email' => $replyEmail,
             'nsfw_enabled' => $nsfwEnabled
         ])->shouldBeCalled();
 
@@ -154,6 +159,7 @@ class RepositorySpec extends ObjectBehavior
             primaryColor: $primaryColor,
             communityGuidelines: $communityGuidelines,
             federationDisabled: $federationDisabled,
+            replyEmail: $replyEmail,
             nsfwEnabled: $nsfwEnabled
         )->shouldBe(true);
     }

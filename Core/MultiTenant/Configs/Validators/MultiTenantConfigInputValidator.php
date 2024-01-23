@@ -6,6 +6,7 @@ namespace Minds\Core\MultiTenant\Configs\Validators;
 use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfigInput;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 use TheCodingMachine\GraphQLite\Types\InputTypeValidatorInterface;
+use Minds\Helpers\Validation;
 
 /**
  * Multi-tenant config input validator. Validates input for multi-tenant config
@@ -55,6 +56,10 @@ class MultiTenantConfigInputValidator implements InputTypeValidatorInterface
 
         if (isset($input->communityGuidelines) && mb_strlen($input->communityGuidelines) > 65000) {
             throw new GraphQLException("Community guidelines can be at most 65000 characters", 400, null, "Validation", ['field' => 'communityGuidelines']);
+        }
+
+        if (isset($input->replyEmail) && $input->replyEmail !== '' && !Validation::isValidEmail($input->replyEmail)) {
+            throw new GraphQLException("Invalid reply-to email address", 400, null, "Validation", ['field' => 'replyEmail']);
         }
 
         return;

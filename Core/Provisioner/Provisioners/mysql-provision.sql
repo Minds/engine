@@ -783,3 +783,7 @@ CREATE TABLE IF NOT EXISTS minds_push_notification_config (
 );
 
 ALTER TABLE minds_entities_object_image ADD COLUMN filename text AFTER deleted;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD reply_email varchar(128) DEFAULT NULL
+    AFTER federation_disabled;

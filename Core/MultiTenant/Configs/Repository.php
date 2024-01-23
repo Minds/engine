@@ -51,6 +51,7 @@ class Repository extends AbstractRepository
             primaryColor: $row['primary_color'] ?? null,
             communityGuidelines: $row['community_guidelines'] ?? null,
             federationDisabled: (bool) $row['federation_disabled'] ?? false,
+            replyEmail: $row['reply_email'] ?? null,
             nsfwEnabled: ($row['nsfw_enabled'] ?? 1) === 1,
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
             updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
@@ -64,7 +65,9 @@ class Repository extends AbstractRepository
      * @param ?MultiTenantColorScheme $colorScheme - color scheme.
      * @param ?string $primaryColor - primary color.
      * @param ?string $communityGuidelines - community guidelines.
-     * @param ?bool $federationDisabled - federation diabled.
+     * @param ?bool $federationDisabled - federation disabled.
+     * @param ?bool $replyEmail - reply-to email address.
+     * @param ?bool $nsfwEnabled - nsfw enabled.
      * @param ?int $lastCacheTimestamp - timestamp of last caching.
      * @return bool - true on success.
      */
@@ -75,6 +78,7 @@ class Repository extends AbstractRepository
         ?string $primaryColor = null,
         ?string $communityGuidelines = null,
         ?bool $federationDisabled = null,
+        ?string $replyEmail = null,
         ?bool $nsfwEnabled = null,
         ?int $lastCacheTimestamp = null
     ): bool {
@@ -104,6 +108,11 @@ class Repository extends AbstractRepository
         if ($federationDisabled !== null) {
             $rawValues['federation_disabled'] = new RawExp(':federation_disabled');
             $boundValues['federation_disabled'] = $federationDisabled;
+        }
+
+        if ($replyEmail !== null) {
+            $rawValues['reply_email'] = new RawExp(':reply_email');
+            $boundValues['reply_email'] = $replyEmail;
         }
 
         if ($nsfwEnabled !== null) {

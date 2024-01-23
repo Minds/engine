@@ -54,6 +54,7 @@ class Manager
      * @param ?string $primaryColor - primary color to set.
      * @param ?string $communityGuidelines - community guidelines.
      * @param ?bool $federationDisabled - federation disabled.
+     * @param ?string $replyEmail - reply-to email address.
      * @param ?bool $nsfwEnabled - whether nfsw reporting tools are enabled.
      * @param ?int $lastCacheTimestamp - last cache timestamp.
      * @return bool - true on success.
@@ -64,6 +65,7 @@ class Manager
         ?string $primaryColor = null,
         ?string $communityGuidelines = null,
         ?bool $federationDisabled = null,
+        ?string $replyEmail = null,
         ?bool $nsfwEnabled = null,
         ?int $lastCacheTimestamp = null
     ): bool {
@@ -76,6 +78,7 @@ class Manager
             primaryColor: $primaryColor,
             communityGuidelines: $communityGuidelines,
             federationDisabled: $federationDisabled,
+            replyEmail: $replyEmail,
             nsfwEnabled: $nsfwEnabled,
             lastCacheTimestamp: $lastCacheTimestamp
         );

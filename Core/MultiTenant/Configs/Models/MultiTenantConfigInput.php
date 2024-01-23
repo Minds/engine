@@ -21,6 +21,7 @@ class MultiTenantConfigInput
         #[Field] public readonly ?string $primaryColor = null,
         #[Field] public readonly ?string $communityGuidelines = null,
         #[Field] public readonly ?bool $federationDisabled = null,
+        #[Field] public readonly ?string $replyEmail = null,
         #[Field] public readonly ?bool $nsfwEnabled = null,
     ) {
     }
