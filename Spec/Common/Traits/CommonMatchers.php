@@ -9,7 +9,7 @@ trait CommonMatchers
 {
     public function getMatchers(): array
     {
-        return  [
+        return [
             'containValueLike' => function ($subject, $value) {
                 foreach ($subject as $item) {
                     if ($item == $value) {
@@ -58,6 +58,9 @@ trait CommonMatchers
             },
             'beSameAs' => function ($subject, $value): bool {
                 return serialize($subject) === serialize($value);
+            },
+            'completeCallback' => function ($subject, callable $callback): bool {
+                return $callback($subject);
             },
         ];
     }
