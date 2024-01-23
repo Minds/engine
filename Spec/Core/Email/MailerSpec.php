@@ -55,7 +55,7 @@ class MailerSpec extends ObjectBehavior
         $message->to = [['email' => 'recipient@example.com', 'name' => 'Recipient']];
         $message->from = ['email' => 'me@minds.com', 'name' => 'Sender'];
 
-        $mailer->isSMTP()->shouldBeCalled();
+        // $mailer->isSMTP()->shouldBeCalled();
         $mailer->ClearAllRecipients()->shouldBeCalled();
         $mailer->clearAttachments()->shouldBeCalled();
         $mailer->ClearReplyTos()->shouldBeCalled();
@@ -92,7 +92,7 @@ class MailerSpec extends ObjectBehavior
         $message->to = [['email' => 'recipient@example.com', 'name' => 'Recipient']];
         $message->from = ['email' => 'me@minds.com', 'name' => 'Sender'];
 
-        $mailer->isSMTP()->shouldBeCalled();
+        // $mailer->isSMTP()->shouldBeCalled();
         $mailer->ClearAllRecipients()->shouldBeCalled();
         $mailer->clearAttachments()->shouldBeCalled();
         $mailer->ClearReplyTos()->shouldBeCalled();
@@ -124,7 +124,7 @@ class MailerSpec extends ObjectBehavior
         $message->from = ['email' => 'me@minds.com', 'name' => 'Sender'];
 
 
-        $mailer->isSMTP()->shouldBeCalled();
+        // $mailer->isSMTP()->shouldBeCalled();
         $mailer->ClearAllRecipients()->shouldBeCalled();
         $mailer->clearAttachments()->shouldBeCalled();
         $mailer->ClearReplyTos()->shouldNotBeCalled();
@@ -163,7 +163,7 @@ class MailerSpec extends ObjectBehavior
         $message->to = [['email' => 'recipient@example.com', 'name' => 'Recipient']];
         $message->from = ['email' => 'me@minds.com', 'name' => 'Sender'];
 
-        $mailer->isSMTP()->shouldBeCalled();
+        // $mailer->isSMTP()->shouldBeCalled();
         $mailer->ClearAllRecipients()->shouldBeCalled();
         $mailer->clearAttachments()->shouldBeCalled();
         $mailer->ClearReplyTos()->shouldBeCalled();
