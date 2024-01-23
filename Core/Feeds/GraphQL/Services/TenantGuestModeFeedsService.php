@@ -7,6 +7,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\GraphQL\Repositories\TenantGuestModeFeedMySQLRepository;
 use Minds\Core\Feeds\GraphQL\Types\ActivityEdge;
+use Minds\Core\MultiTenant\Enums\FeaturedEntityTypeEnum;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Entities\Activity;
@@ -35,7 +36,9 @@ class TenantGuestModeFeedsService
             throw new NoTenantFoundException();
         }
 
-        $onlyFeaturedUsers = iterator_count($this->featuredEntityService->getAllFeaturedEntities()) > 0;
+        $onlyFeaturedUsers = iterator_count($this->featuredEntityService->getAllFeaturedEntities(
+            featuredEntityType: FeaturedEntityTypeEnum::USER
+        )) > 0;
 
         $offset = $loadAfter ?? 0;
 

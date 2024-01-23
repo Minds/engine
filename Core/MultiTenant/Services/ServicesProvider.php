@@ -8,6 +8,8 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
 use Minds\Core\Entities\Actions\Save;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Groups\V2\Membership\Manager as GroupsMembershipManager;
 use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
 use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigManager;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
@@ -17,6 +19,7 @@ use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
 use Minds\Core\MultiTenant\Repositories\MobileConfigRepository;
 use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
 use Minds\Core\MultiTenant\Repository;
+use Minds\Core\Notifications\PostSubscriptions\Services\PostSubscriptionsService;
 
 class ServicesProvider extends Provider
 {
@@ -108,6 +111,19 @@ class ServicesProvider extends Provider
                 mobileConfigRepository: $di->get(MobileConfigRepository::class),
                 mobilePreviewHandler: $di->get(MobilePreviewHandler::class),
             )
+        );
+
+        $this->di->bind(
+            FeaturedEntityAutoSubscribeService::class,
+            function (Di $di): FeaturedEntityAutoSubscribeService {
+                return new FeaturedEntityAutoSubscribeService(
+                    $di->get(FeaturedEntityService::class),
+                    $di->get(PostSubscriptionsService::class),
+                    $di->get(GroupsMembershipManager::class),
+                    $di->get(EntitiesBuilder::class)
+                );
+            },
+            ['useFactory' => true]
         );
     }
 }

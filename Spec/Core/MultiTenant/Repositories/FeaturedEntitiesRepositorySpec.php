@@ -12,6 +12,7 @@ use Prophecy\Argument;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\Data\MySQL\MySQLConnectionEnum;
 use Minds\Core\Di\Di;
+use Minds\Core\MultiTenant\Types\FeaturedGroup;
 use PDOStatement;
 use PDO;
 
@@ -106,6 +107,89 @@ class FeaturedEntitiesRepositorySpec extends ObjectBehavior
                 autoPostSubscription: true,
                 username: 'username2',
                 name: 'name2'
+            )
+        ]));
+    }
+
+    public function it_can_get_featured_with_any_type_entities(
+        PDOStatement $pdoStatementMock
+    ) {
+        $this->mysqlReplicaMock->quote(Argument::any())->shouldBeCalled();
+        $this->mysqlReplicaMock->query(Argument::type('string'))->willReturn($pdoStatementMock);
+        $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($pdoStatementMock);
+        
+        $pdoStatementMock->execute()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
+            ->willReturn([
+                [
+                    'tenant_id' => '123',
+                    'type' => 'user',
+                    'entity_guid' => '1234567890',
+                    'auto_subscribe' => true,
+                    'auto_post_subscription' => true,
+                    'recommended' => true,
+                    'username' => 'username',
+                    'name' => 'name'
+                ],
+                [
+                    'tenant_id' => '123',
+                    'type' => 'user',
+                    'entity_guid' => '1234567891',
+                    'auto_subscribe' => true,
+                    'auto_post_subscription' => true,
+                    'recommended' => true,
+                    'username' => 'username2',
+                    'name' => 'name2'
+                ],
+                [
+                    'tenant_id' => '123',
+                    'type' => 'group',
+                    'entity_guid' => '1234567892',
+                    'auto_subscribe' => true,
+                    'recommended' => true,
+                    'name' => 'name'
+                ]
+            ]);
+
+        $this->mysqlClientMock->bindValuesToPreparedStatement($pdoStatementMock, [
+            'tenant_id' => 123,
+        ])->shouldBeCalled();
+
+        $result = $this->getFeaturedEntities(
+            tenantId: 123,
+            type: null,
+            limit: 12,
+            loadAfter: 0
+        );
+
+        $result->shouldYieldLike(new \ArrayIterator([
+            new FeaturedUser(
+                tenantId: 123,
+                entityGuid: 1234567890,
+                autoSubscribe: true,
+                recommended: true,
+                autoPostSubscription: true,
+                username: 'username',
+                name: 'name'
+            ),
+            new FeaturedUser(
+                tenantId: 123,
+                entityGuid: 1234567891,
+                autoSubscribe: true,
+                recommended: true,
+                autoPostSubscription: true,
+                username: 'username2',
+                name: 'name2'
+            ),
+            new FeaturedGroup(
+                tenantId: 123,
+                entityGuid: 1234567892,
+                autoSubscribe: true,
+                recommended: true,
+                name: 'name'
             )
         ]));
     }
