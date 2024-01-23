@@ -15,8 +15,8 @@ use Minds\Core\ActivityPub\Services\ProcessActivityService;
 use Minds\Core\ActivityPub\Services\ProcessActorService;
 use Minds\Core\ActivityPub\Services\ProcessCollectionService;
 use Minds\Core\ActivityPub\Services\ProcessObjectService;
+use Minds\Core\Authentication\Services\RegisterService;
 use Minds\Core\Config\Config;
-use Minds\Core\Subscriptions;
 use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
@@ -25,12 +25,12 @@ use Minds\Core\Feeds\Elastic\V2\Manager as FeedsManager;
 use Minds\Core\Media\Image\ProcessExternalImageService;
 use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
+use Minds\Core\Subscriptions;
 use Minds\Core\Webfinger;
 
 class Provider extends DiProvider
 {
     /**
-     * @return void
      * @throws \Minds\Core\Di\ImmutableException
      */
     public function register(): void
@@ -54,7 +54,7 @@ class Provider extends DiProvider
                 repository: $di->get(Repository::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 config: $di->get('Config'),
-                webfingerManager: $di->get(Webfinger\Manager::class),
+                webfingerService: $di->get(Webfinger\WebfingerService::class),
             );
         });
         $this->di->bind(Controller::class, function ($di) {
@@ -70,7 +70,7 @@ class Provider extends DiProvider
             );
         });
 
-        /**
+        /*
          * Services
          */
         $this->di->bind(ProcessActorService::class, function ($di) {
@@ -80,6 +80,8 @@ class Provider extends DiProvider
                 acl: $di->get('Security\ACL'),
                 saveAction: new Save(),
                 avatarService: $di->get('Channels\AvatarService'),
+                registerService: $di->get(RegisterService::class),
+                webfingerService: $di->get(Webfinger\WebfingerService::class),
             );
         });
         $this->di->bind(ProcessActivityService::class, function ($di) {
@@ -133,14 +135,13 @@ class Provider extends DiProvider
             );
         });
 
-        /**
+        /*
          * Factories
          */
         $this->di->bind(ActorFactory::class, function ($di) {
             return new ActorFactory(
                 manager: $di->get(Manager::class),
                 client: $di->get(Client::class),
-                webfingerManager: $di->get(Webfinger\Manager::class),
                 config: $di->get('Config'),
                 cache: $di->get(InMemoryCache::class),
             );
