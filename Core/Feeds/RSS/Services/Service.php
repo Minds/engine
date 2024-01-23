@@ -26,8 +26,7 @@ class Service
         private readonly MultiTenantBootService $multiTenantBootService,
         private readonly EntitiesBuilder        $entitiesBuilder,
         private readonly Logger                 $logger
-    )
-    {
+    ) {
     }
 
     /**
@@ -94,8 +93,7 @@ class Service
     public function removeRssFeed(
         int  $feedId,
         User $user
-    ): bool
-    {
+    ): bool {
         $rssFeed = $this->repository->getFeed($feedId);
         if ($rssFeed->userGuid !== (int)$user->getGuid()) {
             throw new GraphQLException("The feed provided does not belong to the user", 403);
@@ -112,8 +110,7 @@ class Service
     public function refreshRssFeed(
         int  $feedId,
         User $user,
-    ): RssFeed
-    {
+    ): RssFeed {
         $rssFeed = $this->repository->getFeed($feedId);
         if ($rssFeed->userGuid !== (int)$user->getGuid()) {
             throw new GraphQLException("The feed provided does not belong to the user", 403);
@@ -135,8 +132,7 @@ class Service
         RssFeed $rssFeed,
         User    $user,
         bool    $dryRun = false
-    ): void
-    {
+    ): void {
         if ($rssFeed->lastFetchStatus === RssFeedLastFetchStatusEnum::FETCH_IN_PROGRESS) {
             $this->logger->info('Skipping RSS feed as it is already being processed', [
                 'feed_id' => $rssFeed->feedId,
