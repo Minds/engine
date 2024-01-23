@@ -103,24 +103,16 @@ prepare:fpm:
 
 prepare:rr:
   stage: prepare
-  image: minds/ci:latest
-  services:
-    - docker:dind
+  image:
+    name: gcr.io/kaniko-project/executor:v1.14.0-debug
+    entrypoint: [""]
   script:
-    - docker login -u gitlab-ci-token -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - |
-      docker build \
-        -t $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID \
-        -f containers/php-rr/Dockerfile \
-        --build-arg MINDS_VERSION=$CI_PIPELINE_ID \
-        --build-arg SENTRY_DSN=$SENTRY_DSN \
-        .
-    - docker push $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID
-    - >
-      if [ $CI_COMMIT_BRANCH == "master" ]; then
-        docker tag $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID $CI_REGISTRY_IMAGE/rr:latest &&
-        docker push $CI_REGISTRY_IMAGE/rr:latest
-      fi
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/containers/php-rr/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/rr:${CI_PIPELINE_ID}"
+      --build-arg MINDS_VERSION=$CI_PIPELINE_ID
+      --build-arg SENTRY_DSN=$SENTRY_DSN
 
 prepare:runners:
   stage: prepare
@@ -273,8 +265,11 @@ integration_testing:
   stage: deploy:staging
   image: minds/ci:latest
   script:
+    # FPM
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - crane tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID $IMAGE_LABEL
+    # RoadRunner (rr)
+    - crane tag $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID $IMAGE_LABEL
     # OKE: Rolling restart
     - *oci_prepare
     - kubectl -n default rollout restart deployment minds-engine-$IMAGE_LABEL
@@ -285,6 +280,7 @@ staging:fpm:
   <<: *deploy
   after_script:
     - crane tag $CI_REGISTRY_IMAGE/fpm:$CI_PIPELINE_ID latest
+    - crane tag $CI_REGISTRY_IMAGE/rr:$CI_PIPELINE_ID latest
   stage: deploy:staging
   variables:
     IMAGE_LABEL: "staging"
