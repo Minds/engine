@@ -25,7 +25,7 @@ baseimage:prepare:
     entrypoint: [""]
   script:
     - /kaniko/executor
-      --context "${CI_PROJECT_DIR}"
+      --context "${CI_PROJECT_DIR}/containers/php"
       --dockerfile "${CI_PROJECT_DIR}/containers/php/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}/php:${CI_PIPELINE_ID}"
   rules:
@@ -34,6 +34,8 @@ baseimage:prepare:
     - if: '$CI_COMMIT_REF_NAME != "master"'
       changes:
         - containers/php/*
+      when: manual
+      allow_failure: true
 
 baseimage:deploy:
   stage: baseimage
