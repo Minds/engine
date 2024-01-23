@@ -14,7 +14,8 @@ class Test extends Cli\Controller implements Interfaces\CliControllerInterface
 {
     public function __construct(
         private ?Logger $logger = null
-    ) {
+    )
+    {
         $this->logger = Di::_()->get('Logger');
         define('__MINDS_INSTALLING__', true);
     }
@@ -68,5 +69,14 @@ class Test extends Cli\Controller implements Interfaces\CliControllerInterface
         $referrerUser = (Di::_()->get('EntitiesBuilder'))->single($referrerUserGuid);
 
         (new DepositsDelegate)->onIssueAffiliateReferrerDeposit($referrerUser, $deposit);
+    }
+
+    public function testRegisteredRunner(): void
+    {
+        (Di::_()->get('Queue'))
+            ->setQueue("Registered")
+            ->send([
+                'test_prop' => 'test_value',
+            ]);
     }
 }
