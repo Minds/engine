@@ -9,7 +9,7 @@ use Minds\Core\Comments\Comment;
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
-use Minds\Core\Webfinger\Manager as WebfingerManager;
+use Minds\Core\Webfinger\WebfingerService;
 use Minds\Entities\Activity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
@@ -24,7 +24,7 @@ class Manager
         protected Repository       $repository,
         protected EntitiesBuilder  $entitiesBuilder,
         protected Config           $config,
-        protected WebfingerManager $webfingerManager,
+        protected WebfingerService $webfingerService,
     ) {
     }
 
@@ -124,7 +124,7 @@ class Manager
 
         // The user doesn't exist on Minds, so try to find from their webfinger
         try {
-            $json = $this->webfingerManager->get('acct:' . $username);
+            $json = $this->webfingerService->get('acct:' . $username);
 
             foreach ($json['links'] as $link) {
                 if ($link['rel'] === 'self') {
