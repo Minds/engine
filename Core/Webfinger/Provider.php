@@ -26,8 +26,8 @@ class Provider extends DiProvider
                 config: $di->get('Config')
             );
         });
-        $this->di->bind(Manager::class, function ($di) {
-            return new Manager($di->get(Client::class));
+        $this->di->bind(WebfingerService::class, function ($di) {
+            return new WebfingerService($di->get(Client::class));
         });
     }
 }
