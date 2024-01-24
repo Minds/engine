@@ -5,7 +5,6 @@ namespace Minds\Core\MultiTenant\MobileConfigs\Controllers;
 
 use Minds\Core\MultiTenant\MobileConfigs\Helpers\GitlabPipelineJwtTokenValidator;
 use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigManagementService;
-use Minds\Core\MultiTenant\Traits\MobilePreviewJwtTokenTrait;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;

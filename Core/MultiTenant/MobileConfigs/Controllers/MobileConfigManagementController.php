@@ -9,7 +9,7 @@ use Minds\Core\MultiTenant\MobileConfigs\Enums\MobilePreviewStatusEnum;
 use Minds\Core\MultiTenant\MobileConfigs\Enums\MobileSplashScreenTypeEnum;
 use Minds\Core\MultiTenant\MobileConfigs\Enums\MobileWelcomeScreenLogoTypeEnum;
 use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigManagementService;
-use Minds\Core\MultiTenant\Types\MobileConfig;
+use Minds\Core\MultiTenant\MobileConfigs\Types\MobileConfig;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;

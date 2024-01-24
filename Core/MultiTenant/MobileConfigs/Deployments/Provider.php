@@ -9,6 +9,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\MultiTenant\MobileConfigs\Deployments\Builds\MobilePreviewHandler;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 
 ;
 
@@ -22,16 +23,11 @@ class Provider extends DiProvider
     {
         $this->di->bind(
             MobilePreviewHandler::class,
-            function (Di $di): MobilePreviewHandler {
-                $config = $di->get(Config::class);
-                $httpClient = new Client([
-                    'base_uri' => $config->get('gitlab')['mobile']['pipeline']['url'],
-                ]);
-                return new MobilePreviewHandler(
-                    httpClient: $httpClient,
-                    config: $config
-                );
-            }
+            fn (Di $di): MobilePreviewHandler => new MobilePreviewHandler(
+                httpClient: new Client(),
+                config: $di->get(Config::class),
+                multiTenantBootService: $di->get(MultiTenantBootService::class)
+            )
         );
     }
 }

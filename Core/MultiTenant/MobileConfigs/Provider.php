@@ -9,6 +9,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\MultiTenant\MobileConfigs\Helpers\GitlabPipelineJwtTokenValidator;
+use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 
 class Provider extends DiProvider
 {
@@ -39,7 +40,8 @@ class Provider extends DiProvider
             GitlabPipelineJwtTokenValidator::class,
             fn (Di $di): GitlabPipelineJwtTokenValidator => new GitlabPipelineJwtTokenValidator(
                 jwt: new Jwt(),
-                config: $di->get(Config::class)
+                config: $di->get(Config::class),
+                multiTenantBootService: $di->get(MultiTenantBootService::class)
             )
         );
         #endregion
