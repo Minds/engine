@@ -5,6 +5,8 @@ namespace Minds\Api;
 use Minds\Interfaces;
 use Minds\Core\Security;
 use Minds\Core\Session;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * API Factory
@@ -15,17 +17,17 @@ class Factory
      * Executes an Api\Controller method for the passed $segments
      * based on the current HTTP request method,
      * or null if the class is not found.
-     * @param string $segments - String representing a route
+     * @param string[] $segments - String representing a route
      * @return mixed|null
      */
-    public static function build($segments, $request, $response)
+    public static function build(array $segments, ServerRequestInterface $request, ResponseInterface $response)
     {
         //try {
         //    Helpers\RequestMetrics::increment('api');
         //} catch (\Exception $e) {
         //}
 
-        $method = strtolower($_SERVER['REQUEST_METHOD']);
+        $method = strtolower($request->getMethod());
 
         $route = implode('\\', $segments);
         $loop = count($segments);
@@ -99,7 +101,7 @@ class Factory
     {
         if (
             $request->getAttribute('oauth_user_id') ||
-            Security\XSRF::validateRequest()
+            Security\XSRF::validateRequest($request)
         ) {
             return true;
         } else {
@@ -108,7 +110,7 @@ class Factory
 
             static::setCORSHeader();
 
-            $code = !Security\XSRF::validateRequest() ? 403 : 401;
+            $code = !Security\XSRF::validateRequest($request) ? 403 : 401;
 
             if (isset($_SERVER['HTTP_APP_VERSION'])) {
                 $code = 401; // Mobile requires 401 errors

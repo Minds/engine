@@ -13,11 +13,13 @@ use Minds\Entities\User;
 use Growthbook;
 use GuzzleHttp;
 use Minds\Core\Config\Config;
-use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Cookie\Manager as CookieManager;
 use Minds\Core\Analytics\Snowplow\Manager as SnowplowManager;
 use Minds\Core\Analytics\Snowplow\Events\SnowplowGrowthbookEvent;
+use Minds\Core\Data\cache\APCuCache;
+use Minds\Core\Data\cache\WorkerCache;
+use Psr\SimpleCache\CacheInterface;
 
 class Manager
 {
@@ -39,8 +41,8 @@ class Manager
     /** @var Config */
     private $config;
 
-    /** @var PsrWrapper */
-    private $psrCache;
+    /** @var WorkerCache */
+    private $cache;
 
     /** @var SnowplowManager */
     protected $snowplowManager;
@@ -53,13 +55,13 @@ class Manager
         CookieManager $cookieManager = null,
         GuzzleHttp\Client $httpClient = null,
         Config $config = null,
-        PsrWrapper $psrCache = null,
+        WorkerCache $cache = null,
         SnowplowManager $snowplowManager = null
     ) {
         $this->cookieManager = $cookieManager ?? Di::_()->get('Experiments\Cookie\Manager');
         $this->httpClient = $httpClient ?? new GuzzleHttp\Client();
         $this->config = $config ?? Di::_()->get('Config');
-        $this->psrCache = $psrCache ?? Di::_()->get('Cache\PsrWrapper');
+        $this->cache = $cache ?? Di::_()->get(WorkerCache::class);
         $this->growthbook = $growthbook ?? Growthbook\Growthbook::create();
         $this->snowplowManager = $snowplowManager ?? Di::_()->get('Analytics\Snowplow\Manager');
 
@@ -113,7 +115,7 @@ class Manager
 
         // If we have a cached version use that
         if ($useCached) {
-            $cached = $this->psrCache->withTenantPrefix(false)->get(static::FEATURES_CACHE_KEY);
+            $cached = $this->cache->get(static::FEATURES_CACHE_KEY);
             if ($cached && is_array($cached)) {
                 return $cached;
             }
@@ -130,7 +132,7 @@ class Manager
             $features = $responseData['features'] ?? [];
 
             // Set the cache
-            $this->psrCache->withTenantPrefix(false)->set(static::FEATURES_CACHE_KEY, $features);
+            $this->cache->set(static::FEATURES_CACHE_KEY, $features);
         } catch (\Exception $e) {
             return [];
         }
@@ -209,7 +211,7 @@ class Manager
 
         $cacheKey = $this->getTrackingCacheKey($experimentId);
 
-        if ($this->psrCache->withTenantPrefix(false)->get($cacheKey) !== false) {
+        if ($this->cache->get($cacheKey) !== false) {
             return; // Skip as we've seen in last 24 hours.
         }
 
@@ -220,7 +222,7 @@ class Manager
         $user = $this->getUser();
         $this->snowplowManager->setSubject($user)->emit($spGrowthbookEvent);
 
-        $this->psrCache->withTenantPrefix(false)->set($cacheKey, $variationId, self::TRACKING_CACHE_TTL);
+        $this->cache->set($cacheKey, $variationId, self::TRACKING_CACHE_TTL);
     }
 
     /**

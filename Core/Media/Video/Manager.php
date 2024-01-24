@@ -174,6 +174,9 @@ class Manager
         $sources = [];
 
         foreach ($transcodes as $transcode) {
+            if (str_starts_with($transcode->getProfile()->getStorageName(), '720')) {
+                continue;
+            }
             if ($transcode->getStatus() != Transcoder\TranscodeStates::COMPLETED) {
                 continue;
             }

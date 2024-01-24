@@ -17,6 +17,7 @@ use Lcobucci\JWT;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Signer\Rsa\Sha512;
 use Minds\Common\IpAddress;
+use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Entities\User;
 
 class ManagerSpec extends ObjectBehavior
@@ -126,7 +127,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $this->withRouterRequest($request);
+        $this->shouldThrow(UnauthorizedException::class)->duringWithRouterRequest($request);
 
         // Confirm the session was set
         $this->getSession()->shouldBeNull();
@@ -163,7 +164,7 @@ class ManagerSpec extends ObjectBehavior
             'minds_sess' => $token,
         ]);
 
-        $this->withRouterRequest($request);
+        $this->shouldThrow(UnauthorizedException::class)->duringWithRouterRequest($request);
 
         // Confirm the session was set
         $this->getSession()->shouldBeNull();

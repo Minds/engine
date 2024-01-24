@@ -21,18 +21,17 @@ class Redis extends abstractCacher implements CacheInterface
     /** @var Config */
     private $config;
 
-    /** @var array */
-    private $local = []; //a local cache before we check the remote
-
     /** @var boolean - whether tenant prefix should be used. */
     private $useTenantPrefix = true;
 
-    /** @var int */
-    const MAX_LOCAL_CACHE = 1000;
+    const IN_MEMORY_PREFIX = "redis:";
 
-    public function __construct($config = null)
-    {
+    public function __construct(
+        $config = null,
+        private ?InMemoryCache $inMemoryCache = null,
+    ) {
         $this->config = $config ?? Di::_()->get('Config');
+        $this->inMemoryCache ??= Di::_()->get(InMemoryCache::class);
     }
 
     private function getMaster()
@@ -75,14 +74,11 @@ class Redis extends abstractCacher implements CacheInterface
 
     public function get($key, $default = null)
     {
-        if (isset($this->local[$key])) {
-            return $this->local[$key];
-        }
-        if (count($this->local) > static::MAX_LOCAL_CACHE) {
-            $this->local[$key] = []; // Clear cache if we meet the max
-        }
-
         $key = $this->buildKey($key);
+
+        if ($this->inMemoryCache->has(self::IN_MEMORY_PREFIX . $key)) {
+            return $this->inMemoryCache->get(self::IN_MEMORY_PREFIX . $key);
+        }
 
         try {
             $redis = $this->getSlave();
@@ -90,11 +86,11 @@ class Redis extends abstractCacher implements CacheInterface
             if ($value !== false) {
                 $value = json_decode($value, true);
                 if (is_numeric($value)) {
-                    $this->local[$key] = (int) $value;
-
+                    $this->inMemoryCache->set(self::IN_MEMORY_PREFIX . $key, (int) $value);
+                    
                     return (int) $value;
                 }
-                $this->local[$key] = $value;
+                $this->inMemoryCache->set(self::IN_MEMORY_PREFIX . $key, $value);
 
                 return $value;
             }
@@ -141,8 +137,8 @@ class Redis extends abstractCacher implements CacheInterface
 
     public function destroy($key)
     {
-        if (isset($this->local[$key])) {
-            unset($this->local[$key]); // Remove from local, inmemory cache
+        if ($this->inMemoryCache->has(self::IN_MEMORY_PREFIX .  $key)) {
+            $this->inMemoryCache->delete(self::IN_MEMORY_PREFIX .  $key);
         }
 
         $key = $this->buildKey($key);

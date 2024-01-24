@@ -63,7 +63,8 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
      */
     public function post($pages)
     {
-        if (!Core\Security\XSRF::validateRequest()) {
+        $request = ServerRequestFactory::fromGlobals();
+        if (!Core\Security\XSRF::validateRequest($request)) {
             return false;
         }
 
