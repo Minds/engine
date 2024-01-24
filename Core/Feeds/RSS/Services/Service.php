@@ -21,11 +21,11 @@ use Zend\Diactoros\Uri;
 class Service
 {
     public function __construct(
-        private readonly ProcessRssFeedService $processRssFeedService,
-        private readonly MySQLRepository $repository,
+        private readonly ProcessRssFeedService  $processRssFeedService,
+        private readonly MySQLRepository        $repository,
         private readonly MultiTenantBootService $multiTenantBootService,
-        private readonly EntitiesBuilder $entitiesBuilder,
-        private readonly Logger $logger
+        private readonly EntitiesBuilder        $entitiesBuilder,
+        private readonly Logger                 $logger
     ) {
     }
 
@@ -64,7 +64,7 @@ class Service
     public function getRssFeed(int $feedId, User $user): RssFeed
     {
         $rssFeed = $this->repository->getFeed($feedId);
-        if ($rssFeed->userGuid !== (int) $user->getGuid()) {
+        if ($rssFeed->userGuid !== (int)$user->getGuid()) {
             throw new GraphQLException("The feed provided does not belong to the user", 403);
         }
 
@@ -91,11 +91,11 @@ class Service
      * @throws ServerErrorException
      */
     public function removeRssFeed(
-        int $feedId,
+        int  $feedId,
         User $user
     ): bool {
         $rssFeed = $this->repository->getFeed($feedId);
-        if ($rssFeed->userGuid !== (int) $user->getGuid()) {
+        if ($rssFeed->userGuid !== (int)$user->getGuid()) {
             throw new GraphQLException("The feed provided does not belong to the user", 403);
         }
 
@@ -108,11 +108,11 @@ class Service
      * @throws GraphQLException
      */
     public function refreshRssFeed(
-        int $feedId,
+        int  $feedId,
         User $user,
     ): RssFeed {
         $rssFeed = $this->repository->getFeed($feedId);
-        if ($rssFeed->userGuid !== (int) $user->getGuid()) {
+        if ($rssFeed->userGuid !== (int)$user->getGuid()) {
             throw new GraphQLException("The feed provided does not belong to the user", 403);
         }
 
@@ -128,37 +128,10 @@ class Service
         return $this->repository->getFeed($feedId);
     }
 
-    /**
-     * @param bool $dryRun
-     * @return void
-     * @throws NoTenantFoundException
-     * @throws ServerErrorException
-     */
-    public function processFeeds(bool $dryRun = false): void
-    {
-        $currentUser = null;
-        foreach ($this->repository->getFeeds() as $rssFeed) {
-            if ($rssFeed->tenantId) {
-                $this->multiTenantBootService->bootFromTenantId($rssFeed->tenantId);
-            }
-
-            if (!$currentUser || (int) $currentUser->getGuid() !== $rssFeed->userGuid) {
-                $currentUser = $this->entitiesBuilder->single($rssFeed->userGuid);
-            }
-
-
-            $this->processRssFeed($rssFeed, $currentUser, $dryRun);
-
-            if ($rssFeed->tenantId) {
-                $this->multiTenantBootService->resetRootConfigs();
-            }
-        }
-    }
-
     public function processRssFeed(
         RssFeed $rssFeed,
-        User $user,
-        bool $dryRun = false
+        User    $user,
+        bool    $dryRun = false
     ): void {
         if ($rssFeed->lastFetchStatus === RssFeedLastFetchStatusEnum::FETCH_IN_PROGRESS) {
             $this->logger->info('Skipping RSS feed as it is already being processed', [
@@ -183,7 +156,14 @@ class Service
 
         try {
             foreach ($this->processRssFeedService->fetchFeed(rssFeed: $rssFeed) as $entry) {
-                if ($entry->getDateModified()->getTimestamp() <= $rssFeed->lastFetchAtTimestamp) {
+                $entryTimestamp = $entry->getDateModified()?->getTimestamp() ?? $entry->getDateCreated()?->getTimestamp();
+                
+                if (!$entryTimestamp) {
+                    $this->logger->info("Skipping entry {$entry->getTitle()} as it has no timestamp");
+                    continue;
+                }
+
+                if ($entryTimestamp <= $rssFeed->lastFetchAtTimestamp) {
                     $this->logger->info("Skipping entry {$entry->getTitle()} as it is older than last fetch timestamp");
                     continue;
                 }
@@ -211,6 +191,33 @@ class Service
                 $this->logger->info('Dry run, not updating last fetch status');
             } else {
                 $this->repository->updateRssFeed($rssFeed->feedId, null, $status);
+            }
+        }
+    }
+
+    /**
+     * @param bool $dryRun
+     * @return void
+     * @throws NoTenantFoundException
+     * @throws ServerErrorException
+     */
+    public function processFeeds(bool $dryRun = false): void
+    {
+        $currentUser = null;
+        foreach ($this->repository->getFeeds() as $rssFeed) {
+            if ($rssFeed->tenantId) {
+                $this->multiTenantBootService->bootFromTenantId($rssFeed->tenantId);
+            }
+
+            if (!$currentUser || (int)$currentUser->getGuid() !== $rssFeed->userGuid) {
+                $currentUser = $this->entitiesBuilder->single($rssFeed->userGuid);
+            }
+
+
+            $this->processRssFeed($rssFeed, $currentUser, $dryRun);
+
+            if ($rssFeed->tenantId) {
+                $this->multiTenantBootService->resetRootConfigs();
             }
         }
     }

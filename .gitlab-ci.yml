@@ -16,7 +16,7 @@ stages:
   - scan
 
 variables:
-  default_php_image: minds/php:8.1
+  default_php_image: registry.gitlab.com/minds/engine/php:8.1
 
 baseimage:prepare:
   stage: baseimage
@@ -44,7 +44,7 @@ baseimage:deploy:
     entrypoint: [""]
   script:
     - /kaniko/executor
-      --context "${CI_PROJECT_DIR}"
+      --context "${CI_PROJECT_DIR}/containers/php"
       --dockerfile "${CI_PROJECT_DIR}/containers/php/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}/php:8.1"
   rules:
