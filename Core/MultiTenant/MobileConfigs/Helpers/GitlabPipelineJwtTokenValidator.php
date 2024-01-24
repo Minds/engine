@@ -37,10 +37,12 @@ class GitlabPipelineJwtTokenValidator
                 ->setKey($tokenOptions['secret_key'])
                 ->decode($token);
             if ($claims['iss'] !== self::ISSUER || $claims['aud'][0] !== $this->config->get('site_url')) {
+                $this->multiTenantBootService->bootFromTenantId($tenantId);
                 return false;
             }
 
             if ($claims['exp'] < (new DateTimeImmutable())) {
+                $this->multiTenantBootService->bootFromTenantId($tenantId);
                 return false;
             }
 
