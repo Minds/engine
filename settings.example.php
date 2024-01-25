@@ -645,7 +645,8 @@ $CONFIG->set('max_video_length_plus', 1860);
 $CONFIG->set('email', [
     'sender' => [
         'email' => 'no-reply@minds.com',
-        'name' => 'Minds'
+        'name' => 'Minds',
+        'reply_to' => 'no-reply@minds.com',
     ],
     'smtp' => [
         'host' => '',
@@ -975,5 +976,3 @@ $CONFIG->set('theme_override', [
 ]);
 
 $CONFIG->set('nsfw_enabled', true);
-
-$CONFIG->set('reply_email', 'no-reply@minds.com');
