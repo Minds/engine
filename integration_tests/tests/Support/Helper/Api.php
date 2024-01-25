@@ -6,6 +6,7 @@ use Codeception\Exception\ModuleException;
 use Codeception\Module;
 use Codeception\Module\REST;
 use DateTimeImmutable;
+use Google\Service\AndroidPublisher\VoidedPurchase;
 use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
@@ -23,6 +24,18 @@ class Api extends Module
          * @type REST
          */
         return $this->getModule("REST");
+    }
+    
+    /**
+     * @throws ModuleException
+     */
+    public function clearCookies(): void
+    {
+        /**
+         * @var REST $apiClient
+         */
+        $apiClient = $this->getModule("REST");
+        $apiClient->client->getCookieJar()->clear();
     }
 
     /**

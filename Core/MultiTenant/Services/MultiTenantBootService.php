@@ -6,8 +6,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
 use Minds\Core\MultiTenant\Models\Tenant;
-use Zend\Diactoros\ServerRequest;
-use Zend\Diactoros\ServerRequestFactory;
+use Psr\Http\Message\ServerRequestInterface;
 
 class MultiTenantBootService
 {
@@ -25,7 +24,7 @@ class MultiTenantBootService
     /**
      * If a multi tenant install is found, this function will update all the site configs
      */
-    public function bootFromRequest(ServerRequest $request): void
+    public function bootFromRequest(ServerRequestInterface $request): void
     {
         $uri = $request->getUri();
 

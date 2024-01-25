@@ -7,14 +7,11 @@ use Minds\Core\Email\EmailSubscription;
 use Minds\Core\Email\Invites\Enums\InviteEmailStatusEnum;
 use Minds\Core\Email\Invites\Services\InviteManagementService;
 use Minds\Core\Email\Invites\Services\InviteReaderService;
-use Minds\Core\Email\Invites\Services\InvitesService;
 use Minds\Core\Email\Repository;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\V2\Membership\Enums\GroupMembershipLevelEnum;
 use Minds\Core\Groups\V2\Membership\Manager as GroupsMembershipManager;
-use Minds\Core\MultiTenant\Services\FeaturedEntityService;
-use Minds\Core\Notifications\PostSubscriptions\Enums\PostSubscriptionFrequencyEnum;
-use Minds\Core\Notifications\PostSubscriptions\Services\PostSubscriptionsService;
+use Minds\Core\MultiTenant\Services\FeaturedEntityAutoSubscribeService;
 use Minds\Core\Queue;
 use Minds\Core\Queue\Interfaces\QueueRunner;
 use Minds\Core\Security\Rbac\Services\RolesService;
@@ -32,12 +29,9 @@ class Registered implements QueueRunner
         /** @var EntitiesBuilder */
         $entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
 
-        /** @var PostSubscriptionsService **/
-        $postSubscriptionsService = Di::_()->get(PostSubscriptionsService::class);
-
         $client = Queue\Client::Build();
         $client->setQueue("Registered")
-            ->receive(function ($data) use ($subscriptions, $repository, $entitiesBuilder, $config, $postSubscriptionsService) {
+            ->receive(function ($data) use ($subscriptions, $repository, $entitiesBuilder, $config) {
                 $data = $data->getData();
                 $user_guid = $data['user_guid'];
                 $tenant_id = $config->get('tenant_id') ?? null;
@@ -51,28 +45,8 @@ class Registered implements QueueRunner
 
                     echo "[registered]: User registered $user_guid\n";
                 } else {
-                    /**
-                     * @var FeaturedEntityService $featuredEntityService
-                     */
-                    $featuredEntityService = Di::_()->get(FeaturedEntityService::class);
-
-                    $featuredUsers = $featuredEntityService->getAllFeaturedEntities($tenant_id);
-                    foreach ($featuredUsers as $featuredUser) {
-                        if (!$featuredUser->autoSubscribe) {
-                            continue;
-                        }
-
-                        $subscriber->subscribe($featuredUser->entityGuid);
-
-                        // Post notifications
-                        if ($featuredUser->autoPostSubscription) {
-                            $featuredUserEntity = $entitiesBuilder->single($featuredUser->entityGuid);
-
-                            $postSubscriptionsService->withEntity($featuredUserEntity)
-                                ->withUser($subscriber)
-                                ->subscribe(PostSubscriptionFrequencyEnum::ALWAYS);
-                        }
-                    }
+                    Di::_()->get(FeaturedEntityAutoSubscribeService::class)
+                        ->autoSubscribe($subscriber, $tenant_id);
                 }
 
                 // Process invite token if any

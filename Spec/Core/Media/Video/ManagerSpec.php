@@ -115,6 +115,43 @@ class ManagerSpec extends ObjectBehavior
         $sources[1]->getSize(360);
     }
 
+    public function it_should_return_available_legacy_sources_while_skipping_720p()
+    {
+        $video = new Video();
+        $video->set('guid', '123');
+
+        $this->transcoderManager->getList([
+            'guid' => '123',
+            'legacyPolyfill' => true,
+        ])
+            ->shouldBeCalled()
+            ->willReturn(new Response([
+                (new Transcoder\Transcode())
+                    ->setGuid('123')
+                    ->setProfile(new Transcoder\TranscodeProfiles\X264_720p())
+                    ->setStatus('completed'),
+                (new Transcoder\Transcode())
+                    ->setGuid('123')
+                    ->setProfile(new Transcoder\TranscodeProfiles\X264_360p())
+                    ->setStatus('completed'),
+                (new Transcoder\Transcode())
+                    ->setGuid('123')
+                    ->setProfile(new Transcoder\TranscodeProfiles\Webm_360p())
+                    ->setStatus('completed'),
+            ]));
+
+        $sources = $this->getSources($video);
+        $sources->shouldHaveCount(2);
+
+        $sources[0]->getType()
+            ->shouldBe('video/mp4');
+        $sources[0]->getSize(360);
+    
+        $sources[1]->getType()
+            ->shouldBe('video/webm');
+        $sources[1]->getSize(360);
+    }
+
     public function it_should_get_a_signed_720p_video_url(RequestInterface $request, \Aws\CommandInterface $cmd)
     {
         $this->config->get('transcoder')

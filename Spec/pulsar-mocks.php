@@ -1,4 +1,5 @@
 <?php
+
 class PulsarProducerConfigurationMock
 {
     public function setSchema(...$args)
@@ -12,6 +13,7 @@ class PulsarConsumerConfigurationMock
     {
         return $this;
     }
+
     public function setConsumerType($type)
     {
         return $this;
@@ -19,28 +21,36 @@ class PulsarConsumerConfigurationMock
 }
 class PulsarSchemaTypeMock
 {
-    const AVRO = 4;
-    const JSON = 2;
+    public const AVRO = 4;
+    public const JSON = 2;
 }
 class PulsarClientMock
 {
     public function init()
     {
     }
+
     public function createProducer()
     {
         return new PulsarProducerMock();
     }
+
     public function subscribe()
     {
         return new PulsarConsumerMock();
     }
+
     public function close(): void
     {
     }
 }
 class PulsarClientConfigurationMock
 {
+    public function setLogLevel(int $logLevel): self
+    {
+        return $this;
+    }
+
     public function setUseTls(bool $useTl): self
     {
         return $this;
@@ -73,7 +83,7 @@ class PulsarProducerMock
 }
 class PulsarConsumerMock
 {
-    const ConsumerShared = 3;
+    public const ConsumerShared = 3;
 
     public function receive()
     {
@@ -102,10 +112,12 @@ class PulsarMessageBuilderMock
     {
         return $this;
     }
+
     public function build()
     {
         return new PulsarMessageMock();
     }
+
     public function setEventTimestamp(int $timestamp)
     {
         return $this;
@@ -115,12 +127,12 @@ class PulsarMessageMock
 {
     public function getDataAsString(): string
     {
-        return "";
+        return '';
     }
 }
 class PulsarResultMock
 {
-    const ResultOk = 1;
+    public const ResultOk = 1;
 }
 
 if (!class_exists('Pulsar')) {

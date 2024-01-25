@@ -3,6 +3,7 @@ namespace Minds\Entities;
 
 use Minds\Core;
 use Minds\Core\Data;
+use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
 
@@ -11,8 +12,6 @@ use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
  */
 class Factory
 {
-    private static $entitiesCache = [];
-
     /**
      * Build an entity based an GUID, an array or an object
      * @param  mixed  $value
@@ -22,6 +21,7 @@ class Factory
     public static function build($value, array $options = [])
     {
         $options = array_merge([ 'cache'=> true, 'cacheTtl' => -1 ], $options);
+        $inMemoryCache = Di::_()->get(InMemoryCache::class);
 
         $entity = null;
         $canBeCached = false;
@@ -29,9 +29,9 @@ class Factory
         $cacheKey = null;
 
         if (Core\Luid::isValid($value)) {
-            $cacheKey = (string) $value;
-            if ($options['cache'] && isset(self::$entitiesCache[$cacheKey])) {
-                return self::$entitiesCache[$cacheKey];
+            $cacheKey = "entity:" . $value;
+            if ($options['cache'] && $inMemoryCache->has($cacheKey)) {
+                return $inMemoryCache->get($cacheKey);
             }
 
             $canBeCached = true;
@@ -41,14 +41,14 @@ class Factory
                 'luid' => $luid
             ], null);
         } elseif (is_numeric($value)) {
-            $cacheKey = (string) $value;
+            $cacheKey = "entity:" . $value;
 
-            if ($options['cache'] && $cacheKey && isset(self::$entitiesCache[$cacheKey])) {
-                return self::$entitiesCache[$cacheKey];
+            if ($options['cache'] && $cacheKey && $inMemoryCache->has($cacheKey)) {
+                return $inMemoryCache->get($cacheKey);
             }
 
             if ($options['cache'] && $options['cacheTtl'] > 0) {
-                $cached = $psrCache->get("entity:$cacheKey");
+                $cached = $psrCache->get($cacheKey);
                 if ($cached) {
                     return unserialize($cached);
                 }
@@ -79,11 +79,11 @@ class Factory
         };
 
         if ($options['cache'] && $canBeCached && $entity && $cacheKey) {
-            self::$entitiesCache[$cacheKey] = $entity;
+            $inMemoryCache->set($cacheKey, $entity);
         }
 
         if ($options['cache'] && $options['cacheTtl'] > 0 && $cacheKey) {
-            $psrCache->set("entity:$cacheKey", serialize($entity), $options['cacheTtl']);
+            $psrCache->set($cacheKey, serialize($entity), $options['cacheTtl']);
         }
 
         return $entity;
@@ -96,9 +96,10 @@ class Factory
     {
         $guid = $entity->getGuid();
 
-        $cacheKey = $guid;
+        $cacheKey = "entity:" . $guid;
 
-        self::$entitiesCache[$cacheKey] = $entity;
+        $inMemoryCache = Di::_()->get(InMemoryCache::class);
+        $inMemoryCache->set($cacheKey, $entity);
     }
 
     /**
@@ -108,11 +109,13 @@ class Factory
     {
         $guid = $entity->getGuid();
 
-        $cacheKey = $guid;
+        $cacheKey = "entity:" . $guid;
 
-        unset(self::$entitiesCache[$cacheKey]);
+        $inMemoryCache = Di::_()->get(InMemoryCache::class);
+        $inMemoryCache->delete($cacheKey);
 
         $psrCache = Di::_()->get('Cache\PsrWrapper');
-        $psrCache->delete('entity:' . $cacheKey);
+        $psrCache->delete($cacheKey);
     }
+
 }
