@@ -14,8 +14,7 @@ class Test extends Cli\Controller implements Interfaces\CliControllerInterface
 {
     public function __construct(
         private ?Logger $logger = null
-    )
-    {
+    ) {
         $this->logger = Di::_()->get('Logger');
         define('__MINDS_INSTALLING__', true);
     }

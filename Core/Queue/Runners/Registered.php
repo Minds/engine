@@ -2,110 +2,98 @@
 
 namespace Minds\Core\Queue\Runners;
 
+use Exception;
 use Minds\Core\Di\Di;
-use Minds\Core\Email\Repository;
+use Minds\Core\Email\Invites\Services\InviteProcessorService;
+use Minds\Core\Email\Services\EmailAutoSubscribeService;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\Queue;
+use Minds\Core\MultiTenant\Services\FeaturedEntityAutoSubscribeService;
+use Minds\Core\Queue\Client;
+use Minds\Core\Queue\Interfaces\QueueClient;
 use Minds\Core\Queue\Interfaces\QueueRunner;
 use Minds\Core\Queue\Message;
+use Minds\Entities\User;
 
 class Registered implements QueueRunner
 {
-    public function run()
+    private readonly EmailAutoSubscribeService $emailAutoSubscribeService;
+    private readonly FeaturedEntityAutoSubscribeService $featuredEntityAutoSubscribeService;
+    private readonly InviteProcessorService $inviteProcessorService;
+    private readonly QueueClient $client;
+    private readonly EntitiesBuilder $entitiesBuilder;
+
+    public function __construct(
+        ?EmailAutoSubscribeService          $emailAutoSubscribeService = null,
+        ?FeaturedEntityAutoSubscribeService $featuredEntityAutoSubscribeService = null,
+        ?InviteProcessorService             $inviteProcessorService = null,
+        ?EntitiesBuilder                    $entitiesBuilder = null,
+        ?QueueClient                        $client = null
+    ) {
+        $this->emailAutoSubscribeService = $emailAutoSubscribeService ?? Di::_()->get(EmailAutoSubscribeService::class);
+        $this->featuredEntityAutoSubscribeService = $featuredEntityAutoSubscribeService ?? Di::_()->get(FeaturedEntityAutoSubscribeService::class);
+        $this->inviteProcessorService = $inviteProcessorService ?? Di::_()->get(InviteProcessorService::class);
+        $this->client = $client ?? Client::build();
+        $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+    }
+
+    /**
+     * @return void
+     */
+    public function run(): void
     {
-        $config = Di::_()->get('Config');
-        $subscriptions = $config->get('default_email_subscriptions');
-        /** @var Repository $repository */
-        $repository = Di::_()->get('Email\Repository');
-
-        /** @var EntitiesBuilder */
-        $entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
-
-        $client = Queue\Client::Build();
-        $client->setQueue("Registered")
+        $this->client->setQueue("Registered")
             ->receive([$this, 'processPostRegistrationEvent']);
-
-
-        // function ($data) use ($subscriptions, $repository, $entitiesBuilder, $config) {
-        //     $data = $data->getData();
-        //     $user_guid = $data['user_guid'];
-        //     $tenant_id = $config->get('tenant_id') ?? null;
-        //
-        //     //subscribe to minds channel
-        //     /** @var User $subscriber */
-        //     $subscriber = $entitiesBuilder->single($user_guid);
-        //
-        //     if (!$tenant_id) { // no tenant id means we are on the main site
-        //         $subscriber->subscribe('100000000000000519');
-        //
-        //         echo "[registered]: User registered $user_guid\n";
-        //     } else {
-        //         Di::_()->get(FeaturedEntityAutoSubscribeService::class)
-        //             ->autoSubscribe($subscriber, $tenant_id);
-        //     }
-        //
-        //     // Process invite token if any
-        //     if ($data['invite_token']) {
-        //         // Fetch invite
-        //         /**
-        //          * @var InviteReaderService $invitesReaderService
-        //          */
-        //         $invitesReaderService = Di::_()->get(InviteReaderService::class);
-        //
-        //         /**
-        //          * @var InviteManagementService $invitesManagementService
-        //          */
-        //         $invitesManagementService = Di::_()->get(InviteManagementService::class);
-        //         $invite = $invitesReaderService->getInviteByToken($data['invite_token']);
-        //
-        //         // Set user roles if any
-        //         if ($invite->getRoles()) {
-        //             /**
-        //              * @var RolesService $rolesService
-        //              */
-        //             $rolesService = Di::_()->get(RolesService::class);
-        //             foreach ($invite->getRoles() as $role) {
-        //                 $rolesService->assignUserToRole(
-        //                     $subscriber,
-        //                     $role
-        //                 );
-        //             }
-        //         }
-        //
-        //         // Subscribe to groups if any
-        //         if ($invite->getGroups()) {
-        //             /**
-        //              * @var GroupsMembershipManager $groupsMembershipManager
-        //              */
-        //             $groupsMembershipManager = Di::_()->get(GroupsMembershipManager::class);
-        //             foreach ($invite->getGroups() as $groupGuid) {
-        //                 $group = $entitiesBuilder->single($groupGuid);
-        //                 $groupsMembershipManager->joinGroup(
-        //                     group: $group,
-        //                     user: $subscriber,
-        //                     membershipLevel: GroupMembershipLevelEnum::MEMBER
-        //                 );
-        //             }
-        //         }
-        //
-        //         $invitesManagementService->updateInviteStatus($invite->inviteId, InviteEmailStatusEnum::ACCEPTED);
-        //     }
-        //
-        //     foreach ($subscriptions as $subscription) {
-        //         $sub = array_merge($subscription, ['userGuid' => $user_guid]);
-        //         $repository->add(new EmailSubscription($sub));
-        //     }
-        //
-        //     echo "[registered]: subscribed {$user_guid} to default email notifications \n";
-        // }
-
 
         $this->run();
     }
 
+    /**
+     * @param Message $message
+     * @return bool
+     * @throws Exception
+     */
     public function processPostRegistrationEvent(Message $message): bool
     {
-        var_dump($message->getData());
+        $userGuid = $message->getData()['user_guid'];
+        $tenantId = $message->getData()['tenant_id'] ?? null;
+
+        /** @var User $subscriber */
+        $subscriber = $this->entitiesBuilder->single($userGuid);
+        if (!$subscriber) {
+            return false;
+        }
+
+        try {
+            if (!$tenantId) { // no tenant id means we are on the main site
+                $subscriber->subscribe('100000000000000519');
+                echo "[registered]: User registered $userGuid\n";
+            } else {
+                $this->featuredEntityAutoSubscribeService
+                    ->autoSubscribe($subscriber, $tenantId);
+                echo "[registered]: User auto subscribed to featured entities for tenant $tenantId\n";
+            }
+        } catch (Exception $e) {
+            echo "[registered]: Failed to auto subscribe user $userGuid\n";
+        }
+
+        try {
+            // Process invite token if any
+            if ($inviteToken = $message->getData()['invite_token']) {
+                $this->inviteProcessorService->processInvite($subscriber, $inviteToken);
+                echo "[registered]: Processed invite with token $inviteToken\n";
+            }
+        } catch (Exception $e) {
+            echo "[registered]: Failed to process invite with token $inviteToken\n";
+        }
+
+        try {
+            // Subscribe to default email notifications
+            $this->emailAutoSubscribeService->subscribeToDefaultEmails((int)$userGuid);
+            echo "[registered]: subscribed {$userGuid} to default email notifications \n";
+        } catch (Exception $e) {
+            echo "[registered]: Failed to subscribe {$userGuid} to default email notifications \n";
+        }
+
         return true;
     }
 }
