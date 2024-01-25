@@ -11,6 +11,7 @@ use Minds\Core\Payments\Stripe\Instances\BalanceInstance;
 use Minds\Core\Payments\Stripe\Instances\FileInstance;
 use Minds\Core\Payments\Stripe\Transactions;
 use Minds\Common\Repository\Response;
+use Minds\Core\Payments\Stripe\Instances\ApplicationFeeInstance;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -32,9 +33,10 @@ class ManagerSpec extends ObjectBehavior
         AccountInstance $accountInstance,
         BalanceInstance $balanceInstance,
         FileInstance $fileInstance,
-        Transactions\Manager $transactionsManager
+        Transactions\Manager $transactionsManager,
+        ApplicationFeeInstance $applicationFeeInstanceMock,
     ) {
-        $this->beConstructedWith($save, $notificationDelegate, $accountInstance, $balanceInstance, $fileInstance, $transactionsManager);
+        $this->beConstructedWith($save, $notificationDelegate, $accountInstance, $balanceInstance, $fileInstance, $transactionsManager, $applicationFeeInstanceMock);
         $this->save = $save;
         $this->notificationDelegate = $notificationDelegate;
         $this->accountInstance = $accountInstance;

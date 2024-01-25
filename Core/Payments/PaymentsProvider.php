@@ -7,8 +7,11 @@ namespace Minds\Core\Payments;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
+use Minds\Core\Payments\Stripe\Keys\StripeKeysService;
 use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Core\Payments\Stripe\StripeClient;
+use Minds\Core\Payments\Stripe\StripeKeysRepository;
+use Minds\Core\Security\Vault\VaultTransitService;
 use Minds\Core\Session;
 use Minds\Entities\User;
 
@@ -41,7 +44,11 @@ class PaymentsProvider extends Provider
         }, ['useFactory' => false]);
 
         $this->di->bind(StripeApiKeyConfig::class, function ($di) {
-            return new StripeApiKeyConfig();
+            return new StripeApiKeyConfig(
+                config: $di->get('Config'),
+                activeSession: $di->get('Sessions\ActiveSession'),
+                keysService: $di->get(StripeKeysService::class),
+            );
         });
 
         $this->di->bind(StripeClient::class, function ($di, $args) {

@@ -1,9 +1,10 @@
 <?php
 /**
- * Stripe module.
+ * Stripe keys module.
+ * Repsonsible for securely storing the stripe keys.
  */
 
-namespace Minds\Core\Payments\Stripe;
+namespace Minds\Core\Payments\Stripe\Keys;
 
 use Minds\Interfaces\ModuleInterface;
 
@@ -14,18 +15,14 @@ use Minds\Interfaces\ModuleInterface;
 class Module implements ModuleInterface
 {
     /** @var array $submodules */
-    public $submodules = [
-        Keys\Module::class,
-    ];
+    public $submodules = [];
 
     /**
      * OnInit.
      */
     public function onInit()
     {
-        $routes = new Routes();
-        $routes->register();
-
         (new Provider())->register();
+        (new GraphQLMappings())->register();
     }
 }
