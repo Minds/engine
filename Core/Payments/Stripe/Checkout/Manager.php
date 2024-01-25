@@ -42,6 +42,7 @@ class Manager
         array $lineItems = [],
         ?array $paymentMethodTypes = null,
         ?string $submitMessage = null,
+        array $metadata = null,
     ): Session {
         $customerId = $this->customersManager->getByUser($user)->id;
 
@@ -67,6 +68,10 @@ class Manager
 
         if ($submitMessage) {
             $checkoutOptions['custom_text']['submit']['message'] = $submitMessage;
+        }
+
+        if ($metadata) {
+            $checkoutOptions['metadata'] = $metadata;
         }
 
         return $this->stripeClient->checkout->sessions->create($checkoutOptions);
