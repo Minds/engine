@@ -19,8 +19,7 @@ class InviteProcessorService
         private readonly InviteManagementService $inviteManagementService,
         private readonly RolesService            $rolesService,
         private readonly GroupMembershipManager  $groupMembershipManager
-    )
-    {
+    ) {
     }
 
     /**
@@ -66,7 +65,6 @@ class InviteProcessorService
         }
 
         foreach ($invite->getGroups() as $groupNode) {
-
             $this->groupMembershipManager->joinGroup(
                 group: $groupNode->getEntity(),
                 user: $user,

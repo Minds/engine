@@ -22,19 +22,19 @@ class ServicesProvider extends Provider
     {
         $this->di->bind(
             InviteManagementService::class,
-            fn(Di $di): InviteManagementService => new InviteManagementService(
+            fn (Di $di): InviteManagementService => new InviteManagementService(
                 invitesRepository: $di->get(InvitesRepository::class),
             )
         );
         $this->di->bind(
             InviteReaderService::class,
-            fn(Di $di): InviteReaderService => new InviteReaderService(
+            fn (Di $di): InviteReaderService => new InviteReaderService(
                 invitesRepository: $di->get(InvitesRepository::class),
             )
         );
         $this->di->bind(
             InviteSenderService::class,
-            fn(Di $di): InviteSenderService => new InviteSenderService(
+            fn (Di $di): InviteSenderService => new InviteSenderService(
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 multiTenantBootService: $di->get(MultiTenantBootService::class),
                 invitesRepository: $di->get(InvitesRepository::class),
@@ -44,7 +44,7 @@ class ServicesProvider extends Provider
 
         $this->di->bind(
             InviteProcessorService::class,
-            fn(Di $di): InviteProcessorService => new InviteProcessorService(
+            fn (Di $di): InviteProcessorService => new InviteProcessorService(
                 inviteReaderService: $di->get(InviteReaderService::class),
                 inviteManagementService: $di->get(InviteManagementService::class),
                 rolesService: $di->get(RolesService::class),

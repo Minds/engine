@@ -32,7 +32,6 @@ class InviteManagementService
         ?array $roles = null,
         ?array $groups = null,
     ): void {
-        // TODO: Validate emails, roles
         $this->invitesRepository->createInvite(
             user: $user,
             emails: $this->prepareEmailAddresses($emails),

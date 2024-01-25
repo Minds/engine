@@ -37,8 +37,7 @@ class Invite implements NodeInterface
         #[Field] public readonly ?int                  $sendTimestamp = null,
         private readonly ?array                        $roles = null,
         private readonly ?array                        $groups = null,
-    )
-    {
+    ) {
     }
 
     #[Field]
