@@ -90,26 +90,26 @@ class CheckoutServiceSpec extends ObjectBehavior
     ): void {
         $userMock->getGuid()->willReturn('user-guid');
 
-        $this->stripeProductServiceMock->getProductByKey('plan-id')
+        $this->stripeProductServiceMock->getProductByKey('networks:community')
             ->shouldBeCalledOnce()
             ->willReturn(
                 $this->generateStripeProductMock(
-                    id: 'plan-id',
-                    key: 'plan-id',
+                    id: 'networks:community',
+                    key: 'networks:community',
                     type: ProductTypeEnum::NETWORK->value
                 )
             );
 
         $stripeProductPricesMock->getIterator()->willYield([
             $this->generateStripeProductPriceMock(
-                id: 'plan-id',
+                id: 'networks:community',
                 unitAmount: 1000,
-                lookupKey: 'plan-id:yearly',
+                lookupKey: 'networks:community:yearly',
                 type: ProductTypeEnum::NETWORK->value
             )
         ]);
 
-        $this->stripeProductPriceServiceMock->getPricesByProduct('plan-id')
+        $this->stripeProductPriceServiceMock->getPricesByProduct('networks:community')
             ->shouldBeCalledOnce()
             ->willReturn($stripeProductPricesMock);
 
@@ -132,10 +132,13 @@ class CheckoutServiceSpec extends ObjectBehavior
             $userMock,
             CheckoutModeEnum::SUBSCRIPTION,
             "api/v3/payments/checkout/complete?session_id={CHECKOUT_SESSION_ID}",
-            "networks/checkout?planId=plan-id&timePeriod=yearly",
+            "networks/checkout?planId=networks:community&timePeriod=yearly",
             Argument::type('array'),
             ['card', 'us_bank_account'],
             Argument::type('string'),
+            [
+                'tenant_plan' => 'COMMUNITY'
+            ],
         )
             ->shouldBeCalledOnce()
             ->willReturn($this->generateStripeCheckoutSessionMock());
@@ -155,7 +158,7 @@ class CheckoutServiceSpec extends ObjectBehavior
 
         $this->generateCheckoutLink(
             $userMock,
-            'plan-id',
+            'networks:community',
             CheckoutTimePeriodEnum::YEARLY,
             ['add-on-id']
         )->shouldBeString();
@@ -202,6 +205,9 @@ class CheckoutServiceSpec extends ObjectBehavior
             'id' => 'checkout-session-id',
             'url' => 'cs_test_123',
             'subscription' => 'sub_test_123',
+            'metadata' => [
+                'tenant_plan' => 'TEAM'
+            ],
         ]);
 
         return $mock;
@@ -226,6 +232,7 @@ class CheckoutServiceSpec extends ObjectBehavior
             'sub_test_123',
             [
                 'tenant_id' => 1,
+                'tenant_plan' => 'TEAM'
             ]
         )
             ->shouldBeCalledOnce();

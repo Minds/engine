@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\Checkout\Services;
 
+use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Services\TenantsService;
 use Minds\Core\Payments\Checkout\Delegates\CheckoutEventsDelegate;
@@ -83,6 +84,9 @@ class CheckoutService
                 'us_bank_account',
             ],
             submitMessage: $timePeriod === CheckoutTimePeriodEnum::YEARLY ? "You are agreeing to a 12 month subscription that will be billed monthly." : null,
+            metadata: [
+                'tenant_plan' => strtoupper(str_replace('networks:', '', $planId)),
+            ]
         );
 
         $this->cache->set(
@@ -193,19 +197,23 @@ class CheckoutService
      */
     public function completeCheckout(User $user, string $stripeCheckoutSessionId): void
     {
+        $checkoutSession = $this->stripeCheckoutSessionService->retrieveCheckoutSession($stripeCheckoutSessionId);
+
+        $plan = TenantPlanEnum::fromString($checkoutSession->metadata['tenant_plan']);
+
         $tenant = $this->tenantsService->createNetwork(
             tenant: new Tenant(
                 id: 0,
-                ownerGuid: (int)$user->getGuid(),
+                plan: $plan,
+                ownerGuid: (int) $user->getGuid(),
             )
         );
-
-        $checkoutSession = $this->stripeCheckoutSessionService->retrieveCheckoutSession($stripeCheckoutSessionId);
 
         $this->stripeSubscriptionsService->updateSubscription(
             subscriptionId: $checkoutSession->subscription,
             metadata: [
                 'tenant_id' => $tenant->id,
+                'tenant_plan' => $tenant->plan->name,
             ]
         );
     }

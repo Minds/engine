@@ -110,6 +110,9 @@ class MultiTenantBootServiceSpec extends ObjectBehavior
         $this->configMock->set('tenant_id', 123)
             ->shouldBeCalled();
 
+        $this->configMock->set('tenant', Argument::type(Tenant::class))
+            ->shouldBeCalled();
+
         $this->configMock->set('dataroot', '/dataroot/tenant/123/')
             ->shouldBeCalled();
 

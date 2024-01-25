@@ -793,3 +793,5 @@ CREATE TABLE IF NOT EXISTS minds_push_notification_config (
 );
 
 ALTER TABLE minds_entities_object_image ADD COLUMN filename text AFTER deleted;
+
+ALTER TABLE `minds_tenants` ADD plan enum ('TEAM', 'COMMUNITY', 'ENTERPRISE') DEFAULT 'TEAM' AFTER root_user_guid;
