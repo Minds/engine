@@ -48,6 +48,7 @@ class MobilePreviewHandlerSpec extends ObjectBehavior
             'mobile' => [
                 'pipeline' => [
                     'trigger_token' => 'token',
+                    'branch' => 'ci-preview-backend',
                 ]
             ]
         ]);

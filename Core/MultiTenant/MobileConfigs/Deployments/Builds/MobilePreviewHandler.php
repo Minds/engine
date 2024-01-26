@@ -13,8 +13,6 @@ class MobilePreviewHandler
 {
     private const BUILD_MODE = "PREVIEW";
 
-    private const BRANCH = "ci-preview-backend";
-
     private const PIPELINE_TRIGGER_URL = 'https://gitlab.com/api/v4/projects/10171280/trigger/pipeline';
 
     public function __construct(
@@ -43,7 +41,7 @@ class MobilePreviewHandler
             options: [
                 "form_params" => [
                     "token" => $pipelineConfig["trigger_token"],
-                    "ref" => self::BRANCH,
+                    "ref" => $pipelineConfig["branch"],
                     "variables[BUILD_MODE]" => self::BUILD_MODE,
                     "variables[TENANT_ID]" => $tenantId ?? ($this->config->get("tenant_id") ?? -1),
                     "variables[WEBHOOK_URL]" => $this->config->get('site_url') . "/api/v3/multi-tenant/mobile-configs/update-preview",
