@@ -10,6 +10,7 @@ use Minds\Core\Security\Rbac\Models\Role;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 use TheCodingMachine\GraphQLite\Types\ID;
+use Minds\Core\Groups\V2\GraphQL\Types\GroupNode;
 
 #[Type]
 class Invite implements NodeInterface
@@ -64,7 +65,7 @@ class Invite implements NodeInterface
     }
 
     /**
-     * @return int[]|null
+     * @return GroupNode[]|null
      */
     #[Field]
     public function getGroups(): ?array
