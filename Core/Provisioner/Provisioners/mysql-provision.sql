@@ -795,3 +795,35 @@ CREATE TABLE IF NOT EXISTS minds_push_notification_config (
 ALTER TABLE minds_entities_object_image ADD COLUMN filename text AFTER deleted;
 
 ALTER TABLE `minds_tenants` ADD plan enum ('TEAM', 'COMMUNITY', 'ENTERPRISE') DEFAULT 'TEAM' AFTER root_user_guid;
+
+CREATE TABLE minds_site_membership_tiers (
+    tenant_id int,
+    membership_tier_guid bigint,
+    stripe_product_id varchar(256),
+    PRIMARY KEY (tenant_id, membership_tier_guid)
+);
+
+CREATE TABLE minds_site_membership_tiers_role_assignments (
+    tenant_id int NOT NULL,
+    membership_tier_guid bigint NOT NULL,
+    role_id int NOT NULL,
+    PRIMARY KEY (tenant_id, membership_tier_guid, role_id)
+);
+
+CREATE TABLE minds_site_membership_tiers_group_assignments (
+    tenant_id int NOT NULL,
+    membership_tier_guid bigint NOT NULL,
+    group_guid bigint NOT NULL,
+    PRIMARY KEY (tenant_id, membership_tier_guid, group_guid)
+);
+
+CREATE TABLE minds_site_membership_subscriptions (
+    tenant_id int NOT NULL,
+    user_guid bigint NOT NULL,
+    membership_tier_guid bigint NOT NULL,
+    stripe_subscription_id varchar(256) NOT NULL,
+    valid_from timestamp NOT NULL,
+    valid_to timestamp DEFAULT NULL,
+    PRIMARY KEY (tenant_id, user_guid, membership_tier_guid, valid_from)
+);
+
