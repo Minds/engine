@@ -12,7 +12,7 @@ class StripeKeysControllerSpec extends ObjectBehavior
 {
     private Collaborator $serviceMock;
 
-    function let(StripeKeysService $serviceMock)
+    public function let(StripeKeysService $serviceMock)
     {
         $this->beConstructedWith($serviceMock);
         $this->serviceMock = $serviceMock;
