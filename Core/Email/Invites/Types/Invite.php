@@ -5,6 +5,7 @@ namespace Minds\Core\Email\Invites\Types;
 
 use Minds\Core\Email\Invites\Enums\InviteEmailStatusEnum;
 use Minds\Core\GraphQL\Types\NodeInterface;
+use Minds\Core\Groups\V2\GraphQL\Types\GroupNode;
 use Minds\Core\Security\Rbac\Enums\RolesEnum;
 use Minds\Core\Security\Rbac\Models\Role;
 use TheCodingMachine\GraphQLite\Annotations\Field;
@@ -53,7 +54,7 @@ class Invite implements NodeInterface
     public function getRoles(): ?array
     {
         $roles = [];
-        foreach ($this->roles as $roleId) {
+        foreach ($this->roles ?? [] as $roleId) {
             $roleEnum = RolesEnum::from($roleId);
             $roles[$roleEnum->value] = new Role(
                 id: $roleEnum->value,
