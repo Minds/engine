@@ -42,11 +42,11 @@ class Exported
     /**
      * Exported constructor.
      *
-     * @param Config                    $config
+     * @param Config $config
      * @param ThirdPartyNetworksManager $thirdPartyNetworks
-     * @param I18nManager               $i18n
-     * @param BlockchainManager         $blockchain
-     * @param ExperimentsManager        $experimentsManager
+     * @param I18nManager $i18n
+     * @param BlockchainManager $blockchain
+     * @param ExperimentsManager $experimentsManager
      */
     public function __construct(
         $config = null,
@@ -87,7 +87,7 @@ class Exported
             'max_video_length_plus' => $this->config->get('max_video_length_plus'),
             'max_video_file_size' => $this->config->get('max_video_file_size'),
             'max_name_length' => $this->config->get('max_name_length') ?? 50,
-            'blockchain' => (object) $this->blockchain->getPublicSettings(),
+            'blockchain' => (object)$this->blockchain->getPublicSettings(),
             'last_tos_update' => $this->config->get('last_tos_update') ?: time(),
             'tags' => $this->config->get('tags') ?: [],
             'plus' => $this->config->get('plus'),
@@ -108,7 +108,7 @@ class Exported
                 'url' => $this->config->get('statuspage_io')['url'] ?? null,
             ],
             'experiments' => [], // TODO: remove when clients support growthbook features
-            'growthbook' =>  $this->experimentsManager
+            'growthbook' => $this->experimentsManager
                 ->setUser(Session::getLoggedinUser())
                 ->getExportableConfig(),
             'twitter' => [
@@ -133,7 +133,7 @@ class Exported
             $user = Session::getLoggedinUser();
 
             $exported['user'] = $user->export();
-            $exported['user']['rewards'] = (bool) $user->getPhoneNumberHash();
+            $exported['user']['rewards'] = (bool)$user->getPhoneNumberHash();
 
             if ($user->isPlus()) {
                 $exported['max_video_length'] = $this->config->get('max_video_length_plus');
@@ -179,6 +179,8 @@ class Exported
             /** @var Tenant */
             $tenant = $this->config->get('tenant');
 
+            $multiTenantConfig = $this->config->get('multi_tenant');
+
             $exported['is_tenant'] = true;
             $exported['tenant_id'] = $tenantId;
 
@@ -186,6 +188,8 @@ class Exported
                 'id' => $tenantId,
                 'plan' => isset($tenant->plan) ? $tenant->plan->name : TenantPlanEnum::TEAM->name,
             ];
+
+            $exported['tenant']['max_memberships'] = $multiTenantConfig['plan_memberships'][$exported['tenant']['plan']] ?? 0;
 
             $exported['theme_override'] = $this->config->get('theme_override');
             $exported['nsfw_enabled'] = $this->config->get('nsfw_enabled') ?? true;

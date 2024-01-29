@@ -12,8 +12,8 @@ class GraphQLMappings extends AbstractGraphQLMappings
      */
     public function register(): void
     {
-        $this->schemaFactory->addControllerNamespace('Minds\Core\SiteMemberships\Controllers');
-        $this->schemaFactory->addTypeNamespace('Minds\Core\SiteMemberships\Enums');
-        $this->schemaFactory->addTypeNamespace('Minds\Core\SiteMemberships\Types');
+        $this->schemaFactory->addControllerNamespace('Minds\Core\Payments\SiteMemberships\Controllers');
+        $this->schemaFactory->addTypeNamespace('Minds\Core\Payments\SiteMemberships\Enums');
+        $this->schemaFactory->addTypeNamespace('Minds\Core\Payments\SiteMemberships\Types');
     }
 }

@@ -9,7 +9,6 @@ class SiteMembershipManagementController
 {
     public function __construct(
         private readonly SiteMembershipManagementService $siteMembershipManagementService
-    )
-    {
+    ) {
     }
 }
