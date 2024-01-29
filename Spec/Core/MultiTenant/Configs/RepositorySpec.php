@@ -59,6 +59,7 @@ class RepositorySpec extends ObjectBehavior
         $colorSchemeValue = MultiTenantColorScheme::DARK->value;
         $primaryColor = '#fff000';
         $federationDisabled = true;
+        $replyEmail = 'some@email.com';
         $nsfwEnabled = 1;
         $updatedTimestamp = date('c', time());
 
@@ -81,6 +82,7 @@ class RepositorySpec extends ObjectBehavior
                 'color_scheme' => $colorSchemeValue,
                 'primary_color' => $primaryColor,
                 'federation_disabled' => $federationDisabled,
+                'reply_email' => $replyEmail,
                 'nsfw_enabled' => $nsfwEnabled,
                 'updated_timestamp' => $updatedTimestamp,
             ]);
@@ -91,6 +93,7 @@ class RepositorySpec extends ObjectBehavior
             colorScheme: MultiTenantColorScheme::tryFrom($colorSchemeValue),
             primaryColor: $primaryColor,
             federationDisabled: $federationDisabled,
+            replyEmail: $replyEmail,
             nsfwEnabled: $nsfwEnabled,
             updatedTimestamp: strtotime($updatedTimestamp)
         ));
@@ -127,6 +130,7 @@ class RepositorySpec extends ObjectBehavior
         $colorScheme = MultiTenantColorScheme::DARK;
         $primaryColor = '#fff000';
         $federationDisabled = true;
+        $replyEmail = 'some@email.com';
         $nsfwEnabled = true;
 
         $this->mysqlMasterMock->prepare(Argument::any())
@@ -138,6 +142,7 @@ class RepositorySpec extends ObjectBehavior
             'color_scheme' => $colorScheme->value,
             'primary_color' => $primaryColor,
             'federation_disabled' => $federationDisabled,
+            'reply_email' => $replyEmail,
             'nsfw_enabled' => $nsfwEnabled
         ])->shouldBeCalled();
 
@@ -151,6 +156,7 @@ class RepositorySpec extends ObjectBehavior
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
             federationDisabled: $federationDisabled,
+            replyEmail: $replyEmail,
             nsfwEnabled: $nsfwEnabled
         )->shouldBe(true);
     }

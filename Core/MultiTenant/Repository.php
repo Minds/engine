@@ -73,6 +73,7 @@ class Repository extends AbstractRepository
                 'primary_color',
                 'color_scheme',
                 'federation_disabled',
+                'reply_email',
                 'last_cache_timestamp',
                 'updated_timestamp',
                 'nsfw_enabled',
@@ -91,6 +92,7 @@ class Repository extends AbstractRepository
         $primaryColor = $row['primary_color'] ?? null;
         $colorScheme = $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null;
         $federationDisabled = (bool) $row['federation_disabled'] ?? false;
+        $replyEmail = $row['reply_email'] ?? null;
         $updatedTimestamp = $row['updated_timestamp'] ?? null;
         $lastCacheTimestamp = $row['last_cache_timestamp'] ?? null;
         $nsfwEnabled = $row['nsfw_enabled'] ?? true;
@@ -107,6 +109,7 @@ class Repository extends AbstractRepository
                 colorScheme: $colorScheme,
                 primaryColor: $primaryColor,
                 federationDisabled: $federationDisabled,
+                replyEmail: $replyEmail,
                 lastCacheTimestamp: $lastCacheTimestamp ? strtotime($lastCacheTimestamp) : null,
                 updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null,
                 nsfwEnabled: $nsfwEnabled,

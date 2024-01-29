@@ -330,7 +330,7 @@ $CONFIG->set('google', [
     ],
     'bigquery' => [
         'project_id' => '',
-        'key_file_path' =>  __DIR__ . '/.auth/bigquery.json'
+        'key_file_path' => __DIR__ . '/.auth/bigquery.json'
     ],
     'vision' => [
         'api_key' => '{{google-api-key}}'
@@ -645,7 +645,8 @@ $CONFIG->set('max_video_length_plus', 1860);
 $CONFIG->set('email', [
     'sender' => [
         'email' => 'no-reply@minds.com',
-        'name' => 'Minds'
+        'name' => 'Minds',
+        'reply_to' => 'no-reply@minds.com',
     ],
     'smtp' => [
         'host' => '',
@@ -979,4 +980,16 @@ $CONFIG->set('nsfw_enabled', true);
 $CONFIG->set('vault', [
     'url' => 'http://vault:8200/',
     'token' => 'root',
+]);
+
+$CONFIG->set('gitlab', [
+    'mobile' => [
+        'pipeline' => [
+            'branch' => '',
+            'trigger_token' => '',
+            'jwt_token' => [
+                'secret_key' => '',
+            ],
+        ]
+    ]
 ]);

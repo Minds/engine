@@ -23,10 +23,12 @@ class MultiTenantConfigInputValidatorSpec extends ObjectBehavior
     {
         $siteName = 'Test site';
         $primaryColor = '#fff000';
+        $replyEmail = 'some@email.com';
 
         $this->validate(new MultiTenantConfigInput(
             siteName: $siteName,
             primaryColor: $primaryColor,
+            replyEmail: $replyEmail
         ))->shouldBe(null);
     }
 
@@ -103,6 +105,19 @@ class MultiTenantConfigInputValidatorSpec extends ObjectBehavior
             new MultiTenantConfigInput(
                 siteName: $siteName,
                 primaryColor: '#abcdez'
+            )
+        );
+    }
+
+    public function it_should_NOT_validate_an_input_with_an_invalid_reply_email_address()
+    {
+        $siteName = 'Test site';
+        $replyEmail = 'some.email@someemail';
+
+        $this->shouldThrow(GraphQLException::class)->duringValidate(
+            new MultiTenantConfigInput(
+                siteName: $siteName,
+                replyEmail: $replyEmail
             )
         );
     }
