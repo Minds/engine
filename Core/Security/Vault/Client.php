@@ -62,6 +62,7 @@ class Client
         $url = rtrim($this->config->get('vault')['url'], '/') . '/v1/auth/kubernetes/login';
 
         $json = $this->httpClient->request("POST", $url, [
+            'verify' => file_get_contents('/var/run/secrets/kubernetes.io/serviceaccount/ca.crt'),
             'json' => [
                 'jwt' => file_get_contents('/var/run/secrets/kubernetes.io/serviceaccount/token'),
                 'role' => $this->config->get('vault')['auth_role'] ?? null,
