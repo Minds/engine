@@ -53,6 +53,7 @@ class Manager
      * @param ?MultiTenantColorScheme $colorScheme - color scheme to set.
      * @param ?string $primaryColor - primary color to set.
      * @param ?bool $federationDisabled - federation disabled.
+     * @param ?string $replyEmail - reply-to email address.
      * @param ?bool $nsfwEnabled - whether nfsw reporting tools are enabled.
      * @param ?int $lastCacheTimestamp - last cache timestamp.
      * @return bool - true on success.
@@ -62,6 +63,7 @@ class Manager
         ?MultiTenantColorScheme $colorScheme = null,
         ?string $primaryColor = null,
         ?bool $federationDisabled = null,
+        ?string $replyEmail = null,
         ?bool $nsfwEnabled = null,
         ?int $lastCacheTimestamp = null
     ): bool {
@@ -73,6 +75,7 @@ class Manager
             colorScheme: $colorScheme,
             primaryColor: $primaryColor,
             federationDisabled: $federationDisabled,
+            replyEmail: $replyEmail,
             nsfwEnabled: $nsfwEnabled,
             lastCacheTimestamp: $lastCacheTimestamp
         );
