@@ -35,5 +35,9 @@ class Provider extends DiProvider
                 logger: $di->get('Logger')
             );
         });
+
+        #region Deployments
+        (new MobileConfigs\Deployments\Provider())->register();
+        #endregion
     }
 }

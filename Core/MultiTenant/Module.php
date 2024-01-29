@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\MultiTenant;
 
 use Minds\Core\Di\ImmutableException;
@@ -11,6 +12,7 @@ class Module implements ModuleInterface
         Configs\Module::class,
         AutoLogin\Module::class,
         CustomPages\Module::class,
+        MobileConfigs\Module::class,
     ];
 
     /**

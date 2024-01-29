@@ -7,6 +7,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
+use Minds\Core\MultiTenant\MobileConfigs\Repositories\MobileConfigRepository;
 
 class RepositoriesProvider extends Provider
 {
@@ -47,6 +48,15 @@ class RepositoriesProvider extends Provider
                     logger: $di->get('Logger')
                 );
             }
+        );
+
+        $this->di->bind(
+            MobileConfigRepository::class,
+            fn (Di $di): MobileConfigRepository => new MobileConfigRepository(
+                mysqlHandler: $di->get('Database\MySQL\Client'),
+                config: $di->get(Config::class),
+                logger: $di->get('Logger')
+            )
         );
     }
 }
