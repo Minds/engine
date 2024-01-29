@@ -33,7 +33,7 @@ class Client
             'json' => $body,
         ];
 
-        if ($this->config->get('vault')['auth_method'] !== 'kubernetes') {
+        if ($this->config->get('vault')['auth_method'] === 'kubernetes') {
             $opts['verify'] = '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt';
         }
 
