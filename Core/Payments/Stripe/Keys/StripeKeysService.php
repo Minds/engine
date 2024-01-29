@@ -26,9 +26,13 @@ class StripeKeysService
     /**
      * Returns the plaintext sec key
      */
-    public function getSecKey(): string
+    public function getSecKey(): ?string
     {
         list(, $secKeyCipherText) = $this->repository->getKeys();
+
+        if (!$secKeyCipherText) {
+            return null;
+        }
 
         $secKeyPlainText = $this->vaultTransitService->decrypt($secKeyCipherText);
 
