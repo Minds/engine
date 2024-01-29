@@ -792,6 +792,27 @@ CREATE TABLE IF NOT EXISTS minds_push_notification_config (
     apns_topic varchar(128)
 );
 
+CREATE TABLE IF NOT EXISTS `minds`.`minds_tenant_mobile_configs` (
+    `tenant_id` int NOT NULL PRIMARY KEY,
+    `splash_screen_type` tinyint DEFAULT NULL,
+    `welcome_screen_logo_type` tinyint DEFAULT NULL,
+    `preview_status` tinyint NOT NULL DEFAULT 0,
+    `preview_last_updated_timestamp` timestamp DEFAULT NULL,
+    `update_timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 ALTER TABLE minds_entities_object_image ADD COLUMN filename text AFTER deleted;
 
 ALTER TABLE `minds_tenants` ADD plan enum ('TEAM', 'COMMUNITY', 'ENTERPRISE') DEFAULT 'TEAM' AFTER root_user_guid;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD reply_email varchar(128) DEFAULT NULL
+    AFTER federation_disabled;
+
+CREATE TABLE IF NOT EXISTS minds_stripe_keys(
+    tenant_id int PRIMARY KEY,
+    pub_key varchar(128),
+    sec_key_cipher_text varchar(256),
+    created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP(),
+    updated_timestamp timestamp NULL
+);

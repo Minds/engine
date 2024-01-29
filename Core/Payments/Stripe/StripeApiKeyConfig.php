@@ -4,7 +4,9 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\Stripe;
 
 use Minds\Core\Config\Config;
-use Minds\Core\Di\Di;
+use Minds\Core\Payments\Stripe\Keys\StripeKeysRepository;
+use Minds\Core\Payments\Stripe\Keys\StripeKeysService;
+use Minds\Core\Security\Vault\VaultTransitService;
 use Minds\Core\Sessions\ActiveSession;
 use Minds\Entities\User;
 
@@ -14,11 +16,10 @@ use Minds\Entities\User;
 class StripeApiKeyConfig
 {
     public function __construct(
-        protected ?Config $config = null,
-        protected ?ActiveSession $activeSession = null
+        protected Config $config,
+        protected ActiveSession $activeSession,
+        protected StripeKeysService $keysService,
     ) {
-        $this->config ??= Di::_()->get('Config');
-        $this->activeSession ??= Di::_()->get('Sessions\ActiveSession');
     }
 
     /**
@@ -33,6 +34,11 @@ class StripeApiKeyConfig
         }
 
         $stripeConfig = $this->config->get('payments')['stripe'];
+
+        // Tenants will use the keystore, Minds.com is provided from env variable
+        if ($this->config->get('tenant_id') && $secKey = $this->keysService->getSecKey()) {
+            $stripeConfig['api_key'] = $secKey;
+        }
 
         return $this->shouldUseTestMode($user, $stripeConfig) ?
             $stripeConfig['test_api_key'] :

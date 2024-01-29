@@ -14,7 +14,9 @@ use Minds\Interfaces\ModuleInterface;
 class Module implements ModuleInterface
 {
     /** @var array $submodules */
-    public $submodules = [];
+    public $submodules = [
+        Keys\Module::class,
+    ];
 
     /**
      * OnInit.

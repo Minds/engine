@@ -3,6 +3,7 @@
 namespace Spec\Minds\Core\Payments\Stripe;
 
 use Minds\Core\Config;
+use Minds\Core\Payments\Stripe\Keys\StripeKeysService;
 use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Core\Sessions\ActiveSession;
 use Minds\Entities\User;
@@ -13,13 +14,15 @@ class StripeApiKeyConfigSpec extends ObjectBehavior
 {
     private Collaborator $config;
     private Collaborator $activeSession;
+    private Collaborator $keysServiceMock;
 
-    public function let(Config $config, ActiveSession $activeSession)
+    public function let(Config $config, ActiveSession $activeSession, StripeKeysService $keysServiceMock)
     {
         $this->config = $config;
         $this->activeSession = $activeSession;
+        $this->keysServiceMock = $keysServiceMock;
 
-        $this->beConstructedWith($config, $activeSession);
+        $this->beConstructedWith($config, $activeSession, $keysServiceMock);
     }
 
     public function it_is_initializable()
@@ -151,6 +154,33 @@ class StripeApiKeyConfigSpec extends ObjectBehavior
         $this->get()->shouldBe('live_pk');
     }
 
+    public function it_should_use_sec_key_from_keys_service_if_tenant(User $user)
+    {
+        $user->getEmail()
+            ->shouldBeCalled()
+            ->willReturn('phpspec@minds.local');
+
+        $user->isEmailConfirmed()
+            ->shouldNotBeCalled()
+            ->willReturn();
+            
+        $this->activeSession->getUser()
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $this->mockConfig();
+
+        $this->config->get('tenant_id')
+            ->willReturn(1);
+
+        $this->keysServiceMock->getSecKey()
+            ->shouldBeCalled()
+            ->willReturn('live_pk_from_keys_service');
+
+        $this->get()->shouldBe('live_pk_from_keys_service');
+    }
+
+
     private function mockConfig(): void
     {
         $this->config->get('payments')
@@ -161,5 +191,7 @@ class StripeApiKeyConfigSpec extends ObjectBehavior
                     'test_email' => 'phpspec@minds.local',
                 ]
             ]);
+        $this->config->get('tenant_id')
+            ->willReturn(null);
     }
 }
