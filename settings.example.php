@@ -977,6 +977,12 @@ $CONFIG->set('theme_override', [
 
 $CONFIG->set('nsfw_enabled', true);
 
+$CONFIG->set('vault', [
+    'url' => 'http://vault:8200/',
+    'token' => 'root',
+    'auth_method' => 'token'
+]);
+
 $CONFIG->set('gitlab', [
     'mobile' => [
         'pipeline' => [

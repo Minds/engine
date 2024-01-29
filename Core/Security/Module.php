@@ -17,6 +17,7 @@ class Module implements ModuleInterface
         TwoFactor\Module::class,
         Password\Module::class,
         Rbac\Module::class,
+        Vault\Module::class,
     ];
 
     /**
