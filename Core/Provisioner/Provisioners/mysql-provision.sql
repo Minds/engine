@@ -792,6 +792,15 @@ CREATE TABLE IF NOT EXISTS minds_push_notification_config (
     apns_topic varchar(128)
 );
 
+CREATE TABLE IF NOT EXISTS `minds`.`minds_tenant_mobile_configs` (
+    `tenant_id` int NOT NULL PRIMARY KEY,
+    `splash_screen_type` tinyint DEFAULT NULL,
+    `welcome_screen_logo_type` tinyint DEFAULT NULL,
+    `preview_status` tinyint NOT NULL DEFAULT 0,
+    `preview_last_updated_timestamp` timestamp DEFAULT NULL,
+    `update_timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 ALTER TABLE minds_entities_object_image ADD COLUMN filename text AFTER deleted;
 
 

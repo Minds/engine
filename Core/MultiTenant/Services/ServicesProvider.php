@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Services;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
@@ -10,7 +11,13 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\V2\Membership\Manager as GroupsMembershipManager;
 use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
+use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigManager;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
+use Minds\Core\MultiTenant\MobileConfigs\Deployments\Builds\MobilePreviewHandler;
+use Minds\Core\MultiTenant\MobileConfigs\Repositories\MobileConfigRepository;
+use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigAssetsService;
+use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigManagementService;
+use Minds\Core\MultiTenant\MobileConfigs\Services\MobileConfigReaderService;
 use Minds\Core\MultiTenant\Repositories\DomainsRepository;
 use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
 use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
@@ -80,6 +87,33 @@ class ServicesProvider extends Provider
                     $di->get('Config')
                 );
             }
+        );
+
+        $this->di->bind(
+            MobileConfigAssetsService::class,
+            fn (Di $di): MobileConfigAssetsService => new MobileConfigAssetsService(
+                $di->get('Media\Imagick\Manager'),
+                $di->get(Config::class),
+                $di->get(MultiTenantBootService::class),
+                $di->get(MultiTenantConfigManager::class)
+            )
+        );
+
+        $this->di->bind(
+            MobileConfigReaderService::class,
+            fn (Di $di): MobileConfigReaderService => new MobileConfigReaderService(
+                mobileConfigRepository: $di->get(MobileConfigRepository::class),
+                multiTenantBootService: $di->get(MultiTenantBootService::class),
+                config: $di->get(Config::class)
+            )
+        );
+
+        $this->di->bind(
+            MobileConfigManagementService::class,
+            fn (Di $di): MobileConfigManagementService => new MobileConfigManagementService(
+                mobileConfigRepository: $di->get(MobileConfigRepository::class),
+                mobilePreviewHandler: $di->get(MobilePreviewHandler::class),
+            )
         );
 
         $this->di->bind(

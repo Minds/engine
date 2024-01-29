@@ -330,7 +330,7 @@ $CONFIG->set('google', [
     ],
     'bigquery' => [
         'project_id' => '',
-        'key_file_path' =>  __DIR__ . '/.auth/bigquery.json'
+        'key_file_path' => __DIR__ . '/.auth/bigquery.json'
     ],
     'vision' => [
         'api_key' => '{{google-api-key}}'
@@ -980,4 +980,16 @@ $CONFIG->set('nsfw_enabled', true);
 $CONFIG->set('vault', [
     'url' => 'http://vault:8200/',
     'token' => 'root',
+]);
+
+$CONFIG->set('gitlab', [
+    'mobile' => [
+        'pipeline' => [
+            'branch' => '',
+            'trigger_token' => '',
+            'jwt_token' => [
+                'secret_key' => '',
+            ],
+        ]
+    ]
 ]);
