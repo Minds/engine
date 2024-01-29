@@ -87,10 +87,22 @@ class SiteMembershipReaderController
                 priceCurrency: 'USD',
                 membershipBillingPeriod: SiteMembershipBillingPeriodEnum::YEARLY,
                 membershipPricingModel: SiteMembershipPricingModelEnum::ONE_TIME,
-                roles: [
-                    1,
-                    2
-                ],
+                groups: [
+                    new GroupNode(
+                        (new Group())
+                            ->loadFromArray([
+                                'guid' => 1,
+                                'name' => 'Test Group 1',
+                            ])
+                    ),
+                    new GroupNode(
+                        (new Group())
+                            ->loadFromArray([
+                                'guid' => 2,
+                                'name' => 'Test Group 2',
+                            ])
+                    ),
+                ]
             ),
         ];
     }

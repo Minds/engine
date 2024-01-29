@@ -33,6 +33,10 @@ class SiteMembership
     #[Field]
     public function getRoles(): ?array
     {
+        if (!$this->roles) {
+            return null;
+        }
+
         $roles = [];
         foreach ($this->roles as $roleId) {
             $roleEnum = RolesEnum::from($roleId);
