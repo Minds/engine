@@ -70,15 +70,13 @@ class StripeClient
     private function buildStripeClient(): Stripe\StripeClient
     {
         if (!isset($this->config['api_key'])) {
-
             if (isset($this->user)) {
                 $this->config['api_key'] = $this->stripeApiKeyConfig->get($this->user);
+            } else {
+                $this->config['api_key'] = $this->stripeApiKeyConfig->get();
             }
-
-            $this->config['api_key'] = $this->stripeApiKeyConfig->get();
         }
-    
-        $className = "Stripe\StripeClient";
-        return new $className($this->config);
+
+        return new Stripe\StripeClient($this->config);
     }
 }
