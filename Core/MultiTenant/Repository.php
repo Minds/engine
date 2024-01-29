@@ -1,9 +1,11 @@
 <?php
+
 namespace Minds\Core\MultiTenant;
 
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\MultiTenant\Configs\Enums\MultiTenantColorScheme;
 use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
+use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
 use PDO;
 use Selective\Database\Operator;
@@ -62,6 +64,7 @@ class Repository extends AbstractRepository
             ->leftJoin('minds_tenants_domain_details', 'minds_tenants.tenant_id', Operator::EQ, 'minds_tenants_domain_details.tenant_id')
             ->columns([
                 'minds_tenants.tenant_id',
+                'minds_tenants.plan',
                 'minds_tenants_domain_details.domain',
                 'owner_guid',
                 'root_user_guid',
@@ -76,9 +79,11 @@ class Repository extends AbstractRepository
                 'nsfw_enabled',
             ]);
     }
+
     private function buildTenantModel(array $row): Tenant
     {
         $tenantId = $row['tenant_id'];
+        $plan = $row['plan'];
         $domain = $row['domain'];
         $tenantOwnerGuid = $row['owner_guid'];
         $rootUserGuid = $row['root_user_guid'];
@@ -94,6 +99,7 @@ class Repository extends AbstractRepository
 
         return new Tenant(
             id: $tenantId,
+            plan: TenantPlanEnum::fromString($plan),
             domain: $domain,
             ownerGuid: $tenantOwnerGuid,
             rootUserGuid: $rootUserGuid,
@@ -148,12 +154,15 @@ class Repository extends AbstractRepository
             ->into('minds_tenants')
             ->set([
                 'owner_guid' => $tenant->ownerGuid,
+                'plan' => $tenant->plan->name,
             ])
             ->prepare();
+
         $statement->execute();
 
         return new Tenant(
             id: $this->mysqlClientWriter->lastInsertId(),
+            plan:  $tenant->plan,
             ownerGuid: $tenant->ownerGuid,
             config: $tenant->config
         );

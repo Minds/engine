@@ -1,17 +1,17 @@
 <?php
+
 namespace Minds\Core\Webfinger;
 
 use Minds\Exceptions\ServerErrorException;
 
-class Manager
+class WebfingerService
 {
     public function __construct(protected Client $client)
     {
-        
     }
 
     /**
-     * Fetches a webfinger resources from a uri (eg. acct:mark@minds.com)
+     * Fetches a webfinger resources from a uri (eg. acct:mark@minds.com).
      */
     public function get(string $uri): array
     {
@@ -23,7 +23,7 @@ class Manager
         $json = json_decode($response->getBody()->getContents(), true);
 
         if (!is_array($json)) {
-            throw new ServerErrorException("bad webfinger response");
+            throw new ServerErrorException('bad webfinger response');
         }
 
         return $json;

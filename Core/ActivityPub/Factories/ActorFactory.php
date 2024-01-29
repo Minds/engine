@@ -38,7 +38,6 @@ class ActorFactory
     public function __construct(
         protected Manager $manager,
         protected Client $client,
-        protected Webfinger\Manager $webfingerManager,
         protected Config $config,
         private readonly InMemoryCache $cache
     ) {

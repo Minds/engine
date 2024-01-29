@@ -116,6 +116,10 @@ class MultiTenantBootService
 
         $this->setConfig('tenant_id', $tenant->id);
 
+        // Nake global the tenant object
+
+        $this->setConfig('tenant', $tenant);
+
         // Data root
 
         $this->setConfig('dataroot', $this->config->get('dataroot') . 'tenant/' . $this->config->get('tenant_id') . '/');
