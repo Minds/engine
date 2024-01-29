@@ -116,6 +116,7 @@ class ManagerSpec extends ObjectBehavior
         $result = true;
         $tenant = new Tenant($tenantId, $domain);
         $federationDisabled = true;
+        $replyEmail = 'some@email.com';
         $nsfwEnabled = true;
         $lastCacheTimestamp = time();
 
@@ -129,6 +130,7 @@ class ManagerSpec extends ObjectBehavior
             $colorScheme,
             $primaryColor,
             $federationDisabled,
+            $replyEmail,
             $nsfwEnabled,
             $lastCacheTimestamp
         )
@@ -147,6 +149,7 @@ class ManagerSpec extends ObjectBehavior
             $colorScheme,
             $primaryColor,
             $federationDisabled,
+            $replyEmail,
             $nsfwEnabled,
             $lastCacheTimestamp
         )->shouldBe($result);
@@ -160,6 +163,7 @@ class ManagerSpec extends ObjectBehavior
         $primaryColor = '#000000';
         $result = false;
         $federationDisabled = true;
+        $replyEmail = 'some@email.com';
         $nsfwEnabled = true;
         $lastCacheTimestamp = time();
 
@@ -173,6 +177,7 @@ class ManagerSpec extends ObjectBehavior
             $colorScheme,
             $primaryColor,
             $federationDisabled,
+            $replyEmail,
             $nsfwEnabled,
             $lastCacheTimestamp
         )
@@ -190,6 +195,7 @@ class ManagerSpec extends ObjectBehavior
             $colorScheme,
             $primaryColor,
             $federationDisabled,
+            $replyEmail,
             $nsfwEnabled,
             $lastCacheTimestamp
         )->shouldBe($result);
