@@ -6,6 +6,7 @@ namespace Minds\Core\MultiTenant\Configs\Validators;
 use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfigInput;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 use TheCodingMachine\GraphQLite\Types\InputTypeValidatorInterface;
+use Minds\Helpers\Validation;
 
 /**
  * Multi-tenant config input validator. Validates input for multi-tenant config
@@ -51,6 +52,10 @@ class MultiTenantConfigInputValidator implements InputTypeValidatorInterface
             if (!ctype_xdigit(substr($input->primaryColor, 1))) {
                 throw new GraphQLException("Invalid hex value", 400, null, "Validation", ['field' => 'primaryColor']);
             }
+        }
+
+        if (isset($input->replyEmail) && $input->replyEmail !== '' && !Validation::isValidEmail($input->replyEmail)) {
+            throw new GraphQLException("Invalid reply-to email address", 400, null, "Validation", ['field' => 'replyEmail']);
         }
 
         return;
