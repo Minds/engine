@@ -129,7 +129,10 @@ class Message
      */
     public function getReplyTo()
     {
-        return $this->replyTo ?? [];
+        return !empty($this->replyTo) ? $this->replyTo : [
+            'email' => $this->config->get('email')['sender']['reply_to'],
+            'name' => $this->config->get('site_name') ?? 'Minds'
+        ];
     }
     /**
      * Set reply-to.
@@ -145,4 +148,5 @@ class Message
         $this->replyTo['name'] = $name;
         return $this;
     }
+
 }

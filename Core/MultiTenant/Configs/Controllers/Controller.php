@@ -55,6 +55,7 @@ class Controller
             colorScheme: $multiTenantConfigInput->colorScheme,
             primaryColor: $multiTenantConfigInput->primaryColor,
             federationDisabled: $multiTenantConfigInput->federationDisabled,
+            replyEmail: $multiTenantConfigInput->replyEmail,
             nsfwEnabled: $multiTenantConfigInput->nsfwEnabled,
         );
     }

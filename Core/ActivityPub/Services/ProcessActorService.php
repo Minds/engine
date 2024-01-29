@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\ActivityPub\Services;
 
 use Minds\Common\Regex;
@@ -8,9 +9,11 @@ use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
 use Minds\Core\ActivityPub\Types\Actor\ApplicationType;
 use Minds\Core\ActivityPub\Types\Actor\PersonType;
+use Minds\Core\Authentication\Services\RegisterService;
 use Minds\Core\Channels\AvatarService;
 use Minds\Core\Entities\Actions\Save;
 use Minds\Core\Security\ACL;
+use Minds\Core\Webfinger\WebfingerService;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
@@ -25,31 +28,34 @@ class ProcessActorService
         protected ACL $acl,
         protected Save $saveAction,
         protected AvatarService $avatarService,
+        protected RegisterService $registerService,
+        protected WebfingerService $webfingerService,
     ) {
-        
     }
 
     /**
-     * Constructs the actor from just a uri
+     * Constructs the actor from just a uri.
      */
     public function withActorUri(string $uri): ProcessActorService
     {
         $actor = $this->actorFactory->fromUri($uri);
+
         return $this->withActor($actor);
     }
 
     /**
-     * Constructs the actor from an actor type
+     * Constructs the actor from an actor type.
      */
     public function withActor(AbstractActorType $actor): ProcessActorService
     {
         $instance = clone $this;
         $instance->actor = $actor;
+
         return $instance;
     }
 
     /**
-     * Builds the actor from just a username
+     * Builds the actor from just a username.
      */
     public function withUsername(string $username): ProcessActorService
     {
@@ -58,6 +64,7 @@ class ProcessActorService
         if (count($matches)) {
             try {
                 $actor = $this->actorFactory->fromWebfinger($username);
+
                 return $this->withActor($actor);
             } catch (\Exception $e) {
                 // Do not continue if any exception is found
@@ -70,21 +77,38 @@ class ProcessActorService
     public function process(bool $update = true): ?User
     {
         $className = get_class($this->actor);
-        
+
         switch ($className) {
             case PersonType::class:
             case ApplicationType::class:
-
                 $user = $this->manager->getEntityFromUri(JsonLdHelper::getValueOrId($this->actor));
                 if ($user) {
                     if ($update) {
                         // The user already exists, lets resync
                         $this->updateUser($user);
                     }
+
                     return $user;
                 }
 
-                $username = $this->actor->preferredUsername . '@' . JsonLdHelper::getDomainFromUri($this->actor->id);
+                $username = $this->actor->preferredUsername.'@'.JsonLdHelper::getDomainFromUri($this->actor->id);
+
+                // Get the desired webfinger from a uri
+                try {
+                    $desiredUsername = str_replace('acct:', '', $this->webfingerService->get('acct:'.$username)['subject'] ?? '');
+
+                    // If the username is different than what we expected, we request the webfinger again
+                    // to ensure that it resolves back to the intended uri
+                    if (strtolower($desiredUsername) !== strtolower($username)) {
+                        if ($this->manager->getUriFromUsername($desiredUsername, revalidateWebfinger: true) === JsonLdHelper::getValueOrId($this->actor)) {
+                            // Validated desiredUsername correctly points to the same uri
+                            $username = $desiredUsername;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // Could not do webfinger resolution, continuing with initial from uri
+                }
+
                 $email = 'activitypub-imported@minds.com';
                 $password = openssl_random_pseudo_bytes(128);
 
@@ -97,7 +121,7 @@ class ProcessActorService
                 $ia = $this->acl->setIgnore(true); // Ignore ACL as we need to be able to act on another users behalf
 
                 // Create the user
-                $user = register_user($username, $password, $username, $email, validatePassword: false, isActivityPub: true);
+                $user = $this->registerService->register($username, $password, $username, $email, validatePassword: false, isActivityPub: true);
 
                 $this->acl->setIgnore($ia); // Reset ACL state
 
@@ -148,5 +172,4 @@ class ProcessActorService
 
         return $user;
     }
-
 }

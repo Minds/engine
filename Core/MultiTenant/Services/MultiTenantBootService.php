@@ -116,6 +116,10 @@ class MultiTenantBootService
 
         $this->setConfig('tenant_id', $tenant->id);
 
+        // Nake global the tenant object
+
+        $this->setConfig('tenant', $tenant);
+
         // Data root
 
         $this->setConfig('dataroot', $this->config->get('dataroot') . 'tenant/' . $this->config->get('tenant_id') . '/');
@@ -132,6 +136,14 @@ class MultiTenantBootService
 
                 if ($tenantConfig->siteName) {
                     $emailConfig['sender']['name'] = $tenant->config->siteName;
+                }
+
+                if (isset($tenant->config->replyEmail)) {
+                    if ($tenant->config->replyEmail === '') {
+                        $emailConfig['sender']['reply_to'] = 'no-reply@minds.com';
+                    } else {
+                        $emailConfig['sender']['reply_to'] =  $tenant->config->replyEmail;
+                    }
                 }
 
                 $this->setConfig('email', $emailConfig);
@@ -161,7 +173,6 @@ class MultiTenantBootService
             ]);
 
             $this->setConfig('nsfw_enabled', isset($tenant->config->nsfwEnabled) ? $tenant->config->nsfwEnabled : true);
-
         }
     }
 

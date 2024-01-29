@@ -1,25 +1,22 @@
 <?php
 /**
- * This is will boot an async server, powered by https://reactphp.org/
+ * This is will boot an async server, powered by https://reactphp.org/.
  */
-require_once(dirname(__FILE__) . "/start.php");
+require_once dirname(__FILE__).'/start.php';
 
 use GraphQL\GraphQL;
 use GraphQL\Type\Schema;
 use Minds\Core\Data\cache\InMemoryCache;
 use Minds\Core\Di\Di;
-use Minds\Entities\Factory;
-use Nyholm\Psr7\Response;
 use Nyholm\Psr7\Factory\Psr17Factory;
-
-use Spiral\RoadRunner\Worker;
+use Nyholm\Psr7\Response;
 use Spiral\RoadRunner\Http\PSR7Worker;
+use Spiral\RoadRunner\Worker;
 use TheCodingMachine\GraphQLite\Context\Context;
 
-error_reporting(E_ALL);
+error_reporting(E_ERROR);
 
 $router = new Minds\Core\Router();
-
 
 $worker = Worker::create();
 
@@ -38,7 +35,6 @@ try {
 }
 
 while (true) {
-
     try {
         $request = $psr7->waitRequest();
         if ($request === null) {
@@ -54,7 +50,7 @@ while (true) {
         $psr7->respond($response);
     } catch (\Throwable $e) {
         $psr7->respond(new Response(500, [], 'Something Went Wrong!'));
-        $psr7->getWorker()->error((string)$e);
+        $psr7->getWorker()->error((string) $e);
     } finally {
         // Clear the per-request caches
         $cache = Di::_()->get(InMemoryCache::class);

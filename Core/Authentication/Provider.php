@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Minds\Core\Authentication;
 
+use Minds\Core\Authentication\Services\RegisterService;
+use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
 
 class Provider extends DiProvider
 {
     /**
-     * @return void
      * @throws ImmutableException
      */
     public function register(): void
@@ -21,7 +22,7 @@ class Provider extends DiProvider
                 return new Controller();
             },
             [
-                'useFactory' => false
+                'useFactory' => false,
             ]
         );
 
@@ -31,8 +32,12 @@ class Provider extends DiProvider
                 return new Manager();
             },
             [
-                'useFactory' => false
+                'useFactory' => false,
             ]
         );
+
+        $this->di->bind(RegisterService::class, function (Di $di): RegisterService {
+            return new RegisterService();
+        });
     }
 }
