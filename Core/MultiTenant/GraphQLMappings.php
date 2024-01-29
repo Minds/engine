@@ -34,7 +34,7 @@ class GraphQLMappings extends AbstractGraphQLMappings
             FeaturedEntityEdge::class,
             FeaturedEntityConnection::class,
             MultiTenantDomain::class,
-            MultiTenantDomainDnsRecord::class,
+            MultiTenantDomainDnsRecord::class
         ]));
 
         $this->schemaFactory->setInputTypeValidator(new Types\Validators\TenantInputValidator());
