@@ -36,8 +36,8 @@ class StripeApiKeyConfig
         $stripeConfig = $this->config->get('payments')['stripe'];
 
         // Tenants will use the keystore, Minds.com is provided from env variable
-        if ($this->config->get('tenant_id')) {
-            $stripeConfig['api_key'] = $this->keysService->getSecKey();
+        if ($this->config->get('tenant_id') && $secKey = $this->keysService->getSecKey()) {
+            $stripeConfig['api_key'] = $secKey;
         }
 
         return $this->shouldUseTestMode($user, $stripeConfig) ?

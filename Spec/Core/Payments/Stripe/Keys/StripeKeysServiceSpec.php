@@ -7,6 +7,7 @@ use Minds\Core\Payments\Stripe\Keys\StripeKeysService;
 use Minds\Core\Security\Vault\VaultTransitService;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 
 class StripeKeysServiceSpec extends ObjectBehavior
 {
@@ -45,6 +46,16 @@ class StripeKeysServiceSpec extends ObjectBehavior
         $this->getSecKey()->shouldBe('sec-key-plain-text');
     }
 
+    public function it_should_not_try_to_decrypt_sec_key_if_not_found()
+    {
+        $this->repositoryMock->getKeys()->willReturn(null);
+
+        $this->vaultTransitServiceMock->decrypt(Argument::any())
+            ->shouldNotBeCalled();
+
+        $this->getSecKey()->shouldBe(null);
+    }
+
     public function it_should_set_keys_and_encrypt()
     {
         $this->vaultTransitServiceMock->encrypt('sec-key-plain-text')
@@ -56,4 +67,5 @@ class StripeKeysServiceSpec extends ObjectBehavior
         
         $this->setKeys('pub-key', 'sec-key-plain-text', false)->shouldBe(true);
     }
+
 }
