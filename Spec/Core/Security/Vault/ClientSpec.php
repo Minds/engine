@@ -50,4 +50,46 @@ class ClientSpec extends ObjectBehavior
         $response = $this->request('POST', '/test');
         $response->shouldBeAnInstanceOf(ResponseInterface::class);
     }
+
+    public function it_should_request_an_auth_token_from_kubernetes()
+    {
+        $this->configMock->get('vault')
+            ->willReturn([
+                'url' => 'https://vault:8200',
+                'auth_method' => 'kubernetes',
+                'auth_role' => 'phpspec',
+                'auth_jwt_filename' => dirname(__FILE__)  . '/jwt.txt',
+                'ca_cert' => '/tmp/ca.crt'
+            ]);
+
+        $this->configMock->get('http_proxy')
+            ->willReturn(null);
+
+        $this->httpClientMock->request('POST', 'https://vault:8200/v1/auth/kubernetes/login', [
+                'verify' => '/tmp/ca.crt',
+                'json' => [
+                    'jwt' => 'test-jwt-token',
+                    'role' => 'phpspec'
+                ],
+            ])
+            ->shouldBeCalled()
+            ->willReturn(new JsonResponse([
+                'auth' => [
+                    'client_token' => 'token-from-k8s'
+                ]
+            ]));
+
+        $this->httpClientMock->request('POST', 'https://vault:8200/v1/test', [
+            'verify' => '/tmp/ca.crt',
+            'headers' => [
+                'Authorization' => 'Bearer token-from-k8s',
+            ],
+            'json' => [],
+        ])
+        ->shouldBeCalled()
+        ->willReturn(new JsonResponse([]));
+
+        $response = $this->request('POST', '/test');
+        $response->shouldBeAnInstanceOf(ResponseInterface::class);
+    }
 }

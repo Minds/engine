@@ -34,7 +34,7 @@ class Client
         ];
 
         if ($this->config->get('vault')['auth_method'] === 'kubernetes') {
-            $opts['verify'] = '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt';
+            $opts['verify'] = $this->config->get('vault')['ca_cert'] ?? false;
         }
 
         $json = $this->httpClient->request($method, $url, $opts);
@@ -45,7 +45,7 @@ class Client
     /**
      * Returns the auth token
      */
-    public function buildAuthToken(): string
+    private function buildAuthToken(): string
     {
         if (($this->config->get('vault')['auth_method'] ?? 'token') === 'token') {
             return $this->config->get('vault')['token'] ?? 'root';
@@ -62,9 +62,9 @@ class Client
         $url = rtrim($this->config->get('vault')['url'], '/') . '/v1/auth/kubernetes/login';
 
         $json = $this->httpClient->request("POST", $url, [
-            'verify' => '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
+            'verify' => $this->config->get('vault')['ca_cert'],
             'json' => [
-                'jwt' => file_get_contents('/var/run/secrets/kubernetes.io/serviceaccount/token'),
+                'jwt' => file_get_contents($this->config->get('vault')['auth_jwt_filename']),
                 'role' => $this->config->get('vault')['auth_role'] ?? null,
             ]
         ]);
