@@ -31,7 +31,8 @@ class ClientSpec extends ObjectBehavior
         $this->configMock->get('vault')
             ->willReturn([
                 'url' => 'https://vault:8200',
-                'token' => 'super-secret-token'
+                'token' => 'super-secret-token',
+                'auth_method' => 'token',
             ]);
 
         $this->configMock->get('http_proxy')
