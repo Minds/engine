@@ -11,14 +11,14 @@ use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 use Minds\Entities\Group;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
-use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Query;
 
 class SiteMembershipReaderController
 {
     public function __construct(
         private readonly SiteMembershipReaderService $siteMembershipReaderService
-    ) {
+    )
+    {
     }
 
     /**
@@ -26,19 +26,20 @@ class SiteMembershipReaderController
      * @return SiteMembership[]
      */
     #[Query]
-    #[Logged]
     public function siteMemberships(
         #[InjectUser] User $loggedInUser
-    ): array {
+    ): array
+    {
+        // TODO: Implement getSiteMemberships() method.
         return [
             new SiteMembership(
                 membershipGuid: 1,
                 membershipName: 'Free',
-                membershipDescription: 'Free',
-                membershipPriceInCents: 1000, // $10.00
-                priceCurrency: 'USD',
-                membershipBillingPeriod: SiteMembershipBillingPeriodEnum::MONTHLY,
+                membershipPriceInCents: 1000,
+                membershipBillingPeriod: SiteMembershipBillingPeriodEnum::MONTHLY, // $10.00
                 membershipPricingModel: SiteMembershipPricingModelEnum::RECURRING,
+                membershipDescription: 'Free',
+                priceCurrency: 'USD',
                 roles: [
                     1,
                     2
@@ -63,14 +64,14 @@ class SiteMembershipReaderController
             new SiteMembership(
                 membershipGuid: 2,
                 membershipName: "Premium",
+                membershipPriceInCents: 1500,
+                membershipBillingPeriod: SiteMembershipBillingPeriodEnum::MONTHLY, // $10.00
+                membershipPricingModel: SiteMembershipPricingModelEnum::ONE_TIME,
                 membershipDescription: "*Membership* description from [stripe](https://www.stripe.com)
 
 - Benefit 1
 - Benefit 2",
-                membershipPriceInCents: 1500, // $10.00
                 priceCurrency: 'USD',
-                membershipBillingPeriod: SiteMembershipBillingPeriodEnum::MONTHLY,
-                membershipPricingModel: SiteMembershipPricingModelEnum::ONE_TIME,
                 roles: [
                     1,
                     2
@@ -79,14 +80,14 @@ class SiteMembershipReaderController
             new SiteMembership(
                 membershipGuid: 3,
                 membershipName: "Premium 2",
+                membershipPriceInCents: 2000,
+                membershipBillingPeriod: SiteMembershipBillingPeriodEnum::YEARLY, // $10.00
+                membershipPricingModel: SiteMembershipPricingModelEnum::ONE_TIME,
                 membershipDescription: "*Membership* description from [stripe](https://www.stripe.com)
 
 - Benefit 1
 - Benefit 2",
-                membershipPriceInCents: 2000, // $10.00
                 priceCurrency: 'USD',
-                membershipBillingPeriod: SiteMembershipBillingPeriodEnum::YEARLY,
-                membershipPricingModel: SiteMembershipPricingModelEnum::ONE_TIME,
                 groups: [
                     new GroupNode(
                         (new Group())
@@ -107,8 +108,40 @@ class SiteMembershipReaderController
         ];
     }
 
-    // public function siteMembership(): SiteMembership
-    // {
-    //
-    // }
+    #[Query]
+    public function siteMembership(
+        string $membershipGuid
+    ): SiteMembership
+    {
+        // TODO: Implement getSiteMembership() method.
+        return new SiteMembership(
+            membershipGuid: (int)$membershipGuid,
+            membershipName: 'Free',
+            membershipPriceInCents: 1000, // $10.00
+            membershipBillingPeriod: SiteMembershipBillingPeriodEnum::MONTHLY, // $10.00
+            membershipPricingModel: SiteMembershipPricingModelEnum::RECURRING,
+            membershipDescription: 'Free',
+            priceCurrency: 'USD',
+            roles: [
+                1,
+                2
+            ],
+            groups: [
+                new GroupNode(
+                    (new Group())
+                        ->loadFromArray([
+                            'guid' => 1,
+                            'name' => 'Test Group 1',
+                        ])
+                ),
+                new GroupNode(
+                    (new Group())
+                        ->loadFromArray([
+                            'guid' => 2,
+                            'name' => 'Test Group 2',
+                        ])
+                ),
+            ]
+        );
+    }
 }

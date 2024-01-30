@@ -17,14 +17,15 @@ class SiteMembership
     public function __construct(
         #[Field(outputType: "String!")] public readonly int      $membershipGuid,
         #[Field] public readonly string                          $membershipName,
-        #[Field] public readonly string                          $membershipDescription,
         #[Field] public readonly int                             $membershipPriceInCents,
-        #[Field] public readonly string                          $priceCurrency,
         #[Field] public readonly SiteMembershipBillingPeriodEnum $membershipBillingPeriod,
         #[Field] public readonly SiteMembershipPricingModelEnum  $membershipPricingModel,
+        #[Field] public readonly ?string                         $membershipDescription = null,
+        #[Field] public readonly string                          $priceCurrency = 'USD',
         private readonly ?array                                  $roles = null,
         private readonly ?array                                  $groups = null
-    ) {
+    )
+    {
     }
 
     /**

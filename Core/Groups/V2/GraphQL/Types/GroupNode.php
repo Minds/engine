@@ -17,8 +17,14 @@ class GroupNode extends AbstractEntityNode
 {
     public function __construct(
         protected Group $group,
-    ) {
+    )
+    {
         $this->entity = $group;
+    }
+
+    public function getEntity(): Group
+    {
+        return $this->entity;
     }
 
     #[Field]

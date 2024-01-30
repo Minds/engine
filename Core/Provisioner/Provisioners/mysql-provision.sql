@@ -814,28 +814,29 @@ CREATE TABLE IF NOT EXISTS minds_stripe_keys(
     updated_timestamp timestamp NULL
 );
 
-CREATE TABLE minds_site_membership_tiers (
+CREATE TABLE IF NOT EXISTS minds_site_membership_tiers (
     tenant_id int,
     membership_tier_guid bigint,
     stripe_product_id varchar(256),
+    price_in_cents int DEFAULT NOT NULL,
     PRIMARY KEY (tenant_id, membership_tier_guid)
 );
 
-CREATE TABLE minds_site_membership_tiers_role_assignments (
+CREATE TABLE IF NOT EXISTS minds_site_membership_tiers_role_assignments (
     tenant_id int NOT NULL,
     membership_tier_guid bigint NOT NULL,
     role_id int NOT NULL,
     PRIMARY KEY (tenant_id, membership_tier_guid, role_id)
 );
 
-CREATE TABLE minds_site_membership_tiers_group_assignments (
+CREATE TABLE IF NOT EXISTS minds_site_membership_tiers_group_assignments (
     tenant_id int NOT NULL,
     membership_tier_guid bigint NOT NULL,
     group_guid bigint NOT NULL,
     PRIMARY KEY (tenant_id, membership_tier_guid, group_guid)
 );
 
-CREATE TABLE minds_site_membership_subscriptions (
+CREATE TABLE IF NOT EXISTS minds_site_membership_subscriptions (
     tenant_id int NOT NULL,
     user_guid bigint NOT NULL,
     membership_tier_guid bigint NOT NULL,

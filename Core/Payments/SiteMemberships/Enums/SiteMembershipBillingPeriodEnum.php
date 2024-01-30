@@ -5,6 +5,6 @@ namespace Minds\Core\Payments\SiteMemberships\Enums;
 
 enum SiteMembershipBillingPeriodEnum: string
 {
-    case MONTHLY = "monthly";
-    case YEARLY = "yearly";
+    case MONTHLY = "month";
+    case YEARLY = "year";
 }
