@@ -94,7 +94,7 @@ class MySQLRepositorySpec extends ObjectBehavior
             'table' => 'a',
         ]);
 
-        $this->mysqlClientMock->bindValuesToPreparedStatement($pdoStatementMock, [ 'guid' => 123, 'tenantId' => null, 'loggedInUser' => null ])
+        $this->mysqlClientMock->bindValuesToPreparedStatement($pdoStatementMock, [ 'guid' => 123, 'e_tenantId' => null, 'rbac_roles_tenantId' => null,  'loggedInUser1' => null, 'loggedInUser2' => null ])
             ->shouldBeCalled();
 
         $entity = $this->loadFromGuid(123);
@@ -115,7 +115,7 @@ class MySQLRepositorySpec extends ObjectBehavior
 
         $pdoStatementMock->rowCount()->shouldBeCalled()->willReturn(0);
 
-        $this->mysqlClientMock->bindValuesToPreparedStatement($pdoStatementMock, [ 'guid' => 123, 'tenantId' => null, 'loggedInUser' => null ])
+        $this->mysqlClientMock->bindValuesToPreparedStatement($pdoStatementMock, [ 'guid' => 123, 'e_tenantId' => null, 'rbac_roles_tenantId' => null, 'loggedInUser1' => null, 'loggedInUser2' => null ])
             ->shouldBeCalled();
 
         $this->loadFromGuid(123)->shouldBe(null);
