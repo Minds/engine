@@ -74,8 +74,8 @@ class SiteMembershipInputFactory
      * @param string $membershipGuid
      * @param string $membershipName
      * @param string|null $membershipDescription
-     * @param array|null $roles
-     * @param array|null $groups
+     * @param int[]|null $roles
+     * @param string[]|null $groups
      * @return SiteMembership
      * @throws NoSiteMembershipFoundException
      * @throws NotFoundException
