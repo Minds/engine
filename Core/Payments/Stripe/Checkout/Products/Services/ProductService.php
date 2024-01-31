@@ -145,6 +145,8 @@ class ProductService
 
         $query = rtrim($query, " AND");
 
+        $query .= " AND active:'true'";
+
         /**
          * @var SearchResult<Product> $products
          */
@@ -269,6 +271,20 @@ class ProductService
             ->update($productId, [
                 'active' => false,
             ]);
+
+        return true;
+    }
+
+    /**
+     * @param string $productId
+     * @return bool
+     */
+    public function deleteProduct(
+        string $productId
+    ): bool {
+        $this->stripeClient
+            ->products
+            ->delete($productId);
 
         return true;
     }

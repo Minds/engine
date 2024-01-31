@@ -40,16 +40,15 @@ class SiteMembershipManagementService
         // TODO: check if network has reached the limit of memberships
 
         $this->siteMembershipRepository->beginTransaction();
+        $stripeProduct = $this->stripeProductService->createProduct(
+            internalProductId: $siteMembership->membershipGuid,
+            name: $siteMembership->membershipName,
+            priceInCents: $siteMembership->membershipPriceInCents,
+            billingPeriod: ProductPriceBillingPeriodEnum::tryFrom($siteMembership->membershipBillingPeriod->value),
+            pricingModel: ProductPricingModelEnum::tryFrom($siteMembership->membershipPricingModel->value),
+            description: $siteMembership->membershipDescription,
+        );
         try {
-            $stripeProduct = $this->stripeProductService->createProduct(
-                internalProductId: $siteMembership->membershipGuid,
-                name: $siteMembership->membershipName,
-                priceInCents: $siteMembership->membershipPriceInCents,
-                billingPeriod: ProductPriceBillingPeriodEnum::tryFrom($siteMembership->membershipBillingPeriod->value),
-                pricingModel: ProductPricingModelEnum::tryFrom($siteMembership->membershipPricingModel->value),
-                description: $siteMembership->membershipDescription,
-            );
-
             $this->siteMembershipRepository->storeSiteMembership(
                 siteMembership: $siteMembership,
                 stripeProductId: $stripeProduct->id
@@ -71,7 +70,7 @@ class SiteMembershipManagementService
         } catch (ServerErrorException $e) {
             $this->siteMembershipRepository->rollbackTransaction();
 
-            // TODO: delete stripe product
+            $this->stripeProductService->deleteProduct($stripeProduct->id);
 
             throw new ServerErrorException(
                 message: "Failed to store site membership.",
@@ -96,6 +95,7 @@ class SiteMembershipManagementService
         $siteMembershipDbInfo = $this->siteMembershipRepository->getSiteMembership($siteMembership->membershipGuid);
 
         // QUESTION: should we allow the update of roles and groups for an active membership?
+        // ANSWER: Yes
 
         // TODO: Delete existing roles and re-insert new ones
         // TODO: Delete existing groups and re-insert new ones
@@ -124,5 +124,6 @@ class SiteMembershipManagementService
         );
 
         // QUESTION: should we delete the site membership from the database? Probably not to preserve ongoing subscriptions
+        // ANSWER: we should flag the site membership as archived in our database
     }
 }
