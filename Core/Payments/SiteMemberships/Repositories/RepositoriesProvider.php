@@ -19,5 +19,21 @@ class RepositoriesProvider extends Provider
                 logger: $di->get('Logger')
             )
         );
+        $this->di->bind(
+            SiteMembershipGroupsRepository::class,
+            fn (Di $di): SiteMembershipGroupsRepository => new SiteMembershipGroupsRepository(
+                mysqlHandler: $di->get('Database\MySQL\Client'),
+                config: $di->get(Config::class),
+                logger: $di->get('Logger')
+            )
+        );
+        $this->di->bind(
+            SiteMembershipRolesRepository::class,
+            fn (Di $di): SiteMembershipRolesRepository => new SiteMembershipRolesRepository(
+                mysqlHandler: $di->get('Database\MySQL\Client'),
+                config: $di->get(Config::class),
+                logger: $di->get('Logger')
+            )
+        );
     }
 }

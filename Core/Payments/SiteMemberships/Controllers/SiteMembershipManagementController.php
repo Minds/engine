@@ -17,8 +17,7 @@ class SiteMembershipManagementController
 {
     public function __construct(
         private readonly SiteMembershipManagementService $siteMembershipManagementService
-    )
-    {
+    ) {
     }
 
     /**
@@ -34,8 +33,7 @@ class SiteMembershipManagementController
     public function siteMembership(
         SiteMembership     $siteMembershipInput,
         #[InjectUser] User $loggedInUser
-    ): SiteMembership
-    {
+    ): SiteMembership {
         return $this->siteMembershipManagementService->storeSiteMembership(
             siteMembership: $siteMembershipInput,
         );

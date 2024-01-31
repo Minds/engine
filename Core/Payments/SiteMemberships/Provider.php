@@ -8,6 +8,7 @@ use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Payments\SiteMemberships\Controllers\ControllersProvider;
 use Minds\Core\Payments\SiteMemberships\Repositories\RepositoriesProvider;
 use Minds\Core\Payments\SiteMemberships\Services\ServicesProvider;
+use Minds\Core\Payments\SiteMemberships\Types\Factories\InputFactoriesProvider;
 
 class Provider extends DiProvider
 {
@@ -22,5 +23,7 @@ class Provider extends DiProvider
         (new ServicesProvider())->register();
 
         (new RepositoriesProvider())->register();
+
+        (new InputFactoriesProvider())->register();
     }
 }

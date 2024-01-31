@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\SiteMemberships\Repositories;
 
-use Exception;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Groups\V2\GraphQL\Types\GroupNode;
+use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipGroupsFoundException;
 use Minds\Exceptions\ServerErrorException;
+use PDOException;
+use Selective\Database\Operator;
 use Selective\Database\RawExp;
 
 class SiteMembershipGroupsRepository extends AbstractRepository
@@ -20,8 +22,7 @@ class SiteMembershipGroupsRepository extends AbstractRepository
     public function storeSiteMembershipGroups(
         int   $siteMembershipGuid,
         array $siteMembershipGroups
-    ): bool
-    {
+    ): bool {
         foreach ($siteMembershipGroups as $siteMembershipGroupNode) {
             $stmt = $this->mysqlClientWriterHandler->insert()
                 ->into('minds_site_membership_tiers_group_assignments')
@@ -36,7 +37,7 @@ class SiteMembershipGroupsRepository extends AbstractRepository
                 $stmt->execute([
                     'group_guid' => $siteMembershipGroupNode->getEntity()->getGuid(),
                 ]);
-            } catch (Exception $e) {
+            } catch (PDOException $e) {
                 throw new ServerErrorException(
                     message: 'Failed to store site membership groups',
                     previous: $e
@@ -44,5 +45,40 @@ class SiteMembershipGroupsRepository extends AbstractRepository
             }
         }
         return true;
+    }
+
+    /**
+     * @param int $siteMembershipGuid
+     * @return array|null
+     * @throws NoSiteMembershipGroupsFoundException
+     * @throws ServerErrorException
+     */
+    public function getSiteMembershipGroups(int $siteMembershipGuid): ?array
+    {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->from('minds_site_membership_tiers_group_assignments')
+            ->columns([
+                'group_guid',
+            ])
+            ->where('membership_tier_guid', Operator::EQ, $siteMembershipGuid)
+            ->prepare();
+
+        try {
+            $stmt->execute();
+
+            if ($stmt->rowCount() === 0) {
+                throw new NoSiteMembershipGroupsFoundException();
+            }
+            $groupGuids = [];
+            foreach ($stmt->fetchAll() as $group) {
+                $groupGuids[] = $group['group_guid'];
+            }
+            return $groupGuids;
+        } catch (PDOException $e) {
+            throw new ServerErrorException(
+                message: 'Failed to get site membership groups',
+                previous: $e
+            );
+        }
     }
 }

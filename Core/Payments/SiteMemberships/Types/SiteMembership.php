@@ -24,8 +24,7 @@ class SiteMembership
         #[Field] public readonly string                          $priceCurrency = 'USD',
         private readonly ?array                                  $roles = null,
         private readonly ?array                                  $groups = null
-    )
-    {
+    ) {
     }
 
     /**

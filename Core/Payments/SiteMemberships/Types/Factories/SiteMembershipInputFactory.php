@@ -15,10 +15,19 @@ class SiteMembershipInputFactory
 {
     public function __construct(
         private readonly EntitiesBuilder $entitiesBuilder
-    )
-    {
+    ) {
     }
 
+    /**
+     * @param string $membershipName
+     * @param float $membershipPrice
+     * @param SiteMembershipBillingPeriodEnum $membershipBillingPeriod
+     * @param SiteMembershipPricingModelEnum $membershipPricingModel
+     * @param string|null $membershipDescription
+     * @param int[]|null $roles
+     * @param string[]|null $groups
+     * @return SiteMembership
+     */
     #[Factory(name: 'SiteMembershipInput')]
     public function createSiteMembership(
         string                          $membershipName,
@@ -28,10 +37,9 @@ class SiteMembershipInputFactory
         ?string                         $membershipDescription = null,
         ?array                          $roles = null,
         ?array                          $groups = null,
-    ): SiteMembership
-    {
+    ): SiteMembership {
         return new SiteMembership(
-            membershipGuid: Guid::build(),
+            membershipGuid: (int)Guid::build(),
             membershipName: $membershipName,
             membershipPriceInCents: (int)($membershipPrice * 100),
             membershipBillingPeriod: $membershipBillingPeriod,

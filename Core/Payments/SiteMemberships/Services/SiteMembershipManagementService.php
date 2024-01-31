@@ -21,8 +21,7 @@ class SiteMembershipManagementService
         private readonly SiteMembershipGroupsRepository $siteMembershipGroupsRepository,
         private readonly SiteMembershipRolesRepository  $siteMembershipRolesRepository,
         private readonly StripeProductService           $stripeProductService
-    )
-    {
+    ) {
     }
 
     /**
@@ -34,8 +33,7 @@ class SiteMembershipManagementService
      */
     public function storeSiteMembership(
         SiteMembership $siteMembership
-    ): SiteMembership
-    {
+    ): SiteMembership {
         $this->siteMembershipRepository->beginTransaction();
         try {
             $stripeProduct = $this->stripeProductService->createProduct(
@@ -67,13 +65,14 @@ class SiteMembershipManagementService
             }
         } catch (ServerErrorException $e) {
             $this->siteMembershipRepository->rollbackTransaction();
-
+            // TODO: delete stripe product
             throw new ServerErrorException(
                 message: "Failed to store site membership.",
                 previous: $e
             );
         }
 
+        $this->siteMembershipRepository->commitTransaction();
         return $siteMembership;
     }
 }

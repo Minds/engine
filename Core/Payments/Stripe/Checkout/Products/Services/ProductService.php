@@ -26,8 +26,7 @@ class ProductService
         private readonly StripeClient   $stripeClient,
         private readonly CacheInterface $cache,
         private readonly Config         $config
-    )
-    {
+    ) {
     }
 
     /**
@@ -41,8 +40,7 @@ class ProductService
     public function getProductsByType(
         ProductTypeEnum     $productType,
         ?ProductSubTypeEnum $productSubType = null
-    ): SearchResult
-    {
+    ): SearchResult {
         if ($products = $this->cache->get("products_{$productType->value}_{$productSubType?->value}")) {
             return unserialize($products);
         }
@@ -127,6 +125,58 @@ class ProductService
     }
 
     /**
+     * @param array $productKeys
+     * @return Product[]
+     * @throws InvalidArgumentException
+     * @throws NotFoundException
+     */
+    public function getProductsByKeys(
+        array $productKeys
+    ): iterable {
+        $productKeysToFetch = [];
+        foreach ($productKeys as $productKey) {
+            if ($product = $this->cache->get("product_$productKey")) {
+                yield unserialize($product);
+                continue;
+            }
+            $productKeysToFetch[] = $productKey;
+        }
+
+        if (count($productKeysToFetch) === 0) {
+            return;
+        }
+
+        $query = "";
+        foreach ($productKeysToFetch as $productKey) {
+            $query .= "metadata['key']:'$productKey' OR ";
+        }
+
+        $query = rtrim($query, " OR");
+
+        /**
+         * @var SearchResult<Product> $products
+         */
+        $products = $this->stripeClient
+            ->products
+            ->search([
+                'query' => $query,
+            ]);
+
+        if ($products->count() === 0) {
+            throw new NotFoundException("No products were found.");
+        }
+
+        foreach ($products as $product) {
+            $productKey = $product->metadata['key'];
+
+            $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
+            $this->cache->set("product_$product->id", "product_$productKey", self::CACHE_TTL);
+
+            yield $product;
+        }
+    }
+
+    /**
      * @param int $internalProductId
      * @param string $name
      * @param int $priceInCents
@@ -146,33 +196,36 @@ class ProductService
         ProductPricingModelEnum       $pricingModel,
         ProductPriceCurrencyEnum      $currency = ProductPriceCurrencyEnum::USD,
         ?string                       $description = null,
-    ): Product
-    {
+    ): Product {
         $productKey = "tenant:{$this->config->get('tenant_id')}:$internalProductId";
+
+        $productDetails = [
+            'name' => $name,
+            'default_price_data' => [
+                'currency' => $currency->value,
+                'unit_amount' => $priceInCents,
+            ],
+            'metadata' => [
+                'key' => $productKey,
+                'type' => ProductTypeEnum::SITE_MEMBERSHIP->value,
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'billing_period' => $billingPeriod->value,
+            ],
+        ];
+
+        if ($description) {
+            $productDetails['description'] = $description;
+        }
+
+        if ($pricingModel === ProductPricingModelEnum::RECURRING) {
+            $productDetails['default_price_data']['recurring'] = [
+                'interval' => $billingPeriod->value,
+            ];
+        }
 
         $product = $this->stripeClient
             ->products
-            ->create([
-                'name' => $name,
-                'description' => $description,
-                'default_price_data' => [
-                    'currency' => $currency->value,
-                    'unit_amount' => $priceInCents,
-                    'recurring' =>
-                        $pricingModel === ProductPricingModelEnum::RECURRING
-                            ? [
-                            'interval' => $billingPeriod->value,
-                            'usage_type' => $pricingModel->value,
-                        ]
-                            : null,
-                ],
-                'metadata' => [
-                    'key' => $productKey,
-                    'type' => ProductTypeEnum::SITE_MEMBERSHIP,
-                    'tenant_id' => $this->config->get('tenant_id') ?? -1,
-                    'billing_period' => $billingPeriod->value,
-                ],
-            ]);
+            ->create($productDetails);
 
         $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
         $this->cache->set("product_$product->id", "product_$productKey", self::CACHE_TTL);
