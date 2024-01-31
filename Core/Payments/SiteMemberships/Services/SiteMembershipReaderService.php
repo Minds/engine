@@ -10,6 +10,7 @@ use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipGroupsFoundException;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipRolesFoundException;
+use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipsFoundException;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipGroupsRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRolesRepository;
@@ -45,8 +46,12 @@ class SiteMembershipReaderService
         $siteMemberships = [];
         $productKeys = [];
 
-        foreach ($this->siteMembershipRepository->getSiteMemberships() as $siteMembershipDbInfo) {
-            $productKeys["tenant:{$this->config->get('tenant_id')}:{$siteMembershipDbInfo['membership_tier_guid']}"] = $siteMembershipDbInfo['membership_tier_guid'];
+        try {
+            foreach ($this->siteMembershipRepository->getSiteMemberships() as $siteMembershipDbInfo) {
+                $productKeys["tenant:{$this->config->get('tenant_id')}:{$siteMembershipDbInfo['membership_tier_guid']}"] = $siteMembershipDbInfo['membership_tier_guid'];
+            }
+        } catch (NoSiteMembershipsFoundException $e) {
+            return [];
         }
 
         $stripeProducts = $this->stripeProductService->getProductsByKeys(array_keys($productKeys));

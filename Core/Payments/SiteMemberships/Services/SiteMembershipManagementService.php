@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\SiteMemberships\Services;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipGroupsRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRolesRepository;
@@ -20,7 +21,8 @@ class SiteMembershipManagementService
         private readonly SiteMembershipRepository       $siteMembershipRepository,
         private readonly SiteMembershipGroupsRepository $siteMembershipGroupsRepository,
         private readonly SiteMembershipRolesRepository  $siteMembershipRolesRepository,
-        private readonly StripeProductService           $stripeProductService
+        private readonly StripeProductService           $stripeProductService,
+        private readonly Config                         $config
     ) {
     }
 
@@ -34,6 +36,9 @@ class SiteMembershipManagementService
     public function storeSiteMembership(
         SiteMembership $siteMembership
     ): SiteMembership {
+        // TODO: check if network has reached the limit of memberships
+
+
         $this->siteMembershipRepository->beginTransaction();
         try {
             $stripeProduct = $this->stripeProductService->createProduct(

@@ -3,12 +3,12 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\SiteMemberships\Repositories;
 
-use Exception;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipsFoundException;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
+use PDOException;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
 
@@ -38,7 +38,7 @@ class SiteMembershipRepository extends AbstractRepository
             return $stmt->execute([
                 'stripe_product_id' => $stripeProductId,
             ]);
-        } catch (Exception $e) {
+        } catch (PDOException $e) {
             throw new ServerErrorException(
                 message: 'Failed to store site membership',
                 previous: $e
@@ -48,6 +48,7 @@ class SiteMembershipRepository extends AbstractRepository
 
     /**
      * @return iterable
+     * @throws NoSiteMembershipsFoundException
      * @throws ServerErrorException
      */
     public function getSiteMemberships(): iterable
@@ -69,9 +70,9 @@ class SiteMembershipRepository extends AbstractRepository
                 throw new NoSiteMembershipsFoundException();
             }
             $stmt->setFetchMode(PDO::FETCH_ASSOC);
-            
+
             return $stmt->getIterator();
-        } catch (Exception $e) {
+        } catch (PDOException $e) {
             throw new ServerErrorException(
                 message: 'Failed to get site memberships',
                 previous: $e

@@ -27,7 +27,8 @@ class ServicesProvider extends Provider
                 siteMembershipRepository: $di->get(SiteMembershipRepository::class),
                 siteMembershipGroupsRepository: $di->get(SiteMembershipGroupsRepository::class),
                 siteMembershipRolesRepository: $di->get(SiteMembershipRolesRepository::class),
-                stripeProductService: $di->get(StripeProductService::class)
+                stripeProductService: $di->get(StripeProductService::class),
+                config: $di->get(Config::class)
             )
         );
         $this->di->bind(
