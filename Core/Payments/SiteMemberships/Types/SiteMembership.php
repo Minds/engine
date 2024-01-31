@@ -10,6 +10,7 @@ use Minds\Core\Security\Rbac\Enums\RolesEnum;
 use Minds\Core\Security\Rbac\Models\Role;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
+use TheCodingMachine\GraphQLite\Types\ID;
 
 #[Type]
 class SiteMembership
@@ -56,5 +57,11 @@ class SiteMembership
     public function getGroups(): ?array
     {
         return $this->groups;
+    }
+
+    #[Field]
+    public function getId(): ID
+    {
+        return new ID($this->membershipGuid);
     }
 }
