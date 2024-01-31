@@ -92,8 +92,6 @@ class SiteMembershipManagementService
         $siteMembershipDbInfo = $this->siteMembershipRepository->getSiteMembership($siteMembership->membershipGuid);
 
         // QUESTION: should we allow the update of roles and groups for an active membership?
-
-
         $this->stripeProductService->updateProduct(
             productId: $siteMembershipDbInfo['stripe_product_id'],
             name: $siteMembership->membershipName,

@@ -249,7 +249,7 @@ class ProductService
             'name' => $name,
         ];
 
-        if ($description) {
+        if ($description !== null) {
             $productDetails['description'] = $description;
         }
 

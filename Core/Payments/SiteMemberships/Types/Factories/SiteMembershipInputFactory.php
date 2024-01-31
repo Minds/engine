@@ -38,7 +38,7 @@ class SiteMembershipInputFactory
     #[Factory(name: 'SiteMembershipInput', default: true)]
     public function createSiteMembership(
         string                          $membershipName,
-        float                           $membershipPrice,
+        int                             $membershipPriceInCents,
         SiteMembershipBillingPeriodEnum $membershipBillingPeriod,
         SiteMembershipPricingModelEnum  $membershipPricingModel,
         ?string                         $membershipDescription = null,
@@ -48,7 +48,7 @@ class SiteMembershipInputFactory
         return new SiteMembership(
             membershipGuid: (int)Guid::build(),
             membershipName: $membershipName,
-            membershipPriceInCents: (int)($membershipPrice * 100),
+            membershipPriceInCents: $membershipPriceInCents,
             membershipBillingPeriod: $membershipBillingPeriod,
             membershipPricingModel: $membershipPricingModel,
             membershipDescription: $membershipDescription,
