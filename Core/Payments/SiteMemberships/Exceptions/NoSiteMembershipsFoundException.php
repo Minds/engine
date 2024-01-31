@@ -7,5 +7,5 @@ use Minds\Exceptions\NotFoundException;
 
 class NoSiteMembershipsFoundException extends NotFoundException
 {
-    protected string $message = 'No site memberships found.';
+    protected $message = 'No site memberships found.';
 }
