@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\SiteMemberships\Services;
 
 use Minds\Core\Config\Config;
+use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipFoundException;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipGroupsRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRolesRepository;
@@ -85,6 +86,9 @@ class SiteMembershipManagementService
     /**
      * @param SiteMembership $siteMembership
      * @return SiteMembership
+     * @throws InvalidArgumentException
+     * @throws ServerErrorException
+     * @throws NoSiteMembershipFoundException
      */
     public function updateSiteMembership(
         SiteMembership $siteMembership
@@ -92,6 +96,10 @@ class SiteMembershipManagementService
         $siteMembershipDbInfo = $this->siteMembershipRepository->getSiteMembership($siteMembership->membershipGuid);
 
         // QUESTION: should we allow the update of roles and groups for an active membership?
+
+        // TODO: Delete existing roles and re-insert new ones
+        // TODO: Delete existing groups and re-insert new ones
+
         $this->stripeProductService->updateProduct(
             productId: $siteMembershipDbInfo['stripe_product_id'],
             name: $siteMembership->membershipName,
@@ -101,6 +109,12 @@ class SiteMembershipManagementService
         return $siteMembership;
     }
 
+    /**
+     * @param int $siteMembershipGuid
+     * @return bool
+     * @throws NoSiteMembershipFoundException
+     * @throws ServerErrorException
+     */
     public function archiveSiteMembership(
         int $siteMembershipGuid
     ): bool {

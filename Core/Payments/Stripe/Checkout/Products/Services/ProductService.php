@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\Stripe\Checkout\Products\Services;
 
+use InvalidArgumentException as InvalidArgumentExceptionAlias;
 use Minds\Core\Config\Config;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPriceBillingPeriodEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPriceCurrencyEnum;
@@ -125,33 +126,24 @@ class ProductService
     }
 
     /**
-     * @param array $productKeys
+     * @param array $metadata
      * @return Product[]
      * @throws InvalidArgumentException
      * @throws NotFoundException
      */
-    public function getProductsByKeys(
-        array $productKeys
+    public function getProductsByMetadata(
+        array $metadata
     ): iterable {
-        $productKeysToFetch = [];
-        foreach ($productKeys as $productKey) {
-            if ($product = $this->cache->get("product_$productKey")) {
-                yield unserialize($product);
-                continue;
-            }
-            $productKeysToFetch[] = $productKey;
-        }
-
-        if (count($productKeysToFetch) === 0) {
-            return;
+        if (count($metadata) > 10) {
+            throw new InvalidArgumentExceptionAlias("You can only search for up to 10 metadata keys at a time.");
         }
 
         $query = "";
-        foreach ($productKeysToFetch as $productKey) {
-            $query .= "metadata['key']:'$productKey' OR ";
+        foreach ($metadata as $key => $value) {
+            $query .= "metadata['$key']:'$value' AND ";
         }
 
-        $query = rtrim($query, " OR");
+        $query = rtrim($query, " AND");
 
         /**
          * @var SearchResult<Product> $products

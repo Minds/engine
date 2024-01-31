@@ -17,6 +17,7 @@ use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRolesRepository;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPriceCurrencyEnum;
+use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductTypeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
 use Minds\Exceptions\NotFoundException;
@@ -47,20 +48,23 @@ class SiteMembershipReaderService
     public function getSiteMemberships(): array
     {
         $siteMemberships = [];
-        $productKeys = [];
+        $products = [];
 
         try {
             foreach ($this->siteMembershipRepository->getSiteMemberships() as $siteMembershipDbInfo) {
-                $productKeys["tenant:{$this->config->get('tenant_id')}:{$siteMembershipDbInfo['membership_tier_guid']}"] = $siteMembershipDbInfo['membership_tier_guid'];
+                $products[$siteMembershipDbInfo['stripe_product_id']] = $siteMembershipDbInfo['membership_tier_guid'];
             }
         } catch (NoSiteMembershipsFoundException $e) {
             return [];
         }
 
-        $stripeProducts = $this->stripeProductService->getProductsByKeys(array_keys($productKeys));
+        $stripeProducts = $this->stripeProductService->getProductsByMetadata([
+            'type' => ProductTypeEnum::SITE_MEMBERSHIP->value,
+            'tenant_id' => $this->config->get('tenant_id') ?? '-1',
+        ]);
 
         foreach ($stripeProducts as $stripeProduct) {
-            $siteMembershipGuid = $productKeys[$stripeProduct->metadata['key']] ??
+            $siteMembershipGuid = $products[$stripeProduct->id] ??
                 throw new NotFoundException("Site membership not found for stripe product $stripeProduct->id");
 
             $siteMemberships[] = $this->prepareSiteMembership($stripeProduct, $siteMembershipGuid);
