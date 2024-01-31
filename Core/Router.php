@@ -47,9 +47,9 @@ class Router
     public function handleRequest(RequestInterface $request): ResponseInterface
     {
         return $this->dispatcher
-            ->pipe(new Kernel\MultiTenantBootMiddleware())
             ->pipe(new Kernel\ContentNegotiationMiddleware())
             ->pipe(new Kernel\ErrorHandlerMiddleware())
+            ->pipe(new Kernel\MultiTenantBootMiddleware())
             ->pipe(
                 (new Kernel\RouteResolverMiddleware())
                     ->setAttributeName('_request-handler')
