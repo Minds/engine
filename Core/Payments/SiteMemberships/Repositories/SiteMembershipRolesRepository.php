@@ -35,7 +35,7 @@ class SiteMembershipRolesRepository extends AbstractRepository
 
             try {
                 $stmt->execute([
-                    'group_guid' => $siteMembershipRole->id,
+                    'role_id' => $siteMembershipRole->id,
                 ]);
             } catch (PDOException $e) {
                 throw new ServerErrorException(

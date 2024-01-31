@@ -8,6 +8,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\V2\GraphQL\Types\GroupNode;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
+use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipFoundException;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipGroupsFoundException;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipRolesFoundException;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipsFoundException;
@@ -21,6 +22,8 @@ use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as Stri
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 use Psr\SimpleCache\InvalidArgumentException;
+use Stripe\Exception\ApiErrorException;
+use Stripe\Product;
 
 class SiteMembershipReaderService
 {
@@ -57,29 +60,40 @@ class SiteMembershipReaderService
         $stripeProducts = $this->stripeProductService->getProductsByKeys(array_keys($productKeys));
 
         foreach ($stripeProducts as $stripeProduct) {
-            $siteMembershipGuid = $productKeys[$stripeProduct->metadata['key']] ?? throw new NotFoundException("Site membership not found for stripe product {$stripeProduct->id}");
+            $siteMembershipGuid = $productKeys[$stripeProduct->metadata['key']] ??
+                throw new NotFoundException("Site membership not found for stripe product $stripeProduct->id");
 
-            $stripeProductPrice = $this->stripeProductPriceService->getPriceDetailsById($stripeProduct->default_price);
-
-            $billingPeriod = SiteMembershipBillingPeriodEnum::tryFrom($stripeProduct->metadata['billing_period']);
-            $pricingModel = $stripeProductPrice->recurring ? SiteMembershipPricingModelEnum::RECURRING : SiteMembershipPricingModelEnum::ONE_TIME;
-
-            $siteMembership = new SiteMembership(
-                membershipGuid: $siteMembershipGuid,
-                membershipName: $stripeProduct->name,
-                membershipPriceInCents: $stripeProductPrice->unit_amount,
-                membershipBillingPeriod: $billingPeriod,
-                membershipPricingModel: $pricingModel,
-                membershipDescription: $stripeProduct->description,
-                priceCurrency: ProductPriceCurrencyEnum::tryFrom($stripeProductPrice->currency)->value,
-                roles: $this->prepareSiteMembershipRoles($siteMembershipGuid),
-                groups: $this->prepareSiteMembershipGroups($siteMembershipGuid)
-            );
-
-            $siteMemberships[] = $siteMembership;
+            $siteMemberships[] = $this->prepareSiteMembership($stripeProduct, $siteMembershipGuid);
         }
 
         return $siteMemberships;
+    }
+
+    /**
+     * @param Product $stripeProduct
+     * @param int $siteMembershipGuid
+     * @return SiteMembership
+     * @throws NotFoundException
+     * @throws ServerErrorException
+     */
+    private function prepareSiteMembership(Product $stripeProduct, int $siteMembershipGuid): SiteMembership
+    {
+        $stripeProductPrice = $this->stripeProductPriceService->getPriceDetailsById($stripeProduct->default_price);
+
+        $billingPeriod = SiteMembershipBillingPeriodEnum::tryFrom($stripeProduct->metadata['billing_period']);
+        $pricingModel = $stripeProductPrice->recurring ? SiteMembershipPricingModelEnum::RECURRING : SiteMembershipPricingModelEnum::ONE_TIME;
+
+        return new SiteMembership(
+            membershipGuid: $siteMembershipGuid,
+            membershipName: $stripeProduct->name,
+            membershipPriceInCents: $stripeProductPrice->unit_amount,
+            membershipBillingPeriod: $billingPeriod,
+            membershipPricingModel: $pricingModel,
+            membershipDescription: $stripeProduct->description,
+            priceCurrency: strtoupper(ProductPriceCurrencyEnum::tryFrom($stripeProductPrice->currency)->value),
+            roles: $this->prepareSiteMembershipRoles($siteMembershipGuid),
+            groups: $this->prepareSiteMembershipGroups($siteMembershipGuid)
+        );
     }
 
     /**
@@ -124,5 +138,24 @@ class SiteMembershipReaderService
         }
 
         return $groups;
+    }
+
+    /**
+     * @throws NotFoundException
+     * @throws ApiErrorException
+     * @throws ServerErrorException
+     * @throws InvalidArgumentException
+     * @throws NoSiteMembershipFoundException
+     */
+    public function getSiteMembership(
+        int $siteMembershipGuid
+    ): SiteMembership {
+        $siteMembershipDbInfo = $this->siteMembershipRepository->getSiteMembership(
+            siteMembershipGuid: $siteMembershipGuid
+        );
+
+        $stripeProduct = $this->stripeProductService->getProductById($siteMembershipDbInfo['stripe_product_id']);
+
+        return $this->prepareSiteMembership($stripeProduct, $siteMembershipGuid);
     }
 }

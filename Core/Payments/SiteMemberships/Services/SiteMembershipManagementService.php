@@ -11,9 +11,9 @@ use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPriceBillingPeriodEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPricingModelEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
-use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use Psr\SimpleCache\InvalidArgumentException;
+use Stripe\Exception\ApiErrorException;
 
 class SiteMembershipManagementService
 {
@@ -28,16 +28,15 @@ class SiteMembershipManagementService
 
     /**
      * @param SiteMembership $siteMembership
-     * @param User $user
      * @return SiteMembership
      * @throws InvalidArgumentException
      * @throws ServerErrorException
+     * @throws ApiErrorException
      */
     public function storeSiteMembership(
         SiteMembership $siteMembership
     ): SiteMembership {
         // TODO: check if network has reached the limit of memberships
-
 
         $this->siteMembershipRepository->beginTransaction();
         try {
@@ -70,7 +69,9 @@ class SiteMembershipManagementService
             }
         } catch (ServerErrorException $e) {
             $this->siteMembershipRepository->rollbackTransaction();
+
             // TODO: delete stripe product
+
             throw new ServerErrorException(
                 message: "Failed to store site membership.",
                 previous: $e
@@ -79,5 +80,37 @@ class SiteMembershipManagementService
 
         $this->siteMembershipRepository->commitTransaction();
         return $siteMembership;
+    }
+
+    /**
+     * @param SiteMembership $siteMembership
+     * @return SiteMembership
+     */
+    public function updateSiteMembership(
+        SiteMembership $siteMembership
+    ): SiteMembership {
+        $siteMembershipDbInfo = $this->siteMembershipRepository->getSiteMembership($siteMembership->membershipGuid);
+
+        // QUESTION: should we allow the update of roles and groups for an active membership?
+
+
+        $this->stripeProductService->updateProduct(
+            productId: $siteMembershipDbInfo['stripe_product_id'],
+            name: $siteMembership->membershipName,
+            description: $siteMembership->membershipDescription
+        );
+
+        return $siteMembership;
+    }
+
+    public function archiveSiteMembership(
+        int $siteMembershipGuid
+    ): bool {
+        $siteMembershipDbInfo = $this->siteMembershipRepository->getSiteMembership($siteMembershipGuid);
+        return $this->stripeProductService->archiveProduct(
+            productId: $siteMembershipDbInfo['stripe_product_id']
+        );
+
+        // QUESTION: should we delete the site membership from the database? Probably not to preserve ongoing subscriptions
     }
 }

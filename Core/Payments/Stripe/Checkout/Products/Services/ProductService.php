@@ -232,4 +232,52 @@ class ProductService
 
         return $product;
     }
+
+    /**
+     * @param string $productId
+     * @param string $name
+     * @param string|null $description
+     * @return Product
+     * @throws InvalidArgumentException
+     */
+    public function updateProduct(
+        string  $productId,
+        string  $name,
+        ?string $description = null,
+    ): Product {
+        $productDetails = [
+            'name' => $name,
+        ];
+
+        if ($description) {
+            $productDetails['description'] = $description;
+        }
+
+        $product = $this->stripeClient
+            ->products
+            ->update($productId, $productDetails);
+
+        $productKey = $product->metadata['key'];
+
+        $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
+        $this->cache->set("product_$product->id", "product_$productKey", self::CACHE_TTL);
+
+        return $product;
+    }
+
+    /**
+     * @param string $productId
+     * @return bool
+     */
+    public function archiveProduct(
+        string $productId
+    ): bool {
+        $this->stripeClient
+            ->products
+            ->update($productId, [
+                'active' => false,
+            ]);
+
+        return true;
+    }
 }

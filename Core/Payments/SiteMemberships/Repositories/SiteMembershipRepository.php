@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\SiteMemberships\Repositories;
 
 use Minds\Core\Data\MySQL\AbstractRepository;
+use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipFoundException;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipsFoundException;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 use Minds\Exceptions\ServerErrorException;
@@ -72,6 +73,41 @@ class SiteMembershipRepository extends AbstractRepository
             $stmt->setFetchMode(PDO::FETCH_ASSOC);
 
             return $stmt->getIterator();
+        } catch (PDOException $e) {
+            throw new ServerErrorException(
+                message: 'Failed to get site memberships',
+                previous: $e
+            );
+        }
+    }
+
+    /**
+     * @param int $siteMembershipGuid
+     * @return array
+     * @throws NoSiteMembershipFoundException
+     * @throws ServerErrorException
+     */
+    public function getSiteMembership(int $siteMembershipGuid): array
+    {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->from('minds_site_membership_tiers')
+            ->columns([
+                'membership_tier_guid',
+                'stripe_product_id',
+                'price_in_cents',
+            ])
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->where('membership_tier_guid', Operator::EQ, $siteMembershipGuid)
+            ->prepare();
+
+        try {
+            $stmt->execute();
+
+            if ($stmt->rowCount() === 0) {
+                throw new NoSiteMembershipFoundException();
+            }
+
+            return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             throw new ServerErrorException(
                 message: 'Failed to get site memberships',
