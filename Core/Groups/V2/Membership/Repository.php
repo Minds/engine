@@ -83,7 +83,8 @@ class Repository extends MySQL\AbstractRepository
             ->innerJoin(['s' => 'minds_site_membership_subscriptions'], 's.membership_tier_guid', Operator::EQ, 'mga.membership_tier_guid')
             ->leftJoinRaw('minds_group_membership', 'minds_group_membership.group_guid = mga.group_guid AND minds_group_membership.user_guid = s.user_guid')
             ->where('minds_group_membership.group_guid', Operator::IS, null)
-            ->where('minds_group_membership.user_guid', Operator::IS, null);
+            ->where('minds_group_membership.user_guid', Operator::IS, null)
+            ->where('s.valid_to', Operator::GTE, new RawExp('CURRENT_TIMESTAMP()'));
 
         $query = $this->mysqlClientReaderHandler->select()
             ->columns([

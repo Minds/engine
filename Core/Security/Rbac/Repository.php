@@ -98,6 +98,7 @@ class Repository extends AbstractRepository
                         ->from(new RawExp('minds_site_membership_tiers_role_assignments r'))
                         ->innerJoin(['s' => 'minds_site_membership_subscriptions'], 's.membership_tier_guid', Operator::EQ, 'r.membership_tier_guid')
                         ->where('s.user_guid', Operator::EQ, new RawExp(':user_guid2'))
+                        ->where('s.valid_to', Operator::GTE, new RawExp('CURRENT_TIMESTAMP()'))
                         ->groupBy('role_id')
                         ->alias('mra');
                 },
