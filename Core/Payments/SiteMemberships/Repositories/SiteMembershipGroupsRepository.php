@@ -81,4 +81,27 @@ class SiteMembershipGroupsRepository extends AbstractRepository
             );
         }
     }
+
+    /**
+     * @param int $siteMembershipGuid
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function deleteSiteMembershipGroups(int $siteMembershipGuid): bool
+    {
+        $stmt = $this->mysqlClientWriterHandler->delete()
+            ->from('minds_site_membership_tiers_group_assignments')
+            ->where('membership_tier_guid', Operator::EQ, $siteMembershipGuid)
+            ->prepare();
+
+        try {
+            $stmt->execute();
+            return true;
+        } catch (PDOException $e) {
+            throw new ServerErrorException(
+                message: 'Failed to delete site membership groups',
+                previous: $e
+            );
+        }
+    }
 }

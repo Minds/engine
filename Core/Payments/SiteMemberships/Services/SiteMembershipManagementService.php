@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\SiteMemberships\Services;
 
+use Exception;
 use Minds\Core\Config\Config;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipFoundException;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipGroupsRepository;
@@ -11,6 +12,7 @@ use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRolesReposito
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPriceBillingPeriodEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPricingModelEnum;
+use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductTypeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
 use Minds\Exceptions\ServerErrorException;
 use Psr\SimpleCache\InvalidArgumentException;
@@ -46,7 +48,8 @@ class SiteMembershipManagementService
             priceInCents: $siteMembership->membershipPriceInCents,
             billingPeriod: ProductPriceBillingPeriodEnum::tryFrom($siteMembership->membershipBillingPeriod->value),
             pricingModel: ProductPricingModelEnum::tryFrom($siteMembership->membershipPricingModel->value),
-            description: $siteMembership->membershipDescription,
+            productType: ProductTypeEnum::SITE_MEMBERSHIP,
+            description: $siteMembership->membershipDescription
         );
         try {
             $this->siteMembershipRepository->storeSiteMembership(
@@ -94,17 +97,49 @@ class SiteMembershipManagementService
     ): SiteMembership {
         $siteMembershipDbInfo = $this->siteMembershipRepository->getSiteMembership($siteMembership->membershipGuid);
 
-        // QUESTION: should we allow the update of roles and groups for an active membership?
-        // ANSWER: Yes
+        $this->siteMembershipRepository->beginTransaction();
 
-        // TODO: Delete existing roles and re-insert new ones
-        // TODO: Delete existing groups and re-insert new ones
+        try {
+            $this->siteMembershipRolesRepository->deleteSiteMembershipRoles($siteMembership->membershipGuid);
+            if ($roles = $siteMembership->getRoles()) {
+                $this->siteMembershipRolesRepository->storeSiteMembershipRoles(
+                    siteMembershipGuid: $siteMembership->membershipGuid,
+                    siteMembershipRoles: $roles
+                );
+            }
 
-        $this->stripeProductService->updateProduct(
-            productId: $siteMembershipDbInfo['stripe_product_id'],
-            name: $siteMembership->membershipName,
-            description: $siteMembership->membershipDescription
-        );
+            $this->siteMembershipGroupsRepository->deleteSiteMembershipGroups($siteMembership->membershipGuid);
+            if ($groups = $siteMembership->getGroups()) {
+                $this->siteMembershipGroupsRepository->storeSiteMembershipGroups(
+                    siteMembershipGuid: $siteMembership->membershipGuid,
+                    siteMembershipGroups: $groups
+                );
+            }
+        } catch (ServerErrorException $e) {
+            $this->siteMembershipRepository->rollbackTransaction();
+
+            throw new ServerErrorException(
+                message: "Failed to update site membership.",
+                previous: $e
+            );
+        }
+
+        try {
+            $this->stripeProductService->updateProduct(
+                productId: $siteMembershipDbInfo['stripe_product_id'],
+                name: $siteMembership->membershipName,
+                description: $siteMembership->membershipDescription
+            );
+        } catch (Exception $e) {
+            $this->siteMembershipRepository->rollbackTransaction();
+
+            throw new ServerErrorException(
+                message: "Failed to update site membership.",
+                previous: $e
+            );
+        }
+
+        $this->siteMembershipRepository->commitTransaction();
 
         return $siteMembership;
     }
@@ -119,11 +154,11 @@ class SiteMembershipManagementService
         int $siteMembershipGuid
     ): bool {
         $siteMembershipDbInfo = $this->siteMembershipRepository->getSiteMembership($siteMembershipGuid);
-        return $this->stripeProductService->archiveProduct(
+        $this->stripeProductService->archiveProduct(
             productId: $siteMembershipDbInfo['stripe_product_id']
         );
 
-        // QUESTION: should we delete the site membership from the database? Probably not to preserve ongoing subscriptions
-        // ANSWER: we should flag the site membership as archived in our database
+        $this->siteMembershipRepository->archiveSiteMembership($siteMembershipGuid);
+        return true;
     }
 }

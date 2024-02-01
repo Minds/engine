@@ -810,6 +810,7 @@ CREATE TABLE IF NOT EXISTS minds_site_membership_tiers (
     membership_tier_guid bigint,
     stripe_product_id varchar(256),
     price_in_cents int NOT NULL,
+    archived boolean DEFAULT FALSE,
     PRIMARY KEY (tenant_id, membership_tier_guid)
 );
 

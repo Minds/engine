@@ -127,13 +127,19 @@ class ProductService
 
     /**
      * @param array $metadata
+     * @param ProductTypeEnum $productType
      * @return Product[]
      * @throws InvalidArgumentException
      * @throws NotFoundException
      */
     public function getProductsByMetadata(
-        array $metadata
+        array           $metadata,
+        ProductTypeEnum $productType
     ): iterable {
+        if ($products = $this->cache->get("tenant_{$this->config->get('tenant_id')}_products_$productType->value")) {
+            return unserialize($products);
+        }
+
         if (count($metadata) > 10) {
             throw new InvalidArgumentExceptionAlias("You can only search for up to 10 metadata keys at a time.");
         }
@@ -168,6 +174,8 @@ class ProductService
 
             yield $product;
         }
+
+        $this->cache->set("tenant_{$this->config->get('tenant_id')}_products_$productType->value", serialize($products), self::CACHE_TTL);
     }
 
     /**
@@ -176,10 +184,10 @@ class ProductService
      * @param int $priceInCents
      * @param ProductPriceBillingPeriodEnum $billingPeriod
      * @param ProductPricingModelEnum $pricingModel
+     * @param ProductTypeEnum $productType
      * @param ProductPriceCurrencyEnum $currency
      * @param string|null $description
      * @return Product
-     * @throws ApiErrorException
      * @throws InvalidArgumentException
      */
     public function createProduct(
@@ -188,6 +196,7 @@ class ProductService
         int                           $priceInCents,
         ProductPriceBillingPeriodEnum $billingPeriod,
         ProductPricingModelEnum       $pricingModel,
+        ProductTypeEnum               $productType,
         ProductPriceCurrencyEnum      $currency = ProductPriceCurrencyEnum::USD,
         ?string                       $description = null,
     ): Product {
@@ -201,7 +210,7 @@ class ProductService
             ],
             'metadata' => [
                 'key' => $productKey,
-                'type' => ProductTypeEnum::SITE_MEMBERSHIP->value,
+                'type' => $productType->value,
                 'tenant_id' => $this->config->get('tenant_id') ?? -1,
                 'billing_period' => $billingPeriod->value,
             ],
@@ -223,6 +232,12 @@ class ProductService
 
         $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
         $this->cache->set("product_$product->id", "product_$productKey", self::CACHE_TTL);
+
+        if ($products = $this->cache->get("tenant_{$this->config->get('tenant_id')}_products_$productType->value")) {
+            $products = unserialize($products);
+            $products[] = $product;
+            $this->cache->set("tenant_{$this->config->get('tenant_id')}_products_$productType->value", serialize($products), self::CACHE_TTL);
+        }
 
         return $product;
     }

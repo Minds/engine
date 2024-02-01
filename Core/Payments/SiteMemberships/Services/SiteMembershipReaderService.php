@@ -52,22 +52,36 @@ class SiteMembershipReaderService
 
         try {
             foreach ($this->siteMembershipRepository->getSiteMemberships() as $siteMembershipDbInfo) {
-                $products[$siteMembershipDbInfo['stripe_product_id']] = $siteMembershipDbInfo['membership_tier_guid'];
+                $products[$siteMembershipDbInfo['stripe_product_id']] = $siteMembershipDbInfo;
             }
         } catch (NoSiteMembershipsFoundException $e) {
             return [];
         }
 
-        $stripeProducts = $this->stripeProductService->getProductsByMetadata([
-            'type' => ProductTypeEnum::SITE_MEMBERSHIP->value,
-            'tenant_id' => $this->config->get('tenant_id') ?? '-1',
-        ]);
+        try {
+            $stripeProducts = $this->stripeProductService->getProductsByMetadata(
+                metadata: [
+                    'type' => ProductTypeEnum::SITE_MEMBERSHIP->value,
+                    'tenant_id' => $this->config->get('tenant_id') ?? '-1',
+                ],
+                productType: ProductTypeEnum::SITE_MEMBERSHIP
+            );
+        } catch (NotFoundException $e) {
+            return [];
+        }
 
         foreach ($stripeProducts as $stripeProduct) {
-            $siteMembershipGuid = $products[$stripeProduct->id] ??
-                throw new NotFoundException("Site membership not found for stripe product $stripeProduct->id");
+            if (!isset($products[$stripeProduct->id])) {
+                continue;
+            }
 
-            $siteMemberships[] = $this->prepareSiteMembership($stripeProduct, $siteMembershipGuid);
+            $siteMembershipDbInfo = $products[$stripeProduct->id];
+
+            if ($siteMembershipDbInfo['archived']) {
+                continue;
+            }
+
+            $siteMemberships[] = $this->prepareSiteMembership($stripeProduct, $siteMembershipDbInfo['membership_tier_guid']);
         }
 
         return $siteMemberships;

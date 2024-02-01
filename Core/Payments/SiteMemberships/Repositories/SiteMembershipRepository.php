@@ -81,6 +81,18 @@ class SiteMembershipRepository extends AbstractRepository
         }
     }
 
+    public function archiveSiteMembership(int $siteMembershipGuid): bool
+    {
+        $stmt = $this->mysqlClientWriterHandler->update()
+            ->table('minds_site_membership_tiers')
+            ->set([
+                'archived' => true,
+            ])
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->where('membership_tier_guid', Operator::EQ, $siteMembershipGuid)
+            ->prepare();
+    }
+
     /**
      * @param int $siteMembershipGuid
      * @return array
