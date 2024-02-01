@@ -23,7 +23,7 @@ class InvitesManagementController
      * @param string $emails
      * @param string $bespokeMessage
      * @param int[]|null $roles
-     * @param int[]|null $groups
+     * @param string[]|null $groups
      * @return void
      * @throws ServerErrorException
      */

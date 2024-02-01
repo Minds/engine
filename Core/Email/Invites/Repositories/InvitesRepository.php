@@ -18,14 +18,18 @@ use Minds\Exceptions\ServerErrorException;
 use PDO;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Groups\V2\GraphQL\Types\GroupNode;
+use Minds\Entities\Group;
 
 class InvitesRepository extends AbstractRepository
 {
     public function __construct(
-        Client               $mysqlHandler,
-        Logger               $logger,
-        Config               $config,
-        private readonly Jwt $jwt
+        Client                              $mysqlHandler,
+        Logger                              $logger,
+        Config                              $config,
+        private readonly Jwt                $jwt,
+        private readonly EntitiesBuilder    $entitiesBuilder
     ) {
         parent::__construct($mysqlHandler, $config, $logger);
     }
@@ -126,6 +130,17 @@ class InvitesRepository extends AbstractRepository
 
     private function buildInvite(array $data): Invite
     {
+        $groupNodes = [];
+
+        $groups = $data['target_group_guids'] ? array_map(fn (string $groupGuid): int => (int)$groupGuid, explode(',', $data['target_group_guids'])) : [];
+
+        foreach ($groups as $groupGuid) {
+            $group = $this->entitiesBuilder->single($groupGuid);
+            if ($group instanceof Group) {
+                $groupNodes[] = new GroupNode($group);
+            }
+        }
+
         return new Invite(
             inviteId: $data['id'],
             tenantId: $data['tenant_id'],
@@ -137,7 +152,7 @@ class InvitesRepository extends AbstractRepository
             createdTimestamp: (int)strtotime($data['created_timestamp']),
             sendTimestamp: $data['send_timestamp'] ? strtotime($data['send_timestamp']) : null,
             roles: $data['target_roles'] ? array_map(fn (string $role): int => (int)$role, explode(',', $data['target_roles'])) : null,
-            groups: $data['target_group_guids'] ? array_map(fn (string $groupGuid): int => (int)$groupGuid, explode(',', $data['target_group_guids'])) : null,
+            groups: $groupNodes,
         );
     }
 
