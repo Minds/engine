@@ -128,6 +128,7 @@ class ProductService
     /**
      * @param array $metadata
      * @param ProductTypeEnum $productType
+     * @param array $availableProducts
      * @return Product[]
      * @throws InvalidArgumentException
      * @throws NotFoundException
@@ -283,6 +284,19 @@ class ProductService
 
         $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
         $this->cache->set("product_$product->id", "product_$productKey", self::CACHE_TTL);
+
+        if ($products = $this->cache->get("tenant_{$this->config->get('tenant_id')}_products_{$product->metadata['type']}")) {
+            $products = unserialize($products);
+
+            foreach ($products as $key => $productCache) {
+                if ($productCache->id === $productId) {
+                    $products[$key] = $product;
+                    break;
+                }
+            }
+
+            $this->cache->set("tenant_{$this->config->get('tenant_id')}_products_{$product->metadata['type']}", serialize($products), self::CACHE_TTL);
+        }
 
         return $product;
     }
