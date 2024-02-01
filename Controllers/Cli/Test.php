@@ -69,4 +69,13 @@ class Test extends Cli\Controller implements Interfaces\CliControllerInterface
 
         (new DepositsDelegate)->onIssueAffiliateReferrerDeposit($referrerUser, $deposit);
     }
+
+    public function testRegisteredRunner(): void
+    {
+        (Di::_()->get('Queue'))
+            ->setQueue("Registered")
+            ->send([
+                'test_prop' => 'test_value',
+            ]);
+    }
 }
