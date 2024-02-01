@@ -120,6 +120,7 @@ class SiteMembershipRepository extends AbstractRepository
                 'totalSiteMemberships' => new RawExp('COUNT(membership_tier_guid)'),
             ])
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->where('archived', Operator::EQ, false)
             ->prepare();
 
         try {
