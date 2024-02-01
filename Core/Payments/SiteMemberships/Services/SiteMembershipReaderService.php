@@ -64,7 +64,8 @@ class SiteMembershipReaderService
                     'type' => ProductTypeEnum::SITE_MEMBERSHIP->value,
                     'tenant_id' => $this->config->get('tenant_id') ?? '-1',
                 ],
-                productType: ProductTypeEnum::SITE_MEMBERSHIP
+                productType: ProductTypeEnum::SITE_MEMBERSHIP,
+                availableProducts: $products
             );
         } catch (NotFoundException $e) {
             return [];

@@ -134,10 +134,19 @@ class ProductService
      */
     public function getProductsByMetadata(
         array           $metadata,
-        ProductTypeEnum $productType
+        ProductTypeEnum $productType,
+        array           $availableProducts = []
     ): iterable {
         if ($products = $this->cache->get("tenant_{$this->config->get('tenant_id')}_products_$productType->value")) {
-            return unserialize($products);
+            $products = unserialize($products);
+            $activeProducts = array_filter($availableProducts, fn ($product): bool => !$product['archived']);
+            $commonProducts = array_intersect(array_map(fn ($product) => $product->id, $products), array_keys($activeProducts));
+            if (count($commonProducts) === count($activeProducts)) {
+                foreach ($products as $product) {
+                    yield $product;
+                }
+                return;
+            }
         }
 
         if (count($metadata) > 10) {
@@ -166,16 +175,20 @@ class ProductService
             throw new NotFoundException("No products were found.");
         }
 
+        $productsToSerialize = [];
+
         foreach ($products as $product) {
             $productKey = $product->metadata['key'];
 
             $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
             $this->cache->set("product_$product->id", "product_$productKey", self::CACHE_TTL);
 
+            $productsToSerialize[] = $product;
+
             yield $product;
         }
 
-        $this->cache->set("tenant_{$this->config->get('tenant_id')}_products_$productType->value", serialize($products), self::CACHE_TTL);
+        $this->cache->set("tenant_{$this->config->get('tenant_id')}_products_$productType->value", serialize($productsToSerialize), self::CACHE_TTL);
     }
 
     /**
@@ -235,9 +248,9 @@ class ProductService
 
         if ($products = $this->cache->get("tenant_{$this->config->get('tenant_id')}_products_$productType->value")) {
             $products = unserialize($products);
-            $products[] = $product;
-            $this->cache->set("tenant_{$this->config->get('tenant_id')}_products_$productType->value", serialize($products), self::CACHE_TTL);
         }
+        $products[] = $product;
+        $this->cache->set("tenant_{$this->config->get('tenant_id')}_products_$productType->value", serialize($products), self::CACHE_TTL);
 
         return $product;
     }

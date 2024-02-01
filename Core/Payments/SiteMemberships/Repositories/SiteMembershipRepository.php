@@ -60,6 +60,7 @@ class SiteMembershipRepository extends AbstractRepository
                 'membership_tier_guid',
                 'stripe_product_id',
                 'price_in_cents',
+                'archived',
             ])
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->prepare();
