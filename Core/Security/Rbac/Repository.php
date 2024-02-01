@@ -88,11 +88,29 @@ class Repository extends AbstractRepository
     public function getUserRoles(int $userGuid): array
     {
         $query = $this->buildGetRolesQuery()
-             ->leftJoinRaw('minds_role_user_assignments', 'minds_role_permissions.role_id = minds_role_user_assignments.role_id AND minds_role_permissions.tenant_id = minds_role_user_assignments.tenant_id');
+            ->leftJoinRaw('minds_role_user_assignments', 'minds_role_permissions.role_id = minds_role_user_assignments.role_id AND minds_role_permissions.tenant_id = minds_role_user_assignments.tenant_id')
+            ->leftJoin(
+                function (SelectQuery $subQuery): void {
+                    $subQuery
+                        ->columns([
+                            'role_id'
+                        ])
+                        ->from(new RawExp('minds_site_membership_tiers_role_assignments r'))
+                        ->innerJoin(['s' => 'minds_site_membership_subscriptions'], 's.membership_tier_guid', Operator::EQ, 'r.membership_tier_guid')
+                        ->where('s.user_guid', Operator::EQ, new RawExp(':user_guid2'))
+                        ->groupBy('role_id')
+                        ->alias('mra');
+                },
+                "mra.role_id",
+                Operator::EQ,
+                "minds_role_permissions.role_id"
+            );
 
         $where = "user_guid = :user_guid";
 
         $where .= " OR minds_role_permissions.role_id = " . RolesEnum::DEFAULT->value;
+
+        $where .= " OR mra.role_id IS NOT NULL";
 
         //  If the tenant root user is the requested user, they will always be an owner
         if ($userGuid === $this->multiTenantBootService->getTenant()->rootUserGuid) {
@@ -104,7 +122,8 @@ class Repository extends AbstractRepository
         $stmt = $query->prepare();
 
         $stmt->execute([
-            'user_guid' => $userGuid
+            'user_guid' => $userGuid,
+            'user_guid2' => $userGuid
         ]);
 
         // There will always be at least one role that is returned, the default role.

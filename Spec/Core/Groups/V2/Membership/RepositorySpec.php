@@ -59,7 +59,14 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlReplicaMock->quote("456")->willReturn("456");
         $this->mysqlReplicaMock->quote("1")->willReturn("1");
 
-        $this->mysqlReplicaMock->query(Argument::any())->willReturn($pdoStatementMock);
+        $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($pdoStatementMock);
+
+        $pdoStatementMock->execute([
+            'group_guid' => 123,
+            'user_guid' => 456,
+            'membership_level' => 1
+        ])->willReturn(true);
+
 
         $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
             ->willReturn([
@@ -85,8 +92,14 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlReplicaMock->quote("456")->willReturn("456");
         $this->mysqlReplicaMock->quote("1")->willReturn("1");
 
-        $this->mysqlReplicaMock->query(Argument::any())->willReturn($pdoStatementMock);
+        $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($pdoStatementMock);
 
+        $pdoStatementMock->execute([
+            'group_guid' => 123,
+            'user_guid' => 456,
+            'membership_level' => 1
+        ])->willReturn(true);
+    
         $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
             ->willReturn([
             ]);
@@ -102,7 +115,12 @@ class RepositorySpec extends ObjectBehavior
         $this->mysqlReplicaMock->quote("456")->willReturn("456");
         $this->mysqlReplicaMock->quote("1")->willReturn("1");
 
-        $this->mysqlReplicaMock->query(Argument::any())->willReturn($pdoStatementMock);
+        $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($pdoStatementMock);
+
+        $pdoStatementMock->execute([
+            'group_guid' => 123,
+            'membership_level' => 1
+        ])->willReturn(true);
 
         $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
             ->willReturn([
