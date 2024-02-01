@@ -42,8 +42,9 @@ class SiteMembershipManagementService
         if ($this->config->get('tenant_id')) {
             $totalSiteMemberships = $this->siteMembershipRepository->getTotalSiteMemberships();
             $tenant = $this->config->get('tenant');
-            if ($totalSiteMemberships >= $this->config->get('multi_tenant')['plan_memberships'][$tenant->plan->name]) {
-                throw new TooManySiteMembershipsException();
+            $maxAllowedActiveMemberships = $this->config->get('multi_tenant')['plan_memberships'][$tenant->plan->name];
+            if ($totalSiteMemberships >= $maxAllowedActiveMemberships) {
+                throw new TooManySiteMembershipsException("Your network plan only allows $maxAllowedActiveMemberships active membership(s). Archive a membership before creating a new one.");
             }
         }
 
