@@ -6,6 +6,7 @@ namespace Minds\Core\Payments\SiteMemberships\Services;
 use Exception;
 use Minds\Core\Config\Config;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipFoundException;
+use Minds\Core\Payments\SiteMemberships\Exceptions\TooManySiteMembershipsException;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipGroupsRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRolesRepository;
@@ -16,7 +17,6 @@ use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductTypeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
 use Minds\Exceptions\ServerErrorException;
 use Psr\SimpleCache\InvalidArgumentException;
-use Stripe\Exception\ApiErrorException;
 
 class SiteMembershipManagementService
 {
@@ -34,12 +34,18 @@ class SiteMembershipManagementService
      * @return SiteMembership
      * @throws InvalidArgumentException
      * @throws ServerErrorException
-     * @throws ApiErrorException
+     * @throws TooManySiteMembershipsException
      */
     public function storeSiteMembership(
         SiteMembership $siteMembership
     ): SiteMembership {
-        // TODO: check if network has reached the limit of memberships
+        if ($this->config->get('tenant_id')) {
+            $totalSiteMemberships = $this->siteMembershipRepository->getTotalSiteMemberships();
+            $tenant = $this->config->get('tenant');
+            if ($totalSiteMemberships >= $this->config->get('multi_tenant')['plan_memberships'][$tenant->plan->name]) {
+                throw new TooManySiteMembershipsException();
+            }
+        }
 
         $this->siteMembershipRepository->beginTransaction();
         $stripeProduct = $this->stripeProductService->createProduct(

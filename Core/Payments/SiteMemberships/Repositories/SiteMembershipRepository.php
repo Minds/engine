@@ -81,6 +81,11 @@ class SiteMembershipRepository extends AbstractRepository
         }
     }
 
+    /**
+     * @param int $siteMembershipGuid
+     * @return bool
+     * @throws ServerErrorException
+     */
     public function archiveSiteMembership(int $siteMembershipGuid): bool
     {
         $stmt = $this->mysqlClientWriterHandler->update()
@@ -91,6 +96,41 @@ class SiteMembershipRepository extends AbstractRepository
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->where('membership_tier_guid', Operator::EQ, $siteMembershipGuid)
             ->prepare();
+
+        try {
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            throw new ServerErrorException(
+                message: 'Failed to archive site membership',
+                previous: $e
+            );
+        }
+    }
+
+    /**
+     * @return int
+     * @throws ServerErrorException
+     */
+    public function getTotalSiteMemberships(): int
+    {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->from('minds_site_membership_tiers')
+            ->columns([
+                'totalSiteMemberships' => new RawExp('COUNT(membership_tier_guid)'),
+            ])
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->prepare();
+
+        try {
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return (int)$result['totalSiteMemberships'];
+        } catch (PDOException $e) {
+            throw new ServerErrorException(
+                message: 'Failed to get total site memberships',
+                previous: $e
+            );
+        }
     }
 
     /**
