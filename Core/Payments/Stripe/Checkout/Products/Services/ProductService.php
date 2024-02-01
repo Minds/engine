@@ -86,7 +86,7 @@ class ProductService
         $productKey = $product->metadata['key'];
 
         $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
-        $this->cache->set("product_$product->id", "product_$productKey", self::CACHE_TTL);
+        $this->cache->set("product_$product->id", "$productKey", self::CACHE_TTL);
 
         return $product;
     }
@@ -120,7 +120,7 @@ class ProductService
         $product = $results->first();
 
         $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
-        $this->cache->set("product_$product->id", "product_$productKey", self::CACHE_TTL);
+        $this->cache->set("product_$product->id", "$productKey", self::CACHE_TTL);
 
         return $product;
     }
@@ -182,7 +182,7 @@ class ProductService
             $productKey = $product->metadata['key'];
 
             $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
-            $this->cache->set("product_$product->id", "product_$productKey", self::CACHE_TTL);
+            $this->cache->set("product_$product->id", "$productKey", self::CACHE_TTL);
 
             $productsToSerialize[] = $product;
 
@@ -245,7 +245,7 @@ class ProductService
             ->create($productDetails);
 
         $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
-        $this->cache->set("product_$product->id", "product_$productKey", self::CACHE_TTL);
+        $this->cache->set("product_$product->id", "$productKey", self::CACHE_TTL);
 
         if ($products = $this->cache->get("tenant_{$this->config->get('tenant_id')}_products_$productType->value")) {
             $products = unserialize($products);
@@ -283,7 +283,7 @@ class ProductService
         $productKey = $product->metadata['key'];
 
         $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
-        $this->cache->set("product_$product->id", "product_$productKey", self::CACHE_TTL);
+        $this->cache->set("product_$product->id", "$productKey", self::CACHE_TTL);
 
         if ($products = $this->cache->get("tenant_{$this->config->get('tenant_id')}_products_{$product->metadata['type']}")) {
             $products = unserialize($products);
