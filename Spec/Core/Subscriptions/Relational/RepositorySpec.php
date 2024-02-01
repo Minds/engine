@@ -88,7 +88,8 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn($stmtMock);
 
         $stmtMock->execute([
-            'user_guid' => '123'
+            'user_guid1' => '123',
+            'user_guid2' => '123'
         ])
             ->shouldBeCalled();
 
@@ -117,7 +118,8 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn($stmtMock);
 
         $stmtMock->execute([
-            'user_guid' => '123',
+            'user_guid1' => '123',
+            'user_guid2' => '123',
             'friend_guid' => '456'
         ])
             ->shouldBeCalled();
@@ -141,7 +143,8 @@ class RepositorySpec extends ObjectBehavior
             ->willReturn($stmtMock);
 
         $stmtMock->execute([
-            'user_guid' => '123',
+            'user_guid1' => '123',
+            'user_guid2' => '123',
             'friend_guid' => '456'
         ])
             ->shouldBeCalled();

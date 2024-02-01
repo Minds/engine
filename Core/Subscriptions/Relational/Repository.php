@@ -230,7 +230,7 @@ class Repository
             JOIN 
                 (
                     SELECT user_guid, friend_guid FROM friends
-                    WHERE user_guid=:user_guid
+                    WHERE user_guid=:user_guid1
                     ORDER BY timestamp DESC
                     LIMIT 1000
                 ) as b
@@ -247,7 +247,7 @@ class Repository
             WHERE 
                 c.user_guid IS NULL
             AND 
-                a.friend_guid != :user_guid
+                a.friend_guid != :user_guid2
             AND
                 a.timestamp >  DATE_SUB( CURDATE(), INTERVAL 1 YEAR ) 
             GROUP BY 
@@ -259,7 +259,8 @@ class Repository
         $prepared = $this->client->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
     
         $prepared->execute([
-                'user_guid' => $userGuid,
+                'user_guid1' => $userGuid,
+                'user_guid2' => $userGuid,
             ]);
     
         foreach ($prepared as $row) {
@@ -289,7 +290,8 @@ class Repository
         $prepared = $this->client->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
 
         $prepared->execute([
-            'user_guid' => $userGuid,
+            'user_guid2' => $userGuid,
+            'user_guid1' => $userGuid,
             'friend_guid' => $subscribedToGuid,
         ]);
 
@@ -325,7 +327,8 @@ class Repository
         $prepared = $this->client->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
 
         $prepared->execute([
-            'user_guid' => $userGuid,
+            'user_guid1' => $userGuid,
+            'user_guid2' => $userGuid,
             'friend_guid' => $subscribedToGuid,
         ]);
 
@@ -351,9 +354,9 @@ class Repository
         return "FROM friends own
             INNER JOIN friends others 
                 ON own.friend_guid = others.user_guid
-            WHERE own.user_guid = :user_guid 
+            WHERE own.user_guid = :user_guid1 
                 AND others.friend_guid = :friend_guid
-                AND own.friend_guid != :user_guid";
+                AND own.friend_guid != :user_guid2";
     }
 
     private function getTenantId(): ?int

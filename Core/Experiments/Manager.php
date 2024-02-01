@@ -17,9 +17,8 @@ use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Cookie\Manager as CookieManager;
 use Minds\Core\Analytics\Snowplow\Manager as SnowplowManager;
 use Minds\Core\Analytics\Snowplow\Events\SnowplowGrowthbookEvent;
-use Minds\Core\Data\cache\APCuCache;
+use Minds\Core\Data\cache\SharedCache;
 use Minds\Core\Data\cache\WorkerCache;
-use Psr\SimpleCache\CacheInterface;
 
 class Manager
 {
@@ -55,13 +54,13 @@ class Manager
         CookieManager $cookieManager = null,
         GuzzleHttp\Client $httpClient = null,
         Config $config = null,
-        WorkerCache $cache = null,
+        SharedCache $cache = null,
         SnowplowManager $snowplowManager = null
     ) {
         $this->cookieManager = $cookieManager ?? Di::_()->get('Experiments\Cookie\Manager');
         $this->httpClient = $httpClient ?? new GuzzleHttp\Client();
         $this->config = $config ?? Di::_()->get('Config');
-        $this->cache = $cache ?? Di::_()->get(WorkerCache::class);
+        $this->cache = $cache ?? Di::_()->get(SharedCache::class);
         $this->growthbook = $growthbook ?? Growthbook\Growthbook::create();
         $this->snowplowManager = $snowplowManager ?? Di::_()->get('Analytics\Snowplow\Manager');
 

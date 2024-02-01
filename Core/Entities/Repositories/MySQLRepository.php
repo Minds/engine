@@ -53,7 +53,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                             e.type='activity' AND (
                                 SELECT 1 FROM minds_votes
                                 WHERE minds_votes.entity_guid = e.guid
-                                AND user_guid=:loggedInUser
+                                AND user_guid=:loggedInUser1
                                 AND deleted = False
                                 AND direction = 1
                             )
@@ -80,7 +80,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                             e.type='activity' AND (
                                 SELECT 1 FROM minds_votes
                                 WHERE minds_votes.entity_guid = e.guid
-                                AND user_guid=:loggedInUser
+                                AND user_guid=:loggedInUser2
                                 AND deleted = False
                                 AND direction = 2
                             )
@@ -126,7 +126,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                             'user_guid',
                             'role_ids' => new RawExp('GROUP_CONCAT(role_id)'),
                         ])
-                        ->where('tenant_id', Operator::EQ, new RawExp(':tenantId'))
+                        ->where('tenant_id', Operator::EQ, new RawExp(':rbac_roles_tenantId'))
                         ->groupBy('user_guid')
                         ->alias('rbac_roles');
                 },
@@ -147,7 +147,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
             $query->where('e.guid', Operator::EQ, new RawExp(':guid'));
         }
         
-        $query->where('e.tenant_id', Operator::EQ, new RawExp(':tenantId'));
+        $query->where('e.tenant_id', Operator::EQ, new RawExp(':e_tenantId'));
 
         if (is_array($guid)) {
             $query->orderBy('e.guid desc');
@@ -157,8 +157,10 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
 
         $this->mysqlHandler->bindValuesToPreparedStatement($statement, [
             'guid' => $guid,
-            'tenantId' => $this->config->get('tenant_id'),
-            'loggedInUser' => $this->activeSession->getUserGuid(),
+            'e_tenantId' => $this->config->get('tenant_id'),
+            'rbac_roles_tenantId' => $this->config->get('tenant_id'),
+            'loggedInUser1' => $this->activeSession->getUserGuid(),
+            'loggedInUser2' => $this->activeSession->getUserGuid(),
         ]);
 
         $statement->execute();

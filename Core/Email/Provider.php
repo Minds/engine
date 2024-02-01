@@ -5,7 +5,10 @@
 
 namespace Minds\Core\Email;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\Email\Services\EmailAutoSubscribeService;
 
 class Provider extends DiProvider
 {
@@ -73,5 +76,13 @@ class Provider extends DiProvider
         $this->di->bind('SendGrid\Webhooks', function ($di) {
             return new SendGrid\Webhooks();
         }, ['useFactory' => true]);
+
+        $this->di->bind(
+            EmailAutoSubscribeService::class,
+            fn (Di $di): EmailAutoSubscribeService => new EmailAutoSubscribeService(
+                repository: $di->get('Email\Repository'),
+                config: $di->get(Config::class)
+            )
+        );
     }
 }

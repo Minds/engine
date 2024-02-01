@@ -8,7 +8,9 @@ use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
 use Minds\Core\Email\Invites\Repositories\InvitesRepository;
 use Minds\Core\Email\V2\Campaigns\Recurring\Invite\InviteEmailer;
+use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipManager;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
+use Minds\Core\Security\Rbac\Services\RolesService;
 
 class ServicesProvider extends Provider
 {
@@ -37,6 +39,16 @@ class ServicesProvider extends Provider
                 multiTenantBootService: $di->get(MultiTenantBootService::class),
                 invitesRepository: $di->get(InvitesRepository::class),
                 inviteEmailer: new InviteEmailer(),
+            )
+        );
+
+        $this->di->bind(
+            InviteProcessorService::class,
+            fn (Di $di): InviteProcessorService => new InviteProcessorService(
+                inviteReaderService: $di->get(InviteReaderService::class),
+                inviteManagementService: $di->get(InviteManagementService::class),
+                rolesService: $di->get(RolesService::class),
+                groupMembershipManager: $di->get(GroupMembershipManager::class)
             )
         );
     }
