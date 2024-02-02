@@ -243,8 +243,10 @@ class PushNotification implements PushNotificationInterface
                     }
 
                     // Check if single or multiple images
-                    $imageCount = is_array($customData) ? count($customData) : 1;
-                    return $imageCount > 1 ? 'Posted images' : 'Posted an image';
+                    if (is_array($customData)) {
+                        $imageCount = count($customData);
+                        return $imageCount > 1 ? 'Posted images' : 'Posted an image';
+                    }
                 }
             }
 
