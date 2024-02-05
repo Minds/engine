@@ -39,7 +39,8 @@ class SiteMembershipManagementServiceSpec extends ObjectBehavior
         SiteMembershipRolesRepository  $siteMembershipRolesRepository,
         StripeProductService           $stripeProductService,
         Config                         $config
-    ): void {
+    ): void
+    {
         $this->siteMembershipRepositoryMock = $siteMembershipRepository;
         $this->siteMembershipGroupsRepositoryMock = $siteMembershipGroupsRepository;
         $this->siteMembershipRolesRepositoryMock = $siteMembershipRolesRepository;
@@ -64,7 +65,8 @@ class SiteMembershipManagementServiceSpec extends ObjectBehavior
 
     public function it_should_throw_too_many_memberships_exception(
         SiteMembership $siteMembershipMock
-    ): void {
+    ): void
+    {
         $this->configMock->get('tenant_id')
             ->shouldBeCalledOnce()
             ->willReturn(1);
@@ -170,7 +172,8 @@ class SiteMembershipManagementServiceSpec extends ObjectBehavior
         string|null                     $membershipDescription = null,
         ?array                          $roles = null,
         ?array                          $groups = null
-    ): SiteMembership {
+    ): SiteMembership
+    {
         return new SiteMembership(
             membershipGuid: $membershipGuid,
             membershipName: $membershipName,
@@ -200,7 +203,8 @@ class SiteMembershipManagementServiceSpec extends ObjectBehavior
         string $key,
         string $type,
         string $billingPeriod
-    ): Product {
+    ): Product
+    {
         $mock = $this->stripeProductMockFactory->newInstanceWithoutConstructor();
         $this->stripeProductMockFactory->getProperty('_values')->setValue($mock, [
             'id' => $id,
@@ -525,5 +529,24 @@ class SiteMembershipManagementServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce();
 
         $this->updateSiteMembership($siteMembershipMock)->shouldBeLike($siteMembershipMock);
+    }
+
+    public function it_should_archive_membership(): void
+    {
+        $this->siteMembershipRepositoryMock->getSiteMembership(1)
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'membership_tier_guid' => 1,
+                'stripe_product_id' => 'prod_1',
+                'archived' => false
+            ]);
+        $this->stripeProductServiceMock->archiveProduct('prod_1')
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+        $this->siteMembershipRepositoryMock->archiveSiteMembership(1)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->archiveSiteMembership(1)->shouldBe(true);
     }
 }
