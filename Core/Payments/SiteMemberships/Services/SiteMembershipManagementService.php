@@ -12,6 +12,7 @@ use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRolesRepository;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPriceBillingPeriodEnum;
+use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPriceCurrencyEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPricingModelEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductTypeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
@@ -56,6 +57,7 @@ class SiteMembershipManagementService
             billingPeriod: ProductPriceBillingPeriodEnum::tryFrom($siteMembership->membershipBillingPeriod->value),
             pricingModel: ProductPricingModelEnum::tryFrom($siteMembership->membershipPricingModel->value),
             productType: ProductTypeEnum::SITE_MEMBERSHIP,
+            currency: ProductPriceCurrencyEnum::USD,
             description: $siteMembership->membershipDescription
         );
         try {
