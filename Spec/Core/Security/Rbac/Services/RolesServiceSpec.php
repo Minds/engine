@@ -69,6 +69,7 @@ class RolesServiceSpec extends ObjectBehavior
             PermissionsEnum::CAN_BOOST,
             PermissionsEnum::CAN_USE_RSS_SYNC,
             PermissionsEnum::CAN_ASSIGN_PERMISSIONS,
+            PermissionsEnum::CAN_CREATE_PAYWALL,
         ]);
 
         $roles[RolesEnum::DEFAULT->value]->permissions->shouldBe([
@@ -221,7 +222,7 @@ class RolesServiceSpec extends ObjectBehavior
     {
         $this->configMock->get('tenant_id')
             ->willReturn(1);
-        
+
         $subjectUser = new User();
 
         $role = new Role(RolesEnum::ADMIN->value, RolesEnum::ADMIN->name, []);

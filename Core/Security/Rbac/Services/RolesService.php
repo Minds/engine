@@ -19,7 +19,7 @@ class RolesService
         private readonly Repository $repository,
         private readonly EntitiesBuilder $entitiesBuilder,
     ) {
-        
+
     }
 
     /**
@@ -73,7 +73,7 @@ class RolesService
             // All users will have a default role
             $roles[] = $allRoles[RolesEnum::DEFAULT->value];
         }
-    
+
         return $roles;
     }
 
@@ -111,7 +111,7 @@ class RolesService
     public function hasPermission(User $user, PermissionsEnum $permission): bool
     {
         $permissions = $this->getUserPermissions($user);
-    
+
         return in_array($permission, $permissions, true);
     }
 
@@ -167,7 +167,7 @@ class RolesService
                 roles: $userRoles,
                 cursor: $loadAfter,
             );
-            
+
             if (++$i >= $limit) {
                 break;
             }
@@ -184,7 +184,7 @@ class RolesService
         if (!$this->isMultiTenant()) {
             return false;
         }
-    
+
         return $this->repository->assignUserToRole(
             userGuid: (int) $user->getGuid(),
             roleId: $role->id,
@@ -199,7 +199,7 @@ class RolesService
         if (!$this->isMultiTenant()) {
             return false;
         }
-    
+
         return $this->repository->unassignUserFromRole(
             userGuid: (int) $user->getGuid(),
             roleId: $role->id,
@@ -240,6 +240,7 @@ class RolesService
                     PermissionsEnum::CAN_BOOST,
                     PermissionsEnum::CAN_USE_RSS_SYNC,
                     PermissionsEnum::CAN_ASSIGN_PERMISSIONS,
+                    PermissionsEnum::CAN_CREATE_PAYWALL,
                 ]
             ),
             RolesEnum::ADMIN->value => new Role(
