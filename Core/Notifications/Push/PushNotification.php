@@ -225,8 +225,8 @@ class PushNotification implements PushNotificationInterface
             if ($entity instanceof Activity) {
                 // Use message if there is one
                 // (this handles text posts, and media posts + rich-embeds with messages)
-                if ($entity->getMessage()) {
-                    return $entity->getMessage();
+                if ($excerpt) {
+                    return $excerpt;
                 }
 
                 // Use the title if there is one
