@@ -1,7 +1,6 @@
 <?php
 namespace Minds\Core\Payments\Stripe\Keys\Controllers;
 
-use Minds\Core\GraphQL\Types\KeyValueType;
 use Minds\Core\Payments\Stripe\Keys\StripeKeysService;
 use Minds\Core\Payments\Stripe\Keys\Types\StripeKeysType;
 use Minds\Entities\User;
@@ -42,9 +41,10 @@ class StripeKeysController
     public function getStripeKeys(
         #[InjectUser] User $loggedInUser // Do not add in docblock as it will break GraphQL
     ): StripeKeysType {
+        $pubKey = $this->service->getPubKey();
         return new StripeKeysType(
-            pubKey: $this->service->getPubKey(),
-            secKey: 'REDACTED',
+            pubKey: $pubKey ?? '',
+            secKey: $pubKey ? 'REDACTED' : '',
         );
     }
 }
