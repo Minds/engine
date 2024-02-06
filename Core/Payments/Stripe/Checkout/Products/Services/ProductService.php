@@ -176,20 +176,9 @@ class ProductService
             throw new NotFoundException("No products were found.");
         }
 
-        $productsToSerialize = [];
-
         foreach ($products as $product) {
-            $productKey = $product->metadata['key'];
-
-            $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
-            $this->cache->set("product_$product->id", "$productKey", self::CACHE_TTL);
-
-            $productsToSerialize[] = $product;
-
             yield $product;
         }
-
-        $this->cache->set("tenant_{$this->config->get('tenant_id')}_products_$productType->value", serialize($productsToSerialize), self::CACHE_TTL);
     }
 
     /**
@@ -240,20 +229,9 @@ class ProductService
             ];
         }
 
-        $product = $this->stripeClient
+        return $this->stripeClient
             ->products
             ->create($productDetails);
-
-        $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
-        $this->cache->set("product_$product->id", "$productKey", self::CACHE_TTL);
-
-        if ($products = $this->cache->get("tenant_{$this->config->get('tenant_id')}_products_$productType->value")) {
-            $products = unserialize($products);
-        }
-        $products[] = $product;
-        $this->cache->set("tenant_{$this->config->get('tenant_id')}_products_$productType->value", serialize($products), self::CACHE_TTL);
-
-        return $product;
     }
 
     /**
@@ -276,29 +254,9 @@ class ProductService
             $productDetails['description'] = $description;
         }
 
-        $product = $this->stripeClient
+        return $this->stripeClient
             ->products
             ->update($productId, $productDetails);
-
-        $productKey = $product->metadata['key'];
-
-        $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
-        $this->cache->set("product_$product->id", "$productKey", self::CACHE_TTL);
-
-        if ($products = $this->cache->get("tenant_{$this->config->get('tenant_id')}_products_{$product->metadata['type']}")) {
-            $products = unserialize($products);
-
-            foreach ($products as $key => $productCache) {
-                if ($productCache->id === $productId) {
-                    $products[$key] = $product;
-                    break;
-                }
-            }
-
-            $this->cache->set("tenant_{$this->config->get('tenant_id')}_products_{$product->metadata['type']}", serialize($products), self::CACHE_TTL);
-        }
-
-        return $product;
     }
 
     /**

@@ -466,7 +466,7 @@ class SiteMembershipManagementServiceSpec extends ObjectBehavior
         $this->storeSiteMembership($siteMembershipMock)->shouldBeLike($siteMembershipMock);
     }
 
-    public function it_should_updateSiteMembership(): void
+    public function it_should_update_membership(): void
     {
         $siteMembershipMock = $this->generateSiteMembership(
             membershipGuid: 1,
@@ -505,6 +505,12 @@ class SiteMembershipManagementServiceSpec extends ObjectBehavior
             $siteMembershipMock->getGroups()
         )
             ->shouldNotBeCalled();
+
+        $this->siteMembershipRepositoryMock->updateSiteMembership(
+            $siteMembershipMock
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
 
         $this->stripeProductServiceMock->updateProduct(
             'prod_1',

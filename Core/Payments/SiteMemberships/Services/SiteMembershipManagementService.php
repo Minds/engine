@@ -124,6 +124,8 @@ class SiteMembershipManagementService
                     siteMembershipGroups: $groups
                 );
             }
+
+            $this->siteMembershipRepository->updateSiteMembership($siteMembership);
         } catch (ServerErrorException $e) {
             $this->siteMembershipRepository->rollbackTransaction();
 
@@ -132,6 +134,7 @@ class SiteMembershipManagementService
                 previous: $e
             );
         }
+
 
         try {
             $this->stripeProductService->updateProduct(

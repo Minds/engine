@@ -31,6 +31,11 @@ class SiteMembershipRepository extends AbstractRepository
                 'tenant_id' => $this->config->get('tenant_id') ?? -1,
                 'membership_tier_guid' => $siteMembership->membershipGuid,
                 'stripe_product_id' => new RawExp(':stripe_product_id'),
+                'name' => new RawExp(':name'),
+                'description' => new RawExp(':description'),
+                'billing_period' => new RawExp(':billing_period'),
+                'pricing_model' => new RawExp(':pricing_model'),
+                'currency' => new RawExp(':currency'),
                 'price_in_cents' => $siteMembership->membershipPriceInCents,
             ])
             ->prepare();
@@ -38,6 +43,11 @@ class SiteMembershipRepository extends AbstractRepository
         try {
             return $stmt->execute([
                 'stripe_product_id' => $stripeProductId,
+                'name' => $siteMembership->membershipName,
+                'description' => $siteMembership->membershipDescription,
+                'billing_period' => $siteMembership->membershipBillingPeriod->value,
+                'pricing_model' => $siteMembership->membershipPricingModel->value,
+                'currency' => strtolower($siteMembership->priceCurrency),
             ]);
         } catch (PDOException $e) {
             throw new ServerErrorException(
@@ -59,6 +69,11 @@ class SiteMembershipRepository extends AbstractRepository
             ->columns([
                 'membership_tier_guid',
                 'stripe_product_id',
+                'name',
+                'description',
+                'billing_period',
+                'pricing_model',
+                'currency',
                 'price_in_cents',
                 'archived',
             ])
@@ -109,6 +124,36 @@ class SiteMembershipRepository extends AbstractRepository
     }
 
     /**
+     * @param SiteMembership $siteMembership
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function updateSiteMembership(SiteMembership $siteMembership): bool
+    {
+        $stmt = $this->mysqlClientWriterHandler->update()
+            ->table('minds_site_membership_tiers')
+            ->set([
+                'name' => new RawExp(':name'),
+                'description' => new RawExp(':description'),
+            ])
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->where('membership_tier_guid', Operator::EQ, $siteMembership->membershipGuid)
+            ->prepare();
+
+        try {
+            return $stmt->execute([
+                'name' => $siteMembership->membershipName,
+                'description' => $siteMembership->membershipDescription,
+            ]);
+        } catch (PDOException $e) {
+            throw new ServerErrorException(
+                message: 'Failed to update site membership',
+                previous: $e
+            );
+        }
+    }
+
+    /**
      * @return int
      * @throws ServerErrorException
      */
@@ -148,7 +193,13 @@ class SiteMembershipRepository extends AbstractRepository
             ->columns([
                 'membership_tier_guid',
                 'stripe_product_id',
+                'name',
+                'description',
+                'billing_period',
+                'pricing_model',
+                'currency',
                 'price_in_cents',
+                'archived',
             ])
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->where('membership_tier_guid', Operator::EQ, $siteMembershipGuid)

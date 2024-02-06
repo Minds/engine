@@ -16,15 +16,11 @@ use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipGroupsReposit
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRolesRepository;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
-use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPriceCurrencyEnum;
-use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductTypeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 use Psr\SimpleCache\InvalidArgumentException;
-use Stripe\Exception\ApiErrorException;
-use Stripe\Product;
 
 class SiteMembershipReaderService
 {
@@ -52,64 +48,35 @@ class SiteMembershipReaderService
 
         try {
             foreach ($this->siteMembershipRepository->getSiteMemberships() as $siteMembershipDbInfo) {
-                $products[$siteMembershipDbInfo['stripe_product_id']] = $siteMembershipDbInfo;
+                if ($siteMembershipDbInfo['archived']) {
+                    continue;
+                }
+
+                $siteMemberships[] = $this->prepareSiteMembership($siteMembershipDbInfo, $siteMembershipDbInfo['membership_tier_guid']);
             }
+            return $siteMemberships;
         } catch (NoSiteMembershipsFoundException $e) {
             return [];
         }
-
-        try {
-            $stripeProducts = $this->stripeProductService->getProductsByMetadata(
-                metadata: [
-                    'type' => ProductTypeEnum::SITE_MEMBERSHIP->value,
-                    'tenant_id' => $this->config->get('tenant_id') ?? '-1',
-                ],
-                productType: ProductTypeEnum::SITE_MEMBERSHIP,
-                availableProducts: $products
-            );
-        } catch (NotFoundException $e) {
-            return [];
-        }
-
-        foreach ($stripeProducts as $stripeProduct) {
-            if (!isset($products[$stripeProduct->id])) {
-                continue;
-            }
-
-            $siteMembershipDbInfo = $products[$stripeProduct->id];
-
-            if ($siteMembershipDbInfo['archived']) {
-                continue;
-            }
-
-            $siteMemberships[] = $this->prepareSiteMembership($stripeProduct, $siteMembershipDbInfo['membership_tier_guid']);
-        }
-
-        return $siteMemberships;
     }
 
     /**
-     * @param Product $stripeProduct
+     * @param array $siteMembershipDetails
      * @param int $siteMembershipGuid
      * @return SiteMembership
      * @throws NotFoundException
      * @throws ServerErrorException
      */
-    private function prepareSiteMembership(Product $stripeProduct, int $siteMembershipGuid): SiteMembership
+    private function prepareSiteMembership(array $siteMembershipDetails, int $siteMembershipGuid): SiteMembership
     {
-        $stripeProductPrice = $this->stripeProductPriceService->getPriceDetailsById($stripeProduct->default_price);
-
-        $billingPeriod = SiteMembershipBillingPeriodEnum::tryFrom($stripeProduct->metadata['billing_period']);
-        $pricingModel = $stripeProductPrice->recurring ? SiteMembershipPricingModelEnum::RECURRING : SiteMembershipPricingModelEnum::ONE_TIME;
-
         return new SiteMembership(
             membershipGuid: $siteMembershipGuid,
-            membershipName: $stripeProduct->name,
-            membershipPriceInCents: $stripeProductPrice->unit_amount,
-            membershipBillingPeriod: $billingPeriod,
-            membershipPricingModel: $pricingModel,
-            membershipDescription: $stripeProduct->description,
-            priceCurrency: strtoupper(ProductPriceCurrencyEnum::tryFrom($stripeProductPrice->currency)->value),
+            membershipName: $siteMembershipDetails['name'],
+            membershipPriceInCents: (int)$siteMembershipDetails['price_in_cents'],
+            membershipBillingPeriod: SiteMembershipBillingPeriodEnum::from($siteMembershipDetails['billing_period']),
+            membershipPricingModel: SiteMembershipPricingModelEnum::from($siteMembershipDetails['pricing_model']),
+            membershipDescription: $siteMembershipDetails['description'],
+            priceCurrency: strtoupper($siteMembershipDetails['currency']),
             roles: $this->prepareSiteMembershipRoles($siteMembershipGuid),
             groups: $this->prepareSiteMembershipGroups($siteMembershipGuid)
         );
@@ -160,11 +127,11 @@ class SiteMembershipReaderService
     }
 
     /**
-     * @throws NotFoundException
-     * @throws ApiErrorException
-     * @throws ServerErrorException
-     * @throws InvalidArgumentException
+     * @param int $siteMembershipGuid
+     * @return SiteMembership
      * @throws NoSiteMembershipFoundException
+     * @throws NotFoundException
+     * @throws ServerErrorException
      */
     public function getSiteMembership(
         int $siteMembershipGuid
@@ -173,8 +140,6 @@ class SiteMembershipReaderService
             siteMembershipGuid: $siteMembershipGuid
         );
 
-        $stripeProduct = $this->stripeProductService->getProductById($siteMembershipDbInfo['stripe_product_id']);
-
-        return $this->prepareSiteMembership($stripeProduct, $siteMembershipGuid);
+        return $this->prepareSiteMembership($siteMembershipDbInfo, $siteMembershipDbInfo['membership_tier_guid']);
     }
 }

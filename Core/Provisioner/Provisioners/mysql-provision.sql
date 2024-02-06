@@ -809,6 +809,11 @@ CREATE TABLE IF NOT EXISTS minds_site_membership_tiers (
     tenant_id int,
     membership_tier_guid bigint,
     stripe_product_id varchar(256),
+    name varchar(256) NOT NULL,
+    description text DEFAULT NULL,
+    billing_period enum ('month', 'year') NOT NULL,
+    pricing_model enum ('recurring', 'one_time') NOT NULL,
+    currency varchar(3) NOT NULL,
     price_in_cents int NOT NULL,
     archived boolean DEFAULT FALSE,
     PRIMARY KEY (tenant_id, membership_tier_guid)
