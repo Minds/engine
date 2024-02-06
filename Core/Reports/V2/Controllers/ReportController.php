@@ -33,7 +33,7 @@ class ReportController
      */
     #[Query]
     #[Logged]
-    #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
+    #[Security("is_granted('PERMISSION_CAN_MODERATE_CONTENT', loggedInUser)")]
     public function getReports(
         int $first = 12,
         int $after = null,

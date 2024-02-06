@@ -3,6 +3,7 @@
 namespace Minds\Core\Queue\Runners;
 
 use Exception;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Email\Invites\Services\InviteProcessorService;
 use Minds\Core\Email\Services\EmailAutoSubscribeService;
@@ -21,19 +22,22 @@ class Registered implements QueueRunner
     private readonly InviteProcessorService $inviteProcessorService;
     private readonly QueueClient $client;
     private readonly EntitiesBuilder $entitiesBuilder;
+    private readonly Config $config;
 
     public function __construct(
         ?EmailAutoSubscribeService          $emailAutoSubscribeService = null,
         ?FeaturedEntityAutoSubscribeService $featuredEntityAutoSubscribeService = null,
         ?InviteProcessorService             $inviteProcessorService = null,
         ?EntitiesBuilder                    $entitiesBuilder = null,
-        ?QueueClient                        $client = null
+        ?QueueClient                        $client = null,
+        ?Config                             $config = null
     ) {
         $this->emailAutoSubscribeService = $emailAutoSubscribeService ?? Di::_()->get(EmailAutoSubscribeService::class);
         $this->featuredEntityAutoSubscribeService = $featuredEntityAutoSubscribeService ?? Di::_()->get(FeaturedEntityAutoSubscribeService::class);
         $this->inviteProcessorService = $inviteProcessorService ?? Di::_()->get(InviteProcessorService::class);
         $this->client = $client ?? Client::build();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
+        $this->config = $config ?? Di::_()->get(Config::class);
     }
 
     /**
@@ -55,7 +59,7 @@ class Registered implements QueueRunner
     public function processPostRegistrationEvent(Message $message): bool
     {
         $userGuid = $message->getData()['user_guid'];
-        $tenantId = $message->getData()['tenant_id'] ?? null;
+        $tenantId = $this->config->get('tenant_id') ?? null;
 
         /** @var User $subscriber */
         $subscriber = $this->entitiesBuilder->single($userGuid);
