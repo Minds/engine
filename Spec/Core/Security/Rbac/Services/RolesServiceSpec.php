@@ -69,6 +69,7 @@ class RolesServiceSpec extends ObjectBehavior
             PermissionsEnum::CAN_BOOST,
             PermissionsEnum::CAN_USE_RSS_SYNC,
             PermissionsEnum::CAN_ASSIGN_PERMISSIONS,
+            PermissionsEnum::CAN_MODERATE_CONTENT,
             PermissionsEnum::CAN_CREATE_PAYWALL,
         ]);
 

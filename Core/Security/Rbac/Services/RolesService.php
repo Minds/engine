@@ -240,6 +240,7 @@ class RolesService
                     PermissionsEnum::CAN_BOOST,
                     PermissionsEnum::CAN_USE_RSS_SYNC,
                     PermissionsEnum::CAN_ASSIGN_PERMISSIONS,
+                    PermissionsEnum::CAN_MODERATE_CONTENT,
                     PermissionsEnum::CAN_CREATE_PAYWALL,
                 ]
             ),
@@ -254,6 +255,7 @@ class RolesService
                     PermissionsEnum::CAN_INTERACT,
                     PermissionsEnum::CAN_BOOST,
                     PermissionsEnum::CAN_USE_RSS_SYNC,
+                    PermissionsEnum::CAN_MODERATE_CONTENT,
                 ]
             ),
             RolesEnum::MODERATOR->value => new Role(
@@ -266,6 +268,7 @@ class RolesService
                     PermissionsEnum::CAN_UPLOAD_VIDEO,
                     PermissionsEnum::CAN_INTERACT,
                     PermissionsEnum::CAN_BOOST,
+                    PermissionsEnum::CAN_MODERATE_CONTENT,
                 ]
             ),
             RolesEnum::VERIFIED->value => new Role(
