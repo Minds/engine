@@ -12,4 +12,5 @@ enum PermissionsEnum
     case CAN_USE_RSS_SYNC;
     case CAN_ASSIGN_PERMISSIONS;
     case CAN_MODERATE_CONTENT;
+    case CAN_CREATE_PAYWALL;
 }

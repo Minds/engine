@@ -247,8 +247,8 @@ class Repository extends MySQL\AbstractRepository
             ])
             ->from('minds_group_membership')
             ->innerJoin(['b'=>'minds_group_membership'], 'minds_group_membership.group_guid', Operator::EQ, 'b.group_guid')
-            ->where('minds_group_membership.user_guid', Operator::EQ, new RawExp(':userGuid'))
-            ->where('b.user_guid', Operator::NOT_EQ, new RawExp(':userGuid'))
+            ->where('minds_group_membership.user_guid', Operator::EQ, new RawExp(':userGuid1'))
+            ->where('b.user_guid', Operator::NOT_EQ, new RawExp(':userGuid2'))
             ->groupBy('user_guid')
             ->alias('b');
 
@@ -266,7 +266,7 @@ class Repository extends MySQL\AbstractRepository
                 'minds_group_membership.user_guid'
             )
             // Exclude groups already a member of
-            ->leftJoinRaw(['c' => 'minds_group_membership'], 'c.user_guid = :userGuid AND c.group_guid = minds_group_membership.group_guid')
+            ->leftJoinRaw(['c' => 'minds_group_membership'], 'c.user_guid = :userGuid3 AND c.group_guid = minds_group_membership.group_guid')
             ->where('c.membership_level', Operator::IS, null)
             ->groupBy('group_guid')
             ->orderBy('relevance desc')
@@ -276,7 +276,9 @@ class Repository extends MySQL\AbstractRepository
         $prepared = $query->prepare();
 
         $prepared->execute([
-            'userGuid' => $userGuid,
+            'userGuid1' => $userGuid,
+            'userGuid2' => $userGuid,
+            'userGuid3' => $userGuid,
         ]);
 
         foreach ($prepared as $row) {

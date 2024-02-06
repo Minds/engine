@@ -22,7 +22,8 @@ class RepositoriesProvider extends Provider
                 mysqlHandler: $di->get('Database\MySQL\Client'),
                 logger: $di->get('Logger'),
                 config: $di->get('Config'),
-                jwt: (new Jwt())->setKey(file_get_contents($di->get('Config')->get('encryptionKeys')['email']['private']))
+                jwt: (new Jwt())->setKey(file_get_contents($di->get('Config')->get('encryptionKeys')['email']['private'])),
+                entitiesBuilder: $di->get('EntitiesBuilder')
             )
         );
 

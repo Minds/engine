@@ -10,8 +10,7 @@ use Growthbook;
 use Zend\Diactoros\Response\JsonResponse;
 use Minds\Core\Experiments\Cookie\Manager as CookieManager;
 use GuzzleHttp;
-use Minds\Core\Data\cache\PsrWrapper;
-use Minds\Core\Data\cache\WorkerCache;
+use Minds\Core\Data\cache\SharedCache;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -26,7 +25,7 @@ class ManagerSpec extends ObjectBehavior
         CookieManager $cookieManager,
         GuzzleHttp\Client $httpClient,
         Config $config,
-        WorkerCache $cacheMock,
+        SharedCache $cacheMock,
     ) {
         $this->beConstructedWith(
             $growthbook,

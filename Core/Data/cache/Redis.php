@@ -28,7 +28,7 @@ class Redis extends abstractCacher implements CacheInterface
 
     public function __construct(
         $config = null,
-        private ?InMemoryCache $inMemoryCache = null,
+        private ?CacheInterface $inMemoryCache = null,
     ) {
         $this->config = $config ?? Di::_()->get('Config');
         $this->inMemoryCache ??= Di::_()->get(InMemoryCache::class);

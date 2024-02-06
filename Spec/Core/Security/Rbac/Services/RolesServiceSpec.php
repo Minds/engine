@@ -70,7 +70,7 @@ class RolesServiceSpec extends ObjectBehavior
             PermissionsEnum::CAN_USE_RSS_SYNC,
             PermissionsEnum::CAN_ASSIGN_PERMISSIONS,
             PermissionsEnum::CAN_MODERATE_CONTENT,
-
+            PermissionsEnum::CAN_CREATE_PAYWALL,
         ]);
 
         $roles[RolesEnum::DEFAULT->value]->permissions->shouldBe([

@@ -38,7 +38,7 @@ class Router
         $fallback = null,
         ShutdownHandlerManager $shutDownHandlerManager = null
     ) {
-        $this->dispatcher = $dispatcher ?: Di::_()->get('Router');
+        $this->dispatcher = $dispatcher;
         $this->fallback = $fallback ?: new Fallback();
         $this->shutdownHandlerManager = $shutDownHandlerManager ?? Di::_()->get('Router\Hooks\ShutdownHandlerManager');
         $this->shutdownHandlerManager->registerAll();
@@ -46,10 +46,11 @@ class Router
 
     public function handleRequest(RequestInterface $request): ResponseInterface
     {
-        return $this->dispatcher
-            ->pipe(new Kernel\MultiTenantBootMiddleware())
+        $dispatcher = $this->dispatcher ?: new Dispatcher();
+        return $dispatcher
             ->pipe(new Kernel\ContentNegotiationMiddleware())
             ->pipe(new Kernel\ErrorHandlerMiddleware())
+            ->pipe(new Kernel\MultiTenantBootMiddleware())
             ->pipe(
                 (new Kernel\RouteResolverMiddleware())
                     ->setAttributeName('_request-handler')
