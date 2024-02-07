@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\SiteMemberships\Services;
 
+use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipFoundException;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipSubscriptionsRepository;
 use Minds\Core\Payments\Stripe\Checkout\Enums\CheckoutModeEnum;
@@ -47,7 +48,7 @@ class SiteMembershipSubscriptionsService
         $siteMembership = $this->siteMembershipReaderService->getSiteMembership($siteMembershipGuid);
         $checkoutSession = $this->stripeCheckoutManager->createSession(
             user: $user,
-            mode: CheckoutModeEnum::SUBSCRIPTION,
+            mode: $siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING ? CheckoutModeEnum::SUBSCRIPTION : CheckoutModeEnum::PAYMENT,
             successUrl: "api/v3/payments/site-memberships/$siteMembershipGuid/checkout/complete?session_id={CHECKOUT_SESSION_ID}",
             cancelUrl: ltrim($redirectUri, '/'),
             lineItems: $this->prepareLineItems($siteMembership->stripeProductId),
@@ -101,10 +102,12 @@ class SiteMembershipSubscriptionsService
         $siteMembershipGuid = $stripeCheckoutSession->metadata['siteMembershipGuid'];
         $redirectUri = $stripeCheckoutSession->metadata['redirectUri'];
 
+        $siteMembership = $this->siteMembershipReaderService->getSiteMembership((int)$siteMembershipGuid);
+
         $this->siteMembershipSubscriptionsRepository->storeSiteMembershipSubscription(
             user: $user,
-            siteMembership: $this->siteMembershipReaderService->getSiteMembership((int)$siteMembershipGuid),
-            stripeSubscriptionId: $stripeCheckoutSession->subscription
+            siteMembership: $siteMembership,
+            stripeSubscriptionId: $siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING ? $stripeCheckoutSession->subscription : $stripeCheckoutSession->payment_intent
         );
 
         return $redirectUri;
