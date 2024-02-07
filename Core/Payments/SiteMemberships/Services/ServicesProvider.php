@@ -10,6 +10,8 @@ use Minds\Core\Di\Provider;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipGroupsRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRolesRepository;
+use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipSubscriptionsRepository;
+use Minds\Core\Payments\Stripe\Checkout\Manager as StripeCheckoutManager;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService as StripeProductPriceService;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
 
@@ -37,10 +39,17 @@ class ServicesProvider extends Provider
                 siteMembershipRepository: $di->get(SiteMembershipRepository::class),
                 siteMembershipGroupsRepository: $di->get(SiteMembershipGroupsRepository::class),
                 siteMembershipRolesRepository: $di->get(SiteMembershipRolesRepository::class),
-                stripeProductService: $di->get(StripeProductService::class),
-                stripeProductPriceService: $di->get(StripeProductPriceService::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
-                config: $di->get(Config::class)
+            )
+        );
+        $this->di->bind(
+            SiteMembershipSubscriptionsService::class,
+            fn (Di $di): SiteMembershipSubscriptionsService => new SiteMembershipSubscriptionsService(
+                siteMembershipSubscriptionsRepository: $di->get(SiteMembershipSubscriptionsRepository::class),
+                siteMembershipReaderService: $di->get(SiteMembershipReaderService::class),
+                stripeCheckoutManager: $di->get(StripeCheckoutManager::class),
+                stripeProductService: $di->get(StripeProductService::class),
+                stripeProductPriceService: $di->get(StripeProductPriceService::class)
             )
         );
     }

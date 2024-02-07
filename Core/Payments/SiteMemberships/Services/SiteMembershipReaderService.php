@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\SiteMemberships\Services;
 
-use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\V2\GraphQL\Types\GroupNode;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
@@ -16,11 +15,8 @@ use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipGroupsReposit
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRolesRepository;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
-use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService;
-use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
-use Psr\SimpleCache\InvalidArgumentException;
 
 class SiteMembershipReaderService
 {
@@ -28,10 +24,7 @@ class SiteMembershipReaderService
         private readonly SiteMembershipRepository       $siteMembershipRepository,
         private readonly SiteMembershipGroupsRepository $siteMembershipGroupsRepository,
         private readonly SiteMembershipRolesRepository  $siteMembershipRolesRepository,
-        private readonly StripeProductService           $stripeProductService,
-        private readonly ProductPriceService            $stripeProductPriceService,
         private readonly EntitiesBuilder                $entitiesBuilder,
-        private readonly Config                         $config
     ) {
     }
 
@@ -39,12 +32,10 @@ class SiteMembershipReaderService
      * @return SiteMembership[]
      * @throws NotFoundException
      * @throws ServerErrorException
-     * @throws InvalidArgumentException
      */
     public function getSiteMemberships(): array
     {
         $siteMemberships = [];
-        $products = [];
 
         try {
             foreach ($this->siteMembershipRepository->getSiteMemberships() as $siteMembershipDbInfo) {
@@ -75,6 +66,7 @@ class SiteMembershipReaderService
             membershipPriceInCents: (int)$siteMembershipDetails['price_in_cents'],
             membershipBillingPeriod: SiteMembershipBillingPeriodEnum::from($siteMembershipDetails['billing_period']),
             membershipPricingModel: SiteMembershipPricingModelEnum::from($siteMembershipDetails['pricing_model']),
+            stripeProductId: $siteMembershipDetails['stripe_product_id'],
             membershipDescription: $siteMembershipDetails['description'],
             priceCurrency: strtoupper($siteMembershipDetails['currency']),
             roles: $this->prepareSiteMembershipRoles($siteMembershipGuid),

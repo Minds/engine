@@ -8,6 +8,7 @@ use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipManagementService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
+use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipSubscriptionsService;
 
 class ControllersProvider extends Provider
 {
@@ -28,6 +29,13 @@ class ControllersProvider extends Provider
             SiteMembershipReaderController::class,
             fn (Di $di): SiteMembershipReaderController => new SiteMembershipReaderController(
                 siteMembershipReaderService: $di->get(SiteMembershipReaderService::class)
+            )
+        );
+
+        $this->di->bind(
+            SiteMembershipSubscriptionsPsrController::class,
+            fn (Di $di): SiteMembershipSubscriptionsPsrController => new SiteMembershipSubscriptionsPsrController(
+                siteMembershipSubscriptionsService: $di->get(SiteMembershipSubscriptionsService::class)
             )
         );
     }
