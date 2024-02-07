@@ -840,7 +840,8 @@ CREATE TABLE IF NOT EXISTS minds_site_membership_subscriptions (
     stripe_subscription_id varchar(256) NOT NULL,
     valid_from timestamp NOT NULL,
     valid_to timestamp DEFAULT NULL,
-    PRIMARY KEY (tenant_id, user_guid, membership_tier_guid, valid_from)
+    PRIMARY KEY (tenant_id, user_guid, membership_tier_guid, valid_from),
+    UNIQUE INDEX (stripe_subscription_id)
 );
 
 ALTER TABLE `minds_tenants` ADD plan enum ('TEAM', 'COMMUNITY', 'ENTERPRISE') DEFAULT 'TEAM' AFTER root_user_guid;

@@ -14,6 +14,7 @@ use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipSubscriptions
 use Minds\Core\Payments\Stripe\Checkout\Manager as StripeCheckoutManager;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService as StripeProductPriceService;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
+use Minds\Core\Payments\Stripe\Checkout\Session\Services\SessionService as StripeCheckoutSessionService;
 
 class ServicesProvider extends Provider
 {
@@ -49,7 +50,8 @@ class ServicesProvider extends Provider
                 siteMembershipReaderService: $di->get(SiteMembershipReaderService::class),
                 stripeCheckoutManager: $di->get(StripeCheckoutManager::class),
                 stripeProductService: $di->get(StripeProductService::class),
-                stripeProductPriceService: $di->get(StripeProductPriceService::class)
+                stripeProductPriceService: $di->get(StripeProductPriceService::class),
+                stripeCheckoutSessionService: $di->get(StripeCheckoutSessionService::class),
             )
         );
     }

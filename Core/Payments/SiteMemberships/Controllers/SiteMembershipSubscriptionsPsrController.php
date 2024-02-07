@@ -31,7 +31,7 @@ class SiteMembershipSubscriptionsPsrController
     public function goToSiteMembershipCheckoutLink(ServerRequestInterface $request): RedirectResponse
     {
         $membershipGuid = $request->getAttribute('parameters')['membershipGuid'];
-        $redirectUri = $request->getQueryParams()['redirectUrl'] ?? 'memberships';
+        $redirectUri = $request->getQueryParams()['redirectUrl'] ?? '/memberships';
         $loggedInUser = $request->getAttribute('_user');
 
         $checkoutLink = $this->siteMembershipSubscriptionsService->getCheckoutLink(
@@ -51,9 +51,12 @@ class SiteMembershipSubscriptionsPsrController
      */
     public function completeSiteMembershipPurchase(ServerRequestInterface $request): RedirectResponse
     {
-        // TODO: Implement completeSiteMembershipPurchase() method.
+        $stripeCheckoutSessionId = $request->getQueryParams()['session_id'];
+        $redirectUri = $this->siteMembershipSubscriptionsService->completeSiteMembershipCheckout(
+            stripeCheckoutSessionId: $stripeCheckoutSessionId
+        );
         return new RedirectResponse(
-            uri: 'memberships'
+            uri: $redirectUri
         );
     }
 }

@@ -9,6 +9,7 @@ use Minds\Core\Payments\Stripe\Checkout\Enums\CheckoutModeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Manager as StripeCheckoutManager;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService as StripeProductPriceService;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
+use Minds\Core\Payments\Stripe\Checkout\Session\Services\SessionService as StripeCheckoutSessionService;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
@@ -23,6 +24,7 @@ class SiteMembershipSubscriptionsService
         private readonly StripeCheckoutManager                 $stripeCheckoutManager,
         private readonly StripeProductService                  $stripeProductService,
         private readonly StripeProductPriceService             $stripeProductPriceService,
+        private readonly StripeCheckoutSessionService          $stripeCheckoutSessionService,
     ) {
     }
 
@@ -47,7 +49,7 @@ class SiteMembershipSubscriptionsService
             user: $user,
             mode: CheckoutModeEnum::SUBSCRIPTION,
             successUrl: "api/v3/payments/site-memberships/$siteMembershipGuid/checkout/complete?session_id={CHECKOUT_SESSION_ID}",
-            cancelUrl: "memberships",
+            cancelUrl: ltrim($redirectUri, '/'),
             lineItems: $this->prepareLineItems($siteMembership->stripeProductId),
             paymentMethodTypes: [
                 'card',
@@ -55,6 +57,7 @@ class SiteMembershipSubscriptionsService
             ],
             metadata: [
                 'redirectUri' => $redirectUri,
+                'siteMembershipGuid' => (string)$siteMembershipGuid,
             ]
         );
 
@@ -79,5 +82,31 @@ class SiteMembershipSubscriptionsService
                 'quantity' => 1,
             ],
         ];
+    }
+
+    /**
+     * @param string $stripeCheckoutSessionId
+     * @return string
+     * @throws ApiErrorException
+     * @throws NoSiteMembershipFoundException
+     * @throws NotFoundException
+     * @throws ServerErrorException
+     */
+    public function completeSiteMembershipCheckout(string $stripeCheckoutSessionId): string
+    {
+        $stripeCheckoutSession = $this->stripeCheckoutSessionService->retrieveCheckoutSession(
+            sessionId: $stripeCheckoutSessionId
+        );
+
+        $siteMembershipGuid = $stripeCheckoutSession->metadata['siteMembershipGuid'];
+        $redirectUri = $stripeCheckoutSession->metadata['redirectUri'];
+
+        $this->siteMembershipSubscriptionsRepository->storeSiteMembershipSubscription(
+            user: $stripeCheckoutSession->customer,
+            siteMembership: $this->siteMembershipReaderService->getSiteMembership((int)$siteMembershipGuid),
+            stripeSubscriptionId: $stripeCheckoutSession->subscription->id
+        );
+
+        return $redirectUri;
     }
 }
