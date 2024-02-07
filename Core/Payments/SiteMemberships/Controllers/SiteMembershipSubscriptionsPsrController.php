@@ -52,8 +52,10 @@ class SiteMembershipSubscriptionsPsrController
     public function completeSiteMembershipPurchase(ServerRequestInterface $request): RedirectResponse
     {
         $stripeCheckoutSessionId = $request->getQueryParams()['session_id'];
+        $loggedInUser = $request->getAttribute('_user');
         $redirectUri = $this->siteMembershipSubscriptionsService->completeSiteMembershipCheckout(
-            stripeCheckoutSessionId: $stripeCheckoutSessionId
+            stripeCheckoutSessionId: $stripeCheckoutSessionId,
+            user: $loggedInUser
         );
         return new RedirectResponse(
             uri: $redirectUri

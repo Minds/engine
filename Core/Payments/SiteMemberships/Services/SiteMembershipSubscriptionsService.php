@@ -92,7 +92,7 @@ class SiteMembershipSubscriptionsService
      * @throws NotFoundException
      * @throws ServerErrorException
      */
-    public function completeSiteMembershipCheckout(string $stripeCheckoutSessionId): string
+    public function completeSiteMembershipCheckout(string $stripeCheckoutSessionId, User $user): string
     {
         $stripeCheckoutSession = $this->stripeCheckoutSessionService->retrieveCheckoutSession(
             sessionId: $stripeCheckoutSessionId
@@ -102,9 +102,9 @@ class SiteMembershipSubscriptionsService
         $redirectUri = $stripeCheckoutSession->metadata['redirectUri'];
 
         $this->siteMembershipSubscriptionsRepository->storeSiteMembershipSubscription(
-            user: $stripeCheckoutSession->customer,
+            user: $user,
             siteMembership: $this->siteMembershipReaderService->getSiteMembership((int)$siteMembershipGuid),
-            stripeSubscriptionId: $stripeCheckoutSession->subscription->id
+            stripeSubscriptionId: $stripeCheckoutSession->subscription
         );
 
         return $redirectUri;
