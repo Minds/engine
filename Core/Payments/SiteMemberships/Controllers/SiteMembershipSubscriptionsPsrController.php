@@ -31,11 +31,13 @@ class SiteMembershipSubscriptionsPsrController
     public function goToSiteMembershipCheckoutLink(ServerRequestInterface $request): RedirectResponse
     {
         $membershipGuid = $request->getAttribute('parameters')['membershipGuid'];
+        $redirectUri = $request->getQueryParams()['redirectUrl'] ?? 'memberships';
         $loggedInUser = $request->getAttribute('_user');
 
         $checkoutLink = $this->siteMembershipSubscriptionsService->getCheckoutLink(
             siteMembershipGuid: (int)$membershipGuid,
-            user: $loggedInUser
+            user: $loggedInUser,
+            redirectUri: $redirectUri
         );
 
         return new RedirectResponse(

@@ -29,16 +29,18 @@ class SiteMembershipSubscriptionsService
     /**
      * @param int $siteMembershipGuid
      * @param User $user
+     * @param string $redirectUri
      * @return string
      * @throws ApiErrorException
      * @throws InvalidArgumentException
+     * @throws NoSiteMembershipFoundException
      * @throws NotFoundException
      * @throws ServerErrorException
-     * @throws NoSiteMembershipFoundException
      */
     public function getCheckoutLink(
-        int  $siteMembershipGuid,
-        User $user
+        int    $siteMembershipGuid,
+        User   $user,
+        string $redirectUri
     ): string {
         $siteMembership = $this->siteMembershipReaderService->getSiteMembership($siteMembershipGuid);
         $checkoutSession = $this->stripeCheckoutManager->createSession(
@@ -51,6 +53,9 @@ class SiteMembershipSubscriptionsService
                 'card',
                 'us_bank_account',
             ],
+            metadata: [
+                'redirectUri' => $redirectUri,
+            ]
         );
 
         return $checkoutSession->url;

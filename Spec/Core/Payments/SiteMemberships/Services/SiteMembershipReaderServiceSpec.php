@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Payments\SiteMemberships\Services;
 
-use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipsFoundException;
@@ -12,8 +11,6 @@ use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRolesRepository;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
-use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService as StripeProductPriceService;
-use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
 use Minds\Entities\Group;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -33,10 +30,7 @@ class SiteMembershipReaderServiceSpec extends ObjectBehavior
         SiteMembershipRepository       $siteMembershipRepository,
         SiteMembershipGroupsRepository $siteMembershipGroupsRepository,
         SiteMembershipRolesRepository  $siteMembershipRolesRepository,
-        StripeProductService           $stripeProductService,
-        StripeProductPriceService      $stripeProductPriceService,
         EntitiesBuilder                $entitiesBuilder,
-        Config                         $config
     ): void {
         $this->siteMembershipRepositoryMock = $siteMembershipRepository;
         $this->siteMembershipGroupsRepositoryMock = $siteMembershipGroupsRepository;
