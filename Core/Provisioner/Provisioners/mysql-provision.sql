@@ -834,6 +834,7 @@ CREATE TABLE IF NOT EXISTS minds_site_membership_tiers_group_assignments (
 );
 
 CREATE TABLE IF NOT EXISTS minds_site_membership_subscriptions (
+    id int NOT NULL primary key AUTO_INCREMENT,
     tenant_id int NOT NULL,
     user_guid bigint NOT NULL,
     membership_tier_guid bigint NOT NULL,
@@ -841,13 +842,11 @@ CREATE TABLE IF NOT EXISTS minds_site_membership_subscriptions (
     valid_from timestamp NOT NULL,
     valid_to timestamp DEFAULT NULL,
     auto_renew boolean NOT NULL,
-    PRIMARY KEY (tenant_id, user_guid, membership_tier_guid, valid_from),
-    UNIQUE INDEX (stripe_subscription_id)
+    UNIQUE INDEX (tenant_id, user_guid, membership_tier_guid),
+    UNIQUE INDEX (stripe_subscription_id),
+    INDEX (valid_from),
+    INDEX (valid_to)
 );
-
-ALTER TABLE minds_site_membership_subscriptions
-    ADD auto_renew boolean NOT NULL
-    AFTER valid_to;
 
 ALTER TABLE `minds_tenants` ADD plan enum ('TEAM', 'COMMUNITY', 'ENTERPRISE') DEFAULT 'TEAM' AFTER root_user_guid;
 

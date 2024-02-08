@@ -16,6 +16,7 @@ class Module implements ModuleInterface
     /** @var array $submodules */
     public $submodules = [
         Keys\Module::class,
+        CustomerPortal\Module::class,
     ];
 
     /**

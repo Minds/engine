@@ -26,7 +26,8 @@ class SiteMembershipSubscriptionsService
         private readonly StripeProductService                  $stripeProductService,
         private readonly StripeProductPriceService             $stripeProductPriceService,
         private readonly StripeCheckoutSessionService          $stripeCheckoutSessionService,
-    ) {
+    )
+    {
     }
 
     /**
@@ -44,7 +45,8 @@ class SiteMembershipSubscriptionsService
         int    $siteMembershipGuid,
         User   $user,
         string $redirectUri
-    ): string {
+    ): string
+    {
         $siteMembership = $this->siteMembershipReaderService->getSiteMembership($siteMembershipGuid);
         $checkoutSession = $this->stripeCheckoutManager->createSession(
             user: $user,
@@ -121,7 +123,13 @@ class SiteMembershipSubscriptionsService
      */
     public function getSiteMembershipSubscriptions(
         ?User $user = null
-    ): array {
+    ): array
+    {
         return iterator_to_array($this->siteMembershipSubscriptionsRepository->getSiteMembershipSubscriptions($user));
+    }
+
+    public function manageSiteMembershipSubscription()
+    {
+
     }
 }
