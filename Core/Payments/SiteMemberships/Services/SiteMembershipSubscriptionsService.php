@@ -87,6 +87,7 @@ class SiteMembershipSubscriptionsService
 
     /**
      * @param string $stripeCheckoutSessionId
+     * @param User $user
      * @return string
      * @throws ApiErrorException
      * @throws NoSiteMembershipFoundException
@@ -111,5 +112,16 @@ class SiteMembershipSubscriptionsService
         );
 
         return $redirectUri;
+    }
+
+    /**
+     * @param User|null $user
+     * @return array
+     * @throws ServerErrorException
+     */
+    public function getSiteMembershipSubscriptions(
+        ?User $user = null
+    ): array {
+        return iterator_to_array($this->siteMembershipSubscriptionsRepository->getSiteMembershipSubscriptions($user));
     }
 }
