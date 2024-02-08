@@ -5,6 +5,7 @@ namespace Minds\Core\Payments\SiteMemberships\Repositories;
 
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
+use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -18,6 +19,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
      * @param User $user
      * @param SiteMembership $siteMembership
      * @param string $stripeSubscriptionId
+     * @return bool
      * @throws ServerErrorException
      */
     public function storeSiteMembershipSubscription(
@@ -34,6 +36,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
                 'stripe_subscription_id' => $stripeSubscriptionId,
                 'valid_from' => date('c', time()),
                 'valid_to' => date('c', strtotime('+1 ' . ($siteMembership->membershipBillingPeriod === SiteMembershipBillingPeriodEnum::MONTHLY ? 'month' : 'year'))),
+                'auto_renew' => $siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING,
             ])
             ->prepare();
 
