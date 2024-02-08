@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Minds\Core\Admin;
 
-use Minds\Core\Admin\Controllers\AccountsController;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Entities\Actions\Save;
@@ -12,11 +11,8 @@ class Provider extends DiProvider
 {
     public function register(): void
     {
-        $this->di->bind(AccountsController::class, function (Di $di): AccountsController {
-            return new AccountsController(
-                manager: $di->get(Manager::class),
-            );
-        });
+        (new Controllers\ControllersProvider())->register();
+        (new Services\ServicesProvider())->register();
 
         $this->di->bind(Manager::class, function (Di $di): Manager {
             return new Manager(
