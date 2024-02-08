@@ -36,7 +36,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
                 'stripe_subscription_id' => $stripeSubscriptionId,
                 'valid_from' => date('c', time()),
                 'valid_to' => date('c', strtotime('+1 ' . ($siteMembership->membershipBillingPeriod === SiteMembershipBillingPeriodEnum::MONTHLY ? 'month' : 'year'))),
-                'auto_renew' => $siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING,
+                'auto_renew' => (int)($siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING),
             ])
             ->prepare();
 
