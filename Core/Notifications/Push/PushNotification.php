@@ -14,6 +14,7 @@ use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIDLabelEnum;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Entities\User;
+use Minds\Entities\Activity;
 
 /**
  */
@@ -157,7 +158,7 @@ class PushNotification implements PushNotificationInterface
                 $product = GiftCardProductIdEnum::from($giftCard['productId']);
                 return "{$sender['name']} sent you a gift for " . GiftCardProductIDLabelEnum::fromProductIdEnum($product)->value;
             case NotificationTypes::TYPE_POST_SUBSCRIPTION:
-                return "New post from {$from->getName()}";
+                return $from->getName();
             default:
                 throw new UndeliverableException("Invalid type");
         }
@@ -217,6 +218,47 @@ class PushNotification implements PushNotificationInterface
                 $data = $this->notification->getData();
                 $excerpt = "🚀' You earned {$data['tokens_formatted']} tokens (\${$data['usd_formatted']}) yesterday";
                 break;
+        }
+
+        if ($this->notification->getType() === NotificationTypes::TYPE_POST_SUBSCRIPTION) {
+
+            if ($entity instanceof Activity) {
+                // Use message if there is one
+                // (this handles text posts, and media posts + rich-embeds with messages)
+                if ($excerpt) {
+                    return $excerpt;
+                }
+
+                // Use the title if there is one
+                // (this handles message-less rich-embeds + titled media posts)
+                if ($entity->getTitle()) {
+                    return $entity->getTitle();
+                }
+
+                // Check for video or image attachments
+                $customData = $entity->getCustomData();
+                if ($entity->hasAttachments() && !empty($customData)) {
+                    if ($entity->getCustomType() === 'video') {
+                        return 'Posted a video';
+                    }
+
+                    // Check if single or multiple images
+                    if (is_array($customData)) {
+                        $imageCount = count($customData);
+                        return $imageCount > 1 ? 'Posted images' : 'Posted an image';
+                    }
+                }
+            }
+
+            // Handle blogs
+            if ($entity->getType() === 'object') {
+                if ($entity->getTitle()) {
+                    return $entity->getTitle();
+                }
+            }
+
+            //  Fallback if none of the above conditions are met
+            return 'Posted something new';
         }
 
         return $excerpt;
