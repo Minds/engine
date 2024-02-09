@@ -12,10 +12,10 @@ class SiteMembershipSubscription
     public function __construct(
         #[Field] public readonly int                        $membershipSubscriptionId,
         #[Field(outputType: "String!")] public readonly int $membershipGuid,
+        public readonly string                              $stripeSubscriptionId,
         #[Field] public readonly bool                       $autoRenew,
         #[Field] public readonly int                        $validFromTimestamp,
         #[Field] public readonly ?int                       $validToTimestamp = null
-    )
-    {
+    ) {
     }
 }

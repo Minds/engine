@@ -6,6 +6,7 @@ namespace Minds\Core\Payments\SiteMemberships\Repositories;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
+use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipSubscriptionFoundException;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembershipSubscription;
 use Minds\Entities\User;
@@ -29,8 +30,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
         User           $user,
         SiteMembership $siteMembership,
         string         $stripeSubscriptionId
-    ): bool
-    {
+    ): bool {
         $stmt = $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
             ->set([
@@ -58,13 +58,13 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
      */
     public function getSiteMembershipSubscriptions(
         ?User $user = null
-    ): iterable
-    {
+    ): iterable {
         $stmt = $this->mysqlClientReaderHandler->select()
             ->from(self::TABLE_NAME)
             ->columns([
                 'id',
                 'membership_tier_guid',
+                'stripe_subscription_id',
                 'auto_renew',
                 'valid_from',
                 'valid_to',
@@ -97,9 +97,70 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
         return new SiteMembershipSubscription(
             membershipSubscriptionId: (int)$data['id'],
             membershipGuid: (int)$data['membership_tier_guid'],
+            stripeSubscriptionId: $data['stripe_subscription_id'],
             autoRenew: (bool)$data['auto_renew'],
             validFromTimestamp: strtotime($data['valid_from']),
             validToTimestamp: $data['valid_to'] ? strtotime($data['valid_to']) : null
         );
+    }
+
+    /**
+     * @param int $siteMembershipSubscriptionId
+     * @return SiteMembershipSubscription
+     * @throws NoSiteMembershipSubscriptionFoundException
+     * @throws ServerErrorException
+     */
+    public function getSiteMembershipSubscriptionById(int $siteMembershipSubscriptionId): SiteMembershipSubscription
+    {
+        $stmt = $this->mysqlClientWriterHandler->select()
+            ->from(self::TABLE_NAME)
+            ->columns([
+                'id',
+                'membership_tier_guid',
+                'stripe_subscription_id',
+                'auto_renew',
+                'valid_from',
+                'valid_to',
+            ])
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->where('id', Operator::EQ, $siteMembershipSubscriptionId)
+            ->prepare();
+
+        try {
+            $stmt->execute();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$row) {
+                throw new NoSiteMembershipSubscriptionFoundException();
+            }
+
+            return $this->prepareSiteMembershipSubscription($row);
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to get site membership subscription', previous: $e);
+        }
+    }
+
+    /**
+     * @param int $siteMembershipSubscriptionId
+     * @param bool $autoRenew
+     * @return void
+     * @throws ServerErrorException
+     */
+    public function setSiteMembershipSubscriptionAutoRenew(int $siteMembershipSubscriptionId, bool $autoRenew): void
+    {
+        $stmt = $this->mysqlClientWriterHandler->update()
+            ->table(self::TABLE_NAME)
+            ->set([
+                'auto_renew' => (int)$autoRenew,
+            ])
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->where('id', Operator::EQ, $siteMembershipSubscriptionId)
+            ->prepare();
+
+        try {
+            $stmt->execute();
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to set site membership subscription auto renew', previous: $e);
+        }
     }
 }

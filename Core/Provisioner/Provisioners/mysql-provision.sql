@@ -844,6 +844,7 @@ CREATE TABLE IF NOT EXISTS minds_site_membership_subscriptions (
     auto_renew boolean NOT NULL,
     UNIQUE INDEX (tenant_id, user_guid, membership_tier_guid),
     UNIQUE INDEX (stripe_subscription_id),
+    INDEX (tenant_id),
     INDEX (valid_from),
     INDEX (valid_to)
 );
@@ -860,4 +861,9 @@ CREATE TABLE IF NOT EXISTS minds_stripe_keys(
     sec_key_cipher_text varchar(256),
     created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP(),
     updated_timestamp timestamp NULL
+);
+
+CREATE TABLE IF NOT EXISTS minds_payments_config(
+    tenant_id INT NOT NULL PRIMARY KEY,
+    stripe_customer_portal_config_id varchar(256) DEFAULT NULL
 );
