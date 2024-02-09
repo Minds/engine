@@ -3,9 +3,11 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\SiteMemberships\Controllers;
 
+use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipSubscriptionFoundException;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipSubscriptionsManagementService;
 use Minds\Exceptions\ServerErrorException;
 use Psr\Http\Message\ServerRequestInterface;
+use Stripe\Exception\ApiErrorException;
 use Zend\Diactoros\Response\RedirectResponse;
 
 class SiteMembershipSubscriptionsManagementPsrController
@@ -18,6 +20,9 @@ class SiteMembershipSubscriptionsManagementPsrController
     /**
      * @param ServerRequestInterface $request
      * @return RedirectResponse
+     * @throws ServerErrorException
+     * @throws NoSiteMembershipSubscriptionFoundException
+     * @throws ApiErrorException
      */
     public function goToManageSiteMembershipSubscriptionLink(ServerRequestInterface $request): RedirectResponse
     {

@@ -11,6 +11,7 @@ use Minds\Core\Payments\Stripe\CustomerPortal\Helpers\CustomerPortalFlowConfigur
 use Minds\Core\Payments\Stripe\CustomerPortal\Services\CustomerPortalService as StripeCustomerPortalService;
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService as StripeSubscriptionsService;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
 use Stripe\Exception\ApiErrorException;
 
 class SiteMembershipSubscriptionsManagementService
@@ -27,13 +28,18 @@ class SiteMembershipSubscriptionsManagementService
      * @param int $siteMembershipSubscriptionId
      * @param string $redirectUri
      * @return string
+     * @throws ApiErrorException
      * @throws NoSiteMembershipSubscriptionFoundException
      * @throws ServerErrorException
-     * @throws ApiErrorException
+     * @throws UserErrorException
      */
     public function generateManageSiteMembershipSubscriptionLink(int $siteMembershipSubscriptionId, string $redirectUri): string
     {
         $siteMembershipSubscription = $this->siteMembershipSubscriptionsRepository->getSiteMembershipSubscriptionById($siteMembershipSubscriptionId);
+
+        if (str_starts_with($siteMembershipSubscription->stripeSubscriptionId, 'sub_') && !$siteMembershipSubscription->autoRenew) {
+            throw new UserErrorException('This subscription is already cancelled');
+        }
 
         $stripeSubscription = $this->stripeSubscriptionsService->retrieveSubscription($siteMembershipSubscription->stripeSubscriptionId);
 
