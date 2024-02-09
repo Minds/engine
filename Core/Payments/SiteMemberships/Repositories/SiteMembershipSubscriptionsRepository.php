@@ -141,6 +141,49 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
     }
 
     /**
+     * @param int $membershipGuid
+     * @param User|null $user
+     * @return SiteMembershipSubscription
+     * @throws NoSiteMembershipSubscriptionFoundException
+     * @throws ServerErrorException
+     */
+    public function getSiteMembershipSubscriptionByMembershipGuid(
+        int   $membershipGuid,
+        ?User $user = null
+    ): ?SiteMembershipSubscription {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->from(self::TABLE_NAME)
+            ->columns([
+                'id',
+                'membership_tier_guid',
+                'stripe_subscription_id',
+                'auto_renew',
+                'valid_from',
+                'valid_to',
+            ])
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->where('membership_tier_guid', Operator::EQ, $membershipGuid);
+
+        if ($user) {
+            $stmt->where('user_guid', Operator::EQ, $user->getGuid());
+        }
+
+        $stmt = $stmt->prepare();
+
+        try {
+            $stmt->execute();
+            if ($stmt->rowCount() === 0) {
+                return null;
+            }
+            
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $this->prepareSiteMembershipSubscription($row);
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to get site membership subscription', previous: $e);
+        }
+    }
+
+    /**
      * @param int $siteMembershipSubscriptionId
      * @param bool $autoRenew
      * @return void

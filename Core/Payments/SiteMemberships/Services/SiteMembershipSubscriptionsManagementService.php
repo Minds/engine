@@ -63,7 +63,7 @@ class SiteMembershipSubscriptionsManagementService
     {
         $this->siteMembershipSubscriptionsRepository->setSiteMembershipSubscriptionAutoRenew(
             siteMembershipSubscriptionId: $siteMembershipSubscriptionId,
-            autoRenew: true
+            autoRenew: false
         );
     }
 }

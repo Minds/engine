@@ -5,6 +5,7 @@ namespace Minds\Core\Payments\SiteMemberships\Services;
 
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipFoundException;
+use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipSubscriptionFoundException;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipSubscriptionsRepository;
 use Minds\Core\Payments\Stripe\Checkout\Enums\CheckoutModeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Manager as StripeCheckoutManager;
@@ -14,6 +15,7 @@ use Minds\Core\Payments\Stripe\Checkout\Session\Services\SessionService as Strip
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
 use Psr\SimpleCache\InvalidArgumentException;
 use Stripe\Exception\ApiErrorException;
 
@@ -39,6 +41,8 @@ class SiteMembershipSubscriptionsService
      * @throws NoSiteMembershipFoundException
      * @throws NotFoundException
      * @throws ServerErrorException
+     * @throws UserErrorException
+     * @throws NoSiteMembershipSubscriptionFoundException
      */
     public function getCheckoutLink(
         int    $siteMembershipGuid,
@@ -46,6 +50,14 @@ class SiteMembershipSubscriptionsService
         string $redirectUri
     ): string {
         // TODO: add check to make sure user doesn't already have a subscription
+        $siteMembershipSubscription = $this->siteMembershipSubscriptionsRepository->getSiteMembershipSubscriptionByMembershipGuid(
+            membershipGuid: $siteMembershipGuid,
+            user: $user
+        );
+
+        if ($siteMembershipSubscription) {
+            throw new UserErrorException('User already has a subscription');
+        }
 
         $siteMembership = $this->siteMembershipReaderService->getSiteMembership($siteMembershipGuid);
         $checkoutSession = $this->stripeCheckoutManager->createSession(
