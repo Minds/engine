@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\SiteMemberships\Services;
 
 use Minds\Core\Config\Config;
+use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipErrorEnum;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipSubscriptionFoundException;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipSubscriptionsRepository;
 use Minds\Core\Payments\Stripe\CustomerPortal\Enums\CustomerPortalFlowTypeEnum;
@@ -38,7 +39,7 @@ class SiteMembershipSubscriptionsManagementService
         $siteMembershipSubscription = $this->siteMembershipSubscriptionsRepository->getSiteMembershipSubscriptionById($siteMembershipSubscriptionId);
 
         if (str_starts_with($siteMembershipSubscription->stripeSubscriptionId, 'sub_') && !$siteMembershipSubscription->autoRenew) {
-            throw new UserErrorException('This subscription is already cancelled');
+            return $this->config->get('site_url') . ltrim($redirectUri, '/') . "?error=" . SiteMembershipErrorEnum::SUBSCRIPTION_ALREADY_CANCELLED->name;
         }
 
         $stripeSubscription = $this->stripeSubscriptionsService->retrieveSubscription($siteMembershipSubscription->stripeSubscriptionId);

@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\SiteMemberships\Services;
 
+use Minds\Core\Config\Config;
+use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipErrorEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipFoundException;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipSubscriptionFoundException;
@@ -28,6 +30,7 @@ class SiteMembershipSubscriptionsService
         private readonly StripeProductService                  $stripeProductService,
         private readonly StripeProductPriceService             $stripeProductPriceService,
         private readonly StripeCheckoutSessionService          $stripeCheckoutSessionService,
+        private readonly Config                                $config
     ) {
     }
 
@@ -49,14 +52,13 @@ class SiteMembershipSubscriptionsService
         User   $user,
         string $redirectUri
     ): string {
-        // TODO: add check to make sure user doesn't already have a subscription
         $siteMembershipSubscription = $this->siteMembershipSubscriptionsRepository->getSiteMembershipSubscriptionByMembershipGuid(
             membershipGuid: $siteMembershipGuid,
             user: $user
         );
 
         if ($siteMembershipSubscription) {
-            throw new UserErrorException('User already has a subscription');
+            return $this->config->get('site_url') . ltrim($redirectUri, '/') . "?error=" . SiteMembershipErrorEnum::SUBSCRIPTION_ALREADY_EXISTS->name;
         }
 
         $siteMembership = $this->siteMembershipReaderService->getSiteMembership($siteMembershipGuid);

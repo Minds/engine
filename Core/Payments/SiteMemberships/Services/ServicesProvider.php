@@ -54,6 +54,7 @@ class ServicesProvider extends Provider
                 stripeProductService: $di->get(StripeProductService::class),
                 stripeProductPriceService: $di->get(StripeProductPriceService::class),
                 stripeCheckoutSessionService: $di->get(StripeCheckoutSessionService::class),
+                config: $di->get(Config::class)
             )
         );
 
