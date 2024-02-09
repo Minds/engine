@@ -36,7 +36,7 @@ trait CommonMatchers
 
                 return true;
             },
-            'containAnInstanceOf' => function (Iterator $subject, string $className): bool {
+            'containAnInstanceOf' => function (array|Iterator $subject, string $className): bool {
                 foreach ($subject as $item) {
                     if (!($item instanceof $className)) {
                         return false;

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\Stripe\Checkout\Products\Services;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
@@ -28,7 +29,8 @@ class ServicesProvider extends Provider
             ProductService::class,
             fn (Di $di): ProductService => new ProductService(
                 stripeClient: $di->get(StripeClient::class, ['stripe_version' => '2020-08-27']),
-                cache: $di->get('Cache')
+                cache: $di->get('Cache'),
+                config: $di->get(Config::class)
             )
         );
     }

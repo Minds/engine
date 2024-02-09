@@ -750,7 +750,7 @@ class PushNotificationSpec extends ObjectBehavior
             ->willReturn(123);
 
         $this->getTitle()
-            ->shouldBe('New post from phpspec');
+            ->shouldBe('phpspec');
 
         $this->getBody()
             ->shouldBe('Hello tests');
@@ -788,9 +788,166 @@ class PushNotificationSpec extends ObjectBehavior
             ->willReturn(123);
 
         $this->getTitle()
-            ->shouldBe('New post from phpspec');
+            ->shouldBe('phpspec');
 
         $this->getUri()
             ->shouldBe('https://www.minds.com/newsfeed/1');
+    }
+
+    public function it_should_return_body_text_for_post_subscription_entity_with_message(Activity $entity)
+    {
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_POST_SUBSCRIPTION);
+
+        $entity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
+        $entity->getMessage()
+            ->shouldBeCalled()
+            ->willReturn('This is a message');
+
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $this->getBody()->shouldReturn('This is a message');
+    }
+
+    public function it_should_return_body_text_for_post_subscription_entity_with_title_and_no_message(Activity $entity)
+    {
+        $this->notification->getType()
+            ->shouldBeCalled()
+            ->willReturn(NotificationTypes::TYPE_POST_SUBSCRIPTION);
+
+        $entity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
+        $entity->getMessage()
+            ->shouldBeCalled()
+            ->willReturn('');
+
+        $entity->getTitle()
+            ->shouldBeCalled()
+            ->willReturn('This is a title');
+
+        $this->notification->getEntity()
+            ->shouldBeCalled()
+            ->willReturn($entity);
+
+        $this->getBody()->shouldReturn('This is a title');
+    }
+
+    public function it_should_return_body_text_for_post_subscription_entity_with_video_attachment_and_no_message_or_title(Activity $entity)
+    {
+        $this->notification->getType()->willReturn(NotificationTypes::TYPE_POST_SUBSCRIPTION);
+        $entity->getType()
+            ->willReturn('activity');
+
+        $entity->getMessage()
+            ->willReturn('');
+
+        $entity->getTitle()
+            ->willReturn('');
+
+        $entity->hasAttachments()
+            ->willReturn(true);
+
+        $entity->getCustomType()
+            ->willReturn('video');
+
+        $entity->getCustomData()->willReturn([
+            'type' => 'video',
+        ]);
+
+        $this->notification->getEntity()->willReturn($entity);
+
+        $this->getBody()->shouldReturn('Posted a video');
+    }
+
+    public function it_should_return_body_text_for_post_subscription_entity_with_single_image_attachment_and_no_message_or_title(Activity $entity)
+    {
+        $this->notification->getType()
+            ->willReturn(NotificationTypes::TYPE_POST_SUBSCRIPTION);
+
+        $entity->getType()
+            ->willReturn('activity');
+
+        $entity->getMessage()
+            ->willReturn('');
+
+        $entity->getTitle()
+            ->willReturn('');
+
+        $entity->hasAttachments()
+            ->willReturn(true);
+
+        $entity->getCustomType()
+            ->willReturn('batch');
+
+        $entity->getCustomData()
+            ->willReturn([
+                ['type' => 'image', 'src' => 'url_to_image']
+            ]);
+
+        $this->notification->getEntity()
+            ->willReturn($entity);
+
+        $this->getBody()->shouldReturn('Posted an image');
+    }
+
+
+    public function it_should_return_body_text_for_post_subscription_entity_with_multiple_image_attachments_and_no_message_or_title(Activity $entity)
+    {
+        $this->notification->getType()
+            ->willReturn(NotificationTypes::TYPE_POST_SUBSCRIPTION);
+
+        $entity->getType()
+            ->willReturn('activity');
+
+        $entity->getMessage()
+            ->willReturn('');
+
+        $entity->getTitle()
+            ->willReturn('');
+
+        $entity->hasAttachments()
+            ->willReturn(true);
+
+        $entity->getCustomType()
+            ->willReturn('batch');
+
+        $entity->getCustomData()
+            ->willReturn([
+                ['type' => 'image', 'src' => 'url_to_image1'],
+                ['type' => 'image', 'src' => 'url_to_image2']
+            ]);
+
+        $this->notification->getEntity()
+            ->willReturn($entity);
+
+    }
+
+    public function it_should_return_body_text_for_post_subscription_entity_with_object_type(Activity $entity)
+    {
+        $this->notification->getType()
+            ->willReturn(NotificationTypes::TYPE_POST_SUBSCRIPTION);
+
+        $entity->getType()
+            ->willReturn('object');
+
+        $title = 'An interesting blog post';
+        $entity->getTitle()
+            ->willReturn($title);
+
+        $entity->getMessage()
+            ->willReturn('');
+
+        $this->notification->getEntity()
+            ->willReturn($entity);
+
+        $this->getBody()->shouldReturn($title);
     }
 }
