@@ -843,8 +843,6 @@ CREATE TABLE IF NOT EXISTS minds_site_membership_subscriptions (
     PRIMARY KEY (tenant_id, user_guid, membership_tier_guid, valid_from)
 );
 
-ALTER TABLE `minds_tenants` ADD plan enum ('TEAM', 'COMMUNITY', 'ENTERPRISE') DEFAULT 'TEAM' AFTER root_user_guid;
-
 ALTER TABLE `minds_tenant_configs`
     ADD reply_email varchar(128) DEFAULT NULL
     AFTER federation_disabled;
