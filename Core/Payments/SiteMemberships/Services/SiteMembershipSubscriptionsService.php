@@ -14,6 +14,7 @@ use Minds\Core\Payments\Stripe\Checkout\Session\Services\SessionService as Strip
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
+use NotImplementedException;
 use Psr\SimpleCache\InvalidArgumentException;
 use Stripe\Exception\ApiErrorException;
 
@@ -47,6 +48,8 @@ class SiteMembershipSubscriptionsService
         string $redirectUri
     ): string
     {
+        // TODO: add check to make sure user doesn't already have a subscription
+
         $siteMembership = $this->siteMembershipReaderService->getSiteMembership($siteMembershipGuid);
         $checkoutSession = $this->stripeCheckoutManager->createSession(
             user: $user,
@@ -128,8 +131,8 @@ class SiteMembershipSubscriptionsService
         return iterator_to_array($this->siteMembershipSubscriptionsRepository->getSiteMembershipSubscriptions($user));
     }
 
-    public function manageSiteMembershipSubscription()
+    public function generateManageSiteMembershipSubscriptionLink(int $subscriptionId): string
     {
-
+        throw new NotImplementedException();
     }
 }

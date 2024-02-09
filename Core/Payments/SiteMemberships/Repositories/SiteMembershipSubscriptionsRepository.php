@@ -29,7 +29,8 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
         User           $user,
         SiteMembership $siteMembership,
         string         $stripeSubscriptionId
-    ): bool {
+    ): bool
+    {
         $stmt = $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
             ->set([
@@ -57,10 +58,12 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
      */
     public function getSiteMembershipSubscriptions(
         ?User $user = null
-    ): iterable {
+    ): iterable
+    {
         $stmt = $this->mysqlClientReaderHandler->select()
             ->from(self::TABLE_NAME)
             ->columns([
+                'id',
                 'membership_tier_guid',
                 'auto_renew',
                 'valid_from',
@@ -92,6 +95,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
     private function prepareSiteMembershipSubscription(array $data): SiteMembershipSubscription
     {
         return new SiteMembershipSubscription(
+            membershipSubscriptionId: (int)$data['id'],
             membershipGuid: (int)$data['membership_tier_guid'],
             autoRenew: (bool)$data['auto_renew'],
             validFromTimestamp: strtotime($data['valid_from']),
