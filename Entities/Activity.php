@@ -49,6 +49,7 @@ use Minds\Helpers;
  * @property array $supermind
  * @property string $auto_caption
  * @property array $inferred_tags
+ * @property bool $site_membership
  * @property string $source
  * @property string $canonical_url
  */
@@ -102,6 +103,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'supermind' => null,
             'auto_caption' => null,
             'inferred_tags' => [],
+            'site_membership' => false,
             'source' => FederatedEntitySourcesEnum::LOCAL->value,
             'canonical_url' => null,
         ]);
@@ -1161,6 +1163,23 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getCanonicalUrl(): ?string
     {
         return $this->canonical_url;
+    }
+
+    /**
+     * Sets if a site membership exists for this post
+     */
+    public function setSiteMembership(bool $siteMembership): self
+    {
+        $this->site_membership = $siteMembership;
+        return $this;
+    }
+
+    /**
+     * Returns if a site membership exists for this activity
+     */
+    public function hasSiteMembership(): bool
+    {
+        return $this->site_membership;
     }
 
     /**

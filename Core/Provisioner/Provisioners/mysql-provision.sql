@@ -854,3 +854,16 @@ CREATE TABLE IF NOT EXISTS minds_stripe_keys(
     created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP(),
     updated_timestamp timestamp NULL
 );
+
+
+CREATE TABLE IF NOT EXISTS minds_site_membership_entities (
+    tenant_id int,
+    entity_guid bigint,
+    membership_guid  bigint,
+    created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (tenant_id, entity_guid, membership_guid)
+);
+
+ALTER TABLE minds_entities_activity
+    ADD COLUMN site_membership boolean DEFAULT FALSE
+    AFTER attachments;

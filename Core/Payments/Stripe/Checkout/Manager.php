@@ -60,6 +60,9 @@ class Manager
             'mode' => $mode->value,
             'payment_method_types' => $paymentMethodTypes ?? [ 'card' ], // we can possibly add more in the future,
             'customer' => $customerId,
+            'subscription_data' => [
+                'trial_period_days' => 7
+            ]
         ];
 
         if ($mode === CheckoutModeEnum::SUBSCRIPTION) {

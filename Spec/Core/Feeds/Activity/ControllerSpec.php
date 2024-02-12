@@ -2,20 +2,29 @@
 
 namespace Spec\Minds\Core\Feeds\Activity;
 
+use Http\Factory\Guzzle\ServerRequestFactory;
+use Minds\Core\Data\MySQL\Client;
+use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\Manager;
 use Minds\Core\Feeds\Activity\Controller;
 use Minds\Core\Feeds\Scheduled\EntityTimeCreated;
 use Minds\Core\Monetization\Demonetization\Validators\DemonetizedPlusValidator;
+use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\CreatePaywalledEntityService;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Entities\Activity;
 use Minds\Entities\User;
 use Minds\Exceptions\AlreadyPublishedException;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
+use PDO;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\ServerRequest;
 
 class ControllerSpec extends ObjectBehavior
@@ -33,6 +42,8 @@ class ControllerSpec extends ObjectBehavior
     private $entityTimeCreated;
 
     private Collaborator $demonetizedPlusValidator;
+    private Collaborator $rbacGatekeeperServiceMock;
+    private Collaborator $createPaywalledEntityServiceMock;
 
     public function let(
         Manager $manager,
@@ -40,12 +51,16 @@ class ControllerSpec extends ObjectBehavior
         ACL $acl,
         EntityTimeCreated $entityTimeCreated,
         DemonetizedPlusValidator $demonetizedPlusValidator,
+        RbacGatekeeperService $rbacGatekeeperServiceMock,
+        CreatePaywalledEntityService $createPaywalledEntityServiceMock,
     ) {
         $this->manager = $manager;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->acl = $acl;
         $this->entityTimeCreated = $entityTimeCreated;
         $this->demonetizedPlusValidator = $demonetizedPlusValidator;
+        $this->rbacGatekeeperServiceMock = $rbacGatekeeperServiceMock;
+        $this->createPaywalledEntityServiceMock = $createPaywalledEntityServiceMock;
 
         $this->beConstructedWith(
             $manager,
@@ -53,6 +68,8 @@ class ControllerSpec extends ObjectBehavior
             $acl,
             $entityTimeCreated,
             $demonetizedPlusValidator,
+            $rbacGatekeeperServiceMock,
+            $createPaywalledEntityServiceMock,
         );
     }
 
@@ -283,4 +300,96 @@ class ControllerSpec extends ObjectBehavior
 
     //     $this->createNewActivity($serverRequest);
     // }
+
+    public function it_should_disallow_site_membership_if_no_permission(ServerRequestInterface $requestMock)
+    {
+        $requestMock->getAttribute('_user')
+            ->willReturn(new User);
+
+        $requestMock->getParsedBody()
+            ->willReturn([
+                'site_membership_guids' => [ -1 ]
+            ]);
+
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_CREATE_PAYWALL, Argument::type(User::class))
+            ->willThrow(new ForbiddenException);
+        
+        $this->shouldThrow(ForbiddenException::class)->duringCreateNewActivity($requestMock);
+    }
+
+    public function it_should_set_site_memberships(ServerRequestInterface $requestMock, Activity $activityMock)
+    {
+        $requestMock->getAttribute('_user')
+            ->willReturn(new User);
+
+        $requestMock->getParsedBody()
+            ->willReturn([
+                'site_membership_guids' => [ -1 ]
+            ]);
+
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_CREATE_PAYWALL, Argument::type(User::class))
+            ->willReturn(true);
+        
+        $this->createPaywalledEntityServiceMock->setupMemberships(Argument::type(Activity::class), [ -1 ])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->manager->add(Argument::type(Activity::class))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $activityMock->setLicense(Argument::type('string'))
+            ->willReturn($activityMock);
+        $activityMock->setClientMeta(Argument::type('array'))
+            ->willReturn($activityMock);
+        $activityMock->setMature(false)
+            ->willReturn($activityMock);
+        $activityMock->setNsfw([])
+            ->willReturn($activityMock);
+
+        $activityMock->export()
+            ->willReturn([]);
+
+        $this->createNewActivity($requestMock, $activityMock);
+    }
+
+    public function it_should_set_site_membership_poster(ServerRequestInterface $requestMock, Activity $activityMock)
+    {
+        $requestMock->getAttribute('_user')
+            ->willReturn(new User);
+
+        $requestMock->getParsedBody()
+            ->willReturn([
+                'site_membership_guids' => [ -1 ],
+                'paywall_poster' => 'blob'
+            ]);
+
+        $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_CREATE_PAYWALL, Argument::type(User::class))
+            ->willReturn(true);
+        
+        $this->createPaywalledEntityServiceMock->setupMemberships(Argument::type(Activity::class), [ -1 ])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->manager->add(Argument::type(Activity::class))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->manager->processPaywallPoster(Argument::type(Activity::class), 'blob')
+            ->shouldBeCalled();
+
+        $activityMock->setLicense(Argument::type('string'))
+            ->willReturn($activityMock);
+        $activityMock->setClientMeta(Argument::type('array'))
+            ->willReturn($activityMock);
+        $activityMock->setMature(false)
+            ->willReturn($activityMock);
+        $activityMock->setNsfw([])
+            ->willReturn($activityMock);
+
+        $activityMock->export()
+            ->willReturn([]);
+
+        $this->createNewActivity($requestMock, $activityMock);
+    }
 }

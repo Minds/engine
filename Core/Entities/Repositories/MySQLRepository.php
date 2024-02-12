@@ -219,7 +219,9 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
     {
         $data = $this->buildData($entity);
 
-        $this->beginTransaction();
+        if (!$this->mysqlClientWriter->inTransaction()) {
+            $this->beginTransaction();
+        }
 
         // Add the entity to the base table
 
@@ -562,6 +564,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'inferred_tags' => MySQLDataTypeEnum::JSON,
                     'tags' => MySQLDataTypeEnum::JSON,
                     'attachments' => MySQLDataTypeEnum::JSON, // temporary denomalization whilst we run in parallel with Cassandra
+                    'site_membership' => MySQLDataTypeEnum::BOOL,
                     'canonical_url' => MySQLDataTypeEnum::TEXT,
                     'source' => MySQLDataTypeEnum::TEXT,
                 ];
