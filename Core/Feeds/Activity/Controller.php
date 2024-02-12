@@ -252,12 +252,12 @@ class Controller
         /**
          * Rich embeds
          */
-        if (isset($payload['url']) && !$activity->hasAttachments()) {
+        if ((isset($payload['link_url']) || isset($payload['url'])) && !$activity->hasAttachments()) {
             $activity
-                ->setTitle(rawurldecode($payload['title']))
-                ->setBlurb(rawurldecode($payload['description']))
-                ->setURL(rawurldecode($payload['url']))
-                ->setThumbnail($payload['thumbnail']);
+                ->setLinkTitle(rawurldecode($payload['link_title'] ?? $payload['title']))
+                ->setBlurb(rawurldecode($payload['link_description'] ?? $payload['description']))
+                ->setUrl(rawurldecode($payload['link_url'] ?? $payload['url']))
+                ->setThumbnail($payload['link_thumbnail'] ?? $payload['thumbnail']);
         }
 
         /**
@@ -444,12 +444,12 @@ class Controller
         /**
          * Rich embeds
          */
-        if (isset($payload['url']) && !$activity->hasAttachments()) {
+        if ((isset($payload['link_url']) || isset($payload['url'])) && !$activity->hasAttachments()) {
             $mutatedActivity
-                ->setTitle(rawurldecode($payload['title']))
-                ->setBlurb(rawurldecode($payload['description']))
-                ->setURL(rawurldecode($payload['url']))
-                ->setThumbnail($payload['thumbnail']);
+                ->setLinkTitle(rawurldecode($payload['link_title'] ?? $payload['title']))
+                ->setBlurb(rawurldecode($payload['link_description'] ?? $payload['description']))
+                ->setUrl(rawurldecode($payload['link_url'] ?? $payload['url']))
+                ->setThumbnail($payload['link_thumbnail'] ?? $payload['thumbnail']);
         }
 
         /**

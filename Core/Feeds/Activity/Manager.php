@@ -548,7 +548,7 @@ class Manager
 
             // Clean rich embed
             $activity
-                //->setTitle('')
+                ->setLinkTitle('')
                 ->setBlurb('')
                 ->setURL('')
                 ->setThumbnail('');
@@ -616,7 +616,8 @@ class Manager
         if ($entity->subtype === 'blog') {
             /** @var \Minds\Core\Blogs\Blog */
             $entity = $blog = $entity; // Helper for static analysis
-            $activity->setTitle($entity->getTitle())
+            $activity
+                ->setLinkTitle($entity->getTitle())
                 ->setBlurb(strip_tags($entity->getBody()))
                 ->setURL($entity->getURL())
                 ->setThumbnail($entity->getIconUrl());

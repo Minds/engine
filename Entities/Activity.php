@@ -104,6 +104,8 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'auto_caption' => null,
             'inferred_tags' => [],
             'site_membership' => false,
+            'link_title' => null,
+            'paywall_poster' => false,
             'source' => FederatedEntitySourcesEnum::LOCAL->value,
             'canonical_url' => null,
         ]);
@@ -207,6 +209,9 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'supermind',
                 'auto_caption',
                 'inferred_tags',
+                'site_membership',
+                'paywall_poster',
+                'link_title',
                 'canonical_url',
                 'source',
             ]
@@ -311,6 +316,13 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             }
         }
 
+        /**
+         * Rich embed fallbacks
+         */
+        if ($export['perma_url']) {
+            $export['link_title'] ??= $export['title'];
+        }
+
         $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'activity', ['entity' => $this], []));
 
 
@@ -364,6 +376,26 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getTitle(): ?string
     {
         return $this->title;
+    }
+
+    /**
+     * Sets the rich embed title
+     * @param string $title
+     * @return $this
+     */
+    public function setLinkTitle($title)
+    {
+        $this->link_title = $title;
+        return $this;
+    }
+
+    /**
+     * Get the title
+     * @return string
+     */
+    public function getLinkTitle(): ?string
+    {
+        return $this->link_title;
     }
 
     /**
@@ -1181,6 +1213,16 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     {
         return $this->site_membership;
     }
+
+    /**
+     * Sets if a post has a custom paywall poster
+     */
+    public function setPaywallPoster(bool $paywallPoster): self
+    {
+        $this->paywall_poster = $paywallPoster;
+        return $this;
+    }
+
 
     /**
      * Returns the ActivityManager, but lazy loaded
