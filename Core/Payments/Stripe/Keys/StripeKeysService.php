@@ -1,9 +1,9 @@
 <?php
 namespace Minds\Core\Payments\Stripe\Keys;
 
-use Stripe\StripeClient;
 use Minds\Core\Security\Vault\VaultTransitService;
 use Minds\Exceptions\UserErrorException;
+use Stripe\StripeClient;
 
 class StripeKeysService
 {
@@ -17,9 +17,14 @@ class StripeKeysService
     /**
      * Returns the public key
      */
-    public function getPubKey(): string
+    public function getPubKey(): ?string
     {
-        list($pubKey, ) = $this->repository->getKeys();
+        $keys = $this->repository->getKeys();
+        if (!$keys) {
+            return null;
+        }
+
+        list($pubKey, ) = $keys;
         return $pubKey;
     }
 
