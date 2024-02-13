@@ -657,8 +657,18 @@ class Manager
      */
     public function processPaywallThumbnail(Activity $activity, string  $blob): bool
     {
+        $blobParts = explode(',', $blob);
+
+        if (!isset($blobParts[1])) {
+            throw new UserErrorException("Invalid image type");
+        }
+
+        $blob = $blobParts[1];
+
+        $blob = base64_decode($blob, true);
+
         $imageData = $this->imagickManager
-            ->setImageFromBlob(base64_decode($blob, true))
+            ->setImageFromBlob($blob)
             ->getJpeg();
 
         $file = new File();
