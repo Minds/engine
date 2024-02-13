@@ -25,6 +25,8 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\ACL;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Entities\User;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
 use Zend\Diactoros\ServerRequestFactory;
@@ -86,6 +88,7 @@ class channel implements Interfaces\Api
         }
 
         $isAdmin = Core\Session::isAdmin();
+        $hasModerationPermission = Di::_()->get(RolesService::class)->hasPermission(Core\Session::getLoggedInUser(), PermissionsEnum::CAN_MODERATE_CONTENT);
         $isLoggedIn = Core\Session::isLoggedin();
         $isOwner = $isLoggedIn && ((string) Core\Session::getLoggedinUser()->guid === (string) $user->guid);
         $isPublic = $isLoggedIn && $user instanceof User && $user->isPublicDateOfBirth();
@@ -97,7 +100,7 @@ class channel implements Interfaces\Api
         }
 
         if (!$user->username ||
-            (Helpers\Flags::shouldFail($user) && !$isAdmin)
+            (Helpers\Flags::shouldFail($user) && !$isAdmin && !$hasModerationPermission)
         ) {
             return Factory::response([
                 'status'=>'error',
@@ -106,7 +109,7 @@ class channel implements Interfaces\Api
             ]);
         }
 
-        if ($user->enabled != "yes" && !Core\Session::isAdmin()) {
+        if ($user->enabled != "yes" && !Core\Session::isAdmin() && !$hasModerationPermission) {
             return Factory::response([
                 'status'=>'error',
                 'message'=>'Sorry, this user is disabled',
@@ -114,7 +117,7 @@ class channel implements Interfaces\Api
             ]);
         }
 
-        if ($user->banned == 'yes' && !Core\Session::isAdmin()) {
+        if ($user->banned == 'yes' && !Core\Session::isAdmin() && !$hasModerationPermission) {
             return Factory::response([
                 'status'=>'error',
                 'message'=>'This user has been banned',

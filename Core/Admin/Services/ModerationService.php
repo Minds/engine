@@ -9,6 +9,7 @@ use Minds\Core\Comments\Comment;
 use Minds\Core\Entities\Actions\Delete as DeleteAction;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Security\ACL;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Entities\User;
@@ -25,7 +26,8 @@ class ModerationService
         private readonly DeleteAction $deleteAction,
         private readonly CommentManager $commentManager,
         private readonly EntitiesBuilder $entitiesBuilder,
-        private readonly EntitiesResolver $entitiesResolver
+        private readonly EntitiesResolver $entitiesResolver,
+        private readonly ACL $acl
     ) {
     }
 
@@ -35,7 +37,7 @@ class ModerationService
      * @throws UserErrorException on issue with input data.
      * @return bool true on success.
      */
-    public function banUser(string $subjectGuid): bool
+    public function setUserBanState(string $subjectGuid, bool $banState): bool
     {
         $subject = $this->buildUser($subjectGuid);
         
@@ -47,9 +49,17 @@ class ModerationService
             throw new UserErrorException('You do not have permission to moderate against this user');
         }
 
-        $this->channelsBanManager
-            ->setUser($subject)
-            ->ban('11'); // "Another Reason"
+        $ignore = $this->acl::$ignore;
+        $this->acl::$ignore = true;
+
+        $this->channelsBanManager->setUser($subject);
+        if ($banState) {
+            $this->channelsBanManager->ban('11'); // "Another Reason"
+        } else {
+            $this->channelsBanManager->unban();
+        }
+
+        $this->acl::$ignore = $ignore;
 
         return true;
     }
@@ -82,11 +92,16 @@ class ModerationService
             throw new UserErrorException('You do not have permission to moderate content from the owner of this entity');
         }
 
+        $ignore = $this->acl::$ignore;
+        $this->acl::$ignore = true;
+
         if ($entity instanceof Comment) {
             $this->commentManager->delete($entity);
         } else {
             $this->deleteAction->setEntity($entity)->delete();
         }
+
+        $this->acl::$ignore = $ignore;
 
         return true;
     }

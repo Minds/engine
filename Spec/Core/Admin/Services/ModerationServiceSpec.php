@@ -11,6 +11,7 @@ use Minds\Core\Entities\Actions\Delete as DeleteAction;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
+use Minds\Core\Security\ACL;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Entities\Activity;
@@ -28,6 +29,7 @@ class ModerationServiceSpec extends ObjectBehavior
     private Collaborator $commentManager;
     private Collaborator $entitiesBuilder;
     private Collaborator $entitiesResolver;
+    private Collaborator $acl;
 
     public function let(
         RolesService $rolesService,
@@ -35,7 +37,8 @@ class ModerationServiceSpec extends ObjectBehavior
         DeleteAction $deleteAction,
         CommentManager $commentManager,
         EntitiesBuilder $entitiesBuilder,
-        EntitiesResolver $entitiesResolver
+        EntitiesResolver $entitiesResolver,
+        ACL $acl
     ) {
         $this->rolesService = $rolesService;
         $this->channelsBanManager = $channelsBanManager;
@@ -43,6 +46,7 @@ class ModerationServiceSpec extends ObjectBehavior
         $this->commentManager = $commentManager;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->entitiesResolver = $entitiesResolver;
+        $this->acl = $acl;
 
         $this->beConstructedWith(
             $this->rolesService,
@@ -50,7 +54,8 @@ class ModerationServiceSpec extends ObjectBehavior
             $this->deleteAction,
             $this->commentManager,
             $this->entitiesBuilder,
-            $this->entitiesResolver
+            $this->entitiesResolver,
+            $this->acl
         );
     }
 
@@ -66,6 +71,31 @@ class ModerationServiceSpec extends ObjectBehavior
         $userGuid = Guid::build();
         $isAdmin = false;
         $hasPermission = false;
+        $banState = true;
+
+        $this->entitiesBuilder->single($userGuid)
+            ->shouldBeCalled()
+            ->willReturn($subject);
+
+        $subject->isAdmin()
+            ->shouldBeCalled()
+            ->willReturn($isAdmin);
+
+        $this->rolesService->hasPermission($subject, PermissionsEnum::CAN_MODERATE_CONTENT)
+            ->shouldBeCalled()
+            ->willReturn($hasPermission);
+       
+        $this->channelsBanManager->setUser($subject)->shouldBeCalled()->willReturn($this->channelsBanManager);
+        $this->channelsBanManager->ban('11')->shouldBeCalled();
+        $this->setUserBanState($userGuid, $banState)->shouldReturn(true);
+    }
+
+    public function it_should_unban_a_user(User $subject): void
+    {
+        $userGuid = Guid::build();
+        $isAdmin = false;
+        $hasPermission = false;
+        $banState = false;
 
         $this->entitiesBuilder->single($userGuid)
             ->shouldBeCalled()
@@ -79,10 +109,9 @@ class ModerationServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($hasPermission);
 
-        
         $this->channelsBanManager->setUser($subject)->shouldBeCalled()->willReturn($this->channelsBanManager);
-        $this->channelsBanManager->ban('11')->shouldBeCalled();
-        $this->banUser($userGuid)->shouldReturn(true);
+        $this->channelsBanManager->unban()->shouldBeCalled();
+        $this->setUserBanState($userGuid, $banState)->shouldReturn(true);
     }
 
     public function it_should_NOT_ban_a_user_because_the_user_is_an_admin(User $subject): void
@@ -103,7 +132,7 @@ class ModerationServiceSpec extends ObjectBehavior
         
         $this->channelsBanManager->setUser($subject)->shouldNotBeCalled();
 
-        $this->shouldThrow(UserErrorException::class)->duringBanUser($userGuid);
+        $this->shouldThrow(UserErrorException::class)->duringSetUserBanState($userGuid, true);
     }
 
     public function it_should_ban_a_user_because_the_user_has_the_can_moderate_permission(User $subject): void
@@ -125,7 +154,7 @@ class ModerationServiceSpec extends ObjectBehavior
             ->willReturn($hasPermission);
         
         $this->channelsBanManager->setUser($subject)->shouldNotBeCalled();
-        $this->shouldThrow(UserErrorException::class)->duringBanUser($userGuid);
+        $this->shouldThrow(UserErrorException::class)->duringSetUserBanState($userGuid, true);
     }
 
     public function it_should_handle_user_not_found_scenarios_when_banning_a_user(): void
@@ -137,7 +166,7 @@ class ModerationServiceSpec extends ObjectBehavior
             ->willReturn(null);
         
         $this->channelsBanManager->setUser(Argument::any())->shouldNotBeCalled();
-        $this->shouldThrow(UserErrorException::class)->duringBanUser($userGuid);
+        $this->shouldThrow(UserErrorException::class)->duringSetUserBanState($userGuid, true);
     }
 
     // Delete entity

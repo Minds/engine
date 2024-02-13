@@ -26,8 +26,17 @@ class ModerationControllerSpec extends ObjectBehavior
     public function it_should_pass_ban_user_request_to_service(): void
     {
         $subjectGuid = '123';
-        $this->moderationService->banUser($subjectGuid)->willReturn(true);
-        $this->banUser($subjectGuid)->shouldReturn(true);
+        $banState = true;
+        $this->moderationService->setUserBanState($subjectGuid, $banState)->willReturn(true);
+        $this->setUserBanState($subjectGuid, $banState)->shouldReturn(true);
+    }
+
+    public function it_should_pass_unban_user_request_to_service(): void
+    {
+        $subjectGuid = '123';
+        $banState = false;
+        $this->moderationService->setUserBanState($subjectGuid, $banState)->willReturn(true);
+        $this->setUserBanState($subjectGuid, $banState)->shouldReturn(true);
     }
 
     public function it_should_pass_delete_entity_request_to_service(): void

@@ -28,7 +28,8 @@ class ServicesProvider extends Provider
                     deleteAction: new DeleteAction(),
                     commentManager: $di->get('Comments\Manager'),
                     entitiesBuilder: $di->get(EntitiesBuilder::class),
-                    entitiesResolver: $di->get(EntitiesResolver::class)
+                    entitiesResolver: $di->get(EntitiesResolver::class),
+                    acl: $di->get('Security\ACL')
                 );
             }
         );

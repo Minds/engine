@@ -19,17 +19,19 @@ class ModerationController
     }
 
     /**
-     * Ban a given user.
-     * @param string $subjectGuid - the guid of the user to ban.
+     * Ban or unban a given user.
+     * @param string $subjectGuid - the guid of the user to ban or unban.
+     * @param bool $banState - desired resulting user ban state.
      * @return bool true on success.
      */
     #[Mutation]
     #[Logged]
     #[Right('PERMISSION_CAN_MODERATE_CONTENT')]
-    public function banUser(
-        string $subjectGuid
+    public function setUserBanState(
+        string $subjectGuid,
+        bool $banState
     ): bool {
-        return $this->service->banUser($subjectGuid);
+        return $this->service->setUserBanState($subjectGuid, $banState);
     }
 
     /**
