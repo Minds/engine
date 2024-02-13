@@ -50,6 +50,8 @@ use Minds\Helpers;
  * @property string $auto_caption
  * @property array $inferred_tags
  * @property bool $site_membership
+ * @property string $link_title
+ * @property bool $paywall_thumbnail
  * @property string $source
  * @property string $canonical_url
  */
