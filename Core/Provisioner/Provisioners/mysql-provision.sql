@@ -867,3 +867,9 @@ CREATE TABLE IF NOT EXISTS minds_site_membership_entities (
 ALTER TABLE minds_entities_activity
     ADD COLUMN site_membership boolean DEFAULT FALSE
     AFTER attachments;
+ALTER TABLE minds_entities_activity
+    ADD COLUMN paywall_thumbnail boolean DEFAULT FALSE
+    AFTER site_membership;
+ALTER TABLE minds_entities_activity
+    ADD COLUMN link_title text DEFAULT null
+    AFTER paywall_thumbnail;

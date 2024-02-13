@@ -361,7 +361,7 @@ class ControllerSpec extends ObjectBehavior
         $requestMock->getParsedBody()
             ->willReturn([
                 'site_membership_guids' => [ -1 ],
-                'paywall_poster' => 'blob'
+                'paywall_thumbnail' => 'blob'
             ]);
 
         $this->rbacGatekeeperServiceMock->isAllowed(PermissionsEnum::CAN_CREATE_PAYWALL, Argument::type(User::class))
@@ -375,7 +375,7 @@ class ControllerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->manager->processPaywallPoster(Argument::type(Activity::class), 'blob')
+        $this->manager->processPaywallThumbnail(Argument::type(Activity::class), 'blob')
             ->shouldBeCalled();
 
         $activityMock->setLicense(Argument::type('string'))

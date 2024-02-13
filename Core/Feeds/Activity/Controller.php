@@ -280,8 +280,8 @@ class Controller
 
             $this->createPaywalledEntityService->setupMemberships($activity, $siteMembershipGuids);
         
-            if (isset($payload['paywall_poster'])) {
-                $this->manager->processPaywallPoster($activity, $payload['paywall_poster']);
+            if (isset($payload['paywall_thumbnail'])) {
+                $this->manager->processPaywallThumbnail($activity, $payload['paywall_thumbnail']);
             }
         }
 

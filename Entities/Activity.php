@@ -105,7 +105,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'inferred_tags' => [],
             'site_membership' => false,
             'link_title' => null,
-            'paywall_poster' => false,
+            'paywall_thumbnail' => false,
             'source' => FederatedEntitySourcesEnum::LOCAL->value,
             'canonical_url' => null,
         ]);
@@ -210,7 +210,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'auto_caption',
                 'inferred_tags',
                 'site_membership',
-                'paywall_poster',
+                'paywall_thumbnail',
                 'link_title',
                 'canonical_url',
                 'source',
@@ -1217,9 +1217,9 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     /**
      * Sets if a post has a custom paywall poster
      */
-    public function setPaywallPoster(bool $paywallPoster): self
+    public function setPaywallThumbnail(bool $paywallThumbnail): self
     {
-        $this->paywall_poster = $paywallPoster;
+        $this->paywall_thumbnail = $paywallThumbnail;
         return $this;
     }
 

@@ -655,18 +655,20 @@ class Manager
     /**
      * Uploads a paywall poster for an activity post
      */
-    public function processPaywallPoster(Activity $activity, string  $blob): bool
+    public function processPaywallThumbnail(Activity $activity, string  $blob): bool
     {
         $imageData = $this->imagickManager
             ->setImageFromBlob(base64_decode($blob, true))
             ->getJpeg();
 
         $file = new File();
-        $file->setFilename("paywall_posters/{$activity->getGuid()}.jpg");
+        $file->setFilename("paywall_thumbnails/{$activity->getGuid()}.jpg");
         $file->owner_guid = $activity->getOwnerGuid();
         $file->open('write');
         $file->write($imageData);
         $file->close();
+
+        $activity->setPaywallThumbnail(true);
 
         return true;
     }
