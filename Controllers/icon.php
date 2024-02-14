@@ -177,7 +177,10 @@ class icon extends core\page implements Interfaces\page
 
     private function generateDefaultUserAvatar(User $user, string $size): string
     {
-        $avatarColorDetails = self::DEFAULT_AVATAR_COLORS[mt_rand(0, count(self::DEFAULT_AVATAR_COLORS) - 1)];
+        $avatarColorDetails = self::DEFAULT_AVATAR_COLORS[
+            $user->getGuid() % count(self::DEFAULT_AVATAR_COLORS)
+        ];
+
         /**
          * @var Core\Data\cache\Redis $cache
          */
