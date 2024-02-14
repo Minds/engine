@@ -18,6 +18,7 @@ use Minds\Core\Notifications\Notification;
 use Minds\Core\Notifications\NotificationTypes;
 use Minds\Core\Notifications\Manager as NotificationsManager;
 use Minds\Core\Notifications\PostSubscriptions\Enums\PostSubscriptionFrequencyEnum;
+use Minds\Core\Notifications\PostSubscriptions\Helpers\Interfaces\PostNotificationDispatchHelperInterface;
 use Minds\Core\Notifications\PostSubscriptions\Services\PostSubscriptionsService;
 use Minds\Core\Security\RateLimits\KeyValueLimiter;
 use Minds\Core\Security\RateLimits\RateLimitExceededException;
@@ -30,12 +31,14 @@ class PostSubscriptionsEventStreamsSubscription implements SubscriptionInterface
         private ?PostSubscriptionsService $service = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?NotificationsManager $notificationsManager = null,
+        private ?PostNotificationDispatchHelperInterface $postNotificationDispatchHelper = null,
         private ?Logger $logger = null,
         private ?KeyValueLimiter $kvLimiter = null,
     ) {
         $this->service ??= Di::_()->get(PostSubscriptionsService::class);
         $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
         $this->notificationsManager ??= Di::_()->get('Notifications\Manager');
+        $this->postNotificationDispatchHelper ??= Di::_()->get(PostNotificationDispatchHelperInterface::class);
         $this->logger ??= Di::_()->get('Logger');
         $this->kvLimiter ??= Di::_()->get("Security\RateLimits\KeyValueLimiter");
     }
@@ -104,8 +107,14 @@ class PostSubscriptionsEventStreamsSubscription implements SubscriptionInterface
         $this->logger->info("{$entity->getUrn()} dispatching");
 
         // Get an iterator of all user guids who will receive the notification
-
         foreach ($this->service->withEntity($owner)->getAllForEntity(frequency: PostSubscriptionFrequencyEnum::ALWAYS) as $postSubscription) {
+            if (!$this->postNotificationDispatchHelper->canDispatch(
+                postSubscription: $postSubscription,
+                forActivity: $entity
+            )) {
+                continue;
+            }
+
             // If we have delivered more than 5 notifications in the last 24 hours then skip
             try {
                 $this->kvLimiter
