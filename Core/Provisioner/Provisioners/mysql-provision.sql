@@ -834,14 +834,22 @@ CREATE TABLE IF NOT EXISTS minds_site_membership_tiers_group_assignments (
 );
 
 CREATE TABLE IF NOT EXISTS minds_site_membership_subscriptions (
+    id int NOT NULL primary key AUTO_INCREMENT,
     tenant_id int NOT NULL,
     user_guid bigint NOT NULL,
     membership_tier_guid bigint NOT NULL,
     stripe_subscription_id varchar(256) NOT NULL,
     valid_from timestamp NOT NULL,
     valid_to timestamp DEFAULT NULL,
-    PRIMARY KEY (tenant_id, user_guid, membership_tier_guid, valid_from)
+    auto_renew boolean NOT NULL,
+    UNIQUE INDEX (tenant_id, user_guid, membership_tier_guid),
+    UNIQUE INDEX (stripe_subscription_id),
+    INDEX (tenant_id),
+    INDEX (valid_from),
+    INDEX (valid_to)
 );
+
+ALTER TABLE `minds_tenants` ADD plan enum ('TEAM', 'COMMUNITY', 'ENTERPRISE') DEFAULT 'TEAM' AFTER root_user_guid;
 
 ALTER TABLE `minds_tenant_configs`
     ADD reply_email varchar(128) DEFAULT NULL
@@ -873,3 +881,8 @@ ALTER TABLE minds_entities_activity
 ALTER TABLE minds_entities_activity
     ADD COLUMN link_title text DEFAULT null
     AFTER paywall_thumbnail;
+
+CREATE TABLE IF NOT EXISTS minds_payments_config(
+    tenant_id INT NOT NULL PRIMARY KEY,
+    stripe_customer_portal_config_id varchar(256) DEFAULT NULL
+);
