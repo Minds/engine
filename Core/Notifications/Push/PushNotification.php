@@ -236,7 +236,7 @@ class PushNotification implements PushNotificationInterface
                 }
 
                 // Check for video or image attachments
-                $customData = $entity->getCustomData();
+                $customData = $entity->getCustomType() ? $entity->getCustomData() : [];
                 if ($entity->hasAttachments() && !empty($customData)) {
                     if ($entity->getCustomType() === 'video') {
                         return 'Posted a video';
