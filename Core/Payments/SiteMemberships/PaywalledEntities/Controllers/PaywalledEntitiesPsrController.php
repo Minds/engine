@@ -11,8 +11,7 @@ class PaywalledEntitiesPsrController
 {
     public function __construct(
         private EntitiesBuilder $entitiesBuilder
-    )
-    {
+    ) {
         
     }
     
@@ -39,7 +38,7 @@ class PaywalledEntitiesPsrController
                 'Pragma' => 'public',
                 'Cache-Control' => 'public',
             ]
-        ]);   
+        ]);
     }
 
 }

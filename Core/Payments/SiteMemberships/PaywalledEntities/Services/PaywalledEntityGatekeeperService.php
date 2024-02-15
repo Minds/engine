@@ -51,7 +51,7 @@ class PaywalledEntityGatekeeperService
 
     private function getMembershipGuidsForActivity(Activity $activity): ?array
     {
-        return $this->paywalledEntitiesRepository->getMembershipsFromEntity((int) $activity->getGuid()); 
+        return $this->paywalledEntitiesRepository->getMembershipsFromEntity((int) $activity->getGuid());
     }
 
     private function getMembershipGuidsForUser(User $user): ?array

@@ -13,8 +13,7 @@ class Events
 {
     public function __construct(
         private ?PaywalledEntityGatekeeperService $paywalledEntityGatekeeperService = null
-    )
-    {
+    ) {
     }
 
     public function register()

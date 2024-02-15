@@ -34,8 +34,7 @@ class Thumbnails
         $cloudflareStreamsManager = null,
         $paywallManager = null,
         private ?PaywalledEntityGatekeeperService $paywalledEntityGatekeeperService = null,
-    )
-    {
+    ) {
         $this->paywallManager = $paywallManager ?? Di::_()->get('Wire\Paywall\Manager');
         $this->config = $config ?: Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');

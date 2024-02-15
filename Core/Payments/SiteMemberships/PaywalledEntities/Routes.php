@@ -6,7 +6,6 @@ use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 use Minds\Core\Router\Middleware\LoggedInMiddleware;
 
-
 class Routes extends ModuleRoutes
 {
     /**
