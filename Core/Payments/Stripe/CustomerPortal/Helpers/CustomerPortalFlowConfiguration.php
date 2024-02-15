@@ -10,7 +10,7 @@ class CustomerPortalFlowConfiguration
 {
     public function __construct(
         private readonly CustomerPortalFlowTypeEnum $flowType,
-        private readonly ?string                    $redirectUri = null,
+        private readonly ?string                    $redirectUrl = null,
         private readonly ?string                    $subscriptionId = null,
     ) {
         if ($this->flowType !== CustomerPortalFlowTypeEnum::PAYMENT_METHOD_UPDATE && !$this->subscriptionId) {
@@ -26,7 +26,7 @@ class CustomerPortalFlowConfiguration
 
         if ($this->flowType === CustomerPortalFlowTypeEnum::SUBSCRIPTION_CANCEL) {
             $flowData['after_completion']['type'] = 'redirect';
-            $flowData['after_completion']['redirect']['return_url'] = $this->redirectUri;
+            $flowData['after_completion']['redirect']['return_url'] = $this->redirectUrl;
             $flowData['subscription_cancel']['subscription'] = $this->subscriptionId;
         }
 

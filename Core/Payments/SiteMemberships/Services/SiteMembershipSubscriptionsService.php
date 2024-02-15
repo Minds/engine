@@ -11,7 +11,6 @@ use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipSubscriptionF
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipSubscriptionsRepository;
 use Minds\Core\Payments\Stripe\Checkout\Enums\CheckoutModeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Manager as StripeCheckoutManager;
-use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService as StripeProductPriceService;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
 use Minds\Core\Payments\Stripe\Checkout\Session\Services\SessionService as StripeCheckoutSessionService;
 use Minds\Entities\User;
@@ -28,7 +27,6 @@ class SiteMembershipSubscriptionsService
         private readonly SiteMembershipReaderService           $siteMembershipReaderService,
         private readonly StripeCheckoutManager                 $stripeCheckoutManager,
         private readonly StripeProductService                  $stripeProductService,
-        private readonly StripeProductPriceService             $stripeProductPriceService,
         private readonly StripeCheckoutSessionService          $stripeCheckoutSessionService,
         private readonly Config                                $config
     ) {
@@ -37,7 +35,7 @@ class SiteMembershipSubscriptionsService
     /**
      * @param int $siteMembershipGuid
      * @param User $user
-     * @param string $redirectUri
+     * @param string $redirectPath
      * @return string
      * @throws ApiErrorException
      * @throws InvalidArgumentException
@@ -50,7 +48,7 @@ class SiteMembershipSubscriptionsService
     public function getCheckoutLink(
         int    $siteMembershipGuid,
         User   $user,
-        string $redirectUri
+        string $redirectPath
     ): string {
         $siteMembershipSubscription = $this->siteMembershipSubscriptionsRepository->getSiteMembershipSubscriptionByMembershipGuid(
             membershipGuid: $siteMembershipGuid,
@@ -58,7 +56,7 @@ class SiteMembershipSubscriptionsService
         );
 
         if ($siteMembershipSubscription) {
-            return $this->config->get('site_url') . ltrim($redirectUri, '/') . "?error=" . SiteMembershipErrorEnum::SUBSCRIPTION_ALREADY_EXISTS->name;
+            return $this->config->get('site_url') . ltrim($redirectPath, '/') . "?error=" . SiteMembershipErrorEnum::SUBSCRIPTION_ALREADY_EXISTS->name;
         }
 
         $siteMembership = $this->siteMembershipReaderService->getSiteMembership($siteMembershipGuid);
@@ -66,14 +64,14 @@ class SiteMembershipSubscriptionsService
             user: $user,
             mode: $siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING ? CheckoutModeEnum::SUBSCRIPTION : CheckoutModeEnum::PAYMENT,
             successUrl: "api/v3/payments/site-memberships/$siteMembershipGuid/checkout/complete?session_id={CHECKOUT_SESSION_ID}",
-            cancelUrl: ltrim($redirectUri, '/'),
+            cancelUrl: ltrim($redirectPath, '/'),
             lineItems: $this->prepareLineItems($siteMembership->stripeProductId),
             paymentMethodTypes: [
                 'card',
                 'us_bank_account',
             ],
             metadata: [
-                'redirectUri' => $redirectUri,
+                'redirectPath' => $redirectPath,
                 'siteMembershipGuid' => (string)$siteMembershipGuid,
             ]
         );
@@ -92,10 +90,9 @@ class SiteMembershipSubscriptionsService
     private function prepareLineItems(string $productId): array
     {
         $product = $this->stripeProductService->getProductById($productId);
-        $price = $this->stripeProductPriceService->getPriceDetailsById($product->default_price);
         return [
             [
-                'price' => $price->id,
+                'price' => $product->default_price,
                 'quantity' => 1,
             ],
         ];
@@ -117,7 +114,7 @@ class SiteMembershipSubscriptionsService
         );
 
         $siteMembershipGuid = $stripeCheckoutSession->metadata['siteMembershipGuid'];
-        $redirectUri = $stripeCheckoutSession->metadata['redirectUri'];
+        $redirectPath = $stripeCheckoutSession->metadata['redirectPath'];
 
         $siteMembership = $this->siteMembershipReaderService->getSiteMembership((int)$siteMembershipGuid);
 
@@ -127,7 +124,7 @@ class SiteMembershipSubscriptionsService
             stripeSubscriptionId: $siteMembership->membershipPricingModel === SiteMembershipPricingModelEnum::RECURRING ? $stripeCheckoutSession->subscription : $stripeCheckoutSession->payment_intent
         );
 
-        return $redirectUri;
+        return $redirectPath;
     }
 
     /**

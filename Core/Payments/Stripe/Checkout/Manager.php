@@ -30,7 +30,11 @@ class Manager
      * @param User $user - the user we are creating the session for
      * @param string|CheckoutModeEnum $mode - defaults to setup
      * @param string|null $successUrl
+     * @param string|null $cancelUrl
      * @param array $lineItems
+     * @param array|null $paymentMethodTypes
+     * @param string|null $submitMessage
+     * @param array|null $metadata
      * @return Session
      * @throws ApiErrorException
      */
