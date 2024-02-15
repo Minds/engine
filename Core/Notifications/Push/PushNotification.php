@@ -1,5 +1,4 @@
 <?php
-
 namespace Minds\Core\Notifications\Push;
 
 use Minds\Core\Boost\V3\Models\Boost as BoostV3;
@@ -14,8 +13,8 @@ use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIdEnum;
 use Minds\Core\Payments\GiftCards\Enums\GiftCardProductIDLabelEnum;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\SupermindRequestStatus;
-use Minds\Entities\Activity;
 use Minds\Entities\User;
+use Minds\Entities\Activity;
 
 /**
  */
@@ -38,8 +37,8 @@ class PushNotification implements PushNotificationInterface
     private readonly Logger $logger;
 
     public function __construct(
-        Notification                    $notification,
-        Config                          $config = null,
+        Notification $notification,
+        Config $config = null,
         private ?BoostConsoleUrlBuilder $boostConsoleUrlBuilder = null
     ) {
         $this->notification = $notification;
@@ -51,117 +50,6 @@ class PushNotification implements PushNotificationInterface
         $this->config = $config ?? Di::_()->get('Config');
         $this->boostConsoleUrlBuilder ??= Di::_()->get(BoostConsoleUrlBuilder::class);
         $this->logger = Di::_()->get('Logger');
-    }
-
-    /**
-     * @return bool
-     */
-    protected function isValidNotification(Notification $notification): bool
-    {
-        switch ($notification->getType()) {
-            case NotificationTypes::TYPE_VOTE_UP:
-            case NotificationTypes::TYPE_REMIND:
-            case NotificationTypes::TYPE_QUOTE:
-            case NotificationTypes::TYPE_COMMENT:
-            case NotificationTypes::TYPE_TAG:
-            case NotificationTypes::TYPE_SUBSCRIBE:
-            case NotificationTypes::TYPE_SUPERMIND_REQUEST_CREATE:
-            case NotificationTypes::TYPE_SUPERMIND_REQUEST_ACCEPT:
-            case NotificationTypes::TYPE_SUPERMIND_REQUEST_REJECT:
-            case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON:
-                // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
-            case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
-            case NotificationTypes::TYPE_BOOST_ACCEPTED:
-            case NotificationTypes::TYPE_BOOST_REJECTED:
-            case NotificationTypes::TYPE_BOOST_COMPLETED:
-            case NotificationTypes::TYPE_AFFILIATE_EARNINGS_DEPOSITED:
-            case NotificationTypes::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
-            case NotificationTypes::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED:
-            case NotificationTypes::TYPE_POST_SUBSCRIPTION:
-                return true;
-        }
-        return false;
-    }
-
-    /**
-     * @return string
-     */
-    public function getBody(): ?string
-    {
-        if (in_array($this->notification->getType(), [
-            NotificationTypes::TYPE_BOOST_ACCEPTED,
-            NotificationTypes::TYPE_BOOST_REJECTED,
-            NotificationTypes::TYPE_BOOST_COMPLETED
-        ], true)) {
-            return '';
-        }
-
-        $entity = $this->notification->getEntity();
-        $excerpt = '';
-
-        switch ($entity->getType()) {
-            case 'comment':
-                $excerpt = $entity->getBody();
-                break;
-            case 'object':
-                $excerpt = $entity->getTitle();
-                break;
-            case 'activity':
-                $excerpt = $entity->getMessage();
-        }
-
-        switch ($this->notification->getType()) {
-            case NotificationTypes::TYPE_COMMENT:
-                $excerpt = $this->notification->getData()['comment_excerpt'];
-                break;
-            case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
-                $data = $this->notification->getData();
-                $excerpt = "🚀' You earned {$data['tokens_formatted']} tokens (\${$data['usd_formatted']}) yesterday";
-                break;
-        }
-
-        if ($this->notification->getType() === NotificationTypes::TYPE_POST_SUBSCRIPTION) {
-
-            if ($entity instanceof Activity) {
-                // Use message if there is one
-                // (this handles text posts, and media posts + rich-embeds with messages)
-                if ($excerpt) {
-                    return $excerpt;
-                }
-
-                // Use the title if there is one
-                // (this handles message-less rich-embeds + titled media posts)
-                if ($entity->getTitle()) {
-                    return $entity->getTitle();
-                }
-
-                // Check for video or image attachments
-                $customData = $entity->getCustomType() ? $entity->getCustomData() : [];
-                if ($entity->hasAttachments() && !empty($customData)) {
-                    if ($entity->getCustomType() === 'video') {
-                        return 'Posted a video';
-                    }
-
-                    // Check if single or multiple images
-                    if (is_array($customData)) {
-                        $imageCount = count($customData);
-                        return $imageCount > 1 ? 'Posted images' : 'Posted an image';
-                    }
-                }
-            }
-
-            // Handle blogs
-            if ($entity->getType() === 'object') {
-                if ($entity->getTitle()) {
-                    return $entity->getTitle();
-                }
-            }
-
-            //  Fallback if none of the above conditions are met
-            return 'Posted something new';
-        }
-
-        return $excerpt;
     }
 
     /**
@@ -180,12 +68,12 @@ class PushNotification implements PushNotificationInterface
             throw new UndeliverableException("{$this->notification->getEntityUrn()} was not found");
         }
 
-        $entityOwnerGuid = $entity instanceof User ? (string)$entity->getGuid() : (string)$entity->getOwnerGuid();
+        $entityOwnerGuid = $entity instanceof User ? (string) $entity->getGuid() : (string) $entity->getOwnerGuid();
 
         $verb = $pronoun = $noun = '';
 
 
-        if ($entityOwnerGuid === (string)$this->notification->getToGuid()) {
+        if ($entityOwnerGuid === (string) $this->notification->getToGuid()) {
             $pronoun = 'your';
         } else {
             $pronoun = 'their';
@@ -298,6 +186,87 @@ class PushNotification implements PushNotificationInterface
     /**
      * @return string
      */
+    public function getBody(): ?string
+    {
+        if (in_array($this->notification->getType(), [
+            NotificationTypes::TYPE_BOOST_ACCEPTED,
+            NotificationTypes::TYPE_BOOST_REJECTED,
+            NotificationTypes::TYPE_BOOST_COMPLETED
+        ], true)) {
+            return '';
+        }
+
+        $entity = $this->notification->getEntity();
+        $excerpt = '';
+
+        switch ($entity->getType()) {
+            case 'comment':
+                $excerpt = $entity->getBody();
+                break;
+            case 'object':
+                $excerpt = $entity->getTitle();
+                break;
+            case 'activity':
+                $excerpt = $entity->getMessage();
+        }
+
+        switch ($this->notification->getType()) {
+            case NotificationTypes::TYPE_COMMENT:
+                $excerpt = $this->notification->getData()['comment_excerpt'];
+                break;
+            case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
+                $data = $this->notification->getData();
+                $excerpt = "🚀' You earned {$data['tokens_formatted']} tokens (\${$data['usd_formatted']}) yesterday";
+                break;
+        }
+
+        if ($this->notification->getType() === NotificationTypes::TYPE_POST_SUBSCRIPTION) {
+
+            if ($entity instanceof Activity) {
+                // Use message if there is one
+                // (this handles text posts, and media posts + rich-embeds with messages)
+                if ($excerpt) {
+                    return $excerpt;
+                }
+
+                // Use the title if there is one
+                // (this handles message-less rich-embeds + titled media posts)
+                if ($entity->getTitle()) {
+                    return $entity->getTitle();
+                }
+
+                // Check for video or image attachments
+                $customData = $entity->getCustomType() ? $entity->getCustomData() : [];
+                if ($entity->hasAttachments() && !empty($customData)) {
+                    if ($entity->getCustomType() === 'video') {
+                        return 'Posted a video';
+                    }
+
+                    // Check if single or multiple images
+                    if (is_array($customData)) {
+                        $imageCount = count($customData);
+                        return $imageCount > 1 ? 'Posted images' : 'Posted an image';
+                    }
+                }
+            }
+
+            // Handle blogs
+            if ($entity->getType() === 'object') {
+                if ($entity->getTitle()) {
+                    return $entity->getTitle();
+                }
+            }
+
+            //  Fallback if none of the above conditions are met
+            return 'Posted something new';
+        }
+
+        return $excerpt;
+    }
+
+    /**
+     * @return string
+     */
     public function getUri(): string
     {
         switch ($this->notification->getType()) {
@@ -349,20 +318,6 @@ class PushNotification implements PushNotificationInterface
     }
 
     /**
-     * Gets boost console URL.
-     * @return string url for boost console.
-     */
-    private function getBoostConsoleUrl(): string
-    {
-        $boost = $this->notification->getEntity();
-        if (!$boost instanceof BoostV3) {
-            $baseUrl = $this->config->get('site_url');
-            return $baseUrl . 'boost/console/newsfeed/history';
-        }
-        return $this->boostConsoleUrlBuilder->build($boost);
-    }
-
-    /**
      * @return string
      */
     public function getIcon(): string
@@ -407,14 +362,6 @@ class PushNotification implements PushNotificationInterface
     }
 
     /**
-     * @return DeviceSubscription
-     */
-    public function getDeviceSubscription(): DeviceSubscription
-    {
-        return $this->deviceSubscription;
-    }
-
-    /**
      * @param DeviceSubscription $deviceSubscription
      * @return self
      */
@@ -425,11 +372,11 @@ class PushNotification implements PushNotificationInterface
     }
 
     /**
-     * @return int
+     * @return DeviceSubscription
      */
-    public function getUnreadCount(): int
+    public function getDeviceSubscription(): DeviceSubscription
     {
-        return $this->unreadCount;
+        return $this->deviceSubscription;
     }
 
     /**
@@ -440,6 +387,14 @@ class PushNotification implements PushNotificationInterface
     {
         $this->unreadCount = $unreadCount;
         return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getUnreadCount(): int
+    {
+        return $this->unreadCount;
     }
 
     public function getMetadata(): array
@@ -468,6 +423,50 @@ class PushNotification implements PushNotificationInterface
      */
     public function getUserGuid(): string
     {
-        return (string)$this->notification->getToGuid();
+        return (string) $this->notification->getToGuid();
+    }
+
+    /**
+     * @return bool
+     */
+    protected function isValidNotification(Notification $notification): bool
+    {
+        switch ($notification->getType()) {
+            case NotificationTypes::TYPE_VOTE_UP:
+            case NotificationTypes::TYPE_REMIND:
+            case NotificationTypes::TYPE_QUOTE:
+            case NotificationTypes::TYPE_COMMENT:
+            case NotificationTypes::TYPE_TAG:
+            case NotificationTypes::TYPE_SUBSCRIBE:
+            case NotificationTypes::TYPE_SUPERMIND_REQUEST_CREATE:
+            case NotificationTypes::TYPE_SUPERMIND_REQUEST_ACCEPT:
+            case NotificationTypes::TYPE_SUPERMIND_REQUEST_REJECT:
+            case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRING_SOON:
+                // case NotificationTypes::TYPE_SUPERMIND_REQUEST_EXPIRE:
+            case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
+            case NotificationTypes::TYPE_BOOST_ACCEPTED:
+            case NotificationTypes::TYPE_BOOST_REJECTED:
+            case NotificationTypes::TYPE_BOOST_COMPLETED:
+            case NotificationTypes::TYPE_AFFILIATE_EARNINGS_DEPOSITED:
+            case NotificationTypes::TYPE_REFERRER_AFFILIATE_EARNINGS_DEPOSITED:
+            case NotificationTypes::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED:
+            case NotificationTypes::TYPE_POST_SUBSCRIPTION:
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Gets boost console URL.
+     * @return string url for boost console.
+     */
+    private function getBoostConsoleUrl(): string
+    {
+        $boost = $this->notification->getEntity();
+        if (!$boost instanceof BoostV3) {
+            $baseUrl = $this->config->get('site_url');
+            return $baseUrl . 'boost/console/newsfeed/history';
+        }
+        return $this->boostConsoleUrlBuilder->build($boost);
     }
 }
