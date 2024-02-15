@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Default event listeners.
  */
@@ -13,6 +12,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Entities;
 use Minds\Entities\User;
+use Minds\Entities\Group;
 use Minds\Helpers;
 
 class Defaults
@@ -34,6 +34,7 @@ class Defaults
         //Channel object reserializer
         Dispatcher::register('export:extender', 'all', function ($event) {
             $params = $event->getParameters();
+            $cacheTtl = 259200; // Cache for 3 days.
 
             if ($params['entity'] instanceof Core\Blogs\Blog) {
                 return;
@@ -41,13 +42,27 @@ class Defaults
 
             $export = $event->response() ?: [];
 
-            if ($params['entity']->getOwnerGuid() && !$params['entity'] instanceof User) {
-                $ownerObj = $this->entitiesBuilder->single($params['entity']->getOwnerGuid(), [
-                    'cache' => true,
-                    'cacheTtl' => 259200 // Cache for 3 day.
-                ]);
-                if ($ownerObj) {
-                    $export['ownerObj'] = $ownerObj->export();
+            if (!$params['entity'] instanceof User) {
+                if ($params['entity']->getOwnerGuid()) {
+                    $ownerObj = $this->entitiesBuilder->single($params['entity']->getOwnerGuid(), [
+                        'cache' => true,
+                        'cacheTtl' => $cacheTtl
+                    ]);
+                    if ($ownerObj) {
+                        $export['ownerObj'] = $ownerObj->export();
+                    }
+                }
+
+                if (!$params['entity'] instanceof Group) {
+                    if ($params['entity']->getContainerGuid()) {
+                        $containerObj = $this->entitiesBuilder->single($params['entity']->getContainerGuid(), [
+                            'cache' => true,
+                            'cacheTtl' => $cacheTtl
+                        ]);
+                        if ($containerObj) {
+                            $export['containerObj'] = $containerObj->export();
+                        }
+                    }
                 }
             }
 
