@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Payments\Stripe\Checkout\Products\Services;
 
-use InvalidArgumentException;
 use Minds\Core\Config\Config;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPriceBillingPeriodEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPriceCurrencyEnum;
@@ -332,5 +331,111 @@ class ProductServiceSpec extends ObjectBehavior
             null
         )
             ->shouldBeAnInstanceOf(StripeProduct::class);
+    }
+
+    public function it_should_create_product_WITH_description(): void
+    {
+        $this->configMock->get('tenant_id')
+            ->shouldBeCalledTimes(2)
+            ->willReturn(1);
+
+        $this->stripeProductServiceMock->create([
+            'name' => 'product_name',
+            'description' => 'test description',
+            'default_price_data' => [
+                'currency' => ProductPriceCurrencyEnum::USD->value,
+                'unit_amount' => 999,
+            ],
+            'metadata' => [
+                'key' => 'tenant:1:1',
+                'type' => ProductTypeEnum::SITE_MEMBERSHIP->value,
+                'tenant_id' => 1,
+                'billing_period' => ProductPriceBillingPeriodEnum::MONTHLY->value,
+            ]
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn($this->generateStripeProductMock());
+
+        $this->createProduct(
+            1,
+            'product_name',
+            999,
+            ProductPriceBillingPeriodEnum::MONTHLY,
+            ProductPricingModelEnum::ONE_TIME,
+            ProductTypeEnum::SITE_MEMBERSHIP,
+            ProductPriceCurrencyEnum::USD,
+            "test description"
+        )
+            ->shouldBeAnInstanceOf(StripeProduct::class);
+    }
+
+    public function it_should_update_product_WITHOUT_description(): void
+    {
+        $this->stripeProductServiceMock->update(
+            'product_id',
+            [
+                'name' => 'product_name',
+            ]
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($this->generateStripeProductMock());
+
+        $this->updateProduct('product_id', 'product_name')
+            ->shouldBeAnInstanceOf(StripeProduct::class);
+    }
+
+    public function it_should_update_product_WITH_description(): void
+    {
+        $this->stripeProductServiceMock->update(
+            'product_id',
+            [
+                'name' => 'product_name',
+                'description' => 'test description',
+            ]
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($this->generateStripeProductMock());
+
+        $this->updateProduct('product_id', 'product_name', 'test description')
+            ->shouldBeAnInstanceOf(StripeProduct::class);
+    }
+
+    public function it_should_update_product_WITH_EMPTY_description(): void
+    {
+        $this->stripeProductServiceMock->update(
+            'product_id',
+            [
+                'name' => 'product_name',
+                'description' => '',
+            ]
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($this->generateStripeProductMock());
+
+        $this->updateProduct('product_id', 'product_name', '')
+            ->shouldBeAnInstanceOf(StripeProduct::class);
+    }
+
+    public function it_should_archive_product(): void
+    {
+        $this->stripeProductServiceMock->update(
+            'product_id',
+            [
+                'active' => false
+            ]
+        )
+            ->shouldBeCalledOnce();
+
+        $this->archiveProduct('product_id')
+            ->shouldBe(true);
+    }
+
+    public function it_should_delete_product(): void
+    {
+        $this->stripeProductServiceMock->delete('product_id')
+            ->shouldBeCalledOnce();
+
+        $this->deleteProduct('product_id')
+            ->shouldBe(true);
     }
 }

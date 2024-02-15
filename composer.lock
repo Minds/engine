@@ -3767,12 +3767,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/FaustoJohn/selective-database.git",
-                "reference": "84abc9d1aa6ebbc39fa9e9d0f905d004f975823d"
+                "reference": "d14ca8863d0a3ac5106b97af4e3432fc47685f1f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/FaustoJohn/selective-database/zipball/84abc9d1aa6ebbc39fa9e9d0f905d004f975823d",
-                "reference": "84abc9d1aa6ebbc39fa9e9d0f905d004f975823d",
+                "url": "https://api.github.com/repos/FaustoJohn/selective-database/zipball/d14ca8863d0a3ac5106b97af4e3432fc47685f1f",
+                "reference": "d14ca8863d0a3ac5106b97af4e3432fc47685f1f",
                 "shasum": ""
             },
             "require": {
@@ -3843,7 +3843,7 @@
             "support": {
                 "source": "https://github.com/FaustoJohn/selective-database/tree/master"
             },
-            "time": "2023-04-17T17:59:50+00:00"
+            "time": "2024-02-15T16:29:24+00:00"
         },
         {
             "name": "minds/oauth2-openid-connect-server",
