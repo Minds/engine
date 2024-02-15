@@ -57,7 +57,7 @@ class PaywalledEntitiesRepository extends AbstractRepository
 
     public function getMembershipsFromEntity(int $entityGuid): ?array
     {
-        $stmt = $this->mysqlClientWriterHandler->select()
+        $stmt = $this->mysqlClientReaderHandler->select()
                 ->columns([
                     'membership_guid'
                 ])

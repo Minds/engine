@@ -64,4 +64,23 @@ class PaywalledEntitiesRepositorySpec extends ObjectBehavior
         $this->mapMembershipsToEntity(123, [456, 789])
             ->shouldBe(true);
     }
+
+    public function it_should_return_available_memberships_for_an_entity(PDOStatement $stmtMock)
+    {
+        $this->mysqlReplicaMock->quote(Argument::any())->willReturn("");
+        $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($stmtMock);
+
+        $stmtMock->execute([
+            'entity_guid' => 123,
+        ])->willReturn(true);
+
+        $stmtMock->rowCount()->willReturn(3);
+
+        $stmtMock->fetchAll(PDO::FETCH_COLUMN)->willReturn([1,2,3]);
+
+        $this->getMembershipsFromEntity(123)
+            ->shouldBe([
+                1,2,3
+            ]);
+    }
 }
