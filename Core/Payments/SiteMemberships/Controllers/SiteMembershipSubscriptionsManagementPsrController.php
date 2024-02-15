@@ -6,6 +6,7 @@ namespace Minds\Core\Payments\SiteMemberships\Controllers;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipSubscriptionFoundException;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipSubscriptionsManagementService;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Stripe\Exception\ApiErrorException;
 use Zend\Diactoros\Response\RedirectResponse;
@@ -20,18 +21,19 @@ class SiteMembershipSubscriptionsManagementPsrController
     /**
      * @param ServerRequestInterface $request
      * @return RedirectResponse
-     * @throws ServerErrorException
-     * @throws NoSiteMembershipSubscriptionFoundException
      * @throws ApiErrorException
+     * @throws NoSiteMembershipSubscriptionFoundException
+     * @throws ServerErrorException
+     * @throws UserErrorException
      */
     public function goToManageSiteMembershipSubscriptionLink(ServerRequestInterface $request): RedirectResponse
     {
         $siteMembershipSubscriptionId = $request->getAttribute('parameters')['siteMembershipSubscriptionId'];
-        $redirectUri = $request->getQueryParams()['redirectUri'];
+        $redirectPath = $request->getQueryParams()['redirectPath'];
 
         $link = $this->siteMembershipSubscriptionsManagementService->generateManageSiteMembershipSubscriptionLink(
             siteMembershipSubscriptionId: (int)$siteMembershipSubscriptionId,
-            redirectUri: $redirectUri
+            redirectPath: $redirectPath
         );
 
         return new RedirectResponse(uri: $link);
@@ -45,10 +47,10 @@ class SiteMembershipSubscriptionsManagementPsrController
     public function completeSiteMembershipSubscriptionCancellation(ServerRequestInterface $request): RedirectResponse
     {
         $siteMembershipSubscriptionId = $request->getAttribute('parameters')['siteMembershipSubscriptionId'];
-        $redirectUri = $request->getQueryParams()['redirectUri'];
+        $redirectPath = $request->getQueryParams()['redirectPath'];
 
-        $this->siteMembershipSubscriptionsManagementService->cancelSiteMembershipCancellation((int)$siteMembershipSubscriptionId);
+        $this->siteMembershipSubscriptionsManagementService->completeSiteMembershipCancellation((int)$siteMembershipSubscriptionId);
 
-        return new RedirectResponse(uri: $redirectUri);
+        return new RedirectResponse(uri: $redirectPath);
     }
 }

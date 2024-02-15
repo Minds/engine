@@ -27,29 +27,29 @@ class SiteMembershipSubscriptionsManagementService
 
     /**
      * @param int $siteMembershipSubscriptionId
-     * @param string $redirectUri
+     * @param string $redirectPath
      * @return string
      * @throws ApiErrorException
      * @throws NoSiteMembershipSubscriptionFoundException
      * @throws ServerErrorException
      * @throws UserErrorException
      */
-    public function generateManageSiteMembershipSubscriptionLink(int $siteMembershipSubscriptionId, string $redirectUri): string
+    public function generateManageSiteMembershipSubscriptionLink(int $siteMembershipSubscriptionId, string $redirectPath): string
     {
         $siteMembershipSubscription = $this->siteMembershipSubscriptionsRepository->getSiteMembershipSubscriptionById($siteMembershipSubscriptionId);
 
         if (str_starts_with($siteMembershipSubscription->stripeSubscriptionId, 'sub_') && !$siteMembershipSubscription->autoRenew) {
-            return $this->config->get('site_url') . ltrim($redirectUri, '/') . "?error=" . SiteMembershipErrorEnum::SUBSCRIPTION_ALREADY_CANCELLED->name;
+            return $this->config->get('site_url') . ltrim($redirectPath, '/') . "?error=" . SiteMembershipErrorEnum::SUBSCRIPTION_ALREADY_CANCELLED->name;
         }
 
         $stripeSubscription = $this->stripeSubscriptionsService->retrieveSubscription($siteMembershipSubscription->stripeSubscriptionId);
 
         return $this->stripeCustomerPortalService->createCustomerPortalSession(
             stripeCustomerId: $stripeSubscription->customer,
-            redirectUri: $this->config->get('site_url') . ltrim($redirectUri, '/'),
+            redirectUrl: $this->config->get('site_url') . ltrim($redirectPath, '/'),
             flowData: (new CustomerPortalFlowConfiguration(
                 flowType: CustomerPortalFlowTypeEnum::SUBSCRIPTION_CANCEL,
-                redirectUri: $this->config->get('site_url') . "api/v3/payments/site-memberships/subscriptions/$siteMembershipSubscription->membershipSubscriptionId/manage/cancel?redirectUri=$redirectUri",
+                redirectUrl: $this->config->get('site_url') . "api/v3/payments/site-memberships/subscriptions/$siteMembershipSubscription->membershipSubscriptionId/manage/cancel?redirectPath=$redirectPath",
                 subscriptionId: $stripeSubscription->id,
             ))->toArray()
         );
@@ -60,7 +60,7 @@ class SiteMembershipSubscriptionsManagementService
      * @return void
      * @throws ServerErrorException
      */
-    public function cancelSiteMembershipCancellation(int $siteMembershipSubscriptionId): void
+    public function completeSiteMembershipCancellation(int $siteMembershipSubscriptionId): void
     {
         $this->siteMembershipSubscriptionsRepository->setSiteMembershipSubscriptionAutoRenew(
             siteMembershipSubscriptionId: $siteMembershipSubscriptionId,

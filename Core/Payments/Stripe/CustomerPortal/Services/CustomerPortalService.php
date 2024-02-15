@@ -23,14 +23,14 @@ class CustomerPortalService
 
     /**
      * @param string $stripeCustomerId
-     * @param string $redirectUri
+     * @param string $redirectUrl
      * @param array|null $flowData
      * @return string
      * @throws ServerErrorException
      */
     public function createCustomerPortalSession(
         string $stripeCustomerId,
-        string $redirectUri,
+        string $redirectUrl,
         ?array $flowData = null
     ): string {
 
@@ -42,7 +42,7 @@ class CustomerPortalService
         $customerPortalDetails = [
             'customer' => $stripeCustomerId,
             'configuration' => $customerPortalConfigurationId,
-            'return_url' => $redirectUri,
+            'return_url' => $redirectUrl,
         ];
 
         if ($flowData) {
