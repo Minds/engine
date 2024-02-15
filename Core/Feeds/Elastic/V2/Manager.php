@@ -499,7 +499,7 @@ class Manager
             ];
         }
 
-        if ($queryOpts->onlySubscribed) {
+        if ($queryOpts->onlySubscribed || $queryOpts->onlySubscribedAndGroups) {
             // Posts from subscriptions
             $should[] = [
                 'terms' => [
@@ -519,6 +519,19 @@ class Manager
             ];
         }
 
+        if ($queryOpts->onlySubscribedAndGroups) {
+            // Include posts from groups user is member of
+            $groupGuids = $this->groupsMembershipManager->getGroupGuids($queryOpts->user);
+            if (!empty($groupGuids)) {
+                $should[] =
+                [
+                    'terms' => [
+                        'container_guid' => array_map('strval', $groupGuids),
+                    ],
+                ];
+            }
+        }
+
         if ($queryOpts->onlyGroups) {
             // Only posts from groups user is member of
             $must[] = [
@@ -529,18 +542,6 @@ class Manager
                         }, $this->groupsMembershipManager->getGroupGuids($queryOpts->user)),
                 ]
             ];
-        } elseif ($queryOpts->includeGroups) {
-            // Include posts from groups user is member of
-            $groupGuids = $this->groupsMembershipManager->getGroupGuids($queryOpts->user);
-            if (!empty($groupGuids)) {
-                $should[] =
-                [
-                    'terms' => [
-                        'container_guid' => array_map('strval', $groupGuids),
-                    ],
-                ];
-
-            }
         }
 
         if ($queryOpts->query) {
@@ -568,12 +569,20 @@ class Manager
         }
 
         if ($queryOpts->accessId) {
-            // Only public posts
-            $must[] = [
-                'terms' => [
-                    'access_id' => [$queryOpts->accessId],
-                ],
-            ];
+            if ($this->isTenant()) {
+                $mustNot[] = [
+                    'terms' => [
+                        'access_id' => [0, 1],
+                    ],
+                ];
+            } else {
+                // Only public posts
+                $must[] = [
+                    'terms' => [
+                        'access_id' => [$queryOpts->accessId],
+                    ],
+                ];
+            }
         }
 
         switch ($queryOpts->mediaTypeEnum) {
@@ -696,5 +705,15 @@ class Manager
     private function getSearchIndexName(): string
     {
         return 'minds-search-activity';
+    }
+
+
+    /**
+     * Whether this is a tenant site
+     * @return bool true if tenant
+     */
+    private function isTenant(): bool
+    {
+        return $this->config->get('tenant_id') !== null;
     }
 }

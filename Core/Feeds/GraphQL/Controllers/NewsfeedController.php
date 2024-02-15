@@ -151,9 +151,9 @@ class NewsfeedController
                 queryOpts: new QueryOpts(
                     user: $loggedInUser,
                     limit: $limit,
-                    onlySubscribed: true,
-                    accessId: Access::PUBLIC,
-                    includeGroups: $this->isTenant(),
+                    onlySubscribed: !$this->isTenant(),
+                    onlySubscribedAndGroups: $this->isTenant(),
+                    accessId: Access::PUBLIC
                 ),
                 loadAfter: $loadAfter,
                 loadBefore: $loadBefore,
@@ -174,9 +174,9 @@ class NewsfeedController
                 queryOpts: new QueryOpts(
                     user: $loggedInUser,
                     limit: $limit,
-                    onlySubscribed: true,
+                    onlySubscribed: !$this->isTenant(),
+                    onlySubscribedAndGroups: $this->isTenant(),
                     accessId: Access::PUBLIC,
-                    includeGroups: $this->isTenant(),
                 ),
                 loadAfter: $loadAfter,
                 loadBefore: $loadBefore,
