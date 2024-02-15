@@ -279,7 +279,7 @@ class Controller
             $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_CREATE_PAYWALL, $user);
 
             $this->createPaywalledEntityService->setupMemberships($activity, $siteMembershipGuids);
-        
+
             if (isset($payload['title'])) {
                 $activity->setTitle($payload['title']);
             }

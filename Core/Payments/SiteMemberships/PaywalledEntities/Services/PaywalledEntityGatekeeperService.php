@@ -24,17 +24,17 @@ class PaywalledEntityGatekeeperService
     public function canAccess(Activity $entity, User $user): bool
     {
         // Owner of the post will always have access
-        if ($user->getGuid() === $entity->getOwnerGuid()) {
+        if ($user->getGuid() === $entity->getOwnerGuid() || $user->isAdmin()) {
             return true;
         }
-
-        $entityMembershipGuids = $this->getMembershipGuidsForActivity($entity);
 
         $userMembershipGuids = $this->getMembershipGuidsForUser($user);
 
         if (!$userMembershipGuids) {
             return false;
         }
+
+        $entityMembershipGuids = $this->getMembershipGuidsForActivity($entity);
 
         // User has a membership AND the activity post is set to all
         if (in_array(-1, $entityMembershipGuids, true) && $userMembershipGuids) {
@@ -49,11 +49,17 @@ class PaywalledEntityGatekeeperService
         return false;
     }
 
+    /**
+     * Returns the membership guids that have been paired to the activity post
+     */
     private function getMembershipGuidsForActivity(Activity $activity): ?array
     {
         return $this->paywalledEntitiesRepository->getMembershipsFromEntity((int) $activity->getGuid());
     }
 
+    /**
+     * Returns all the valid membership guids that a user has
+     */
     private function getMembershipGuidsForUser(User $user): ?array
     {
         $guids = array_map(
