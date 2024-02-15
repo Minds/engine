@@ -577,6 +577,8 @@ class Manager
                 ];
             } else {
                 // Only public posts
+                // (This is what is preventing group posts from inclusion
+                // on non-tenant top/latest)
                 $must[] = [
                     'terms' => [
                         'access_id' => [$queryOpts->accessId],
