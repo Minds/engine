@@ -20,13 +20,10 @@ use Minds\Exceptions\NotFoundException;
 class PostNotificationDispatchHelper implements PostNotificationDispatchHelperInterface
 {
     public function __construct(
-        private ?GroupsMembershipManager $groupsMembershipManager = null,
-        private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?Logger $logger = null,
+        private GroupsMembershipManager $groupsMembershipManager,
+        private EntitiesBuilder $entitiesBuilder,
+        private Logger $logger,
     ) {
-        $this->groupsMembershipManager ??= Di::_()->get(GroupsMembershipManager::class);
-        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
-        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -37,7 +34,11 @@ class PostNotificationDispatchHelper implements PostNotificationDispatchHelperIn
      */
     public function canDispatch(PostSubscription $postSubscription, Entity $forActivity): bool
     {
-        $containerEntity = $forActivity?->getContainerEntity();
+        $containerEntity = null;
+
+        if ($forActivity->getContainerGuid()) {
+            $containerEntity = $this->entitiesBuilder->single($forActivity->getContainerGuid());
+        }
 
         if ($containerEntity && $containerEntity instanceof Group) {
             return $this->canDispatchForGroupContainer($postSubscription, $containerEntity);

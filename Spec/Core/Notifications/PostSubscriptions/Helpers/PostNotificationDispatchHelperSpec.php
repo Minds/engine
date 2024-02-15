@@ -57,7 +57,7 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
             frequency: $frequency
         );
 
-        $forActivity->getContainerEntity()
+        $forActivity->getContainerGuid()
           ->shouldBeCalled()
           ->willReturn(null);
 
@@ -68,6 +68,7 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
         Entity $forActivity,
         Activity $container
     ) {
+        $containerGuid = Guid::build();
         $userGuid = Guid::build();
         $entityGuid = Guid::build();
         $frequency = PostSubscriptionFrequencyEnum::ALWAYS;
@@ -78,7 +79,11 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
             frequency: $frequency
         );
 
-        $forActivity->getContainerEntity()
+        $forActivity->getContainerGuid()
+          ->shouldBeCalled()
+          ->willReturn($containerGuid);
+
+        $this->entitiesBuilder->single($containerGuid)
           ->shouldBeCalled()
           ->willReturn($container);
 
@@ -91,6 +96,7 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
         User $recipient,
         Membership $membership
     ) {
+        $containerGuid = Guid::build();
         $userGuid = Guid::build();
         $entityGuid = Guid::build();
         $frequency = PostSubscriptionFrequencyEnum::ALWAYS;
@@ -101,7 +107,11 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
             frequency: $frequency
         );
 
-        $forActivity->getContainerEntity()
+        $forActivity->getContainerGuid()
+          ->shouldBeCalled()
+          ->willReturn($containerGuid);
+
+        $this->entitiesBuilder->single($containerGuid)
           ->shouldBeCalled()
           ->willReturn($container);
 
@@ -126,6 +136,7 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
         User $recipient,
         Membership $membership
     ) {
+        $containerGuid = Guid::build();
         $userGuid = Guid::build();
         $entityGuid = Guid::build();
         $frequency = PostSubscriptionFrequencyEnum::ALWAYS;
@@ -136,7 +147,11 @@ class PostNotificationDispatchHelperSpec extends ObjectBehavior
             frequency: $frequency
         );
 
-        $forActivity->getContainerEntity()
+        $forActivity->getContainerGuid()
+          ->shouldBeCalled()
+          ->willReturn($containerGuid);
+
+        $this->entitiesBuilder->single($containerGuid)
           ->shouldBeCalled()
           ->willReturn($container);
 
