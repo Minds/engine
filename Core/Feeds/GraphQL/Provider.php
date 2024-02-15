@@ -31,6 +31,7 @@ class Provider extends DiProvider
                 votesManager: $di->get('Votes\Manager'),
                 tagRecommendationsManager: $di->get(TagRecommendations\Manager::class),
                 tenantGuestModeFeedsService: $di->get(TenantGuestModeFeedsService::class),
+                config: $di->get(Config::class),
             );
         });
 

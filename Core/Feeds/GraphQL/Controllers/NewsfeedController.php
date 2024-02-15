@@ -41,6 +41,7 @@ use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Query;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
+use Minds\Core\Config\Config;
 
 class NewsfeedController
 {
@@ -56,6 +57,7 @@ class NewsfeedController
         protected Votes\Manager $votesManager,
         protected TagRecommendationsManager $tagRecommendationsManager,
         private readonly TenantGuestModeFeedsService $tenantGuestModeFeedsService,
+        private readonly Config $config,
     ) {
     }
 
@@ -102,7 +104,7 @@ class NewsfeedController
         // store value so that this can be used AFTER $loadAfter or $loadBefore
         // has been set for the next page.
         $isFirstPage = !$loadAfter && !$loadBefore;
- 
+
         /**
          * The limit to use
          */
@@ -151,6 +153,7 @@ class NewsfeedController
                     limit: $limit,
                     onlySubscribed: true,
                     accessId: Access::PUBLIC,
+                    includeGroups: $this->isTenant(),
                 ),
                 loadAfter: $loadAfter,
                 loadBefore: $loadBefore,
@@ -173,6 +176,7 @@ class NewsfeedController
                     limit: $limit,
                     onlySubscribed: true,
                     accessId: Access::PUBLIC,
+                    includeGroups: $this->isTenant(),
                 ),
                 loadAfter: $loadAfter,
                 loadBefore: $loadBefore,
@@ -654,5 +658,14 @@ class NewsfeedController
     public function isForYouTagRecsExperimentOn(User $loggedInUser): bool
     {
         return $this->experimentsManager->setUser($loggedInUser)->isOn('minds-4228-for-you-tag-recs');
+    }
+
+    /**
+     * Whether this is a tenant site
+     * @return bool true if tenant
+     */
+    private function isTenant(): bool
+    {
+        return $this->config->get('tenant_id') !== null;
     }
 }
