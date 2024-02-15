@@ -105,7 +105,7 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
             ],
             null,
             [
-                'redirectUri' => '/memberships',
+                'redirectPath' => '/memberships',
                 'siteMembershipGuid' => '1'
             ]
         )
@@ -156,7 +156,7 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
             'payment_intent' => 'pi_123',
             'metadata' => [
                 'siteMembershipGuid' => '1',
-                'redirectUri' => '/memberships'
+                'redirectPath' => '/memberships'
             ]
         ]);
 
@@ -198,7 +198,7 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
             ],
             null,
             [
-                'redirectUri' => '/memberships',
+                'redirectPath' => '/memberships',
                 'siteMembershipGuid' => '1'
             ]
         )

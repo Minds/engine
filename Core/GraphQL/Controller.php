@@ -28,7 +28,7 @@ class Controller
 
         if ($result->errors) {
             foreach ($result->errors as $error) {
-                error_log($error->getMessage());
+                error_log($error);
             }
         }
 
