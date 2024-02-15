@@ -83,7 +83,7 @@ class ReportRepository extends AbstractRepository
         $query = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'report_guid' => new RawExp("MIN(report_guid)"),
-                'tenant_id',
+                'tenant_id' => new RawExp("MIN(tenant_id)"),
                 'entity_guid',
                 'entity_urn' => new RawExp("MIN(entity_urn)"),
                 'reported_by_guid' => new RawExp("MIN(reported_by_guid)"),
