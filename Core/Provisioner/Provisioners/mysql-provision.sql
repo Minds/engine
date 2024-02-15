@@ -886,3 +886,5 @@ CREATE TABLE IF NOT EXISTS minds_payments_config(
     tenant_id INT NOT NULL PRIMARY KEY,
     stripe_customer_portal_config_id varchar(256) DEFAULT NULL
 );
+
+ALTER TABLE minds_entities_object_image ADD COLUMN blurhash text AFTER filename;

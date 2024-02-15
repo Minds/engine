@@ -581,7 +581,8 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'time_created' => MySQLDataTypeEnum::TIMESTAMP,
                     'time_updated' => MySQLDataTypeEnum::TIMESTAMP,
                     'auto_caption' => MySQLDataTypeEnum::TEXT,
-                    'filename' => MySQLDataTypeEnum::TEXT
+                    'filename' => MySQLDataTypeEnum::TEXT,
+                    'blurhash' => MySQLDataTypeEnum::TEXT,
                 ];
             case Video::class:
                 return [

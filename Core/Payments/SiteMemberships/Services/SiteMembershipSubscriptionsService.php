@@ -129,7 +129,7 @@ class SiteMembershipSubscriptionsService
 
     /**
      * @param User|null $user
-     * @return array
+     * @return SiteMembershipSubscription[]
      * @throws ServerErrorException
      */
     public function getSiteMembershipSubscriptions(

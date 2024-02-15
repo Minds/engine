@@ -5,7 +5,9 @@ namespace Minds\Core\Payments\SiteMemberships\PaywalledEntities;
 
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Exceptions\ServerErrorException;
+use PDO;
 use PDOException;
+use Selective\Database\Operator;
 use Selective\Database\RawExp;
 
 class PaywalledEntitiesRepository extends AbstractRepository
@@ -53,5 +55,25 @@ class PaywalledEntitiesRepository extends AbstractRepository
         return true;
     }
 
+    public function getMembershipsFromEntity(int $entityGuid): ?array
+    {
+        $stmt = $this->mysqlClientWriterHandler->select()
+                ->columns([
+                    'membership_guid'
+                ])
+                ->from(self::TABLE_NAME)
+                ->where('entity_guid', Operator::EQ, new RawExp(':entity_guid'))
+                ->prepare();
+
+        $stmt->execute([
+            'entity_guid' => $entityGuid
+        ]);
+
+        if ($stmt->rowCount() === 0) {
+            return null;
+        }
+
+        return array_values($stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
 
 }

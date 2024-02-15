@@ -323,6 +323,10 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
          */
         if ($export['perma_url']) {
             $export['link_title'] ??= $export['title'];
+
+            if ($export['title'] && $export['title'] === $export['link_title']) {
+                $export['title'] = null;
+            }
         }
 
         $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'activity', ['entity' => $this], []));

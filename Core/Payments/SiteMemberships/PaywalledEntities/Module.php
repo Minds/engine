@@ -15,5 +15,7 @@ class Module implements ModuleInterface
     public function onInit(): void
     {
         (new Provider())->register();
+        (new Events())->register();
+        (new Routes())->register();
     }
 }

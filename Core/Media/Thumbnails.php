@@ -4,8 +4,10 @@ namespace Minds\Core\Media;
 
 use Minds\Core;
 use Minds\Core\Di\Di;
+use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\PaywalledEntityGatekeeperService;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Entities;
+use Minds\Entities\Activity;
 use Minds\Entities\Image;
 use Minds\Entities\Video;
 
@@ -26,12 +28,19 @@ class Thumbnails
     /** @var string */
     const PAYWALL_BLUR = '/Assets/photos/paywall-blur.jpeg';
 
-    public function __construct($config = null, $entitiesBuilder = null, $cloudflareStreamsManager = null, $paywallManager = null)
+    public function __construct(
+        $config = null,
+        $entitiesBuilder = null,
+        $cloudflareStreamsManager = null,
+        $paywallManager = null,
+        private ?PaywalledEntityGatekeeperService $paywalledEntityGatekeeperService = null,
+    )
     {
         $this->paywallManager = $paywallManager ?? Di::_()->get('Wire\Paywall\Manager');
         $this->config = $config ?: Di::_()->get('Config');
         $this->entitiesBuilder = $entitiesBuilder ?: Di::_()->get('EntitiesBuilder');
         $this->cloudflareStreamsManager = $cloudflareStreamsManager ?? Di::_()->get('Media\Video\CloudflareStreams\Manager');
+        $this->paywalledEntityGatekeeperService ??= Di::_()->get(PaywalledEntityGatekeeperService::class);
     }
 
     /**
@@ -60,6 +69,16 @@ class Thumbnails
         try {
             if (!$opts['bypassPaywall'] && !Di::_()->get('Wire\Thresholds')->isAllowed($loggedInUser, $entity)) {
                 return false;
+            }
+
+            // Get the parent activity post if this is an image
+            if ($entity instanceof Image) {
+                $activity = $this->entitiesBuilder->single($entity->getAccessId());
+                if ($activity instanceof Activity && $activity->hasSiteMembership()) {
+                    if (!$this->paywalledEntityGatekeeperService->canAccess($activity, $loggedInUser)) {
+                        return false;
+                    }
+                }
             }
         } catch (\Exception $e) {
             error_log('[Core/Media/Thumbnails::get] ' . $e->getMessage());

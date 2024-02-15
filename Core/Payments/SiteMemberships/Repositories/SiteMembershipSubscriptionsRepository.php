@@ -53,7 +53,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
 
     /**
      * @param User|null $user
-     * @return iterable
+     * @return iterable<SiteMembershipSubscription>
      * @throws ServerErrorException
      */
     public function getSiteMembershipSubscriptions(
