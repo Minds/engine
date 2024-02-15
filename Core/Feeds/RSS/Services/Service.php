@@ -157,7 +157,7 @@ class Service
         try {
             foreach ($this->processRssFeedService->fetchFeed(rssFeed: $rssFeed) as $entry) {
                 $entryTimestamp = $entry->getDateModified()?->getTimestamp() ?? $entry->getDateCreated()?->getTimestamp();
-                
+
                 if (!$entryTimestamp) {
                     $this->logger->info("Skipping entry {$entry->getTitle()} as it has no timestamp");
                     continue;
@@ -165,6 +165,11 @@ class Service
 
                 if ($entryTimestamp <= $rssFeed->lastFetchAtTimestamp) {
                     $this->logger->info("Skipping entry {$entry->getTitle()} as it is older than last fetch timestamp");
+                    continue;
+                }
+
+                if ($entryTimestamp < strtotime('-1 hour')) {
+                    $this->logger->info("Skipping entry {$entry->getTitle()} as it is older than 1 hour");
                     continue;
                 }
 
