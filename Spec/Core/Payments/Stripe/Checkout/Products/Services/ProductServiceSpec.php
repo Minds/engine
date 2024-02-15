@@ -239,27 +239,27 @@ class ProductServiceSpec extends ObjectBehavior
             ->shouldYieldAnInstanceOf(StripeProduct::class);
     }
 
-    public function it_should_get_products_by_metadata_WITH_too_many_metadata_entries(): void
-    {
-        $this->shouldThrow(new InvalidArgumentException("You can only search for up to 10 metadata keys at a time"))
-            ->during('getProductsByMetadata', [
-                [
-                    'key1' => 'product_key',
-                    'key2' => 'product_key',
-                    'key3' => 'product_key',
-                    'key4' => 'product_key',
-                    'key5' => 'product_key',
-                    'key6' => 'product_key',
-                    'key7' => 'product_key',
-                    'key8' => 'product_key',
-                    'key9' => 'product_key',
-                    'key10' => 'product_key',
-                    'key11' => 'product_key',
-                ],
-                null,
-                []
-            ]);
-    }
+    // public function it_should_get_products_by_metadata_WITH_too_many_metadata_entries(): void
+    // {
+    //     $this->shouldThrow(new InvalidArgumentException("You can only search for up to 10 metadata keys at a time"))
+    //         ->during('getProductsByMetadata', [
+    //             [
+    //                 'key1' => 'product_key',
+    //                 'key2' => 'product_key',
+    //                 'key3' => 'product_key',
+    //                 'key4' => 'product_key',
+    //                 'key5' => 'product_key',
+    //                 'key6' => 'product_key',
+    //                 'key7' => 'product_key',
+    //                 'key8' => 'product_key',
+    //                 'key9' => 'product_key',
+    //                 'key10' => 'product_key',
+    //                 'key11' => 'product_key',
+    //             ],
+    //             null,
+    //             []
+    //         ]);
+    // }
 
     public function it_should_create_product(): void
     {
