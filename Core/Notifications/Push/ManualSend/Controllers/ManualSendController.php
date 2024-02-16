@@ -12,6 +12,9 @@ use Minds\Exceptions\UserErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;
 
+/**
+ * Controller for the manual sending of push notifications.
+ */
 class ManualSendController implements ManualSendControllerInterface
 {
     public function __construct(

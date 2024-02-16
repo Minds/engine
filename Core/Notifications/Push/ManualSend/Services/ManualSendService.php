@@ -62,11 +62,12 @@ class ManualSendService implements ManualSendServiceInterface
                 'token' => $request->token,
           ],
         ];
-    
+
         $response = json_decode($this->fcmService->request($body)->getBody()->getContents(), true);
-        if ($response['error']) {
-            $this->logger->error($response['error']);
-            throw new ServerErrorException('An unexpected error has occurred');
+        if (!$response || isset($response['error'])) {
+            $errorMessage = 'An unexpected error has occurred';
+            $this->logger->error($response['error'] ?? $errorMessage);
+            throw new ServerErrorException($errorMessage);
         };
         return true;
     }
@@ -90,13 +91,13 @@ class ManualSendService implements ManualSendServiceInterface
             'uri' => $request->uri,
             'largeIcon' => $request->iconUrl
         ];
-    
-        try {
-            $this->apnsService->request($request->token, [], $payload);
-            return true;
-        } catch (\Exception $e) {
-            $this->logger->error($e);
-            throw new ServerErrorException('An unexpected error has occurred');
-        }
+
+        $response = json_decode($this->apnsService->request($request->token, [], $payload)->getBody()->getContents(), true);
+        if (!$response || isset($response['error'])) {
+            $errorMessage = 'An unexpected error has occurred';
+            $this->logger->error($response['error'] ?? $errorMessage);
+            throw new ServerErrorException($errorMessage);
+        };
+        return true;
     }
 }
