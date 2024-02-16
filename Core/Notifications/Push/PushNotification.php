@@ -314,9 +314,6 @@ class PushNotification implements PushNotificationInterface
      */
     private function getEnvBasedUri(string $route): string
     {
-        if (!str_contains($this->config->get('site_url'), 'minds.io') && !str_contains($this->config->get('site_url'), 'minds.com')) {
-            return "";
-        }
         return $this->config->get('site_url') . $route;
     }
 
