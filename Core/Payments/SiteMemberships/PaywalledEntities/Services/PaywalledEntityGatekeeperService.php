@@ -21,8 +21,12 @@ class PaywalledEntityGatekeeperService
     /**
      * Determines if a user is able to access the paywalled post
      */
-    public function canAccess(Activity $entity, User $user): bool
+    public function canAccess(Activity $entity, ?User $user =  null): bool
     {
+        if (!$user) {
+            return false;
+        }
+
         // Owner of the post will always have access
         if ($user->getGuid() === $entity->getOwnerGuid() || $user->isAdmin()) {
             return true;
