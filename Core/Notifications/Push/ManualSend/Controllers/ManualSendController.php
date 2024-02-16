@@ -37,7 +37,7 @@ class ManualSendController implements ManualSendControllerInterface
             );
         }
 
-        $this->service->send(
+        $success = $this->service->send(
             new ManualSendRequest(
                 userGuid: $payload['user_guid'],
                 platform: PushNotificationPlatformEnum::from($payload['platform']),
@@ -52,7 +52,7 @@ class ManualSendController implements ManualSendControllerInterface
         );
 
         return new JsonResponse([
-            'status' => 'success'
+            'status' => $success ? 'success' : 'error'
         ]);
     }
 }

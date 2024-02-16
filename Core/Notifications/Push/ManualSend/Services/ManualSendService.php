@@ -9,6 +9,7 @@ use Minds\Core\Notifications\Push\ManualSend\Interfaces\ManualSendServiceInterfa
 use Minds\Core\Notifications\Push\ManualSend\Models\ManualSendRequest;
 use Minds\Core\Notifications\Push\Services\ApnsService;
 use Minds\Core\Notifications\Push\Services\FcmService;
+use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
 
 /**
@@ -66,13 +67,12 @@ class ManualSendService implements ManualSendServiceInterface
           ],
         ];
     
-        try {
-            $this->fcmService->request($body);
-            return true;
-        } catch (\Exception $e) {
-            error_log($e->getMessage());
-            return false;
-        }
+        $response = json_decode($this->fcmService->request($body)->getBody()->getContents(), true);
+        if ($response['error']) {
+          $this->logger->error($response['error']);
+          throw new ServerErrorException('An unexpected error has occurred');
+        };
+        return true;
     }
 
     /**
@@ -98,11 +98,11 @@ class ManualSendService implements ManualSendServiceInterface
         ];
     
         try {
-            $this->apnsService->request($request->token, [], $payload);
-            return true;
+          $this->apnsService->request($request->token, [], $payload);
+          return true;
         } catch (\Exception $e) {
-            error_log($e->getMessage());
-            return false;
+            $this->logger->error($e);
+            throw new ServerErrorException('An unexpected error has occurred');
         }
     }
 }
