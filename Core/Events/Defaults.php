@@ -54,12 +54,12 @@ class Defaults
                 }
 
                 if (!$params['entity'] instanceof Group) {
-                    if ($params['entity']->getContainerGuid()) {
+                    if ($params['entity']->getContainerGuid() !== $params['entity']->getOwnerGuid()) {
                         $containerObj = $this->entitiesBuilder->single($params['entity']->getContainerGuid(), [
                             'cache' => true,
                             'cacheTtl' => $cacheTtl
                         ]);
-                        if ($containerObj) {
+                        if ($containerObj instanceof Group) {
                             $export['containerObj'] = $containerObj->export();
                         }
                     }
