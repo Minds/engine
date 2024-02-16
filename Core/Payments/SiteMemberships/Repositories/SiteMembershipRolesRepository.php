@@ -60,6 +60,7 @@ class SiteMembershipRolesRepository extends AbstractRepository
             ->columns([
                 'role_id',
             ])
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->where('membership_tier_guid', Operator::EQ, $siteMembershipGuid)
             ->prepare();
 
@@ -91,6 +92,7 @@ class SiteMembershipRolesRepository extends AbstractRepository
     {
         $stmt = $this->mysqlClientWriterHandler->delete()
             ->from('minds_site_membership_tiers_role_assignments')
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->where('membership_tier_guid', Operator::EQ, $siteMembershipGuid)
             ->prepare();
 
