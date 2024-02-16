@@ -2,8 +2,8 @@
 
 namespace Spec\Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services;
 
-use Minds\Core\Payments\SiteMemberships\PaywalledEntities\PaywalledEntitiesRepository;
 use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\PaywalledEntityGatekeeperService;
+use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\PaywalledEntityService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipSubscriptionsService;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembershipSubscription;
 use Minds\Entities\Activity;
@@ -14,17 +14,17 @@ use Psr\SimpleCache\CacheInterface;
 
 class PaywalledEntityGatekeeperServiceSpec extends ObjectBehavior
 {
-    private Collaborator $paywalledEntitiesRepositoryMock;
+    private Collaborator $paywalledEntityServiceMock;
     private Collaborator $siteMembershipSubscriptionsServiceMock;
     private Collaborator $cacheMock;
 
     public function let(
-        PaywalledEntitiesRepository $paywalledEntitiesRepositoryMock,
+        PaywalledEntityService $paywalledEntityServiceMock,
         SiteMembershipSubscriptionsService $siteMembershipSubscriptionsServiceMock,
         CacheInterface $cacheMock,
     ) {
-        $this->beConstructedWith($paywalledEntitiesRepositoryMock, $siteMembershipSubscriptionsServiceMock, $cacheMock);
-        $this->paywalledEntitiesRepositoryMock = $paywalledEntitiesRepositoryMock;
+        $this->beConstructedWith($paywalledEntityServiceMock, $siteMembershipSubscriptionsServiceMock, $cacheMock);
+        $this->paywalledEntityServiceMock = $paywalledEntityServiceMock;
         $this->siteMembershipSubscriptionsServiceMock = $siteMembershipSubscriptionsServiceMock;
         $this->cacheMock = $cacheMock;
     }
@@ -82,7 +82,7 @@ class PaywalledEntityGatekeeperServiceSpec extends ObjectBehavior
                 )
             ]);
 
-        $this->paywalledEntitiesRepositoryMock->getMembershipsFromEntity(1)
+        $this->paywalledEntityServiceMock->getMembershipGuidsForActivity($activityMock)
             ->willReturn([1]);
 
         $this->canAccess($activityMock, $userMock)
@@ -108,7 +108,7 @@ class PaywalledEntityGatekeeperServiceSpec extends ObjectBehavior
                 )
             ]);
 
-        $this->paywalledEntitiesRepositoryMock->getMembershipsFromEntity(1)
+        $this->paywalledEntityServiceMock->getMembershipGuidsForActivity($activityMock)
             ->willReturn([2]);
 
         $this->canAccess($activityMock, $userMock)
@@ -134,7 +134,7 @@ class PaywalledEntityGatekeeperServiceSpec extends ObjectBehavior
                 )
             ]);
 
-        $this->paywalledEntitiesRepositoryMock->getMembershipsFromEntity(1)
+        $this->paywalledEntityServiceMock->getMembershipGuidsForActivity($activityMock)
             ->willReturn([-1]);
 
         $this->canAccess($activityMock, $userMock)
@@ -160,7 +160,7 @@ class PaywalledEntityGatekeeperServiceSpec extends ObjectBehavior
                 )
             ]);
 
-        $this->paywalledEntitiesRepositoryMock->getMembershipsFromEntity(1)
+        $this->paywalledEntityServiceMock->getMembershipGuidsForActivity(1)
             ->willReturn([-1]);
 
         $this->canAccess($activityMock, $userMock)

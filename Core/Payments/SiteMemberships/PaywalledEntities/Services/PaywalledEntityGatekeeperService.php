@@ -11,7 +11,7 @@ use Psr\SimpleCache\CacheInterface;
 class PaywalledEntityGatekeeperService
 {
     public function __construct(
-        private PaywalledEntitiesRepository $paywalledEntitiesRepository,
+        private PaywalledEntityService $paywalledEntityService,
         private SiteMembershipSubscriptionsService $siteMembershipSubscriptionsService,
         private CacheInterface $cache,
     ) {
@@ -38,7 +38,7 @@ class PaywalledEntityGatekeeperService
             return false;
         }
 
-        $entityMembershipGuids = $this->getMembershipGuidsForActivity($entity);
+        $entityMembershipGuids = $this->paywalledEntityService->getMembershipGuidsForActivity($entity);
 
         // User has a membership AND the activity post is set to all
         if (in_array(-1, $entityMembershipGuids, true) && $userMembershipGuids) {
@@ -51,14 +51,6 @@ class PaywalledEntityGatekeeperService
         }
 
         return false;
-    }
-
-    /**
-     * Returns the membership guids that have been paired to the activity post
-     */
-    private function getMembershipGuidsForActivity(Activity $activity): ?array
-    {
-        return $this->paywalledEntitiesRepository->getMembershipsFromEntity((int) $activity->getGuid());
     }
 
     /**

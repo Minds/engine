@@ -55,6 +55,9 @@ class PaywalledEntitiesRepository extends AbstractRepository
         return true;
     }
 
+    /**
+     * @return int[]|null
+     */
     public function getMembershipsFromEntity(int $entityGuid): ?array
     {
         $stmt = $this->mysqlClientReaderHandler->select()

@@ -20,6 +20,10 @@ class Routes extends ModuleRoutes
                     'thumbnail/:guid',
                     Ref::_(Controllers\PaywalledEntitiesPsrController::class, 'getThumbnail')
                 );
+                $route->get(
+                    ':guid/checkout',
+                    Ref::_(Controllers\PaywalledEntitiesPsrController::class, 'goToCheckout')
+                );
             });
     }
 }

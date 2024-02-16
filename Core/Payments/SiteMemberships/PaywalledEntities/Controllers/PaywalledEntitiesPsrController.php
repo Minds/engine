@@ -2,15 +2,18 @@
 namespace Minds\Core\Payments\SiteMemberships\PaywalledEntities\Controllers;
 
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\PaywalledEntityService;
 use Minds\Entities\File;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response;
+use Zend\Diactoros\Response\RedirectResponse;
 use Zend\Diactoros\Response\TextResponse;
 
 class PaywalledEntitiesPsrController
 {
     public function __construct(
-        private EntitiesBuilder $entitiesBuilder
+        private EntitiesBuilder $entitiesBuilder,
+        private PaywalledEntityService $paywalledEntityService,
     ) {
         
     }
@@ -39,6 +42,21 @@ class PaywalledEntitiesPsrController
                 'Cache-Control' => 'public',
             ]
         ]);
+    }
+
+    /**
+     * Redirects to the checkout page
+     */
+    public function goToCheckout(ServerRequestInterface $request): RedirectResponse
+    {
+        $guid = $request->getAttribute('parameters')['guid'];
+        $redirectPath = $request->getQueryParams()['redirectPath'] ?? '/memberships';
+
+        $activity = $this->entitiesBuilder->single($guid);
+
+        $membershipGuid = $this->paywalledEntityService->getLowestMembershipGuid($activity);
+
+        return new RedirectResponse('/api/v3/payments/site-memberships/' . $membershipGuid . '/checkout?redirectPath=' . $redirectPath);
     }
 
 }

@@ -13,6 +13,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Controllers\PaywalledEntitiesPsrController;
 use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\CreatePaywalledEntityService;
 use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\PaywalledEntityGatekeeperService;
+use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\PaywalledEntityService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipSubscriptionsService;
 
@@ -35,8 +36,16 @@ class Provider extends DiProvider
 
         $this->di->bind(PaywalledEntityGatekeeperService::class, function (Di $di): PaywalledEntityGatekeeperService {
             return new PaywalledEntityGatekeeperService(
-                paywalledEntitiesRepository: $di->get(PaywalledEntitiesRepository::class),
+                paywalledEntityService: $di->get(PaywalledEntityService::class),
                 siteMembershipSubscriptionsService: $di->get(SiteMembershipSubscriptionsService::class),
+                cache: $di->get(SharedCache::class),
+            );
+        });
+
+        $this->di->bind(PaywalledEntityService::class, function (Di $di): PaywalledEntityService {
+            return new PaywalledEntityService(
+                paywalledEntitiesRepository: $di->get(PaywalledEntitiesRepository::class),
+                siteMembershipReaderService: $di->get(SiteMembershipReaderService::class),
                 cache: $di->get(SharedCache::class),
             );
         });
@@ -50,7 +59,10 @@ class Provider extends DiProvider
         });
 
         $this->di->bind(PaywalledEntitiesPsrController::class, function (Di $di): PaywalledEntitiesPsrController {
-            return new PaywalledEntitiesPsrController($di->get(EntitiesBuilder::class));
+            return new PaywalledEntitiesPsrController(
+                entitiesBuilder: $di->get(EntitiesBuilder::class),
+                paywalledEntityService: $di->get(PaywalledEntityService::class),
+            );
         });
     }
 }
