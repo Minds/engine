@@ -69,8 +69,8 @@ class ManualSendService implements ManualSendServiceInterface
     
         $response = json_decode($this->fcmService->request($body)->getBody()->getContents(), true);
         if ($response['error']) {
-          $this->logger->error($response['error']);
-          throw new ServerErrorException('An unexpected error has occurred');
+            $this->logger->error($response['error']);
+            throw new ServerErrorException('An unexpected error has occurred');
         };
         return true;
     }
@@ -98,8 +98,8 @@ class ManualSendService implements ManualSendServiceInterface
         ];
     
         try {
-          $this->apnsService->request($request->token, [], $payload);
-          return true;
+            $this->apnsService->request($request->token, [], $payload);
+            return true;
         } catch (\Exception $e) {
             $this->logger->error($e);
             throw new ServerErrorException('An unexpected error has occurred');
