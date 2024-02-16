@@ -5,6 +5,7 @@ namespace Minds\Core\Notifications\Push\ManualSend;
 
 use Minds\Core\Di\Ref;
 use Minds\Core\Notifications\Push\ManualSend\Controllers\ManualSendController;
+use Minds\Core\Router\Middleware\LoggedInMiddleware;
 use Minds\Core\Router\ModuleRoutes;
 use Minds\Core\Router\Route;
 
@@ -18,7 +19,7 @@ class Routes extends ModuleRoutes
         $this->route
             ->withPrefix('api/v3/notifications/push/manual-send')
             ->withMiddleware([
-                // LoggedInMiddleware::class,
+                LoggedInMiddleware::class,
             ])
             ->do(function (Route $route) {
                 $route->post(

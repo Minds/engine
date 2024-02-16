@@ -31,7 +31,7 @@ class ManualSendController implements ManualSendControllerInterface
 
         if (!$this->payloadValidator->validate($payload)) {
             throw new UserErrorException(
-                "There were some errors validating the request properties.",
+                "There were some errors validating the request body.",
                 400,
                 $this->payloadValidator->getErrors()
             );
@@ -39,15 +39,13 @@ class ManualSendController implements ManualSendControllerInterface
 
         $success = $this->service->send(
             new ManualSendRequest(
-                userGuid: $payload['user_guid'],
                 platform: PushNotificationPlatformEnum::from($payload['platform']),
                 token: $payload['token'],
-                title: $payload['title'] ?? 'Title',
-                body: $payload['body'] ?? 'Body',
-                uri: $payload['uri'] ?? '',
-                iconUrl: $payload['icon_url'] ?? '',
-                mediaUrl: $payload['media_url'] ?? '',
-                metadata: $payload['metadata'] ?? []
+                title: $payload['title'] ?? 'Test notificaiton',
+                body: $payload['body'] ?? 'This notification is just a test',
+                uri: $payload['uri'] ?? null,
+                iconUrl: $payload['icon_url'] ?? null,
+                mediaUrl: $payload['media_url'] ?? null,
             )
         );
 

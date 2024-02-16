@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Minds\Core\Notifications\Push\ManualSend\Validators;
 
@@ -33,24 +34,12 @@ class ManualSendPayloadValidator implements ManualSendPayloadValidatorInterface
     {
         $this->reset();
 
-        if (empty($dataToValidate['user_guid'])) {
-            $this->errors->add(new ValidationError("user_guid", "The platform field must be provided."));
-        }
-
         if (!PushNotificationPlatformEnum::tryFrom($dataToValidate['platform'])) {
             $this->errors->add(new ValidationError("platform", "The token field must be provided."));
         }
 
         if (empty($dataToValidate['token'])) {
             $this->errors->add(new ValidationError("token", "The title field must be provided."));
-        }
-
-        if (empty($dataToValidate['title'])) {
-            $this->errors->add(new ValidationError("title", "The subtitle field must be provided."));
-        }
-
-        if (empty($dataToValidate['body'])) {
-            $this->errors->add(new ValidationError("body", "The body field must be provided."));
         }
 
         return $this->errors->count() == 0;

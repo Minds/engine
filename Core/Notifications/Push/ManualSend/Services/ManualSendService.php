@@ -23,7 +23,7 @@ class ManualSendService implements ManualSendServiceInterface
         private Logger $logger
     ) {
     }
-  
+
     /**
      * Send a manual push notification
      * @param ManualSendRequest $request - request containing data used to send.
@@ -39,7 +39,7 @@ class ManualSendService implements ManualSendServiceInterface
                 return $this->sendApnsRequest($request);
                 break;
             default:
-                throw new UserErrorException('Unsupported platform requested');
+                throw new UserErrorException('Unsupported platform requested.');
         }
     }
 
@@ -51,19 +51,15 @@ class ManualSendService implements ManualSendServiceInterface
     private function sendFcmRequest(ManualSendRequest $request): bool
     {
         $body = [
-          'message' => [
-              'data' => [
-                  'title' => $request->title,
-                  'body' => $request->body,
-                  'tag' => null,
-                  'uri' => $request->uri,
-                  'largeIcon' => $request->iconUrl,
-                  'bigPicture' => $request->mediaUrl,
-                  'badge' => '',
-                  'user_guid' => $request->userGuid,
-                  'metadata' => json_encode($request->metadata)
-              ],
-              'token' => $request->token,
+            'message' => [
+                'data' => [
+                    'title' => $request->title,
+                    'body' => $request->body,
+                    'uri' => $request->uri,
+                    'largeIcon' => $request->iconUrl,
+                    'bigPicture' => $request->mediaUrl
+                ],
+                'token' => $request->token,
           ],
         ];
     
@@ -87,14 +83,12 @@ class ManualSendService implements ManualSendServiceInterface
                 "mutable-content" => 1,
                 'alert' => [
                     'title' => $request->title,
-                    'body' => $request->body,
+                    'body' => $request->body
                 ],
                 'badge' => '',
             ],
             'uri' => $request->uri,
-            'user_guid' => $request->userGuid,
-            'largeIcon' => $request->iconUrl,
-            'metadata' => json_encode($request->metadata)
+            'largeIcon' => $request->iconUrl
         ];
     
         try {

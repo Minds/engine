@@ -11,15 +11,13 @@ use Minds\Core\Notifications\Push\ManualSend\Enums\PushNotificationPlatformEnum;
 class ManualSendRequest
 {
     public function __construct(
-        public readonly string $userGuid,
         public readonly PushNotificationPlatformEnum $platform,
         public readonly string $token,
         public readonly string $title,
         public readonly string $body,
         public readonly string $uri,
         public readonly string $iconUrl,
-        public readonly string $mediaUrl,
-        public readonly array $metadata
+        public readonly string $mediaUrl
     ) {
     }
 }
