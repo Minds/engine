@@ -375,7 +375,7 @@ class ControllerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->manager->processPaywallThumbnail(Argument::type(Activity::class), 'blob')
+        $this->createPaywalledEntityServiceMock->processPaywallThumbnail(Argument::type(Activity::class), 'blob')
             ->shouldBeCalled();
 
         $activityMock->setLicense(Argument::type('string'))

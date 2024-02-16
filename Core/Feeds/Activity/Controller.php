@@ -285,7 +285,7 @@ class Controller
             }
 
             if (isset($payload['paywall_thumbnail'])) {
-                $this->manager->processPaywallThumbnail($activity, $payload['paywall_thumbnail']);
+                $this->createPaywalledEntityService->processPaywallThumbnail($activity, $payload['paywall_thumbnail']);
             }
         }
 

@@ -28,6 +28,8 @@ class Provider extends DiProvider
             return new CreatePaywalledEntityService(
                 paywalledEntitiesRepository: $di->get(PaywalledEntitiesRepository::class),
                 siteMembershipReaderService: $di->get(SiteMembershipReaderService::class),
+                imagickManager: $di->get('Media\Imagick\Manager'),
+                blurHash: $di->get('Media\BlurHash'),
             );
         });
 

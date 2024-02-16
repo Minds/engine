@@ -565,7 +565,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'tags' => MySQLDataTypeEnum::JSON,
                     'attachments' => MySQLDataTypeEnum::JSON, // temporary denomalization whilst we run in parallel with Cassandra
                     'site_membership' => MySQLDataTypeEnum::BOOL,
-                    'paywall_thumbnail' => MySQLDataTypeEnum::BOOL,
+                    'paywall_thumbnail' => MySQLDataTypeEnum::JSON,
                     'link_title' => MySQLDataTypeEnum::TEXT,
                     'canonical_url' => MySQLDataTypeEnum::TEXT,
                     'source' => MySQLDataTypeEnum::TEXT,

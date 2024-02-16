@@ -37,9 +37,7 @@ use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Core\Supermind\Validators\SupermindReplyValidator;
 use Minds\Core\Supermind\Validators\SupermindRequestValidator;
-use Minds\Core\Media\Imagick\Manager as ImagickManager;
 use Minds\Entities\Activity;
-use Minds\Entities\Entity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Entities\ValidationError;
@@ -54,7 +52,6 @@ use Stripe\Exception\ApiErrorException;
 use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
-use Minds\Entities\File;
 
 class Manager
 {
@@ -113,7 +110,6 @@ class Manager
         private ?TitleLengthValidator $titleLengthValidator = null,
         private ?ElasticManager $elasticManager = null,
         private ?RbacGatekeeperService $rbacGatekeeperService = null,
-        private ?ImagickManager $imagickManager = null,
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -131,7 +127,6 @@ class Manager
         $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
         $this->elasticManager ??= Di::_()->get('Feeds\Elastic\Manager');
         $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
-        $this->imagickManager ??= Di::_()->get('Media\Imagick\Manager');
     }
 
     public function getSupermindManager(): SupermindManager
@@ -649,38 +644,6 @@ class Manager
     public function getByGuid(string $guid): ?Activity
     {
         return null;
-    }
-
-
-    /**
-     * Uploads a paywall poster for an activity post
-     */
-    public function processPaywallThumbnail(Activity $activity, string  $blob): bool
-    {
-        $blobParts = explode(',', $blob);
-
-        if (!isset($blobParts[1])) {
-            throw new UserErrorException("Invalid image type");
-        }
-
-        $blob = $blobParts[1];
-
-        $blob = base64_decode($blob, true);
-
-        $imageData = $this->imagickManager
-            ->setImageFromBlob($blob)
-            ->getJpeg();
-
-        $file = new File();
-        $file->setFilename("paywall_thumbnails/{$activity->getGuid()}.jpg");
-        $file->owner_guid = $activity->getOwnerGuid();
-        $file->open('write');
-        $file->write($imageData);
-        $file->close();
-
-        $activity->setPaywallThumbnail(true);
-
-        return true;
     }
 
     /**

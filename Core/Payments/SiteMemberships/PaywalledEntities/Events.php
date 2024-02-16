@@ -67,6 +67,16 @@ class Events
             $export['message'] = '';
         }
 
+        if ($activity->paywall_thumbnail) {
+            $export['paywall_thumbnail'] = [
+                'width' => (int) $activity->paywall_thumbnail['width'] ??= 0,
+                'height' => (int) $activity->paywall_thumbnail['height'] ??= 0,
+                'blurhash' => $activity->paywall_thumbnail['blurhash'],
+            ];
+        } else {
+            $export['paywall_thumbnail'] = null;
+        }
+
         $event->setResponse($export);
     }
 

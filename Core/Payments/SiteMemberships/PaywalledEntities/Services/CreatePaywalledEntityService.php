@@ -2,10 +2,13 @@
 namespace Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services;
 
 use Minds\Core\Guid;
+use Minds\Core\Media\BlurHash;
 use Minds\Core\Payments\SiteMemberships\PaywalledEntities\PaywalledEntitiesRepository;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
+use Minds\Core\Media\Imagick\Manager as ImagickManager;
 use Minds\Entities\Activity;
+use Minds\Entities\File;
 use Minds\Exceptions\UserErrorException;
 
 class CreatePaywalledEntityService
@@ -13,6 +16,8 @@ class CreatePaywalledEntityService
     public function __construct(
         private PaywalledEntitiesRepository $paywalledEntitiesRepository,
         private SiteMembershipReaderService $siteMembershipReaderService,
+        private ImagickManager $imagickManager,
+        private BlurHash $blurHash,
     ) {
         
     }
@@ -47,6 +52,43 @@ class CreatePaywalledEntityService
         }
 
         return $this->paywalledEntitiesRepository->mapMembershipsToEntity((int) $entity->getGuid(), $membershipGuids);
+    }
+
+    /**
+     * Uploads a paywall poster for an activity post
+     */
+    public function processPaywallThumbnail(Activity $activity, string  $blob): bool
+    {
+        $blobParts = explode(',', $blob);
+
+        if (!isset($blobParts[1])) {
+            throw new UserErrorException("Invalid image type");
+        }
+
+        $blob = $blobParts[1];
+
+        $blob = base64_decode($blob, true);
+
+        $imageData = $this->imagickManager
+            ->setImageFromBlob($blob)
+            ->getJpeg();
+
+        $file = new File();
+        $file->setFilename("paywall_thumbnails/{$activity->getGuid()}.jpg");
+        $file->owner_guid = $activity->getOwnerGuid();
+        $file->open('write');
+        $file->write($imageData);
+        $file->close();
+
+        $dimensions = $this->imagickManager->getImagick()->getImageGeometry();
+
+        $activity->setPaywallThumbnail(
+            width: $dimensions['width'],
+            height: $dimensions['height'],
+            blurhash: $this->blurHash->getHash($imageData)
+        );
+
+        return true;
     }
 
 }

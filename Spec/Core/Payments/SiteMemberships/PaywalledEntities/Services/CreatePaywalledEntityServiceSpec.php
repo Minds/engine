@@ -2,12 +2,14 @@
 
 namespace Spec\Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services;
 
+use Minds\Core\Media\BlurHash;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipPricingModelEnum;
 use Minds\Core\Payments\SiteMemberships\PaywalledEntities\PaywalledEntitiesRepository;
 use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\CreatePaywalledEntityService;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
+use Minds\Core\Media\Imagick\Manager as ImagickManager;
 use Minds\Entities\Activity;
 use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
@@ -21,9 +23,11 @@ class CreatePaywalledEntityServiceSpec extends ObjectBehavior
 
     public function let(
         PaywalledEntitiesRepository $paywalledEntitiesRepositoryMock,
-        SiteMembershipReaderService $siteMembershipReaderServiceMock
+        SiteMembershipReaderService $siteMembershipReaderServiceMock,
+        ImagickManager $imagickManagerMock,
+        BlurHash $blurHashMock,
     ) {
-        $this->beConstructedWith($paywalledEntitiesRepositoryMock, $siteMembershipReaderServiceMock);
+        $this->beConstructedWith($paywalledEntitiesRepositoryMock, $siteMembershipReaderServiceMock, $imagickManagerMock, $blurHashMock);
         $this->paywalledEntitiesRepositoryMock = $paywalledEntitiesRepositoryMock;
         $this->siteMembershipReaderServiceMock = $siteMembershipReaderServiceMock;
     }
