@@ -13,20 +13,23 @@ class ManualSendPayloadValidatorSpec extends ObjectBehavior
         $this->shouldHaveType(ManualSendPayloadValidator::class);
     }
 
-    public function it_should_validate_a_valid_payload(): void {
+    public function it_should_validate_a_valid_payload(): void
+    {
         $this->validate([
             'platform' => 'ios',
             'token' => 'token'
         ])->shouldBe(true);
     }
 
-    public function it_should_not_validate_a_payload_missing_the_platform(): void {
+    public function it_should_not_validate_a_payload_missing_the_platform(): void
+    {
         $this->validate([
             'token' => 'token'
         ])->shouldBe(false);
     }
 
-    public function it_should_not_validate_a_payload_missing_the_token(): void {
+    public function it_should_not_validate_a_payload_missing_the_token(): void
+    {
         $this->validate([
             'platform' => 'ios'
         ])->shouldBe(false);
