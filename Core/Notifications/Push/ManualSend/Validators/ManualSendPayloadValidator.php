@@ -35,11 +35,11 @@ class ManualSendPayloadValidator implements ManualSendPayloadValidatorInterface
         $this->reset();
 
         if (!isset($dataToValidate['platform']) || !PushNotificationPlatformEnum::tryFrom($dataToValidate['platform'])) {
-            $this->errors->add(new ValidationError("platform", "The token field must be provided."));
+            $this->errors->add(new ValidationError("platform", "A valid platform field must be provided."));
         }
 
         if (!isset($dataToValidate['token'])) {
-            $this->errors->add(new ValidationError("token", "The title field must be provided."));
+            $this->errors->add(new ValidationError("token", "The token field must be provided."));
         }
 
         return $this->errors->count() == 0;
