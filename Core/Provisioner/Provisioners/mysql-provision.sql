@@ -888,3 +888,6 @@ CREATE TABLE IF NOT EXISTS minds_payments_config(
 );
 
 ALTER TABLE minds_entities_object_image ADD COLUMN blurhash text AFTER filename;
+
+ALTER TABLE minds_entities_activity
+    MODIFY COLUMN paywall_thumbnail JSON DEFAULT NULL;
