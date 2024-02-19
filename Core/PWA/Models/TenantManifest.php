@@ -26,7 +26,7 @@ class TenantManifest extends AbstractPWAManifest
             description: 'A social app.',
             backgroundColor: $themeColor,
             themeColor: $themeColor,
-            categories: ['social', 'news', 'magazines'],
+            categories: ['social', 'news'],
             display: 'standalone',
             scope: './',
             startUrl: '/',

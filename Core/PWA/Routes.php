@@ -20,10 +20,10 @@ class Routes extends ModuleRoutes
     public function register(): void
     {
         $this->route
-            ->withPrefix('api/v3/pwa')
+            ->withPrefix('/')
             ->do(function (Route $route) {
                 $route->get(
-                    'manifest',
+                    'manifest.webmanifest',
                     Ref::_(ManifestController::class, 'getManifest')
                 );
             });

@@ -9,7 +9,7 @@ Feature: PWA
           "short_name": "Minds",
           "description": "Elevate the global conversation through Internet freedom. Speak freely, protect your privacy, earn crypto, and take back control of your social media",
           "theme_color": "#ffffff",
-          "categories": ["social", "news", "magazines"],
+          "categories": ["social", "news"],
           "background_color": "#ffffff",
           "display": "standalone",
           "android_package_name": "com.minds.mobile",

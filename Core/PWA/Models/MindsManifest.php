@@ -16,7 +16,7 @@ class MindsManifest extends AbstractPWAManifest
             description: 'Elevate the global conversation through Internet freedom. Speak freely, protect your privacy, earn crypto, and take back control of your social media',
             backgroundColor: '#ffffff',
             themeColor: '#ffffff',
-            categories: ['social', 'news', 'magazines'],
+            categories: ['social', 'news'],
             display: 'standalone',
             androidPackageName: 'com.minds.mobile',
             scope: './',
