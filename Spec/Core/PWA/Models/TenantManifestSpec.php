@@ -51,7 +51,6 @@ class TenantManifestSpec extends ObjectBehavior
             "categories" => [
                 "social",
                 "news",
-                "magazines",
             ],
             "theme_color" => "#ffffff",
             "background_color" => "#ffffff",

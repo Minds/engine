@@ -21,8 +21,7 @@ class MindsManifestSpec extends ObjectBehavior
             "description" => "Elevate the global conversation through Internet freedom. Speak freely, protect your privacy, earn crypto, and take back control of your social media",
             "categories" => [
                 "social",
-                "news",
-                "magazines",
+                "news"
             ],
             "theme_color" => "#ffffff",
             "background_color" => "#ffffff",
