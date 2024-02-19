@@ -819,6 +819,14 @@ $CONFIG->set('upgrades', [
         'yearly' => [
             'usd' => 12000,
         ]
+    ],
+    'networks_on_prem' => [
+        'monthly' => [
+            'usd' => 20000,
+        ],
+        'yearly' => [
+            'usd' => 240000,
+        ]
     ]
 ]);
 
