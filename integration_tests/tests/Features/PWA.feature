@@ -1,7 +1,7 @@
 @PWA
 Feature: PWA
   Scenario: Successfully retrieve the dynamic web manifest
-    When I make a GET call to the "v3/pwa/manifest" endpoint
+    When I make a GET call to the "manifest.webmanifest" endpoint
     Then I get a 200 response containing
       """json
         {

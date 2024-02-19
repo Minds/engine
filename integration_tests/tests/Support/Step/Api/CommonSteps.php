@@ -62,12 +62,6 @@ class CommonSteps extends ApiTester
         $this->sendGetAsJson($uri . "?$params");
     }
 
-    #[When('I make a GET call to the ":uri" endpoint')]
-    public function whenIGetCallEndpointWithoutParams(string $uri)
-    {
-        $this->sendGetAsJson($uri);
-    }
-
     #[When('I call ":requestMethod" ":uri" with params :queryParams')]
     public function whenICallEndpointByMethod(string $requestMethod, string $uri, PyStringNode $params)
     {
