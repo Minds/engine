@@ -70,7 +70,8 @@ class SiteMembershipReaderService
             membershipDescription: $siteMembershipDetails['description'],
             priceCurrency: strtoupper($siteMembershipDetails['currency']),
             roles: $this->prepareSiteMembershipRoles($siteMembershipGuid),
-            groups: $this->prepareSiteMembershipGroups($siteMembershipGuid)
+            groups: $this->prepareSiteMembershipGroups($siteMembershipGuid),
+            archived: (bool)$siteMembershipDetails['archived']
         );
     }
 
