@@ -187,6 +187,12 @@ class Exported
             $exported['tenant'] = [
                 'id' => $tenantId,
                 'plan' => isset($tenant->plan) ? $tenant->plan->name : TenantPlanEnum::TEAM->name,
+                'is_trial' => (bool)$tenant->trialStartTimestamp,
+                'trial_length_in_days' => Tenant::TRIAL_LENGTH_IN_DAYS,
+                'grace_period_before_deletion_in_days' => Tenant::GRACE_PERIOD_BEFORE_DELETION_IN_DAYS,
+                'trial_start' => $tenant->trialStartTimestamp,
+                'trial_end' => $tenant->trialStartTimestamp ? strtotime('+' . Tenant::TRIAL_LENGTH_IN_DAYS . ' days', $tenant->trialStartTimestamp) : null,
+                'trial_until_delete' => $tenant->trialStartTimestamp ? strtotime('+' . (Tenant::TRIAL_LENGTH_IN_DAYS + Tenant::GRACE_PERIOD_BEFORE_DELETION_IN_DAYS) . ' days', $tenant->trialStartTimestamp) : null,
             ];
 
             $exported['tenant']['max_memberships'] = $multiTenantConfig['plan_memberships'][$exported['tenant']['plan']] ?? 0;

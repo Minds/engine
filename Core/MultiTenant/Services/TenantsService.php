@@ -7,14 +7,17 @@ use Minds\Core\Config\Config;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Repository;
+use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
+use PDOException;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class TenantsService
 {
     public function __construct(
-        private readonly Repository $repository,
+        private readonly Repository             $repository,
         private readonly TenantConfigRepository $tenantConfigRepository,
-        private readonly Config $mindsConfig
+        private readonly Config                 $mindsConfig
     ) {
     }
 
@@ -48,7 +51,7 @@ class TenantsService
         if ($this->mindsConfig->get('tenant_id')) {
             throw new GraphQLException('You are already a tenant and as such cannot create a new tenant.');
         }
-        
+
         $tenant = $this->repository->createTenant($tenant);
 
         if ($tenant->config) {
@@ -61,5 +64,44 @@ class TenantsService
         }
 
         return $tenant;
+    }
+
+    /**
+     * @param Tenant $tenant
+     * @param User $user
+     * @return Tenant
+     * @throws GraphQLException
+     */
+    public function createNetworkTrial(
+        Tenant $tenant,
+        User   $user
+    ): Tenant {
+        if ($this->mindsConfig->get('tenant_id')) {
+            throw new GraphQLException('You are already a tenant and as such cannot create a new tenant.');
+        }
+
+        try {
+            if (!$this->repository->canHaveTrialTenant($user)) {
+                throw new GraphQLException('A network with a trial period has already been claimed for this account');
+            }
+
+            $tenant = $this->repository->createTenant(
+                tenant: $tenant,
+                isTrial: true
+            );
+
+            if ($tenant->config) {
+                $this->tenantConfigRepository->upsert(
+                    tenantId: $tenant->id,
+                    siteName: $tenant->config->siteName,
+                    colorScheme: $tenant->config->colorScheme,
+                    primaryColor: $tenant->config->primaryColor,
+                );
+            }
+
+            return $tenant;
+        } catch (ServerErrorException|PDOException $e) {
+            throw new GraphQLException(message: 'Failed to create trial network', code: 500, previous: $e);
+        }
     }
 }
