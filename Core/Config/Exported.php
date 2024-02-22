@@ -8,6 +8,7 @@
 
 namespace Minds\Core\Config;
 
+use Exception;
 use Minds\Core\Blockchain\Manager as BlockchainManager;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Di\Di;
@@ -15,6 +16,7 @@ use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\I18n\Manager as I18nManager;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
+use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Rewards\Contributions\ContributionValues;
 use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Session;
@@ -55,6 +57,7 @@ class Exported
         $blockchain = null,
         private ?ExperimentsManager $experimentsManager = null,
         private ?RolesService $rolesService = null,
+        private ?SiteMembershipRepository $siteMembershipRepository = null
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
@@ -62,6 +65,7 @@ class Exported
         $this->blockchain = $blockchain ?: Di::_()->get('Blockchain\Manager');
         $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
         $this->rolesService ??= Di::_()->get(RolesService::class);
+        $this->siteMembershipRepository ??= Di::_()->get(SiteMembershipRepository::class);
     }
 
     /**
@@ -196,6 +200,11 @@ class Exported
             ];
 
             $exported['tenant']['max_memberships'] = $multiTenantConfig['plan_memberships'][$exported['tenant']['plan']] ?? 0;
+            try {
+                $exported['tenant']['total_active_memberships'] = $this->siteMembershipRepository->getTotalSiteMemberships() ?? 0;
+            } catch (Exception $e) {
+                $exported['tenant']['total_active_memberships'] = 0;
+            }
 
             $exported['theme_override'] = $this->config->get('theme_override');
             $exported['nsfw_enabled'] = $this->config->get('nsfw_enabled') ?? true;

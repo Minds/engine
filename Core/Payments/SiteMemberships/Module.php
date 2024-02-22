@@ -8,6 +8,10 @@ use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
 {
+    public array $submodules  = [
+        PaywalledEntities\Module::class,
+    ];
+
     /**
      * @return void
      * @throws ImmutableException
@@ -16,5 +20,6 @@ class Module implements ModuleInterface
     {
         (new GraphQLMappings())->register();
         (new Provider())->register();
+        (new Routes())->register();
     }
 }

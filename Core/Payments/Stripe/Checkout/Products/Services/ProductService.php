@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\Stripe\Checkout\Products\Services;
 
-use InvalidArgumentException as InvalidArgumentExceptionAlias;
+use InvalidArgumentException;
 use Minds\Core\Config\Config;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPriceBillingPeriodEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPriceCurrencyEnum;
@@ -11,10 +11,9 @@ use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPricingModelEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductSubTypeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductTypeEnum;
 use Minds\Core\Payments\Stripe\StripeClient;
-use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Psr\SimpleCache\CacheInterface;
-use Psr\SimpleCache\InvalidArgumentException;
+use Psr\SimpleCache\InvalidArgumentException as CacheInvalidArgumentException;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Product;
 use Stripe\SearchResult;
@@ -31,12 +30,11 @@ class ProductService
     }
 
     /**
-     * @param User $user
      * @param ProductTypeEnum $productType
      * @param ProductSubTypeEnum|null $productSubType
      * @return SearchResult<Product>
+     * @throws CacheInvalidArgumentException
      * @throws NotFoundException
-     * @throws ApiErrorException
      */
     public function getProductsByType(
         ProductTypeEnum     $productType,
@@ -71,22 +69,12 @@ class ProductService
      * @return Product
      * @throws ApiErrorException
      * @throws NotFoundException
-     * @throws InvalidArgumentException
      */
     public function getProductById(string $productId): Product
     {
-        if ($productKey = $this->cache->get("product_$productId")) {
-            return $this->getProductByKey($productKey);
-        }
-
         $product = $this->stripeClient
             ->products
             ->retrieve($productId);
-
-        $productKey = $product->metadata['key'];
-
-        $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
-        $this->cache->set("product_$product->id", "$productKey", self::CACHE_TTL);
 
         return $product;
     }
@@ -95,7 +83,7 @@ class ProductService
      * @param string $productKey
      * @return Product
      * @throws ApiErrorException
-     * @throws InvalidArgumentException
+     * @throws CacheInvalidArgumentException
      * @throws NotFoundException
      */
     public function getProductByKey(string $productKey): Product
@@ -120,38 +108,24 @@ class ProductService
         $product = $results->first();
 
         $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
-        $this->cache->set("product_$product->id", "$productKey", self::CACHE_TTL);
 
         return $product;
     }
 
     /**
      * @param array $metadata
-     * @param ProductTypeEnum $productType
+     * @param ProductTypeEnum|null $productType
      * @param array $availableProducts
      * @return Product[]
-     * @throws InvalidArgumentException
      * @throws NotFoundException
      */
     public function getProductsByMetadata(
-        array           $metadata,
-        ProductTypeEnum $productType,
-        array           $availableProducts = []
+        array            $metadata,
+        ?ProductTypeEnum $productType = null,
+        array            $availableProducts = []
     ): iterable {
-        if ($products = $this->cache->get("tenant_{$this->config->get('tenant_id')}_products_$productType->value")) {
-            $products = unserialize($products);
-            $activeProducts = array_filter($availableProducts, fn ($product): bool => !$product['archived']);
-            $commonProducts = array_intersect(array_map(fn ($product) => $product->id, $products), array_keys($activeProducts));
-            if (count($commonProducts) === count($activeProducts)) {
-                foreach ($products as $product) {
-                    yield $product;
-                }
-                return;
-            }
-        }
-
         if (count($metadata) > 10) {
-            throw new InvalidArgumentExceptionAlias("You can only search for up to 10 metadata keys at a time.");
+            throw new InvalidArgumentException("You can only search for up to 10 metadata keys at a time.");
         }
 
         $query = "";
@@ -191,7 +165,6 @@ class ProductService
      * @param ProductPriceCurrencyEnum $currency
      * @param string|null $description
      * @return Product
-     * @throws InvalidArgumentException
      */
     public function createProduct(
         int                           $internalProductId, // How we identify the product internally
@@ -239,7 +212,6 @@ class ProductService
      * @param string $name
      * @param string|null $description
      * @return Product
-     * @throws InvalidArgumentException
      */
     public function updateProduct(
         string  $productId,
