@@ -60,7 +60,7 @@ class FcmService extends AbstractService implements PushServiceInterface
      * @throws GuzzleException
      * @throws Exception
      */
-    protected function request($body): ResponseInterface
+    public function request($body): ResponseInterface
     {
         $this->googleClient->setAuthConfig($this->getFirebaseKey());
         $this->googleClient->addScope('https://www.googleapis.com/auth/firebase.messaging');

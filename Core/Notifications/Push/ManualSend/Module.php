@@ -1,24 +1,14 @@
 <?php
-/**
- * Notifications module.
- */
+declare(strict_types=1);
 
-namespace Minds\Core\Notifications;
+namespace Minds\Core\Notifications\Push\ManualSend;
 
 use Minds\Interfaces\ModuleInterface;
 
-/**
- * Notifications Module (v3)
- * @package Minds\Core\Notifications
- */
 class Module implements ModuleInterface
 {
     /** @var array $submodules */
     public $submodules = [
-        Push\Module::class,
-        Push\ManualSend\Module::class,
-        EmailDigests\Module::class,
-        PostSubscriptions\Module::class,
     ];
 
     /**
