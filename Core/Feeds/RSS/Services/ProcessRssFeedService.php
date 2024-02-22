@@ -88,7 +88,7 @@ class ProcessRssFeedService
             $richEmbed = $this->metaScraperService->scrape($link);
 
             $activity
-                ->setTitle($richEmbed['meta']['title'])
+                ->setLinkTitle($richEmbed['meta']['title'])
                 ->setBlurb($richEmbed['meta']['description'])
                 ->setURL($link)
                 ->setThumbnail($richEmbed['links']['thumbnail'][0]['href']);
