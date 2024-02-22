@@ -5,6 +5,7 @@ namespace Minds\Core\MultiTenant\Services;
 
 use Minds\Core\Config\Config;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
+use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Repository;
 use Minds\Entities\User;
@@ -103,5 +104,22 @@ class TenantsService
         } catch (ServerErrorException|PDOException $e) {
             throw new GraphQLException(message: 'Failed to create trial network', code: 500, previous: $e);
         }
+    }
+
+    /**
+     * @param User $user
+     * @return Tenant
+     * @throws ServerErrorException
+     */
+    public function getTrialNetworkByOwner(User $user): Tenant
+    {
+        return $this->repository->getTrialTenantForOwner($user);
+    }
+
+    public function upgradeNetworkTrial(
+        Tenant         $tenant,
+        TenantPlanEnum $plan
+    ): Tenant {
+        return $this->repository->upgradeTrialTenant($tenant, $plan);
     }
 }

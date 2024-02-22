@@ -201,4 +201,55 @@ class Repository extends AbstractRepository
             throw new ServerErrorException(message: 'Failed to check if user has trial tenant', previous: $e);
         }
     }
+
+    /**
+     * @param User $user
+     * @return Tenant
+     * @throws ServerErrorException
+     */
+    public function getTrialTenantForOwner(User $user): Tenant
+    {
+        $stmt = $this->buildGetTenantQuery()
+            ->where('owner_guid', Operator::EQ, $user->getGuid())
+            ->where('trial_start_timestamp', Operator::IS_NOT, null)
+            ->limit(1)
+            ->prepare();
+
+        try {
+            $stmt->execute();
+
+            if ($stmt->rowCount() === 0) {
+                throw new ServerErrorException(message: 'Failed to get trial tenant for owner');
+            }
+
+            return $this->buildTenantModel($stmt->fetch(PDO::FETCH_ASSOC));
+        } catch (PDOException $e) {
+            throw new ServerErrorException(message: 'Failed to get trial tenant for owner', previous: $e);
+        }
+    }
+
+    public function upgradeTrialTenant(Tenant $tenant, TenantPlanEnum $plan): Tenant
+    {
+        // TODO: review timestamp logic
+        $statement = $this->mysqlClientWriterHandler->update()
+            ->table('minds_tenants')
+            ->set([
+                'plan' => $plan->name,
+                'trial_start_timestamp' => null,
+            ])
+            ->where('tenant_id', Operator::EQ, $tenant->id)
+            ->prepare();
+
+        $statement->execute();
+
+        return new Tenant(
+            id: $tenant->id,
+            domain: $tenant->domain,
+            ownerGuid: $tenant->ownerGuid,
+            rootUserGuid: $tenant->rootUserGuid,
+            config: $tenant->config,
+            plan: $plan,
+            trialStartTimestamp: null
+        );
+    }
 }

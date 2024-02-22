@@ -55,8 +55,7 @@ class Exported
         $blockchain = null,
         private ?ExperimentsManager $experimentsManager = null,
         private ?RolesService $rolesService = null,
-    )
-    {
+    ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
         $this->i18n = $i18n ?: Di::_()->get('I18n\Manager');
