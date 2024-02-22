@@ -196,7 +196,7 @@ class EmailStylesV2
             }
 
             if (isset($themeOverrides['color_scheme'])) {
-                $textColor = $themeOverrides['color_scheme'] === 'DARK' ? '#fff' : '#000';
+                $textColor = $themeOverrides['color_scheme'] === 'DARK' ? '#000' : '#fff';
                 $modifiedStyles["color"] = "color:{$textColor};";
             }
         }
