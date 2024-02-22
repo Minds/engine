@@ -55,7 +55,8 @@ class Exported
         $blockchain = null,
         private ?ExperimentsManager $experimentsManager = null,
         private ?RolesService $rolesService = null,
-    ) {
+    )
+    {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
         $this->i18n = $i18n ?: Di::_()->get('I18n\Manager');
@@ -192,7 +193,7 @@ class Exported
                 'grace_period_before_deletion_in_days' => Tenant::GRACE_PERIOD_BEFORE_DELETION_IN_DAYS,
                 'trial_start' => $tenant->trialStartTimestamp,
                 'trial_end' => $tenant->trialStartTimestamp ? strtotime('+' . Tenant::TRIAL_LENGTH_IN_DAYS . ' days', $tenant->trialStartTimestamp) : null,
-                'trial_until_delete' => $tenant->trialStartTimestamp ? strtotime('+' . (Tenant::TRIAL_LENGTH_IN_DAYS + Tenant::GRACE_PERIOD_BEFORE_DELETION_IN_DAYS) . ' days', $tenant->trialStartTimestamp) : null,
+                'network_deletion_timestamp' => $tenant->trialStartTimestamp ? strtotime('+' . (Tenant::TRIAL_LENGTH_IN_DAYS + Tenant::GRACE_PERIOD_BEFORE_DELETION_IN_DAYS) . ' days', $tenant->trialStartTimestamp) : null,
             ];
 
             $exported['tenant']['max_memberships'] = $multiTenantConfig['plan_memberships'][$exported['tenant']['plan']] ?? 0;
