@@ -6,12 +6,10 @@ namespace Minds\Core\Payments\SiteMemberships\Controllers;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipFoundException;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
-use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 use Psr\SimpleCache\InvalidArgumentException;
 use Stripe\Exception\ApiErrorException;
-use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Query;
 
 class SiteMembershipReaderController
@@ -22,16 +20,14 @@ class SiteMembershipReaderController
     }
 
     /**
-     * @param User $loggedInUser
      * @return SiteMembership[]
      * @throws NotFoundException
      * @throws ServerErrorException
      * @throws InvalidArgumentException
      */
     #[Query]
-    public function siteMemberships(
-        #[InjectUser] User $loggedInUser
-    ): array {
+    public function siteMemberships(): array
+    {
         return $this->siteMembershipReaderService->getSiteMemberships();
     }
 

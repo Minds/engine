@@ -230,7 +230,7 @@ class ProcessObjectService
                 try {
                     $richEmbed = $this->metascraperService->scrape($url);
                     $entity
-                        ->setTitle($richEmbed['meta']['title'])
+                        ->setLinkTitle($richEmbed['meta']['title'])
                         ->setBlurb($richEmbed['meta']['description'])
                         ->setURL($url)
                         ->setThumbnail($richEmbed['links']['thumbnail'][0]['href']);

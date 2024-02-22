@@ -18,6 +18,8 @@ use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Core\MultiTenant\Types\MultiTenantDomain;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use ReflectionClass;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class DomainServiceSpec extends ObjectBehavior
 {
@@ -27,13 +29,17 @@ class DomainServiceSpec extends ObjectBehavior
     private Collaborator $cloudflareClientMock;
     private Collaborator $domainsRepositoryMock;
 
+    private ReflectionClass $tenantMockFactory;
+
     public function let(
-        Config $configMock,
+        Config                 $configMock,
         MultiTenantDataService $dataServiceMock,
-        PsrWrapper $cacheMock,
-        CloudflareClient $cloudflareClientMock,
-        DomainsRepository $domainsRepositoryMock,
+        PsrWrapper             $cacheMock,
+        CloudflareClient       $cloudflareClientMock,
+        DomainsRepository      $domainsRepositoryMock,
     ) {
+        $this->tenantMockFactory = new ReflectionClass(Tenant::class);
+
         $this->beConstructedWith($configMock, $dataServiceMock, $cacheMock, $cloudflareClientMock, $domainsRepositoryMock);
         $this->configMock = $configMock;
         $this->dataServiceMock = $dataServiceMock;
@@ -131,6 +137,13 @@ class DomainServiceSpec extends ObjectBehavior
 
     public function it_should_setup_a_hostname()
     {
+        $this->configMock->get('tenant')
+            ->willReturn(
+                $this->generateTenantMock(
+                    id: 1,
+                    trialStartTimestamp: null
+                )
+            );
         $this->configMock->get('tenant_id')
             ->willReturn(1);
 
@@ -140,7 +153,7 @@ class DomainServiceSpec extends ObjectBehavior
                 'cname_hostname' => 'set-me-up.minds.com',
             ]
         ]);
-    
+
         $this->cloudflareClientMock->createCustomHostname('sub.example.com')
             ->willReturn(
                 new CustomHostname(
@@ -170,11 +183,26 @@ class DomainServiceSpec extends ObjectBehavior
         $domain->cloudflareId->shouldBe('id');
     }
 
+    public function it_should_throw_exception_when_setup_custom_hostname_if_network_is_trial(): void
+    {
+        $this->configMock->get('tenant')
+            ->willReturn(
+                $this->generateTenantMock(
+                    id: 1,
+                    trialStartTimestamp: time()
+                )
+            );
+        $this->configMock->get('tenant_id')
+            ->willReturn(1);
+
+        $this->shouldThrow(new GraphQLException('Cannot setup a custom hostname for this network as it is in trial mode'))->during('setupCustomHostname', ['sub.example.com']);
+    }
+
     public function it_should_return_a_hostname()
     {
         $this->configMock->get('tenant_id')
             ->willReturn(1);
-    
+
         $this->configMock->get('cloudflare')->willReturn([
             'custom_hostnames' => [
                 'apex_ip' => '127.0.0.1',
@@ -217,7 +245,7 @@ class DomainServiceSpec extends ObjectBehavior
     {
         $this->configMock->get('tenant_id')
             ->willReturn(1);
-        
+
         $this->configMock->get('cloudflare')->willReturn([
             'custom_hostnames' => [
                 'apex_ip' => '127.0.0.1',
@@ -249,7 +277,7 @@ class DomainServiceSpec extends ObjectBehavior
                     createdAt: time(),
                 )
             );
-    
+
         $this->cloudflareClientMock->updateCustomHostnameDetails('id', 'sub.example.com')
             ->willReturn(
                 new CustomHostname(
@@ -283,7 +311,7 @@ class DomainServiceSpec extends ObjectBehavior
     {
         $this->configMock->get('tenant_id')
             ->willReturn(1);
- 
+
         $this->configMock->get('cloudflare')->willReturn([
             'custom_hostnames' => [
                 'apex_ip' => '127.0.0.1',
@@ -363,5 +391,16 @@ class DomainServiceSpec extends ObjectBehavior
 
         $domain->dnsRecord->type->shouldBe(DnsRecordEnum::A);
         $domain->dnsRecord->value->shouldBe('127.0.0.1');
+    }
+
+    private function generateTenantMock(
+        int      $id,
+        int|null $trialStartTimestamp = null
+    ): Tenant {
+        $tenantMock = $this->tenantMockFactory->newInstanceWithoutConstructor();
+        $this->tenantMockFactory->getProperty('id')->setValue($tenantMock, $id);
+        $this->tenantMockFactory->getProperty('trialStartTimestamp')->setValue($tenantMock, $trialStartTimestamp);
+
+        return $tenantMock;
     }
 }

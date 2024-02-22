@@ -38,7 +38,6 @@ use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Core\Supermind\Validators\SupermindReplyValidator;
 use Minds\Core\Supermind\Validators\SupermindRequestValidator;
 use Minds\Entities\Activity;
-use Minds\Entities\Entity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Entities\ValidationError;
@@ -544,7 +543,7 @@ class Manager
 
             // Clean rich embed
             $activity
-                //->setTitle('')
+                ->setLinkTitle('')
                 ->setBlurb('')
                 ->setURL('')
                 ->setThumbnail('');
@@ -612,7 +611,8 @@ class Manager
         if ($entity->subtype === 'blog') {
             /** @var \Minds\Core\Blogs\Blog */
             $entity = $blog = $entity; // Helper for static analysis
-            $activity->setTitle($entity->getTitle())
+            $activity
+                ->setLinkTitle($entity->getTitle())
                 ->setBlurb(strip_tags($entity->getBody()))
                 ->setURL($entity->getURL())
                 ->setThumbnail($entity->getIconUrl());

@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Payments\SiteMemberships\Services;
 
-use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Payments\SiteMemberships\Enums\SiteMembershipBillingPeriodEnum;
 use Minds\Core\Payments\SiteMemberships\Exceptions\NoSiteMembershipsFoundException;
@@ -12,16 +11,11 @@ use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRolesRepository;
 use Minds\Core\Payments\SiteMemberships\Services\SiteMembershipReaderService;
 use Minds\Core\Payments\SiteMemberships\Types\SiteMembership;
-use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductPriceService as StripeProductPriceService;
-use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as StripeProductService;
 use Minds\Entities\Group;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
-use ReflectionClass;
 use ReflectionException;
 use Spec\Minds\Common\Traits\CommonMatchers;
-use Stripe\Price;
-use Stripe\Product;
 
 class SiteMembershipReaderServiceSpec extends ObjectBehavior
 {
@@ -30,42 +24,24 @@ class SiteMembershipReaderServiceSpec extends ObjectBehavior
     private Collaborator $siteMembershipRepositoryMock;
     private Collaborator $siteMembershipGroupsRepositoryMock;
     private Collaborator $siteMembershipRolesRepositoryMock;
-    private Collaborator $stripeProductServiceMock;
-    private Collaborator $stripeProductPriceServiceMock;
     private Collaborator $entitiesBuilderMock;
-    private Collaborator $configMock;
-
-    private ReflectionClass $stripeProductMockFactory;
-    private ReflectionClass $stripeProductPriceMockFactory;
 
     public function let(
         SiteMembershipRepository       $siteMembershipRepository,
         SiteMembershipGroupsRepository $siteMembershipGroupsRepository,
         SiteMembershipRolesRepository  $siteMembershipRolesRepository,
-        StripeProductService           $stripeProductService,
-        StripeProductPriceService      $stripeProductPriceService,
         EntitiesBuilder                $entitiesBuilder,
-        Config                         $config
     ): void {
         $this->siteMembershipRepositoryMock = $siteMembershipRepository;
         $this->siteMembershipGroupsRepositoryMock = $siteMembershipGroupsRepository;
         $this->siteMembershipRolesRepositoryMock = $siteMembershipRolesRepository;
-        $this->stripeProductServiceMock = $stripeProductService;
-        $this->stripeProductPriceServiceMock = $stripeProductPriceService;
         $this->entitiesBuilderMock = $entitiesBuilder;
-        $this->configMock = $config;
-
-        $this->stripeProductMockFactory = new ReflectionClass(Product::class);
-        $this->stripeProductPriceMockFactory = new ReflectionClass(Price::class);
 
         $this->beConstructedWith(
             $this->siteMembershipRepositoryMock,
             $this->siteMembershipGroupsRepositoryMock,
             $this->siteMembershipRolesRepositoryMock,
-            $this->stripeProductServiceMock,
-            $this->stripeProductPriceServiceMock,
             $this->entitiesBuilderMock,
-            $this->configMock
         );
     }
 
@@ -182,67 +158,5 @@ class SiteMembershipReaderServiceSpec extends ObjectBehavior
 
         $this->getSiteMembership(1)
             ->shouldBeAnInstanceOf(SiteMembership::class);
-    }
-
-    /**
-     * @param string $id
-     * @param int $tenantId
-     * @param string $priceId
-     * @param string $key
-     * @param string $type
-     * @param string $billingPeriod
-     * @return Product
-     * @throws ReflectionException
-     */
-    private function generateStripeProductMock(
-        string $id,
-        int    $tenantId,
-        string $priceId,
-        string $key,
-        string $type,
-        string $billingPeriod
-    ): Product {
-        $mock = $this->stripeProductMockFactory->newInstanceWithoutConstructor();
-        $this->stripeProductMockFactory->getProperty('_values')->setValue($mock, [
-            'id' => $id,
-            'name' => "Product $id",
-            'metadata' => [
-                'key' => $key,
-                'tenant_id' => $tenantId,
-                'type' => $type,
-                'billing_period' => $billingPeriod
-            ],
-            'default_price' => $priceId
-        ]);
-
-        return $mock;
-    }
-
-    /**
-     * @param string $id
-     * @param int $unitAmount
-     * @param string $type
-     * @param string $currency
-     * @param array|null $recurring
-     * @return Price
-     * @throws ReflectionException
-     */
-    private function generateStripeProductPriceMock(
-        string $id,
-        int    $unitAmount,
-        string $type,
-        string $currency,
-        ?array $recurring = null
-    ): Price {
-        $mock = $this->stripeProductPriceMockFactory->newInstanceWithoutConstructor();
-        $this->stripeProductPriceMockFactory->getProperty('_values')->setValue($mock, [
-            'id' => $id,
-            'unit_amount' => $unitAmount,
-            'type' => $type,
-            'recurring' => $recurring ?? null,
-            'currency' => $currency
-        ]);
-
-        return $mock;
     }
 }

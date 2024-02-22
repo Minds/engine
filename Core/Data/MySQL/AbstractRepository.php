@@ -1,10 +1,13 @@
 <?php
+
 namespace Minds\Core\Data\MySQL;
 
 use Minds\Core\Config\Config;
 use Minds\Core\Log\Logger;
 use PDO;
 use PDOException;
+use ReflectionClass;
+use ReflectionException;
 use Selective\Database\Connection;
 
 abstract class AbstractRepository
@@ -28,6 +31,36 @@ abstract class AbstractRepository
 
         $this->mysqlClientWriter = $this->mysqlHandler->getConnection(Client::CONNECTION_MASTER);
         $this->mysqlClientWriterHandler = new Connection($this->mysqlClientWriter);
+    }
+
+    /**
+     * NOTE: ONLY USE FOR UNIT TESTS
+     * @param Client $mysqlHandler
+     * @param Config $config
+     * @param Logger $logger
+     * @param Connection $mysqlClientWriterHandler
+     * @param Connection $mysqlClientReaderHandler
+     * @return static
+     * @throws ReflectionException
+     */
+    public static function buildForUnitTests(
+        Client     $mysqlHandler,
+        Config     $config,
+        Logger     $logger,
+        Connection $mysqlClientWriterHandler,
+        Connection $mysqlClientReaderHandler,
+    ): static {
+        $factory = new ReflectionClass(static::class);
+        $instance = $factory->newInstance(
+            $mysqlHandler,
+            $config,
+            $logger,
+        );
+
+        $factory->getProperty('mysqlClientWriterHandler')->setValue($instance, $mysqlClientWriterHandler);
+        $factory->getProperty('mysqlClientReaderHandler')->setValue($instance, $mysqlClientReaderHandler);
+
+        return $instance;
     }
 
     public function beginTransaction(): void
