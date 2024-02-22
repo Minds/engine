@@ -6,7 +6,6 @@ use Minds\Core\Di\Di;
 
 class EmailStylesV2
 {
-
     /**
      * @param Config|null $config
      */
@@ -185,7 +184,8 @@ class EmailStylesV2
      * Currently used only for buttons
      * @return string[]
      */
-    private function getThemeOverrides(): array {
+    private function getThemeOverrides(): array
+    {
         $themeOverrides = $this->config->get('theme_override');
 
         $modifiedStyles = [];
