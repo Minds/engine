@@ -186,7 +186,7 @@ class Repository extends AbstractRepository
     public function canHaveTrialTenant(
         User $user
     ): bool {
-        $query = $this->mysqlClientReaderHandler->select()
+        $query = $this->mysqlClientWriterHandler->select()
             ->from('minds_tenants')
             ->columns([
                 new RawExp('COUNT(tenant_id) as count')

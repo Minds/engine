@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\MultiTenant\Services;
 
 use Exception;
@@ -6,8 +7,8 @@ use GuzzleHttp\Exception\GuzzleException;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
-use Minds\Core\Http\Cloudflare\Models\CustomHostnameOwnershipVerification;
 use Minds\Core\Http\Cloudflare\Models\CustomHostname;
+use Minds\Core\Http\Cloudflare\Models\CustomHostnameOwnershipVerification;
 use Minds\Core\MultiTenant\Enums\DnsRecordEnum;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
@@ -16,17 +17,18 @@ use Minds\Core\MultiTenant\Repositories\DomainsRepository;
 use Minds\Core\MultiTenant\Types\MultiTenantDomain;
 use Minds\Core\MultiTenant\Types\MultiTenantDomainDnsRecord;
 use Psr\SimpleCache\InvalidArgumentException;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class DomainService
 {
     public function __construct(
-        private readonly Config $config,
+        private readonly Config                 $config,
         private readonly MultiTenantDataService $dataService,
-        private readonly PsrWrapper $cache,
-        private readonly CloudflareClient $cloudflareClient,
-        private readonly DomainsRepository $domainsRepository
+        private readonly PsrWrapper             $cache,
+        private readonly CloudflareClient       $cloudflareClient,
+        private readonly DomainsRepository      $domainsRepository
     ) {
-        
+
     }
 
     /**
@@ -94,7 +96,7 @@ class DomainService
     {
         $domain = $this->buildDomain($tenant);
         $tmpSubdomain = $this->buildTmpSubdomain($tenant);
-    
+
         $this->cache->withTenantPrefix(false)->delete($this->getCacheKey($domain));
 
         if ($domain !== $tmpSubdomain) {
@@ -178,6 +180,15 @@ class DomainService
      */
     public function setupCustomHostname(string $hostname): MultiTenantDomain
     {
+        /**
+         * @var Tenant $tenant
+         */
+        $tenant = $this->config->get('tenant');
+
+        if ($tenant->trialStartTimestamp) {
+            throw new GraphQLException('Cannot setup a custom hostname for this network as it is in trial mode');
+        }
+
         $tenantId = $this->config->get('tenant_id');
         $customHostname = $this->cloudflareClient->createCustomHostname($hostname);
 
@@ -187,9 +198,7 @@ class DomainService
             domain: $customHostname->hostname,
         );
 
-        $multiTenantDomain = $this->buildMultiTenantDomainFromCfCustomHostname($tenantId, $customHostname);
-
-        return $multiTenantDomain;
+        return $this->buildMultiTenantDomainFromCfCustomHostname($tenantId, $customHostname);
     }
 
     /**
@@ -200,7 +209,7 @@ class DomainService
     public function getCustomHostname(): MultiTenantDomain
     {
         $tenantId = $this->config->get('tenant_id');
-    
+
         $multiTenantDomain = $this->domainsRepository->getDomainDetails(
             tenantId: $tenantId
         );
@@ -241,7 +250,7 @@ class DomainService
      * Builds a MultiTenantDomain model from a cloudflare model
      */
     private function buildMultiTenantDomainFromCfCustomHostname(
-        int $tenantId,
+        int            $tenantId,
         CustomHostname $customHostname
     ): MultiTenantDomain {
         return new MultiTenantDomain(
