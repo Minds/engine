@@ -21,6 +21,7 @@ class SiteMembership
         #[Field] public readonly int                             $membershipPriceInCents,
         #[Field] public readonly SiteMembershipBillingPeriodEnum $membershipBillingPeriod,
         #[Field] public readonly SiteMembershipPricingModelEnum  $membershipPricingModel,
+        public readonly ?string                                  $stripeProductId = null,
         #[Field] public readonly ?string                         $membershipDescription = null,
         #[Field] public readonly string                          $priceCurrency = 'USD',
         private readonly ?array                                  $roles = null,

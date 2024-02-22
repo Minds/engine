@@ -58,7 +58,7 @@ class CreateActivity
         $owner = $this->entitiesBuilder->single($blog->getOwnerGuid());
 
         $activity = (new Activity())
-            ->setTitle($blog->getTitle())
+            ->setLinkTitle($blog->getTitle())
             ->setBlurb(strip_tags($blog->getBody()))
             ->setURL($blog->getURL())
             ->setThumbnail($blog->getIconUrl())

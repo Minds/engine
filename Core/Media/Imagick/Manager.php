@@ -130,4 +130,12 @@ class Manager
 
         return $this->annotate->getOutput();
     }
+
+    /**
+     * Returns the Imagick object
+     */
+    public function getImagick(): \Imagick
+    {
+        return $this->image;
+    }
 }

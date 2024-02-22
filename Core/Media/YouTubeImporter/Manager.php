@@ -569,7 +569,7 @@ class Manager
         $activity->ownerObj = $owner->export();
 
         $activity->setOwner($ownerGuid)
-            ->setTitle($richEmbed['meta']['title'])
+            ->setLinkTitle($richEmbed['meta']['title'])
             ->setBlurb($richEmbed['meta']['description'])
             ->setURL($url)
             ->setThumbnail($richEmbed['links']['thumbnail'][0]['href']);

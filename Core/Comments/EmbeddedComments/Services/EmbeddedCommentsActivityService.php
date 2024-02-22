@@ -158,7 +158,7 @@ class EmbeddedCommentsActivityService
             }
 
             $activity
-                ->setTitle($richEmbed['meta']['title'])
+                ->setLinkTitle($richEmbed['meta']['title'])
                 ->setBlurb($richEmbed['meta']['description'])
                 ->setURL($canonicalUrl)
                 ->setThumbnail($richEmbed['links']['thumbnail'][0]['href']);

@@ -49,6 +49,9 @@ use Minds\Helpers;
  * @property array $supermind
  * @property string $auto_caption
  * @property array $inferred_tags
+ * @property bool $site_membership
+ * @property string $link_title
+ * @property bool $paywall_thumbnail
  * @property string $source
  * @property string $canonical_url
  */
@@ -102,6 +105,9 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             'supermind' => null,
             'auto_caption' => null,
             'inferred_tags' => [],
+            'site_membership' => false,
+            'link_title' => null,
+            'paywall_thumbnail' => null,
             'source' => FederatedEntitySourcesEnum::LOCAL->value,
             'canonical_url' => null,
         ]);
@@ -205,6 +211,9 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
                 'supermind',
                 'auto_caption',
                 'inferred_tags',
+                'site_membership',
+                'paywall_thumbnail',
+                'link_title',
                 'canonical_url',
                 'source',
             ]
@@ -309,6 +318,17 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
             }
         }
 
+        /**
+         * Rich embed fallbacks
+         */
+        if ($export['perma_url']) {
+            $export['link_title'] ??= $export['title'];
+
+            if ($export['title'] && $export['title'] === $export['link_title']) {
+                $export['title'] = null;
+            }
+        }
+
         $export = array_merge($export, \Minds\Core\Events\Dispatcher::trigger('export:extender', 'activity', ['entity' => $this], []));
 
 
@@ -362,6 +382,26 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function getTitle(): ?string
     {
         return $this->title;
+    }
+
+    /**
+     * Sets the rich embed title
+     * @param string $title
+     * @return $this
+     */
+    public function setLinkTitle($title)
+    {
+        $this->link_title = $title;
+        return $this;
+    }
+
+    /**
+     * Get the title
+     * @return string
+     */
+    public function getLinkTitle(): ?string
+    {
+        return $this->link_title;
     }
 
     /**
@@ -1162,6 +1202,37 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     {
         return $this->canonical_url;
     }
+
+    /**
+     * Sets if a site membership exists for this post
+     */
+    public function setSiteMembership(bool $siteMembership): self
+    {
+        $this->site_membership = $siteMembership;
+        return $this;
+    }
+
+    /**
+     * Returns if a site membership exists for this activity
+     */
+    public function hasSiteMembership(): bool
+    {
+        return $this->site_membership;
+    }
+
+    /**
+     * Sets the attributes of a custom paywall poster for a post
+     */
+    public function setPaywallThumbnail(int $width, int $height, string $blurhash): self
+    {
+        $this->paywall_thumbnail = [
+            'width' => $width,
+            'height' => $height,
+            'blurhash' => $blurhash,
+        ];
+        return $this;
+    }
+
 
     /**
      * Returns the ActivityManager, but lazy loaded

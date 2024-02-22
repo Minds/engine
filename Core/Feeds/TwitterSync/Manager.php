@@ -254,7 +254,7 @@ class Manager
                     try {
                         $richEmbed = $this->metascraperService->scrape($url);
                         $activity
-                            ->setTitle($richEmbed['meta']['title'])
+                            ->setLinkTitle($richEmbed['meta']['title'])
                             ->setBlurb($richEmbed['meta']['description'])
                             ->setURL($url)
                             ->setThumbnail($richEmbed['links']['thumbnail'][0]['href']);
