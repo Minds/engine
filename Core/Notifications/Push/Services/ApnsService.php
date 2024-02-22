@@ -67,7 +67,7 @@ class ApnsService extends AbstractService implements PushServiceInterface
      * @return ResponseInterface
      * @throws GuzzleException
      */
-    protected function request($deviceToken, array $headers, array $body): ResponseInterface
+    public function request($deviceToken, array $headers, array $body): ResponseInterface
     {
         $uri = "https://api.push.apple.com/3/device/";
 

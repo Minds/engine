@@ -205,7 +205,6 @@ class Repository
             'pending' => false,
             'plus' => false,
             'portrait' => false,
-            'hide_reminds' => false,
             'wire_support_tier_only' => false,
             // Focus on reminds
             'remind_guid' => null,
@@ -465,15 +464,6 @@ class Repository
                     ];
                 }
             }
-        }
-
-        // Hide reminds (note, this will not hide quoted posts)
-        if ($opts['hide_reminds'] === true) {
-            $body['query']['function_score']['query']['bool']['must_not'][] = [
-                'term' => [
-                    'is_remind' => true,
-                ],
-            ];
         }
 
         if ($opts['wire_support_tier_only']) {
