@@ -149,7 +149,7 @@ class Manager
         $loadBefore = isset($hits[0]) ? $this->encodeSort($hits[0]['sort']) : $this->encodeSort([time() * 1000, Guid::build()]);
 
 
-        // We return +1 $limit, so if we have more than our limit returned, we know there is another pagr
+        // We return +1 $limit, so if we have more than our limit returned, we know there is another page
         if (count($response['hits']['hits']) > $limit) {
             $hasMore = true;
         } else {
@@ -159,7 +159,7 @@ class Manager
         $i = 0;
         foreach ($hits as $hit) {
             $entity = $this->fetchActivity((int) $hit['_id']);
-    
+
             if (!$entity) {
                 continue;
             }
@@ -350,7 +350,7 @@ class Manager
         $i = 0;
         foreach ($hits as $hit) {
             $entity = $this->fetchActivity((int) $hit['_id']);
-    
+
             if (!$entity) {
                 continue;
             }
@@ -409,7 +409,7 @@ class Manager
                 offset: $offset,
                 refFirstSeenTimestamp: $refFirstSeenTimestamp,
             );
-        
+
         // Get all the results to aid with pagination
         $allResults = iterator_to_array($result);
 
@@ -422,7 +422,7 @@ class Manager
         $i = 0;
         foreach ($allResults as $scoredGuid) {
             $entity = $this->fetchActivity((int) $scoredGuid->getGuid());
-    
+
             if (!$entity) {
                 continue;
             }
@@ -499,7 +499,7 @@ class Manager
             ];
         }
 
-        if ($queryOpts->onlySubscribed) {
+        if ($queryOpts->onlySubscribed || $queryOpts->onlySubscribedAndGroups) {
             // Posts from subscriptions
             $should[] = [
                 'terms' => [
@@ -519,8 +519,21 @@ class Manager
             ];
         }
 
+        if ($queryOpts->onlySubscribedAndGroups) {
+            // Include posts from groups user is member of
+            $groupGuids = $this->groupsMembershipManager->getGroupGuids($queryOpts->user);
+            if (!empty($groupGuids)) {
+                $should[] =
+                [
+                    'terms' => [
+                        'container_guid' => array_map('strval', $groupGuids),
+                    ],
+                ];
+            }
+        }
+
         if ($queryOpts->onlyGroups) {
-            // Posts from groups user is member of
+            // Only posts from groups user is member of
             $must[] = [
                 'terms' => [
                     'container_guid' =>
@@ -544,7 +557,7 @@ class Manager
             if (count($words) > 1) {
                 $multiMatch['multi_match']['type'] = 'phrase';
             }
-            
+
             $this->experimentsManager
                 ->setUser($queryOpts->user);
 
@@ -556,12 +569,22 @@ class Manager
         }
 
         if ($queryOpts->accessId) {
-            // Only public posts
-            $must[] = [
-                'terms' => [
-                    'access_id' => [$queryOpts->accessId],
-                ],
-            ];
+            if ($this->isTenant()) {
+                $mustNot[] = [
+                    'terms' => [
+                        'access_id' => [0, 1],
+                    ],
+                ];
+            } else {
+                // Only public posts
+                // (This is what is preventing group posts from inclusion
+                // on non-tenant top/latest)
+                $must[] = [
+                    'terms' => [
+                        'access_id' => [$queryOpts->accessId],
+                    ],
+                ];
+            }
         }
 
         switch ($queryOpts->mediaTypeEnum) {
@@ -684,5 +707,15 @@ class Manager
     private function getSearchIndexName(): string
     {
         return 'minds-search-activity';
+    }
+
+
+    /**
+     * Whether this is a tenant site
+     * @return bool true if tenant
+     */
+    private function isTenant(): bool
+    {
+        return $this->config->get('tenant_id') !== null;
     }
 }
