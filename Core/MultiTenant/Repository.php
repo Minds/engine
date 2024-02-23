@@ -8,6 +8,7 @@ use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
@@ -205,6 +206,7 @@ class Repository extends AbstractRepository
     /**
      * @param User $user
      * @return Tenant
+     * @throws NotFoundException
      * @throws ServerErrorException
      */
     public function getTrialTenantForOwner(User $user): Tenant
@@ -219,7 +221,7 @@ class Repository extends AbstractRepository
             $stmt->execute();
 
             if ($stmt->rowCount() === 0) {
-                throw new ServerErrorException(message: 'Failed to get trial tenant for owner');
+                throw new NotFoundException(message: 'Failed to get trial tenant for owner');
             }
 
             return $this->buildTenantModel($stmt->fetch(PDO::FETCH_ASSOC));

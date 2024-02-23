@@ -9,6 +9,7 @@ use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Repository;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 use PDOException;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
@@ -110,6 +111,7 @@ class TenantsService
      * @param User $user
      * @return Tenant
      * @throws ServerErrorException
+     * @throws NotFoundException
      */
     public function getTrialNetworkByOwner(User $user): Tenant
     {
