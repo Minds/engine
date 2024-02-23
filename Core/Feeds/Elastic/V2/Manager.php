@@ -519,14 +519,18 @@ class Manager
             ];
         }
 
+        if ($queryOpts->onlySubscribedAndGroups || $queryOpts->onlyGroups) {
+            $groupGuids = array_map(function ($guid) {
+                return (string) $guid;
+            }, $this->groupsMembershipManager->getGroupGuids($queryOpts->user));
+        }
+
         if ($queryOpts->onlySubscribedAndGroups) {
             // Include posts from groups user is member of
-            $groupGuids = $this->groupsMembershipManager->getGroupGuids($queryOpts->user);
             if (!empty($groupGuids)) {
-                $should[] =
-                [
+                $should[] = [
                     'terms' => [
-                        'container_guid' => array_map('strval', $groupGuids),
+                        'container_guid' => $groupGuids,
                     ],
                 ];
             }
@@ -536,10 +540,7 @@ class Manager
             // Only posts from groups user is member of
             $must[] = [
                 'terms' => [
-                    'container_guid' =>
-                        array_map(function ($guid) {
-                            return (string) $guid;
-                        }, $this->groupsMembershipManager->getGroupGuids($queryOpts->user)),
+                    'container_guid' => $groupGuids,
                 ]
             ];
         }
@@ -569,22 +570,17 @@ class Manager
         }
 
         if ($queryOpts->accessId) {
-            if ($this->isTenant()) {
-                $mustNot[] = [
-                    'terms' => [
-                        'access_id' => [0, 1],
-                    ],
-                ];
-            } else {
-                // Only public posts
-                // (This is what is preventing group posts from inclusion
-                // on non-tenant top/latest)
-                $must[] = [
-                    'terms' => [
-                        'access_id' => [$queryOpts->accessId],
-                    ],
-                ];
+            $accessIds = [$queryOpts->accessId];
+
+            if ($queryOpts->onlySubscribedAndGroups || $queryOpts->onlyGroups) {
+                $accessIds = [...$accessIds, ...$groupGuids];
             }
+
+            $must[] = [
+                'terms' => [
+                    'access_id' => $accessIds,
+                ],
+            ];
         }
 
         switch ($queryOpts->mediaTypeEnum) {
