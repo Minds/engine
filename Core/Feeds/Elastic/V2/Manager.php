@@ -523,6 +523,8 @@ class Manager
             $groupGuids = array_map(function ($guid) {
                 return (string) $guid;
             }, $this->groupsMembershipManager->getGroupGuids($queryOpts->user));
+        } else {
+            $groupGuids = [];
         }
 
         if ($queryOpts->onlySubscribedAndGroups) {
