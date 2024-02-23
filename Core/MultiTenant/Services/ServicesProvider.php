@@ -11,6 +11,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\V2\Membership\Manager as GroupsMembershipManager;
 use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
+use Minds\Core\MultiTenant\Cache\MultiTenantCacheHandler;
 use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigManager;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
 use Minds\Core\MultiTenant\MobileConfigs\Deployments\Builds\MobilePreviewHandler;
@@ -41,7 +42,7 @@ class ServicesProvider extends Provider
             return new DomainService(
                 $di->get('Config'),
                 $di->get(MultiTenantDataService::class),
-                $di->get('Cache\PsrWrapper'),
+                $di->get(MultiTenantCacheHandler::class),
                 $di->get(CloudflareClient::class),
                 $di->get(DomainsRepository::class),
             );
