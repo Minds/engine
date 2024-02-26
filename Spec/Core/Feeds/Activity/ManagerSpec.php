@@ -14,6 +14,7 @@ use Minds\Core\Feeds\Activity\Delegates;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Exceptions\RbacNotAllowed;
 use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
+use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Exceptions\UserErrorException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -41,6 +42,9 @@ class ManagerSpec extends ObjectBehavior
 
     private Collaborator $rbacGatekeeperServiceMock;
 
+    /** @var GuidLinkResolver */
+    private GuidLinkResolver $guidLinkResolver;
+
     public function let(
         Delegates\ForeignEntityDelegate $foreignEntityDelegate,
         Save $save,
@@ -50,6 +54,7 @@ class ManagerSpec extends ObjectBehavior
         Delegates\NotificationsDelegate $notificationsDelegate,
         EntitiesBuilder $entitiesBuilder,
         RbacGatekeeperService $rbacGatekeeperServiceMock,
+        GuidLinkResolver $guidLinkResolver
     ) {
         $this->beConstructedWith(
             $foreignEntityDelegate,
@@ -240,7 +245,7 @@ class ManagerSpec extends ObjectBehavior
         $this->save->save()
             ->shouldBeCalled()
             ->willReturn(true);
-    
+
         $activity = new Activity();
         $activity->owner_guid = 123;
 

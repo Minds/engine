@@ -52,6 +52,8 @@ use Stripe\Exception\ApiErrorException;
 use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
+use Minds\Core\Blogs\Blog;
+use Minds\Core\Entities\GuidLinkResolver;
 
 class Manager
 {
@@ -110,6 +112,7 @@ class Manager
         private ?TitleLengthValidator $titleLengthValidator = null,
         private ?ElasticManager $elasticManager = null,
         private ?RbacGatekeeperService $rbacGatekeeperService = null,
+        private ?GuidLinkResolver    $guidLinkResolver = null,
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -127,6 +130,7 @@ class Manager
         $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
         $this->elasticManager ??= Di::_()->get('Feeds\Elastic\Manager');
         $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
+        $this->guidLinkResolver ??= Di::_()->get(GuidLinkResolver::class);
     }
 
     public function getSupermindManager(): SupermindManager
@@ -406,59 +410,27 @@ class Manager
     }
 
     /**
-     * Get all the reminds a user has made of an activity.
-     * @param Activity $activity that was reminded
+     * Get the count of all reminds a user has made of an activity or blog.
+     * @param Activity|Blog $entity that was reminded
      * @param User $user
-     * @return array
+     * @return int
      */
-    public function getRemindsOfActivityByUser(Activity $activity, User $user): array
+    public function countRemindsOfEntityByUser($entity, User $user): int
     {
-        $hasMore = true;
-        $fromTimestamp = null;
-
-        $reminds = [];
-
-        while($hasMore) {
-
-            $response = $this->elasticManager->getList([
-                'algorithm' => 'latest',
-                'period' => 'all',
-                'type' => 'activity',
-                'limit' => 24,
-                'remind_guid' => $activity->getGuid(),
-                'owner_guid' => $user->getGuid(),
-                'from_timestamp' => $fromTimestamp
-            ]);
-
-            $entities = array_map(function ($feedItem) {
-                return $feedItem->getEntity();
-            }, $response->toArray());
-
-            if ($entities) {
-                $reminds = array_merge($reminds, $entities);
-                $fromTimestamp = $response->getPagingToken();
-                $hasMore = true;
-            } else {
-                $hasMore = false;
-            }
+        // Ensure $entity is either an instance of Activity or Blog
+        if (!($entity instanceof Activity || $entity instanceof Blog)) {
+            throw new InvalidArgumentException('The $entity must be an instance of Activity or Blog.');
         }
 
-        return $reminds;
-    }
+        // Determine the activityGuid for the entity
+        $activityGuid = $entity instanceof Activity ? $entity->getGuid() : $this->guidLinkResolver->resolve($entity->getGuid());
 
-    /**
-     * Get the count of all reminds a user has made of an activity.
-     * @param Activity $activity that was reminded
-     * @param User $user
-     * @return array
-     */
-    public function countRemindsOfActivityByUser(Activity $activity, User $user): int
-    {
+        // Count reminds for the activity
         $count = $this->elasticManager->getCount([
             'algorithm' => 'latest',
             'type' => 'activity',
             'period' => 'all',
-            'remind_guid' => $activity->getGuid(),
+            'remind_guid' => $activityGuid,
             'owner_guid' => $user->getGuid(),
         ]);
 
@@ -529,7 +501,7 @@ class Manager
 
         if ($activityMutation->hasMutated('timeCreated')) {
             $this->timeCreatedDelegate->onUpdate($activityMutation->getOriginalEntity(), $activity->getTimeCreated(), $activity->getTimeSent());
-        
+
             $mutatedAttributes[] = 'time_created';
         }
 
@@ -555,7 +527,7 @@ class Manager
             if (!$activityMutation->hasMutated('title')) {
                 $activity->setTitle('');
             }
-            
+
         }
 
         if ($activityMutation->hasMutated('videoPosterBase64Blob')) {
