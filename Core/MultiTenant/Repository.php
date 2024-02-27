@@ -232,7 +232,6 @@ class Repository extends AbstractRepository
 
     public function upgradeTrialTenant(Tenant $tenant, TenantPlanEnum $plan): Tenant
     {
-        // TODO: review timestamp logic
         $statement = $this->mysqlClientWriterHandler->update()
             ->table('minds_tenants')
             ->set([

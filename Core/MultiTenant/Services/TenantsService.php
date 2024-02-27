@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\MultiTenant\Services;
 
 use Minds\Core\Config\Config;
+use Minds\Core\MultiTenant\Cache\MultiTenantCacheHandler;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
@@ -12,14 +13,17 @@ use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 use PDOException;
+use Psr\SimpleCache\InvalidArgumentException;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class TenantsService
 {
     public function __construct(
-        private readonly Repository             $repository,
-        private readonly TenantConfigRepository $tenantConfigRepository,
-        private readonly Config                 $mindsConfig
+        private readonly Repository              $repository,
+        private readonly TenantConfigRepository  $tenantConfigRepository,
+        private readonly MultiTenantCacheHandler $multiTenantCacheHandler,
+        private readonly DomainService           $domainService,
+        private readonly Config                  $mindsConfig
     ) {
     }
 
@@ -118,10 +122,20 @@ class TenantsService
         return $this->repository->getTrialTenantForOwner($user);
     }
 
+    /**
+     * @param Tenant $tenant
+     * @param TenantPlanEnum $plan
+     * @return Tenant
+     * @throws InvalidArgumentException
+     */
     public function upgradeNetworkTrial(
         Tenant         $tenant,
         TenantPlanEnum $plan
     ): Tenant {
-        return $this->repository->upgradeTrialTenant($tenant, $plan);
+        $tenant = $this->repository->upgradeTrialTenant($tenant, $plan);
+
+        $this->multiTenantCacheHandler->resetTenantCache(tenant: $tenant, domainService: $this->domainService);
+
+        return $tenant;
     }
 }

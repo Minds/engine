@@ -212,9 +212,6 @@ class CheckoutService
                 $tenant = $this->tenantsService->getTrialNetworkByOwner($user);
 
                 $tenant = $this->tenantsService->upgradeNetworkTrial($tenant, $plan);
-
-
-                // TODO: clear cache for tenant to update plan
             } catch (NotFoundException $e) {
                 $tenant = $this->tenantsService->createNetwork(
                     tenant: new Tenant(

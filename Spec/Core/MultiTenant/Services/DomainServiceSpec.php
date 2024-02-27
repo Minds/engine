@@ -3,12 +3,12 @@
 namespace Spec\Minds\Core\MultiTenant\Services;
 
 use Minds\Core\Config\Config;
-use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
 use Minds\Core\Http\Cloudflare\Enums\CustomHostnameStatusEnum;
 use Minds\Core\Http\Cloudflare\Models\CustomHostname;
 use Minds\Core\Http\Cloudflare\Models\CustomHostnameMetadata;
 use Minds\Core\Http\Cloudflare\Models\CustomHostnameOwnershipVerification;
+use Minds\Core\MultiTenant\Cache\MultiTenantCacheHandler;
 use Minds\Core\MultiTenant\Enums\DnsRecordEnum;
 use Minds\Core\MultiTenant\Exceptions\ReservedDomainException;
 use Minds\Core\MultiTenant\Models\Tenant;
@@ -18,6 +18,7 @@ use Minds\Core\MultiTenant\Services\MultiTenantDataService;
 use Minds\Core\MultiTenant\Types\MultiTenantDomain;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 use ReflectionClass;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
@@ -25,25 +26,25 @@ class DomainServiceSpec extends ObjectBehavior
 {
     private Collaborator $configMock;
     private Collaborator $dataServiceMock;
-    private Collaborator $cacheMock;
+    private Collaborator $multiTenantCacheHandlerMock;
     private Collaborator $cloudflareClientMock;
     private Collaborator $domainsRepositoryMock;
 
     private ReflectionClass $tenantMockFactory;
 
     public function let(
-        Config                 $configMock,
-        MultiTenantDataService $dataServiceMock,
-        PsrWrapper             $cacheMock,
-        CloudflareClient       $cloudflareClientMock,
-        DomainsRepository      $domainsRepositoryMock,
+        Config                  $configMock,
+        MultiTenantDataService  $dataServiceMock,
+        MultiTenantCacheHandler $multiTenantCacheHandler,
+        CloudflareClient        $cloudflareClientMock,
+        DomainsRepository       $domainsRepositoryMock,
     ) {
         $this->tenantMockFactory = new ReflectionClass(Tenant::class);
 
-        $this->beConstructedWith($configMock, $dataServiceMock, $cacheMock, $cloudflareClientMock, $domainsRepositoryMock);
+        $this->beConstructedWith($configMock, $dataServiceMock, $multiTenantCacheHandler, $cloudflareClientMock, $domainsRepositoryMock);
         $this->configMock = $configMock;
         $this->dataServiceMock = $dataServiceMock;
-        $this->cacheMock = $cacheMock;
+        $this->multiTenantCacheHandlerMock = $multiTenantCacheHandler;
         $this->cloudflareClientMock = $cloudflareClientMock;
         $this->domainsRepositoryMock = $domainsRepositoryMock;
     }
@@ -60,6 +61,17 @@ class DomainServiceSpec extends ObjectBehavior
                 id: 123,
                 domain: 'phpspec.local'
             ));
+
+        $this->multiTenantCacheHandlerMock->getKey('global:tenant:domain:phpspec.local')
+            ->willReturn(null);
+
+        $this->multiTenantCacheHandlerMock
+            ->setKey(
+                "global:tenant:domain:phpspec.local",
+                Argument::type('string')
+            )
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $tenant = $this->getTenantFromDomain('phpspec.local');
         $tenant->id->shouldBe(123);
@@ -78,6 +90,17 @@ class DomainServiceSpec extends ObjectBehavior
                 id: 123,
                 domain: null,
             ));
+
+        $this->multiTenantCacheHandlerMock->getKey('global:tenant:domain:202cb962ac59075b964b07152d234b70.networks.phpspec.local')
+            ->willReturn(null);
+
+        $this->multiTenantCacheHandlerMock
+            ->setKey(
+                "global:tenant:domain:202cb962ac59075b964b07152d234b70.networks.phpspec.local",
+                Argument::type('string')
+            )
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $tenant = $this->getTenantFromDomain('202cb962ac59075b964b07152d234b70.networks.phpspec.local');
         $tenant->id->shouldBe(123);
@@ -122,15 +145,13 @@ class DomainServiceSpec extends ObjectBehavior
             domain: $domain
         );
 
-        $this->cacheMock->withTenantPrefix(false)
+        $this->multiTenantCacheHandlerMock->deleteKey("global:tenant:domain:$domain")
             ->shouldBeCalled()
-            ->willReturn($this->cacheMock);
+            ->willReturn(true);
 
-        $this->cacheMock->delete("global:tenant:domain:$domain")
-            ->shouldBeCalled();
-
-        $this->cacheMock->delete("global:tenant:domain:202cb962ac59075b964b07152d234b70.minds.com")
-            ->shouldBeCalled();
+        $this->multiTenantCacheHandlerMock->deleteKey("global:tenant:domain:202cb962ac59075b964b07152d234b70.minds.com")
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->invalidateGlobalTenantCache($tenant)->shouldBe(true);
     }

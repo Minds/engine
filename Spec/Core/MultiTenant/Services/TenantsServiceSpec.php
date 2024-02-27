@@ -4,11 +4,13 @@ declare(strict_types=1);
 namespace Spec\Minds\Core\MultiTenant\Services;
 
 use Minds\Core\Config\Config;
+use Minds\Core\MultiTenant\Cache\MultiTenantCacheHandler;
 use Minds\Core\MultiTenant\Configs\Enums\MultiTenantColorScheme;
 use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Repository;
+use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\TenantsService;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -21,18 +23,24 @@ class TenantsServiceSpec extends ObjectBehavior
 {
     private Collaborator $repositoryMock;
     private Collaborator $tenantConfigRepositoryMock;
+    private Collaborator $multiTenantCacheHandlerMock;
+    private Collaborator $domainServiceMock;
     private Collaborator $mindsConfigMock;
 
     private ReflectionClass $tenantMockFactory;
     private ReflectionClass $tenantConfigMockFactory;
 
     public function let(
-        Repository             $repository,
-        TenantConfigRepository $tenantConfigRepository,
-        Config                 $mindsConfig
+        Repository              $repository,
+        TenantConfigRepository  $tenantConfigRepository,
+        MultiTenantCacheHandler $multiTenantCacheHandler,
+        DomainService           $domainService,
+        Config                  $mindsConfig
     ): void {
         $this->repositoryMock = $repository;
         $this->tenantConfigRepositoryMock = $tenantConfigRepository;
+        $this->multiTenantCacheHandlerMock = $multiTenantCacheHandler;
+        $this->domainServiceMock = $domainService;
         $this->mindsConfigMock = $mindsConfig;
 
         $this->tenantMockFactory = new ReflectionClass(Tenant::class);
@@ -41,6 +49,8 @@ class TenantsServiceSpec extends ObjectBehavior
         $this->beConstructedWith(
             $this->repositoryMock,
             $this->tenantConfigRepositoryMock,
+            $this->multiTenantCacheHandlerMock,
+            $this->domainServiceMock,
             $this->mindsConfigMock
         );
     }

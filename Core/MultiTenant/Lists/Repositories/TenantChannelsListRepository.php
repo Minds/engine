@@ -49,6 +49,8 @@ class TenantChannelsListRepository extends AbstractRepository implements TenantL
             ->orderBy('f.total_subscribers DESC')
             ->prepare();
 
+        echo $stmt->queryString;
+
         try {
             $stmt->execute();
             $stmt->setFetchMode(PDO::FETCH_ASSOC);

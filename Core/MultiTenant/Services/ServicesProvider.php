@@ -62,6 +62,8 @@ class ServicesProvider extends Provider
                 return new TenantsService(
                     $di->get(Repository::class),
                     $di->get(TenantConfigRepository::class),
+                    $di->get(MultiTenantCacheHandler::class),
+                    $di->get(DomainService::class),
                     $di->get('Config'),
                 );
             }

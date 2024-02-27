@@ -4,12 +4,14 @@ declare(strict_types=1);
 namespace Minds\Core\MultiTenant\Cache;
 
 use Minds\Core\Data\cache\PsrWrapper;
+use Minds\Core\MultiTenant\Models\Tenant;
+use Minds\Core\MultiTenant\Services\DomainService;
 use Psr\SimpleCache\InvalidArgumentException;
 
 class MultiTenantCacheHandler
 {
     public function __construct(
-        private readonly PsrWrapper $cache
+        private readonly PsrWrapper $cache,
     ) {
     }
 
@@ -45,5 +47,25 @@ class MultiTenantCacheHandler
     public function deleteKey(string $key, bool $useTenantPrefix = false): bool
     {
         return $this->cache->withTenantPrefix($useTenantPrefix)->delete($key);
+    }
+
+    /**
+     * @param Tenant $tenant
+     * @param DomainService|null $domainService
+     * @param bool $useTenantPrefix
+     * @return bool
+     * @throws InvalidArgumentException
+     */
+    public function resetTenantCache(
+        Tenant         $tenant,
+        ?DomainService $domainService = null,
+        bool           $useTenantPrefix = false
+    ): bool {
+        $domain = $domainService?->buildDomain($tenant) ?? $tenant->domain;
+
+        $cacheKey = 'global:tenant:domain:' . $domain;
+
+        $this->cache->withTenantPrefix($useTenantPrefix)->set($cacheKey, serialize($tenant));
+        return true;
     }
 }
