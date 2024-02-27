@@ -7,7 +7,7 @@ use TheCodingMachine\GraphQLite\Annotations\Type;
 #[Type]
 interface EdgeInterface
 {
-    #[Field]
+    // #[Field]
     public function getNode(): ?NodeInterface;
 
     #[Field]
