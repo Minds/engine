@@ -53,7 +53,8 @@ use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Core\Blogs\Blog;
-use Minds\Helpers\Counters;
+use Minds\Core\Counters;
+use InvalidArgumentException;
 
 class Manager
 {
@@ -112,6 +113,7 @@ class Manager
         private ?TitleLengthValidator $titleLengthValidator = null,
         private ?ElasticManager $elasticManager = null,
         private ?RbacGatekeeperService $rbacGatekeeperService = null,
+        private ?Counters $counters = null,
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -129,6 +131,7 @@ class Manager
         $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
         $this->elasticManager ??= Di::_()->get('Feeds\Elastic\Manager');
         $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
+        $this->counters ??= new Counters();
     }
 
     public function getSupermindManager(): SupermindManager
@@ -420,14 +423,17 @@ class Manager
                     'from_timestamp' => $fromTimestamp
                 ]);
 
-                $entities = array_map(function ($feedItem) {
-                    return $feedItem->getEntity();
-                }, $response->toArray());
+                if ($response !== null) {
+                    $entities = array_map(function ($feedItem) {
+                        return $feedItem->getEntity();
+                    }, $response->toArray());
 
-                if ($entities) {
-                    $allResults = array_merge($allResults, $entities);
-                    $fromTimestamp = $response->getPagingToken();
+                    if ($entities) {
+                        $allResults = array_merge($allResults, $entities);
+                        $fromTimestamp = $response->getPagingToken();
+                    }
                 }
+
             }
 
             if (!empty($allResults)) {
@@ -506,9 +512,8 @@ class Manager
                 ]);
             }
         } elseif ($entity instanceof Blog) {
-            $count = Counters::get($entity->getGuid(), 'remind');
+            $count = $this->counters->get($entity->getGuid(), 'remind');
         }
-
 
         return $count ?? 0;
     }

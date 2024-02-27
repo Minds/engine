@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Feeds\Activity;
 use Minds\Core\Feeds\Activity\Manager;
 use Minds\Common\EntityMutation;
 use Minds\Entities\Activity;
+use Minds\Core\Blogs\Blog;
 use Minds\Entities\User;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Entities\Actions\Save;
@@ -14,11 +15,13 @@ use Minds\Core\Feeds\Activity\Delegates;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Exceptions\RbacNotAllowed;
 use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
-use Minds\Core\Entities\GuidLinkResolver;
 use Minds\Exceptions\UserErrorException;
+use Minds\Core\Counters;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
+use InvalidArgumentException;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -40,6 +43,12 @@ class ManagerSpec extends ObjectBehavior
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
+    /** @var ElasticManager */
+    private $elasticManager;
+
+    /** @var Counters */
+    private $counters;
+
     private Collaborator $rbacGatekeeperServiceMock;
 
     public function let(
@@ -50,9 +59,9 @@ class ManagerSpec extends ObjectBehavior
         Delegates\MetricsDelegate $metricsDelegate,
         Delegates\NotificationsDelegate $notificationsDelegate,
         EntitiesBuilder $entitiesBuilder,
+        ElasticManager $elasticManager,
         RbacGatekeeperService $rbacGatekeeperServiceMock,
-
-
+        Counters $counters,
     ) {
         $this->beConstructedWith(
             $foreignEntityDelegate,
@@ -69,8 +78,9 @@ class ManagerSpec extends ObjectBehavior
             $entitiesBuilder,
             null,
             null,
-            null,
+            $elasticManager,
             $rbacGatekeeperServiceMock,
+            $counters
         );
         $this->foreignEntityDelegate = $foreignEntityDelegate;
 
@@ -79,7 +89,9 @@ class ManagerSpec extends ObjectBehavior
         $this->paywallDelegate = $paywallDelegate;
         $this->metricsDelegate = $metricsDelegate;
         $this->entitiesBuilder = $entitiesBuilder;
+        $this->elasticManager = $elasticManager;
         $this->rbacGatekeeperServiceMock = $rbacGatekeeperServiceMock;
+        $this->counters = $counters;
 
         Session::setUser((new User())->set('guid', 123)->set('username', 'test'));
     }
@@ -357,5 +369,49 @@ class ManagerSpec extends ObjectBehavior
 
         $activity = new Activity();
         $this->shouldThrow(RbacNotAllowed::class)->duringAdd($activity);
+    }
+
+    public function it_counts_reminds_of_activity_by_user(Activity $activity, User $user)
+    {
+        $activityGuid = '123';
+        $entityGuid = '456';
+        $userGuid = '789';
+
+        $activity->getGuid()->willReturn($activityGuid);
+        $activity->getEntityGuid()->willReturn($entityGuid);
+        $user->getGuid()->willReturn($userGuid);
+
+        $this->elasticManager->getCount([
+            'algorithm' => 'latest',
+            'type' => 'activity',
+            'period' => 'all',
+            'remind_guid' => $activityGuid,
+            'owner_guid' => $userGuid,
+        ])->willReturn(5);
+
+        $this->elasticManager->getCount([
+            'algorithm' => 'latest',
+            'type' => 'activity',
+            'period' => 'all',
+            'remind_guid' => $entityGuid,
+            'owner_guid' => $userGuid,
+        ])->willReturn(3);
+
+        $this->countRemindsOfEntityByUser($activity, $user)->shouldReturn(8);
+    }
+
+    public function it_counts_reminds_of_blog_by_user(Blog $blog, User $user)
+    {
+        $blogGuid = '123';
+        $userGuid = '789';
+
+        $blog->getGuid()->willReturn($blogGuid);
+        $user->getGuid()->willReturn($userGuid);
+
+        $this->counters->get($blogGuid, 'remind')
+            ->shouldBeCalled()
+            ->willReturn(1);
+
+        $this->countRemindsOfEntityByUser($blog, $user)->shouldReturn(1);
     }
 }
