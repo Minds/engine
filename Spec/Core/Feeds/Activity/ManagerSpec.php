@@ -42,9 +42,6 @@ class ManagerSpec extends ObjectBehavior
 
     private Collaborator $rbacGatekeeperServiceMock;
 
-    /** @var GuidLinkResolver */
-    private GuidLinkResolver $guidLinkResolver;
-
     public function let(
         Delegates\ForeignEntityDelegate $foreignEntityDelegate,
         Save $save,
@@ -54,7 +51,8 @@ class ManagerSpec extends ObjectBehavior
         Delegates\NotificationsDelegate $notificationsDelegate,
         EntitiesBuilder $entitiesBuilder,
         RbacGatekeeperService $rbacGatekeeperServiceMock,
-        GuidLinkResolver $guidLinkResolver
+
+
     ) {
         $this->beConstructedWith(
             $foreignEntityDelegate,

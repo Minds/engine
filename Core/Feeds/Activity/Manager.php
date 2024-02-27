@@ -53,7 +53,7 @@ use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Core\Blogs\Blog;
-use Minds\Core\Entities\GuidLinkResolver;
+use Minds\Helpers\Counters;
 
 class Manager
 {
@@ -112,7 +112,6 @@ class Manager
         private ?TitleLengthValidator $titleLengthValidator = null,
         private ?ElasticManager $elasticManager = null,
         private ?RbacGatekeeperService $rbacGatekeeperService = null,
-        private ?GuidLinkResolver    $guidLinkResolver = null,
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -130,7 +129,6 @@ class Manager
         $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
         $this->elasticManager ??= Di::_()->get('Feeds\Elastic\Manager');
         $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
-        $this->guidLinkResolver ??= Di::_()->get(GuidLinkResolver::class);
     }
 
     public function getSupermindManager(): SupermindManager
@@ -384,16 +382,81 @@ class Manager
         return $success;
     }
 
+
     /**
-     * Delete all of the user's reminds of an activity
-     * @param Activity $activity that was reminded
+     * Get all the reminds a user has made of an entity.
+     * @param Activity|Blog $entity that was reminded
+     * @param User $user
+     * @return array
+     */
+    public function getRemindsOfEntityByUser($entity, User $user): array
+    {
+        if (!($entity instanceof Activity || $entity instanceof Blog)) {
+            throw new InvalidArgumentException('The $entity must be an instance of Activity or Blog.');
+        }
+
+        $reminds = [];
+        $hasMore = true;
+        $fromTimestamp = null;
+
+        while ($hasMore) {
+            $entityGuids = [$entity->getGuid()];
+
+            // If the entity has an entityGuid, add it to the search
+            if ($entity instanceof Activity && $entity->getEntityGuid()) {
+                $entityGuids[] = $entity->getEntityGuid();
+            }
+
+            $allResults = [];
+
+            foreach ($entityGuids as $guid) {
+                $response = $this->elasticManager->getList([
+                    'algorithm' => 'latest',
+                    'period' => 'all',
+                    'type' => 'activity',
+                    'limit' => 24,
+                    'remind_guid' => $guid,
+                    'owner_guid' => $user->getGuid(),
+                    'from_timestamp' => $fromTimestamp
+                ]);
+
+                $entities = array_map(function ($feedItem) {
+                    return $feedItem->getEntity();
+                }, $response->toArray());
+
+                if ($entities) {
+                    $allResults = array_merge($allResults, $entities);
+                    $fromTimestamp = $response->getPagingToken();
+                }
+            }
+
+            if (!empty($allResults)) {
+                $reminds = array_merge($reminds, $allResults);
+                $hasMore = true;
+            } else {
+                $hasMore = false;
+            }
+        }
+
+        return $reminds;
+    }
+
+
+    /**
+     * Delete all of the user's reminds of an activity or blog.
+     * @param Activity|Blog $entity that was reminded
      * @param User $user
      * @return bool
      */
-    public function deleteRemindsOfActivityByUser(Activity $activity, User $user): bool
+    public function deleteRemindsOfEntityByUser($entity, User $user): bool
     {
-        // Get all of the reminds
-        $reminds = $this->getRemindsOfActivityByUser($activity, $user);
+        // Ensure $entity is either an instance of Activity or Blog
+        if (!($entity instanceof Activity || $entity instanceof Blog)) {
+            throw new InvalidArgumentException('The $entity must be an instance of Activity or Blog.');
+        }
+
+        // Get all of the reminds of the entity
+        $reminds = $this->getRemindsOfEntityByUser($entity, $user);
 
         $success = true;
 
@@ -402,7 +465,7 @@ class Manager
             foreach($reminds as $remind) {
                 if (!$this->delete($remind)) {
                     $success = false;
-                };
+                }
             }
         }
 
@@ -422,19 +485,32 @@ class Manager
             throw new InvalidArgumentException('The $entity must be an instance of Activity or Blog.');
         }
 
-        // Determine the activityGuid for the entity
-        $activityGuid = $entity instanceof Activity ? $entity->getGuid() : $this->guidLinkResolver->resolve($entity->getGuid());
+        if ($entity instanceof Activity) {
+            // Count reminds for the activity
+            $count = $this->elasticManager->getCount([
+                'algorithm' => 'latest',
+                'type' => 'activity',
+                'period' => 'all',
+                'remind_guid' => $entity->getGuid(),
+                'owner_guid' => $user->getGuid(),
+            ]);
 
-        // Count reminds for the activity
-        $count = $this->elasticManager->getCount([
-            'algorithm' => 'latest',
-            'type' => 'activity',
-            'period' => 'all',
-            'remind_guid' => $activityGuid,
-            'owner_guid' => $user->getGuid(),
-        ]);
+            // Cross-check if entityGuid has been reminded
+            if($entity->getEntityGuid()) {
+                $count += $this->elasticManager->getCount([
+                    'algorithm' => 'latest',
+                    'type' => 'activity',
+                    'period' => 'all',
+                    'remind_guid' => $entity->getEntityGuid(),
+                    'owner_guid' => $user->getGuid(),
+                ]);
+            }
+        } elseif ($entity instanceof Blog) {
+            $count = Counters::get($entity->getGuid(), 'remind');
+        }
 
-        return $count;
+
+        return $count ?? 0;
     }
 
     /**
