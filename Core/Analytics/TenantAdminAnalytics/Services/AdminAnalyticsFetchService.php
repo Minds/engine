@@ -122,7 +122,6 @@ class AdminAnalyticsFetchService
         string &$loadAfter = null,
         bool &$hasMore = false,
     ) {
-        $limit = 12;
         $offset = 0;
 
         if ($loadAfter) {
@@ -170,7 +169,6 @@ class AdminAnalyticsFetchService
         string &$loadAfter = null,
         bool &$hasMore = false,
     ) {
-        $limit = 12;
         $offset = 0;
 
         if ($loadAfter) {

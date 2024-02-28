@@ -130,6 +130,7 @@ class Repository extends AbstractRepository
             ->where('minds_votes.created_timestamp', Operator::LT, new RawExp(':toTs'))
             ->where('minds_entities_activity.tenant_id', Operator::EQ, new RawExp(':tenantId'))
             ->groupBy('guid')
+            ->limit(10000)
             ->offset($offset)
             ->orderBy('votes desc');
 
@@ -168,6 +169,7 @@ class Repository extends AbstractRepository
             ->where('minds_group_membership.created_timestamp', Operator::LT, new RawExp(':toTs'))
             ->where('minds_entities_group.tenant_id', Operator::EQ, new RawExp(':tenantId'))
             ->groupBy('guid')
+            ->limit(10000)
             ->offset($offset)
             ->orderBy('new_members desc');
 
@@ -206,6 +208,7 @@ class Repository extends AbstractRepository
             ->where('friends.timestamp', Operator::LT, new RawExp(':toTs'))
             ->where('minds_entities_user.tenant_id', Operator::EQ, new RawExp(':tenantId'))
             ->groupBy('guid')
+            ->limit(10000)
             ->offset($offset)
             ->orderBy('subscribers desc');
 

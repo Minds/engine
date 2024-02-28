@@ -133,9 +133,9 @@ class AdminAnalyticsController
        
         $connection->setPageInfo(
             new PageInfo(
-                hasNextPage: false,
+                hasNextPage: $hasMore,
                 hasPreviousPage: false,
-                startCursor: null,
+                startCursor: $after,
                 endCursor: null
             )
         );
