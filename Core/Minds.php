@@ -92,6 +92,7 @@ class Minds extends base
         Comments\GraphQL\Module::class,
         Reports\V2\Module::class,
         Strapi\Module::class,
+        Chat\Module::class,
     ];
 
     /**
