@@ -38,6 +38,7 @@ class TenantGroupsListRepository extends AbstractRepository implements TenantLis
             )
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->orderBy('gm.total_members DESC')
+            ->limit(150)
             ->prepare();
 
         try {
