@@ -2,6 +2,7 @@
 namespace Minds\Core\Analytics\TenantAdminAnalytics\Types\Table;
 
 use Minds\Core\GraphQL\Types\EdgeInterface;
+use Minds\Core\GraphQL\Types\NodeInterface;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 
@@ -18,7 +19,7 @@ class AnalyticsTableRowEdge implements EdgeInterface
      * @inheritDoc
      */
     #[Field]
-    public function getNode(): AnalyticsTableRowNodeInterface
+    public function getNode(): NodeInterface
     {
         return $this->node;
     }

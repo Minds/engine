@@ -14,7 +14,7 @@ class AnalyticsTableRowUserNode implements AnalyticsTableRowNodeInterface
         #[Field] public readonly UserNode $user,
         #[Field] public readonly int $newSubscribers,
         #[Field] public readonly int $totalSubscribers,
-        #[Field] public readonly int $engagements,
+        // #[Field] public readonly int $engagements,
     ) {
         
     }

@@ -13,8 +13,8 @@ class AnalyticsTableRowGroupNode implements AnalyticsTableRowNodeInterface
     public function __construct(
         #[Field] public readonly GroupNode $group,
         #[Field] public readonly int $newMembers,
-        #[Field] public readonly int $totalMembers,
-        #[Field] public readonly int $engagements,
+        // #[Field] public readonly int $totalMembers,
+        // #[Field] public readonly int $engagements,
     ) {
         
     }
