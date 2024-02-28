@@ -891,3 +891,32 @@ ALTER TABLE minds_entities_object_image ADD COLUMN blurhash text AFTER filename;
 
 ALTER TABLE minds_entities_activity
     MODIFY COLUMN paywall_thumbnail JSON DEFAULT NULL;
+
+
+CREATE TABLE IF NOT EXISTS minds_chat_rooms(
+    tenant_id int,
+    room_guid bigint,
+    room_type enum ('ONE_TO_ONE', 'MULTI_USER', 'GROUP_OWNED') NOT NULL,
+    created_by_user_guid bigint NOT NULL,
+    group_guid bigint DEFAULT NULL,
+    PRIMARY KEY (tenant_id, room_guid)
+);
+CREATE TABLE IF NOT EXISTS minds_chat_messages(
+    tenant_id int,
+    room_guid bigint,
+    guid bigint,
+    sender_guid bigint,
+    plain_text text,
+    created_timestamp TIMESTAMP,
+    PRIMARY KEY (tenant_id, room_guid, guid),
+    FOREIGN KEY (tenant_id,  room_guid) REFERENCES minds_chat_rooms(tenant_id, room_guid)
+);
+CREATE TABLE IF NOT EXISTS minds_chat_members(
+    tenant_id int,
+    room_guid bigint,
+    member_guid bigint,
+    joined_timestamp timestamp,
+    role_id enum ('OWNER', 'MEMBER'),
+    PRIMARY KEY (tenant_id, room_guid, member_guid),
+    FOREIGN KEY (tenant_id, room_guid) REFERENCES minds_chat_rooms(tenant_id, room_guid)
+);
