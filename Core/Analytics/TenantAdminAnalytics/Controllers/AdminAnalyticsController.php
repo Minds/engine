@@ -9,7 +9,11 @@ use Minds\Core\Analytics\TenantAdminAnalytics\Types\AnalyticsKpiType;
 use Minds\Core\Analytics\TenantAdminAnalytics\Types\AnalyticsTableConnection;
 use Minds\Core\Analytics\TenantAdminAnalytics\Types\Table\AnalyticsTableRowEdge;
 use Minds\Core\GraphQL\Types\PageInfo;
+use Minds\Entities\User;
+use TheCodingMachine\GraphQLite\Annotations\InjectUser;
+use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Query;
+use TheCodingMachine\GraphQLite\Annotations\Security;
 
 class AdminAnalyticsController
 {
@@ -23,10 +27,13 @@ class AdminAnalyticsController
      * Returns data to be displayed in a chart. All metrics are supported.
      */
     #[Query]
+    #[Logged]
+    #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
     public function getTenantAdminAnalyticsChart(
         AnalyticsMetricEnum $metric,
         int $fromUnixTs = null,
-        int $toUnixTs = null
+        int $toUnixTs = null,
+        #[InjectUser()] ?User $loggedInUser = null,
     ): AnalyticsChartType {
         if (!$fromUnixTs) {
             $fromUnixTs = strtotime('midnight 30 days ago');
@@ -43,10 +50,13 @@ class AdminAnalyticsController
      * @return AnalyticsKpiType[]
      */
     #[Query]
+    #[Logged]
+    #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
     public function getTenantAdminAnalyticsKpis(
         array $metrics,
         int $fromUnixTs = null,
         int $toUnixTs = null,
+        #[InjectUser] ?User $loggedInUser = null,
     ): array {
         if (!$fromUnixTs) {
             $fromUnixTs = strtotime('midnight 30 days ago');
@@ -61,12 +71,15 @@ class AdminAnalyticsController
      * Returns a paginated list of popular content
      */
     #[Query]
+    #[Logged]
+    #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
     public function getTenantAdminAnalyticsTable(
         AnalyticsTableEnum $table,
         int $limit = 20,
         string $after = null,
         int $fromUnixTs = null,
         int $toUnixTs = null,
+        #[InjectUser] ?User $loggedInUser = null,
     ): AnalyticsTableConnection {
         if (!$fromUnixTs) {
             $fromUnixTs = strtotime('midnight 30 days ago');
