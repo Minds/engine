@@ -34,7 +34,6 @@ class TenantChannelsListRepository extends AbstractRepository implements TenantL
                             new RawExp('COUNT(*) as total_subscribers')
                         ])
                         ->innerJoin(new RawExp('minds_entities_user u'), 'guid', Operator::EQ, 'user_guid')
-                        ->where('friend_guid', Operator::EQ, 'u.guid')
                         ->where('u.banned', Operator::EQ, 0)
                         ->where('u.deleted', Operator::EQ, 0)
                         ->where('u.enabled', Operator::EQ, 1)
@@ -47,6 +46,7 @@ class TenantChannelsListRepository extends AbstractRepository implements TenantL
             )
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->orderBy('f.total_subscribers DESC')
+            ->limit(150)
             ->prepare();
 
         try {
