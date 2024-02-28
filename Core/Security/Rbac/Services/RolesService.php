@@ -1,9 +1,10 @@
 <?php
+
 namespace Minds\Core\Security\Rbac\Services;
 
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\MultiTenant\Services\MultiTenantBootService;
+use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Enums\RolesEnum;
 use Minds\Core\Security\Rbac\Exceptions\RbacNotConfigured;
@@ -15,8 +16,8 @@ use Minds\Entities\User;
 class RolesService
 {
     public function __construct(
-        private readonly Config $config,
-        private readonly Repository $repository,
+        private readonly Config          $config,
+        private readonly Repository      $repository,
         private readonly EntitiesBuilder $entitiesBuilder,
     ) {
 
@@ -55,7 +56,7 @@ class RolesService
 
         if ($this->isMultiTenant()) {
             try {
-                $roles = $this->repository->getUserRoles((int) $user->getGuid());
+                $roles = $this->repository->getUserRoles((int)$user->getGuid());
             } catch (RbacNotConfigured) {
                 // Build the roles
                 $this->buildRoles();
@@ -96,7 +97,17 @@ class RolesService
         $roles = $this->getRoles($user);
         $permissions = [];
 
+        /**
+         * @var Tenant $tenant
+         */
+        $tenant = $this->config->get('tenant');
+
         foreach ($roles as $role) {
+            // If the user is in trial, we only want to give them permissions that are allowed during trial
+            if ($tenant->trialStartTimestamp && strtotime("+" . Tenant::TRIAL_LENGTH_IN_DAYS . " days", $tenant->trialStartTimestamp) <= time()) {
+                continue;
+            }
+
             array_push($permissions, ...array_map(function ($permission) {
                 return $permission;
             }, $role->permissions));
@@ -116,13 +127,13 @@ class RolesService
     }
 
     /**
-    * Return a list of all users
-    */
+     * Return a list of all users
+     */
     public function getUsersByRole(
-        ?int $roleId = null,
-        int $limit = 12,
+        ?int   $roleId = null,
+        int    $limit = 12,
         string &$loadAfter = null,
-        bool &$hasMore = null
+        bool   &$hasMore = null
     ): iterable {
         // First, gather all the roles and their permissions
         $allRoles = $this->buildRoles();
@@ -130,7 +141,7 @@ class RolesService
         $offset = 0;
 
         if ($loadAfter) {
-            $offset = (int) base64_decode($loadAfter, true);
+            $offset = (int)base64_decode($loadAfter, true);
         }
 
         // Run through users matching query and hyrate the roles
@@ -186,7 +197,7 @@ class RolesService
         }
 
         return $this->repository->assignUserToRole(
-            userGuid: (int) $user->getGuid(),
+            userGuid: (int)$user->getGuid(),
             roleId: $role->id,
         );
     }
@@ -201,7 +212,7 @@ class RolesService
         }
 
         return $this->repository->unassignUserFromRole(
-            userGuid: (int) $user->getGuid(),
+            userGuid: (int)$user->getGuid(),
             roleId: $role->id,
         );
     }
