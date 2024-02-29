@@ -19,15 +19,15 @@ use Minds\Core\Events\EventsDispatcher;
 use Minds\Core\Guid;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\XSS;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
+use Minds\Core\Wire\Paywall\PaywallEntityTrait;
+use Minds\Entities\CommentableEntityInterface;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\RepositoryEntity;
 use Minds\Entities\User;
 use Minds\Helpers\Flags;
 use Minds\Helpers\Text;
 use Minds\Traits\MagicAttributes;
-use Minds\Core\Wire\Paywall\PaywallEntityInterface;
-use Minds\Core\Wire\Paywall\PaywallEntityTrait;
-use Minds\Entities\CommentableEntityInterface;
-use Minds\Entities\EntityInterface;
 
 /**
  * Blog Entity
@@ -114,8 +114,8 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
     /** @var string */
     protected $subtype = 'blog';
 
-    /** @var int */
-    public ?int $guid = null;
+    /** @var int|string|null */
+    public int|string|null $guid = null;
 
     /** @var int */
     protected $ownerGuid;
@@ -306,7 +306,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
             $this->setGuid(Guid::build());
         }
 
-        return (string) $this->guid;
+        return (string)$this->guid;
     }
 
     /**
@@ -527,7 +527,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
             return $array;
         }
         foreach ($this->nsfw as $reason) {
-            $array[] = (int) $reason;
+            $array[] = (int)$reason;
         }
         return $array;
     }
@@ -562,7 +562,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
             return $array;
         }
         foreach ($this->nsfwLock as $reason) {
-            $array[] = (int) $reason;
+            $array[] = (int)$reason;
         }
 
         return $array;
@@ -674,17 +674,17 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
         }
 
         // Type casting (legacy)
-        $output['monetized'] = (bool) $export['monetized'];
-        $output['paywall'] = (bool) $export['paywall'];
-        $output['mature'] = (bool) $export['mature'];
-        $output['spam'] = (bool) $export['spam'];
-        $output['deleted'] = (bool) $export['deleted'];
-        $output['rating'] = (int) $export['rating'];
-        $output['boost_rejection_reason'] = (int) $export['boost_rejection_reason'];
+        $output['monetized'] = (bool)$export['monetized'];
+        $output['paywall'] = (bool)$export['paywall'];
+        $output['mature'] = (bool)$export['mature'];
+        $output['spam'] = (bool)$export['spam'];
+        $output['deleted'] = (bool)$export['deleted'];
+        $output['rating'] = (int)$export['rating'];
+        $output['boost_rejection_reason'] = (int)$export['boost_rejection_reason'];
 
         // The curious case of the published flag
         if ($export['published'] !== "" && $export['published'] !== null) {
-            $output['published'] = (bool) $export['published'];
+            $output['published'] = (bool)$export['published'];
         } else {
             $output['published'] = true;
         }
@@ -708,7 +708,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
 
         $output = array_merge(
             $output,
-            $this->_eventsDispatcher->trigger('export:extender', 'blog', [ 'entity' => $this ], [])
+            $this->_eventsDispatcher->trigger('export:extender', 'blog', ['entity' => $this], [])
         );
 
         return $output;
@@ -744,7 +744,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
      */
     public function getAccessId(): string
     {
-        return (string) $this->accessId;
+        return (string)$this->accessId;
     }
 
     /**
@@ -752,7 +752,7 @@ class Blog extends RepositoryEntity implements PaywallEntityInterface, EntityInt
      */
     public function getOwnerGuid(): string
     {
-        return (string) $this->ownerGuid;
+        return (string)$this->ownerGuid;
     }
 
     /**
