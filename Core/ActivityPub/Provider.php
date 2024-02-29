@@ -9,6 +9,7 @@ use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\LikeFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Factories\OutboxFactory;
+use Minds\Core\ActivityPub\Helpers\EmitterCircuitBreaker;
 use Minds\Core\ActivityPub\Services\EmitActivityService;
 use Minds\Core\ActivityPub\Services\FederationEnabledService;
 use Minds\Core\ActivityPub\Services\ProcessActivityService;
@@ -132,6 +133,7 @@ class Provider extends DiProvider
                 manager: $di->get(Manager::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 logger: $di->get('Logger'),
+                circuitBreaker: $di->get(EmitterCircuitBreaker::class),
             );
         });
 
@@ -181,5 +183,15 @@ class Provider extends DiProvider
                 config: $di->get(Config::class),
             );
         });
+
+        /*
+         * Helpers
+         */
+        $this->di->bind(
+            EmitterCircuitBreaker::class,
+            fn (Di $di) => new EmitterCircuitBreaker(
+                cache: $di->get('Cache\Cassandra'),
+            )
+        );
     }
 }
