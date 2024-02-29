@@ -3,6 +3,7 @@
  * This subscription will deliver Minds events to the Fediverse
  * You can test by running `php cli.php EventStreams --subscription=Core\\ActivityPub\\Subscriptions\\ActivityPubEventStreamsSubscription`
  */
+
 namespace Minds\Core\ActivityPub\Subscriptions;
 
 use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
@@ -32,13 +33,13 @@ use Minds\Exceptions\UserErrorException;
 class ActivityPubEventStreamsSubscription implements SubscriptionInterface
 {
     public function __construct(
-        private ?ObjectFactory $objectFactory = null,
-        protected ?Manager $manager = null,
-        protected ?EmitActivityService $emitActivityService = null,
-        protected ?ActorFactory $actorFactory = null,
+        private ?ObjectFactory              $objectFactory = null,
+        protected ?Manager                  $manager = null,
+        protected ?EmitActivityService      $emitActivityService = null,
+        protected ?ActorFactory             $actorFactory = null,
         protected ?FederationEnabledService $federationEnabledService = null,
-        protected ?Logger $logger = null,
-        protected ?Config $config = null,
+        protected ?Logger                   $logger = null,
+        protected ?Config                   $config = null,
     ) {
         $this->objectFactory = Di::_()->get(ObjectFactory::class);
         $this->manager ??= Di::_()->get(Manager::class);
@@ -89,6 +90,8 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
             return false;
         }
 
+        return true;
+
         if (!$this->federationEnabledService->isEnabled()) {
             $this->logger->info('Skipping as federation is disabled');
             return true;
@@ -123,7 +126,7 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
                 $follow->object = $object;
 
                 $this->emitActivityService->emitFollow($follow, $user);
-                
+
                 return true;
             case ActionEvent::ACTION_VOTE_UP:
             case ActionEvent::ACTION_VOTE_UP_REMOVED:
