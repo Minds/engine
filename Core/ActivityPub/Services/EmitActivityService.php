@@ -1,10 +1,13 @@
 <?php
+
 namespace Minds\Core\ActivityPub\Services;
 
 use ActivityPhp\Type\Extended\AbstractActor;
 use Minds\Core\ActivityPub\Client;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
+use Minds\Core\ActivityPub\Helpers\CircuitStatusEnum;
+use Minds\Core\ActivityPub\Helpers\EmitterCircuitBreaker;
 use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Manager;
 use Minds\Core\ActivityPub\Types\Activity\AcceptType;
@@ -17,28 +20,37 @@ use Minds\Core\ActivityPub\Types\Core\ActivityType;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Entities\User;
+use Psr\SimpleCache\InvalidArgumentException;
 
 class EmitActivityService
 {
     public function __construct(
-        protected ActorFactory $actorFactory,
-        protected ObjectFactory $objectFactory,
-        protected Client $client,
-        protected Manager $manager,
-        protected EntitiesBuilder $entitiesBuilder,
-        protected Logger $logger,
+        protected ActorFactory                 $actorFactory,
+        protected ObjectFactory                $objectFactory,
+        protected Client                       $client,
+        protected Manager                      $manager,
+        protected EntitiesBuilder              $entitiesBuilder,
+        protected Logger                       $logger,
+        private readonly EmitterCircuitBreaker $circuitBreaker
     ) {
-        
+
     }
 
     /**
      * Emits the activity to the correct audience
+     * @throws InvalidArgumentException
      */
     public function emitActivity(ActivityType $activity, User $actor): void
     {
         // Find a list of all our followers inboxes
         foreach ($this->manager->getInboxesForFollowers($actor->getGuid()) as $inboxUrl) {
-            $this->postRequest($inboxUrl, $activity, $actor);
+            if (($cbStatus = $this->circuitBreaker->evaluateCircuit($inboxUrl)) !== CircuitStatusEnum::HEALTHY) {
+                $this->logger->warning("Emit Activity: Circuit Breaker tripped for $inboxUrl. Circuit Breaker status is $cbStatus->name");
+                continue;
+            }
+            if (!$this->postRequest($inboxUrl, $activity, $actor)) {
+                $this->circuitBreaker->tripCircuit($inboxUrl);
+            }
         }
 
         // If there are any mentions or additional cc's, also send to those
@@ -59,7 +71,7 @@ class EmitActivityService
     public function emitFollow(FollowType $follow, User $actor): void
     {
         // Get the targets inbox
-        
+
         $target = $follow->object;
 
         if (!$target instanceof AbstractActorType) {
@@ -145,7 +157,7 @@ class EmitActivityService
         if ($accept->object instanceof FollowType) {
             $target = $this->actorFactory->fromUri(JsonLdHelper::getValueOrId($accept->object->actor));
             $inboxUrl = $target->endpoints['sharedInbox'] ?? $target->inbox;
-    
+
             $this->postRequest($inboxUrl, $accept, $actor);
         } else {
             // Not supported
@@ -163,7 +175,7 @@ class EmitActivityService
             $privateKey = $actor ? $this->manager->getPrivateKey($actor) : $this->manager->getPrivateKeyByUserGuid(0);
             $response = $this->client
                 ->withPrivateKeys([
-                    $activity->actor->id . '#main-key' => (string) $privateKey,
+                    $activity->actor->id . '#main-key' => (string)$privateKey,
                 ])
                 ->request('POST', $inboxUrl, [
                     ...$activity->getContextExport(),
