@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\ActivityPub\Helpers;
 
+use Minds\Exceptions\NotFoundException;
 use Psr\SimpleCache\CacheInterface;
 use Psr\SimpleCache\InvalidArgumentException;
 
@@ -22,7 +23,11 @@ class EmitterCircuitBreaker
      */
     public function evaluateCircuit(string $target): CircuitStatusEnum
     {
-        $targetCircuitDetails = $this->cache->get(self::CACHE_PREFIX . $target);
+        try {
+            $targetCircuitDetails = $this->cache->get(self::CACHE_PREFIX . $target);
+        } catch (NotFoundException $e) {
+            $targetCircuitDetails = null;
+        }
         if (!$targetCircuitDetails) {
             return CircuitStatusEnum::HEALTHY;
         }
@@ -43,7 +48,12 @@ class EmitterCircuitBreaker
      */
     public function tripCircuit(string $target): void
     {
-        $targetCircuitDetails = $this->cache->get(self::CACHE_PREFIX . $target);
+        try {
+            $targetCircuitDetails = $this->cache->get(self::CACHE_PREFIX . $target);
+        } catch (NotFoundException $e) {
+            $targetCircuitDetails = null;
+        }
+
         if (!$targetCircuitDetails) {
             $targetCircuitDetails = [
                 'failures' => 0,
