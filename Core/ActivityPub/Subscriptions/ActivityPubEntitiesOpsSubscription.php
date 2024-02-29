@@ -86,8 +86,6 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
             return false;
         }
 
-        return true;
-
         if (!$this->federationEnabledService->isEnabled()) {
             $this->logger->info('Skipping as federation is disabled');
             return true;
