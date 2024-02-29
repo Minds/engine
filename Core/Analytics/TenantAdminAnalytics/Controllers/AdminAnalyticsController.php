@@ -90,6 +90,7 @@ class AdminAnalyticsController
         }
 
         $hasMore = false;
+        $startCursor = $after;
 
         $edges = [];
 
@@ -148,8 +149,8 @@ class AdminAnalyticsController
             new PageInfo(
                 hasNextPage: $hasMore,
                 hasPreviousPage: false,
-                startCursor: $after,
-                endCursor: null
+                startCursor: $startCursor,
+                endCursor: $after
             )
         );
         return $connection;
