@@ -28,7 +28,6 @@ class EmitterCircuitBreaker
         } catch (NotFoundException $e) {
             $targetCircuitDetails = null;
         }
-        $targetCircuitDetails = $this->cache->get(self::CACHE_PREFIX . $target);
         if (!$targetCircuitDetails) {
             return CircuitStatusEnum::HEALTHY;
         }
@@ -54,7 +53,7 @@ class EmitterCircuitBreaker
         } catch (NotFoundException $e) {
             $targetCircuitDetails = null;
         }
-        
+
         if (!$targetCircuitDetails) {
             $targetCircuitDetails = [
                 'failures' => 0,
