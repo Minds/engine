@@ -1,10 +1,9 @@
 <?php
+
 namespace Minds\Core\Chat\Types;
 
-use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
-use Minds\Core\Feeds\GraphQL\Types\UserNode;
 use Minds\Core\GraphQL\Types\NodeInterface;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
@@ -16,7 +15,7 @@ class ChatRoomNode implements NodeInterface
     public function __construct(
         public readonly ChatRoom $chatRoom,
     ) {
-        
+
     }
 
     #[Field]
@@ -31,11 +30,11 @@ class ChatRoomNode implements NodeInterface
     #[Field]
     public function getGuid(): string
     {
-        return $this->chatRoom->guid;
+        return (string)$this->chatRoom->guid;
     }
 
     /**
-     * The type of room. ie. one-to-one, multi-user, or group-owned
+     * The type of room. i.e. one-to-one, multi-user, or group-owned
      */
     #[Field]
     public function getRoomType(): ChatRoomTypeEnum

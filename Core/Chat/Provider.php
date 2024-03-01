@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Minds\Core\Chat;
 
 use Minds\Core\Di\Di;

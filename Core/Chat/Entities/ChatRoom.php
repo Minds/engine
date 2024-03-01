@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\Chat\Entities;
 
 use DateTime;
@@ -11,12 +12,12 @@ class ChatRoom implements EntityInterface
     public readonly DateTime $createdAt;
 
     public function __construct(
-        public readonly int $guid,
+        public readonly int              $guid,
         public readonly ChatRoomTypeEnum $roomType,
-        public readonly int $createdByGuid,
-        ?DateTime $createdAt = null
+        public readonly int              $createdByGuid,
+        ?DateTime                        $createdAt = null
     ) {
-        $this->createdAt = $createdAt ??= new DateTime();
+        $this->createdAt = $createdAt ?? new DateTime();
     }
 
     /**
@@ -44,8 +45,8 @@ class ChatRoom implements EntityInterface
     }
 
     /**
-    * @inheritDoc
-    */
+     * @inheritDoc
+     */
     public function getSubtype(): ?string
     {
         return 'room';
@@ -56,7 +57,7 @@ class ChatRoom implements EntityInterface
      */
     public function getOwnerGuid(): ?string
     {
-        return (string) $this->createdByGuid;
+        return (string)$this->createdByGuid;
     }
 
     /**
@@ -64,6 +65,6 @@ class ChatRoom implements EntityInterface
      */
     public function getAccessId(): string
     {
-        return (int) Access::UNLISTED;
+        return (int)Access::UNLISTED;
     }
 }

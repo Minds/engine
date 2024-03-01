@@ -899,8 +899,10 @@ CREATE TABLE IF NOT EXISTS minds_chat_rooms(
     room_type enum ('ONE_TO_ONE', 'MULTI_USER', 'GROUP_OWNED') NOT NULL,
     created_by_user_guid bigint NOT NULL,
     group_guid bigint DEFAULT NULL,
+
     PRIMARY KEY (tenant_id, room_guid)
 );
+
 CREATE TABLE IF NOT EXISTS minds_chat_messages(
     tenant_id int,
     room_guid bigint,
@@ -911,12 +913,16 @@ CREATE TABLE IF NOT EXISTS minds_chat_messages(
     PRIMARY KEY (tenant_id, room_guid, guid),
     FOREIGN KEY (tenant_id,  room_guid) REFERENCES minds_chat_rooms(tenant_id, room_guid)
 );
+
 CREATE TABLE IF NOT EXISTS minds_chat_members(
-    tenant_id int,
-    room_guid bigint,
-    member_guid bigint,
-    joined_timestamp timestamp,
-    role_id enum ('OWNER', 'MEMBER'),
+    tenant_id int NOT NULL,
+    room_guid bigint NOT NULL,
+    member_guid bigint NOT NULL,
+    joined_timestamp timestamp DEFAULT NULL,
+    role_id enum ('OWNER', 'MEMBER') NOT NULL,
+    status enum ('ACTIVE', 'LEFT', 'INVITE_PENDING', 'INVITE_REJECTED') NOT NULL,
     PRIMARY KEY (tenant_id, room_guid, member_guid),
-    FOREIGN KEY (tenant_id, room_guid) REFERENCES minds_chat_rooms(tenant_id, room_guid)
+    FOREIGN KEY (tenant_id, room_guid) REFERENCES minds_chat_rooms(tenant_id, room_guid),
+    INDEX (member_guid),
+    INDEX (status)
 );
