@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\Checkout\Services;
 
+use Minds\Core\MultiTenant\Cache\MultiTenantCacheHandler;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Services\TenantsService;
@@ -39,6 +40,7 @@ class CheckoutService
         private readonly SubscriptionsService         $stripeSubscriptionsService,
         private readonly CacheInterface               $cache,
         private readonly CheckoutEventsDelegate       $checkoutEventsDelegate,
+        private readonly MultiTenantCacheHandler      $multiTenantCacheHandler
     ) {
     }
 
@@ -57,7 +59,8 @@ class CheckoutService
         User                   $user,
         string                 $planId,
         CheckoutTimePeriodEnum $timePeriod,
-        ?array                 $addOnIds
+        ?array                 $addOnIds,
+        bool                   $isTrialUpgrade = false
     ): string {
         $lineItems = [];
 
@@ -86,6 +89,7 @@ class CheckoutService
             submitMessage: $timePeriod === CheckoutTimePeriodEnum::YEARLY ? "You are agreeing to a 12 month subscription that will be billed monthly." : null,
             metadata: [
                 'tenant_plan' => strtoupper(str_replace('networks:', '', $planId)),
+                'isTrialUpgrade' => $isTrialUpgrade ? 'true' : 'false',
             ]
         );
 
@@ -147,8 +151,8 @@ class CheckoutService
      * @param array $addOnIds
      * @param array $lineItems
      * @return void
-     * @throws ApiErrorException
      * @throws GraphQLException
+     * @throws InvalidArgumentException
      * @throws ServerErrorException
      */
     private function prepareCheckoutAddonsLineItems(
@@ -194,20 +198,38 @@ class CheckoutService
      * @return void
      * @throws ApiErrorException
      * @throws GraphQLException
+     * @throws ServerErrorException
      */
     public function completeCheckout(User $user, string $stripeCheckoutSessionId): void
     {
         $checkoutSession = $this->stripeCheckoutSessionService->retrieveCheckoutSession($stripeCheckoutSessionId);
 
         $plan = TenantPlanEnum::fromString($checkoutSession->metadata['tenant_plan']);
+        $isTrialUpgrade = ($checkoutSession->metadata['isTrialUpgrade'] ?? null) === 'true';
 
-        $tenant = $this->tenantsService->createNetwork(
-            tenant: new Tenant(
-                id: 0,
-                plan: $plan,
-                ownerGuid: (int) $user->getGuid(),
-            )
-        );
+        if ($isTrialUpgrade) {
+            try {
+                $tenant = $this->tenantsService->getTrialNetworkByOwner($user);
+
+                $tenant = $this->tenantsService->upgradeNetworkTrial($tenant, $plan);
+            } catch (NotFoundException $e) {
+                $tenant = $this->tenantsService->createNetwork(
+                    tenant: new Tenant(
+                        id: 0,
+                        ownerGuid: (int)$user->getGuid(),
+                        plan: $plan,
+                    )
+                );
+            }
+        } else {
+            $tenant = $this->tenantsService->createNetwork(
+                tenant: new Tenant(
+                    id: 0,
+                    ownerGuid: (int)$user->getGuid(),
+                    plan: $plan,
+                )
+            );
+        }
 
         $this->stripeSubscriptionsService->updateSubscription(
             subscriptionId: $checkoutSession->subscription,
