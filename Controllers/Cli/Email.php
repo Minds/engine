@@ -18,10 +18,6 @@ use Minds\Core\Reports;
 use Minds\Core\Supermind;
 use Minds\Entities\User;
 use Minds\Interfaces;
-use Minds\Core\Email\V2\Campaigns\Recurring\ForgotPassword\ForgotPasswordEmailer;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Security\ACL;
-use Minds\Core\Security\Password;
 
 class Email extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -389,32 +385,5 @@ class Email extends Cli\Controller implements Interfaces\CliControllerInterface
             $invitesService = Di::_()->get(InviteSenderService::class);
             $invitesService->sendInvites();
         })();
-    }
-
-    public function testPasswordReset()
-    {
-        $userGuid = $this->getOpt('userGuid');
-        $output = $this->getOpt('output');
-
-        $user = Di::_()->get(EntitiesBuilder::class)->single($userGuid);
-        $ignore = ACL::$ignore;
-        ACL::$ignore = true;
-
-        $code = Password::reset($user);
-
-        $campaign = (new ForgotPasswordEmailer());
-        $campaign
-            ->setUser($user)
-            ->setCode($code);
-
-        $message = $campaign->build();
-
-        ACL::$ignore = $ignore;
-
-        if ($output) {
-            file_put_contents($output, $message->buildHtml());
-        } else {
-            $this->out($message->buildHtml());
-        }
     }
 }
