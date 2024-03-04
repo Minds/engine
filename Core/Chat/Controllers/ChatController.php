@@ -1,10 +1,10 @@
 <?php
 namespace Minds\Core\Chat\Controllers;
 
-use DateTime;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
+use Minds\Core\Chat\Services\RoomService;
 use Minds\Core\Chat\Types\ChatMessageEdge;
 use Minds\Core\Chat\Types\ChatMessageNode;
 use Minds\Core\Chat\Types\ChatMessagesConnection;
@@ -14,7 +14,6 @@ use Minds\Core\Chat\Types\ChatRoomMemberNode;
 use Minds\Core\Chat\Types\ChatRoomMembersConnection;
 use Minds\Core\Chat\Types\ChatRoomNode;
 use Minds\Core\Chat\Types\ChatRoomsConnection;
-use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\Feeds\GraphQL\Types\UserNode;
 use Minds\Core\GraphQL\Types\PageInfo;
 use Minds\Core\Guid;
@@ -26,6 +25,11 @@ use TheCodingMachine\GraphQLite\Annotations\Query;
 
 class ChatController
 {
+    public function __construct(
+        private readonly RoomService $roomService
+    ) {
+    }
+
     /**
      * Returns a list of chat rooms available to a user
      */
@@ -160,19 +164,15 @@ class ChatController
     #[Mutation]
     #[Logged]
     public function createChatRoom(
-        ChatRoomTypeEnum $roomType,
-        array $initialMemberGuids = [],
         #[InjectUser] User $loggedInUser,
+        array $initialMemberGuids = [],
     ): ChatRoomEdge {
+        $chatRoomNode = $this->roomService->createRoom(
+            user: $loggedInUser,
+            members: $initialMemberGuids
+        );
         return new ChatRoomEdge(
-            node: new ChatRoomNode(
-                new ChatRoom(
-                    guid: Guid::build(),
-                    roomType: $roomType,
-                    createdByGuid: (int) $loggedInUser->getGuid(),
-                    createdAt: new DateTime(),
-                )
-            ),
+            node: $chatRoomNode,
             chatController: $this,
         );
     }

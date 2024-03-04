@@ -15,7 +15,8 @@ class ChatRoom implements EntityInterface
         public readonly int              $guid,
         public readonly ChatRoomTypeEnum $roomType,
         public readonly int              $createdByGuid,
-        ?DateTime                        $createdAt = null
+        ?DateTime                        $createdAt = null,
+        public readonly ?int             $groupGuid = null
     ) {
         $this->createdAt = $createdAt ?? new DateTime();
     }

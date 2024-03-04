@@ -899,7 +899,7 @@ CREATE TABLE IF NOT EXISTS minds_chat_rooms(
     room_type enum ('ONE_TO_ONE', 'MULTI_USER', 'GROUP_OWNED') NOT NULL,
     created_by_user_guid bigint NOT NULL,
     group_guid bigint DEFAULT NULL,
-
+    created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (tenant_id, room_guid)
 );
 
