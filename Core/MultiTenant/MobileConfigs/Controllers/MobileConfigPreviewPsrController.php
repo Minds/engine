@@ -25,11 +25,12 @@ class MobileConfigPreviewPsrController
     public function processMobilePreviewWebhook(ServerRequestInterface $request): JsonResponse
     {
         $jwtToken = $request->getHeader('token');
-        if (!$this->gitlabPipelineJwtTokenValidator->checkToken($jwtToken[0])) {
-            throw new ForbiddenException('Invalid token');
-        }
 
         ['TENANT_ID' => $tenantId, 'status' => $status, 'VERSION' => $appVersion] = $request->getParsedBody();
+        
+        if (!$this->gitlabPipelineJwtTokenValidator->checkToken($jwtToken[0], $tenantId)) {
+            throw new ForbiddenException('Invalid token');
+        }
 
         $this->mobileConfigManagementService->processMobilePreviewWebhook(
             tenantId: (int)$tenantId,
