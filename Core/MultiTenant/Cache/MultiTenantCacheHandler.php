@@ -46,7 +46,7 @@ class MultiTenantCacheHandler
      */
     public function deleteKey(string $key, bool $useTenantPrefix = false): bool
     {
-        return $this->cache->withTenantPrefix($useTenantPrefix)->delete($key);
+        return $this->cache->withTenantPrefix($useTenantPrefix)->delete($key) ?? true;
     }
 
     /**
