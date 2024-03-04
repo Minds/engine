@@ -1,8 +1,9 @@
 <?php
+
 namespace Minds\Core\ActivityPub\Services;
 
-use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Factories\ActivityFactory;
+use Minds\Core\ActivityPub\Helpers\JsonLdHelper;
 use Minds\Core\ActivityPub\Types\Actor\AbstractActorType;
 use Minds\Exceptions\ServerErrorException;
 
@@ -13,9 +14,9 @@ class ProcessCollectionService
 
     public function __construct(
         protected ProcessActivityService $processActivityService,
-        protected ActivityFactory $activityFactory,
+        protected ActivityFactory        $activityFactory,
     ) {
-        
+
     }
 
     public function withJson(array $json): ProcessCollectionService
@@ -37,7 +38,7 @@ class ProcessCollectionService
         if (!isset($this->json)) {
             throw new ServerErrorException('json must be provided');
         }
-    
+
         if (!JsonLdHelper::isSupportedContext($this->json)) {
             return;
         }
@@ -81,6 +82,10 @@ class ProcessCollectionService
 
     private function processItem(array $item): void
     {
+        if (!is_array($item)) {
+            error_log("ProcessCollectionService.php:85 - expected array, got $item");
+            return;
+        }
         $apActivity = $this->activityFactory->fromJson($item, $this->actor);
 
         $this->processActivityService

@@ -18,7 +18,7 @@ class Cassandra implements CacheInterface
 {
     public function __construct(
         private ?CassandraClient $cassandraClient = null,
-        private ?Logger $logger = null
+        private ?Logger          $logger = null
     ) {
         $this->cassandraClient ??= Di::_()->get('Database\Cassandra\Cql');
         $this->logger ??= Di::_()->get("Logger");
@@ -47,6 +47,10 @@ class Cassandra implements CacheInterface
             throw new NotFoundException("No entries were found for the provided key");
         }
 
+        if ($response->count() === 0) {
+            return $default;
+        }
+
         return $response->first()['data'];
     }
 
@@ -69,8 +73,8 @@ class Cassandra implements CacheInterface
                     (?, ?)
                 USING TTL ?;",
                 [
-                    (string) $key,
-                    (string) $value,
+                    (string)$key,
+                    (string)$value,
                     $ttl
                 ]
             );

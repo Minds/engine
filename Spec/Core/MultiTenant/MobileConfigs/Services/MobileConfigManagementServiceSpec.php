@@ -46,12 +46,14 @@ class MobileConfigManagementServiceSpec extends ObjectBehavior
             1,
             null,
             null,
-            MobilePreviewStatusEnum::READY
+            MobilePreviewStatusEnum::READY,
+            "5.0.0"
         )
             ->shouldBeCalledOnce();
 
         $this->processMobilePreviewWebhook(
             1,
+            '5.0.0',
             'success'
         );
     }

@@ -3,6 +3,7 @@
  * This subscription will listen for changes in entities (create, update, delete) and send to the activitypub processor
  * You can test by running `php cli.php EventStreams --subscription=Core\\ActivityPub\\Subscriptions\\ActivityPubEntitiesOpsSubscription`
  */
+
 namespace Minds\Core\ActivityPub\Subscriptions;
 
 use Minds\Common\Access;
@@ -14,10 +15,6 @@ use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Services\EmitActivityService;
 use Minds\Core\ActivityPub\Services\FederationEnabledService;
-use Minds\Core\ActivityPub\Types\Activity\AnnounceType;
-use Minds\Core\ActivityPub\Types\Activity\CreateType;
-use Minds\Core\ActivityPub\Types\Activity\DeleteType;
-use Minds\Core\ActivityPub\Types\Activity\UpdateType;
 use Minds\Core\Comments\Comment;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Ops\EntitiesOpsEvent;
@@ -29,7 +26,6 @@ use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\Activity;
-use Minds\Entities\EntityInterface;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\FederatedEntityInterface;
 use Minds\Entities\User;
@@ -38,13 +34,13 @@ use Minds\Exceptions\NotFoundException;
 class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
 {
     public function __construct(
-        protected ?EmitActivityService $emitActivityService = null,
-        protected ?ObjectFactory $objectFactory = null,
-        protected ?ActorFactory $actorFactory = null,
-        protected ?ActivityFactory $activityFactory = null,
-        protected ?EntitiesBuilder $entitiesBuilder = null,
+        protected ?EmitActivityService      $emitActivityService = null,
+        protected ?ObjectFactory            $objectFactory = null,
+        protected ?ActorFactory             $actorFactory = null,
+        protected ?ActivityFactory          $activityFactory = null,
+        protected ?EntitiesBuilder          $entitiesBuilder = null,
         protected ?FederationEnabledService $federationEnabledService = null,
-        protected ?Logger $logger = null
+        protected ?Logger                   $logger = null
     ) {
         $this->emitActivityService ??= Di::_()->get(EmitActivityService::class);
         $this->objectFactory ??= Di::_()->get(ObjectFactory::class);
@@ -106,7 +102,7 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
             // Entity not found
             return true; // Acknowledge as its likely this entity has been deleted
         }
-    
+
         $loggerPrefix = $entity->getUrn() . ':';
 
         if ($entity->getSource() === FederatedEntitySourcesEnum::ACTIVITY_PUB) {
@@ -117,7 +113,7 @@ class ActivityPubEntitiesOpsSubscription implements SubscriptionInterface
         // We are only concerned with the below entities
         switch (get_class($entity)) {
             case Activity::class:
-                if ((int) $entity->getAccessId() !== Access::PUBLIC) {
+                if ((int)$entity->getAccessId() !== Access::PUBLIC) {
                     $this->logger->info($loggerPrefix . ' Skipping. Not public.');
                     return true; // Not a public post, we will not emit out
                 }
