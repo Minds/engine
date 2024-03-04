@@ -863,6 +863,12 @@ CREATE TABLE IF NOT EXISTS minds_stripe_keys(
     updated_timestamp timestamp NULL
 );
 
+ALTER TABLE `minds_tenants`
+    ADD trial_start_timestamp timestamp DEFAULT NULL
+    AFTER plan;
+
+ALTER TABLE `minds_tenants`
+    ADD INDEX (owner_guid);
 
 CREATE TABLE IF NOT EXISTS minds_site_membership_entities (
     tenant_id int,
