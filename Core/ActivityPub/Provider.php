@@ -133,7 +133,6 @@ class Provider extends DiProvider
                 manager: $di->get(Manager::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 logger: $di->get('Logger'),
-                circuitBreaker: $di->get(EmitterCircuitBreaker::class),
             );
         });
 
