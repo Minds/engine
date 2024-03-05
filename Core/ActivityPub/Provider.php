@@ -182,15 +182,5 @@ class Provider extends DiProvider
                 config: $di->get(Config::class),
             );
         });
-
-        /*
-         * Helpers
-         */
-        $this->di->bind(
-            EmitterCircuitBreaker::class,
-            fn (Di $di) => new EmitterCircuitBreaker(
-                cache: $di->get('Cache\Cassandra'),
-            )
-        );
     }
 }
