@@ -50,7 +50,7 @@ class XsrfCookieMiddleware implements MiddlewareInterface
         ) {
             if ($request->getUri()->getPath() === '/api/v3/multi-tenant/auto-login/login') { // And not auto-login
                 // Do nothing
-            } else if (!call_user_func($this->xsrfValidateRequest, $request)) { // And xsrf validation fails
+            } elseif (!call_user_func($this->xsrfValidateRequest, $request)) { // And xsrf validation fails
                 throw new ForbiddenException();
             }
         }
