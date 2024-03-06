@@ -20,7 +20,7 @@ class Controller
      */
     public function getLoginUrl(ServerRequest $request): JsonResponse
     {
-        /** @var User */
+        /** @var User $loggedInUser */
         $loggedInUser = $request->getAttribute('_user');
     
         if (!$loggedInUser) {
