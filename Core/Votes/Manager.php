@@ -88,7 +88,7 @@ class Manager
      * @throws SolutionAlreadySeenException
      * @throws \SodiumException
      */
-    public function cast($vote, VoteOptions $options = new VoteOptions())
+    public function cast($vote, VoteOptions $options = null)
     {
         // Check RBAC
         $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_INTERACT);
@@ -156,7 +156,7 @@ class Manager
      * @throws UnverifiedEmailException
      * @throws StopEventException
      */
-    public function cancel($vote, VoteOptions $options = new VoteOptions())
+    public function cancel($vote, VoteOptions $options = null)
     {
         $done = $this->eventsDispatcher->trigger('vote:action:cancel', $vote->getEntity()->type, [
             'vote' => $vote
@@ -212,7 +212,7 @@ class Manager
      * @throws StopEventException
      * @throws UnverifiedEmailException
      */
-    public function toggle($vote, VoteOptions $options = new VoteOptions())
+    public function toggle($vote, VoteOptions $options = null)
     {
         if (!$this->has($vote)) {
             return $this->cast($vote, $options);
