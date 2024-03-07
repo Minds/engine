@@ -37,7 +37,7 @@ class Repository extends AbstractRepository
             ->from(self::TABLE_NAME)
             ->columns([
                 'grouped_date' => new RawExp($date),
-                'value' => new RawExp('SUM(value)'),
+                'value' => new RawExp($this->getAggType($metric) . '(value)'),
             ])
             ->where('metric', Operator::EQ, new RawExp(':metric'))
             ->where('date', Operator::GTE, new RawExp(':fromTs'))
@@ -100,7 +100,9 @@ class Repository extends AbstractRepository
             ->from(self::TABLE_NAME)
             ->columns([
                 'metric',
-                'value' => new RawExp('SUM(value)'),
+                'value_sum' => new RawExp('SUM(value)'),
+                'value_avg' => new RawExp('AVG(value)'),
+                'value_max' => new RawExp('MAX(value)'),
             ])
             ->whereWithNamedParameters(
                 leftField: 'metric',
@@ -129,9 +131,10 @@ class Repository extends AbstractRepository
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(function ($row) {
+            $metric = constant(AnalyticsMetricEnum::class . "::{$row['metric']}");
             return new AnalyticsKpiType(
-                metric: constant(AnalyticsMetricEnum::class . "::{$row['metric']}"),
-                value: (int) $row['value'],
+                metric: $metric,
+                value: (int) $row['value_' . strtolower($this->getAggType($metric))],
                 previousPeriodValue: 0,
             );
         }, $rows);
@@ -257,5 +260,20 @@ class Repository extends AbstractRepository
     private function getTenantId(): int
     {
         return  $this->config->get('tenant_id') ?: -1;
+    }
+
+    /**
+     * Return the correct aggregation method to use
+     */
+    private function getAggType(AnalyticsMetricEnum $metric): string
+    {
+        return  match($metric) {
+            AnalyticsMetricEnum::DAILY_ACTIVE_USERS => 'AVG',
+            AnalyticsMetricEnum::TOTAL_USERS => 'MAX',
+            AnalyticsMetricEnum::TOTAL_SITE_MEMBERSHIP_SUBSCRIPTIONS => 'MAX',
+            AnalyticsMetricEnum::NEW_USERS => 'SUM',
+            AnalyticsMetricEnum::VISITORS => 'AVG',
+            default => 'SUM',
+        };
     }
 }
