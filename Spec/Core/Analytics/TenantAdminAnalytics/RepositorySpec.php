@@ -115,11 +115,11 @@ class RepositorySpec extends ObjectBehavior
         $stmtMock->fetchAll(PDO::FETCH_ASSOC)->willReturn([
             [
                 'metric' => 'DAILY_ACTIVE_USERS',
-                'value' => '20'
+                'value_avg' => '20'
             ],
             [
                 'metric' => 'NEW_USERS',
-                'value' => '1'
+                'value_sum' => '1'
             ]
         ]);
     
