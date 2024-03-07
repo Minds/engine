@@ -64,7 +64,11 @@ class Repository extends AbstractRepository
         $toDate = date_create(date('c', $toUnixTs));
         $interval = date_diff($fromDate, $toDate);
 
-        $timestamps = Timestamps::span($interval->format($resolution === AnalyticsResolutionEnum::DAY ? '%a' : '%m'), $resolution === AnalyticsResolutionEnum::DAY ? 'day' : 'month', $toUnixTs);
+        $timestamps = Timestamps::span(
+            span: $resolution === AnalyticsResolutionEnum::DAY ? $interval->format('%a') :  $interval->m  + ($interval->y * 12),
+            unit: $resolution === AnalyticsResolutionEnum::DAY ? 'day' : 'month',
+            ts: $toUnixTs
+        );
 
         $tsToRow = [];
         foreach ($rows as $row) {

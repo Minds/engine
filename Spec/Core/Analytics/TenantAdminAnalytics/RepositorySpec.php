@@ -81,7 +81,7 @@ class RepositorySpec extends ObjectBehavior
            
         $stmtMock->execute([
             'metric' => 'DAILY_ACTIVE_USERS',
-            'fromTs' => '2024-01-28',
+            'fromTs' => '2024-01-01',
             'toTs' => '2024-02-28',
             'tenantId' => -1
         ]);
@@ -93,8 +93,9 @@ class RepositorySpec extends ObjectBehavior
             ]
         ]);
 
-        $response = $this->getBucketsByMetric(AnalyticsMetricEnum::DAILY_ACTIVE_USERS, AnalyticsResolutionEnum::MONTH, 1706400000, 1709078400);
+        $response = $this->getBucketsByMetric(AnalyticsMetricEnum::DAILY_ACTIVE_USERS, AnalyticsResolutionEnum::MONTH, 1704067200, 1709078400);
         $response[0]->value->shouldBe(20);
+        $response->shouldHaveCount(2);
     }
 
     public function it_should_return_kpis(PDOStatement $stmtMock)
