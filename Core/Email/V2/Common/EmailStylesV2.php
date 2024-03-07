@@ -186,6 +186,10 @@ class EmailStylesV2
      */
     private function getThemeOverrides(): array
     {
+        if ($this->config === null) {
+            $this->config = Di::_()->get(Config::class);
+        }
+
         $themeOverrides = $this->config->get('theme_override');
 
         $modifiedStyles = [];
