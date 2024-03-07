@@ -6,6 +6,7 @@ namespace Minds\Core\Payments\Checkout\Services;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
+use Minds\Core\MultiTenant\Cache\MultiTenantCacheHandler;
 use Minds\Core\MultiTenant\Services\TenantsService;
 use Minds\Core\Payments\Checkout\Delegates\CheckoutEventsDelegate;
 use Minds\Core\Payments\Stripe\Checkout\Manager as StripeCheckoutManager;
@@ -45,6 +46,7 @@ class ServicesProvider extends Provider
                 stripeSubscriptionsService: $di->get(StripeSubscriptionsService::class),
                 cache: $di->get('Cache\Cassandra'),
                 checkoutEventsDelegate: $di->get(CheckoutEventsDelegate::class),
+                multiTenantCacheHandler: $di->get(MultiTenantCacheHandler::class),
             ),
         );
     }

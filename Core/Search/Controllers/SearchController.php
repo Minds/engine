@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\Search\Controllers;
 
 use GraphQL\Error\UserError;
@@ -34,10 +35,10 @@ use TheCodingMachine\GraphQLite\Annotations\Query;
 class SearchController
 {
     public function __construct(
-        protected Elastic\V2\Manager $elasticFeedsManager,
-        protected Search $search,
-        protected EntitiesBuilder $entitiesBuilder,
-        protected BoostManager $boostManager,
+        protected Elastic\V2\Manager  $elasticFeedsManager,
+        protected Search              $search,
+        protected EntitiesBuilder     $entitiesBuilder,
+        protected BoostManager        $boostManager,
         protected ProcessActorService $processActorService,
     ) {
     }
@@ -47,16 +48,16 @@ class SearchController
      */
     #[Query]
     public function search(
-        ResolveInfo $gqlResolveInfo,
-        #[InjectUser()] $loggedInUser,
-        string $query,
-        SearchFilterEnum $filter,
+        ResolveInfo         $gqlResolveInfo,
+        #[InjectUser()]     $loggedInUser,
+        string              $query,
+        SearchFilterEnum    $filter,
         SearchMediaTypeEnum $mediaType,
-        ?array $nsfw = [],
-        ?int $first = 12,
-        ?string $after = null,
-        ?int $last = null,
-        ?string $before = null,
+        ?array              $nsfw = [],
+        ?int                $first = 12,
+        ?string             $after = null,
+        ?int                $last = null,
+        ?string             $before = null,
     ): SearchResultsConnection {
         if ($first && $last) {
             throw new UserError("first and last supplied, can only paginate in one direction");
@@ -70,6 +71,11 @@ class SearchController
         $loadBefore = $before;
 
         $limit = min($first ?: $last, 12); // MAX 12
+
+        if ($filter === SearchFilterEnum::USER || $filter === SearchFilterEnum::GROUP) {
+            $limit = min($first ?: $last, 36); // MAX 36
+        }
+
 
         // Remove # hashtag symbol
         $query = str_replace('#', '', $query);
@@ -180,8 +186,8 @@ class SearchController
             // If not on latest or top, we request ZERO boosts as the clients dont support yet
             $boosts = $this->buildBoosts(
                 loggedInUser: $loggedInUser,
-                limit: in_array($filter, [ SearchFilterEnum::TOP, SearchFilterEnum::LATEST ], true) ? 3 : 0,
-                targetLocation: in_array($filter, [ SearchFilterEnum::TOP, SearchFilterEnum::LATEST ], true) ? BoostTargetLocation::NEWSFEED : BoostTargetLocation::SIDEBAR,
+                limit: in_array($filter, [SearchFilterEnum::TOP, SearchFilterEnum::LATEST], true) ? 3 : 0,
+                targetLocation: in_array($filter, [SearchFilterEnum::TOP, SearchFilterEnum::LATEST], true) ? BoostTargetLocation::NEWSFEED : BoostTargetLocation::SIDEBAR,
             );
         }
 
@@ -236,7 +242,7 @@ class SearchController
                 $edges[] = $entityEdge;
             }
         }
-    
+
         $connection = new SearchResultsConnection();
         $connection->setEdges($edges);
 
@@ -248,7 +254,7 @@ class SearchController
         );
 
         $connection->setPageInfo($pageInfo);
-        
+
         return $connection;
     }
 
@@ -258,17 +264,17 @@ class SearchController
     private function getPublisherSearch(
         string $type,
         string $query,
-        int $limit,
+        int    $limit,
         string &$loadAfter = null,
         string &$loadBefore = null,
-        bool &$hasMore = null
+        bool   &$hasMore = null
     ): array {
         $guids = array_map(fn ($doc) => $doc['guid'], $this->search->suggest($type, $query, $limit));
 
         $entities = array_filter(array_map(fn ($guid) => $this->entitiesBuilder->single($guid), $guids));
 
-        $loadAfter = base64_encode((string) count($entities));
-        $loadBefore = base64_encode((string) 0);
+        $loadAfter = base64_encode((string)count($entities));
+        $loadBefore = base64_encode((string)0);
 
         $hasMore = false;
 
@@ -317,8 +323,8 @@ class SearchController
      */
     protected function buildBoosts(
         User $loggedInUser,
-        int $limit = 3,
-        int $targetLocation = BoostTargetLocation::NEWSFEED,
+        int  $limit = 3,
+        int  $targetLocation = BoostTargetLocation::NEWSFEED,
     ): array {
         if (!$this->boostManager->shouldShowBoosts($loggedInUser)) {
             return [];

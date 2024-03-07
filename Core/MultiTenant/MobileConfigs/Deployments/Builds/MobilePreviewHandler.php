@@ -44,8 +44,8 @@ class MobilePreviewHandler
                     "ref" => $pipelineConfig["branch"],
                     "variables[BUILD_MODE]" => self::BUILD_MODE,
                     "variables[TENANT_ID]" => $tenantId ?? ($this->config->get("tenant_id") ?? -1),
-                    "variables[WEBHOOK_URL]" => $this->config->get('site_url') . "/api/v3/multi-tenant/mobile-configs/update-preview",
-                    "variables[GRAPHQL_URL]" => $this->config->get('site_url') . "/api/graphql",
+                    "variables[WEBHOOK_URL]" => $audience . "/api/v3/multi-tenant/mobile-configs/update-preview",
+                    "variables[GRAPHQL_URL]" => $audience . "/api/graphql",
                     "variables[AUDIENCE]" => $audience
                 ]
             ]

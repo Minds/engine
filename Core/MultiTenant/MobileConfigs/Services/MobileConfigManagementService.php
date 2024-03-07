@@ -27,10 +27,12 @@ class MobileConfigManagementService
      */
     public function processMobilePreviewWebhook(
         int    $tenantId,
+        string $appVersion,
         string $status = 'success'
     ): void {
         $this->mobileConfigRepository->storeMobileConfig(
             tenantId: $tenantId,
+            appVersion: $appVersion,
             previewStatus: $status === 'success' ? MobilePreviewStatusEnum::READY : MobilePreviewStatusEnum::ERROR,
         );
     }

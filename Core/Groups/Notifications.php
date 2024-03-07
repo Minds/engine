@@ -78,7 +78,7 @@ class Notifications
             ->setUpdatedTimestamp(time());
 
         return Queue\Client::build()
-            ->setQueue('UpdateMarkerDispatcher')
+            ->setQueue('UpdateMarker')
             ->send([
                 'marker' => serialize($marker),
             ]);
