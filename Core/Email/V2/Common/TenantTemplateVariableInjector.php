@@ -24,9 +24,10 @@ class TenantTemplateVariableInjector
     public function inject(Template $template): Template
     {
         $siteName = $this->config->get('site_name') ?? 'Minds';
-        $template->set('copyright_text', $siteName . " &#169; ". date("Y"));
+        $template->set('copyright_text', $siteName . " &#169; " . date("Y"));
 
         if ($siteUrl = $this->config->get('site_url')) {
+            $template->set('site_url', $siteUrl);
             $template->set('logo_url', $siteUrl . 'api/v3/multi-tenant/configs/image/square_logo');
         }
 

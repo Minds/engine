@@ -12,6 +12,7 @@ use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Query;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class TenantsController
 {
@@ -52,5 +53,19 @@ class TenantsController
         }
 
         return $this->networksService->createNetwork($tenant);
+    }
+
+    /**
+     * @param Tenant $tenant
+     * @return Tenant
+     * @throws GraphQLException
+     */
+    #[Mutation]
+    #[Logged]
+    public function tenantTrial(
+        Tenant             $tenant,
+        #[InjectUser] User $loggedInUser
+    ): Tenant {
+        return $this->networksService->createNetworkTrial($tenant, $loggedInUser);
     }
 }
