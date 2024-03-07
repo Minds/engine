@@ -71,6 +71,7 @@ class RepositorySpec extends ObjectBehavior
 
         $response = $this->getBucketsByMetric(AnalyticsMetricEnum::DAILY_ACTIVE_USERS, AnalyticsResolutionEnum::DAY, 1706400000, 1709078400);
         $response[0]->value->shouldBe(20);
+        $response->shouldHaveCount(32);
     }
     
     public function it_should_return_buckets_with_month_resolution(PDOStatement $stmtMock)

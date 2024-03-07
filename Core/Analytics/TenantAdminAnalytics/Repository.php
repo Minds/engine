@@ -7,6 +7,7 @@ use Minds\Core\Analytics\TenantAdminAnalytics\Enums\AnalyticsResolutionEnum;
 use Minds\Core\Analytics\TenantAdminAnalytics\Enums\AnalyticsTableEnum;
 use Minds\Core\Analytics\TenantAdminAnalytics\Types\AnalyticsKpiType;
 use Minds\Core\Analytics\TenantAdminAnalytics\Types\Chart\AnalyticsChartBucketType;
+use Minds\Core\Analytics\Timestamps;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use PDO;
 use Selective\Database\Operator;
@@ -15,6 +16,7 @@ use Selective\Database\RawExp;
 class Repository extends AbstractRepository
 {
     const TABLE_NAME = 'minds_tenant_daily_metrics';
+    const DATE_FORMAT = 'Y-m-d';
 
     /**
      * Returns timeseries data for the requested metrics
@@ -48,8 +50,8 @@ class Repository extends AbstractRepository
 
         $values = [
             'metric' => $metric->name,
-            'fromTs' => date('Y-m-d', $fromUnixTs),
-            'toTs' => date('Y-m-d', $toUnixTs),
+            'fromTs' => date(self::DATE_FORMAT, $fromUnixTs),
+            'toTs' => date(self::DATE_FORMAT, $toUnixTs),
             'tenantId' => $this->getTenantId(),
         ];
 
@@ -57,9 +59,30 @@ class Repository extends AbstractRepository
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return array_map(function ($row) {
+        // We need to have empty values for each day with no records
+        $fromDate = date_create(date('c', $fromUnixTs));
+        $toDate = date_create(date('c', $toUnixTs));
+        $interval = date_diff($fromDate, $toDate);
+
+        $timestamps = Timestamps::span($interval->format($resolution === AnalyticsResolutionEnum::DAY ? '%a' : '%m'), $resolution === AnalyticsResolutionEnum::DAY ? 'day' : 'month', $toUnixTs);
+
+        $tsToRow = [];
+        foreach ($rows as $row) {
+            $tsToRow[strtotime($row['grouped_date'])] = $row;
+        }
+        foreach ($timestamps as $ts) {
+            if (!isset($tsToRow[$ts])) {
+                $tsToRow[$ts] = [
+                    'grouped_date' => date(self::DATE_FORMAT, $ts),
+                    'value' =>  null,
+                ];
+            }
+        }
+        ksort($tsToRow);
+
+        return array_values(array_map(function ($row) {
             return new AnalyticsChartBucketType($row['grouped_date'], $row['grouped_date'], (int) $row['value']);
-        }, $rows);
+        }, $tsToRow));
     }
 
     /**
@@ -90,8 +113,8 @@ class Repository extends AbstractRepository
 
         $values = [
             'metrics' => array_map(function ($metric) { return $metric->name; }, $metrics),
-            'fromTs' => date('Y-m-d', $fromUnixTs),
-            'toTs' => date('Y-m-d', $toUnixTs),
+            'fromTs' => date(self::DATE_FORMAT, $fromUnixTs),
+            'toTs' => date(self::DATE_FORMAT, $toUnixTs),
             'tenantId' => $this->getTenantId(),
         ];
 
@@ -137,8 +160,8 @@ class Repository extends AbstractRepository
         $stmt = $query->prepare();
 
         $values = [
-            'fromTs' => date('Y-m-d', $fromUnixTs),
-            'toTs' => date('Y-m-d', $toUnixTs),
+            'fromTs' => date(self::DATE_FORMAT, $fromUnixTs),
+            'toTs' => date(self::DATE_FORMAT, $toUnixTs),
             'tenantId' => $this->getTenantId(),
         ];
 
@@ -176,8 +199,8 @@ class Repository extends AbstractRepository
         $stmt = $query->prepare();
 
         $values = [
-            'fromTs' => date('Y-m-d', $fromUnixTs),
-            'toTs' => date('Y-m-d', $toUnixTs),
+            'fromTs' => date(self::DATE_FORMAT, $fromUnixTs),
+            'toTs' => date(self::DATE_FORMAT, $toUnixTs),
             'tenantId' => $this->getTenantId(),
         ];
 
@@ -215,8 +238,8 @@ class Repository extends AbstractRepository
         $stmt = $query->prepare();
 
         $values = [
-            'fromTs' => date('Y-m-d', $fromUnixTs),
-            'toTs' => date('Y-m-d', $toUnixTs),
+            'fromTs' => date(self::DATE_FORMAT, $fromUnixTs),
+            'toTs' => date(self::DATE_FORMAT, $toUnixTs),
             'tenantId' => $this->getTenantId(),
         ];
 
