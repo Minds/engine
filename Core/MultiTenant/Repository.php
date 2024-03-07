@@ -7,7 +7,11 @@ use Minds\Core\MultiTenant\Configs\Enums\MultiTenantColorScheme;
 use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
+use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
+use Minds\Exceptions\ServerErrorException;
 use PDO;
+use PDOException;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
 use Selective\Database\SelectQuery;
@@ -65,6 +69,7 @@ class Repository extends AbstractRepository
             ->columns([
                 'minds_tenants.tenant_id',
                 'minds_tenants.plan',
+                'minds_tenants.trial_start_timestamp',
                 'minds_tenants_domain_details.domain',
                 'owner_guid',
                 'root_user_guid',
@@ -91,15 +96,15 @@ class Repository extends AbstractRepository
         $siteEmail = $row['site_email'] ?? null;
         $primaryColor = $row['primary_color'] ?? null;
         $colorScheme = $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null;
-        $federationDisabled = (bool) $row['federation_disabled'] ?? false;
+        $federationDisabled = (bool)$row['federation_disabled'] ?? false;
         $replyEmail = $row['reply_email'] ?? null;
         $updatedTimestamp = $row['updated_timestamp'] ?? null;
         $lastCacheTimestamp = $row['last_cache_timestamp'] ?? null;
         $nsfwEnabled = $row['nsfw_enabled'] ?? true;
+        $trialStartTimestamp = $row['trial_start_timestamp'] ?? null;
 
         return new Tenant(
             id: $tenantId,
-            plan: TenantPlanEnum::fromString($plan),
             domain: $domain,
             ownerGuid: $tenantOwnerGuid,
             rootUserGuid: $rootUserGuid,
@@ -110,10 +115,12 @@ class Repository extends AbstractRepository
                 primaryColor: $primaryColor,
                 federationDisabled: $federationDisabled,
                 replyEmail: $replyEmail,
-                lastCacheTimestamp: $lastCacheTimestamp ? strtotime($lastCacheTimestamp) : null,
-                updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null,
                 nsfwEnabled: $nsfwEnabled,
-            )
+                updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null,
+                lastCacheTimestamp: $lastCacheTimestamp ? strtotime($lastCacheTimestamp) : null,
+            ),
+            plan: TenantPlanEnum::fromString($plan),
+            trialStartTimestamp: $trialStartTimestamp ? strtotime($trialStartTimestamp) : null
         );
     }
 
@@ -129,8 +136,8 @@ class Repository extends AbstractRepository
      * @return Tenant[]
      */
     public function getTenants(
-        int $limit,
-        int $offset,
+        int  $limit,
+        int  $offset,
         ?int $ownerGuid = null
     ): iterable {
         $query = $this->buildGetTenantQuery()
@@ -148,13 +155,16 @@ class Repository extends AbstractRepository
         }
     }
 
-    public function createTenant(Tenant $tenant): Tenant
-    {
+    public function createTenant(
+        Tenant $tenant,
+        bool   $isTrial = false
+    ): Tenant {
         $statement = $this->mysqlClientWriterHandler->insert()
             ->into('minds_tenants')
             ->set([
                 'owner_guid' => $tenant->ownerGuid,
                 'plan' => $tenant->plan->name,
+                'trial_start_timestamp' => $isTrial ? date('c', time()) : null,
             ])
             ->prepare();
 
@@ -162,9 +172,85 @@ class Repository extends AbstractRepository
 
         return new Tenant(
             id: $this->mysqlClientWriter->lastInsertId(),
-            plan:  $tenant->plan,
             ownerGuid: $tenant->ownerGuid,
-            config: $tenant->config
+            config: $tenant->config,
+            plan: $tenant->plan,
+            trialStartTimestamp: time()
+        );
+    }
+
+    /**
+     * @param User $user
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function canHaveTrialTenant(
+        User $user
+    ): bool {
+        $query = $this->mysqlClientWriterHandler->select()
+            ->from('minds_tenants')
+            ->columns([
+                new RawExp('COUNT(tenant_id) as count')
+            ])
+            ->where('owner_guid', Operator::EQ, $user->getGuid());
+
+        try {
+            $stmt = $query->execute();
+
+            return ((int)$stmt->fetch(PDO::FETCH_ASSOC)['count']) === 0;
+        } catch (PDOException $e) {
+            throw new ServerErrorException(message: 'Failed to check if user has trial tenant', previous: $e);
+        }
+    }
+
+    /**
+     * @param User $user
+     * @return Tenant
+     * @throws NotFoundException
+     * @throws ServerErrorException
+     */
+    public function getTrialTenantForOwner(User $user): Tenant
+    {
+        $stmt = $this->buildGetTenantQuery()
+            ->where('owner_guid', Operator::EQ, $user->getGuid())
+            ->where('trial_start_timestamp', Operator::IS_NOT, null)
+            ->limit(1)
+            ->prepare();
+
+        try {
+            $stmt->execute();
+
+            if ($stmt->rowCount() === 0) {
+                throw new NotFoundException(message: 'Failed to get trial tenant for owner');
+            }
+
+            return $this->buildTenantModel($stmt->fetch(PDO::FETCH_ASSOC));
+        } catch (PDOException $e) {
+            throw new ServerErrorException(message: 'Failed to get trial tenant for owner', previous: $e);
+        }
+    }
+
+    public function upgradeTrialTenant(Tenant $tenant, TenantPlanEnum $plan): Tenant
+    {
+        $statement = $this->mysqlClientWriterHandler->update()
+            ->table('minds_tenants')
+            ->set([
+                'plan' => $plan->name,
+                'trial_start_timestamp' => null,
+            ])
+            ->where('tenant_id', Operator::EQ, $tenant->id)
+            ->prepare();
+
+        $statement->execute();
+
+        return new Tenant(
+            id: $tenant->id,
+            domain: $tenant->domain,
+            ownerGuid: $tenant->ownerGuid,
+            rootUserGuid: $tenant->rootUserGuid,
+            config: $tenant->config,
+            plan: $plan,
+            trialStartTimestamp: null
         );
     }
 }

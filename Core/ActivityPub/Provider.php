@@ -133,7 +133,6 @@ class Provider extends DiProvider
                 manager: $di->get(Manager::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 logger: $di->get('Logger'),
-                circuitBreaker: $di->get(EmitterCircuitBreaker::class),
             );
         });
 
@@ -183,15 +182,5 @@ class Provider extends DiProvider
                 config: $di->get(Config::class),
             );
         });
-
-        /*
-         * Helpers
-         */
-        $this->di->bind(
-            EmitterCircuitBreaker::class,
-            fn (Di $di) => new EmitterCircuitBreaker(
-                cache: $di->get('Cache\Cassandra'),
-            )
-        );
     }
 }
