@@ -9,17 +9,21 @@ use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
-use Minds\Core\Chat\Exceptions\RoomNotFoundException;
+use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
 use Minds\Core\Data\MySQL\AbstractRepository;
+use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
 use Selective\Database\Operator;
+use Selective\Database\RawExp;
+use Selective\Database\SelectQuery;
 
 class RoomRepository extends AbstractRepository
 {
     private const TABLE_NAME = 'minds_chat_rooms';
     private const MEMBERS_TABLE_NAME = 'minds_chat_members';
+    private const MESSAGES_TABLE_NAME = 'minds_chat_messages';
 
     /**
      * @param int $roomGuid
@@ -59,7 +63,7 @@ class RoomRepository extends AbstractRepository
     /**
      * @param int $roomGuid
      * @return ChatRoom
-     * @throws RoomNotFoundException
+     * @throws ChatRoomNotFoundException
      * @throws ServerErrorException
      * @throws Exception
      */
@@ -75,7 +79,7 @@ class RoomRepository extends AbstractRepository
             $stmt->execute();
 
             if (!$stmt->rowCount()) {
-                throw new RoomNotFoundException();
+                throw new ChatRoomNotFoundException();
             }
 
             return $this->buildChatRoomInstance($stmt->fetch(PDO::FETCH_ASSOC));
@@ -132,4 +136,116 @@ class RoomRepository extends AbstractRepository
             throw new ServerErrorException('Failed to add member to chat room', previous: $e);
         }
     }
+
+    /**
+     * @param User $user
+     * @return iterable<ChatRoom>
+     * @throws ServerErrorException
+     * @throws Exception
+     */
+    public function getRoomsByMember(User $user): iterable
+    {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'r.*',
+                'last_msg.plain_text'
+            ])
+            ->from(new RawExp(self::TABLE_NAME . " as r"))
+            ->joinRaw(
+                new RawExp(self::MEMBERS_TABLE_NAME . " as m"),
+                'r.room_guid = m.room_guid AND r.tenant_id = m.tenant_id AND m.member_guid = :member_guid AND m.status = :status',
+            )
+            ->leftJoinRaw(
+                function (SelectQuery $subQuery): void {
+                    $subQuery
+                        ->columns([
+                            'msg.room_guid',
+                            'msg.plain_text',
+                            'msg.created_timestamp',
+                        ])
+                        ->from(
+                            function (SelectQuery $subQuery): void {
+                                $subQuery
+                                    ->columns([
+                                         new RawExp('ROW_NUMBER() over (PARTITION BY room_guid ORDER BY created_timestamp DESC) as row_num'),
+                                         'guid',
+                                         'room_guid',
+                                         'plain_text',
+                                         'created_timestamp',
+                                    ])
+                                    ->from(self::MESSAGES_TABLE_NAME)
+                                    ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+                                    ->alias('msg');
+                            }
+                        )
+                        ->where('msg.row_num', Operator::EQ, 1)
+                        ->alias('last_msg');
+                },
+                "last_msg.room_guid = r.room_guid AND last_msg.tenant_id = r.tenant_id"
+            )
+            ->where('r.tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->orderBy('last_msg.created_timestamp DESC', 'r.created_timestamp DESC')
+            ->prepare();
+
+        try {
+            $stmt->execute();
+
+            if ($stmt->rowCount() === 0) {
+                return [];
+            }
+
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                yield $this->buildChatRoomInstance($row);
+            }
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to fetch chat rooms', previous: $e);
+        }
+    }
+
+    /**
+     * @param int $roomGuid
+     * @return int
+     * @throws ServerErrorException
+     */
+    public function getRoomTotalMembers(int $roomGuid): int
+    {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                new RawExp('COUNT(member_guid) as total_members')
+            ])
+            ->from(self::MEMBERS_TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->where('room_guid', Operator::EQ, $roomGuid)
+            ->where('status', Operator::EQ, ChatRoomMemberStatusEnum::ACTIVE)
+            ->prepare();
+
+        try {
+            $stmt->execute();
+            return (int) $stmt->fetch(PDO::FETCH_ASSOC)['total_members'];
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to fetch chat room members', previous: $e);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

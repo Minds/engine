@@ -4,6 +4,8 @@ namespace Minds\Core\Chat\Controllers;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
+use Minds\Core\Chat\Exceptions\InvalidChatRoomTypeException;
+use Minds\Core\Chat\Services\MessageService;
 use Minds\Core\Chat\Services\RoomService;
 use Minds\Core\Chat\Types\ChatMessageEdge;
 use Minds\Core\Chat\Types\ChatMessageNode;
@@ -18,6 +20,7 @@ use Minds\Core\Feeds\GraphQL\Types\UserNode;
 use Minds\Core\GraphQL\Types\PageInfo;
 use Minds\Core\Guid;
 use Minds\Entities\User;
+use Minds\Exceptions\ServerErrorException;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
@@ -26,7 +29,8 @@ use TheCodingMachine\GraphQLite\Annotations\Query;
 class ChatController
 {
     public function __construct(
-        private readonly RoomService $roomService
+        private readonly RoomService $roomService,
+        private readonly MessageService $messageService
     ) {
     }
 
@@ -44,18 +48,17 @@ class ChatController
     ): ChatRoomsConnection {
         $connection = new ChatRoomsConnection();
 
-        $connection->setEdges([
-            new ChatRoomEdge(
-                node: new ChatRoomNode(
-                    new ChatRoom(
-                        guid: Guid::build(),
-                        roomType: ChatRoomTypeEnum::ONE_TO_ONE,
-                        createdByGuid: (int) $loggedInUser->getGuid(),
-                    )
-                ),
+        $chatRoomNodes = $this->roomService->getRoomsByMember($loggedInUser);
+
+        $edges = [];
+        foreach ($chatRoomNodes as $chatRoomNode) {
+            $edges[] = new ChatRoomEdge(
+                node: $chatRoomNode,
                 chatController: $this,
-            )
-        ]);
+            );
+        }
+
+        $connection->setEdges($edges);
 
         $connection->setPageInfo(new PageInfo(
             hasNextPage: false,
@@ -73,7 +76,7 @@ class ChatController
     #[Query]
     #[Logged]
     public function getChatRoom(
-        int $roomGuid,
+        string $roomGuid,
         #[InjectUser] User $loggedInUser,
     ): ChatRoomEdge {
         return new ChatRoomEdge(
@@ -94,12 +97,12 @@ class ChatController
     #[Query]
     #[Logged]
     public function getChatMessages(
-        int $roomGuid,
+        string $roomGuid,
+        #[InjectUser] User $loggedInUser,
         ?int $first = null,
         ?int $after = null,
         ?int $last = null,
         ?int $before = null,
-        #[InjectUser] User $loggedInUser,
     ): ChatMessagesConnection {
         $connection = new ChatMessagesConnection();
 
@@ -132,7 +135,7 @@ class ChatController
     #[Query()]
     #[Logged]
     public function getChatRoomMembers(
-        ?int $roomGuid = null,
+        ?string $roomGuid = null,
         ?int $first = null,
         ?int $after = null,
         ?int $last = null,
@@ -159,22 +162,35 @@ class ChatController
 
     /**
      * Creates a new chat room
-     * @param string[] $initialMemberGuids
+     * @param array $otherMemberGuids
+     * @param ChatRoomTypeEnum|null $roomType
+     * @return ChatRoomEdge
+     * @throws InvalidChatRoomTypeException
+     * @throws ServerErrorException
      */
     #[Mutation]
     #[Logged]
     public function createChatRoom(
         #[InjectUser] User $loggedInUser,
-        array $initialMemberGuids = [],
+        array $otherMemberGuids = [],
+        ?ChatRoomTypeEnum $roomType = null
     ): ChatRoomEdge {
         $chatRoomNode = $this->roomService->createRoom(
             user: $loggedInUser,
-            members: $initialMemberGuids
+            otherMembers: $otherMemberGuids,
+            roomType: $roomType
         );
+
         return new ChatRoomEdge(
             node: $chatRoomNode,
             chatController: $this,
         );
+    }
+
+    public function getChatRoomMembersCount(
+        int $roomGuid,
+    ): int {
+        return $this->roomService->getRoomTotalMembers($roomGuid);
     }
 
     /**
@@ -184,18 +200,16 @@ class ChatController
     #[Logged]
     public function createChatMessage(
         string $plainText,
-        int $roomGuid,
+        string $roomGuid,
         #[InjectUser] User $loggedInUser,
     ): ChatMessageEdge {
+        $chatMessageNode = $this->messageService->addMessage(
+            roomGuid: (int)$roomGuid,
+            user: $loggedInUser,
+            message: $plainText
+        );
         return new ChatMessageEdge(
-            new ChatMessageNode(
-                new ChatMessage(
-                    roomGuid: $roomGuid,
-                    guid: Guid::build(),
-                    senderGuid: (int) $loggedInUser->getGuid(),
-                    plainText: $plainText,
-                )
-            )
+            node: $chatMessageNode,
         );
     }
 

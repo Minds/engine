@@ -8,6 +8,7 @@ use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
+use Minds\Core\Chat\Exceptions\InvalidChatRoomTypeException;
 use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Chat\Types\ChatRoomNode;
 use Minds\Core\Guid;
@@ -25,17 +26,30 @@ class RoomService
 
     /**
      * @param User $user
-     * @param array $members
+     * @param array $otherMembers
+     * @param ChatRoomTypeEnum|null $roomType
      * @return ChatRoomNode
+     * @throws InvalidChatRoomTypeException
      * @throws ServerErrorException
      */
-    public function createRoom(User $user, array $members): ChatRoomNode
-    {
+    public function createRoom(
+        User $user,
+        array $otherMembers,
+        ?ChatRoomTypeEnum $roomType = null
+    ): ChatRoomNode {
+        if ($roomType === ChatRoomTypeEnum::GROUP_OWNED) {
+            throw new InvalidChatRoomTypeException();
+        }
+
+        if (!$roomType) {
+            $roomType = count($otherMembers) > 1 ? ChatRoomTypeEnum::MULTI_USER : ChatRoomTypeEnum::ONE_TO_ONE;
+        }
+
         $roomGuid = Guid::build();
 
         $chatRoom = new ChatRoom(
             guid: $roomGuid,
-            roomType: count($members > 1) ? ChatRoomTypeEnum::MULTI_USER : ChatRoomTypeEnum::ONE_TO_ONE,
+            roomType: $roomType,
             createdByGuid: $user->getGuid(),
             createdAt: new DateTimeImmutable(),
         );
@@ -57,9 +71,9 @@ class RoomService
                 role: ChatRoomRoleEnum::OWNER,
             );
 
-            $totalMembers = count($members);
+            $totalMembers = count($otherMembers);
 
-            foreach ($members as $memberGuid) {
+            foreach ($otherMembers as $memberGuid) {
                 $isSubscribed = $this->subscriptionsRepository->isSubscribed(
                     userGuid: $memberGuid,
                     friendGuid: (int) $user->getGuid()
@@ -108,5 +122,30 @@ class RoomService
         );
 
         return new ChatRoomNode(chatRoom: $chatRoom);
+    }
+
+    /**
+     * @param User $user
+     * @return array<ChatRoomNode>
+     * @throws ServerErrorException
+     */
+    public function getRoomsByMember(
+        User $user
+    ): array {
+        $chatRooms = $this->roomRepository->getRoomsByMember($user);
+
+        $chatRoomNodes = [];
+
+        foreach ($chatRooms as $chatRoom) {
+            $chatRoomNodes[] = new ChatRoomNode(chatRoom: $chatRoom);
+        }
+
+        return $chatRoomNodes;
+    }
+
+    public function getRoomTotalMembers(
+        int $roomGuid
+    ): int {
+        return $this->roomRepository->getRoomTotalMembers($roomGuid);
     }
 }

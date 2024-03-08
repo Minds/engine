@@ -5,7 +5,7 @@ namespace Minds\Core\Chat\Exceptions;
 
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
-class RoomNotFoundException extends GraphQLException
+class ChatRoomNotFoundException extends GraphQLException
 {
     protected $message = 'Chat room not found.';
     protected $code = 404;
