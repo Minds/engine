@@ -17,7 +17,7 @@ class ElasticSearchDelegate
     /** @var SuggestCompleter */
     protected $suggestCompleter;
 
-    public function __construct($es = null, protected ?Config $config = null, protected Logger $logger)
+    public function __construct($es = null, protected ?Config $config = null, protected ?Logger $logger = null)
     {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
         $this->suggestCompleter = new SuggestCompleter();
