@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Payments\Checkout\Services;
 
+use Minds\Core\MultiTenant\Cache\MultiTenantCacheHandler;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Services\TenantsService;
 use Minds\Core\Payments\Checkout\Delegates\CheckoutEventsDelegate;
@@ -37,6 +38,7 @@ class CheckoutServiceSpec extends ObjectBehavior
     private Collaborator $subscriptionsServiceMock;
     private Collaborator $cacheMock;
     private Collaborator $checkoutEventsDelegateMock;
+    private Collaborator $multiTenantCacheHandlerMock;
 
     private ReflectionClass $stripeProductFactoryMock;
     private ReflectionClass $stripeProductPriceFactoryMock;
@@ -51,6 +53,7 @@ class CheckoutServiceSpec extends ObjectBehavior
         SubscriptionsService         $stripeSubscriptionsService,
         CacheInterface               $cache,
         CheckoutEventsDelegate       $checkoutEventsDelegate,
+        MultiTenantCacheHandler      $multiTenantCacheHandler
     ): void {
         $this->stripeCheckoutManagerMock = $stripeCheckoutManager;
         $this->stripeProductPriceServiceMock = $stripeProductPriceService;
@@ -60,6 +63,7 @@ class CheckoutServiceSpec extends ObjectBehavior
         $this->subscriptionsServiceMock = $stripeSubscriptionsService;
         $this->cacheMock = $cache;
         $this->checkoutEventsDelegateMock = $checkoutEventsDelegate;
+        $this->multiTenantCacheHandlerMock = $multiTenantCacheHandler;
 
         $this->stripeProductFactoryMock = new ReflectionClass(Product::class);
         $this->stripeProductPriceFactoryMock = new ReflectionClass(Price::class);
@@ -74,6 +78,7 @@ class CheckoutServiceSpec extends ObjectBehavior
             $this->subscriptionsServiceMock,
             $this->cacheMock,
             $this->checkoutEventsDelegateMock,
+            $this->multiTenantCacheHandlerMock
         );
     }
 
@@ -137,7 +142,8 @@ class CheckoutServiceSpec extends ObjectBehavior
             ['card', 'us_bank_account'],
             Argument::type('string'),
             [
-                'tenant_plan' => 'COMMUNITY'
+                'tenant_plan' => 'COMMUNITY',
+                'isTrialUpgrade' => 'false',
             ],
         )
             ->shouldBeCalledOnce()
@@ -160,7 +166,8 @@ class CheckoutServiceSpec extends ObjectBehavior
             $userMock,
             'networks:community',
             CheckoutTimePeriodEnum::YEARLY,
-            ['add-on-id']
+            ['add-on-id'],
+            false
         )->shouldBeString();
     }
 

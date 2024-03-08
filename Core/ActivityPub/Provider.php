@@ -9,6 +9,7 @@ use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\LikeFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Factories\OutboxFactory;
+use Minds\Core\ActivityPub\Helpers\EmitterCircuitBreaker;
 use Minds\Core\ActivityPub\Services\EmitActivityService;
 use Minds\Core\ActivityPub\Services\FederationEnabledService;
 use Minds\Core\ActivityPub\Services\ProcessActivityService;

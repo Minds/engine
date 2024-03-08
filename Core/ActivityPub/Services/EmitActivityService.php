@@ -28,7 +28,7 @@ class EmitActivityService
         protected EntitiesBuilder $entitiesBuilder,
         protected Logger $logger,
     ) {
-        
+
     }
 
     /**
@@ -59,7 +59,7 @@ class EmitActivityService
     public function emitFollow(FollowType $follow, User $actor): void
     {
         // Get the targets inbox
-        
+
         $target = $follow->object;
 
         if (!$target instanceof AbstractActorType) {
@@ -145,7 +145,7 @@ class EmitActivityService
         if ($accept->object instanceof FollowType) {
             $target = $this->actorFactory->fromUri(JsonLdHelper::getValueOrId($accept->object->actor));
             $inboxUrl = $target->endpoints['sharedInbox'] ?? $target->inbox;
-    
+
             $this->postRequest($inboxUrl, $accept, $actor);
         } else {
             // Not supported

@@ -35,7 +35,7 @@ class MobileConfigReaderController
         int $tenantId
     ): AppReadyMobileConfig {
         $jwtToken = (ServerRequestFactory::fromGlobals())->getHeader('token');
-        if (!$this->gitlabPipelineJwtTokenValidator->checkToken($jwtToken[0])) {
+        if (!$this->gitlabPipelineJwtTokenValidator->checkToken($jwtToken[0], $tenantId)) {
             throw new GraphQLException('Invalid token', 403);
         }
         return $this->mobileConfigReaderService->getAppReadyMobileConfig($tenantId);

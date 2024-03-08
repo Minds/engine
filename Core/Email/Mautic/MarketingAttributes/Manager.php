@@ -24,6 +24,7 @@ class Manager
         Lists\EthUsersList::class,
         Lists\MembershipTierOwnerList::class,
         Lists\Active30DayList::class,
+        Lists\TenantsList::class,
         // Takes too long
         // Lists\SubscribersList::class,
     ];

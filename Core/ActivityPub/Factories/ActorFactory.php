@@ -1,4 +1,5 @@
 <?php
+
 namespace Minds\Core\ActivityPub\Factories;
 
 use GuzzleHttp\Exception\ConnectException;
@@ -15,7 +16,6 @@ use Minds\Core\ActivityPub\Types\Actor\ServiceType;
 use Minds\Core\ActivityPub\Types\Object\ImageType;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\InMemoryCache;
-use Minds\Core\Webfinger;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
@@ -34,11 +34,11 @@ class ActorFactory
     public const MINDS_APPLICATION_PREFERRED_USERNAME = "application";
 
     public const MINDS_APPLICATION_ACTOR_GUID = 0;
-    
+
     public function __construct(
-        protected Manager $manager,
-        protected Client $client,
-        protected Config $config,
+        protected Manager              $manager,
+        protected Client               $client,
+        protected Config               $config,
         private readonly InMemoryCache $cache
     ) {
     }
@@ -125,7 +125,7 @@ class ActorFactory
             ],
             'publicKey' => [
                 'id' => $id . '#main-key',
-                'owner' =>  $id,
+                'owner' => $id,
                 'publicKeyPem' => $publicKey,
             ],
             'endpoints' => [
@@ -149,7 +149,7 @@ class ActorFactory
      */
     protected function build(array $json): AbstractActorType
     {
-        $actor = match($json['type']) {
+        $actor = match ($json['type']) {
             'Person' => new PersonType(),
             'Application' => new ApplicationType(),
             'Group' => new GroupType(),
@@ -189,7 +189,7 @@ class ActorFactory
             if (isset($json['icon']['mediaType'])) {
                 $icon->mediaType = $json['icon']['mediaType'];
             }
-            $icon->url = $json['icon']['url'];
+            $icon->url = $json['icon']['url'] ?? '';
             $actor->icon = $icon;
         }
 
