@@ -153,6 +153,10 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
 
                 $object = $this->objectFactory->fromEntity($entity);
 
+                if (!isset($object->attributedTo)) {
+                    return true; // No owner, so we will skip
+                }
+
                 $flagType = new FlagType();
                 $flagType->id = $this->manager->getTransientId();
                 $flagType->actor = $this->actorFactory->buildMindsApplicationActor(); // new System Application Type
