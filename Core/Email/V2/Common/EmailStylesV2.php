@@ -15,7 +15,8 @@ class EmailStylesV2
         $this->config ??= Di::_()->get(Config::class);
     }
 
-    public function __wakeup() {
+    public function __wakeup()
+    {
         // Re-initialize config after unserialization
         $this->config ??= Di::_()->get(Config::class);
     }
