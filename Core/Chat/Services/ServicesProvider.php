@@ -29,7 +29,8 @@ class ServicesProvider extends Provider
         $this->di->bind(
             MessageService::class,
             fn (Di $di): MessageService => new MessageService(
-                $di->get(MessageRepository::class)
+                $di->get(MessageRepository::class),
+                $di->get(RoomRepository::class)
             )
         );
     }

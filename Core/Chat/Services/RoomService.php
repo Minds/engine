@@ -36,7 +36,7 @@ class RoomService
      */
     public function createRoom(
         User $user,
-        array $otherMembers,
+        array $otherMemberGuids,
         ?ChatRoomTypeEnum $roomType = null
     ): ChatRoomEdge {
         if ($roomType === ChatRoomTypeEnum::GROUP_OWNED) {
@@ -44,7 +44,7 @@ class RoomService
         }
 
         if (!$roomType) {
-            $roomType = count($otherMembers) > 1 ? ChatRoomTypeEnum::MULTI_USER : ChatRoomTypeEnum::ONE_TO_ONE;
+            $roomType = count($otherMemberGuids) > 1 ? ChatRoomTypeEnum::MULTI_USER : ChatRoomTypeEnum::ONE_TO_ONE;
         }
 
         $roomGuid = Guid::build();
@@ -73,7 +73,7 @@ class RoomService
                 role: ChatRoomRoleEnum::OWNER,
             );
 
-            foreach ($otherMembers as $memberGuid) {
+            foreach ($otherMemberGuids as $memberGuid) {
                 $isSubscribed = $this->subscriptionsRepository->isSubscribed(
                     userGuid: $memberGuid,
                     friendGuid: (int) $user->getGuid()
@@ -148,7 +148,7 @@ class RoomService
                 lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
                 lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp,
             ),
-            $chatRooms
+            iterator_to_array($chatRooms)
         );
 
         $chatRoomNodes = [];

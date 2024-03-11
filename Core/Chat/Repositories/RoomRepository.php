@@ -233,6 +233,36 @@ class RoomRepository extends AbstractRepository
         }
     }
 
+    /**
+     * @param int $roomGuid
+     * @param User $user
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function isUserMemberOfRoom(
+        int $roomGuid,
+        User $user
+    ): bool {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'member_guid'
+            ])
+            ->from(self::MEMBERS_TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->where('room_guid', Operator::EQ, $roomGuid)
+            ->where('member_guid', Operator::EQ, $user->guid)
+            ->where('status', Operator::EQ, ChatRoomMemberStatusEnum::ACTIVE)
+            ->limit(1)
+            ->prepare();
+
+        try {
+            $stmt->execute();
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to check if user is a member of chat room', previous: $e);
+        }
+    }
+
 
 
 
