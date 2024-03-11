@@ -3,19 +3,20 @@
 namespace Minds\Core\Chat\Entities;
 
 use DateTime;
+use DateTimeInterface;
 use Minds\Common\Access;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Entities\EntityInterface;
 
 class ChatRoom implements EntityInterface
 {
-    public readonly DateTime $createdAt;
+    public readonly DateTimeInterface $createdAt;
 
     public function __construct(
         public readonly int              $guid,
         public readonly ChatRoomTypeEnum $roomType,
         public readonly int              $createdByGuid,
-        ?DateTime                        $createdAt = null,
+        ?DateTimeInterface               $createdAt = null,
         public readonly ?int             $groupGuid = null
     ) {
         $this->createdAt = $createdAt ?? new DateTime();
