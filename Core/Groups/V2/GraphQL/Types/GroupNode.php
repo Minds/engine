@@ -4,7 +4,7 @@ namespace Minds\Core\Groups\V2\GraphQL\Types;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Feeds\GraphQL\Types\AbstractEntityNode;
-use Minds\Core\Groups\Membership as GroupMembership;
+use Minds\Core\Groups\V2\Membership\Manager as GroupMembership;
 use Minds\Entities\Group;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
@@ -35,6 +35,8 @@ class GroupNode extends AbstractEntityNode
     #[Field]
     public function getMembersCount(): int
     {
-        return Di::_()->get(GroupMembership::class)->getMembersCountByGuid($this->entity->getGuid()) ?? 0;
+        /** @var GroupMembership */
+        $manager = Di::_()->get(GroupMembership::class);
+        return $manager->getMembersCount($this->entity) ?? 0;
     }
 }
