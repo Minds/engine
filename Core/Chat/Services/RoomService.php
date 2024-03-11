@@ -47,10 +47,8 @@ class RoomService
             $roomType = count($otherMemberGuids) > 1 ? ChatRoomTypeEnum::MULTI_USER : ChatRoomTypeEnum::ONE_TO_ONE;
         }
 
-        $roomGuid = Guid::build();
-
         $chatRoom = new ChatRoom(
-            guid: (int) $roomGuid,
+            guid: (int) Guid::build(),
             roomType: $roomType,
             createdByGuid: (int) $user->getGuid(),
             createdAt: new DateTimeImmutable(),
@@ -67,7 +65,7 @@ class RoomService
             );
 
             $this->roomRepository->addRoomMember(
-                roomGuid: $roomGuid,
+                roomGuid: $chatRoom->guid,
                 memberGuid: (int) $user->getGuid(),
                 status: ChatRoomMemberStatusEnum::ACTIVE,
                 role: ChatRoomRoleEnum::OWNER,
@@ -80,7 +78,7 @@ class RoomService
                 );
 
                 $this->roomRepository->addRoomMember(
-                    roomGuid: $roomGuid,
+                    roomGuid: $chatRoom->guid,
                     memberGuid: $memberGuid,
                     status: $isSubscribed ? ChatRoomMemberStatusEnum::ACTIVE : ChatRoomMemberStatusEnum::INVITE_PENDING,
                     role: $roomType === ChatRoomTypeEnum::ONE_TO_ONE ? ChatRoomRoleEnum::OWNER : ChatRoomRoleEnum::MEMBER,
@@ -108,10 +106,8 @@ class RoomService
      */
     public function createGroupOwnedRoom(User $user, int $groupGuid): ChatRoomEdge
     {
-        $roomGuid = Guid::build();
-
         $chatRoom = new ChatRoom(
-            guid: (int) $roomGuid,
+            guid: (int) Guid::build(),
             roomType: ChatRoomTypeEnum::GROUP_OWNED,
             createdByGuid: (int) $user->getGuid(),
             createdAt: new DateTimeImmutable(),
