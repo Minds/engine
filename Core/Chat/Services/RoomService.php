@@ -50,7 +50,7 @@ class RoomService
         $roomGuid = Guid::build();
 
         $chatRoom = new ChatRoom(
-            guid: $roomGuid,
+            guid: (int) $roomGuid,
             roomType: $roomType,
             createdByGuid: $user->getGuid(),
             createdAt: new DateTimeImmutable(),
@@ -111,7 +111,7 @@ class RoomService
         $roomGuid = Guid::build();
 
         $chatRoom = new ChatRoom(
-            guid: $roomGuid,
+            guid: (int) $roomGuid,
             roomType: ChatRoomTypeEnum::GROUP_OWNED,
             createdByGuid: $user->getGuid(),
             createdAt: new DateTimeImmutable(),
