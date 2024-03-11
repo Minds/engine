@@ -73,13 +73,13 @@ class RoomService
 
             foreach ($otherMemberGuids as $memberGuid) {
                 $isSubscribed = $this->subscriptionsRepository->isSubscribed(
-                    userGuid: $memberGuid,
+                    userGuid: (int)$memberGuid,
                     friendGuid: (int) $user->getGuid()
                 );
 
                 $this->roomRepository->addRoomMember(
                     roomGuid: $chatRoom->guid,
-                    memberGuid: $memberGuid,
+                    memberGuid: (int) $memberGuid,
                     status: $isSubscribed ? ChatRoomMemberStatusEnum::ACTIVE : ChatRoomMemberStatusEnum::INVITE_PENDING,
                     role: $roomType === ChatRoomTypeEnum::ONE_TO_ONE ? ChatRoomRoleEnum::OWNER : ChatRoomRoleEnum::MEMBER,
                 );
