@@ -98,6 +98,8 @@ class ChatController
         $connection->setEdges([
             $this->messageService->getMessages(
                 roomGuid: (int)$roomGuid,
+                limit: $first,
+                offset: $after
             )
         ]);
 
@@ -144,7 +146,7 @@ class ChatController
 
     /**
      * Creates a new chat room
-     * @param array $otherMemberGuids
+     * @param string[] $otherMemberGuids
      * @param ChatRoomTypeEnum|null $roomType
      * @return ChatRoomEdge
      * @throws InvalidChatRoomTypeException

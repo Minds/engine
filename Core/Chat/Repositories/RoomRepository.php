@@ -164,6 +164,7 @@ class RoomRepository extends AbstractRepository
                             'msg.room_guid',
                             'msg.plain_text',
                             'msg.created_timestamp',
+                            'msg.tenant_id'
                         ])
                         ->from(
                             function (SelectQuery $subQuery): void {
@@ -172,6 +173,7 @@ class RoomRepository extends AbstractRepository
                                          new RawExp('ROW_NUMBER() over (PARTITION BY room_guid ORDER BY created_timestamp DESC) as row_num'),
                                          'guid',
                                          'room_guid',
+                                         'tenant_id',
                                          'plain_text',
                                          'created_timestamp',
                                     ])
@@ -190,7 +192,10 @@ class RoomRepository extends AbstractRepository
             ->prepare();
 
         try {
-            $stmt->execute();
+            $stmt->execute([
+                'member_guid' => $user->getGuid(),
+                'status' => ChatRoomMemberStatusEnum::ACTIVE->name,
+            ]);
 
             if ($stmt->rowCount() === 0) {
                 return [];
