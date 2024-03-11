@@ -4,7 +4,6 @@ namespace Minds\Core\Chat\Types;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\GraphQL\Types\NodeInterface;
-use Minds\Core\Session;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 use TheCodingMachine\GraphQLite\Types\ID;
@@ -14,6 +13,7 @@ class ChatMessageNode implements NodeInterface
 {
     public function __construct(
         public readonly ChatMessage $chatMessage,
+        #[Field] public readonly UserEdge $sender
     ) {
         
     }
@@ -49,15 +49,6 @@ class ChatMessageNode implements NodeInterface
     public function getPlainText(): string
     {
         return $this->chatMessage->plainText;
-    }
-
-    /**
-     * The user who sent the message
-     */
-    #[Field]
-    public function getSender(): UserEdge
-    {
-        return new UserEdge(Session::getLoggedInUser(), '');
     }
 
     /**

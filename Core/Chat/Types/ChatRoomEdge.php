@@ -2,6 +2,7 @@
 namespace Minds\Core\Chat\Types;
 
 use Minds\Core\Chat\Controllers\ChatController;
+use Minds\Core\Di\Di;
 use Minds\Core\GraphQL\Types\EdgeInterface;
 use Minds\Entities\User;
 use TheCodingMachine\GraphQLite\Annotations\Field;
@@ -12,14 +13,16 @@ use TheCodingMachine\GraphQLite\Annotations\Type;
 #[Type]
 class ChatRoomEdge implements EdgeInterface
 {
+    private readonly ChatController $chatController;
+
     public function __construct(
         protected ChatRoomNode            $node,
         protected string                  $cursor = '',
-        private readonly ?ChatController  $chatController = null,
+        ?ChatController  $chatController = null,
         #[Field] #[Logged] public ?string $lastMessagePlainText = null,
         #[Field] #[Logged] public ?int    $lastMessageCreatedTimestamp = null,
     ) {
-        
+        $this->chatController = $chatController ?? Di::_()->get(ChatController::class);
     }
 
     #[Field]
@@ -65,19 +68,19 @@ class ChatRoomEdge implements EdgeInterface
     #[Field]
     #[Logged]
     public function getMembers(
+        #[InjectUser] User $loggedInUser,
         ?int $first = null,
         ?int $after = null,
         ?int $last = null,
         ?int $before = null,
-        #[InjectUser] User $loggedInUser,
     ): ChatRoomMembersConnection {
         return $this->chatController->getChatRoomMembers(
+            loggedInUser: $loggedInUser,
             roomGuid: $this->node->chatRoom->guid,
             first: $first,
             after: $after,
             last: $last,
-            before: $before,
-            loggedInUser: $loggedInUser
+            before: $before
         );
     }
 

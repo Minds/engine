@@ -98,7 +98,7 @@ class RoomRepository extends AbstractRepository
     {
         return new ChatRoom(
             guid: $data['room_guid'],
-            roomType: ChatRoomTypeEnum::cases()[$data['room_type']] ?? throw new Exception('Invalid room type'),
+            roomType: constant(ChatRoomTypeEnum::class . "::{$data['room_type']}") ?? throw new Exception('Invalid room type'),
             createdByGuid: $data['created_by_user_guid'],
             createdAt: new DateTimeImmutable($data['created_timestamp']),
             groupGuid: $data['group_guid'] ?? null,
@@ -149,8 +149,8 @@ class RoomRepository extends AbstractRepository
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'r.*',
-                'last_msg.plain_text',
-                'last_msg.created_timestamp',
+                new RawExp('last_msg.plain_text as last_msg_plain_text'),
+                new RawExp('last_msg.created_timestamp as last_msg_created_timestamp'),
             ])
             ->from(new RawExp(self::TABLE_NAME . " as r"))
             ->joinRaw(
@@ -204,8 +204,8 @@ class RoomRepository extends AbstractRepository
             foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
                 yield new ChatRoomListItem(
                     chatRoom: $this->buildChatRoomInstance($row),
-                    lastMessagePlainText: $row['plain_text'],
-                    lastMessageCreatedTimestamp: strtotime($row['created_timestamp'])
+                    lastMessagePlainText: $row['last_msg_plain_text'],
+                    lastMessageCreatedTimestamp: $row['last_msg_created_timestamp'] ? strtotime($row['last_msg_created_timestamp']) : null
                 );
             }
         } catch (PDOException $e) {
@@ -256,7 +256,7 @@ class RoomRepository extends AbstractRepository
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->where('room_guid', Operator::EQ, $roomGuid)
             ->where('member_guid', Operator::EQ, $user->guid)
-            ->where('status', Operator::EQ, ChatRoomMemberStatusEnum::ACTIVE)
+            ->where('status', Operator::EQ, ChatRoomMemberStatusEnum::ACTIVE->name)
             ->limit(1)
             ->prepare();
 
@@ -268,7 +268,37 @@ class RoomRepository extends AbstractRepository
         }
     }
 
+    /**
+     * @param int $roomGuid
+     * @param int $limit
+     * @param int $offset
+     * @return iterable
+     * @throws ServerErrorException
+     */
+    public function getRoomMembers(
+        int $roomGuid,
+        int $limit = 12,
+        int $offset = 0
+    ): iterable {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->from(self::MEMBERS_TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->where('room_guid', Operator::EQ, $roomGuid)
+            ->where('status', Operator::EQ, ChatRoomMemberStatusEnum::ACTIVE->name)
+            ->limit($limit)
+            ->offset($offset)
+            ->prepare();
 
+        try {
+            $stmt->execute();
+
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                yield $row['member_guid'];
+            }
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to fetch chat room members', previous: $e);
+        }
+    }
 
 
 

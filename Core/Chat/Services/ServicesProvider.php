@@ -21,16 +21,18 @@ class ServicesProvider extends Provider
         $this->di->bind(
             RoomService::class,
             fn (Di $di): RoomService => new RoomService(
-                $di->get(RoomRepository::class),
-                $di->get(SubscriptionsRepository::class)
+                roomRepository: $di->get(RoomRepository::class),
+                subscriptionsRepository: $di->get(SubscriptionsRepository::class),
+                entitiesBuilder: $di->get('EntitiesBuilder')
             )
         );
 
         $this->di->bind(
             MessageService::class,
             fn (Di $di): MessageService => new MessageService(
-                $di->get(MessageRepository::class),
-                $di->get(RoomRepository::class)
+                messageRepository: $di->get(MessageRepository::class),
+                roomRepository: $di->get(RoomRepository::class),
+                entitiesBuilder: $di->get('EntitiesBuilder')
             )
         );
     }
