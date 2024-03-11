@@ -132,7 +132,7 @@ class RoomService
 
     /**
      * @param User $user
-     * @return array<ChatRoomNode>
+     * @return array<ChatRoomEdge>
      * @throws ServerErrorException
      */
     public function getRoomsByMember(
@@ -140,7 +140,7 @@ class RoomService
     ): array {
         $chatRooms = $this->roomRepository->getRoomsByMember($user);
 
-        array_map(
+        return array_map(
             fn (ChatRoomListItem $chatRoomListItem) => new ChatRoomEdge(
                 node: new ChatRoomNode(
                     chatRoom: $chatRoomListItem->chatRoom
@@ -150,14 +150,6 @@ class RoomService
             ),
             iterator_to_array($chatRooms)
         );
-
-        $chatRoomNodes = [];
-
-        foreach ($chatRooms as $chatRoom) {
-            $chatRoomNodes[] = new ChatRoomNode(chatRoom: $chatRoom);
-        }
-
-        return $chatRoomNodes;
     }
 
     public function getRoomTotalMembers(
