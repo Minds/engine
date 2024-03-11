@@ -21,6 +21,7 @@ class MobileConfig
         #[Field] public MobileWelcomeScreenLogoTypeEnum $welcomeScreenLogoType = MobileWelcomeScreenLogoTypeEnum::SQUARE,
         #[Field] public MobilePreviewStatusEnum         $previewStatus = MobilePreviewStatusEnum::NO_PREVIEW,
         public ?int                                     $previewLastUpdatedTimestamp = null,
+        public ?string                                  $appVersion = null
     ) {
     }
 
@@ -33,6 +34,6 @@ class MobileConfig
     #[Field]
     public function getPreviewQRCode(): string
     {
-        return "mindspreview://preview/" . Di::_()->get(Config::class)->get("tenant_id");
+        return "mindspreview://preview/" . Di::_()->get(Config::class)->get("tenant_id") . "?version=$this->appVersion";
     }
 }

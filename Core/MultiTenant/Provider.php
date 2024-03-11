@@ -36,6 +36,8 @@ class Provider extends DiProvider
             );
         });
 
+        (new Cache\Provider())->register();
+
         #region Deployments
         (new MobileConfigs\Deployments\Provider())->register();
         #endregion

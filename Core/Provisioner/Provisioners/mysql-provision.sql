@@ -863,6 +863,12 @@ CREATE TABLE IF NOT EXISTS minds_stripe_keys(
     updated_timestamp timestamp NULL
 );
 
+ALTER TABLE `minds_tenants`
+    ADD trial_start_timestamp timestamp DEFAULT NULL
+    AFTER plan;
+
+ALTER TABLE `minds_tenants`
+    ADD INDEX (owner_guid);
 
 CREATE TABLE IF NOT EXISTS minds_site_membership_entities (
     tenant_id int,
@@ -891,7 +897,6 @@ ALTER TABLE minds_entities_object_image ADD COLUMN blurhash text AFTER filename;
 
 ALTER TABLE minds_entities_activity
     MODIFY COLUMN paywall_thumbnail JSON DEFAULT NULL;
-
 
 CREATE TABLE IF NOT EXISTS minds_chat_rooms(
     tenant_id int,
@@ -926,3 +931,7 @@ CREATE TABLE IF NOT EXISTS minds_chat_members(
     INDEX (member_guid),
     INDEX (status)
 );
+
+ALTER TABLE minds_tenant_mobile_configs
+    ADD COLUMN app_version varchar(24) DEFAULT NULL
+    AFTER update_timestamp;

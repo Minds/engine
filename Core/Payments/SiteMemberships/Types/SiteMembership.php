@@ -25,7 +25,8 @@ class SiteMembership
         #[Field] public readonly ?string                         $membershipDescription = null,
         #[Field] public readonly string                          $priceCurrency = 'USD',
         private readonly ?array                                  $roles = null,
-        private readonly ?array                                  $groups = null
+        private readonly ?array                                  $groups = null,
+        #[Field] public readonly bool                            $archived = false
     ) {
     }
 

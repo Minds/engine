@@ -15,6 +15,12 @@ class EmailStylesV2
         $this->config ??= Di::_()->get(Config::class);
     }
 
+    public function __wakeup()
+    {
+        // Re-initialize config after unserialization
+        $this->config ??= Di::_()->get(Config::class);
+    }
+
     private const MAIN_CONTENT = [
         "m-mainContent" => [
             "width:600px;",
