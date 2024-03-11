@@ -6,6 +6,7 @@ namespace Minds\Core\Chat\Repositories;
 use DateTimeImmutable;
 use Exception;
 use Minds\Core\Chat\Entities\ChatRoom;
+use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
@@ -139,7 +140,7 @@ class RoomRepository extends AbstractRepository
 
     /**
      * @param User $user
-     * @return iterable<ChatRoom>
+     * @return iterable<ChatRoomListItem>
      * @throws ServerErrorException
      * @throws Exception
      */
@@ -148,7 +149,8 @@ class RoomRepository extends AbstractRepository
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'r.*',
-                'last_msg.plain_text'
+                'last_msg.plain_text',
+                'last_msg.created_timestamp',
             ])
             ->from(new RawExp(self::TABLE_NAME . " as r"))
             ->joinRaw(
@@ -195,7 +197,11 @@ class RoomRepository extends AbstractRepository
             }
 
             foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-                yield $this->buildChatRoomInstance($row);
+                yield new ChatRoomListItem(
+                    chatRoom: $this->buildChatRoomInstance($row),
+                    lastMessagePlainText: $row['plain_text'],
+                    lastMessageCreatedTimestamp: strtotime($row['created_timestamp'])
+                );
             }
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to fetch chat rooms', previous: $e);

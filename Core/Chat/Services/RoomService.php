@@ -5,11 +5,13 @@ namespace Minds\Core\Chat\Services;
 
 use DateTimeImmutable;
 use Minds\Core\Chat\Entities\ChatRoom;
+use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Exceptions\InvalidChatRoomTypeException;
 use Minds\Core\Chat\Repositories\RoomRepository;
+use Minds\Core\Chat\Types\ChatRoomEdge;
 use Minds\Core\Chat\Types\ChatRoomNode;
 use Minds\Core\Guid;
 use Minds\Core\Subscriptions\Relational\Repository as SubscriptionsRepository;
@@ -36,7 +38,7 @@ class RoomService
         User $user,
         array $otherMembers,
         ?ChatRoomTypeEnum $roomType = null
-    ): ChatRoomNode {
+    ): ChatRoomEdge {
         if ($roomType === ChatRoomTypeEnum::GROUP_OWNED) {
             throw new InvalidChatRoomTypeException();
         }
@@ -71,8 +73,6 @@ class RoomService
                 role: ChatRoomRoleEnum::OWNER,
             );
 
-            $totalMembers = count($otherMembers);
-
             foreach ($otherMembers as $memberGuid) {
                 $isSubscribed = $this->subscriptionsRepository->isSubscribed(
                     userGuid: $memberGuid,
@@ -83,7 +83,7 @@ class RoomService
                     roomGuid: $roomGuid,
                     memberGuid: $memberGuid,
                     status: $isSubscribed ? ChatRoomMemberStatusEnum::ACTIVE : ChatRoomMemberStatusEnum::INVITE_PENDING,
-                    role: $totalMembers === 1 ? ChatRoomRoleEnum::OWNER : ChatRoomRoleEnum::MEMBER,
+                    role: $roomType === ChatRoomTypeEnum::ONE_TO_ONE ? ChatRoomRoleEnum::OWNER : ChatRoomRoleEnum::MEMBER,
                 );
 
                 // TODO: Add push notifications and emails
@@ -93,7 +93,11 @@ class RoomService
             throw $e;
         }
 
-        return new ChatRoomNode(chatRoom: $chatRoom);
+        $this->roomRepository->commitTransaction();
+
+        return new ChatRoomEdge(
+            node: new ChatRoomNode(chatRoom: $chatRoom)
+        );
     }
 
     /**
@@ -102,7 +106,7 @@ class RoomService
      * @return ChatRoomNode
      * @throws ServerErrorException
      */
-    public function createGroupOwnedRoom(User $user, int $groupGuid): ChatRoomNode
+    public function createGroupOwnedRoom(User $user, int $groupGuid): ChatRoomEdge
     {
         $roomGuid = Guid::build();
 
@@ -121,7 +125,9 @@ class RoomService
             groupGuid: $groupGuid,
         );
 
-        return new ChatRoomNode(chatRoom: $chatRoom);
+        return new ChatRoomEdge(
+            node: new ChatRoomNode(chatRoom: $chatRoom)
+        );
     }
 
     /**
@@ -133,6 +139,17 @@ class RoomService
         User $user
     ): array {
         $chatRooms = $this->roomRepository->getRoomsByMember($user);
+
+        array_map(
+            fn (ChatRoomListItem $chatRoomListItem) => new ChatRoomEdge(
+                node: new ChatRoomNode(
+                    chatRoom: $chatRoomListItem->chatRoom
+                ),
+                lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
+                lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp,
+            ),
+            $chatRooms
+        );
 
         $chatRoomNodes = [];
 

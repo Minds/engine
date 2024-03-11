@@ -13,9 +13,11 @@ use TheCodingMachine\GraphQLite\Annotations\Type;
 class ChatRoomEdge implements EdgeInterface
 {
     public function __construct(
-        protected ChatRoomNode $node,
-        protected string $cursor = '',
-        private ?ChatController $chatController = null,
+        protected ChatRoomNode            $node,
+        protected string                  $cursor = '',
+        private readonly ?ChatController  $chatController = null,
+        #[Field] #[Logged] public ?string $lastMessagePlainText = null,
+        #[Field] #[Logged] public ?int    $lastMessageCreatedTimestamp = null,
     ) {
         
     }
@@ -78,4 +80,6 @@ class ChatRoomEdge implements EdgeInterface
             loggedInUser: $loggedInUser
         );
     }
+
+
 }

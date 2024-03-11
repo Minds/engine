@@ -926,37 +926,3 @@ CREATE TABLE IF NOT EXISTS minds_chat_members(
     INDEX (member_guid),
     INDEX (status)
 );
-
-
-SELECT
-    r.*
-FROM
-    minds_chat_rooms r
-        INNER JOIN
-    minds_chat_members m ON
-        m.tenant_id = r.tenant_id AND
-        m.room_guid = r.room_guid AND
-        m.member_guid = :user_guid AND
-        m.status = 'ACTIVE'
-        LEFT JOIN
-    (
-        SELECT
-            room_guid,
-            plain_text,
-            created_timestamp
-        FROM
-            (
-                SELECT
-                    ROW_NUMBER() over (PARTITION BY room_guid ORDER BY created_timestamp DESC) AS row_num,
-                    room_guid,
-                    plain_text,
-                    created_timestamp
-                FROM
-                    minds_chat_messages
-            ) msg
-        WHERE msg.row_num = 1
-    ) last_msg ON r.room_guid = last_msg.room_guid
-WHERE
-    r.tenant_id = :tenant_id
-ORDER BY
-    last_msg.created_timestamp DESC, r.created_timestamp DESC
