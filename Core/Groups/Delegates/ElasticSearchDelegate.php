@@ -5,6 +5,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Data\ElasticSearch\Prepared;
+use Minds\Core\Log\Logger;
 use Minds\Entities\Group;
 use Minds\Helpers\SuggestCompleter;
 
@@ -16,11 +17,12 @@ class ElasticSearchDelegate
     /** @var SuggestCompleter */
     protected $suggestCompleter;
 
-    public function __construct($es = null, protected ?Config $config = null)
+    public function __construct($es = null, protected ?Config $config = null, protected ?Logger $logger = null)
     {
         $this->es = $es ?? Di::_()->get('Database\ElasticSearch');
         $this->suggestCompleter = new SuggestCompleter();
         $this->config ??= Di::_()->get(Config::class);
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     public function onSave(Group $group): void
@@ -64,7 +66,11 @@ class ElasticSearchDelegate
         $prepared = new Prepared\Update();
         $prepared->query($query);
 
-        $result = (bool) $this->es->request($prepared);
+        try {
+            $result = (bool) $this->es->request($prepared);
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+        }
     }
 
     public function onDelete(Group $group): void

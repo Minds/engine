@@ -1,9 +1,26 @@
 <?php
-
 namespace Minds\Core\Email\V2\Common;
+
+use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 
 class EmailStylesV2
 {
+    /**
+     * @param Config|null $config
+     */
+    public function __construct(
+        private ?Config $config = null
+    ) {
+        $this->config ??= Di::_()->get(Config::class);
+    }
+
+    public function __wakeup()
+    {
+        // Re-initialize config after unserialization
+        $this->config ??= Di::_()->get(Config::class);
+    }
+
     private const MAIN_CONTENT = [
         "m-mainContent" => [
             "width:600px;",
@@ -169,15 +186,61 @@ class EmailStylesV2
     ];
 
     /**
-     * @return string[][]
+     * Returns overrides for styles based on tenant theme settings.
+     * Currently used only for buttons
+     * @return string[]
+     */
+    private function getThemeOverrides(): array
+    {
+        $themeOverrides = $this->config->get('theme_override');
+
+        $modifiedStyles = [];
+
+        if ($this->config->get('tenant_id') && is_array($themeOverrides)) {
+            if (isset($themeOverrides['primary_color'])) {
+                $modifiedStyles["background-color"] = "background-color:{$themeOverrides['primary_color']};";
+            }
+
+            if (isset($themeOverrides['color_scheme'])) {
+                $textColor = $themeOverrides['color_scheme'] === 'DARK' ? '#000' : '#fff';
+                // Important prevents email clients from overriding
+                $modifiedStyles["color"] = "color:{$textColor} !important;";
+            }
+        }
+
+        // Clone the default button styles
+        $buttonStyles = self::BUTTON['m-button'];
+
+        // Apply any modified styles to the clone
+        foreach ($buttonStyles as &$style) {
+            // Check if this style is for background-color or color,
+            // and apply if a modification exists
+            foreach ($modifiedStyles as $key => $value) {
+                if (strpos($style, $key) !== false) {
+                    $style = $value;
+                    break;
+                }
+            }
+        }
+
+        return [
+            "m-button" => $buttonStyles
+        ];
+    }
+
+    /**
+     * @return string[]
      */
     private function getMergedStyleDefinitions(): array
     {
+        $themeOverrides = $this->getThemeOverrides();
+
         return array_merge(
             self::MAIN_CONTENT,
             self::IMAGE,
             self::BUTTON,
             self::FOOTER,
+            $themeOverrides // This must be the last array item for overrides to apply
         );
     }
 
@@ -196,4 +259,5 @@ class EmailStylesV2
 
         return 'style="' . implode('', $styles) . '"';
     }
+
 }
