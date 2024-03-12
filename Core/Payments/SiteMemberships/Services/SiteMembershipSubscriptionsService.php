@@ -68,7 +68,6 @@ class SiteMembershipSubscriptionsService
             lineItems: $this->prepareLineItems($siteMembership->stripeProductId),
             paymentMethodTypes: [
                 'card',
-                'us_bank_account',
             ],
             metadata: [
                 'redirectPath' => $redirectPath,
