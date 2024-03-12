@@ -424,7 +424,7 @@ class Manager
                 }
             }
 
-            $entityGuids = array_unique($entity_guids);
+            $entityGuids = array_unique($entityGuids);
 
             $allResults = [];
 
