@@ -7,6 +7,8 @@ use Minds\Core\Di\Di;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 use Minds\Core\Groups\Membership as GroupMembership;
+use Minds\Core\Groups\V2\Membership\Manager;
+use Minds\Entities\Group;
 
 /**
  * Featured group node. Can be used in a connection.
@@ -42,6 +44,8 @@ class FeaturedGroup extends FeaturedEntity
     #[Field]
     public function getMembersCount(): int
     {
-        return Di::_()->get(GroupMembership::class)->getMembersCountByGuid($this->entityGuid) ?? 0;
+        /** @var Manager */
+        $manager = Di::_()->get(Manager::class);
+        return $manager->getMembersCount((new Group())->set('guid', $this->entityGuid)) ?? 0;
     }
 }
