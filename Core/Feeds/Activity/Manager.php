@@ -55,6 +55,7 @@ use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Core\Blogs\Blog;
 use Minds\Core\Counters;
 use InvalidArgumentException;
+use Minds\Core\Feeds\Elastic\V2\Manager as ElasticV2Manager;
 
 class Manager
 {
@@ -114,6 +115,7 @@ class Manager
         private ?ElasticManager $elasticManager = null,
         private ?RbacGatekeeperService $rbacGatekeeperService = null,
         private ?Counters $counters = null,
+        private ?ElasticV2Manager $elasticV2Manager = null,
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -132,6 +134,7 @@ class Manager
         $this->elasticManager ??= Di::_()->get('Feeds\Elastic\Manager');
         $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
         $this->counters ??= new Counters();
+        $this->elasticV2Manager ??= Di::_()->get(ElasticV2Manager::class);
     }
 
     public function getSupermindManager(): SupermindManager
@@ -405,10 +408,23 @@ class Manager
         while ($hasMore) {
             $entityGuids = [$entity->getGuid()];
 
-            // If the entity has an entityGuid, add it to the search
+            // If the activity entity has an entityGuid, add it to the search
             if ($entity instanceof Activity && $entity->getEntityGuid()) {
                 $entityGuids[] = $entity->getEntityGuid();
             }
+
+            // Also get linked activities for blogs
+            if ($entity instanceof Blog) {
+                $linkedActivities = $this->elasticV2Manager->getLinkedActivitiesByEntityGuid($entity->getGuid());
+
+                foreach ($linkedActivities as $linkedActivity) {
+                    if ($linkedActivity instanceof Activity) {
+                        $entityGuids[] = $linkedActivity->getGuid();
+                    }
+                }
+            }
+
+            $entityGuids = array_unique($entity_guids);
 
             $allResults = [];
 
@@ -513,6 +529,15 @@ class Manager
             }
         } elseif ($entity instanceof Blog) {
             $count = $this->counters->get($entity->getGuid(), 'remind');
+
+            // Get activities related to the blog
+            $linkedActivities = $this->elasticV2Manager->getLinkedActivitiesByEntityGuid($entity->getGuid());
+
+            foreach ($linkedActivities as $linkedActivity) {
+                if ($linkedActivity instanceof Activity) {
+                    $count += $this->countRemindsOfEntityByUser($linkedActivity, $user);
+                }
+            }
         }
 
         return $count ?? 0;

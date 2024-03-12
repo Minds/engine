@@ -22,6 +22,7 @@ use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use InvalidArgumentException;
+use Minds\Core\Feeds\Elastic\V2\Manager as ElasticV2Manager;
 
 class ManagerSpec extends ObjectBehavior
 {
@@ -51,6 +52,9 @@ class ManagerSpec extends ObjectBehavior
 
     private Collaborator $rbacGatekeeperServiceMock;
 
+    /** @var ElasticV2Manager */
+    private $elasticV2Manager;
+
     public function let(
         Delegates\ForeignEntityDelegate $foreignEntityDelegate,
         Save $save,
@@ -62,6 +66,7 @@ class ManagerSpec extends ObjectBehavior
         ElasticManager $elasticManager,
         RbacGatekeeperService $rbacGatekeeperServiceMock,
         Counters $counters,
+        ElasticV2Manager $elasticV2Manager
     ) {
         $this->beConstructedWith(
             $foreignEntityDelegate,
@@ -80,7 +85,8 @@ class ManagerSpec extends ObjectBehavior
             null,
             $elasticManager,
             $rbacGatekeeperServiceMock,
-            $counters
+            $counters,
+            $elasticV2Manager,
         );
         $this->foreignEntityDelegate = $foreignEntityDelegate;
 
@@ -92,6 +98,7 @@ class ManagerSpec extends ObjectBehavior
         $this->elasticManager = $elasticManager;
         $this->rbacGatekeeperServiceMock = $rbacGatekeeperServiceMock;
         $this->counters = $counters;
+        $this->elasticV2Manager = $elasticV2Manager;
 
         Session::setUser((new User())->set('guid', 123)->set('username', 'test'));
     }
@@ -400,10 +407,11 @@ class ManagerSpec extends ObjectBehavior
         $this->countRemindsOfEntityByUser($activity, $user)->shouldReturn(8);
     }
 
-    public function it_counts_reminds_of_blog_by_user(Blog $blog, User $user)
+    public function it_counts_reminds_of_blog_by_user(Blog $blog, User $user, Activity $linkedActivity)
     {
         $blogGuid = '123';
         $userGuid = '789';
+        $linkedActivityGuid = '456';
 
         $blog->getGuid()->willReturn($blogGuid);
         $user->getGuid()->willReturn($userGuid);
@@ -412,6 +420,31 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(1);
 
-        $this->countRemindsOfEntityByUser($blog, $user)->shouldReturn(1);
+
+        $this->elasticV2Manager->getLinkedActivitiesByEntityGuid($blogGuid)->willReturn([$linkedActivity]);
+
+        $linkedActivity->getGuid()->willReturn($linkedActivityGuid);
+
+        $linkedActivity->getEntityGuid()->willReturn($blogGuid);
+        $user->getGuid()->willReturn($userGuid);
+
+        $this->elasticManager->getCount([
+            'algorithm' => 'latest',
+            'type' => 'activity',
+            'period' => 'all',
+            'remind_guid' => $linkedActivityGuid,
+            'owner_guid' => $userGuid,
+        ])->shouldBeCalled()->willReturn(1);
+
+        $this->elasticManager->getCount([
+            'algorithm' => 'latest',
+            'type' => 'activity',
+            'period' => 'all',
+            'remind_guid' => $blogGuid,
+            'owner_guid' => $userGuid,
+        ])->shouldBeCalled()->willReturn(1);
+
+        $this->countRemindsOfEntityByUser($blog, $user)->shouldReturn(1 + 1 + 1);
+
     }
 }
