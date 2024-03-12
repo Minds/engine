@@ -16,5 +16,4 @@ class ChatRoomsConnection extends Connection
     {
         return $this->edges;
     }
-
 }

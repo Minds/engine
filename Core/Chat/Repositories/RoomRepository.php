@@ -140,12 +140,19 @@ class RoomRepository extends AbstractRepository
 
     /**
      * @param User $user
+     * @param ChatRoomMemberStatusEnum $memberStatus
+     * @param int $limit
+     * @param int|null $offset
      * @return iterable<ChatRoomListItem>
      * @throws ServerErrorException
-     * @throws Exception
      */
-    public function getRoomsByMember(User $user): iterable
-    {
+    public function getRoomsByMember(
+        User $user,
+        ChatRoomMemberStatusEnum $memberStatus = ChatRoomMemberStatusEnum::ACTIVE,
+        int $limit = 12,
+        ?string $offset = null,
+        bool &$hasMore = false
+    ): iterable {
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'r.*',
@@ -189,19 +196,51 @@ class RoomRepository extends AbstractRepository
             )
             ->where('r.tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->orderBy('last_msg.created_timestamp DESC', 'r.created_timestamp DESC')
+            ->limit($limit + 1);
+
+        $optionalValues = [];
+        if ($offset) {
+            $offsetParts = explode(':', $offset);
+
+            if (count($offsetParts) === 1) {
+                $stmt->whereRaw('(last_msg.created_timestamp < :last_msg_created_timestamp OR last_msg.created_timestamp IS NULL)');
+                $optionalValues = [
+                    'last_msg_created_timestamp' => date('c', (int) $offsetParts[0]),
+                ];
+            } else {
+                $stmt->where('last_msg.created_timestamp', Operator::IS, null);
+                $stmt->where('r.created_timestamp', Operator::LT, new RawExp(':created_timestamp'));
+                $optionalValues = [
+                    'created_timestamp' => date('c', (int) $offsetParts[1]),
+                ];
+            }
+        }
+
+        $stmt = $stmt
             ->prepare();
 
         try {
-            $stmt->execute([
-                'member_guid' => $user->getGuid(),
-                'status' => ChatRoomMemberStatusEnum::ACTIVE->name,
-            ]);
+            $stmt->execute(array_merge(
+                [
+                    'member_guid' => $user->getGuid(),
+                    'status' => $memberStatus->name,
+                ],
+                $optionalValues
+            ));
 
             if ($stmt->rowCount() === 0) {
                 return [];
             }
 
-            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if ($stmt->rowCount() > $limit) {
+                $hasMore = true;
+            }
+
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $index => $row) {
+                if ($index === $limit) {
+                    continue;
+                }
+
                 yield new ChatRoomListItem(
                     chatRoom: $this->buildChatRoomInstance($row),
                     lastMessagePlainText: $row['last_msg_plain_text'],
@@ -271,32 +310,71 @@ class RoomRepository extends AbstractRepository
     /**
      * @param int $roomGuid
      * @param int $limit
-     * @param int $offset
-     * @return iterable
+     * @param int|null $offset
+     * @param bool $hasMore
+     * @return iterable<array{member_guid: int, joined_timestamp: int|null}>
      * @throws ServerErrorException
      */
     public function getRoomMembers(
         int $roomGuid,
         int $limit = 12,
-        int $offset = 0
+        ?int $offset = null,
+        bool &$hasMore = false
     ): iterable {
         $stmt = $this->mysqlClientReaderHandler->select()
             ->from(self::MEMBERS_TABLE_NAME)
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->where('room_guid', Operator::EQ, $roomGuid)
             ->where('status', Operator::EQ, ChatRoomMemberStatusEnum::ACTIVE->name)
-            ->limit($limit)
-            ->offset($offset)
+            ->orderBy('joined_timestamp DESC')
+            ->limit($limit + 1);
+
+        $values = [];
+
+        if ($offset) {
+            $stmt->where('joined_timestamp', Operator::GT, new RawExp(':joined_timestamp'));
+            $values['joined_timestamp'] = date('c', $offset);
+        }
+
+        $stmt = $stmt->prepare();
+
+        try {
+            $stmt->execute($values);
+
+            if ($stmt->rowCount() > $limit) {
+                $hasMore = true;
+            }
+
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $index => $row) {
+                if ($index === $limit) {
+                    continue;
+                }
+
+                yield $row;
+            }
+        } catch (PDOException $e) {
+            throw new ServerErrorException(message: 'Failed to fetch chat room members', previous: $e);
+        }
+    }
+
+    public function getTotalRoomInviteRequestsByMember(
+        User $user
+    ): int {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->from(self::MEMBERS_TABLE_NAME)
+            ->columns([
+                new RawExp('COUNT(member_guid) as total_requests')
+            ])
+            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
+            ->where('member_guid', Operator::EQ, $user->getGuid())
+            ->where('status', Operator::EQ, ChatRoomMemberStatusEnum::INVITE_PENDING->name)
             ->prepare();
 
         try {
             $stmt->execute();
-
-            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-                yield $row['member_guid'];
-            }
+            return (int) $stmt->fetch(PDO::FETCH_ASSOC)['total_requests'];
         } catch (PDOException $e) {
-            throw new ServerErrorException('Failed to fetch chat room members', previous: $e);
+            throw new ServerErrorException(message: 'Failed to fetch total chat room invite requests', previous: $e);
         }
     }
 

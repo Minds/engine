@@ -53,6 +53,10 @@ class RoomService
             $roomType = count($otherMemberGuids) > 1 ? ChatRoomTypeEnum::MULTI_USER : ChatRoomTypeEnum::ONE_TO_ONE;
         }
 
+        if ($roomType === ChatRoomTypeEnum::ONE_TO_ONE && count($otherMemberGuids) > 1) {
+            throw new InvalidChatRoomTypeException("One to one rooms can only have 2 members.");
+        }
+
         $chatRoom = new ChatRoom(
             guid: (int) Guid::build(),
             roomType: $roomType,
@@ -138,17 +142,29 @@ class RoomService
      * @throws ServerErrorException
      */
     public function getRoomsByMember(
-        User $user
+        User $user,
+        int $first = 12,
+        ?string $after = null,
+        bool &$hasMore = false
     ): array {
-        $chatRooms = $this->roomRepository->getRoomsByMember($user);
+        $chatRooms = $this->roomRepository->getRoomsByMember(
+            user: $user,
+            limit: $first,
+            offset: $after ? base64_decode($after, true) : null,
+            hasMore: $hasMore
+        );
 
         return array_map(
             fn (ChatRoomListItem $chatRoomListItem) => new ChatRoomEdge(
                 node: new ChatRoomNode(
                     chatRoom: $chatRoomListItem->chatRoom
                 ),
+                cursor:
+                    $chatRoomListItem->lastMessageCreatedTimestamp ?
+                        base64_encode((string) $chatRoomListItem->lastMessageCreatedTimestamp) :
+                        base64_encode("0:{$chatRoomListItem->chatRoom->createdAt->getTimestamp()}"),
                 lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
-                lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp,
+                lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
             ),
             iterator_to_array($chatRooms)
         );
@@ -164,6 +180,8 @@ class RoomService
      * @param int $roomGuid
      * @param User $loggedInUser
      * @param int|null $first
+     * @param string|null $after
+     * @param bool $hasMore
      * @return array
      * @throws ForbiddenException
      * @throws ServerErrorException
@@ -171,7 +189,9 @@ class RoomService
     public function getRoomMembers(
         int $roomGuid,
         User $loggedInUser,
-        ?int $first = null
+        ?int $first = null,
+        ?string $after = null,
+        bool &$hasMore = false
     ): array {
         if (
             !$this->roomRepository->isUserMemberOfRoom(
@@ -184,12 +204,14 @@ class RoomService
 
         $memberGuids = $this->roomRepository->getRoomMembers(
             roomGuid: $roomGuid,
-            limit: $first ?? 12
+            limit: $first ?? 12,
+            offset: $after ? (int) base64_decode($after, true) : null,
+            hasMore: $hasMore
         );
 
         return array_map(
-            function (int $memberGuid) {
-                $user = $this->entitiesBuilder->single($memberGuid);
+            function (array $member): ?ChatRoomMemberEdge {
+                $user = $this->entitiesBuilder->single($member['member_guid']);
                 if (!$user) {
                     return null;
                 }
@@ -198,6 +220,7 @@ class RoomService
                     node: new UserNode(
                         user: $user
                     ),
+                    cursor: base64_encode($member['joined_timestamp'])
                 );
             },
             iterator_to_array($memberGuids)
@@ -229,6 +252,44 @@ class RoomService
             node: new ChatRoomNode(
                 chatRoom: $this->roomRepository->getRoom($roomGuid)
             )
+        );
+    }
+
+    /**
+     * @param User $user
+     * @return array<ChatRoomEdge>
+     * @throws ServerErrorException
+     */
+    public function getRoomInviteRequestsByMember(
+        User $user
+    ): array {
+        $chatRooms = $this->roomRepository->getRoomsByMember(
+            user: $user,
+            memberStatus: ChatRoomMemberStatusEnum::INVITE_PENDING
+        );
+
+        return array_map(
+            fn (ChatRoomListItem $chatRoomListItem) => new ChatRoomEdge(
+                node: new ChatRoomNode(
+                    chatRoom: $chatRoomListItem->chatRoom
+                ),
+                lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
+                lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp,
+            ),
+            iterator_to_array($chatRooms)
+        );
+    }
+
+    /**
+     * @param User $user
+     * @return int
+     * @throws ServerErrorException
+     */
+    public function getTotalRoomInviteRequestsByMember(
+        User $user
+    ): int {
+        return $this->roomRepository->getTotalRoomInviteRequestsByMember(
+            user: $user
         );
     }
 }

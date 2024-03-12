@@ -33,23 +33,29 @@ class ChatController
     #[Query]
     #[Logged]
     public function getChatRoomList(
-        ?int $first = null,
-        ?int $after = null,
-        ?int $last = null,
-        ?int $before = null,
+        int $first = 12,
+        ?string $after = null,
         #[InjectUser] ?User $loggedInUser = null,
     ): ChatRoomsConnection {
         $connection = new ChatRoomsConnection();
+        $hasMore = false;
 
-        $chatRoomEdges = $this->roomService->getRoomsByMember($loggedInUser);
+        $chatRoomEdges = $this->roomService->getRoomsByMember(
+            user: $loggedInUser,
+            first: $first,
+            after: $after,
+            hasMore: $hasMore
+        );
 
         $connection->setEdges($chatRoomEdges);
 
+        $lastEdgeIndex = count($connection->getEdges()) > 0 ? count($connection->getEdges()) - 1 : null;
+
         $connection->setPageInfo(new PageInfo(
-            hasNextPage: false,
-            hasPreviousPage: false,
-            startCursor: null,
-            endCursor: null,
+            hasNextPage: $hasMore,
+            hasPreviousPage: $after ?: false,
+            startCursor: $after,
+            endCursor: $lastEdgeIndex !== null ? $connection->getEdges()[$lastEdgeIndex]->getCursor() : null,
         ));
 
         return $connection;
@@ -112,25 +118,30 @@ class ChatController
         #[InjectUser] User $loggedInUser,
         ?string $roomGuid = null,
         ?int $first = null,
-        ?int $after = null,
+        ?string $after = null,
         ?int $last = null,
         ?int $before = null,
     ): ChatRoomMembersConnection {
         $connection = new ChatRoomMembersConnection();
+        $hasMore = false;
 
         $connection->setEdges(
             $this->roomService->getRoomMembers(
                 roomGuid: (int) $roomGuid,
                 loggedInUser: $loggedInUser,
                 first: $first,
+                after: $after,
+                hasMore: $hasMore
             )
         );
 
+        $lastEdgeIndex = count($connection->getEdges()) > 0 ? count($connection->getEdges()) - 1 : null;
+
         $connection->setPageInfo(new PageInfo(
-            hasNextPage: false,
-            hasPreviousPage: false,
-            startCursor: null,
-            endCursor: null,
+            hasNextPage: $hasMore,
+            hasPreviousPage: $after ?: false,
+            startCursor: $after,
+            endCursor: $lastEdgeIndex !== null ? $connection->getEdges()[$lastEdgeIndex]->getCursor() : null,
         ));
 
         return $connection;
@@ -178,6 +189,39 @@ class ChatController
             roomGuid: (int)$roomGuid,
             user: $loggedInUser,
             message: $plainText
+        );
+    }
+
+    #[Query]
+    #[Logged]
+    public function getChatRoomInviteRequests(
+        #[InjectUser] User $loggedInUser,
+        int $first = 12,
+        ?int $after = null,
+    ): ChatRoomsConnection {
+        $connection = new ChatRoomsConnection();
+
+        $chatRoomEdges = $this->roomService->getRoomInviteRequestsByMember($loggedInUser);
+
+        $connection->setEdges($chatRoomEdges);
+
+        $connection->setPageInfo(new PageInfo(
+            hasNextPage: false,
+            hasPreviousPage: false,
+            startCursor: null,
+            endCursor: null,
+        ));
+
+        return $connection;
+    }
+
+    #[Query]
+    #[Logged]
+    public function getTotalRoomInviteRequests(
+        #[InjectUser] User $loggedInUser,
+    ): int {
+        return $this->roomService->getTotalRoomInviteRequestsByMember(
+            user: $loggedInUser
         );
     }
 
