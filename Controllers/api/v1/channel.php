@@ -88,7 +88,7 @@ class channel implements Interfaces\Api
         }
 
         $isAdmin = Core\Session::isAdmin();
-        $hasModerationPermission = Di::_()->get(RolesService::class)->hasPermission(Core\Session::getLoggedInUser(), PermissionsEnum::CAN_MODERATE_CONTENT);
+        $hasModerationPermission = Core\Session::getLoggedInUser() && Di::_()->get(RolesService::class)->hasPermission(Core\Session::getLoggedInUser(), PermissionsEnum::CAN_MODERATE_CONTENT);
         $isLoggedIn = Core\Session::isLoggedin();
         $isOwner = $isLoggedIn && ((string) Core\Session::getLoggedinUser()->guid === (string) $user->guid);
         $isPublic = $isLoggedIn && $user instanceof User && $user->isPublicDateOfBirth();
