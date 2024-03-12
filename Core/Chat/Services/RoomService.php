@@ -6,6 +6,7 @@ namespace Minds\Core\Chat\Services;
 use DateTimeImmutable;
 use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Entities\ChatRoomListItem;
+use Minds\Core\Chat\Enums\ChatRoomInviteRequestActionEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
@@ -19,6 +20,9 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\GraphQL\Types\UserNode;
 use Minds\Core\Guid;
 use Minds\Core\Router\Exceptions\ForbiddenException;
+use Minds\Core\Security\Block\BlockEntry;
+use Minds\Core\Security\Block\BlockLimitException;
+use Minds\Core\Security\Block\Manager as BlockManager;
 use Minds\Core\Subscriptions\Relational\Repository as SubscriptionsRepository;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -28,21 +32,23 @@ class RoomService
     public function __construct(
         private readonly RoomRepository          $roomRepository,
         private readonly SubscriptionsRepository $subscriptionsRepository,
-        private readonly EntitiesBuilder         $entitiesBuilder
+        private readonly EntitiesBuilder         $entitiesBuilder,
+        private readonly BlockManager            $blockManager
     ) {
     }
 
     /**
      * @param User $user
-     * @param array $otherMembers
+     * @param array $otherMemberGuids
      * @param ChatRoomTypeEnum|null $roomType
-     * @return ChatRoomNode
+     * @return ChatRoomEdge
+     * @throws ChatRoomNotFoundException
      * @throws InvalidChatRoomTypeException
      * @throws ServerErrorException
      */
     public function createRoom(
-        User $user,
-        array $otherMemberGuids,
+        User              $user,
+        array             $otherMemberGuids,
         ?ChatRoomTypeEnum $roomType = null
     ): ChatRoomEdge {
         if ($roomType === ChatRoomTypeEnum::GROUP_OWNED) {
@@ -53,14 +59,29 @@ class RoomService
             $roomType = count($otherMemberGuids) > 1 ? ChatRoomTypeEnum::MULTI_USER : ChatRoomTypeEnum::ONE_TO_ONE;
         }
 
-        if ($roomType === ChatRoomTypeEnum::ONE_TO_ONE && count($otherMemberGuids) > 1) {
-            throw new InvalidChatRoomTypeException("One to one rooms can only have 2 members.");
+        if ($roomType === ChatRoomTypeEnum::ONE_TO_ONE) {
+            if (count($otherMemberGuids) > 1) {
+                throw new InvalidChatRoomTypeException("One to one rooms can only have 2 members.");
+            }
+
+            $roomMembers = [
+                ...$otherMemberGuids,
+                $user->getGuid()
+            ];
+
+            if ($chatRoom = $this->roomRepository->getRoomByMembers(
+                memberGuids: $roomMembers
+            )) {
+                return new ChatRoomEdge(
+                    node: new ChatRoomNode(chatRoom: $chatRoom)
+                );
+            }
         }
 
         $chatRoom = new ChatRoom(
-            guid: (int) Guid::build(),
+            guid: (int)Guid::build(),
             roomType: $roomType,
-            createdByGuid: (int) $user->getGuid(),
+            createdByGuid: (int)$user->getGuid(),
             createdAt: new DateTimeImmutable(),
         );
 
@@ -76,7 +97,7 @@ class RoomService
 
             $this->roomRepository->addRoomMember(
                 roomGuid: $chatRoom->guid,
-                memberGuid: (int) $user->getGuid(),
+                memberGuid: (int)$user->getGuid(),
                 status: ChatRoomMemberStatusEnum::ACTIVE,
                 role: ChatRoomRoleEnum::OWNER,
             );
@@ -84,12 +105,12 @@ class RoomService
             foreach ($otherMemberGuids as $memberGuid) {
                 $isSubscribed = $this->subscriptionsRepository->isSubscribed(
                     userGuid: (int)$memberGuid,
-                    friendGuid: (int) $user->getGuid()
+                    friendGuid: (int)$user->getGuid()
                 );
 
                 $this->roomRepository->addRoomMember(
                     roomGuid: $chatRoom->guid,
-                    memberGuid: (int) $memberGuid,
+                    memberGuid: (int)$memberGuid,
                     status: $isSubscribed ? ChatRoomMemberStatusEnum::ACTIVE : ChatRoomMemberStatusEnum::INVITE_PENDING,
                     role: $roomType === ChatRoomTypeEnum::ONE_TO_ONE ? ChatRoomRoleEnum::OWNER : ChatRoomRoleEnum::MEMBER,
                 );
@@ -111,15 +132,15 @@ class RoomService
     /**
      * @param User $user
      * @param int $groupGuid
-     * @return ChatRoomNode
+     * @return ChatRoomEdge
      * @throws ServerErrorException
      */
     public function createGroupOwnedRoom(User $user, int $groupGuid): ChatRoomEdge
     {
         $chatRoom = new ChatRoom(
-            guid: (int) Guid::build(),
+            guid: (int)Guid::build(),
             roomType: ChatRoomTypeEnum::GROUP_OWNED,
-            createdByGuid: (int) $user->getGuid(),
+            createdByGuid: (int)$user->getGuid(),
             createdAt: new DateTimeImmutable(),
         );
 
@@ -138,14 +159,17 @@ class RoomService
 
     /**
      * @param User $user
+     * @param int $first
+     * @param string|null $after
+     * @param bool $hasMore
      * @return array<ChatRoomEdge>
      * @throws ServerErrorException
      */
     public function getRoomsByMember(
-        User $user,
-        int $first = 12,
+        User    $user,
+        int     $first = 12,
         ?string $after = null,
-        bool &$hasMore = false
+        bool    &$hasMore = false
     ): array {
         $chatRooms = $this->roomRepository->getRoomsByMember(
             user: $user,
@@ -159,10 +183,9 @@ class RoomService
                 node: new ChatRoomNode(
                     chatRoom: $chatRoomListItem->chatRoom
                 ),
-                cursor:
-                    $chatRoomListItem->lastMessageCreatedTimestamp ?
-                        base64_encode((string) $chatRoomListItem->lastMessageCreatedTimestamp) :
-                        base64_encode("0:{$chatRoomListItem->chatRoom->createdAt->getTimestamp()}"),
+                cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
+                    base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :
+                    base64_encode("0:{$chatRoomListItem->chatRoom->createdAt->getTimestamp()}"),
                 lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
                 lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
             ),
@@ -187,11 +210,11 @@ class RoomService
      * @throws ServerErrorException
      */
     public function getRoomMembers(
-        int $roomGuid,
-        User $loggedInUser,
-        ?int $first = null,
+        int     $roomGuid,
+        User    $loggedInUser,
+        ?int    $first = null,
         ?string $after = null,
-        bool &$hasMore = false
+        bool    &$hasMore = false
     ): array {
         if (
             !$this->roomRepository->isUserMemberOfRoom(
@@ -202,10 +225,12 @@ class RoomService
             throw new ForbiddenException("You are not a member of this chat.");
         }
 
+        // TODO: Filter out blocked, deleted, disabled and banned users
+
         $memberGuids = $this->roomRepository->getRoomMembers(
             roomGuid: $roomGuid,
             limit: $first ?? 12,
-            offset: $after ? (int) base64_decode($after, true) : null,
+            offset: $after ? (int)base64_decode($after, true) : null,
             hasMore: $hasMore
         );
 
@@ -236,7 +261,7 @@ class RoomService
      * @throws ChatRoomNotFoundException
      */
     public function getRoom(
-        int $roomGuid,
+        int  $roomGuid,
         User $loggedInUser
     ): ChatRoomEdge {
         if (
@@ -292,4 +317,53 @@ class RoomService
             user: $user
         );
     }
+
+    /**
+     * @param User $user
+     * @param int $roomGuid
+     * @param ChatRoomInviteRequestActionEnum $chatRoomInviteRequestAction
+     * @return bool
+     * @throws BlockLimitException
+     * @throws ChatRoomNotFoundException
+     * @throws ForbiddenException
+     * @throws ServerErrorException
+     */
+    public function replyToRoomInviteRequest(
+        User                            $user,
+        int                             $roomGuid,
+        ChatRoomInviteRequestActionEnum $chatRoomInviteRequestAction
+    ): bool {
+        $chatRoomEdge = $this->getRoom(
+            roomGuid: $roomGuid,
+            loggedInUser: $user
+        );
+
+        $this->roomRepository->beginTransaction();
+
+        try {
+            $this->roomRepository->updateRoomMemberStatus(
+                roomGuid: $roomGuid,
+                user: $user,
+                memberStatus: $chatRoomInviteRequestAction === ChatRoomInviteRequestActionEnum::ACCEPT ?
+                    ChatRoomMemberStatusEnum::ACTIVE :
+                    ChatRoomMemberStatusEnum::LEFT
+            );
+
+            if ($chatRoomInviteRequestAction === ChatRoomInviteRequestActionEnum::REJECT_AND_BLOCK) {
+                $this->blockManager->add(
+                    (new BlockEntry())
+                        ->setActor($user)
+                        ->setSubjectGuid($chatRoomEdge->getNode()->chatRoom->createdByGuid)
+                );
+            }
+
+            $this->roomRepository->commitTransaction();
+
+            return true;
+        } catch (ServerErrorException|BlockLimitException $e) {
+            $this->roomRepository->rollbackTransaction();
+            throw $e;
+        }
+    }
+
 }

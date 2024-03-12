@@ -23,7 +23,8 @@ class ServicesProvider extends Provider
             fn (Di $di): RoomService => new RoomService(
                 roomRepository: $di->get(RoomRepository::class),
                 subscriptionsRepository: $di->get(SubscriptionsRepository::class),
-                entitiesBuilder: $di->get('EntitiesBuilder')
+                entitiesBuilder: $di->get('EntitiesBuilder'),
+                blockManager: $di->get('Security\Block\Manager')
             )
         );
 

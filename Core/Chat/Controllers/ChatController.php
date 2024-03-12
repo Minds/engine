@@ -1,7 +1,10 @@
 <?php
+
 namespace Minds\Core\Chat\Controllers;
 
+use Minds\Core\Chat\Enums\ChatRoomInviteRequestActionEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
+use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
 use Minds\Core\Chat\Exceptions\InvalidChatRoomTypeException;
 use Minds\Core\Chat\Services\MessageService;
 use Minds\Core\Chat\Services\RoomService;
@@ -12,6 +15,8 @@ use Minds\Core\Chat\Types\ChatRoomMemberNode;
 use Minds\Core\Chat\Types\ChatRoomMembersConnection;
 use Minds\Core\Chat\Types\ChatRoomsConnection;
 use Minds\Core\GraphQL\Types\PageInfo;
+use Minds\Core\Router\Exceptions\ForbiddenException;
+use Minds\Core\Security\Block\BlockLimitException;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
@@ -22,7 +27,7 @@ use TheCodingMachine\GraphQLite\Annotations\Query;
 class ChatController
 {
     public function __construct(
-        private readonly RoomService $roomService,
+        private readonly RoomService    $roomService,
         private readonly MessageService $messageService
     ) {
     }
@@ -33,8 +38,8 @@ class ChatController
     #[Query]
     #[Logged]
     public function getChatRoomList(
-        int $first = 12,
-        ?string $after = null,
+        int                 $first = 12,
+        ?string             $after = null,
         #[InjectUser] ?User $loggedInUser = null,
     ): ChatRoomsConnection {
         $connection = new ChatRoomsConnection();
@@ -67,11 +72,11 @@ class ChatController
     #[Query]
     #[Logged]
     public function getChatRoom(
-        string $roomGuid,
+        string             $roomGuid,
         #[InjectUser] User $loggedInUser,
     ): ChatRoomEdge {
         return $this->roomService->getRoom(
-            roomGuid: (int) $roomGuid,
+            roomGuid: (int)$roomGuid,
             loggedInUser: $loggedInUser
         );
     }
@@ -82,18 +87,18 @@ class ChatController
     #[Query]
     #[Logged]
     public function getChatMessages(
-        string $roomGuid,
+        string             $roomGuid,
         #[InjectUser] User $loggedInUser,
-        ?int $first = null,
-        ?int $after = null,
-        ?int $last = null,
-        ?int $before = null,
+        ?int               $first = null,
+        ?int               $after = null,
+        ?int               $last = null,
+        ?int               $before = null,
     ): ChatMessagesConnection {
         $connection = new ChatMessagesConnection();
 
         $connection->setEdges(
             $this->messageService->getMessages(
-                roomGuid: (int) $roomGuid,
+                roomGuid: (int)$roomGuid,
                 limit: $first ?? 0,
                 offset: $after ?? 0
             )
@@ -116,18 +121,18 @@ class ChatController
     #[Logged]
     public function getChatRoomMembers(
         #[InjectUser] User $loggedInUser,
-        ?string $roomGuid = null,
-        ?int $first = null,
-        ?string $after = null,
-        ?int $last = null,
-        ?int $before = null,
+        ?string            $roomGuid = null,
+        ?int               $first = null,
+        ?string            $after = null,
+        ?int               $last = null,
+        ?int               $before = null,
     ): ChatRoomMembersConnection {
         $connection = new ChatRoomMembersConnection();
         $hasMore = false;
 
         $connection->setEdges(
             $this->roomService->getRoomMembers(
-                roomGuid: (int) $roomGuid,
+                roomGuid: (int)$roomGuid,
                 loggedInUser: $loggedInUser,
                 first: $first,
                 after: $after,
@@ -159,8 +164,8 @@ class ChatController
     #[Logged]
     public function createChatRoom(
         #[InjectUser] User $loggedInUser,
-        array $otherMemberGuids = [],
-        ?ChatRoomTypeEnum $roomType = null
+        array              $otherMemberGuids = [],
+        ?ChatRoomTypeEnum  $roomType = null
     ): ChatRoomEdge {
         return $this->roomService->createRoom(
             user: $loggedInUser,
@@ -181,8 +186,8 @@ class ChatController
     #[Mutation]
     #[Logged]
     public function createChatMessage(
-        string $plainText,
-        string $roomGuid,
+        string             $plainText,
+        string             $roomGuid,
         #[InjectUser] User $loggedInUser,
     ): ChatMessageEdge {
         return $this->messageService->addMessage(
@@ -196,8 +201,8 @@ class ChatController
     #[Logged]
     public function getChatRoomInviteRequests(
         #[InjectUser] User $loggedInUser,
-        int $first = 12,
-        ?int $after = null,
+        int                $first = 12,
+        ?int               $after = null,
     ): ChatRoomsConnection {
         $connection = new ChatRoomsConnection();
 
@@ -225,4 +230,26 @@ class ChatController
         );
     }
 
+    /**
+     * @param int $roomGuid
+     * @param ChatRoomInviteRequestActionEnum $chatRoomInviteRequestActionEnum
+     * @return bool
+     * @throws ServerErrorException
+     * @throws ChatRoomNotFoundException
+     * @throws ForbiddenException
+     * @throws BlockLimitException
+     */
+    #[Mutation]
+    #[Logged]
+    public function replyToRoomInviteRequest(
+        int                             $roomGuid,
+        ChatRoomInviteRequestActionEnum $chatRoomInviteRequestActionEnum,
+        #[InjectUser] User              $loggedInUser
+    ): bool {
+        return $this->roomService->replyToRoomInviteRequest(
+            user: $loggedInUser,
+            roomGuid: $roomGuid,
+            chatRoomInviteRequestAction: $chatRoomInviteRequestActionEnum
+        );
+    }
 }
