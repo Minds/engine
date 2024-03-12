@@ -3,7 +3,7 @@ namespace Spec\Minds\Core\FeedNotices\Notices;
 
 use Minds\Core\Config\Config;
 use Minds\Core\FeedNotices\Notices\NoGroupsNotice;
-use Minds\Core\Groups\Membership as GroupMembershipManager;
+use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipManager;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 
@@ -52,10 +52,7 @@ class NoGroupsNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $this->groupMembershipManager->getGroupGuidsByMember([
-                'user_guid' => $user->guid,
-                'limit' => 1
-            ])
+        $this->groupMembershipManager->getGroupGuids($user, 1)
             ->shouldBeCalled()
             ->willReturn([]);
 
@@ -70,10 +67,7 @@ class NoGroupsNoticeSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $this->groupMembershipManager->getGroupGuidsByMember([
-                'user_guid' => $user->guid,
-                'limit' => 1
-            ])
+        $this->groupMembershipManager->getGroupGuids($user, 1)
             ->shouldBeCalled()
             ->willReturn(['123']);
 
@@ -100,10 +94,7 @@ class NoGroupsNoticeSpec extends ObjectBehavior
 
     public function it_should_export(User $user)
     {
-        $this->groupMembershipManager->getGroupGuidsByMember([
-                'user_guid' => $user->guid,
-                'limit' => 1
-            ])
+        $this->groupMembershipManager->getGroupGuids($user, 1)
             ->shouldBeCalled()
             ->willReturn(['123']);
 

@@ -3,8 +3,9 @@
 namespace Minds\Core\FeedNotices\Notices;
 
 use Minds\Core\Config\Config;
+use Minds\Core\Di\Di;
 use Minds\Entities\User;
-use Minds\Core\Groups\Membership as GroupMembershipManager;
+use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipManager;
 
 /**
  * Feed notice to encourage users to join groups.
@@ -29,7 +30,7 @@ class NoGroupsNotice extends AbstractNotice
         private ?GroupMembershipManager $groupMembershipManager = null,
         private ?Config $config = null
     ) {
-        $this->groupMembershipManager ??= new GroupMembershipManager();
+        $this->groupMembershipManager ??= Di::_()->get(GroupMembershipManager::class);
         parent::__construct(config: $config);
     }
 
@@ -73,10 +74,7 @@ class NoGroupsNotice extends AbstractNotice
             return false;
         }
 
-        $groupGuids = $this->groupMembershipManager->getGroupGuidsByMember([
-            'user_guid' => $user->guid,
-            'limit' => 1
-        ]);
+        $groupGuids = $this->groupMembershipManager->getGroupGuids($user, 1);
 
         return sizeof($groupGuids) == 0;
     }

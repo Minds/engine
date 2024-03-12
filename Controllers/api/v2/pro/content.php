@@ -194,15 +194,8 @@ class content implements Interfaces\Api
     {
         switch ($opts['type']) {
             case 'group':
-                /** @var Core\Groups\Ownership $manager */
-                $manager = Di::_()->get('Groups\Ownership');
-
-                $result = $manager
-                    ->setUserGuid($opts['container_guid'])
-                    ->fetch();
-
+                $result = new Response();
                 break;
-
             default:
                 /** @var Core\Feeds\Elastic\Manager $manager */
                 $manager = Di::_()->get('Feeds\Elastic\Manager');

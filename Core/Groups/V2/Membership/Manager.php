@@ -17,14 +17,10 @@ use Minds\Exceptions\UserErrorException;
 
 class Manager
 {
-    private bool $readFromLegacy;
-
     public function __construct(
         protected Repository $repository,
         protected EntitiesBuilder $entitiesBuilder,
         protected ACL $acl,
-        protected LegacyMembership $legacyMembership,
-        protected Experiments\Manager $experimentsManager,
         protected SuggestedGroupsRecommendationsAlgorithm $groupRecsAlgo,
     ) {
     }
@@ -34,37 +30,6 @@ class Manager
      */
     public function getMembership(Group $group, User $user): Membership
     {
-        /**
-         * Legacy read
-         */
-        if ($this->shouldReadFromLegacy()) {
-            $this->legacyMembership->setGroup($group)->setActor($user);
-            $isMember = $this->legacyMembership->isMember($user);
-            if (!$isMember) {
-                throw new NotFoundException();
-            }
-
-            $membershipLevel = GroupMembershipLevelEnum::MEMBER;
-
-            if ($group->isModerator($user)) {
-                $membershipLevel = GroupMembershipLevelEnum::MODERATOR;
-            }
-
-            if ($group->isOwner($user)) {
-                $membershipLevel = GroupMembershipLevelEnum::OWNER;
-            }
-
-            return new Membership(
-                groupGuid: $group->getGuid(),
-                userGuid: $user->getGuid(),
-                createdTimestamp: new DateTime(), // irrelevant to legacy api
-                membershipLevel: $membershipLevel,
-            );
-        }
-
-        /**
-         * Vitess read
-         */
         return $this->repository->get($group->getGuid(), $user->getGuid());
     }
 
@@ -73,16 +38,6 @@ class Manager
      */
     public function getMembersCount(Group $group): int
     {
-        /**
-         * Legacy read
-         */
-        if ($this->shouldReadFromLegacy()) {
-            return $this->legacyMembership->setGroup($group)->getMembersCount();
-        }
-
-        /**
-         * Vitess read
-         */
         return $this->repository->getCount($group->getGuid());
     }
 
@@ -104,45 +59,6 @@ class Manager
         int $offset = 0,
         int|string &$loadNext = 0
     ): iterable {
-        /**
-         * Legacy read
-         */
-        if ($this->shouldReadFromLegacy()) {
-            $members = array_map(function ($user) use ($group) {
-                $membership = new Membership(
-                    groupGuid: $group->getGuid(),
-                    userGuid: $user->getGuid(),
-                    createdTimestamp: new DateTime("@{$group->getTimeCreated()}"), // irrelevant to legacy api
-                    membershipLevel: GroupMembershipLevelEnum::MEMBER,
-                );
-
-                if ($group->isModerator($user)) {
-                    $membership->membershipLevel = GroupMembershipLevelEnum::MODERATOR;
-                }
-
-                if ($group->isOwner($user)) {
-                    $membership->membershipLevel = GroupMembershipLevelEnum::OWNER;
-                }
-
-                $membership->setUser($user);
-
-                return $membership;
-            }, $this->legacyMembership->setGroup($group)->getMembers([
-                'limit' => $limit,
-                'offset' => $offset,
-            ]));
-
-            $clonedMembers = $members;
-            $loadNext = (string) end($clonedMembers)->userGuid;
-
-            yield from $members;
-
-            return;
-        }
-
-        /**
-         * Vitess read
-         */
         foreach ($this->repository->getList(
             groupGuid: $group->getGuid(),
             limit: $limit,
@@ -173,26 +89,6 @@ class Manager
         int $offset = 0,
         int &$loadNext = 0
     ): iterable {
-        /**
-         * Legacy read
-         */
-        if ($this->shouldReadFromLegacy()) {
-            $requests = $this->legacyMembership->setGroup($group)->getRequests([
-                'limit' => $limit,
-                'offset' => $offset,
-            ]);
-
-            $clonedRequests = $requests;
-            $loadNext = (string) end($clonedRequests)->userGuid;
-
-            yield from $requests;
-
-            return;
-        }
-
-        /**
-         * Vitess read
-         */
         foreach (
             $this->repository->getList(
                 groupGuid: $group->getGuid(),
@@ -231,28 +127,6 @@ class Manager
         int $offset = 0,
         int &$loadNext = 0
     ): iterable {
-        /**
-         * Legacy read
-         */
-        if ($this->shouldReadFromLegacy()) {
-            $groups = array_map(function ($groupGuid) {
-                return $this->buildGroup($groupGuid);
-            }, $this->legacyMembership->getGroupsByMember([
-                'user_guid' => $user->getGuid(),
-                'limit' => $limit,
-                'offset' => $offset,
-            ]));
-
-            $loadNext = $offset + count($groups);
-
-            yield from $groups;
-
-            return;
-        }
-
-        /**
-         * Vitess read
-         */
         foreach (
             $this->repository->getList(
                 userGuid: $user->getGuid(),
@@ -277,26 +151,13 @@ class Manager
     /**
      * Returns all the guids for groups a user is a member of
      */
-    public function getGroupGuids(User $user): array
+    public function getGroupGuids(User $user, int $limit = 500): array
     {
-        /**
-         * Legacy read
-         */
-        if ($this->shouldReadFromLegacy()) {
-            return $this->legacyMembership->getGroupGuidsByMember([
-                'user_guid' => $user->getGuid(),
-                'limit' => 500,
-            ]);
-        }
-
-        /**
-         * Vitess read
-         */
         return array_map(function ($membership) {
             return $membership->groupGuid;
         }, iterator_to_array($this->repository->getList(
             userGuid: $user->getGuid(),
-            limit: 500
+            limit: $limit
         )));
     }
 
@@ -305,9 +166,6 @@ class Manager
      */
     public function modifyMembershipLevel(Group $group, User $user, User $actor, GroupMembershipLevelEnum $membershipLevel = null): bool
     {
-        /**
-         * Vitess write
-         */
         // Get the users membership
         $userMembership = $this->repository->get($group->getGuid(), $user->getGuid());
 
@@ -332,22 +190,6 @@ class Manager
         User $user,
         GroupMembershipLevelEnum $membershipLevel = null
     ): bool {
-        /**
-         * Legacy write
-         */
-        $legacyJoined = $this->legacyMembership
-            ->setGroup($group)
-            ->join($user, [
-                'force' => !$group->isPublic() && $membershipLevel === GroupMembershipLevelEnum::MEMBER,
-                'isOwner' => $membershipLevel === GroupMembershipLevelEnum::OWNER,
-            ]);
-        if (!$legacyJoined) {
-            return false;
-        }
-
-        /**
-         * Vitess write
-         */
         $membership = new Membership(
             groupGuid: $group->getGuid(),
             userGuid: $user->getGuid(),
@@ -369,23 +211,6 @@ class Manager
      */
     public function leaveGroup(Group $group, User $user): bool
     {
-        /**
-         * Legacy write
-         */
-        try {
-            $legacyLeft = $this->legacyMembership->setGroup($group)->leave($user);
-            if (!$legacyLeft) {
-                return false;
-            }
-        } catch (GroupOperationException $e) {
-            if ($e->getMessage() === 'Error leaving group') {
-                return false;
-            }
-        }
-
-        /**
-         * Vitess write
-         */
         $membership = $this->repository->get($group->getGuid(), $user->getGuid());
 
         // Do not allow a banned user to leave
@@ -415,18 +240,7 @@ class Manager
             throw new GroupOperationException('Cannot cancel as there is no pending membership request.');
         }
 
-        /**
-         * Legacy write
-         */
-        $legacyRemoved = $this->legacyMembership->setGroup($group)->setActor($user)->cancelRequest($user);
 
-        if (!$legacyRemoved) {
-            return false;
-        }
-
-        /**
-         * Vitess write
-         */
         return $this->repository->delete($userMembership);
     }
 
@@ -435,21 +249,6 @@ class Manager
      */
     public function acceptUser(Group $group, User $user, User $actor): bool
     {
-        /**
-         * Legacy write
-         */
-        $this->legacyMembership->setGroup($group)->setActor($actor);
-        if (!$this->legacyMembership->isAwaiting($user)) {
-            return false;
-        }
-        $legacyAccepted = $this->legacyMembership->setGroup($group)->setActor($actor)->join($user, ['force' => true]);
-        if (!$legacyAccepted) {
-            return false;
-        }
-
-        /**
-         * Vitess write
-         */
         // Get the users membership
         $userMembership = $this->repository->get($group->getGuid(), $user->getGuid());
 
@@ -475,22 +274,6 @@ class Manager
      */
     public function removeUser(Group $group, User $user, User $actor): bool
     {
-        /**
-         * Legacy write
-         */
-        $this->legacyMembership->setGroup($group)->setActor($actor);
-        if ($this->legacyMembership->isAwaiting($user)) {
-            $legacyRemoved = $this->legacyMembership->setGroup($group)->setActor($actor)->cancelRequest($user);
-        } else {
-            $legacyRemoved = $this->legacyMembership->setGroup($group)->setActor($actor)->kick($user);
-        }
-        if (!$legacyRemoved) {
-            return false;
-        }
-
-        /**
-         * Vitess write
-         */
         // Get the users membership
         $userMembership = $this->repository->get($group->getGuid(), $user->getGuid());
 
@@ -509,17 +292,6 @@ class Manager
      */
     public function banUser(Group $group, User $user, User $actor): bool
     {
-        /**
-         * Legacy write
-         */
-        $legacyBanned = $this->legacyMembership->setGroup($group)->setActor($actor)->ban($user);
-        if (!$legacyBanned) {
-            return false;
-        }
-
-        /**
-         * Vitess write
-         */
         // Get the users membership
         $userMembership = $this->repository->get($group->getGuid(), $user->getGuid());
 
@@ -541,17 +313,6 @@ class Manager
      */
     public function unbanUser(Group $group, User $user, User $actor): bool
     {
-        /**
-         * Legacy write
-         */
-        $legacyUnbanned = $this->legacyMembership->setGroup($group)->setActor($actor)->unban($user);
-        if (!$legacyUnbanned) {
-            return false;
-        }
-
-        /**
-         * Vitess write
-         */
         // Get the users membership
         $userMembership = $this->repository->get($group->getGuid(), $user->getGuid());
 
@@ -615,11 +376,4 @@ class Manager
         return $group;
     }
 
-    /**
-     * Helper function to check the feature flag (avoid doing this in the constructor)
-     */
-    private function shouldReadFromLegacy(): bool
-    {
-        return $this->readFromLegacy ??= !$this->experimentsManager->isOn('engine-2591-groups-memberships');
-    }
 }
