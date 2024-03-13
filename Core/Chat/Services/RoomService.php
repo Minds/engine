@@ -64,17 +64,17 @@ class RoomService
                 throw new InvalidChatRoomTypeException("One to one rooms can only have 2 members.");
             }
 
-            $roomMembers = [
-                ...$otherMemberGuids,
-                $user->getGuid()
-            ];
-
-            if ($chatRoom = $this->roomRepository->getRoomByMembers(
-                memberGuids: $roomMembers
-            )) {
-                return new ChatRoomEdge(
-                    node: new ChatRoomNode(chatRoom: $chatRoom)
-                );
+            try {
+                if ($chatRoom = $this->roomRepository->getOneToOneRoomByMembers(
+                    firstMemberGuid: (int) $user->getGuid(),
+                    secondMemberGuid: (int) $otherMemberGuids[0]
+                )) {
+                    return new ChatRoomEdge(
+                        node: new ChatRoomNode(chatRoom: $chatRoom)
+                    );
+                }
+            } catch (ChatRoomNotFoundException $e) {
+                // Continue
             }
         }
 
@@ -246,7 +246,7 @@ class RoomService
                     node: new UserNode(
                         user: $user
                     ),
-                    cursor: base64_encode($member['joined_timestamp'])
+                    cursor: base64_encode($member['joined_timestamp'] ?? "0")
                 );
             },
             iterator_to_array($memberGuids)
@@ -366,5 +366,4 @@ class RoomService
             throw $e;
         }
     }
-
 }

@@ -11,6 +11,7 @@ use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
 use Selective\Database\Operator;
+use Selective\Database\RawExp;
 
 class MessageRepository extends AbstractRepository
 {
@@ -59,25 +60,32 @@ class MessageRepository extends AbstractRepository
     ): iterable {
         $stmt = $this->mysqlClientReaderHandler->select()
             ->from(self::TABLE_NAME)
-            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
-            ->where('room_guid', Operator::EQ, $roomGuid)
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->limit($limit + 1);
 
+        $values = [
+            'tenant_id' => $this->config->get('tenant_id') ?? -1,
+            'room_guid' => $roomGuid
+        ];
+
         if (!$before) {
-            $stmt->orderBy('created_timestamp DESC');
+            $stmt->orderBy('guid DESC');
 
             if ($after) {
-                $stmt->where('created_timestamp', Operator::LT, date('c', (int) $after));
+                $stmt->where('guid', Operator::LT, new RawExp(':guid_offset'));
+                $values['guid_offset'] = (int) $after;
             }
         } else {
-            $stmt->orderBy('created_timestamp ASC');
-            $stmt->where('created_timestamp', Operator::GT, date('c', (int) $before));
+            $stmt->orderBy('guid ASC');
+            $stmt->where('guid', Operator::GT, new RawExp(':guid_offset'));
+            $values['guid_offset'] = (int) $before;
         }
 
         $stmt = $stmt->prepare();
 
         try {
-            $stmt->execute();
+            $stmt->execute($values);
 
             if ($stmt->rowCount() > $limit) {
                 $hasMore = true;
