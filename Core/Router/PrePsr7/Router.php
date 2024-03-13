@@ -12,6 +12,7 @@ use Zend\Diactoros\ServerRequestFactory;
 use Minds\Core\Security;
 use Minds\Core\page;
 use Minds\Core\Referrals\ReferralCookie;
+use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Supermind\AutoSupermindRouterMiddleware;
 
 /**
@@ -100,8 +101,12 @@ class Router
 
         // Sessions
         // TODO: Support middleware
-        $session = Di::_()->get('Sessions\Manager');
-        $session->withRouterRequest($request);
+        try {
+            $session = Di::_()->get('Sessions\Manager');
+            $session->withRouterRequest($request);
+        } catch (UnauthorizedException $e) {
+            // Proceed with no session...
+        }
 
         // OAuth Middleware
         // TODO: allow interface to bypass

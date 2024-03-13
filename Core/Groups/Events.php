@@ -303,11 +303,6 @@ class Events
             }
         });
 
-        Dispatcher::register('cleanup:dispatch', 'group', function ($e) {
-            $params = $e->getParameters();
-            $e->setResponse(Membership::cleanup($params['group']));
-        });
-
         Dispatcher::register('export:extender', 'group', function ($e) {
             $params = $e->getParameters();
 

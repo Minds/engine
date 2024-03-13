@@ -27,8 +27,6 @@ class Provider extends DiProvider
                 repository: $di->get(Membership\Repository::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 acl: $di->get('Security\ACL'),
-                legacyMembership: new LegacyMembership(),
-                experimentsManager: $di->get('Experiments\Manager'),
                 groupRecsAlgo: new SuggestedGroupsRecommendationsAlgorithm(),
             );
         });
