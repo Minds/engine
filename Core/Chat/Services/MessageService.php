@@ -111,7 +111,7 @@ class MessageService
                         cursor: ''
                     )
                 ),
-                cursor: base64_encode((string) $message->createdAt->getTimestamp())
+                cursor: base64_encode((string) $message->guid)
             ),
             $messages
         );
