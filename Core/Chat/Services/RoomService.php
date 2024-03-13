@@ -229,6 +229,7 @@ class RoomService
 
         $memberGuids = $this->roomRepository->getRoomMembers(
             roomGuid: $roomGuid,
+            user: $loggedInUser,
             limit: $first ?? 12,
             offset: $after ? (int)base64_decode($after, true) : null,
             hasMore: $hasMore

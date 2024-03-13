@@ -2,6 +2,7 @@
 
 namespace Minds\Core\Chat\Controllers;
 
+use InvalidArgumentException;
 use Minds\Core\Chat\Enums\ChatRoomInviteRequestActionEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
@@ -89,26 +90,65 @@ class ChatController
     public function getChatMessages(
         string             $roomGuid,
         #[InjectUser] User $loggedInUser,
-        ?int               $first = null,
-        ?int               $after = null,
-        ?int               $last = null,
-        ?int               $before = null,
+        int                $first = 12,
+        ?string            $after = null,
+        ?string            $before = null,
     ): ChatMessagesConnection {
+        if ($after && $before) {
+            throw new InvalidArgumentException('You cannot use both "after" and "before" parameters at the same time');
+        }
+
         $connection = new ChatMessagesConnection();
+        $hasMore = false;
 
         $connection->setEdges(
             $this->messageService->getMessages(
                 roomGuid: (int)$roomGuid,
-                limit: $first ?? 0,
-                offset: $after ?? 0
+                user: $loggedInUser,
+                first: $first,
+                after: $before, // we need to reverse the order of the messages
+                before: $after, // we need to reverse the order of the messages
+                hasMore: $hasMore
             )
         );
 
+        $startCursor = $endCursor = null;
+
+        $hasNextPage = $hasPreviousPage = false;
+
+        $lastEdgeIndex = count($connection->getEdges()) > 0 ? count($connection->getEdges()) - 1 : null;
+
+        if ($lastEdgeIndex === null) { // no messages
+            $connection->setPageInfo(new PageInfo(
+                hasNextPage: false,
+                hasPreviousPage: false,
+                startCursor: null,
+                endCursor: null,
+            ));
+            return $connection;
+        }
+
+        if (!$before && !$after) { // initial scenario for pagination
+            $hasPreviousPage = $hasMore;
+            $startCursor = $connection->getEdges()[0]->getCursor();
+            $endCursor = $connection->getEdges()[$lastEdgeIndex]->getCursor();
+        } elseif ($before) { // we are paginating backwards
+            $hasPreviousPage = $hasMore;
+            $hasNextPage = true;
+            $startCursor = $connection->getEdges()[0]->getCursor();
+            $endCursor = $connection->getEdges()[$lastEdgeIndex]->getCursor();
+        } elseif ($after) { // we are paginating forwards
+            $hasPreviousPage = true;
+            $hasNextPage = $hasMore;
+            $startCursor = $connection->getEdges()[0]->getCursor();
+            $endCursor = $connection->getEdges()[$lastEdgeIndex]->getCursor();
+        }
+
         $connection->setPageInfo(new PageInfo(
-            hasNextPage: false,
-            hasPreviousPage: false,
-            startCursor: null,
-            endCursor: null,
+            hasNextPage: $hasNextPage,
+            hasPreviousPage: $hasPreviousPage,
+            startCursor: $startCursor,
+            endCursor: $endCursor,
         ));
 
         return $connection;

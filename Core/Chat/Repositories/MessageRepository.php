@@ -43,23 +43,50 @@ class MessageRepository extends AbstractRepository
 
     /**
      * @param int $roomGuid
+     * @param int $limit
+     * @param string|null $after
+     * @param string|null $before
+     * @param bool $hasMore
      * @return iterable<ChatMessage>
      * @throws ServerErrorException
      */
     public function getMessagesByRoom(
         int $roomGuid,
+        int $limit = 12,
+        ?string $after = null,
+        ?string $before = null,
+        bool &$hasMore = false,
     ): iterable {
         $stmt = $this->mysqlClientReaderHandler->select()
             ->from(self::TABLE_NAME)
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->where('room_guid', Operator::EQ, $roomGuid)
-            ->orderBy('created_timestamp DESC')
-            ->prepare();
+            ->limit($limit + 1);
+
+        if (!$before) {
+            $stmt->orderBy('created_timestamp DESC');
+
+            if ($after) {
+                $stmt->where('created_timestamp', Operator::LT, date('c', (int) $after));
+            }
+        } else {
+            $stmt->orderBy('created_timestamp ASC');
+            $stmt->where('created_timestamp', Operator::GT, date('c', (int) $before));
+        }
+
+        $stmt = $stmt->prepare();
 
         try {
             $stmt->execute();
 
-            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $data) {
+            if ($stmt->rowCount() > $limit) {
+                $hasMore = true;
+            }
+
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $index => $data) {
+                if ($index === $limit) {
+                    break;
+                }
                 yield $this->buildChatMessageInstance($data);
             }
         } catch (PDOException $e) {

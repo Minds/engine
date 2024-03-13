@@ -309,6 +309,7 @@ class RoomRepository extends AbstractRepository
 
     /**
      * @param int $roomGuid
+     * @param User $user
      * @param int $limit
      * @param int|null $offset
      * @param bool $hasMore
@@ -317,6 +318,7 @@ class RoomRepository extends AbstractRepository
      */
     public function getRoomMembers(
         int  $roomGuid,
+        User $user,
         int  $limit = 12,
         ?int $offset = null,
         bool &$hasMore = false
@@ -325,6 +327,7 @@ class RoomRepository extends AbstractRepository
             ->from(self::MEMBERS_TABLE_NAME)
             ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
             ->where('room_guid', Operator::EQ, $roomGuid)
+            ->where('member_guid', Operator::NOT_EQ, $user->getGuid())
             ->where('status', Operator::EQ, ChatRoomMemberStatusEnum::ACTIVE->name)
             ->orderBy('joined_timestamp DESC')
             ->limit($limit + 1);

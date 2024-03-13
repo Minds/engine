@@ -42,16 +42,14 @@ class ChatRoomEdge implements EdgeInterface
     public function getMessages(
         #[InjectUser] User $loggedInUser,
         ?int $first = null,
-        ?int $after = null,
-        ?int $last = null,
-        ?int $before = null,
+        ?string $after = null,
+        ?string $before = null,
     ): ChatMessagesConnection {
         return $this->chatController->getChatMessages(
             roomGuid: $this->node->chatRoom->guid,
             loggedInUser: $loggedInUser,
             first: $first,
             after: $after,
-            last: $last,
             before: $before
         );
     }

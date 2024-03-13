@@ -68,17 +68,37 @@ class MessageService
 
     /**
      * @param int $roomGuid
-     * @param int $limit
-     * @param int $offset
+     * @param User $user
+     * @param int $first
+     * @param string|null $after
+     * @param string|null $before
+     * @param bool $hasMore
      * @return array<ChatMessageNode>
+     * @throws ForbiddenException
      * @throws ServerErrorException
      */
     public function getMessages(
         int $roomGuid,
-        int $limit,
-        int $offset
+        User $user,
+        int $first = 12,
+        ?string $after = null,
+        ?string $before = null,
+        bool &$hasMore = false
     ): array {
-        $messages = iterator_to_array($this->messageRepository->getMessagesByRoom($roomGuid));
+        if (!$this->roomRepository->isUserMemberOfRoom(
+            roomGuid: $roomGuid,
+            user: $user
+        )) {
+            throw new ForbiddenException("You are not a member of this room");
+        }
+
+        $messages = iterator_to_array($this->messageRepository->getMessagesByRoom(
+            roomGuid: $roomGuid,
+            limit: $first,
+            after: $after ? base64_decode($after, true) : null,
+            before: $before ? base64_decode($before, true) : null,
+            hasMore: $hasMore
+        ));
 
         usort($messages, fn (ChatMessage $a, ChatMessage $b): bool => $a->createdAt > $b->createdAt);
 
@@ -90,7 +110,8 @@ class MessageService
                         user: $this->entitiesBuilder->single($message->senderGuid),
                         cursor: ''
                     )
-                )
+                ),
+                cursor: base64_encode((string) $message->createdAt->getTimestamp())
             ),
             $messages
         );
