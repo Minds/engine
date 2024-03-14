@@ -274,10 +274,21 @@ class RoomService
             throw new ForbiddenException("You are not a member of this chat.");
         }
 
+        $chatRoomListItem = iterator_to_array($this->roomRepository->getRoomsByMember(
+            user: $loggedInUser,
+            limit: 1,
+            roomGuid: $roomGuid
+        ))[0];
+
         return new ChatRoomEdge(
             node: new ChatRoomNode(
-                chatRoom: $this->roomRepository->getRoom($roomGuid)
-            )
+                chatRoom: $chatRoomListItem->chatRoom
+            ),
+            cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
+                base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :
+                base64_encode("0:{$chatRoomListItem->chatRoom->createdAt->getTimestamp()}"),
+            lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
+            lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
         );
     }
 

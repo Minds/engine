@@ -3,13 +3,17 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Chat\Services;
 
+use DateTimeImmutable;
+use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Chat\Services\RoomService;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Security\Block\Manager as BlockManager;
 use Minds\Core\Subscriptions\Relational\Repository as SubscriptionsRepository;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 
 class RoomServiceSpec extends ObjectBehavior
 {
