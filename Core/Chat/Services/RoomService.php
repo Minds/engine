@@ -42,7 +42,6 @@ class RoomService
      * @param array $otherMemberGuids
      * @param ChatRoomTypeEnum|null $roomType
      * @return ChatRoomEdge
-     * @throws ChatRoomNotFoundException
      * @throws InvalidChatRoomTypeException
      * @throws ServerErrorException
      */

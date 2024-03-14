@@ -442,8 +442,8 @@ class RoomRepository extends AbstractRepository
         int $firstMemberGuid,
         int $secondMemberGuid,
     ): ChatRoom {
-        $firstMemberGuidOneToOneRoomQuery = $this->getMemberOneToOneRoomsQuery();
-        $secondMemberGuidOneToOneRoomQuery = $this->getMemberOneToOneRoomsQuery();
+        $firstMemberGuidOneToOneRoomQuery = $this->getMemberOneToOneRoomsQuery(0);
+        $secondMemberGuidOneToOneRoomQuery = $this->getMemberOneToOneRoomsQuery(1);
 
         $stmt = $firstMemberGuidOneToOneRoomQuery
                 ->intersect($secondMemberGuidOneToOneRoomQuery)
@@ -457,8 +457,8 @@ class RoomRepository extends AbstractRepository
                 'tenant_id_4' => $this->config->get('tenant_id') ?? -1,
                 'room_type_1' => ChatRoomTypeEnum::ONE_TO_ONE->name,
                 'room_type_2' => ChatRoomTypeEnum::ONE_TO_ONE->name,
-                'first_member_guid' => $firstMemberGuid,
-                'second_member_guid' => $secondMemberGuid,
+                'member_guid_1' => $firstMemberGuid,
+                'member_guid_2' => $secondMemberGuid,
             ]);
 
             if (!$stmt->rowCount()) {
@@ -471,7 +471,7 @@ class RoomRepository extends AbstractRepository
         }
     }
 
-    private function getMemberOneToOneRoomsQuery(): SelectQuery
+    private function getMemberOneToOneRoomsQuery(int $parametersDifferentiator): SelectQuery
     {
         return $this->mysqlClientReaderHandler->select()
             ->columns([
@@ -479,14 +479,14 @@ class RoomRepository extends AbstractRepository
             ])
             ->from(new RawExp(self::TABLE_NAME . " as r"))
             ->innerJoin(
-                function (SelectQuery $subQuery) {
+                function (SelectQuery $subQuery) use ($parametersDifferentiator): void {
                     $subQuery
                         ->columns([
                             'room_guid'
                         ])
                         ->from(self::MEMBERS_TABLE_NAME)
-                        ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id_3'))
-                        ->where('member_guid', Operator::EQ, new RawExp(':second_member_guid'))
+                        ->where('tenant_id', Operator::EQ, new RawExp(":tenant_id_" . ($parametersDifferentiator * 2 + 1)))
+                        ->where('member_guid', Operator::EQ, new RawExp(':member_guid_' . ($parametersDifferentiator + 1)))
                         ->groupBy('room_guid')
                         ->alias('m');
                 },
@@ -494,8 +494,7 @@ class RoomRepository extends AbstractRepository
                 Operator::EQ,
                 'r.room_guid'
             )
-            ->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id_4'))
-            ->where('r.room_type', Operator::EQ, new RawExp(':room_type_2'));
+            ->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id_' . ($parametersDifferentiator * 2 + 2)))
+            ->where('r.room_type', Operator::EQ, new RawExp(':room_type_' . ($parametersDifferentiator + 1)));
     }
-
 }
