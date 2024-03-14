@@ -41,8 +41,4 @@ class RoomServiceSpec extends ObjectBehavior
         $this->shouldBeAnInstanceOf(RoomService::class);
     }
 
-    public function it_should_create_one_to_one_chat_room(): void
-    {
-        
-    }
 }

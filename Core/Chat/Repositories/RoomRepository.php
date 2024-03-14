@@ -22,8 +22,8 @@ use Selective\Database\SelectQuery;
 
 class RoomRepository extends AbstractRepository
 {
-    private const TABLE_NAME = 'minds_chat_rooms';
-    private const MEMBERS_TABLE_NAME = 'minds_chat_members';
+    public const TABLE_NAME = 'minds_chat_rooms';
+    public const MEMBERS_TABLE_NAME = 'minds_chat_members';
     private const MESSAGES_TABLE_NAME = 'minds_chat_messages';
 
     /**
@@ -162,6 +162,15 @@ class RoomRepository extends AbstractRepository
                 'r.*',
                 new RawExp('last_msg.plain_text as last_msg_plain_text'),
                 new RawExp('last_msg.created_timestamp as last_msg_created_timestamp'),
+                new RawExp("
+                    CASE
+                        WHEN
+                            COALESCE(rct.message_guid, 0) < last_msg.guid
+                        THEN 1
+                        ELSE 0
+                    END
+                    AS unread_messages_count
+                ") // For temporary performance gains, we will just return a maximum count of 1
             ])
             ->from(new RawExp(self::TABLE_NAME . " as r"))
             ->joinRaw(
@@ -173,6 +182,7 @@ class RoomRepository extends AbstractRepository
                     $subQuery
                         ->columns([
                             'msg.room_guid',
+                            'msg.guid',
                             'msg.plain_text',
                             'msg.created_timestamp',
                             'msg.tenant_id'
@@ -197,6 +207,10 @@ class RoomRepository extends AbstractRepository
                         ->alias('last_msg');
                 },
                 "last_msg.room_guid = r.room_guid AND last_msg.tenant_id = r.tenant_id"
+            )
+            ->leftJoinRaw(
+                new RawExp(ReceiptRepository::TABLE_NAME . " as rct"),
+                'r.room_guid = rct.room_guid AND r.tenant_id = rct.tenant_id AND rct.member_guid = m.member_guid',
             )
             ->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->orderBy('last_msg.created_timestamp DESC', 'r.created_timestamp DESC')
@@ -249,7 +263,8 @@ class RoomRepository extends AbstractRepository
                 yield new ChatRoomListItem(
                     chatRoom: $this->buildChatRoomInstance($row),
                     lastMessagePlainText: $row['last_msg_plain_text'],
-                    lastMessageCreatedTimestamp: $row['last_msg_created_timestamp'] ? strtotime($row['last_msg_created_timestamp']) : null
+                    lastMessageCreatedTimestamp: $row['last_msg_created_timestamp'] ? strtotime($row['last_msg_created_timestamp']) : null,
+                    unreadMessagesCount: $row['unread_messages_count'],
                 );
             }
         } catch (PDOException $e) {

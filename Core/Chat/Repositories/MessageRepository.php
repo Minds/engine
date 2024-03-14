@@ -7,6 +7,7 @@ use DateTimeImmutable;
 use Exception;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Data\MySQL\AbstractRepository;
+use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
@@ -15,7 +16,7 @@ use Selective\Database\RawExp;
 
 class MessageRepository extends AbstractRepository
 {
-    private const TABLE_NAME = 'minds_chat_messages';
+    public const TABLE_NAME = 'minds_chat_messages';
 
     /**
      * @param ChatMessage $message
@@ -97,6 +98,40 @@ class MessageRepository extends AbstractRepository
                 }
                 yield $this->buildChatMessageInstance($data);
             }
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to get chat messages', previous: $e);
+        }
+    }
+
+    /**
+     * @throws NotFoundException
+     */
+    public function getMessagesByGuid(
+        int $roomGuid,
+        int $messageGuid
+    ): ChatMessage {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->from(self::TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->where('guid', Operator::EQ, new RawExp(':message_guid'))
+            ->orderBy('created_timestamp DESC')
+            ->prepare();
+
+        try {
+            $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+                'message_guid' => $messageGuid,
+            ]);
+
+            if (!$stmt->rowCount()) {
+                throw new NotFoundException();
+            }
+
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return $this->buildChatMessageInstance($rows[0]);
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to get chat messages', previous: $e);
         }

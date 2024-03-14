@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Chat\Services;
 
 use Minds\Core\Chat\Repositories\MessageRepository;
+use Minds\Core\Chat\Repositories\ReceiptRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
@@ -33,7 +34,15 @@ class ServicesProvider extends Provider
             fn (Di $di): MessageService => new MessageService(
                 messageRepository: $di->get(MessageRepository::class),
                 roomRepository: $di->get(RoomRepository::class),
+                receiptService: $di->get(ReceiptService::class),
                 entitiesBuilder: $di->get('EntitiesBuilder')
+            )
+        );
+
+        $this->di->bind(
+            ReceiptService::class,
+            fn (Di $di): ReceiptService => new ReceiptService(
+                repository: $di->get(ReceiptRepository::class),
             )
         );
     }

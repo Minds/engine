@@ -20,6 +20,7 @@ class MessageService
     public function __construct(
         private readonly MessageRepository $messageRepository,
         private readonly RoomRepository $roomRepository,
+        private readonly ReceiptService $receiptService,
         private readonly EntitiesBuilder $entitiesBuilder
     ) {
     }
@@ -53,7 +54,21 @@ class MessageService
             throw new ForbiddenException("You are not a member of this room");
         }
 
-        $this->messageRepository->addMessage($chatMessage);
+        try {
+            // Open transaction so we only send message along with a read receipt
+            $this->messageRepository->beginTransaction();
+
+            // Save the message
+            $this->messageRepository->addMessage($chatMessage);
+
+            // Add the receipt to ourself
+            $this->receiptService->updateReceipt($chatMessage, $user);
+
+            // Commit
+            $this->messageRepository->commitTransaction();
+        } catch (\PDOException $e) {
+            $this->messageRepository->rollbackTransaction();
+        }
 
         return new ChatMessageEdge(
             node: new ChatMessageNode(
@@ -115,5 +130,13 @@ class MessageService
             ),
             $messages
         );
+    }
+    
+    /**
+     * Returns a single message
+     */
+    public function getMessage(int $roomGuid, int $messageGuid): ChatMessage
+    {
+        return $this->messageRepository->getMessagesByGuid($roomGuid, $messageGuid);
     }
 }
