@@ -62,37 +62,6 @@ class RoomRepository extends AbstractRepository
     }
 
     /**
-     * @param int $roomGuid
-     * @return ChatRoom
-     * @throws ChatRoomNotFoundException
-     * @throws ServerErrorException
-     * @throws Exception
-     */
-    public function getRoom(int $roomGuid): ChatRoom
-    {
-        $stmt = $this->mysqlClientReaderHandler->select()
-            ->from(self::TABLE_NAME)
-            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
-            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
-            ->prepare();
-
-        try {
-            $stmt->execute([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
-                'room_guid' => $roomGuid,
-            ]);
-
-            if (!$stmt->rowCount()) {
-                throw new ChatRoomNotFoundException();
-            }
-
-            return $this->buildChatRoomInstance($stmt->fetch(PDO::FETCH_ASSOC));
-        } catch (PDOException $e) {
-            throw new ServerErrorException('Failed to fetch chat room', previous: $e);
-        }
-    }
-
-    /**
      * @param array $data
      * @return ChatRoom
      * @throws Exception
@@ -146,6 +115,7 @@ class RoomRepository extends AbstractRepository
      * @param ChatRoomMemberStatusEnum $memberStatus
      * @param int $limit
      * @param string|null $offset
+     * @param int|null $roomGuid
      * @param bool $hasMore
      * @return iterable<ChatRoomListItem>
      * @throws ServerErrorException
@@ -155,6 +125,7 @@ class RoomRepository extends AbstractRepository
         ChatRoomMemberStatusEnum $memberStatus = ChatRoomMemberStatusEnum::ACTIVE,
         int                      $limit = 12,
         ?string                  $offset = null,
+        ?int                     $roomGuid = null,
         bool                     &$hasMore = false
     ): iterable {
         $stmt = $this->mysqlClientReaderHandler->select()
@@ -201,6 +172,10 @@ class RoomRepository extends AbstractRepository
             ->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->orderBy('last_msg.created_timestamp DESC', 'r.created_timestamp DESC')
             ->limit($limit + 1);
+
+        if ($roomGuid) {
+            $stmt->where('r.room_guid', Operator::EQ, $roomGuid);
+        }
 
         $optionalValues = [];
         if ($offset) {
@@ -478,7 +453,7 @@ class RoomRepository extends AbstractRepository
                 'r.*'
             ])
             ->from(new RawExp(self::TABLE_NAME . " as r"))
-            ->innerJoin(
+            ->joinRaw(
                 function (SelectQuery $subQuery) use ($parametersDifferentiator): void {
                     $subQuery
                         ->columns([
