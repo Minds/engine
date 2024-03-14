@@ -43,12 +43,10 @@ class Repository
     public function __construct(
         $client = null,
         $config = null,
-        private ?Membership $groupsMembership = null,
         private ?Logger $logger = null
     ) {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
         $this->config = $config ?? Di::_()->get('Config');
-        $this->groupsMembership ??= Di::_()->get(Membership::class);
         $this->logger ??= Di::_()->get('Logger');
 
         $this->index = $this->config->get('elasticsearch')['indexes']['search_prefix'];
@@ -402,22 +400,6 @@ class Repository
                 'bool' => [
                     'should' => $should,
                 ],
-            ];
-        }
-
-        /**
-         * Group only feed
-         */
-        if ($opts['group_posts_for_user_guid']) {
-            $body['query']['function_score']['query']['bool']['must'][] = [
-                'terms' => [
-                    'container_guid' =>
-                        array_map(function ($guid) {
-                            return (string) $guid;
-                        }, $this->groupsMembership->getGroupGuidsByMember([
-                            'user_guid' => $opts['group_posts_for_user_guid'],
-                        ])),
-                ]
             ];
         }
 

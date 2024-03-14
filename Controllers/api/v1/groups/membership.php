@@ -267,13 +267,13 @@ class membership implements Interfaces\Api
             $membership = null;
         }
 
-        if (!Core\Security\ACL::_()->interact($group, $loggedInUser)) {
-            return Factory::response([
-                'status' => 'error',
-                'stage' => 'initial',
-                'message' => "You are not allowed to join this group"
-            ]);
-        }
+        // if (!Core\Security\ACL::_()->interact($group, $loggedInUser)) {
+        //     return Factory::response([
+        //         'status' => 'error',
+        //         'stage' => 'initial',
+        //         'message' => "You are not allowed to join this group"
+        //     ]);
+        // }
 
         if (isset($pages[1]) && $membership?->isModerator()) {
             $userGuid = $pages[1];
