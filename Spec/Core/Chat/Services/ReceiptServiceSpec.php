@@ -15,20 +15,19 @@ class ReceiptServiceSpec extends ObjectBehavior
 {
     private Collaborator $repositoryMock;
 
-    function let(
+    public function let(
         ReceiptRepository $repositoryMock,
-    )
-    {
+    ) {
         $this->beConstructedWith($repositoryMock);
         $this->repositoryMock = $repositoryMock;
-    }    
+    }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(ReceiptService::class);
     }
 
-    function it_should_update_last_timestamp_for_a_room(User $userMock)
+    public function it_should_update_last_timestamp_for_a_room(User $userMock)
     {
         $roomGuid = Guid::build();
         $userGuid = Guid::build();
@@ -53,7 +52,7 @@ class ReceiptServiceSpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    function it_should_return_false_if_update_last_timestamp_for_a_room_fails(User $userMock)
+    public function it_should_return_false_if_update_last_timestamp_for_a_room_fails(User $userMock)
     {
         $roomGuid = Guid::build();
         $userGuid = Guid::build();
@@ -78,7 +77,7 @@ class ReceiptServiceSpec extends ObjectBehavior
             ->shouldBe(false);
     }
 
-    function it_should_return_a_count_of_all_unread_messages()
+    public function it_should_return_a_count_of_all_unread_messages()
     {
         $userGuid = (int) Guid::build();
 

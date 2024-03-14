@@ -21,12 +21,11 @@ class ChatControllerSpec extends ObjectBehavior
     private Collaborator $messageServiceMock;
     private Collaborator $receiptServiceMock;
 
-    function let(
+    public function let(
         RoomService $roomServiceMock,
         MessageService $messageServiceMock,
         ReceiptService $receiptServiceMock,
-    )
-    {
+    ) {
         $this->beConstructedWith($roomServiceMock, $messageServiceMock, $receiptServiceMock);
         $this->roomServiceMock = $roomServiceMock;
         $this->messageServiceMock = $messageServiceMock;
@@ -34,12 +33,12 @@ class ChatControllerSpec extends ObjectBehavior
     }
 
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(ChatController::class);
     }
 
-    function it_should_submit_a_read_receipt(ChatRoomEdge $chatRoomMock)
+    public function it_should_submit_a_read_receipt(ChatRoomEdge $chatRoomMock)
     {
         $roomGuid = (int) Guid::build();
         $messageGuid = (int) Guid::build();
@@ -68,7 +67,7 @@ class ChatControllerSpec extends ObjectBehavior
     }
 
 
-    function it_should_not_submit_a_read_receipt_if_not_in_room(ChatRoomEdge $chatRoomMock)
+    public function it_should_not_submit_a_read_receipt_if_not_in_room(ChatRoomEdge $chatRoomMock)
     {
         $roomGuid = (int) Guid::build();
         $messageGuid = (int) Guid::build();

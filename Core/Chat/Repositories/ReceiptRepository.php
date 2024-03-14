@@ -25,7 +25,7 @@ class ReceiptRepository extends AbstractRepository
                 'message_guid' => new RawExp(':message_guid'),
                 'member_guid' => new RawExp(':member_guid'),
                 'last_read_timestamp' => new RawExp('CURRENT_TIMESTAMP()'),
-            ]) 
+            ])
             ->onDuplicateKeyUpdate([
                 'message_guid' => new RawExp(':message_guid_2'),
                 'last_read_timestamp' => new RawExp('CURRENT_TIMESTAMP()'),
@@ -39,7 +39,7 @@ class ReceiptRepository extends AbstractRepository
             'message_guid' => $messageGuid,
             'message_guid_2' => $messageGuid,
             'member_guid' => $memberGuid,
-        ]); 
+        ]);
     }
 
     /**

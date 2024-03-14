@@ -10,8 +10,7 @@ class ReceiptService
 {
     public function __construct(
         private ReceiptRepository $repository
-    )
-    {
+    ) {
     }
 
     /**

@@ -22,13 +22,12 @@ class MessageServiceSpec extends ObjectBehavior
     private Collaborator $receiptServiceMock;
     private Collaborator $entitiesBuilderMock;
 
-    function let (
+    public function let(
         MessageRepository $messageRepositoryMock,
         RoomRepository $roomRepositoryMock,
         ReceiptService $receiptServiceMock,
         EntitiesBuilder $entitiesBuilderMock,
-    )
-    {
+    ) {
         $this->beConstructedWith($messageRepositoryMock, $roomRepositoryMock, $receiptServiceMock, $entitiesBuilderMock);
         $this->messageRepositoryMock = $messageRepositoryMock;
         $this->roomRepositoryMock  = $roomRepositoryMock;
@@ -36,12 +35,12 @@ class MessageServiceSpec extends ObjectBehavior
         $this->entitiesBuilderMock = $entitiesBuilderMock;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(MessageService::class);
     }
 
-    function it_should_submit_a_read_receipt_when_sending_a_message()
+    public function it_should_submit_a_read_receipt_when_sending_a_message()
     {
         $roomGuid = (int) Guid::build();
         $user = new User();

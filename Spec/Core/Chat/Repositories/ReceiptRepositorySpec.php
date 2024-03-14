@@ -46,12 +46,12 @@ class ReceiptRepositorySpec extends ObjectBehavior
         $this->configMock = $configMock;
     }
 
-    function it_is_initializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType(ReceiptRepository::class);
     }
 
-    function it_should_update_receipt(PDOStatement $stmtMock)
+    public function it_should_update_receipt(PDOStatement $stmtMock)
     {
         $roomGuid = (int) Guid::build();
         $userGuid = (int) Guid::build();
@@ -76,7 +76,7 @@ class ReceiptRepositorySpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    function it_should_update_receipt_for_tenants(PDOStatement $stmtMock)
+    public function it_should_update_receipt_for_tenants(PDOStatement $stmtMock)
     {
         $roomGuid = (int) Guid::build();
         $userGuid = (int) Guid::build();
@@ -101,7 +101,7 @@ class ReceiptRepositorySpec extends ObjectBehavior
             ->shouldBe(true);
     }
 
-    function it_should_return_total_unread_count_for_user(PDOStatement $stmtMock)
+    public function it_should_return_total_unread_count_for_user(PDOStatement $stmtMock)
     {
         $userGuid = (int) Guid::build();
 
@@ -127,7 +127,7 @@ class ReceiptRepositorySpec extends ObjectBehavior
     }
 
 
-    function it_should_return_total_unread_count_for_user_on_tenant(PDOStatement $stmtMock)
+    public function it_should_return_total_unread_count_for_user_on_tenant(PDOStatement $stmtMock)
     {
         $userGuid = (int) Guid::build();
 
