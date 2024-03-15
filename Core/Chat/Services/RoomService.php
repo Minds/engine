@@ -25,7 +25,9 @@ use Minds\Core\Security\Block\BlockLimitException;
 use Minds\Core\Security\Block\Manager as BlockManager;
 use Minds\Core\Subscriptions\Relational\Repository as SubscriptionsRepository;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class RoomService
 {
@@ -77,6 +79,11 @@ class RoomService
             }
         }
 
+        // TODO: Check with Mark if we need a minimum of 3 members for multi user rooms
+        if ($roomType === ChatRoomTypeEnum::MULTI_USER && count($otherMemberGuids) < 2) {
+            throw new InvalidChatRoomTypeException("Multi user rooms must have at least 3 members.");
+        }
+
         $chatRoom = new ChatRoom(
             guid: (int)Guid::build(),
             roomType: $roomType,
@@ -102,6 +109,8 @@ class RoomService
             );
 
             foreach ($otherMemberGuids as $memberGuid) {
+                // TODO: Check if the user is blocked, deleted, disabled or banned
+                // TODO: Check if user has blocked message sender
                 $isSubscribed = $this->subscriptionsRepository->isSubscribed(
                     userGuid: (int)$memberGuid,
                     friendGuid: (int)$user->getGuid()
@@ -160,38 +169,44 @@ class RoomService
      * @param User $user
      * @param int $first
      * @param string|null $after
-     * @param bool $hasMore
-     * @return array<ChatRoomEdge>
+     * @return array{edges: ChatRoomEdge[], hasMore: bool}
      * @throws ServerErrorException
      */
     public function getRoomsByMember(
         User    $user,
         int     $first = 12,
-        ?string $after = null,
-        bool    &$hasMore = false
+        ?string $after = null
     ): array {
-        $chatRooms = $this->roomRepository->getRoomsByMember(
+        ['chatRooms' => $chatRooms, 'hasMore' => $hasMore] = $this->roomRepository->getRoomsByMember(
             user: $user,
+            targetMemberStatuses: [ChatRoomMemberStatusEnum::ACTIVE->name],
             limit: $first,
-            offset: $after ? base64_decode($after, true) : null,
-            hasMore: $hasMore
+            offset: $after ? base64_decode($after, true) : null
         );
 
-        return array_map(
-            fn (ChatRoomListItem $chatRoomListItem) => new ChatRoomEdge(
-                node: new ChatRoomNode(
-                    chatRoom: $chatRoomListItem->chatRoom
+        return [
+            'edges' => array_map(
+                fn (ChatRoomListItem $chatRoomListItem) => new ChatRoomEdge(
+                    node: new ChatRoomNode(
+                        chatRoom: $chatRoomListItem->chatRoom
+                    ),
+                    cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
+                        base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :
+                        base64_encode("0:{$chatRoomListItem->chatRoom->createdAt->getTimestamp()}"),
+                    lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
+                    lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
                 ),
-                cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
-                    base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :
-                    base64_encode("0:{$chatRoomListItem->chatRoom->createdAt->getTimestamp()}"),
-                lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
-                lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
+                $chatRooms
             ),
-            iterator_to_array($chatRooms)
-        );
+            'hasMore' => $hasMore
+        ];
     }
 
+    /**
+     * @param int $roomGuid
+     * @return int
+     * @throws ServerErrorException
+     */
     public function getRoomTotalMembers(
         int $roomGuid
     ): int {
@@ -203,62 +218,67 @@ class RoomService
      * @param User $loggedInUser
      * @param int|null $first
      * @param string|null $after
-     * @param bool $hasMore
      * @return array
-     * @throws ForbiddenException
+     * @throws GraphQLException
      * @throws ServerErrorException
      */
     public function getRoomMembers(
         int     $roomGuid,
         User    $loggedInUser,
         ?int    $first = null,
-        ?string $after = null,
-        bool    &$hasMore = false
+        ?string $after = null
     ): array {
         if (
             !$this->roomRepository->isUserMemberOfRoom(
                 roomGuid: $roomGuid,
-                user: $loggedInUser
+                user: $loggedInUser,
+                targetStatuses: [
+                    ChatRoomMemberStatusEnum::ACTIVE->name,
+                    ChatRoomMemberStatusEnum::INVITE_PENDING->name
+                ]
             )
         ) {
-            throw new ForbiddenException("You are not a member of this chat.");
+            throw new GraphQLException(message: "You are not a member of this chat.", code: 403);
         }
 
         // TODO: Filter out blocked, deleted, disabled and banned users
 
-        $memberGuids = $this->roomRepository->getRoomMembers(
+        ['members' => $members, 'hasMore' => $hasMore] = $this->roomRepository->getRoomMembers(
             roomGuid: $roomGuid,
             user: $loggedInUser,
             limit: $first ?? 12,
-            offset: $after ? (int)base64_decode($after, true) : null,
-            hasMore: $hasMore
+            offset: $after ? (int)base64_decode($after, true) : null
         );
 
-        return array_map(
-            function (array $member): ?ChatRoomMemberEdge {
-                $user = $this->entitiesBuilder->single($member['member_guid']);
-                if (!$user) {
-                    return null;
-                }
+        return [
+            'edges' => array_map(
+                function (array $member): ?ChatRoomMemberEdge {
+                    $user = $this->entitiesBuilder->single($member['member_guid']);
+                    if (!$user) {
+                        return null;
+                    }
 
-                return new ChatRoomMemberEdge(
-                    node: new UserNode(
-                        user: $user
-                    ),
-                    cursor: base64_encode($member['joined_timestamp'] ?? "0")
-                );
-            },
-            iterator_to_array($memberGuids)
-        );
+                    return new ChatRoomMemberEdge(
+                        node: new UserNode(
+                            user: $user
+                        ),
+                        cursor: base64_encode($member['joined_timestamp'] ?? "0")
+                    );
+                },
+                $members
+            ),
+            'hasMore' => $hasMore
+        ];
     }
 
     /**
      * @param int $roomGuid
      * @param User $loggedInUser
      * @return ChatRoomEdge
+     * @throws ChatRoomNotFoundException
      * @throws ForbiddenException
      * @throws ServerErrorException
-     * @throws ChatRoomNotFoundException
+     * @throws NotFoundException
      */
     public function getRoom(
         int  $roomGuid,
@@ -267,21 +287,35 @@ class RoomService
         if (
             !$this->roomRepository->isUserMemberOfRoom(
                 roomGuid: $roomGuid,
-                user: $loggedInUser
+                user: $loggedInUser,
+                targetStatuses: [
+                    ChatRoomMemberStatusEnum::ACTIVE->name,
+                    ChatRoomMemberStatusEnum::INVITE_PENDING->name
+                ]
             )
         ) {
             throw new ForbiddenException("You are not a member of this chat.");
         }
 
-        $chatRoomListItem = iterator_to_array($this->roomRepository->getRoomsByMember(
+        ['chatRooms' => $chatRooms] = $this->roomRepository->getRoomsByMember(
             user: $loggedInUser,
+            targetMemberStatuses: [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
             limit: 1,
             roomGuid: $roomGuid
-        ))[0];
+        );
+
+        $chatRoomListItem = $chatRooms[0] ?? throw new ChatRoomNotFoundException();
 
         return new ChatRoomEdge(
             node: new ChatRoomNode(
-                chatRoom: $chatRoomListItem->chatRoom
+                chatRoom: $chatRoomListItem->chatRoom,
+                isChatRequest: $this->roomRepository->getUserStatusInRoom(
+                    user: $loggedInUser,
+                    roomGuid: $roomGuid
+                ) === ChatRoomMemberStatusEnum::INVITE_PENDING
             ),
             cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
                 base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :
@@ -293,27 +327,36 @@ class RoomService
 
     /**
      * @param User $user
+     * @param int $first
+     * @param string|null $after
      * @return array<ChatRoomEdge>
      * @throws ServerErrorException
      */
     public function getRoomInviteRequestsByMember(
-        User $user
+        User $user,
+        int     $first = 12,
+        ?string $after = null
     ): array {
-        $chatRooms = $this->roomRepository->getRoomsByMember(
+        ['chatRooms' => $chatRooms, 'hasMore' => $hasMore] = $this->roomRepository->getRoomsByMember(
             user: $user,
-            memberStatus: ChatRoomMemberStatusEnum::INVITE_PENDING
+            targetMemberStatuses: [ChatRoomMemberStatusEnum::INVITE_PENDING->name],
+            limit: $first,
+            offset: $after ? base64_decode($after, true) : null
         );
 
-        return array_map(
-            fn (ChatRoomListItem $chatRoomListItem) => new ChatRoomEdge(
-                node: new ChatRoomNode(
-                    chatRoom: $chatRoomListItem->chatRoom
+        return [
+            'edges' => array_map(
+                fn (ChatRoomListItem $chatRoomListItem) => new ChatRoomEdge(
+                    node: new ChatRoomNode(
+                        chatRoom: $chatRoomListItem->chatRoom
+                    ),
+                    lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
+                    lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp,
                 ),
-                lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
-                lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp,
+                $chatRooms
             ),
-            iterator_to_array($chatRooms)
-        );
+            'hasMore' => $hasMore
+        ];
     }
 
     /**
@@ -337,6 +380,8 @@ class RoomService
      * @throws BlockLimitException
      * @throws ChatRoomNotFoundException
      * @throws ForbiddenException
+     * @throws GraphQLException
+     * @throws NotFoundException
      * @throws ServerErrorException
      */
     public function replyToRoomInviteRequest(
@@ -344,6 +389,15 @@ class RoomService
         int                             $roomGuid,
         ChatRoomInviteRequestActionEnum $chatRoomInviteRequestAction
     ): bool {
+        if (
+            $this->roomRepository->getUserStatusInRoom(
+                user: $user,
+                roomGuid: $roomGuid
+            ) !== ChatRoomMemberStatusEnum::INVITE_PENDING
+        ) {
+            throw new GraphQLException(message: "You have already responded to this request.", code: 400);
+        }
+
         $chatRoomEdge = $this->getRoom(
             roomGuid: $roomGuid,
             loggedInUser: $user
@@ -367,6 +421,15 @@ class RoomService
                         ->setSubjectGuid($chatRoomEdge->getNode()->chatRoom->createdByGuid)
                 );
             }
+
+            if (
+                $chatRoomInviteRequestAction === ChatRoomInviteRequestActionEnum::REJECT ||
+                $chatRoomInviteRequestAction === ChatRoomInviteRequestActionEnum::REJECT_AND_BLOCK
+            ) {
+                $this->roomRepository->deleteRoom($roomGuid);
+            }
+
+            $this->roomRepository->deleteRoom($roomGuid);
 
             $this->roomRepository->commitTransaction();
 

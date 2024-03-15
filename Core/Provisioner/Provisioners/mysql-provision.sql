@@ -929,6 +929,7 @@ CREATE TABLE IF NOT EXISTS minds_chat_members(
     PRIMARY KEY (tenant_id, room_guid, member_guid),
     FOREIGN KEY (tenant_id, room_guid) REFERENCES minds_chat_rooms(tenant_id, room_guid),
     INDEX (member_guid),
+    INDEX (tenant_id),
     INDEX (status)
 );
 

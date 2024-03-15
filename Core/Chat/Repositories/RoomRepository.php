@@ -13,6 +13,7 @@ use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
@@ -101,10 +102,16 @@ class RoomRepository extends AbstractRepository
                 'role_id' => $role->name,
                 'joined_timestamp' => ($status === ChatRoomMemberStatusEnum::ACTIVE) ? date('c') : null,
             ])
+            ->onDuplicateKeyUpdate([
+                'status' => new RawExp(':status'),
+
+            ])
             ->prepare();
 
         try {
-            return $stmt->execute();
+            return $stmt->execute([
+                'status' => $status->name,
+            ]);
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to add member to chat room', previous: $e);
         }
@@ -116,18 +123,18 @@ class RoomRepository extends AbstractRepository
      * @param int $limit
      * @param string|null $offset
      * @param int|null $roomGuid
-     * @param bool $hasMore
-     * @return iterable<ChatRoomListItem>
+     * @return array{items: ChatRoomListItem[], hasMore: bool}
      * @throws ServerErrorException
      */
     public function getRoomsByMember(
-        User                     $user,
-        ChatRoomMemberStatusEnum $memberStatus = ChatRoomMemberStatusEnum::ACTIVE,
-        int                      $limit = 12,
-        ?string                  $offset = null,
-        ?int                     $roomGuid = null,
-        bool                     &$hasMore = false
-    ): iterable {
+        User         $user,
+        ?array       $targetMemberStatuses = null,
+        int          $limit = 12,
+        ?string      $offset = null,
+        ?int         $roomGuid = null
+    ): array {
+        $targetMemberStatuses = $targetMemberStatuses ?? [ChatRoomMemberStatusEnum::ACTIVE->name];
+
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'r.*',
@@ -137,7 +144,7 @@ class RoomRepository extends AbstractRepository
             ->from(new RawExp(self::TABLE_NAME . " as r"))
             ->joinRaw(
                 new RawExp(self::MEMBERS_TABLE_NAME . " as m"),
-                'r.room_guid = m.room_guid AND r.tenant_id = m.tenant_id AND m.member_guid = :member_guid AND m.status = :status',
+                'r.room_guid = m.room_guid AND r.tenant_id = m.tenant_id AND m.member_guid = :member_guid',
             )
             ->leftJoinRaw(
                 function (SelectQuery $subQuery): void {
@@ -170,6 +177,7 @@ class RoomRepository extends AbstractRepository
                 "last_msg.room_guid = r.room_guid AND last_msg.tenant_id = r.tenant_id"
             )
             ->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->whereWithNamedParameters('m.status', Operator::IN, 'status', count($targetMemberStatuses))
             ->orderBy('last_msg.created_timestamp DESC', 'r.created_timestamp DESC')
             ->limit($limit + 1);
 
@@ -199,21 +207,33 @@ class RoomRepository extends AbstractRepository
             ->prepare();
 
         try {
-            $stmt->execute(array_merge(
-                [
-                    'tenant_id' => $this->config->get('tenant_id') ?? -1,
-                    'member_guid' => $user->getGuid(),
-                    'status' => $memberStatus->name,
-                ],
-                $optionalValues
-            ));
+            $this->mysqlHandler->bindValuesToPreparedStatement(
+                $stmt,
+                array_merge(
+                    [
+                        'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                        'member_guid' => $user->getGuid(),
+                        'status' => $targetMemberStatuses,
+                    ],
+                    $optionalValues
+                )
+            );
+            $stmt->execute();
 
             if ($stmt->rowCount() === 0) {
-                return [];
+                return [
+                    'chatRooms' => [],
+                    'hasMore' => false,
+                ];
             }
 
+            $results = [
+                'chatRooms' => [],
+                'hasMore' => false,
+            ];
+
             if ($stmt->rowCount() > $limit) {
-                $hasMore = true;
+                $results['hasMore'] = true;
             }
 
             foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $index => $row) {
@@ -221,12 +241,14 @@ class RoomRepository extends AbstractRepository
                     continue;
                 }
 
-                yield new ChatRoomListItem(
+                $results['chatRooms'][] =  new ChatRoomListItem(
                     chatRoom: $this->buildChatRoomInstance($row),
                     lastMessagePlainText: $row['last_msg_plain_text'],
                     lastMessageCreatedTimestamp: $row['last_msg_created_timestamp'] ? strtotime($row['last_msg_created_timestamp']) : null
                 );
             }
+
+            return $results;
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to fetch chat rooms', previous: $e);
         }
@@ -269,8 +291,10 @@ class RoomRepository extends AbstractRepository
      */
     public function isUserMemberOfRoom(
         int  $roomGuid,
-        User $user
+        User $user,
+        ?array $targetStatuses = null
     ): bool {
+        $targetStatuses = $targetStatuses ?? [ChatRoomMemberStatusEnum::ACTIVE->name];
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'member_guid'
@@ -279,7 +303,43 @@ class RoomRepository extends AbstractRepository
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
-            ->where('status', Operator::EQ, new RawExp(':status'))
+            ->whereWithNamedParameters('status', Operator::IN, 'status', count($targetStatuses))
+            ->limit(1)
+            ->prepare();
+
+        try {
+            $this->mysqlHandler->bindValuesToPreparedStatement($stmt, [
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+                'member_guid' => $user->getGuid(),
+                'status' => $targetStatuses,
+            ]);
+            $stmt->execute();
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to check if user is a member of chat room', previous: $e);
+        }
+    }
+
+    /**
+     * @param User $user
+     * @param int $roomGuid
+     * @return ChatRoomMemberStatusEnum
+     * @throws NotFoundException
+     * @throws ServerErrorException
+     */
+    public function getUserStatusInRoom(
+        User $user,
+        int $roomGuid
+    ): ChatRoomMemberStatusEnum {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'status'
+            ])
+            ->from(self::MEMBERS_TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
             ->limit(1)
             ->prepare();
 
@@ -288,11 +348,15 @@ class RoomRepository extends AbstractRepository
                 'tenant_id' => $this->config->get('tenant_id') ?? -1,
                 'room_guid' => $roomGuid,
                 'member_guid' => $user->getGuid(),
-                'status' => ChatRoomMemberStatusEnum::ACTIVE->name,
             ]);
-            return $stmt->rowCount() > 0;
+
+            if ($stmt->rowCount() === 0) {
+                throw new NotFoundException('You are not a member of the room.');
+            }
+
+            return constant(ChatRoomMemberStatusEnum::class . '::' . $stmt->fetch(PDO::FETCH_ASSOC)['status']);
         } catch (PDOException $e) {
-            throw new ServerErrorException('Failed to check if user is a member of chat room', previous: $e);
+            throw new ServerErrorException('Failed to fetch user status in chat room', previous: $e);
         }
     }
 
@@ -301,17 +365,15 @@ class RoomRepository extends AbstractRepository
      * @param User $user
      * @param int $limit
      * @param int|null $offset
-     * @param bool $hasMore
-     * @return iterable<array{member_guid: int, joined_timestamp: int|null}>
+     * @return array{members: array{member_guid: int, joined_timestamp: int|null}, hasMore: bool}
      * @throws ServerErrorException
      */
     public function getRoomMembers(
         int  $roomGuid,
         User $user,
         int  $limit = 12,
-        ?int $offset = null,
-        bool &$hasMore = false
-    ): iterable {
+        ?int $offset = null
+    ): array {
         $stmt = $this->mysqlClientReaderHandler->select()
             ->from(self::MEMBERS_TABLE_NAME)
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
@@ -339,8 +401,13 @@ class RoomRepository extends AbstractRepository
             $this->mysqlHandler->bindValuesToPreparedStatement($stmt, $values);
             $stmt->execute();
 
+            $results = [
+                'members' => [],
+                'hasMore' => false,
+            ];
+
             if ($stmt->rowCount() > $limit) {
-                $hasMore = true;
+                $results['hasMore'] = true;
             }
 
             foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $index => $row) {
@@ -348,8 +415,10 @@ class RoomRepository extends AbstractRepository
                     continue;
                 }
 
-                yield $row;
+                $results['members'][] = $row;
             }
+
+            return $results;
         } catch (PDOException $e) {
             throw new ServerErrorException(message: 'Failed to fetch chat room members', previous: $e);
         }
@@ -395,12 +464,17 @@ class RoomRepository extends AbstractRepository
             ->set([
                 'status' => $memberStatus->name
             ])
-            ->where('tenant_id', Operator::EQ, $this->config->get('tenant_id') ?? -1)
-            ->where('member_guid', Operator::EQ, $user->getGuid())
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
             ->prepare();
 
         try {
-            return $stmt->execute();
+            return $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+                'member_guid' => $user->getGuid(),
+            ]);
         } catch (PDOException $e) {
             throw new ServerErrorException(message: 'Failed to update chat room member status', previous: $e);
         }
@@ -434,6 +508,8 @@ class RoomRepository extends AbstractRepository
                 'room_type_2' => ChatRoomTypeEnum::ONE_TO_ONE->name,
                 'member_guid_1' => $firstMemberGuid,
                 'member_guid_2' => $secondMemberGuid,
+                'status_1' => ChatRoomMemberStatusEnum::ACTIVE->name,
+                'status_2' => ChatRoomMemberStatusEnum::ACTIVE->name,
             ]);
 
             if (!$stmt->rowCount()) {
@@ -462,14 +538,93 @@ class RoomRepository extends AbstractRepository
                         ->from(self::MEMBERS_TABLE_NAME)
                         ->where('tenant_id', Operator::EQ, new RawExp(":tenant_id_" . ($parametersDifferentiator * 2 + 1)))
                         ->where('member_guid', Operator::EQ, new RawExp(':member_guid_' . ($parametersDifferentiator + 1)))
+                        ->where('status', Operator::EQ, new RawExp(':status_' . ($parametersDifferentiator + 1)))
                         ->groupBy('room_guid')
                         ->alias('m');
                 },
-                'm.room_guid',
-                Operator::EQ,
-                'r.room_guid'
+                'm.room_guid = r.room_guid',
             )
             ->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id_' . ($parametersDifferentiator * 2 + 2)))
             ->where('r.room_type', Operator::EQ, new RawExp(':room_type_' . ($parametersDifferentiator + 1)));
+    }
+
+    /**
+     * @param int $roomGuid
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function deleteAllRoomMessages(
+        int $roomGuid
+    ): bool {
+        $stmt = $this->mysqlClientWriterHandler->delete()
+            ->from(self::MESSAGES_TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->prepare();
+
+        try {
+            return $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+            ]);
+        } catch (PDOException $e) {
+            throw new ServerErrorException(message: 'Failed to delete chat room messages', previous: $e);
+        }
+    }
+
+    /**
+     * @param int $roomGuid
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function deleteAllRoomMembers(
+        int $roomGuid
+    ): bool {
+        $stmt = $this->mysqlClientWriterHandler->delete()
+            ->from(self::MEMBERS_TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->prepare();
+
+        try {
+            return $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+            ]);
+        } catch (PDOException $e) {
+            throw new ServerErrorException(message: 'Failed to delete chat room members', previous: $e);
+        }
+    }
+
+    /**
+     * @param int $roomGuid
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function deleteRoom(
+        int $roomGuid
+    ): bool {
+        $this->deleteAllRoomMessages(
+            roomGuid: $roomGuid
+        );
+
+        $this->deleteAllRoomMembers(
+            roomGuid: $roomGuid
+        );
+
+        $stmt = $this->mysqlClientWriterHandler->delete()
+            ->from(self::TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->prepare();
+
+        try {
+            return $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+            ]);
+        } catch (PDOException $e) {
+            throw new ServerErrorException(message: 'Failed to delete chat room', previous: $e);
+        }
     }
 }
