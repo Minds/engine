@@ -153,9 +153,12 @@ class ActionDelegate
                 if ($entity->type !== 'user') {
                     $this->actions->setDeletedFlag($entity, true);
                     $this->saveAction->setEntity($entity)->save(isUpdate: true);
+                    // Apply a strike to the post owner
+                    $this->applyStrike($report);
+                } else {
+                    // Ban the channel
+                    $this->applyBan($report);
                 }
-                // Ban the owner of the post
-                $this->applyBan($report);
                 break;
             case 5: // Personal and confidential information (not appelable)
                 if ($entity->type !== 'user') {
