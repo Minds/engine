@@ -252,11 +252,13 @@ class ChatController
 
         $connection->setEdges($chatRoomEdges);
 
+        $lastEdgeIndex = count($connection->getEdges()) > 0 ? count($connection->getEdges()) - 1 : null;
+
         $connection->setPageInfo(new PageInfo(
-            hasNextPage: false,
-            hasPreviousPage: false,
-            startCursor: null,
-            endCursor: null,
+            hasNextPage: $hasMore,
+            hasPreviousPage: $after ?: false,
+            startCursor: $after,
+            endCursor: $lastEdgeIndex !== null ? $connection->getEdges()[$lastEdgeIndex]->getCursor() : null,
         ));
 
         return $connection;
