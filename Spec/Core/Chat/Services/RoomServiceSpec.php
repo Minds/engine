@@ -6,6 +6,7 @@ namespace Spec\Minds\Core\Chat\Services;
 use DateTimeImmutable;
 use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Entities\ChatRoomListItem;
+use Minds\Core\Chat\Enums\ChatRoomInviteRequestActionEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
@@ -17,6 +18,7 @@ use Minds\Core\Chat\Types\ChatRoomEdge;
 use Minds\Core\Chat\Types\ChatRoomMemberEdge;
 use Minds\Core\Chat\Types\ChatRoomNode;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Security\Block\BlockEntry;
 use Minds\Core\Security\Block\Manager as BlockManager;
 use Minds\Core\Subscriptions\Relational\Repository as SubscriptionsRepository;
 use Minds\Entities\User;
@@ -442,10 +444,12 @@ class RoomServiceSpec extends ObjectBehavior
         $chatRoomEdge->getCursor()->shouldEqual(base64_encode((string)$chatRoomListItemMock->lastMessageCreatedTimestamp));
     }
 
-    private function generateChatRoomMock(): ChatRoom
-    {
+    private function generateChatRoomMock(
+        ChatRoomTypeEnum $roomType = ChatRoomTypeEnum::ONE_TO_ONE
+    ): ChatRoom {
         $chatRoom = $this->chatRoomMockFactory->newInstanceWithoutConstructor();
         $this->chatRoomMockFactory->getProperty('createdAt')->setValue($chatRoom, new DateTimeImmutable());
+        $this->chatRoomMockFactory->getProperty('roomType')->setValue($chatRoom, $roomType);
 
         return $chatRoom;
     }
@@ -611,6 +615,129 @@ class RoomServiceSpec extends ObjectBehavior
 
         $chatRoomEdge->getNode()->chatRoom->createdAt->shouldEqual($chatRoomListItemMock->chatRoom->createdAt);
         $chatRoomEdge->getNode()->isChatRequest->shouldBe(true);
+    }
+
+    public function it_should_get_room_invite_requests_by_member(
+        User $userMock
+    ): void {
+        $chatRoomListItemMock = $this->generateChatRoomListItem(
+            chatRoom: $this->generateChatRoomMock(),
+            lastMessagePlainText: null,
+            lastMessageCreatedTimestamp: null
+        );
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [ChatRoomMemberStatusEnum::INVITE_PENDING->name],
+            12,
+            null
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'chatRooms' => [
+                    $chatRoomListItemMock
+                ],
+                'hasMore' => false
+            ]);
+
+        $response = $this->getRoomInviteRequestsByMember(
+            $userMock,
+            12,
+            null
+        );
+
+        $response->shouldBeArray();
+        $response['edges'][0]->shouldBeAnInstanceOf(ChatRoomEdge::class);
+        $response['edges'][0]->getNode()->shouldBeAnInstanceOf(ChatRoomNode::class);
+        $response['edges'][0]->getNode()->chatRoom->createdAt->shouldEqual($chatRoomListItemMock->chatRoom->createdAt);
+    }
+
+    public function it_should_get_total_room_invite_requests_by_member(
+        User $userMock
+    ): void {
+        $this->roomRepositoryMock->getTotalRoomInviteRequestsByMember(
+            $userMock
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
+
+        $this->getTotalRoomInviteRequestsByMember(
+            $userMock
+        )
+            ->shouldEqual(1);
+    }
+
+    public function it_should_ACCEPT_room_invite_request(
+        User $userMock
+    ): void {
+        $this->roomRepositoryMock->getUserStatusInRoom(
+            $userMock,
+            123
+        )
+            ->shouldBeCalledTimes(2)
+            ->willReturn(ChatRoomMemberStatusEnum::INVITE_PENDING);
+
+        $this->roomRepositoryMock->isUserMemberOfRoom(
+            123,
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ]
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            123
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'chatRooms' => [
+                    $this->generateChatRoomListItem(
+                        chatRoom: $this->generateChatRoomMock(),
+                        lastMessagePlainText: null,
+                        lastMessageCreatedTimestamp: null
+                    )
+                ],
+                'hasMore' => false
+            ]);
+
+        $this->roomRepositoryMock->beginTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->roomRepositoryMock->updateRoomMemberStatus(
+            123,
+            $userMock,
+            ChatRoomMemberStatusEnum::ACTIVE
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->blockManagerMock->add(
+            Argument::type(BlockEntry::class)
+        )
+            ->shouldNotBeCalled();
+
+        $this->roomRepositoryMock->deleteRoom(123)
+            ->shouldNotBeCalled();
+
+        $this->roomRepositoryMock->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->replyToRoomInviteRequest(
+            $userMock,
+            123,
+            ChatRoomInviteRequestActionEnum::ACCEPT
+        )
+            ->shouldEqual(true);
     }
 
 

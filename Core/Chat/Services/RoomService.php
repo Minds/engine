@@ -276,9 +276,9 @@ class RoomService
      * @param User $loggedInUser
      * @return ChatRoomEdge
      * @throws ChatRoomNotFoundException
-     * @throws ForbiddenException
-     * @throws ServerErrorException
+     * @throws GraphQLException
      * @throws NotFoundException
+     * @throws ServerErrorException
      */
     public function getRoom(
         int  $roomGuid,
@@ -294,7 +294,7 @@ class RoomService
                 ]
             )
         ) {
-            throw new ForbiddenException("You are not a member of this chat.");
+            throw new GraphQLException(message: "You are not a member of this chat.", code: 403);
         }
 
         ['chatRooms' => $chatRooms] = $this->roomRepository->getRoomsByMember(
@@ -350,8 +350,11 @@ class RoomService
                     node: new ChatRoomNode(
                         chatRoom: $chatRoomListItem->chatRoom
                     ),
+                    cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
+                        base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :
+                        base64_encode("0:{$chatRoomListItem->chatRoom->createdAt->getTimestamp()}"),
                     lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
-                    lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp,
+                    lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
                 ),
                 $chatRooms
             ),
@@ -414,7 +417,10 @@ class RoomService
                     ChatRoomMemberStatusEnum::LEFT
             );
 
-            if ($chatRoomInviteRequestAction === ChatRoomInviteRequestActionEnum::REJECT_AND_BLOCK) {
+            if (
+                $chatRoomEdge->getNode()->chatRoom->roomType === ChatRoomTypeEnum::ONE_TO_ONE &&
+                $chatRoomInviteRequestAction === ChatRoomInviteRequestActionEnum::REJECT_AND_BLOCK
+            ) {
                 $this->blockManager->add(
                     (new BlockEntry())
                         ->setActor($user)
@@ -428,8 +434,6 @@ class RoomService
             ) {
                 $this->roomRepository->deleteRoom($roomGuid);
             }
-
-            $this->roomRepository->deleteRoom($roomGuid);
 
             $this->roomRepository->commitTransaction();
 

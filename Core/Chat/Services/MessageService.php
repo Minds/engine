@@ -12,7 +12,6 @@ use Minds\Core\Chat\Types\ChatMessageNode;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\Guid;
-use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
@@ -31,7 +30,6 @@ class MessageService
      * @param User $user
      * @param string $message
      * @return ChatMessageEdge
-     * @throws ForbiddenException
      * @throws GraphQLException
      * @throws ServerErrorException
      */
@@ -81,7 +79,7 @@ class MessageService
      * @param string|null $before
      * @param bool $hasMore
      * @return array<ChatMessageNode>
-     * @throws ForbiddenException
+     * @throws GraphQLException
      * @throws ServerErrorException
      */
     public function getMessages(
@@ -100,7 +98,7 @@ class MessageService
                 ChatRoomMemberStatusEnum::INVITE_PENDING->name
             ]
         )) {
-            throw new ForbiddenException("You are not a member of this room");
+            throw new GraphQLException(message: "You are not a member of this room", code: 403);
         }
 
         $messages = iterator_to_array($this->messageRepository->getMessagesByRoom(
