@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Chat\Services;
 
 use Minds\Core\Chat\Entities\ChatMessage;
+use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Chat\Types\ChatMessageEdge;
@@ -14,6 +15,7 @@ use Minds\Core\Guid;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class MessageService
 {
@@ -31,6 +33,7 @@ class MessageService
      * @param string $message
      * @return ChatMessageEdge
      * @throws ForbiddenException
+     * @throws GraphQLException
      * @throws ServerErrorException
      */
     public function addMessage(
@@ -42,8 +45,12 @@ class MessageService
             roomGuid: $roomGuid,
             guid: (int) Guid::build(),
             senderGuid: (int) $user->getGuid(),
-            plainText: $message,
+            plainText: trim($message), // TODO: strengthen message validation to avoid multiple new lines
         );
+
+        if (empty($chatMessage->plainText)) {
+            throw new GraphQLException(message: "Message cannot be empty", code: 400);
+        }
 
         if (
             !$this->roomRepository->isUserMemberOfRoom(
@@ -51,7 +58,7 @@ class MessageService
                 user: $user
             )
         ) {
-            throw new ForbiddenException("You are not a member of this room");
+            throw new GraphQLException(message: "You are not a member of this room", code: 403);
         }
 
         try {
@@ -102,7 +109,11 @@ class MessageService
     ): array {
         if (!$this->roomRepository->isUserMemberOfRoom(
             roomGuid: $roomGuid,
-            user: $user
+            user: $user,
+            targetStatuses: [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ]
         )) {
             throw new ForbiddenException("You are not a member of this room");
         }

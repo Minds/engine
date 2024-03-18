@@ -6,6 +6,7 @@ use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\GraphQL\Types\NodeInterface;
 use TheCodingMachine\GraphQLite\Annotations\Field;
+use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 use TheCodingMachine\GraphQLite\Types\ID;
 
@@ -14,6 +15,7 @@ class ChatRoomNode implements NodeInterface
 {
     public function __construct(
         public readonly ChatRoom $chatRoom,
+        #[Field] #[Logged] public bool $isChatRequest = false
     ) {
 
     }

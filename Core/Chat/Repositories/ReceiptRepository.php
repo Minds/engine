@@ -58,7 +58,7 @@ class ReceiptRepository extends AbstractRepository
             )
             ->leftJoinRaw(
                 new RawExp(self::TABLE_NAME . ' as rct'),
-                'm.room_guid = rct.room_guid AND m.tenant_id = rct.tenant_id',
+                'm.room_guid = rct.room_guid AND m.member_guid = rct.member_guid AND m.tenant_id = rct.tenant_id',
             )
             ->where('msg.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('m.status', Operator::EQ, new RawExp(':member_status'))

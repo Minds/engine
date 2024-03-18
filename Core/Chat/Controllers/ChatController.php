@@ -46,13 +46,11 @@ class ChatController
         #[InjectUser] ?User $loggedInUser = null,
     ): ChatRoomsConnection {
         $connection = new ChatRoomsConnection();
-        $hasMore = false;
 
-        $chatRoomEdges = $this->roomService->getRoomsByMember(
+        ['edges' => $chatRoomEdges, 'hasMore' => $hasMore] = $this->roomService->getRoomsByMember(
             user: $loggedInUser,
             first: $first,
-            after: $after,
-            hasMore: $hasMore
+            after: $after
         );
 
         $connection->setEdges($chatRoomEdges);
@@ -170,17 +168,15 @@ class ChatController
         ?int               $before = null,
     ): ChatRoomMembersConnection {
         $connection = new ChatRoomMembersConnection();
-        $hasMore = false;
 
-        $connection->setEdges(
-            $this->roomService->getRoomMembers(
-                roomGuid: (int)$roomGuid,
-                loggedInUser: $loggedInUser,
-                first: $first,
-                after: $after,
-                hasMore: $hasMore
-            )
+        ['edges' => $chatRoomMemberEdges, 'hasMore' => $hasMore] = $this->roomService->getRoomMembers(
+            roomGuid: (int)$roomGuid,
+            loggedInUser: $loggedInUser,
+            first: $first,
+            after: $after
         );
+
+        $connection->setEdges($chatRoomMemberEdges);
 
         $lastEdgeIndex = count($connection->getEdges()) > 0 ? count($connection->getEdges()) - 1 : null;
 
@@ -244,11 +240,15 @@ class ChatController
     public function getChatRoomInviteRequests(
         #[InjectUser] User $loggedInUser,
         int                $first = 12,
-        ?int               $after = null,
+        ?string            $after = null,
     ): ChatRoomsConnection {
         $connection = new ChatRoomsConnection();
 
-        $chatRoomEdges = $this->roomService->getRoomInviteRequestsByMember($loggedInUser);
+        ['edges' => $chatRoomEdges, 'hasMore' => $hasMore] = $this->roomService->getRoomInviteRequestsByMember(
+            user: $loggedInUser,
+            first: $first,
+            after: $after
+        );
 
         $connection->setEdges($chatRoomEdges);
 
@@ -273,7 +273,7 @@ class ChatController
     }
 
     /**
-     * @param int $roomGuid
+     * @param string $roomGuid
      * @param ChatRoomInviteRequestActionEnum $chatRoomInviteRequestActionEnum
      * @return bool
      * @throws ServerErrorException
@@ -284,13 +284,13 @@ class ChatController
     #[Mutation]
     #[Logged]
     public function replyToRoomInviteRequest(
-        int                             $roomGuid,
+        string                          $roomGuid,
         ChatRoomInviteRequestActionEnum $chatRoomInviteRequestActionEnum,
         #[InjectUser] User              $loggedInUser
     ): bool {
         return $this->roomService->replyToRoomInviteRequest(
             user: $loggedInUser,
-            roomGuid: $roomGuid,
+            roomGuid: (int) $roomGuid,
             chatRoomInviteRequestAction: $chatRoomInviteRequestActionEnum
         );
     }
