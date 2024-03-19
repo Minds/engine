@@ -5,6 +5,7 @@ namespace Minds\Core\Chat;
 
 use Minds\Core\Chat\Controllers\ChatController;
 use Minds\Core\Chat\Services\MessageService;
+use Minds\Core\Chat\Services\ReceiptService;
 use Minds\Core\Chat\Services\RoomService;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
@@ -23,6 +24,7 @@ class Provider extends DiProvider
             fn (Di $di): ChatController => new ChatController(
                 roomService: $di->get(RoomService::class),
                 messageService: $di->get(MessageService::class),
+                receiptService: $di->get(ReceiptService::class),
             )
         );
 

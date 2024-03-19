@@ -9,6 +9,7 @@ use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Type;
+use TheCodingMachine\GraphQLite\Types\ID;
 
 #[Type]
 class ChatRoomEdge implements EdgeInterface
@@ -21,8 +22,15 @@ class ChatRoomEdge implements EdgeInterface
         ?ChatController  $chatController = null,
         #[Field] #[Logged] public ?string $lastMessagePlainText = null,
         #[Field] #[Logged] public ?int    $lastMessageCreatedTimestamp = null,
+        #[Field] #[Logged] public int     $unreadMessagesCount = 0,
     ) {
         $this->chatController = $chatController;
+    }
+
+    #[Field]
+    public function getId(): ID
+    {
+        return $this->node->getId();
     }
 
     #[Field]

@@ -194,7 +194,8 @@ class RoomService
                         base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :
                         base64_encode("0:{$chatRoomListItem->chatRoom->createdAt->getTimestamp()}"),
                     lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
-                    lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
+                    lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp,
+                    unreadMessagesCount: $chatRoomListItem->unreadMessagesCount,
                 ),
                 $chatRooms
             ),

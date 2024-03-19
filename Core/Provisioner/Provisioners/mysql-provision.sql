@@ -933,6 +933,18 @@ CREATE TABLE IF NOT EXISTS minds_chat_members(
     INDEX (status)
 );
 
+CREATE TABLE IF NOT EXISTS minds_chat_receipts
+(
+    tenant_id           INT,
+    room_guid           BIGINT,
+    member_guid         BIGINT,
+    message_guid        BIGINT,
+    last_read_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (tenant_id, room_guid, member_guid),
+    FOREIGN KEY (tenant_id, room_guid) REFERENCES minds_chat_rooms (tenant_id, room_guid),
+    FOREIGN KEY (tenant_id, room_guid, message_guid) REFERENCES minds_chat_messages (tenant_id, room_guid, guid)
+);
+
 ALTER TABLE minds_tenant_mobile_configs
     ADD COLUMN app_version varchar(24) DEFAULT NULL
     AFTER update_timestamp;

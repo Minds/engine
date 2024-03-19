@@ -8,6 +8,7 @@ use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
 use Minds\Core\Chat\Exceptions\InvalidChatRoomTypeException;
 use Minds\Core\Chat\Services\MessageService;
+use Minds\Core\Chat\Services\ReceiptService;
 use Minds\Core\Chat\Services\RoomService;
 use Minds\Core\Chat\Types\ChatMessageEdge;
 use Minds\Core\Chat\Types\ChatMessagesConnection;
@@ -28,8 +29,9 @@ use TheCodingMachine\GraphQLite\Annotations\Query;
 class ChatController
 {
     public function __construct(
-        private readonly RoomService    $roomService,
-        private readonly MessageService $messageService
+        private readonly RoomService $roomService,
+        private readonly MessageService $messageService,
+        private readonly ReceiptService $receiptService,
     ) {
     }
 
@@ -293,5 +295,35 @@ class ChatController
             roomGuid: (int) $roomGuid,
             chatRoomInviteRequestAction: $chatRoomInviteRequestActionEnum
         );
+    }
+
+    /**
+     * Returns the total count of unread messages a user has
+     */
+    #[Query]
+    #[Logged]
+    public function getChatUnreadMessagesCount(
+        #[InjectUser] User $loggedInUser,
+    ): int {
+        return $this->receiptService->getAllUnreadMessagesCount($loggedInUser);
+    }
+
+    /**
+     * Updates the read reciept of a room
+     */
+    #[Mutation]
+    #[Logged]
+    public function readReceipt(
+        string $roomGuid,
+        string $messageGuid,
+        #[InjectUser] User $loggedInUser,
+    ): ChatRoomEdge {
+        $room = $this->roomService->getRoom($roomGuid, $loggedInUser);
+        $message = $this->messageService->getMessage($roomGuid, $messageGuid);
+
+        $this->receiptService->updateReceipt($message, $loggedInUser);
+
+        $room->unreadMessagesCount = 0;
+        return $room;
     }
 }

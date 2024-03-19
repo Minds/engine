@@ -32,5 +32,13 @@ class RepositoriesProvider extends Provider
                 logger: $di->get('Logger')
             )
         );
+        $this->di->bind(
+            ReceiptRepository::class,
+            fn (Di $di): ReceiptRepository => new ReceiptRepository(
+                mysqlHandler: $di->get('Database\MySQL\Client'),
+                config: $di->get(Config::class),
+                logger: $di->get('Logger')
+            )
+        );
     }
 }
