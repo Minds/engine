@@ -14,7 +14,7 @@ use TheCodingMachine\GraphQLite\Types\ID;
 #[Type]
 class ChatRoomEdge implements EdgeInterface
 {
-    private readonly ChatController $chatController;
+    private ?ChatController $chatController;
 
     public function __construct(
         protected ChatRoomNode            $node,
@@ -24,7 +24,7 @@ class ChatRoomEdge implements EdgeInterface
         #[Field] #[Logged] public ?int    $lastMessageCreatedTimestamp = null,
         #[Field] #[Logged] public int     $unreadMessagesCount = 0,
     ) {
-        $this->chatController = $chatController ?? Di::_()->get(ChatController::class);
+        $this->chatController = $chatController;
     }
 
     #[Field]
@@ -53,6 +53,7 @@ class ChatRoomEdge implements EdgeInterface
         ?string $after = null,
         ?string $before = null,
     ): ChatMessagesConnection {
+        $this->initialiseChatControllerInstance();
         return $this->chatController->getChatMessages(
             roomGuid: $this->node->chatRoom->guid,
             loggedInUser: $loggedInUser,
@@ -66,6 +67,7 @@ class ChatRoomEdge implements EdgeInterface
     #[Logged]
     public function getTotalMembers(): int
     {
+        $this->initialiseChatControllerInstance();
         return $this->chatController->getChatRoomMembersCount(
             roomGuid: $this->node->chatRoom->guid,
         );
@@ -80,6 +82,7 @@ class ChatRoomEdge implements EdgeInterface
         ?int $last = null,
         ?int $before = null,
     ): ChatRoomMembersConnection {
+        $this->initialiseChatControllerInstance();
         return $this->chatController->getChatRoomMembers(
             loggedInUser: $loggedInUser,
             roomGuid: $this->node->chatRoom->guid,
@@ -90,4 +93,8 @@ class ChatRoomEdge implements EdgeInterface
         );
     }
 
+    private function initialiseChatControllerInstance(): void
+    {
+        $this->chatController ??= Di::_()->get(ChatController::class);
+    }
 }
