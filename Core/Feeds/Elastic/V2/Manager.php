@@ -669,6 +669,49 @@ class Manager
     }
 
     /**
+     * Get the activities associated with an entity_guid.
+     * Useful for blogs
+     * @return array
+     */
+    public function getLinkedActivitiesByEntityGuid($entityGuid): array
+    {
+        $query = [
+            'index' => $this->getSearchIndexName(),
+            'body' => [
+                'query' => [
+                    'bool' => [
+                        'must' => [
+                            'term' => [
+                                'entity_guid' => $entityGuid
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            'size' => 10,
+        ];
+
+        $prepared = new ElasticSearch\Prepared\Search();
+        $prepared->query($query);
+
+        $response = $this->esClient->request($prepared);
+        $activities = [];
+
+        foreach ($response['hits']['hits'] as $hit) {
+            $activity = $this->fetchActivity((int) $hit['_id']);
+
+            if (!$activity) {
+                continue;
+            }
+
+            $activities[] = $activity;
+        }
+
+        return $activities;
+    }
+
+
+    /**
      * Encodes the sort to base64
      */
     protected function encodeSort(array $sort): string

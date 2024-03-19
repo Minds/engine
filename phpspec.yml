@@ -3,7 +3,7 @@ suites:
     namespace: Minds
     psr4_prefix: Minds
     spec_prefix: Spec
-    src_path: engine
+    src_path: ./
     spec_path: ./
 
 bootstrap: Spec/bootstrap.php

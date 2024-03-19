@@ -30,12 +30,10 @@ class OidcProvidersRepository extends AbstractRepository
             ])
             ->from(self::TABLE_NAME);
 
-        if ($tenantId = $this->config->get('tenant_id')) {
-            $query->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
-            $values['tenant_id'] = $tenantId;
-        } else {
-            $query->where('tenant_id', Operator::IS, null);
-        }
+        $tenantId = $this->config->get('tenant_id') ?: -1;
+
+        $query->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+        $values['tenant_id'] = $tenantId;
 
         if ($providerId) {
             $query->where('provider_id', Operator::EQ, new RawExp(':provider_id'));
