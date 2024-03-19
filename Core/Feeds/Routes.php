@@ -78,7 +78,7 @@ class Routes extends ModuleRoutes
                         );
                         $route->delete(
                             'activity/remind/:guid',
-                            Ref::_('Feeds\Activity\Controller', 'deleteRemindsOfActivityByUser')
+                            Ref::_('Feeds\Activity\Controller', 'deleteRemindsOfEntityByUser')
                         );
                         $route->delete(
                             'activity/:urn',
