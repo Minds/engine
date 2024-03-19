@@ -7,7 +7,6 @@
 namespace Minds\Core\Router\Middleware\Kernel;
 
 use Minds\Core\Di\Di;
-use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Session;
 use Minds\Core\Sessions\Manager;
 use Psr\Http\Message\ResponseInterface;
@@ -59,12 +58,8 @@ class SessionMiddleware implements MiddlewareInterface
             // Ensure we have cleared sessions for every request and we rebuild them
             Session::setUser(null);
 
-            try {
-                $this->session
-                    ->withRouterRequest($request);
-            } catch (UnauthorizedException $e) {
-                // Proceed with no session...
-            }
+            $this->session
+                ->withRouterRequest($request);
 
             return $handler->handle(
                 $request
