@@ -463,6 +463,7 @@ class RoomServiceSpec extends ObjectBehavior
         $this->chatRoomListItemMockFactory->getProperty('chatRoom')->setValue($chatRoomListItem, $chatRoom);
         $this->chatRoomListItemMockFactory->getProperty('lastMessagePlainText')->setValue($chatRoomListItem, $lastMessagePlainText);
         $this->chatRoomListItemMockFactory->getProperty('lastMessageCreatedTimestamp')->setValue($chatRoomListItem, $lastMessageCreatedTimestamp);
+        $this->chatRoomListItemMockFactory->getProperty('unreadMessagesCount')->setValue($chatRoomListItem, 0);
 
         return $chatRoomListItem;
     }

@@ -11,7 +11,8 @@ class ChatRoomListItem implements EntityInterface
     public function __construct(
         public readonly ChatRoom $chatRoom,
         public readonly ?string $lastMessagePlainText = null,
-        public readonly ?int $lastMessageCreatedTimestamp = null
+        public readonly ?int $lastMessageCreatedTimestamp = null,
+        public readonly int $unreadMessagesCount = 0
     ) {
     }
 
