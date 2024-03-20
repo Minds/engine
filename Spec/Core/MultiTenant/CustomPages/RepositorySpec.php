@@ -6,6 +6,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\MySQLConnectionEnum;
 use Minds\Core\Di\Di;
 use Minds\Core\MultiTenant\CustomPages\Repository;
+use Minds\Core\MultiTenant\CustomPages\Defaults\CustomPageDefaultContent;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Minds\Core\MultiTenant\CustomPages\Enums\CustomPageTypesEnum;
 use PDO;
@@ -48,8 +49,10 @@ class RepositorySpec extends ObjectBehavior
         $this->shouldHaveType(Repository::class);
     }
 
-    public function it_should_return_a_page(PDOStatement $stmtMock)
+    public function it_should_return_a_page_with_default_content(PDOStatement $stmtMock)
     {
+        $defaultContent = CustomPageDefaultContent::get()[CustomPageTypesEnum::COMMUNITY_GUIDELINES->value] ?? null;
+
         $this->mysqlReplicaMock->quote(Argument::any())->willReturn("");
         $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($stmtMock);
 
@@ -71,6 +74,7 @@ class RepositorySpec extends ObjectBehavior
         $response = $this->getCustomPageByType(CustomPageTypesEnum::COMMUNITY_GUIDELINES);
         $response->content->shouldBe("i am content");
         $response->pageType->shouldBe(CustomPageTypesEnum::COMMUNITY_GUIDELINES);
+        $response->defaultContent->shouldBe($defaultContent);
     }
 
     public function it_should_save_page(PDOStatement $stmtMock)
