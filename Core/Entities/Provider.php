@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Minds\Core\Entities;
 
+use Minds\Core\Chat\Services\MessageService as ChatMessageService;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
+use Minds\Core\Entities\Delegates\ChatMessageResolverDelegate;
 use Minds\Core\Entities\Repositories\CassandraRepository;
 use Minds\Core\Entities\Repositories\EntitiesRepositoryFactory;
 use Minds\Core\Entities\Repositories\EntitiesRepositoryInterface;
@@ -68,5 +70,14 @@ class Provider extends \Minds\Core\Di\Provider
                 logger: $di->get('Logger')
             );
         }, [ 'useFactory' => true]);
+
+        // Resolver Delegates
+        $this->di->bind(
+            ChatMessageResolverDelegate::class,
+            fn (Di $di): ChatMessageResolverDelegate => new ChatMessageResolverDelegate(
+                chatMessageService: $di->get(ChatMessageService::class)
+            ),
+            [ 'useFactory' => true]
+        );
     }
 }

@@ -530,6 +530,8 @@ class RoomRepository extends AbstractRepository
                 ->intersect($secondMemberGuidOneToOneRoomQuery)
                 ->prepare();
 
+        
+
         try {
             $stmt->execute([
                 'tenant_id_1' => $this->config->get('tenant_id') ?? -1,

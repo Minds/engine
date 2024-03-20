@@ -16,6 +16,7 @@ use Minds\Core\Reports\V2\Repositories\ReportRepository;
 use Minds\Core\Reports\V2\Types\Report;
 use Minds\Core\Reports\V2\Types\ReportEdge;
 use Minds\Core\Reports\V2\Types\ReportsConnection;
+use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
@@ -112,18 +113,21 @@ class ReportService
             subReason: $subReason,
         );
     }
-    
+
     /**
      * Provide a verdict for a report.
      * @param int $reportGuid - guid of the report.
      * @param int $moderatedByGuid - guid of the user is moderating the report.
      * @param ReportActionEnum $action - action to take on the report.
+     * @param User $loggedInUser
      * @return bool true on success.
+     * @throws GraphQLException
      */
     public function provideVerdict(
         int $reportGuid,
         int $moderatedByGuid,
         ReportActionEnum $action,
+        User $moderator
     ): bool {
         $tenantId = $this->getTenantId();
         $report = $this->getReport($reportGuid, ReportStatusEnum::PENDING);
@@ -133,7 +137,11 @@ class ReportService
         }
 
         try {
-            $this->actionService->handleReport($report, $action);
+            $this->actionService->handleReport(
+                report: $report,
+                action: $action,
+                moderator: $loggedInUser
+            );
         } catch(NotFoundException $e) {
             // if the entity cannot be handled, ignore the report.
             $action = ReportActionEnum::IGNORE;

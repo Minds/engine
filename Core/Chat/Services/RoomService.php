@@ -44,6 +44,7 @@ class RoomService
      * @param array $otherMemberGuids
      * @param ChatRoomTypeEnum|null $roomType
      * @return ChatRoomEdge
+     * @throws GraphQLException
      * @throws InvalidChatRoomTypeException
      * @throws ServerErrorException
      */
@@ -111,6 +112,13 @@ class RoomService
             foreach ($otherMemberGuids as $memberGuid) {
                 // TODO: Check if the user is blocked, deleted, disabled or banned
                 // TODO: Check if user has blocked message sender
+
+                // Check if user exists in minds|tenant
+                $member = $this->entitiesBuilder->single($memberGuid);
+                if (!$member) {
+                    throw new GraphQLException(message: "One or more of the members you have selected was not found", code: 404);
+                }
+
                 $isSubscribed = $this->subscriptionsRepository->isSubscribed(
                     userGuid: (int)$memberGuid,
                     friendGuid: (int)$user->getGuid()

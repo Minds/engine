@@ -5,6 +5,7 @@ namespace Minds\Core\Chat\Services;
 
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Chat\Types\ChatMessageEdge;
@@ -140,12 +141,56 @@ class MessageService
             $messages
         );
     }
-    
+
     /**
      * Returns a single message
+     * @param int $roomGuid
+     * @param int $messageGuid
+     * @return ChatMessage
+     * @throws ServerErrorException
+     * @throws ChatMessageNotFoundException
      */
     public function getMessage(int $roomGuid, int $messageGuid): ChatMessage
     {
         return $this->messageRepository->getMessagesByGuid($roomGuid, $messageGuid);
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param int $messageGuid
+     * @param User $loggedInUser
+     * @return bool
+     * @throws ChatMessageNotFoundException
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     */
+    public function deleteMessage(
+        int $roomGuid,
+        int $messageGuid,
+        User $loggedInUser
+    ): bool {
+        $message = $this->getMessage($roomGuid, $messageGuid);
+        if (!$loggedInUser->isAdmin() && $message->senderGuid !== (int) $loggedInUser->getGuid()) {
+            throw new GraphQLException(message: 'You are not allowed to delete this message', code: 403);
+        }
+        $this->messageRepository->beginTransaction();
+        try {
+            if (!$this->receiptService->deleteAllMessageReadReceipts($roomGuid, $messageGuid)) {
+                $this->messageRepository->rollbackTransaction();
+                throw new ServerErrorException(message: 'Failed to delete message', code: 500);
+            }
+            if (!$this->messageRepository->deleteChatMessage(
+                roomGuid: $roomGuid,
+                messageGuid: $messageGuid
+            )) {
+                $this->messageRepository->rollbackTransaction();
+                throw new ServerErrorException(message: 'Failed to delete message', code: 500);
+            }
+
+            $this->messageRepository->commitTransaction();
+            return true;
+        } catch (ServerErrorException $e) {
+            throw new GraphQLException(message: 'Failed to delete message', code: 500);
+        }
     }
 }

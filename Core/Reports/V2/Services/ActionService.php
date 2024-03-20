@@ -4,15 +4,20 @@ declare(strict_types=1);
 namespace Minds\Core\Reports\V2\Services;
 
 use Minds\Core\Channels\Ban;
+use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
+use Minds\Core\Chat\Services\MessageService as ChatMessageService;
+use Minds\Core\Chat\Types\ChatMessageEdge;
 use Minds\Core\Comments\Comment;
-use Minds\Core\Entities\Actions\Delete;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\Comments\Manager as CommentManager;
+use Minds\Core\Entities\Actions\Delete;
+use Minds\Core\Entities\Resolver as EntitiesResolver;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Reports\Enums\ReportActionEnum;
 use Minds\Core\Reports\V2\Types\Report;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
+use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\StopEventException;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 /**
@@ -26,6 +31,7 @@ class ActionService
         private readonly CommentManager $commentManager,
         private readonly Ban $channelsBanManager,
         private readonly Delete $deleteAction,
+        private readonly ChatMessageService $chatMessageService
     ) {
     }
 
@@ -35,8 +41,11 @@ class ActionService
      * @param ReportActionEnum $action - action to perform.
      * @return void
      */
-    public function handleReport(Report $report, ReportActionEnum $action): void
-    {
+    public function handleReport(
+        Report $report,
+        ReportActionEnum $action,
+        User $moderator
+    ): void {
         if (!$entity = $this->entitiesResolver->single($report->entityUrn)) {
             throw new NotFoundException('Entity not found with urn: ' . $report->entityUrn);
         }
@@ -58,7 +67,7 @@ class ActionService
                 if ($entity instanceof User) {
                     throw new GraphQLException('Users cannot be deleted');
                 }
-                $this->deleteEntity($entity);
+                $this->deleteEntity($entity, $moderator);
                 break;
         }
     }
@@ -68,6 +77,7 @@ class ActionService
      * @param User $user - user to ban.
      * @param Report $report - report to ban user for.
      * @return void
+     * @throws \Exception
      */
     private function banUser(User $user, Report $report): void
     {
@@ -79,10 +89,25 @@ class ActionService
     /**
      * Delete an entity.
      * @param mixed $entity - entity to delete.
+     * @param User $moderator
      * @return void
+     * @throws GraphQLException
+     * @throws StopEventException
+     * @throws ChatMessageNotFoundException
+     * @throws ServerErrorException
      */
-    private function deleteEntity(mixed $entity)
-    {
+    private function deleteEntity(
+        mixed $entity,
+        User $moderator
+    ): void {
+        if ($entity instanceof ChatMessageEdge) {
+            $this->chatMessageService->deleteMessage(
+                roomGuid: $entity->getNode()->chatMessage->roomGuid,
+                messageGuid: $entity->getNode()->chatMessage->guid,
+                loggedInUser: $moderator
+            );
+            return;
+        }
         if ($entity instanceof Comment) {
             $this->commentManager->delete($entity);
             return;

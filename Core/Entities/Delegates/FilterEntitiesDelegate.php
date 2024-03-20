@@ -36,6 +36,10 @@ class FilterEntitiesDelegate
     public function filter($entities)
     {
         return array_values(array_filter($entities, function ($entity) {
+            // TODO: Discuss with Mark how to handle the ACL for chat entities
+            if ($entity->getType() == 'chat') {
+                return true;
+            }
             $filterByScheduled = false;
             if ($this->shouldFilterScheduled($entity->getType())) {
                 $filterByScheduled = $entity->getTimeCreated() > $this->time

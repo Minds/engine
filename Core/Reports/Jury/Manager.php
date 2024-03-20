@@ -12,6 +12,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\Reports\Summons\Summons as SummonsEntity;
 use Minds\Core\Reports\Summons\SummonsNotFoundException;
+use Minds\Core\Reports\Verdict\Manager as VerdictManager;
 use Minds\Core\Security\ACL;
 
 class Manager
@@ -185,7 +186,7 @@ class Manager
             $report->setInitialJuryDecisions($decisions);
         }
 
-        $this->verdictManager->decideFromReport($report);
+        $this->verdictManager->decideFromReport($report, $decision->getJuror());
   
         return $success;
     }

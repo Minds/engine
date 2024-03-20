@@ -5,6 +5,7 @@ namespace Minds\Core\Chat\Controllers;
 use InvalidArgumentException;
 use Minds\Core\Chat\Enums\ChatRoomInviteRequestActionEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
+use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
 use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
 use Minds\Core\Chat\Exceptions\InvalidChatRoomTypeException;
 use Minds\Core\Chat\Services\MessageService;
@@ -25,6 +26,7 @@ use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Query;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class ChatController
 {
@@ -195,6 +197,7 @@ class ChatController
      * @param string[] $otherMemberGuids
      * @param ChatRoomTypeEnum|null $roomType
      * @return ChatRoomEdge
+     * @throws GraphQLException
      * @throws InvalidChatRoomTypeException
      * @throws ServerErrorException
      */
@@ -235,6 +238,12 @@ class ChatController
         );
     }
 
+    /**
+     * @param int $first
+     * @param string|null $after
+     * @return ChatRoomsConnection
+     * @throws ServerErrorException
+     */
     #[Query]
     #[Logged]
     public function getChatRoomInviteRequests(
@@ -309,7 +318,7 @@ class ChatController
     }
 
     /**
-     * Updates the read reciept of a room
+     * Updates the read receipt of a room
      */
     #[Mutation]
     #[Logged]
@@ -325,5 +334,27 @@ class ChatController
 
         $room->unreadMessagesCount = 0;
         return $room;
+    }
+
+    /**
+     * @param string $roomGuid
+     * @param string $messageGuid
+     * @return bool
+     * @throws ServerErrorException
+     * @throws ChatMessageNotFoundException
+     * @throws GraphQLException
+     */
+    #[Mutation]
+    #[Logged]
+    public function deleteChatMessage(
+        string $roomGuid,
+        string $messageGuid,
+        #[InjectUser] User $loggedInUser
+    ): bool {
+        return $this->messageService->deleteMessage(
+            roomGuid: (int) $roomGuid,
+            messageGuid: (int) $messageGuid,
+            loggedInUser: $loggedInUser
+        );
     }
 }

@@ -8,6 +8,8 @@ use Minds\Common\Urn;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Manager as BoostManager;
+use Minds\Core\Chat\Entities\ChatMessage;
+use Minds\Core\Chat\Services\MessageService as ChatMessageService;
 use Minds\Core\Comments\Comment;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Save as SaveAction;
@@ -19,12 +21,15 @@ use Minds\Core\Plus;
 use Minds\Core\Reports\Report;
 use Minds\Core\Reports\Strikes\Strike;
 use Minds\Core\Reports\Verdict\Verdict;
+use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
 use Minds\Core\Security\Password;
 use Minds\Core\Sessions;
 use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\FederatedEntityInterface;
+use Minds\Entities\User;
+use Minds\Exceptions\StopEventException;
 
 class ActionDelegate
 {
@@ -74,7 +79,8 @@ class ActionDelegate
         private ?DemonetizePlusUserStrategy $demonetizePlusUserStrategy = null,
         private ?BoostManager $boostManager = null,
         private ?Logger $logger = null,
-        private ?ActivityPubReportDelegate $activityPubReportDelegate = null
+        private ?ActivityPubReportDelegate $activityPubReportDelegate = null,
+        private ?ChatMessageService $chatMessageService = null
     ) {
         $this->entitiesBuilder = $entitiesBuilder  ?: Di::_()->get('EntitiesBuilder');
         $this->actions = $actions ?: Di::_()->get('Reports\Actions');
@@ -92,10 +98,20 @@ class ActionDelegate
         $this->boostManager ??= Di::_()->get(BoostManager::class);
         $this->activityPubReportDelegate ??= Di::_()->get(ActivityPubReportDelegate::class);
         $this->logger ??= Di::_()->get('Logger');
+        $this->chatMessageService ??= Di::_()->get(ChatMessageService::class);
     }
 
-    public function onAction(Verdict $verdict)
-    {
+    /**
+     * @param Verdict $verdict
+     * @param User|null $juror
+     * @return void
+     * @throws UnverifiedEmailException
+     * @throws StopEventException
+     */
+    public function onAction(
+        Verdict $verdict,
+        ?User $juror = null
+    ): void {
         if ($verdict->isAppeal() || !$verdict->isUpheld()) {
             error_log('Not upheld so no action');
             return; // Can not
@@ -112,13 +128,13 @@ class ActionDelegate
 
         $reportEntity = $verdict->getReport()->getEntity();
         // scope to only comments to reduce regression scope.
-        if (!$entity && $reportEntity && $reportEntity instanceof Comment) {
+        if (!$entity && $reportEntity && ($reportEntity instanceof Comment || $reportEntity instanceof ChatMessage)) {
             $entity = $reportEntity;
         }
 
         switch ($report->getReasonCode()) {
             case 1: // Illegal (not appealable)
-                if ($entity->type !== 'user') {
+                if ($entity->type !== 'user' && $entity->getType() !== 'chat') {
                     $this->actions->setDeletedFlag($entity, true);
                     $this->saveAction->setEntity($entity)->save(isUpdate: true);
                 }
@@ -127,9 +143,12 @@ class ActionDelegate
                 break;
             case 2: // NSFW
                 $nsfw = $report->getSubReasonCode();
-                $entity->setNsfw(array_merge([$nsfw], $entity->getNsfw() ?? []));
-                $entity->setNsfwLock(array_merge([$nsfw], $entity->getNsfwLock() ?? []));
-                $this->saveAction->setEntity($entity)->save(isUpdate: true);
+
+                if ($entity->getType() !== 'chat') {
+                    $entity->setNsfw(array_merge([$nsfw], $entity->getNsfw() ?? []));
+                    $entity->setNsfwLock(array_merge([$nsfw], $entity->getNsfwLock() ?? []));
+                    $this->saveAction->setEntity($entity)->save(isUpdate: true);
+                }
                 // Apply a strike to the owner
                 $this->applyStrike($report);
 
@@ -142,7 +161,7 @@ class ActionDelegate
 
                 break;
             case 3: // Incites violence
-                if ($entity->type !== 'user') {
+                if ($entity->type !== 'user' && $entity->getType() !== 'chat') {
                     $this->actions->setDeletedFlag($entity, true);
                     $this->saveAction->setEntity($entity)->save(isUpdate: true);
                 }
@@ -151,8 +170,10 @@ class ActionDelegate
                 break;
             case 4:  // Harrasment
                 if ($entity->type !== 'user') {
-                    $this->actions->setDeletedFlag($entity, true);
-                    $this->saveAction->setEntity($entity)->save(isUpdate: true);
+                    if ($entity->getType() !== 'chat') {
+                        $this->actions->setDeletedFlag($entity, true);
+                        $this->saveAction->setEntity($entity)->save(isUpdate: true);
+                    }
                     // Apply a strike to the post owner
                     $this->applyStrike($report);
                 } else {
@@ -161,7 +182,7 @@ class ActionDelegate
                 }
                 break;
             case 5: // Personal and confidential information (not appelable)
-                if ($entity->type !== 'user') {
+                if ($entity->type !== 'user' && $entity->getType() !== 'chat') {
                     $this->actions->setDeletedFlag($entity, true);
                     $this->saveAction->setEntity($entity)->save(isUpdate: true);
                 }
@@ -174,8 +195,10 @@ class ActionDelegate
                 break;
             case 8: // Spam
                 if ($entity->type !== 'user') {
-                    $this->actions->setDeletedFlag($entity, true);
-                    $this->saveAction->setEntity($entity)->save(isUpdate: true);
+                    if ($entity->getType() !== 'chat') {
+                        $this->actions->setDeletedFlag($entity, true);
+                        $this->saveAction->setEntity($entity)->save(isUpdate: true);
+                    }
 
                     // Apply a strike to the owner
                     $this->applyStrike($report);
@@ -188,8 +211,10 @@ class ActionDelegate
                 if ($entity->type === 'user') {
                     $this->applyBan($report);
                 } else {
-                    $this->actions->setDeletedFlag($entity, true);
-                    $this->saveAction->setEntity($entity)->save(isUpdate: true);
+                    if ($entity->getType() !== 'chat') {
+                        $this->actions->setDeletedFlag($entity, true);
+                        $this->saveAction->setEntity($entity)->save(isUpdate: true);
+                    }
                     $this->applyStrike($report);
                 }
                 break;
@@ -198,7 +223,7 @@ class ActionDelegate
                 // Apply a strike to the owner
                 //    break;
             case 13: // Malware
-                if ($entity->type !== 'user') {
+                if ($entity->type !== 'user' && $entity->getType() !== 'chat') {
                     $this->actions->setDeletedFlag($entity, true);
                     $this->saveAction->setEntity($entity)->save(isUpdate: true);
                 }
@@ -242,6 +267,12 @@ class ActionDelegate
         // Enable ACL again
         ACL::$ignore = false;
 
+        if ($entity->getType() === 'chat') {
+            $this->deleteChatMessage(
+                report: $report,
+                juror: $juror
+            );
+        }
         $this->rejectEntityBoosts($entity);
     }
 
@@ -362,6 +393,9 @@ class ActionDelegate
      */
     private function rejectEntityBoosts(mixed $entity): bool
     {
+        if ($entity->getType() !== 'chat') {
+            return true;
+        }
         try {
             return $this->boostManager->forceRejectByEntityGuid(
                 entityGuid: $entity->getGuid(),
@@ -372,5 +406,22 @@ class ActionDelegate
             $this->logger->error($e);
             return false;
         }
+    }
+
+    private function deleteChatMessage(
+        Report $report,
+        User $juror
+    ): bool {
+        if (!Urn::isValid($report->getEntityUrn())) {
+            return false;
+        }
+
+        [$roomGuid, $messageGuid] = explode("_", (new Urn())->setUrn($report->getEntityUrn())->getNss());
+
+        return $this->chatMessageService->deleteMessage(
+            roomGuid: (int) $roomGuid,
+            messageGuid: (int) $messageGuid,
+            loggedInUser: $juror
+        );
     }
 }
