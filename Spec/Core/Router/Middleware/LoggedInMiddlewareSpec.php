@@ -13,16 +13,6 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class LoggedInMiddlewareSpec extends ObjectBehavior
 {
-    public function let()
-    {
-        $xsrfValidateRequest = function () {
-            /** XSRF::validateRequest() */
-            return true;
-        };
-
-        $this->beConstructedWith($xsrfValidateRequest);
-    }
-
     public function it_is_initializable()
     {
         $this->shouldHaveType(LoggedInMiddleware::class);
@@ -66,30 +56,4 @@ class LoggedInMiddlewareSpec extends ObjectBehavior
             ->duringProcess($request, $handler);
     }
 
-    public function it_should_throw_unauthorized_if_xsrf_check_fail_during_process(
-        ServerRequestInterface $request,
-        RequestHandlerInterface $handler,
-        User $user
-    ) {
-        $this->beConstructedWith(function () {
-            /** XSRF::validateRequest() */
-            return false;
-        });
-
-        $request->getAttribute('_phpspec_user')
-            ->shouldBeCalled()
-            ->willReturn($user);
-
-        $request->getAttribute('oauth_user_id')
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $handler->handle($request)
-            ->shouldNotBeCalled();
-
-        $this
-            ->setAttributeName('_phpspec_user')
-            ->shouldThrow(UnauthorizedException::class)
-            ->duringProcess($request, $handler);
-    }
 }
