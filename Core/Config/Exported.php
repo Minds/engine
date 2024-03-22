@@ -9,8 +9,10 @@
 namespace Minds\Core\Config;
 
 use Exception;
+use Minds\Api\Exportable;
 use Minds\Core\Blockchain\Manager as BlockchainManager;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
+use Minds\Core\Custom\Navigation\CustomNavigationService;
 use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\I18n\Manager as I18nManager;
@@ -57,7 +59,8 @@ class Exported
         $blockchain = null,
         private ?ExperimentsManager $experimentsManager = null,
         private ?RolesService $rolesService = null,
-        private ?SiteMembershipRepository $siteMembershipRepository = null
+        private ?SiteMembershipRepository $siteMembershipRepository = null,
+        private ?CustomNavigationService $customNavigationService = null,
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
@@ -66,6 +69,7 @@ class Exported
         $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
         $this->rolesService ??= Di::_()->get(RolesService::class);
         $this->siteMembershipRepository ??= Di::_()->get(SiteMembershipRepository::class);
+        $this->customNavigationService ??= Di::_()->get(CustomNavigationService::class);
     }
 
     /**
@@ -129,7 +133,10 @@ class Exported
             'livepeer_api_key' => $this->config->get('livepeer_api_key'),
             'onboarding_v5_release_timestamp' => $this->config->get('onboarding_v5_release_timestamp'),
             'is_tenant' => false, // overridden below.
-            'last_cache' => $this->config->get('lastcache') ?? 0
+            'last_cache' => $this->config->get('lastcache') ?? 0,
+            'custom' => [
+                'navigation' => Exportable::_($this->customNavigationService->getItems()),
+            ]
         ];
 
         if (Session::isLoggedIn()) {

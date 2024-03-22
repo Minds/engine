@@ -92,7 +92,8 @@ class Minds extends base
         Comments\GraphQL\Module::class,
         Reports\V2\Module::class,
         Strapi\Module::class,
-        PWA\Module::class
+        PWA\Module::class,
+        Custom\Navigation\Module::class,
     ];
 
     /**
