@@ -136,7 +136,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
-        
+
         $this->saveAction->save(true)
             ->shouldBeCalled();
 
@@ -196,7 +196,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
-        
+
         $this->saveAction->save(true)
             ->shouldBeCalled();
 
@@ -206,7 +206,7 @@ class ActionDelegateSpec extends ObjectBehavior
             statuses: [BoostStatus::APPROVED, BoostStatus::PENDING]
         )->shouldBeCalled()
             ->willReturn(true);
-    
+
         $this->onAction($verdict);
     }
 
@@ -214,12 +214,12 @@ class ActionDelegateSpec extends ObjectBehavior
     {
         $report = new Report;
         $report->setEntityUrn('urn:activity:123')
-            ->setReasonCode(4);
+            ->setReasonCode(8);
 
         $verdict = new Verdict;
         $verdict->setReport($report)
             ->setUphold(true)
-            ->setAction('4');
+            ->setAction('8');
 
         $entity->getGuid()
             ->shouldBeCalled()
@@ -238,7 +238,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
-        
+
         $this->saveAction->save(true)
             ->shouldBeCalled();
 
@@ -276,7 +276,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
-        
+
         $this->saveAction->save(true)
             ->shouldBeCalled();
 
@@ -336,7 +336,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
-        
+
         $this->saveAction->save(true)
             ->shouldBeCalled();
 
@@ -378,7 +378,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->withMutatedAttributes(['enabled'])
             ->willReturn($this->saveAction);
-        
+
         $this->saveAction->save(true)
              ->shouldBeCalled();
 
@@ -417,7 +417,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
-        
+
         $this->demonetizationContext->withStrategy($this->demonetizePostStrategy)
             ->shouldBeCalled()
             ->willReturn($this->demonetizationContext);
@@ -510,7 +510,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
-        
+
         $this->saveAction->save(true)
             ->shouldBeCalled();
 
@@ -562,7 +562,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($user)
             ->shouldNotBeCalled();
-        
+
         $this->saveAction->save(true)
             ->shouldNotBeCalled();
 

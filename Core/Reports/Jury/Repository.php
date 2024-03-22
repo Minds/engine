@@ -89,6 +89,7 @@ class Repository
                     true
                 )
                 && !($this->config->get('development_mode'))
+                && $opts['juryType'] === 'appeal'
             ) {
                 continue; // Already interacted with
             }
@@ -195,5 +196,31 @@ class Repository
         $result = $this->cql->request($prepared);
 
         return (int) $result[0]['count'] ?? 0;
+    }
+
+    /**
+     * Deletes a report (because it can not longer be acted on)
+     */
+    public function delete(string $urn): bool
+    {
+        $report = $this->get($urn);
+    
+        $statement = "DELETE FROM moderation_reports
+            WHERE entity_urn = ?
+            AND reason_code = ?
+            AND sub_reason_code = ?
+            AND timestamp = ?";
+
+        $values = [
+            $report->getEntityUrn(),
+            new Tinyint($report->getReasonCode()),
+            new Decimal($report->getSubReasonCode()),
+            new Timestamp($report->getTimestamp(), 0),
+        ];
+
+        $prepared = new Prepared();
+        $prepared->query($statement, $values);
+
+        return (bool) $this->cql->request($prepared);
     }
 }

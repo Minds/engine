@@ -67,8 +67,7 @@ class SiteMembershipSubscriptionsService
             cancelUrl: ltrim($redirectPath, '/'),
             lineItems: $this->prepareLineItems($siteMembership->stripeProductId),
             paymentMethodTypes: [
-                'card',
-                'us_bank_account',
+                'card'
             ],
             metadata: [
                 'redirectPath' => $redirectPath,

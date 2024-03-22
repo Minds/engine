@@ -153,9 +153,12 @@ class ActionDelegate
                 if ($entity->type !== 'user') {
                     $this->actions->setDeletedFlag($entity, true);
                     $this->saveAction->setEntity($entity)->save(isUpdate: true);
+                    // Apply a strike to the post owner
+                    $this->applyStrike($report);
+                } else {
+                    // Ban the channel
+                    $this->applyBan($report);
                 }
-                // Apply a strike to the owner
-                $this->applyStrike($report);
                 break;
             case 5: // Personal and confidential information (not appelable)
                 if ($entity->type !== 'user') {
@@ -319,7 +322,7 @@ class ActionDelegate
 
         $user->setNsfw(array_merge($user->getNsfw(), [ $subReason ]));
         $user->setNsfwLock(array_merge($user->getNsfwLock(), [ $subReason ]));
-        
+
         $this->saveAction->setEntity($user)->withMutatedAttributes(['nsfw', 'nsfw_lock'])->save(isUpdate: true);
     }
 

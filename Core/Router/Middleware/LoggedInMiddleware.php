@@ -18,15 +18,6 @@ class LoggedInMiddleware implements MiddlewareInterface
     /** @var string */
     protected $attributeName = '_user';
 
-    /** @var callable */
-    private $xsrfValidateRequest;
-
-    public function __construct(
-        $xsrfValidateRequest = null
-    ) {
-        $this->xsrfValidateRequest = $xsrfValidateRequest ?: [XSRF::class, 'validateRequest'];
-    }
-
     /**
      * @param string $attributeName
      * @return LoggedInMiddleware
@@ -50,10 +41,7 @@ class LoggedInMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        if (
-            !$request->getAttribute($this->attributeName) ||
-            (!call_user_func($this->xsrfValidateRequest, $request) && !$request->getAttribute('oauth_user_id'))
-        ) {
+        if (!$request->getAttribute($this->attributeName)) {
             throw new UnauthorizedException();
         }
 
