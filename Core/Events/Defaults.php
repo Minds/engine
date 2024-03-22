@@ -208,8 +208,7 @@ class Defaults
 
         // Chat ACL Events
         (new Core\Chat\Events\Events(
-            eventsDispatcher: Di::_()->get('EventsDispatcher'),
-            chatRoomService: Di::_()->get(ChatRoomService::class)
+            eventsDispatcher: Di::_()->get('EventsDispatcher')
         ))->register();
     }
 
