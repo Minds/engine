@@ -6,6 +6,7 @@ use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
 use Minds\Core\Boost\V3\Manager as BoostManager;
 use Minds\Core\Channels\Ban;
+use Minds\Core\Chat\Services\MessageService as ChatMessageService;
 use Minds\Core\Comments\Comment;
 use Minds\Core\Entities\Actions\Save as SaveAction;
 use Minds\Core\EntitiesBuilder;
@@ -42,6 +43,7 @@ class ActionDelegateSpec extends ObjectBehavior
     private Collaborator $demonetizePlusUserStrategy;
     private Collaborator $boostManager;
     private Collaborator $logger;
+    private Collaborator $chatMessageServiceMock;
 
     /** @var Sessions\CommonSessions\Manager */
     protected $commonSessionsManager;
@@ -62,8 +64,11 @@ class ActionDelegateSpec extends ObjectBehavior
         DemonetizePostStrategy $demonetizePostStrategy,
         DemonetizePlusUserStrategy $demonetizePlusUserStrategy,
         BoostManager $boostManager,
-        Logger $logger
+        Logger $logger,
+        ChatMessageService $chatMessageService
     ) {
+        $this->chatMessageServiceMock = $chatMessageService;
+
         $this->beConstructedWith(
             $entitiesBuilder,
             $actions,
@@ -79,7 +84,9 @@ class ActionDelegateSpec extends ObjectBehavior
             $demonetizePostStrategy,
             $demonetizePlusUserStrategy,
             $boostManager,
-            $logger
+            $logger,
+            null,
+            $this->chatMessageServiceMock
         );
         $this->entitiesBuilder = $entitiesBuilder;
         $this->actions = $actions;
