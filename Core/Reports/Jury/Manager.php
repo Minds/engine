@@ -103,18 +103,29 @@ class Manager
             'offset' => '',
         ], $opts);
 
+
         $response = $this->repository->getList($opts);
 
         if ($opts['hydrate']) {
-            foreach ($response as $report) {
+            foreach ($response->toArray() as $i => $report) {
                 $entity = $this->entitiesResolver->single(
                     (new Urn())->setUrn($report->getEntityUrn())
                 );
+
+                if (!$entity) {
+                    $this->repository->delete($report->getUrn());
+                    unset($response[$i]);
+                }
+
                 $report->setEntity($entity);
             }
         }
 
-        return $response;
+        if ($response->count() < $opts['limit'] && !$response->isLastPage()) {
+            return $this->getUnmoderatedList($opts); // Keep in loop until we are on the last page
+        }
+
+        return $response->filter(fn () => true);
     }
 
     /**
