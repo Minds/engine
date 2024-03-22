@@ -25,7 +25,7 @@ class Repository extends AbstractRepository
                 'name',
                 'type',
                 'visible',
-                'iconId',
+                'icon_id',
                 'path',
                 'url',
                 'action',
