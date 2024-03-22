@@ -10,6 +10,7 @@ class ChatMessage implements EntityInterface
 {
     public const URN_METHOD = 'chatmessage';
     public readonly DateTimeInterface $createdAt;
+    public readonly int $container_guid;
 
     public function __construct(
         public readonly int $roomGuid,
@@ -19,6 +20,7 @@ class ChatMessage implements EntityInterface
         ?DateTimeInterface $createdAt = null
     ) {
         $this->createdAt = $createdAt ?? new DateTime();
+        $this->container_guid = $this->roomGuid;
     }
 
     /**

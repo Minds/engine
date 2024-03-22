@@ -65,7 +65,8 @@ class RoomServiceSpec extends ObjectBehavior
     }
 
     public function it_should_create_chat_room_NO_ROOM_TYPE_PROVIDED_NO_EXISTING_ROOM_and_SUBSCRIBING_USER(
-        User $user
+        User $user,
+        User $memberMock
     ): void {
         $user->getGuid()
             ->shouldBeCalled()
@@ -80,6 +81,10 @@ class RoomServiceSpec extends ObjectBehavior
         )
             ->shouldBeCalledOnce()
             ->willThrow(ChatRoomNotFoundException::class);
+
+        $this->entitiesBuilderMock->single(456)
+            ->shouldBeCalledOnce()
+            ->willReturn($memberMock);
 
         $this->roomRepositoryMock->createRoom(
             Argument::type('integer'),
@@ -127,11 +132,16 @@ class RoomServiceSpec extends ObjectBehavior
     }
 
     public function it_should_create_chat_room_NO_ROOM_TYPE_PROVIDED_NO_EXISTING_ROOM_and_NOT_SUBSCRIBING_USER(
-        User $user
+        User $user,
+        User $memberMock
     ): void {
         $user->getGuid()
             ->shouldBeCalled()
             ->willReturn('123');
+
+        $this->entitiesBuilderMock->single(456)
+            ->shouldBeCalledOnce()
+            ->willReturn($memberMock);
 
         $this->roomRepositoryMock->beginTransaction()
             ->shouldBeCalledOnce();
@@ -189,11 +199,16 @@ class RoomServiceSpec extends ObjectBehavior
     }
 
     public function it_should_create_chat_room_WITH_ROOM_TYPE_PROVIDED_NO_EXISTING_ROOM_and_NO_SUBSCRIBING_USER(
-        User $user
+        User $user,
+        User $memberMock
     ): void {
         $user->getGuid()
             ->shouldBeCalled()
             ->willReturn('123');
+
+        $this->entitiesBuilderMock->single(456)
+            ->shouldBeCalledOnce()
+            ->willReturn($memberMock);
 
         $this->roomRepositoryMock->beginTransaction()
             ->shouldBeCalledOnce();
@@ -292,11 +307,21 @@ class RoomServiceSpec extends ObjectBehavior
     }
 
     public function it_should_create_multi_user_chat_room(
-        User $userMock
+        User $userMock,
+        User $memberMock1,
+        User $memberMock2
     ): void {
         $userMock->getGuid()
             ->shouldBeCalled()
             ->willReturn('123');
+
+        $this->entitiesBuilderMock->single(456)
+            ->shouldBeCalledOnce()
+            ->willReturn($memberMock1);
+
+        $this->entitiesBuilderMock->single(789)
+            ->shouldBeCalledOnce()
+            ->willReturn($memberMock2);
 
         $this->roomRepositoryMock->beginTransaction()
             ->shouldBeCalledOnce();
@@ -499,14 +524,16 @@ class RoomServiceSpec extends ObjectBehavior
             123,
             $userMock,
             12,
-            null
+            null,
+            true
         )
             ->shouldBeCalledOnce()
             ->willReturn([
                 'members' => [
                     [
                         'member_guid' => 456,
-                        'joined_timestamp'
+                        'joined_timestamp' => date('c'),
+                        'role_id' => ChatRoomRoleEnum::OWNER->name,
                     ]
                 ],
                 'hasMore' => false
@@ -572,6 +599,13 @@ class RoomServiceSpec extends ObjectBehavior
         )
             ->shouldBeCalledOnce()
             ->willReturn(true);
+
+        $this->roomRepositoryMock->isUserRoomOwner(
+            123,
+            $userMock
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
 
         $chatRoomListItemMock = $this->generateChatRoomListItem(
             chatRoom: $this->generateChatRoomMock(),
@@ -689,6 +723,13 @@ class RoomServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
+        $this->roomRepositoryMock->isUserRoomOwner(
+            123,
+            $userMock
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
         $this->roomRepositoryMock->getRoomsByMember(
             $userMock,
             [
@@ -740,21 +781,4 @@ class RoomServiceSpec extends ObjectBehavior
         )
             ->shouldEqual(true);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

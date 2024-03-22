@@ -5,6 +5,7 @@ namespace Minds\Core\Reports\V2\Types;
 
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Types\ChatMessageEdge;
+use Minds\Core\Chat\Types\ChatMessageNode;
 use Minds\Core\Comments\Comment;
 use Minds\Core\Comments\GraphQL\Types\CommentEdge;
 use Minds\Core\Di\Di;
@@ -82,7 +83,13 @@ class Report implements NodeInterface
                 return new GroupEdge($entity, $this->cursor);
             case $entity instanceof ChatMessage:
                 return new ChatMessageEdge(
-                    node: $entity,
+                    node: new ChatMessageNode(
+                        chatMessage: $entity,
+                        sender: new UserEdge(
+                            user: Di::_()->get(EntitiesBuilder::class)->single($entity->getOwnerGuid()),
+                            cursor: ''
+                        )
+                    ),
                     cursor: $this->cursor
                 );
             default:

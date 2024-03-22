@@ -390,6 +390,7 @@ class RoomRepository extends AbstractRepository
      * @param User $user
      * @param int $limit
      * @param int|null $offset
+     * @param bool $excludeSelf
      * @return array{members: array{member_guid: int, joined_timestamp: int|null}, hasMore: bool}
      * @throws ServerErrorException
      */
@@ -397,13 +398,13 @@ class RoomRepository extends AbstractRepository
         int  $roomGuid,
         User $user,
         int  $limit = 12,
-        ?int $offset = null
+        ?int $offset = null,
+        bool $excludeSelf = true
     ): array {
         $stmt = $this->mysqlClientReaderHandler->select()
             ->from(self::MEMBERS_TABLE_NAME)
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
-            ->where('member_guid', Operator::NOT_EQ, new RawExp(':member_guid'))
             ->whereWithNamedParameters('status', Operator::IN, 'status', 2)
             ->orderBy('joined_timestamp ASC')
             ->limit($limit + 1);
@@ -411,9 +412,13 @@ class RoomRepository extends AbstractRepository
         $values = [
             'tenant_id' => $this->config->get('tenant_id') ?? -1,
             'room_guid' => $roomGuid,
-            'member_guid' => $user->getGuid(),
             'status' => [ChatRoomMemberStatusEnum::ACTIVE->name, ChatRoomMemberStatusEnum::INVITE_PENDING->name],
         ];
+
+        if ($excludeSelf) {
+            $stmt->where('member_guid', Operator::NOT_EQ, new RawExp(':member_guid'));
+            $values['member_guid'] = $user->getGuid();
+        }
 
         if ($offset) {
             $stmt->where('joined_timestamp', Operator::GT, new RawExp(':joined_timestamp'));
@@ -661,6 +666,39 @@ class RoomRepository extends AbstractRepository
             ]);
         } catch (PDOException $e) {
             throw new ServerErrorException(message: 'Failed to delete chat room', previous: $e);
+        }
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param User $user
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function isUserRoomOwner(
+        int $roomGuid,
+        User $user
+    ): bool {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->from(self::MEMBERS_TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
+            ->where('role_id', Operator::EQ, new RawExp(':role_id'))
+            ->limit(1)
+            ->prepare();
+
+        try {
+            $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+                'member_guid' => $user->getGuid(),
+                'role_id' => ChatRoomRoleEnum::OWNER->name,
+            ]);
+
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            throw new ServerErrorException(message: 'Failed to check if user is room owner', previous: $e);
         }
     }
 }

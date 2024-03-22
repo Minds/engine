@@ -140,7 +140,7 @@ class ReportService
             $this->actionService->handleReport(
                 report: $report,
                 action: $action,
-                moderator: $loggedInUser
+                moderator: $moderator
             );
         } catch(NotFoundException $e) {
             // if the entity cannot be handled, ignore the report.

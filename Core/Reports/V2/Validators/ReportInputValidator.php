@@ -40,8 +40,8 @@ class ReportInputValidator implements InputTypeValidatorInterface
         // check a GUID can be parsed from URN.
         $entityUrnSegments = explode(':', $reportInput->entityUrn);
         if (!is_numeric($guidSegments = $entityUrnSegments[array_key_last($entityUrnSegments)])) {
-            if ([$guid1, $guid2] = explode('-', $guidSegments)) {
-                if (!is_numeric($guid1) || !is_numeric($guid2)) {
+            if ($segments = explode('_', $guidSegments)) {
+                if (!is_numeric($segments[0]) || !is_numeric($segments[1] ?? null)) {
                     throw new GraphQLException("entityGuid parsed from last URN segment is not numeric", 400, null, "Validation", ['field' => 'entityUrn']);
                 }
             }

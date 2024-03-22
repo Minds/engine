@@ -4,9 +4,9 @@ declare(strict_types=1);
 namespace Minds\Core\Reports\V2\Services;
 
 use Minds\Core\Channels\Ban;
+use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
 use Minds\Core\Chat\Services\MessageService as ChatMessageService;
-use Minds\Core\Chat\Types\ChatMessageEdge;
 use Minds\Core\Comments\Comment;
 use Minds\Core\Comments\Manager as CommentManager;
 use Minds\Core\Entities\Actions\Delete;
@@ -100,10 +100,10 @@ class ActionService
         mixed $entity,
         User $moderator
     ): void {
-        if ($entity instanceof ChatMessageEdge) {
+        if ($entity instanceof ChatMessage) {
             $this->chatMessageService->deleteMessage(
-                roomGuid: $entity->getNode()->chatMessage->roomGuid,
-                messageGuid: $entity->getNode()->chatMessage->guid,
+                roomGuid: $entity->roomGuid,
+                messageGuid: $entity->guid,
                 loggedInUser: $moderator
             );
             return;

@@ -2,13 +2,14 @@
 
 namespace Spec\Minds\Core\Reports\Jury;
 
-use Minds\Core\Reports\Jury\Manager;
-use Minds\Core\Reports\Verdict\Manager as VerdictManager;
-use Minds\Core\Reports\Jury\Repository;
-use Minds\Core\Reports\Jury\Decision;
-use Minds\Core\Reports\Summons\Manager as SummonsManager;
-use Minds\Core\Reports\Report;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
+use Minds\Core\Reports\Jury\Decision;
+use Minds\Core\Reports\Jury\Manager;
+use Minds\Core\Reports\Jury\Repository;
+use Minds\Core\Reports\Report;
+use Minds\Core\Reports\Summons\Manager as SummonsManager;
+use Minds\Core\Reports\Verdict\Manager as VerdictManager;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -61,8 +62,10 @@ class ManagerSpec extends ObjectBehavior
         $response->shouldHaveCount(2);
     }
 
-    public function it_should_cast_a_jury_decision(Decision $decision)
-    {
+    public function it_should_cast_a_jury_decision(
+        Decision $decision,
+        User $userMock
+    ): void {
         $report = new Report();
 
         $decision->getReport()
@@ -73,11 +76,15 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
+        $decision->getJuror()
+            ->shouldBeCalled()
+            ->willReturn($userMock);
+
         $this->repository->add($decision)
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->verdictManager->decideFromReport(Argument::type(Report::class))
+        $this->verdictManager->decideFromReport(Argument::type(Report::class), $userMock)
             ->shouldBeCalled();
 
         $this->cast($decision)

@@ -7,12 +7,12 @@ namespace Minds\Core\Events;
 
 use Minds\Core;
 use Minds\Core\Analytics\Metrics;
+use Minds\Core\Chat\Services\RoomService as ChatRoomService;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
-use Minds\Entities;
-use Minds\Entities\User;
 use Minds\Entities\Group;
+use Minds\Entities\User;
 use Minds\Helpers;
 
 class Defaults
@@ -205,6 +205,12 @@ class Defaults
 
         // Boost Events
         (new Core\Boost\V3\Events\Events())->register();
+
+        // Chat ACL Events
+        (new Core\Chat\Events\Events(
+            eventsDispatcher: Di::_()->get('EventsDispatcher'),
+            chatRoomService: Di::_()->get(ChatRoomService::class)
+        ))->register();
     }
 
     public static function _()

@@ -2,12 +2,13 @@
 
 namespace Spec\Minds\Core\Reports\Verdict;
 
+use Minds\Core\Reports\Jury\Decision;
+use Minds\Core\Reports\Report;
+use Minds\Core\Reports\Verdict\Delegates;
 use Minds\Core\Reports\Verdict\Manager;
 use Minds\Core\Reports\Verdict\Repository;
 use Minds\Core\Reports\Verdict\Verdict;
-use Minds\Core\Reports\Jury\Decision;
-use Minds\Core\Reports\Verdict\Delegates;
-use Minds\Core\Reports\Report;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -65,7 +66,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->actionDelegate->onAction($verdict)
+        $this->actionDelegate->onAction($verdict, null)
             ->shouldBeCalled();
 
         $this->metricsDelegate->onCast($verdict)
@@ -230,8 +231,10 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBe(null);
     }
 
-    public function it_should_decide_verdict_from_a_report(Report $report)
-    {
+    public function it_should_decide_verdict_from_a_report(
+        Report $report,
+        User $userMock
+    ): void {
         $report->isAppeal()
             ->shouldBeCalled()
             ->willReturn(false);
@@ -251,7 +254,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->decideFromReport($report)
+        $this->decideFromReport($report, $userMock)
             ->shouldBe(true);
     }
 }

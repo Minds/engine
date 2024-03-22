@@ -168,6 +168,7 @@ class ChatController
         ?string            $after = null,
         ?int               $last = null,
         ?int               $before = null,
+        bool               $excludeSelf = true
     ): ChatRoomMembersConnection {
         $connection = new ChatRoomMembersConnection();
 
@@ -175,7 +176,8 @@ class ChatController
             roomGuid: (int)$roomGuid,
             loggedInUser: $loggedInUser,
             first: $first,
-            after: $after
+            after: $after,
+            excludeSelf: $excludeSelf
         );
 
         $connection->setEdges($chatRoomMemberEdges);

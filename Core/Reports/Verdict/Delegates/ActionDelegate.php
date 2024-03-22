@@ -393,7 +393,7 @@ class ActionDelegate
      */
     private function rejectEntityBoosts(mixed $entity): bool
     {
-        if ($entity->getType() !== 'chat') {
+        if ($entity->getType() === 'chat') {
             return true;
         }
         try {
