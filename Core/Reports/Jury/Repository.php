@@ -89,6 +89,7 @@ class Repository
                     true
                 )
                 && !($this->config->get('development_mode'))
+                && $opts['juryType'] === 'appeal'
             ) {
                 continue; // Already interacted with
             }
