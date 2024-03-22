@@ -17,7 +17,7 @@ class Provider extends DiProvider
     {
         $this->di->bind(NavigationController::class, function (Di $di): NavigationController {
             return new NavigationController(
-
+                service: $di->get(CustomNavigationService::class),
             );
         });
 

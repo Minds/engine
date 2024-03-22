@@ -4,18 +4,21 @@ namespace Minds\Core\Custom\Navigation;
 use Minds\Core\Custom\Navigation\Enums\NavigationItemActionEnum;
 use Minds\Core\Custom\Navigation\Enums\NavigationItemTypeEnum;
 use Minds\Entities\ExportableInterface;
+use TheCodingMachine\GraphQLite\Annotations\Field;
+use TheCodingMachine\GraphQLite\Annotations\Type;
 
+#[Type]
 class NavigationItem implements ExportableInterface
 {
     public function __construct(
-        public readonly string $id,
-        public string $name,
-        public NavigationItemTypeEnum $type,
-        public bool $visible,
-        public string $iconId,
-        public ?string $path = null,
-        public ?string $url = null,
-        public ?NavigationItemActionEnum $action = null,
+        #[Field] public readonly string $id,
+        #[Field] public string $name,
+        #[Field] public NavigationItemTypeEnum $type,
+        #[Field] public bool $visible,
+        #[Field] public string $iconId,
+        #[Field] public ?string $path = null,
+        #[Field] public ?string $url = null,
+        #[Field] public ?NavigationItemActionEnum $action = null,
     ) {
         
     }

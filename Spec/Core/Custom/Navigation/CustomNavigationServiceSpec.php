@@ -9,6 +9,7 @@ use Minds\Core\Custom\Navigation\NavigationItem;
 use Minds\Core\Custom\Navigation\Repository;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 
 class CustomNavigationServiceSpec extends ObjectBehavior
 {
@@ -86,4 +87,33 @@ class CustomNavigationServiceSpec extends ObjectBehavior
         $items[1]->name->shouldBe('Global');
     }
 
+    public function it_should_add_a_new_item()
+    {
+        $this->repositoryMock->addItem(Argument::type(NavigationItem::class))
+            ->willReturn(true);
+        
+        $this->addItem(new NavigationItem(
+            id: 'explore',
+            name: 'Global',
+            type: NavigationItemTypeEnum::CORE,
+            visible: true,
+            iconId: 'explore',
+            path: '/explore',
+        ))->shouldBe(true);
+    }
+
+    public function it_should_update_a_new_item()
+    {
+        $this->repositoryMock->updateItem(Argument::type(NavigationItem::class))
+            ->willReturn(true);
+        
+        $this->updateItem(new NavigationItem(
+            id: 'explore',
+            name: 'Global',
+            type: NavigationItemTypeEnum::CORE,
+            visible: true,
+            iconId: 'explore',
+            path: '/explore',
+        ))->shouldBe(true);
+    }
 }

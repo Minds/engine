@@ -12,7 +12,7 @@ class GraphQLMappings extends AbstractGraphQLMappings
     {
         $this->schemaFactory->addControllerNamespace('Minds\\Core\\Custom\\Navigation\\Controllers');
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
-  
+            NavigationItem::class,
         ]));
     }
 }

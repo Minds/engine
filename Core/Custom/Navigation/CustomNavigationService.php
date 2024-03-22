@@ -34,6 +34,22 @@ class CustomNavigationService
     }
 
     /**
+     * Adds a new item to the datastore
+     */
+    public function addItem(NavigationItem $item): bool
+    {
+        return $this->repository->addItem($item);
+    }
+
+    /**
+     * Update an existing item with new information
+     */
+    public function updateItem(NavigationItem $item): bool
+    {
+        return $this->repository->updateItem($item);
+    }
+
+    /**
      * @return NavigationItem[]
      */
     private function mergeItems($a, $b): array
