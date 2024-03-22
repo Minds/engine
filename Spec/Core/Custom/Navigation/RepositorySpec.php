@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Custom\Navigation;
 use Minds\Core\Config\Config;
 use Minds\Core\Custom\Navigation\Enums\NavigationItemActionEnum;
 use Minds\Core\Custom\Navigation\Enums\NavigationItemTypeEnum;
+use Minds\Core\Custom\Navigation\NavigationItem;
 use Minds\Core\Custom\Navigation\Repository;
 use Minds\Core\Data\cache\PsrWrapper;
 use Minds\Core\Data\MySQL;
@@ -116,4 +117,98 @@ class RepositorySpec extends ObjectBehavior
 
         $list[2]->action->shouldBe(NavigationItemActionEnum::SHOW_SIDEBAR_MORE);
     }
+
+    public function it_should_add_a_new_item_to_the_list(PDOStatement $stmtMock)
+    {
+        $this->mysqlMasterMock->prepare(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($stmtMock);
+
+        $stmtMock->execute([
+            'tenant_id' => -1,
+            'id' => 'newsfeed',
+            'name' => 'Newsfeed',
+            'type' => 'CORE',
+            'visible' => true,
+            'icon_id' => 'home',
+            'path' => '/newsfeed',
+            'url' => null,
+            'action' => null,
+        ])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $item = new NavigationItem(
+            id: 'newsfeed',
+            name: 'Newsfeed',
+            type: NavigationItemTypeEnum::CORE,
+            visible: true,
+            iconId: 'home',
+            path: '/newsfeed',
+        );
+        $this->addItem($item)->shouldBe(true);
+    }
+
+    public function it_should_add_a_new_item_to_the_list_that_has_a_custom_link(PDOStatement $stmtMock)
+    {
+        $this->mysqlMasterMock->prepare(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($stmtMock);
+
+        $stmtMock->execute([
+            'tenant_id' => -1,
+            'id' => 'newsfeed',
+            'name' => 'Newsfeed',
+            'type' => 'CUSTOM_LINK',
+            'visible' => true,
+            'icon_id' => 'home',
+            'path' => null,
+            'url' => null,
+            'action' => 'SHOW_SIDEBAR_MORE',
+        ])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $item = new NavigationItem(
+            id: 'newsfeed',
+            name: 'Newsfeed',
+            type: NavigationItemTypeEnum::CUSTOM_LINK,
+            visible: true,
+            iconId: 'home',
+            action: NavigationItemActionEnum::SHOW_SIDEBAR_MORE
+        );
+        $this->addItem($item)->shouldBe(true);
+    }
+
+    public function it_should_update_an_existing_item(PDOStatement $stmtMock)
+    {
+        $this->mysqlMasterMock->prepare(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($stmtMock);
+
+        $stmtMock->execute([
+            'tenant_id' => -1,
+            'id' => 'newsfeed',
+            'name' => 'Newsfeed',
+            'type' => 'CORE',
+            'visible' => true,
+            'icon_id' => 'home',
+            'path' => '/newsfeed',
+            'url' => null,
+            'action' => null,
+        ])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $item = new NavigationItem(
+            id: 'newsfeed',
+            name: 'Newsfeed',
+            type: NavigationItemTypeEnum::CORE,
+            visible: true,
+            iconId: 'home',
+            path: '/newsfeed',
+        );
+        $this->updateItem($item)->shouldBe(true);
+    }
+
 }
