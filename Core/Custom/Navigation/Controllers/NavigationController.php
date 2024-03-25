@@ -6,9 +6,13 @@ use Minds\Core\Custom\Navigation\CustomNavigationService;
 use Minds\Core\Custom\Navigation\Enums\NavigationItemActionEnum;
 use Minds\Core\Custom\Navigation\Enums\NavigationItemTypeEnum;
 use Minds\Core\Custom\Navigation\NavigationItem;
+use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
+use TheCodingMachine\GraphQLite\Annotations\InjectUser;
+use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Query;
+use TheCodingMachine\GraphQLite\Annotations\Security;
 
 class NavigationController
 {
@@ -32,7 +36,10 @@ class NavigationController
      * Add or update a navigation item
      */
     #[Mutation]
-    public function upsertCustomNavigationItem(
+    #[Logged]
+    #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
+    public function upsertCustomNavigationItem(#
+        #[InjectUser] User $loggedInUser,
         string $id,
         string $name,
         NavigationItemTypeEnum $type,
@@ -68,7 +75,9 @@ class NavigationController
      * @return NavigationItem[]
      */
     #[Mutation]
-    public function updateCustomNavigationItemsOrder(array $orderedIds): array
+    #[Logged]
+    #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
+    public function updateCustomNavigationItemsOrder(array $orderedIds, #[InjectUser] User $loggedInUser): array
     {
         if (!$this->service->updateItemsOrder($orderedIds)) {
             throw new ServerErrorException();
@@ -81,7 +90,9 @@ class NavigationController
      * Deletes a navigation item
      */
     #[Mutation]
-    public function deleteCustomNavigationItem(string $id): bool
+    #[Logged]
+    #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
+    public function deleteCustomNavigationItem(string $id, #[InjectUser] User $loggedInUser): bool
     {
         return $this->service->deleteItem($id);
     }

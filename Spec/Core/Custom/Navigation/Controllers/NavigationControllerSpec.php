@@ -6,6 +6,7 @@ use Minds\Core\Custom\Navigation\Controllers\NavigationController;
 use Minds\Core\Custom\Navigation\CustomNavigationService;
 use Minds\Core\Custom\Navigation\Enums\NavigationItemTypeEnum;
 use Minds\Core\Custom\Navigation\NavigationItem;
+use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -56,6 +57,7 @@ class NavigationControllerSpec extends ObjectBehavior
             iconId: 'explore',
             path: '/explore',
             order: 2,
+            loggedInUser: new User(),
         );
         $result->id->shouldBe('explore');
     }
@@ -100,7 +102,10 @@ class NavigationControllerSpec extends ObjectBehavior
                     path: '/explore',
                 ),
             ]);
-        $response = $this->updateCustomNavigationItemsOrder(['newsfeed','explore','more','about']);
+        $response = $this->updateCustomNavigationItemsOrder(
+            ['newsfeed','explore','more','about'],
+            loggedInUser: new User(),
+        );
         $response->shouldHaveCount(4);
     }
 
@@ -113,7 +118,10 @@ class NavigationControllerSpec extends ObjectBehavior
         $this->serviceMock->getItems()
             ->shouldNotBeCalled();
     
-        $this->shouldThrow(ServerErrorException::class)->duringUpdateCustomNavigationItemsOrder(['newsfeed','explore','more','about']);
+        $this->shouldThrow(ServerErrorException::class)->duringUpdateCustomNavigationItemsOrder(
+            ['newsfeed','explore','more','about'],
+            loggedInUser: new User(),
+        );
     }
 
     public function it_should_delete_an_item_by_id()
@@ -122,7 +130,7 @@ class NavigationControllerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->deleteCustomNavigationItem('newsfeed')
+        $this->deleteCustomNavigationItem('newsfeed', loggedInUser: new User())
             ->shouldBe(true);
     }
 }
