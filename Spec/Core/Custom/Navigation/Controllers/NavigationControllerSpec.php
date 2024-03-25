@@ -9,6 +9,7 @@ use Minds\Core\Custom\Navigation\NavigationItem;
 use Minds\Exceptions\ServerErrorException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 
 class NavigationControllerSpec extends ObjectBehavior
 {
@@ -39,6 +40,24 @@ class NavigationControllerSpec extends ObjectBehavior
                 ),
             ]);
         $this->getCustomNavigationItems()->shouldHaveCount(1);
+    }
+
+    public function it_should_upsert_an_item()
+    {
+        $this->serviceMock->addItem(Argument::type(NavigationItem::class))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $result = $this->upsertCustomNavigationItem(
+            id: 'explore',
+            name: 'Global',
+            type: NavigationItemTypeEnum::CORE,
+            visible: true,
+            iconId: 'explore',
+            path: '/explore',
+            order: 2,
+        );
+        $result->id->shouldBe('explore');
     }
 
     public function it_should_update_the_order_of_items()
