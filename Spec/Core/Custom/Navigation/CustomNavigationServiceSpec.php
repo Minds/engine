@@ -77,6 +77,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
                     visible: true,
                     iconId: 'explore',
                     path: '/explore',
+                    order: 2,
                 ),
             ]);
 
@@ -102,18 +103,45 @@ class CustomNavigationServiceSpec extends ObjectBehavior
         ))->shouldBe(true);
     }
 
-    public function it_should_update_a_new_item()
+    public function it_should_update_the_order_of_items()
     {
-        $this->repositoryMock->updateItem(Argument::type(NavigationItem::class))
+        $this->configMock->get('tenant_id')
+            ->willReturn(1);
+
+        $this->repositoryMock->getItems()
+            ->willReturn([
+                new NavigationItem(
+                    id: 'newsfeed',
+                    name: 'Newsfeed',
+                    type: NavigationItemTypeEnum::CORE,
+                    visible: true,
+                    iconId: 'home',
+                    path: '/newsfeed',
+                    order: 3,
+                ),
+                new NavigationItem(
+                    id: 'explore',
+                    name: 'Global',
+                    type: NavigationItemTypeEnum::CORE,
+                    visible: true,
+                    iconId: 'explore',
+                    path: '/explore',
+                    order: 2,
+                ),
+            ]);
+
+
+        $this->repositoryMock->beginTransaction()->shouldBeCalled();
+
+        $this->repositoryMock->addItem(Argument::that(function (NavigationItem $item) {
+            return ($item->id === 'newsfeed' && $item->order === 0) || ($item->id === 'explore' &&  $item->order ===1);
+        }))
+            ->shouldBeCalled()
             ->willReturn(true);
-        
-        $this->updateItem(new NavigationItem(
-            id: 'explore',
-            name: 'Global',
-            type: NavigationItemTypeEnum::CORE,
-            visible: true,
-            iconId: 'explore',
-            path: '/explore',
-        ))->shouldBe(true);
+
+        $this->repositoryMock->commitTransaction()->shouldBeCalled();
+
+        $this->updateItemsOrder([ 'newsfeed','explore',])
+            ->shouldBe(true);
     }
 }

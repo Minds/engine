@@ -27,6 +27,10 @@ class CustomNavigationService
 
             $items = $this->mergeItems($defaults, $configuredItems);
 
+            usort($items, function (NavigationItem $a, NavigationItem $b) {
+                return $a->order > $b->order;
+            });
+
             return $items;
         } else {
             return $this->getDefaults();
@@ -42,11 +46,34 @@ class CustomNavigationService
     }
 
     /**
-     * Update an existing item with new information
+     * Updates the order of the items
+     * @param string[] $orderedItems
      */
-    public function updateItem(NavigationItem $item): bool
+    public function updateItemsOrder(array $orderedItems): bool
     {
-        return $this->repository->updateItem($item);
+        // When we update an item order, we also need to import default items that don't exist yet
+
+        $items = $this->getItems();
+        $itemsK = $this->toAssocArray($items);
+
+        $this->repository->beginTransaction();
+
+        try {
+            foreach ($orderedItems as $order => $id) {
+                if (isset($itemsK[$id])) {
+                    $item = $itemsK[$id];
+                    $item->order = $order;
+
+                    $this->repository->addItem($item);
+                }
+            }
+            $this->repository->commitTransaction();
+        } catch (\Exception $e) {
+            $this->repository->rollbackTransaction();
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -90,6 +117,7 @@ class CustomNavigationService
                 visible: true,
                 iconId: 'home',
                 path: '/newsfeed',
+                order: 1,
             ),
             new NavigationItem(
                 id: 'explore',
@@ -98,6 +126,7 @@ class CustomNavigationService
                 visible: true,
                 iconId: 'explore',
                 path: '/explore',
+                order: 2,
             ),
             new NavigationItem(
                 id: 'groups',
@@ -108,6 +137,7 @@ class CustomNavigationService
                 path: '/groups',
                 url: null,
                 action: null,
+                order: 3,
             ),
             new NavigationItem(
                 id: 'admin',
@@ -116,6 +146,7 @@ class CustomNavigationService
                 visible: true,
                 iconId: 'admin_panel_settings',
                 path: '/admin',
+                order: 4
             ),
             new NavigationItem(
                 id: 'channel',
@@ -123,6 +154,7 @@ class CustomNavigationService
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
                 iconId: '',
+                order: 5,
             ),
             new NavigationItem(
                 id: 'more',
@@ -130,7 +162,8 @@ class CustomNavigationService
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
                 iconId: 'more_horiz',
-                action: NavigationItemActionEnum::SHOW_SIDEBAR_MORE
+                action: NavigationItemActionEnum::SHOW_SIDEBAR_MORE,
+                order: 6
             ),
         ];
     }

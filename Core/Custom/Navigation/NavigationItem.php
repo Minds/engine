@@ -19,6 +19,7 @@ class NavigationItem implements ExportableInterface
         #[Field] public ?string $path = null,
         #[Field] public ?string $url = null,
         #[Field] public ?NavigationItemActionEnum $action = null,
+        #[Field] public int $order = 500,
     ) {
         
     }

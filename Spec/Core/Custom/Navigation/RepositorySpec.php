@@ -76,6 +76,7 @@ class RepositorySpec extends ObjectBehavior
                     'path' => null,
                     'url' => '/about',
                     'action' => null,
+                    'order' => 10,
                 ],
                 [
                 
@@ -87,6 +88,7 @@ class RepositorySpec extends ObjectBehavior
                     'path' => '/about-2',
                     'url' => null,
                     'action' => null,
+                    'order' => 11,
                 ],
                 [
                 
@@ -98,6 +100,7 @@ class RepositorySpec extends ObjectBehavior
                     'path' => null,
                     'url' => null,
                     'action' => 'SHOW_SIDEBAR_MORE',
+                    'order' => 12,
                 ]
             ]);
 
@@ -134,6 +137,16 @@ class RepositorySpec extends ObjectBehavior
             'path' => '/newsfeed',
             'url' => null,
             'action' => null,
+            'order' => 500,
+            // on duplicate ...
+            'new_name' => 'Newsfeed',
+            'new_type' => 'CORE',
+            'new_visible' => true,
+            'new_icon_id' => 'home',
+            'new_path' => '/newsfeed',
+            'new_url' => null,
+            'new_action' => null,
+            'new_order' => 500,
         ])
             ->shouldBeCalled()
             ->willReturn(true);
@@ -165,6 +178,16 @@ class RepositorySpec extends ObjectBehavior
             'path' => null,
             'url' => null,
             'action' => 'SHOW_SIDEBAR_MORE',
+            'order' => 500,
+            // on duplicate ...
+            'new_name' => 'Newsfeed',
+            'new_type' => 'CUSTOM_LINK',
+            'new_visible' => true,
+            'new_icon_id' => 'home',
+            'new_path' => null,
+            'new_url' => null,
+            'new_action' => 'SHOW_SIDEBAR_MORE',
+            'new_order' => 500,
         ])
             ->shouldBeCalled()
             ->willReturn(true);
@@ -180,35 +203,5 @@ class RepositorySpec extends ObjectBehavior
         $this->addItem($item)->shouldBe(true);
     }
 
-    public function it_should_update_an_existing_item(PDOStatement $stmtMock)
-    {
-        $this->mysqlMasterMock->prepare(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn($stmtMock);
-
-        $stmtMock->execute([
-            'tenant_id' => -1,
-            'id' => 'newsfeed',
-            'name' => 'Newsfeed',
-            'type' => 'CORE',
-            'visible' => true,
-            'icon_id' => 'home',
-            'path' => '/newsfeed',
-            'url' => null,
-            'action' => null,
-        ])
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $item = new NavigationItem(
-            id: 'newsfeed',
-            name: 'Newsfeed',
-            type: NavigationItemTypeEnum::CORE,
-            visible: true,
-            iconId: 'home',
-            path: '/newsfeed',
-        );
-        $this->updateItem($item)->shouldBe(true);
-    }
 
 }
