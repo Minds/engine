@@ -36,7 +36,7 @@ class CustomNavigationService
             $items = $this->mergeItems($defaults, $configuredItems);
 
             usort($items, function (NavigationItem $a, NavigationItem $b) {
-                return $a->order > $b->order;
+                return $a->order <=> $b->order;
             });
 
             return $items;
