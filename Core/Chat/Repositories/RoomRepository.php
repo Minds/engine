@@ -26,6 +26,7 @@ class RoomRepository extends AbstractRepository
     public const TABLE_NAME = 'minds_chat_rooms';
     public const MEMBERS_TABLE_NAME = 'minds_chat_members';
     private const MESSAGES_TABLE_NAME = 'minds_chat_messages';
+    private const RECEIPTS_TABLE_NAME = 'minds_chat_receipts';
 
     /**
      * @param int $roomGuid
@@ -618,6 +619,30 @@ class RoomRepository extends AbstractRepository
      * @return bool
      * @throws ServerErrorException
      */
+    public function deleteAllRoomMessageReadReceipts(
+        int $roomGuid
+    ): bool {
+        $stmt = $this->mysqlClientWriterHandler->delete()
+            ->from(self::RECEIPTS_TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->prepare();
+
+        try {
+            return $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+            ]);
+        } catch (PDOException $e) {
+            throw new ServerErrorException(message: 'Failed to delete chat room message read receipts', previous: $e);
+        }
+    }
+
+    /**
+     * @param int $roomGuid
+     * @return bool
+     * @throws ServerErrorException
+     */
     public function deleteAllRoomMembers(
         int $roomGuid
     ): bool {
@@ -645,6 +670,10 @@ class RoomRepository extends AbstractRepository
     public function deleteRoom(
         int $roomGuid
     ): bool {
+        $this->deleteAllRoomMessageReadReceipts(
+            roomGuid: $roomGuid
+        );
+
         $this->deleteAllRoomMessages(
             roomGuid: $roomGuid
         );

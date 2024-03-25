@@ -21,6 +21,7 @@ use Minds\Core\GraphQL\Types\PageInfo;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\Block\BlockLimitException;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
@@ -357,6 +358,83 @@ class ChatController
             roomGuid: (int) $roomGuid,
             messageGuid: (int) $messageGuid,
             loggedInUser: $loggedInUser
+        );
+    }
+
+    /**
+     * @param string $roomGuid
+     * @return bool
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     */
+    #[Mutation]
+    #[Logged]
+    public function deleteChatRoom(
+        string $roomGuid,
+        #[InjectUser] User $loggedInUser
+    ): bool {
+        return $this->roomService->deleteChatRoom(
+            roomGuid: (int) $roomGuid,
+            user: $loggedInUser
+        );
+    }
+
+    /**
+     * @param string $roomGuid
+     * @return bool
+     * @throws ServerErrorException
+     */
+    #[Mutation]
+    #[Logged]
+    public function leaveChatRoom(
+        string $roomGuid,
+        #[InjectUser] User $loggedInUser
+    ): bool {
+        return $this->roomService->leaveChatRoom(
+            roomGuid: (int) $roomGuid,
+            user: $loggedInUser
+        );
+    }
+
+    /**
+     * @param string $roomGuid
+     * @param string $memberGuid
+     * @return bool
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     */
+    #[Mutation]
+    #[Logged]
+    public function removeMemberFromChatRoom(
+        string $roomGuid,
+        string $memberGuid,
+        #[InjectUser] User $loggedInUser
+    ): bool {
+        return $this->roomService->removeMemberFromChatRoom(
+            roomGuid: (int) $roomGuid,
+            memberGuid: (int) $memberGuid,
+            user: $loggedInUser
+        );
+    }
+
+    /**
+     * @param string $roomGuid
+     * @return bool
+     * @throws BlockLimitException
+     * @throws ChatRoomNotFoundException
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     * @throws NotFoundException
+     */
+    #[Mutation]
+    #[Logged]
+    public function deleteChatRoomAndBlockUser(
+        string $roomGuid,
+        #[InjectUser] User $loggedInUser
+    ): bool {
+        return $this->roomService->deleteChatRoomAndBlockUser(
+            roomGuid: (int) $roomGuid,
+            user: $loggedInUser
         );
     }
 }
