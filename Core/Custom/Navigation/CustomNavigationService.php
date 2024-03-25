@@ -124,7 +124,7 @@ class CustomNavigationService
                 name: 'Explore',
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
-                iconId: 'explore',
+                iconId: '#',
                 path: '/explore',
                 order: 2,
             ),
@@ -144,7 +144,7 @@ class CustomNavigationService
                 name: 'Admin',
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
-                iconId: 'admin_panel_settings',
+                iconId: 'dashboard',
                 path: '/admin',
                 order: 4
             ),
