@@ -24,6 +24,7 @@ class Provider extends DiProvider
         $this->di->bind(CustomNavigationService::class, function (Di $di): CustomNavigationService {
             return new CustomNavigationService(
                 repository: $di->get(Repository::class),
+                cache: $di->get('Cache\PsrWrapper'),
                 config: $di->get(Config::class),
             );
         });

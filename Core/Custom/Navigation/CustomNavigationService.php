@@ -5,11 +5,13 @@ namespace Minds\Core\Custom\Navigation;
 use Minds\Core\Config\Config;
 use Minds\Core\Custom\Navigation\Enums\NavigationItemActionEnum;
 use Minds\Core\Custom\Navigation\Enums\NavigationItemTypeEnum;
+use Minds\Core\Data\cache\PsrWrapper;
 
 class CustomNavigationService
 {
     public function __construct(#
         private readonly Repository $repository,
+        private readonly PsrWrapper $cache,
         private readonly Config $config,
     ) {
     }
@@ -18,12 +20,18 @@ class CustomNavigationService
      * Returns the navigation items for the site
      * @return NavigationItem[]
      */
-    public function getItems()
+    public function getItems(bool $useCache = true)
     {
         if ($this->isTenant()) {
             $defaults = $this->getDefaults();
 
-            $configuredItems = $this->repository->getItems();
+            if ($useCache && $cachedItems = $this->cache->get($this->getCacheKey())) {
+                $configuredItems = unserialize($cachedItems);
+            } else {
+                $configuredItems = $this->repository->getItems();
+
+                $this->cache->set($this->getCacheKey(), serialize($configuredItems));
+            }
 
             $items = $this->mergeItems($defaults, $configuredItems);
 
@@ -42,7 +50,11 @@ class CustomNavigationService
      */
     public function addItem(NavigationItem $item): bool
     {
-        return $this->repository->addItem($item);
+        $result = $this->repository->addItem($item);
+
+        $this->cache->delete($this->getCacheKey());
+
+        return $result;
     }
 
     /**
@@ -53,7 +65,7 @@ class CustomNavigationService
     {
         // When we update an item order, we also need to import default items that don't exist yet
 
-        $items = $this->getItems();
+        $items = $this->getItems(useCache: false);
         $itemsK = $this->toAssocArray($items);
 
         $this->repository->beginTransaction();
@@ -64,7 +76,7 @@ class CustomNavigationService
                     $item = $itemsK[$id];
                     $item->order = $order;
 
-                    $this->repository->addItem($item);
+                    $this->addItem($item);
                 }
             }
             $this->repository->commitTransaction();
@@ -174,5 +186,10 @@ class CustomNavigationService
     private function isTenant(): bool
     {
         return !!$this->config->get('tenant_id');
+    }
+
+    private function getCacheKey(): string
+    {
+        return 'custom-nav';
     }
 }

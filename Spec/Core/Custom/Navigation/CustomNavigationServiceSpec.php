@@ -7,6 +7,7 @@ use Minds\Core\Custom\Navigation\CustomNavigationService;
 use Minds\Core\Custom\Navigation\Enums\NavigationItemTypeEnum;
 use Minds\Core\Custom\Navigation\NavigationItem;
 use Minds\Core\Custom\Navigation\Repository;
+use Minds\Core\Data\cache\PsrWrapper;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
@@ -14,14 +15,17 @@ use Prophecy\Argument;
 class CustomNavigationServiceSpec extends ObjectBehavior
 {
     private Collaborator $repositoryMock;
+    private Collaborator $cacheMock;
     private Collaborator $configMock;
 
     public function let(
         Repository $repositoryMock,
+        PsrWrapper $cacheMock,
         Config $configMock
     ) {
-        $this->beConstructedWith($repositoryMock, $configMock);
+        $this->beConstructedWith($repositoryMock, $cacheMock, $configMock);
         $this->repositoryMock = $repositoryMock;
+        $this->cacheMock = $cacheMock;
         $this->configMock = $configMock;
     }
 
@@ -63,6 +67,32 @@ class CustomNavigationServiceSpec extends ObjectBehavior
         $items[6]->id->shouldBe('about');
     }
 
+    public function it_should_return_list_from_database_for_tenants_from_cache()
+    {
+        $this->configMock->get('tenant_id')
+            ->willReturn(1);
+
+        $this->cacheMock->get(Argument::any())
+            ->willReturn(serialize([
+                new NavigationItem(
+                    id: 'about',
+                    name: 'About',
+                    type: NavigationItemTypeEnum::CUSTOM_LINK,
+                    visible: true,
+                    iconId: 'home',
+                    url: '/about',
+                ),
+            ]));
+
+        $this->repositoryMock->getItems()
+            ->shouldNotBeCalled();
+
+        $items = $this->getItems();
+        $items->shouldHaveCount(7);
+
+        $items[6]->id->shouldBe('about');
+    }
+
     public function it_should_merge_default_and_database_items_for_tenants()
     {
         $this->configMock->get('tenant_id')
@@ -92,7 +122,10 @@ class CustomNavigationServiceSpec extends ObjectBehavior
     {
         $this->repositoryMock->addItem(Argument::type(NavigationItem::class))
             ->willReturn(true);
-        
+            
+        $this->cacheMock->delete(Argument::type('string'))
+            ->shouldBeCalled();
+
         $this->addItem(new NavigationItem(
             id: 'explore',
             name: 'Global',
@@ -140,6 +173,12 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->repositoryMock->commitTransaction()->shouldBeCalled();
+
+        $this->cacheMock->set(Argument::type('string'), Argument::type('string'))
+            ->shouldBeCalled();
+
+        $this->cacheMock->delete(Argument::type('string'))
+            ->shouldBeCalled();
 
         $this->updateItemsOrder([ 'newsfeed','explore',])
             ->shouldBe(true);

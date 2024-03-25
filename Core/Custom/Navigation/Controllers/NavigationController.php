@@ -43,7 +43,6 @@ class NavigationController
         NavigationItemActionEnum $action = null,
         int $order = 500,
     ): NavigationItem {
-
         $item = new NavigationItem(
             id: $id,
             name: $name,
