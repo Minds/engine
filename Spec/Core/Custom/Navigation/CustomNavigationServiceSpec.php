@@ -183,4 +183,19 @@ class CustomNavigationServiceSpec extends ObjectBehavior
         $this->updateItemsOrder([ 'newsfeed','explore',])
             ->shouldBe(true);
     }
+
+
+    public function it_should_delete_an_item()
+    {
+        $this->repositoryMock->deleteItem('newsfeed')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->cacheMock->delete(Argument::type('string'))
+            ->shouldBeCalled()
+            ->willReturn(true);
+        
+        $this->deleteItem('newsfeed')
+            ->shouldBe(true);
+    }
 }

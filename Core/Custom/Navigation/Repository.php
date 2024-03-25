@@ -119,6 +119,21 @@ class Repository extends AbstractRepository
         ]);
     }
 
+    public function deleteItem(string $id): bool
+    {
+        $query = $this->mysqlClientWriterHandler->delete()
+            ->from(self::TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('id', Operator::EQ, new RawExp(':id'));
+
+        $stmt = $query->prepare();
+
+        return $stmt->execute([
+            'tenant_id' => $this->getTenantId(),
+            'id' => $id,
+        ]);
+    }
+
     /**
      * Returns the tenant id (-1 is host)
      */

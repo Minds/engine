@@ -203,5 +203,19 @@ class RepositorySpec extends ObjectBehavior
         $this->addItem($item)->shouldBe(true);
     }
 
+    public function it_should_delete_item(PDOStatement $stmtMock)
+    {
+        $this->mysqlMasterMock->prepare(Argument::any())
+            ->willReturn($stmtMock);
+
+        $stmtMock->execute([
+            'tenant_id' => -1,
+            'id' => 'newsfeed'
+        ])
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->deleteItem('newsfeed')->shouldBe(true);
+    }
 
 }

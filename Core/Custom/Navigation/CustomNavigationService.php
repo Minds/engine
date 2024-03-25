@@ -58,6 +58,18 @@ class CustomNavigationService
     }
 
     /**
+     * Remove an item from the datastore
+     */
+    public function deleteItem(string $id): bool
+    {
+        $result = $this->repository->deleteItem($id);
+
+        $this->cache->delete($this->getCacheKey());
+
+        return $result;
+    }
+
+    /**
      * Updates the order of the items
      * @param string[] $orderedItems
      */

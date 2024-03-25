@@ -115,4 +115,14 @@ class NavigationControllerSpec extends ObjectBehavior
     
         $this->shouldThrow(ServerErrorException::class)->duringUpdateCustomNavigationItemsOrder(['newsfeed','explore','more','about']);
     }
+
+    public function it_should_delete_an_item_by_id()
+    {
+        $this->serviceMock->deleteItem('newsfeed')
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->deleteCustomNavigationItem('newsfeed')
+            ->shouldBe(true);
+    }
 }

@@ -76,4 +76,13 @@ class NavigationController
 
         return $this->service->getItems();
     }
+
+    /**
+     * Deletes a navigation item
+     */
+    #[Mutation]
+    public function deleteCustomNavigationItem(string $id): bool
+    {
+        return $this->service->deleteItem($id);
+    }
 }
