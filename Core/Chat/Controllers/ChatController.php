@@ -5,6 +5,7 @@ namespace Minds\Core\Chat\Controllers;
 use InvalidArgumentException;
 use Minds\Core\Chat\Enums\ChatRoomInviteRequestActionEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
+use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
 use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
 use Minds\Core\Chat\Exceptions\InvalidChatRoomTypeException;
 use Minds\Core\Chat\Services\MessageService;
@@ -20,11 +21,13 @@ use Minds\Core\GraphQL\Types\PageInfo;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\Block\BlockLimitException;
 use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 use TheCodingMachine\GraphQLite\Annotations\InjectUser;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Query;
+use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class ChatController
 {
@@ -99,18 +102,16 @@ class ChatController
         }
 
         $connection = new ChatMessagesConnection();
-        $hasMore = false;
 
-        $connection->setEdges(
-            $this->messageService->getMessages(
-                roomGuid: (int)$roomGuid,
-                user: $loggedInUser,
-                first: $first,
-                after: $before, // we need to reverse the order of the messages
-                before: $after, // we need to reverse the order of the messages
-                hasMore: $hasMore
-            )
+        ['edges' => $edges, 'hasMore' => $hasMore] = $this->messageService->getMessages(
+            roomGuid: (int)$roomGuid,
+            user: $loggedInUser,
+            first: $first,
+            after: $before, // we need to reverse the order of the messages
+            before: $after, // we need to reverse the order of the messages
         );
+
+        $connection->setEdges($edges);
 
         $startCursor = $endCursor = null;
 
@@ -166,6 +167,7 @@ class ChatController
         ?string            $after = null,
         ?int               $last = null,
         ?int               $before = null,
+        bool               $excludeSelf = true
     ): ChatRoomMembersConnection {
         $connection = new ChatRoomMembersConnection();
 
@@ -173,7 +175,8 @@ class ChatController
             roomGuid: (int)$roomGuid,
             loggedInUser: $loggedInUser,
             first: $first,
-            after: $after
+            after: $after,
+            excludeSelf: $excludeSelf
         );
 
         $connection->setEdges($chatRoomMemberEdges);
@@ -195,6 +198,7 @@ class ChatController
      * @param string[] $otherMemberGuids
      * @param ChatRoomTypeEnum|null $roomType
      * @return ChatRoomEdge
+     * @throws GraphQLException
      * @throws InvalidChatRoomTypeException
      * @throws ServerErrorException
      */
@@ -235,6 +239,12 @@ class ChatController
         );
     }
 
+    /**
+     * @param int $first
+     * @param string|null $after
+     * @return ChatRoomsConnection
+     * @throws ServerErrorException
+     */
     #[Query]
     #[Logged]
     public function getChatRoomInviteRequests(
@@ -309,7 +319,7 @@ class ChatController
     }
 
     /**
-     * Updates the read reciept of a room
+     * Updates the read receipt of a room
      */
     #[Mutation]
     #[Logged]
@@ -319,11 +329,110 @@ class ChatController
         #[InjectUser] User $loggedInUser,
     ): ChatRoomEdge {
         $room = $this->roomService->getRoom($roomGuid, $loggedInUser);
-        $message = $this->messageService->getMessage($roomGuid, $messageGuid);
+        $message = $this->messageService->getMessage($roomGuid, $messageGuid, $loggedInUser);
 
         $this->receiptService->updateReceipt($message, $loggedInUser);
 
         $room->unreadMessagesCount = 0;
         return $room;
+    }
+
+    /**
+     * @param string $roomGuid
+     * @param string $messageGuid
+     * @return bool
+     * @throws ServerErrorException
+     * @throws ChatMessageNotFoundException
+     * @throws GraphQLException
+     */
+    #[Mutation]
+    #[Logged]
+    public function deleteChatMessage(
+        string $roomGuid,
+        string $messageGuid,
+        #[InjectUser] User $loggedInUser
+    ): bool {
+        return $this->messageService->deleteMessage(
+            roomGuid: (int) $roomGuid,
+            messageGuid: (int) $messageGuid,
+            loggedInUser: $loggedInUser
+        );
+    }
+
+    /**
+     * @param string $roomGuid
+     * @return bool
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     */
+    #[Mutation]
+    #[Logged]
+    public function deleteChatRoom(
+        string $roomGuid,
+        #[InjectUser] User $loggedInUser
+    ): bool {
+        return $this->roomService->deleteChatRoom(
+            roomGuid: (int) $roomGuid,
+            user: $loggedInUser
+        );
+    }
+
+    /**
+     * @param string $roomGuid
+     * @return bool
+     * @throws ServerErrorException
+     */
+    #[Mutation]
+    #[Logged]
+    public function leaveChatRoom(
+        string $roomGuid,
+        #[InjectUser] User $loggedInUser
+    ): bool {
+        return $this->roomService->leaveChatRoom(
+            roomGuid: (int) $roomGuid,
+            user: $loggedInUser
+        );
+    }
+
+    /**
+     * @param string $roomGuid
+     * @param string $memberGuid
+     * @return bool
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     */
+    #[Mutation]
+    #[Logged]
+    public function removeMemberFromChatRoom(
+        string $roomGuid,
+        string $memberGuid,
+        #[InjectUser] User $loggedInUser
+    ): bool {
+        return $this->roomService->removeMemberFromChatRoom(
+            roomGuid: (int) $roomGuid,
+            memberGuid: (int) $memberGuid,
+            user: $loggedInUser
+        );
+    }
+
+    /**
+     * @param string $roomGuid
+     * @return bool
+     * @throws BlockLimitException
+     * @throws ChatRoomNotFoundException
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     * @throws NotFoundException
+     */
+    #[Mutation]
+    #[Logged]
+    public function deleteChatRoomAndBlockUser(
+        string $roomGuid,
+        #[InjectUser] User $loggedInUser
+    ): bool {
+        return $this->roomService->deleteChatRoomAndBlockUser(
+            roomGuid: (int) $roomGuid,
+            user: $loggedInUser
+        );
     }
 }
