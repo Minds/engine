@@ -901,3 +901,12 @@ ALTER TABLE minds_entities_activity
 ALTER TABLE minds_tenant_mobile_configs
     ADD COLUMN app_version varchar(24) DEFAULT NULL
     AFTER update_timestamp;
+
+CREATE TABLE IF NOT EXISTS minds_user_rss_imports(
+    tenant_id int,
+    feed_id bigint,
+    url varchar(512) NOT NULL,
+    activity_guid bigint NOT NULL,
+    created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (tenant_id, feed_id, url)
+);
