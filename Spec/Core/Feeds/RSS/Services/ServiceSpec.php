@@ -9,7 +9,7 @@ use Laminas\Feed\Reader\Feed\Rss;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\RSS\Enums\RssFeedLastFetchStatusEnum;
 use Minds\Core\Feeds\RSS\Exceptions\RssFeedFailedFetchException;
-use Minds\Core\Feeds\RSS\Repositories\MySQLRepository;
+use Minds\Core\Feeds\RSS\Repositories\RssFeedsRepository;
 use Minds\Core\Feeds\RSS\Services\ProcessRssFeedService;
 use Minds\Core\Feeds\RSS\Services\Service;
 use Minds\Core\Feeds\RSS\Types\RssFeed;
@@ -36,7 +36,7 @@ class ServiceSpec extends ObjectBehavior
 
     public function let(
         ProcessRssFeedService $processRssFeedServiceMock,
-        MySQLRepository $mySQLRepositoryMock,
+        RssFeedsRepository $mySQLRepositoryMock,
         MultiTenantBootService $multiTenantBootServiceMock,
         EntitiesBuilder $entitiesBuilderMock,
         Logger $loggerMock
@@ -164,7 +164,7 @@ class ServiceSpec extends ObjectBehavior
 
         $this->processRssFeedServiceMock->fetchFeed($rssFeedMock)
             ->shouldBeCalledOnce()
-            ->willYield([$rssFeedMock]);
+            ->willReturn([$rssFeedMock]);
 
         $this->getRssFeed(0, $userMock)
             ->shouldReturn($rssFeedMock);
@@ -297,10 +297,11 @@ class ServiceSpec extends ObjectBehavior
             ->willReturn(true);
 
         $this->processRssFeedServiceMock->fetchFeed($rssFeedMock)
-            ->willYield([$rssEntryMock->getWrappedObject()]);
+            ->willReturn([$rssEntryMock->getWrappedObject()]);
 
-        $this->processRssFeedServiceMock->processActivitiesForFeed(
+        $this->processRssFeedServiceMock->processActivity(
             $rssEntryMock,
+            0,
             $userMock
         )
             ->shouldBeCalledOnce()

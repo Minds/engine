@@ -8,7 +8,8 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\RSS\Enums\RssFeedLastFetchStatusEnum;
 use Minds\Core\Feeds\RSS\Exceptions\RssFeedFailedFetchException;
 use Minds\Core\Feeds\RSS\Exceptions\RssFeedNotFoundException;
-use Minds\Core\Feeds\RSS\Repositories\MySQLRepository;
+use Minds\Core\Feeds\RSS\Repositories\RssFeedsRepository;
+use Minds\Core\Feeds\RSS\Repositories\RssImportsRepository;
 use Minds\Core\Feeds\RSS\Types\RssFeed;
 use Minds\Core\Log\Logger;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
@@ -22,7 +23,7 @@ class Service
 {
     public function __construct(
         private readonly ProcessRssFeedService  $processRssFeedService,
-        private readonly MySQLRepository        $repository,
+        private readonly RssFeedsRepository     $rssFeedsRepository,
         private readonly MultiTenantBootService $multiTenantBootService,
         private readonly EntitiesBuilder        $entitiesBuilder,
         private readonly Logger                 $logger
@@ -41,7 +42,7 @@ class Service
     {
         try {
             $rssFeedDetails = $this->processRssFeedService->getFeedDetails($rssFeed->url);
-            return $this->repository->createRssFeed(
+            return $this->rssFeedsRepository->createRssFeed(
                 rssFeedUrl: new Uri($rssFeed->url),
                 title: $rssFeedDetails->getTitle(),
                 user: $user
@@ -63,7 +64,7 @@ class Service
      */
     public function getRssFeed(int $feedId, User $user): RssFeed
     {
-        $rssFeed = $this->repository->getFeed($feedId);
+        $rssFeed = $this->rssFeedsRepository->getFeed($feedId);
         if ($rssFeed->userGuid !== (int)$user->getGuid()) {
             throw new GraphQLException("The feed provided does not belong to the user", 403);
         }
@@ -79,7 +80,7 @@ class Service
      */
     public function getRssFeeds(User $user): array
     {
-        return iterator_to_array($this->repository->getFeeds($user));
+        return iterator_to_array($this->rssFeedsRepository->getFeeds($user));
     }
 
     /**
@@ -94,12 +95,12 @@ class Service
         int  $feedId,
         User $user
     ): bool {
-        $rssFeed = $this->repository->getFeed($feedId);
+        $rssFeed = $this->rssFeedsRepository->getFeed($feedId);
         if ($rssFeed->userGuid !== (int)$user->getGuid()) {
             throw new GraphQLException("The feed provided does not belong to the user", 403);
         }
 
-        return $this->repository->removeRssFeed($feedId);
+        return $this->rssFeedsRepository->removeRssFeed($feedId);
     }
 
     /**
@@ -111,7 +112,7 @@ class Service
         int  $feedId,
         User $user,
     ): RssFeed {
-        $rssFeed = $this->repository->getFeed($feedId);
+        $rssFeed = $this->rssFeedsRepository->getFeed($feedId);
         if ($rssFeed->userGuid !== (int)$user->getGuid()) {
             throw new GraphQLException("The feed provided does not belong to the user", 403);
         }
@@ -125,9 +126,12 @@ class Service
             user: $user
         );
 
-        return $this->repository->getFeed($feedId);
+        return $this->rssFeedsRepository->getFeed($feedId);
     }
 
+    /**
+     * Processess a single rss feed and interates through its items
+     */
     public function processRssFeed(
         RssFeed $rssFeed,
         User    $user,
@@ -143,7 +147,7 @@ class Service
         }
 
         if (!$dryRun) {
-            $this->repository->updateRssFeedStatus($rssFeed->feedId, RssFeedLastFetchStatusEnum::FETCH_IN_PROGRESS);
+            $this->rssFeedsRepository->updateRssFeedStatus($rssFeed->feedId, RssFeedLastFetchStatusEnum::FETCH_IN_PROGRESS);
         }
 
         $this->logger->info('Processing RSS feed', [
@@ -177,7 +181,11 @@ class Service
                     continue;
                 }
 
-                $this->processRssFeedService->processActivitiesForFeed($entry, $user);
+                $this->processRssFeedService->processActivity(
+                    entry: $entry,
+                    feedId: $rssFeed->feedId,
+                    user: $user,
+                );
             }
         } catch (RssFeedFailedFetchException $e) {
             $status = RssFeedLastFetchStatusEnum::FAILED_TO_CONNECT;
@@ -195,7 +203,7 @@ class Service
             if ($dryRun) {
                 $this->logger->info('Dry run, not updating last fetch status');
             } else {
-                $this->repository->updateRssFeed($rssFeed->feedId, null, $status);
+                $this->rssFeedsRepository->updateRssFeed($rssFeed->feedId, null, $status);
             }
         }
     }
@@ -209,7 +217,7 @@ class Service
     public function processFeeds(bool $dryRun = false): void
     {
         $currentUser = null;
-        foreach ($this->repository->getFeeds() as $rssFeed) {
+        foreach ($this->rssFeedsRepository->getFeeds() as $rssFeed) {
             if ($rssFeed->tenantId) {
                 $this->multiTenantBootService->bootFromTenantId($rssFeed->tenantId);
             }
@@ -218,6 +226,9 @@ class Service
                 $currentUser = $this->entitiesBuilder->single($rssFeed->userGuid);
             }
 
+            if (!$currentUser instanceof User) {
+                continue;
+            }
 
             $this->processRssFeed($rssFeed, $currentUser, $dryRun);
 
