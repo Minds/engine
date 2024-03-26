@@ -21,12 +21,19 @@ use Stripe\SearchResult;
 class ProductService
 {
     private const CACHE_TTL = 60 * 5; // 5 minutes
+    private const CACHE_PREFIX_STRIPE_TEST = 'stripe_test_';
+    private const CACHE_PREFIX_STRIPE_PROD = 'stripe_prod_';
+
+    private readonly string $cachePrefix;
 
     public function __construct(
         private readonly StripeClient   $stripeClient,
         private readonly CacheInterface $cache,
         private readonly Config         $config
     ) {
+        $this->cachePrefix = $this->stripeClient->isTestMode() ?
+            self::CACHE_PREFIX_STRIPE_TEST :
+            self::CACHE_PREFIX_STRIPE_PROD;
     }
 
     /**
@@ -40,7 +47,7 @@ class ProductService
         ProductTypeEnum     $productType,
         ?ProductSubTypeEnum $productSubType = null
     ): SearchResult {
-        if ($products = $this->cache->get("products_{$productType->value}_{$productSubType?->value}")) {
+        if ($products = $this->cache->get("{$this->cachePrefix}products_{$productType->value}_{$productSubType?->value}")) {
             return unserialize($products);
         }
         $query = "metadata['type']:'$productType->value'";
@@ -59,7 +66,7 @@ class ProductService
             throw new NotFoundException("No products were found.");
         }
 
-        $this->cache->set("products_{$productType->value}_{$productSubType?->value}", serialize($products), self::CACHE_TTL);
+        $this->cache->set("{$this->cachePrefix}products_{$productType->value}_{$productSubType?->value}", serialize($products), self::CACHE_TTL);
 
         return $products;
     }
@@ -88,7 +95,7 @@ class ProductService
      */
     public function getProductByKey(string $productKey): Product
     {
-        if ($product = $this->cache->get("product_$productKey")) {
+        if ($product = $this->cache->get("{$this->cachePrefix}product_$productKey")) {
             return unserialize($product);
         }
 
@@ -107,7 +114,7 @@ class ProductService
 
         $product = $results->first();
 
-        $this->cache->set("product_$productKey", serialize($product), self::CACHE_TTL);
+        $this->cache->set("{$this->cachePrefix}product_$productKey", serialize($product), self::CACHE_TTL);
 
         return $product;
     }

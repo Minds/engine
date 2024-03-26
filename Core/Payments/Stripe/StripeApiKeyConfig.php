@@ -4,9 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Payments\Stripe;
 
 use Minds\Core\Config\Config;
-use Minds\Core\Payments\Stripe\Keys\StripeKeysRepository;
 use Minds\Core\Payments\Stripe\Keys\StripeKeysService;
-use Minds\Core\Security\Vault\VaultTransitService;
 use Minds\Core\Sessions\ActiveSession;
 use Minds\Entities\User;
 
@@ -48,7 +46,7 @@ class StripeApiKeyConfig
     /**
      * Whether a test key should be used based on whether the user is authorized.
      * @param User|null $user - user to get mode for.
-     * @param string $testEmailSuffix - suffix for test email to be used in regex.
+     * @param array $stripeConfig
      * @return boolean true if a test key should be used.
      */
     private function shouldUseTestMode(?User $user = null, $stripeConfig = []): bool
@@ -59,5 +57,16 @@ class StripeApiKeyConfig
             $user->getEmail() &&
             preg_match($testEmailRegex, $user->getEmail()) &&
             $user->isEmailConfirmed(); // Note this is not isTrusted as we want to require it is fully confirmed.
+    }
+
+    /**
+     * @param User $user
+     * @return bool
+     */
+    public function isTestMode(User $user): bool
+    {
+        $stripeConfig = $this->config->get('payments')['stripe'];
+
+        return $this->shouldUseTestMode($user, $stripeConfig);
     }
 }

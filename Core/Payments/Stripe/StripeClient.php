@@ -79,4 +79,12 @@ class StripeClient
 
         return new Stripe\StripeClient($this->config);
     }
+
+    /**
+     * @return bool
+     */
+    public function isTestMode(): bool
+    {
+        return $this->stripeApiKeyConfig->isTestMode($this->user);
+    }
 }

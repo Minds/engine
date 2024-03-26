@@ -15,16 +15,24 @@ use Stripe\SearchResult;
 class ProductPriceService
 {
     private const CACHE_TTL = 60 * 5; // 5 minutes
+    private const CACHE_PREFIX_STRIPE_TEST = 'stripe_test_';
+    private const CACHE_PREFIX_STRIPE_PROD = 'stripe_prod_';
+
+    private readonly string $cachePrefix;
+
     public function __construct(
         private readonly StripeClient $stripeClient,
         private readonly CacheInterface $cache
     ) {
+        $this->cachePrefix = $this->stripeClient->isTestMode() ?
+            self::CACHE_PREFIX_STRIPE_TEST :
+            self::CACHE_PREFIX_STRIPE_PROD;
     }
 
     public function getPriceDetailsByLookupKey(
         string $lookUpKey
     ): ?Price {
-        if ($price = $this->cache->get("product_price_$lookUpKey")) {
+        if ($price = $this->cache->get("{$this->cachePrefix}product_price_$lookUpKey")) {
             return unserialize($price);
         }
 
@@ -43,7 +51,7 @@ class ProductPriceService
 
             $price = $results->first();
 
-            $this->cache->set("product_price_$lookUpKey", serialize($price), self::CACHE_TTL);
+            $this->cache->set("{$this->cachePrefix}product_price_$lookUpKey", serialize($price), self::CACHE_TTL);
 
             return $price;
         } catch (Exception $e) {
@@ -59,7 +67,7 @@ class ProductPriceService
      */
     public function getPriceDetailsById(string $priceId): ?Price
     {
-        if ($price = $this->cache->get("product_price_$priceId")) {
+        if ($price = $this->cache->get("{$this->cachePrefix}product_price_$priceId")) {
             return unserialize($price);
         }
 
@@ -68,7 +76,7 @@ class ProductPriceService
                 ->prices
                 ->retrieve($priceId);
 
-            $this->cache->set("product_price_$priceId", serialize($price), self::CACHE_TTL);
+            $this->cache->set("{$this->cachePrefix}product_price_$priceId", serialize($price), self::CACHE_TTL);
 
             return $price;
         } catch (Exception $e) {
@@ -84,7 +92,7 @@ class ProductPriceService
      */
     public function getPricesByProduct(string $productId): SearchResult
     {
-        if ($prices = $this->cache->get("product_prices_$productId")) {
+        if ($prices = $this->cache->get("{$this->cachePrefix}product_prices_$productId")) {
             return unserialize($prices);
         }
         try {
@@ -100,7 +108,7 @@ class ProductPriceService
                 throw new NotFoundException('No prices found for product');
             }
 
-            $this->cache->set("product_prices_$productId", serialize($prices), self::CACHE_TTL);
+            $this->cache->set("{$this->cachePrefix}product_prices_$productId", serialize($prices), self::CACHE_TTL);
 
             return $prices;
         } catch (Exception $e) {

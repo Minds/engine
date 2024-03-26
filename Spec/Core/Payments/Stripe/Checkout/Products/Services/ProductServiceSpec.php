@@ -10,10 +10,13 @@ use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductPricingModelEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductSubTypeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Enums\ProductTypeEnum;
 use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService;
+use Minds\Core\Payments\Stripe\StripeApiKeyConfig;
 use Minds\Core\Payments\Stripe\StripeClient;
+use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 use Psr\SimpleCache\CacheInterface;
 use ReflectionClass;
 use Spec\Minds\Common\Traits\CommonMatchers;
@@ -28,6 +31,7 @@ class ProductServiceSpec extends ObjectBehavior
     private Collaborator $stripeProductServiceMock;
     private Collaborator $cacheMock;
     private Collaborator $configMock;
+    private Collaborator $stripeApiKeyConfigMock;
 
     private ReflectionClass $stripeClientMockFactory;
     private ReflectionClass $stripeProductMockFactory;
@@ -37,11 +41,13 @@ class ProductServiceSpec extends ObjectBehavior
     public function let(
         StripeProductService $stripeProductService,
         CacheInterface       $cache,
-        Config               $config
+        Config               $config,
+        StripeApiKeyConfig   $stripeApiKeyConfig
     ): void {
         $this->stripeProductServiceMock = $stripeProductService;
         $this->cacheMock = $cache;
         $this->configMock = $config;
+        $this->stripeApiKeyConfigMock = $stripeApiKeyConfig;
 
         $this->stripeClientMockFactory = new ReflectionClass(StripeClient::class);
         $this->stripeProductMockFactory = new ReflectionClass(StripeProduct::class);
@@ -57,10 +63,12 @@ class ProductServiceSpec extends ObjectBehavior
     private function prepareStripeClientMock(): StripeClient
     {
         $stripeClientMock = $this->stripeClientMockFactory->newInstanceWithoutConstructor();
+        $this->stripeClientMockFactory->getProperty('stripeApiKeyConfig')->setValue($stripeClientMock, $this->stripeApiKeyConfigMock->getWrappedObject());
+        $this->stripeClientMockFactory->getProperty('user')->setValue($stripeClientMock, new User());
         $this->stripeClientMockFactory->getProperty('coreServiceFactory')
             ->setValue($stripeClientMock, new class($this->stripeProductServiceMock->getWrappedObject()) {
                 public function __construct(
-                    public StripeProductService $products
+                    public StripeProductService $products,
                 ) {
                 }
 
@@ -74,6 +82,10 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_is_initializable(): void
     {
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
         $this->shouldBeAnInstanceOf(ProductService::class);
     }
 
@@ -81,8 +93,13 @@ class ProductServiceSpec extends ObjectBehavior
     {
         $productType = ProductTypeEnum::NETWORK;
         $productSubType = null;
+        $cachePrefix = "stripe_prod_";
 
-        $this->cacheMock->get("products_{$productType->value}_{$productSubType?->value}")
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
+        $this->cacheMock->get("{$cachePrefix}products_{$productType->value}_{$productSubType?->value}")
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -98,7 +115,7 @@ class ProductServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($searchResultMock);
 
-        $this->cacheMock->set("products_{$productType->value}_{$productSubType?->value}", serialize($searchResultMock), 60 * 5)
+        $this->cacheMock->set("{$cachePrefix}products_{$productType->value}_{$productSubType?->value}", serialize($searchResultMock), 60 * 5)
             ->shouldBeCalledOnce();
 
         $this->getProductsByType($productType, $productSubType);
@@ -124,8 +141,13 @@ class ProductServiceSpec extends ObjectBehavior
     {
         $productType = ProductTypeEnum::NETWORK;
         $productSubType = ProductSubTypeEnum::ADDON;
+        $cachePrefix = "stripe_prod_";
 
-        $this->cacheMock->get("products_{$productType->value}_{$productSubType?->value}")
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
+        $this->cacheMock->get("{$cachePrefix}products_{$productType->value}_{$productSubType?->value}")
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -141,7 +163,7 @@ class ProductServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($searchResultMock);
 
-        $this->cacheMock->set("products_{$productType->value}_{$productSubType?->value}", serialize($searchResultMock), 60 * 5)
+        $this->cacheMock->set("{$cachePrefix}products_{$productType->value}_{$productSubType?->value}", serialize($searchResultMock), 60 * 5)
             ->shouldBeCalledOnce();
 
         $this->getProductsByType($productType, $productSubType);
@@ -151,6 +173,11 @@ class ProductServiceSpec extends ObjectBehavior
     {
         $productType = ProductTypeEnum::NETWORK;
         $productSubType = ProductSubTypeEnum::ADDON;
+        $cachePrefix = "stripe_prod_";
+
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
 
         $searchResultMock = $this->generateStripeSearchResultMock([
             $this->generateStripeProductMock(),
@@ -158,7 +185,7 @@ class ProductServiceSpec extends ObjectBehavior
             $this->generateStripeProductMock()
         ]);
 
-        $this->cacheMock->get("products_{$productType->value}_{$productSubType?->value}")
+        $this->cacheMock->get("{$cachePrefix}products_{$productType->value}_{$productSubType?->value}")
             ->shouldBeCalledOnce()
             ->willReturn(serialize($searchResultMock));
 
@@ -168,6 +195,10 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_get_product_by_id(): void
     {
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
         $this->stripeProductServiceMock->retrieve('product_id')
             ->shouldBeCalledOnce()
             ->willReturn($this->generateStripeProductMock());
@@ -178,7 +209,12 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_get_product_by_key(): void
     {
-        $this->cacheMock->get('product_product_key')
+        $cachePrefix = "stripe_prod_";
+
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+        $this->cacheMock->get("{$cachePrefix}product_product_key")
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -192,7 +228,7 @@ class ProductServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($searchResultMock);
 
-        $this->cacheMock->set('product_product_key', serialize($searchResultMock->first()), 60 * 5)
+        $this->cacheMock->set("{$cachePrefix}product_product_key", serialize($searchResultMock->first()), 60 * 5)
             ->shouldBeCalledOnce();
 
         $this->getProductByKey('product_key')
@@ -201,17 +237,29 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_get_product_by_key_WITH_cache(): void
     {
-        $this->cacheMock->get('product_product_key')
+        $cachePrefix = "stripe_prod_";
+
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
+        $this->cacheMock->get("{$cachePrefix}product_product_key")
             ->shouldBeCalledOnce()
             ->willReturn(serialize($this->generateStripeProductMock()));
 
-        $this->getProductByKey('product_key')
+        $this->getProductByKey("product_key")
             ->shouldBeAnInstanceOf(StripeProduct::class);
     }
 
     public function it_should_try_to_get_product_by_key_and_THROW_not_found_exception(): void
     {
-        $this->cacheMock->get('product_product_key')
+        $cachePrefix = "stripe_prod_";
+
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
+        $this->cacheMock->get("{$cachePrefix}product_product_key")
             ->shouldBeCalledOnce()
             ->willReturn(false);
 
@@ -226,6 +274,10 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_get_products_by_metadata(): void
     {
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
         $this->stripeProductServiceMock->search([
             'query' => "metadata['key']:'product_key' AND active:'true'"
         ])
@@ -262,6 +314,10 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_create_product(): void
     {
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
         $this->configMock->get('tenant_id')
             ->shouldBeCalledTimes(2)
             ->willReturn(1);
@@ -300,6 +356,10 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_create_product_WITH_one_time_fee(): void
     {
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
         $this->configMock->get('tenant_id')
             ->shouldBeCalledTimes(2)
             ->willReturn(1);
@@ -335,6 +395,10 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_create_product_WITH_description(): void
     {
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
         $this->configMock->get('tenant_id')
             ->shouldBeCalledTimes(2)
             ->willReturn(1);
@@ -371,6 +435,10 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_update_product_WITHOUT_description(): void
     {
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
         $this->stripeProductServiceMock->update(
             'product_id',
             [
@@ -386,6 +454,10 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_update_product_WITH_description(): void
     {
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
         $this->stripeProductServiceMock->update(
             'product_id',
             [
@@ -402,6 +474,10 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_update_product_WITH_EMPTY_description(): void
     {
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
         $this->stripeProductServiceMock->update(
             'product_id',
             [
@@ -418,6 +494,10 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_archive_product(): void
     {
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
         $this->stripeProductServiceMock->update(
             'product_id',
             [
@@ -432,6 +512,10 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_should_delete_product(): void
     {
+        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
         $this->stripeProductServiceMock->delete('product_id')
             ->shouldBeCalledOnce();
 
