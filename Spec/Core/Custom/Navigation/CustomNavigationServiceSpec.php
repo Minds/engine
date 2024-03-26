@@ -40,7 +40,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ->willReturn(null);
 
         $items = $this->getItems();
-        $items->shouldHaveCount(6);
+        $items->shouldHaveCount(7);
     }
 
     public function it_should_return_list_from_database_for_tenants()
@@ -62,9 +62,9 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ]);
 
         $items = $this->getItems();
-        $items->shouldHaveCount(7);
+        $items->shouldHaveCount(8);
 
-        $items[6]->id->shouldBe('about');
+        $items[7]->id->shouldBe('about');
     }
 
     public function it_should_return_list_from_database_for_tenants_from_cache()
@@ -88,9 +88,9 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ->shouldNotBeCalled();
 
         $items = $this->getItems();
-        $items->shouldHaveCount(7);
+        $items->shouldHaveCount(8);
 
-        $items[6]->id->shouldBe('about');
+        $items[7]->id->shouldBe('about');
     }
 
     public function it_should_merge_default_and_database_items_for_tenants()
@@ -112,7 +112,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ]);
 
         $items = $this->getItems();
-        $items->shouldHaveCount(6);
+        $items->shouldHaveCount(7);
 
         $items[1]->id->shouldBe('explore');
         $items[1]->name->shouldBe('Global');
