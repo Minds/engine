@@ -94,7 +94,7 @@ class RssImportsRepositorySpec extends ObjectBehavior
 
     public function it_should_return_match_exists(PDOStatement $stmtMock)
     {
-        $this->mysqlReplicaMock->prepare(Argument::any())
+        $this->mysqlMasterMock->prepare(Argument::any())
             ->willReturn($stmtMock);
 
         $stmtMock->execute([
@@ -115,7 +115,7 @@ class RssImportsRepositorySpec extends ObjectBehavior
         $this->configMock->get('tenant_id')
             ->willReturn(1);
 
-        $this->mysqlReplicaMock->prepare(Argument::any())
+        $this->mysqlMasterMock->prepare(Argument::any())
             ->willReturn($stmtMock);
 
         $stmtMock->execute([
@@ -132,7 +132,7 @@ class RssImportsRepositorySpec extends ObjectBehavior
 
     public function it_should_return_match_doesnt_exists(PDOStatement $stmtMock)
     {
-        $this->mysqlReplicaMock->prepare(Argument::any())
+        $this->mysqlMasterMock->prepare(Argument::any())
             ->willReturn($stmtMock);
 
         $stmtMock->execute([
@@ -153,7 +153,7 @@ class RssImportsRepositorySpec extends ObjectBehavior
         $this->configMock->get('tenant_id')
             ->willReturn(1);
 
-        $this->mysqlReplicaMock->prepare(Argument::any())
+        $this->mysqlMasterMock->prepare(Argument::any())
             ->willReturn($stmtMock);
 
         $stmtMock->execute([

@@ -52,7 +52,7 @@ class RssImportsRepository extends AbstractRepository
      */
     public function hasMatch(int $feedId, string $url): bool
     {
-        $query = $this->mysqlClientReaderHandler->select()
+        $query = $this->mysqlClientWriterHandler->select()
             ->from(self::TABLE_NAME)
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('feed_id', Operator::EQ, new RawExp(':feed_id'))
