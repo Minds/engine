@@ -24,13 +24,17 @@ class ProductService
     private const CACHE_PREFIX_STRIPE_TEST = 'stripe_test_';
     private const CACHE_PREFIX_STRIPE_PROD = 'stripe_prod_';
 
-    private readonly string $cachePrefix;
+    private string $cachePrefix;
 
     public function __construct(
         private readonly StripeClient   $stripeClient,
         private readonly CacheInterface $cache,
         private readonly Config         $config
     ) {
+    }
+
+    private function initialiseCachePrefix(): void
+    {
         $this->cachePrefix = $this->stripeClient->isTestMode() ?
             self::CACHE_PREFIX_STRIPE_TEST :
             self::CACHE_PREFIX_STRIPE_PROD;
@@ -47,6 +51,7 @@ class ProductService
         ProductTypeEnum     $productType,
         ?ProductSubTypeEnum $productSubType = null
     ): SearchResult {
+        $this->initialiseCachePrefix();
         if ($products = $this->cache->get("{$this->cachePrefix}products_{$productType->value}_{$productSubType?->value}")) {
             return unserialize($products);
         }
@@ -79,6 +84,7 @@ class ProductService
      */
     public function getProductById(string $productId): Product
     {
+        $this->initialiseCachePrefix();
         $product = $this->stripeClient
             ->products
             ->retrieve($productId);
@@ -95,6 +101,7 @@ class ProductService
      */
     public function getProductByKey(string $productKey): Product
     {
+        $this->initialiseCachePrefix();
         if ($product = $this->cache->get("{$this->cachePrefix}product_$productKey")) {
             return unserialize($product);
         }
@@ -131,6 +138,7 @@ class ProductService
         ?ProductTypeEnum $productType = null,
         array            $availableProducts = []
     ): iterable {
+        $this->initialiseCachePrefix();
         if (count($metadata) > 10) {
             throw new InvalidArgumentException("You can only search for up to 10 metadata keys at a time.");
         }
@@ -183,6 +191,7 @@ class ProductService
         ProductPriceCurrencyEnum      $currency = ProductPriceCurrencyEnum::USD,
         ?string                       $description = null,
     ): Product {
+        $this->initialiseCachePrefix();
         $productKey = "tenant:{$this->config->get('tenant_id')}:$internalProductId";
 
         $productDetails = [
@@ -225,6 +234,7 @@ class ProductService
         string  $name,
         ?string $description = null,
     ): Product {
+        $this->initialiseCachePrefix();
         $productDetails = [
             'name' => $name,
         ];
@@ -245,6 +255,7 @@ class ProductService
     public function archiveProduct(
         string $productId
     ): bool {
+        $this->initialiseCachePrefix();
         $this->stripeClient
             ->products
             ->update($productId, [
@@ -261,6 +272,7 @@ class ProductService
     public function deleteProduct(
         string $productId
     ): bool {
+        $this->initialiseCachePrefix();
         $this->stripeClient
             ->products
             ->delete($productId);

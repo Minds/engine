@@ -18,12 +18,16 @@ class ProductPriceService
     private const CACHE_PREFIX_STRIPE_TEST = 'stripe_test_';
     private const CACHE_PREFIX_STRIPE_PROD = 'stripe_prod_';
 
-    private readonly string $cachePrefix;
+    private string $cachePrefix;
 
     public function __construct(
         private readonly StripeClient $stripeClient,
         private readonly CacheInterface $cache
     ) {
+    }
+
+    private function initialiseCachePrefix(): void
+    {
         $this->cachePrefix = $this->stripeClient->isTestMode() ?
             self::CACHE_PREFIX_STRIPE_TEST :
             self::CACHE_PREFIX_STRIPE_PROD;
@@ -32,6 +36,7 @@ class ProductPriceService
     public function getPriceDetailsByLookupKey(
         string $lookUpKey
     ): ?Price {
+        $this->initialiseCachePrefix();
         if ($price = $this->cache->get("{$this->cachePrefix}product_price_$lookUpKey")) {
             return unserialize($price);
         }
@@ -67,6 +72,7 @@ class ProductPriceService
      */
     public function getPriceDetailsById(string $priceId): ?Price
     {
+        $this->initialiseCachePrefix();
         if ($price = $this->cache->get("{$this->cachePrefix}product_price_$priceId")) {
             return unserialize($price);
         }
@@ -92,6 +98,7 @@ class ProductPriceService
      */
     public function getPricesByProduct(string $productId): SearchResult
     {
+        $this->initialiseCachePrefix();
         if ($prices = $this->cache->get("{$this->cachePrefix}product_prices_$productId")) {
             return unserialize($prices);
         }

@@ -82,10 +82,6 @@ class ProductServiceSpec extends ObjectBehavior
 
     public function it_is_initializable(): void
     {
-        $this->stripeApiKeyConfigMock->isTestMode(Argument::type(User::class))
-            ->shouldBeCalledOnce()
-            ->willReturn(false);
-
         $this->shouldBeAnInstanceOf(ProductService::class);
     }
 
