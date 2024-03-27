@@ -22,15 +22,12 @@ use Selective\Database\RawExp;
 use Selective\Database\SelectQuery;
 use Zend\Diactoros\Uri;
 
-class MySQLRepository extends AbstractRepository
+class RssFeedsRepository extends AbstractRepository
 {
     private const TABLE_NAME = 'minds_user_rss_feeds';
 
     /**
-     * @param Uri $rssFeedUrl
-     * @param User $user
-     * @return bool
-     * @throws ServerErrorException
+     * Saves an rss feed to the database
      */
     public function createRssFeed(
         Uri $rssFeedUrl,

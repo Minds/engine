@@ -912,5 +912,14 @@ CREATE TABLE IF NOT EXISTS minds_custom_navigation (
     path varchar(128) DEFAULT NULL,
     url varchar(256) DEFAULT NULL,
     action enum('SHOW_SIDEBAR_MORE') DEFAULT NULL,
+    order int DEFAULT NULL,
     PRIMARY KEY (tenant_id, id)
+);
+CREATE TABLE IF NOT EXISTS minds_user_rss_imports(
+    tenant_id int,
+    feed_id bigint,
+    url varchar(512) NOT NULL,
+    activity_guid bigint NOT NULL,
+    created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (tenant_id, feed_id, url)
 );
