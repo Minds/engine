@@ -60,11 +60,15 @@ class StripeApiKeyConfig
     }
 
     /**
-     * @param User $user
+     * @param User|null $user
      * @return bool
      */
-    public function isTestMode(User $user): bool
+    public function isTestMode(?User $user = null): bool
     {
+        if (!$user) {
+            $user = $this->activeSession->getUser();
+        }
+        
         $stripeConfig = $this->config->get('payments')['stripe'];
 
         return $this->shouldUseTestMode($user, $stripeConfig);
