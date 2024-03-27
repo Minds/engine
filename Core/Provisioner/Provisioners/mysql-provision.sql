@@ -912,7 +912,7 @@ CREATE TABLE IF NOT EXISTS minds_custom_navigation (
     path varchar(128) DEFAULT NULL,
     url varchar(256) DEFAULT NULL,
     action enum('SHOW_SIDEBAR_MORE') DEFAULT NULL,
-    order int DEFAULT NULL,
+    `order` int DEFAULT 500,
     PRIMARY KEY (tenant_id, id)
 );
 
