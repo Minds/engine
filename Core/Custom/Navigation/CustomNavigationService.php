@@ -149,7 +149,7 @@ class CustomNavigationService
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
                 iconId: '#',
-                path: '/explore',
+                path: '/discovery',
                 order: 2,
             ),
             new NavigationItem(
@@ -164,13 +164,24 @@ class CustomNavigationService
                 order: 3,
             ),
             new NavigationItem(
+                id: 'memberships',
+                name: 'Memberships',
+                type: NavigationItemTypeEnum::CORE,
+                visible: true,
+                iconId: 'verified',
+                path: '/memberships',
+                url: null,
+                action: null,
+                order: 4,
+            ),
+            new NavigationItem(
                 id: 'admin',
                 name: 'Admin',
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
                 iconId: 'dashboard',
-                path: '/admin',
-                order: 4
+                path: '/network/admin',
+                order: 5
             ),
             new NavigationItem(
                 id: 'channel',
@@ -178,16 +189,7 @@ class CustomNavigationService
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
                 iconId: '',
-                order: 5,
-            ),
-            new NavigationItem(
-                id: 'more',
-                name: 'More',
-                type: NavigationItemTypeEnum::CORE,
-                visible: true,
-                iconId: 'more_horiz',
-                action: NavigationItemActionEnum::SHOW_SIDEBAR_MORE,
-                order: 6
+                order: 6,
             ),
         ];
     }

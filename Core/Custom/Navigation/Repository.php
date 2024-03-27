@@ -44,7 +44,7 @@ class Repository extends AbstractRepository
         }
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         $return = [];
 
         foreach ($rows as $row) {
@@ -63,12 +63,14 @@ class Repository extends AbstractRepository
 
         return $return;
     }
-    
+
     /**
      * Upserts items to the database
      */
     public function addItem(NavigationItem $item): bool
     {
+        $visibleForSQL = $item->visible ? 1 : 0;
+
         $query = $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
             ->set([
@@ -101,7 +103,7 @@ class Repository extends AbstractRepository
             'id' => $item->id,
             'name' => $item->name,
             'type' => $item->type->name,
-            'visible' => $item->visible,
+            'visible' => $visibleForSQL,
             'icon_id' => $item->iconId,
             'path' => $item->path,
             'url' => $item->url,
@@ -110,7 +112,7 @@ class Repository extends AbstractRepository
             // on duplicate...
             'new_name' => $item->name,
             'new_type' => $item->type->name,
-            'new_visible' => $item->visible,
+            'new_visible' => $visibleForSQL,
             'new_icon_id' => $item->iconId,
             'new_path' => $item->path,
             'new_url' => $item->url,

@@ -14,5 +14,6 @@ class GraphQLMappings extends AbstractGraphQLMappings
         $this->schemaFactory->addTypeMapperFactory(new StaticClassListTypeMapperFactory([
             NavigationItem::class,
         ]));
+        $this->schemaFactory->addTypeNamespace('Minds\\Core\\Custom\\Navigation\\Enums');
     }
 }

@@ -915,6 +915,7 @@ CREATE TABLE IF NOT EXISTS minds_custom_navigation (
     order int DEFAULT NULL,
     PRIMARY KEY (tenant_id, id)
 );
+
 CREATE TABLE IF NOT EXISTS minds_user_rss_imports(
     tenant_id int,
     feed_id bigint,
