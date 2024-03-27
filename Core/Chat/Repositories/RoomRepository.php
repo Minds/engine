@@ -529,14 +529,26 @@ class RoomRepository extends AbstractRepository
         int $firstMemberGuid,
         int $secondMemberGuid,
     ): ChatRoom {
-        $firstMemberGuidOneToOneRoomQuery = $this->getMemberOneToOneRoomsQuery(0);
-        $secondMemberGuidOneToOneRoomQuery = $this->getMemberOneToOneRoomsQuery(1);
+        $firstMemberGuidOneToOneRoomQuery = trim(
+            $this->getMemberOneToOneRoomsQuery(0)->prepare()->queryString,
+            ';'
+        );
+        $secondMemberGuidOneToOneRoomQuery = trim(
+            $this->getMemberOneToOneRoomsQuery(1)->prepare()->queryString,
+            ';'
+        );
 
-        $stmt = $firstMemberGuidOneToOneRoomQuery
-                ->intersect($secondMemberGuidOneToOneRoomQuery)
-                ->prepare();
-
-        
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'r.*'
+            ])
+            ->from(new RawExp("($firstMemberGuidOneToOneRoomQuery) as r"))
+            ->innerJoin(
+                new RawExp("($secondMemberGuidOneToOneRoomQuery) as r2"),
+                'r2.room_guid',
+                Operator::EQ,
+                'r2.room_guid'
+            )->prepare();
 
         try {
             $stmt->execute([
