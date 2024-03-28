@@ -5,14 +5,13 @@
 namespace Minds\Controllers\api\v2\moderation;
 
 use Minds\Api\Factory;
-use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Core\Session;
-use Minds\Entities;
-use Minds\Entities\Activity;
-use Minds\Interfaces;
+use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\Reports;
 use Minds\Core\Reports\Jury\Decision;
+use Minds\Core\Session;
+use Minds\Entities;
+use Minds\Interfaces;
 
 class report implements Interfaces\Api
 {
@@ -21,40 +20,62 @@ class report implements Interfaces\Api
         return Factory::response([]);
     }
 
-    public function post($pages)
+    public function post($pages): void
     {
         $user = Session::getLoggedInUser();
 
         if (!$user) {
-            return Factory::response([
+            Factory::response([
                 'status' => 'error',
                 'message' => 'You must be logged into make a report',
             ]);
+            return;
         }
 
         $manager = Di::_()->get('Moderation\UserReports\Manager');
 
-        if (!isset($_POST['entity_guid'])) {
-            return Factory::response([
+        if (!isset($_POST['entity_guid']) && !isset($_POST['entity_urn'])) {
+            Factory::response([
                 'status' => 'error',
                 'message' => 'Entity guid must be supplied',
             ]);
+            return;
+        }
+
+        $entity = null;
+        if ($_POST['entity_urn'] ?? false) {
+            /**
+             * @var EntitiesResolver $entitiesResolver
+             */
+            $entitiesResolver = Di::_()->get(EntitiesResolver::class);
+            $entity = $entitiesResolver->single($_POST['entity_urn']);
+            if (!$entity) {
+                Factory::response([
+                    'status' => 'error',
+                    'message' => 'Entity not found',
+                ]);
+                return;
+            }
         }
 
         // Gather the entity
-        $entity = Entities\Factory::build($_POST['entity_guid']);
         if (!$entity) {
-            return Factory::response([
-                'status' => 'error',
-                'message' => 'Entity not found',
-            ]);
+            $entity = Entities\Factory::build($_POST['entity_guid']);
+            if (!$entity) {
+                Factory::response([
+                    'status' => 'error',
+                    'message' => 'Entity not found',
+                ]);
+                return;
+            }
         }
 
         if (!isset($_POST['reason_code'])) {
-            return Factory::response([
+            Factory::response([
                 'status' => 'error',
                 'message' => 'A reason code must be provided',
             ]);
+            return;
         }
 
         $report = new Reports\Report();
@@ -75,10 +96,11 @@ class report implements Interfaces\Api
         }
 
         if (!$manager->add($userReport)) {
-            return Factory::response([
+            Factory::response([
                 'status' => 'error',
                 'message' => 'Report could not be saved',
             ]);
+            return;
         }
         
         // Auto accept admin reports
@@ -89,13 +111,14 @@ class report implements Interfaces\Api
                 ->setUphold(true)
                 ->setReport($report)
                 ->setTimestamp(time())
+                ->setJuror($user)
                 ->setJurorGuid($user->getGuid())
                 ->setJurorHash($user->getPhoneNumberHash());
             
             $juryManager = Di::_()->get('Moderation\Jury\Manager');
             $juryManager->cast($decision);
         }
-        return Factory::response([]);
+        Factory::response([]);
     }
 
     public function put($pages)

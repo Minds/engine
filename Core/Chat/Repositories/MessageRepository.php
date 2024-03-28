@@ -6,8 +6,8 @@ namespace Minds\Core\Chat\Repositories;
 use DateTimeImmutable;
 use Exception;
 use Minds\Core\Chat\Entities\ChatMessage;
+use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
 use Minds\Core\Data\MySQL\AbstractRepository;
-use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
@@ -109,7 +109,11 @@ class MessageRepository extends AbstractRepository
     }
 
     /**
-     * @throws NotFoundException
+     * @param int $roomGuid
+     * @param int $messageGuid
+     * @return ChatMessage
+     * @throws ChatMessageNotFoundException
+     * @throws ServerErrorException
      */
     public function getMessageByGuid(
         int $roomGuid,
@@ -120,7 +124,6 @@ class MessageRepository extends AbstractRepository
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->where('guid', Operator::EQ, new RawExp(':message_guid'))
-            ->orderBy('created_timestamp DESC')
             ->prepare();
 
         try {
@@ -131,12 +134,12 @@ class MessageRepository extends AbstractRepository
             ]);
 
             if (!$stmt->rowCount()) {
-                throw new NotFoundException();
+                throw new ChatMessageNotFoundException();
             }
 
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            return $this->buildChatMessageInstance($rows[0]);
+            return $this->buildChatMessageInstance($row);
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to get chat messages', previous: $e);
         }
@@ -156,5 +159,33 @@ class MessageRepository extends AbstractRepository
             plainText: $data['plain_text'],
             createdAt: new DateTimeImmutable($data['created_timestamp'])
         );
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param int $messageGuid
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function deleteChatMessage(
+        int $roomGuid,
+        int $messageGuid
+    ): bool {
+        $stmt = $this->mysqlClientWriterHandler->delete()
+            ->from(self::TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->where('guid', Operator::EQ, new RawExp(':message_guid'))
+            ->prepare();
+
+        try {
+            return $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+                'message_guid' => $messageGuid,
+            ]);
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to delete chat message', previous: $e);
+        }
     }
 }

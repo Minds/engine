@@ -4,7 +4,9 @@ namespace Minds\Core\Chat\Repositories;
 
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Data\MySQL\AbstractRepository;
+use Minds\Exceptions\ServerErrorException;
 use PDO;
+use PDOException;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
 
@@ -73,6 +75,34 @@ class ReceiptRepository extends AbstractRepository
         ]);
 
         return (int) $stmt->fetchAll(PDO::FETCH_ASSOC)[0]['unread_count'];
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param int $messageGuid
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function deleteAllMessageReadReceipts(
+        int $roomGuid,
+        int $messageGuid
+    ): bool {
+        $stmt = $this->mysqlClientWriterHandler->delete()
+            ->from(self::TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->where('message_guid', Operator::EQ, new RawExp(':message_guid'))
+            ->prepare();
+
+        try {
+            return $stmt->execute([
+                'tenant_id' => $this->getTenantId(),
+                'room_guid' => $roomGuid,
+                'message_guid' => $messageGuid,
+            ]);
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to delete chat message read receipts', previous: $e);
+        }
     }
 
     private function getTenantId(): int

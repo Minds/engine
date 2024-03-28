@@ -135,6 +135,7 @@ class jury implements Interfaces\Api
             ->setUphold($uphold)
             ->setReport($report)
             ->setTimestamp(time())
+            ->setJuror($loggedInUser)
             ->setJurorGuid($loggedInUser->getGuid())
             ->setJurorHash($loggedInUser->getPhoneNumberHash());
 

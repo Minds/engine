@@ -3,11 +3,14 @@ namespace Minds\Core\Chat\Entities;
 
 use DateTime;
 use DateTimeInterface;
+use Minds\Core\Di\Di;
 use Minds\Entities\EntityInterface;
 
 class ChatMessage implements EntityInterface
 {
+    public const URN_METHOD = 'chatmessage';
     public readonly DateTimeInterface $createdAt;
+    public readonly int $container_guid;
 
     public function __construct(
         public readonly int $roomGuid,
@@ -16,7 +19,8 @@ class ChatMessage implements EntityInterface
         public readonly string $plainText,
         ?DateTimeInterface $createdAt = null
     ) {
-        $this->createdAt = $createdAt ??= new DateTime();
+        $this->createdAt = $createdAt ?? new DateTime();
+        $this->container_guid = $this->roomGuid;
     }
 
     /**
@@ -32,7 +36,7 @@ class ChatMessage implements EntityInterface
      */
     public function getUrn(): string
     {
-        return "urn:chat:$this->roomGuid-$this->guid";
+        return "urn:" . self::URN_METHOD . ":{$this->roomGuid}_$this->guid";
     }
 
     /**
@@ -65,5 +69,24 @@ class ChatMessage implements EntityInterface
     public function getAccessId(): string
     {
         return (string) $this->roomGuid;
+    }
+
+    public function getNsfw(): array
+    {
+        return [];
+    }
+
+    public function export(): array
+    {
+        $sender = Di::_()->get('EntitiesBuilder')->single($this->senderGuid);
+        return [
+            'guid' => $this->guid,
+            'roomGuid' => $this->roomGuid,
+            'type' => $this->getType(),
+            'subtype' => $this->getSubtype(),
+            'sender' => $sender->export(),
+            'plainText' => $this->plainText,
+            'createdTimestampUnix' => $this->createdAt->getTimestamp()
+        ];
     }
 }

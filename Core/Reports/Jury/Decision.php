@@ -4,6 +4,8 @@
  */
 namespace Minds\Core\Reports\Jury;
 
+use Minds\Core\Reports\Report;
+use Minds\Entities\User;
 use Minds\Traits\MagicAttributes;
 
 /**
@@ -14,6 +16,7 @@ use Minds\Traits\MagicAttributes;
  * @method Report getAction(): string
  * @method Report isUphold(): boolean
  * @method Report getTimestamp: int
+ * @method User getJuror()
  */
 class Decision
 {
@@ -39,6 +42,8 @@ class Decision
 
     /** @var boolean $uphold */
     private $uphold;
+
+    private User $juror;
 
     /**
      * Is Upheld
