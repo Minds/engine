@@ -15,7 +15,8 @@ class ChatRoomNode implements NodeInterface
 {
     public function __construct(
         public readonly ChatRoom $chatRoom,
-        #[Field] #[Logged] public bool $isChatRequest = false
+        #[Field] #[Logged] public bool $isChatRequest = false,
+        #[Field] #[Logged] public ?bool $isUserRoomOwner = null
     ) {
 
     }

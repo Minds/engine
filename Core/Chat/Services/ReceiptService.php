@@ -34,4 +34,14 @@ class ReceiptService
             memberGuid: (int) $user->getGuid(),
         );
     }
+
+    public function deleteAllMessageReadReceipts(
+        int $roomGuid,
+        int $messageGuid
+    ): bool {
+        return $this->repository->deleteAllMessageReadReceipts(
+            roomGuid: $roomGuid,
+            messageGuid: $messageGuid
+        );
+    }
 }

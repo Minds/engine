@@ -44,6 +44,7 @@ class RoomService
      * @param array $otherMemberGuids
      * @param ChatRoomTypeEnum|null $roomType
      * @return ChatRoomEdge
+     * @throws GraphQLException
      * @throws InvalidChatRoomTypeException
      * @throws ServerErrorException
      */
@@ -111,6 +112,13 @@ class RoomService
             foreach ($otherMemberGuids as $memberGuid) {
                 // TODO: Check if the user is blocked, deleted, disabled or banned
                 // TODO: Check if user has blocked message sender
+
+                // Check if user exists in minds|tenant
+                $member = $this->entitiesBuilder->single($memberGuid);
+                if (!$member) {
+                    throw new GraphQLException(message: "One or more of the members you have selected was not found", code: 404);
+                }
+
                 $isSubscribed = $this->subscriptionsRepository->isSubscribed(
                     userGuid: (int)$memberGuid,
                     friendGuid: (int)$user->getGuid()
@@ -219,6 +227,7 @@ class RoomService
      * @param User $loggedInUser
      * @param int|null $first
      * @param string|null $after
+     * @param bool $excludeSelf
      * @return array
      * @throws GraphQLException
      * @throws ServerErrorException
@@ -227,7 +236,8 @@ class RoomService
         int     $roomGuid,
         User    $loggedInUser,
         ?int    $first = null,
-        ?string $after = null
+        ?string $after = null,
+        bool    $excludeSelf = true
     ): array {
         if (
             !$this->roomRepository->isUserMemberOfRoom(
@@ -248,7 +258,8 @@ class RoomService
             roomGuid: $roomGuid,
             user: $loggedInUser,
             limit: $first ?? 12,
-            offset: $after ? (int)base64_decode($after, true) : null
+            offset: $after ? (int)base64_decode($after, true) : null,
+            excludeSelf: $excludeSelf
         );
 
         return [
@@ -263,6 +274,7 @@ class RoomService
                         node: new UserNode(
                             user: $user
                         ),
+                        role: constant(ChatRoomRoleEnum::class . '::' . $member['role_id']),
                         cursor: base64_encode($member['joined_timestamp'] ?? "0")
                     );
                 },
@@ -316,7 +328,11 @@ class RoomService
                 isChatRequest: $this->roomRepository->getUserStatusInRoom(
                     user: $loggedInUser,
                     roomGuid: $roomGuid
-                ) === ChatRoomMemberStatusEnum::INVITE_PENDING
+                ) === ChatRoomMemberStatusEnum::INVITE_PENDING,
+                isUserRoomOwner: $this->roomRepository->isUserRoomOwner(
+                    roomGuid: $roomGuid,
+                    user: $loggedInUser
+                )
             ),
             cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
                 base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :
@@ -443,5 +459,25 @@ class RoomService
             $this->roomRepository->rollbackTransaction();
             throw $e;
         }
+    }
+
+    /**
+     * @param User $user
+     * @param int $roomGuid
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function isUserMemberOfRoom(
+        User $user,
+        int  $roomGuid
+    ): bool {
+        return $this->roomRepository->isUserMemberOfRoom(
+            roomGuid: $roomGuid,
+            user: $user,
+            targetStatuses: [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ]
+        );
     }
 }

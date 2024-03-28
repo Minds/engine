@@ -68,5 +68,4 @@ class ChatMessageNode implements NodeInterface
     {
         return $this->chatMessage->createdAt->format('U');
     }
-
 }

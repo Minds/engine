@@ -8,4 +8,5 @@ namespace Minds\Core\Monetization\Demonetization\Strategies\Interfaces;
  */
 interface DemonetizableEntityInterface
 {
+    public function getType();
 }

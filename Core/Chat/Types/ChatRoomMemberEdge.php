@@ -6,6 +6,7 @@ use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Feeds\GraphQL\Types\UserNode;
 use Minds\Core\GraphQL\Types\EdgeInterface;
 use TheCodingMachine\GraphQLite\Annotations\Field;
+use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 
 #[Type]
@@ -13,7 +14,8 @@ class ChatRoomMemberEdge implements EdgeInterface
 {
     public function __construct(
         protected UserNode $node,
-        protected string $cursor = ''
+        #[Field] #[Logged] public ChatRoomRoleEnum $role,
+        protected string $cursor = '',
     ) {
         
     }
@@ -28,15 +30,6 @@ class ChatRoomMemberEdge implements EdgeInterface
     public function getCursor(): string
     {
         return $this->cursor;
-    }
-
-    /**
-     * The role a member has in the room
-     */
-    #[Field]
-    public function getRole(): ChatRoomRoleEnum
-    {
-        return ChatRoomRoleEnum::OWNER;
     }
 
     /**
