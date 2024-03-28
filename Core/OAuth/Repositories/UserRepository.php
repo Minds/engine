@@ -62,6 +62,10 @@ class UserRepository implements UserRepositoryInterface
             $user = $this->entitiesBuilder->getByUserByIndex(strtolower($username));
         }
 
+        if (!$user || !($user instanceof User)) {
+            return false;
+        }
+
         if (!$user->getGuid()) {
             return false;
         }

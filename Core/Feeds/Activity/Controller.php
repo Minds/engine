@@ -141,8 +141,8 @@ class Controller
                 count($payload['attachment_guids'])
             );
 
-            if (!$shouldBeQuotedPost && $this->manager->countRemindsOfActivityByUser($remind, $user) > 0) {
-                throw new UserErrorException("You've already reminded this post'");
+            if (!$shouldBeQuotedPost && $this->manager->countRemindsOfEntityByUser($remind, $user) > 0) {
+                throw new UserErrorException("You've already reminded this post");
             }
 
 
@@ -515,7 +515,7 @@ class Controller
      * @param ServerRequest $request
      * @return JsonResponse
      */
-    public function deleteRemindsOfActivityByUser(ServerRequest $request): JsonResponse
+    public function deleteRemindsOfEntityByUser(ServerRequest $request): JsonResponse
     {
         /** @var User $user */
         $user = $request->getAttribute('_user');
@@ -542,9 +542,9 @@ class Controller
             ]);
         }
 
-        if ($this->manager->deleteRemindsOfActivityByUser($activity, $user)) {
+        if ($this->manager->deleteRemindsOfEntityByUser($activity, $user)) {
             return new JsonResponse([
-                'status' => 'success',
+            'status' => 'success',
             ]);
         }
 
@@ -587,7 +587,7 @@ class Controller
             ]);
         }
 
-        $hasReminded = $this->manager->countRemindsOfActivityByUser($activity, $user) > 0;
+        $hasReminded = $this->manager->countRemindsOfEntityByUser($activity, $user) > 0;
 
         return new JsonResponse([
             'status' => 'success',

@@ -101,6 +101,7 @@ class Factory
     {
         if (
             $request->getAttribute('oauth_user_id') ||
+            $request->getHeader('X-SESSION-TOKEN') ||
             Security\XSRF::validateRequest($request)
         ) {
             return true;

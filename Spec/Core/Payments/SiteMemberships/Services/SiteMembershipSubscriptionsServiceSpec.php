@@ -100,8 +100,7 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
                 ]
             ],
             [
-                'card',
-                'us_bank_account'
+                'card'
             ],
             null,
             [
@@ -193,8 +192,7 @@ class SiteMembershipSubscriptionsServiceSpec extends ObjectBehavior
                 ]
             ],
             [
-                'card',
-                'us_bank_account'
+                'card'
             ],
             null,
             [
