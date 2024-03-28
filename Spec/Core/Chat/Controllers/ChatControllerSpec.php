@@ -38,8 +38,9 @@ class ChatControllerSpec extends ObjectBehavior
         $this->shouldHaveType(ChatController::class);
     }
 
-    public function it_should_submit_a_read_receipt(ChatRoomEdge $chatRoomMock)
-    {
+    public function it_should_submit_a_read_receipt(
+        ChatRoomEdge $chatRoomMock
+    ): void {
         $roomGuid = (int) Guid::build();
         $messageGuid = (int) Guid::build();
 
@@ -55,7 +56,7 @@ class ChatControllerSpec extends ObjectBehavior
             plainText: 'not a real message'
         );
 
-        $this->messageServiceMock->getMessage($roomGuid, $messageGuid)
+        $this->messageServiceMock->getMessage($roomGuid, $messageGuid, $loggedInUser)
             ->willReturn($messageMock);
 
         $this->receiptServiceMock->updateReceipt($messageMock, $loggedInUser)

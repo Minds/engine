@@ -332,7 +332,8 @@ class RoomService
                 isUserRoomOwner: $this->roomRepository->isUserRoomOwner(
                     roomGuid: $roomGuid,
                     user: $loggedInUser
-                )
+                ),
+                areChatRoomNotificationsMuted: (bool) mt_rand(0, 1) // TODO: Fetch notifications status for room from db
             ),
             cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
                 base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :
@@ -479,5 +480,125 @@ class RoomService
                 ChatRoomMemberStatusEnum::INVITE_PENDING->name
             ]
         );
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param User $user
+     * @return bool
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     */
+    public function deleteChatRoom(
+        int $roomGuid,
+        User $user
+    ): bool {
+        if (!$this->roomRepository->isUserRoomOwner(
+            roomGuid: $roomGuid,
+            user: $user
+        )) {
+            throw new GraphQLException(message: "You are not the owner of this chat.", code: 403);
+        }
+
+        $this->roomRepository->beginTransaction();
+        try {
+            $results = $this->roomRepository->deleteRoom($roomGuid);
+            $this->roomRepository->commitTransaction();
+            return $results;
+        } catch (ServerErrorException $e) {
+            $this->roomRepository->rollbackTransaction();
+            throw $e;
+        }
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param User $user
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function leaveChatRoom(
+        int $roomGuid,
+        User $user
+    ): bool {
+        return $this->roomRepository->updateRoomMemberStatus(
+            roomGuid: $roomGuid,
+            user: $user,
+            memberStatus: ChatRoomMemberStatusEnum::LEFT
+        );
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param int $memberGuid
+     * @param User $user
+     * @return bool
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     */
+    public function removeMemberFromChatRoom(
+        int $roomGuid,
+        int $memberGuid,
+        User $user
+    ): bool {
+        if (!$this->roomRepository->isUserRoomOwner(
+            roomGuid: $roomGuid,
+            user: $user
+        )) {
+            throw new GraphQLException(message: "You are not the owner of this chat.", code: 403);
+        }
+
+        return $this->roomRepository->updateRoomMemberStatus(
+            roomGuid: $roomGuid,
+            user: $this->entitiesBuilder->single($memberGuid),
+            memberStatus: ChatRoomMemberStatusEnum::LEFT
+        );
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param User $user
+     * @return bool
+     * @throws BlockLimitException
+     * @throws ChatRoomNotFoundException
+     * @throws GraphQLException
+     * @throws NotFoundException
+     * @throws ServerErrorException
+     */
+    public function deleteChatRoomAndBlockUser(
+        int $roomGuid,
+        User $user
+    ): bool {
+        $chatRoomEdge = $this->getRoom(
+            roomGuid: $roomGuid,
+            loggedInUser: $user
+        );
+
+        if ($chatRoomEdge->getNode()->getRoomType() !== ChatRoomTypeEnum::ONE_TO_ONE) {
+            throw new GraphQLException(message: "You can only block users in one-to-one rooms", code: 400);
+        }
+
+        $memberGuid = $this->getRoomMembers(
+            roomGuid: $roomGuid,
+            loggedInUser: $user,
+            first: 1
+        )['edges'][0]->getNode()->getGuid();
+
+        if (!$this->deleteChatRoom(
+            roomGuid: $roomGuid,
+            user: $user
+        )) {
+            throw new GraphQLException(message: "Failed to block user", code: 500);
+        }
+
+        if (!$this->blockManager->add(
+            (new BlockEntry())
+                ->setActor($user)
+                ->setSubjectGuid($memberGuid)
+        )) {
+            throw new GraphQLException(message: "Failed to block user", code: 500);
+        }
+
+        return true;
     }
 }

@@ -4,8 +4,8 @@ namespace Minds\Core\Feeds\GraphQL\Types;
 use Minds\Core\Session;
 use Minds\Entities\User;
 use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
-use TheCodingMachine\GraphQLite\Annotations\Type;
 use TheCodingMachine\GraphQLite\Annotations\Field;
+use TheCodingMachine\GraphQLite\Annotations\Type;
 
 /**
  * Wraps the internal User class to work with GraphQL types
