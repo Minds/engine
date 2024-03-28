@@ -25,8 +25,8 @@ class RoomRepository extends AbstractRepository
 {
     public const TABLE_NAME = 'minds_chat_rooms';
     public const MEMBERS_TABLE_NAME = 'minds_chat_members';
-    private const MESSAGES_TABLE_NAME = 'minds_chat_messages';
-    private const RECEIPTS_TABLE_NAME = 'minds_chat_receipts';
+    public const MESSAGES_TABLE_NAME = 'minds_chat_messages';
+    public const RECEIPTS_TABLE_NAME = 'minds_chat_receipts';
 
     /**
      * @param int $roomGuid
@@ -105,7 +105,6 @@ class RoomRepository extends AbstractRepository
             ])
             ->onDuplicateKeyUpdate([
                 'status' => new RawExp(':status'),
-
             ])
             ->prepare();
 
