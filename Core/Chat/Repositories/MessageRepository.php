@@ -48,7 +48,6 @@ class MessageRepository extends AbstractRepository
      * @param int $limit
      * @param string|null $after
      * @param string|null $before
-     * @param bool $hasMore
      * @return iterable<ChatMessage>
      * @throws ServerErrorException
      */
@@ -57,8 +56,7 @@ class MessageRepository extends AbstractRepository
         int $limit = 12,
         ?string $after = null,
         ?string $before = null,
-        bool &$hasMore = false,
-    ): iterable {
+    ): array {
         $stmt = $this->mysqlClientReaderHandler->select()
             ->from(self::TABLE_NAME)
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
@@ -88,16 +86,23 @@ class MessageRepository extends AbstractRepository
         try {
             $stmt->execute($values);
 
+            $response = [
+                'messages' => [],
+                'hasMore' => false
+            ];
+
             if ($stmt->rowCount() > $limit) {
-                $hasMore = true;
+                $response['hasMore'] = true;
             }
 
             foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $index => $data) {
                 if ($index === $limit) {
                     break;
                 }
-                yield $this->buildChatMessageInstance($data);
+                $response['messages'][] = $this->buildChatMessageInstance($data);
             }
+
+            return $response;
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to get chat messages', previous: $e);
         }
@@ -110,7 +115,7 @@ class MessageRepository extends AbstractRepository
      * @throws ChatMessageNotFoundException
      * @throws ServerErrorException
      */
-    public function getMessagesByGuid(
+    public function getMessageByGuid(
         int $roomGuid,
         int $messageGuid
     ): ChatMessage {

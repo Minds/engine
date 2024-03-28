@@ -16,6 +16,7 @@ use Minds\Common\Access;
 use Minds\Core\Feeds\Activity\Manager as ActivityManager;
 use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service as MetascraperService;
 use Minds\Core\Feeds\RSS\Exceptions\RssFeedFailedFetchException;
+use Minds\Core\Feeds\RSS\Repositories\RssImportsRepository;
 use Minds\Core\Feeds\RSS\Types\RssFeed;
 use Minds\Core\Log\Logger;
 use Minds\Core\Security\ACL;
@@ -26,9 +27,10 @@ use Minds\Entities\User;
 class ProcessRssFeedService
 {
     public function __construct(
-        private readonly Reader $reader,
+        private readonly ReaderLibraryWrapper $reader,
         private readonly MetascraperService $metaScraperService,
         private readonly ActivityManager $activityManager,
+        private readonly RssImportsRepository $rssImportsRepository,
         private readonly ACL $acl,
         private readonly Logger $logger
     ) {
@@ -36,12 +38,12 @@ class ProcessRssFeedService
 
     /**
      * @param RssFeed $rssFeed
-     * @return iterable|int
+     * @return EntryInterface[]
      * @throws RssFeedFailedFetchException
      */
     public function fetchFeed(
         RssFeed $rssFeed
-    ): iterable|int {
+    ): array {
         try {
             $feed = $this->reader->import(
                 $rssFeed->url
@@ -50,9 +52,7 @@ class ProcessRssFeedService
             throw new RssFeedFailedFetchException();
         }
 
-        foreach ($feed as $entry) {
-            yield $entry;
-        }
+        return iterator_to_array($feed);
     }
 
     /**
@@ -70,12 +70,11 @@ class ProcessRssFeedService
     }
 
     /**
-     * @param Atom|EntryInterface|Rss $entry
-     * @param User $user
-     * @return bool
+     * Imports activity posts for a single rss feed entry
      */
-    public function processActivitiesForFeed(
-        Atom|EntryInterface|Rss $entry,
+    public function processActivity(
+        EntryInterface $entry,
+        int $feedId,
         User $user
     ): bool {
         $link = $entry->getLink() ?? $entry->getEnclosure()?->url ?? $entry->getPermalink();
@@ -87,13 +86,23 @@ class ProcessRssFeedService
         try {
             $richEmbed = $this->metaScraperService->scrape($link);
 
+            $canonicalUrl = $richEmbed['meta']['canonical_url'] ?? $link;
+
+            // Check to see if there has been an activity
+            if ($this->rssImportsRepository->hasMatch($feedId, $canonicalUrl)) {
+                return false;
+            }
+
             $activity
                 ->setLinkTitle($richEmbed['meta']['title'])
                 ->setBlurb($richEmbed['meta']['description'])
-                ->setURL($link)
+                ->setURL($canonicalUrl)
                 ->setThumbnail($richEmbed['links']['thumbnail'][0]['href']);
 
             $this->activityManager->add($activity);
+
+            // Save this activity to our database so we don't import it again
+            $this->rssImportsRepository->addEntry($feedId, $canonicalUrl, (int) $activity->getGuid());
         } catch (ClientException|Exception $e) {
             $this->logger->error($e->getMessage());
             return false;

@@ -550,6 +550,8 @@ class RoomRepository extends AbstractRepository
                 'r2.room_guid'
             )->prepare();
 
+        
+
         try {
             $stmt->execute([
                 'tenant_id_1' => $this->config->get('tenant_id') ?? -1,

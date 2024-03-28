@@ -102,18 +102,16 @@ class ChatController
         }
 
         $connection = new ChatMessagesConnection();
-        $hasMore = false;
 
-        $connection->setEdges(
-            $this->messageService->getMessages(
-                roomGuid: (int)$roomGuid,
-                user: $loggedInUser,
-                first: $first,
-                after: $before, // we need to reverse the order of the messages
-                before: $after, // we need to reverse the order of the messages
-                hasMore: $hasMore
-            )
+        ['edges' => $edges, 'hasMore' => $hasMore] = $this->messageService->getMessages(
+            roomGuid: (int)$roomGuid,
+            user: $loggedInUser,
+            first: $first,
+            after: $before, // we need to reverse the order of the messages
+            before: $after, // we need to reverse the order of the messages
         );
+
+        $connection->setEdges($edges);
 
         $startCursor = $endCursor = null;
 
@@ -331,7 +329,7 @@ class ChatController
         #[InjectUser] User $loggedInUser,
     ): ChatRoomEdge {
         $room = $this->roomService->getRoom($roomGuid, $loggedInUser);
-        $message = $this->messageService->getMessage($roomGuid, $messageGuid);
+        $message = $this->messageService->getMessage($roomGuid, $messageGuid, $loggedInUser);
 
         $this->receiptService->updateReceipt($message, $loggedInUser);
 
