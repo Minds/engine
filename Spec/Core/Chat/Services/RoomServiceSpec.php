@@ -781,4 +781,291 @@ class RoomServiceSpec extends ObjectBehavior
         )
             ->shouldEqual(true);
     }
+
+    public function it_should_check_if_user_IS_room_member_and_return_TRUE_if_member(
+        User $userMock
+    ): void {
+        $this->roomRepositoryMock->isUserMemberOfRoom(
+            123,
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ]
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->isUserMemberOfRoom(
+            $userMock,
+            123
+        )
+            ->shouldEqual(true);
+    }
+
+    public function it_should_delete_chat_room(
+        User $userMock
+    ): void {
+        $this->roomRepositoryMock->isUserRoomOwner(
+            123,
+            $userMock
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->roomRepositoryMock->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->roomRepositoryMock->deleteRoom(123)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+        $this->roomRepositoryMock->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->deleteChatRoom(
+            123,
+            $userMock
+        )
+            ->shouldEqual(true);
+    }
+
+    public function it_should_throw_exception_when_user_IS_NOT_room_owner_and_try_delete_chat_room(
+        User $userMock
+    ): void {
+        $this->roomRepositoryMock->isUserRoomOwner(
+            123,
+            $userMock
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
+        $this
+            ->shouldThrow(
+                new GraphQLException(message: "You are not the owner of this chat.", code: 403)
+            )
+            ->during(
+                method: 'deleteChatRoom',
+                arguments: [
+                    123,
+                    $userMock
+                ]
+            );
+    }
+
+    public function it_should_leave_chat_room(
+        User $userMock
+    ): void {
+        $this->roomRepositoryMock->updateRoomMemberStatus(
+            123,
+            $userMock,
+            ChatRoomMemberStatusEnum::LEFT
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->leaveChatRoom(
+            123,
+            $userMock
+        )
+            ->shouldEqual(true);
+    }
+
+    public function it_should_remove_member_from_chat_room(
+        User $userMock,
+        User $memberMock
+    ): void {
+        $this->roomRepositoryMock->isUserRoomOwner(
+            123,
+            $userMock
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->entitiesBuilderMock->single(456)
+            ->shouldBeCalledOnce()
+            ->willReturn($memberMock);
+
+        $this->roomRepositoryMock->updateRoomMemberStatus(
+            123,
+            $memberMock,
+            ChatRoomMemberStatusEnum::LEFT
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->removeMemberFromChatRoom(
+            123,
+            456,
+            $userMock
+        )
+            ->shouldEqual(true);
+    }
+
+    public function it_should_delete_chat_room_and_block_user(
+        User $userMock,
+        User $memberMock
+    ): void {
+        $this->roomRepositoryMock->isUserMemberOfRoom(
+            123,
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ]
+        )
+            ->shouldBeCalledTimes(2)
+            ->willReturn(true);
+
+        $this->roomRepositoryMock->isUserRoomOwner(
+            123,
+            $userMock
+        )
+            ->shouldBeCalledTimes(2)
+            ->willReturn(true);
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            123
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'chatRooms' => [
+                    $this->generateChatRoomListItem(
+                        chatRoom: $this->generateChatRoomMock(),
+                        lastMessagePlainText: null,
+                        lastMessageCreatedTimestamp: null
+                    )
+                ],
+                'hasMore' => false
+            ]);
+
+        $this->roomRepositoryMock->getUserStatusInRoom(
+            $userMock,
+            123
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(
+                ChatRoomMemberStatusEnum::INVITE_PENDING
+            );
+
+        $memberMock->getGuid()
+            ->willReturn('456');
+
+        $this->roomRepositoryMock->getRoomMembers(
+            123,
+            $userMock,
+            1,
+            null,
+            true
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'members' => [
+                    [
+                        'member_guid' => 456,
+                        'joined_timestamp' => date('c'),
+                        'role_id' => ChatRoomRoleEnum::OWNER->name,
+                    ]
+                ],
+                'hasMore' => false
+            ]);
+
+        $this->entitiesBuilderMock->single(456)
+            ->shouldBeCalledOnce()
+            ->willReturn(
+                $memberMock
+            );
+
+        $this->roomRepositoryMock->beginTransaction()
+            ->shouldBeCalledOnce();
+        $this->roomRepositoryMock->deleteRoom(123)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+        $this->roomRepositoryMock->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->blockManagerMock->add(
+            Argument::type(BlockEntry::class)
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->deleteChatRoomAndBlockUser(
+            123,
+            $userMock
+        )
+            ->shouldEqual(true);
+    }
+
+    public function it_should_throw_exception_when_trying_to_block_user_from_multi_user_room(
+        User $userMock
+    ): void {
+        $this->roomRepositoryMock->isUserMemberOfRoom(
+            123,
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ]
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->roomRepositoryMock->isUserRoomOwner(
+            123,
+            $userMock
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            123
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'chatRooms' => [
+                    $this->generateChatRoomListItem(
+                        chatRoom: $this->generateChatRoomMock(
+                            roomType: ChatRoomTypeEnum::MULTI_USER
+                        ),
+                        lastMessagePlainText: null,
+                        lastMessageCreatedTimestamp: null
+                    )
+                ],
+                'hasMore' => false
+            ]);
+
+        $this->roomRepositoryMock->getUserStatusInRoom(
+            $userMock,
+            123
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(
+                ChatRoomMemberStatusEnum::INVITE_PENDING
+            );
+
+        $this
+            ->shouldThrow(
+                new GraphQLException(message: "You can only block users in one-to-one rooms", code: 400)
+            )
+            ->during(
+                method: 'deleteChatRoomAndBlockUser',
+                arguments: [
+                    123,
+                    $userMock
+                ]
+            );
+    }
 }
