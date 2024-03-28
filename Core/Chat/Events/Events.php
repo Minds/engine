@@ -20,11 +20,11 @@ class Events
 
     public function register(): void
     {
-        $chatRoomService = $this->getChatRoomService();
         $this->eventsDispatcher->register(
             event: 'acl:read',
             namespace: 'chat',
-            handler: function (Event $event) use ($chatRoomService): void {
+            handler: function (Event $event): void {
+                $chatRoomService = $this->getChatRoomService();
                 /**
                  * @var ChatMessage|ChatRoom $entity
                  * @var User $user
