@@ -148,7 +148,7 @@ class CustomNavigationService
                 name: 'Explore',
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
-                iconId: '#',
+                iconId: 'tag',
                 path: '/discovery',
                 order: 2,
             ),
