@@ -11,6 +11,7 @@ namespace Minds\Core\Config;
 use Exception;
 use Minds\Core\Blockchain\Manager as BlockchainManager;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
+use Minds\Core\Chat\Services\ReceiptService;
 use Minds\Core\Di\Di;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\I18n\Manager as I18nManager;
@@ -57,7 +58,8 @@ class Exported
         $blockchain = null,
         private ?ExperimentsManager $experimentsManager = null,
         private ?RolesService $rolesService = null,
-        private ?SiteMembershipRepository $siteMembershipRepository = null
+        private ?SiteMembershipRepository $siteMembershipRepository = null,
+        private ?ReceiptService $chatReceiptsService = null,
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
@@ -66,6 +68,7 @@ class Exported
         $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
         $this->rolesService ??= Di::_()->get(RolesService::class);
         $this->siteMembershipRepository ??= Di::_()->get(SiteMembershipRepository::class);
+        $this->chatReceiptsService ??= Di::_()->get(ReceiptService::class);
     }
 
     /**
@@ -128,6 +131,9 @@ class Exported
             ],
             'livepeer_api_key' => $this->config->get('livepeer_api_key'),
             'onboarding_v5_release_timestamp' => $this->config->get('onboarding_v5_release_timestamp'),
+            'chat' => [
+                'unread_count' => Session::getLoggedinUser() ? $this->chatReceiptsService->getAllUnreadMessagesCount(Session::getLoggedinUser()) : 0,
+            ],
             'is_tenant' => false, // overridden below.
             'last_cache' => $this->config->get('lastcache') ?? 0
         ];

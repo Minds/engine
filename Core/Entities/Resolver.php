@@ -9,6 +9,7 @@ namespace Minds\Core\Entities;
 
 use Minds\Common\Urn;
 use Minds\Core\Entities\Delegates\BoostGuidResolverDelegate;
+use Minds\Core\Entities\Delegates\ChatMessageResolverDelegate;
 use Minds\Core\Entities\Delegates\CommentGuidResolverDelegate;
 use Minds\Core\Entities\Delegates\EntityGuidResolverDelegate;
 use Minds\Core\Entities\Delegates\EventsResolverDelegate;
@@ -53,6 +54,7 @@ class Resolver
             CommentGuidResolverDelegate::class => new CommentGuidResolverDelegate(),
             SystemPushNotificationResolverDelegate::class => new SystemPushNotificationResolverDelegate(),
             SupermindResolverDelegate::class => new SupermindResolverDelegate(),
+            ChatMessageResolverDelegate::class => new ChatMessageResolverDelegate(),
         ];
 
         $this->acl = $acl ?: ACL::_();
