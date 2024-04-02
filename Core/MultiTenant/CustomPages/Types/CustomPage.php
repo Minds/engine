@@ -21,12 +21,14 @@ class CustomPage implements NodeInterface
      * @param CustomPageTypesEnum $pageType
      * @param string|null $content
      * @param string|null $externalLink
+     * @param string|null $defaultContent
      * @param int $tenantId
      */
     public function __construct(
         #[Field] public readonly CustomPageTypesEnum $pageType,
         #[Field] public readonly ?string $content,
         #[Field] public readonly ?string $externalLink,
+        #[Field] public readonly ?string $defaultContent,
         int $tenantId
     ) {
         $this->tenantId = $tenantId;

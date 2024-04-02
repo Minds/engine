@@ -26,12 +26,14 @@ class ControllerSpec extends ObjectBehavior
         $pageType = CustomPageTypesEnum::PRIVACY_POLICY;
         $content = 'Sample Content';
         $externalLink = 'https://example.com';
+        $defaultContent = 'Default privacy policy text';
         $tenantId = 1;
 
         $mockCustomPage = new CustomPage(
             $pageType,
             $content,
             $externalLink,
+            $defaultContent,
             $tenantId
         );
 
