@@ -258,7 +258,7 @@ class RoomService
             roomGuid: $roomGuid,
             user: $loggedInUser,
             limit: $first ?? 12,
-            offset: $after ? (int)base64_decode($after, true) : null,
+            offset: $after,
             excludeSelf: $excludeSelf
         );
 
@@ -275,7 +275,7 @@ class RoomService
                             user: $user
                         ),
                         role: constant(ChatRoomRoleEnum::class . '::' . $member['role_id']),
-                        cursor: base64_encode($member['joined_timestamp'] ?? "0")
+                        cursor: base64_encode($member['joined_timestamp'] ?? "0:{$member['member_guid']}")
                     );
                 },
                 $members

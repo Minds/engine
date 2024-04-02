@@ -398,7 +398,7 @@ class RoomRepository extends AbstractRepository
         int  $roomGuid,
         User $user,
         int  $limit = 12,
-        ?int $offset = null,
+        ?string $offset = null,
         bool $excludeSelf = true
     ): array {
         $stmt = $this->mysqlClientReaderHandler->select()
@@ -406,7 +406,7 @@ class RoomRepository extends AbstractRepository
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->whereWithNamedParameters('status', Operator::IN, 'status', 2)
-            ->orderBy('joined_timestamp ASC')
+            ->orderBy('joined_timestamp ASC', 'member_guid DESC')
             ->limit($limit + 1);
 
         $values = [
@@ -421,6 +421,11 @@ class RoomRepository extends AbstractRepository
         }
 
         if ($offset) {
+            if (count($offsetParts = explode(':', base64_decode($offset, true))) >= 2) {
+                $offset = (int)$offsetParts[1];
+            } else {
+                $offset = (int)base64_decode($offset, true);
+            }
             $stmt->where('joined_timestamp', Operator::GT, new RawExp(':joined_timestamp'));
             $values['joined_timestamp'] = date('c', $offset);
         }
