@@ -10,9 +10,8 @@ use Minds\Core\Analytics\Metrics;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
-use Minds\Entities;
-use Minds\Entities\User;
 use Minds\Entities\Group;
+use Minds\Entities\User;
 use Minds\Helpers;
 
 class Defaults
@@ -205,6 +204,11 @@ class Defaults
 
         // Boost Events
         (new Core\Boost\V3\Events\Events())->register();
+
+        // Chat ACL Events
+        (new Core\Chat\Events\Events(
+            eventsDispatcher: Di::_()->get('EventsDispatcher'),
+        ))->register();
     }
 
     public static function _()

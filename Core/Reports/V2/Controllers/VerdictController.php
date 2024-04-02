@@ -37,6 +37,7 @@ class VerdictController
             reportGuid: $verdictInput->reportGuid,
             moderatedByGuid: (int) $loggedInUser->getGuid(),
             action: $verdictInput->action,
+            moderator: $loggedInUser
         );
     }
 }

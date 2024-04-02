@@ -40,11 +40,13 @@ class ReportController
         ?ReportStatusEnum $status = ReportStatusEnum::PENDING,
         #[InjectUser] ?User $loggedInUser = null // Do not add in docblock as it will break GraphQL
     ): ReportsConnection {
-        return $this->service->getReports(
+        $response = $this->service->getReports(
             limit: $first,
             loadAfter: $after,
             status: $status
         );
+
+        return $response;
     }
 
     /**

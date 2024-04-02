@@ -5,17 +5,18 @@
 
 namespace Minds\Core\Reports\Verdict\Delegates;
 
+use Minds\Common\SystemUser;
 use Minds\Common\Urn;
+use Minds\Core\Chat\Entities\ChatMessage;
+use Minds\Core\Comments\Comment;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver;
-use Minds\Common\SystemUser;
-use Minds\Core\Comments\Comment;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Events\EventsDispatcher;
-use Minds\Core\Reports\Verdict\Verdict;
-use Minds\Core\Plus;
-use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 use Minds\Core\Notifications;
+use Minds\Core\Plus;
+use Minds\Core\Reports\Verdict\Verdict;
+use Minds\Core\Wire\Paywall\PaywallEntityInterface;
 
 class NotificationDelegate
 {
@@ -67,7 +68,7 @@ class NotificationDelegate
 
         $reportEntity = $verdict->getReport()->getEntity();
         // scope to only comments to reduce regression scope.
-        if (!$entity && $reportEntity && $reportEntity instanceof Comment) {
+        if (!$entity && $reportEntity && ($reportEntity instanceof Comment || $reportEntity instanceof ChatMessage)) {
             $entity = $reportEntity;
         }
 
