@@ -7,6 +7,7 @@ use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Core\MultiTenant\CustomPages\Enums\CustomPageTypesEnum;
 use Minds\Core\MultiTenant\CustomPages\Types\CustomPage;
+use Minds\Core\MultiTenant\CustomPages\Defaults\CustomPageDefaultContent;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
 use Selective\Database\Operator;
 use Selective\Database\RawExp;
@@ -46,6 +47,7 @@ class Repository extends AbstractRepository
                 pageType: $pageType,
                 content: null,
                 externalLink: null,
+                defaultContent: CustomPageDefaultContent::get()[$pageType->value] ?? null,
                 tenantId: $tenantId
             );
         }
@@ -95,11 +97,15 @@ class Repository extends AbstractRepository
      */
     private function buildCustomPage(array $row): CustomPage
     {
+        $pageType = CustomPageTypesEnum::from($row['page_type']);
+        $defaultContent = CustomPageDefaultContent::get()[$pageType->value] ?? null;
+
         return new CustomPage(
-            pageType: CustomPageTypesEnum::from($row['page_type']),
+            pageType: $pageType,
             content: $row['content'] ?? null,
             externalLink: $row['external_link'] ?? null,
-            tenantId: $row['tenant_id']
+            defaultContent: $defaultContent,
+            tenantId: $row['tenant_id'],
         );
     }
 }
