@@ -16,7 +16,7 @@ class PostHogConfig
      */
     public function getPersonalApiKey(): string
     {
-        return $this->config->get('posthog')['personal_api_key'];
+        return $this->config->get('posthog')['personal_api_key'] ?? '';
     }
 
     /**
@@ -24,7 +24,7 @@ class PostHogConfig
      */
     public function getApiKey(): string
     {
-        return $this->config->get('posthog')['api_key'];
+        return $this->config->get('posthog')['api_key'] ?? '';
     }
 
     /**
@@ -32,7 +32,7 @@ class PostHogConfig
      */
     public function getHost(): string
     {
-        return $this->config->get('posthog')['host'];
+        return $this->config->get('posthog')['host'] ?? '';
     }
 
     /**
