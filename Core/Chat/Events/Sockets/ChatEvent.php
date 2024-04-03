@@ -17,7 +17,7 @@ class ChatEvent implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            'type' => $this->type,
+            'type' => $this->type->name,
             'metadata' => $this->metadata,
         ];
     }
