@@ -270,6 +270,50 @@ class RoomRepository extends AbstractRepository
     }
 
     /**
+     * @param User $user
+     * @return iterable<string>
+     * @throws ServerErrorException
+     */
+    public function getRoomGuidsByMember(
+        User $user,
+    ): iterable {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'room_guid'
+            ])
+            ->from(new RawExp(self::TABLE_NAME . ' as r'))
+            ->leftJoinRaw(
+                self::MEMBERS_TABLE_NAME,
+                'm.room_guid = r.room_guid AND m.tenant_id = r.tenant_id AND m.member_guid = :member_guid_1',
+            )
+            ->leftJoinRaw(
+                new RawExp('minds_group_membership as gm'),
+                'r.group_guid = gm.group_guid AND gm.user_guid = :member_guid_2',
+            )
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->whereRaw(
+                "(m.status IS NOT NULL AND m.status IN (:status_1, :status_2)) OR
+                (gm.group_guid IS NOT NULL AND m.status IS NULL)"
+            )
+            ->prepare();
+
+        try {
+            $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'member_guid_1' => $user->getGuid(),
+                'member_guid_2' => $user->getGuid(),
+                'status_1' => ChatRoomMemberStatusEnum::ACTIVE->name,
+                'status_2' => ChatRoomMemberStatusEnum::INVITE_PENDING->name,
+            ]);
+
+            $stmt->setFetchMode(PDO::FETCH_COLUMN);
+            return $stmt->getIterator();
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to fetch chat room guids by member', previous: $e);
+        }
+    }
+
+    /**
      * @param int $roomGuid
      * @return int
      * @throws ServerErrorException

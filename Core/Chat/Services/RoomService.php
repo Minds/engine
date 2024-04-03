@@ -212,6 +212,16 @@ class RoomService
     }
 
     /**
+     * @param User $user
+     * @return array
+     */
+    public function getRoomGuidsByMember(
+        User $user
+    ): array {
+        return iterator_to_array($this->getRoomGuidsByMember($user));
+    }
+
+    /**
      * @param int $roomGuid
      * @return int
      * @throws ServerErrorException
