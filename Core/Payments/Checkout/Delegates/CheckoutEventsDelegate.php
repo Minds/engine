@@ -3,17 +3,14 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\Checkout\Delegates;
 
-use Minds\Core\Analytics\Snowplow\Contexts\SnowplowNetworkCheckoutContext;
-use Minds\Core\Analytics\Snowplow\Enums\SnowplowCheckoutEventTypeEnum;
-use Minds\Core\Analytics\Snowplow\Events\SnowplowCheckoutEvent;
-use Minds\Core\Analytics\Snowplow\Manager as SnowplowManager;
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Payments\Checkout\Enums\CheckoutTimePeriodEnum;
 use Minds\Entities\User;
 
 class CheckoutEventsDelegate
 {
     public function __construct(
-        private readonly SnowplowManager $snowplowManager
+        private readonly PostHogService $postHogService
     ) {
     }
 
@@ -30,20 +27,12 @@ class CheckoutEventsDelegate
         CheckoutTimePeriodEnum $timePeriod,
         array                  $addonIds = []
     ): void {
-        $event = (new SnowplowCheckoutEvent(
-            checkoutEventType: SnowplowCheckoutEventTypeEnum::CHECKOUT_PAYMENT
-        ))
-            ->setContext([
-                new SnowplowNetworkCheckoutContext(
-                    productId: $productId,
-                    timePeriod: $timePeriod,
-                    addonIds: $addonIds
-                )
-            ]);
-
-        $this->snowplowManager
-            ->setSubject($user)
-            ->emit($event);
+        $this->postHogService->withUser($user)->capture([
+            'event' => 'user_checkout_payment',
+            'checkout_product_id' => $productId,
+            'checkout_time_period' => $timePeriod,
+            'checkout_addon_ids' => $addonIds,
+        ]);
     }
 
     /**
@@ -59,19 +48,11 @@ class CheckoutEventsDelegate
         CheckoutTimePeriodEnum $timePeriod,
         array                  $addonIds = []
     ): void {
-        $event = (new SnowplowCheckoutEvent(
-            checkoutEventType: SnowplowCheckoutEventTypeEnum::CHECKOUT_PAYMENT
-        ))
-            ->setContext([
-                new SnowplowNetworkCheckoutContext(
-                    productId: $productId,
-                    timePeriod: $timePeriod,
-                    addonIds: $addonIds
-                )
-            ]);
-
-        $this->snowplowManager
-            ->setSubject($user)
-            ->emit($event);
+        $this->postHogService->withUser($user)->capture([
+            'event' => 'user_checkout_com',
+            'checkout_product_id' => $productId,
+            'checkout_time_period' => $timePeriod,
+            'checkout_addon_ids' => $addonIds,
+        ]);
     }
 }

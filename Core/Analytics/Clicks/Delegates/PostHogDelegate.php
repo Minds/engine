@@ -8,9 +8,9 @@ use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 
 /**
- * Responsible for dispatching click actions to snowplow via Events.
+ * Responsible for dispatching click actions to PostHog via Events.
  */
-class SnowplowDelegate
+class PostHogDelegate
 {
     public function __construct(
         private ?Event $event = null

@@ -2,13 +2,13 @@
 
 namespace Spec\Minds\Core\Analytics\Clicks\Delegates;
 
-use Minds\Core\Analytics\Clicks\Delegates\SnowplowDelegate;
+use Minds\Core\Analytics\Clicks\Delegates\PostHogDelegate;
 use Minds\Core\Analytics\Metrics\Event;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 
-class SnowplowDelegateSpec extends ObjectBehavior
+class PostHogDelegateSpec extends ObjectBehavior
 {
     /** @var Event */
     protected $event;
@@ -21,7 +21,7 @@ class SnowplowDelegateSpec extends ObjectBehavior
 
     public function it_is_initializable()
     {
-        $this->shouldHaveType(SnowplowDelegate::class);
+        $this->shouldHaveType(PostHogDelegate::class);
     }
 
     public function it_should_send_an_action_event_on_click(EntityInterface $entity, User $user)

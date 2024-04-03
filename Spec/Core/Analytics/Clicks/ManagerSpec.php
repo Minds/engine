@@ -3,7 +3,7 @@
 namespace Spec\Minds\Core\Analytics\Clicks;
 
 use Minds\Core\Analytics\Clicks\Delegates\ActionEventsDelegate as ClickActionEventsDelegate;
-use Minds\Core\Analytics\Clicks\Delegates\SnowplowDelegate;
+use Minds\Core\Analytics\Clicks\Delegates\PostHogDelegate;
 use Minds\Core\Analytics\Clicks\Manager;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\EntitiesBuilder;
@@ -19,8 +19,8 @@ class ManagerSpec extends ObjectBehavior
     /** @var ClickActionEventsDelegate */
     private Collaborator $actionEventsDelegate;
 
-    /** @var SnowplowDelegate */
-    private Collaborator $snowplowDelegate;
+    /** @var PostHogDelegate */
+    private Collaborator $postHogDelegate;
 
     /** @var EntitiesBuilder */
     private Collaborator $entitiesBuilder;
@@ -30,18 +30,18 @@ class ManagerSpec extends ObjectBehavior
 
     public function let(
         ClickActionEventsDelegate $actionEventsDelegate,
-        SnowplowDelegate $snowplowDelegate,
+        PostHogDelegate $postHogDelegate,
         EntitiesBuilder $entitiesBuilder,
         EntitiesResolver $entitiesResolver
     ) {
         $this->actionEventsDelegate = $actionEventsDelegate;
-        $this->snowplowDelegate = $snowplowDelegate;
+        $this->postHogDelegate = $postHogDelegate;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->entitiesResolver = $entitiesResolver;
 
         $this->beConstructedWith(
             $actionEventsDelegate,
-            $snowplowDelegate,
+            $postHogDelegate,
             $entitiesBuilder,
             $entitiesResolver
         );
@@ -70,7 +70,7 @@ class ManagerSpec extends ObjectBehavior
         $this->actionEventsDelegate->onClick($boost, $user)
             ->shouldBeCalled();
 
-        $this->snowplowDelegate->onClick($boost, $clientMeta, $user)
+        $this->postHogDelegate->onClick($boost, $clientMeta, $user)
             ->shouldBeCalled();
 
         $this->trackClick($entityGuid, $clientMeta, $user);
@@ -93,7 +93,7 @@ class ManagerSpec extends ObjectBehavior
         $this->actionEventsDelegate->onClick(Argument::any(), $user)
             ->shouldNotBeCalled();
 
-        $this->snowplowDelegate->onClick(Argument::any(), $clientMeta, $user)
+        $this->postHogDelegate->onClick(Argument::any(), $clientMeta, $user)
             ->shouldNotBeCalled();
 
         $this->shouldThrow(NotFoundException::class)->during('trackClick', [$entityGuid, $clientMeta, $user]);
@@ -113,7 +113,7 @@ class ManagerSpec extends ObjectBehavior
         $this->actionEventsDelegate->onClick($entity, $user)
             ->shouldBeCalled();
 
-        $this->snowplowDelegate->onClick($entity, $clientMeta, $user)
+        $this->postHogDelegate->onClick($entity, $clientMeta, $user)
             ->shouldBeCalled();
 
         $this->trackClick($entityGuid, $clientMeta, $user);
@@ -131,7 +131,7 @@ class ManagerSpec extends ObjectBehavior
         $this->actionEventsDelegate->onClick(Argument::any(), $user)
             ->shouldNotBeCalled();
 
-        $this->snowplowDelegate->onClick(Argument::any(), $clientMeta, $user)
+        $this->postHogDelegate->onClick(Argument::any(), $clientMeta, $user)
             ->shouldNotBeCalled();
 
         $this->shouldThrow(NotFoundException::class)->during('trackClick', [$entityGuid, $clientMeta, $user]);

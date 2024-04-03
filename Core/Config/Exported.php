@@ -9,6 +9,8 @@
 namespace Minds\Core\Config;
 
 use Exception;
+use Minds\Core\Analytics\PostHog\PostHogConfig;
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Blockchain\Manager as BlockchainManager;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Chat\Services\ReceiptService;
@@ -60,6 +62,7 @@ class Exported
         private ?RolesService $rolesService = null,
         private ?SiteMembershipRepository $siteMembershipRepository = null,
         private ?ReceiptService $chatReceiptsService = null,
+        private ?PostHogConfig $postHogConfig = null,
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
@@ -69,6 +72,7 @@ class Exported
         $this->rolesService ??= Di::_()->get(RolesService::class);
         $this->siteMembershipRepository ??= Di::_()->get(SiteMembershipRepository::class);
         $this->chatReceiptsService ??= Di::_()->get(ReceiptService::class);
+        $this->postHogConfig ??= Di::_()->get(PostHogConfig::class);
     }
 
     /**
@@ -114,10 +118,12 @@ class Exported
             'statuspage_io' => [
                 'url' => $this->config->get('statuspage_io')['url'] ?? null,
             ],
-            'experiments' => [], // TODO: remove when clients support growthbook features
-            'growthbook' => $this->experimentsManager
-                ->setUser(Session::getLoggedinUser())
-                ->getExportableConfig(),
+            'posthog' => [
+                ...$this->postHogConfig->getPublicExport(),
+                'feature_flags' => Di::_()->get(PostHogService::class)
+                    ->withUser(Session::getLoggedinUser())
+                    ->getFeatureFlags(),
+            ],
             'twitter' => [
                 'min_followers_for_sync' => $this->config->get('twitter')['min_followers_for_sync'] ?? 25000,
             ],
