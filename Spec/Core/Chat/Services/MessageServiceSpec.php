@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Chat\Services;
 use DateTimeImmutable;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Events\Sockets\ChatEvent;
 use Minds\Core\Chat\Events\Sockets\Enums\ChatEventTypeEnum;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;
@@ -84,7 +85,13 @@ class MessageServiceSpec extends ObjectBehavior
             ->willReturn($this->socketEventsMock);
 
         $this->socketEventsMock->emit(
-            ChatEventTypeEnum::NEW_MESSAGE->name
+            "chat:123",
+            json_encode(new ChatEvent(
+                type: ChatEventTypeEnum::NEW_MESSAGE,
+                metadata: [
+                    'senderGuid' => 123,
+                ],
+            ))
         )
             ->shouldBeCalledOnce();
 
@@ -139,12 +146,14 @@ class MessageServiceSpec extends ObjectBehavior
             );
     }
 
-    public function it_should_submit_a_read_receipt_when_sending_a_message()
-    {
+    public function it_should_submit_a_read_receipt_when_sending_a_message(
+        User $userMock
+    ) {
         $roomGuid = (int) Guid::build();
-        $user = new User();
+        $userMock->getGuid()
+            ->willReturn('123');
 
-        $this->roomRepositoryMock->isUserMemberOfRoom($roomGuid, $user)
+        $this->roomRepositoryMock->isUserMemberOfRoom($roomGuid, $userMock)
             ->shouldBeCalled()
             ->willReturn(true);
         
@@ -157,7 +166,7 @@ class MessageServiceSpec extends ObjectBehavior
         $this->messageRepositoryMock->commitTransaction()
             ->shouldBeCalled();
 
-        $this->receiptServiceMock->updateReceipt(Argument::type(ChatMessage::class), $user)
+        $this->receiptServiceMock->updateReceipt(Argument::type(ChatMessage::class), $userMock)
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -166,11 +175,17 @@ class MessageServiceSpec extends ObjectBehavior
             ->willReturn($this->socketEventsMock);
 
         $this->socketEventsMock->emit(
-            ChatEventTypeEnum::NEW_MESSAGE->name
+            "chat:$roomGuid",
+            json_encode(new ChatEvent(
+                type: ChatEventTypeEnum::NEW_MESSAGE,
+                metadata: [
+                    'senderGuid' => 123,
+                ],
+            ))
         )
             ->shouldBeCalledOnce();
 
-        $result = $this->addMessage(roomGuid: $roomGuid, user: $user, message: 'just for testing');
+        $result = $this->addMessage(roomGuid: $roomGuid, user: $userMock, message: 'just for testing');
         $result->shouldBeAnInstanceOf(ChatMessageEdge::class);
     }
 

@@ -827,7 +827,7 @@ class RoomRepositorySpec extends ObjectBehavior
 
         $selectQueryMock->innerJoin(
             new RawExp("($secondQueryString) as r2"),
-            'r2.room_guid',
+            'r.room_guid',
             Operator::EQ,
             'r2.room_guid'
         )

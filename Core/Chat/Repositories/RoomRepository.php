@@ -279,18 +279,18 @@ class RoomRepository extends AbstractRepository
     ): iterable {
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
-                'room_guid'
+                'r.room_guid'
             ])
             ->from(new RawExp(self::TABLE_NAME . ' as r'))
             ->leftJoinRaw(
-                self::MEMBERS_TABLE_NAME,
+                new RawExp(self::MEMBERS_TABLE_NAME . ' as m'),
                 'm.room_guid = r.room_guid AND m.tenant_id = r.tenant_id AND m.member_guid = :member_guid_1',
             )
             ->leftJoinRaw(
                 new RawExp('minds_group_membership as gm'),
                 'r.group_guid = gm.group_guid AND gm.user_guid = :member_guid_2',
             )
-            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->whereRaw(
                 "(m.status IS NOT NULL AND m.status IN (:status_1, :status_2)) OR
                 (gm.group_guid IS NOT NULL AND m.status IS NULL)"
@@ -306,7 +306,7 @@ class RoomRepository extends AbstractRepository
                 'status_2' => ChatRoomMemberStatusEnum::INVITE_PENDING->name,
             ]);
 
-            $stmt->setFetchMode(PDO::FETCH_COLUMN);
+            $stmt->setFetchMode(PDO::FETCH_COLUMN, 0);
             return $stmt->getIterator();
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to fetch chat room guids by member', previous: $e);
@@ -593,7 +593,7 @@ class RoomRepository extends AbstractRepository
             ->from(new RawExp("($firstMemberGuidOneToOneRoomQuery) as r"))
             ->innerJoin(
                 new RawExp("($secondMemberGuidOneToOneRoomQuery) as r2"),
-                'r2.room_guid',
+                'r.room_guid',
                 Operator::EQ,
                 'r2.room_guid'
             )->prepare();

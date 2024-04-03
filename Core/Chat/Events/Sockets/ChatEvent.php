@@ -9,6 +9,7 @@ class ChatEvent
 {
     public function __construct(
         public ChatEventTypeEnum $type,
+        public array $metadata = []
     ) {
     }
 }
