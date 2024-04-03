@@ -5,7 +5,6 @@ namespace Minds\Core\Chat\Services;
 
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
-use Minds\Core\Chat\Events\Sockets\ChatEvent;
 use Minds\Core\Chat\Events\Sockets\Enums\ChatEventTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
 use Minds\Core\Chat\Repositories\MessageRepository;
@@ -78,12 +77,11 @@ class MessageService
             // Commit
             $this->messageRepository->commitTransaction();
 
-            $this->socketEvents->emit(
-                "chat:$roomGuid",
-                json_encode(new ChatEvent(
-                    type: ChatEventTypeEnum::NEW_MESSAGE
-                ))
-            );
+            $this->socketEvents
+                ->setRoom("chat:$roomGuid")
+                ->emit(
+                    ChatEventTypeEnum::NEW_MESSAGE->name
+                );
         } catch (PDOException $e) {
             $this->messageRepository->rollbackTransaction();
         }

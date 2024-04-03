@@ -5,6 +5,7 @@ namespace Spec\Minds\Core\Chat\Services;
 use DateTimeImmutable;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Events\Sockets\Enums\ChatEventTypeEnum;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Chat\Services\MessageService;
@@ -12,6 +13,7 @@ use Minds\Core\Chat\Services\ReceiptService;
 use Minds\Core\Chat\Types\ChatMessageEdge;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Guid;
+use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -25,6 +27,7 @@ class MessageServiceSpec extends ObjectBehavior
     private Collaborator $roomRepositoryMock;
     private Collaborator $receiptServiceMock;
     private Collaborator $entitiesBuilderMock;
+    private Collaborator $socketEventsMock;
 
     private ReflectionClass $chatMessageFactoryMock;
 
@@ -33,12 +36,14 @@ class MessageServiceSpec extends ObjectBehavior
         RoomRepository $roomRepositoryMock,
         ReceiptService $receiptServiceMock,
         EntitiesBuilder $entitiesBuilderMock,
+        SocketEvents $socketEvents
     ) {
-        $this->beConstructedWith($messageRepositoryMock, $roomRepositoryMock, $receiptServiceMock, $entitiesBuilderMock);
+        $this->beConstructedWith($messageRepositoryMock, $roomRepositoryMock, $receiptServiceMock, $entitiesBuilderMock, $socketEvents);
         $this->messageRepositoryMock = $messageRepositoryMock;
         $this->roomRepositoryMock  = $roomRepositoryMock;
         $this->receiptServiceMock = $receiptServiceMock;
         $this->entitiesBuilderMock = $entitiesBuilderMock;
+        $this->socketEventsMock = $socketEvents;
 
         $this->chatMessageFactoryMock = new ReflectionClass(ChatMessage::class);
     }
@@ -73,6 +78,15 @@ class MessageServiceSpec extends ObjectBehavior
 
         $this->messageRepositoryMock->commitTransaction()
             ->shouldBeCalled();
+
+        $this->socketEventsMock->setRoom('chat:123')
+            ->shouldBeCalledOnce()
+            ->willReturn($this->socketEventsMock);
+
+        $this->socketEventsMock->emit(
+            ChatEventTypeEnum::NEW_MESSAGE->name
+        )
+            ->shouldBeCalledOnce();
 
         $this->addMessage(
             123,
@@ -146,6 +160,15 @@ class MessageServiceSpec extends ObjectBehavior
         $this->receiptServiceMock->updateReceipt(Argument::type(ChatMessage::class), $user)
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->socketEventsMock->setRoom("chat:$roomGuid")
+            ->shouldBeCalledOnce()
+            ->willReturn($this->socketEventsMock);
+
+        $this->socketEventsMock->emit(
+            ChatEventTypeEnum::NEW_MESSAGE->name
+        )
+            ->shouldBeCalledOnce();
 
         $result = $this->addMessage(roomGuid: $roomGuid, user: $user, message: 'just for testing');
         $result->shouldBeAnInstanceOf(ChatMessageEdge::class);

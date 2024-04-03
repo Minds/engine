@@ -556,7 +556,7 @@ class RoomRepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
-        $selectQueryMock->orderBy('joined_timestamp ASC')
+        $selectQueryMock->orderBy('joined_timestamp ASC', 'member_guid DESC')
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
