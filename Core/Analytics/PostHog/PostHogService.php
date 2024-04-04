@@ -10,7 +10,6 @@ use Zend\Diactoros\ServerRequestFactory;
 
 class PostHogService
 {
-    private ?User $user;
     private ?ServerRequestInterface $serverRequest;
 
     public function __construct(
@@ -32,35 +31,27 @@ class PostHogService
     }
 
     /**
-     * Provides the current user that should be identified on PostHog with
-     */
-    public function withUser(?User $user): PostHogService
-    {
-        $instance = clone $this;
-        $instance->user = $user;
-        return $instance;
-    }
-
-    /**
      * Captures a PostHog event
      */
-    public function capture(array $data = []): bool
-    {
-        $data['$set'] = [
-            'username' => $this->user->getUsername(),
-        ];
+    public function capture(
+        string $event,
+        User $user,
+        array $properties = [],
+        array $set = [],
+        array $setOnce = []
+    ): bool {
+        $set['username'] = $user->getUsername();
+        $set['email'] = $user->getEmail();
 
-        if ($this->user->getPlusExpires()) {
-            $data['$set']['plus_expires'] = date('c', $this->user->getPlusExpires());
+        if ($user->getPlusExpires()) {
+            $set['plus_expires'] = date('c', $user->getPlusExpires());
         }
 
-        if ($this->user->getProExpires()) {
-            $data['$set']['pro_expires'] = date('c', $this->user->getProExpires());
+        if ($user->getProExpires()) {
+            $set['pro_expires'] = date('c', $user->getProExpires());
         }
 
-        $data['$set_once'] = [
-            'joined_timestamp' => date('c', $this->user->time_created),
-        ];
+        $setOnce['joined_timestamp'] = date('c', $user->time_created);
         
         /**
          * If the browser sends the page the api was on when called,
@@ -68,29 +59,39 @@ class PostHogService
          */
         if ($referrerUrl = $this->getServerRequestHeader('Referer')) {
             $urlParts = parse_url($referrerUrl[0]);
-            $data['properties']['$current_url'] = $referrerUrl[0];
-            $data['properties']['$pathname'] = $urlParts['path'];
-            $data['properties']['$host'] = $urlParts['host'];
+            $properties['$current_url'] = $referrerUrl[0];
+            $properties['$pathname'] = $urlParts['path'];
+            $properties['$host'] = $urlParts['host'];
         }
 
         /**
          * Our reverse proxy will provide us with the real IP
          */
         if ($xForwardedFor = $this->getServerRequestHeader('X-Forwarded-For')) {
-            $data['properties']['$ip'] = $xForwardedFor[0];
+            $properties['$ip'] = $xForwardedFor[0];
         }
 
-        return $this->postHogClient->capture([
-            'distinctId' => $this->user->getGuid(),
-            ... $data
+        $success = $this->postHogClient->capture([
+            'event' => $event,
+            'distinctId' => $user->getGuid(),
+            'properties' => [
+                ...$properties,
+                '$set' => $set,
+                '$set_once' => $setOnce,
+            ]
         ]);
+
+        // Sends the request
+        return $success && $this->postHogClient->flush();
     }
 
     /**
      * Returns feature flags for a given user
      */
-    public function getFeatureFlags(bool $useCache = true): array
-    {
+    public function getFeatureFlags(
+        User $user = null,
+        bool $useCache = true
+    ): array {
         if ($useCache && $this->cache->has($this->getCacheKey())) {
             $this->postHogClient->featureFlags = $this->cache->get($this->getCacheKey());
         } else {
@@ -99,7 +100,7 @@ class PostHogService
         }
 
         return $this->postHogClient->getAllFlags(
-            distinctId: isset($this->user) ? $this->user->getGuid() : '',
+            distinctId: isset($user) ? $user->getGuid() : '',
             personProperties : [
                 'environment' => getenv('MINDS_ENV') ?: 'development',
             ],

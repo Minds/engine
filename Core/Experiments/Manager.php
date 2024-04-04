@@ -10,14 +10,8 @@
 namespace Minds\Core\Experiments;
 
 use Minds\Entities\User;
-use Growthbook;
-use GuzzleHttp;
 use Minds\Core\Analytics\PostHog\PostHogService;
-use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
-use Minds\Core\Experiments\Cookie\Manager as CookieManager;
-use Minds\Core\Data\cache\SharedCache;
-use Minds\Core\Data\cache\WorkerCache;
 
 class Manager
 {
@@ -57,7 +51,7 @@ class Manager
      */
     public function isOn(string $featureKey): bool
     {
-        return !!($this->postHogService->withUser($this->user)->getFeatureFlags()[$featureKey] ?? false);
+        return !!($this->postHogService->getFeatureFlags(user: $this->user)[$featureKey] ?? false);
     }
 
     /**
@@ -68,7 +62,7 @@ class Manager
      */
     public function hasVariation(string $featureKey, $variation): bool
     {
-        $value = $this->postHogService->withUser($this->user)->getFeatureFlags()[$featureKey] ?? null;
+        $value = $this->postHogService->getFeatureFlags(user: $this->user)[$featureKey] ?? null;
         return $value === $variation;
     }
 

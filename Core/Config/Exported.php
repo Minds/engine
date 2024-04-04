@@ -121,8 +121,7 @@ class Exported
             'posthog' => [
                 ...$this->postHogConfig->getPublicExport(),
                 'feature_flags' => Di::_()->get(PostHogService::class)
-                    ->withUser(Session::getLoggedinUser())
-                    ->getFeatureFlags(),
+                    ->getFeatureFlags(user: Session::getLoggedinUser()),
             ],
             'twitter' => [
                 'min_followers_for_sync' => $this->config->get('twitter')['min_followers_for_sync'] ?? 25000,

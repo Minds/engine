@@ -41,6 +41,7 @@ class PostHogServiceSpec extends ObjectBehavior
 
         $user->getGuid()->shouldBeCalled()->willReturn($userGuid);
         $user->getUsername()->shouldBeCalled()->willReturn('phpspec');
+        $user->getEmail()->shouldBeCalled()->willReturn('phpspec@minds.com');
         $user->getPlusExpires()->shouldBeCalled()->willReturn(strtotime('midnight'));
         $user->getProExpires()->shouldBeCalled()->willReturn(null);
         $user->get('time_created')->shouldBeCalled()->willReturn(strtotime('midnight yesterday'));
@@ -48,26 +49,31 @@ class PostHogServiceSpec extends ObjectBehavior
 
         $this->postHogClientMock->capture(
             [
+                'event' => 'phpspec_test',
                 'distinctId' => $userGuid,
                 'properties' => [
-                    'entity_guid' => '123'
+                    'entity_guid' => '123',
+                    '$set' => [
+                        'username' => 'phpspec',
+                        'email' => 'phpspec@minds.com',
+                        'plus_expires' => date('c', strtotime('midnight')),
+                    ],
+                    '$set_once' => [
+                        'joined_timestamp' => date('c', strtotime('midnight yesterday')),
+                    ]
                 ],
-                '$set' => [
-                    'username' => 'phpspec',
-                    'plus_expires' => date('c', strtotime('midnight')),
-                ],
-                '$set_once' => [
-                    'joined_timestamp' => date('c', strtotime('midnight yesterday')),
-                ]
             ]
         )->willReturn(true);
 
-        $this->withUser($user)->capture(
-            [
-            'properties' => [
+        $this->postHogClientMock->flush()
+            ->willReturn(true);
+
+        $this->capture(
+            event: 'phpspec_test',
+            user: $user,
+            properties: [
                 'entity_guid' => '123',
             ]
-        ]
         )
         ->shouldBe(true);
     }
@@ -98,7 +104,7 @@ class PostHogServiceSpec extends ObjectBehavior
                 'flag-2' => false,
             ]);
 
-        $this->withUser($userMock)->getFeatureFlags(useCache: false)
+        $this->getFeatureFlags(user: $userMock, useCache: false)
             ->shouldBe([
                 'flag-1' => true,
                 'flag-2' => false,
@@ -134,7 +140,7 @@ class PostHogServiceSpec extends ObjectBehavior
                 'flag-2' => false,
             ]);
 
-        $this->withUser($userMock)->getFeatureFlags(useCache: true)
+        $this->getFeatureFlags(user: $userMock, useCache: true)
             ->shouldBe([
                 'flag-1' => true,
                 'flag-2' => false,

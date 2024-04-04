@@ -48,7 +48,7 @@ class CheckoutService
      * @param User $user
      * @param string $planId
      * @param CheckoutTimePeriodEnum $timePeriod
-     * @param array|null $addOnIds
+     * @param string[]|null $addOnIds
      * @return string
      * @throws GraphQLException
      * @throws ServerErrorException
@@ -211,7 +211,7 @@ class CheckoutService
             try {
                 $tenant = $this->tenantsService->getTrialNetworkByOwner($user);
 
-                $tenant = $this->tenantsService->upgradeNetworkTrial($tenant, $plan);
+                $tenant = $this->tenantsService->upgradeNetworkTrial($tenant, $plan, $user);
             } catch (NotFoundException $e) {
                 $tenant = $this->tenantsService->createNetwork(
                     tenant: new Tenant(

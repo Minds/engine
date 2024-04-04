@@ -37,11 +37,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $user = new User();
 
-        $this->postHogServiceMock->withUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->postHogServiceMock);
-
-        $this->postHogServiceMock->getFeatureFlags()
+        $this->postHogServiceMock->getFeatureFlags($user)
             ->willReturn([
                 'phpspec-test' => true
             ]);
@@ -54,11 +50,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $user = new User();
 
-        $this->postHogServiceMock->withUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->postHogServiceMock);
-
-        $this->postHogServiceMock->getFeatureFlags()
+        $this->postHogServiceMock->getFeatureFlags($user)
             ->willReturn([
                 'phpspec-test' => false
             ]);
@@ -71,11 +63,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $user = new User();
 
-        $this->postHogServiceMock->withUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->postHogServiceMock);
-
-        $this->postHogServiceMock->getFeatureFlags()
+        $this->postHogServiceMock->getFeatureFlags($user)
             ->willReturn([
             ]);
 
@@ -87,11 +75,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $user = new User();
 
-        $this->postHogServiceMock->withUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->postHogServiceMock);
-
-        $this->postHogServiceMock->getFeatureFlags()
+        $this->postHogServiceMock->getFeatureFlags($user)
             ->willReturn([
                 'phpspec-test' => 'apples'
             ]);
@@ -104,11 +88,7 @@ class ManagerSpec extends ObjectBehavior
     {
         $user = new User();
 
-        $this->postHogServiceMock->withUser($user)
-            ->shouldBeCalled()
-            ->willReturn($this->postHogServiceMock);
-
-        $this->postHogServiceMock->getFeatureFlags()
+        $this->postHogServiceMock->getFeatureFlags($user)
             ->willReturn([
                 'phpspec-test' => 'apples'
             ]);

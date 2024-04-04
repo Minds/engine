@@ -273,12 +273,11 @@ class Event
         $eventName = isset($this->eventName) ? $this->eventName
             : ($this->data['entity_type'] ?? 'user') . '_' . str_replace(':', '_', $this->data['action']);
 
-        $this->postHogService->withUser($user)->capture([
-            'event' => $eventName,
-            'properties' => [
-                ... $properties,
-            ],
-        ]);
+        $this->postHogService->capture(
+            event:  $eventName,
+            user: $user,
+            properties: $properties,
+        );
     }
 
     /**

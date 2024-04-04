@@ -114,8 +114,7 @@ class EventSpec extends ObjectBehavior
 
         $this->entitiesBuilder->single('123')->willReturn($user);
         
-        $this->postHogServiceMock->withUser($user)->willReturn($this->postHogServiceMock);
-        $this->postHogServiceMock->capture(Argument::any())->shouldBeCalled();
+        $this->postHogServiceMock->capture(Argument::any(), Argument::any(), Argument::any())->shouldBeCalled();
 
         $this->push()->shouldBe(true);
         $this->getData()->shouldHaveKey('@timestamp');
@@ -132,12 +131,12 @@ class EventSpec extends ObjectBehavior
         $this->accountQualityManager->getAccountQualityScoreAsFloat("123")
             ->willReturn((float) 1);
         
-        $this->postHogServiceMock->withUser($user)->willReturn($this->postHogServiceMock);
         $this->postHogServiceMock->capture(
+            'activity_vote_up',
+            $user,
             [
-            'event' => 'user_vote_up',
-            'properties' => []
-            ]
+                'entity_type' => 'activity',
+            ],
         )
             ->shouldBeCalled()
             ->willReturn(true);
@@ -149,6 +148,41 @@ class EventSpec extends ObjectBehavior
         $this->setType('action');
         $this->setAction('vote:up');
         $this->setUserGuid('123');
+        $this->setEntityType('activity');
+
+        $this->push()->shouldBe(true);
+    }
+
+
+    public function it_should_post_action_to_posthog_with_custom_event_name(User $user)
+    {
+        $user->getGuid()->willReturn('123');
+        $user->isPlus()->willReturn(false);
+        $user->getSource()->shouldBeCalled()->willReturn(FederatedEntitySourcesEnum::LOCAL);
+        $this->entitiesBuilder->single('123')->willReturn($user);
+
+        $this->accountQualityManager->getAccountQualityScoreAsFloat("123")
+            ->willReturn((float) 1);
+        
+        $this->postHogServiceMock->capture(
+            'object_verb',
+            $user,
+            [
+                'entity_type' => 'activity',
+            ],
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->es->request(Argument::type('Minds\Core\Data\ElasticSearch\Prepared\Index'))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->setType('action');
+        $this->setAction('vote:up');
+        $this->setUserGuid('123');
+        $this->setEntityType('activity');
+        $this->setEventName('object', 'verb');
 
         $this->push()->shouldBe(true);
     }
