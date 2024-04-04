@@ -3,14 +3,15 @@ declare(strict_types=1);
 
 namespace Minds\Core\Reports\V2;
 
+use Minds\Core\Chat\Services\MessageService as ChatMessageService;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
-use Minds\Core\Reports\V2\Controllers\ReportController;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Entities\Actions\Delete;
-use Minds\Core\EntitiesBuilder;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Reports\V2\Controllers\ReportController;
 use Minds\Core\Reports\V2\Controllers\VerdictController;
 use Minds\Core\Reports\V2\Repositories\ReportRepository;
 use Minds\Core\Reports\V2\Services\ActionService;
@@ -50,7 +51,8 @@ class Provider extends DiProvider
                 entitiesResolver: $di->get(EntitiesResolver::class),
                 commentManager: $di->get('Comments\Manager'),
                 channelsBanManager: $di->get('Channels\Ban'),
-                deleteAction: new Delete()
+                deleteAction: new Delete(),
+                chatMessageService: $di->get(ChatMessageService::class)
             );
         }, ['factory' => true]);
 

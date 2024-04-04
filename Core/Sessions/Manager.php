@@ -20,6 +20,8 @@ use Lcobucci\JWT\Validation\Constraint\SignedWith;
 use Minds\Common\Repository\Response;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Entities\User;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 class Manager
 {
@@ -116,8 +118,14 @@ class Manager
      * @param $request
      * @return Manager
      */
-    public function withRouterRequest($request): Manager
+    public function withRouterRequest(ServerRequestInterface $request): Manager
     {
+        // Mobile may send an X-SESSION-TOKEN header
+        $sessionTokenHeader = $request->getHeader('X-SESSION-TOKEN');
+        if ($sessionTokenHeader) {
+            return $this->withString($sessionTokenHeader[0]);
+        }
+
         $cookies = $request->getCookieParams();
         if (!isset($cookies['minds_sess'])) {
             Core\Session::setUserByGuid(null);

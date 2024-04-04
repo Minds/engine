@@ -16,8 +16,6 @@ use TheCodingMachine\GraphQLite\Context\Context;
 
 error_reporting(E_ERROR);
 
-$router = new Minds\Core\Router();
-
 $worker = Worker::create();
 
 $factory = new Psr17Factory();
@@ -46,6 +44,7 @@ while (true) {
     }
 
     try {
+        $router = new Minds\Core\Router();
         $response = $router->handleRequest($request);
         $psr7->respond($response);
     } catch (\Throwable $e) {
