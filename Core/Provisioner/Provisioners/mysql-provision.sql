@@ -898,6 +898,53 @@ ALTER TABLE minds_entities_object_image ADD COLUMN blurhash text AFTER filename;
 ALTER TABLE minds_entities_activity
     MODIFY COLUMN paywall_thumbnail JSON DEFAULT NULL;
 
+CREATE TABLE IF NOT EXISTS minds_chat_rooms(
+    tenant_id int,
+    room_guid bigint,
+    room_type enum ('ONE_TO_ONE', 'MULTI_USER', 'GROUP_OWNED') NOT NULL,
+    created_by_user_guid bigint NOT NULL,
+    group_guid bigint DEFAULT NULL,
+    created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (tenant_id, room_guid)
+);
+
+CREATE TABLE IF NOT EXISTS minds_chat_messages(
+    tenant_id int,
+    room_guid bigint,
+    guid bigint,
+    sender_guid bigint,
+    plain_text text,
+    created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (tenant_id, room_guid, guid),
+    FOREIGN KEY (tenant_id,  room_guid) REFERENCES minds_chat_rooms(tenant_id, room_guid)
+);
+
+CREATE TABLE IF NOT EXISTS minds_chat_members(
+    tenant_id int NOT NULL,
+    room_guid bigint NOT NULL,
+    member_guid bigint NOT NULL,
+    joined_timestamp timestamp DEFAULT NULL,
+    role_id enum ('OWNER', 'MEMBER') NOT NULL,
+    status enum ('ACTIVE', 'LEFT', 'INVITE_PENDING', 'INVITE_REJECTED') NOT NULL,
+    PRIMARY KEY (tenant_id, room_guid, member_guid),
+    FOREIGN KEY (tenant_id, room_guid) REFERENCES minds_chat_rooms(tenant_id, room_guid),
+    INDEX (member_guid),
+    INDEX (tenant_id),
+    INDEX (status)
+);
+
+CREATE TABLE IF NOT EXISTS minds_chat_receipts
+(
+    tenant_id           INT,
+    room_guid           BIGINT,
+    member_guid         BIGINT,
+    message_guid        BIGINT,
+    last_read_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (tenant_id, room_guid, member_guid),
+    FOREIGN KEY (tenant_id, room_guid) REFERENCES minds_chat_rooms (tenant_id, room_guid),
+    FOREIGN KEY (tenant_id, room_guid, message_guid) REFERENCES minds_chat_messages (tenant_id, room_guid, guid)
+);
+
 ALTER TABLE minds_tenant_mobile_configs
     ADD COLUMN app_version varchar(24) DEFAULT NULL
     AFTER update_timestamp;

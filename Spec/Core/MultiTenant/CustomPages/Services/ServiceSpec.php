@@ -24,7 +24,7 @@ class ServiceSpec extends ObjectBehavior
     public function it_should_get_a_custom_page(Repository $repository)
     {
         $pageType = CustomPageTypesEnum::PRIVACY_POLICY;
-        $customPage = new CustomPage($pageType, 'Sample Content', null, 1);
+        $customPage = new CustomPage($pageType, 'Sample Content', null, 'Default content', 1);
 
         $repository->getCustomPageByType($pageType)->willReturn($customPage);
 

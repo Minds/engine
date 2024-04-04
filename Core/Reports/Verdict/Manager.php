@@ -4,13 +4,9 @@
  */
 namespace Minds\Core\Reports\Verdict;
 
-use Minds\Core;
-use Minds\Core\Di\Di;
-use Minds\Core\Data;
-use Minds\Core\Data\Cassandra\Prepared;
-use Minds\Entities;
-use Minds\Entities\DenormalizedEntity;
-use Minds\Entities\NormalizedEntity;
+use Exception;
+use Minds\Core\Reports\Report;
+use Minds\Entities\User;
 
 class Manager
 {
@@ -94,23 +90,33 @@ class Manager
 
     /**
      * Run a single verdict
-     * @param int $entity_guid
+     * @param Report $report
+     * @param User $juror
      * @return boolean
      */
-    public function decideFromReport($report)
-    {
+    public function decideFromReport(
+        Report $report,
+        User $juror
+    ): bool {
         $verdict = new Verdict();
         $verdict->setReport($report);
-        return $this->decide($verdict);
+        return $this->decide(
+            verdict: $verdict,
+            juror: $juror
+        );
     }
 
     /**
      * Decide on a verdict
      * @param Verdict $verdict
+     * @param User|null $juror
      * @return boolean
+     * @throws Exception
      */
-    public function decide($verdict)
-    {
+    public function decide(
+        Verdict $verdict,
+        ?User $juror = null
+    ): bool {
         $uphold = $this->isUpheld($verdict);
         $verdict->setUphold($uphold);
         $verdict->setTimestamp(time());
@@ -120,22 +126,31 @@ class Manager
             return false;
         } else {
             error_log("{$verdict->getReport()->getEntityUrn()} decided with {$verdict->getAction()}");
-            return $this->cast($verdict);
+            return $this->cast(
+                verdict: $verdict,
+                juror: $juror
+            );
         }
     }
 
     /**
      * Cast a verdict
      * @param Verdict $verdict
+     * @param User|null $juror
      * @return boolean
-     * @throws \Exception
+     * @throws Exception
      */
-    public function cast(Verdict $verdict)
-    {
+    public function cast(
+        Verdict $verdict,
+        ?User $juror = null
+    ): bool {
         $added = $this->repository->add($verdict);
         
         // Make the action
-        $this->actionDelegate->onAction($verdict);
+        $this->actionDelegate->onAction(
+            verdict: $verdict,
+            juror: $juror
+        );
 
         // Reverse the action (if appeal)
         $this->reverseActionDelegate->onReverse($verdict);

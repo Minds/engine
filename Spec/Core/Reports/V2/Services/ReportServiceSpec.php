@@ -13,6 +13,7 @@ use Minds\Core\Reports\V2\Services\ActionService;
 use Minds\Core\Reports\V2\Services\ReportService;
 use Minds\Core\Reports\V2\Types\Report;
 use Minds\Core\Reports\V2\Types\ReportsConnection;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 
@@ -168,8 +169,9 @@ class ReportServiceSpec extends ObjectBehavior
 
     // provideVerdict
 
-    public function it_should_provide_a_verdict()
-    {
+    public function it_should_provide_a_verdict(
+        User $userMock
+    ): void {
         $tenantId = 1234567890123456;
         $reportGuid = 2234567890123456;
         $moderatedByGuid = 3234567890123456;
@@ -189,7 +191,7 @@ class ReportServiceSpec extends ObjectBehavior
             status: ReportStatusEnum::PENDING
         )->shouldBeCalled()->willReturn($report);
 
-        $this->actionService->handleReport($report, $action)
+        $this->actionService->handleReport($report, $action, $userMock)
             ->shouldBeCalled();
 
         $this->repository->updateWithVerdict(
@@ -206,7 +208,8 @@ class ReportServiceSpec extends ObjectBehavior
         $this->provideVerdict(
             reportGuid: $reportGuid,
             moderatedByGuid: $moderatedByGuid,
-            action: $action
+            action: $action,
+            moderator: $userMock
         )->shouldBe(true);
     }
 
