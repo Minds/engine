@@ -34,6 +34,7 @@ class PostHogDelegate
             ->setType('action')
             ->setAction('click')
             ->setEntityGuid($entity->getGuid())
+            ->setEntityType($entity->getType())
             ->setClientMeta($clientMeta)
             ->push(shouldIndex: false);
     }

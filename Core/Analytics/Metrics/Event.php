@@ -61,6 +61,8 @@ class Event
     /** @var User */
     protected $user;
 
+    protected string $eventName;
+
     public function __construct(
         $elastic = null,
         protected ?PostHogService $postHogService = null,
@@ -174,6 +176,15 @@ class Event
     }
 
     /**
+     * Sets the event name to pass through to analytics
+     */
+    public function setEventName(string $object, string $verb): self
+    {
+        $this->eventName = "{$object}_{$verb}";
+        return $this;
+    }
+
+    /**
      * Magic method for getter and setters.
      */
     public function __call($name, array $args = [])
@@ -259,8 +270,11 @@ class Event
                 'entity_owner_guid',
         ], true), ARRAY_FILTER_USE_KEY);
 
+        $eventName = isset($this->eventName) ? $this->eventName
+            : ($this->data['entity_type'] ?? 'user') . '_' . str_replace(':', '_', $this->data['action']);
+
         $this->postHogService->withUser($user)->capture([
-            'event' => 'user_' . str_replace(':', '_', $this->data['action']),
+            'event' => $eventName,
             'properties' => [
                 ... $properties,
             ],

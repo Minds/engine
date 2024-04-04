@@ -33,6 +33,10 @@ class PostHogDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($entityGuid);
 
+        $entity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
         $this->event->setUser($user)
             ->shouldBeCalled()
             ->willReturn($this->event);
@@ -46,6 +50,10 @@ class PostHogDelegateSpec extends ObjectBehavior
             ->willReturn($this->event);
 
         $this->event->setEntityGuid($entityGuid)
+            ->shouldBeCalled()
+            ->willReturn($this->event);
+
+        $this->event->setEntityType('activity')
             ->shouldBeCalled()
             ->willReturn($this->event);
 
