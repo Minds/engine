@@ -40,7 +40,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ->willReturn(null);
 
         $items = $this->getItems();
-        $items->shouldHaveCount(7);
+        $items->shouldHaveCount(6);
     }
 
     public function it_should_return_list_from_database_for_tenants()
@@ -62,7 +62,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ]);
 
         $items = $this->getItems();
-        $items->shouldHaveCount(8);
+        $items->shouldHaveCount(7);
 
         $items[7]->id->shouldBe('about');
     }
@@ -88,7 +88,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ->shouldNotBeCalled();
 
         $items = $this->getItems();
-        $items->shouldHaveCount(8);
+        $items->shouldHaveCount(7);
 
         $items[7]->id->shouldBe('about');
     }
@@ -112,7 +112,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
             ]);
 
         $items = $this->getItems();
-        $items->shouldHaveCount(7);
+        $items->shouldHaveCount(6);
 
         $items[1]->id->shouldBe('explore');
         $items[1]->name->shouldBe('Global');
@@ -122,7 +122,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
     {
         $this->repositoryMock->addItem(Argument::type(NavigationItem::class))
             ->willReturn(true);
-            
+
         $this->cacheMock->delete(Argument::type('string'))
             ->shouldBeCalled();
 
@@ -194,7 +194,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
         $this->cacheMock->delete(Argument::type('string'))
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $this->deleteItem('newsfeed')
             ->shouldBe(true);
     }
