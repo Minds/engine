@@ -2,6 +2,7 @@
 namespace Minds\Core\Analytics\PostHog;
 
 use Minds\Core\Config\Config;
+use Minds\Entities\User;
 
 class PostHogConfig
 {
@@ -38,11 +39,12 @@ class PostHogConfig
     /**
      * Configs that can be exported publicly
      */
-    public function getPublicExport(): array
+    public function getPublicExport(User $user = null): array
     {
         return [
             'api_key' => $this->getApiKey(),
             'host' => "https://{$this->getHost()}",
+            'opt_out' => $user?->isOptOutAnalytics(),
         ];
     }
 }

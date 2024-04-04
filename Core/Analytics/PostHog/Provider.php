@@ -31,6 +31,7 @@ class Provider extends DiProvider
                 ),
                 postHogConfig: $postHogConfig,
                 cache: $di->get(SharedCache::class),
+                config: $di->get(Config::class),
             );
         });
     }

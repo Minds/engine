@@ -536,6 +536,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'language' => MySQLDataTypeEnum::TEXT,
                     'canonical_url' => MySQLDataTypeEnum::TEXT,
                     'source' => MySQLDataTypeEnum::TEXT,
+                    'opt_out_analytics' => MySQLDataTypeEnum::BOOL,
                 ];
             case Activity::class:
                 return [

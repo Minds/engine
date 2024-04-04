@@ -21,12 +21,13 @@ class PostHogServiceSpec extends ObjectBehavior
 
     public function let(
         Client $postHogClientMock,
-        PostHogConfig $configMock,
+        PostHogConfig $postHogConfigMock,
         SharedCache $cacheMock,
+        Config $configMock,
     ) {
-        $this->beConstructedWith($postHogClientMock, $configMock, $cacheMock);
+        $this->beConstructedWith($postHogClientMock, $postHogConfigMock, $cacheMock, $configMock);
         $this->postHogClientMock = $postHogClientMock;
-        $this->postHogConfigMock = $configMock;
+        $this->postHogConfigMock = $postHogConfigMock;
         $this->cacheMock = $cacheMock;
     }
 
@@ -45,6 +46,7 @@ class PostHogServiceSpec extends ObjectBehavior
         $user->getPlusExpires()->shouldBeCalled()->willReturn(strtotime('midnight'));
         $user->getProExpires()->shouldBeCalled()->willReturn(null);
         $user->get('time_created')->shouldBeCalled()->willReturn(strtotime('midnight yesterday'));
+        $user->isOptOutAnalytics()->willReturn(false);
 
 
         $this->postHogClientMock->capture(
@@ -76,6 +78,23 @@ class PostHogServiceSpec extends ObjectBehavior
             ]
         )
         ->shouldBe(true);
+    }
+
+    public function it_should_not_send_if_a_user_is_opted_out(User $user)
+    {
+        $user->isOptOutAnalytics()->willReturn(true);
+
+        $this->postHogClientMock->capture(Argument::any())
+            ->shouldNotBeCalled();
+
+        $this->capture(
+            event: 'phpspec_test',
+            user: $user,
+            properties: [
+                'entity_guid' => '123',
+            ]
+        )
+        ->shouldBe(false);
     }
 
     public function it_should_return_feature_flags_without_cache(User $userMock)

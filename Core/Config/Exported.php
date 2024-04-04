@@ -119,7 +119,7 @@ class Exported
                 'url' => $this->config->get('statuspage_io')['url'] ?? null,
             ],
             'posthog' => [
-                ...$this->postHogConfig->getPublicExport(),
+                ...$this->postHogConfig->getPublicExport(Session::getLoggedinUser()),
                 'feature_flags' => Di::_()->get(PostHogService::class)
                     ->getFeatureFlags(user: Session::getLoggedinUser()),
             ],

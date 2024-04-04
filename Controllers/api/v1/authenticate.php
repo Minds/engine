@@ -187,6 +187,9 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
             return $permission->name;
         }, Di::_()->get(RolesService::class)->getUserPermissions($user));
 
+        // Return analytics opt out
+        $response['opt_out_analytics'] = $user->isOptOutAnalytics();
+
         return Factory::response($response);
     }
 

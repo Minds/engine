@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Analytics\PostHog;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\SharedCache;
 use Minds\Entities\User;
 use PostHog\Client;
@@ -16,6 +17,7 @@ class PostHogService
         private Client $postHogClient,
         private PostHogConfig $postHogConfig,
         private SharedCache $cache,
+        private Config $config,
     ) {
     }
 
@@ -40,6 +42,12 @@ class PostHogService
         array $set = [],
         array $setOnce = []
     ): bool {
+
+        // If a user has opted out of analytics, we will not process the event
+        if ($user->isOptOutAnalytics()) {
+            return false;
+        }
+
         $set['username'] = $user->getUsername();
         $set['email'] = $user->getEmail();
 
@@ -52,7 +60,11 @@ class PostHogService
         }
 
         $setOnce['joined_timestamp'] = date('c', $user->time_created);
-        
+
+        if ($tenantId = $this->config->get('tenant_id')) {
+            $setOnce['tenant_id'] = $tenantId;
+        }
+
         /**
          * If the browser sends the page the api was on when called,
          * we can supply this to posthog
