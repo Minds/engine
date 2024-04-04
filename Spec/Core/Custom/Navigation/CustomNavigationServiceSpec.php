@@ -64,7 +64,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
         $items = $this->getItems();
         $items->shouldHaveCount(7);
 
-        $items[7]->id->shouldBe('about');
+        $items[6]->id->shouldBe('about');
     }
 
     public function it_should_return_list_from_database_for_tenants_from_cache()
@@ -90,7 +90,7 @@ class CustomNavigationServiceSpec extends ObjectBehavior
         $items = $this->getItems();
         $items->shouldHaveCount(7);
 
-        $items[7]->id->shouldBe('about');
+        $items[6]->id->shouldBe('about');
     }
 
     public function it_should_merge_default_and_database_items_for_tenants()
