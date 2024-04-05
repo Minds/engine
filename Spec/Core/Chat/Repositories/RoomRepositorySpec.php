@@ -171,7 +171,6 @@ class RoomRepositorySpec extends ObjectBehavior
             ->shouldEqual(true);
     }
 
-    // TODO: finish this test
     public function it_should_get_rooms_by_member_NO_OFFSET(
         SelectQuery $selectQueryMock,
         PDOStatement $pdoStatementMock,
@@ -297,6 +296,81 @@ class RoomRepositorySpec extends ObjectBehavior
             null
         )
             ->shouldBeArray();
+    }
+
+    public function it_should_get_room_guids_by_member(
+        SelectQuery $selectQueryMock,
+        PDOStatement $pdoStatementMock,
+        User $userMock
+    ): void {
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+
+        $userMock->getGuid()
+            ->shouldBeCalledTimes(2)
+            ->willReturn(456);
+
+        $pdoStatementMock->execute([
+            'tenant_id' => 1,
+            'member_guid_1' => 456,
+            'member_guid_2' => 456,
+            'status_1' => ChatRoomMemberStatusEnum::ACTIVE->name,
+            'status_2' => ChatRoomMemberStatusEnum::INVITE_PENDING->name,
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $pdoStatementMock->setFetchMode(PDO::FETCH_COLUMN, 0)
+            ->shouldBeCalledOnce();
+
+        $pdoStatementMock->getIterator()
+            ->shouldBeCalledOnce()
+            ->willYield([
+                123
+            ]);
+
+        $selectQueryMock->columns([
+            'r.room_guid'
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->from(new RawExp(RoomRepository::TABLE_NAME . " as r"))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->leftJoinRaw(
+            new RawExp(RoomRepository::MEMBERS_TABLE_NAME . " as m"),
+            'm.room_guid = r.room_guid AND m.tenant_id = r.tenant_id AND m.member_guid = :member_guid_1',
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->leftJoinRaw(
+            new RawExp("minds_group_membership as gm"),
+            'r.group_guid = gm.group_guid AND gm.user_guid = :member_guid_2',
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->whereRaw("(m.status IS NOT NULL AND m.status IN (:status_1, :status_2)) OR
+                (gm.group_guid IS NOT NULL AND m.status IS NULL)")
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $this->mysqlClientReaderHandlerMock->select()
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $this->getRoomGuidsByMember($userMock)
+            ->shouldYield([123]);
     }
 
     public function it_should_get_total_room_members(
