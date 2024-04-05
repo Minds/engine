@@ -51,7 +51,6 @@ class Provider extends DiProvider
             return new PostHogPersonService(
                 postHogConfig: $postHogConfig,
                 httpClient: $httpClient,
-                config: $di->get(Config::class),
             );
         });
 

@@ -9,6 +9,7 @@ use Minds\Core\Guid;
 use Minds\Exceptions\NotFoundException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
+use Prophecy\Argument;
 use Zend\Diactoros\Response\JsonResponse;
 
 class PostHogPersonServiceSpec extends ObjectBehavior
@@ -95,7 +96,7 @@ class PostHogPersonServiceSpec extends ObjectBehavior
                 ]
             ]));
 
-        $this->httpClientMock->delete("api/projects/001/persons/uuid")
+        $this->httpClientMock->delete("api/projects/001/persons/uuid", Argument::any())
             ->shouldBeCalled()
             ->willReturn(new JsonResponse([], 204));
 
@@ -123,7 +124,7 @@ class PostHogPersonServiceSpec extends ObjectBehavior
                 ]
             ]));
 
-        $this->httpClientMock->delete("api/projects/001/persons/uuid")
+        $this->httpClientMock->delete("api/projects/001/persons/uuid", Argument::any())
             ->shouldBeCalled()
             ->willReturn(new JsonResponse([], 500));
 

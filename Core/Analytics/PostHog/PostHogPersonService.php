@@ -56,6 +56,11 @@ class PostHogPersonService
         try {
             $response = $this->httpClient->delete(
                 uri: "api/projects/{$this->postHogConfig->getProjectId()}/persons/{$person->id}",
+                options: [
+                    'query' => [
+                        'delete_events' => true,
+                    ]
+                ]
             );
 
             return $response->getStatusCode() === 204;
