@@ -10,6 +10,8 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\EntitiesBuilder;
 use PostHog\Client as PostHogClient;
+use GuzzleHttp\Client as GuzzleClient;
+use Minds\Core\Analytics\PostHog\Controllers\PostHogGqlController;
 
 class Provider extends DiProvider
 {
@@ -32,6 +34,30 @@ class Provider extends DiProvider
                 postHogConfig: $postHogConfig,
                 cache: $di->get(SharedCache::class),
                 config: $di->get(Config::class),
+            );
+        });
+
+        $this->di->bind(PostHogPersonService::class, function (Di $di): PostHogPersonService {
+            /** @var PostHogConfig */
+            $postHogConfig = $di->get(PostHogConfig::class);
+            
+            $httpClient = new GuzzleClient([
+                'base_uri' => "https://{$postHogConfig->getHost()}/",
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $postHogConfig->getPersonalApiKey(),
+                ],
+            ]);
+
+            return new PostHogPersonService(
+                postHogConfig: $postHogConfig,
+                httpClient: $httpClient,
+                config: $di->get(Config::class),
+            );
+        });
+
+        $this->di->bind(PostHogGqlController::class, function (Di $di): PostHogGqlController {
+            return new PostHogGqlController(
+                postHogPersonService: $di->get(PostHogPersonService::class),
             );
         });
     }

@@ -37,6 +37,14 @@ class PostHogConfig
     }
 
     /**
+     * The project id that the app is using
+     */
+    public function getProjectId(): string
+    {
+        return $this->config->get('posthog')['project_id'] ?? '';
+    }
+
+    /**
      * Configs that can be exported publicly
      */
     public function getPublicExport(User $user = null): array
