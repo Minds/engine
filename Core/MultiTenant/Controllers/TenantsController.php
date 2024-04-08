@@ -94,10 +94,10 @@ class TenantsController
             return new TenantLoginRedirectDetails(
                 tenant: $createdTenant,
                 loginUrl: $this->autoLoginService->buildLoginUrl(
-                    tenantId: $tenant->id
+                    tenantId: $createdTenant->id
                 ),
                 jwtToken: $this->autoLoginService->buildJwtToken(
-                    tenantId: $tenant->id,
+                    tenantId: $createdTenant->id,
                     loggedInUser: $loggedInUser
                 ),
             );
