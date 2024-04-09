@@ -101,6 +101,21 @@ class ActionEventDelegate
         $this->actionEventsTopic->send($actionEvent);
 
         // To PostHog
+
+        $boostMethod =  match($boost->getPaymentMethod()) {
+            BoostPaymentMethod::CASH => 'cash',
+            BoostPaymentMethod::OFFCHAIN_TOKENS => 'offchain_tokens',
+            BoostPaymentMethod::ONCHAIN_TOKENS => 'onchain_tokens',
+        };
+
+        $set = [];
+        $setOnce = [];
+
+        if ($boost->getOwnerGuid() === $sender->getGuid()) {
+            $setOnce["boost_first_{$boostMethod}_timestamp"] = date('c', $boost->getCreatedTimestamp());
+            $set["boost_latest_{$boostMethod}_timestamp"] = date('c', $boost->getCreatedTimestamp());
+        }
+
         $this->postHogService->capture(
             event: $action,
             user: $sender,
@@ -109,11 +124,7 @@ class ActionEventDelegate
                 'boost_guid' => $boost->getGuid(),
                 'boost_duration_days' => $boost->getDurationDays(),
                 'boost_daily_bid' => $boost->getDailyBid(),
-                'boost_method' => match($boost->getPaymentMethod()) {
-                    BoostPaymentMethod::CASH => 'cash',
-                    BoostPaymentMethod::OFFCHAIN_TOKENS => 'offchain_tokens',
-                    BoostPaymentMethod::ONCHAIN_TOKENS => 'onchain_tokens',
-                },
+                'boost_method' => $boostMethod,
                 'boost_payment_amount' => $boost->getPaymentAmount(),
                 'boost_target_location' => match($boost->getTargetLocation()) {
                     BoostTargetLocation::NEWSFEED => 'newsfeed',
@@ -123,7 +134,10 @@ class ActionEventDelegate
                     BoostTargetSuitability::SAFE => 'safe',
                     BoostTargetSuitability::CONTROVERSIAL => 'controversial',
                 },
-            ]);
+            ],
+            set: $set,
+            setOnce: $setOnce,
+        );
     }
 
     /**

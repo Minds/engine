@@ -60,6 +60,7 @@ class ActionEventDelegateSpec extends ObjectBehavior
     ): void {
         $boost = new Boost('123', BoostTargetLocation::NEWSFEED, BoostTargetSuitability::SAFE, BoostPaymentMethod::CASH, 1, 1, 1);
         $boost->setGuid('456');
+        $boost->setOwnerGuid('789');
 
         // This path is forced by the CLI and not the user that will
         // be retrieved for all action events.
@@ -75,7 +76,7 @@ class ActionEventDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->postHogServiceMock->capture('boost_accepted', $sender, Argument::any())
+        $this->postHogServiceMock->capture('boost_accepted', $sender, Argument::any(), Argument::any(), Argument::any())
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -87,6 +88,7 @@ class ActionEventDelegateSpec extends ObjectBehavior
     ): void {
         $boost = new Boost('123', BoostTargetLocation::NEWSFEED, BoostTargetSuitability::SAFE, BoostPaymentMethod::CASH, 1, 1, 1);
         $boost->setGuid('456');
+        $boost->setOwnerGuid('789');
 
         $rejectionReason = 22;
         
@@ -107,7 +109,7 @@ class ActionEventDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->postHogServiceMock->capture('boost_rejected', $sender, Argument::any())
+        $this->postHogServiceMock->capture('boost_rejected', $sender, Argument::any(), Argument::any(), Argument::any())
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -119,6 +121,7 @@ class ActionEventDelegateSpec extends ObjectBehavior
     ): void {
         $boost = new Boost('123', BoostTargetLocation::NEWSFEED, BoostTargetSuitability::SAFE, BoostPaymentMethod::CASH, 1, 1, 1);
         $boost->setGuid('456');
+        $boost->setOwnerGuid('789');
 
         $this->entitiesBuilder->single('100000000000000519')
             ->shouldBeCalled()
@@ -132,7 +135,7 @@ class ActionEventDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->postHogServiceMock->capture('boost_completed', $sender, Argument::any())
+        $this->postHogServiceMock->capture('boost_completed', $sender, Argument::any(), Argument::any(), Argument::any())
             ->shouldBeCalled()
             ->willReturn(true);
 
