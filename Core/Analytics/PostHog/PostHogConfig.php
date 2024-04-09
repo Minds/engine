@@ -25,7 +25,7 @@ class PostHogConfig
      */
     public function getApiKey(): string
     {
-        return $this->config->get('posthog')['api_key'] ?? '';
+        return $this->config->get('posthog')['api_key'] ?? 'phc_i4FSmsuaGk4qf5UL3Z4bxl5VBdmWC2ox2XlB3oOZKUG';
     }
 
     /**
@@ -33,7 +33,7 @@ class PostHogConfig
      */
     public function getHost(): string
     {
-        return $this->config->get('posthog')['host'] ?? '';
+        return $this->config->get('posthog')['host'] ?? 'app.posthog.com';
     }
 
     /**
@@ -41,7 +41,7 @@ class PostHogConfig
      */
     public function getProjectId(): string
     {
-        return $this->config->get('posthog')['project_id'] ?? '';
+        return $this->config->get('posthog')['project_id'] ?? '63037';
     }
 
     /**

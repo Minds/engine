@@ -102,6 +102,10 @@ class PostHogServiceSpec extends ObjectBehavior
         $this->postHogConfigMock->getApiKey()
             ->willReturn('phpspec');
 
+        $this->postHogConfigMock->getPersonalApiKey()
+            ->willReturn('abc');
+        
+
         $this->cacheMock->has(Argument::any())
             ->shouldNotBeCalled();
 

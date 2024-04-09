@@ -882,9 +882,10 @@ $CONFIG->set('onboarding_v5_release_timestamp', 0);
 
 
 $CONFIG->set('posthog', [
-    'api_key' => '',
+    'api_key' => 'phc_i4FSmsuaGk4qf5UL3Z4bxl5VBdmWC2ox2XlB3oOZKUG',
     'personal_api_key' => '',
     'host' => 'app.posthog.com',
+    'project_id' => '63037',
 ]);
 
 $CONFIG->set('arweave', [

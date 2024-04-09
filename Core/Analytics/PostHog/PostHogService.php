@@ -107,6 +107,11 @@ class PostHogService
         if ($useCache && $this->cache->has($this->getCacheKey())) {
             $this->postHogClient->featureFlags = $this->cache->get($this->getCacheKey());
         } else {
+            if (!$this->postHogConfig->getPersonalApiKey()) {
+                // Personal API Key is not setup, we can't load any feature flags
+                return [];
+            }
+
             $this->postHogClient->loadFlags();
             $this->cache->set($this->getCacheKey(), $this->postHogClient->featureFlags);
         }
