@@ -20,6 +20,8 @@ use Minds\Core\Chat\Types\ChatRoomNode;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Security\Block\BlockEntry;
 use Minds\Core\Security\Block\Manager as BlockManager;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Subscriptions\Relational\Repository as SubscriptionsRepository;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -34,6 +36,7 @@ class RoomServiceSpec extends ObjectBehavior
     private Collaborator $subscriptionsRepositoryMock;
     private Collaborator $entitiesBuilderMock;
     private Collaborator $blockManagerMock;
+    private Collaborator $rolesService;
 
     private ReflectionClass $chatRoomMockFactory;
     private ReflectionClass $chatRoomListItemMockFactory;
@@ -42,17 +45,20 @@ class RoomServiceSpec extends ObjectBehavior
         RoomRepository $roomRepository,
         SubscriptionsRepository $subscriptionsRepository,
         EntitiesBuilder $entitiesBuilder,
-        BlockManager $blockManager
+        BlockManager $blockManager,
+        RolesService $rolesService
     ): void {
         $this->roomRepositoryMock = $roomRepository;
         $this->subscriptionsRepositoryMock = $subscriptionsRepository;
         $this->entitiesBuilderMock = $entitiesBuilder;
         $this->blockManagerMock = $blockManager;
+        $this->rolesService = $rolesService;
         $this->beConstructedWith(
             $this->roomRepositoryMock,
             $this->subscriptionsRepositoryMock,
             $this->entitiesBuilderMock,
-            $this->blockManagerMock
+            $this->blockManagerMock,
+            $this->rolesService
         );
 
         $this->chatRoomMockFactory = new ReflectionClass(ChatRoom::class);
@@ -85,6 +91,10 @@ class RoomServiceSpec extends ObjectBehavior
         $this->entitiesBuilderMock->single(456)
             ->shouldBeCalledOnce()
             ->willReturn($memberMock);
+
+        $this->rolesService->hasPermission($user, PermissionsEnum::CAN_CREATE_CHAT_ROOM)
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->roomRepositoryMock->createRoom(
             Argument::type('integer'),
@@ -153,6 +163,10 @@ class RoomServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willThrow(ChatRoomNotFoundException::class);
 
+        $this->rolesService->hasPermission($user, PermissionsEnum::CAN_CREATE_CHAT_ROOM)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->roomRepositoryMock->createRoom(
             Argument::type('integer'),
             ChatRoomTypeEnum::ONE_TO_ONE,
@@ -219,6 +233,10 @@ class RoomServiceSpec extends ObjectBehavior
         )
             ->shouldBeCalledOnce()
             ->willThrow(ChatRoomNotFoundException::class);
+
+        $this->rolesService->hasPermission($user, PermissionsEnum::CAN_CREATE_CHAT_ROOM)
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->roomRepositoryMock->createRoom(
             Argument::type('integer'),
@@ -332,6 +350,10 @@ class RoomServiceSpec extends ObjectBehavior
         )
             ->shouldNotBeCalled();
 
+        $this->rolesService->hasPermission($userMock, PermissionsEnum::CAN_CREATE_CHAT_ROOM)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
         $this->roomRepositoryMock->createRoom(
             Argument::type('integer'),
             ChatRoomTypeEnum::MULTI_USER,
@@ -391,6 +413,42 @@ class RoomServiceSpec extends ObjectBehavior
             ChatRoomTypeEnum::MULTI_USER
         )
             ->shouldBeAnInstanceOf(ChatRoomEdge::class);
+    }
+
+    public function it_should_NOT_allow_create_chat_room_when_user_does_not_have_permission(
+        User $user
+    ): void {
+        $user->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('123');
+
+        $this->roomRepositoryMock->getOneToOneRoomByMembers(
+            123,
+            456
+        )
+            ->shouldBeCalledOnce()
+            ->willThrow(ChatRoomNotFoundException::class);
+
+        $this->rolesService->hasPermission($user, PermissionsEnum::CAN_CREATE_CHAT_ROOM)
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->roomRepositoryMock->createRoom(
+            Argument::any(),
+            Argument::any(),
+            Argument::any(),
+            Argument::any()
+        )
+            ->shouldNotBeCalled();
+
+        $this->shouldThrow(GraphQLException::class)->during(
+            method: 'createRoom',
+            arguments: [
+                $user,
+                ["456"],
+                null
+            ]
+        );
     }
 
     public function it_should_get_rooms_by_member(

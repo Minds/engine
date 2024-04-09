@@ -242,6 +242,8 @@ class RolesService
                     PermissionsEnum::CAN_ASSIGN_PERMISSIONS,
                     PermissionsEnum::CAN_MODERATE_CONTENT,
                     PermissionsEnum::CAN_CREATE_PAYWALL,
+                    PermissionsEnum::CAN_CREATE_CHAT_ROOM,
+                    PermissionsEnum::CAN_UPLOAD_CHAT_MEDIA
                 ]
             ),
             RolesEnum::ADMIN->value => new Role(
@@ -256,6 +258,8 @@ class RolesService
                     PermissionsEnum::CAN_BOOST,
                     PermissionsEnum::CAN_USE_RSS_SYNC,
                     PermissionsEnum::CAN_MODERATE_CONTENT,
+                    PermissionsEnum::CAN_CREATE_CHAT_ROOM,
+                    PermissionsEnum::CAN_UPLOAD_CHAT_MEDIA
                 ]
             ),
             RolesEnum::MODERATOR->value => new Role(
@@ -269,6 +273,8 @@ class RolesService
                     PermissionsEnum::CAN_INTERACT,
                     PermissionsEnum::CAN_BOOST,
                     PermissionsEnum::CAN_MODERATE_CONTENT,
+                    PermissionsEnum::CAN_CREATE_CHAT_ROOM,
+                    PermissionsEnum::CAN_UPLOAD_CHAT_MEDIA
                 ]
             ),
             RolesEnum::VERIFIED->value => new Role(
@@ -281,6 +287,8 @@ class RolesService
                     PermissionsEnum::CAN_UPLOAD_VIDEO,
                     PermissionsEnum::CAN_INTERACT,
                     PermissionsEnum::CAN_BOOST,
+                    PermissionsEnum::CAN_CREATE_CHAT_ROOM,
+                    PermissionsEnum::CAN_UPLOAD_CHAT_MEDIA
                 ]
             ),
             RolesEnum::DEFAULT->value => new Role(
@@ -293,6 +301,8 @@ class RolesService
                     PermissionsEnum::CAN_UPLOAD_VIDEO,
                     PermissionsEnum::CAN_INTERACT,
                     PermissionsEnum::CAN_BOOST,
+                    PermissionsEnum::CAN_CREATE_CHAT_ROOM,
+                    PermissionsEnum::CAN_UPLOAD_CHAT_MEDIA
                 ]
             ),
         ];

@@ -9,6 +9,7 @@ use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
+use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Subscriptions\Relational\Repository as SubscriptionsRepository;
 
 class ServicesProvider extends Provider
@@ -25,7 +26,8 @@ class ServicesProvider extends Provider
                 roomRepository: $di->get(RoomRepository::class),
                 subscriptionsRepository: $di->get(SubscriptionsRepository::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
-                blockManager: $di->get('Security\Block\Manager')
+                blockManager: $di->get('Security\Block\Manager'),
+                rolesService: $di->get(RolesService::class),
             )
         );
 
