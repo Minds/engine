@@ -6,7 +6,7 @@ namespace Minds\Core\Analytics\Clicks;
 use Minds\Common\Urn;
 use Minds\Core\Di\Di;
 use Minds\Core\Analytics\Clicks\Delegates\ActionEventsDelegate as ClickActionEventsDelegate;
-use Minds\Core\Analytics\Clicks\Delegates\SnowplowDelegate;
+use Minds\Core\Analytics\Clicks\Delegates\PostHogDelegate;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\EntitiesBuilder;
 use Minds\Entities\EntityInterface;
@@ -20,12 +20,12 @@ class Manager
 {
     public function __construct(
         private ?ClickActionEventsDelegate $actionEventsDelegate = null,
-        private ?SnowplowDelegate $snowplowDelegate = null,
+        private ?PostHogDelegate $postHogDelegate = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
         private ?EntitiesResolver $entitiesResolver = null
     ) {
         $this->actionEventsDelegate ??= Di::_()->get(ClickActionEventsDelegate::class);
-        $this->snowplowDelegate ??= Di::_()->get(SnowplowDelegate::class);
+        $this->postHogDelegate ??= Di::_()->get(PostHogDelegate::class);
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->entitiesResolver ??= Di::_()->get(EntitiesResolver::class);
     }
@@ -47,7 +47,7 @@ class Manager
             $this->getEntityByGuid($entityGuid);
 
         $this->actionEventsDelegate->onClick($entity, $user);
-        $this->snowplowDelegate->onClick($entity, $clientMeta, $user);
+        $this->postHogDelegate->onClick($entity, $clientMeta, $user);
     }
 
     /**

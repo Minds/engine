@@ -15,7 +15,9 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Settings\Manager as SettingsManager;
 use Minds\Entities;
+use Minds\Entities\User;
 use Minds\Exceptions\TwoFactorRequired;
+use Minds\Exceptions\UserErrorException;
 use Minds\Interfaces;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -47,7 +49,10 @@ class settings implements Interfaces\Api
             $user = Core\Session::getLoggedInUser();
         }
 
-
+        if (!$user instanceof User) {
+            return;
+        }
+    
         $response = [];
 
         $response['channel'] = $user->export();
@@ -77,6 +82,9 @@ class settings implements Interfaces\Api
         $response['channel']['boost_partner_suitability'] = $settingsV3->getBoostPartnerSuitability();
         // --------------------------
 
+        // Analytics opt out
+        $response['channel']['opt_out_analytics'] = $user->isOptOutAnalytics();
+
         return Factory::response($response);
     }
 
@@ -98,6 +106,10 @@ class settings implements Interfaces\Api
             $user = Di::_()->get(EntitiesBuilder::class)->single($pages[0]);
         } else {
             $user = Core\Session::getLoggedInUser();
+        }
+
+        if (!$user instanceof User) {
+            return;
         }
 
         $twoFactorManager = Di::_()->get('Security\TwoFactor\Manager');
@@ -141,6 +153,10 @@ class settings implements Interfaces\Api
                 $settingsV3Manager
                     ->setUser($user)
                     ->storeUserSettings(['boost_partner_suitability' => (int)$_POST['boost_partner_suitability']]);
+            }
+
+            if (isset($_POST['opt_out_analytics'])) {
+                $user->setOptOutAnalytics($_POST['opt_out_analytics']);
             }
 
             if (isset($_POST['boost_rating'])) {

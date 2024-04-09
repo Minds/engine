@@ -2,11 +2,9 @@
 
 namespace Minds\Core\Analytics;
 
-use Minds\Common\PseudonymousIdentifier;
 use Minds\Core\Analytics\Clicks\Delegates\ActionEventsDelegate as ClickActionEventsDelegate;
-use Minds\Core\Analytics\Clicks\Delegates\SnowplowDelegate as ClickSnowplowDelegate;
+use Minds\Core\Analytics\Clicks\Delegates\PostHogDelegate as ClickPostHogDelegate;
 use Minds\Core\Analytics\Clicks\Manager as ClicksManager;
-use Minds\Core\Analytics\Snowplow\Manager as SnowplowManager;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider;
 
@@ -30,18 +28,6 @@ class AnalyticsProvider extends Provider
             return new Views\Manager();
         }, ['useFactor' => true]);
 
-        $this->di->bind('Analytics\Snowplow\Manager', function ($di) {
-            return $di->get(SnowplowManager::class);
-        }, ['useFactory' => true]);
-
-        $this->di->bind(
-            SnowplowManager::class,
-            fn (Di $di): SnowplowManager => new SnowplowManager(
-                null,
-                null,
-                new PseudonymousIdentifier()
-            )
-        );
 
         $this->di->bind(Controller::class, function ($di) {
             return new Controller();
@@ -55,8 +41,8 @@ class AnalyticsProvider extends Provider
             return new ClickActionEventsDelegate();
         }, ['useFactory' => true]);
 
-        $this->di->bind(ClickSnowplowDelegate::class, function ($di) {
-            return new ClickSnowplowDelegate();
+        $this->di->bind(ClickPostHogDelegate::class, function ($di) {
+            return new ClickPostHogDelegate();
         });
     }
 }

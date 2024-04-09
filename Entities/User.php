@@ -78,6 +78,7 @@ use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
  * @property string $briefdescription
  * @property string $source
  * @property string $canonical_url
+ * @property int $opt_out_analytics;
  */
 class User extends \ElggUser implements DemonetizableEntityInterface, FederatedEntityInterface
 {
@@ -156,6 +157,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         $this->attributes['language'] = 'en';
         $this->attributes['source'] = FederatedEntitySourcesEnum::LOCAL->value;
         $this->attributes['canonical_url'] = null;
+        $this->attributes['opt_out_analtytics'] = 0;
 
         parent::initializeAttributes();
     }
@@ -1978,6 +1980,20 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
     public function getCanonicalUrl(): ?string
     {
         return $this->getSource() === FederatedEntitySourcesEnum::LOCAL ? null : $this->canonical_url;
+    }
+    
+    /**
+     * A user can opt of of analytics tracking
+     */
+    public function setOptOutAnalytics(bool $optOut): self
+    {
+        $this->opt_out_analytics = (int) $optOut;
+        return $this;
+    }
+
+    public function isOptOutAnalytics(): bool
+    {
+        return (bool) $this->opt_out_analytics;
     }
 
     /**

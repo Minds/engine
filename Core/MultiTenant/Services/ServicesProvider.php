@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Services;
 
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
@@ -65,6 +66,7 @@ class ServicesProvider extends Provider
                     $di->get(MultiTenantCacheHandler::class),
                     $di->get(DomainService::class),
                     $di->get('Config'),
+                    $di->get(PostHogService::class),
                 );
             }
         );
