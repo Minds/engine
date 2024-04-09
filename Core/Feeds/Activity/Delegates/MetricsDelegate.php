@@ -103,6 +103,7 @@ class MetricsDelegate
         (new Event())->setType('action')
             ->setAction(ActionEvent::ACTION_CREATE)
             ->setProduct('platform')
+            ->setEntityGuid($activity->getGuid())
             ->setEntityType($activity->getType())
             ->setEntitySubtype($activity->getSubtype())
             ->push();

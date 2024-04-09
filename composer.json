@@ -40,7 +40,6 @@
         "ocramius/package-versions": "1.5",
         "pubsubhubbub/subscriber": "^1.1",
         "symfony/translation": "^5.0",
-        "snowplow/snowplow-tracker": "^0.4.0",
         "brick/math": "^0.9.1",
         "composer/semver": "^3.2",
         "minds/oauth2-openid-connect-server": "@dev",
@@ -67,7 +66,8 @@
         "psr/log": "2.0.0",
         "laminas/laminas-feed": "^2.22",
         "spiral/roadrunner-http": "^3.3",
-        "nyholm/psr7": "^1.8"
+        "nyholm/psr7": "^1.8",
+        "posthog/posthog-php": "dev-chore/ff-fetch-optional"
     },
     "repositories": [
         {
@@ -97,6 +97,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/Minds/http-signatures-php.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Minds/posthog-php.git"
         }
     ],
     "autoload": {

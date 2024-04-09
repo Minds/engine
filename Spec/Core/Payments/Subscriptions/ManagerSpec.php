@@ -16,8 +16,8 @@ class ManagerSpec extends ObjectBehavior
     /** @var Repository */
     protected $repository;
 
-    /** @var Delegates\SnowplowDelegate */
-    protected $snowplowDelegate;
+    /** @var Delegates\AnalyticsDelegate */
+    protected $analyticsDelegate;
 
     /** @var Delegates\EmailDelegate */
     protected $emailDelegate;
@@ -27,16 +27,16 @@ class ManagerSpec extends ObjectBehavior
 
     public function let(
         Repository $repository,
-        Delegates\SnowplowDelegate $snowplowDelegate,
+        Delegates\AnalyticsDelegate $analyticsDelegate,
         Delegates\EmailDelegate $emailDelegate,
         EntitiesBuilder $entitiesBuilder
     ) {
         $this->repository = $repository;
-        $this->snowplowDelegate = $snowplowDelegate;
+        $this->analyticsDelegate = $analyticsDelegate;
         $this->emailDelegate = $emailDelegate;
         $this->entitiesBuilder = $entitiesBuilder;
 
-        $this->beConstructedWith($repository, $snowplowDelegate, $emailDelegate, $entitiesBuilder);
+        $this->beConstructedWith($repository, $analyticsDelegate, $emailDelegate, $entitiesBuilder);
     }
 
     public function it_is_initializable()
@@ -108,7 +108,7 @@ class ManagerSpec extends ObjectBehavior
         $subscription->setNextBilling(strtotime('+1 month', time()))
             ->shouldBeCalled();
 
-        $this->snowplowDelegate->onCharge($subscription)
+        $this->analyticsDelegate->onCharge($subscription)
             ->shouldBeCalled();
 
         $this->charge()->shouldReturn(true);
@@ -223,7 +223,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->snowplowDelegate->onCreate($subscription)
+        $this->analyticsDelegate->onCreate($subscription)
             ->shouldBeCalled();
 
         $this->emailDelegate->onCreate($subscription)
@@ -259,7 +259,7 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->snowplowDelegate->onCreate($subscription)
+        $this->analyticsDelegate->onCreate($subscription)
             ->shouldBeCalled();
 
         $this->setSubscription($subscription);

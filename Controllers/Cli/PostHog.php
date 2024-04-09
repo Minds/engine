@@ -3,20 +3,19 @@
 namespace Minds\Controllers\Cli;
 
 use Minds\Cli;
-use Minds\Core;
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Di\Di;
 use Minds\Interfaces;
 
-class Growthbook extends Cli\Controller implements Interfaces\CliControllerInterface
+class PostHog extends Cli\Controller implements Interfaces\CliControllerInterface
 {
-    /** @var Core\Experiments\Manager */
-    protected $manager;
+    protected PostHogService $service;
 
     public function __construct()
     {
         Di::_()->get('Config')
             ->set('min_log_level', 'INFO');
-        $this->manager = Di::_()->get('Experiments\Manager');
+        $this->service = Di::_()->get(PostHogService::class);
     }
 
     public function help($command = null)
@@ -31,6 +30,6 @@ class Growthbook extends Cli\Controller implements Interfaces\CliControllerInter
 
     public function syncCache()
     {
-        $this->manager->getFeatures(useCached: false);
+        $this->service->getFeatureFlags(useCache: false);
     }
 }
