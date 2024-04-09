@@ -80,7 +80,7 @@ class TenantsController
         $createdTenant = $this->networksService->createNetworkTrial($tenant, $loggedInUser);
 
         try {
-            $this->usersService->createNetworkRootUser(
+            $rootUser = $this->usersService->createNetworkRootUser(
                 networkUser: new TenantUser(
                     guid: (int) Guid::build(),
                     username: $loggedInUser->getUsername(),
@@ -93,13 +93,14 @@ class TenantsController
 
             return new TenantLoginRedirectDetails(
                 tenant: $createdTenant,
-                loginUrl: $this->autoLoginService->buildLoginUrl(
-                    tenantId: $createdTenant->id
+                loginUrl: $this->autoLoginService->buildLoginUrlFromTenant(
+                    tenant: $createdTenant
                 ),
-                jwtToken: $this->autoLoginService->buildJwtToken(
-                    tenantId: $createdTenant->id,
-                    loggedInUser: $loggedInUser
-                ),
+                jwtToken: $this->autoLoginService->buildJwtTokenFromTenant(
+                    tenant: $createdTenant,
+                    loggedInUser: $loggedInUser,
+                    userGuid: $rootUser->guid
+                )
             );
         } catch (\Exception $e) {
             $this->logger->error($e);

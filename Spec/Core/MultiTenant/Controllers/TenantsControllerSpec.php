@@ -27,6 +27,7 @@ class TenantsControllerSpec extends ObjectBehavior
     private Collaborator $logger;
 
     private ReflectionClass $tenantMockFactory;
+    private ReflectionClass $tenantUserMockFactory;
 
     public function let(
         TenantsService $networksService,
@@ -41,6 +42,7 @@ class TenantsControllerSpec extends ObjectBehavior
         $this->experimentsManager = $experimentsManager;
         $this->logger = $logger;
         $this->tenantMockFactory = new ReflectionClass(Tenant::class);
+        $this->tenantUserMockFactory = new ReflectionClass(TenantUser::class);
 
         $this->beConstructedWith(
             $networksService,
@@ -58,16 +60,19 @@ class TenantsControllerSpec extends ObjectBehavior
 
     public function it_should_create_a_tenant_trial(
         User $loggedInUser,
-        TenantUser $tenantUser,
         Tenant $tenantInput
     ) {
         $loggedInUsername = 'testuser';
         $loginUrl = 'https://example.minds.com/api/v3/multi-tenant/auto-login/login';
         $jwtToken = 'exampleJwtToken';
         $tenantId = 234;
+        $rootUserGuid = 345;
 
         $createdTenant = $this->tenantMockFactory->newInstanceWithoutConstructor();
         $this->tenantMockFactory->getProperty('id')->setValue($createdTenant, $tenantId);
+
+        $tenantUser = $this->tenantUserMockFactory->newInstanceWithoutConstructor();
+        $this->tenantUserMockFactory->getProperty('guid')->setValue($tenantUser, $rootUserGuid);
         
         $loggedInUser->getUsername()
             ->shouldBeCalled()
@@ -83,15 +88,16 @@ class TenantsControllerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($tenantUser);
 
-        $this->autoLoginService->buildLoginUrl(
-            tenantId: $createdTenant->id
+        $this->autoLoginService->buildLoginUrlFromTenant(
+            tenant: $createdTenant
         )
             ->shouldBeCalled()
             ->willReturn($loginUrl);
 
-        $this->autoLoginService->buildJwtToken(
-            tenantId: $createdTenant->id,
-            loggedInUser: $loggedInUser
+        $this->autoLoginService->buildJwtTokenFromTenant(
+            tenant: $createdTenant,
+            loggedInUser: $loggedInUser,
+            userGuid: $rootUserGuid
         )
             ->shouldBeCalled()
             ->willReturn($jwtToken);

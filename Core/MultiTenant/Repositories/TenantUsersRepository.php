@@ -40,7 +40,7 @@ class TenantUsersRepository extends AbstractRepository
      */
     public function getTenantRootAccount(int $tenantId): ?TenantUser
     {
-        $statement = $this->mysqlClientReaderHandler->select()
+        $statement = $this->mysqlClientWriterHandler->select()
             ->from('minds_tenants')
             ->columns([
                 'tenant_id',
