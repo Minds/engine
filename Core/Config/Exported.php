@@ -15,6 +15,7 @@ use Minds\Core\Blockchain\Manager as BlockchainManager;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Chat\Services\ReceiptService;
 use Minds\Core\Di\Di;
+use Minds\Core\Experiments\LegacyGrowthBook;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\I18n\Manager as I18nManager;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
@@ -140,7 +141,9 @@ class Exported
                 'unread_count' => Session::getLoggedinUser() ? $this->chatReceiptsService->getAllUnreadMessagesCount(Session::getLoggedinUser()) : 0,
             ],
             'is_tenant' => false, // overridden below.
-            'last_cache' => $this->config->get('lastcache') ?? 0
+            'last_cache' => $this->config->get('lastcache') ?? 0,
+            // Remove when mobile is read
+            'growthbook' => LegacyGrowthBook::getExportedConfigs(Session::getLoggedinUser()),
         ];
 
         if (Session::isLoggedIn()) {

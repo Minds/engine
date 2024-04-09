@@ -124,6 +124,15 @@ class MultiTenantBootService
 
         $this->setConfig('dataroot', $this->config->get('dataroot') . 'tenant/' . $this->config->get('tenant_id') . '/');
 
+        // PostHog
+
+        $postHogConfig = $this->config->get('posthog');
+        if (isset($this->config->get('multi_tenant')['posthog'])) {
+            $postHogConfig['api_key'] = $this->config->get('multi_tenant')['posthog']['api_key'];
+            $postHogConfig['project_id'] = $this->config->get('multi_tenant')['posthog']['project_id'];
+            $this->setConfig('posthog', $postHogConfig);
+        }
+
         // Misc
 
         if ($tenantConfig = $tenant->config) {
