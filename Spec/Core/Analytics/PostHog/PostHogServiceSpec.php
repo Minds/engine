@@ -55,10 +55,12 @@ class PostHogServiceSpec extends ObjectBehavior
                 'distinctId' => $userGuid,
                 'properties' => [
                     'entity_guid' => '123',
+                    'environment' => 'development',
                     '$set' => [
                         'username' => 'phpspec',
                         'email' => 'phpspec@minds.com',
                         'plus_expires' => date('c', strtotime('midnight')),
+                        'environment' => 'development',
                     ],
                     '$set_once' => [
                         'joined_timestamp' => date('c', strtotime('midnight yesterday')),

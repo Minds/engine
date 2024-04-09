@@ -63,6 +63,7 @@ class PostHogService
 
         if ($tenantId = $this->config->get('tenant_id')) {
             $setOnce['tenant_id'] = $tenantId;
+            $properties['tenant_id'] = $tenantId;
         }
 
         /**
@@ -82,6 +83,11 @@ class PostHogService
         if ($xForwardedFor = $this->getServerRequestHeader('X-Forwarded-For')) {
             $properties['$ip'] = $xForwardedFor[0];
         }
+
+        /**
+         * Information about our environment
+         */
+        $properties['environment'] = $set['environment'] = $this->getEnvironment();
 
         $success = $this->postHogClient->capture([
             'event' => $event,
@@ -119,10 +125,18 @@ class PostHogService
         return $this->postHogClient->getAllFlags(
             distinctId: isset($user) ? $user->getGuid() : '',
             personProperties : [
-                'environment' => getenv('MINDS_ENV') ?: 'development',
+                'environment' => $this->getEnvironment(),
             ],
             onlyEvaluateLocally: true,
         );
+    }
+
+    /**
+     * The environment php is running in (eg. staging)
+     */
+    private function getEnvironment(): string
+    {
+        return getenv('MINDS_ENV') ?: 'development';
     }
 
     /**
