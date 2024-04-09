@@ -957,3 +957,7 @@ CREATE TABLE IF NOT EXISTS minds_user_rss_imports(
     created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
     PRIMARY KEY (tenant_id, feed_id, url)
 );
+
+ALTER TABLE `minds_entities_user`
+	ADD `opt_out_analytics` boolean DEFAULT FALSE
+	AFTER `canonical_url`;

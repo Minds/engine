@@ -564,9 +564,9 @@ class Manager
             $this->experimentsManager
                 ->setUser($queryOpts->user);
 
-            if ($this->experimentsManager->isOn('engine-2619-inferred-tags')) {
-                $multiMatch['multi_match']['fields'][] = 'inferred_tags^12';
-            }
+            // if ($this->experimentsManager->isOn('engine-2619-inferred-tags')) {
+            //     $multiMatch['multi_match']['fields'][] = 'inferred_tags^12';
+            // }
 
             $must[] = $multiMatch;
         }
