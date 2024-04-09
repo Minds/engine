@@ -40,6 +40,8 @@ class Repository extends MySQL\AbstractRepository
             return unserialize($cached);
         }
 
+        $inferredByMembershipQuery = $this->buildInferredMembershipQuery();
+
         $query = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'group_guid',
@@ -47,7 +49,18 @@ class Repository extends MySQL\AbstractRepository
                 'created_timestamp',
                 'membership_level',
             ])
-            ->from('minds_group_membership')
+            ->from(function (SelectQuery $subQuery) use ($inferredByMembershipQuery) {
+                $subQuery
+                    ->columns([
+                        'group_guid',
+                        'user_guid',
+                        'created_timestamp',
+                        'membership_level',
+                    ])
+                    ->from('minds_group_membership')
+                    ->union($inferredByMembershipQuery)
+                    ->alias('a');
+            })
             ->where('group_guid', Operator::EQ, new RawExp(':group_guid'))
             ->where('user_guid', Operator::EQ, new RawExp(':user_guid'))
             ->limit(1);
@@ -60,6 +73,7 @@ class Repository extends MySQL\AbstractRepository
         ]);
 
         if (!$stmt->rowCount()) {
+            // No membership, lets check if user is
             throw new NotFoundException("User doesn't appear to be in the group");
         }
 
@@ -93,19 +107,7 @@ class Repository extends MySQL\AbstractRepository
     ): iterable {
         $values = [];
 
-        $inferredByMembershipQuery = $this->mysqlClientReaderHandler->select()
-            ->columns([
-                'group_guid' => 'mga.group_guid',
-                'user_guid' => 's.user_guid',
-                'created_timestamp' => 's.valid_from',
-                'membership_level' => new RawExp(GroupMembershipLevelEnum::MEMBER->value),
-            ])
-            ->from(new RawExp('minds_site_membership_tiers_group_assignments mga'))
-            ->innerJoin(['s' => 'minds_site_membership_subscriptions'], 's.membership_tier_guid', Operator::EQ, 'mga.membership_tier_guid')
-            ->leftJoinRaw('minds_group_membership', 'minds_group_membership.group_guid = mga.group_guid AND minds_group_membership.user_guid = s.user_guid')
-            ->where('minds_group_membership.group_guid', Operator::IS, null)
-            ->where('minds_group_membership.user_guid', Operator::IS, null)
-            ->where('s.valid_to', Operator::GTE, new RawExp('CURRENT_TIMESTAMP()'));
+        $inferredByMembershipQuery = $this->buildInferredMembershipQuery();
 
         $query = $this->mysqlClientReaderHandler->select()
             ->columns([
@@ -341,6 +343,23 @@ class Repository extends MySQL\AbstractRepository
         foreach ($prepared as $row) {
             yield (int) $row['group_guid'];
         }
+    }
+
+    private function buildInferredMembershipQuery(): SelectQuery
+    {
+        return $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'group_guid' => 'mga.group_guid',
+                'user_guid' => 's.user_guid',
+                'created_timestamp' => 's.valid_from',
+                'membership_level' => new RawExp(GroupMembershipLevelEnum::MEMBER->value),
+            ])
+            ->from(new RawExp('minds_site_membership_tiers_group_assignments mga'))
+            ->innerJoin(['s' => 'minds_site_membership_subscriptions'], 's.membership_tier_guid', Operator::EQ, 'mga.membership_tier_guid')
+            ->leftJoinRaw('minds_group_membership', 'minds_group_membership.group_guid = mga.group_guid AND minds_group_membership.user_guid = s.user_guid')
+            ->where('minds_group_membership.group_guid', Operator::IS, null)
+            ->where('minds_group_membership.user_guid', Operator::IS, null)
+            ->where('s.valid_to', Operator::GTE, new RawExp('CURRENT_TIMESTAMP()'));
     }
 
     private function getMemberCountCacheKey(int $groupGuid, GroupMembershipLevelEnum $membershipLevel = null): string
