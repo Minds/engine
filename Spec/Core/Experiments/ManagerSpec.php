@@ -10,77 +10,90 @@ use Growthbook;
 use Zend\Diactoros\Response\JsonResponse;
 use Minds\Core\Experiments\Cookie\Manager as CookieManager;
 use GuzzleHttp;
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Data\cache\SharedCache;
+use Minds\Entities\User;
+use PhpSpec\Wrapper\Collaborator;
 
 class ManagerSpec extends ObjectBehavior
 {
-    protected $growthbook;
-    protected $cookieManager;
-    protected $httpClient;
-    protected $config;
-    protected $cacheMock;
+    protected Collaborator $postHogServiceMock;
 
     public function let(
-        Growthbook\Growthbook $growthbook,
-        CookieManager $cookieManager,
-        GuzzleHttp\Client $httpClient,
-        Config $config,
-        SharedCache $cacheMock,
+        PostHogService $postHogServiceMock,
     ) {
         $this->beConstructedWith(
-            $growthbook,
-            $cookieManager,
-            $httpClient,
-            $config,
-            $cacheMock
+            $postHogServiceMock
         );
-
-        $this->growthbook = $growthbook;
-        $this->cookieManager = $cookieManager;
-        $this->httpClient = $httpClient;
-        $this->config = $config;
-        $this->cacheMock = $cacheMock;
-
-        $_SERVER['REQUEST_URI'] = '/';
-        $_SERVER['HTTP_REFERER'] = '/newsfeed/subscriptions';
-
-        $this->growthbook->withFeatures(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn($this->growthbook);
-
-        $this->cookieManager->get(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn('123');
-
-        $this->growthbook->withAttributes(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn($this->growthbook);
-
-        $this->growthbook->withTrackingCallback(Argument::any())
-            ->willReturn($this->growthbook);
-
-        $this->config->get('growthbook')
-            ->shouldBeCalled()
-            ->willReturn([
-                'features_endpoint' => 'https://growthbook-api.phpspec.test/api/features/key_stub',
-            ]);
-
-        $this->httpClient->request('GET', 'https://growthbook-api.phpspec.test/api/features/key_stub', Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(new JsonResponse([
-                'features' => [
-                    'discovery-homepage' => [
-                        'defaultValue' => false,
-                    ]
-                ],
-            ]));
-
-        $this->cacheMock->get('growthbook-features')->willReturn(null);
-        $this->cacheMock->set('growthbook-features', Argument::type('array'))->willReturn(true);
+        $this->postHogServiceMock = $postHogServiceMock;
     }
 
     public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
+    }
+
+    public function it_should_return_true_if_feature_flag_is_on()
+    {
+        $user = new User();
+
+        $this->postHogServiceMock->getFeatureFlags($user)
+            ->willReturn([
+                'phpspec-test' => true
+            ]);
+
+        $this->setUser($user)->isOn('phpspec-test')
+            ->shouldBe(true);
+    }
+
+    public function it_should_return_false_if_feature_flag_is_not_on()
+    {
+        $user = new User();
+
+        $this->postHogServiceMock->getFeatureFlags($user)
+            ->willReturn([
+                'phpspec-test' => false
+            ]);
+
+        $this->setUser($user)->isOn('phpspec-test')
+            ->shouldBe(false);
+    }
+
+    public function it_should_return_false_if_feature_flag_is_not_configured()
+    {
+        $user = new User();
+
+        $this->postHogServiceMock->getFeatureFlags($user)
+            ->willReturn([
+            ]);
+
+        $this->setUser($user)->isOn('phpspec-test')
+            ->shouldBe(false);
+    }
+
+    public function it_should_return_true_if_feature_flag_variation_matches()
+    {
+        $user = new User();
+
+        $this->postHogServiceMock->getFeatureFlags($user)
+            ->willReturn([
+                'phpspec-test' => 'apples'
+            ]);
+
+        $this->setUser($user)->hasVariation('phpspec-test', 'apples')
+            ->shouldBe(true);
+    }
+
+    public function it_should_return_false_if_feature_flag_variation_doesnt_match()
+    {
+        $user = new User();
+
+        $this->postHogServiceMock->getFeatureFlags($user)
+            ->willReturn([
+                'phpspec-test' => 'apples'
+            ]);
+
+        $this->setUser($user)->hasVariation('phpspec-test', 'oranges')
+            ->shouldBe(false);
     }
 }

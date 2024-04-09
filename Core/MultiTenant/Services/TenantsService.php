@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Services;
 
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Config\Config;
 use Minds\Core\MultiTenant\Cache\MultiTenantCacheHandler;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
@@ -23,7 +24,8 @@ class TenantsService
         private readonly TenantConfigRepository  $tenantConfigRepository,
         private readonly MultiTenantCacheHandler $multiTenantCacheHandler,
         private readonly DomainService           $domainService,
-        private readonly Config                  $mindsConfig
+        private readonly Config                  $mindsConfig,
+        private readonly PostHogService          $postHogService,
     ) {
     }
 
@@ -105,8 +107,24 @@ class TenantsService
                 );
             }
 
+            $this->postHogService->capture(
+                event: 'tenant_trial_start',
+                user: $user,
+                properties: [
+                    'tenant_id' => $tenant->id,
+                ],
+                setOnce: [
+                    'tenant_trial_started' => date('c', $tenant->trialStartTimestamp),
+                ]
+            );
+
             return $tenant;
         } catch (ServerErrorException|PDOException $e) {
+            $this->postHogService->capture(
+                event: 'tenant_trial_start_failed',
+                user: $user,
+            );
+
             throw new GraphQLException(message: 'Failed to create trial network', code: 500, previous: $e);
         }
     }
@@ -130,11 +148,24 @@ class TenantsService
      */
     public function upgradeNetworkTrial(
         Tenant         $tenant,
-        TenantPlanEnum $plan
+        TenantPlanEnum $plan,
+        User           $user,
     ): Tenant {
         $tenant = $this->repository->upgradeTrialTenant($tenant, $plan);
 
         $this->multiTenantCacheHandler->resetTenantCache(tenant: $tenant, domainService: $this->domainService);
+
+        $this->postHogService->capture(
+            event: 'tenant_trial_upgrade',
+            user: $user,
+            properties: [
+                'tenant_id' => $tenant->id,
+                'tenant_plan' => $plan->name,
+            ],
+            setOnce: [
+                'tenant_trial_converted' => date('c', time()),
+            ]
+        );
 
         return $tenant;
     }
