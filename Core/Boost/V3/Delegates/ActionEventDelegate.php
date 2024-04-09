@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace Minds\Core\Boost\V3\Delegates;
 
 use Minds\Common\SystemUser;
+use Minds\Core\Analytics\Metrics\Event;
+use Minds\Core\Analytics\PostHog\PostHogService;
+use Minds\Core\Boost\V3\Enums\BoostPaymentMethod;
+use Minds\Core\Boost\V3\Enums\BoostTargetLocation;
+use Minds\Core\Boost\V3\Enums\BoostTargetSuitability;
 use Minds\Core\Boost\V3\Models\Boost;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
@@ -21,11 +26,13 @@ class ActionEventDelegate
     public function __construct(
         private ?ActionEventsTopic $actionEventsTopic = null,
         private ?EntitiesBuilder $entitiesBuilder = null,
-        private ?ActiveSession $activeSession = null
+        private ?ActiveSession $activeSession = null,
+        private ?PostHogService $postHogService = null,
     ) {
         $this->actionEventsTopic ??= Di::_()->get('EventStreams\Topics\ActionEventsTopic');
         $this->entitiesBuilder ??= Di::_()->get('EntitiesBuilder');
         $this->activeSession ??= Di::_()->get('Sessions\ActiveSession');
+        $this->postHogService ??= Di::_()->get(PostHogService::class);
     }
 
     /**
@@ -80,16 +87,57 @@ class ActionEventDelegate
      */
     private function send(Boost $boost, string $action, array $actionData = []): void
     {
+        $sender = $this->getSender($action);
+
         $actionEvent = new ActionEvent();
         $actionEvent->setAction($action)
             ->setEntity($boost)
-            ->setUser($this->getSender($action));
+            ->setUser($sender);
 
         if (count($actionData)) {
             $actionEvent->setActionData($actionData);
         }
 
         $this->actionEventsTopic->send($actionEvent);
+
+        // To PostHog
+
+        $boostMethod =  match($boost->getPaymentMethod()) {
+            BoostPaymentMethod::CASH => 'cash',
+            BoostPaymentMethod::OFFCHAIN_TOKENS => 'offchain_tokens',
+            BoostPaymentMethod::ONCHAIN_TOKENS => 'onchain_tokens',
+        };
+
+        $set = [];
+        $setOnce = [];
+
+        if ($boost->getOwnerGuid() === $sender->getGuid()) {
+            $setOnce["boost_first_{$boostMethod}_timestamp"] = date('c', $boost->getCreatedTimestamp());
+            $set["boost_latest_{$boostMethod}_timestamp"] = date('c', $boost->getCreatedTimestamp());
+        }
+
+        $this->postHogService->capture(
+            event: $action,
+            user: $sender,
+            properties: [
+                'entity_guid' => $boost->getEntityGuid(),
+                'boost_guid' => $boost->getGuid(),
+                'boost_duration_days' => $boost->getDurationDays(),
+                'boost_daily_bid' => $boost->getDailyBid(),
+                'boost_method' => $boostMethod,
+                'boost_payment_amount' => $boost->getPaymentAmount(),
+                'boost_target_location' => match($boost->getTargetLocation()) {
+                    BoostTargetLocation::NEWSFEED => 'newsfeed',
+                    BoostTargetLocation::SIDEBAR => 'sidebar',
+                },
+                'boost_target_suitability' => match($boost->getTargetSuitability()) {
+                    BoostTargetSuitability::SAFE => 'safe',
+                    BoostTargetSuitability::CONTROVERSIAL => 'controversial',
+                },
+            ],
+            set: $set,
+            setOnce: $setOnce,
+        );
     }
 
     /**

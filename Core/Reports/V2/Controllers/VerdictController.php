@@ -28,7 +28,7 @@ class VerdictController
      */
     #[Mutation]
     #[Logged]
-    #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
+    #[Security("is_granted('PERMISSION_CAN_MODERATE_CONTENT', loggedInUser)")]
     public function provideVerdict(
         VerdictInput $verdictInput,
         #[InjectUser] User $loggedInUser // Do not add in docblock as it will break GraphQL
@@ -37,6 +37,7 @@ class VerdictController
             reportGuid: $verdictInput->reportGuid,
             moderatedByGuid: (int) $loggedInUser->getGuid(),
             action: $verdictInput->action,
+            moderator: $loggedInUser
         );
     }
 }

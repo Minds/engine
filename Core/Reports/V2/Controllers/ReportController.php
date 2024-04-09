@@ -33,18 +33,20 @@ class ReportController
      */
     #[Query]
     #[Logged]
-    #[Security("is_granted('ROLE_ADMIN', loggedInUser)")]
+    #[Security("is_granted('PERMISSION_CAN_MODERATE_CONTENT', loggedInUser)")]
     public function getReports(
         int $first = 12,
         int $after = null,
         ?ReportStatusEnum $status = ReportStatusEnum::PENDING,
         #[InjectUser] ?User $loggedInUser = null // Do not add in docblock as it will break GraphQL
     ): ReportsConnection {
-        return $this->service->getReports(
+        $response = $this->service->getReports(
             limit: $first,
             loadAfter: $after,
             status: $status
         );
+
+        return $response;
     }
 
     /**

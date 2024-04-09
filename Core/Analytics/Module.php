@@ -8,6 +8,11 @@ use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
 {
+    public array $submodules = [
+        TenantAdminAnalytics\Module::class,
+        PostHog\Module::class,
+    ];
+
     public function onInit()
     {
         (new AnalyticsProvider())->register();

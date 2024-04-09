@@ -5,21 +5,21 @@ namespace Spec\Minds\Core\Analytics\Metrics;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-use Minds\Core\Analytics\Snowplow;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Data\ElasticSearch\Client;
 use Minds\Core\Data\ElasticSearch\Prepared\Index;
 use Minds\Core\AccountQuality\ManagerInterface as AccountQualityManagerInterface;
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
+use PhpSpec\Wrapper\Collaborator;
 
 class EventSpec extends ObjectBehavior
 {
     /** @var Client */
     protected $es;
 
-    /** @var Snowplow\Manager */
-    protected $snowplowManager;
+    protected Collaborator $postHogServiceMock;
 
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
@@ -27,16 +27,20 @@ class EventSpec extends ObjectBehavior
     /** @var AccountQualityManagerInterface */
     private $accountQualityManager;
 
-    public function let(Client $es, EntitiesBuilder $entitiesBuilder, Snowplow\Manager $snowplowManager, AccountQualityManagerInterface $accountQualityManager)
-    {
+    public function let(
+        Client $es,
+        EntitiesBuilder $entitiesBuilder,
+        PostHogService $postHogServiceMock,
+        AccountQualityManagerInterface $accountQualityManager
+    ) {
         $this->beConstructedWith(
             $es,
-            $snowplowManager,
+            $postHogServiceMock,
             $entitiesBuilder,
             $accountQualityManager
         );
         $this->es = $es;
-        $this->snowplowManager = $snowplowManager;
+        $this->postHogServiceMock = $postHogServiceMock;
         $this->entitiesBuilder = $entitiesBuilder;
         $this->accountQualityManager = $accountQualityManager;
         $_COOKIE['minds_pseudoid'] = '';
@@ -107,28 +111,35 @@ class EventSpec extends ObjectBehavior
         
         $this->accountQualityManager->getAccountQualityScoreAsFloat("123")
             ->willReturn((float) 1);
-        
-        $this->snowplowManager->setSubject(Argument::any())->shouldBeCalled()
-            ->willReturn($this->snowplowManager);
 
-        $this->snowplowManager->emit(Argument::any())->shouldBeCalled();
+        $this->entitiesBuilder->single('123')->willReturn($user);
+        
+        $this->postHogServiceMock->capture(Argument::any(), Argument::any(), Argument::any())->shouldBeCalled();
 
         $this->push()->shouldBe(true);
         $this->getData()->shouldHaveKey('@timestamp');
         $this->getData()->shouldHaveKey('account_quality_score');
     }
 
-    public function it_should_post_action_to_snowplow()
+    public function it_should_post_action_to_posthog(User $user)
     {
-        $this->snowplowManager->setSubject(Argument::that(function ($user) {
-            return true;
-        }))
-            ->willReturn($this->snowplowManager);
-    
-        $this->snowplowManager->emit(Argument::that(function ($event) {
-            return true;
-        }))
-            ->shouldBeCalled();
+        $user->getGuid()->willReturn('123');
+        $user->isPlus()->willReturn(false);
+        $user->getSource()->shouldBeCalled()->willReturn(FederatedEntitySourcesEnum::LOCAL);
+        $this->entitiesBuilder->single('123')->willReturn($user);
+
+        $this->accountQualityManager->getAccountQualityScoreAsFloat("123")
+            ->willReturn((float) 1);
+        
+        $this->postHogServiceMock->capture(
+            'activity_vote_up',
+            $user,
+            [
+                'entity_type' => 'activity',
+            ],
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
 
         $this->es->request(Argument::type('Minds\Core\Data\ElasticSearch\Prepared\Index'))
             ->shouldBeCalled()
@@ -137,6 +148,41 @@ class EventSpec extends ObjectBehavior
         $this->setType('action');
         $this->setAction('vote:up');
         $this->setUserGuid('123');
+        $this->setEntityType('activity');
+
+        $this->push()->shouldBe(true);
+    }
+
+
+    public function it_should_post_action_to_posthog_with_custom_event_name(User $user)
+    {
+        $user->getGuid()->willReturn('123');
+        $user->isPlus()->willReturn(false);
+        $user->getSource()->shouldBeCalled()->willReturn(FederatedEntitySourcesEnum::LOCAL);
+        $this->entitiesBuilder->single('123')->willReturn($user);
+
+        $this->accountQualityManager->getAccountQualityScoreAsFloat("123")
+            ->willReturn((float) 1);
+        
+        $this->postHogServiceMock->capture(
+            'object_verb',
+            $user,
+            [
+                'entity_type' => 'activity',
+            ],
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->es->request(Argument::type('Minds\Core\Data\ElasticSearch\Prepared\Index'))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->setType('action');
+        $this->setAction('vote:up');
+        $this->setUserGuid('123');
+        $this->setEntityType('activity');
+        $this->setEventName('object', 'verb');
 
         $this->push()->shouldBe(true);
     }

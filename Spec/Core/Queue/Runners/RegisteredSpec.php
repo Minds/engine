@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\Queue\Runners;
 
+use Minds\Core\Config\Config;
 use Minds\Core\Email\Invites\Services\InviteProcessorService;
 use Minds\Core\Email\Services\EmailAutoSubscribeService;
 use Minds\Core\EntitiesBuilder;
@@ -22,26 +23,30 @@ class RegisteredSpec extends ObjectBehavior
 
     private Collaborator $clientMock;
     private Collaborator $entitiesBuilderMock;
+    private Collaborator $configMock;
 
     public function let(
         EmailAutoSubscribeService          $emailAutoSubscribeService,
         FeaturedEntityAutoSubscribeService $featuredEntityAutoSubscribeService,
         InviteProcessorService             $inviteProcessorService,
         LegacyClient                       $client,
-        EntitiesBuilder                    $entitiesBuilder
+        EntitiesBuilder                    $entitiesBuilder,
+        Config                             $config
     ): void {
         $this->emailAutoSubscribeServiceMock = $emailAutoSubscribeService;
         $this->featuredEntityAutoSubscribeServiceMock = $featuredEntityAutoSubscribeService;
         $this->inviteProcessorServiceMock = $inviteProcessorService;
         $this->clientMock = $client;
         $this->entitiesBuilderMock = $entitiesBuilder;
+        $this->configMock = $config;
 
         $this->beConstructedWith(
             $this->emailAutoSubscribeServiceMock,
             $this->featuredEntityAutoSubscribeServiceMock,
             $this->inviteProcessorServiceMock,
             $this->entitiesBuilderMock,
-            $this->clientMock
+            $this->clientMock,
+            $this->configMock
         );
     }
 
@@ -64,6 +69,10 @@ class RegisteredSpec extends ObjectBehavior
             'tenant_id' => null,
             'invite_token' => null
         ]);
+
+        $this->configMock->get('tenant_id')
+            ->shouldBeCalledOnce()
+            ->willReturn(null);
 
         $subscriber->subscribe('100000000000000519')
             ->shouldBeCalledOnce();
@@ -92,6 +101,10 @@ class RegisteredSpec extends ObjectBehavior
             'tenant_id' => 1,
             'invite_token' => null
         ]);
+
+        $this->configMock->get('tenant_id')
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
 
         $subscriber->subscribe('100000000000000519')
             ->shouldNotBeCalled();
@@ -123,6 +136,10 @@ class RegisteredSpec extends ObjectBehavior
             'tenant_id' => null,
             'invite_token' => "token"
         ]);
+
+        $this->configMock->get('tenant_id')
+            ->shouldBeCalledOnce()
+            ->willReturn(null);
 
         $subscriber->subscribe('100000000000000519')
             ->shouldBeCalledOnce();
@@ -157,6 +174,10 @@ class RegisteredSpec extends ObjectBehavior
             'tenant_id' => 1,
             'invite_token' => "token"
         ]);
+
+        $this->configMock->get('tenant_id')
+            ->shouldBeCalledOnce()
+            ->willReturn(1);
 
         $subscriber->subscribe('100000000000000519')
             ->shouldNotBeCalled();

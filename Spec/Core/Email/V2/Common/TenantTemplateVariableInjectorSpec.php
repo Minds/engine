@@ -32,7 +32,7 @@ class TenantTemplateVariableInjectorSpec extends ObjectBehavior
         $themeOverride = [
             'color_scheme' => 'DARK'
         ];
-        
+
         $this->config->get('site_name')
             ->shouldBeCalled()
             ->willReturn($siteName);
@@ -45,7 +45,10 @@ class TenantTemplateVariableInjectorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($themeOverride);
 
-        $template->set('copyright_text', $siteName . " &#169; ". date("Y"))
+        $template->set('copyright_text', $siteName . " &#169; " . date("Y"))
+            ->shouldBeCalled();
+
+        $template->set('site_url', $siteUrl)
             ->shouldBeCalled();
 
         $template->set('logo_url', $siteUrl . 'api/v3/multi-tenant/configs/image/square_logo')
@@ -62,7 +65,7 @@ class TenantTemplateVariableInjectorSpec extends ObjectBehavior
         $siteName = 'Minds';
         $siteUrl = 'https://exampleTenant.minds.io/';
         $themeOverride = null;
-        
+
         $this->config->get('site_name')
             ->shouldBeCalled()
             ->willReturn($siteName);
@@ -75,7 +78,10 @@ class TenantTemplateVariableInjectorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($themeOverride);
 
-        $template->set('copyright_text', $siteName . " &#169; ". date("Y"))
+        $template->set('copyright_text', $siteName . " &#169; " . date("Y"))
+            ->shouldBeCalled();
+
+        $template->set('site_url', $siteUrl)
             ->shouldBeCalled();
 
         $template->set('logo_url', $siteUrl . 'api/v3/multi-tenant/configs/image/square_logo')
@@ -92,7 +98,7 @@ class TenantTemplateVariableInjectorSpec extends ObjectBehavior
         $siteName = 'Minds';
         $siteUrl = null;
         $themeOverride = null;
-        
+
         $this->config->get('site_name')
             ->shouldBeCalled()
             ->willReturn($siteName);
@@ -105,7 +111,7 @@ class TenantTemplateVariableInjectorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($themeOverride);
 
-        $template->set('copyright_text', $siteName . " &#169; ". date("Y"))
+        $template->set('copyright_text', $siteName . " &#169; " . date("Y"))
             ->shouldBeCalled();
 
         $template->set('logo_url', Argument::any())
@@ -124,7 +130,7 @@ class TenantTemplateVariableInjectorSpec extends ObjectBehavior
         $themeOverride = [
             'color_scheme' => 'DARK'
         ];
-        
+
         $this->config->get('site_name')
             ->shouldBeCalled()
             ->willReturn($siteName);
@@ -137,7 +143,7 @@ class TenantTemplateVariableInjectorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($themeOverride);
 
-        $template->set('copyright_text', $siteName . " &#169; ". date("Y"))
+        $template->set('copyright_text', $siteName . " &#169; " . date("Y"))
             ->shouldBeCalled();
 
         $template->set('logo_url', Argument::any())

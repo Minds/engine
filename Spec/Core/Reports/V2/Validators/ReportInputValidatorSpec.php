@@ -3,10 +3,10 @@
 namespace Spec\Minds\Core\Reports\V2\Validators;
 
 use Minds\Core\Guid;
-use Minds\Core\Reports\Enums\ReportReasonEnum;
 use Minds\Core\Reports\Enums\Reasons\Illegal\SubReasonEnum as IllegalSubReasonEnum;
 use Minds\Core\Reports\Enums\Reasons\Nsfw\SubReasonEnum as NsfwSubReasonEnum;
 use Minds\Core\Reports\Enums\Reasons\Security\SubReasonEnum as SecuritySubReasonEnum;
+use Minds\Core\Reports\Enums\ReportReasonEnum;
 use Minds\Core\Reports\V2\Types\ReportInput;
 use Minds\Core\Reports\V2\Validators\ReportInputValidator;
 use PhpSpec\ObjectBehavior;
@@ -28,6 +28,24 @@ class ReportInputValidatorSpec extends ObjectBehavior
     public function it_should_validate_a_valid_input()
     {
         $entityUrn = 'urn:activity:'.Guid::build();
+        $reason = ReportReasonEnum::ILLEGAL;
+        $illegalSubReason = IllegalSubReasonEnum::EXTORTION;
+        $nsfwSubReason = null;
+        $securitySubReason = null;
+
+        $this->validate(new ReportInput(
+            entityUrn: $entityUrn,
+            reason: $reason,
+            illegalSubReason: $illegalSubReason,
+            nsfwSubReason: $nsfwSubReason,
+            securitySubReason: $securitySubReason
+        ))->shouldBe(null);
+    }
+
+    // valid
+    public function it_should_validate_a_valid_input_for_a_chat_message_urn()
+    {
+        $entityUrn = 'urn:chatmessage:'.Guid::build() . "_" . Guid::build();
         $reason = ReportReasonEnum::ILLEGAL;
         $illegalSubReason = IllegalSubReasonEnum::EXTORTION;
         $nsfwSubReason = null;

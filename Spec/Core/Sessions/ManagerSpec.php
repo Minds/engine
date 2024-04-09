@@ -19,9 +19,37 @@ use Lcobucci\JWT\Signer\Rsa\Sha512;
 use Minds\Common\IpAddress;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Entities\User;
+use PhpSpec\Wrapper\Collaborator;
+use Psr\Http\Message\ServerRequestInterface;
 
 class ManagerSpec extends ObjectBehavior
 {
+    private Collaborator $repositoryMock;
+    private Collaborator $configMock;
+    private \Lcobucci\JWT\Configuration $jwtConfigMock;
+    private Collaborator $ipAddressMock;
+
+    public function let(
+        Repository $repositoryMock,
+        Config $configMock,
+        IpAddress $ipAddressMock
+    ) {
+        $jwtConfigMock = $this->getMockedJwtConfig();
+
+        $this->beConstructedWith(
+            $repositoryMock,
+            $configMock,
+            null,
+            $jwtConfigMock,
+            $ipAddressMock
+        );
+
+        $this->repositoryMock = $repositoryMock;
+        $this->configMock = $configMock;
+        $this->jwtConfigMock = $jwtConfigMock;
+        $this->ipAddressMock = $ipAddressMock;
+    }
+
     public function it_is_initializable()
     {
         $this->shouldHaveType(Manager::class);
@@ -338,5 +366,79 @@ wwIDAQAB
 -----END PUBLIC KEY-----
         ")
         );
+    }
+
+    public function it_should_accept_an_x_session_token_header_over_a_cookie(ServerRequestInterface $requestMock)
+    {
+        $token = $this->jwtConfigMock
+            ->builder()
+                    //->issuedBy('spec.tests')
+                    //->canOnlyBeUsedBy('spec.tests')
+                    ->identifiedBy('mock_session_id')
+                    ->withHeader('jti', 'mock_session_id')
+                    ->expiresAt((new DateTimeImmutable())->setTimestamp(time() + 3600)) // 1 hour
+                    ->withClaim('user_guid', 'user_1')
+                    ->getToken($this->jwtConfigMock->signer(), $this->jwtConfigMock->signingKey())
+                    ->toString();
+        
+        $requestMock->getHeader('X-SESSION-TOKEN')
+            ->willReturn([$token]);
+
+        $session = new Session();
+        $session
+            ->setId('mock_session_id')
+            ->setUserGuid('user_1')
+            ->setToken($token)
+            ->setExpires(time() + 3600);
+
+        $this->repositoryMock->get('user_1', 'mock_session_id')
+            ->shouldBeCalled()
+            ->willReturn($session);
+
+        // Confirm the ip is being set
+
+        $this->ipAddressMock->get()
+            ->willReturn('10.0.50.1');
+
+        $this->repositoryMock->update(Argument::that(function ($session) {
+            return $session->getIp() === '10.0.50.1';
+        }), [ 'last_active', 'ip'])
+            ->willReturn(true);
+
+        $this->withRouterRequest($requestMock);
+
+        // Confirm the session was set
+        $this->getSession()->getId()
+            ->shouldBe($session->getId());
+    }
+
+    public function it_should_throw_unauthorized_exception_if_revoked_session(ServerRequestInterface $requestMock)
+    {
+        $token = $this->jwtConfigMock
+            ->builder()
+                    //->issuedBy('spec.tests')
+                    //->canOnlyBeUsedBy('spec.tests')
+                    ->identifiedBy('mock_session_id')
+                    ->withHeader('jti', 'mock_session_id')
+                    ->expiresAt((new DateTimeImmutable())->setTimestamp(time() + 3600)) // 1 hour
+                    ->withClaim('user_guid', 'user_1')
+                    ->getToken($this->jwtConfigMock->signer(), $this->jwtConfigMock->signingKey())
+                    ->toString();
+        
+        $requestMock->getHeader('X-SESSION-TOKEN')
+            ->willReturn([$token]);
+
+        $session = new Session();
+        $session
+            ->setId('mock_session_id')
+            ->setUserGuid('user_1')
+            ->setToken($token)
+            ->setExpires(time() + 3600);
+
+        $this->repositoryMock->get('user_1', 'mock_session_id')
+            ->shouldBeCalled()
+            ->willReturn(false);
+
+        $this->shouldThrow(UnauthorizedException::class)->duringWithRouterRequest($requestMock);
     }
 }

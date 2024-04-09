@@ -149,7 +149,7 @@ class Manager
         $loadBefore = isset($hits[0]) ? $this->encodeSort($hits[0]['sort']) : $this->encodeSort([time() * 1000, Guid::build()]);
 
 
-        // We return +1 $limit, so if we have more than our limit returned, we know there is another pagr
+        // We return +1 $limit, so if we have more than our limit returned, we know there is another page
         if (count($response['hits']['hits']) > $limit) {
             $hasMore = true;
         } else {
@@ -159,7 +159,7 @@ class Manager
         $i = 0;
         foreach ($hits as $hit) {
             $entity = $this->fetchActivity((int) $hit['_id']);
-    
+
             if (!$entity) {
                 continue;
             }
@@ -350,7 +350,7 @@ class Manager
         $i = 0;
         foreach ($hits as $hit) {
             $entity = $this->fetchActivity((int) $hit['_id']);
-    
+
             if (!$entity) {
                 continue;
             }
@@ -409,7 +409,7 @@ class Manager
                 offset: $offset,
                 refFirstSeenTimestamp: $refFirstSeenTimestamp,
             );
-        
+
         // Get all the results to aid with pagination
         $allResults = iterator_to_array($result);
 
@@ -422,7 +422,7 @@ class Manager
         $i = 0;
         foreach ($allResults as $scoredGuid) {
             $entity = $this->fetchActivity((int) $scoredGuid->getGuid());
-    
+
             if (!$entity) {
                 continue;
             }
@@ -499,7 +499,7 @@ class Manager
             ];
         }
 
-        if ($queryOpts->onlySubscribed) {
+        if ($queryOpts->onlySubscribed || $queryOpts->onlySubscribedAndGroups) {
             // Posts from subscriptions
             $should[] = [
                 'terms' => [
@@ -519,14 +519,30 @@ class Manager
             ];
         }
 
+        if ($queryOpts->onlySubscribedAndGroups || $queryOpts->onlyGroups) {
+            $groupGuids = array_map(function ($guid) {
+                return (string) $guid;
+            }, $this->groupsMembershipManager->getGroupGuids($queryOpts->user));
+        } else {
+            $groupGuids = [];
+        }
+
+        if ($queryOpts->onlySubscribedAndGroups) {
+            // Include posts from groups user is member of
+            if (!empty($groupGuids)) {
+                $should[] = [
+                    'terms' => [
+                        'container_guid' => $groupGuids,
+                    ],
+                ];
+            }
+        }
+
         if ($queryOpts->onlyGroups) {
-            // Posts from groups user is member of
+            // Only posts from groups user is member of
             $must[] = [
                 'terms' => [
-                    'container_guid' =>
-                        array_map(function ($guid) {
-                            return (string) $guid;
-                        }, $this->groupsMembershipManager->getGroupGuids($queryOpts->user)),
+                    'container_guid' => $groupGuids,
                 ]
             ];
         }
@@ -544,22 +560,27 @@ class Manager
             if (count($words) > 1) {
                 $multiMatch['multi_match']['type'] = 'phrase';
             }
-            
+
             $this->experimentsManager
                 ->setUser($queryOpts->user);
 
-            if ($this->experimentsManager->isOn('engine-2619-inferred-tags')) {
-                $multiMatch['multi_match']['fields'][] = 'inferred_tags^12';
-            }
+            // if ($this->experimentsManager->isOn('engine-2619-inferred-tags')) {
+            //     $multiMatch['multi_match']['fields'][] = 'inferred_tags^12';
+            // }
 
             $must[] = $multiMatch;
         }
 
         if ($queryOpts->accessId) {
-            // Only public posts
+            $accessIds = [$queryOpts->accessId];
+
+            if ($queryOpts->onlySubscribedAndGroups || $queryOpts->onlyGroups) {
+                $accessIds = [...$accessIds, ...$groupGuids];
+            }
+
             $must[] = [
                 'terms' => [
-                    'access_id' => [$queryOpts->accessId],
+                    'access_id' => $accessIds,
                 ],
             ];
         }
@@ -648,6 +669,49 @@ class Manager
     }
 
     /**
+     * Get the activities associated with an entity_guid.
+     * Useful for blogs
+     * @return array
+     */
+    public function getLinkedActivitiesByEntityGuid($entityGuid): array
+    {
+        $query = [
+            'index' => $this->getSearchIndexName(),
+            'body' => [
+                'query' => [
+                    'bool' => [
+                        'must' => [
+                            'term' => [
+                                'entity_guid' => $entityGuid
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            'size' => 10,
+        ];
+
+        $prepared = new ElasticSearch\Prepared\Search();
+        $prepared->query($query);
+
+        $response = $this->esClient->request($prepared);
+        $activities = [];
+
+        foreach ($response['hits']['hits'] as $hit) {
+            $activity = $this->fetchActivity((int) $hit['_id']);
+
+            if (!$activity) {
+                continue;
+            }
+
+            $activities[] = $activity;
+        }
+
+        return $activities;
+    }
+
+
+    /**
      * Encodes the sort to base64
      */
     protected function encodeSort(array $sort): string
@@ -684,5 +748,15 @@ class Manager
     private function getSearchIndexName(): string
     {
         return 'minds-search-activity';
+    }
+
+
+    /**
+     * Whether this is a tenant site
+     * @return bool true if tenant
+     */
+    private function isTenant(): bool
+    {
+        return $this->config->get('tenant_id') !== null;
     }
 }

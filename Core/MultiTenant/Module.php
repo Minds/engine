@@ -13,6 +13,7 @@ class Module implements ModuleInterface
         AutoLogin\Module::class,
         CustomPages\Module::class,
         MobileConfigs\Module::class,
+        Lists\Module::class,
     ];
 
     /**

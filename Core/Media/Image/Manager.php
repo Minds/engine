@@ -101,6 +101,7 @@ class Manager
             $entity->access_id !== ACCESS_PUBLIC
             || $entity->owner_guid != $entity->container_guid
             || ($entity instanceof PaywallEntityInterface && $entity->isPayWall())
+            || ($entity instanceof Activity && $entity->hasSiteMembership())
         ) {
             foreach ($uris as &$uri) {
                 $uri = str_replace($this->config->get('cdn_url'), $this->config->get('site_url'), $uri);
@@ -109,10 +110,14 @@ class Manager
             $shouldSign = false;
 
             if ($entity instanceof PaywallEntityInterface && $entity->isPayWall()) {
+                // Legacy paywall (wire thresholds)
                 if ($entity->isPayWallUnlocked()) {
                     // We are signing because: this IS a paywalled post that we have permission to view as it is unlocked.
                     $shouldSign = true;
                 }
+            } elseif ($entity instanceof Activity && $entity->hasSiteMembership()) {
+                // Site membership paywall
+                $shouldSign = true;
             } else {
                 // We are signing because; this is not a paywalled post, it is NOT public
                 // and we DO have permission to view it. We know we have permission to view it

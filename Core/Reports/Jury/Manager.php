@@ -12,6 +12,7 @@ use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
 use Minds\Core\Reports\Summons\Summons as SummonsEntity;
 use Minds\Core\Reports\Summons\SummonsNotFoundException;
+use Minds\Core\Reports\Verdict\Manager as VerdictManager;
 use Minds\Core\Security\ACL;
 
 class Manager
@@ -102,18 +103,29 @@ class Manager
             'offset' => '',
         ], $opts);
 
+
         $response = $this->repository->getList($opts);
 
         if ($opts['hydrate']) {
-            foreach ($response as $report) {
+            foreach ($response->toArray() as $i => $report) {
                 $entity = $this->entitiesResolver->single(
                     (new Urn())->setUrn($report->getEntityUrn())
                 );
+
+                if (!$entity) {
+                    $this->repository->delete($report->getUrn());
+                    unset($response[$i]);
+                }
+
                 $report->setEntity($entity);
             }
         }
 
-        return $response;
+        if ($response->count() < $opts['limit'] && !$response->isLastPage()) {
+            return $this->getUnmoderatedList($opts); // Keep in loop until we are on the last page
+        }
+
+        return $response->filter(fn () => true);
     }
 
     /**
@@ -185,7 +197,7 @@ class Manager
             $report->setInitialJuryDecisions($decisions);
         }
 
-        $this->verdictManager->decideFromReport($report);
+        $this->verdictManager->decideFromReport($report, $decision->getJuror());
   
         return $success;
     }

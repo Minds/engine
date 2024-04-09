@@ -38,7 +38,7 @@ class StripeKeysRepository extends AbstractRepository
 
     /**
      * Returns the keys, 1st array item is the pub key, the 2nd is the secret cipher text
-     * @return string[]
+     * @return string[]|null
      */
     public function getKeys(): ?array
     {

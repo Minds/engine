@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "054103a9be8d15887c86f90a0b7cb9c0",
+    "content-hash": "c3f6357c7dc0e9802691df0721bc50de",
     "packages": [
         {
             "name": "Minds/Surge",
@@ -3767,12 +3767,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/FaustoJohn/selective-database.git",
-                "reference": "84abc9d1aa6ebbc39fa9e9d0f905d004f975823d"
+                "reference": "fafaa3be11769bedc82325a1f4373288563bf60a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/FaustoJohn/selective-database/zipball/84abc9d1aa6ebbc39fa9e9d0f905d004f975823d",
-                "reference": "84abc9d1aa6ebbc39fa9e9d0f905d004f975823d",
+                "url": "https://api.github.com/repos/FaustoJohn/selective-database/zipball/fafaa3be11769bedc82325a1f4373288563bf60a",
+                "reference": "fafaa3be11769bedc82325a1f4373288563bf60a",
                 "shasum": ""
             },
             "require": {
@@ -3843,7 +3843,7 @@
             "support": {
                 "source": "https://github.com/FaustoJohn/selective-database/tree/master"
             },
-            "time": "2023-04-17T17:59:50+00:00"
+            "time": "2024-03-13T15:20:47+00:00"
         },
         {
             "name": "minds/oauth2-openid-connect-server",
@@ -5655,6 +5655,64 @@
             "time": "2022-10-27T12:14:42+00:00"
         },
         {
+            "name": "posthog/posthog-php",
+            "version": "dev-chore/ff-fetch-optional",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Minds/posthog-php.git",
+                "reference": "e6cd037789984c71f8be139f4d878fc05db2ab15"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Minds/posthog-php/zipball/e6cd037789984c71f8be139f4d878fc05db2ab15",
+                "reference": "e6cd037789984c71f8be139f4d878fc05db2ab15",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": ">=8.0"
+            },
+            "require-dev": {
+                "overtrue/phplint": "^3.0",
+                "phpunit/phpunit": "^9.0",
+                "slope-it/clock-mock": "^0.4.0",
+                "squizlabs/php_codesniffer": "^3.7"
+            },
+            "bin": [
+                "bin/posthog"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PostHog\\": "lib/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "PostHog\\Test\\": "test/",
+                    "PostHog\\Test\\Assets\\": "test/assests"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PostHog <hey@posthog.com>",
+                    "homepage": "https://posthog.com/"
+                }
+            ],
+            "description": "PostHog PHP Library",
+            "homepage": "https://github.com/PostHog/posthog-php",
+            "keywords": [
+                "posthog"
+            ],
+            "support": {
+                "source": "https://github.com/Minds/posthog-php/tree/chore/ff-fetch-optional"
+            },
+            "time": "2024-03-28T13:17:47+00:00"
+        },
+        {
             "name": "promphp/prometheus_client_php",
             "version": "v2.7.1",
             "source": {
@@ -6937,58 +6995,6 @@
                 }
             ],
             "time": "2023-07-31T15:31:24+00:00"
-        },
-        {
-            "name": "snowplow/snowplow-tracker",
-            "version": "0.4.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/snowplow/snowplow-php-tracker.git",
-                "reference": "530ba8f8d76ade19cb6ce4cbd996df6c2fbc62b6"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/snowplow/snowplow-php-tracker/zipball/530ba8f8d76ade19cb6ce4cbd996df6c2fbc62b6",
-                "reference": "530ba8f8d76ade19cb6ce4cbd996df6c2fbc62b6",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.2",
-                "ramsey/uuid": "^3 || ^4"
-            },
-            "require-dev": {
-                "php-coveralls/php-coveralls": "^2.1.0",
-                "phpunit/php-token-stream": "^3.1.1",
-                "phpunit/phpunit": "^8.1.4"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Snowplow\\Tracker\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "Snowplow Analytics Ltd"
-                }
-            ],
-            "description": "Snowplow event tracker for PHP. Add analytics into your PHP apps and scripts",
-            "homepage": "http://snowplowanalytics.com/",
-            "keywords": [
-                "analytics",
-                "event analytics",
-                "snowplow"
-            ],
-            "support": {
-                "email": "support@snowplowanalytics.com",
-                "issues": "https://github.com/snowplow/snowplow-php-tracker/issues",
-                "source": "https://github.com/snowplow/snowplow-php-tracker/tree/0.4.0"
-            },
-            "time": "2021-03-05T11:12:38+00:00"
         },
         {
             "name": "soundasleep/html2text",
@@ -12006,7 +12012,8 @@
         "steverhoades/oauth2-openid-connect-server": 20,
         "minds/mysql-fluent-interface": 20,
         "oracle/oci-php-sdk": 20,
-        "liamdennehy/http-signatures-php": 20
+        "liamdennehy/http-signatures-php": 20,
+        "posthog/posthog-php": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

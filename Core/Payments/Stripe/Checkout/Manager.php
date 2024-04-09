@@ -15,9 +15,9 @@ use Stripe\Exception\ApiErrorException;
 class Manager
 {
     public function __construct(
-        private ?StripeClient           $stripeClient = null,
+        private ?StripeClient        $stripeClient = null,
         private ?Customers\ManagerV2 $customersManager = null,
-        private ?Config            $config = null
+        private ?Config              $config = null
     ) {
         $this->config ??= Di::_()->get('Config');
         $this->stripeClient ??= Di::_()->get(StripeClient::class);
@@ -30,19 +30,23 @@ class Manager
      * @param User $user - the user we are creating the session for
      * @param string|CheckoutModeEnum $mode - defaults to setup
      * @param string|null $successUrl
+     * @param string|null $cancelUrl
      * @param array $lineItems
+     * @param array|null $paymentMethodTypes
+     * @param string|null $submitMessage
+     * @param array|null $metadata
      * @return Session
      * @throws ApiErrorException
      */
     public function createSession(
-        User $user,
+        User                    $user,
         string|CheckoutModeEnum $mode = 'setup',
-        ?string $successUrl = null,
-        ?string $cancelUrl = null,
-        array $lineItems = [],
-        ?array $paymentMethodTypes = null,
-        ?string $submitMessage = null,
-        array $metadata = null,
+        ?string                 $successUrl = null,
+        ?string                 $cancelUrl = null,
+        array                   $lineItems = [],
+        ?array                  $paymentMethodTypes = null,
+        ?string                 $submitMessage = null,
+        array                   $metadata = null,
     ): Session {
         $customerId = $this->customersManager->getByUser($user)->id;
 
@@ -56,13 +60,13 @@ class Manager
 
         $checkoutOptions = [
             'success_url' => $this->getSiteUrl() . ($successUrl ?? 'api/v3/payments/stripe/checkout/success'),
-            'cancel_url' => $this->getSiteUrl() . ($cancelUrl ??'api/v3/payments/stripe/checkout/cancel'),
+            'cancel_url' => $this->getSiteUrl() . ($cancelUrl ?? 'api/v3/payments/stripe/checkout/cancel'),
             'mode' => $mode->value,
-            'payment_method_types' => $paymentMethodTypes ?? [ 'card' ], // we can possibly add more in the future,
+            'payment_method_types' => $paymentMethodTypes ?? ['card'], // we can possibly add more in the future,
             'customer' => $customerId,
         ];
 
-        if ($mode === CheckoutModeEnum::SUBSCRIPTION) {
+        if ($mode === CheckoutModeEnum::SUBSCRIPTION || $mode === CheckoutModeEnum::PAYMENT) {
             $checkoutOptions['line_items'] = $lineItems;
         }
 

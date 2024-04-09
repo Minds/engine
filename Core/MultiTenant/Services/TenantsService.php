@@ -3,18 +3,29 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Services;
 
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Config\Config;
+use Minds\Core\MultiTenant\Cache\MultiTenantCacheHandler;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
+use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Core\MultiTenant\Repository;
+use Minds\Entities\User;
+use Minds\Exceptions\NotFoundException;
+use Minds\Exceptions\ServerErrorException;
+use PDOException;
+use Psr\SimpleCache\InvalidArgumentException;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class TenantsService
 {
     public function __construct(
-        private readonly Repository $repository,
-        private readonly TenantConfigRepository $tenantConfigRepository,
-        private readonly Config $mindsConfig
+        private readonly Repository              $repository,
+        private readonly TenantConfigRepository  $tenantConfigRepository,
+        private readonly MultiTenantCacheHandler $multiTenantCacheHandler,
+        private readonly DomainService           $domainService,
+        private readonly Config                  $mindsConfig,
+        private readonly PostHogService          $postHogService,
     ) {
     }
 
@@ -48,7 +59,7 @@ class TenantsService
         if ($this->mindsConfig->get('tenant_id')) {
             throw new GraphQLException('You are already a tenant and as such cannot create a new tenant.');
         }
-        
+
         $tenant = $this->repository->createTenant($tenant);
 
         if ($tenant->config) {
@@ -59,6 +70,102 @@ class TenantsService
                 primaryColor: $tenant->config->primaryColor,
             );
         }
+
+        return $tenant;
+    }
+
+    /**
+     * @param Tenant $tenant
+     * @param User $user
+     * @return Tenant
+     * @throws GraphQLException
+     */
+    public function createNetworkTrial(
+        Tenant $tenant,
+        User   $user
+    ): Tenant {
+        if ($this->mindsConfig->get('tenant_id')) {
+            throw new GraphQLException('You are already a tenant and as such cannot create a new tenant.');
+        }
+
+        try {
+            if (!$this->repository->canHaveTrialTenant($user)) {
+                throw new GraphQLException('A network with a trial period has already been claimed for this account');
+            }
+
+            $tenant = $this->repository->createTenant(
+                tenant: $tenant,
+                isTrial: true
+            );
+
+            if ($tenant->config) {
+                $this->tenantConfigRepository->upsert(
+                    tenantId: $tenant->id,
+                    siteName: $tenant->config->siteName,
+                    colorScheme: $tenant->config->colorScheme,
+                    primaryColor: $tenant->config->primaryColor,
+                );
+            }
+
+            $this->postHogService->capture(
+                event: 'tenant_trial_start',
+                user: $user,
+                properties: [
+                    'tenant_id' => $tenant->id,
+                ],
+                setOnce: [
+                    'tenant_trial_started' => date('c', $tenant->trialStartTimestamp),
+                ]
+            );
+
+            return $tenant;
+        } catch (ServerErrorException|PDOException $e) {
+            $this->postHogService->capture(
+                event: 'tenant_trial_start_failed',
+                user: $user,
+            );
+
+            throw new GraphQLException(message: 'Failed to create trial network', code: 500, previous: $e);
+        }
+    }
+
+    /**
+     * @param User $user
+     * @return Tenant
+     * @throws ServerErrorException
+     * @throws NotFoundException
+     */
+    public function getTrialNetworkByOwner(User $user): Tenant
+    {
+        return $this->repository->getTrialTenantForOwner($user);
+    }
+
+    /**
+     * @param Tenant $tenant
+     * @param TenantPlanEnum $plan
+     * @return Tenant
+     * @throws InvalidArgumentException
+     */
+    public function upgradeNetworkTrial(
+        Tenant         $tenant,
+        TenantPlanEnum $plan,
+        User           $user,
+    ): Tenant {
+        $tenant = $this->repository->upgradeTrialTenant($tenant, $plan);
+
+        $this->multiTenantCacheHandler->resetTenantCache(tenant: $tenant, domainService: $this->domainService);
+
+        $this->postHogService->capture(
+            event: 'tenant_trial_upgrade',
+            user: $user,
+            properties: [
+                'tenant_id' => $tenant->id,
+                'tenant_plan' => $plan->name,
+            ],
+            setOnce: [
+                'tenant_trial_converted' => date('c', time()),
+            ]
+        );
 
         return $tenant;
     }

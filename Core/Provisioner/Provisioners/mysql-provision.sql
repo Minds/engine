@@ -805,6 +805,52 @@ ALTER TABLE minds_entities_object_image ADD COLUMN filename text AFTER deleted;
 
 ALTER TABLE `minds_tenants` ADD plan enum ('TEAM', 'COMMUNITY', 'ENTERPRISE') DEFAULT 'TEAM' AFTER root_user_guid;
 
+CREATE TABLE IF NOT EXISTS minds_site_membership_tiers (
+    tenant_id int,
+    membership_tier_guid bigint,
+    stripe_product_id varchar(256),
+    name varchar(256) NOT NULL,
+    description text DEFAULT NULL,
+    billing_period enum ('month', 'year') NOT NULL,
+    pricing_model enum ('recurring', 'one_time') NOT NULL,
+    currency varchar(3) NOT NULL,
+    price_in_cents int NOT NULL,
+    archived boolean DEFAULT FALSE,
+    PRIMARY KEY (tenant_id, membership_tier_guid)
+);
+
+CREATE TABLE IF NOT EXISTS minds_site_membership_tiers_role_assignments (
+    tenant_id int NOT NULL,
+    membership_tier_guid bigint NOT NULL,
+    role_id int NOT NULL,
+    PRIMARY KEY (tenant_id, membership_tier_guid, role_id)
+);
+
+CREATE TABLE IF NOT EXISTS minds_site_membership_tiers_group_assignments (
+    tenant_id int NOT NULL,
+    membership_tier_guid bigint NOT NULL,
+    group_guid bigint NOT NULL,
+    PRIMARY KEY (tenant_id, membership_tier_guid, group_guid)
+);
+
+CREATE TABLE IF NOT EXISTS minds_site_membership_subscriptions (
+    id int NOT NULL primary key AUTO_INCREMENT,
+    tenant_id int NOT NULL,
+    user_guid bigint NOT NULL,
+    membership_tier_guid bigint NOT NULL,
+    stripe_subscription_id varchar(256) NOT NULL,
+    valid_from timestamp NOT NULL,
+    valid_to timestamp DEFAULT NULL,
+    auto_renew boolean NOT NULL,
+    UNIQUE INDEX (tenant_id, user_guid, membership_tier_guid),
+    UNIQUE INDEX (stripe_subscription_id),
+    INDEX (tenant_id),
+    INDEX (valid_from),
+    INDEX (valid_to)
+);
+
+ALTER TABLE `minds_tenants` ADD plan enum ('TEAM', 'COMMUNITY', 'ENTERPRISE') DEFAULT 'TEAM' AFTER root_user_guid;
+
 ALTER TABLE `minds_tenant_configs`
     ADD reply_email varchar(128) DEFAULT NULL
     AFTER federation_disabled;
@@ -816,3 +862,102 @@ CREATE TABLE IF NOT EXISTS minds_stripe_keys(
     created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP(),
     updated_timestamp timestamp NULL
 );
+
+ALTER TABLE `minds_tenants`
+    ADD trial_start_timestamp timestamp DEFAULT NULL
+    AFTER plan;
+
+ALTER TABLE `minds_tenants`
+    ADD INDEX (owner_guid);
+
+CREATE TABLE IF NOT EXISTS minds_site_membership_entities (
+    tenant_id int,
+    entity_guid bigint,
+    membership_guid  bigint,
+    created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (tenant_id, entity_guid, membership_guid)
+);
+
+ALTER TABLE minds_entities_activity
+    ADD COLUMN site_membership boolean DEFAULT FALSE
+    AFTER attachments;
+ALTER TABLE minds_entities_activity
+    ADD COLUMN paywall_thumbnail boolean DEFAULT FALSE
+    AFTER site_membership;
+ALTER TABLE minds_entities_activity
+    ADD COLUMN link_title text DEFAULT null
+    AFTER paywall_thumbnail;
+
+CREATE TABLE IF NOT EXISTS minds_payments_config(
+    tenant_id INT NOT NULL PRIMARY KEY,
+    stripe_customer_portal_config_id varchar(256) DEFAULT NULL
+);
+
+ALTER TABLE minds_entities_object_image ADD COLUMN blurhash text AFTER filename;
+
+ALTER TABLE minds_entities_activity
+    MODIFY COLUMN paywall_thumbnail JSON DEFAULT NULL;
+
+CREATE TABLE IF NOT EXISTS minds_chat_rooms(
+    tenant_id int,
+    room_guid bigint,
+    room_type enum ('ONE_TO_ONE', 'MULTI_USER', 'GROUP_OWNED') NOT NULL,
+    created_by_user_guid bigint NOT NULL,
+    group_guid bigint DEFAULT NULL,
+    created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (tenant_id, room_guid)
+);
+
+CREATE TABLE IF NOT EXISTS minds_chat_messages(
+    tenant_id int,
+    room_guid bigint,
+    guid bigint,
+    sender_guid bigint,
+    plain_text text,
+    created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (tenant_id, room_guid, guid),
+    FOREIGN KEY (tenant_id,  room_guid) REFERENCES minds_chat_rooms(tenant_id, room_guid)
+);
+
+CREATE TABLE IF NOT EXISTS minds_chat_members(
+    tenant_id int NOT NULL,
+    room_guid bigint NOT NULL,
+    member_guid bigint NOT NULL,
+    joined_timestamp timestamp DEFAULT NULL,
+    role_id enum ('OWNER', 'MEMBER') NOT NULL,
+    status enum ('ACTIVE', 'LEFT', 'INVITE_PENDING', 'INVITE_REJECTED') NOT NULL,
+    PRIMARY KEY (tenant_id, room_guid, member_guid),
+    FOREIGN KEY (tenant_id, room_guid) REFERENCES minds_chat_rooms(tenant_id, room_guid),
+    INDEX (member_guid),
+    INDEX (tenant_id),
+    INDEX (status)
+);
+
+CREATE TABLE IF NOT EXISTS minds_chat_receipts
+(
+    tenant_id           INT,
+    room_guid           BIGINT,
+    member_guid         BIGINT,
+    message_guid        BIGINT,
+    last_read_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (tenant_id, room_guid, member_guid),
+    FOREIGN KEY (tenant_id, room_guid) REFERENCES minds_chat_rooms (tenant_id, room_guid),
+    FOREIGN KEY (tenant_id, room_guid, message_guid) REFERENCES minds_chat_messages (tenant_id, room_guid, guid)
+);
+
+ALTER TABLE minds_tenant_mobile_configs
+    ADD COLUMN app_version varchar(24) DEFAULT NULL
+    AFTER update_timestamp;
+
+CREATE TABLE IF NOT EXISTS minds_user_rss_imports(
+    tenant_id int,
+    feed_id bigint,
+    url varchar(512) NOT NULL,
+    activity_guid bigint NOT NULL,
+    created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (tenant_id, feed_id, url)
+);
+
+ALTER TABLE `minds_entities_user`
+	ADD `opt_out_analytics` boolean DEFAULT FALSE
+	AFTER `canonical_url`;

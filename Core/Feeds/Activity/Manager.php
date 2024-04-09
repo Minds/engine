@@ -38,7 +38,6 @@ use Minds\Core\Supermind\SupermindRequestStatus;
 use Minds\Core\Supermind\Validators\SupermindReplyValidator;
 use Minds\Core\Supermind\Validators\SupermindRequestValidator;
 use Minds\Entities\Activity;
-use Minds\Entities\Entity;
 use Minds\Entities\EntityInterface;
 use Minds\Entities\User;
 use Minds\Entities\ValidationError;
@@ -53,6 +52,10 @@ use Stripe\Exception\ApiErrorException;
 use Minds\Core\Feeds\Elastic\Manager as ElasticManager;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
+use Minds\Core\Blogs\Blog;
+use Minds\Core\Counters;
+use InvalidArgumentException;
+use Minds\Core\Feeds\Elastic\V2\Manager as ElasticV2Manager;
 
 class Manager
 {
@@ -111,6 +114,8 @@ class Manager
         private ?TitleLengthValidator $titleLengthValidator = null,
         private ?ElasticManager $elasticManager = null,
         private ?RbacGatekeeperService $rbacGatekeeperService = null,
+        private ?Counters $counters = null,
+        private ?ElasticV2Manager $elasticV2Manager = null,
     ) {
         $this->foreignEntityDelegate = $foreignEntityDelegate ?? new Delegates\ForeignEntityDelegate();
         $this->translationsDelegate = $translationsDelegate ?? new Delegates\TranslationsDelegate();
@@ -128,6 +133,8 @@ class Manager
         $this->titleLengthValidator = $titleLengthValidator ?? new TitleLengthValidator();
         $this->elasticManager ??= Di::_()->get('Feeds\Elastic\Manager');
         $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
+        $this->counters ??= new Counters();
+        $this->elasticV2Manager ??= Di::_()->get(ElasticV2Manager::class);
     }
 
     public function getSupermindManager(): SupermindManager
@@ -381,63 +388,72 @@ class Manager
         return $success;
     }
 
-    /**
-     * Delete all of the user's reminds of an activity
-     * @param Activity $activity that was reminded
-     * @param User $user
-     * @return bool
-     */
-    public function deleteRemindsOfActivityByUser(Activity $activity, User $user): bool
-    {
-        // Get all of the reminds
-        $reminds = $this->getRemindsOfActivityByUser($activity, $user);
-
-        $success = true;
-
-        if ($reminds) {
-            // Delete each remind
-            foreach($reminds as $remind) {
-                if (!$this->delete($remind)) {
-                    $success = false;
-                };
-            }
-        }
-
-        return $success;
-    }
 
     /**
-     * Get all the reminds a user has made of an activity.
-     * @param Activity $activity that was reminded
+     * Get all the reminds a user has made of an entity.
+     * @param Activity|Blog $entity that was reminded
      * @param User $user
      * @return array
      */
-    public function getRemindsOfActivityByUser(Activity $activity, User $user): array
+    public function getRemindsOfEntityByUser($entity, User $user): array
     {
+        if (!($entity instanceof Activity || $entity instanceof Blog)) {
+            throw new InvalidArgumentException('The $entity must be an instance of Activity or Blog.');
+        }
+
+        $reminds = [];
         $hasMore = true;
         $fromTimestamp = null;
 
-        $reminds = [];
+        while ($hasMore) {
+            $entityGuids = [$entity->getGuid()];
 
-        while($hasMore) {
+            // If the activity entity has an entityGuid, add it to the search
+            if ($entity instanceof Activity && $entity->getEntityGuid()) {
+                $entityGuids[] = $entity->getEntityGuid();
+            }
 
-            $response = $this->elasticManager->getList([
-                'algorithm' => 'latest',
-                'period' => 'all',
-                'type' => 'activity',
-                'limit' => 24,
-                'remind_guid' => $activity->getGuid(),
-                'owner_guid' => $user->getGuid(),
-                'from_timestamp' => $fromTimestamp
-            ]);
+            // Also get linked activities for blogs
+            if ($entity instanceof Blog) {
+                $linkedActivities = $this->elasticV2Manager->getLinkedActivitiesByEntityGuid($entity->getGuid());
 
-            $entities = array_map(function ($feedItem) {
-                return $feedItem->getEntity();
-            }, $response->toArray());
+                foreach ($linkedActivities as $linkedActivity) {
+                    if ($linkedActivity instanceof Activity) {
+                        $entityGuids[] = $linkedActivity->getGuid();
+                    }
+                }
+            }
 
-            if ($entities) {
-                $reminds = array_merge($reminds, $entities);
-                $fromTimestamp = $response->getPagingToken();
+            $entityGuids = array_unique($entityGuids);
+
+            $allResults = [];
+
+            foreach ($entityGuids as $guid) {
+                $response = $this->elasticManager->getList([
+                    'algorithm' => 'latest',
+                    'period' => 'all',
+                    'type' => 'activity',
+                    'limit' => 24,
+                    'remind_guid' => $guid,
+                    'owner_guid' => $user->getGuid(),
+                    'from_timestamp' => $fromTimestamp
+                ]);
+
+                if ($response !== null) {
+                    $entities = array_map(function ($feedItem) {
+                        return $feedItem->getEntity();
+                    }, $response->toArray());
+
+                    if ($entities) {
+                        $allResults = array_merge($allResults, $entities);
+                        $fromTimestamp = $response->getPagingToken();
+                    }
+                }
+
+            }
+
+            if (!empty($allResults)) {
+                $reminds = array_merge($reminds, $allResults);
                 $hasMore = true;
             } else {
                 $hasMore = false;
@@ -447,23 +463,84 @@ class Manager
         return $reminds;
     }
 
-    /**
-     * Get the count of all reminds a user has made of an activity.
-     * @param Activity $activity that was reminded
-     * @param User $user
-     * @return array
-     */
-    public function countRemindsOfActivityByUser(Activity $activity, User $user): int
-    {
-        $count = $this->elasticManager->getCount([
-            'algorithm' => 'latest',
-            'type' => 'activity',
-            'period' => 'all',
-            'remind_guid' => $activity->getGuid(),
-            'owner_guid' => $user->getGuid(),
-        ]);
 
-        return $count;
+    /**
+     * Delete all of the user's reminds of an activity or blog.
+     * @param Activity|Blog $entity that was reminded
+     * @param User $user
+     * @return bool
+     */
+    public function deleteRemindsOfEntityByUser($entity, User $user): bool
+    {
+        // Ensure $entity is either an instance of Activity or Blog
+        if (!($entity instanceof Activity || $entity instanceof Blog)) {
+            throw new InvalidArgumentException('The $entity must be an instance of Activity or Blog.');
+        }
+
+        // Get all of the reminds of the entity
+        $reminds = $this->getRemindsOfEntityByUser($entity, $user);
+
+        $success = true;
+
+        if ($reminds) {
+            // Delete each remind
+            foreach($reminds as $remind) {
+                if (!$this->delete($remind)) {
+                    $success = false;
+                }
+            }
+        }
+
+        return $success;
+    }
+
+    /**
+     * Get the count of all reminds a user has made of an activity or blog.
+     * @param Activity|Blog $entity that was reminded
+     * @param User $user
+     * @return int
+     */
+    public function countRemindsOfEntityByUser($entity, User $user): int
+    {
+        // Ensure $entity is either an instance of Activity or Blog
+        if (!($entity instanceof Activity || $entity instanceof Blog)) {
+            throw new InvalidArgumentException('The $entity must be an instance of Activity or Blog.');
+        }
+
+        if ($entity instanceof Activity) {
+            // Count reminds for the activity
+            $count = $this->elasticManager->getCount([
+                'algorithm' => 'latest',
+                'type' => 'activity',
+                'period' => 'all',
+                'remind_guid' => $entity->getGuid(),
+                'owner_guid' => $user->getGuid(),
+            ]);
+
+            // Cross-check if entityGuid has been reminded
+            if($entity->getEntityGuid()) {
+                $count += $this->elasticManager->getCount([
+                    'algorithm' => 'latest',
+                    'type' => 'activity',
+                    'period' => 'all',
+                    'remind_guid' => $entity->getEntityGuid(),
+                    'owner_guid' => $user->getGuid(),
+                ]);
+            }
+        } elseif ($entity instanceof Blog) {
+            $count = $this->counters->get($entity->getGuid(), 'remind');
+
+            // Get activities related to the blog
+            $linkedActivities = $this->elasticV2Manager->getLinkedActivitiesByEntityGuid($entity->getGuid());
+
+            foreach ($linkedActivities as $linkedActivity) {
+                if ($linkedActivity instanceof Activity) {
+                    $count += $this->countRemindsOfEntityByUser($linkedActivity, $user);
+                }
+            }
+        }
+
+        return $count ?? 0;
     }
 
     /**
@@ -530,7 +607,7 @@ class Manager
 
         if ($activityMutation->hasMutated('timeCreated')) {
             $this->timeCreatedDelegate->onUpdate($activityMutation->getOriginalEntity(), $activity->getTimeCreated(), $activity->getTimeSent());
-        
+
             $mutatedAttributes[] = 'time_created';
         }
 
@@ -544,7 +621,7 @@ class Manager
 
             // Clean rich embed
             $activity
-                //->setTitle('')
+                ->setLinkTitle('')
                 ->setBlurb('')
                 ->setURL('')
                 ->setThumbnail('');
@@ -556,7 +633,7 @@ class Manager
             if (!$activityMutation->hasMutated('title')) {
                 $activity->setTitle('');
             }
-            
+
         }
 
         if ($activityMutation->hasMutated('videoPosterBase64Blob')) {
@@ -612,7 +689,8 @@ class Manager
         if ($entity->subtype === 'blog') {
             /** @var \Minds\Core\Blogs\Blog */
             $entity = $blog = $entity; // Helper for static analysis
-            $activity->setTitle($entity->getTitle())
+            $activity
+                ->setLinkTitle($entity->getTitle())
                 ->setBlurb(strip_tags($entity->getBody()))
                 ->setURL($entity->getURL())
                 ->setThumbnail($entity->getIconUrl());

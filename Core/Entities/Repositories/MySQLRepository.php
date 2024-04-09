@@ -219,7 +219,9 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
     {
         $data = $this->buildData($entity);
 
-        $this->beginTransaction();
+        if (!$this->mysqlClientWriter->inTransaction()) {
+            $this->beginTransaction();
+        }
 
         // Add the entity to the base table
 
@@ -534,6 +536,7 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'language' => MySQLDataTypeEnum::TEXT,
                     'canonical_url' => MySQLDataTypeEnum::TEXT,
                     'source' => MySQLDataTypeEnum::TEXT,
+                    'opt_out_analytics' => MySQLDataTypeEnum::BOOL,
                 ];
             case Activity::class:
                 return [
@@ -562,6 +565,9 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'inferred_tags' => MySQLDataTypeEnum::JSON,
                     'tags' => MySQLDataTypeEnum::JSON,
                     'attachments' => MySQLDataTypeEnum::JSON, // temporary denomalization whilst we run in parallel with Cassandra
+                    'site_membership' => MySQLDataTypeEnum::BOOL,
+                    'paywall_thumbnail' => MySQLDataTypeEnum::JSON,
+                    'link_title' => MySQLDataTypeEnum::TEXT,
                     'canonical_url' => MySQLDataTypeEnum::TEXT,
                     'source' => MySQLDataTypeEnum::TEXT,
                 ];
@@ -576,7 +582,8 @@ class MySQLRepository extends AbstractRepository implements EntitiesRepositoryIn
                     'time_created' => MySQLDataTypeEnum::TIMESTAMP,
                     'time_updated' => MySQLDataTypeEnum::TIMESTAMP,
                     'auto_caption' => MySQLDataTypeEnum::TEXT,
-                    'filename' => MySQLDataTypeEnum::TEXT
+                    'filename' => MySQLDataTypeEnum::TEXT,
+                    'blurhash' => MySQLDataTypeEnum::TEXT,
                 ];
             case Video::class:
                 return [

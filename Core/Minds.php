@@ -4,9 +4,7 @@ namespace Minds\Core;
 
 use Minds\Core\Di\Di;
 use Minds\Core\Events\Dispatcher;
-use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Interfaces\ModuleInterface;
-use Zend\Diactoros\ServerRequestFactory;
 
 /**
  * Core Minds Engine.
@@ -92,6 +90,8 @@ class Minds extends base
         Comments\GraphQL\Module::class,
         Reports\V2\Module::class,
         Strapi\Module::class,
+        Chat\Module::class,
+        PWA\Module::class,
     ];
 
     /**

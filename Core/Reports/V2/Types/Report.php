@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace Minds\Core\Reports\V2\Types;
 
+use Minds\Core\Chat\Entities\ChatMessage;
+use Minds\Core\Chat\Types\ChatMessageEdge;
+use Minds\Core\Chat\Types\ChatMessageNode;
 use Minds\Core\Comments\Comment;
 use Minds\Core\Comments\GraphQL\Types\CommentEdge;
 use Minds\Core\Di\Di;
@@ -12,11 +15,11 @@ use Minds\Core\Feeds\GraphQL\Types\ActivityEdge;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\GraphQL\Types\NodeInterface;
 use Minds\Core\Groups\V2\GraphQL\Types\GroupEdge;
-use Minds\Core\Reports\Enums\ReportReasonEnum;
 use Minds\Core\Reports\Enums\Reasons\Illegal\SubReasonEnum as IllegalSubReasonEnum;
 use Minds\Core\Reports\Enums\Reasons\Nsfw\SubReasonEnum as NsfwSubReasonEnum;
 use Minds\Core\Reports\Enums\Reasons\Security\SubReasonEnum as SecuritySubReasonEnum;
 use Minds\Core\Reports\Enums\ReportActionEnum;
+use Minds\Core\Reports\Enums\ReportReasonEnum;
 use Minds\Core\Reports\Enums\ReportStatusEnum;
 use Minds\Entities\Activity;
 use Minds\Entities\Group;
@@ -62,10 +65,10 @@ class Report implements NodeInterface
 
     /**
      * Gets entity edge from entityUrn.
-     * @return ActivityEdge|UserEdge|GroupEdge|CommentEdge|null - entity edge.
+     * @return ActivityEdge|UserEdge|GroupEdge|CommentEdge|ChatMessageEdge|null - entity edge.
      */
     #[Field]
-    public function getEntityEdge(): ActivityEdge|UserEdge|GroupEdge|CommentEdge|null
+    public function getEntityEdge(): ActivityEdge|UserEdge|GroupEdge|CommentEdge|ChatMessageEdge|null
     {
         $entity = Di::_()->get(EntitiesResolver::class)->single($this->entityUrn);
 
@@ -78,6 +81,17 @@ class Report implements NodeInterface
                 return new UserEdge($entity, $this->cursor);
             case $entity instanceof Group:
                 return new GroupEdge($entity, $this->cursor);
+            case $entity instanceof ChatMessage:
+                return new ChatMessageEdge(
+                    node: new ChatMessageNode(
+                        chatMessage: $entity,
+                        sender: new UserEdge(
+                            user: Di::_()->get(EntitiesBuilder::class)->single($entity->getOwnerGuid()),
+                            cursor: ''
+                        )
+                    ),
+                    cursor: $this->cursor
+                );
             default:
                 return null;
         }

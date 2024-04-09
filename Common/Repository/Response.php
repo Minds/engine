@@ -24,7 +24,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
     /** @var bool */
     protected $lastPage = false;
 
-    public function __construct(array $data = null, $pagingToken = null)
+    public function __construct(array $data = null, $pagingToken = null, $lastPage = null)
     {
         if ($data !== null) {
             $this->data = $data;
@@ -32,6 +32,10 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
 
         if ($pagingToken !== null) {
             $this->pagingToken = $pagingToken;
+        }
+
+        if ($lastPage !== null) {
+            $this->lastPage = $lastPage;
         }
     }
 
@@ -309,7 +313,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
      */
     public function reverse(bool $preserveKeys = false): self
     {
-        return new self(array_reverse($this->data, $preserveKeys), $this->pagingToken);
+        return new self(array_reverse($this->data, $preserveKeys), $this->pagingToken, $this->lastPage);
     }
 
     /**
@@ -328,7 +332,7 @@ class Response implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
             $filtered = array_values($filtered);
         }
 
-        return new self($filtered, $this->pagingToken);
+        return new self($filtered, $this->pagingToken, $this->lastPage);
     }
 
     /**

@@ -4,26 +4,27 @@ namespace Spec\Minds\Core\Reports\Verdict\Delegates;
 
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Boost\V3\Enums\BoostStatus;
-use Minds\Core\Reports\Verdict\Delegates\ActionDelegate;
-use Minds\Core\EntitiesBuilder;
-use Minds\Core\Reports\Verdict\Verdict;
-use Minds\Core\Reports\Verdict\Delegates\EmailDelegate;
-use Minds\Core\Reports\Report;
-use Minds\Core\Reports\Actions;
-use Minds\Core\Reports\Strikes\Manager as StrikesManager;
-use Minds\Entities\Entity;
-use Minds\Entities\Activity;
-use Minds\Core\Entities\Actions\Save as SaveAction;
-use Minds\Core\Channels\Ban;
 use Minds\Core\Boost\V3\Manager as BoostManager;
+use Minds\Core\Channels\Ban;
+use Minds\Core\Chat\Services\MessageService as ChatMessageService;
 use Minds\Core\Comments\Comment;
+use Minds\Core\Entities\Actions\Save as SaveAction;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
 use Minds\Core\Monetization\Demonetization\DemonetizationContext;
 use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePlusUserStrategy;
 use Minds\Core\Monetization\Demonetization\Strategies\DemonetizePostStrategy;
 use Minds\Core\Monetization\Demonetization\Strategies\Interfaces\DemonetizableEntityInterface;
+use Minds\Core\Reports\Actions;
+use Minds\Core\Reports\Report;
+use Minds\Core\Reports\Strikes\Manager as StrikesManager;
+use Minds\Core\Reports\Verdict\Delegates\ActionDelegate;
+use Minds\Core\Reports\Verdict\Delegates\EmailDelegate;
+use Minds\Core\Reports\Verdict\Verdict;
 use Minds\Core\Security\Password;
 use Minds\Core\Sessions;
+use Minds\Entities\Activity;
+use Minds\Entities\Entity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -42,6 +43,7 @@ class ActionDelegateSpec extends ObjectBehavior
     private Collaborator $demonetizePlusUserStrategy;
     private Collaborator $boostManager;
     private Collaborator $logger;
+    private Collaborator $chatMessageServiceMock;
 
     /** @var Sessions\CommonSessions\Manager */
     protected $commonSessionsManager;
@@ -62,8 +64,11 @@ class ActionDelegateSpec extends ObjectBehavior
         DemonetizePostStrategy $demonetizePostStrategy,
         DemonetizePlusUserStrategy $demonetizePlusUserStrategy,
         BoostManager $boostManager,
-        Logger $logger
+        Logger $logger,
+        ChatMessageService $chatMessageService
     ) {
+        $this->chatMessageServiceMock = $chatMessageService;
+
         $this->beConstructedWith(
             $entitiesBuilder,
             $actions,
@@ -79,7 +84,9 @@ class ActionDelegateSpec extends ObjectBehavior
             $demonetizePostStrategy,
             $demonetizePlusUserStrategy,
             $boostManager,
-            $logger
+            $logger,
+            null,
+            $this->chatMessageServiceMock
         );
         $this->entitiesBuilder = $entitiesBuilder;
         $this->actions = $actions;
@@ -131,12 +138,16 @@ class ActionDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn([ ]);
 
+        $entity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
         $entity->setNsfwLock([ 1 ])
             ->shouldBeCalled();
 
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
-        
+
         $this->saveAction->save(true)
             ->shouldBeCalled();
 
@@ -177,6 +188,10 @@ class ActionDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('activity');
 
+        $entity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
         $this->entitiesBuilder->single(123)
             ->shouldBeCalled()
             ->willReturn($entity);
@@ -196,7 +211,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
-        
+
         $this->saveAction->save(true)
             ->shouldBeCalled();
 
@@ -206,7 +221,7 @@ class ActionDelegateSpec extends ObjectBehavior
             statuses: [BoostStatus::APPROVED, BoostStatus::PENDING]
         )->shouldBeCalled()
             ->willReturn(true);
-    
+
         $this->onAction($verdict);
     }
 
@@ -214,18 +229,22 @@ class ActionDelegateSpec extends ObjectBehavior
     {
         $report = new Report;
         $report->setEntityUrn('urn:activity:123')
-            ->setReasonCode(4);
+            ->setReasonCode(8);
 
         $verdict = new Verdict;
         $verdict->setReport($report)
             ->setUphold(true)
-            ->setAction('4');
+            ->setAction('8');
 
         $entity->getGuid()
             ->shouldBeCalled()
             ->willReturn('123');
 
         $entity->get('type')
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
+        $entity->getType()
             ->shouldBeCalled()
             ->willReturn('activity');
 
@@ -238,7 +257,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
-        
+
         $this->saveAction->save(true)
             ->shouldBeCalled();
 
@@ -276,7 +295,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
-        
+
         $this->saveAction->save(true)
             ->shouldBeCalled();
 
@@ -326,6 +345,10 @@ class ActionDelegateSpec extends ObjectBehavior
                 ]
             ]);
 
+        $entity->getType()
+            ->shouldBeCalled()
+            ->willReturn('user');
+
         $entity->setNsfw([1])
             ->willReturn($entity);
         $entity->setNsfwLock([1])
@@ -336,7 +359,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
-        
+
         $this->saveAction->save(true)
             ->shouldBeCalled();
 
@@ -366,6 +389,10 @@ class ActionDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('123');
 
+        $user->getType()
+            ->shouldBeCalled()
+            ->willReturn('user');
+
         $this->entitiesBuilder->single(123)
             ->shouldBeCalled()
             ->willReturn($user);
@@ -378,7 +405,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->withMutatedAttributes(['enabled'])
             ->willReturn($this->saveAction);
-        
+
         $this->saveAction->save(true)
              ->shouldBeCalled();
 
@@ -417,7 +444,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
-        
+
         $this->demonetizationContext->withStrategy($this->demonetizePostStrategy)
             ->shouldBeCalled()
             ->willReturn($this->demonetizationContext);
@@ -501,6 +528,10 @@ class ActionDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('activity');
 
+        $entity->getType()
+            ->shouldBeCalled()
+            ->willReturn('activity');
+
         $this->entitiesBuilder->single(123)
             ->shouldBeCalled()
             ->willReturn($entity);
@@ -510,7 +541,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($entity)
             ->willReturn($this->saveAction);
-        
+
         $this->saveAction->save(true)
             ->shouldBeCalled();
 
@@ -553,6 +584,10 @@ class ActionDelegateSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('user');
 
+        $user->getType()
+            ->shouldBeCalled()
+            ->willReturn('user');
+
         $this->entitiesBuilder->single(123)
             ->shouldBeCalled()
             ->willReturn($user);
@@ -562,7 +597,7 @@ class ActionDelegateSpec extends ObjectBehavior
 
         $this->saveAction->setEntity($user)
             ->shouldNotBeCalled();
-        
+
         $this->saveAction->save(true)
             ->shouldNotBeCalled();
 

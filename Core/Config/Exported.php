@@ -8,13 +8,19 @@
 
 namespace Minds\Core\Config;
 
+use Exception;
+use Minds\Core\Analytics\PostHog\PostHogConfig;
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Blockchain\Manager as BlockchainManager;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
+use Minds\Core\Chat\Services\ReceiptService;
 use Minds\Core\Di\Di;
+use Minds\Core\Experiments\LegacyGrowthBook;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\I18n\Manager as I18nManager;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
 use Minds\Core\MultiTenant\Models\Tenant;
+use Minds\Core\Payments\SiteMemberships\Repositories\SiteMembershipRepository;
 use Minds\Core\Rewards\Contributions\ContributionValues;
 use Minds\Core\Security\Rbac\Services\RolesService;
 use Minds\Core\Session;
@@ -42,11 +48,11 @@ class Exported
     /**
      * Exported constructor.
      *
-     * @param Config                    $config
+     * @param Config $config
      * @param ThirdPartyNetworksManager $thirdPartyNetworks
-     * @param I18nManager               $i18n
-     * @param BlockchainManager         $blockchain
-     * @param ExperimentsManager        $experimentsManager
+     * @param I18nManager $i18n
+     * @param BlockchainManager $blockchain
+     * @param ExperimentsManager $experimentsManager
      */
     public function __construct(
         $config = null,
@@ -55,6 +61,9 @@ class Exported
         $blockchain = null,
         private ?ExperimentsManager $experimentsManager = null,
         private ?RolesService $rolesService = null,
+        private ?SiteMembershipRepository $siteMembershipRepository = null,
+        private ?ReceiptService $chatReceiptsService = null,
+        private ?PostHogConfig $postHogConfig = null,
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
@@ -62,6 +71,9 @@ class Exported
         $this->blockchain = $blockchain ?: Di::_()->get('Blockchain\Manager');
         $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
         $this->rolesService ??= Di::_()->get(RolesService::class);
+        $this->siteMembershipRepository ??= Di::_()->get(SiteMembershipRepository::class);
+        $this->chatReceiptsService ??= Di::_()->get(ReceiptService::class);
+        $this->postHogConfig ??= Di::_()->get(PostHogConfig::class);
     }
 
     /**
@@ -87,7 +99,7 @@ class Exported
             'max_video_length_plus' => $this->config->get('max_video_length_plus'),
             'max_video_file_size' => $this->config->get('max_video_file_size'),
             'max_name_length' => $this->config->get('max_name_length') ?? 50,
-            'blockchain' => (object) $this->blockchain->getPublicSettings(),
+            'blockchain' => (object)$this->blockchain->getPublicSettings(),
             'last_tos_update' => $this->config->get('last_tos_update') ?: time(),
             'tags' => $this->config->get('tags') ?: [],
             'plus' => $this->config->get('plus'),
@@ -107,10 +119,11 @@ class Exported
             'statuspage_io' => [
                 'url' => $this->config->get('statuspage_io')['url'] ?? null,
             ],
-            'experiments' => [], // TODO: remove when clients support growthbook features
-            'growthbook' =>  $this->experimentsManager
-                ->setUser(Session::getLoggedinUser())
-                ->getExportableConfig(),
+            'posthog' => [
+                ...$this->postHogConfig->getPublicExport(Session::getLoggedinUser()),
+                'feature_flags' => Di::_()->get(PostHogService::class)
+                    ->getFeatureFlags(user: Session::getLoggedinUser()),
+            ],
             'twitter' => [
                 'min_followers_for_sync' => $this->config->get('twitter')['min_followers_for_sync'] ?? 25000,
             ],
@@ -124,8 +137,13 @@ class Exported
             ],
             'livepeer_api_key' => $this->config->get('livepeer_api_key'),
             'onboarding_v5_release_timestamp' => $this->config->get('onboarding_v5_release_timestamp'),
+            'chat' => [
+                'unread_count' => Session::getLoggedinUser() ? $this->chatReceiptsService->getAllUnreadMessagesCount(Session::getLoggedinUser()) : 0,
+            ],
             'is_tenant' => false, // overridden below.
-            'last_cache' => $this->config->get('lastcache') ?? 0
+            'last_cache' => $this->config->get('lastcache') ?? 0,
+            // Remove when mobile is read
+            'growthbook' => LegacyGrowthBook::getExportedConfigs(Session::getLoggedinUser()),
         ];
 
         if (Session::isLoggedIn()) {
@@ -133,7 +151,7 @@ class Exported
             $user = Session::getLoggedinUser();
 
             $exported['user'] = $user->export();
-            $exported['user']['rewards'] = (bool) $user->getPhoneNumberHash();
+            $exported['user']['rewards'] = (bool)$user->getPhoneNumberHash();
 
             if ($user->isPlus()) {
                 $exported['max_video_length'] = $this->config->get('max_video_length_plus');
@@ -179,13 +197,28 @@ class Exported
             /** @var Tenant */
             $tenant = $this->config->get('tenant');
 
+            $multiTenantConfig = $this->config->get('multi_tenant');
+
             $exported['is_tenant'] = true;
             $exported['tenant_id'] = $tenantId;
 
             $exported['tenant'] = [
                 'id' => $tenantId,
                 'plan' => isset($tenant->plan) ? $tenant->plan->name : TenantPlanEnum::TEAM->name,
+                'is_trial' => (bool)$tenant->trialStartTimestamp,
+                'trial_length_in_days' => Tenant::TRIAL_LENGTH_IN_DAYS,
+                'grace_period_before_deletion_in_days' => Tenant::GRACE_PERIOD_BEFORE_DELETION_IN_DAYS,
+                'trial_start' => $tenant->trialStartTimestamp,
+                'trial_end' => $tenant->trialStartTimestamp ? strtotime('+' . Tenant::TRIAL_LENGTH_IN_DAYS . ' days', $tenant->trialStartTimestamp) : null,
+                'network_deletion_timestamp' => $tenant->trialStartTimestamp ? strtotime('+' . (Tenant::TRIAL_LENGTH_IN_DAYS + Tenant::GRACE_PERIOD_BEFORE_DELETION_IN_DAYS) . ' days', $tenant->trialStartTimestamp) : null,
             ];
+
+            $exported['tenant']['max_memberships'] = $multiTenantConfig['plan_memberships'][$exported['tenant']['plan']] ?? 0;
+            try {
+                $exported['tenant']['total_active_memberships'] = $this->siteMembershipRepository->getTotalSiteMemberships() ?? 0;
+            } catch (Exception $e) {
+                $exported['tenant']['total_active_memberships'] = 0;
+            }
 
             $exported['theme_override'] = $this->config->get('theme_override');
             $exported['nsfw_enabled'] = $this->config->get('nsfw_enabled') ?? true;

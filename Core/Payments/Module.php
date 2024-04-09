@@ -13,8 +13,10 @@ class Module implements ModuleInterface
         V2\Module::class,
         GiftCards\Module::class,
         Checkout\Module::class,
+        SiteMemberships\Module::class,
+        SiteMemberships\PaywalledEntities\Module::class,
     ];
-    
+
     /**
      * OnInit.
      */

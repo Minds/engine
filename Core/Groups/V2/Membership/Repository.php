@@ -40,17 +40,38 @@ class Repository extends MySQL\AbstractRepository
             return unserialize($cached);
         }
 
-        $rows = iterator_to_array($this->getList(
-            groupGuid: $groupGuid,
-            userGuid: $userGuid,
-            limit: 1,
-        ));
+        $query = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'group_guid',
+                'user_guid',
+                'created_timestamp',
+                'membership_level',
+            ])
+            ->from('minds_group_membership')
+            ->where('group_guid', Operator::EQ, new RawExp(':group_guid'))
+            ->where('user_guid', Operator::EQ, new RawExp(':user_guid'))
+            ->limit(1);
 
-        if (empty($rows)) {
+        $stmt = $query->prepare();
+
+        $stmt->execute([
+            'group_guid' => $groupGuid,
+            'user_guid' => $userGuid,
+        ]);
+
+        if (!$stmt->rowCount()) {
             throw new NotFoundException("User doesn't appear to be in the group");
         }
 
-        $membership = $rows[0];
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $row = $rows[0];
+    
+        $membership = new Membership(
+            groupGuid: $row['group_guid'],
+            userGuid: $row['user_guid'],
+            createdTimestamp: new DateTime($row['created_timestamp']),
+            membershipLevel: GroupMembershipLevelEnum::from($row['membership_level'])
+        );
 
         // Update the cache
         $this->cache->set($cacheKey, serialize($membership));

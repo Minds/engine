@@ -92,9 +92,6 @@ class Manager
      */
     public function getList(array $opts = [])
     {
-        // Mobile will temporarily disable new style reminds from being displayed (default true for mobile)
-        $hide_reminds = filter_var($_GET['hide_reminds'] ?? isset($_SERVER['HTTP_APP_VERSION']), FILTER_VALIDATE_BOOLEAN);
-
         $opts = array_merge([
             'algorithm' => null,
             'cache_key' => null,
@@ -119,7 +116,6 @@ class Manager
             'exclude' => null,
             'pending' => false,
             'plus' => false,
-            'hide_reminds' => $hide_reminds,
             'wire_support_tier_only' => false,
             'include_group_posts' => false,
             'group_posts_for_user_guid' => false,

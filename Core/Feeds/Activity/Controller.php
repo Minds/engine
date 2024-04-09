@@ -10,12 +10,16 @@ use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\Activity\Exceptions\CreateActivityFailedException;
 use Minds\Core\Feeds\Scheduled\EntityTimeCreated;
+use Minds\Core\Guid;
 use Minds\Core\Log\Logger;
 use Minds\Core\Monetization\Demonetization\Validators\DemonetizedPlusValidator;
+use Minds\Core\Payments\SiteMemberships\PaywalledEntities\Services\CreatePaywalledEntityService;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Router\Exceptions\UnverifiedEmailException;
 use Minds\Core\Security\ACL;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Core\Supermind\Exceptions\SupermindNotFoundException;
 use Minds\Core\Supermind\Exceptions\SupermindPaymentIntentFailedException;
 use Minds\Entities\Activity;
@@ -26,6 +30,7 @@ use Minds\Exceptions\AlreadyPublishedException;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\StopEventException;
 use Minds\Exceptions\UserErrorException;
+use Psr\Http\Message\ServerRequestInterface;
 use Stripe\Exception\ApiErrorException;
 use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequest;
@@ -38,6 +43,8 @@ class Controller
         protected ?ACL $acl = null,
         protected ?EntityTimeCreated $entityTimeCreated = null,
         protected ?DemonetizedPlusValidator $demonetizedPlusValidator = null,
+        protected ?RbacGatekeeperService $rbacGatekeeperService = null,
+        protected ?CreatePaywalledEntityService $createPaywalledEntityService = null,
         protected ?Logger $logger = null
     ) {
         $this->manager ??= new Manager();
@@ -45,6 +52,8 @@ class Controller
         $this->acl ??= Di::_()->get('Security\ACL');
         $this->entityTimeCreated ??= new EntityTimeCreated();
         $this->demonetizedPlusValidator ??= Di::_()->get(DemonetizedPlusValidator::class);
+        $this->rbacGatekeeperService ??= Di::_()->get(RbacGatekeeperService::class);
+        $this->createPaywalledEntityService ??= Di::_()->get(CreatePaywalledEntityService::class);
         $this->logger ??= Di::_()->get('Logger');
     }
 
@@ -63,14 +72,14 @@ class Controller
      * @throws StopEventException
      * @throws ApiErrorException
      */
-    public function createNewActivity(ServerRequest $request): JsonResponse
+    public function createNewActivity(ServerRequestInterface $request, Activity $activity = null): JsonResponse
     {
         /** @var User $user */
         $user = $request->getAttribute('_user');
 
         $payload = $request->getParsedBody();
 
-        $activity = new Activity();
+        $activity ??= new Activity();
 
         /**
          * NSFW and Mature
@@ -132,8 +141,8 @@ class Controller
                 count($payload['attachment_guids'])
             );
 
-            if (!$shouldBeQuotedPost && $this->manager->countRemindsOfActivityByUser($remind, $user) > 0) {
-                throw new UserErrorException("You've already reminded this post'");
+            if (!$shouldBeQuotedPost && $this->manager->countRemindsOfEntityByUser($remind, $user) > 0) {
+                throw new UserErrorException("You've already reminded this post");
             }
 
 
@@ -243,12 +252,12 @@ class Controller
         /**
          * Rich embeds
          */
-        if (isset($payload['url']) && !$activity->hasAttachments()) {
+        if ((isset($payload['link_url']) || isset($payload['url'])) && !$activity->hasAttachments()) {
             $activity
-                ->setTitle(rawurldecode($payload['title']))
-                ->setBlurb(rawurldecode($payload['description']))
-                ->setURL(rawurldecode($payload['url']))
-                ->setThumbnail($payload['thumbnail']);
+                ->setLinkTitle(rawurldecode($payload['link_title'] ?? $payload['title']))
+                ->setBlurb(rawurldecode($payload['link_description'] ?? $payload['description']))
+                ->setUrl(rawurldecode($payload['link_url'] ?? $payload['url']))
+                ->setThumbnail($payload['link_thumbnail'] ?? $payload['thumbnail']);
         }
 
         /**
@@ -257,6 +266,27 @@ class Controller
         if (isset($payload['time_created'])) {
             $now = time();
             $this->entityTimeCreated->validate($activity, $payload['time_created'] ?? $now, $now);
+        }
+
+        /**
+         * Site memberships
+         */
+        if (isset($payload['site_membership_guids']) && !empty($payload['site_membership_guids'])) {
+
+            $siteMembershipGuids = array_map('intval', $payload['site_membership_guids']);
+
+            // Do we have permission. If not a forbidden exception is thrown.
+            $this->rbacGatekeeperService->isAllowed(PermissionsEnum::CAN_CREATE_PAYWALL, $user);
+
+            $this->createPaywalledEntityService->setupMemberships($activity, $siteMembershipGuids);
+
+            if (isset($payload['title'])) {
+                $activity->setTitle($payload['title']);
+            }
+
+            if (isset($payload['paywall_thumbnail'])) {
+                $this->createPaywalledEntityService->processPaywallThumbnail($activity, $payload['paywall_thumbnail']);
+            }
         }
 
         $activity->setClientMeta($request->getParsedBody()['client_meta'] ?? []);
@@ -418,12 +448,12 @@ class Controller
         /**
          * Rich embeds
          */
-        if (isset($payload['url']) && !$activity->hasAttachments()) {
+        if ((isset($payload['link_url']) || isset($payload['url'])) && !$activity->hasAttachments()) {
             $mutatedActivity
-                ->setTitle(rawurldecode($payload['title']))
-                ->setBlurb(rawurldecode($payload['description']))
-                ->setURL(rawurldecode($payload['url']))
-                ->setThumbnail($payload['thumbnail']);
+                ->setLinkTitle(rawurldecode($payload['link_title'] ?? $payload['title']))
+                ->setBlurb(rawurldecode($payload['link_description'] ?? $payload['description']))
+                ->setUrl(rawurldecode($payload['link_url'] ?? $payload['url']))
+                ->setThumbnail($payload['link_thumbnail'] ?? $payload['thumbnail']);
         }
 
         /**
@@ -485,7 +515,7 @@ class Controller
      * @param ServerRequest $request
      * @return JsonResponse
      */
-    public function deleteRemindsOfActivityByUser(ServerRequest $request): JsonResponse
+    public function deleteRemindsOfEntityByUser(ServerRequest $request): JsonResponse
     {
         /** @var User $user */
         $user = $request->getAttribute('_user');
@@ -512,9 +542,9 @@ class Controller
             ]);
         }
 
-        if ($this->manager->deleteRemindsOfActivityByUser($activity, $user)) {
+        if ($this->manager->deleteRemindsOfEntityByUser($activity, $user)) {
             return new JsonResponse([
-                'status' => 'success',
+            'status' => 'success',
             ]);
         }
 
@@ -557,7 +587,7 @@ class Controller
             ]);
         }
 
-        $hasReminded = $this->manager->countRemindsOfActivityByUser($activity, $user) > 0;
+        $hasReminded = $this->manager->countRemindsOfEntityByUser($activity, $user) > 0;
 
         return new JsonResponse([
             'status' => 'success',

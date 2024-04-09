@@ -6,12 +6,13 @@
 
 namespace Minds\Core\Reports\Verdict\Delegates;
 
-use Minds\Core\Di\Di;
-use Minds\Core\Reports\Report;
 use Minds\Common\Urn;
+use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Comments\Comment;
-use Minds\Core\Email\V2\Campaigns\Custom\Custom;
 use Minds\Core\Config;
+use Minds\Core\Di\Di;
+use Minds\Core\Email\V2\Campaigns\Custom\Custom;
+use Minds\Core\Reports\Report;
 use Minds\Entities\User;
 
 class EmailDelegate
@@ -77,8 +78,8 @@ class EmailDelegate
 
         $entity = $this->entitiesBuilder->single($entityGuid);
 
-        // scope to only comments to reduce regression scope.
-        if(!$entity && $report->getEntity() instanceof Comment) {
+        // scope to only comments and chat messages to reduce regression scope.
+        if(!$entity && ($report->getEntity() instanceof Comment || $report->getEntity() instanceof ChatMessage)) {
             $entity = $report->getEntity();
         }
 

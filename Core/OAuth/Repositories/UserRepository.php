@@ -8,6 +8,7 @@ use Composer\Semver;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\UserRepositoryInterface;
 use Minds\Common\PseudonymousIdentifier;
+use Minds\Core\Analytics\Metrics\Event;
 use Minds\Core\OAuth\Entities\UserEntity;
 use Minds\Core\Security\Password;
 use Minds\Core\Security\TwoFactor;
@@ -62,6 +63,10 @@ class UserRepository implements UserRepositoryInterface
             $user = $this->entitiesBuilder->getByUserByIndex(strtolower($username));
         }
 
+        if (!$user || !($user instanceof User)) {
+            return false;
+        }
+
         if (!$user->getGuid()) {
             return false;
         }
@@ -89,6 +94,13 @@ class UserRepository implements UserRepositoryInterface
         $this->pseudonymousIdentifier
             ?->setUser($user)
             ->generateWithPassword($password);
+
+        // Record login event
+        $event = new Event();
+        $event->setUserGuid($user->getGuid())
+            ->setType('action')
+            ->setAction('login')
+            ->push();
 
         return $entity;
     }

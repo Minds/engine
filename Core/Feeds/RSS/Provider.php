@@ -9,8 +9,10 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Feeds\RSS\Controllers\Controller;
-use Minds\Core\Feeds\RSS\Repositories\MySQLRepository;
+use Minds\Core\Feeds\RSS\Repositories\RssFeedsRepository;
+use Minds\Core\Feeds\RSS\Repositories\RssImportsRepository;
 use Minds\Core\Feeds\RSS\Services\ProcessRssFeedService;
+use Minds\Core\Feeds\RSS\Services\ReaderLibraryWrapper;
 use Minds\Core\Feeds\RSS\Services\Service;
 use Minds\Core\Feeds\RSS\Types\Factories\RssFeedInputFactory;
 use Minds\Core\MultiTenant\Services\MultiTenantBootService;
@@ -24,8 +26,16 @@ class Provider extends DiProvider
     public function register(): void
     {
         $this->di->bind(
-            MySQLRepository::class,
-            fn (Di $di): MySQLRepository => new MySQLRepository(
+            RssFeedsRepository::class,
+            fn (Di $di): RssFeedsRepository => new RssFeedsRepository(
+                mysqlHandler: $di->get('Database\MySQL\Client'),
+                config: $di->get('Config'),
+                logger: $di->get('Logger'),
+            )
+        );
+        $this->di->bind(
+            RssImportsRepository::class,
+            fn (Di $di): RssImportsRepository => new RssImportsRepository(
                 mysqlHandler: $di->get('Database\MySQL\Client'),
                 config: $di->get('Config'),
                 logger: $di->get('Logger'),
@@ -35,22 +45,28 @@ class Provider extends DiProvider
             Service::class,
             fn (Di $di): Service => new Service(
                 processRssFeedService: $di->get(ProcessRssFeedService::class),
-                repository: $di->get(MySQLRepository::class),
+                rssFeedsRepository: $di->get(RssFeedsRepository::class),
                 multiTenantBootService: $di->get(MultiTenantBootService::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 logger: $di->get('Logger')
             )
         );
         $this->di->bind(
-            ProcessRssFeedService::class,
-            function (Di $di): ProcessRssFeedService {
+            ReaderLibraryWrapper::class,
+            function (Di $di): ReaderLibraryWrapper {
                 $reader = new Reader();
                 $reader->setHttpClient($di->get(Psr7RssFeedReaderHttpClient::class));
-
+                return new ReaderLibraryWrapper($reader);
+            }
+        );
+        $this->di->bind(
+            ProcessRssFeedService::class,
+            function (Di $di): ProcessRssFeedService {
                 return new ProcessRssFeedService(
-                    reader: $reader,
+                    reader: $di->get(ReaderLibraryWrapper::class),
                     metaScraperService: $di->get('Metascraper\Service'),
                     activityManager: $di->get('Feeds\Activity\Manager'),
+                    rssImportsRepository: $di->get(RssImportsRepository::class),
                     acl: $di->get('Security\ACL'),
                     logger: $di->get('Logger')
                 );

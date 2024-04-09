@@ -2,13 +2,16 @@
 
 namespace Spec\Minds\Core\Reports\Jury;
 
-use Minds\Core\Reports\Jury\Manager;
-use Minds\Core\Reports\Verdict\Manager as VerdictManager;
-use Minds\Core\Reports\Jury\Repository;
-use Minds\Core\Reports\Jury\Decision;
-use Minds\Core\Reports\Summons\Manager as SummonsManager;
-use Minds\Core\Reports\Report;
+use Minds\Common\Repository\Response;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
+use Minds\Core\Reports\Jury\Decision;
+use Minds\Core\Reports\Jury\Manager;
+use Minds\Core\Reports\Jury\Repository;
+use Minds\Core\Reports\Report;
+use Minds\Core\Reports\Summons\Manager as SummonsManager;
+use Minds\Core\Reports\Verdict\Manager as VerdictManager;
+use Minds\Entities\Activity;
+use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -41,28 +44,70 @@ class ManagerSpec extends ObjectBehavior
     {
         $this->repository->getList(Argument::type('array'))
             ->shouldBeCalled()
-            ->willReturn([
+            ->willReturn(new Response([
                 (new Report)
                     ->setEntityUrn('urn:activity:123'),
                 (new Report)
                     ->setEntityUrn('urn:activity:456'),
-            ]);
+            ], '', true));
         
         $this->entitiesResolver->single(Argument::that(function ($urn) {
             return $urn->getNss() == 123;
         }))
-            ->shouldBeCalled();
+            ->shouldBeCalled()
+            ->willReturn(new Activity());
         $this->entitiesResolver->single(Argument::that(function ($urn) {
             return $urn->getNss() == 456;
         }))
-            ->shouldBeCalled();
+            ->shouldBeCalled()
+            ->willReturn(new Activity());
+
         
         $response = $this->getUnmoderatedList([ 'hydrate' => true ]);
         $response->shouldHaveCount(2);
     }
 
-    public function it_should_cast_a_jury_decision(Decision $decision)
+    public function it_should_cleanup_oprhaned_reports_when_no_entity()
     {
+        $this->repository->getList(Argument::type('array'))
+        ->shouldBeCalled()
+            ->willReturn(
+                // 1st call
+                new Response([
+                    (new Report)
+                        ->setEntityUrn('urn:activity:123'), // Does not exist
+                    (new Report)
+                        ->setEntityUrn('urn:activity:456'),
+                ], '', true),
+                // 2nd call
+                new Response([
+                    (new Report)
+                        ->setEntityUrn('urn:activity:456'),
+                ], '', true),
+            );
+    
+        $this->entitiesResolver->single(Argument::that(function ($urn) {
+            return $urn->getNss() == 123;
+        }))
+            ->shouldBeCalled()
+            ->willReturn(null);
+        $this->entitiesResolver->single(Argument::that(function ($urn) {
+            return $urn->getNss() == 456;
+        }))
+            ->shouldBeCalled()
+            ->willReturn(new Activity());
+
+        $this->repository->delete(Argument::type('string'))
+            ->shouldBeCalled();
+        
+        $response = $this->getUnmoderatedList([ 'hydrate' => true ]);
+        $response->shouldHaveCount(1);
+    }
+
+    public function it_should_cast_a_jury_decision(
+        Decision $decision,
+        User $userMock
+    ): void {
         $report = new Report();
 
         $decision->getReport()
@@ -73,11 +118,15 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(false);
 
+        $decision->getJuror()
+            ->shouldBeCalled()
+            ->willReturn($userMock);
+
         $this->repository->add($decision)
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->verdictManager->decideFromReport(Argument::type(Report::class))
+        $this->verdictManager->decideFromReport(Argument::type(Report::class), $userMock)
             ->shouldBeCalled();
 
         $this->cast($decision)

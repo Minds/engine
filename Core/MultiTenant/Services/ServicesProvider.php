@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\MultiTenant\Services;
 
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
@@ -11,6 +12,7 @@ use Minds\Core\Entities\Actions\Save;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Groups\V2\Membership\Manager as GroupsMembershipManager;
 use Minds\Core\Http\Cloudflare\Client as CloudflareClient;
+use Minds\Core\MultiTenant\Cache\MultiTenantCacheHandler;
 use Minds\Core\MultiTenant\Configs\Manager as MultiTenantConfigManager;
 use Minds\Core\MultiTenant\Configs\Repository as TenantConfigRepository;
 use Minds\Core\MultiTenant\MobileConfigs\Deployments\Builds\MobilePreviewHandler;
@@ -41,7 +43,7 @@ class ServicesProvider extends Provider
             return new DomainService(
                 $di->get('Config'),
                 $di->get(MultiTenantDataService::class),
-                $di->get('Cache\PsrWrapper'),
+                $di->get(MultiTenantCacheHandler::class),
                 $di->get(CloudflareClient::class),
                 $di->get(DomainsRepository::class),
             );
@@ -61,7 +63,10 @@ class ServicesProvider extends Provider
                 return new TenantsService(
                     $di->get(Repository::class),
                     $di->get(TenantConfigRepository::class),
+                    $di->get(MultiTenantCacheHandler::class),
+                    $di->get(DomainService::class),
                     $di->get('Config'),
+                    $di->get(PostHogService::class),
                 );
             }
         );

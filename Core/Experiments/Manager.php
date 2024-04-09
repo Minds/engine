@@ -10,64 +10,18 @@
 namespace Minds\Core\Experiments;
 
 use Minds\Entities\User;
-use Growthbook;
-use GuzzleHttp;
-use Minds\Core\Config\Config;
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Di\Di;
-use Minds\Core\Experiments\Cookie\Manager as CookieManager;
-use Minds\Core\Analytics\Snowplow\Manager as SnowplowManager;
-use Minds\Core\Analytics\Snowplow\Events\SnowplowGrowthbookEvent;
-use Minds\Core\Data\cache\SharedCache;
-use Minds\Core\Data\cache\WorkerCache;
 
 class Manager
 {
-    // Expire time for cache key.
-    const TRACKING_CACHE_TTL = 86400;
-
-    /** @var Growthbook\Growthbook */
-    private $growthbook;
-
     /** @var User */
     private $user;
 
-    /** @var CookieManager */
-    private $cookieManager;
-
-    /** @var GuzzleHttp\Client */
-    private $httpClient;
-
-    /** @var Config */
-    private $config;
-
-    /** @var WorkerCache */
-    private $cache;
-
-    /** @var SnowplowManager */
-    protected $snowplowManager;
-
-    /** @var string */
-    const FEATURES_CACHE_KEY = 'growthbook-features';
-
     public function __construct(
-        Growthbook\Growthbook $growthbook = null,
-        CookieManager $cookieManager = null,
-        GuzzleHttp\Client $httpClient = null,
-        Config $config = null,
-        SharedCache $cache = null,
-        SnowplowManager $snowplowManager = null
+        private ?PostHogService $postHogService = null
     ) {
-        $this->cookieManager = $cookieManager ?? Di::_()->get('Experiments\Cookie\Manager');
-        $this->httpClient = $httpClient ?? new GuzzleHttp\Client();
-        $this->config = $config ?? Di::_()->get('Config');
-        $this->cache = $cache ?? Di::_()->get(SharedCache::class);
-        $this->growthbook = $growthbook ?? Growthbook\Growthbook::create();
-        $this->snowplowManager = $snowplowManager ?? Di::_()->get('Analytics\Snowplow\Manager');
-
-        // Register the tracking callback
-        $this->growthbook->withTrackingCallback([ $this, 'onTrackingCallback' ]);
-
-        $this->initFeatures();
+        $this->postHogService = $postHogService ?? Di::_()->get(PostHogService::class);
     }
 
     /**
@@ -81,78 +35,13 @@ class Manager
 
     /**
      * Set the user who will view experiments
-     * !! CONFUSION WARNING !!
-     * The id here is not what growthbook will use in its reporting.
-     * For reporting purposes in snowplow, anonymous users will be `network_user_id`
-     * and loggedin users will be `user_id`.
-     * If you're experiment is tracking conversion from logged out to signups, your report
-     * will want to use `network_user_id`
      * @param User $user (optional)
      * @return Manager
      */
     public function setUser(User $user = null): self
     {
         $this->user = $user;
-
-        $this->growthbook->withAttributes(array_merge(
-            $this->growthbook->getAttributes(),
-            [ 'id' => $this->getUserId() ]
-        ));
-
         return $this;
-    }
-
-    /**
-     * Gets features from cache or growthbook
-     * @return array - features from cache or growthbook.
-     */
-    public function getFeatures($useCached = true): array
-    {
-        if (!$this->getGrowthbookFeaturesEndpoint()) {
-            return [];
-        }
-
-        // If we have a cached version use that
-        if ($useCached) {
-            $cached = $this->cache->get(static::FEATURES_CACHE_KEY);
-            if ($cached && is_array($cached)) {
-                return $cached;
-            }
-        }
-
-        try {
-            $json = $this->httpClient->request('GET', $this->getGrowthbookFeaturesEndpoint(), [
-                'headers' => [
-                    'Content-Type' => 'application/json'
-                ],
-            ]);
-
-            $responseData = json_decode($json->getBody()->getContents(), true);
-            $features = $responseData['features'] ?? [];
-
-            // Set the cache
-            $this->cache->set(static::FEATURES_CACHE_KEY, $features);
-        } catch (\Exception $e) {
-            return [];
-        }
-
-        return $features;
-    }
-
-    /**
-     * Returns public export of growthbook features.
-     * @return array - public export of growthbook features.
-     */
-    public function getExportableConfig(): array
-    {
-        return [
-            'attributes' => [
-                'id' => $this->getUserId(),
-                'loggedIn' => !!$this->getUser(),
-                'environment' => getenv('MINDS_ENV') ?: 'development',
-            ],
-            'features' => $this->getFeatures(),
-        ];
     }
 
     /**
@@ -162,7 +51,7 @@ class Manager
      */
     public function isOn(string $featureKey): bool
     {
-        return $this->growthbook->isOn($featureKey);
+        return !!($this->postHogService->getFeatureFlags(user: $this->user)[$featureKey] ?? false);
     }
 
     /**
@@ -173,131 +62,8 @@ class Manager
      */
     public function hasVariation(string $featureKey, $variation): bool
     {
-        $defaultValue = $this->growthbook->getFeatures()[$featureKey]->defaultValue ?? false;
-        return $this->growthbook->getValue($featureKey, $defaultValue) === $variation;
+        $value = $this->postHogService->getFeatureFlags(user: $this->user)[$featureKey] ?? null;
+        return $value === $variation;
     }
 
-    /**
-     * Get viewed experiments from Growthbook
-     * @return array - array of viewed experiments.
-     */
-    public function getViewedExperiments(): array
-    {
-        return $this->growthbook->getViewedExperiments();
-    }
-
-    /**
-     * Gets User ID for experiments. Will get either the users logged in guid,
-     * a present experiment cookie value, or generate a unique ID and store it
-     * in the experiment cookie.
-     * @return string|null - user id for experiments.
-     */
-    public function getUserId(): ?string
-    {
-        return $this->getUser() ?
-            $this->getUser()->getGuid() :
-            null;
-    }
-
-    /**
-     * Registers shutdown function to fire off growthbook analytics event.
-     * @return void
-     */
-    public function onTrackingCallback(Growthbook\InlineExperiment $experiment, Growthbook\ExperimentResult $result): void
-    {
-        $experimentId = $experiment->key;
-        $variationId = $result->variationId;
-
-        $cacheKey = $this->getTrackingCacheKey($experimentId);
-
-        if ($this->cache->get($cacheKey) !== false) {
-            return; // Skip as we've seen in last 24 hours.
-        }
-
-        $spGrowthbookEvent = (new SnowplowGrowthbookEvent())
-            ->setExperimentId($experimentId)
-            ->setVariationId($variationId);
-
-        $user = $this->getUser();
-        $this->snowplowManager->setSubject($user)->emit($spGrowthbookEvent);
-
-        $this->cache->set($cacheKey, $variationId, self::TRACKING_CACHE_TTL);
-    }
-
-    /**
-     * Gets key for cache such that it is unique to an experiment cookie value and the experiment being ran.
-     * @param string $experimentId - id of the experiment.
-     * @return string - cache key.
-     */
-    private function getTrackingCacheKey(string $experimentId): string
-    {
-        $experimentCookieValue = $this->getExperimentCookieValue();
-        return 'growthbook-experiment-view::'.$experimentCookieValue.'::'.$experimentId;
-    }
-
-    /**
-     * Inits growthbook by getting features and user attributes and
-     * assigning them to growthbook.
-     * @return self - instance of $this.
-     */
-    private function initFeatures(): self
-    {
-        $features = $this->getFeatures(true);
-
-        $this->growthbook
-            ->withFeatures($features)
-            ->withAttributes($this->getAttributes());
-
-        return $this;
-    }
-
-    /**
-     * Gets attributes for a user to be passed to growthbook.
-     * @return array - attributes for a user.
-     */
-    private function getAttributes(): array
-    {
-        $attributes = [
-            'id' => $this->getUserId(),
-            'deviceId' => $this->getExperimentCookieValue(),
-            'loggedIn' => !!$this->getUser(),
-            'route' => $_SERVER['HTTP_REFERER'] ?? '',
-            'api_path' => strtok($_SERVER['REQUEST_URI'] ?? '', '?') ?? '',
-            'environment' => getenv('MINDS_ENV') ?: 'development'
-        ];
-
-        if ($this->user) {
-            $attributes['userAge'] = $this->user->getAge();
-        }
-
-        return $attributes;
-    }
-
-    /**
-     * Gets value of experiment cookie or generates a new one if
-     * one is not present.
-     * @return string value of experiments cookie.
-     */
-    private function getExperimentCookieValue(): string
-    {
-        // if cookie exists, return it's value as the id.
-        $experimentsIdCookie = $this->cookieManager->get();
-        if ($experimentsIdCookie) {
-            return $experimentsIdCookie;
-        }
-
-        // else if no user - generate an ID, store it in a cookie.
-        $id = uniqid('exp-', true);
-        $this->cookieManager->set($id);
-        return $id;
-    }
-
-    /**
-     * Gets the endpoint for getting features from growthbook.
-     * @return string - endpoint for growthbook features.
-     */
-    private function getGrowthbookFeaturesEndpoint(): ?string
-    {
-        return $this->config->get('growthbook')['features_endpoint'] ?? null;
-    }
 }

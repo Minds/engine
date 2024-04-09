@@ -135,7 +135,7 @@ class Entities
         } elseif ($entity instanceof Blog) {
             $activity
                 ->setFromEntity($entity)
-                ->setTitle($entity->getTitle())
+                ->setLinkTitle($entity->getTitle())
                 ->setBlurb(strip_tags($entity->getBody()))
                 ->setURL($entity->getURL())
                 ->setThumbnail($entity->getIconUrl())

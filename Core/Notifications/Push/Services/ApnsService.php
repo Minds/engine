@@ -28,12 +28,6 @@ class ApnsService extends AbstractService implements PushServiceInterface
             'title' => $pushNotification->getTitle(),
             'body' => $pushNotification->getBody(),
         ]);
-        
-        if (!($pushNotification instanceof CustomPushNotification)) {
-            $alert = [
-                'body' => $pushNotification->getTitle() . ($pushNotification->getBody() ? ": {$pushNotification->getBody()}" : "")
-            ];
-        }
 
         $payload = [
             'aps' => [
@@ -67,7 +61,7 @@ class ApnsService extends AbstractService implements PushServiceInterface
      * @return ResponseInterface
      * @throws GuzzleException
      */
-    protected function request($deviceToken, array $headers, array $body): ResponseInterface
+    public function request($deviceToken, array $headers, array $body): ResponseInterface
     {
         $uri = "https://api.push.apple.com/3/device/";
 
@@ -84,13 +78,13 @@ class ApnsService extends AbstractService implements PushServiceInterface
         $headers['apns-topic'] = $pushConfig->apnsTopic;
 
         $headers['Authorization']=  'Bearer ' . $this->buildJwt($pushConfig);
-    
+
         $json = $this->client->request('POST', $uri . $deviceToken, [
                     'version' => 2,
                     'headers' => $headers,
                     'json' => $body
                 ]);
-       
+
         return $json;
     }
 

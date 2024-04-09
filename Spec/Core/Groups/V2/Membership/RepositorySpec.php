@@ -57,16 +57,15 @@ class RepositorySpec extends ObjectBehavior
     {
         $this->mysqlReplicaMock->quote("123")->willReturn("123");
         $this->mysqlReplicaMock->quote("456")->willReturn("456");
-        $this->mysqlReplicaMock->quote("1")->willReturn("1");
 
         $this->mysqlReplicaMock->prepare(Argument::any())->willReturn($pdoStatementMock);
 
         $pdoStatementMock->execute([
             'group_guid' => 123,
             'user_guid' => 456,
-            'membership_level' => 1
         ])->willReturn(true);
 
+        $pdoStatementMock->rowCount()->willReturn(1);
 
         $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
             ->willReturn([
@@ -97,12 +96,12 @@ class RepositorySpec extends ObjectBehavior
         $pdoStatementMock->execute([
             'group_guid' => 123,
             'user_guid' => 456,
-            'membership_level' => 1
         ])->willReturn(true);
     
+        $pdoStatementMock->rowCount()->willReturn(0);
+
         $pdoStatementMock->fetchAll(PDO::FETCH_ASSOC)
-            ->willReturn([
-            ]);
+            ->shouldNotBeCalled();
 
         $this->shouldThrow(NotFoundException::class)->duringGet(123, 456);
     }

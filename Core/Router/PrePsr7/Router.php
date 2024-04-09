@@ -12,6 +12,7 @@ use Zend\Diactoros\ServerRequestFactory;
 use Minds\Core\Security;
 use Minds\Core\page;
 use Minds\Core\Referrals\ReferralCookie;
+use Minds\Core\Router\Exceptions\UnauthorizedException;
 use Minds\Core\Supermind\AutoSupermindRouterMiddleware;
 
 /**
@@ -100,8 +101,12 @@ class Router
 
         // Sessions
         // TODO: Support middleware
-        $session = Di::_()->get('Sessions\Manager');
-        $session->withRouterRequest($request);
+        try {
+            $session = Di::_()->get('Sessions\Manager');
+            $session->withRouterRequest($request);
+        } catch (UnauthorizedException $e) {
+            // Proceed with no session...
+        }
 
         // OAuth Middleware
         // TODO: allow interface to bypass
@@ -112,15 +117,6 @@ class Router
 
         // XSRF Cookie - may be able to remove now with OAuth flow
         Security\XSRF::setCookie();
-
-        if (Session::isLoggedin()) {
-            Helpers\Analytics::increment('active');
-        }
-
-        if (isset($_GET['__e_ct_guid']) && is_numeric($_GET['__e_ct_guid'])) {
-            Helpers\Analytics::increment('active', $_GET['__e_ct_guid']);
-            // Helpers\Campaigns\EmailRewards::reward($_GET['campaign'], $_GET['__e_ct_guid']);
-        }
 
         Di::_()->get('Email\RouterHooks')
             ->withRouterRequest($request);

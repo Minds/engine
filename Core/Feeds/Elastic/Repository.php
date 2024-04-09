@@ -43,12 +43,10 @@ class Repository
     public function __construct(
         $client = null,
         $config = null,
-        private ?Membership $groupsMembership = null,
         private ?Logger $logger = null
     ) {
         $this->client = $client ?: Di::_()->get('Database\ElasticSearch');
         $this->config = $config ?? Di::_()->get('Config');
-        $this->groupsMembership ??= Di::_()->get(Membership::class);
         $this->logger ??= Di::_()->get('Logger');
 
         $this->index = $this->config->get('elasticsearch')['indexes']['search_prefix'];
@@ -205,7 +203,6 @@ class Repository
             'pending' => false,
             'plus' => false,
             'portrait' => false,
-            'hide_reminds' => false,
             'wire_support_tier_only' => false,
             // Focus on reminds
             'remind_guid' => null,
@@ -406,22 +403,6 @@ class Repository
             ];
         }
 
-        /**
-         * Group only feed
-         */
-        if ($opts['group_posts_for_user_guid']) {
-            $body['query']['function_score']['query']['bool']['must'][] = [
-                'terms' => [
-                    'container_guid' =>
-                        array_map(function ($guid) {
-                            return (string) $guid;
-                        }, $this->groupsMembership->getGroupGuidsByMember([
-                            'user_guid' => $opts['group_posts_for_user_guid'],
-                        ])),
-                ]
-            ];
-        }
-
         if (!$opts['container_guid'] && !$opts['owner_guid']) {
             if (!isset($body['query']['function_score']['query']['bool']['must_not'])) {
                 $body['query']['function_score']['query']['bool']['must_not'] = [];
@@ -465,15 +446,6 @@ class Repository
                     ];
                 }
             }
-        }
-
-        // Hide reminds (note, this will not hide quoted posts)
-        if ($opts['hide_reminds'] === true) {
-            $body['query']['function_score']['query']['bool']['must_not'][] = [
-                'term' => [
-                    'is_remind' => true,
-                ],
-            ];
         }
 
         if ($opts['wire_support_tier_only']) {

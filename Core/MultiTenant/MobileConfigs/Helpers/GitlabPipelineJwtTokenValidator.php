@@ -25,9 +25,11 @@ class GitlabPipelineJwtTokenValidator
      * @return bool
      * @throws Exception
      */
-    public function checkToken(string $token): bool
+    public function checkToken(string $token, ?int $tenantId = null): bool
     {
-        $tenantId = $this->config->get('tenant_id');
+        if (!$tenantId) {
+            $tenantId = $this->config->get('tenant_id');
+        }
 
         $this->multiTenantBootService->resetRootConfigs();
 

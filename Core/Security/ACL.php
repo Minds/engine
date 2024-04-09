@@ -6,6 +6,7 @@ namespace Minds\Core\Security;
 
 use Minds\Core;
 use Minds\Core\Boost\V3\Models\Boost as BoostV3;
+use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Log\Logger;
@@ -14,6 +15,7 @@ use Minds\Core\Security\TwoFactor\Manager as TwoFactorManager;
 use Minds\Core\Supermind\Models\SupermindRequest;
 use Minds\Entities;
 use Minds\Entities\Entity;
+use Minds\Entities\EntityInterface;
 use Minds\Entities\RepositoryEntity;
 use Minds\Entities\User;
 use Minds\Exceptions\StopEventException;
@@ -149,7 +151,11 @@ class ACL
         /**
          * Does the user ownn the entity, or is it the container?
          */
-        if ($entity->owner_guid && ($entity->owner_guid == $user->guid)) {
+        if ($entity instanceof EntityInterface) {
+            if ($entity->getOwnerGuid() === $user->getGuid()) {
+                return true;
+            }
+        } elseif ($entity->owner_guid && ($entity->owner_guid == $user->guid)) {
             return true;
         }
 
@@ -167,6 +173,7 @@ class ACL
                 || $entity->container_guid == 0)
             && !($entity instanceof SupermindRequest)
             && !($entity instanceof BoostV3)
+            && !($entity instanceof ChatMessage)
         ) {
             return true;
         }

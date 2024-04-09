@@ -10,7 +10,7 @@ enum TenantPlanEnum
     case COMMUNITY;
     case ENTERPRISE;
 
-    public static function fromString(string $str): TenantPlanEnum
+    public static function fromString(string $str): ?TenantPlanEnum
     {
         $str = \strtoupper($str);
         try {

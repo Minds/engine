@@ -36,6 +36,10 @@ class AuthorizationService implements AuthorizationServiceInterface
                 $subject,
                 PermissionsEnum::CAN_USE_RSS_SYNC
             ),
+            'PERMISSION_CAN_MODERATE_CONTENT' => $this->rolesService->hasPermission(
+                $subject,
+                PermissionsEnum::CAN_MODERATE_CONTENT
+            ),
             default => false,
         };
     }

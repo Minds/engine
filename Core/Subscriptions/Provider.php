@@ -5,6 +5,7 @@
 
 namespace Minds\Core\Subscriptions;
 
+use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 
 class Provider extends DiProvider
@@ -20,9 +21,13 @@ class Provider extends DiProvider
         $this->di->bind('Subscriptions\Relational\Controller', function ($di) {
             return new Relational\Controller();
         }, [ 'useFactory'=>false ]);
-        $this->di->bind('Subscriptions\Relational\Repository', function ($di) {
-            return new Relational\Repository();
+        $this->di->bind('Subscriptions\Relational\Repository', function (Di $di): Relational\Repository {
+            return $di->get(Relational\Repository::class);
         }, [ 'useFactory'=>false ]);
+        $this->di->bind(
+            Relational\Repository::class,
+            fn (Di $di): Relational\Repository => new Relational\Repository()
+        );
 
         // Graph
 

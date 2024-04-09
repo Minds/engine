@@ -22,6 +22,7 @@ class MobileConfigRepository extends AbstractRepository
      * @param MobileSplashScreenTypeEnum|null $splashScreenType
      * @param MobileWelcomeScreenLogoTypeEnum|null $welcomeScreenLogoType
      * @param MobilePreviewStatusEnum|null $previewStatus
+     * @param string|null $appVersion
      * @return void
      */
     public function storeMobileConfig(
@@ -29,6 +30,7 @@ class MobileConfigRepository extends AbstractRepository
         ?MobileSplashScreenTypeEnum      $splashScreenType = null,
         ?MobileWelcomeScreenLogoTypeEnum $welcomeScreenLogoType = null,
         ?MobilePreviewStatusEnum         $previewStatus = null,
+        ?string                          $appVersion = null
     ): void {
         $this->mysqlClientWriterHandler->insert()
             ->into(self::TABLE_NAME)
@@ -38,12 +40,14 @@ class MobileConfigRepository extends AbstractRepository
                 'welcome_screen_logo_type' => $welcomeScreenLogoType?->value ?? MobileWelcomeScreenLogoTypeEnum::SQUARE->value,
                 'preview_status' => $previewStatus?->value ?? MobilePreviewStatusEnum::NO_PREVIEW->value,
                 'preview_last_updated_timestamp' => $previewStatus ? date('c', time()) : null,
+                'app_version' => $appVersion
             ])
             ->onDuplicateKeyUpdate([
                 'splash_screen_type' => $splashScreenType ? $splashScreenType->value : new RawExp('splash_screen_type'),
                 'welcome_screen_logo_type' => $welcomeScreenLogoType ? $welcomeScreenLogoType->value : new RawExp('welcome_screen_logo_type'),
                 'preview_status' => $previewStatus ? $previewStatus->value : new RawExp('preview_status'),
                 'preview_last_updated_timestamp' => $previewStatus ? date('c', time()) : null,
+                'app_version' => $appVersion
             ])
             ->execute();
     }
@@ -72,6 +76,7 @@ class MobileConfigRepository extends AbstractRepository
             welcomeScreenLogoType: $entry['welcome_screen_logo_type'] ? MobileWelcomeScreenLogoTypeEnum::tryFrom($entry['welcome_screen_logo_type']) : null,
             previewStatus: MobilePreviewStatusEnum::tryFrom($entry['preview_status']),
             previewLastUpdatedTimestamp: $entry['preview_last_updated_timestamp'] ? strtotime($entry['preview_last_updated_timestamp']) : null,
+            appVersion: $entry['app_version']
         );
     }
 }

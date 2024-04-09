@@ -3,17 +3,16 @@ declare(strict_types=1);
 
 namespace Minds\Core\Payments\Checkout\Delegates;
 
-use Minds\Core\Analytics\Snowplow\Contexts\SnowplowNetworkCheckoutContext;
-use Minds\Core\Analytics\Snowplow\Enums\SnowplowCheckoutEventTypeEnum;
-use Minds\Core\Analytics\Snowplow\Events\SnowplowCheckoutEvent;
-use Minds\Core\Analytics\Snowplow\Manager as SnowplowManager;
+use Minds\Core\Analytics\PostHog\PostHogService;
+use Minds\Core\Payments\Stripe\Customers\ManagerV2 as StripeCustomersManager;
 use Minds\Core\Payments\Checkout\Enums\CheckoutTimePeriodEnum;
 use Minds\Entities\User;
 
 class CheckoutEventsDelegate
 {
     public function __construct(
-        private readonly SnowplowManager $snowplowManager
+        private readonly PostHogService $postHogService,
+        private readonly StripeCustomersManager $stripeCustomersManager,
     ) {
     }
 
@@ -21,7 +20,7 @@ class CheckoutEventsDelegate
      * @param User $user
      * @param string $productId
      * @param CheckoutTimePeriodEnum $timePeriod
-     * @param array $addonIds
+     * @param string[] $addonIds
      * @return void
      */
     public function sendCheckoutPaymentEvent(
@@ -30,27 +29,25 @@ class CheckoutEventsDelegate
         CheckoutTimePeriodEnum $timePeriod,
         array                  $addonIds = []
     ): void {
-        $event = (new SnowplowCheckoutEvent(
-            checkoutEventType: SnowplowCheckoutEventTypeEnum::CHECKOUT_PAYMENT
-        ))
-            ->setContext([
-                new SnowplowNetworkCheckoutContext(
-                    productId: $productId,
-                    timePeriod: $timePeriod,
-                    addonIds: $addonIds
-                )
-            ]);
-
-        $this->snowplowManager
-            ->setSubject($user)
-            ->emit($event);
+        $this->postHogService->capture(
+            event: 'checkout_payment',
+            user: $user,
+            properties: [
+                'checkout_product_id' => $productId,
+                'checkout_time_period' => $timePeriod->name,
+                'checkout_addons' => $addonIds,
+            ],
+            setOnce: [
+                'stripe_customer_id' => $this->getStripeCustomerId($user),
+            ]
+        );
     }
 
     /**
      * @param User $user
      * @param string $productId
      * @param CheckoutTimePeriodEnum $timePeriod
-     * @param array $addonIds
+     * @param string[] $addonIds
      * @return void
      */
     public function sendCheckoutCompletedEvent(
@@ -59,19 +56,25 @@ class CheckoutEventsDelegate
         CheckoutTimePeriodEnum $timePeriod,
         array                  $addonIds = []
     ): void {
-        $event = (new SnowplowCheckoutEvent(
-            checkoutEventType: SnowplowCheckoutEventTypeEnum::CHECKOUT_PAYMENT
-        ))
-            ->setContext([
-                new SnowplowNetworkCheckoutContext(
-                    productId: $productId,
-                    timePeriod: $timePeriod,
-                    addonIds: $addonIds
-                )
-            ]);
+        $this->postHogService->capture(
+            event: 'checkout_complete',
+            user: $user,
+            properties: [
+                'checkout_product_id' => $productId,
+                'checkout_time_period' => $timePeriod->name,
+                'checkout_addons' => $addonIds,
+            ],
+            setOnce: [
+                'stripe_customer_id' => $this->getStripeCustomerId($user),
+            ]
+        );
+    }
 
-        $this->snowplowManager
-            ->setSubject($user)
-            ->emit($event);
+    /**
+     * Returns the stripe id for the customer
+     */
+    private function getStripeCustomerId(User $user): string
+    {
+        return $this->stripeCustomersManager->getByUser($user)->id;
     }
 }

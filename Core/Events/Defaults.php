@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Default event listeners.
  */
@@ -11,7 +10,7 @@ use Minds\Core\Analytics\Metrics;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
-use Minds\Entities;
+use Minds\Entities\Group;
 use Minds\Entities\User;
 use Minds\Helpers;
 
@@ -34,6 +33,7 @@ class Defaults
         //Channel object reserializer
         Dispatcher::register('export:extender', 'all', function ($event) {
             $params = $event->getParameters();
+            $cacheTtl = 259200; // Cache for 3 days.
 
             if ($params['entity'] instanceof Core\Blogs\Blog) {
                 return;
@@ -41,13 +41,27 @@ class Defaults
 
             $export = $event->response() ?: [];
 
-            if ($params['entity']->getOwnerGuid() && !$params['entity'] instanceof User) {
-                $ownerObj = $this->entitiesBuilder->single($params['entity']->getOwnerGuid(), [
-                    'cache' => true,
-                    'cacheTtl' => 259200 // Cache for 3 day.
-                ]);
-                if ($ownerObj) {
-                    $export['ownerObj'] = $ownerObj->export();
+            if (!$params['entity'] instanceof User) {
+                if ($params['entity']->getOwnerGuid()) {
+                    $ownerObj = $this->entitiesBuilder->single($params['entity']->getOwnerGuid(), [
+                        'cache' => true,
+                        'cacheTtl' => $cacheTtl
+                    ]);
+                    if ($ownerObj) {
+                        $export['ownerObj'] = $ownerObj->export();
+                    }
+                }
+
+                if (!$params['entity'] instanceof Group) {
+                    if ($params['entity']->getContainerGuid() !== $params['entity']->getOwnerGuid()) {
+                        $containerObj = $this->entitiesBuilder->single($params['entity']->getContainerGuid(), [
+                            'cache' => true,
+                            'cacheTtl' => $cacheTtl
+                        ]);
+                        if ($containerObj instanceof Group) {
+                            $export['containerObj'] = $containerObj->export();
+                        }
+                    }
                 }
             }
 
@@ -190,6 +204,11 @@ class Defaults
 
         // Boost Events
         (new Core\Boost\V3\Events\Events())->register();
+
+        // Chat ACL Events
+        (new Core\Chat\Events\Events(
+            eventsDispatcher: Di::_()->get('EventsDispatcher'),
+        ))->register();
     }
 
     public static function _()
