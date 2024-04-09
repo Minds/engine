@@ -313,7 +313,7 @@ class Events
 
     /**
      * Do not call this inside of constructor or register functions as it will cause a race condition with config
-     * breaking snowplow events
+     * breaking analtytics events
      * @return ExperimentsManager
      */
     private function getExperimentsManager(): ExperimentsManager

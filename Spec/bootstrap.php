@@ -77,10 +77,6 @@ $CONFIG->plus = [
     'support_tier_urn' => 'plus_support_tier_urn',
 ];
 
-$CONFIG->snowplow = [
-    'collector_uri' => ''
-];
-
 $CONFIG->sessions = [
     'public_key' => '/.dev/minds.pub',
     'private_key' => '/.dev/minds.pem',

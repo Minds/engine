@@ -25,8 +25,8 @@ class Manager
     /** @var Repository $repository */
     protected $repository;
 
-    /** @var Delegates\SnowplowDelegate */
-    protected $snowplowDelegate;
+    /** @var Delegates\AnalyticsDelegate */
+    protected $analyticsDelegate;
 
     /** @var Delegates\EmailDelegate */
     protected $emailDelegate;
@@ -40,10 +40,10 @@ class Manager
     /** @var EntitiesBuilder */
     protected $entitiesBuilder;
 
-    public function __construct($repository = null, $snowplowDelegate = null, $emailDelegate = null, $entitiesBuilder = null)
+    public function __construct($repository = null, $analyticsDelegate = null, $emailDelegate = null, $entitiesBuilder = null)
     {
         $this->repository = $repository ?: Di::_()->get('Payments\Subscriptions\Repository');
-        $this->snowplowDelegate = $snowplowDelegate ?? new Delegates\SnowplowDelegate;
+        $this->analyticsDelegate = $analyticsDelegate ?? new Delegates\AnalyticsDelegate();
         $this->emailDelegate = $emailDelegate ?? new Delegates\EmailDelegate();
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
     }
@@ -133,7 +133,7 @@ class Manager
 
         //
 
-        $this->snowplowDelegate->onCharge($this->subscription);
+        $this->analyticsDelegate->onCharge($this->subscription);
 
         return $result ?? false;
     }
@@ -176,7 +176,7 @@ class Manager
 
         //
         // Shouldn't probably trigger delegates when extending existing subscription
-        $this->snowplowDelegate->onCreate($this->subscription);
+        $this->analyticsDelegate->onCreate($this->subscription);
 
         $this->emailDelegate->onCreate($this->subscription);
 
@@ -208,7 +208,7 @@ class Manager
 
         //
 
-        $this->snowplowDelegate->onCancel($this->subscription);
+        $this->analyticsDelegate->onCancel($this->subscription);
 
         return (bool) $this->repository->delete($this->subscription);
     }

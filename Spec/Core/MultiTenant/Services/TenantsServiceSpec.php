@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Spec\Minds\Core\MultiTenant\Services;
 
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Config\Config;
 use Minds\Core\MultiTenant\Cache\MultiTenantCacheHandler;
 use Minds\Core\MultiTenant\Configs\Enums\MultiTenantColorScheme;
@@ -26,6 +27,7 @@ class TenantsServiceSpec extends ObjectBehavior
     private Collaborator $multiTenantCacheHandlerMock;
     private Collaborator $domainServiceMock;
     private Collaborator $mindsConfigMock;
+    private Collaborator $postHogServiceMock;
 
     private ReflectionClass $tenantMockFactory;
     private ReflectionClass $tenantConfigMockFactory;
@@ -35,13 +37,15 @@ class TenantsServiceSpec extends ObjectBehavior
         TenantConfigRepository  $tenantConfigRepository,
         MultiTenantCacheHandler $multiTenantCacheHandler,
         DomainService           $domainService,
-        Config                  $mindsConfig
+        Config                  $mindsConfig,
+        PostHogService          $postHogServiceMock,
     ): void {
         $this->repositoryMock = $repository;
         $this->tenantConfigRepositoryMock = $tenantConfigRepository;
         $this->multiTenantCacheHandlerMock = $multiTenantCacheHandler;
         $this->domainServiceMock = $domainService;
         $this->mindsConfigMock = $mindsConfig;
+        $this->postHogServiceMock = $postHogServiceMock;
 
         $this->tenantMockFactory = new ReflectionClass(Tenant::class);
         $this->tenantConfigMockFactory = new ReflectionClass(MultiTenantConfig::class);
@@ -51,7 +55,8 @@ class TenantsServiceSpec extends ObjectBehavior
             $this->tenantConfigRepositoryMock,
             $this->multiTenantCacheHandlerMock,
             $this->domainServiceMock,
-            $this->mindsConfigMock
+            $this->mindsConfigMock,
+            $this->postHogServiceMock,
         );
     }
 
@@ -135,6 +140,19 @@ class TenantsServiceSpec extends ObjectBehavior
             Argument::type('string'),
         )->shouldNotBeCalled();
 
+        $this->postHogServiceMock->capture(
+            'tenant_trial_start',
+            $userMock,
+            [
+                'tenant_id' => 1,
+            ],
+            [],
+            [
+                'tenant_trial_started' => date('c', strtotime('midnight')),
+            ]
+        )
+            ->willReturn(true);
+
         $this->createNetworkTrial($tenant, $userMock)->shouldBe($tenant);
     }
 
@@ -163,6 +181,19 @@ class TenantsServiceSpec extends ObjectBehavior
             $tenant->config->primaryColor,
         )->shouldBeCalledOnce();
 
+        $this->postHogServiceMock->capture(
+            'tenant_trial_start',
+            $userMock,
+            [
+                'tenant_id' => 1,
+            ],
+            [],
+            [
+                'tenant_trial_started' => date('c', strtotime('midnight')),
+            ]
+        )
+            ->willReturn(true);
+
         $this->createNetworkTrial($tenant, $userMock)->shouldBe($tenant);
     }
 
@@ -179,6 +210,7 @@ class TenantsServiceSpec extends ObjectBehavior
         $tenant = $this->tenantMockFactory->newInstanceWithoutConstructor();
         $this->tenantMockFactory->getProperty('id')->setValue($tenant, $id);
         $this->tenantMockFactory->getProperty('config')->setValue($tenant, $tenantConfig);
+        $this->tenantMockFactory->getProperty('trialStartTimestamp')->setValue($tenant, strtotime('midnight'));
 
         return $tenant;
     }

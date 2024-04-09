@@ -208,6 +208,7 @@ class Join
                     ->setUserGuid((string) $this->user->guid)
                     ->setUserPhoneNumberHash($hash)
                     ->setAction('joined')
+                    ->setEventName('rewards', 'join')
                     ->push();
             }
 
@@ -224,6 +225,7 @@ class Join
                         ->setEntityGuid((string) $this->user->referrer)
                         ->setEntityType('user')
                         ->setAction('referral')
+                        ->setEventName('rewards', 'referral')
                         ->push();
 
                     $this->referralDelegate->onReferral($this->user);
