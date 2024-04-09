@@ -26,10 +26,13 @@ use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 use ReflectionClass;
+use Spec\Minds\Common\Traits\CommonMatchers;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class RoomServiceSpec extends ObjectBehavior
 {
+    use CommonMatchers;
+    
     private Collaborator $roomRepositoryMock;
     private Collaborator $subscriptionsRepositoryMock;
     private Collaborator $entitiesBuilderMock;
@@ -491,6 +494,17 @@ class RoomServiceSpec extends ObjectBehavior
         $this->chatRoomListItemMockFactory->getProperty('unreadMessagesCount')->setValue($chatRoomListItem, 0);
 
         return $chatRoomListItem;
+    }
+
+    public function it_should_get_room_guids_by_member(
+        User $userMock
+    ): void {
+        $this->roomRepositoryMock->getRoomGuidsByMember($userMock)
+            ->shouldBeCalledOnce()
+            ->willYield([123]);
+
+        $this->getRoomGuidsByMember($userMock)
+            ->shouldBeSameAs([123]);
     }
 
     public function it_should_get_room_total_members(): void
