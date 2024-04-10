@@ -969,3 +969,7 @@ CREATE TABLE IF NOT EXISTS minds_chat_room_member_settings
     INDEX (tenant_id, room_guid),
     INDEX (member_guid)
 );
+
+ALTER TABLE `minds_entities_user`
+	ADD `opt_out_analytics` boolean DEFAULT FALSE
+	AFTER `canonical_url`;

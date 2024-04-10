@@ -167,11 +167,6 @@ class Service
                     continue;
                 }
 
-                if ($entryTimestamp <= $rssFeed->lastFetchAtTimestamp) {
-                    $this->logger->info("Skipping entry {$entry->getTitle()} as it is older than last fetch timestamp");
-                    continue;
-                }
-
                 if ($entryTimestamp < strtotime('-1 hour')) {
                     $this->logger->info("Skipping entry {$entry->getTitle()} as it is older than 1 hour");
                     continue;
