@@ -8,7 +8,15 @@ namespace Minds\Core\Security;
  */
 class ProhibitedDomains
 {
-    /** @var array */
+    /** @var string[] */
+    const SHORT_DOMAINS = [
+        'bit.ly',
+        'bitly.com',
+        'rebrand.ly',
+        'tinyurl.com',
+    ];
+
+    /** @var string[] */
     const DOMAINS = [
         'movieblog.tumblr.com',
         'moviehdstream.wordpress.com',
@@ -135,11 +143,8 @@ class ProhibitedDomains
         'fuddbluslanmaa1975.blogdigy.com',
         'smarforcute1976.blogdigy.com',
         'xn--90aizihgi.xn--p1ai',
-        'tinyurl.com',
-        'bit.ly',
         'bit.do',
         '123football.space',
-        'bitly.com',
         'j.mp',
         'livestreaming.one',
         'livestreaming.life',
@@ -294,7 +299,6 @@ class ProhibitedDomains
         '/lineupnow.com',
         '/amusecandy.com',
         '/360mate.com',
-        'rebrand.ly',
         'fiverr.com', // temporarily until better defence is built
         'smmservicesbuy.com',
         '/psce.pw',
