@@ -88,7 +88,9 @@ class Repository extends AbstractRepository
     public function getUserRoles(int $userGuid): array
     {
         $query = $this->buildGetRolesQuery()
-            ->leftJoinRaw('minds_role_user_assignments', 'minds_role_permissions.role_id = minds_role_user_assignments.role_id AND minds_role_permissions.tenant_id = minds_role_user_assignments.tenant_id')
+            ->leftJoinRaw('minds_role_user_assignments', 'minds_role_permissions.role_id = minds_role_user_assignments.role_id 
+                AND minds_role_permissions.tenant_id = minds_role_user_assignments.tenant_id
+                AND minds_role_user_assignments.user_guid = :user_guid1')
             ->leftJoin(
                 function (SelectQuery $subQuery): void {
                     $subQuery
@@ -124,6 +126,7 @@ class Repository extends AbstractRepository
 
         $stmt->execute([
             'user_guid' => $userGuid,
+            'user_guid1' => $userGuid,
             'user_guid2' => $userGuid
         ]);
 
