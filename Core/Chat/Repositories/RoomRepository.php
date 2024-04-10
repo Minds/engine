@@ -27,6 +27,7 @@ class RoomRepository extends AbstractRepository
     public const MEMBERS_TABLE_NAME = 'minds_chat_members';
     public const MESSAGES_TABLE_NAME = 'minds_chat_messages';
     public const RECEIPTS_TABLE_NAME = 'minds_chat_receipts';
+    public const ROOM_MEMBER_SETTINGS_TABLE_NAME = 'minds_chat_room_member_settings';
 
     /**
      * @param int $roomGuid
@@ -433,7 +434,7 @@ class RoomRepository extends AbstractRepository
      * @param int $roomGuid
      * @param User $user
      * @param int $limit
-     * @param int|null $offset
+     * @param string|null $offset
      * @param bool $excludeSelf
      * @return array{members: array{member_guid: int, joined_timestamp: int|null}, hasMore: bool}
      * @throws ServerErrorException
@@ -446,11 +447,19 @@ class RoomRepository extends AbstractRepository
         bool $excludeSelf = true
     ): array {
         $stmt = $this->mysqlClientReaderHandler->select()
-            ->from(self::MEMBERS_TABLE_NAME)
-            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
-            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
-            ->whereWithNamedParameters('status', Operator::IN, 'status', 2)
-            ->orderBy('joined_timestamp ASC', 'member_guid DESC')
+            ->columns([
+                'm.*',
+                'rms.notifications_status'
+            ])
+            ->from(new RawExp(self::MEMBERS_TABLE_NAME . ' as m'))
+            ->joinRaw(
+                new RawExp(self::ROOM_MEMBER_SETTINGS_TABLE_NAME . ' as rms'),
+                'rms.tenant_id = m.tenant_id AND rms.member_guid = m.member_guid AND rms.room_guid = m.room_guid',
+            )
+            ->where('m.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('m.room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->whereWithNamedParameters('m.status', Operator::IN, 'status', 2)
+            ->orderBy('m.joined_timestamp ASC', 'm.member_guid DESC')
             ->limit($limit + 1);
 
         $values = [
@@ -460,7 +469,7 @@ class RoomRepository extends AbstractRepository
         ];
 
         if ($excludeSelf) {
-            $stmt->where('member_guid', Operator::NOT_EQ, new RawExp(':member_guid'));
+            $stmt->where('m.member_guid', Operator::NOT_EQ, new RawExp(':member_guid'));
             $values['member_guid'] = $user->getGuid();
         }
 
@@ -470,7 +479,7 @@ class RoomRepository extends AbstractRepository
             } else {
                 $offset = (int)base64_decode($offset, true);
             }
-            $stmt->where('joined_timestamp', Operator::GT, new RawExp(':joined_timestamp'));
+            $stmt->where('m.joined_timestamp', Operator::GT, new RawExp(':joined_timestamp'));
             $values['joined_timestamp'] = date('c', $offset);
         }
 
@@ -498,6 +507,57 @@ class RoomRepository extends AbstractRepository
             }
 
             return $results;
+        } catch (PDOException $e) {
+            throw new ServerErrorException(message: 'Failed to fetch chat room members', previous: $e);
+        }
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param User $user
+     * @param bool $excludeSelf
+     * @return iterable
+     * @throws ServerErrorException
+     */
+    public function getAllRoomMembers(
+        int $roomGuid,
+        User $user,
+        bool $excludeSelf = true
+    ): iterable {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'm.*',
+                'rms.notifications_status'
+            ])
+            ->from(new RawExp(self::MEMBERS_TABLE_NAME . ' as m'))
+            ->joinRaw(
+                new RawExp(self::ROOM_MEMBER_SETTINGS_TABLE_NAME . ' as rms'),
+                'rms.tenant_id = m.tenant_id AND rms.member_guid = m.member_guid AND rms.room_guid = m.room_guid',
+            )
+            ->where('m.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('m.room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->whereWithNamedParameters('m.status', Operator::IN, 'status', 2)
+            ->orderBy('m.joined_timestamp ASC', 'm.member_guid DESC');
+
+        $values = [
+            'tenant_id' => $this->config->get('tenant_id') ?? -1,
+            'room_guid' => $roomGuid,
+            'status' => [ChatRoomMemberStatusEnum::ACTIVE->name, ChatRoomMemberStatusEnum::INVITE_PENDING->name],
+        ];
+
+        if ($excludeSelf) {
+            $stmt->where('m.member_guid', Operator::NOT_EQ, new RawExp(':member_guid'));
+            $values['member_guid'] = $user->getGuid();
+        }
+
+        $stmt = $stmt->prepare();
+
+        try {
+            $this->mysqlHandler->bindValuesToPreparedStatement($stmt, $values);
+            $stmt->execute();
+
+            $stmt->setFetchMode(PDO::FETCH_ASSOC);
+            return $stmt->getIterator();
         } catch (PDOException $e) {
             throw new ServerErrorException(message: 'Failed to fetch chat room members', previous: $e);
         }

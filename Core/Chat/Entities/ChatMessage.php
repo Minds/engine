@@ -3,6 +3,7 @@ namespace Minds\Core\Chat\Entities;
 
 use DateTime;
 use DateTimeInterface;
+use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Di\Di;
 use Minds\Entities\EntityInterface;
 
@@ -17,6 +18,7 @@ class ChatMessage implements EntityInterface
         public readonly int $guid,
         public readonly int $senderGuid,
         public readonly string $plainText,
+        public readonly ChatMessageTypeEnum $messageType = ChatMessageTypeEnum::PLAIN_TEXT,
         ?DateTimeInterface $createdAt = null
     ) {
         $this->createdAt = $createdAt ?? new DateTime();

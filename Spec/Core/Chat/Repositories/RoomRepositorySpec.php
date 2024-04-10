@@ -610,27 +610,41 @@ class RoomRepositorySpec extends ObjectBehavior
         ])
             ->shouldBeCalledOnce();
 
-        $selectQueryMock->from(RoomRepository::MEMBERS_TABLE_NAME)
+        $selectQueryMock->columns([
+            'm.*',
+            'rms.notifications_status'
+        ])
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
-        $selectQueryMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+        $selectQueryMock->from(new RawExp(RoomRepository::MEMBERS_TABLE_NAME . ' as m'))
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
-        $selectQueryMock->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+        $selectQueryMock->joinRaw(
+            new RawExp(RoomRepository::ROOM_MEMBER_SETTINGS_TABLE_NAME . ' as rms'),
+            'rms.tenant_id = m.tenant_id AND rms.member_guid = m.member_guid AND rms.room_guid = m.room_guid',
+        )
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
-        $selectQueryMock->whereWithNamedParameters('status', Operator::IN, 'status', 2)
+        $selectQueryMock->where('m.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
-        $selectQueryMock->where('member_guid', Operator::NOT_EQ, new RawExp(':member_guid'))
+        $selectQueryMock->where('m.room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
-        $selectQueryMock->orderBy('joined_timestamp ASC', 'member_guid DESC')
+        $selectQueryMock->whereWithNamedParameters('m.status', Operator::IN, 'status', 2)
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('m.member_guid', Operator::NOT_EQ, new RawExp(':member_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->orderBy('m.joined_timestamp ASC', 'm.member_guid DESC')
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
@@ -655,6 +669,8 @@ class RoomRepositorySpec extends ObjectBehavior
         )
             ->shouldBeArray();
     }
+
+    // TODO: implement test for getAllRoomMembers
 
     public function it_should_get_total_room_invite_requests_by_member(
         SelectQuery $selectQueryMock,

@@ -2,6 +2,7 @@
 namespace Minds\Core\Chat\Types;
 
 use DateTime;
+use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Feeds\GraphQL\Types\UserNode;
 use Minds\Core\GraphQL\Types\EdgeInterface;
@@ -16,6 +17,7 @@ class ChatRoomMemberEdge implements EdgeInterface
         protected UserNode $node,
         #[Field] #[Logged] public ChatRoomRoleEnum $role,
         protected string $cursor = '',
+        public readonly ChatRoomNotificationStatusEnum $notificationStatus = ChatRoomNotificationStatusEnum::ALL
     ) {
         
     }

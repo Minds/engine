@@ -8,6 +8,7 @@ use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatRoomInviteRequestActionEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
@@ -286,13 +287,43 @@ class RoomService
                             user: $user
                         ),
                         role: constant(ChatRoomRoleEnum::class . '::' . $member['role_id']),
-                        cursor: base64_encode($member['joined_timestamp'] ?? "0:{$member['member_guid']}")
+                        cursor: base64_encode($member['joined_timestamp'] ?? "0:{$member['member_guid']}"),
+                        notificationStatus: constant(ChatRoomNotificationStatusEnum::class . '::' . $member['notifications_status'])
                     );
                 },
                 $members
             ),
             'hasMore' => $hasMore
         ];
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param User $user
+     * @param bool $excludeSelf
+     * @return iterable<ChatRoomMemberEdge>
+     * @throws ServerErrorException
+     */
+    public function getAllRoomMembers(
+        int $roomGuid,
+        User $user,
+        bool $excludeSelf = true
+    ): iterable {
+        foreach ($this->roomRepository->getAllRoomMembers(roomGuid: $roomGuid, user: $user, excludeSelf: $excludeSelf) as $member) {
+            $user = $this->entitiesBuilder->single($member['member_guid']);
+            if (!$user) {
+                return null;
+            }
+
+            yield new ChatRoomMemberEdge(
+                node: new UserNode(
+                    user: $user
+                ),
+                role: constant(ChatRoomRoleEnum::class . '::' . $member['role_id']),
+                cursor: base64_encode($member['joined_timestamp'] ?? "0:{$member['member_guid']}"),
+                notificationStatus: constant(ChatRoomNotificationStatusEnum::class . '::' . $member['notifications_status'])
+            );
+        }
     }
 
     /**
@@ -344,7 +375,7 @@ class RoomService
                     roomGuid: $roomGuid,
                     user: $loggedInUser
                 ),
-                areChatRoomNotificationsMuted: (bool) mt_rand(0, 1) // TODO: Fetch notifications status for room from db
+                chatRoomNotificationStatus: mt_rand(0, 1) ? ChatRoomNotificationStatusEnum::ALL : ChatRoomNotificationStatusEnum::MUTED // TODO: Fetch notifications status for room from db
             ),
             cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
                 base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :

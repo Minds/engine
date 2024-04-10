@@ -8,6 +8,7 @@ use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatRoomInviteRequestActionEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
@@ -548,6 +549,7 @@ class RoomServiceSpec extends ObjectBehavior
                         'member_guid' => 456,
                         'joined_timestamp' => date('c'),
                         'role_id' => ChatRoomRoleEnum::OWNER->name,
+                        'notifications_status' => ChatRoomNotificationStatusEnum::ALL->value
                     ]
                 ],
                 'hasMore' => false
@@ -984,6 +986,7 @@ class RoomServiceSpec extends ObjectBehavior
                         'member_guid' => 456,
                         'joined_timestamp' => date('c'),
                         'role_id' => ChatRoomRoleEnum::OWNER->name,
+                        'notifications_status' => ChatRoomNotificationStatusEnum::ALL->value
                     ]
                 ],
                 'hasMore' => false

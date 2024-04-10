@@ -4,6 +4,7 @@ namespace Minds\Core\Chat\Controllers;
 
 use InvalidArgumentException;
 use Minds\Core\Chat\Enums\ChatRoomInviteRequestActionEnum;
+use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
 use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
@@ -446,5 +447,21 @@ class ChatController
             roomGuid: (int) $roomGuid,
             user: $loggedInUser
         );
+    }
+
+    /**
+     * @param string $roomGuid
+     * @param ChatRoomNotificationStatusEnum $notificationStatus
+     * @return bool
+     */
+    #[Mutation]
+    #[Logged]
+    public function updateNotificationSettings(
+        string $roomGuid,
+        ChatRoomNotificationStatusEnum $notificationStatus,
+        #[InjectUser] User $loggedInUser
+    ): bool {
+        // TODO: Implement updateNotificationSettings() method.
+        return true;
     }
 }

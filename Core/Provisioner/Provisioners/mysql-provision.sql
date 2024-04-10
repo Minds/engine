@@ -957,3 +957,15 @@ CREATE TABLE IF NOT EXISTS minds_user_rss_imports(
     created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
     PRIMARY KEY (tenant_id, feed_id, url)
 );
+
+CREATE TABLE IF NOT EXISTS minds_chat_room_member_settings
+(
+    tenant_id int,
+    room_guid bigint,
+    member_guid bigint,
+    notifications_status enum('MUTED', 'MENTIONS', 'ALL'),
+    PRIMARY KEY (tenant_id, room_guid, member_guid),
+    FOREIGN KEY (tenant_id, room_guid, member_guid) REFERENCES minds_chat_members(tenant_id, room_guid, member_guid),
+    INDEX (tenant_id, room_guid),
+    INDEX (member_guid)
+);
