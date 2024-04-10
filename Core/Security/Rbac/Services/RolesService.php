@@ -102,6 +102,13 @@ class RolesService
             }, $role->permissions));
         }
 
+        /**
+         * Ensure Minds+ users have RSS permissions
+         */
+        if (!$this->isMultiTenant() && $user->isPlus() && !in_array(PermissionsEnum::CAN_USE_RSS_SYNC, $permissions, true)) {
+            $permissions[] = PermissionsEnum::CAN_USE_RSS_SYNC;
+        }
+
         return array_values(array_unique($permissions, flags: SORT_REGULAR));
     }
 

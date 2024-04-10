@@ -175,6 +175,24 @@ class RolesServiceSpec extends ObjectBehavior
         ]);
     }
 
+    public function it_should_return_rss_permissions_for_non_multi_tenant_user_with_plus()
+    {
+        $subjectUser = new User();
+        $subjectUser->setPlusExpires(time() + (24 * 60 * 60));
+
+        $permissions = $this->getUserPermissions($subjectUser);
+        $permissions->shouldHaveCount(7);
+        $permissions->shouldBe([
+            PermissionsEnum::CAN_CREATE_POST,
+            PermissionsEnum::CAN_COMMENT,
+            PermissionsEnum::CAN_CREATE_GROUP,
+            PermissionsEnum::CAN_UPLOAD_VIDEO,
+            PermissionsEnum::CAN_INTERACT,
+            PermissionsEnum::CAN_BOOST,
+            PermissionsEnum::CAN_USE_RSS_SYNC,
+        ]);
+    }
+
     public function it_should_return_true_if_a_user_has_permission()
     {
         $subjectUser = new User();
