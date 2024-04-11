@@ -9,14 +9,18 @@ use Minds\Core\Notifications\Push\PushNotificationInterface;
 
 abstract class AbstractChatNotification implements PushNotificationInterface
 {
-    protected readonly ?int $chatRoomGuid;
     protected ?int $notificationRecipientGuid;
-    protected readonly ?string $title;
-    protected readonly ?string $body;
-    protected readonly ?string $icon;
     protected ?Config $config;
 
     protected DeviceSubscription $deviceSubscription;
+
+    public function __construct(
+        protected readonly ?int $chatRoomGuid,
+        protected readonly ?string $title,
+        protected readonly ?string $body,
+        protected readonly ?string $icon
+    ) {
+    }
 
     protected function getEnvBasedUri(string $route): string
     {

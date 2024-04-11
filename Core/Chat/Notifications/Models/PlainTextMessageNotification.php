@@ -18,6 +18,13 @@ class PlainTextMessageNotification extends AbstractChatNotification
         protected readonly ?string $icon = null,
         protected ?Config $config = null
     ) {
+        parent::__construct(
+            chatRoomGuid: $chatRoomGuid,
+            title: $title,
+            body: $body,
+            icon: $icon
+        );
+        
         $this->config ??= Di::_()->get(Config::class);
     }
 
