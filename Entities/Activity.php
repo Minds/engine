@@ -483,7 +483,7 @@ class Activity extends Entity implements MutatableEntityInterface, PaywallEntity
     public function setOwner($owner)
     {
         if (is_numeric($owner)) {
-            $owner = new \Minds\Entities\User($owner);
+            $owner = $this->entitiesBuilder->single($owner);
             $owner = $owner->export();
         }
 
