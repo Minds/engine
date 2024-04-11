@@ -461,7 +461,10 @@ class ChatController
         ChatRoomNotificationStatusEnum $notificationStatus,
         #[InjectUser] User $loggedInUser
     ): bool {
-        // TODO: Implement updateNotificationSettings() method.
-        return true;
+        return $this->roomService->updateRoomMemberSettings(
+            roomGuid: (int) $roomGuid,
+            user: $loggedInUser,
+            notificationStatus: $notificationStatus
+        );
     }
 }

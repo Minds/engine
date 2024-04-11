@@ -124,6 +124,15 @@ class RoomServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            456,
+            ChatRoomNotificationStatusEnum::ALL
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+
         $this->roomRepositoryMock->commitTransaction()
             ->shouldBeCalledOnce();
 
@@ -191,6 +200,14 @@ class RoomServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            456,
+            ChatRoomNotificationStatusEnum::ALL
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
         $this->roomRepositoryMock->commitTransaction()
             ->shouldBeCalledOnce();
 
@@ -254,6 +271,14 @@ class RoomServiceSpec extends ObjectBehavior
             456,
             ChatRoomMemberStatusEnum::INVITE_PENDING,
             ChatRoomRoleEnum::OWNER
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            456,
+            ChatRoomNotificationStatusEnum::ALL
         )
             ->shouldBeCalledOnce()
             ->willReturn(true);
@@ -377,11 +402,27 @@ class RoomServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            456,
+            ChatRoomNotificationStatusEnum::ALL
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
         $this->roomRepositoryMock->addRoomMember(
             Argument::type('integer'),
             789,
             ChatRoomMemberStatusEnum::ACTIVE,
             ChatRoomRoleEnum::MEMBER
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            789,
+            ChatRoomNotificationStatusEnum::ALL
         )
             ->shouldBeCalledOnce()
             ->willReturn(true);

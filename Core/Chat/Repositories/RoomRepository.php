@@ -8,6 +8,7 @@ use Exception;
 use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
@@ -765,6 +766,30 @@ class RoomRepository extends AbstractRepository
      * @return bool
      * @throws ServerErrorException
      */
+    public function deleteAllRoomMembersSettings(
+        int $roomGuid
+    ): bool {
+        $stmt = $this->mysqlClientWriterHandler->delete()
+            ->from(self::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->prepare();
+
+        try {
+            return $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+            ]);
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to delete chat room members settings', previous: $e);
+        }
+    }
+
+    /**
+     * @param int $roomGuid
+     * @return bool
+     * @throws ServerErrorException
+     */
     public function deleteAllRoomMembers(
         int $roomGuid
     ): bool {
@@ -797,6 +822,10 @@ class RoomRepository extends AbstractRepository
         );
 
         $this->deleteAllRoomMessages(
+            roomGuid: $roomGuid
+        );
+
+        $this->deleteAllRoomMembersSettings(
             roomGuid: $roomGuid
         );
 
@@ -850,6 +879,96 @@ class RoomRepository extends AbstractRepository
             return $stmt->rowCount() > 0;
         } catch (PDOException $e) {
             throw new ServerErrorException(message: 'Failed to check if user is room owner', previous: $e);
+        }
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param int $memberGuid
+     * @param ChatRoomNotificationStatusEnum $notificationStatus
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function addRoomMemberDefaultSettings(
+        int $roomGuid,
+        int $memberGuid,
+        ChatRoomNotificationStatusEnum $notificationStatus
+    ): bool {
+        $stmt = $this->mysqlClientWriterHandler->insert()
+            ->into(self::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+            ->set([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+                'member_guid' => $memberGuid,
+                'notifications_status' => $notificationStatus->value,
+            ])
+            ->prepare();
+
+        try {
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to add member default settings to chat room', previous: $e);
+        }
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param int $memberGuid
+     * @param ChatRoomNotificationStatusEnum $notificationStatus
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function updateRoomMemberSettings(
+        int $roomGuid,
+        int $memberGuid,
+        ChatRoomNotificationStatusEnum $notificationStatus
+    ): bool {
+        $stmt = $this->mysqlClientWriterHandler->update()
+            ->table(self::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+            ->set([
+                'notifications_status' => $notificationStatus->value,
+            ])
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
+            ->prepare();
+
+        try {
+            return $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+                'member_guid' => $memberGuid,
+            ]);
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to update member settings in chat room', previous: $e);
+        }
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param int $memberGuid
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function deleteRoomMemberSettings(
+        int $roomGuid,
+        int $memberGuid
+    ): bool {
+        $stmt = $this->mysqlClientWriterHandler->delete()
+            ->from(self::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
+            ->prepare();
+
+        try {
+            return $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+                'member_guid' => $memberGuid,
+            ]);
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to delete member settings in chat room', previous: $e);
         }
     }
 }

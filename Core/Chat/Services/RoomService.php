@@ -120,6 +120,7 @@ class RoomService
                     throw new GraphQLException(message: "One or more of the members you have selected was not found", code: 404);
                 }
 
+
                 $isSubscribed = $this->subscriptionsRepository->isSubscribed(
                     userGuid: (int)$memberGuid,
                     friendGuid: (int)$user->getGuid()
@@ -130,6 +131,12 @@ class RoomService
                     memberGuid: (int)$memberGuid,
                     status: $isSubscribed ? ChatRoomMemberStatusEnum::ACTIVE : ChatRoomMemberStatusEnum::INVITE_PENDING,
                     role: $roomType === ChatRoomTypeEnum::ONE_TO_ONE ? ChatRoomRoleEnum::OWNER : ChatRoomRoleEnum::MEMBER,
+                );
+
+                $this->roomRepository->addRoomMemberDefaultSettings(
+                    roomGuid: $chatRoom->guid,
+                    memberGuid: (int)$memberGuid,
+                    notificationStatus: ChatRoomNotificationStatusEnum::ALL
                 );
 
                 // TODO: Add push notifications and emails
@@ -642,5 +649,32 @@ class RoomService
         }
 
         return true;
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param User $user
+     * @param ChatRoomNotificationStatusEnum $notificationStatus
+     * @return bool
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     */
+    public function updateRoomMemberSettings(
+        int $roomGuid,
+        User $user,
+        ChatRoomNotificationStatusEnum $notificationStatus
+    ): bool {
+        if (!$this->isUserMemberOfRoom(
+            user: $user,
+            roomGuid: $roomGuid
+        )) {
+            throw new GraphQLException(message: "You are not a member of this chat.", code: 403);
+        }
+
+        return $this->roomRepository->updateRoomMemberSettings(
+            roomGuid: $roomGuid,
+            memberGuid: (int) $user->getGuid(),
+            notificationStatus: $notificationStatus
+        );
     }
 }
