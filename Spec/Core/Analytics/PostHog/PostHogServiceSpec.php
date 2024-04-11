@@ -7,6 +7,7 @@ use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\SharedCache;
 use Minds\Core\Guid;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -47,6 +48,7 @@ class PostHogServiceSpec extends ObjectBehavior
         $user->getProExpires()->shouldBeCalled()->willReturn(null);
         $user->get('time_created')->shouldBeCalled()->willReturn(strtotime('midnight yesterday'));
         $user->isOptOutAnalytics()->willReturn(false);
+        $user->getSource()->willReturn(FederatedEntitySourcesEnum::LOCAL);
 
 
         $this->postHogClientMock->capture(
@@ -57,6 +59,7 @@ class PostHogServiceSpec extends ObjectBehavior
                     'entity_guid' => '123',
                     'environment' => 'development',
                     '$set' => [
+                        'guid' => $userGuid,
                         'username' => 'phpspec',
                         'email' => 'phpspec@minds.com',
                         'plus_expires' => date('c', strtotime('midnight')),
@@ -85,6 +88,24 @@ class PostHogServiceSpec extends ObjectBehavior
     public function it_should_not_send_if_a_user_is_opted_out(User $user)
     {
         $user->isOptOutAnalytics()->willReturn(true);
+
+        $this->postHogClientMock->capture(Argument::any())
+            ->shouldNotBeCalled();
+
+        $this->capture(
+            event: 'phpspec_test',
+            user: $user,
+            properties: [
+                'entity_guid' => '123',
+            ]
+        )
+        ->shouldBe(false);
+    }
+
+    public function it_should_not_send_if_a_user_is_activitypub(User $user)
+    {
+        $user->isOptOutAnalytics()->willReturn(false);
+        $user->getSource()->willReturn(FederatedEntitySourcesEnum::ACTIVITY_PUB);
 
         $this->postHogClientMock->capture(Argument::any())
             ->shouldNotBeCalled();
