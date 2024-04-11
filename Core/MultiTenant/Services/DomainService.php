@@ -18,6 +18,8 @@ use Minds\Core\MultiTenant\Types\MultiTenantDomain;
 use Minds\Core\MultiTenant\Types\MultiTenantDomainDnsRecord;
 use Psr\SimpleCache\InvalidArgumentException;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
+use GuzzleHttp\Client;
+use Minds\Core\Log\Logger;
 
 class DomainService
 {
@@ -26,7 +28,9 @@ class DomainService
         private readonly MultiTenantDataService  $dataService,
         private readonly MultiTenantCacheHandler $cacheHandler,
         private readonly CloudflareClient        $cloudflareClient,
-        private readonly DomainsRepository       $domainsRepository
+        private readonly DomainsRepository       $domainsRepository,
+        private readonly Client $httpClient,
+        private readonly Logger $logger
     ) {
 
     }
@@ -84,6 +88,19 @@ class DomainService
             return $tenant->domain;
         }
 
+        return $this->buildTmpSubdomain($tenant);
+    }
+
+    /**
+     * Builds the domain for the tenant that can be navigated to.
+     * @param Tenant $tenant - the tenant.
+     * @return string - the domain.
+     */
+    public function buildNavigatableDomain(Tenant $tenant): string
+    {
+        if ($this->isCustomDomainNavigatable($tenant)) {
+            return $tenant->domain;
+        }
         return $this->buildTmpSubdomain($tenant);
     }
 
@@ -296,4 +313,30 @@ class DomainService
             value: $ownershipVerification->value
         );
     }
+
+    /**
+     * Check if a custom domain is navigatable.
+     * @param Tenant $tenant - the tenant.
+     * @return bool - true if the domain is navigatable.
+     */
+    private function isCustomDomainNavigatable(Tenant $tenant): bool
+    {
+        if (!$tenant->domain) {
+            return false;
+        }
+
+        try {
+            $response = $this->httpClient->request(
+                'GET',
+                $tenant->domain,
+                ['timeout' => 10]
+            );
+            return $response->getStatusCode() === 200;
+        } catch (GuzzleException $e) {
+            $this->logger->info($e);
+            return false;
+        }
+        return false;
+    }
+
 }
