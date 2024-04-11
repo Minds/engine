@@ -334,7 +334,6 @@ class DomainService
             return $response->getStatusCode() === 200;
         } catch (GuzzleException $e) {
             $this->logger->info($e);
-            return false;
         }
         return false;
     }
