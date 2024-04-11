@@ -12,6 +12,8 @@ use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
 use Minds\Core\Chat\Exceptions\InvalidChatRoomTypeException;
+use Minds\Core\Chat\Helpers\ChatRoomEdgeCursorHelper;
+use Minds\Core\Chat\Helpers\ChatRoomMemberEdgeCursorHelper;
 use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Chat\Types\ChatRoomEdge;
 use Minds\Core\Chat\Types\ChatRoomMemberEdge;
@@ -185,11 +187,17 @@ class RoomService
         int     $first = 12,
         ?string $after = null
     ): array {
+        [
+            'lastMessageCreatedAtTimestamp' => $lastMessageCreatedAtTimestamp,
+            'roomCreatedAtTimestamp' => $roomCreatedAtTimestamp
+        ] = ChatRoomEdgeCursorHelper::readCursor($after);
+
         ['chatRooms' => $chatRooms, 'hasMore' => $hasMore] = $this->roomRepository->getRoomsByMember(
             user: $user,
             targetMemberStatuses: [ChatRoomMemberStatusEnum::ACTIVE->name],
             limit: $first,
-            offset: $after ? base64_decode($after, true) : null
+            lastMessageCreatedAtTimestamp: $lastMessageCreatedAtTimestamp ?? null,
+            roomCreatedAtTimestamp: $roomCreatedAtTimestamp ?? null
         );
 
         return [
@@ -198,9 +206,10 @@ class RoomService
                     node: new ChatRoomNode(
                         chatRoom: $chatRoomListItem->chatRoom
                     ),
-                    cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
-                        base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :
-                        base64_encode("0:{$chatRoomListItem->chatRoom->createdAt->getTimestamp()}"),
+                    cursor: ChatRoomEdgeCursorHelper::generateCursor(
+                        roomCreatedAtTimestamp: $chatRoomListItem->chatRoom->createdAt->getTimestamp(),
+                        lastMessageCreatedAtTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
+                    ),
                     lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
                     lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp,
                     unreadMessagesCount: $chatRoomListItem->unreadMessagesCount,
@@ -213,7 +222,7 @@ class RoomService
 
     /**
      * @param User $user
-     * @return array
+     * @return string[]
      * @throws ServerErrorException
      */
     public function getRoomGuidsByMember(
@@ -239,7 +248,7 @@ class RoomService
      * @param int|null $first
      * @param string|null $after
      * @param bool $excludeSelf
-     * @return array
+     * @return array{edges: ChatRoomMemberEdge[], hasMore: bool}
      * @throws GraphQLException
      * @throws ServerErrorException
      */
@@ -265,11 +274,17 @@ class RoomService
 
         // TODO: Filter out blocked, deleted, disabled and banned users
 
+        [
+            'joinedTimestamp' => $offsetJoinedTimestamp,
+            'memberGuid' => $offsetMemberGuid
+        ] = ChatRoomMemberEdgeCursorHelper::readCursor($after);
+
         ['members' => $members, 'hasMore' => $hasMore] = $this->roomRepository->getRoomMembers(
             roomGuid: $roomGuid,
             user: $loggedInUser,
             limit: $first ?? 12,
-            offset: $after,
+            offsetJoinedTimestamp: $offsetJoinedTimestamp ?? null,
+            offsetMemberGuid: $offsetMemberGuid ?? null,
             excludeSelf: $excludeSelf
         );
 
@@ -286,7 +301,10 @@ class RoomService
                             user: $user
                         ),
                         role: constant(ChatRoomRoleEnum::class . '::' . $member['role_id']),
-                        cursor: base64_encode($member['joined_timestamp'] ?? "0:{$member['member_guid']}")
+                        cursor: ChatRoomMemberEdgeCursorHelper::generateCursor(
+                            memberGuid: (int)$member['member_guid'],
+                            joinedTimestamp: (int)$member['joined_timestamp']
+                        ),
                     );
                 },
                 $members
@@ -366,11 +384,17 @@ class RoomService
         int     $first = 12,
         ?string $after = null
     ): array {
+        [
+            'lastMessageCreatedAtTimestamp' => $lastMessageCreatedAtTimestamp,
+            'roomCreatedAtTimestamp' => $roomCreatedAtTimestamp
+        ] = ChatRoomEdgeCursorHelper::readCursor($after);
+
         ['chatRooms' => $chatRooms, 'hasMore' => $hasMore] = $this->roomRepository->getRoomsByMember(
             user: $user,
             targetMemberStatuses: [ChatRoomMemberStatusEnum::INVITE_PENDING->name],
             limit: $first,
-            offset: $after ? base64_decode($after, true) : null
+            lastMessageCreatedAtTimestamp: $lastMessageCreatedAtTimestamp ?? null,
+            roomCreatedAtTimestamp: $roomCreatedAtTimestamp ?? null
         );
 
         return [
@@ -379,9 +403,10 @@ class RoomService
                     node: new ChatRoomNode(
                         chatRoom: $chatRoomListItem->chatRoom
                     ),
-                    cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
-                        base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :
-                        base64_encode("0:{$chatRoomListItem->chatRoom->createdAt->getTimestamp()}"),
+                    cursor: ChatRoomEdgeCursorHelper::generateCursor(
+                        roomCreatedAtTimestamp: $chatRoomListItem->chatRoom->createdAt->getTimestamp(),
+                        lastMessageCreatedAtTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
+                    ),
                     lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
                     lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
                 ),
