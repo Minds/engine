@@ -669,6 +669,7 @@ class RoomRepositorySpec extends ObjectBehavior
             $userMock,
             12,
             null,
+            null,
             true
         )
             ->shouldBeArray();

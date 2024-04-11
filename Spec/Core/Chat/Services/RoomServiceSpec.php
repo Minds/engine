@@ -581,6 +581,7 @@ class RoomServiceSpec extends ObjectBehavior
             $userMock,
             12,
             null,
+            null,
             true
         )
             ->shouldBeCalledOnce()
@@ -678,6 +679,7 @@ class RoomServiceSpec extends ObjectBehavior
             ],
             1,
             null,
+            null,
             123,
         )
             ->shouldBeCalledOnce()
@@ -722,7 +724,8 @@ class RoomServiceSpec extends ObjectBehavior
             $userMock,
             [ChatRoomMemberStatusEnum::INVITE_PENDING->name],
             12,
-            null
+            null,
+            null,
         )
             ->shouldBeCalledOnce()
             ->willReturn([
@@ -735,7 +738,7 @@ class RoomServiceSpec extends ObjectBehavior
         $response = $this->getRoomInviteRequestsByMember(
             $userMock,
             12,
-            null
+            null,
         );
 
         $response->shouldBeArray();
@@ -794,6 +797,7 @@ class RoomServiceSpec extends ObjectBehavior
                 ChatRoomMemberStatusEnum::INVITE_PENDING->name
             ],
             1,
+            null,
             null,
             123
         )
@@ -987,6 +991,7 @@ class RoomServiceSpec extends ObjectBehavior
             ],
             1,
             null,
+            null,
             123
         )
             ->shouldBeCalledOnce()
@@ -1017,6 +1022,7 @@ class RoomServiceSpec extends ObjectBehavior
             123,
             $userMock,
             1,
+            null,
             null,
             true
         )
@@ -1088,6 +1094,7 @@ class RoomServiceSpec extends ObjectBehavior
                 ChatRoomMemberStatusEnum::INVITE_PENDING->name
             ],
             1,
+            null,
             null,
             123
         )

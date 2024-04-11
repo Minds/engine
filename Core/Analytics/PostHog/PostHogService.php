@@ -3,6 +3,7 @@ namespace Minds\Core\Analytics\PostHog;
 
 use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\SharedCache;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use PostHog\Client;
 use Psr\Http\Message\ServerRequestInterface;
@@ -48,6 +49,12 @@ class PostHogService
             return false;
         }
 
+        // We only want to have events from real users (not activity pub)
+        if ($user->getSource() !== FederatedEntitySourcesEnum::LOCAL) {
+            return false;
+        }
+
+        $set['guid'] = $user->getGuid();
         $set['username'] = $user->getUsername();
         $set['email'] = $user->getEmail();
 
