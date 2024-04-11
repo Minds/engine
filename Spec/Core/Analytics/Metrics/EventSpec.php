@@ -186,4 +186,53 @@ class EventSpec extends ObjectBehavior
 
         $this->push()->shouldBe(true);
     }
+
+    public function it_should_post_action_to_posthog_with_remapped_client_meta(User $user)
+    {
+        $user->getGuid()->willReturn('123');
+        $user->isPlus()->willReturn(false);
+        $user->getSource()->shouldBeCalled()->willReturn(FederatedEntitySourcesEnum::LOCAL);
+        $this->entitiesBuilder->single('123')->willReturn($user);
+
+        $this->accountQualityManager->getAccountQualityScoreAsFloat("123")
+            ->willReturn((float) 1);
+        
+        $this->postHogServiceMock->capture(
+            'object_verb',
+            $user,
+            [
+                'entity_type' => 'activity',
+                'cm_platform' => 'mobile',
+                'cm_source' => 'boost',
+                'cm_medium' => 'feed',
+                'cm_campaign' => 'urn:boost:123',
+                'cm_delta' => 12,
+                'cm_position' => 1,
+                'cm_served_by_guid' => '123',
+            ],
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->es->request(Argument::type('Minds\Core\Data\ElasticSearch\Prepared\Index'))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->setType('action');
+        $this->setAction('vote:up');
+        $this->setUserGuid('123');
+        $this->setEntityType('activity');
+        $this->setEventName('object', 'verb');
+        $this->setClientMeta([
+            'platform' => 'mobile',
+            'source' => 'boost',
+            'medium' => 'feed',
+            'campaign' => 'urn:boost:123',
+            'delta' => 12,
+            'position' => 1,
+            'served_by_guid' => '123',
+        ]);
+
+        $this->push()->shouldBe(true);
+    }
 }
