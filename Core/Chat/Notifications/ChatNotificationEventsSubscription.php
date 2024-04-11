@@ -24,6 +24,7 @@ use Minds\Core\Notifications\Push\DeviceSubscriptions\Manager as DevicePushNotif
 use Minds\Core\Notifications\Push\Services\ApnsService;
 use Minds\Core\Notifications\Push\Services\FcmService;
 use Minds\Core\Notifications\Push\Services\PushServiceInterface;
+use Minds\Core\Notifications\Push\Services\WebPushService;
 use Minds\Exceptions\ServerErrorException;
 use NotImplementedException;
 
@@ -37,6 +38,7 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
     private readonly NotificationFactory $notificationFactory;
     private readonly FcmService $androidNotificationService;
     private readonly ApnsService $appleNotificationService;
+    private readonly WebPushService $webPushNotificationService;
 
     public function __construct(
         ?EntitiesResolver $entitiesResolver = null,
@@ -45,7 +47,8 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
         ?DevicePushNotifSubscriptionManager $devicePushNotifSubscriptionManager = null,
         ?NotificationFactory $notificationFactory = null,
         ?FcmService $androidNotificationService = null,
-        ?ApnsService $appleNotificationService = null
+        ?ApnsService $appleNotificationService = null,
+        ?WebPushService $webPushNotificationService = null
     ) {
         $this->entitiesResolver = $entitiesResolver ?? Di::_()->get(EntitiesResolver::class);
         $this->roomService = $roomService ?? Di::_()->get(RoomService::class);
@@ -54,6 +57,7 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
         $this->notificationFactory = $notificationFactory ?? Di::_()->get(NotificationFactory::class);
         $this->androidNotificationService = $androidNotificationService ?? Di::_()->get(FcmService::class);
         $this->appleNotificationService = $appleNotificationService ?? Di::_()->get(ApnsService::class);
+        $this->webPushNotificationService = $webPushNotificationService ?? Di::_()->get(WebPushService::class);
     }
 
     public function getSubscriptionId(): string
@@ -147,6 +151,7 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
         return match ($notificationHandlerType) {
             DeviceSubscription::SERVICE_FCM => $this->androidNotificationService,
             DeviceSubscription::SERVICE_APNS => $this->appleNotificationService,
+            DeviceSubscription::SERVICE_WEBPUSH => $this->webPushNotificationService,
             default => throw new InvalidArgumentException('Invalid notification handler type'),
         };
     }

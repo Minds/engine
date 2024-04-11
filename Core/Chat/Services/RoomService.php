@@ -389,6 +389,11 @@ class RoomService
 
         $chatRoomListItem = $chatRooms[0] ?? throw new ChatRoomNotFoundException();
 
+        $chatRoomMemberSettings = $this->roomRepository->getRoomMemberSettings(
+            roomGuid: $roomGuid,
+            memberGuid: (int)$loggedInUser->getGuid()
+        );
+
         return new ChatRoomEdge(
             node: new ChatRoomNode(
                 chatRoom: $chatRoomListItem->chatRoom,
@@ -400,7 +405,10 @@ class RoomService
                     roomGuid: $roomGuid,
                     user: $loggedInUser
                 ),
-                chatRoomNotificationStatus: mt_rand(0, 1) ? ChatRoomNotificationStatusEnum::ALL : ChatRoomNotificationStatusEnum::MUTED // TODO: Fetch notifications status for room from db
+                chatRoomNotificationStatus:
+                    $chatRoomMemberSettings['notifications_status'] ?
+                        constant(ChatRoomNotificationStatusEnum::class . '::' . $chatRoomMemberSettings['notifications_status']) :
+                        ChatRoomNotificationStatusEnum::MUTED,
             ),
             cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
                 base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :

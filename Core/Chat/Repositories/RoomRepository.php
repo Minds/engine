@@ -982,4 +982,38 @@ class RoomRepository extends AbstractRepository
             throw new ServerErrorException('Failed to delete member settings in chat room', previous: $e);
         }
     }
+
+    /**
+     * @param int $roomGuid
+     * @param int $memberGuid
+     * @return array{notifications_status: ChatRoomNotificationStatusEnum}
+     * @throws ServerErrorException
+     */
+    public function getRoomMemberSettings(
+        int $roomGuid,
+        int $memberGuid
+    ): array {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->from(self::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+            ->columns([
+                'notifications_status'
+            ])
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
+            ->limit(1)
+            ->prepare();
+
+        try {
+            $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+                'member_guid' => $memberGuid,
+            ]);
+
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to fetch member settings in chat room', previous: $e);
+        }
+    }
 }
