@@ -85,6 +85,14 @@ class PostHogService
         }
 
         /**
+         * Provide the User-Agent
+         */
+        if ($userAgent = $this->getServerRequestHeader('User-Agent')) {
+            $properties['$raw_user_agent'] = $userAgent[0];
+            $properties['$useragent'] = $userAgent[0];
+        }
+
+        /**
          * Our reverse proxy will provide us with the real IP
          */
         if ($xForwardedFor = $this->getServerRequestHeader('X-Forwarded-For')) {
