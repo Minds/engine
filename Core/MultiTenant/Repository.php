@@ -79,6 +79,8 @@ class Repository extends AbstractRepository
                 'color_scheme',
                 'federation_disabled',
                 'reply_email',
+                'custom_home_page_enabled',
+                'custom_home_page_description',
                 'last_cache_timestamp',
                 'updated_timestamp',
                 'nsfw_enabled',
@@ -98,6 +100,8 @@ class Repository extends AbstractRepository
         $colorScheme = $row['color_scheme'] ? MultiTenantColorScheme::tryFrom($row['color_scheme']) : null;
         $federationDisabled = (bool)$row['federation_disabled'] ?? false;
         $replyEmail = $row['reply_email'] ?? null;
+        $customHomePageEnabled = $row['custom_home_page_enabled'] ?? false;
+        $customHomePageDescription = $row['custom_home_page_description'] ?? null;
         $updatedTimestamp = $row['updated_timestamp'] ?? null;
         $lastCacheTimestamp = $row['last_cache_timestamp'] ?? null;
         $nsfwEnabled = $row['nsfw_enabled'] ?? true;
@@ -116,6 +120,8 @@ class Repository extends AbstractRepository
                 federationDisabled: $federationDisabled,
                 replyEmail: $replyEmail,
                 nsfwEnabled: $nsfwEnabled,
+                customHomePageEnabled: $customHomePageEnabled,
+                customHomePageDescription: $customHomePageDescription,
                 updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null,
                 lastCacheTimestamp: $lastCacheTimestamp ? strtotime($lastCacheTimestamp) : null,
             ),

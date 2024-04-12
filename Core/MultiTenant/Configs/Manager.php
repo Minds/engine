@@ -55,6 +55,8 @@ class Manager
      * @param ?bool $federationDisabled - federation disabled.
      * @param ?string $replyEmail - reply-to email address.
      * @param ?bool $nsfwEnabled - whether nfsw reporting tools are enabled.
+     * @param ?bool $customHomePageEnabled - whether custom home page is enabled.
+     * @param ?bool $customHomePageDescription - custom home page description.
      * @param ?int $lastCacheTimestamp - last cache timestamp.
      * @return bool - true on success.
      */
@@ -65,6 +67,8 @@ class Manager
         ?bool $federationDisabled = null,
         ?string $replyEmail = null,
         ?bool $nsfwEnabled = null,
+        ?bool $customHomePageEnabled = null,
+        ?string $customHomePageDescription = null,
         ?int $lastCacheTimestamp = null
     ): bool {
         $tenantId = $this->config->get('tenant_id');
@@ -77,6 +81,8 @@ class Manager
             federationDisabled: $federationDisabled,
             replyEmail: $replyEmail,
             nsfwEnabled: $nsfwEnabled,
+            customHomePageEnabled: $customHomePageEnabled,
+            customHomePageDescription: $customHomePageDescription,
             lastCacheTimestamp: $lastCacheTimestamp
         );
 

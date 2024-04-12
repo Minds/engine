@@ -961,3 +961,11 @@ CREATE TABLE IF NOT EXISTS minds_user_rss_imports(
 ALTER TABLE `minds_entities_user`
 	ADD `opt_out_analytics` boolean DEFAULT FALSE
 	AFTER `canonical_url`;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD custom_home_page_enabled boolean 
+    AFTER community_guidelines;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD custom_home_page_description text 
+    AFTER custom_home_page_enabled;

@@ -52,6 +52,8 @@ class Repository extends AbstractRepository
             federationDisabled: (bool) $row['federation_disabled'] ?? false,
             replyEmail: $row['reply_email'] ?? null,
             nsfwEnabled: ($row['nsfw_enabled'] ?? 1) === 1,
+            customHomePageEnabled: (bool) $row['custom_home_page_enabled'] ?? false,
+            customHomePageDescription: $row['custom_home_page_description'] ?? null,
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
             updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
         );
@@ -67,6 +69,8 @@ class Repository extends AbstractRepository
      * @param ?bool $federationDisabled - federation disabled.
      * @param ?bool $replyEmail - reply-to email address.
      * @param ?bool $nsfwEnabled - nsfw enabled.
+     * @param ?string $customHomePageEnabled - whether custom home page is enabled.
+     * @param ?string $customHomePageDescription - custom home page description.
      * @param ?int $lastCacheTimestamp - timestamp of last caching.
      * @return bool - true on success.
      */
@@ -78,6 +82,8 @@ class Repository extends AbstractRepository
         ?bool $federationDisabled = null,
         ?string $replyEmail = null,
         ?bool $nsfwEnabled = null,
+        ?bool $customHomePageEnabled = null,
+        ?string $customHomePageDescription = null,
         ?int $lastCacheTimestamp = null
     ): bool {
         $boundValues = ['tenant_id' => $tenantId];
@@ -117,6 +123,16 @@ class Repository extends AbstractRepository
         if ($lastCacheTimestamp !== null) {
             $rawValues['last_cache_timestamp'] = new RawExp(':last_cache_timestamp');
             $boundValues['last_cache_timestamp'] = date('c', $lastCacheTimestamp);
+        }
+
+        if ($customHomePageEnabled !== null) {
+            $rawValues['custom_home_page_enabled'] = new RawExp(':custom_home_page_enabled');
+            $boundValues['custom_home_page_enabled'] = $customHomePageEnabled;
+        }
+
+        if ($customHomePageDescription !== null) {
+            $rawValues['custom_home_page_description'] = new RawExp(':custom_home_page_description');
+            $boundValues['custom_home_page_description'] = $customHomePageDescription;
         }
 
         $query = $this->mysqlClientWriterHandler

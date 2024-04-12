@@ -61,6 +61,8 @@ class RepositorySpec extends ObjectBehavior
         $federationDisabled = true;
         $replyEmail = 'some@email.com';
         $nsfwEnabled = 1;
+        $customHomePageEnabled = true;
+        $customHomePageDescription = 'Hello world';
         $updatedTimestamp = date('c', time());
 
         $this->mysqlMasterMock->prepare(Argument::any())
@@ -84,6 +86,8 @@ class RepositorySpec extends ObjectBehavior
                 'federation_disabled' => $federationDisabled,
                 'reply_email' => $replyEmail,
                 'nsfw_enabled' => $nsfwEnabled,
+                'custom_home_page_enabled' => $customHomePageEnabled,
+                'custom_home_page_description' => $customHomePageDescription,
                 'updated_timestamp' => $updatedTimestamp,
             ]);
 
@@ -95,6 +99,8 @@ class RepositorySpec extends ObjectBehavior
             federationDisabled: $federationDisabled,
             replyEmail: $replyEmail,
             nsfwEnabled: $nsfwEnabled,
+            customHomePageEnabled: $customHomePageEnabled,
+            customHomePageDescription: $customHomePageDescription,
             updatedTimestamp: strtotime($updatedTimestamp)
         ));
     }

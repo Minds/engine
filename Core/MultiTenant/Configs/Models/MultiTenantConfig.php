@@ -24,6 +24,8 @@ class MultiTenantConfig
         #[Field] public readonly ?bool $federationDisabled = false,
         #[Field] public readonly ?string $replyEmail = null,
         #[Field] public readonly ?bool $nsfwEnabled = null,
+        #[Field] public readonly ?bool $customHomePageEnabled = false,
+        #[Field] public readonly ?string $customHomePageDescription = null,
         #[Field] public readonly ?int $updatedTimestamp = null,
         #[Field] public readonly ?int $lastCacheTimestamp = null
     ) {
