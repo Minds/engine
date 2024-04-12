@@ -433,12 +433,8 @@ class RoomRepository extends AbstractRepository
      * @param int $roomGuid
      * @param User $user
      * @param int $limit
-<<<<<<< HEAD
-     * @param string|null $offset
-=======
      * @param int|null $offsetJoinedTimestamp
      * @param int|null $offsetMemberGuid
->>>>>>> feat/live-chat-f6163
      * @param bool $excludeSelf
      * @return array{members: array{member_guid: int, joined_timestamp: int|null}, hasMore: bool}
      * @throws ServerErrorException
