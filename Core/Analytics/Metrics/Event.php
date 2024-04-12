@@ -268,7 +268,25 @@ class Event
                 'entity_type',
                 'entity_subtype',
                 'entity_owner_guid',
+                'comment_guid',
         ], true), ARRAY_FILTER_USE_KEY);
+    
+        // Client meta  remapping
+        if ($this->data['client_meta'] ?? null) {
+            foreach ($this->data['client_meta'] as $key => $value) {
+                if (in_array($key, [
+                    'platform',
+                    'source',
+                    'medium',
+                    'campaign',
+                    'delta',
+                    'position',
+                    'served_by_guid',
+                ], true)) {
+                    $properties['cm_' . $key] = $value;
+                }
+            }
+        }
 
         $eventName = isset($this->eventName) ? $this->eventName
             : ($this->data['entity_type'] ?? 'user') . '_' . str_replace(':', '_', $this->data['action']);
