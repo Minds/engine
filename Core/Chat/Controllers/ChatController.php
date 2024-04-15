@@ -71,6 +71,18 @@ class ChatController
     }
 
     /**
+     * @param User $loggedInUser
+     * @return string[]
+     */
+    #[Query]
+    #[Logged]
+    public function getChatRoomGuids(
+        #[InjectUser] User $loggedInUser,
+    ): array {
+        return $this->roomService->getRoomGuidsByMember($loggedInUser);
+    }
+
+    /**
      * Returns a chat room
      */
     #[Query]
