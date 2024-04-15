@@ -989,7 +989,7 @@ class RoomRepository extends AbstractRepository
         int $roomGuid,
         int $memberGuid
     ): array {
-        $stmt = $this->mysqlClientWriterHandler->select()
+        $stmt = $this->mysqlClientReaderHandler->select()
             ->from(self::ROOM_MEMBER_SETTINGS_TABLE_NAME)
             ->columns([
                 'notifications_status'

@@ -1567,7 +1567,7 @@ class RoomRepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($pdoStatementMock);
 
-        $this->mysqlClientWriterHandlerMock->select()
+        $this->mysqlClientReaderHandlerMock->select()
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 

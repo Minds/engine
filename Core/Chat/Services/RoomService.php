@@ -112,6 +112,12 @@ class RoomService
                 role: ChatRoomRoleEnum::OWNER,
             );
 
+            $this->roomRepository->addRoomMemberDefaultSettings(
+                roomGuid: $chatRoom->guid,
+                memberGuid: (int)$user->getGuid(),
+                notificationStatus: ChatRoomNotificationStatusEnum::ALL
+            );
+
             foreach ($otherMemberGuids as $memberGuid) {
                 // TODO: Check if the user is blocked, deleted, disabled or banned
                 // TODO: Check if user has blocked message sender
