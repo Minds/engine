@@ -5,6 +5,8 @@ namespace Minds\Core\Chat\Services;
 
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Events\Sockets\ChatEvent;
+use Minds\Core\Chat\Events\Sockets\Enums\ChatEventTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;
@@ -13,6 +15,7 @@ use Minds\Core\Chat\Types\ChatMessageNode;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\Guid;
+use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use PDOException;
@@ -24,7 +27,8 @@ class MessageService
         private readonly MessageRepository $messageRepository,
         private readonly RoomRepository $roomRepository,
         private readonly ReceiptService $receiptService,
-        private readonly EntitiesBuilder $entitiesBuilder
+        private readonly EntitiesBuilder $entitiesBuilder,
+        private readonly SocketEvents $socketEvents
     ) {
     }
 
@@ -73,6 +77,18 @@ class MessageService
 
             // Commit
             $this->messageRepository->commitTransaction();
+
+            $this->socketEvents
+                ->setRoom("chat:$roomGuid")
+                ->emit(
+                    "chat:$roomGuid",
+                    json_encode(new ChatEvent(
+                        type: ChatEventTypeEnum::NEW_MESSAGE,
+                        metadata: [
+                            'senderGuid' => (int) $user->getGuid(),
+                        ],
+                    ))
+                );
         } catch (PDOException $e) {
             $this->messageRepository->rollbackTransaction();
         }
