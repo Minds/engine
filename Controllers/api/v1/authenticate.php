@@ -160,7 +160,6 @@ class authenticate implements Interfaces\Api, Interfaces\ApiIgnorePam
 
         \set_last_login($user); // TODO: Refactor this
 
-        Session::generateJWTCookie($sessions->getSession());
         Security\XSRF::setCookie(true);
 
         // Set the canary cookie

@@ -120,7 +120,6 @@ class Manager
 
         set_last_login($user);
 
-        Session::generateJWTCookie($this->sessionsManager->getSession());
         XSRF::setCookie(true);
 
         $this->canary
