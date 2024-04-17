@@ -102,61 +102,6 @@ class MessageServiceSpec extends ObjectBehavior
         )->shouldBeAnInstanceOf(ChatMessageEdge::class);
     }
 
-    public function it_should_add_a_message_and_strip_tags_within(
-        User $userMock
-    ): void {
-        $plainText = 'just <b>for testing</b>';
-        $plainTextStripped = 'just for testing';
-
-        $userMock->getGuid()
-            ->willReturn('123');
-
-        $this->roomRepositoryMock->isUserMemberOfRoom(
-            123,
-            $userMock
-        )
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->messageRepositoryMock->beginTransaction()
-            ->shouldBeCalled();
-
-        $this->messageRepositoryMock->addMessage(Argument::that(function ($arg) use ($plainTextStripped) {
-            return $arg instanceof ChatMessage && $arg->plainText === $plainTextStripped;
-        }))
-            ->shouldBeCalled();
-
-        $this->receiptServiceMock->updateReceipt(Argument::that(function ($arg) use ($plainTextStripped) {
-            return $arg instanceof ChatMessage && $arg->plainText === $plainTextStripped;
-        }), $userMock)
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->messageRepositoryMock->commitTransaction()
-            ->shouldBeCalled();
-
-        $this->socketEventsMock->setRoom('chat:123')
-            ->shouldBeCalledOnce()
-            ->willReturn($this->socketEventsMock);
-
-        $this->socketEventsMock->emit(
-            "chat:123",
-            json_encode(new ChatEvent(
-                type: ChatEventTypeEnum::NEW_MESSAGE,
-                metadata: [
-                    'senderGuid' => 123,
-                ],
-            ))
-        )
-            ->shouldBeCalledOnce();
-
-        $this->addMessage(
-            123,
-            $userMock,
-            $plainText
-        )->shouldBeAnInstanceOf(ChatMessageEdge::class);
-    }
-
     public function it_should_throw_exception_when_trying_to_store_empty_chat_message(
         User $userMock
     ): void {

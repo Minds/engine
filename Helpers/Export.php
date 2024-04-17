@@ -24,9 +24,7 @@ class Export
                 } else {
                     $return[$k] = (string) $v;
                 }
-                $return[$k] = htmlspecialchars($return[$k], ENT_NOQUOTES);
-                $return[$k] = str_replace('&amp;', '&', $return[$k]);
-                $return[$k] = str_replace('&nbsp;', ' ', $return[$k]);
+                $return[$k] = self::sanitizeString($return[$k]);
             } elseif (is_bool($v)) {
                 $return[$k] = $v;
             } elseif (is_object($v) || is_array($v)) {
@@ -37,5 +35,16 @@ class Export
         }
 
         return $return;
+    }
+
+    /**
+     * Sanitized a string for output
+     */
+    public static function sanitizeString(string $input): string
+    {
+        $output = htmlspecialchars($input, ENT_NOQUOTES);
+        $output = str_replace('&amp;', '&', $output);
+        $output = str_replace('&nbsp;', ' ', $output);
+        return $output;
     }
 }

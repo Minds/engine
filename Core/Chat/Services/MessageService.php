@@ -49,7 +49,7 @@ class MessageService
             roomGuid: $roomGuid,
             guid: (int) Guid::build(),
             senderGuid: (int) $user->getGuid(),
-            plainText: strip_tags(trim($message)), // TODO: strengthen message validation to avoid multiple new lines
+            plainText: trim($message), // TODO: strengthen message validation to avoid multiple new lines
         );
 
         if (empty($chatMessage->plainText)) {
