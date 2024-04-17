@@ -55,7 +55,7 @@ class CustomerPortalConfigurationRepository extends AbstractRepository
                 return null;
             }
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result['stripe_customer_portal_config_id'];
+            return $result['stripe_customer_portal_config_id'] ?? null;
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to get customer portal configuration', previous: $e);
         }

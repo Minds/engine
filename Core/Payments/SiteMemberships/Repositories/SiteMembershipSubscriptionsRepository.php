@@ -14,6 +14,7 @@ use Minds\Exceptions\ServerErrorException;
 use PDO;
 use PDOException;
 use Selective\Database\Operator;
+use Selective\Database\RawExp;
 
 class SiteMembershipSubscriptionsRepository extends AbstractRepository
 {
@@ -89,6 +90,40 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
     }
 
     /**
+     * @return iterable
+     * @throws ServerErrorException
+     */
+    public function getAllSiteMembershipSubscriptions(?int $tenantId = null): iterable
+    {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->from(self::TABLE_NAME)
+            ->columns([
+                'id',
+                'membership_tier_guid',
+                'stripe_subscription_id',
+                'auto_renew',
+                'valid_from',
+                'valid_to',
+            ]);
+
+        if ($tenantId !== null) {
+            $stmt->where('tenant_id', Operator::EQ, $tenantId);
+        }
+
+        $stmt = $stmt->prepare();
+
+        try {
+            $stmt->execute();
+
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                yield $this->prepareSiteMembershipSubscription($row);
+            }
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to get site membership subscriptions', previous: $e);
+        }
+    }
+
+    /**
      * @param array $data
      * @return SiteMembershipSubscription
      */
@@ -135,6 +170,48 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
             }
 
             return $this->prepareSiteMembershipSubscription($row);
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to get site membership subscription', previous: $e);
+        }
+    }
+
+    /**
+     * @param string $stripeSubscriptionId
+     * @return SiteMembershipSubscription
+     * @throws NoSiteMembershipSubscriptionFoundException
+     * @throws ServerErrorException
+     */
+    public function getSiteMembershipSubscriptionByStripeSubscriptionId(
+        string $stripeSubscriptionId
+    ): SiteMembershipSubscription
+    {
+        $stmt = $this->mysqlClientWriterHandler->select()
+            ->from(self::TABLE_NAME)
+            ->columns([
+                'id',
+                'membership_tier_guid',
+                'stripe_subscription_id',
+                'auto_renew',
+                'valid_from',
+                'valid_to',
+            ])
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('stripe_subscription_id', Operator::EQ, new RawExp(':stripe_subscription_id'))
+            ->prepare();
+
+        try {
+            $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'stripe_subscription_id' => $stripeSubscriptionId,
+            ]);
+
+            if ($stmt->rowCount() === 0) {
+                throw new NoSiteMembershipSubscriptionFoundException();
+            }
+
+            return $this->prepareSiteMembershipSubscription(
+                $stmt->fetch(PDO::FETCH_ASSOC)
+            );
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to get site membership subscription', previous: $e);
         }
@@ -204,6 +281,39 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
             $stmt->execute();
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to set site membership subscription auto renew', previous: $e);
+        }
+    }
+
+    /**
+     * @param string $stripeSubscriptionId
+     * @param int $startTimestamp
+     * @param int $endTimestamp
+     * @return bool
+     * @throws ServerErrorException
+     */
+    public function renewSiteMembershipSubscription(
+        string $stripeSubscriptionId,
+        int $startTimestamp,
+        int $endTimestamp
+    ): bool
+    {
+        $stmt = $this->mysqlClientWriterHandler->update()
+            ->table(self::TABLE_NAME)
+            ->set([
+                'valid_from' => new RawExp(':valid_from'),
+                'valid_to' => new RawExp(':valid_to'),
+            ])
+            ->where('stripe_subscription_id', Operator::EQ, new RawExp(':stripe_subscription_id'))
+            ->prepare();
+
+        try {
+            return $stmt->execute([
+                'stripe_subscription_id' => $stripeSubscriptionId,
+                'valid_from' => date('c', $startTimestamp),
+                'valid_to' => date('c', $endTimestamp),
+            ]);
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to renew site membership subscription', previous: $e);
         }
     }
 }

@@ -1,8 +1,10 @@
 <?php
 namespace Minds\Core\Payments\Stripe\Keys;
 
+use Minds\Core\Payments\Stripe\Webhooks\Services\SubscriptionsWebhookService;
 use Minds\Core\Security\Vault\VaultTransitService;
 use Minds\Exceptions\UserErrorException;
+use Stripe\Exception\ApiErrorException;
 use Stripe\StripeClient;
 
 class StripeKeysService
@@ -10,8 +12,8 @@ class StripeKeysService
     public function __construct(
         private StripeKeysRepository $repository,
         private VaultTransitService $vaultTransitService,
+        private readonly SubscriptionsWebhookService $subscriptionsWebhookService,
     ) {
-
     }
 
     /**
@@ -46,6 +48,12 @@ class StripeKeysService
 
     /**
      * Sets the stripe keys, encrypts the sec key and stores to the repository
+     * @param string $pubKey
+     * @param string $secKeyPlainText
+     * @param bool $validate
+     * @return bool
+     * @throws UserErrorException
+     * @throws ApiErrorException
      */
     public function setKeys(string $pubKey, string $secKeyPlainText, bool $validate = true): bool
     {
@@ -61,10 +69,22 @@ class StripeKeysService
 
         $secKeyCipherText = $this->vaultTransitService->encrypt($secKeyPlainText);
 
-        return $this->repository->setKeys(
-            pubKey: $pubKey,
-            secKeyCipherText: $secKeyCipherText,
-        );
+        $this->repository->beginTransaction();
+
+        try {
+            $result = $this->repository->setKeys(
+                pubKey: $pubKey,
+                secKeyCipherText: $secKeyCipherText,
+            );
+
+            $this->subscriptionsWebhookService->createSubscriptionsWebhook();
+
+            $this->repository->commitTransaction();
+            return $result;
+        } catch (\Exception $e) {
+            $this->repository->rollbackTransaction();
+            throw $e;
+        }
     }
 
 }

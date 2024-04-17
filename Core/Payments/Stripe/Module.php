@@ -17,6 +17,7 @@ class Module implements ModuleInterface
     public $submodules = [
         Keys\Module::class,
         CustomerPortal\Module::class,
+        Webhooks\Module::class,
     ];
 
     /**

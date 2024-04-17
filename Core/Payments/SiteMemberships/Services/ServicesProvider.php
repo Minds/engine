@@ -16,6 +16,7 @@ use Minds\Core\Payments\Stripe\Checkout\Products\Services\ProductService as Stri
 use Minds\Core\Payments\Stripe\Checkout\Session\Services\SessionService as StripeCheckoutSessionService;
 use Minds\Core\Payments\Stripe\CustomerPortal\Services\CustomerPortalService as StripeCustomerPortalService;
 use Minds\Core\Payments\Stripe\Subscriptions\Services\SubscriptionsService as StripeSubscriptionsService;
+use Minds\Core\Payments\Stripe\Webhooks\Services\SubscriptionsWebhookService;
 
 class ServicesProvider extends Provider
 {
@@ -63,6 +64,15 @@ class ServicesProvider extends Provider
                 stripeSubscriptionsService: $di->get(StripeSubscriptionsService::class),
                 stripeCustomerPortalService: $di->get(StripeCustomerPortalService::class),
                 config: $di->get(Config::class)
+            )
+        );
+
+        $this->di->bind(
+            SiteMembershipsRenewalsService::class,
+            fn (Di $di): SiteMembershipsRenewalsService => new SiteMembershipsRenewalsService(
+                subscriptionsWebhookService: $di->get(SubscriptionsWebhookService::class),
+                siteMembershipSubscriptionsService: $di->get(SiteMembershipSubscriptionsService::class),
+                stripeSubscriptionsService: $di->get(StripeSubscriptionsService::class),
             )
         );
     }

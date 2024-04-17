@@ -961,3 +961,15 @@ CREATE TABLE IF NOT EXISTS minds_user_rss_imports(
 ALTER TABLE `minds_entities_user`
 	ADD `opt_out_analytics` boolean DEFAULT FALSE
 	AFTER `canonical_url`;
+
+ALTER TABLE minds.minds_payments_config
+    ADD stripe_webhook_id varchar(256) DEFAULT NULL
+    AFTER stripe_customer_portal_config_id;
+
+ALTER TABLE minds.minds_payments_config
+    ADD stripe_webhook_secret varchar(256) DEFAULT NULL
+    AFTER stripe_webhook_id;
+
+ALTER TABLE minds.minds_payments_config
+    ADD stripe_webhook_domain_url varchar(256) DEFAULT NULL
+    AFTER stripe_webhook_secret;
