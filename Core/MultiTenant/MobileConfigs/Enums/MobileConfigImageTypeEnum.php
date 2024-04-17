@@ -9,4 +9,5 @@ enum MobileConfigImageTypeEnum: string
     case SPLASH = 'splash';
     case SQUARE_LOGO = 'square_logo';
     case HORIZONTAL_LOGO = 'horizontal_logo';
+    case ICON_MONO = 'icon_mono';
 }
