@@ -9,6 +9,7 @@ use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
+use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Core\Subscriptions\Relational\Repository as SubscriptionsRepository;
 
 class ServicesProvider extends Provider
@@ -35,7 +36,8 @@ class ServicesProvider extends Provider
                 messageRepository: $di->get(MessageRepository::class),
                 roomRepository: $di->get(RoomRepository::class),
                 receiptService: $di->get(ReceiptService::class),
-                entitiesBuilder: $di->get('EntitiesBuilder')
+                entitiesBuilder: $di->get('EntitiesBuilder'),
+                socketEvents: new SocketEvents()
             )
         );
 

@@ -1013,7 +1013,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         $manager = Di::_()->get(Subscriptions\Manager::class);
         $return = $manager->setSubscriber($this)->isSubscribed((new User)->set('guid', $guid));
 
-        $cacher->set("$this->guid:isSubscribed:$guid", $return);
+        $cacher->set("$this->guid:isSubscribed:$guid", $return, 604800);
 
         return $return;
     }
