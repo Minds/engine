@@ -88,7 +88,7 @@ class MessageService
                     json_encode(new ChatEvent(
                         type: ChatEventTypeEnum::NEW_MESSAGE,
                         metadata: [
-                            'senderGuid' => (int) $user->getGuid(),
+                            'senderGuid' => (string) $user->getGuid(),
                         ],
                     ))
                 );
