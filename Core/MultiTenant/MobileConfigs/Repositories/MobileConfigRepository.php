@@ -76,7 +76,12 @@ class MobileConfigRepository extends AbstractRepository
             welcomeScreenLogoType: $entry['welcome_screen_logo_type'] ? MobileWelcomeScreenLogoTypeEnum::tryFrom($entry['welcome_screen_logo_type']) : null,
             previewStatus: MobilePreviewStatusEnum::tryFrom($entry['preview_status']),
             previewLastUpdatedTimestamp: $entry['preview_last_updated_timestamp'] ? strtotime($entry['preview_last_updated_timestamp']) : null,
-            appVersion: $entry['app_version']
+            appVersion: $entry['app_version'],
+            easProjectId: $entry['eas_project_id'],
+            appSlug: $entry['app_slug'],
+            appScheme: $entry['app_scheme'],
+            appIosBundle: $entry['app_ios_bundle'],
+            appAndroidPackage: $entry['app_android_package'],
         );
     }
 }

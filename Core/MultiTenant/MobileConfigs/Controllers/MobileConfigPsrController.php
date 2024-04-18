@@ -33,6 +33,11 @@ class MobileConfigPsrController
             throw new UserErrorException('A valid type must be provided');
         }
 
+        // Temporary work around
+        if ($type === MobileConfigImageTypeEnum::ICON_MONO) {
+            $type = MobileConfigImageTypeEnum::ICON;
+        }
+
         $file = $this->mobileConfigAssetsService->getImageFileByType($type);
         $file->open('read');
 

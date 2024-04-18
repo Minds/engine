@@ -85,6 +85,14 @@ class PostHogService
         }
 
         /**
+         * Provide the User-Agent
+         */
+        if ($userAgent = $this->getServerRequestHeader('User-Agent')) {
+            $properties['$raw_user_agent'] = $userAgent[0];
+            $properties['$useragent'] = $userAgent[0];
+        }
+
+        /**
          * Our reverse proxy will provide us with the real IP
          */
         if ($xForwardedFor = $this->getServerRequestHeader('X-Forwarded-For')) {
@@ -117,8 +125,8 @@ class PostHogService
         User $user = null,
         bool $useCache = true
     ): array {
-        if ($useCache && $this->cache->has($this->getCacheKey())) {
-            $this->postHogClient->featureFlags = $this->cache->get($this->getCacheKey());
+        if ($useCache && $this->cache->withTenantPrefix(false)->has($this->getCacheKey())) {
+            $this->postHogClient->featureFlags = $this->cache->withTenantPrefix(false)->get($this->getCacheKey());
         } else {
             if (!$this->postHogConfig->getPersonalApiKey()) {
                 // Personal API Key is not setup, we can't load any feature flags
@@ -126,7 +134,7 @@ class PostHogService
             }
 
             $this->postHogClient->loadFlags();
-            $this->cache->set($this->getCacheKey(), $this->postHogClient->featureFlags);
+            $this->cache->withTenantPrefix(false)->set($this->getCacheKey(), $this->postHogClient->featureFlags);
         }
 
         return $this->postHogClient->getAllFlags(

@@ -10,7 +10,6 @@ use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
 use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
-use Minds\Core\Feeds\Activity\RichEmbed\Metascraper\Service as MetascraperService;
 use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Core\Subscriptions\Relational\Repository as SubscriptionsRepository;
 
