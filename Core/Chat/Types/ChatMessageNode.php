@@ -2,6 +2,7 @@
 namespace Minds\Core\Chat\Types;
 
 use Minds\Core\Chat\Entities\ChatMessage;
+use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\GraphQL\Types\NodeInterface;
 use TheCodingMachine\GraphQLite\Annotations\Field;
@@ -49,6 +50,28 @@ class ChatMessageNode implements NodeInterface
     public function getPlainText(): string
     {
         return $this->chatMessage->plainText;
+    }
+
+    /**
+     * Rich embed node belonging to the message.
+     * @return ChatRichEmbedNode|null Rich embed node or null if no rich embed is set.
+     */
+    #[Field]
+    public function getRichEmbed(): ?ChatRichEmbedNode
+    {
+        return $this->chatMessage->richEmbed ?
+            new ChatRichEmbedNode($this->chatMessage->richEmbed) :
+            null;
+    }
+
+    /**
+     * The type of message.
+     * @return ChatMessageTypeEnum The type of message.
+     */
+    #[Field]
+    public function getMessageType(): ChatMessageTypeEnum
+    {
+        return $this->chatMessage->messageType;
     }
 
     /**

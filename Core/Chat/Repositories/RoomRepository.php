@@ -29,6 +29,7 @@ class RoomRepository extends AbstractRepository
     public const MESSAGES_TABLE_NAME = 'minds_chat_messages';
     public const RECEIPTS_TABLE_NAME = 'minds_chat_receipts';
     public const ROOM_MEMBER_SETTINGS_TABLE_NAME = 'minds_chat_room_member_settings';
+    public const RICH_EMBED_TABLE_NAME = 'minds_chat_rich_embeds';
 
     /**
      * @param int $roomGuid
@@ -433,12 +434,9 @@ class RoomRepository extends AbstractRepository
      * @param int $roomGuid
      * @param User $user
      * @param int $limit
-<<<<<<< HEAD
      * @param string|null $offset
-=======
      * @param int|null $offsetJoinedTimestamp
      * @param int|null $offsetMemberGuid
->>>>>>> feat/live-chat-f6163
      * @param bool $excludeSelf
      * @return array{members: array{member_guid: int, joined_timestamp: int|null}, hasMore: bool}
      * @throws ServerErrorException
@@ -773,6 +771,31 @@ class RoomRepository extends AbstractRepository
     }
 
     /**
+     * Delete all rich embeds in a room.
+     * @param int $roomGuid - the room guid.
+     * @return bool true on success.
+     * @throws ServerErrorException
+     */
+    public function deleteAllRoomRichEmbeds(
+        int $roomGuid
+    ): bool {
+        $stmt = $this->mysqlClientWriterHandler->delete()
+            ->from(self::RICH_EMBED_TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->prepare();
+
+        try {
+            return $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+            ]);
+        } catch (PDOException $e) {
+            throw new ServerErrorException(message: 'Failed to delete chat room rich embeds', previous: $e);
+        }
+    }
+
+    /**
      * @param int $roomGuid
      * @return bool
      * @throws ServerErrorException
@@ -829,6 +852,10 @@ class RoomRepository extends AbstractRepository
         int $roomGuid
     ): bool {
         $this->deleteAllRoomMessageReadReceipts(
+            roomGuid: $roomGuid
+        );
+
+        $this->deleteAllRoomRichEmbeds(
             roomGuid: $roomGuid
         );
 

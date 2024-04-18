@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Chat\Services;
 
 use Minds\Core\Chat\Entities\ChatMessage;
+use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Events\Sockets\ChatEvent;
 use Minds\Core\Chat\Events\Sockets\Enums\ChatEventTypeEnum;
@@ -31,7 +32,8 @@ class MessageService
         private readonly ReceiptService $receiptService,
         private readonly EntitiesBuilder $entitiesBuilder,
         private readonly SocketEvents $socketEvents,
-        private readonly ChatNotificationsTopic $chatNotificationsTopic
+        private readonly ChatNotificationsTopic $chatNotificationsTopic,
+        private readonly RichEmbedService $chatRichEmbedService
     ) {
     }
 
@@ -48,14 +50,9 @@ class MessageService
         User $user,
         string $message
     ): ChatMessageEdge {
-        $chatMessage = new ChatMessage(
-            roomGuid: $roomGuid,
-            guid: (int) Guid::build(),
-            senderGuid: (int) $user->getGuid(),
-            plainText: trim($message), // TODO: strengthen message validation to avoid multiple new lines
-        );
+        $plainText = strip_tags(trim($message)); // TODO: strengthen message validation to avoid multiple new lines
 
-        if (empty($chatMessage->plainText)) {
+        if (empty($plainText)) {
             throw new GraphQLException(message: "Message cannot be empty", code: 400);
         }
 
@@ -68,12 +65,36 @@ class MessageService
             throw new GraphQLException(message: "You are not a member of this room", code: 403);
         }
 
+        $messageType = ChatMessageTypeEnum::PLAIN_TEXT;
+
+        if ($richEmbed = $this->chatRichEmbedService->parseFromText($plainText) ?? null) {
+            $messageType = ChatMessageTypeEnum::RICH_EMBED;
+        }
+
+        $chatMessage = new ChatMessage(
+            roomGuid: $roomGuid,
+            guid: (int) Guid::build(),
+            senderGuid: (int) $user->getGuid(),
+            plainText: $plainText,
+            richEmbed: $richEmbed,
+            messageType: $messageType
+        );
+
         try {
             // Open transaction so we only send message along with a read receipt
             $this->messageRepository->beginTransaction();
 
             // Save the message
             $this->messageRepository->addMessage($chatMessage);
+
+            // Add a rich embed if required.
+            if ($chatMessage->richEmbed && $chatMessage->messageType === ChatMessageTypeEnum::RICH_EMBED) {
+                $this->messageRepository->addRichEmbed(
+                    roomGuid: $roomGuid,
+                    messageGuid: $chatMessage->guid,
+                    chatRichEmbed: $chatMessage->richEmbed
+                );
+            }
 
             // Add the receipt to ourself
             $this->receiptService->updateReceipt($chatMessage, $user);
@@ -230,6 +251,14 @@ class MessageService
                 $this->messageRepository->rollbackTransaction();
                 throw new ServerErrorException(message: 'Failed to delete message', code: 500);
             }
+
+            if ($message->messageType === ChatMessageTypeEnum::RICH_EMBED) {
+                if (!$this->messageRepository->deleteRichEmbed($roomGuid, $messageGuid)) {
+                    $this->messageRepository->rollbackTransaction();
+                    throw new ServerErrorException(message: 'Failed to delete rich embed data for message', code: 500);
+                }
+            }
+
             if (!$this->messageRepository->deleteChatMessage(
                 roomGuid: $roomGuid,
                 messageGuid: $messageGuid

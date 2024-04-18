@@ -973,3 +973,21 @@ CREATE TABLE IF NOT EXISTS minds_chat_room_member_settings
 ALTER TABLE `minds_entities_user`
 	ADD `opt_out_analytics` boolean DEFAULT FALSE
 	AFTER `canonical_url`;
+
+CREATE TABLE IF NOT EXISTS minds_chat_rich_embeds(
+    tenant_id int,
+    room_guid bigint,
+    message_guid bigint,
+    url text,
+    canonincal_url text,
+    title varchar(1000) DEFAULT NULL,
+    description text DEFAULT NULL,
+    author varchar(250) DEFAULT NULL,
+    thumbnail_src text DEFAULT NULL,
+    created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (tenant_id, room_guid, message_guid),
+    FOREIGN KEY (tenant_id, room_guid, message_guid) REFERENCES minds_chat_messages (tenant_id, room_guid, guid),
+    INDEX (tenant_id, room_guid),
+    INDEX (tenant_id, message_guid)
+);
