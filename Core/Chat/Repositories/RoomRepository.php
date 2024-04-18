@@ -434,7 +434,6 @@ class RoomRepository extends AbstractRepository
      * @param int $roomGuid
      * @param User $user
      * @param int $limit
-     * @param string|null $offset
      * @param int|null $offsetJoinedTimestamp
      * @param int|null $offsetMemberGuid
      * @param bool $excludeSelf

@@ -108,6 +108,14 @@ class RoomServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            123,
+            ChatRoomNotificationStatusEnum::ALL
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
         $this->subscriptionsRepositoryMock->isSubscribed(
             456,
             123
@@ -184,6 +192,14 @@ class RoomServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            123,
+            ChatRoomNotificationStatusEnum::ALL
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
         $this->subscriptionsRepositoryMock->isSubscribed(
             456,
             123
@@ -255,6 +271,14 @@ class RoomServiceSpec extends ObjectBehavior
             '123',
             ChatRoomMemberStatusEnum::ACTIVE,
             ChatRoomRoleEnum::OWNER
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            123,
+            ChatRoomNotificationStatusEnum::ALL
         )
             ->shouldBeCalledOnce()
             ->willReturn(true);
@@ -375,6 +399,14 @@ class RoomServiceSpec extends ObjectBehavior
             '123',
             ChatRoomMemberStatusEnum::ACTIVE,
             ChatRoomRoleEnum::OWNER
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            123,
+            ChatRoomNotificationStatusEnum::ALL
         )
             ->shouldBeCalledOnce()
             ->willReturn(true);

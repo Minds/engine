@@ -1572,4 +1572,67 @@ class RoomRepositorySpec extends ObjectBehavior
         )
             ->shouldEqual(true);
     }
+
+    public function it_should_get_room_member_settings(
+        SelectQuery $selectQueryMock,
+        PDOStatement $pdoStatementMock
+    ): void {
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+
+        $pdoStatementMock->execute([
+            'tenant_id' => 1,
+            'room_guid' => 123,
+            'member_guid' => 456,
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $pdoStatementMock->fetch(PDO::FETCH_ASSOC)
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'notifications_status' => "ALL"
+            ]);
+
+        $selectQueryMock->from(RoomRepository::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->columns([
+            'notifications_status'
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->limit(1)
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $this->mysqlClientReaderHandlerMock->select()
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $this->getRoomMemberSettings(
+            123,
+            456
+        )
+            ->shouldBeSameAs([
+                'notifications_status' => "ALL"
+            ]);
+    }
 }
