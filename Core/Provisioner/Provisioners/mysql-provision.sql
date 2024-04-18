@@ -991,3 +991,7 @@ CREATE TABLE IF NOT EXISTS minds_chat_rich_embeds(
     INDEX (tenant_id, room_guid),
     INDEX (tenant_id, message_guid)
 );
+
+ALTER TABLE `minds_chat_messages`
+	ADD `message_type` boolean DEFAULT 1
+	AFTER `sender_guid`;

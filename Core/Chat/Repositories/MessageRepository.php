@@ -8,6 +8,7 @@ use Exception;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
 use Minds\Core\Chat\Entities\ChatRichEmbed;
+use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Data\MySQL\AbstractRepository;
 use Minds\Exceptions\ServerErrorException;
 use PDO;
@@ -35,7 +36,8 @@ class MessageRepository extends AbstractRepository
                 'room_guid' => $message->roomGuid,
                 'guid' => $message->guid,
                 'sender_guid' => $message->senderGuid,
-                'plain_text' => $message->plainText
+                'plain_text' => $message->plainText,
+                'message_type' => $message->messageType->value
             ])
             ->prepare();
 
@@ -170,6 +172,7 @@ class MessageRepository extends AbstractRepository
             senderGuid: (int) $data['sender_guid'],
             plainText: $data['plain_text'],
             createdAt: new DateTimeImmutable($data['created_timestamp']),
+            messageType: ChatMessageTypeEnum::tryFrom($data['message_type']) ?? throw new ServerErrorException('Invalid message type'),
             richEmbed: $richEmbed
         );
     }
