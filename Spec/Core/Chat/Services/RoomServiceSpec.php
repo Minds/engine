@@ -28,10 +28,13 @@ use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 use ReflectionClass;
+use Spec\Minds\Common\Traits\CommonMatchers;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class RoomServiceSpec extends ObjectBehavior
 {
+    use CommonMatchers;
+    
     private Collaborator $roomRepositoryMock;
     private Collaborator $subscriptionsRepositoryMock;
     private Collaborator $entitiesBuilderMock;
@@ -551,6 +554,17 @@ class RoomServiceSpec extends ObjectBehavior
         return $chatRoomListItem;
     }
 
+    public function it_should_get_room_guids_by_member(
+        User $userMock
+    ): void {
+        $this->roomRepositoryMock->getRoomGuidsByMember($userMock)
+            ->shouldBeCalledOnce()
+            ->willYield([123]);
+
+        $this->getRoomGuidsByMember($userMock)
+            ->shouldBeSameAs([123]);
+    }
+
     public function it_should_get_room_total_members(): void
     {
         $this->roomRepositoryMock->getRoomTotalMembers(123)
@@ -582,6 +596,7 @@ class RoomServiceSpec extends ObjectBehavior
             123,
             $userMock,
             12,
+            null,
             null,
             true
         )
@@ -679,6 +694,7 @@ class RoomServiceSpec extends ObjectBehavior
             ],
             1,
             null,
+            null,
             123,
         )
             ->shouldBeCalledOnce()
@@ -723,7 +739,8 @@ class RoomServiceSpec extends ObjectBehavior
             $userMock,
             [ChatRoomMemberStatusEnum::INVITE_PENDING->name],
             12,
-            null
+            null,
+            null,
         )
             ->shouldBeCalledOnce()
             ->willReturn([
@@ -736,7 +753,7 @@ class RoomServiceSpec extends ObjectBehavior
         $response = $this->getRoomInviteRequestsByMember(
             $userMock,
             12,
-            null
+            null,
         );
 
         $response->shouldBeArray();
@@ -795,6 +812,7 @@ class RoomServiceSpec extends ObjectBehavior
                 ChatRoomMemberStatusEnum::INVITE_PENDING->name
             ],
             1,
+            null,
             null,
             123
         )
@@ -988,6 +1006,7 @@ class RoomServiceSpec extends ObjectBehavior
             ],
             1,
             null,
+            null,
             123
         )
             ->shouldBeCalledOnce()
@@ -1018,6 +1037,7 @@ class RoomServiceSpec extends ObjectBehavior
             123,
             $userMock,
             1,
+            null,
             null,
             true
         )
@@ -1088,6 +1108,7 @@ class RoomServiceSpec extends ObjectBehavior
                 ChatRoomMemberStatusEnum::INVITE_PENDING->name
             ],
             1,
+            null,
             null,
             123
         )

@@ -107,7 +107,6 @@ class OidcAuthService
         if ($provider->issuer !== 'https://phpspec.local/') {
             \set_last_login($user);
 
-            Session::generateJWTCookie($this->sessionsManager->getSession());
             XSRF::setCookie(true);
         }
     }

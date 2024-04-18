@@ -3,6 +3,7 @@ namespace Minds\Core\Analytics\PostHog;
 
 use Minds\Core\Config\Config;
 use Minds\Core\Data\cache\SharedCache;
+use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\User;
 use PostHog\Client;
 use Psr\Http\Message\ServerRequestInterface;
@@ -48,6 +49,12 @@ class PostHogService
             return false;
         }
 
+        // We only want to have events from real users (not activity pub)
+        if ($user->getSource() !== FederatedEntitySourcesEnum::LOCAL) {
+            return false;
+        }
+
+        $set['guid'] = $user->getGuid();
         $set['username'] = $user->getUsername();
         $set['email'] = $user->getEmail();
 
@@ -75,6 +82,14 @@ class PostHogService
             $properties['$current_url'] = $referrerUrl[0];
             $properties['$pathname'] = $urlParts['path'];
             $properties['$host'] = $urlParts['host'];
+        }
+
+        /**
+         * Provide the User-Agent
+         */
+        if ($userAgent = $this->getServerRequestHeader('User-Agent')) {
+            $properties['$raw_user_agent'] = $userAgent[0];
+            $properties['$useragent'] = $userAgent[0];
         }
 
         /**
@@ -110,8 +125,8 @@ class PostHogService
         User $user = null,
         bool $useCache = true
     ): array {
-        if ($useCache && $this->cache->has($this->getCacheKey())) {
-            $this->postHogClient->featureFlags = $this->cache->get($this->getCacheKey());
+        if ($useCache && $this->cache->withTenantPrefix(false)->has($this->getCacheKey())) {
+            $this->postHogClient->featureFlags = $this->cache->withTenantPrefix(false)->get($this->getCacheKey());
         } else {
             if (!$this->postHogConfig->getPersonalApiKey()) {
                 // Personal API Key is not setup, we can't load any feature flags
@@ -119,7 +134,7 @@ class PostHogService
             }
 
             $this->postHogClient->loadFlags();
-            $this->cache->set($this->getCacheKey(), $this->postHogClient->featureFlags);
+            $this->cache->withTenantPrefix(false)->set($this->getCacheKey(), $this->postHogClient->featureFlags);
         }
 
         return $this->postHogClient->getAllFlags(

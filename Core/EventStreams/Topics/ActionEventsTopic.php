@@ -61,6 +61,7 @@ class ActionEventsTopic extends AbstractTopic implements TopicInterface
         $builder = new MessageBuilder();
         $message = $builder
             //->setPartitionKey(0)
+            ->setDeliverAfter($event->getDelayMs())
             ->setEventTimestamp($event->getTimestamp() ?: time())
             ->setContent(json_encode($data))
             ->build();

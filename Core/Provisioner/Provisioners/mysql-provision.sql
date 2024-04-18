@@ -961,3 +961,9 @@ CREATE TABLE IF NOT EXISTS minds_user_rss_imports(
 ALTER TABLE `minds_entities_user`
 	ADD `opt_out_analytics` boolean DEFAULT FALSE
 	AFTER `canonical_url`;
+
+ALTER TABLE minds_tenant_mobile_configs  ADD COLUMN eas_project_id varchar(32) AFTER update_timestamp;
+ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_slug varchar(32) AFTER eas_project_id;
+ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_scheme varchar(16) AFTER app_slug;
+ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_ios_bundle varchar(32) AFTER app_scheme;
+ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_android_package varchar(32) AFTER app_ios_bundle;

@@ -121,7 +121,8 @@ class RoomRepository extends AbstractRepository
      * @param User $user
      * @param ChatRoomMemberStatusEnum[]|null $targetMemberStatuses
      * @param int $limit
-     * @param string|null $offset
+     * @param int|null $lastMessageCreatedAtTimestamp
+     * @param int|null $roomCreatedAtTimestamp
      * @param int|null $roomGuid
      * @return array{items: ChatRoomListItem[], hasMore: bool}
      * @throws ServerErrorException
@@ -130,7 +131,8 @@ class RoomRepository extends AbstractRepository
         User         $user,
         ?array       $targetMemberStatuses = null,
         int          $limit = 12,
-        ?string      $offset = null,
+        ?int         $lastMessageCreatedAtTimestamp = null,
+        ?int         $roomCreatedAtTimestamp = null,
         ?int         $roomGuid = null
     ): array {
         $targetMemberStatuses = $targetMemberStatuses ?? [ChatRoomMemberStatusEnum::ACTIVE->name];
@@ -200,21 +202,17 @@ class RoomRepository extends AbstractRepository
         }
 
         $optionalValues = [];
-        if ($offset) {
-            $offsetParts = explode(':', $offset);
-
-            if (count($offsetParts) === 1) {
-                $stmt->whereRaw('(last_msg.created_timestamp < :last_msg_created_timestamp OR last_msg.created_timestamp IS NULL)');
-                $optionalValues = [
-                    'last_msg_created_timestamp' => date('c', (int)$offsetParts[0]),
-                ];
-            } else {
-                $stmt->where('last_msg.created_timestamp', Operator::IS, null);
-                $stmt->where('r.created_timestamp', Operator::LT, new RawExp(':created_timestamp'));
-                $optionalValues = [
-                    'created_timestamp' => date('c', (int)$offsetParts[1]),
-                ];
-            }
+        if ($lastMessageCreatedAtTimestamp) {
+            $stmt->whereRaw('(last_msg.created_timestamp < :last_msg_created_timestamp OR last_msg.created_timestamp IS NULL)');
+            $optionalValues = [
+                'last_msg_created_timestamp' => date('c', $lastMessageCreatedAtTimestamp),
+            ];
+        } elseif ($roomCreatedAtTimestamp) {
+            $stmt->where('last_msg.created_timestamp', Operator::IS, null);
+            $stmt->where('r.created_timestamp', Operator::LT, new RawExp(':created_timestamp'));
+            $optionalValues = [
+                'created_timestamp' => date('c', $roomCreatedAtTimestamp),
+            ];
         }
 
         $stmt = $stmt
@@ -266,6 +264,50 @@ class RoomRepository extends AbstractRepository
             return $results;
         } catch (PDOException $e) {
             throw new ServerErrorException('Failed to fetch chat rooms', previous: $e);
+        }
+    }
+
+    /**
+     * @param User $user
+     * @return iterable<string>
+     * @throws ServerErrorException
+     */
+    public function getRoomGuidsByMember(
+        User $user,
+    ): iterable {
+        $stmt = $this->mysqlClientReaderHandler->select()
+            ->columns([
+                'r.room_guid'
+            ])
+            ->from(new RawExp(self::TABLE_NAME . ' as r'))
+            ->leftJoinRaw(
+                new RawExp(self::MEMBERS_TABLE_NAME . ' as m'),
+                'm.room_guid = r.room_guid AND m.tenant_id = r.tenant_id AND m.member_guid = :member_guid_1',
+            )
+            ->leftJoinRaw(
+                new RawExp('minds_group_membership as gm'),
+                'r.group_guid = gm.group_guid AND gm.user_guid = :member_guid_2',
+            )
+            ->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->whereRaw(
+                "(m.status IS NOT NULL AND m.status IN (:status_1, :status_2)) OR
+                (gm.group_guid IS NOT NULL AND m.status IS NULL)"
+            )
+            ->prepare();
+
+        try {
+            $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'member_guid_1' => $user->getGuid(),
+                'member_guid_2' => $user->getGuid(),
+                'status_1' => ChatRoomMemberStatusEnum::ACTIVE->name,
+                'status_2' => ChatRoomMemberStatusEnum::INVITE_PENDING->name,
+            ]);
+
+            $stmt->setFetchMode(PDO::FETCH_COLUMN, 0);
+            return $stmt->getIterator();
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to fetch chat room guids by member', previous: $e);
         }
     }
 
@@ -389,7 +431,8 @@ class RoomRepository extends AbstractRepository
      * @param int $roomGuid
      * @param User $user
      * @param int $limit
-     * @param int|null $offset
+     * @param int|null $offsetJoinedTimestamp
+     * @param int|null $offsetMemberGuid
      * @param bool $excludeSelf
      * @return array{members: array{member_guid: int, joined_timestamp: int|null}, hasMore: bool}
      * @throws ServerErrorException
@@ -398,7 +441,8 @@ class RoomRepository extends AbstractRepository
         int  $roomGuid,
         User $user,
         int  $limit = 12,
-        ?int $offset = null,
+        ?int $offsetJoinedTimestamp = null,
+        ?int $offsetMemberGuid = null,
         bool $excludeSelf = true
     ): array {
         $stmt = $this->mysqlClientReaderHandler->select()
@@ -406,7 +450,7 @@ class RoomRepository extends AbstractRepository
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->whereWithNamedParameters('status', Operator::IN, 'status', 2)
-            ->orderBy('joined_timestamp ASC')
+            ->orderBy('joined_timestamp ASC', 'member_guid DESC')
             ->limit($limit + 1);
 
         $values = [
@@ -420,9 +464,13 @@ class RoomRepository extends AbstractRepository
             $values['member_guid'] = $user->getGuid();
         }
 
-        if ($offset) {
+        if ($offsetJoinedTimestamp) {
             $stmt->where('joined_timestamp', Operator::GT, new RawExp(':joined_timestamp'));
-            $values['joined_timestamp'] = date('c', $offset);
+            $values['joined_timestamp'] = date('c', $offsetJoinedTimestamp);
+        } elseif ($offsetMemberGuid) {
+            $stmt->where('joined_timestamp', Operator::IS, null);
+            $stmt->where('member_guid', Operator::LT, new RawExp(':member_guid'));
+            $values['member_guid'] = date('c', $offsetMemberGuid);
         }
 
         $stmt = $stmt->prepare();
@@ -544,7 +592,7 @@ class RoomRepository extends AbstractRepository
             ->from(new RawExp("($firstMemberGuidOneToOneRoomQuery) as r"))
             ->innerJoin(
                 new RawExp("($secondMemberGuidOneToOneRoomQuery) as r2"),
-                'r2.room_guid',
+                'r.room_guid',
                 Operator::EQ,
                 'r2.room_guid'
             )->prepare();
