@@ -279,21 +279,6 @@ class DomainServiceSpec extends ObjectBehavior
         $domain->cloudflareId->shouldBe('id');
     }
 
-    public function it_should_throw_exception_when_setup_custom_hostname_if_network_is_trial(): void
-    {
-        $this->configMock->get('tenant')
-            ->willReturn(
-                $this->generateTenantMock(
-                    id: 1,
-                    trialStartTimestamp: time()
-                )
-            );
-        $this->configMock->get('tenant_id')
-            ->willReturn(1);
-
-        $this->shouldThrow(new GraphQLException('Cannot setup a custom hostname for this network as it is in trial mode'))->during('setupCustomHostname', ['sub.example.com']);
-    }
-
     public function it_should_return_a_hostname()
     {
         $this->configMock->get('tenant_id')

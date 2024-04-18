@@ -51,7 +51,12 @@ class MobileConfigReaderService
             welcomeLogoType: strtolower($mobileConfig->welcomeScreenLogoType->name),
             theme: strtolower($tenant->config?->colorScheme->value ?? ''),
             apiUrl: $this->config->get('site_url'),
-            assets: $this->prepareAppReadyMobileConfigAssets($tenant)
+            assets: $this->prepareAppReadyMobileConfigAssets($tenant),
+            easProjectId: $mobileConfig->easProjectId,
+            appSlug: $mobileConfig->appSlug,
+            appScheme: $mobileConfig->appScheme,
+            appIosBundle: $mobileConfig->appIosBundle,
+            appAndroidPackage: $mobileConfig->appAndroidPackage,
         );
 
         $this->multiTenantBootService->resetRootConfigs();

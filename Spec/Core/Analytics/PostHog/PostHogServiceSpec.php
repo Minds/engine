@@ -30,6 +30,8 @@ class PostHogServiceSpec extends ObjectBehavior
         $this->postHogClientMock = $postHogClientMock;
         $this->postHogConfigMock = $postHogConfigMock;
         $this->cacheMock = $cacheMock;
+
+        $this->cacheMock->withTenantPrefix(false)->willReturn($this->cacheMock);
     }
 
     public function it_is_initializable()
@@ -127,7 +129,7 @@ class PostHogServiceSpec extends ObjectBehavior
 
         $this->postHogConfigMock->getPersonalApiKey()
             ->willReturn('abc');
-        
+
 
         $this->cacheMock->has(Argument::any())
             ->shouldNotBeCalled();

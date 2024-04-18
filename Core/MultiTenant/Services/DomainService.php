@@ -198,15 +198,6 @@ class DomainService
      */
     public function setupCustomHostname(string $hostname): MultiTenantDomain
     {
-        /**
-         * @var Tenant $tenant
-         */
-        $tenant = $this->config->get('tenant');
-
-        if ($tenant->trialStartTimestamp) {
-            throw new GraphQLException('Cannot setup a custom hostname for this network as it is in trial mode');
-        }
-
         $tenantId = $this->config->get('tenant_id');
         $customHostname = $this->cloudflareClient->createCustomHostname($hostname);
 

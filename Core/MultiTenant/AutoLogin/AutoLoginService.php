@@ -175,7 +175,6 @@ class AutoLoginService
         if ($jwtToken !== 'jwt-token-testing') {
             \set_last_login($user);
 
-            Session::generateJWTCookie($this->sessionsManager->getSession());
             XSRF::setCookie(true);
         }
     }
