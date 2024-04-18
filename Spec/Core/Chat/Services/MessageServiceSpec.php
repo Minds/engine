@@ -110,7 +110,7 @@ class MessageServiceSpec extends ObjectBehavior
             json_encode(new ChatEvent(
                 type: ChatEventTypeEnum::NEW_MESSAGE,
                 metadata: [
-                    'senderGuid' => 123,
+                    'senderGuid' => "123",
                 ],
             ))
         )
@@ -271,7 +271,7 @@ class MessageServiceSpec extends ObjectBehavior
             json_encode(new ChatEvent(
                 type: ChatEventTypeEnum::NEW_MESSAGE,
                 metadata: [
-                    'senderGuid' => 123,
+                    'senderGuid' => "123",
                 ],
             ))
         )
