@@ -23,8 +23,7 @@ class SubscriptionsWebhookService
     public function __construct(
         private readonly Config $config,
         private readonly WebhooksConfigurationRepository $webhooksConfigurationRepository,
-    )
-    {
+    ) {
     }
 
     /**
@@ -116,8 +115,7 @@ class SubscriptionsWebhookService
         string $payload,
         string $signature,
         string $secret
-    ): Event
-    {
+    ): Event {
         try {
             return Webhook::constructEvent(
                 payload: $payload,

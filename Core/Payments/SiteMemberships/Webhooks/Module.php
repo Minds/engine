@@ -7,7 +7,6 @@ use Minds\Interfaces\ModuleInterface;
 
 class Module implements ModuleInterface
 {
-
     /**
      * @inheritDoc
      */

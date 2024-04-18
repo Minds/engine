@@ -145,8 +145,7 @@ class SiteMembershipSubscriptionsService
      */
     public function getAllSiteMemberships(
         ?int $tenantId = null
-    ): iterable
-    {
+    ): iterable {
         return $this->siteMembershipSubscriptionsRepository->getAllSiteMembershipSubscriptions($tenantId);
     }
 
@@ -158,8 +157,7 @@ class SiteMembershipSubscriptionsService
      */
     public function getSiteMembershipSubscriptionByStripeSubscriptionId(
         string $stripeSubscriptionId
-    ): SiteMembershipSubscription
-    {
+    ): SiteMembershipSubscription {
         return $this->siteMembershipSubscriptionsRepository->getSiteMembershipSubscriptionByStripeSubscriptionId($stripeSubscriptionId);
     }
 
@@ -174,8 +172,7 @@ class SiteMembershipSubscriptionsService
         string $stripeSubscriptionId,
         int $startTimestamp,
         int $endTimestamp
-    ): bool
-    {
+    ): bool {
         return $this->siteMembershipSubscriptionsRepository->renewSiteMembershipSubscription($stripeSubscriptionId, $startTimestamp, $endTimestamp);
     }
 }

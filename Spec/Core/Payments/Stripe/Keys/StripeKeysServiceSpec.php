@@ -4,6 +4,7 @@ namespace Spec\Minds\Core\Payments\Stripe\Keys;
 
 use Minds\Core\Payments\Stripe\Keys\StripeKeysRepository;
 use Minds\Core\Payments\Stripe\Keys\StripeKeysService;
+use Minds\Core\Payments\Stripe\Webhooks\Services\SubscriptionsWebhookService;
 use Minds\Core\Security\Vault\VaultTransitService;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -13,12 +14,18 @@ class StripeKeysServiceSpec extends ObjectBehavior
 {
     private Collaborator $repositoryMock;
     private Collaborator $vaultTransitServiceMock;
+    private Collaborator $subscriptionsWebhookServiceMock;
 
-    public function let(StripeKeysRepository $repositoryMock, VaultTransitService $vaultTransitServiceMock)
+    public function let(
+        StripeKeysRepository $repositoryMock,
+        VaultTransitService $vaultTransitServiceMock,
+        SubscriptionsWebhookService $subscriptionsWebhookServiceMock
+    ): void
     {
-        $this->beConstructedWith($repositoryMock, $vaultTransitServiceMock);
+        $this->beConstructedWith($repositoryMock, $vaultTransitServiceMock, $subscriptionsWebhookServiceMock);
         $this->repositoryMock = $repositoryMock;
         $this->vaultTransitServiceMock = $vaultTransitServiceMock;
+        $this->subscriptionsWebhookServiceMock = $subscriptionsWebhookServiceMock;
     }
 
     public function it_is_initializable()
@@ -60,10 +67,20 @@ class StripeKeysServiceSpec extends ObjectBehavior
     {
         $this->vaultTransitServiceMock->encrypt('sec-key-plain-text')
             ->willReturn('vault:v1:OkohMC2SSzjw4hSDsV0V0/oxyl0tytgPz5119cEcg4TjaVGRNMlyUYgE2vxNs7SDH1d+a6wET/v+Ih5IqbY3BeCj3BgHA+A3TbEdai+i3QVDZZsJeYb6zwUEr/LDWyMrmMCHz+mYjHWKHlzrHIPrlEewPYElOFh8lis+1dLhvs7f3KDVwrMY');
+
+        $this->repositoryMock->beginTransaction()
+            ->shouldBeCalled();
     
         $this->repositoryMock->setKeys('pub-key', 'vault:v1:OkohMC2SSzjw4hSDsV0V0/oxyl0tytgPz5119cEcg4TjaVGRNMlyUYgE2vxNs7SDH1d+a6wET/v+Ih5IqbY3BeCj3BgHA+A3TbEdai+i3QVDZZsJeYb6zwUEr/LDWyMrmMCHz+mYjHWKHlzrHIPrlEewPYElOFh8lis+1dLhvs7f3KDVwrMY')
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->subscriptionsWebhookServiceMock->createSubscriptionsWebhook()
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->repositoryMock->commitTransaction()
+            ->shouldBeCalled();
         
         $this->setKeys('pub-key', 'sec-key-plain-text', false)->shouldBe(true);
     }

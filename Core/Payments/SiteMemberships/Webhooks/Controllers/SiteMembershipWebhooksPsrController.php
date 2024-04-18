@@ -12,8 +12,7 @@ class SiteMembershipWebhooksPsrController
 {
     public function __construct(
         private readonly SiteMembershipsRenewalsService $siteMembershipsRenewalsService,
-    )
-    {
+    ) {
     }
 
     /**

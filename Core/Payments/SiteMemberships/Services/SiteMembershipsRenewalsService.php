@@ -19,8 +19,7 @@ class SiteMembershipsRenewalsService
         private readonly SubscriptionsWebhookService $subscriptionsWebhookService,
         private readonly SiteMembershipSubscriptionsService $siteMembershipSubscriptionsService,
         private readonly StripeSubscriptionsService $stripeSubscriptionsService,
-    )
-    {
+    ) {
     }
 
     /**
@@ -32,8 +31,7 @@ class SiteMembershipsRenewalsService
     public function processSubscriptionRenewalEvent(
         string $payload,
         string $eventSignature,
-    ): void
-    {
+    ): void {
         $webhookDetails = $this->subscriptionsWebhookService->getSubscriptionsWebhookDetails();
 
         try {
@@ -107,8 +105,7 @@ class SiteMembershipsRenewalsService
      */
     public function syncSiteMemberships(
         ?int $tenantId = null
-    ): void
-    {
+    ): void {
         $siteMembershipSubscriptions = $this->siteMembershipSubscriptionsService->getAllSiteMemberships($tenantId);
 
         foreach ($siteMembershipSubscriptions as $siteMembershipSubscription) {

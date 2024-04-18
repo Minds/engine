@@ -12,7 +12,6 @@ use Stripe\Exception\ApiErrorException;
 
 class SiteMemberships extends Controller implements CliControllerInterface
 {
-
     public function help($command = null)
     {
         $this->out('Syntax usage: payments sitememberships [command]');

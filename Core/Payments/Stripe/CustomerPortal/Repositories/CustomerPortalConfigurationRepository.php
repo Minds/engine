@@ -28,6 +28,9 @@ class CustomerPortalConfigurationRepository extends AbstractRepository
                 'tenant_id' => $this->config->get('tenant_id') ?? -1,
                 'stripe_customer_portal_config_id' => new RawExp(':stripe_customer_portal_config_id'),
             ])
+            ->onDuplicateKeyUpdate([
+                'stripe_customer_portal_config_id' => new RawExp(':stripe_customer_portal_config_id'),
+            ])
             ->prepare();
 
         try {

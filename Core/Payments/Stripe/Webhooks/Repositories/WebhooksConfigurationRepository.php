@@ -35,6 +35,11 @@ class WebhooksConfigurationRepository extends AbstractRepository
                 'stripe_webhook_secret' => new RawExp(':stripe_webhook_secret'),
                 'stripe_webhook_domain_url' => new RawExp(':stripe_webhook_domain_url'),
             ])
+            ->onDuplicateKeyUpdate([
+                'stripe_webhook_id' => new RawExp(':stripe_webhook_id'),
+                'stripe_webhook_secret' => new RawExp(':stripe_webhook_secret'),
+                'stripe_webhook_domain_url' => new RawExp(':stripe_webhook_domain_url'),
+            ])
             ->prepare();
 
         try {
@@ -67,7 +72,7 @@ class WebhooksConfigurationRepository extends AbstractRepository
         try {
             $stmt->execute();
             if ($stmt->rowCount() === 0) {
-                return null;
+                return new SubscriptionsWebhookDetails();
             }
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return new SubscriptionsWebhookDetails(

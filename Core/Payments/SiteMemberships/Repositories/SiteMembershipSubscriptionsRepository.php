@@ -183,8 +183,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
      */
     public function getSiteMembershipSubscriptionByStripeSubscriptionId(
         string $stripeSubscriptionId
-    ): SiteMembershipSubscription
-    {
+    ): SiteMembershipSubscription {
         $stmt = $this->mysqlClientWriterHandler->select()
             ->from(self::TABLE_NAME)
             ->columns([
@@ -295,8 +294,7 @@ class SiteMembershipSubscriptionsRepository extends AbstractRepository
         string $stripeSubscriptionId,
         int $startTimestamp,
         int $endTimestamp
-    ): bool
-    {
+    ): bool {
         $stmt = $this->mysqlClientWriterHandler->update()
             ->table(self::TABLE_NAME)
             ->set([
