@@ -15,10 +15,10 @@ use Minds\Entities\User;
 class RichEmbedMessageNotification extends AbstractChatNotification
 {
     public function __construct(
-        protected readonly ?int    $chatRoomGuid = null,
-        protected readonly ?string $title = null,
-        protected readonly ?string $body = null,
-        protected readonly ?string $icon = null,
+        ?int    $chatRoomGuid = null,
+        ?string $title = null,
+        ?string $body = null,
+        ?string $icon = null,
         protected ?Config $config = null
     ) {
         parent::__construct(
@@ -71,8 +71,7 @@ class RichEmbedMessageNotification extends AbstractChatNotification
      */
     public function getIcon(): ?string
     {
-        return "https://cdn.minds.com/icon/1259169619235577874/small/1691532760"; // TODO: update with real value before merging
-        // return $this->icon;
+        return $this->icon;
     }
 
     /**
