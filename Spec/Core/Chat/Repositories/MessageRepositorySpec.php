@@ -6,6 +6,7 @@ namespace Spec\Minds\Core\Chat\Repositories;
 use DateTime;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Entities\ChatRichEmbed;
+use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\MySQL\Client as MySQLClient;
@@ -75,7 +76,8 @@ class MessageRepositorySpec extends ObjectBehavior
             roomGuid: 1,
             messageGuid: 123,
             senderGuid: 456,
-            plainText: 'Hello, World!'
+            plainText: 'Hello, World!',
+            messageType: ChatMessageTypeEnum::RICH_EMBED->value
         );
         $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
 
@@ -92,7 +94,8 @@ class MessageRepositorySpec extends ObjectBehavior
             'room_guid' => $messageMock->roomGuid,
             'guid' => $messageMock->guid,
             'sender_guid' => $messageMock->senderGuid,
-            'plain_text' => $messageMock->plainText
+            'plain_text' => $messageMock->plainText,
+            'message_type' => $messageMock->messageType->value
         ])
             ->shouldBeCalledOnce()
             ->willReturn($insertQueryMock);
@@ -106,20 +109,6 @@ class MessageRepositorySpec extends ObjectBehavior
             ->willReturn($insertQueryMock);
 
         $this->addMessage($messageMock)->shouldReturn(true);
-    }
-
-    private function generateChatMessageMock(
-        int $roomGuid,
-        int $messageGuid,
-        int $senderGuid,
-        string $plainText
-    ): ChatMessage {
-        return new ChatMessage(
-            roomGuid: $roomGuid,
-            guid: $messageGuid,
-            senderGuid: $senderGuid,
-            plainText: $plainText
-        );
     }
 
     public function it_should_get_messages_by_room(
@@ -147,6 +136,7 @@ class MessageRepositorySpec extends ObjectBehavior
                     'guid' => 456,
                     'sender_guid' => 789,
                     'plain_text' => 'Hello, World!',
+                    'message_type' => 1,
                     'created_timestamp' => '2021-01-01 00:00:00'
                 ]
             ]);
@@ -233,6 +223,7 @@ class MessageRepositorySpec extends ObjectBehavior
                 'guid' => 456,
                 'sender_guid' => 789,
                 'plain_text' => 'Hello, World!',
+                'message_type' => 1,
                 'created_timestamp' => '2021-01-01 00:00:00'
             ]);
 
@@ -439,5 +430,21 @@ class MessageRepositorySpec extends ObjectBehavior
             $messageGuid
         )
             ->shouldEqual(true);
+    }
+
+    private function generateChatMessageMock(
+        int $roomGuid,
+        int $messageGuid,
+        int $senderGuid,
+        string $plainText,
+        int $messageType = 1
+    ): ChatMessage {
+        return new ChatMessage(
+            roomGuid: $roomGuid,
+            guid: $messageGuid,
+            senderGuid: $senderGuid,
+            plainText: $plainText,
+            messageType: ChatMessageTypeEnum::from($messageType)
+        );
     }
 }
