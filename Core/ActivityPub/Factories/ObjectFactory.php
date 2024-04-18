@@ -25,6 +25,8 @@ use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\UserErrorException;
 use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
+use Minds\Core\ActivityPub\Exceptions\RemoteGoneException;
+use Minds\Core\ActivityPub\Exceptions\RemoteRateLimitedException;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Exceptions\ServerErrorException;
 
@@ -58,13 +60,24 @@ class ObjectFactory
         } catch (ConnectException $e) {
             throw new UserErrorException("Could not connect to $uri");
         } catch (ClientException|ServerException $e) {
-            if ($e->getCode() === 404) {
-                throw new NotFoundException("Could not find remote content: $uri");
+            $code = $e->getCode();
+
+            switch ($code) {
+                case 404:
+                    throw new NotFoundException("Could not find remote content: $uri");
+                    break;
+                case 403:
+                    throw new ForbiddenException();
+                    break;
+                case 410:
+                    throw new RemoteGoneException();
+                    break;
+                case 429:
+                    throw new RemoteRateLimitedException();
+                    break;
+                default:
+                    throw new ServerErrorException("Unable to fetch $uri. " . $e->getMessage(), $code);
             }
-            if ($e->getCode() === 403) {
-                throw new ForbiddenException();
-            }
-            throw new ServerErrorException("Unable to fetch $uri. " . $e->getMessage());
         }
 
         return $this->fromJson($json);
