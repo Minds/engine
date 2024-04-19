@@ -210,7 +210,7 @@ class channel implements Interfaces\Api
                 ->setUser($user)
                 ->count() === 0;
         } else {
-            $response['require_login'] = $this->config->get('tenant')?->config?->walledGardenEnabled;
+            $response['require_login'] = !$isLoggedIn && $this->config->get('tenant')?->config?->walledGardenEnabled;
         }
         
         return Factory::response($response);

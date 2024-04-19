@@ -107,7 +107,7 @@ class entities implements Interfaces\Api
         $config = Di::_()->get(Config::class);
 
         if ($config->get('tenant_id')) {
-            return $config->get('tenant')?->config?->walledGardenEnabled;
+            return !Session::isLoggedin() && $config->get('tenant')?->config?->walledGardenEnabled;
         }
 
         return !Session::isLoggedin() &&
