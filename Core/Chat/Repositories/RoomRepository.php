@@ -823,6 +823,30 @@ class RoomRepository extends AbstractRepository
      * @return bool
      * @throws ServerErrorException
      */
+    public function deleteAllRoomMembersSettings(
+        int $roomGuid
+    ): bool {
+        $stmt = $this->mysqlClientWriterHandler->delete()
+            ->from(self::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->prepare();
+
+        try {
+            return $stmt->execute([
+                'tenant_id' => $this->config->get('tenant_id') ?? -1,
+                'room_guid' => $roomGuid,
+            ]);
+        } catch (PDOException $e) {
+            throw new ServerErrorException('Failed to delete chat room members settings', previous: $e);
+        }
+    }
+
+    /**
+     * @param int $roomGuid
+     * @return bool
+     * @throws ServerErrorException
+     */
     public function deleteAllRoomMembers(
         int $roomGuid
     ): bool {
