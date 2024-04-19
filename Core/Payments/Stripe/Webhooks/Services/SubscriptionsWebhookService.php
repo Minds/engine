@@ -12,17 +12,16 @@ use Minds\Core\Payments\Stripe\Webhooks\Repositories\WebhooksConfigurationReposi
 use Minds\Exceptions\ServerErrorException;
 use Stripe\Event;
 use Stripe\Exception\ApiErrorException;
-use Stripe\Exception\SignatureVerificationException;
-use Stripe\Webhook;
 use Stripe\WebhookEndpoint;
-use UnexpectedValueException;
 
 class SubscriptionsWebhookService
 {
-    private ?StripeClient $stripeClient = null;
+    protected ?StripeClient $stripeClient = null;
+    
     public function __construct(
         private readonly Config $config,
         private readonly WebhooksConfigurationRepository $webhooksConfigurationRepository,
+        private readonly WebhookEventBuilderService $webhookEventBuilderService
     ) {
     }
 
@@ -116,17 +115,34 @@ class SubscriptionsWebhookService
         string $signature,
         string $secret
     ): Event {
-        try {
-            return Webhook::constructEvent(
-                payload: $payload,
-                sigHeader: $signature,
-                secret: $secret
-            );
-        } catch (UnexpectedValueException $e) {
-            throw new ServerErrorException('Failed to construct event', previous: $e);
-        } catch (SignatureVerificationException $e) {
-            throw new ServerErrorException('Failed to verify signature', previous: $e);
-        }
+        return $this->webhookEventBuilderService->buildWebhookEvent(
+            payload: $payload,
+            signature: $signature,
+            secret: $secret
+        );
+    }
+
+    /**
+     * @param StripeClient $stripeClient
+     * @param Config $config
+     * @param WebhooksConfigurationRepository $webhooksConfigurationRepository
+     * @param WebhookEventBuilderService $webhookEventBuilderService
+     * @return self
+     */
+    public static function createForUnitTests(
+        StripeClient $stripeClient,
+        Config $config,
+        WebhooksConfigurationRepository $webhooksConfigurationRepository,
+        WebhookEventBuilderService $webhookEventBuilderService
+    ): self {
+        $instance = new self(
+            config: $config,
+            webhooksConfigurationRepository: $webhooksConfigurationRepository,
+            webhookEventBuilderService: $webhookEventBuilderService
+        );
+        $instance->stripeClient = $stripeClient;
+
+        return $instance;
     }
 
     public function initStripeClient(): void

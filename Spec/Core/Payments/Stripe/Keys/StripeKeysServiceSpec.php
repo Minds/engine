@@ -20,8 +20,7 @@ class StripeKeysServiceSpec extends ObjectBehavior
         StripeKeysRepository $repositoryMock,
         VaultTransitService $vaultTransitServiceMock,
         SubscriptionsWebhookService $subscriptionsWebhookServiceMock
-    ): void
-    {
+    ): void {
         $this->beConstructedWith($repositoryMock, $vaultTransitServiceMock, $subscriptionsWebhookServiceMock);
         $this->repositoryMock = $repositoryMock;
         $this->vaultTransitServiceMock = $vaultTransitServiceMock;
