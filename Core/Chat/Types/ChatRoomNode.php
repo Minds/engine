@@ -3,6 +3,7 @@
 namespace Minds\Core\Chat\Types;
 
 use Minds\Core\Chat\Entities\ChatRoom;
+use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\GraphQL\Types\NodeInterface;
 use TheCodingMachine\GraphQLite\Annotations\Field;
@@ -17,7 +18,7 @@ class ChatRoomNode implements NodeInterface
         public readonly ChatRoom $chatRoom,
         #[Field] #[Logged] public bool $isChatRequest = false,
         #[Field] #[Logged] public ?bool $isUserRoomOwner = null,
-        #[Field] #[Logged] public ?bool $areChatRoomNotificationsMuted = false
+        #[Field] #[Logged] public ?ChatRoomNotificationStatusEnum $chatRoomNotificationStatus = ChatRoomNotificationStatusEnum::ALL
     ) {
 
     }
