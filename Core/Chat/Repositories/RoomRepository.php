@@ -773,7 +773,7 @@ class RoomRepository extends AbstractRepository
      * Delete all rich embeds in a room.
      * @param int $roomGuid - the room guid.
      * @return bool true on success.
-     * @throws ServerErrorException
+     * @throws ServerErrorException on failure.
      */
     public function deleteAllRoomRichEmbeds(
         int $roomGuid
@@ -791,30 +791,6 @@ class RoomRepository extends AbstractRepository
             ]);
         } catch (PDOException $e) {
             throw new ServerErrorException(message: 'Failed to delete chat room rich embeds', previous: $e);
-        }
-    }
-
-    /**
-     * @param int $roomGuid
-     * @return bool
-     * @throws ServerErrorException
-     */
-    public function deleteAllRoomMembersSettings(
-        int $roomGuid
-    ): bool {
-        $stmt = $this->mysqlClientWriterHandler->delete()
-            ->from(self::ROOM_MEMBER_SETTINGS_TABLE_NAME)
-            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
-            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
-            ->prepare();
-
-        try {
-            return $stmt->execute([
-                'tenant_id' => $this->config->get('tenant_id') ?? -1,
-                'room_guid' => $roomGuid,
-            ]);
-        } catch (PDOException $e) {
-            throw new ServerErrorException('Failed to delete chat room members settings', previous: $e);
         }
     }
 
