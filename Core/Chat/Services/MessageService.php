@@ -50,7 +50,7 @@ class MessageService
         User $user,
         string $message
     ): ChatMessageEdge {
-        $plainText = strip_tags(trim($message)); // TODO: strengthen message validation to avoid multiple new lines
+        $plainText = trim($message); // TODO: strengthen message validation to avoid multiple new lines
 
         if (empty($plainText)) {
             throw new GraphQLException(message: "Message cannot be empty", code: 400);
