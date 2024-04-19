@@ -68,8 +68,7 @@ class PlainTextMessageNotification extends AbstractChatNotification
      */
     public function getIcon(): ?string
     {
-        return "https://cdn.minds.com/icon/1259169619235577874/small/1691532760"; // TODO: update with real value before merging
-        // return $this->icon;
+        return $this->icon;
     }
 
     /**
