@@ -958,6 +958,17 @@ CREATE TABLE IF NOT EXISTS minds_user_rss_imports(
     PRIMARY KEY (tenant_id, feed_id, url)
 );
 
+CREATE TABLE IF NOT EXISTS minds_chat_room_member_settings
+(
+    tenant_id int,
+    room_guid bigint,
+    member_guid bigint,
+    notifications_status enum('MUTED', 'MENTIONS', 'ALL'),
+    PRIMARY KEY (tenant_id, room_guid, member_guid),
+    INDEX (tenant_id, room_guid),
+    INDEX (member_guid)
+);
+
 ALTER TABLE `minds_entities_user`
 	ADD `opt_out_analytics` boolean DEFAULT FALSE
 	AFTER `canonical_url`;
