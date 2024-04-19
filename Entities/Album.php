@@ -13,6 +13,11 @@ use Minds\Core\Di\Di;
 
 class Album extends MindsObject
 {
+    /**
+     * @var array<string, int|string>
+     */
+    public $attributes;
+    public $guid;
     protected function initializeAttributes()
     {
         parent::initializeAttributes();

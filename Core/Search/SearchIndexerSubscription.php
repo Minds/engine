@@ -102,7 +102,7 @@ class SearchIndexerSubscription implements SubscriptionInterface
                 return $this->index->remove($entity);
                 break;
         }
-       
+
         return true; // Return true to awknowledge the event from the stream (stop it being redelivered)
     }
 }

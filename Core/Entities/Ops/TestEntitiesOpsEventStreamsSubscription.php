@@ -48,7 +48,7 @@ class TestEntitiesOpsEventStreamsSubscription implements SubscriptionInterface
         }
 
         error_log(print_r($event, true));
-       
+
         return true; // Return true to awknowledge the event from the stream (stop it being redelivered)
     }
 }

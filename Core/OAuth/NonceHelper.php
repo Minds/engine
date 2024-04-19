@@ -15,6 +15,7 @@ use League\OAuth2\Server\CryptTrait;
  */
 class NonceHelper
 {
+    public $encryptionKey;
     use CryptTrait;
 
     /** @var string */

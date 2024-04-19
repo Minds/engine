@@ -57,6 +57,15 @@ use Minds\Helpers;
  */
 class Activity extends Entity implements MutatableEntityInterface, PaywallEntityInterface, CommentableEntityInterface, FederatedEntityInterface
 {
+    /**
+     * @var \non-empty-array<\mixed, \mixed>
+     */
+    public $attributes;
+    public $type;
+    public $container_guid;
+    public $guid;
+    public $time_created;
+    public $access_id;
     use PaywallEntityTrait;
 
     /** @var array */

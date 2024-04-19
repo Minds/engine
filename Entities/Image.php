@@ -36,6 +36,16 @@ use Minds\Helpers\StringLengthValidators\DescriptionLengthValidator;
 
 class Image extends File implements MutatableEntityInterface, CommentableEntityInterface
 {
+    /**
+     * @var array<string, bool|int|string|null>
+     */
+    public $attributes;
+    public $guid;
+    public $time_created;
+    public $owner_guid;
+    public $container_guid;
+    public $title;
+    public $description;
     private const THUMBNAILS_SIZES = [
         'xlarge' => [
             'height' => 1024,

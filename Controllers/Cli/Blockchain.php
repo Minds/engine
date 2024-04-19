@@ -109,7 +109,7 @@ class Blockchain extends Cli\Controller implements Interfaces\CliControllerInter
                     }
                 }
             }
-            
+
             usleep(500 * 1000); // 500ms
         }
 

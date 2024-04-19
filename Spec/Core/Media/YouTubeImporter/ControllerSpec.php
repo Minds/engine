@@ -20,10 +20,10 @@ class ControllerSpec extends ObjectBehavior
 
     /** @var YTAuth */
     protected $ytAuth;
-    
+
     /** @var YTSubscription */
     protected $ytSubscription;
-    
+
     /** @var Config */
     protected $config;
 

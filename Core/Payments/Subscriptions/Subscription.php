@@ -16,6 +16,7 @@ use Minds\Traits\MagicAttributes;
  */
 class Subscription
 {
+    public $guid;
     use MagicAttributes;
 
     private $payment_method;

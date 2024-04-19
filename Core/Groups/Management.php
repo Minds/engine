@@ -16,6 +16,7 @@ use Minds\Exceptions\NotFoundException;
 
 class Management
 {
+    public $actor;
     use Actorable;
 
     /** @var Group $group */

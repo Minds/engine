@@ -21,6 +21,7 @@ use Minds\Exceptions\NotFoundException;
 
 class Invitations
 {
+    public $acl;
     use Actorable;
 
     /** @var Group $group  */

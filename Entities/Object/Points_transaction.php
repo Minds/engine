@@ -11,6 +11,15 @@ use Minds\Entities;
 class Points_transaction extends Entities\MindsObject
 {
     /**
+     * @var \non-empty-array<\mixed, \mixed>
+     */
+    public $attributes;
+    /**
+     * @var string
+     */
+    public $description;
+    public $owner_guid;
+    /**
      * Initialize attributes
      * @return void
      */

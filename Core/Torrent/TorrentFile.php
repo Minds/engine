@@ -71,6 +71,7 @@ use Exception;
  */
 class TorrentFile
 {
+    public $trim;
     /**
      * @const float Default http timeout
      */

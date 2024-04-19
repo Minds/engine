@@ -18,6 +18,7 @@ use Minds\Exceptions\GroupOperationException;
 
 class Notifications
 {
+    public $actor;
     use Actorable;
 
     protected $relDB;

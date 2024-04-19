@@ -40,6 +40,12 @@ use Minds\Helpers\StringLengthValidators\DescriptionLengthValidator;
  */
 class Video extends MindsObject implements CommentableEntityInterface
 {
+    public $attributes;
+    public $guid;
+    public $owner_guid;
+    public $container_guid;
+    public $title;
+    public $description;
     private $cinemr;
 
     protected function initializeAttributes()

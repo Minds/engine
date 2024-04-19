@@ -49,7 +49,7 @@ class PayoutsDelegate
             ->setCustomerId('cus_H5cDc4UqBJOzuP');
 
         $this->intentsManager->add($intent);
-        
+
         /*$this->chargeInstance->create([
             'customer' => 'cus_H5cDc4UqBJOzuP',
             'source' => 'card_1GXReqEtkBDgTlGKnXHERQQs',

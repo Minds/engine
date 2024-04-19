@@ -31,9 +31,9 @@ class Repository
     public function add(Subscription $subscription): bool
     {
         $statement = "INSERT INTO friends (user_guid, friend_guid, tenant_id, timestamp) VALUES (:user_guid, :friend_guid, :tenant_id, CURRENT_TIMESTAMP()) ON DUPLICATE KEY UPDATE user_guid=user_guid";
-        
+
         $prepared = $this->client->getConnection(Client::CONNECTION_MASTER)->prepare($statement);
-        
+
         return $prepared->execute([
             'user_guid' => $subscription->getSubscriberGuid(),
             'friend_guid' => $subscription->getPublisherGuid(),
@@ -257,12 +257,12 @@ class Repository
             LIMIT $offset,$limit";
 
         $prepared = $this->client->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
-    
+
         $prepared->execute([
                 'user_guid1' => $userGuid,
                 'user_guid2' => $userGuid,
             ]);
-    
+
         foreach ($prepared as $row) {
             $user = $this->entitiesBuilder->single($row['friend_guid']);
             if (!$user instanceof User || !$user->isEnabled()) {
@@ -286,7 +286,7 @@ class Repository
         string $subscribedToGuid
     ): int {
         $statement = "SELECT count(*) as c " . $this->getSubscriptionsThatSubscribeToStatement();
-    
+
         $prepared = $this->client->getConnection(Client::CONNECTION_REPLICA)->prepare($statement);
 
         $prepared->execute([

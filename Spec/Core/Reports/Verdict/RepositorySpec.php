@@ -53,7 +53,7 @@ class RepositorySpec extends ObjectBehavior
 
         $verdict->isUpheld()
             ->willReturn(true);
-        
+
         $this->add($verdict)
             ->shouldBe(true);
     }
@@ -84,7 +84,7 @@ class RepositorySpec extends ObjectBehavior
 
         $verdict->isUpheld()
             ->willReturn(true);
-        
+
         $this->add($verdict)
             ->shouldBe(true);
     }
@@ -115,7 +115,7 @@ class RepositorySpec extends ObjectBehavior
 
         $verdict->isUpheld()
             ->willReturn(true);
-        
+
         $this->add($verdict)
             ->shouldBe(true);
     }
@@ -145,7 +145,7 @@ class RepositorySpec extends ObjectBehavior
 
         $verdict->isUpheld()
             ->willReturn(false);
-        
+
         $this->add($verdict)
             ->shouldBe(true);
     }

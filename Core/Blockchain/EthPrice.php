@@ -13,6 +13,8 @@ use Minds\Traits\Interval;
 
 class EthPrice
 {
+    public $from;
+    public $to;
     use Interval;
 
     /** @var array */

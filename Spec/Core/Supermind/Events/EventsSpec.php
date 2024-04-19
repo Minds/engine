@@ -88,7 +88,7 @@ class EventsSpec extends ObjectBehavior
     //         'request_guid' => '123',
     //         'is_reply' => false,
     //     ]);
-        
+
     //     $response = Di::_()->get('EventsDispatcher')->trigger('export:extender', 'activity', ['entity'=>$activity], []);
     // }
 }

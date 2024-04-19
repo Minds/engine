@@ -9,6 +9,10 @@ use Minds\Entities;
 class Carousel extends Entities\MindsObject
 {
     /**
+     * @var \non-empty-array<\mixed, \mixed>
+     */
+    public $attributes;
+    /**
      * Initialize entity attributes
      * @return void
      */

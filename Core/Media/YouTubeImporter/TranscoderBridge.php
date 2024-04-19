@@ -79,7 +79,7 @@ class TranscoderBridge
 
             // Submit to transcoder queues (cloned to avoid updateing the transcoder status)
             $this->transcoderManager->add(clone $transcode, true);
-            
+
             // Still proceed so that web can complete quickly
         }
 

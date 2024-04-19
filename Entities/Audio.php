@@ -11,6 +11,10 @@ use Minds\Helpers;
 // @todo: Check if it's OK we still extend Video
 class Audio extends Video
 {
+    /**
+     * @var array<string, string>
+     */
+    public $attributes;
     protected function initializeAttributes()
     {
         parent::initializeAttributes();

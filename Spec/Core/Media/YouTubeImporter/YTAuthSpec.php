@@ -35,7 +35,7 @@ class YTAuthSpec extends ObjectBehavior
         $this->ytClient = $ytClient;
         $this->save = $save;
         $this->db = $db;
-       
+
         $this->beConstructedWith(
             $ytClient,
             $ytSubscription,
