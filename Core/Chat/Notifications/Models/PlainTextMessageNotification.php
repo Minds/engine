@@ -12,11 +12,11 @@ use Minds\Entities\User;
 class PlainTextMessageNotification extends AbstractChatNotification
 {
     public function __construct(
-        protected readonly ?int    $chatRoomGuid = null,
-        protected readonly ?string $title = null,
-        protected readonly ?string $body = null,
-        protected readonly ?string $icon = null,
-        protected ?Config $config = null
+        ?int    $chatRoomGuid = null,
+        ?string $title = null,
+        ?string $body = null,
+        ?string $icon = null,
+        ?Config $config = null
     ) {
         parent::__construct(
             chatRoomGuid: $chatRoomGuid,
@@ -25,7 +25,7 @@ class PlainTextMessageNotification extends AbstractChatNotification
             icon: $icon
         );
         
-        $this->config ??= Di::_()->get(Config::class);
+        $this->config = $config ?? Di::_()->get(Config::class);
     }
 
     /**
