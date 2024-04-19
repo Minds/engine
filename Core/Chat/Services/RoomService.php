@@ -8,10 +8,13 @@ use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatRoomInviteRequestActionEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
 use Minds\Core\Chat\Exceptions\InvalidChatRoomTypeException;
+use Minds\Core\Chat\Helpers\ChatRoomEdgeCursorHelper;
+use Minds\Core\Chat\Helpers\ChatRoomMemberEdgeCursorHelper;
 use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Chat\Types\ChatRoomEdge;
 use Minds\Core\Chat\Types\ChatRoomMemberEdge;
@@ -109,6 +112,12 @@ class RoomService
                 role: ChatRoomRoleEnum::OWNER,
             );
 
+            $this->roomRepository->addRoomMemberDefaultSettings(
+                roomGuid: $chatRoom->guid,
+                memberGuid: (int)$user->getGuid(),
+                notificationStatus: ChatRoomNotificationStatusEnum::ALL
+            );
+
             foreach ($otherMemberGuids as $memberGuid) {
                 // TODO: Check if the user is blocked, deleted, disabled or banned
                 // TODO: Check if user has blocked message sender
@@ -118,6 +127,7 @@ class RoomService
                 if (!$member) {
                     throw new GraphQLException(message: "One or more of the members you have selected was not found", code: 404);
                 }
+
 
                 $isSubscribed = $this->subscriptionsRepository->isSubscribed(
                     userGuid: (int)$memberGuid,
@@ -129,6 +139,12 @@ class RoomService
                     memberGuid: (int)$memberGuid,
                     status: $isSubscribed ? ChatRoomMemberStatusEnum::ACTIVE : ChatRoomMemberStatusEnum::INVITE_PENDING,
                     role: $roomType === ChatRoomTypeEnum::ONE_TO_ONE ? ChatRoomRoleEnum::OWNER : ChatRoomRoleEnum::MEMBER,
+                );
+
+                $this->roomRepository->addRoomMemberDefaultSettings(
+                    roomGuid: $chatRoom->guid,
+                    memberGuid: (int)$memberGuid,
+                    notificationStatus: ChatRoomNotificationStatusEnum::ALL
                 );
 
                 // TODO: Add push notifications and emails
@@ -185,11 +201,17 @@ class RoomService
         int     $first = 12,
         ?string $after = null
     ): array {
+        [
+            'lastMessageCreatedAtTimestamp' => $lastMessageCreatedAtTimestamp,
+            'roomCreatedAtTimestamp' => $roomCreatedAtTimestamp
+        ] = ChatRoomEdgeCursorHelper::readCursor($after);
+
         ['chatRooms' => $chatRooms, 'hasMore' => $hasMore] = $this->roomRepository->getRoomsByMember(
             user: $user,
             targetMemberStatuses: [ChatRoomMemberStatusEnum::ACTIVE->name],
             limit: $first,
-            offset: $after ? base64_decode($after, true) : null
+            lastMessageCreatedAtTimestamp: $lastMessageCreatedAtTimestamp ?? null,
+            roomCreatedAtTimestamp: $roomCreatedAtTimestamp ?? null
         );
 
         return [
@@ -198,9 +220,10 @@ class RoomService
                     node: new ChatRoomNode(
                         chatRoom: $chatRoomListItem->chatRoom
                     ),
-                    cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
-                        base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :
-                        base64_encode("0:{$chatRoomListItem->chatRoom->createdAt->getTimestamp()}"),
+                    cursor: ChatRoomEdgeCursorHelper::generateCursor(
+                        roomCreatedAtTimestamp: $chatRoomListItem->chatRoom->createdAt->getTimestamp(),
+                        lastMessageCreatedAtTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
+                    ),
                     lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
                     lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp,
                     unreadMessagesCount: $chatRoomListItem->unreadMessagesCount,
@@ -209,6 +232,17 @@ class RoomService
             ),
             'hasMore' => $hasMore
         ];
+    }
+
+    /**
+     * @param User $user
+     * @return string[]
+     * @throws ServerErrorException
+     */
+    public function getRoomGuidsByMember(
+        User $user
+    ): array {
+        return iterator_to_array($this->roomRepository->getRoomGuidsByMember($user));
     }
 
     /**
@@ -228,7 +262,7 @@ class RoomService
      * @param int|null $first
      * @param string|null $after
      * @param bool $excludeSelf
-     * @return array
+     * @return array{edges: ChatRoomMemberEdge[], hasMore: bool}
      * @throws GraphQLException
      * @throws ServerErrorException
      */
@@ -254,11 +288,17 @@ class RoomService
 
         // TODO: Filter out blocked, deleted, disabled and banned users
 
+        [
+            'joinedTimestamp' => $offsetJoinedTimestamp,
+            'memberGuid' => $offsetMemberGuid
+        ] = ChatRoomMemberEdgeCursorHelper::readCursor($after);
+
         ['members' => $members, 'hasMore' => $hasMore] = $this->roomRepository->getRoomMembers(
             roomGuid: $roomGuid,
             user: $loggedInUser,
             limit: $first ?? 12,
-            offset: $after ? (int)base64_decode($after, true) : null,
+            offsetJoinedTimestamp: $offsetJoinedTimestamp ?? null,
+            offsetMemberGuid: $offsetMemberGuid ?? null,
             excludeSelf: $excludeSelf
         );
 
@@ -275,13 +315,46 @@ class RoomService
                             user: $user
                         ),
                         role: constant(ChatRoomRoleEnum::class . '::' . $member['role_id']),
-                        cursor: base64_encode($member['joined_timestamp'] ?? "0")
+                        cursor: ChatRoomMemberEdgeCursorHelper::generateCursor(
+                            memberGuid: (int)$member['member_guid'],
+                            joinedTimestamp: (int)$member['joined_timestamp']
+                        ),
+                        notificationStatus: constant(ChatRoomNotificationStatusEnum::class . '::' . $member['notifications_status'])
                     );
                 },
                 $members
             ),
             'hasMore' => $hasMore
         ];
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param User $user
+     * @param bool $excludeSelf
+     * @return iterable<ChatRoomMemberEdge>
+     * @throws ServerErrorException
+     */
+    public function getAllRoomMembers(
+        int $roomGuid,
+        User $user,
+        bool $excludeSelf = true
+    ): iterable {
+        foreach ($this->roomRepository->getAllRoomMembers(roomGuid: $roomGuid, user: $user, excludeSelf: $excludeSelf) as $member) {
+            $user = $this->entitiesBuilder->single($member['member_guid']);
+            if (!$user) {
+                return null;
+            }
+
+            yield new ChatRoomMemberEdge(
+                node: new UserNode(
+                    user: $user
+                ),
+                role: constant(ChatRoomRoleEnum::class . '::' . $member['role_id']),
+                cursor: base64_encode($member['joined_timestamp'] ?? "0:{$member['member_guid']}"),
+                notificationStatus: constant(ChatRoomNotificationStatusEnum::class . '::' . $member['notifications_status'])
+            );
+        }
     }
 
     /**
@@ -322,6 +395,11 @@ class RoomService
 
         $chatRoomListItem = $chatRooms[0] ?? throw new ChatRoomNotFoundException();
 
+        $chatRoomMemberSettings = $this->roomRepository->getRoomMemberSettings(
+            roomGuid: $roomGuid,
+            memberGuid: (int)$loggedInUser->getGuid()
+        );
+
         return new ChatRoomEdge(
             node: new ChatRoomNode(
                 chatRoom: $chatRoomListItem->chatRoom,
@@ -333,7 +411,10 @@ class RoomService
                     roomGuid: $roomGuid,
                     user: $loggedInUser
                 ),
-                areChatRoomNotificationsMuted: (bool) mt_rand(0, 1) // TODO: Fetch notifications status for room from db
+                chatRoomNotificationStatus:
+                    $chatRoomMemberSettings['notifications_status'] ?
+                        constant(ChatRoomNotificationStatusEnum::class . '::' . $chatRoomMemberSettings['notifications_status']) :
+                        ChatRoomNotificationStatusEnum::MUTED,
             ),
             cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
                 base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :
@@ -355,11 +436,17 @@ class RoomService
         int     $first = 12,
         ?string $after = null
     ): array {
+        [
+            'lastMessageCreatedAtTimestamp' => $lastMessageCreatedAtTimestamp,
+            'roomCreatedAtTimestamp' => $roomCreatedAtTimestamp
+        ] = ChatRoomEdgeCursorHelper::readCursor($after);
+
         ['chatRooms' => $chatRooms, 'hasMore' => $hasMore] = $this->roomRepository->getRoomsByMember(
             user: $user,
             targetMemberStatuses: [ChatRoomMemberStatusEnum::INVITE_PENDING->name],
             limit: $first,
-            offset: $after ? base64_decode($after, true) : null
+            lastMessageCreatedAtTimestamp: $lastMessageCreatedAtTimestamp ?? null,
+            roomCreatedAtTimestamp: $roomCreatedAtTimestamp ?? null
         );
 
         return [
@@ -368,9 +455,10 @@ class RoomService
                     node: new ChatRoomNode(
                         chatRoom: $chatRoomListItem->chatRoom
                     ),
-                    cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
-                        base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :
-                        base64_encode("0:{$chatRoomListItem->chatRoom->createdAt->getTimestamp()}"),
+                    cursor: ChatRoomEdgeCursorHelper::generateCursor(
+                        roomCreatedAtTimestamp: $chatRoomListItem->chatRoom->createdAt->getTimestamp(),
+                        lastMessageCreatedAtTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
+                    ),
                     lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
                     lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
                 ),
@@ -600,5 +688,32 @@ class RoomService
         }
 
         return true;
+    }
+
+    /**
+     * @param int $roomGuid
+     * @param User $user
+     * @param ChatRoomNotificationStatusEnum $notificationStatus
+     * @return bool
+     * @throws GraphQLException
+     * @throws ServerErrorException
+     */
+    public function updateRoomMemberSettings(
+        int $roomGuid,
+        User $user,
+        ChatRoomNotificationStatusEnum $notificationStatus
+    ): bool {
+        if (!$this->isUserMemberOfRoom(
+            user: $user,
+            roomGuid: $roomGuid
+        )) {
+            throw new GraphQLException(message: "You are not a member of this chat.", code: 403);
+        }
+
+        return $this->roomRepository->updateRoomMemberSettings(
+            roomGuid: $roomGuid,
+            memberGuid: (int) $user->getGuid(),
+            notificationStatus: $notificationStatus
+        );
     }
 }

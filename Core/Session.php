@@ -39,30 +39,6 @@ class Session extends base
     }
 
     /**
-     * Create a JWT token for our web socket integration
-     * @param User $user
-     * @return null
-     */
-    public static function generateJWTCookie($session)
-    {
-        $expires = time() + (60 * 60); // expire in 1 hour
-        $jwt = \Firebase\JWT\JWT::encode([
-            'guid' => (string) $session->getUserGuid(),
-            'expires' => $expires,
-            'sessionId' => $session->getId(),
-        ], Config::_()->get('sockets')['jwt_secret'] ?? '', 'HS512');
-
-        $cookie = new Cookie();
-        $cookie
-            ->setName('socket_jwt')
-            ->setValue($jwt)
-            ->setExpire($expires)
-            ->setPath('/')
-            ->setDomain(Config::_()->get('sockets')['jwt_domain'] ?? 'minds.com')
-            ->create();
-    }
-
-    /**
      * Construct the user via the OAuth middleware
      * @param $server
      * @return void

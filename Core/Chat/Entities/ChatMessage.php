@@ -3,8 +3,10 @@ namespace Minds\Core\Chat\Entities;
 
 use DateTime;
 use DateTimeInterface;
+use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Di\Di;
 use Minds\Entities\EntityInterface;
+use Minds\Helpers\Export;
 
 class ChatMessage implements EntityInterface
 {
@@ -17,6 +19,7 @@ class ChatMessage implements EntityInterface
         public readonly int $guid,
         public readonly int $senderGuid,
         public readonly string $plainText,
+        public readonly ChatMessageTypeEnum $messageType = ChatMessageTypeEnum::PLAIN_TEXT,
         ?DateTimeInterface $createdAt = null
     ) {
         $this->createdAt = $createdAt ?? new DateTime();
@@ -84,8 +87,8 @@ class ChatMessage implements EntityInterface
             'roomGuid' => $this->roomGuid,
             'type' => $this->getType(),
             'subtype' => $this->getSubtype(),
-            'sender' => $sender->export(),
-            'plainText' => $this->plainText,
+            'sender' => $sender?->export(),
+            'plainText' => Export::sanitizeString($this->plainText),
             'createdTimestampUnix' => $this->createdAt->getTimestamp()
         ];
     }

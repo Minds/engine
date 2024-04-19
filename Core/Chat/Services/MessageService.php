@@ -5,14 +5,19 @@ namespace Minds\Core\Chat\Services;
 
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Events\Sockets\ChatEvent;
+use Minds\Core\Chat\Events\Sockets\Enums\ChatEventTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
+use Minds\Core\Chat\Notifications\Events\ChatNotificationEvent;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Chat\Types\ChatMessageEdge;
 use Minds\Core\Chat\Types\ChatMessageNode;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\Guid;
+use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use PDOException;
@@ -24,7 +29,9 @@ class MessageService
         private readonly MessageRepository $messageRepository,
         private readonly RoomRepository $roomRepository,
         private readonly ReceiptService $receiptService,
-        private readonly EntitiesBuilder $entitiesBuilder
+        private readonly EntitiesBuilder $entitiesBuilder,
+        private readonly SocketEvents $socketEvents,
+        private readonly ChatNotificationsTopic $chatNotificationsTopic
     ) {
     }
 
@@ -73,6 +80,26 @@ class MessageService
 
             // Commit
             $this->messageRepository->commitTransaction();
+
+            $this->socketEvents
+                ->setRoom("chat:$roomGuid")
+                ->emit(
+                    "chat:$roomGuid",
+                    json_encode(new ChatEvent(
+                        type: ChatEventTypeEnum::NEW_MESSAGE,
+                        metadata: [
+                            'senderGuid' => (string) $user->getGuid(),
+                        ],
+                    ))
+                );
+
+            $this->chatNotificationsTopic->send(
+                (new ChatNotificationEvent(
+                    entityUrn: $chatMessage->getUrn(),
+                    fromGuid: $chatMessage->senderGuid
+                ))
+                ->setTimestamp($chatMessage->createdAt->getTimestamp())
+            );
         } catch (PDOException $e) {
             $this->messageRepository->rollbackTransaction();
         }
@@ -148,7 +175,7 @@ class MessageService
      * Returns a single message
      * @param int $roomGuid
      * @param int $messageGuid
-     * @param User $user
+     * @param User|null $user
      * @return ChatMessage
      * @throws ChatMessageNotFoundException
      * @throws GraphQLException
@@ -157,9 +184,12 @@ class MessageService
     public function getMessage(
         int $roomGuid,
         int $messageGuid,
-        User $user
+        ?User $user = null,
+        bool $skipPermissionCheck = false
     ): ChatMessage {
         if (
+            !$skipPermissionCheck &&
+            $user &&
             !$this->roomRepository->isUserMemberOfRoom(
                 roomGuid: $roomGuid,
                 user: $user,

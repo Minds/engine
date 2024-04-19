@@ -118,6 +118,11 @@ class PulsarMessageBuilderMock
         return new PulsarMessageMock();
     }
 
+    public function setDeliverAfter(int $delayTs)
+    {
+        return $this;
+    }
+
     public function setEventTimestamp(int $timestamp)
     {
         return $this;

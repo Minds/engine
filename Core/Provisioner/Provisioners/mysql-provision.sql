@@ -958,6 +958,17 @@ CREATE TABLE IF NOT EXISTS minds_user_rss_imports(
     PRIMARY KEY (tenant_id, feed_id, url)
 );
 
+CREATE TABLE IF NOT EXISTS minds_chat_room_member_settings
+(
+    tenant_id int,
+    room_guid bigint,
+    member_guid bigint,
+    notifications_status enum('MUTED', 'MENTIONS', 'ALL'),
+    PRIMARY KEY (tenant_id, room_guid, member_guid),
+    INDEX (tenant_id, room_guid),
+    INDEX (member_guid)
+);
+
 ALTER TABLE `minds_entities_user`
 	ADD `opt_out_analytics` boolean DEFAULT FALSE
 	AFTER `canonical_url`;
@@ -973,3 +984,10 @@ ALTER TABLE minds.minds_payments_config
 ALTER TABLE minds.minds_payments_config
     ADD stripe_webhook_domain_url varchar(256) DEFAULT NULL
     AFTER stripe_webhook_secret;
+
+ALTER TABLE minds_tenant_mobile_configs  ADD COLUMN eas_project_id varchar(32) AFTER update_timestamp;
+ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_slug varchar(32) AFTER eas_project_id;
+ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_scheme varchar(16) AFTER app_slug;
+ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_ios_bundle varchar(32) AFTER app_scheme;
+ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_android_package varchar(32) AFTER app_ios_bundle;
+

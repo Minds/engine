@@ -6,6 +6,7 @@ namespace Spec\Minds\Core\Chat\Repositories;
 use DateTimeImmutable;
 use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Repositories\RoomRepository;
@@ -25,9 +26,11 @@ use Selective\Database\Operator;
 use Selective\Database\RawExp;
 use Selective\Database\SelectQuery;
 use Selective\Database\UpdateQuery;
+use Spec\Minds\Common\Traits\CommonMatchers;
 
 class RoomRepositorySpec extends ObjectBehavior
 {
+    use CommonMatchers;
     private Collaborator $mysqlHandlerMock;
     private Collaborator $mysqlClientWriterHandlerMock;
     private Collaborator $mysqlClientReaderHandlerMock;
@@ -171,7 +174,6 @@ class RoomRepositorySpec extends ObjectBehavior
             ->shouldEqual(true);
     }
 
-    // TODO: finish this test
     public function it_should_get_rooms_by_member_NO_OFFSET(
         SelectQuery $selectQueryMock,
         PDOStatement $pdoStatementMock,
@@ -297,6 +299,81 @@ class RoomRepositorySpec extends ObjectBehavior
             null
         )
             ->shouldBeArray();
+    }
+
+    public function it_should_get_room_guids_by_member(
+        SelectQuery $selectQueryMock,
+        PDOStatement $pdoStatementMock,
+        User $userMock
+    ): void {
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+
+        $userMock->getGuid()
+            ->shouldBeCalledTimes(2)
+            ->willReturn(456);
+
+        $pdoStatementMock->execute([
+            'tenant_id' => 1,
+            'member_guid_1' => 456,
+            'member_guid_2' => 456,
+            'status_1' => ChatRoomMemberStatusEnum::ACTIVE->name,
+            'status_2' => ChatRoomMemberStatusEnum::INVITE_PENDING->name,
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $pdoStatementMock->setFetchMode(PDO::FETCH_COLUMN, 0)
+            ->shouldBeCalledOnce();
+
+        $pdoStatementMock->getIterator()
+            ->shouldBeCalledOnce()
+            ->willYield([
+                123
+            ]);
+
+        $selectQueryMock->columns([
+            'r.room_guid'
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->from(new RawExp(RoomRepository::TABLE_NAME . " as r"))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->leftJoinRaw(
+            new RawExp(RoomRepository::MEMBERS_TABLE_NAME . " as m"),
+            'm.room_guid = r.room_guid AND m.tenant_id = r.tenant_id AND m.member_guid = :member_guid_1',
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->leftJoinRaw(
+            new RawExp("minds_group_membership as gm"),
+            'r.group_guid = gm.group_guid AND gm.user_guid = :member_guid_2',
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->whereRaw("(m.status IS NOT NULL AND m.status IN (:status_1, :status_2)) OR
+                (gm.group_guid IS NOT NULL AND m.status IS NULL)")
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $this->mysqlClientReaderHandlerMock->select()
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $this->getRoomGuidsByMember($userMock)
+            ->shouldYield([123]);
     }
 
     public function it_should_get_total_room_members(
@@ -522,6 +599,7 @@ class RoomRepositorySpec extends ObjectBehavior
                     'status' => ChatRoomMemberStatusEnum::ACTIVE->name,
                     'role_id' => ChatRoomRoleEnum::OWNER->name,
                     'joined_timestamp' => '2021-01-01 00:00:00',
+                    'notifications_status' => ChatRoomNotificationStatusEnum::ALL->name,
                 ]
             ]);
 
@@ -536,27 +614,41 @@ class RoomRepositorySpec extends ObjectBehavior
         ])
             ->shouldBeCalledOnce();
 
-        $selectQueryMock->from(RoomRepository::MEMBERS_TABLE_NAME)
+        $selectQueryMock->columns([
+            'm.*',
+            'rms.notifications_status'
+        ])
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
-        $selectQueryMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+        $selectQueryMock->from(new RawExp(RoomRepository::MEMBERS_TABLE_NAME . ' as m'))
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
-        $selectQueryMock->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+        $selectQueryMock->joinRaw(
+            new RawExp(RoomRepository::ROOM_MEMBER_SETTINGS_TABLE_NAME . ' as rms'),
+            'rms.tenant_id = m.tenant_id AND rms.member_guid = m.member_guid AND rms.room_guid = m.room_guid',
+        )
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
-        $selectQueryMock->whereWithNamedParameters('status', Operator::IN, 'status', 2)
+        $selectQueryMock->where('m.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
-        $selectQueryMock->where('member_guid', Operator::NOT_EQ, new RawExp(':member_guid'))
+        $selectQueryMock->where('m.room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
-        $selectQueryMock->orderBy('joined_timestamp ASC')
+        $selectQueryMock->whereWithNamedParameters('m.status', Operator::IN, 'status', 2)
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('m.member_guid', Operator::NOT_EQ, new RawExp(':member_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->orderBy('m.joined_timestamp ASC', 'm.member_guid DESC')
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
@@ -577,9 +669,115 @@ class RoomRepositorySpec extends ObjectBehavior
             $userMock,
             12,
             null,
+            null,
             true
         )
             ->shouldBeArray();
+    }
+
+    // TODO: implement test for getAllRoomMembers
+
+    public function it_should_get_all_room_members(
+        SelectQuery $selectQueryMock,
+        PDOStatement $pdoStatementMock,
+        User $userMock
+    ): void {
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+
+        $userMock->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn(456);
+
+        $pdoStatementMock->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $pdoStatementMock->setFetchMode(PDO::FETCH_ASSOC)
+            ->shouldBeCalledOnce();
+
+        $pdoStatementMock->getIterator()
+            ->shouldBeCalledOnce()
+            ->willYield([
+                [
+                    'member_guid' => 456,
+                    'status' => ChatRoomMemberStatusEnum::ACTIVE->name,
+                    'role_id' => ChatRoomRoleEnum::OWNER->name,
+                    'joined_timestamp' => '2021-01-01 00:00:00',
+                    'notifications_status' => ChatRoomNotificationStatusEnum::ALL->value,
+                ]
+            ]);
+
+        $this->mysqlHandlerMock->bindValuesToPreparedStatement($pdoStatementMock, [
+            'tenant_id' => 1,
+            'room_guid' => 123,
+            'member_guid' => "456",
+            'status' => [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+        ])
+            ->shouldBeCalledOnce();
+
+        $selectQueryMock->columns([
+            'm.*',
+            'rms.notifications_status'
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->from(new RawExp(RoomRepository::MEMBERS_TABLE_NAME . ' as m'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->joinRaw(
+            new RawExp(RoomRepository::ROOM_MEMBER_SETTINGS_TABLE_NAME . ' as rms'),
+            'rms.tenant_id = m.tenant_id AND rms.member_guid = m.member_guid AND rms.room_guid = m.room_guid',
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('m.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('m.room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->whereWithNamedParameters('m.status', Operator::IN, 'status', 2)
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('m.member_guid', Operator::NOT_EQ, new RawExp(':member_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->orderBy('m.joined_timestamp ASC', 'm.member_guid DESC')
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $this->mysqlClientReaderHandlerMock->select()
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $this->getAllRoomMembers(
+            123,
+            $userMock,
+            true
+        )
+            ->shouldBeAGeneratorWithValues([
+                [
+                    'member_guid' => 456,
+                    'status' => ChatRoomMemberStatusEnum::ACTIVE->name,
+                    'role_id' => ChatRoomRoleEnum::OWNER->name,
+                    'joined_timestamp' => '2021-01-01 00:00:00',
+                    'notifications_status' => ChatRoomNotificationStatusEnum::ALL->value,
+                ]
+            ]);
     }
 
     public function it_should_get_total_room_invite_requests_by_member(
@@ -827,7 +1025,7 @@ class RoomRepositorySpec extends ObjectBehavior
 
         $selectQueryMock->innerJoin(
             new RawExp("($secondQueryString) as r2"),
-            'r2.room_guid',
+            'r.room_guid',
             Operator::EQ,
             'r2.room_guid'
         )
@@ -929,6 +1127,43 @@ class RoomRepositorySpec extends ObjectBehavior
             ->shouldEqual(true);
     }
 
+    public function it_should_delete_all_room_members_settings(
+        DeleteQuery $deleteQueryMock,
+        PDOStatement $pdoStatementMock
+    ): void {
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+
+        $pdoStatementMock->execute([
+            'tenant_id' => 1,
+            'room_guid' => 123,
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $deleteQueryMock->from(RoomRepository::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $deleteQueryMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $deleteQueryMock->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $deleteQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $this->mysqlClientWriterHandlerMock->delete()
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $this->deleteAllRoomMembersSettings(123)
+            ->shouldEqual(true);
+    }
+
     public function it_should_delete_all_room_members(
         DeleteQuery $deleteQueryMock,
         PDOStatement $pdoStatementMock
@@ -969,17 +1204,18 @@ class RoomRepositorySpec extends ObjectBehavior
     public function it_should_delete_room(
         DeleteQuery $deleteMessagesMock,
         DeleteQuery $deleteMessageReceiptsMock,
+        DeleteQuery $deleteMembersSettingsMock,
         DeleteQuery $deleteMembersMock,
         DeleteQuery $deleteRoomMock,
         PDOStatement $pdoStatementMock
     ): void {
-        $this->configMock->get('tenant_id')->shouldBeCalledTimes(4)->willReturn(1);
+        $this->configMock->get('tenant_id')->shouldBeCalledTimes(5)->willReturn(1);
 
         $pdoStatementMock->execute([
             'tenant_id' => 1,
             'room_guid' => 123,
         ])
-            ->shouldBeCalledTimes(4)
+            ->shouldBeCalledTimes(5)
             ->willReturn(true);
 
         // Delete message read receipts
@@ -1013,6 +1249,23 @@ class RoomRepositorySpec extends ObjectBehavior
             ->willReturn($deleteMessagesMock);
 
         $deleteMessagesMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        // Delete members settings
+        $deleteMembersSettingsMock->from(RoomRepository::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteMembersSettingsMock);
+
+        $deleteMembersSettingsMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteMembersSettingsMock);
+
+        $deleteMembersSettingsMock->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteMembersSettingsMock);
+
+        $deleteMembersSettingsMock->prepare()
             ->shouldBeCalledOnce()
             ->willReturn($pdoStatementMock);
 
@@ -1051,10 +1304,11 @@ class RoomRepositorySpec extends ObjectBehavior
             ->willReturn($pdoStatementMock);
 
         $this->mysqlClientWriterHandlerMock->delete()
-            ->shouldBeCalledTimes(4)
+            ->shouldBeCalledTimes(5)
             ->willReturn(
                 $deleteMessageReceiptsMock,
                 $deleteMessagesMock,
+                $deleteMembersSettingsMock,
                 $deleteMembersMock,
                 $deleteRoomMock
             );
@@ -1124,5 +1378,205 @@ class RoomRepositorySpec extends ObjectBehavior
             $userMock
         )
             ->shouldEqual(true);
+    }
+
+    public function it_should_add_room_member_default_settings(
+        InsertQuery $insertQueryMock,
+        PDOStatement $pdoStatementMock
+    ): void {
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+
+        $pdoStatementMock->execute()
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $insertQueryMock->into(RoomRepository::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+            ->shouldBeCalledOnce()
+            ->willReturn($insertQueryMock);
+
+        $insertQueryMock->set([
+            'tenant_id' => 1,
+            'room_guid' => 123,
+            'member_guid' => 456,
+            'notifications_status' => ChatRoomNotificationStatusEnum::ALL->value,
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn($insertQueryMock);
+
+        $insertQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $this->mysqlClientWriterHandlerMock->insert()
+            ->shouldBeCalledOnce()
+            ->willReturn($insertQueryMock);
+
+        $this->addRoomMemberDefaultSettings(
+            123,
+            456,
+            ChatRoomNotificationStatusEnum::ALL
+        )
+            ->shouldEqual(true);
+    }
+
+    public function it_should_update_room_member_settings(
+        UpdateQuery $updateQueryMock,
+        PDOStatement $pdoStatementMock
+    ): void {
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+
+        $pdoStatementMock->execute([
+            'tenant_id' => 1,
+            'room_guid' => 123,
+            'member_guid' => 456,
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $updateQueryMock->table(RoomRepository::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQueryMock);
+
+        $updateQueryMock->set([
+            'notifications_status' => ChatRoomNotificationStatusEnum::ALL->value,
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQueryMock);
+
+        $updateQueryMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQueryMock);
+
+        $updateQueryMock->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQueryMock);
+
+        $updateQueryMock->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQueryMock);
+
+        $updateQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $this->mysqlClientWriterHandlerMock->update()
+            ->shouldBeCalledOnce()
+            ->willReturn($updateQueryMock);
+
+        $this->updateRoomMemberSettings(
+            123,
+            456,
+            ChatRoomNotificationStatusEnum::ALL
+        )
+            ->shouldEqual(true);
+    }
+
+    public function it_should_delete_room_member_settings(
+        DeleteQuery $deleteQueryMock,
+        PDOStatement $pdoStatementMock
+    ): void {
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+
+        $pdoStatementMock->execute([
+            'tenant_id' => 1,
+            'room_guid' => 123,
+            'member_guid' => 456,
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $deleteQueryMock->from(RoomRepository::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $deleteQueryMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $deleteQueryMock->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $deleteQueryMock->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $deleteQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $this->mysqlClientWriterHandlerMock->delete()
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $this->deleteRoomMemberSettings(
+            123,
+            456,
+            ChatRoomNotificationStatusEnum::ALL
+        )
+            ->shouldEqual(true);
+    }
+
+    public function it_should_get_room_member_settings(
+        SelectQuery $selectQueryMock,
+        PDOStatement $pdoStatementMock
+    ): void {
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+
+        $pdoStatementMock->execute([
+            'tenant_id' => 1,
+            'room_guid' => 123,
+            'member_guid' => 456,
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $pdoStatementMock->fetch(PDO::FETCH_ASSOC)
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'notifications_status' => "ALL"
+            ]);
+
+        $selectQueryMock->from(RoomRepository::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->columns([
+            'notifications_status'
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->limit(1)
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $this->mysqlClientReaderHandlerMock->select()
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $this->getRoomMemberSettings(
+            123,
+            456
+        )
+            ->shouldBeSameAs([
+                'notifications_status' => "ALL"
+            ]);
     }
 }

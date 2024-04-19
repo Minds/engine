@@ -4,6 +4,7 @@ namespace Minds\Core\Chat\Types;
 use Minds\Core\GraphQL\Types\EdgeInterface;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
+use TheCodingMachine\GraphQLite\Types\ID;
 
 #[Type]
 class ChatMessageEdge implements EdgeInterface
@@ -13,6 +14,12 @@ class ChatMessageEdge implements EdgeInterface
         protected string $cursor = ''
     ) {
         
+    }
+
+    #[Field]
+    public function getId(): ID
+    {
+        return $this->node->getId();
     }
 
     #[Field]
