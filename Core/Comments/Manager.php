@@ -8,20 +8,19 @@
 
 namespace Minds\Core\Comments;
 
+use Minds\Common\Repository\Response;
 use Minds\Common\Urn;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Events\EventsDispatcher;
+use Minds\Core\EventStreams\UndeliveredEventException;
 use Minds\Core\Luid;
 use Minds\Core\Security\ACL;
-use Minds\Core\Session;
+use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
+use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 use Minds\Entities\User;
 use Minds\Exceptions\BlockedUserException;
 use Minds\Exceptions\InvalidLuidException;
-use Minds\Common\Repository\Response;
-use Minds\Core\Events\EventsDispatcher;
-use Minds\Core\EventStreams\UndeliveredEventException;
-use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
-use Minds\Core\Security\Rbac\Services\RbacGatekeeperService;
 
 class Manager
 {
@@ -396,7 +395,7 @@ class Manager
         }
 
         if (count($components) !== 5) {
-            error_log("[CommentsManager]: Invalid Comment URN (${$components})");
+            error_log("[CommentsManager]: Invalid Comment URN ($components)");
             return null;
         }
 

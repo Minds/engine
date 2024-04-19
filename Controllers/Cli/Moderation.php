@@ -2,13 +2,12 @@
 
 namespace Minds\Controllers\Cli;
 
+use Minds\Cli;
 use Minds\Core;
 use Minds\Core\Di\Di;
-use Minds\Cli;
-use Minds\Core\Reports\Strikes\Strike;
 use Minds\Core\Reports\Summons\Summons;
-use Minds\Interfaces;
 use Minds\Entities;
+use Minds\Interfaces;
 
 class Moderation extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -140,7 +139,7 @@ class Moderation extends Cli\Controller implements Interfaces\CliControllerInter
             ]);
 
             $this->out("Summoned {$user->guid} to {$reportUrn}");
-            $this->out("${missing} juror(s) missing.");
+            $this->out("$missing juror(s) missing.");
         } else {
             $summons = new Summons();
             $summons
@@ -151,7 +150,7 @@ class Moderation extends Cli\Controller implements Interfaces\CliControllerInter
 
             $summonsManager->respond($summons);
 
-            $this->out("Responded to {$user->guid}'s summons to {$reportUrn} with {$respond}");
+            $this->out("Responded to $user->guid's summons to $reportUrn with $respond");
         }
     }
 }

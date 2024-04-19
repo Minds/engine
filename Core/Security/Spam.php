@@ -2,11 +2,10 @@
 
 namespace Minds\Core\Security;
 
-use Minds\Helpers\Text;
 use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
-use Minds\Core\Security\ProhibitedDomains;
 use Minds\Exceptions\ProhibitedDomainException;
+use Minds\Helpers\Text;
 
 class Spam
 {
@@ -54,7 +53,7 @@ class Spam
         }
 
         if ($foundSpam) {
-            throw new ProhibitedDomainException("Sorry, you included a reference to a domain name linked to spam (${foundSpam})");
+            throw new ProhibitedDomainException("Sorry, you included a reference to a domain name linked to spam ($foundSpam)");
             return true;
         }
         return $foundSpam ? true : false;
@@ -69,7 +68,7 @@ class Spam
     public function checkText(string $text): bool
     {
         if ($foundSpam = Text::strposa($text, $this->getDomains()) ?? false) {
-            throw new ProhibitedDomainException("Sorry, you included a reference to a domain name linked to spam (${foundSpam})");
+            throw new ProhibitedDomainException("Sorry, you included a reference to a domain name linked to spam ($foundSpam)");
         }
         return true;
     }
