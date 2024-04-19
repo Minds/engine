@@ -26,7 +26,7 @@ class Provider extends DiProvider
             $pulsarSchema = ($pulsarConfig['ssl'] ?? true) ? 'pulsar+ssl' : 'pulsar';
 
             $clientConfig = new Pulsar\ClientConfiguration();
-            $clientConfig->setLogLevel(error_reporting()); // Make pulsar match our logging level
+            $clientConfig->setLogLevel(E_ERROR);
 
             if ($pulsarConfig['ssl'] ?? true) {
                 $clientConfig->setUseTls(true)

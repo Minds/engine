@@ -103,7 +103,6 @@ class MessageServiceSpec extends ObjectBehavior
         $this->chatNotificationsTopicMock->send(Argument::type(ChatNotificationEvent::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
-
         $this->addMessage(
             123,
             $userMock,
