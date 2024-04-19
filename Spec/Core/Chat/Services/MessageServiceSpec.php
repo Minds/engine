@@ -7,12 +7,14 @@ use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Events\Sockets\ChatEvent;
 use Minds\Core\Chat\Events\Sockets\Enums\ChatEventTypeEnum;
+use Minds\Core\Chat\Notifications\Events\ChatNotificationEvent;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Chat\Services\MessageService;
 use Minds\Core\Chat\Services\ReceiptService;
 use Minds\Core\Chat\Types\ChatMessageEdge;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
 use Minds\Core\Guid;
 use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Entities\User;
@@ -29,6 +31,7 @@ class MessageServiceSpec extends ObjectBehavior
     private Collaborator $receiptServiceMock;
     private Collaborator $entitiesBuilderMock;
     private Collaborator $socketEventsMock;
+    private Collaborator $chatNotificationsTopicMock;
 
     private ReflectionClass $chatMessageFactoryMock;
 
@@ -37,14 +40,16 @@ class MessageServiceSpec extends ObjectBehavior
         RoomRepository $roomRepositoryMock,
         ReceiptService $receiptServiceMock,
         EntitiesBuilder $entitiesBuilderMock,
-        SocketEvents $socketEvents
+        SocketEvents $socketEvents,
+        ChatNotificationsTopic $chatNotificationsTopic
     ) {
-        $this->beConstructedWith($messageRepositoryMock, $roomRepositoryMock, $receiptServiceMock, $entitiesBuilderMock, $socketEvents);
+        $this->beConstructedWith($messageRepositoryMock, $roomRepositoryMock, $receiptServiceMock, $entitiesBuilderMock, $socketEvents, $chatNotificationsTopic);
         $this->messageRepositoryMock = $messageRepositoryMock;
         $this->roomRepositoryMock  = $roomRepositoryMock;
         $this->receiptServiceMock = $receiptServiceMock;
         $this->entitiesBuilderMock = $entitiesBuilderMock;
         $this->socketEventsMock = $socketEvents;
+        $this->chatNotificationsTopicMock = $chatNotificationsTopic;
 
         $this->chatMessageFactoryMock = new ReflectionClass(ChatMessage::class);
     }
@@ -89,12 +94,15 @@ class MessageServiceSpec extends ObjectBehavior
             json_encode(new ChatEvent(
                 type: ChatEventTypeEnum::NEW_MESSAGE,
                 metadata: [
-                    'senderGuid' => 123,
+                    'senderGuid' => "123",
                 ],
             ))
         )
             ->shouldBeCalledOnce();
 
+        $this->chatNotificationsTopicMock->send(Argument::type(ChatNotificationEvent::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
         $this->addMessage(
             123,
             $userMock,
@@ -179,11 +187,15 @@ class MessageServiceSpec extends ObjectBehavior
             json_encode(new ChatEvent(
                 type: ChatEventTypeEnum::NEW_MESSAGE,
                 metadata: [
-                    'senderGuid' => 123,
+                    'senderGuid' => "123",
                 ],
             ))
         )
             ->shouldBeCalledOnce();
+
+        $this->chatNotificationsTopicMock->send(Argument::type(ChatNotificationEvent::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
 
         $result = $this->addMessage(roomGuid: $roomGuid, user: $userMock, message: 'just for testing');
         $result->shouldBeAnInstanceOf(ChatMessageEdge::class);
@@ -270,7 +282,8 @@ class MessageServiceSpec extends ObjectBehavior
         $this->getMessage(
             123,
             1,
-            $userMock
+            $userMock,
+            false
         )->shouldBeAnInstanceOf(ChatMessage::class);
     }
 
@@ -299,7 +312,8 @@ class MessageServiceSpec extends ObjectBehavior
         $this->getMessage(
             123,
             1,
-            $userMock
+            $userMock,
+            false
         )->shouldBeAnInstanceOf(ChatMessage::class);
     }
 
@@ -328,7 +342,8 @@ class MessageServiceSpec extends ObjectBehavior
             [
                 123,
                 1,
-                $userMock
+                $userMock,
+                false
             ]
         );
     }

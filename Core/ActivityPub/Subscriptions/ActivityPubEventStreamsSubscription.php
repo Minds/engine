@@ -7,6 +7,8 @@
 namespace Minds\Core\ActivityPub\Subscriptions;
 
 use Minds\Core\ActivityPub\Exceptions\NotImplementedException;
+use Minds\Core\ActivityPub\Exceptions\RemoteGoneException;
+use Minds\Core\ActivityPub\Exceptions\RemoteRateLimitedException;
 use Minds\Core\ActivityPub\Factories\ActorFactory;
 use Minds\Core\ActivityPub\Factories\ObjectFactory;
 use Minds\Core\ActivityPub\Manager;
@@ -23,9 +25,11 @@ use Minds\Core\EventStreams\SubscriptionInterface;
 use Minds\Core\EventStreams\Topics\ActionEventsTopic;
 use Minds\Core\EventStreams\Topics\TopicInterface;
 use Minds\Core\Log\Logger;
+use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Entities\Enums\FederatedEntitySourcesEnum;
 use Minds\Entities\FederatedEntityInterface;
 use Minds\Entities\User;
+use Minds\Entities\EntityInterface;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
 use Minds\Exceptions\UserErrorException;
@@ -87,7 +91,7 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
     {
         if (!$event instanceof ActionEvent) {
             $this->logger->info('Skipping as not an action event');
-            return false;
+            return true;
         }
 
         if (!$this->federationEnabledService->isEnabled()) {
@@ -113,61 +117,70 @@ class ActivityPubEventStreamsSubscription implements SubscriptionInterface
             return true;
         }
 
-        switch ($event->getAction()) {
-            case ActionEvent::ACTION_SUBSCRIBE:
-                $actor = $this->actorFactory->fromEntity($user);
-                $object = $this->actorFactory->fromEntity($entity);
+        try {
+            switch ($event->getAction()) {
+                case ActionEvent::ACTION_SUBSCRIBE:
+                    $actor = $this->actorFactory->fromEntity($user);
+                    $object = $this->actorFactory->fromEntity($entity);
 
-                $follow = new FollowType();
-                $follow->id = $this->manager->getTransientId();
-                $follow->actor = $actor;
-                $follow->object = $object;
+                    $follow = new FollowType();
+                    $follow->id = $this->manager->getTransientId();
+                    $follow->actor = $actor;
+                    $follow->object = $object;
 
-                $this->emitActivityService->emitFollow($follow, $user);
+                    $this->emitActivityService->emitFollow($follow, $user);
 
-                return true;
-            case ActionEvent::ACTION_VOTE_UP:
-            case ActionEvent::ACTION_VOTE_UP_REMOVED:
-                $actor = $this->actorFactory->fromEntity($user);
-                $object = $this->objectFactory->fromEntity($entity);
-
-                if (!isset($object->attributedTo)) {
-                    return true; // No owner, so we will skip
-                }
-
-                $like = new LikeType();
-                $like->id = $this->manager->getTransientId();
-                $like->actor = $actor;
-                $like->object = $object;
-
-                if ($event->getAction() === ActionEvent::ACTION_VOTE_UP_REMOVED) {
-                    $like->object = $object->id;
-                    $this->emitActivityService->emitUndoLike($like, $user, $object->attributedTo);
                     return true;
-                }
+                case ActionEvent::ACTION_VOTE_UP:
+                case ActionEvent::ACTION_VOTE_UP_REMOVED:
+                    $actor = $this->actorFactory->fromEntity($user);
+                    $object = $this->objectFactory->fromEntity($entity);
 
-                $this->emitActivityService->emitLike($like, $user);
-                return true;
-            case ActionEvent::ACTION_UPHELD_REPORT:
-                $this->logger->info('Skipping upheld report');
+                    if (!isset($object->attributedTo)) {
+                        return true; // No owner, so we will skip
+                    }
 
-                $object = $this->objectFactory->fromEntity($entity);
+                    $like = new LikeType();
+                    $like->id = $this->manager->getTransientId();
+                    $like->actor = $actor;
+                    $like->object = $object;
 
-                if (!isset($object->attributedTo)) {
-                    return true; // No owner, so we will skip
-                }
+                    if ($event->getAction() === ActionEvent::ACTION_VOTE_UP_REMOVED) {
+                        $like->object = $object->id;
+                        $this->emitActivityService->emitUndoLike($like, $user, $object->attributedTo);
+                        return true;
+                    }
 
-                $flagType = new FlagType();
-                $flagType->id = $this->manager->getTransientId();
-                $flagType->actor = $this->actorFactory->buildMindsApplicationActor(); // new System Application Type
-                $flagType->object = $object->id;
+                    $this->emitActivityService->emitLike($like, $user);
+                    return true;
+                case ActionEvent::ACTION_UPHELD_REPORT:
+                    $this->logger->info('Skipping upheld report');
 
-                $this->emitActivityService->emitFlag($flagType, $object->attributedTo);
-                return true;
+                    $object = $this->objectFactory->fromEntity($entity);
 
-            default:
-                $this->logger->info('Skipping as not a supported action');
-                return true; // Noop (nothing to do)
+                    if (!isset($object->attributedTo)) {
+                        return true; // No owner, so we will skip
+                    }
+
+                    $flagType = new FlagType();
+                    $flagType->id = $this->manager->getTransientId();
+                    $flagType->actor = $this->actorFactory->buildMindsApplicationActor(); // new System Application Type
+                    $flagType->object = $object->id;
+
+                    $this->emitActivityService->emitFlag($flagType, $object->attributedTo);
+                    return true;
+
+                default:
+                    $this->logger->info('Skipping as not a supported action');
+                    return true; // Noop (nothing to do)
+            }
+        } catch (NotFoundException|ForbiddenException|UserErrorException|RemoteGoneException $e) {
+            $this->logger->info("Skipping: {$entity->getGuid()}: {$e->getCode()} - {$e->getMessage()}");
+            return true;
+        } catch (RemoteRateLimitedException) {
+            $this->logger->info("RateLimited: {$entity->getGuid()} ... delaying one hour");
+            $event->setDelayMs(3600000); // 1 hour
+            return $this->getTopic()->send($event);
         }
     }
 

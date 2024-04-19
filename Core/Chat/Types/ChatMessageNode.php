@@ -4,6 +4,7 @@ namespace Minds\Core\Chat\Types;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\GraphQL\Types\NodeInterface;
+use Minds\Helpers\Export;
 use TheCodingMachine\GraphQLite\Annotations\Field;
 use TheCodingMachine\GraphQLite\Annotations\Type;
 use TheCodingMachine\GraphQLite\Types\ID;
@@ -48,7 +49,7 @@ class ChatMessageNode implements NodeInterface
     #[Field]
     public function getPlainText(): string
     {
-        return $this->chatMessage->plainText;
+        return Export::sanitizeString($this->chatMessage->plainText);
     }
 
     /**

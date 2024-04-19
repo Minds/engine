@@ -12,6 +12,7 @@ use Minds\Entities;
 use Minds\Helpers\Flags;
 use Minds\Interfaces;
 use Minds\Core\Rewards\Contributions\UsersIterator;
+use Minds\Entities\User;
 
 class Contributions extends Cli\Controller implements Interfaces\CliControllerInterface
 {
@@ -58,7 +59,7 @@ class Contributions extends Cli\Controller implements Interfaces\CliControllerIn
             }
             $user = Di::_()->get(EntitiesBuilder::class)->single($guid, ['cache' => false]);
 
-            if (!$user->getPhoneNumberHash()) {
+            if (!$user instanceof User || !$user->getPhoneNumberHash()) {
                 // Avoid users without a phone number hash
                 continue;
             }
