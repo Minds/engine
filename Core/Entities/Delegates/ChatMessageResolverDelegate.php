@@ -41,8 +41,9 @@ class ChatMessageResolverDelegate implements ResolverDelegate
                 }
 
                 $entities[] = $this->chatMessageService->getMessage(
-                    (int) $roomGuid,
-                    (int) $messageGuid
+                    roomGuid: (int) $roomGuid,
+                    messageGuid: (int) $messageGuid,
+                    skipPermissionCheck: php_sapi_name() === 'cli'
                 );
             } catch (ChatMessageNotFoundException $e) {
                 // TODO: log not found
