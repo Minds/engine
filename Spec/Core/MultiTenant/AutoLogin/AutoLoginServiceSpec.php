@@ -74,6 +74,15 @@ class AutoLoginServiceSpec extends ObjectBehavior
         $url->shouldContain('phpspec.local');
     }
 
+    public function it_should_build_a_login_url_from_tenant(Tenant $tenant)
+    {
+        $this->tenantDomainServiceMock->buildDomain($tenant)
+            ->willReturn('phpspec.local');
+
+        $url = $this->buildLoginUrlFromTenant($tenant);
+        $url->shouldContain('phpspec.local');
+    }
+
     public function it_should_build_a_jwt_token(User $userMock)
     {
         $tenant = new Tenant(
@@ -112,6 +121,48 @@ class AutoLoginServiceSpec extends ObjectBehavior
         //
 
         $url = $this->buildJwtToken(1, $userMock);
+        $url->shouldContain('jwt-token');
+    }
+
+    public function it_should_build_a_jwt_token_from_tenant(User $userMock)
+    {
+        $tenant = new Tenant(
+            id: 1,
+            ownerGuid: 123,
+            rootUserGuid: 456
+        );
+        $loginUserGuid = 567;
+    
+        $this->tenantDataServiceMock->getTenantFromId(1)
+            ->willReturn($tenant);
+
+        $userMock->getGuid()
+            ->willReturn(123);
+
+        //
+
+        $this->jwtMock->randomString()->willReturn('random');
+
+        $this->tmpStoreMock->set(Argument::type('string'), Argument::any(), Argument::type('int'))
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $encryptionKey = 'enc-key';
+
+        $this->configMock->get('oauth')
+            ->willReturn([
+                'encryption_key' => $encryptionKey,
+            ]);
+
+        $this->jwtMock->setKey($encryptionKey)
+            ->willReturn($this->jwtMock);
+        
+        $this->jwtMock->encode(Argument::type('array'), Argument::type('int'), Argument::type('int'), )
+            ->willReturn('jwt-token');
+
+        //
+
+        $url = $this->buildJwtTokenFromTenant($tenant, $userMock, $loginUserGuid);
         $url->shouldContain('jwt-token');
     }
 

@@ -141,6 +141,8 @@ class ActionEvent implements EventInterface
     /** @var string[] */
     protected $actionData = [];
 
+    protected int $delayMs = 0;
+
     /**
      * @param string $action
      * @return self
@@ -282,5 +284,22 @@ class ActionEvent implements EventInterface
     public function getActionData(): array
     {
         return $this->actionData;
+    }
+
+    /**
+     * Set if the action should be delayed or not
+     */
+    public function setDelayMs(int $ms): self
+    {
+        $this->delayMs = $ms;
+        return $this;
+    }
+
+    /**
+     * Returns the intended delay, in milliseconds
+     */
+    public function getDelayMs(): int
+    {
+        return $this->delayMs;
     }
 }

@@ -8,6 +8,7 @@ use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatRoomInviteRequestActionEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Enums\ChatRoomRoleEnum;
 use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
@@ -107,6 +108,14 @@ class RoomServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            123,
+            ChatRoomNotificationStatusEnum::ALL
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
         $this->subscriptionsRepositoryMock->isSubscribed(
             456,
             123
@@ -122,6 +131,15 @@ class RoomServiceSpec extends ObjectBehavior
         )
             ->shouldBeCalledOnce()
             ->willReturn(true);
+
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            456,
+            ChatRoomNotificationStatusEnum::ALL
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
 
         $this->roomRepositoryMock->commitTransaction()
             ->shouldBeCalledOnce();
@@ -174,6 +192,14 @@ class RoomServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            123,
+            ChatRoomNotificationStatusEnum::ALL
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
         $this->subscriptionsRepositoryMock->isSubscribed(
             456,
             123
@@ -186,6 +212,14 @@ class RoomServiceSpec extends ObjectBehavior
             456,
             ChatRoomMemberStatusEnum::INVITE_PENDING,
             ChatRoomRoleEnum::OWNER
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            456,
+            ChatRoomNotificationStatusEnum::ALL
         )
             ->shouldBeCalledOnce()
             ->willReturn(true);
@@ -241,6 +275,14 @@ class RoomServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            123,
+            ChatRoomNotificationStatusEnum::ALL
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
         $this->subscriptionsRepositoryMock->isSubscribed(
             456,
             123
@@ -253,6 +295,14 @@ class RoomServiceSpec extends ObjectBehavior
             456,
             ChatRoomMemberStatusEnum::INVITE_PENDING,
             ChatRoomRoleEnum::OWNER
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            456,
+            ChatRoomNotificationStatusEnum::ALL
         )
             ->shouldBeCalledOnce()
             ->willReturn(true);
@@ -353,6 +403,14 @@ class RoomServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            123,
+            ChatRoomNotificationStatusEnum::ALL
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
         $this->subscriptionsRepositoryMock->isSubscribed(
             456,
             123
@@ -376,11 +434,27 @@ class RoomServiceSpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            456,
+            ChatRoomNotificationStatusEnum::ALL
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
         $this->roomRepositoryMock->addRoomMember(
             Argument::type('integer'),
             789,
             ChatRoomMemberStatusEnum::ACTIVE,
             ChatRoomRoleEnum::MEMBER
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->roomRepositoryMock->addRoomMemberDefaultSettings(
+            Argument::type('integer'),
+            789,
+            ChatRoomNotificationStatusEnum::ALL
         )
             ->shouldBeCalledOnce()
             ->willReturn(true);
@@ -549,6 +623,7 @@ class RoomServiceSpec extends ObjectBehavior
                         'member_guid' => 456,
                         'joined_timestamp' => date('c'),
                         'role_id' => ChatRoomRoleEnum::OWNER->name,
+                        'notifications_status' => ChatRoomNotificationStatusEnum::ALL->value
                     ]
                 ],
                 'hasMore' => false
@@ -604,6 +679,10 @@ class RoomServiceSpec extends ObjectBehavior
     public function it_should_get_room(
         User $userMock
     ): void {
+        $userMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('456');
+
         $this->roomRepositoryMock->isUserMemberOfRoom(
             123,
             $userMock,
@@ -655,6 +734,15 @@ class RoomServiceSpec extends ObjectBehavior
             ->willReturn(
                 ChatRoomMemberStatusEnum::INVITE_PENDING
             );
+
+        $this->roomRepositoryMock->getRoomMemberSettings(
+            123,
+            456
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'notifications_status' => ChatRoomNotificationStatusEnum::ALL->value
+            ]);
 
         /**
          * @var ChatRoomEdge $chatRoomEdge
@@ -722,6 +810,10 @@ class RoomServiceSpec extends ObjectBehavior
     public function it_should_ACCEPT_room_invite_request(
         User $userMock
     ): void {
+        $userMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('456');
+
         $this->roomRepositoryMock->getUserStatusInRoom(
             $userMock,
             123
@@ -768,6 +860,15 @@ class RoomServiceSpec extends ObjectBehavior
                     )
                 ],
                 'hasMore' => false
+            ]);
+
+        $this->roomRepositoryMock->getRoomMemberSettings(
+            123,
+            456
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'notifications_status' => ChatRoomNotificationStatusEnum::ALL->value
             ]);
 
         $this->roomRepositoryMock->beginTransaction()
@@ -922,6 +1023,10 @@ class RoomServiceSpec extends ObjectBehavior
         User $userMock,
         User $memberMock
     ): void {
+        $userMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('456');
+
         $this->roomRepositoryMock->isUserMemberOfRoom(
             123,
             $userMock,
@@ -963,6 +1068,15 @@ class RoomServiceSpec extends ObjectBehavior
                 'hasMore' => false
             ]);
 
+        $this->roomRepositoryMock->getRoomMemberSettings(
+            123,
+            456
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'notifications_status' => ChatRoomNotificationStatusEnum::ALL->value
+            ]);
+
         $this->roomRepositoryMock->getUserStatusInRoom(
             $userMock,
             123
@@ -990,6 +1104,7 @@ class RoomServiceSpec extends ObjectBehavior
                         'member_guid' => 456,
                         'joined_timestamp' => date('c'),
                         'role_id' => ChatRoomRoleEnum::OWNER->name,
+                        'notifications_status' => ChatRoomNotificationStatusEnum::ALL->value
                     ]
                 ],
                 'hasMore' => false
@@ -1025,6 +1140,10 @@ class RoomServiceSpec extends ObjectBehavior
     public function it_should_throw_exception_when_trying_to_block_user_from_multi_user_room(
         User $userMock
     ): void {
+        $userMock->getGuid()
+            ->shouldBeCalled()
+            ->willReturn('456');
+
         $this->roomRepositoryMock->isUserMemberOfRoom(
             123,
             $userMock,
@@ -1066,6 +1185,15 @@ class RoomServiceSpec extends ObjectBehavior
                     )
                 ],
                 'hasMore' => false
+            ]);
+
+        $this->roomRepositoryMock->getRoomMemberSettings(
+            123,
+            456
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn([
+                'notifications_status' => ChatRoomNotificationStatusEnum::ALL->value
             ]);
 
         $this->roomRepositoryMock->getUserStatusInRoom(
