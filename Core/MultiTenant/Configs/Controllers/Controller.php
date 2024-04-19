@@ -58,7 +58,8 @@ class Controller
             replyEmail: $multiTenantConfigInput->replyEmail,
             nsfwEnabled: $multiTenantConfigInput->nsfwEnabled,
             customHomePageEnabled: $multiTenantConfigInput->customHomePageEnabled,
-            customHomePageDescription: $multiTenantConfigInput->customHomePageDescription
+            customHomePageDescription: $multiTenantConfigInput->customHomePageDescription,
+            walledGardenEnabled: $multiTenantConfigInput->walledGardenEnabled
         );
     }
 }

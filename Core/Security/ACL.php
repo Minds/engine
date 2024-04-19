@@ -39,13 +39,13 @@ class ACL
     public function __construct(
         $entitiesBuilder = null,
         $logger = null,
-        $config = null,
+        private $config = null,
         private ?TwoFactorManager $twoFactorManager = null
     ) {
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->logger = $logger ?? Di::_()->get('Logger');
-        $config = $config ?? Di::_()->get('Config');
-        $this->normalizeEntities = $config->get('normalize_entities');
+        $this->config ??= Di::_()->get('Config');
+        $this->normalizeEntities = $this->config->get('normalize_entities');
     }
 
     /**
@@ -129,6 +129,13 @@ class ACL
 
         // If logged out and public and not container
         if (!Core\Session::isLoggedIn()) {
+            $isTenant = $this->config->get('is_tenant');
+            $walledGardenEnabled = ($isTenant && $this->config->get('tenant')?->config?->walledGardenEnabled) ?? false;
+
+            if ($isTenant && $walledGardenEnabled) {
+                return false;
+            }
+
             if (
                 (int) $entity->access_id == ACCESS_PUBLIC
                 && ($entity->owner_guid == $entity->container_guid

@@ -969,3 +969,7 @@ ALTER TABLE `minds_tenant_configs`
 ALTER TABLE `minds_tenant_configs`
     ADD custom_home_page_description text 
     AFTER custom_home_page_enabled;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD walled_garden_enabled boolean 
+    AFTER custom_home_page_description;

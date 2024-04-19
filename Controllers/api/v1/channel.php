@@ -209,6 +209,8 @@ class channel implements Interfaces\Api
             $response['require_login'] = !$isLoggedIn && Di::_()->get('Blockchain\Wallets\Balance')
                 ->setUser($user)
                 ->count() === 0;
+        } else {
+            $response['require_login'] = $this->config->get('tenant')?->config?->walledGardenEnabled;
         }
         
         return Factory::response($response);

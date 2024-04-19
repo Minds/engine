@@ -10,6 +10,7 @@ use Minds\Core\Groups\V2\Membership\Manager;
 use Minds\Core\Session;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\Config\Config;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Actions\Delete;
 use Minds\Core\Entities\Actions\Save;
@@ -101,6 +102,8 @@ class group implements Interfaces\Api
 
             $response['group']['adminqueue:count'] = $count;
         }
+
+        $response['require_login'] = $this->shouldRequireLogin();
 
         return Factory::response($response);
     }
@@ -426,5 +429,20 @@ class group implements Interfaces\Api
         $this->save->setEntity($group)->save(isUpdate: true);
 
         return $group;
+    }
+
+    /**
+     * Whether login should be required.
+     * @return bool Whether login should be required.
+     */
+    private function shouldRequireLogin(): bool
+    {
+        $config = Di::_()->get(Config::class);
+
+        if ($config->get('tenant_id')) {
+            return $config->get('tenant')?->config?->walledGardenEnabled;
+        }
+
+        return false;
     }
 }
