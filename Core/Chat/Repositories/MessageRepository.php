@@ -172,7 +172,7 @@ class MessageRepository extends AbstractRepository
             senderGuid: (int) $data['sender_guid'],
             plainText: $data['plain_text'],
             createdAt: new DateTimeImmutable($data['created_timestamp']),
-            messageType: ChatMessageTypeEnum::tryFrom($data['message_type']) ?? throw new ServerErrorException('Invalid message type'),
+            messageType: ChatMessageTypeEnum::tryFrom($data['message_type'] ?? 1) ?? throw new ServerErrorException('Invalid message type'),
             richEmbed: $richEmbed
         );
     }
