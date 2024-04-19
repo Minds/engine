@@ -5,11 +5,13 @@
 
 namespace Minds\Core\EventStreams;
 
-use Minds\Core\Di;
+use Minds\Core\Di\Di;
+use Minds\Core\Di\Provider as DiProvider;
+use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
 use Minds\Core\EventStreams\Topics\ViewsTopic;
 use Pulsar;
 
-class Provider extends Di\Provider
+class Provider extends DiProvider
 {
     public function register()
     {
@@ -50,5 +52,10 @@ class Provider extends Di\Provider
         $this->di->bind(ViewsTopic::class, function ($di): ViewsTopic {
             return new ViewsTopic();
         }, ['useFactory' => false]);
+
+        $this->di->bind(
+            ChatNotificationsTopic::class,
+            fn (Di $di): ChatNotificationsTopic => new ChatNotificationsTopic()
+        );
     }
 }

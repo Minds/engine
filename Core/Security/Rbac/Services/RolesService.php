@@ -3,7 +3,6 @@ namespace Minds\Core\Security\Rbac\Services;
 
 use Minds\Core\Config\Config;
 use Minds\Core\EntitiesBuilder;
-use Minds\Core\MultiTenant\Services\MultiTenantBootService;
 use Minds\Core\Security\Rbac\Enums\PermissionsEnum;
 use Minds\Core\Security\Rbac\Enums\RolesEnum;
 use Minds\Core\Security\Rbac\Exceptions\RbacNotConfigured;
