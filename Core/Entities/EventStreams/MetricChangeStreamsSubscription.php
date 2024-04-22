@@ -37,7 +37,7 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
     {
         return 'action-metrics-emission';
     }
-    
+
     /**
      * Returns topic.
      * @return ActionEventsTopic - topic.
@@ -63,7 +63,7 @@ class MetricChangeStreamsSubscription implements SubscriptionInterface
      */
     public function consume(EventInterface $event): bool
     {
-        if (!$this->experiments->isOn('engine-1218-metrics-sockets') || !$event instanceof ActionEvent) {
+        if (!$event instanceof ActionEvent) {
             return false;
         }
 
