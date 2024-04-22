@@ -76,10 +76,6 @@ class NotificationDelegateSpec extends ObjectBehavior
             guid: $targetUserGuid,
         );
 
-        $this->experimentsManager->isOn('minds-4126-gift-card-claim')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this->entitiesBuilder->single($targetUserGuid)
             ->shouldBeCalled()
             ->willReturn($recipientUser);
@@ -96,7 +92,7 @@ class NotificationDelegateSpec extends ObjectBehavior
         )
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $this->onCreateGiftCard($giftCard, $recipient);
     }
 
@@ -127,13 +123,9 @@ class NotificationDelegateSpec extends ObjectBehavior
             guid: $targetUserGuid,
         );
 
-        $this->experimentsManager->isOn('minds-4126-gift-card-claim')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this->actionEventsTopic->send(Argument::any())
             ->shouldNotBeCalled();
-        
+
         $this->onCreateGiftCard($giftCard, $recipient);
     }
 
@@ -164,13 +156,9 @@ class NotificationDelegateSpec extends ObjectBehavior
             guid: $targetUserGuid,
         );
 
-        $this->experimentsManager->isOn('minds-4126-gift-card-claim')
-            ->shouldBeCalled()
-            ->willReturn(false);
-
         $this->actionEventsTopic->send(Argument::any())
             ->shouldNotBeCalled();
-        
+
         $this->onCreateGiftCard($giftCard, $recipient);
     }
 
@@ -182,7 +170,7 @@ class NotificationDelegateSpec extends ObjectBehavior
         $giftCardGuid = 3234567890123456;
 
         $issuer = new User($issuerGuid);
-        
+
         $claimant->getGuid()
             ->shouldBeCalled()
             ->willReturn($claimantGuid);
@@ -216,7 +204,7 @@ class NotificationDelegateSpec extends ObjectBehavior
         )
             ->shouldBeCalled()
             ->willReturn(true);
-        
+
         $this->onGiftCardClaimed($giftCard, $claimant);
     }
 }
