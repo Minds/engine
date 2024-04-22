@@ -146,17 +146,6 @@ class Controller
         $experimentsManager = $this->experimentsManager->setUser($user);
 
         $exportedList = array_values(array_filter(Exportable::_($notifications)->export(), function ($notification) use ($experimentsManager): bool {
-            // Exclude gift card notifications if the experiment is off
-            if (
-                !$experimentsManager->isOn('minds-4126-gift-card-claim') &&
-                in_array($notification['type'], [
-                    NotificationTypes::TYPE_GIFT_CARD_CLAIMED_ISSUER_NOTIFIED,
-                    NotificationTypes::TYPE_GIFT_CARD_RECIPIENT_NOTIFIED
-                ], true)
-            ) {
-                return false;
-            }
-
             if (
                 $notification['type'] === NotificationTypes::TYPE_GROUP_QUEUE_RECEIVED &&
                 isset($_SERVER['HTTP_APP_VERSION']) &&

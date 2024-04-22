@@ -37,10 +37,6 @@ class NotificationDelegate
         GiftCard $giftCard,
         GiftCardTarget $recipient,
     ): void {
-        if (!$this->experimentsManager->isOn('minds-4126-gift-card-claim')) {
-            return;
-        }
-
         if (!$recipient->targetUserGuid) {
             $this->logger->warning('Gift card recipient notification event not sent. Target user guid not provided.', [
                 'gift_card_guid' => $giftCard->guid,
