@@ -138,10 +138,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->experimentsManager->isOn('minds-3952-boost-goals')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $this->preApprovalManager->shouldPreApprove($user)
             ->shouldBeCalled()
             ->willReturn(false);
@@ -226,10 +222,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->experimentsManager->isOn('minds-3952-boost-goals')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $user->getGuid()
             ->shouldBeCalledOnce()
             ->willReturn('123');
@@ -311,10 +303,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->experimentsManager->isOn('minds-3952-boost-goals')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $user->getGuid()
             ->shouldBeCalledOnce()
             ->willReturn('123');
@@ -392,10 +380,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce();
 
         $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->experimentsManager->isOn('minds-3952-boost-goals')
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -554,9 +538,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->experimentsManager->isOn('minds-3952-boost-goals')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $user->getGuid()
             ->shouldBeCalledOnce()
@@ -654,9 +635,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->experimentsManager->isOn('minds-3952-boost-goals')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $user->getGuid()
             ->shouldBeCalledOnce()
@@ -718,9 +696,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $this->experimentsManager->isOn('minds-3952-boost-goals')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $user->getGuid()
             ->shouldBeCalledOnce()
@@ -793,10 +768,6 @@ class ManagerSpec extends ObjectBehavior
             ->shouldBeCalledOnce();
 
         $this->experimentsManager->isOn('minds-4030-boost-platform-targeting')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $this->experimentsManager->isOn('minds-3952-boost-goals')
             ->shouldBeCalled()
             ->willReturn(true);
 
@@ -1481,7 +1452,7 @@ class ManagerSpec extends ObjectBehavior
         $this->acl->read(Argument::type(Boost::class))
             ->willReturn(true);
 
-        
+
         $this->getBoostFeed()->toArray()->shouldBeLike([
             (new FeedSyncEntity())
                 ->setGuid($boostGuid)
@@ -2066,7 +2037,7 @@ class ManagerSpec extends ObjectBehavior
         $targetUser->getTimeCreated()
             ->shouldBeCalled()
             ->willReturn(time() - 1000);
-        
+
         $this->callOnWrappedObject('shouldShowBoosts', [$targetUser])
             ->shouldBe(false);
     }
