@@ -10,6 +10,7 @@ use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Chat\Enums\ChatRoomNotificationStatusEnum;
 use Minds\Core\Chat\Notifications\Events\ChatNotificationEvent;
 use Minds\Core\Chat\Notifications\Models\PlainTextMessageNotification;
+use Minds\Core\Chat\Notifications\Models\RichEmbedMessageNotification;
 use Minds\Core\Chat\Services\RoomService;
 use Minds\Core\Di\Di;
 use Minds\Core\Entities\Resolver as EntitiesResolver;
@@ -119,11 +120,14 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
         );
 
         $notification = match ($chatMessage->messageType) {
-            ChatMessageTypeEnum::PLAIN_TEXT => $this->notificationFactory->createNotification(
+            ChatMessageTypeEnum::TEXT => $this->notificationFactory->createNotification(
                 notificationClass: PlainTextMessageNotification::class,
                 chatEntity: $chatMessage,
             ),
-            ChatMessageTypeEnum::RICH_EMBED => throw new NotImplementedException('Rich embed notifications are not implemented yet'),
+            ChatMessageTypeEnum::RICH_EMBED => $this->notificationFactory->createNotification(
+                notificationClass: RichEmbedMessageNotification::class,
+                chatEntity: $chatMessage
+            ),
             default => throw new InvalidArgumentException('Invalid chat message type'),
         };
 

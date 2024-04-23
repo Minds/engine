@@ -9,7 +9,10 @@ use Minds\Core\Di\Di;
 use Minds\Core\Notifications\Push\DeviceSubscriptions\DeviceSubscription;
 use Minds\Entities\User;
 
-class PlainTextMessageNotification extends AbstractChatNotification
+/**
+ * Notification for rich embed messages.
+ */
+class RichEmbedMessageNotification extends AbstractChatNotification
 {
     public function __construct(
         ?int    $chatRoomGuid = null,

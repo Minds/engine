@@ -1127,6 +1127,43 @@ class RoomRepositorySpec extends ObjectBehavior
             ->shouldEqual(true);
     }
 
+    public function it_should_delete_all_room_rich_embeds(
+        DeleteQuery $deleteQueryMock,
+        PDOStatement $pdoStatementMock
+    ): void {
+        $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
+
+        $pdoStatementMock->execute([
+            'tenant_id' => 1,
+            'room_guid' => 123,
+        ])
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $deleteQueryMock->from(RoomRepository::RICH_EMBED_TABLE_NAME)
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $deleteQueryMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $deleteQueryMock->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $deleteQueryMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        $this->mysqlClientWriterHandlerMock->delete()
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteQueryMock);
+
+        $this->deleteAllRoomRichEmbeds(123)
+            ->shouldEqual(true);
+    }
+
     public function it_should_delete_all_room_members_settings(
         DeleteQuery $deleteQueryMock,
         PDOStatement $pdoStatementMock
@@ -1204,18 +1241,19 @@ class RoomRepositorySpec extends ObjectBehavior
     public function it_should_delete_room(
         DeleteQuery $deleteMessagesMock,
         DeleteQuery $deleteMessageReceiptsMock,
+        DeleteQuery $deleteRichEmbedsMock,
         DeleteQuery $deleteMembersSettingsMock,
         DeleteQuery $deleteMembersMock,
         DeleteQuery $deleteRoomMock,
         PDOStatement $pdoStatementMock
     ): void {
-        $this->configMock->get('tenant_id')->shouldBeCalledTimes(5)->willReturn(1);
+        $this->configMock->get('tenant_id')->shouldBeCalledTimes(6)->willReturn(1);
 
         $pdoStatementMock->execute([
             'tenant_id' => 1,
             'room_guid' => 123,
         ])
-            ->shouldBeCalledTimes(5)
+            ->shouldBeCalledTimes(6)
             ->willReturn(true);
 
         // Delete message read receipts
@@ -1232,6 +1270,23 @@ class RoomRepositorySpec extends ObjectBehavior
             ->willReturn($deleteMessageReceiptsMock);
 
         $deleteMessageReceiptsMock->prepare()
+            ->shouldBeCalledOnce()
+            ->willReturn($pdoStatementMock);
+
+        // Delete rich embeds
+        $deleteRichEmbedsMock->from(RoomRepository::RICH_EMBED_TABLE_NAME)
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteRichEmbedsMock);
+
+        $deleteRichEmbedsMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteRichEmbedsMock);
+
+        $deleteRichEmbedsMock->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+            ->shouldBeCalledOnce()
+            ->willReturn($deleteRichEmbedsMock);
+
+        $deleteRichEmbedsMock->prepare()
             ->shouldBeCalledOnce()
             ->willReturn($pdoStatementMock);
 
@@ -1304,9 +1359,10 @@ class RoomRepositorySpec extends ObjectBehavior
             ->willReturn($pdoStatementMock);
 
         $this->mysqlClientWriterHandlerMock->delete()
-            ->shouldBeCalledTimes(5)
+            ->shouldBeCalledTimes(6)
             ->willReturn(
                 $deleteMessageReceiptsMock,
+                $deleteRichEmbedsMock,
                 $deleteMessagesMock,
                 $deleteMembersSettingsMock,
                 $deleteMembersMock,
