@@ -120,7 +120,7 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
         );
 
         $notification = match ($chatMessage->messageType) {
-            ChatMessageTypeEnum::PLAIN_TEXT => $this->notificationFactory->createNotification(
+            ChatMessageTypeEnum::TEXT => $this->notificationFactory->createNotification(
                 notificationClass: PlainTextMessageNotification::class,
                 chatEntity: $chatMessage,
             ),

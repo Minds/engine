@@ -19,7 +19,7 @@ class ChatMessage implements EntityInterface
         public readonly int $guid,
         public readonly int $senderGuid,
         public readonly string $plainText,
-        public readonly ChatMessageTypeEnum $messageType = ChatMessageTypeEnum::PLAIN_TEXT,
+        public readonly ChatMessageTypeEnum $messageType = ChatMessageTypeEnum::TEXT,
         public readonly ?ChatRichEmbed $richEmbed = null,
         ?DateTimeInterface $createdAt = null
     ) {

@@ -3,11 +3,11 @@ declare(strict_types=1);
 
 namespace Minds\Core\Chat\Enums;
 
-enum ChatMessageTypeEnum: int
+enum ChatMessageTypeEnum
 {
-    case PLAIN_TEXT = 1;
-    case IMAGE = 2;
-    case VIDEO = 3;
-    case AUDIO = 4;
-    case RICH_EMBED = 5;
+    case TEXT;
+    case IMAGE;
+    case VIDEO;
+    case AUDIO;
+    case RICH_EMBED;
 }

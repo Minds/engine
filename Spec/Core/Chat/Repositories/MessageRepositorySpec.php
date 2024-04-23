@@ -77,7 +77,7 @@ class MessageRepositorySpec extends ObjectBehavior
             messageGuid: 123,
             senderGuid: 456,
             plainText: 'Hello, World!',
-            messageType: ChatMessageTypeEnum::RICH_EMBED->value
+            messageType: ChatMessageTypeEnum::RICH_EMBED
         );
         $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
 
@@ -95,7 +95,7 @@ class MessageRepositorySpec extends ObjectBehavior
             'guid' => $messageMock->guid,
             'sender_guid' => $messageMock->senderGuid,
             'plain_text' => $messageMock->plainText,
-            'message_type' => $messageMock->messageType->value
+            'message_type' => $messageMock->messageType->name
         ])
             ->shouldBeCalledOnce()
             ->willReturn($insertQueryMock);
@@ -136,7 +136,7 @@ class MessageRepositorySpec extends ObjectBehavior
                     'guid' => 456,
                     'sender_guid' => 789,
                     'plain_text' => 'Hello, World!',
-                    'message_type' => 1,
+                    'message_type' => 'TEXT',
                     'created_timestamp' => '2021-01-01 00:00:00'
                 ]
             ]);
@@ -223,7 +223,7 @@ class MessageRepositorySpec extends ObjectBehavior
                 'guid' => 456,
                 'sender_guid' => 789,
                 'plain_text' => 'Hello, World!',
-                'message_type' => 1,
+                'message_type' => 'TEXT',
                 'created_timestamp' => '2021-01-01 00:00:00'
             ]);
 
@@ -437,14 +437,14 @@ class MessageRepositorySpec extends ObjectBehavior
         int $messageGuid,
         int $senderGuid,
         string $plainText,
-        int $messageType = 1
+        ChatMessageTypeEnum $messageType = ChatMessageTypeEnum::TEXT,
     ): ChatMessage {
         return new ChatMessage(
             roomGuid: $roomGuid,
             guid: $messageGuid,
             senderGuid: $senderGuid,
             plainText: $plainText,
-            messageType: ChatMessageTypeEnum::from($messageType)
+            messageType: $messageType,
         );
     }
 }

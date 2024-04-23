@@ -65,7 +65,7 @@ class MessageService
             throw new GraphQLException(message: "You are not a member of this room", code: 403);
         }
 
-        $messageType = ChatMessageTypeEnum::PLAIN_TEXT;
+        $messageType = ChatMessageTypeEnum::TEXT;
 
         if ($richEmbed = $this->chatRichEmbedService->parseFromText($plainText) ?? null) {
             $messageType = ChatMessageTypeEnum::RICH_EMBED;

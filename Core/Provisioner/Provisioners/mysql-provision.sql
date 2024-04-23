@@ -992,7 +992,7 @@ CREATE TABLE IF NOT EXISTS minds_chat_rich_embeds(
 );
 
 ALTER TABLE `minds_chat_messages`
-	ADD `message_type` boolean DEFAULT 1
+	ADD `message_type` ENUM ("TEXT", "IMAGE", "VIDEO", "AUDIO", "RICH_EMBED") DEFAULT "TEXT"
 	AFTER `sender_guid`;
 
 ALTER TABLE minds_tenant_mobile_configs  ADD COLUMN eas_project_id varchar(32) AFTER update_timestamp;

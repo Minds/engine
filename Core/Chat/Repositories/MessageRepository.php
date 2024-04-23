@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Chat\Repositories;
 
 use DateTimeImmutable;
+use Error;
 use Exception;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
@@ -37,7 +38,7 @@ class MessageRepository extends AbstractRepository
                 'guid' => $message->guid,
                 'sender_guid' => $message->senderGuid,
                 'plain_text' => $message->plainText,
-                'message_type' => $message->messageType->value
+                'message_type' => $message->messageType->name
             ])
             ->prepare();
 
@@ -166,13 +167,19 @@ class MessageRepository extends AbstractRepository
             );
         }
 
+        try {
+            $messageType = constant(ChatMessageTypeEnum::class . '::' . $data['message_type']);
+        } catch (Error) {
+            throw new ServerErrorException('Invalid message type');
+        }
+
         return new ChatMessage(
             roomGuid: (int) $data['room_guid'],
             guid: (int) $data['guid'],
             senderGuid: (int) $data['sender_guid'],
             plainText: $data['plain_text'],
             createdAt: new DateTimeImmutable($data['created_timestamp']),
-            messageType: ChatMessageTypeEnum::tryFrom($data['message_type'] ?? 1) ?? throw new ServerErrorException('Invalid message type'),
+            messageType: $messageType,
             richEmbed: $richEmbed
         );
     }
@@ -181,7 +188,7 @@ class MessageRepository extends AbstractRepository
      * @param int $roomGuid
      * @param int $messageGuid
      * @return bool
-     * @throws ServerErrorException
+     * @throws ServerErrorExceptionFEnu
      */
     public function deleteChatMessage(
         int $roomGuid,

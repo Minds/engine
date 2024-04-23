@@ -533,7 +533,7 @@ class MessageServiceSpec extends ObjectBehavior
     private function generateChatMessageMock(
         int $messageGuid,
         int $senderGuid,
-        ChatMessageTypeEnum $messageType = ChatMessageTypeEnum::PLAIN_TEXT
+        ChatMessageTypeEnum $messageType = ChatMessageTypeEnum::TEXT
     ): ChatMessage {
         $chatMessageMock = $this->chatMessageFactoryMock->newInstanceWithoutConstructor();
         $this->chatMessageFactoryMock->getProperty('guid')->setValue($chatMessageMock, $messageGuid);
