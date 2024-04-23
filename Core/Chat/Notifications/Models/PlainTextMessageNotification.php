@@ -41,7 +41,7 @@ class PlainTextMessageNotification extends AbstractChatNotification
      */
     public function getTitle(): ?string
     {
-        return $this->title;
+        return  '💬 ' . $this->title;
     }
 
     /**
