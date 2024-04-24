@@ -6,6 +6,7 @@ namespace Minds\Core\MultiTenant\Services;
 use Exception;
 use Minds\Core\Config\Config;
 use Minds\Core\Entities\Actions\Save as SaveAction;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\MultiTenant\Enums\TenantUserRoleEnum;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
@@ -25,7 +26,27 @@ class TenantUsersService
         private readonly Config $mindsConfig,
         private readonly MultiTenantBootService $multiTenantBootService,
         private readonly ACL $acl,
+        private readonly EntitiesBuilder $entitiesBuilder,
     ) {
+    }
+
+    /**
+     * Returns the users for a tenant
+     * @return iterable<User>
+     */
+    public function getUsers(int $tenantId, int $limit = null): iterable
+    {
+        foreach ($this->tenantUsersRepository->getUserGuids(
+            tenantId: $tenantId,
+            limit: $limit,
+        ) as $userGuid) {
+
+            $entity = $this->entitiesBuilder->single($userGuid);
+
+            if ($entity instanceof User) {
+                yield $entity;
+            }
+        }
     }
 
     /**
