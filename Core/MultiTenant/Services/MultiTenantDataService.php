@@ -36,6 +36,9 @@ class MultiTenantDataService
         return $this->repository->getTenantFromId($id);
     }
 
+    /**
+     * @return iterable<Tenant>
+     */
     public function getTenants(
         int $limit = 12,
         int $offset = 0,

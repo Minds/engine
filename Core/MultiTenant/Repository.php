@@ -133,7 +133,7 @@ class Repository extends AbstractRepository
      * @param int $limit
      * @param int $offset
      * @param int|null $ownerGuid
-     * @return Tenant[]
+     * @return iterable<Tenant>
      */
     public function getTenants(
         int  $limit,
