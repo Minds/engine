@@ -51,7 +51,7 @@ class AnalyticsDelegate
                 event: self::CHAT_MESSAGE_SEND_EVENT_NAME,
                 user: $actor,
                 properties: [
-                    self::CHAT_PROPERTY_ROOM_GUID => $message->roomGuid,
+                    self::CHAT_PROPERTY_ROOM_GUID => (string) $message->roomGuid,
                     self::CHAT_PROPERTY_ROOM_TYPE => $chatRoom->roomType?->name,
                     self::CHAT_PROPERTY_MESSAGE_TYPE => $message->messageType?->name,
                 ]
@@ -74,7 +74,7 @@ class AnalyticsDelegate
                 event: self::CHAT_ROOM_CREATE_EVENT_NAME,
                 user: $actor,
                 properties: [
-                    self::CHAT_PROPERTY_ROOM_GUID => $chatRoom->guid,
+                    self::CHAT_PROPERTY_ROOM_GUID => (string) $chatRoom->guid,
                     self::CHAT_PROPERTY_ROOM_TYPE => $chatRoom->roomType?->name,
                     self::CHAT_PROPERTY_GROUP_GUID => $chatRoom->groupGuid
                 ]
@@ -97,7 +97,7 @@ class AnalyticsDelegate
                 event: self::CHAT_ROOM_DELETE_EVENT_NAME,
                 user: $actor,
                 properties: [
-                    self::CHAT_PROPERTY_ROOM_GUID => $chatRoom->guid,
+                    self::CHAT_PROPERTY_ROOM_GUID => (string) $chatRoom->guid,
                     self::CHAT_PROPERTY_ROOM_TYPE => $chatRoom->roomType?->name,
                 ]
             );
@@ -119,7 +119,7 @@ class AnalyticsDelegate
                 event: self::CHAT_ROOM_LEAVE_EVENT_NAME,
                 user: $actor,
                 properties: [
-                    self::CHAT_PROPERTY_ROOM_GUID => $chatRoom->guid,
+                    self::CHAT_PROPERTY_ROOM_GUID => (string) $chatRoom->guid,
                     self::CHAT_PROPERTY_ROOM_TYPE => $chatRoom->roomType?->name,
                 ]
             );
@@ -141,7 +141,7 @@ class AnalyticsDelegate
                 event: self::CHAT_REQUEST_ACCEPT_EVENT_NAME,
                 user: $actor,
                 properties: [
-                    self::CHAT_PROPERTY_ROOM_GUID => $chatRoom->guid,
+                    self::CHAT_PROPERTY_ROOM_GUID => (string) $chatRoom->guid,
                     self::CHAT_PROPERTY_ROOM_TYPE => $chatRoom->roomType?->name,
                     self::CHAT_PROPERTY_GROUP_GUID => $chatRoom->groupGuid
                 ]
@@ -164,7 +164,7 @@ class AnalyticsDelegate
                 event: self::CHAT_REQUEST_DECLINE_EVENT_NAME,
                 user: $actor,
                 properties: [
-                    self::CHAT_PROPERTY_ROOM_GUID => $chatRoom->guid,
+                    self::CHAT_PROPERTY_ROOM_GUID => (string) $chatRoom->guid,
                     self::CHAT_PROPERTY_ROOM_TYPE => $chatRoom->roomType?->name,
                     self::CHAT_PROPERTY_GROUP_GUID => $chatRoom->groupGuid
                 ]
