@@ -43,10 +43,15 @@ class TenantUsersService
 
             $entity = $this->entitiesBuilder->single($userGuid);
 
-            if ($entity instanceof User) {
-                yield $entity;
+            if (!$entity instanceof User) {
+                continue;
             }
+
+            yield $entity;
+
         }
+
+        return;
     }
 
     /**
