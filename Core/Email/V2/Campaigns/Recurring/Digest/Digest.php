@@ -143,7 +143,7 @@ class Digest extends EmailCampaign
 
         $unreadNotificationsCount = $this->notificationManager
             ->setUser($this->user)
-            ->getCount() ?: 1;
+            ->getCount();
 
         $this->template->set('unreadNotificationsCount', $unreadNotificationsCount);
 

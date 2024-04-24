@@ -55,7 +55,7 @@
                                                     <?php echo $emailStyles->getStyles('m-digest__avatar'); ?>
                                                 >
                                                     <img
-                                                        src="https://cdn.minds.com/icon/<?php echo $activity['ownerObj']['guid'];?>/medium/<?php echo $activity['ownerObj']['icontime'];?>"
+                                                        src="<?php echo $vars['site_url']; ?>icon/<?php echo $activity['ownerObj']['guid'];?>/medium/<?php echo $activity['ownerObj']['icontime'];?>"
                                                         width="16"
                                                         height="16"
                                                         <?php echo $emailStyles->getStyles('m-digest__avatarImg'); ?>
