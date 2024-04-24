@@ -48,30 +48,12 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
         $this->shouldHaveType(MetricChangeStreamsSubscription::class);
     }
 
-    // EXPERIMENT
-
-    public function it_should_NOT_emit_event_if_experiment_is_off(ActionEvent $event, Activity $entity)
-    {
-        $this->experiments->isOn('engine-1218-metrics-sockets')
-            ->shouldBeCalled()
-            ->willReturn(false);
-
-        $this->socketEvents->emit(Argument::any(), Argument::any())
-            ->shouldNotBeCalled();
-
-        $this->consume($event);
-    }
-
     // ACTIVITY
 
     public function it_should_emit_event_for_vote_up_for_an_activity(ActionEvent $event, Activity $entity)
     {
         $guid = '123';
         $entityGuid = null;
-
-        $this->experiments->isOn('engine-1218-metrics-sockets')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $entity->getGuid()
             ->shouldBeCalled()
@@ -106,10 +88,6 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
     {
         $guid = '123';
         $entityGuid = null;
-
-        $this->experiments->isOn('engine-1218-metrics-sockets')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $entity->getGuid()
             ->shouldBeCalled()
@@ -146,10 +124,6 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
     {
         $entityGuid = '321';
 
-        $this->experiments->isOn('engine-1218-metrics-sockets')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $entity->getEntityGuid()
             ->shouldBeCalled()
             ->willReturn($entityGuid);
@@ -178,10 +152,6 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
     public function it_should_emit_event_for_vote_up_removal_for_an_activity_with_linked_media(ActionEvent $event, Activity $entity)
     {
         $entityGuid = '321';
-
-        $this->experiments->isOn('engine-1218-metrics-sockets')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $entity->getEntityGuid()
             ->shouldBeCalled()
@@ -214,10 +184,6 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
     {
         $guid = '123';
 
-        $this->experiments->isOn('engine-1218-metrics-sockets')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $entity->getGuid()
             ->shouldBeCalled()
             ->willReturn($guid);
@@ -246,10 +212,6 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
     public function it_should_emit_event_for_vote_up_removal_for_an_image(ActionEvent $event, Image $entity)
     {
         $guid = '123';
-
-        $this->experiments->isOn('engine-1218-metrics-sockets')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $entity->getGuid()
             ->shouldBeCalled()
@@ -282,10 +244,6 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
     {
         $guid = '123';
 
-        $this->experiments->isOn('engine-1218-metrics-sockets')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $entity->getGuid()
             ->shouldBeCalled()
             ->willReturn($guid);
@@ -313,10 +271,6 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
     public function it_should_emit_event_for_vote_up_removal_for_a_video(ActionEvent $event, Video $entity)
     {
         $guid = '123';
-
-        $this->experiments->isOn('engine-1218-metrics-sockets')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $entity->getGuid()
             ->shouldBeCalled()
@@ -349,10 +303,6 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
     {
         $guid = '123';
 
-        $this->experiments->isOn('engine-1218-metrics-sockets')
-            ->shouldBeCalled()
-            ->willReturn(true);
-
         $entity->getGuid()
             ->shouldBeCalled()
             ->willReturn($guid);
@@ -381,10 +331,6 @@ class MetricChangeStreamsSubscriptionSpec extends ObjectBehavior
     public function it_should_emit_event_for_vote_up_removal_for_a_blog(ActionEvent $event, Blog $entity)
     {
         $guid = '123';
-
-        $this->experiments->isOn('engine-1218-metrics-sockets')
-            ->shouldBeCalled()
-            ->willReturn(true);
 
         $entity->getGuid()
             ->shouldBeCalled()

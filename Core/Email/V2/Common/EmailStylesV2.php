@@ -44,11 +44,11 @@ class EmailStylesV2
         "m-mainContent__h1" => [
             "font-family: 'Inter', Arial, sans-serif;",
             "margin: 20px 20px 40px 20px;",
-            "font-size: 42px;",
+            "font-size: 44px;",
             "line-height: 52px;",
             "text-align: center;",
             "color: #0a080b;",
-            "font-weight: 700;"
+            "font-weight: 800;"
         ],
         "m-mainContent__mainArticle" => [
             "padding: 30px 0 50px;",

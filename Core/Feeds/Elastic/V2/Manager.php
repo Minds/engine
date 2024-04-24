@@ -476,6 +476,18 @@ class Manager
             ]
         ];
 
+        // If older than specified, only show posts older than date time
+        if ($queryOpts->olderThan) {
+            $must[] = [
+                'range' => [
+                    '@timestamp' => [
+                        'gte' => $queryOpts->olderThan->format('c'),
+                        'format' => 'strict_date_optional_time',
+                    ]
+                ]
+            ];
+        }
+
         // Never show pending posts
         $mustNot[] = [
             'term' => [
@@ -564,9 +576,9 @@ class Manager
             $this->experimentsManager
                 ->setUser($queryOpts->user);
 
-            if ($this->experimentsManager->isOn('engine-2619-inferred-tags')) {
-                $multiMatch['multi_match']['fields'][] = 'inferred_tags^12';
-            }
+            // if ($this->experimentsManager->isOn('engine-2619-inferred-tags')) {
+            //     $multiMatch['multi_match']['fields'][] = 'inferred_tags^12';
+            // }
 
             $must[] = $multiMatch;
         }

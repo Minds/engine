@@ -881,9 +881,11 @@ $CONFIG->set('onboarding_v2_timestamp', 0);
 $CONFIG->set('onboarding_v5_release_timestamp', 0);
 
 
-$CONFIG->set('snowplow', [
-    'collector_uri' => 'host.docker.internal:8090',
-    'proto' => 'http',
+$CONFIG->set('posthog', [
+    'api_key' => 'phc_i4FSmsuaGk4qf5UL3Z4bxl5VBdmWC2ox2XlB3oOZKUG',
+    'personal_api_key' => '',
+    'host' => 'app.posthog.com',
+    'project_id' => '63037',
 ]);
 
 $CONFIG->set('arweave', [
@@ -908,10 +910,6 @@ $CONFIG->set('statuspage_io', [
 ]);
 
 $CONFIG->set('default_recommendations_user', '100000000000000519');
-
-$CONFIG->set('growthbook', [
-    'features_endpoint' => 'https://growthbook-api.minds.com/api/features/key_c98323bd51a6b3ab',
-]);
 
 $CONFIG->set('user_quality_score', [
     'belowSpamRiskThreshold' => 0.4

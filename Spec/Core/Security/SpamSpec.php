@@ -5,8 +5,8 @@ namespace Spec\Minds\Core\Security;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Minds\Core\Blogs\Blog;
-use Minds\Core\Config;
 use Minds\Core\Comments\Comment;
+use Minds\Core\Config\Config;
 use Minds\Entities\User;
 use Minds\Entities\Group;
 use Minds\Entities\Entity;
@@ -134,5 +134,20 @@ class SpamSpec extends ObjectBehavior
         $group->setType('group');
         
         $this->check($group)->shouldReturn(false);
+    }
+
+    public function it_should_allow_short_domains_on_tenants(
+        Config $configMock,
+        Activity $activity
+    ) {
+        $this->beConstructedWith($configMock);
+
+        $configMock->get('tenant_id')->willReturn(1);
+
+        $activity->getMessage()->shouldBeCalled()->willReturn('test bit.ly test');
+        $activity->getPermaUrl()->willReturn('');
+        $activity->getType()->shouldBeCalled()->willReturn('activity');
+        
+        $this->check($activity)->shouldBe(false);
     }
 }

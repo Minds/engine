@@ -119,6 +119,9 @@ class ManagerSpec extends ObjectBehavior
         $replyEmail = 'some@email.com';
         $nsfwEnabled = true;
         $lastCacheTimestamp = time();
+        $customHomePageEnabled = true;
+        $customHomePageDescription = 'Hello world';
+        $walledGardenEnabled = true;
 
         $this->config->get('tenant_id')
             ->shouldBeCalled()
@@ -132,6 +135,9 @@ class ManagerSpec extends ObjectBehavior
             $federationDisabled,
             $replyEmail,
             $nsfwEnabled,
+            $customHomePageEnabled,
+            $customHomePageDescription,
+            $walledGardenEnabled,
             $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -151,6 +157,9 @@ class ManagerSpec extends ObjectBehavior
             $federationDisabled,
             $replyEmail,
             $nsfwEnabled,
+            $customHomePageEnabled,
+            $customHomePageDescription,
+            $walledGardenEnabled,
             $lastCacheTimestamp
         )->shouldBe($result);
     }
@@ -165,6 +174,9 @@ class ManagerSpec extends ObjectBehavior
         $federationDisabled = true;
         $replyEmail = 'some@email.com';
         $nsfwEnabled = true;
+        $customHomePageEnabled = true;
+        $customHomePageDescription = 'Hello world';
+        $walledGardenEnabled = true;
         $lastCacheTimestamp = time();
 
         $this->config->get('tenant_id')
@@ -179,6 +191,9 @@ class ManagerSpec extends ObjectBehavior
             $federationDisabled,
             $replyEmail,
             $nsfwEnabled,
+            $customHomePageEnabled,
+            $customHomePageDescription,
+            $walledGardenEnabled,
             $lastCacheTimestamp
         )
             ->shouldBeCalled()
@@ -197,6 +212,9 @@ class ManagerSpec extends ObjectBehavior
             $federationDisabled,
             $replyEmail,
             $nsfwEnabled,
+            $customHomePageEnabled,
+            $customHomePageDescription,
+            $walledGardenEnabled,
             $lastCacheTimestamp
         )->shouldBe($result);
     }

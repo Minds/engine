@@ -158,7 +158,7 @@ class Manager
             throw new UnauthorizedException();
         }
 
-        $id = $token->headers()->get('jti');
+        $id = $token->claims()->get('jti');
         $userGuid = $token->claims()->get('user_guid');
 
         /** @var \DateTimeImmutable */
@@ -179,10 +179,6 @@ class Manager
 
         // Sets the global user
         Core\Session::setUserByGuid($userGuid);
-
-        // Generate JWT cookie for sockets
-        // Hack, needs refactoring
-        Core\Session::generateJWTCookie($session);
 
         // Allow Sentry to attach user metadata
         $this->sentryScopeDelegate->onSession($session);
@@ -251,8 +247,8 @@ class Manager
             //->issuedBy($this->config->get('site_url'))
             //->canOnlyBeUsedBy($this->config->get('site_url'))
             ->identifiedBy($id)
-            ->withHeader('jti', $id)
             ->expiresAt($expires)
+            ->relatedTo((string) $this->user->getGuid())
             ->withClaim('user_guid', (string) $this->user->getGuid())
             ->getToken($this->getJwtConfig()->signer(), $this->getJwtConfig()->signingKey());
 

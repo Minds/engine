@@ -78,6 +78,7 @@ use Minds\Helpers\StringLengthValidators\BriefDescriptionLengthValidator;
  * @property string $briefdescription
  * @property string $source
  * @property string $canonical_url
+ * @property int $opt_out_analytics;
  */
 class User extends \ElggUser implements DemonetizableEntityInterface, FederatedEntityInterface
 {
@@ -156,6 +157,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         $this->attributes['language'] = 'en';
         $this->attributes['source'] = FederatedEntitySourcesEnum::LOCAL->value;
         $this->attributes['canonical_url'] = null;
+        $this->attributes['opt_out_analtytics'] = 0;
 
         parent::initializeAttributes();
     }
@@ -527,7 +529,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         if (base64_decode($email, true)) {
             return $this;
         }
-        $this->email = base64_encode(Helpers\OpenSSL::encrypt($email, file_get_contents($CONFIG->encryptionKeys['email']['public'])));
+        $this->email = $email;
 
         return $this;
     }
@@ -1011,7 +1013,7 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
         $manager = Di::_()->get(Subscriptions\Manager::class);
         $return = $manager->setSubscriber($this)->isSubscribed((new User)->set('guid', $guid));
 
-        $cacher->set("$this->guid:isSubscribed:$guid", $return);
+        $cacher->set("$this->guid:isSubscribed:$guid", $return, 604800);
 
         return $return;
     }
@@ -1978,6 +1980,20 @@ class User extends \ElggUser implements DemonetizableEntityInterface, FederatedE
     public function getCanonicalUrl(): ?string
     {
         return $this->getSource() === FederatedEntitySourcesEnum::LOCAL ? null : $this->canonical_url;
+    }
+    
+    /**
+     * A user can opt of of analytics tracking
+     */
+    public function setOptOutAnalytics(bool $optOut): self
+    {
+        $this->opt_out_analytics = (int) $optOut;
+        return $this;
+    }
+
+    public function isOptOutAnalytics(): bool
+    {
+        return (bool) $this->opt_out_analytics;
     }
 
     /**

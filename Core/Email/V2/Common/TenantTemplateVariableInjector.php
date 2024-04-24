@@ -24,6 +24,7 @@ class TenantTemplateVariableInjector
     public function inject(Template $template): Template
     {
         $siteName = $this->config->get('site_name') ?? 'Minds';
+        $template->set('site_name', $siteName);
         $template->set('copyright_text', $siteName . " &#169; " . date("Y"));
 
         if ($siteUrl = $this->config->get('site_url')) {

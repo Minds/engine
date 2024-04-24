@@ -26,13 +26,13 @@ class EmailStyles
             'm-textColor--primary' => 'color: #4f4f50;',
             'm-textColor--secondary' => 'color: #7d7d82 !important;',
             'm-textColor--white' => 'color: #FFFFFF !important;',
-            'm-title' => 'font-size:26px; text-align:center;color: #4f4f50;margin-top: 0;',
-            'm-title--ltr' => 'font-size:26px; text-align:left;color: #4f4f50;margin-top: 0;',
+            'm-title' => 'font-size:28px; text-align:center; color: #4f4f50; margin-top: 0; font-weight: 700;',
+            'm-title--ltr' => 'font-size:26px; text-align:left;color: #4f4f50;margin-top: 0; font-weight: 700;',
             'm-signature' => 'margin: 0 0 4px 0;padding: 0 !important;',
 
         // SPACING & LAYOUT ///////////////////////////
             'm-maxWidth' => 'max-width:600px;',
-            'm-maxWidth--copy' => 'width:80%;max-width:500px',
+            'm-maxWidth--copy' => 'width:80%;max-width:500px;margin:auto;',
             'm-spacer--tiny' => 'padding: 10px 0;',
             'm-spacer--small' => 'padding: 22px 0;',
             'm-spacer--medium' => 'padding: 40px 0;',
@@ -53,10 +53,14 @@ class EmailStyles
         
             // PARTIAL : Digest
             'm-digest__avatar' => 'text-decoration: none;',
-            'm-digest__avatarImg' => 'border-radius: 30px; vertical-align: middle;',
-            'm-digest__username' => 'padding-left: 10px; text-decoration: none;',
+            'm-digest__avatarImg' => 'border-radius: 30px; border: 1px solid #d4d4d4; display: inline-block; vertical-align: middle; line-height: 20px',
+            'm-digest__name' => 'padding-left: 4px; text-decoration: none; font-size: 14px; line-height: 20px; font-weight: 700;',
+            'm-digest__username' => 'text-decoration: none; font-size: 14px;',
             'm-digest__yourActivity' => 'width: 100%; border: 1px solid #d4d4d4; padding: 20px;',
             'm-digestYourActivity__col' => 'padding: 10px;',
+            'm-digest__activity' => 'border: 1px solid #d4d4d4; width: 100%;',
+            'm-digestActivity__body' => 'padding: 16px;',
+            'm-digestActivity__text' => 'font-size: 14px; padding-top: 4px;',
 
             // PARTIAL : Digest
             'm-unreadNotifications__col' => 'padding: 20px;',

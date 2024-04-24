@@ -6,6 +6,7 @@ namespace Minds\Core\MultiTenant\Controllers;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\ImmutableException;
 use Minds\Core\Di\Provider;
+use Minds\Core\MultiTenant\AutoLogin\AutoLoginService;
 use Minds\Core\MultiTenant\Services\DomainService;
 use Minds\Core\MultiTenant\Services\FeaturedEntityService;
 use Minds\Core\MultiTenant\Services\TenantsService;
@@ -22,7 +23,10 @@ class ControllersProvider extends Provider
         $this->di->bind(TenantsController::class, function (Di $di): TenantsController {
             return new TenantsController(
                 $di->get(TenantsService::class),
+                $di->get(TenantUsersService::class),
+                $di->get(AutoLoginService::class),
                 $di->get('Experiments\Manager'),
+                $di->get('Logger')
             );
         });
         $this->di->bind(TenantUsersController::class, function (Di $di): TenantUsersController {

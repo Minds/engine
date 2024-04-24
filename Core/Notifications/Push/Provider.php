@@ -6,6 +6,7 @@
 namespace Minds\Core\Notifications\Push;
 
 use Minds\Core\Config\Config;
+use Minds\Core\Data\MySQL;
 use Minds\Core\Di\Di;
 use Minds\Core\Di\Provider as DiProvider;
 use Minds\Core\Notifications\Push\Config\PushNotificationsConfigRepository;
@@ -13,7 +14,6 @@ use Minds\Core\Notifications\Push\Config\PushNotificationsConfigService;
 use Minds\Core\Notifications\Push\Services\ApnsService;
 use Minds\Core\Notifications\Push\Services\FcmService;
 use Minds\Core\Notifications\Push\Services\WebPushService;
-use Minds\Core\Data\MySQL;
 
 /**
  * Notifications Provider
@@ -80,5 +80,10 @@ class Provider extends DiProvider
                 $di->get('Logger')
             );
         });
+
+        $this->di->bind(
+            DeviceSubscriptions\Manager::class,
+            fn (Di $di): DeviceSubscriptions\Manager => new DeviceSubscriptions\Manager()
+        );
     }
 }

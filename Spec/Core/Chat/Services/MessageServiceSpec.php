@@ -2,16 +2,26 @@
 
 namespace Spec\Minds\Core\Chat\Services;
 
+use DateTime;
 use DateTimeImmutable;
+use DateTimeInterface;
 use Minds\Core\Chat\Entities\ChatMessage;
+use Minds\Core\Chat\Entities\ChatRichEmbed;
+use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Events\Sockets\ChatEvent;
+use Minds\Core\Chat\Events\Sockets\Enums\ChatEventTypeEnum;
+use Minds\Core\Chat\Notifications\Events\ChatNotificationEvent;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;
 use Minds\Core\Chat\Services\MessageService;
 use Minds\Core\Chat\Services\ReceiptService;
+use Minds\Core\Chat\Services\RichEmbedService;
 use Minds\Core\Chat\Types\ChatMessageEdge;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
 use Minds\Core\Guid;
+use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
@@ -25,22 +35,33 @@ class MessageServiceSpec extends ObjectBehavior
     private Collaborator $roomRepositoryMock;
     private Collaborator $receiptServiceMock;
     private Collaborator $entitiesBuilderMock;
+    private Collaborator $socketEventsMock;
+    private Collaborator $chatNotificationsTopicMock;
+    private Collaborator $chatRichEmbedServiceMock;
 
     private ReflectionClass $chatMessageFactoryMock;
+    private ReflectionClass $chatRichEmbedFactoryMock;
 
     public function let(
         MessageRepository $messageRepositoryMock,
         RoomRepository $roomRepositoryMock,
         ReceiptService $receiptServiceMock,
         EntitiesBuilder $entitiesBuilderMock,
+        SocketEvents $socketEvents,
+        ChatNotificationsTopic $chatNotificationsTopic,
+        RichEmbedService $chatRichEmbedService
     ) {
-        $this->beConstructedWith($messageRepositoryMock, $roomRepositoryMock, $receiptServiceMock, $entitiesBuilderMock);
+        $this->beConstructedWith($messageRepositoryMock, $roomRepositoryMock, $receiptServiceMock, $entitiesBuilderMock, $socketEvents, $chatNotificationsTopic, $chatRichEmbedService);
         $this->messageRepositoryMock = $messageRepositoryMock;
         $this->roomRepositoryMock  = $roomRepositoryMock;
         $this->receiptServiceMock = $receiptServiceMock;
         $this->entitiesBuilderMock = $entitiesBuilderMock;
+        $this->socketEventsMock = $socketEvents;
+        $this->chatNotificationsTopicMock = $chatNotificationsTopic;
+        $this->chatRichEmbedServiceMock = $chatRichEmbedService;
 
         $this->chatMessageFactoryMock = new ReflectionClass(ChatMessage::class);
+        $this->chatRichEmbedFactoryMock = new ReflectionClass(ChatRichEmbed::class);
     }
 
     public function it_is_initializable()
@@ -51,6 +72,8 @@ class MessageServiceSpec extends ObjectBehavior
     public function it_should_add_a_message(
         User $userMock
     ): void {
+        $plainText = 'just for testing';
+
         $userMock->getGuid()
             ->willReturn('123');
 
@@ -60,6 +83,10 @@ class MessageServiceSpec extends ObjectBehavior
         )
             ->shouldBeCalled()
             ->willReturn(true);
+
+        $this->chatRichEmbedServiceMock->parseFromText($plainText)
+            ->shouldBeCalled()
+            ->willReturn(null);
 
         $this->messageRepositoryMock->beginTransaction()
             ->shouldBeCalled();
@@ -74,10 +101,96 @@ class MessageServiceSpec extends ObjectBehavior
         $this->messageRepositoryMock->commitTransaction()
             ->shouldBeCalled();
 
+        $this->socketEventsMock->setRoom('chat:123')
+            ->shouldBeCalledOnce()
+            ->willReturn($this->socketEventsMock);
+
+        $this->socketEventsMock->emit(
+            "chat:123",
+            json_encode(new ChatEvent(
+                type: ChatEventTypeEnum::NEW_MESSAGE,
+                metadata: [
+                    'senderGuid' => "123",
+                ],
+            ))
+        )
+            ->shouldBeCalledOnce();
+
+        $this->chatNotificationsTopicMock->send(Argument::type(ChatNotificationEvent::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
         $this->addMessage(
             123,
             $userMock,
-            'just for testing'
+            $plainText
+        )->shouldBeAnInstanceOf(ChatMessageEdge::class);
+    }
+
+    public function it_should_add_a_message_with_a_rich_embed(
+        User $userMock
+    ): void {
+        $plainText = 'just for testing www.minds.com';
+        $chatRichEmbed = $this->generateChatRichEmbedMock();
+
+        $userMock->getGuid()
+            ->willReturn('123');
+
+        $this->roomRepositoryMock->isUserMemberOfRoom(
+            123,
+            $userMock
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->chatRichEmbedServiceMock->parseFromText($plainText)
+            ->shouldBeCalled()
+            ->willReturn($chatRichEmbed);
+
+        $this->messageRepositoryMock->beginTransaction()
+            ->shouldBeCalled();
+
+        $this->messageRepositoryMock->addMessage(Argument::type(ChatMessage::class))
+            ->shouldBeCalled();
+
+        $this->messageRepositoryMock->addRichEmbed(
+            roomGuid: 123,
+            messageGuid: Argument::type('int'),
+            chatRichEmbed: $chatRichEmbed
+        )
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->receiptServiceMock->updateReceipt(Argument::type(ChatMessage::class), $userMock)
+            ->shouldBeCalled()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->commitTransaction()
+            ->shouldBeCalled();
+
+        $this->socketEventsMock->setRoom('chat:123')
+            ->shouldBeCalledOnce()
+            ->willReturn($this->socketEventsMock);
+
+        $this->socketEventsMock->emit(
+            "chat:123",
+            json_encode(new ChatEvent(
+                type: ChatEventTypeEnum::NEW_MESSAGE,
+                metadata: [
+                    'senderGuid' => "123",
+                ],
+            ))
+        )
+            ->shouldBeCalledOnce();
+
+        $this->chatNotificationsTopicMock->send(Argument::type(ChatNotificationEvent::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->addMessage(
+            123,
+            $userMock,
+            $plainText
         )->shouldBeAnInstanceOf(ChatMessageEdge::class);
     }
 
@@ -125,12 +238,14 @@ class MessageServiceSpec extends ObjectBehavior
             );
     }
 
-    public function it_should_submit_a_read_receipt_when_sending_a_message()
-    {
+    public function it_should_submit_a_read_receipt_when_sending_a_message(
+        User $userMock
+    ) {
         $roomGuid = (int) Guid::build();
-        $user = new User();
+        $userMock->getGuid()
+            ->willReturn('123');
 
-        $this->roomRepositoryMock->isUserMemberOfRoom($roomGuid, $user)
+        $this->roomRepositoryMock->isUserMemberOfRoom($roomGuid, $userMock)
             ->shouldBeCalled()
             ->willReturn(true);
         
@@ -143,11 +258,30 @@ class MessageServiceSpec extends ObjectBehavior
         $this->messageRepositoryMock->commitTransaction()
             ->shouldBeCalled();
 
-        $this->receiptServiceMock->updateReceipt(Argument::type(ChatMessage::class), $user)
+        $this->receiptServiceMock->updateReceipt(Argument::type(ChatMessage::class), $userMock)
             ->shouldBeCalled()
             ->willReturn(true);
 
-        $result = $this->addMessage(roomGuid: $roomGuid, user: $user, message: 'just for testing');
+        $this->socketEventsMock->setRoom("chat:$roomGuid")
+            ->shouldBeCalledOnce()
+            ->willReturn($this->socketEventsMock);
+
+        $this->socketEventsMock->emit(
+            "chat:$roomGuid",
+            json_encode(new ChatEvent(
+                type: ChatEventTypeEnum::NEW_MESSAGE,
+                metadata: [
+                    'senderGuid' => "123",
+                ],
+            ))
+        )
+            ->shouldBeCalledOnce();
+
+        $this->chatNotificationsTopicMock->send(Argument::type(ChatNotificationEvent::class))
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $result = $this->addMessage(roomGuid: $roomGuid, user: $userMock, message: 'just for testing');
         $result->shouldBeAnInstanceOf(ChatMessageEdge::class);
     }
 
@@ -199,18 +333,6 @@ class MessageServiceSpec extends ObjectBehavior
         $response['edges'][0]->getCursor()->shouldEqual(base64_encode('1'));
     }
 
-    private function generateChatMessageMock(
-        int $messageGuid,
-        int $senderGuid
-    ): ChatMessage {
-        $chatMessageMock = $this->chatMessageFactoryMock->newInstanceWithoutConstructor();
-        $this->chatMessageFactoryMock->getProperty('guid')->setValue($chatMessageMock, $messageGuid);
-        $this->chatMessageFactoryMock->getProperty('senderGuid')->setValue($chatMessageMock, $senderGuid);
-        $this->chatMessageFactoryMock->getProperty('createdAt')->setValue($chatMessageMock, new DateTimeImmutable());
-
-        return $chatMessageMock;
-    }
-
     public function it_should_get_chat_message_as_NON_ADMIN(
         User $userMock
     ): void {
@@ -232,7 +354,8 @@ class MessageServiceSpec extends ObjectBehavior
         $this->getMessage(
             123,
             1,
-            $userMock
+            $userMock,
+            false
         )->shouldBeAnInstanceOf(ChatMessage::class);
     }
 
@@ -261,7 +384,8 @@ class MessageServiceSpec extends ObjectBehavior
         $this->getMessage(
             123,
             1,
-            $userMock
+            $userMock,
+            false
         )->shouldBeAnInstanceOf(ChatMessage::class);
     }
 
@@ -290,7 +414,8 @@ class MessageServiceSpec extends ObjectBehavior
             [
                 123,
                 1,
-                $userMock
+                $userMock,
+                false
             ]
         );
     }
@@ -346,5 +471,99 @@ class MessageServiceSpec extends ObjectBehavior
             1,
             $userMock
         )->shouldEqual(true);
+    }
+
+    public function it_should_delete_message_with_a_rich_embed(
+        User $userMock
+    ): void {
+        $this->roomRepositoryMock->isUserMemberOfRoom(
+            123,
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ]
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->getMessageByGuid(123, 1)
+            ->shouldBeCalledOnce()
+            ->willReturn($this->generateChatMessageMock(1, 123, ChatMessageTypeEnum::RICH_EMBED));
+
+        $userMock->isAdmin()
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
+
+        $userMock->getGuid()
+            ->shouldBeCalledOnce()
+            ->willReturn('123');
+
+        $this->messageRepositoryMock->beginTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->receiptServiceMock->deleteAllMessageReadReceipts(
+            123,
+            1
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->deleteRichEmbed(123, 1)
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->deleteChatMessage(
+            123,
+            1
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn(true);
+
+        $this->messageRepositoryMock->commitTransaction()
+            ->shouldBeCalledOnce();
+
+        $this->deleteMessage(
+            123,
+            1,
+            $userMock
+        )->shouldEqual(true);
+    }
+
+    private function generateChatMessageMock(
+        int $messageGuid,
+        int $senderGuid,
+        ChatMessageTypeEnum $messageType = ChatMessageTypeEnum::TEXT
+    ): ChatMessage {
+        $chatMessageMock = $this->chatMessageFactoryMock->newInstanceWithoutConstructor();
+        $this->chatMessageFactoryMock->getProperty('guid')->setValue($chatMessageMock, $messageGuid);
+        $this->chatMessageFactoryMock->getProperty('senderGuid')->setValue($chatMessageMock, $senderGuid);
+        $this->chatMessageFactoryMock->getProperty('createdAt')->setValue($chatMessageMock, new DateTimeImmutable());
+        $this->chatMessageFactoryMock->getProperty('messageType')->setValue($chatMessageMock, $messageType);
+
+        return $chatMessageMock;
+    }
+
+    private function generateChatRichEmbedMock(
+        string $url = 'example.minds.com',
+        string $canonicalUrl = 'https://example.minds.com',
+        string $title = 'title',
+        string $description = 'description',
+        string $author = 'author',
+        string $thumbnailSrc = 'https://example.minds.com/img/thumbnail.png',
+        DateTimeInterface $createdTimestamp = new DateTime(),
+        DateTimeInterface $updatedTimestamp = new DateTime()
+    ): ChatRichEmbed {
+        $chatRichEmbedMock = $this->chatRichEmbedFactoryMock->newInstanceWithoutConstructor();
+        $this->chatRichEmbedFactoryMock->getProperty('url')->setValue($chatRichEmbedMock, $url);
+        $this->chatRichEmbedFactoryMock->getProperty('canonicalUrl')->setValue($chatRichEmbedMock, $canonicalUrl);
+        $this->chatRichEmbedFactoryMock->getProperty('title')->setValue($chatRichEmbedMock, $title);
+        $this->chatRichEmbedFactoryMock->getProperty('description')->setValue($chatRichEmbedMock, $description);
+        $this->chatRichEmbedFactoryMock->getProperty('author')->setValue($chatRichEmbedMock, $author);
+        $this->chatRichEmbedFactoryMock->getProperty('thumbnailSrc')->setValue($chatRichEmbedMock, $thumbnailSrc);
+        $this->chatRichEmbedFactoryMock->getProperty('createdTimestamp')->setValue($chatRichEmbedMock, $createdTimestamp);
+        $this->chatRichEmbedFactoryMock->getProperty('updatedTimestamp')->setValue($chatRichEmbedMock, $updatedTimestamp);
+
+        return $chatRichEmbedMock;
     }
 }

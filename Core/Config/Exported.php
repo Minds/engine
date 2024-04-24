@@ -10,11 +10,14 @@ namespace Minds\Core\Config;
 
 use Exception;
 use Minds\Api\Exportable;
+use Minds\Core\Analytics\PostHog\PostHogConfig;
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Blockchain\Manager as BlockchainManager;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
 use Minds\Core\Custom\Navigation\CustomNavigationService;
 use Minds\Core\Chat\Services\ReceiptService;
 use Minds\Core\Di\Di;
+use Minds\Core\Experiments\LegacyGrowthBook;
 use Minds\Core\Experiments\Manager as ExperimentsManager;
 use Minds\Core\I18n\Manager as I18nManager;
 use Minds\Core\MultiTenant\Enums\TenantPlanEnum;
@@ -63,6 +66,7 @@ class Exported
         private ?SiteMembershipRepository $siteMembershipRepository = null,
         private ?CustomNavigationService $customNavigationService = null,
         private ?ReceiptService $chatReceiptsService = null,
+        private ?PostHogConfig $postHogConfig = null,
     ) {
         $this->config = $config ?: Di::_()->get('Config');
         $this->thirdPartyNetworks = $thirdPartyNetworks ?: Di::_()->get('ThirdPartyNetworks\Manager');
@@ -73,6 +77,7 @@ class Exported
         $this->siteMembershipRepository ??= Di::_()->get(SiteMembershipRepository::class);
         $this->customNavigationService ??= Di::_()->get(CustomNavigationService::class);
         $this->chatReceiptsService ??= Di::_()->get(ReceiptService::class);
+        $this->postHogConfig ??= Di::_()->get(PostHogConfig::class);
     }
 
     /**
@@ -118,10 +123,11 @@ class Exported
             'statuspage_io' => [
                 'url' => $this->config->get('statuspage_io')['url'] ?? null,
             ],
-            'experiments' => [], // TODO: remove when clients support growthbook features
-            'growthbook' => $this->experimentsManager
-                ->setUser(Session::getLoggedinUser())
-                ->getExportableConfig(),
+            'posthog' => [
+                ...$this->postHogConfig->getPublicExport(Session::getLoggedinUser()),
+                'feature_flags' => Di::_()->get(PostHogService::class)
+                    ->getFeatureFlags(user: Session::getLoggedinUser()),
+            ],
             'twitter' => [
                 'min_followers_for_sync' => $this->config->get('twitter')['min_followers_for_sync'] ?? 25000,
             ],
@@ -142,7 +148,9 @@ class Exported
             'last_cache' => $this->config->get('lastcache') ?? 0,
             'custom' => [
                 'navigation' => Exportable::_($this->customNavigationService->getItems()),
-            ]
+            ],
+            // Remove when mobile is read
+            'growthbook' => LegacyGrowthBook::getExportedConfigs(Session::getLoggedinUser()),
         ];
 
         if (Session::isLoggedIn()) {
@@ -210,6 +218,9 @@ class Exported
                 'trial_start' => $tenant->trialStartTimestamp,
                 'trial_end' => $tenant->trialStartTimestamp ? strtotime('+' . Tenant::TRIAL_LENGTH_IN_DAYS . ' days', $tenant->trialStartTimestamp) : null,
                 'network_deletion_timestamp' => $tenant->trialStartTimestamp ? strtotime('+' . (Tenant::TRIAL_LENGTH_IN_DAYS + Tenant::GRACE_PERIOD_BEFORE_DELETION_IN_DAYS) . ' days', $tenant->trialStartTimestamp) : null,
+                'custom_home_page_enabled' => $tenant->config?->customHomePageEnabled ?? false,
+                'custom_home_page_description' => $tenant->config?->customHomePageDescription ?? '',
+                'walled_garden_enabled' => $tenant->config?->walledGardenEnabled ?? false,
             ];
 
             $exported['tenant']['max_memberships'] = $multiTenantConfig['plan_memberships'][$exported['tenant']['plan']] ?? 0;

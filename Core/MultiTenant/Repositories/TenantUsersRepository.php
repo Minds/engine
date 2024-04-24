@@ -9,9 +9,37 @@ use Minds\Core\MultiTenant\Enums\TenantUserRoleEnum;
 use Minds\Core\MultiTenant\Types\TenantUser;
 use PDO;
 use Selective\Database\Operator;
+use Selective\Database\RawExp;
 
 class TenantUsersRepository extends AbstractRepository
 {
+    /**
+     * Returns the user guids for a tenant
+     * Limit is optional
+     * @return iterable<int>
+     */
+    public function getUserGuids(int $tenantId, int $limit = null): iterable
+    {
+        $query = $this->mysqlClientReaderHandler->select()
+            ->columns(['guid'])
+            ->from('minds_entities_user')
+            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'));
+
+        if ($limit) {
+            $query->limit($limit);
+        }
+
+        $stmt = $query->prepare();
+
+        $stmt->execute([
+            'tenant_id' => $tenantId,
+        ]);
+
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            yield (int) $row['guid'];
+        }
+    }
+
     /**
      * @param int $tenantId
      * @param int $userId
@@ -40,7 +68,7 @@ class TenantUsersRepository extends AbstractRepository
      */
     public function getTenantRootAccount(int $tenantId): ?TenantUser
     {
-        $statement = $this->mysqlClientReaderHandler->select()
+        $statement = $this->mysqlClientWriterHandler->select()
             ->from('minds_tenants')
             ->columns([
                 'tenant_id',

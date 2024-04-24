@@ -5,11 +5,12 @@ namespace Minds\Core\Analytics\Metrics;
 use Minds\Common\PseudonymousIdentifier;
 use Minds\Core;
 use Minds\Core\AccountQuality\ManagerInterface as AccountQualityManagerInterface;
-use Minds\Core\Analytics\Snowplow;
+use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Config\Config;
 use Minds\Core\Data\ElasticSearch;
 use Minds\Core\Di\Di;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\Session;
 use Minds\Entities\User;
 
 /**
@@ -48,9 +49,6 @@ class Event
     /** @var string */
     private $index = 'minds-metrics-';
 
-    /** @var Snowplow\Manager */
-    private $snowplowManager;
-
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
@@ -63,9 +61,11 @@ class Event
     /** @var User */
     protected $user;
 
+    protected string $eventName;
+
     public function __construct(
         $elastic = null,
-        $snowplowManager = null,
+        protected ?PostHogService $postHogService = null,
         $entitiesBuilder = null,
         AccountQualityManagerInterface $accountQualityManager = null,
         protected ?PseudonymousIdentifier $pseudoId = null,
@@ -73,7 +73,7 @@ class Event
     ) {
         $this->elastic = $elastic ?: Core\Di\Di::_()->get('Database\ElasticSearch');
         $this->index = 'minds-metrics-'.date('m-Y', time());
-        $this->snowplowManager = $snowplowManager ?? Di::_()->get('Analytics\Snowplow\Manager');
+        $this->postHogService ??= Di::_()->get(PostHogService::class);
         $this->entitiesBuilder = $entitiesBuilder ?? Di::_()->get('EntitiesBuilder');
         $this->accountQualityManager = $accountQualityManager ?? Di::_()->get('AccountQuality\Manager');
         $this->pseudoId = $pseudoId ?? new PseudonymousIdentifier();
@@ -148,9 +148,9 @@ class Event
             $this->data['platform'] = $platform;
         }
 
-        // Submit to snowplow
+        // Submit to PostHog
 
-        $this->emitToSnowplow();
+        $this->emitToPostHog();
 
         if (!$shouldIndex) {
             return;
@@ -173,6 +173,15 @@ class Event
             return $this->elastic->request($prepared);
         } catch (\Exception $e) {
         }
+    }
+
+    /**
+     * Sets the event name to pass through to analytics
+     */
+    public function setEventName(string $object, string $verb): self
+    {
+        $this->eventName = "{$object}_{$verb}";
+        return $this;
     }
 
     /**
@@ -231,10 +240,10 @@ class Event
     }
 
     /**
-     * Emit the event to snowplow
+     * Emit the event to PostHog
      * @return void
      */
-    protected function emitToSnowplow(): void
+    protected function emitToPostHog(): void
     {
         if (
             !isset($this->data['action']) ||
@@ -245,84 +254,48 @@ class Event
             return; // We only want to submit actions and not legacy pageviews
         }
 
-        $entityContext = new Snowplow\Contexts\SnowplowEntityContext();
-        $sessionContext = new Snowplow\Contexts\SnowplowSessionContext();
-        $proofOfWorkContext = new Snowplow\Contexts\SnowplowProofOfWorkContext();
-        $clientMetaContext = new Snowplow\Contexts\SnowplowClientMetaContext();
-        $contexts = [ $entityContext, $sessionContext, $proofOfWorkContext, $clientMetaContext ];
-
-        $event = new Snowplow\Events\SnowplowActionEvent();
-
-        $event->setAction($this->data['action']);
-
-        if ($this->data['entity_guid'] ?? null) {
-            $entityContext->setEntityGuid($this->data['entity_guid']);
-        }
-
-        if ($this->data['entity_type'] ?? null) {
-            $entityContext->setEntityType($this->data['entity_type']);
-        }
-
-        if ($this->data['entity_subtype'] ?? null) {
-            $entityContext->setEntitySubtype($this->data['entity_subtype']);
-        }
-
-        if ($this->data['entity_owner_guid'] ?? null) {
-            $entityContext->setEntityOwnerGuid($this->data['entity_owner_guid']);
-        }
-
-        if ($this->data['entity_access_id'] ?? null) {
-            $entityContext->setEntityAccessId($this->data['entity_access_id']);
-        }
-
-        if ($this->data['entity_container_guid'] ?? null) {
-            $entityContext->setEntityContainerGuid($this->data['entity_container_guid']);
-        }
-
-        if ($this->data['comment_guid'] ?? null) {
-            $event->setCommentGuid($this->data['comment_guid']);
-        }
-
-        if ($this->data['boost_rating'] ?? null) {
-            $event->setBoostRating($this->data['boost_rating']);
-        }
-
-        if ($this->data['boost_reject_reason'] ?? null) {
-            $event->setBoostRejectReason($this->data['boost_reject_reason']);
-        }
-
-        if ($this->data['user_phone_number_hash'] ?? null) {
-            $sessionContext->setUserPhoneNumberHash($this->data['user_phone_number_hash']);
-        }
-
-        if ($this->data['proofOfWork'] ?? null) {
-            $proofOfWorkContext->setSuccessful($this->data['proofOfWork']);
-        }
-
-        // Setting the client meta context details for snowplow
-        if ($this->data['client_meta'] ?? null) {
-            $clientMetaContext->platform = $this->data['client_meta']['platform'] ?? "";
-            $clientMetaContext->source = $this->data['client_meta']['source'] ?? "";
-            $clientMetaContext->salt = $this->data['client_meta']['salt'] ?? "";
-            $clientMetaContext->medium = $this->data['client_meta']['medium'] ?? "";
-            $clientMetaContext->campaign = $this->data['client_meta']['campaign'] ?? "";
-            $clientMetaContext->page_token = $this->data['client_meta']['page_token'] ?? "";
-            $clientMetaContext->delta = $this->data['client_meta']['delta'] ?? 0;
-            $clientMetaContext->position = $this->data['client_meta']['position'] ?? 0;
-            $clientMetaContext->served_by_guid = $this->data['client_meta']['served_by_guid'] ?? "";
-        }
-
         // Rebuild the user, as we need the full entity
 
         /** @var User */
-        $user = $this->entitiesBuilder->single($this->data['user_guid']);
+        $user = $this->entitiesBuilder->single($this->data['user_guid'] ?? Session::getLoggedInUserGuid());
 
+        if (!$user) {
+            return;
+        }
 
-        $event->setContext($contexts);
+        $properties = array_filter($this->data, fn ($key) => in_array($key, [
+                'entity_guid',
+                'entity_type',
+                'entity_subtype',
+                'entity_owner_guid',
+                'comment_guid',
+        ], true), ARRAY_FILTER_USE_KEY);
+    
+        // Client meta  remapping
+        if ($this->data['client_meta'] ?? null) {
+            foreach ($this->data['client_meta'] as $key => $value) {
+                if (in_array($key, [
+                    'platform',
+                    'source',
+                    'medium',
+                    'campaign',
+                    'delta',
+                    'position',
+                    'served_by_guid',
+                ], true)) {
+                    $properties['cm_' . $key] = $value;
+                }
+            }
+        }
 
+        $eventName = isset($this->eventName) ? $this->eventName
+            : ($this->data['entity_type'] ?? 'user') . '_' . str_replace(':', '_', $this->data['action']);
 
-        // Emit the event
-        $this->snowplowManager->setSubject($user)->emit($event);
+        $this->postHogService->capture(
+            event:  $eventName,
+            user: $user,
+            properties: $properties,
+        );
     }
 
     /**
