@@ -39,7 +39,7 @@ class PlusCredit implements GiftCardProductInterface
      */
     public function buildContent(): string
     {
-        return "You've been gifted <b>\${$this->amount} in Minds+ Credits</b> by <b>{$this->sender->getName()}</b> to use towards any Minds+ subscription you purchase!";
+        return "You've been gifted <b>\$" . "{$this->amount} in Minds+ Credits</b> by <b>{$this->sender->getName()}</b> to use towards any Minds+ subscription you purchase!";
     }
 
     /**
@@ -48,6 +48,6 @@ class PlusCredit implements GiftCardProductInterface
      */
     public function buildSubject(): string
     {
-        return "You've been gifted \${$this->amount} in Minds+ Credits by {$this->sender->getName()}";
+        return "You've been gifted \$" . "{$this->amount} in Minds+ Credits by {$this->sender->getName()}";
     }
 }

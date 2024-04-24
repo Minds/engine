@@ -54,7 +54,7 @@ class Spam
         }
 
         if ($foundSpam) {
-            throw new ProhibitedDomainException("Sorry, you included a reference to a domain name linked to spam (${foundSpam})");
+            throw new ProhibitedDomainException("Sorry, you included a reference to a domain name linked to spam ({$foundSpam})");
             return true;
         }
         return $foundSpam ? true : false;
@@ -69,7 +69,7 @@ class Spam
     public function checkText(string $text): bool
     {
         if ($foundSpam = Text::strposa($text, $this->getDomains()) ?? false) {
-            throw new ProhibitedDomainException("Sorry, you included a reference to a domain name linked to spam (${foundSpam})");
+            throw new ProhibitedDomainException("Sorry, you included a reference to a domain name linked to spam ({$foundSpam})");
         }
         return true;
     }

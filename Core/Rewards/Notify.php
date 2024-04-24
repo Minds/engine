@@ -83,7 +83,7 @@ class Notify
 
             if ($usd > 0.01) {
                 // If USD is above 1 cent then send the USD amount
-                $message = "🚀 You earned \${$usdFormated} worth of tokens yesterday. Nice job! 🚀";
+                $message = "🚀 You earned \$" . "{$usdFormated} worth of tokens yesterday. Nice job! 🚀";
             } else {
                 $message = "🚀 You earned $tokensFormatted tokens yesterday 🚀";
             }

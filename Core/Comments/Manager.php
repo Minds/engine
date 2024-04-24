@@ -396,7 +396,7 @@ class Manager
         }
 
         if (count($components) !== 5) {
-            error_log("[CommentsManager]: Invalid Comment URN (${$components})");
+            error_log("[CommentsManager]: Invalid Comment URN ({$components})");
             return null;
         }
 

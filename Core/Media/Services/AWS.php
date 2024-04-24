@@ -90,7 +90,7 @@ class AWS implements ServiceInterface
     {
         $objectTorrent = $this->s3->getObjectTorrent([
             'Bucket' => 'cinemr',
-            'Key' => "{$this->dir}/{$this->key}/${file}"
+            'Key' => "{$this->dir}/{$this->key}/{$file}"
         ]);
 
         /** @var Stream $body */

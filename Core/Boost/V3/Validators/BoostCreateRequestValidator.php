@@ -187,14 +187,14 @@ class BoostCreateRequestValidator implements ValidatorInterface
                     $this->errors->add(
                         new ValidationError(
                             'daily_bid',
-                            "Daily bid cannot be lower than \${$this->mindsConfig->get('boost')['min']['cash']}"
+                            "Daily bid cannot be lower than \$" . "{$this->mindsConfig->get('boost')['min']['cash']}"
                         )
                     );
                 } elseif ((float) $dataToValidate['daily_bid'] > $this->mindsConfig->get('boost')['max']['cash']) {
                     $this->errors->add(
                         new ValidationError(
                             'daily_bid',
-                            "Daily bid cannot be higher than \${$this->mindsConfig->get('boost')['max']['cash']}"
+                            "Daily bid cannot be higher than \$" . "{$this->mindsConfig->get('boost')['max']['cash']}"
                         )
                     );
                 }

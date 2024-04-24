@@ -5,8 +5,13 @@ namespace Minds\Controllers\Cli;
 use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Cli;
+use Minds\Common\SystemUser;
+use Minds\Core\EntitiesBuilder;
+use Minds\Core\Reports\Enums\ReportReasonEnum;
+use Minds\Core\Reports\Report;
 use Minds\Core\Reports\Strikes\Strike;
 use Minds\Core\Reports\Summons\Summons;
+use Minds\Core\Reports\UserReports\UserReport;
 use Minds\Interfaces;
 use Minds\Entities;
 
@@ -140,7 +145,7 @@ class Moderation extends Cli\Controller implements Interfaces\CliControllerInter
             ]);
 
             $this->out("Summoned {$user->guid} to {$reportUrn}");
-            $this->out("${missing} juror(s) missing.");
+            $this->out("{$missing} juror(s) missing.");
         } else {
             $summons = new Summons();
             $summons
@@ -153,5 +158,40 @@ class Moderation extends Cli\Controller implements Interfaces\CliControllerInter
 
             $this->out("Responded to {$user->guid}'s summons to {$reportUrn} with {$respond}");
         }
+    }
+
+    public function reportFromCsv()
+    {
+        $report = new SystemUser();
+
+        /** @var EntitiesBuilder */
+        $entitiesBuilder = Di::_()->get(EntitiesBuilder::class);
+        $userReportsManager = Di::_()->get('Moderation\UserReports\Manager');
+        $filename = $this->getOpt('csv');
+
+        $row = 1;
+        if (($handle = fopen($filename, "r")) !== false) {
+            while (($data = fgetcsv($handle, 1000, ",")) !== false) {
+
+                $user = $entitiesBuilder->single($data[0]);
+                if (!$user->isEnabled()) {
+                    continue;
+                }
+
+                $report = (new Report())
+                    ->setReasonCode(ReportReasonEnum::SPAM->value)
+                    ->setEntityUrn($user->getUrn())
+                    ->setEntity($user)
+                    ->setEntityOwnerGuid(0);
+
+                $userReport = (new UserReport())
+                    ->setReport($report)
+                    ->setReporterGuid(SystemUser::GUID)
+                    ->setTimestamp(time());
+
+                $userReportsManager->add($userReport);
+            }
+        }
+
     }
 }

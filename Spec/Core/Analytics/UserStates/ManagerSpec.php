@@ -84,6 +84,6 @@ class ManagerSpec extends ObjectBehavior
 
     private function getMockData($filename)
     {
-        return json_decode(file_get_contents(__DIR__."/MockData/${filename}"), true);
+        return json_decode(file_get_contents(__DIR__."/MockData/{$filename}"), true);
     }
 }

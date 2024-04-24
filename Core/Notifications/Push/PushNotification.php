@@ -216,7 +216,7 @@ class PushNotification implements PushNotificationInterface
                 break;
             case NotificationTypes::TYPE_TOKEN_REWARDS_SUMMARY:
                 $data = $this->notification->getData();
-                $excerpt = "🚀' You earned {$data['tokens_formatted']} tokens (\${$data['usd_formatted']}) yesterday";
+                $excerpt = "🚀' You earned {$data['tokens_formatted']} tokens (\$" . "{$data['usd_formatted']}) yesterday";
                 break;
         }
 

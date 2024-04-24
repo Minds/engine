@@ -450,7 +450,7 @@ class Repository extends AbstractRepository
         $statement = $this->mysqlClientReaderHandler->select()
             ->from('superminds')
             ->where('status', Operator::EQ, SupermindRequestStatus::CREATED->value)
-            ->where('created_timestamp', Operator::LTE, date('c', strtotime("-${thresholdInSeconds} seconds")))
+            ->where('created_timestamp', Operator::LTE, date('c', strtotime("-{$thresholdInSeconds} seconds")))
             ->prepare();
 
         $statement->execute();

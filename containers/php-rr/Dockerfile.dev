@@ -1,5 +1,5 @@
 FROM ghcr.io/roadrunner-server/roadrunner:2023.3.9 AS roadrunner
-FROM registry.gitlab.com/minds/engine/php:8.1
+FROM registry.gitlab.com/minds/engine/php:8.2
 
 RUN echo 'zend_extension=opcache.so' > /usr/local/etc/php/conf.d/opcache.ini \
     && mkdir --parents --mode=0777 /tmp/minds-cache/ \
