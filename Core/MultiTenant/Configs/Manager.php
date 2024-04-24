@@ -70,10 +70,7 @@ class Manager
         ?bool $nsfwEnabled = null,
         ?bool $customHomePageEnabled = null,
         ?string $customHomePageDescription = null,
-<<<<<<< HEAD
-=======
         ?bool $walledGardenEnabled = null,
->>>>>>> b69efea51614f6eca623b47ad834b2b8daa12dd1
         ?int $lastCacheTimestamp = null
     ): bool {
         $tenantId = $this->config->get('tenant_id');
@@ -88,10 +85,7 @@ class Manager
             nsfwEnabled: $nsfwEnabled,
             customHomePageEnabled: $customHomePageEnabled,
             customHomePageDescription: $customHomePageDescription,
-<<<<<<< HEAD
-=======
             walledGardenEnabled: $walledGardenEnabled,
->>>>>>> b69efea51614f6eca623b47ad834b2b8daa12dd1
             lastCacheTimestamp: $lastCacheTimestamp
         );
 
