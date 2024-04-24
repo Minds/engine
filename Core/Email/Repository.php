@@ -77,23 +77,6 @@ class Repository
             $options['user_guids'] = [ $options['user_guid'] ];
         }
 
-        if (isset($options['user_guids']) && $options['user_guids']) {
-            $where[] = 'user_guid IN ?';
-            $values[] = Type::collection(Type::varint())->create(
-                ...array_map(
-                    function ($guid) {
-                        return new Varint($guid);
-                    },
-                    $options['user_guids']
-                )
-            );
-        }
-
-        //if (isset($options['value'])) {
-        //    $where[] = 'value = ?';
-        //    $values[] = $options['value'];
-        //}
-
         if ($where) {
             $template .= " WHERE " . implode(" AND ", $where);
         }
@@ -132,14 +115,31 @@ class Repository
                     ->setUserGuid($row['user_guid']->value())
                     ->setValue($row['value']);
 
-                $notifications[] = $subscription;
+                $notifications[$row['user_guid']->value() . "::" . $row['campaign'] . '::' . $row['topic']] = $subscription;
             }
 
             $token = base64_encode($result->pagingStateToken());
         }
 
+        // Set default values if not found in db
+        // Hacky work around
+        if ($userGuid = $options['user_guid']) {
+            foreach (EmailSubscriptionTypes::TYPES_GROUPINGS as $campaign => $topics) {
+                foreach ($topics as $topic) {
+                    $key = "$userGuid::$campaign::$topic";
+
+                    if (!isset($notifications[$key])) {
+                        $notifications[$key] = ( new EmailSubscription())
+                        ->setTopic($topic)
+                        ->setUserGuid($userGuid)
+                        ->setValue(1);
+                    }
+                }
+            }
+        }
+
         return [
-            'data' => $notifications,
+            'data' => array_values($notifications),
             'next' => $token
         ];
     }

@@ -80,6 +80,7 @@ class ServicesProvider extends Provider
                     $di->get('Config'),
                     $di->get(MultiTenantBootService::class),
                     $di->get('Security\ACL'),
+                    $di->get(EntitiesBuilder::class),
                 );
             }
         );
