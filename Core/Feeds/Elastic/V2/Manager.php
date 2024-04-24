@@ -476,6 +476,18 @@ class Manager
             ]
         ];
 
+        // If older than specified, only show posts older than date time
+        if ($queryOpts->olderThan) {
+            $must[] = [
+                'range' => [
+                    '@timestamp' => [
+                        'gte' => $queryOpts->olderThan->format('c'),
+                        'format' => 'strict_date_optional_time',
+                    ]
+                ]
+            ];
+        }
+
         // Never show pending posts
         $mustNot[] = [
             'term' => [

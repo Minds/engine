@@ -54,6 +54,7 @@ class Repository extends AbstractRepository
             nsfwEnabled: ($row['nsfw_enabled'] ?? 1) === 1,
             customHomePageEnabled: (bool) $row['custom_home_page_enabled'] ?? false,
             customHomePageDescription: $row['custom_home_page_description'] ?? null,
+            walledGardenEnabled: (bool) $row['walled_garden_enabled'] ?? false,
             lastCacheTimestamp: isset($row['last_cache_timestamp']) ? strtotime($row['last_cache_timestamp']) : null,
             updatedTimestamp: isset($row['updated_timestamp']) ? strtotime($row['updated_timestamp']) : null
         );
@@ -71,6 +72,7 @@ class Repository extends AbstractRepository
      * @param ?bool $nsfwEnabled - nsfw enabled.
      * @param ?string $customHomePageEnabled - whether custom home page is enabled.
      * @param ?string $customHomePageDescription - custom home page description.
+     * @param ?bool $walledGardenEnabled - whether wallet garden mode is enabled.
      * @param ?int $lastCacheTimestamp - timestamp of last caching.
      * @return bool - true on success.
      */
@@ -84,6 +86,7 @@ class Repository extends AbstractRepository
         ?bool $nsfwEnabled = null,
         ?bool $customHomePageEnabled = null,
         ?string $customHomePageDescription = null,
+        ?bool $walledGardenEnabled = null,
         ?int $lastCacheTimestamp = null
     ): bool {
         $boundValues = ['tenant_id' => $tenantId];
@@ -133,6 +136,11 @@ class Repository extends AbstractRepository
         if ($customHomePageDescription !== null) {
             $rawValues['custom_home_page_description'] = new RawExp(':custom_home_page_description');
             $boundValues['custom_home_page_description'] = $customHomePageDescription;
+        }
+
+        if ($walledGardenEnabled !== null) {
+            $rawValues['walled_garden_enabled'] = new RawExp(':walled_garden_enabled');
+            $boundValues['walled_garden_enabled'] = $walledGardenEnabled;
         }
 
         $query = $this->mysqlClientWriterHandler

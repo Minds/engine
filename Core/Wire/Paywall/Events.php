@@ -66,12 +66,8 @@ class Events
             if ($activity->isPaywall() && $activity->owner_guid != $currentUser) {
                 $export['blurb'] = $this->extractTeaser($activity->blurb);
 
-                $paywallContextExperimentOn = $this->getExperimentsManager()
-                    ->setUser(Session::getLoggedInUser())
-                    ->isOn('minds-3857-paywall-context');
-
                 // Only export teaser for non-status posts and users in the experiment
-                if (!$this->isStatusPost($activity) && $paywallContextExperimentOn) {
+                if (!$this->isStatusPost($activity)) {
                     $export['message'] = $this->extractTeaser($activity->message);
                 } else {
                     $export['message'] = null;

@@ -81,6 +81,7 @@ class Repository extends AbstractRepository
                 'reply_email',
                 'custom_home_page_enabled',
                 'custom_home_page_description',
+                'walled_garden_enabled',
                 'last_cache_timestamp',
                 'updated_timestamp',
                 'nsfw_enabled',
@@ -102,6 +103,7 @@ class Repository extends AbstractRepository
         $replyEmail = $row['reply_email'] ?? null;
         $customHomePageEnabled = $row['custom_home_page_enabled'] ?? false;
         $customHomePageDescription = $row['custom_home_page_description'] ?? null;
+        $walledGardenEnabled = $row['walled_garden_enabled'] ?? false;
         $updatedTimestamp = $row['updated_timestamp'] ?? null;
         $lastCacheTimestamp = $row['last_cache_timestamp'] ?? null;
         $nsfwEnabled = $row['nsfw_enabled'] ?? true;
@@ -122,6 +124,7 @@ class Repository extends AbstractRepository
                 nsfwEnabled: $nsfwEnabled,
                 customHomePageEnabled: $customHomePageEnabled,
                 customHomePageDescription: $customHomePageDescription,
+                walledGardenEnabled: $walledGardenEnabled,
                 updatedTimestamp: $updatedTimestamp ? strtotime($updatedTimestamp) : null,
                 lastCacheTimestamp: $lastCacheTimestamp ? strtotime($lastCacheTimestamp) : null,
             ),
@@ -139,7 +142,7 @@ class Repository extends AbstractRepository
      * @param int $limit
      * @param int $offset
      * @param int|null $ownerGuid
-     * @return Tenant[]
+     * @return iterable<Tenant>
      */
     public function getTenants(
         int  $limit,

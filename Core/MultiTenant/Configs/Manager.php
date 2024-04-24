@@ -57,6 +57,7 @@ class Manager
      * @param ?bool $nsfwEnabled - whether nfsw reporting tools are enabled.
      * @param ?bool $customHomePageEnabled - whether custom home page is enabled.
      * @param ?bool $customHomePageDescription - custom home page description.
+     * @param ?bool $walledGardenEnabled - whether walled garden mode is enabled.
      * @param ?int $lastCacheTimestamp - last cache timestamp.
      * @return bool - true on success.
      */
@@ -69,6 +70,10 @@ class Manager
         ?bool $nsfwEnabled = null,
         ?bool $customHomePageEnabled = null,
         ?string $customHomePageDescription = null,
+<<<<<<< HEAD
+=======
+        ?bool $walledGardenEnabled = null,
+>>>>>>> b69efea51614f6eca623b47ad834b2b8daa12dd1
         ?int $lastCacheTimestamp = null
     ): bool {
         $tenantId = $this->config->get('tenant_id');
@@ -83,6 +88,10 @@ class Manager
             nsfwEnabled: $nsfwEnabled,
             customHomePageEnabled: $customHomePageEnabled,
             customHomePageDescription: $customHomePageDescription,
+<<<<<<< HEAD
+=======
+            walledGardenEnabled: $walledGardenEnabled,
+>>>>>>> b69efea51614f6eca623b47ad834b2b8daa12dd1
             lastCacheTimestamp: $lastCacheTimestamp
         );
 
