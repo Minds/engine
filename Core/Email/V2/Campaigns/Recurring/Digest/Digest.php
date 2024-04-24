@@ -174,12 +174,12 @@ class Digest extends EmailCampaign
     {
         $time = $time ?: time();
         //send email
-        //if ($this->canSend()) {
-        $message = $this->build();
-        if ($message) {
-            $this->saveCampaignLog();
-            $this->mailer->send($message);
+        if ($this->canSend()) {
+            $message = $this->build();
+            if ($message) {
+                $this->saveCampaignLog();
+                $this->mailer->send($message);
+            }
         }
-        //}
     }
 }
