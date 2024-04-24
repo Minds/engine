@@ -211,6 +211,9 @@ class Exported
                 'trial_start' => $tenant->trialStartTimestamp,
                 'trial_end' => $tenant->trialStartTimestamp ? strtotime('+' . Tenant::TRIAL_LENGTH_IN_DAYS . ' days', $tenant->trialStartTimestamp) : null,
                 'network_deletion_timestamp' => $tenant->trialStartTimestamp ? strtotime('+' . (Tenant::TRIAL_LENGTH_IN_DAYS + Tenant::GRACE_PERIOD_BEFORE_DELETION_IN_DAYS) . ' days', $tenant->trialStartTimestamp) : null,
+                'custom_home_page_enabled' => $tenant->config?->customHomePageEnabled ?? false,
+                'custom_home_page_description' => $tenant->config?->customHomePageDescription ?? '',
+                'walled_garden_enabled' => $tenant->config?->walledGardenEnabled ?? false,
             ];
 
             $exported['tenant']['max_memberships'] = $multiTenantConfig['plan_memberships'][$exported['tenant']['plan']] ?? 0;

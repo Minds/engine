@@ -178,7 +178,8 @@ class FeaturedEntitiesRepository extends AbstractRepository
                 entityGuid: (int) $row['entity_guid'],
                 autoSubscribe: (bool) $row['auto_subscribe'],
                 recommended: (bool) $row['recommended'],
-                name: $row['name']
+                name: $row['name'],
+                briefDescription: $row['brief_description'],
             ),
             default => null
         };
