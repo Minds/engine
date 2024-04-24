@@ -15,36 +15,29 @@ use Minds\Entities\User;
 use Minds\Entities\Activity;
 use Minds\Common\Repository\Response;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
 
 class DigestSpec extends ObjectBehavior
 {
-    /** @var Template */
-    protected $template;
+    protected Collaborator $managerMock;
 
-    /** @var Mailer */
-    protected $mailer;
-
-    /** @var Manager */
-    protected $manager;
-
-    /** @var Feeds\Elastic\Manager */
-    protected $feedsManager;
+    protected Collaborator $feedsManagerMock;
 
     /** @var Notification\Manager */
-    protected $notificationManager;
+    protected Collaborator $notificationManagerMock;
 
     public function let(
         Template $template,
         Mailer $mailer,
         Manager $manager,
-        Feeds\Elastic\Manager $feedsManager,
-        Notification\Manager $notificationManager
+        Feeds\Elastic\V2\Manager $feedsManagerMock,
+        Notification\Manager $notificationManagerMock,
     ) {
-        $this->beConstructedWith($template, $mailer, $manager, $feedsManager, $notificationManager);
-        $this->manager = $manager;
-        $this->feedsManager = $feedsManager;
-        $this->notificationManager = $notificationManager;
+        $this->beConstructedWith($template, $mailer, $manager, $feedsManagerMock, $notificationManagerMock);
+        $this->managerMock = $manager;
+        $this->feedsManagerMock = $feedsManagerMock;
+        $this->notificationManagerMock = $notificationManagerMock;
     }
 
 
@@ -64,32 +57,21 @@ class DigestSpec extends ObjectBehavior
 
         //
 
-        $this->manager->getCampaignLogs($user)
+        $this->managerMock->getCampaignLogs($user)
             ->shouldBeCalled()
             ->willReturn(new Response());
 
         //
 
-        $this->feedsManager->getList([
-            'subscriptions' => '123',
-            'hide_own_posts' => true,
-            'limit' => 12,
-            'to_timestamp' => strtotime('30 days ago') * 1000,
-            'algorithm' => \Minds\Core\Search\SortingAlgorithms\DigestFeed::class,
-            'period' => 'all',
-            'type' => 'activity',
-        ])
-            ->willReturn(new Response([
-                (new FeedSyncEntity())
-                    ->setEntity(new Activity())
-            ]));
+        $this->feedsManagerMock->getTop(Argument::any())
+            ->willYield([new Activity()]);
 
         //
 
-        $this->notificationManager->setUser($user)
-            ->willReturn($this->notificationManager);
+        $this->notificationManagerMock->setUser($user)
+            ->willReturn($this->notificationManagerMock);
         
-        $this->notificationManager->getCount()
+        $this->notificationManagerMock->getCount()
             ->willReturn(5);
 
         $this->build();
