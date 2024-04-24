@@ -37,7 +37,7 @@
                             <tr>
                                 <td <?php echo $emailStyles->getStyles('m-clear'); ?> >
                                     <a href="<?php echo $vars['site_url']; ?>newsfeed/<?php echo $activity['guid']; ?>?<?php echo $vars['tracking']; ?>&utm_content=thumbnail">
-                                        <img src="<?php echo $activity['thumbnail_src']; ?>" style="width: 100%; max-width: 100%;" />
+                                        <img src="<?php echo $activity['thumbnail_src']; ?>" style="width: 100%; max-width: 100%; max-height: 300px; object-fit:cover;" />
                                     </a>
                                 </td>
                             </tr>
