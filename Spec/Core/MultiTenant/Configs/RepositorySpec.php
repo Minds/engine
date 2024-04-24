@@ -61,6 +61,9 @@ class RepositorySpec extends ObjectBehavior
         $federationDisabled = true;
         $replyEmail = 'some@email.com';
         $nsfwEnabled = 1;
+        $customHomePageEnabled = true;
+        $customHomePageDescription = 'Hello world';
+        $walledGardenEnabled = true;
         $updatedTimestamp = date('c', time());
 
         $this->mysqlMasterMock->prepare(Argument::any())
@@ -84,6 +87,9 @@ class RepositorySpec extends ObjectBehavior
                 'federation_disabled' => $federationDisabled,
                 'reply_email' => $replyEmail,
                 'nsfw_enabled' => $nsfwEnabled,
+                'custom_home_page_enabled' => $customHomePageEnabled,
+                'custom_home_page_description' => $customHomePageDescription,
+                'walled_garden_enabled' => $walledGardenEnabled,
                 'updated_timestamp' => $updatedTimestamp,
             ]);
 
@@ -95,6 +101,9 @@ class RepositorySpec extends ObjectBehavior
             federationDisabled: $federationDisabled,
             replyEmail: $replyEmail,
             nsfwEnabled: $nsfwEnabled,
+            customHomePageEnabled: $customHomePageEnabled,
+            customHomePageDescription: $customHomePageDescription,
+            walledGardenEnabled: $walledGardenEnabled,
             updatedTimestamp: strtotime($updatedTimestamp)
         ));
     }
@@ -132,6 +141,9 @@ class RepositorySpec extends ObjectBehavior
         $federationDisabled = true;
         $replyEmail = 'some@email.com';
         $nsfwEnabled = true;
+        $customHomePageEnabled = true;
+        $customHomePageDescription = 'Hello world';
+        $walledGardenEnabled = true;
 
         $this->mysqlMasterMock->prepare(Argument::any())
             ->willReturn($statement);
@@ -143,7 +155,10 @@ class RepositorySpec extends ObjectBehavior
             'primary_color' => $primaryColor,
             'federation_disabled' => $federationDisabled,
             'reply_email' => $replyEmail,
-            'nsfw_enabled' => $nsfwEnabled
+            'nsfw_enabled' => $nsfwEnabled,
+            'custom_home_page_enabled' => $customHomePageEnabled,
+            'custom_home_page_description' => $customHomePageDescription,
+            'walled_garden_enabled' => $walledGardenEnabled
         ])->shouldBeCalled();
 
         $statement->execute()
@@ -157,7 +172,10 @@ class RepositorySpec extends ObjectBehavior
             primaryColor: $primaryColor,
             federationDisabled: $federationDisabled,
             replyEmail: $replyEmail,
-            nsfwEnabled: $nsfwEnabled
+            nsfwEnabled: $nsfwEnabled,
+            customHomePageEnabled: $customHomePageEnabled,
+            customHomePageDescription: $customHomePageDescription,
+            walledGardenEnabled: $walledGardenEnabled
         )->shouldBe(true);
     }
 }

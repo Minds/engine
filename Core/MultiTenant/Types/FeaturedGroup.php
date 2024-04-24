@@ -23,6 +23,7 @@ class FeaturedGroup extends FeaturedEntity
         #[Field] public readonly bool $recommended,
         #[Field] public readonly bool $autoPostSubscription = false,
         private readonly ?string $name = null,
+        #[Field] public readonly ?string $briefDescription = null,
         private readonly ?int $membersCount = null,
     ) {
     }

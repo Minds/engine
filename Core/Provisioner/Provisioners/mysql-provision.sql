@@ -1000,3 +1000,15 @@ ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_slug varchar(32) AFTER ea
 ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_scheme varchar(16) AFTER app_slug;
 ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_ios_bundle varchar(32) AFTER app_scheme;
 ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_android_package varchar(32) AFTER app_ios_bundle;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD custom_home_page_enabled boolean 
+    AFTER community_guidelines;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD custom_home_page_description text 
+    AFTER custom_home_page_enabled;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD walled_garden_enabled boolean 
+    AFTER custom_home_page_description;
