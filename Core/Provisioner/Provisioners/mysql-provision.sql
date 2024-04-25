@@ -949,6 +949,20 @@ ALTER TABLE minds_tenant_mobile_configs
     ADD COLUMN app_version varchar(24) DEFAULT NULL
     AFTER update_timestamp;
 
+CREATE TABLE IF NOT EXISTS minds_custom_navigation (
+    tenant_id int,
+    id varchar(64),
+    name varchar(128) NOT NULL,
+    type enum('CORE', 'CUSTOM_LINK') NOT NULL,
+    visible boolean DEFAULT TRUE,
+    icon_id varchar(64) NOT NULL,
+    path varchar(128) DEFAULT NULL,
+    url varchar(256) DEFAULT NULL,
+    action enum('SHOW_SIDEBAR_MORE') DEFAULT NULL,
+    `order` int DEFAULT 500,
+    PRIMARY KEY (tenant_id, id)
+);
+
 CREATE TABLE IF NOT EXISTS minds_user_rss_imports(
     tenant_id int,
     feed_id bigint,

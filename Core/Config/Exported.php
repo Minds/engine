@@ -9,10 +9,12 @@
 namespace Minds\Core\Config;
 
 use Exception;
+use Minds\Api\Exportable;
 use Minds\Core\Analytics\PostHog\PostHogConfig;
 use Minds\Core\Analytics\PostHog\PostHogService;
 use Minds\Core\Blockchain\Manager as BlockchainManager;
 use Minds\Core\Boost\V3\Enums\BoostRejectionReason;
+use Minds\Core\Custom\Navigation\CustomNavigationService;
 use Minds\Core\Chat\Services\ReceiptService;
 use Minds\Core\Di\Di;
 use Minds\Core\Experiments\LegacyGrowthBook;
@@ -62,6 +64,7 @@ class Exported
         private ?ExperimentsManager $experimentsManager = null,
         private ?RolesService $rolesService = null,
         private ?SiteMembershipRepository $siteMembershipRepository = null,
+        private ?CustomNavigationService $customNavigationService = null,
         private ?ReceiptService $chatReceiptsService = null,
         private ?PostHogConfig $postHogConfig = null,
     ) {
@@ -72,6 +75,7 @@ class Exported
         $this->experimentsManager = $experimentsManager ?? Di::_()->get('Experiments\Manager');
         $this->rolesService ??= Di::_()->get(RolesService::class);
         $this->siteMembershipRepository ??= Di::_()->get(SiteMembershipRepository::class);
+        $this->customNavigationService ??= Di::_()->get(CustomNavigationService::class);
         $this->chatReceiptsService ??= Di::_()->get(ReceiptService::class);
         $this->postHogConfig ??= Di::_()->get(PostHogConfig::class);
     }
@@ -142,6 +146,9 @@ class Exported
             ],
             'is_tenant' => false, // overridden below.
             'last_cache' => $this->config->get('lastcache') ?? 0,
+            'custom' => [
+                'navigation' => Exportable::_($this->customNavigationService->getItems()),
+            ],
             // Remove when mobile is read
             'growthbook' => LegacyGrowthBook::getExportedConfigs(Session::getLoggedinUser()),
         ];
