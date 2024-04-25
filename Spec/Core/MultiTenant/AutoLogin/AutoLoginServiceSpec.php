@@ -62,7 +62,7 @@ class AutoLoginServiceSpec extends ObjectBehavior
         $this->tenantDataServiceMock->getTenantFromId(1)
             ->willReturn($tenant);
 
-        $this->tenantDomainServiceMock->buildDomain($tenant)
+        $this->tenantDomainServiceMock->buildNavigatableDomain($tenant)
             ->willReturn('phpspec.local');
 
         $userMock->getGuid()
@@ -76,7 +76,7 @@ class AutoLoginServiceSpec extends ObjectBehavior
 
     public function it_should_build_a_login_url_from_tenant(Tenant $tenant)
     {
-        $this->tenantDomainServiceMock->buildDomain($tenant)
+        $this->tenantDomainServiceMock->buildNavigatableDomain($tenant)
             ->willReturn('phpspec.local');
 
         $url = $this->buildLoginUrlFromTenant($tenant);

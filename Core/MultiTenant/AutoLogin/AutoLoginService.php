@@ -44,7 +44,7 @@ class AutoLoginService
             throw new NotFoundException("Could not find tenant");
         }
 
-        $domain = $this->tenantDomainService->buildDomain($tenant);
+        $domain = $this->tenantDomainService->buildNavigatableDomain($tenant);
 
         return "https://$domain/api/v3/multi-tenant/auto-login/login";
     }
@@ -57,7 +57,7 @@ class AutoLoginService
     public function buildLoginUrlFromTenant(
         Tenant $tenant
     ): string {
-        $domain = $this->tenantDomainService->buildDomain($tenant);
+        $domain = $this->tenantDomainService->buildNavigatableDomain($tenant);
         return "https://$domain/api/v3/multi-tenant/auto-login/login";
     }
 
