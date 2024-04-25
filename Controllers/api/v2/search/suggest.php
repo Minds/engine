@@ -11,10 +11,16 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Api\Factory;
+use Minds\Core\EntitiesBuilder;
 use Minds\Entities;
 
 class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
+    public function __construct(private ?EntitiesBuilder $entitiesBuilder = null)
+    {
+        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
+    }
+
     /**
      * Equivalent to HTTP GET method
      * @param  array $pages
@@ -32,6 +38,8 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 12;
+        $includeNsfw = isset($_GET['include_nsfw']) ? $_GET['include_nsfw'] === 1 : false;
+
         //$hydrate = isset($_GET['hydrate']) && $_GET['hydrate'];
         $hydrate = true;
 
@@ -43,6 +51,13 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
         // breaking changes across clients following this addition.
         if (!in_array($entityType, ['user', 'group'], true)) {
             $entityType = 'user';
+        }
+
+        $exactMatch = null;
+
+        if ($entityType === 'user') {
+            // Get any exact match for query to prepend to top after search.
+            $exactMatch = $this->entitiesBuilder->getByUserByIndex($query);
         }
 
         try {
@@ -59,14 +74,23 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
                 }
                 
                 if ($guids) {
-                    $entities = array_filter(Di::_()->get('EntitiesBuilder')->get([ 'guids' => $guids ]) ?: [], function ($entity) {
-                        if (count($entity->getNsfw())) {
+                    $entities = array_filter($this->entitiesBuilder->get([ 'guids' => $guids ]) ?: [], function ($entity) use ($includeNsfw, $exactMatch) {
+                        if (
+                            // Skip NSFW entities if include_nsfw is false.
+                            (!$includeNsfw && count($entity->getNsfw())) ||
+                            // Skip exact matches, preappend the exported entity directly.
+                            $exactMatch?->getGuid() === $entity->getGuid()
+                        ) {
                             return false;
                         }
                         return true;
                     });
                     $entities = Factory::exportable(array_values($entities));
                 }
+            }
+
+            if ($exactMatch) {
+                $entities = array_merge([$exactMatch->export()], $entities);
             }
 
             return Factory::response([
