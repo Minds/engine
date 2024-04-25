@@ -11,14 +11,17 @@ use Minds\Core;
 use Minds\Core\Di\Di;
 use Minds\Interfaces;
 use Minds\Api\Factory;
-use Minds\Core\EntitiesBuilder;
-use Minds\Entities;
+use Minds\Core\Log\Logger;
+use Minds\Core\Search\Helpers\DirectMatchInjector;
 
 class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
 {
-    public function __construct(private ?EntitiesBuilder $entitiesBuilder = null)
-    {
-        $this->entitiesBuilder ??= Di::_()->get(EntitiesBuilder::class);
+    public function __construct(
+        private ?DirectMatchInjector $directMatchInjector = null,
+        private ?Logger $logger = null
+    ) {
+        $this->directMatchInjector ??= Di::_()->get(DirectMatchInjector::class);
+        $this->logger ??= Di::_()->get('Logger');
     }
 
     /**
@@ -53,13 +56,6 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
             $entityType = 'user';
         }
 
-        $exactMatch = null;
-
-        if ($entityType === 'user') {
-            // Get any exact match for query to prepend to top after search.
-            $exactMatch = $this->entitiesBuilder->getByUserByIndex($query);
-        }
-
         try {
             $entities = $search->suggest($entityType, $query, $limit);
             $entities = array_values(array_filter($entities, function ($entity) {
@@ -74,13 +70,8 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
                 }
                 
                 if ($guids) {
-                    $entities = array_filter($this->entitiesBuilder->get([ 'guids' => $guids ]) ?: [], function ($entity) use ($includeNsfw, $exactMatch) {
-                        if (
-                            // Skip NSFW entities if include_nsfw is false.
-                            (!$includeNsfw && count($entity->getNsfw())) ||
-                            // Skip exact matches, preappend the exported entity directly.
-                            $exactMatch?->getGuid() === $entity->getGuid()
-                        ) {
+                    $entities = array_filter(Di::_()->get('EntitiesBuilder')->get([ 'guids' => $guids ]) ?: [], function ($entity) use ($includeNsfw) {
+                        if (!$includeNsfw && count($entity->getNsfw())) {
                             return false;
                         }
                         return true;
@@ -89,8 +80,15 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
                 }
             }
 
-            if ($exactMatch) {
-                $entities = array_merge([$exactMatch->export()], $entities);
+            if ($entityType === 'user') {
+                try {
+                    $entities = $this->directMatchInjector->injectDirectUserMatch(
+                        entities: $entities,
+                        query: $query
+                    );
+                } catch(\Exception $e) {
+                    $this->logger->error($e);
+                }
             }
 
             return Factory::response([
