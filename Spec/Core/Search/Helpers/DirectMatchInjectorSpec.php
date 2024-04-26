@@ -39,8 +39,53 @@ class DirectMatchInjectorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($userMatch);
 
-        $this->injectDirectUserMatch($entities, $query)->shouldReturn([
+        $this->injectDirectUserMatch($entities, $query, true)->shouldReturn([
             ['username' => 'username1'],
+            ['username' => 'username2'],
+            ['username' => 'username3'],
+        ]);
+    }
+
+    public function it_should_inject_direct_user_match_when_no_match_is_found_in_passed_array_and_match_is_nsfw_when_including_nsfw(
+        User $userMatch
+    ): void {
+        $query = 'username1';
+        $entities = [
+            ['username' => 'username2'],
+            ['username' => 'username3'],
+        ];
+
+        $userMatch->getNsfw()->willReturn([]);
+        $userMatch->export()->willReturn(['username' => 'username1']);
+
+        $this->entitiesBuilder->getByUserByIndex($query)
+            ->shouldBeCalled()
+            ->willReturn($userMatch);
+
+        $this->injectDirectUserMatch($entities, $query, true)->shouldReturn([
+            ['username' => 'username1'],
+            ['username' => 'username2'],
+            ['username' => 'username3'],
+        ]);
+    }
+
+    public function it_should_NOT_inject_direct_user_match_when_no_match_is_found_in_passed_array_but_match_is_nsfw_when_not_including_nsfw(
+        User $userMatch
+    ): void {
+        $query = 'username1';
+        $entities = [
+            ['username' => 'username2'],
+            ['username' => 'username3'],
+        ];
+
+        $userMatch->getNsfw()->willReturn([1]);
+        $userMatch->export()->willReturn(['username' => 'username1']);
+
+        $this->entitiesBuilder->getByUserByIndex($query)
+            ->shouldBeCalled()
+            ->willReturn($userMatch);
+
+        $this->injectDirectUserMatch($entities, $query, false)->shouldReturn([
             ['username' => 'username2'],
             ['username' => 'username3'],
         ]);
@@ -58,7 +103,7 @@ class DirectMatchInjectorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn(null);
 
-        $this->injectDirectUserMatch($entities, $query)->shouldReturn([
+        $this->injectDirectUserMatch($entities, $query, true)->shouldReturn([
             ['username' => 'username2'],
             ['username' => 'username3'],
         ]);
@@ -72,7 +117,7 @@ class DirectMatchInjectorSpec extends ObjectBehavior
             ['username' => 'username1'],
         ];
 
-        $this->injectDirectUserMatch($entities, $query)->shouldReturn([
+        $this->injectDirectUserMatch($entities, $query, true)->shouldReturn([
             ['username' => 'username1'],
             ['username' => 'username2'],
         ]);
@@ -86,7 +131,7 @@ class DirectMatchInjectorSpec extends ObjectBehavior
             ['username' => 'username2'],
         ];
 
-        $this->injectDirectUserMatch($entities, $query)->shouldReturn([
+        $this->injectDirectUserMatch($entities, $query, true)->shouldReturn([
             ['username' => 'username1'],
             ['username' => 'username2'],
         ]);

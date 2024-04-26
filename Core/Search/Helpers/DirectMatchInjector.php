@@ -21,10 +21,14 @@ class DirectMatchInjector
      * If it is already in results, will move it to the top.
      * @param array $entities - The search results.
      * @param string $query - The search query.
+     * @param string $includeNsfw - Whether NSFW results can be injected.
      * @return array - returns modified array.
      */
-    public function injectDirectUserMatch(array $entities, string $query): array
-    {
+    public function injectDirectUserMatch(
+        array $entities,
+        string $query,
+        bool $includeNsfw = true
+    ): array {
         $existingMatchIndex = null;
 
         for ($i = 0; $i < count($entities); $i++) {
@@ -36,7 +40,8 @@ class DirectMatchInjector
 
         if (!is_numeric($existingMatchIndex)) {
             // If the query has no exact match, search for one and prepend to top of the list if it exists.
-            if ($exactMatch = $this->entitiesBuilder->getByUserByIndex($query)) {
+            $exactMatch = $this->entitiesBuilder->getByUserByIndex($query);
+            if ($exactMatch && ($includeNsfw || count($exactMatch->getNsfw()) < 1)) {
                 $entities = array_merge([$exactMatch->export()], $entities);
             }
         } elseif ($existingMatchIndex > 0) {

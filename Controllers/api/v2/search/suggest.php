@@ -84,7 +84,8 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
                 try {
                     $entities = $this->directMatchInjector->injectDirectUserMatch(
                         entities: $entities,
-                        query: $query
+                        query: $query,
+                        includeNsfw: $includeNsfw
                     );
                 } catch(\Exception $e) {
                     $this->logger->error($e);
