@@ -213,8 +213,7 @@ function register_user(
     $friend_guid = 0,
     $invitecode = '',
     $validatePassword = true,
-    $isActivityPub = false,
-    int $guid = null
+    $isActivityPub = false
 ) {
 
     // no need to trim password.
@@ -259,11 +258,6 @@ function register_user(
     $user->language = 'en';
 
     $user->enabled = 'yes';
-
-    // If no GUID is specified, it will be auto-generated.
-    if ($guid) {
-        $user->guid = $guid;
-    }
 
     $save = new Save();
     $save->setEntity($user)->save();
