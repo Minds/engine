@@ -22,14 +22,17 @@ use Minds\Core\Chat\Types\ChatRoomNode;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\Feeds\GraphQL\Types\UserNode;
 use Minds\Core\Guid;
+use Minds\Core\Groups\V2\Membership\Manager as GroupMembershipManager;
 use Minds\Core\Router\Exceptions\ForbiddenException;
 use Minds\Core\Security\Block\BlockEntry;
 use Minds\Core\Security\Block\BlockLimitException;
 use Minds\Core\Security\Block\Manager as BlockManager;
 use Minds\Core\Subscriptions\Relational\Repository as SubscriptionsRepository;
+use Minds\Entities\Group;
 use Minds\Entities\User;
 use Minds\Exceptions\NotFoundException;
 use Minds\Exceptions\ServerErrorException;
+use Minds\Exceptions\UserErrorException;
 use TheCodingMachine\GraphQLite\Exceptions\GraphQLException;
 
 class RoomService
@@ -38,7 +41,8 @@ class RoomService
         private readonly RoomRepository          $roomRepository,
         private readonly SubscriptionsRepository $subscriptionsRepository,
         private readonly EntitiesBuilder         $entitiesBuilder,
-        private readonly BlockManager            $blockManager
+        private readonly BlockManager            $blockManager,
+        private readonly GroupMembershipManager  $groupMembershipManager,
     ) {
     }
 
@@ -54,10 +58,52 @@ class RoomService
     public function createRoom(
         User              $user,
         array             $otherMemberGuids,
-        ?ChatRoomTypeEnum $roomType = null
+        ?ChatRoomTypeEnum $roomType = null,
+        int               $groupGuid = null,
     ): ChatRoomEdge {
         if ($roomType === ChatRoomTypeEnum::GROUP_OWNED) {
-            throw new InvalidChatRoomTypeException();
+            // Check if a group room already exists
+            $rooms = $this->roomRepository->getGroupRooms($groupGuid);
+
+            if ($rooms) {
+                $chatRoom = $rooms[0];
+            } else {
+                // Get the group entity
+                $group = $this->entitiesBuilder->single($groupGuid);
+
+                if (!$group instanceof Group) {
+                    throw new UserErrorException("The provided group was not a group");
+                }
+
+                // Check if this user is a group admin
+                $groupMembership = $this->groupMembershipManager->getMembership($group, $user);
+
+                if (!$groupMembership->isOwner()) {
+                    throw new ForbiddenException('Only group owners can create a group owned room');
+                }
+
+                $chatRoom = new ChatRoom(
+                    guid: (int) Guid::build(),
+                    roomType: $roomType,
+                    createdByGuid: (int) $user->getGuid(),
+                    createdAt: new DateTimeImmutable(),
+                    groupGuid: $groupGuid,
+                );
+
+                $this->roomRepository->createRoom(
+                    roomGuid: $chatRoom->guid,
+                    roomType: $chatRoom->roomType,
+                    createdByGuid: $chatRoom->createdByGuid,
+                    createdAt: $chatRoom->createdAt,
+                    groupGuid: $chatRoom->groupGuid,
+                );
+            }
+
+            return new ChatRoomEdge(
+                node: new ChatRoomNode(chatRoom: $chatRoom)
+            );
+        } elseif ($groupGuid) {
+            throw new UserErrorException('Can not pass a groupGuid to a non group roomType');
         }
 
         if (!$roomType) {
@@ -235,17 +281,6 @@ class RoomService
     }
 
     /**
-     * @param User $user
-     * @return string[]
-     * @throws ServerErrorException
-     */
-    public function getRoomGuidsByMember(
-        User $user
-    ): array {
-        return iterator_to_array($this->roomRepository->getRoomGuidsByMember($user));
-    }
-
-    /**
      * @param int $roomGuid
      * @return int
      * @throws ServerErrorException
@@ -403,10 +438,11 @@ class RoomService
         return new ChatRoomEdge(
             node: new ChatRoomNode(
                 chatRoom: $chatRoomListItem->chatRoom,
-                isChatRequest: $this->roomRepository->getUserStatusInRoom(
-                    user: $loggedInUser,
-                    roomGuid: $roomGuid
-                ) === ChatRoomMemberStatusEnum::INVITE_PENDING,
+                isChatRequest: $chatRoomListItem->chatRoom->roomType === ChatRoomTypeEnum::GROUP_OWNED ? false // groups do not have invite requests
+                    : $this->roomRepository->getUserStatusInRoom(
+                        user: $loggedInUser,
+                        roomGuid: $roomGuid
+                    ) === ChatRoomMemberStatusEnum::INVITE_PENDING,
                 isUserRoomOwner: $this->roomRepository->isUserRoomOwner(
                     roomGuid: $roomGuid,
                     user: $loggedInUser
