@@ -41,7 +41,8 @@ class ServicesProvider extends Provider
                 receiptService: $di->get(ReceiptService::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 socketEvents: new SocketEvents(),
-                chatNotificationsTopic: $di->get(ChatNotificationsTopic::class)
+                chatNotificationsTopic: $di->get(ChatNotificationsTopic::class),
+                chatRichEmbedService: Di::_()->get(RichEmbedService::class)
             )
         );
 
@@ -49,6 +50,14 @@ class ServicesProvider extends Provider
             ReceiptService::class,
             fn (Di $di): ReceiptService => new ReceiptService(
                 repository: $di->get(ReceiptRepository::class),
+            )
+        );
+
+        $this->di->bind(
+            RichEmbedService::class,
+            fn (Di $di): RichEmbedService => new RichEmbedService(
+                metascraperService: $di->get('Metascraper\Service'),
+                logger: $di->get('Logger')
             )
         );
     }

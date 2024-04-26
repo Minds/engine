@@ -16,7 +16,7 @@ class PlainTextMessageNotification extends AbstractChatNotification
         ?string $title = null,
         ?string $body = null,
         ?string $icon = null,
-        ?Config $config = null
+        protected ?Config $config = null
     ) {
         parent::__construct(
             chatRoomGuid: $chatRoomGuid,
@@ -25,7 +25,7 @@ class PlainTextMessageNotification extends AbstractChatNotification
             icon: $icon
         );
         
-        $this->config = $config ?? Di::_()->get(Config::class);
+        $this->config ??= Di::_()->get(Config::class);
     }
 
     /**
@@ -41,7 +41,7 @@ class PlainTextMessageNotification extends AbstractChatNotification
      */
     public function getTitle(): ?string
     {
-        return $this->title;
+        return  '💬 ' . $this->title;
     }
 
     /**

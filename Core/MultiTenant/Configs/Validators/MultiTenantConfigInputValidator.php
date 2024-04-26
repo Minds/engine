@@ -58,6 +58,10 @@ class MultiTenantConfigInputValidator implements InputTypeValidatorInterface
             throw new GraphQLException("Invalid reply-to email address", 400, null, "Validation", ['field' => 'replyEmail']);
         }
 
+        if (isset($input->customHomePageDescription) && mb_strlen($input->customHomePageDescription) > 160) {
+            throw new GraphQLException("Custom home page description must be less than 160 characters", 400, null, "Validation", ['field' => 'customHomePageDescription']);
+        }
+
         return;
     }
 }

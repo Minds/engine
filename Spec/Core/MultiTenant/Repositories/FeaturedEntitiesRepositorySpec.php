@@ -150,7 +150,8 @@ class FeaturedEntitiesRepositorySpec extends ObjectBehavior
                     'entity_guid' => '1234567892',
                     'auto_subscribe' => true,
                     'recommended' => true,
-                    'name' => 'name'
+                    'name' => 'name',
+                    'brief_description' => 'briefDescription'
                 ]
             ]);
 
@@ -189,7 +190,8 @@ class FeaturedEntitiesRepositorySpec extends ObjectBehavior
                 entityGuid: 1234567892,
                 autoSubscribe: true,
                 recommended: true,
-                name: 'name'
+                name: 'name',
+                briefDescription: 'briefDescription'
             )
         ]));
     }
