@@ -199,7 +199,6 @@ function validate_email_address($address)
  *                                      registered multiple times?
  * @param int    $friend_guid           GUID of a user to friend once fully registered
  * @param string $invitecode            An invite code from a friend
- * @param int $guid                     Optional GUID for the new user.
  *
  * @return false|Minds\Entities\User
  * @throws RegistrationException
@@ -213,7 +212,7 @@ function register_user(
     $friend_guid = 0,
     $invitecode = '',
     $validatePassword = true,
-    $isActivityPub = false
+    $isActivityPub = false,
 ) {
 
     // no need to trim password.
