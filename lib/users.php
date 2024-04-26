@@ -199,6 +199,7 @@ function validate_email_address($address)
  *                                      registered multiple times?
  * @param int    $friend_guid           GUID of a user to friend once fully registered
  * @param string $invitecode            An invite code from a friend
+ * @param int $guid                     Optional GUID for the new user.
  *
  * @return false|Minds\Entities\User
  * @throws RegistrationException
@@ -213,6 +214,7 @@ function register_user(
     $invitecode = '',
     $validatePassword = true,
     $isActivityPub = false,
+    int $guid = null
 ) {
 
     // no need to trim password.
@@ -257,6 +259,11 @@ function register_user(
     $user->language = 'en';
 
     $user->enabled = 'yes';
+
+    // If no GUID is specified, it will be auto-generated.
+    if ($guid) {
+        $user->guid = $guid;
+    }
 
     $save = new Save();
     $save->setEntity($user)->save();

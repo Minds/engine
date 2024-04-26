@@ -98,6 +98,7 @@ class TenantUsersService
 
         // Create the user
         $user = register_user(
+            guid: $networkUser->guid,
             username: $networkUser->username,
             password: $networkUser->plainPassword,
             name: $networkUser->username,
