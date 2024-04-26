@@ -41,7 +41,7 @@ class suggest implements Interfaces\Api, Interfaces\ApiIgnorePam
         }
 
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 12;
-        $includeNsfw = isset($_GET['include_nsfw']) ? $_GET['include_nsfw'] === 1 : false;
+        $includeNsfw = isset($_GET['include_nsfw']) ? $_GET['include_nsfw'] === '1' : false;
 
         //$hydrate = isset($_GET['hydrate']) && $_GET['hydrate'];
         $hydrate = true;
