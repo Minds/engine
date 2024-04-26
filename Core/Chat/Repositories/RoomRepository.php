@@ -952,15 +952,19 @@ class RoomRepository extends AbstractRepository
         int $memberGuid,
         ChatRoomNotificationStatusEnum $notificationStatus
     ): bool {
-        $stmt = $this->mysqlClientWriterHandler->update()
-            ->table(self::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+        $query = $this->mysqlClientWriterHandler->insert()
+            ->into(self::ROOM_MEMBER_SETTINGS_TABLE_NAME)
             ->set([
+                'tenant_id' => new RawExp(':tenant_id'),
+                'room_guid' => new RawExp(':room_guid'),
+                'member_guid' => new RawExp(':member_guid'),
                 'notifications_status' => $notificationStatus->value,
             ])
-            ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
-            ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
-            ->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
-            ->prepare();
+            ->onDuplicateKeyUpdate([
+                'notifications_status' =>  $notificationStatus->value,
+            ]);
+
+        $stmt = $query->prepare();
 
         try {
             return $stmt->execute([

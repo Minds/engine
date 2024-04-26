@@ -1452,7 +1452,7 @@ class RoomRepositorySpec extends ObjectBehavior
     }
 
     public function it_should_update_room_member_settings(
-        UpdateQuery $updateQueryMock,
+        InsertQuery $updateQueryMock,
         PDOStatement $pdoStatementMock
     ): void {
         $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
@@ -1465,25 +1465,22 @@ class RoomRepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $updateQueryMock->table(RoomRepository::ROOM_MEMBER_SETTINGS_TABLE_NAME)
+        $updateQueryMock->into(RoomRepository::ROOM_MEMBER_SETTINGS_TABLE_NAME)
             ->shouldBeCalledOnce()
             ->willReturn($updateQueryMock);
 
         $updateQueryMock->set([
+            'tenant_id' => new RawExp(':tenant_id'),
+            'room_guid' => new RawExp(':room_guid'),
+            'member_guid' => new RawExp(':member_guid'),
             'notifications_status' => ChatRoomNotificationStatusEnum::ALL->value,
         ])
             ->shouldBeCalledOnce()
             ->willReturn($updateQueryMock);
 
-        $updateQueryMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
-            ->shouldBeCalledOnce()
-            ->willReturn($updateQueryMock);
-
-        $updateQueryMock->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
-            ->shouldBeCalledOnce()
-            ->willReturn($updateQueryMock);
-
-        $updateQueryMock->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
+        $updateQueryMock->onDuplicateKeyUpdate([
+            'notifications_status' => ChatRoomNotificationStatusEnum::ALL->value
+        ])
             ->shouldBeCalledOnce()
             ->willReturn($updateQueryMock);
 
@@ -1491,7 +1488,7 @@ class RoomRepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($pdoStatementMock);
 
-        $this->mysqlClientWriterHandlerMock->update()
+        $this->mysqlClientWriterHandlerMock->insert()
             ->shouldBeCalledOnce()
             ->willReturn($updateQueryMock);
 
