@@ -77,29 +77,11 @@ class AutoLoginService
             throw new NotFoundException("Could not find tenant");
         }
 
-        if ($tenant->ownerGuid !== (int) $loggedInUser->getGuid()) {
-            throw new ForbiddenException("Current user does not have ownership of the tenant");
-        }
-
-        $ssoToken = $this->jwt->randomString();
-        
-        // Expire in 60 seconds
-        $expires = time() + 60;
-
-        // Store the sso token server side to verify at a later date
-        $this->tmpStore->set('multi-tenant-autologin:' . $ssoToken, true, 60);
-
-        return $this->jwt
-            ->setKey($this->getEncryptionKey())
-            ->encode(
-                payload: [
-                    'user_guid' => $tenant->rootUserGuid,
-                    'tenant_id' => $tenantId,
-                    'sso_token' => $ssoToken,
-                ],
-                exp: $expires,
-                nbf: time()
-            );
+        return $this->buildJwtTokenFromTenant(
+            $tenant,
+            $loggedInUser,
+            $tenant->rootUserGuid
+        );
     }
 
     /**
@@ -130,7 +112,7 @@ class AutoLoginService
             ->setKey($this->getEncryptionKey())
             ->encode(
                 payload: [
-                    'user_guid' => $userGuid,
+                    'user_guid' => (string) $userGuid,
                     'tenant_id' => $tenant->id,
                     'sso_token' => $ssoToken,
                 ],
