@@ -18,9 +18,8 @@ class ChatRoomNode implements NodeInterface
         public readonly ChatRoom $chatRoom,
         #[Field] #[Logged] public bool $isChatRequest = false,
         #[Field] #[Logged] public ?bool $isUserRoomOwner = null,
-        #[Field] #[Logged] public ?ChatRoomNotificationStatusEnum $chatRoomNotificationStatus = ChatRoomNotificationStatusEnum::ALL
+        #[Field] #[Logged] public ?ChatRoomNotificationStatusEnum $chatRoomNotificationStatus = ChatRoomNotificationStatusEnum::ALL,
     ) {
-
     }
 
     #[Field]
@@ -45,6 +44,12 @@ class ChatRoomNode implements NodeInterface
     public function getRoomType(): ChatRoomTypeEnum
     {
         return $this->chatRoom->roomType;
+    }
+
+    #[Field]
+    public function getName(): string
+    {
+        return $this->chatRoom->name ?: 'Unknown room';
     }
 
     /**

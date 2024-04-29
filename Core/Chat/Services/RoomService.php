@@ -99,6 +99,8 @@ class RoomService
                 );
             }
 
+            $chatRoom->setName($this->getRoomName($chatRoom, $user, []));
+
             return new ChatRoomEdge(
                 node: new ChatRoomNode(chatRoom: $chatRoom)
             );
@@ -120,6 +122,7 @@ class RoomService
                     firstMemberGuid: (int) $user->getGuid(),
                     secondMemberGuid: (int) $otherMemberGuids[0]
                 )) {
+                    $chatRoom->setName($this->getRoomName($chatRoom, $user, $otherMemberGuids));
                     return new ChatRoomEdge(
                         node: new ChatRoomNode(chatRoom: $chatRoom)
                     );
@@ -202,34 +205,7 @@ class RoomService
 
         $this->roomRepository->commitTransaction();
 
-        return new ChatRoomEdge(
-            node: new ChatRoomNode(chatRoom: $chatRoom)
-        );
-    }
-
-    /**
-     * @param User $user
-     * @param int $groupGuid
-     * @return ChatRoomEdge
-     * @throws ServerErrorException
-     */
-    public function createGroupOwnedRoom(User $user, int $groupGuid): ChatRoomEdge
-    {
-        $chatRoom = new ChatRoom(
-            guid: (int)Guid::build(),
-            roomType: ChatRoomTypeEnum::GROUP_OWNED,
-            createdByGuid: (int)$user->getGuid(),
-            createdAt: new DateTimeImmutable(),
-        );
-
-        $this->roomRepository->createRoom(
-            roomGuid: $chatRoom->guid,
-            roomType: $chatRoom->roomType,
-            createdByGuid: $chatRoom->createdByGuid,
-            createdAt: $chatRoom->createdAt,
-            groupGuid: $groupGuid,
-        );
-
+        $chatRoom->setName($this->getRoomName($chatRoom, $user, $otherMemberGuids));
         return new ChatRoomEdge(
             node: new ChatRoomNode(chatRoom: $chatRoom)
         );
@@ -262,18 +238,22 @@ class RoomService
 
         return [
             'edges' => array_map(
-                fn (ChatRoomListItem $chatRoomListItem) => new ChatRoomEdge(
-                    node: new ChatRoomNode(
-                        chatRoom: $chatRoomListItem->chatRoom
-                    ),
-                    cursor: ChatRoomEdgeCursorHelper::generateCursor(
-                        roomCreatedAtTimestamp: $chatRoomListItem->chatRoom->createdAt->getTimestamp(),
-                        lastMessageCreatedAtTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
-                    ),
-                    lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
-                    lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp,
-                    unreadMessagesCount: $chatRoomListItem->unreadMessagesCount,
-                ),
+                function (ChatRoomListItem $chatRoomListItem) use ($user) {
+                    $chatRoom = $chatRoomListItem->chatRoom;
+                    $chatRoom->setName($this->getRoomName($chatRoomListItem->chatRoom, $user, $chatRoomListItem->memberGuids));
+                    return new ChatRoomEdge(
+                        node: new ChatRoomNode(
+                            chatRoom: $chatRoom,
+                        ),
+                        cursor: ChatRoomEdgeCursorHelper::generateCursor(
+                            roomCreatedAtTimestamp: $chatRoomListItem->chatRoom->createdAt->getTimestamp(),
+                            lastMessageCreatedAtTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
+                        ),
+                        lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
+                        lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp,
+                        unreadMessagesCount: $chatRoomListItem->unreadMessagesCount,
+                    );
+                },
                 $chatRooms
             ),
             'hasMore' => $hasMore
@@ -435,10 +415,12 @@ class RoomService
             memberGuid: (int)$loggedInUser->getGuid()
         );
 
+        $chatRoom = $chatRoomListItem->chatRoom;
+        $chatRoom->setName($this->getRoomName($chatRoom, $loggedInUser, $chatRoomListItem->memberGuids));
         return new ChatRoomEdge(
             node: new ChatRoomNode(
-                chatRoom: $chatRoomListItem->chatRoom,
-                isChatRequest: $chatRoomListItem->chatRoom->roomType === ChatRoomTypeEnum::GROUP_OWNED ? false // groups do not have invite requests
+                chatRoom: $chatRoom,
+                isChatRequest: $chatRoom->roomType === ChatRoomTypeEnum::GROUP_OWNED ? false // groups do not have invite requests
                     : $this->roomRepository->getUserStatusInRoom(
                         user: $loggedInUser,
                         roomGuid: $roomGuid
@@ -487,17 +469,21 @@ class RoomService
 
         return [
             'edges' => array_map(
-                fn (ChatRoomListItem $chatRoomListItem) => new ChatRoomEdge(
-                    node: new ChatRoomNode(
-                        chatRoom: $chatRoomListItem->chatRoom
-                    ),
-                    cursor: ChatRoomEdgeCursorHelper::generateCursor(
-                        roomCreatedAtTimestamp: $chatRoomListItem->chatRoom->createdAt->getTimestamp(),
-                        lastMessageCreatedAtTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
-                    ),
-                    lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
-                    lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
-                ),
+                function (ChatRoomListItem $chatRoomListItem) use ($user) {
+                    $chatRoom = $chatRoomListItem->chatRoom;
+                    $chatRoom->setName($this->getRoomName($chatRoom, $user, $chatRoomListItem->memberGuids));
+                    return  new ChatRoomEdge(
+                        node: new ChatRoomNode(
+                            chatRoom: $chatRoom,
+                        ),
+                        cursor: ChatRoomEdgeCursorHelper::generateCursor(
+                            roomCreatedAtTimestamp: $chatRoomListItem->chatRoom->createdAt->getTimestamp(),
+                            lastMessageCreatedAtTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
+                        ),
+                        lastMessagePlainText: $chatRoomListItem->lastMessagePlainText,
+                        lastMessageCreatedTimestamp: $chatRoomListItem->lastMessageCreatedTimestamp
+                    );
+                },
                 $chatRooms
             ),
             'hasMore' => $hasMore
@@ -751,5 +737,55 @@ class RoomService
             memberGuid: (int) $user->getGuid(),
             notificationStatus: $notificationStatus
         );
+    }
+
+    /**
+     * Builds the name of the chat room
+     * @param int[] $memberGuids
+     */
+    public function getRoomName(
+        ChatRoom $chatRoom,
+        User $currentUser,
+        array $memberGuids = [],
+    ): string {
+        if ($chatRoom->name) {
+            return $chatRoom->name;
+        }
+
+        if ($chatRoom->roomType === ChatRoomTypeEnum::GROUP_OWNED) {
+            $group = $this->entitiesBuilder->single($chatRoom->groupGuid);
+
+            if (!$group instanceof Group) {
+                return 'Unkown group';
+            }
+
+            return $group->getName();
+        }
+
+        $memberGuids = array_diff($memberGuids, [(int) $currentUser->getGuid()]);
+
+        if (empty($memberGuids)) {
+            return '';
+        }
+ 
+        $names = array_map(function ($guid) {
+            $member = $this->entitiesBuilder->single($guid);
+
+            if (!$member instanceof User) {
+                return 'Unknown User';
+            }
+
+            return $member->getName();
+        }, array_slice($memberGuids, 0, 2));
+
+        $namesCount = count($names);
+
+        if ($namesCount === 1) {
+            return $names[0];
+        } elseif ($namesCount === 2) {
+            return "{$names[0]} & $names[1]";
+        } else {
+            return "{$names[0]}, $names[1] & {$names[2]}";
+        }
     }
 }

@@ -26,6 +26,7 @@ use Minds\Core\Notifications\Push\Services\ApnsService;
 use Minds\Core\Notifications\Push\Services\FcmService;
 use Minds\Core\Notifications\Push\Services\PushServiceInterface;
 use Minds\Core\Notifications\Push\Services\WebPushService;
+use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
 use NotImplementedException;
 
@@ -114,19 +115,29 @@ class ChatNotificationEventsSubscription implements SubscriptionInterface
     private function processChatMessage(ChatMessage $chatMessage): void
     {
         $sender = $this->entitiesBuilder->single($chatMessage->getOwnerGuid());
+
+        if (!$sender instanceof User) {
+            return;
+        }
+
         $roomMembers = $this->roomService->getAllRoomMembers(
             roomGuid: $chatMessage->roomGuid,
             user: $sender,
         );
 
+        $chatRoomEdge = $this->roomService->getRoom($chatMessage->roomGuid, $sender);
+        $chatRoom = $chatRoomEdge->getNode()->chatRoom;
+
         $notification = match ($chatMessage->messageType) {
             ChatMessageTypeEnum::TEXT => $this->notificationFactory->createNotification(
                 notificationClass: PlainTextMessageNotification::class,
                 chatEntity: $chatMessage,
+                chatRoom: $chatRoom,
             ),
             ChatMessageTypeEnum::RICH_EMBED => $this->notificationFactory->createNotification(
                 notificationClass: RichEmbedMessageNotification::class,
-                chatEntity: $chatMessage
+                chatEntity: $chatMessage,
+                chatRoom: $chatRoom,
             ),
             default => throw new InvalidArgumentException('Invalid chat message type'),
         };

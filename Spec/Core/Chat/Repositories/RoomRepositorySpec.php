@@ -213,6 +213,7 @@ class RoomRepositorySpec extends ObjectBehavior
                     'last_msg_plain_text' => 'Hello',
                     'last_msg_created_timestamp' => '2021-01-01 00:00:00',
                     'unread_messages_count' => 0,
+                    'member_guids' => "123,456",
                 ]
             ]);
 
@@ -264,6 +265,13 @@ class RoomRepositorySpec extends ObjectBehavior
         $selectQueryMock->leftJoinRaw(
             new RawExp(RoomRepository::RECEIPTS_TABLE_NAME . " as rct"),
             'r.room_guid = rct.room_guid AND r.tenant_id = rct.tenant_id AND rct.member_guid = m.member_guid',
+        )
+            ->shouldBeCalledOnce()
+            ->willReturn($selectQueryMock);
+
+        $selectQueryMock->leftJoinRaw(
+            Argument::type('callable'),
+            "r.room_guid = m_guids.room_guid AND r.tenant_id = m_guids.tenant_id"
         )
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);

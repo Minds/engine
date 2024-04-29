@@ -85,6 +85,9 @@ class RoomServiceSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn('123');
 
+        $memberMock->getName()
+            ->willReturn('Other user');
+
         $this->roomRepositoryMock->beginTransaction()
             ->shouldBeCalledOnce();
 
@@ -96,7 +99,7 @@ class RoomServiceSpec extends ObjectBehavior
             ->willThrow(ChatRoomNotFoundException::class);
 
         $this->entitiesBuilderMock->single(456)
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(2)
             ->willReturn($memberMock);
 
         $this->roomRepositoryMock->createRoom(
@@ -170,8 +173,11 @@ class RoomServiceSpec extends ObjectBehavior
             ->willReturn('123');
 
         $this->entitiesBuilderMock->single(456)
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(2)
             ->willReturn($memberMock);
+
+        $memberMock->getName()
+            ->willReturn('Other user');
 
         $this->roomRepositoryMock->beginTransaction()
             ->shouldBeCalledOnce();
@@ -253,8 +259,11 @@ class RoomServiceSpec extends ObjectBehavior
             ->willReturn('123');
 
         $this->entitiesBuilderMock->single(456)
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(2)
             ->willReturn($memberMock);
+
+        $memberMock->getName()
+            ->willReturn('Other user');
 
         $this->roomRepositoryMock->beginTransaction()
             ->shouldBeCalledOnce();
@@ -338,6 +347,13 @@ class RoomServiceSpec extends ObjectBehavior
         $this->roomRepositoryMock->beginTransaction()
             ->shouldNotBeCalled();
 
+        $chatRoomMock = new ChatRoom(
+            guid: 123,
+            roomType: ChatRoomTypeEnum::ONE_TO_ONE,
+            createdByGuid: 123,
+            name: null,
+        );
+
         $this->roomRepositoryMock->getOneToOneRoomByMembers(
             123,
             456
@@ -360,6 +376,7 @@ class RoomServiceSpec extends ObjectBehavior
     
         $groupGuid = (int) Guid::build();
         $group = new Group();
+        $group->setName('Group name');
 
         $this->roomRepositoryMock->getGroupRooms($groupGuid)
             ->shouldBeCalled()
@@ -435,12 +452,18 @@ class RoomServiceSpec extends ObjectBehavior
             ->willReturn('123');
 
         $this->entitiesBuilderMock->single(456)
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(2)
             ->willReturn($memberMock1);
 
+        $memberMock1->getName()
+            ->willReturn('Member1');
+
         $this->entitiesBuilderMock->single(789)
-            ->shouldBeCalledOnce()
+            ->shouldBeCalledTimes(2)
             ->willReturn($memberMock2);
+
+        $memberMock2->getName()
+            ->willReturn('Member2');
 
         $this->roomRepositoryMock->beginTransaction()
             ->shouldBeCalledOnce();
@@ -545,7 +568,6 @@ class RoomServiceSpec extends ObjectBehavior
             lastMessageCreatedTimestamp: null
         );
 
-
         $this->roomRepositoryMock->getRoomsByMember(
             $userMock,
             [ChatRoomMemberStatusEnum::ACTIVE->name],
@@ -618,6 +640,7 @@ class RoomServiceSpec extends ObjectBehavior
         $chatRoom = $this->chatRoomMockFactory->newInstanceWithoutConstructor();
         $this->chatRoomMockFactory->getProperty('createdAt')->setValue($chatRoom, new DateTimeImmutable());
         $this->chatRoomMockFactory->getProperty('roomType')->setValue($chatRoom, $roomType);
+        $this->chatRoomMockFactory->getProperty('name')->setValue($chatRoom, null);
 
         return $chatRoom;
     }
@@ -626,12 +649,14 @@ class RoomServiceSpec extends ObjectBehavior
         ChatRoom $chatRoom,
         string|null $lastMessagePlainText = null,
         int|null $lastMessageCreatedTimestamp = null,
+        array $memberGuids = [],
     ): ChatRoomListItem {
         $chatRoomListItem = $this->chatRoomListItemMockFactory->newInstanceWithoutConstructor();
         $this->chatRoomListItemMockFactory->getProperty('chatRoom')->setValue($chatRoomListItem, $chatRoom);
         $this->chatRoomListItemMockFactory->getProperty('lastMessagePlainText')->setValue($chatRoomListItem, $lastMessagePlainText);
         $this->chatRoomListItemMockFactory->getProperty('lastMessageCreatedTimestamp')->setValue($chatRoomListItem, $lastMessageCreatedTimestamp);
         $this->chatRoomListItemMockFactory->getProperty('unreadMessagesCount')->setValue($chatRoomListItem, 0);
+        $this->chatRoomListItemMockFactory->getProperty('memberGuids')->setValue($chatRoomListItem, $memberGuids);
 
         return $chatRoomListItem;
     }

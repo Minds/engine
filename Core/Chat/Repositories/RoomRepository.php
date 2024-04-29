@@ -153,9 +153,11 @@ class RoomRepository extends AbstractRepository
                         ELSE 0
                     END
                     AS unread_messages_count
-                ") // For temporary performance gains, we will just return a maximum count of 1
+                "), // For temporary performance gains, we will just return a maximum count of 1
+                'member_guids' => 'm_guids.member_guids',
             ])
             ->from(new RawExp(self::TABLE_NAME . " as r"))
+            // Inner join against the membership union
             ->joinRaw(
                 function (SelectQuery $subQuery): void {
                     $q = $this->buildRoomMembershipQuery()->build(false);
@@ -171,6 +173,7 @@ class RoomRepository extends AbstractRepository
                 },
                 'r.room_guid = m.room_guid AND r.tenant_id = m.tenant_id AND m.member_guid = :member_guid',
             )
+            // Get last message
             ->leftJoinRaw(
                 function (SelectQuery $subQuery): void {
                     $subQuery
@@ -202,9 +205,24 @@ class RoomRepository extends AbstractRepository
                 },
                 "last_msg.room_guid = r.room_guid AND last_msg.tenant_id = r.tenant_id"
             )
+            // Get the read receipts
             ->leftJoinRaw(
                 new RawExp(ReceiptRepository::TABLE_NAME . " as rct"),
                 'r.room_guid = rct.room_guid AND r.tenant_id = rct.tenant_id AND rct.member_guid = m.member_guid',
+            )
+            // Get guids of group members (excluding group owned)
+            ->leftJoinRaw(
+                function (SelectQuery $subQuery): void {
+                    $subQuery->columns([
+                        'tenant_id',
+                        'room_guid',
+                        'member_guids' => new RawExp('GROUP_CONCAT(member_guid)'),
+                    ])
+                    ->from(self::MEMBERS_TABLE_NAME)
+                    ->groupBy('tenant_id', 'room_guid')
+                    ->alias('m_guids');
+                },
+                'r.room_guid = m_guids.room_guid AND r.tenant_id = m_guids.tenant_id',
             )
             ->where('r.tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->whereWithNamedParameters('m.status', Operator::IN, 'status', count($targetMemberStatuses))
@@ -272,6 +290,7 @@ class RoomRepository extends AbstractRepository
                     lastMessagePlainText: $row['last_msg_plain_text'],
                     lastMessageCreatedTimestamp: $row['last_msg_created_timestamp'] ? strtotime($row['last_msg_created_timestamp']) : null,
                     unreadMessagesCount: (int) $row['unread_messages_count'],
+                    memberGuids: $row['member_guids'] ? explode(',', $row['member_guids']) : [],
                 );
             }
 
