@@ -12,7 +12,9 @@ class ChatRoomListItem implements EntityInterface
         public readonly ChatRoom $chatRoom,
         public readonly ?string $lastMessagePlainText = null,
         public readonly ?int $lastMessageCreatedTimestamp = null,
-        public readonly int $unreadMessagesCount = 0
+        public readonly int $unreadMessagesCount = 0,
+        /** @var int[] */
+        public readonly array $memberGuids = [],
     ) {
     }
 
