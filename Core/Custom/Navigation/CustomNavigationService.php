@@ -164,6 +164,17 @@ class CustomNavigationService
                 order: 3,
             ),
             new NavigationItem(
+                id: 'chat',
+                name: 'Chat',
+                type: NavigationItemTypeEnum::CORE,
+                visible: true,
+                iconId: 'chat_bubble',
+                path: '/chat/rooms',
+                url: null,
+                action: null,
+                order: 4,
+            ),
+            new NavigationItem(
                 id: 'memberships',
                 name: 'Memberships',
                 type: NavigationItemTypeEnum::CORE,
@@ -172,7 +183,7 @@ class CustomNavigationService
                 path: '/memberships',
                 url: null,
                 action: null,
-                order: 4,
+                order: 5,
             ),
             new NavigationItem(
                 id: 'admin',
@@ -181,7 +192,7 @@ class CustomNavigationService
                 visible: true,
                 iconId: 'dashboard',
                 path: '/network/admin',
-                order: 5
+                order: 6
             ),
             new NavigationItem(
                 id: 'channel',
@@ -189,7 +200,7 @@ class CustomNavigationService
                 type: NavigationItemTypeEnum::CORE,
                 visible: true,
                 iconId: '',
-                order: 6,
+                order: 7,
             ),
         ];
     }
