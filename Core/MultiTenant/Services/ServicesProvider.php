@@ -25,6 +25,8 @@ use Minds\Core\MultiTenant\Repositories\FeaturedEntitiesRepository;
 use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
 use Minds\Core\MultiTenant\Repository;
 use Minds\Core\Notifications\PostSubscriptions\Services\PostSubscriptionsService;
+use GuzzleHttp\Client;
+use Minds\Core\Authentication\Services\RegisterService;
 
 class ServicesProvider extends Provider
 {
@@ -46,6 +48,8 @@ class ServicesProvider extends Provider
                 $di->get(MultiTenantCacheHandler::class),
                 $di->get(CloudflareClient::class),
                 $di->get(DomainsRepository::class),
+                $di->get(Client::class),
+                $di->get('Logger')
             );
         });
 
@@ -80,6 +84,8 @@ class ServicesProvider extends Provider
                     $di->get('Config'),
                     $di->get(MultiTenantBootService::class),
                     $di->get('Security\ACL'),
+                    $di->get(EntitiesBuilder::class),
+                    $di->get(RegisterService::class),
                 );
             }
         );

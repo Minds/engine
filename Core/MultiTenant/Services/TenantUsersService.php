@@ -4,8 +4,10 @@ declare(strict_types=1);
 namespace Minds\Core\MultiTenant\Services;
 
 use Exception;
+use Minds\Core\Authentication\Services\RegisterService;
 use Minds\Core\Config\Config;
 use Minds\Core\Entities\Actions\Save as SaveAction;
+use Minds\Core\EntitiesBuilder;
 use Minds\Core\MultiTenant\Enums\TenantUserRoleEnum;
 use Minds\Core\MultiTenant\Exceptions\NoTenantFoundException;
 use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
@@ -25,7 +27,33 @@ class TenantUsersService
         private readonly Config $mindsConfig,
         private readonly MultiTenantBootService $multiTenantBootService,
         private readonly ACL $acl,
+        private readonly EntitiesBuilder $entitiesBuilder,
+        private readonly RegisterService $registerService
     ) {
+    }
+
+    /**
+     * Returns the users for a tenant
+     * @return iterable<User>
+     */
+    public function getUsers(int $tenantId, int $limit = null): iterable
+    {
+        foreach ($this->tenantUsersRepository->getUserGuids(
+            tenantId: $tenantId,
+            limit: $limit,
+        ) as $userGuid) {
+
+            $entity = $this->entitiesBuilder->single($userGuid);
+
+            if (!$entity instanceof User) {
+                continue;
+            }
+
+            yield $entity;
+
+        }
+
+        return;
     }
 
     /**
@@ -45,6 +73,8 @@ class TenantUsersService
         
         // create the user.
         $newUser = $this->buildUser($networkUser, $sourceUser);
+
+        $networkUser = $networkUser->withGuid((int) $newUser->getGuid());
 
         // update tenant table with generated owner_guid.
         $this->tenantUsersRepository->setTenantRootAccount($networkUser->tenantId, (int) $newUser->getGuid());
@@ -71,7 +101,7 @@ class TenantUsersService
         $ia = $this->acl->setIgnore(true);
 
         // Create the user
-        $user = register_user(
+        $user = $this->registerService->register(
             username: $networkUser->username,
             password: $networkUser->plainPassword,
             name: $networkUser->username,

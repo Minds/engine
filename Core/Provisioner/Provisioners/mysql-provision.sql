@@ -949,6 +949,20 @@ ALTER TABLE minds_tenant_mobile_configs
     ADD COLUMN app_version varchar(24) DEFAULT NULL
     AFTER update_timestamp;
 
+CREATE TABLE IF NOT EXISTS minds_custom_navigation (
+    tenant_id int,
+    id varchar(64),
+    name varchar(128) NOT NULL,
+    type enum('CORE', 'CUSTOM_LINK') NOT NULL,
+    visible boolean DEFAULT TRUE,
+    icon_id varchar(64) NOT NULL,
+    path varchar(128) DEFAULT NULL,
+    url varchar(256) DEFAULT NULL,
+    action enum('SHOW_SIDEBAR_MORE') DEFAULT NULL,
+    `order` int DEFAULT 500,
+    PRIMARY KEY (tenant_id, id)
+);
+
 CREATE TABLE IF NOT EXISTS minds_user_rss_imports(
     tenant_id int,
     feed_id bigint,
@@ -985,9 +999,42 @@ ALTER TABLE minds.minds_payments_config
     ADD stripe_webhook_domain_url varchar(256) DEFAULT NULL
     AFTER stripe_webhook_secret;
 
+CREATE TABLE IF NOT EXISTS minds_chat_rich_embeds(
+    tenant_id int,
+    room_guid bigint,
+    message_guid bigint,
+    url text,
+    canonincal_url text,
+    title varchar(1000) DEFAULT NULL,
+    description text DEFAULT NULL,
+    author varchar(250) DEFAULT NULL,
+    thumbnail_src text DEFAULT NULL,
+    created_timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (tenant_id, room_guid, message_guid),
+    FOREIGN KEY (tenant_id, room_guid, message_guid) REFERENCES minds_chat_messages (tenant_id, room_guid, guid),
+    INDEX (tenant_id, room_guid),
+    INDEX (tenant_id, message_guid)
+);
+
+ALTER TABLE `minds_chat_messages`
+	ADD `message_type` ENUM ("TEXT", "IMAGE", "VIDEO", "AUDIO", "RICH_EMBED") DEFAULT "TEXT"
+	AFTER `sender_guid`;
+
 ALTER TABLE minds_tenant_mobile_configs  ADD COLUMN eas_project_id varchar(32) AFTER update_timestamp;
 ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_slug varchar(32) AFTER eas_project_id;
 ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_scheme varchar(16) AFTER app_slug;
 ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_ios_bundle varchar(32) AFTER app_scheme;
 ALTER TABLE minds_tenant_mobile_configs ADD COLUMN app_android_package varchar(32) AFTER app_ios_bundle;
 
+ALTER TABLE `minds_tenant_configs`
+    ADD custom_home_page_enabled boolean 
+    AFTER community_guidelines;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD custom_home_page_description text 
+    AFTER custom_home_page_enabled;
+
+ALTER TABLE `minds_tenant_configs`
+    ADD walled_garden_enabled boolean 
+    AFTER custom_home_page_description;

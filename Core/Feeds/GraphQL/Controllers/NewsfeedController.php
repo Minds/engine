@@ -201,10 +201,9 @@ class NewsfeedController
         }
 
         // Build the boosts
-        $isBoostRotatorRemovedExperimentOn = $this->experimentsManager->isOn('minds-4105-remove-rotator');
         $boosts = $this->buildBoosts(
             loggedInUser: $loggedInUser,
-            limit: $isBoostRotatorRemovedExperimentOn ? 3 : 1,
+            limit: 3,
         );
 
         // Reset the explicit vote counter
@@ -289,7 +288,6 @@ class NewsfeedController
              * Show boosts depending on if the experiment to remove the rotator is enabled
              */
             if (
-                $isBoostRotatorRemovedExperimentOn &&
                 in_array($i, [
                     1, // 2nd slot
                     4, // after channel recs
@@ -301,22 +299,13 @@ class NewsfeedController
                 if ($boost) {
                     $edges[] = new BoostEdge($boost, $cursor);
                 }
-            } elseif (
-                !$isBoostRotatorRemovedExperimentOn &&
-                count($boosts) &&
-                $i == 3
-            ) {
-                $boost = $boosts[0];
-                if ($boost) {
-                    $edges[] = new BoostEdge($boost, $cursor);
-                }
             }
 
             /**
              * Don't show the post if it has been explicitly downvoted
              */
             if (
-                $this->isExplicitVotesExperimentOn() && $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::DOWN)
+                $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::DOWN)
             ) {
                 continue;
             }
@@ -478,7 +467,7 @@ class NewsfeedController
         foreach ($activities as $activity) {
             // Don't show downvoted activities
             if (
-                $this->isExplicitVotesExperimentOn() && $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::DOWN)
+                $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::DOWN)
             ) {
                 continue;
             }
@@ -610,7 +599,7 @@ class NewsfeedController
 
         $hasUpvoted = $this->userHasVoted($activity, $loggedInUser, Votes\Enums\VoteDirectionEnum::UP);
 
-        $show = ($i === 0 || $i - $this->lastIndexWithExplicitVotes >= 4 || is_null($this->lastIndexWithExplicitVotes)) && $this->isExplicitVotesExperimentOn() && !$isPostOwner && !$hasUpvoted;
+        $show = ($i === 0 || $i - $this->lastIndexWithExplicitVotes >= 4 || is_null($this->lastIndexWithExplicitVotes)) && !$isPostOwner && !$hasUpvoted;
 
         if ($show) {
             $this->lastIndexWithExplicitVotes = $i;
@@ -639,15 +628,6 @@ class NewsfeedController
             ->setDirection($direction === Votes\Enums\VoteDirectionEnum::UP ? 'up' : 'down');
 
         return $this->votesManager->has($vote);
-    }
-
-    /**
-     * Whether experiment is on.
-     * @return bool true if experiment is on.
-     */
-    protected function isExplicitVotesExperimentOn(): bool
-    {
-        return $this->experimentsManager->isOn('minds-4175-explicit-votes');
     }
 
     /**

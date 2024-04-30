@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Chat\Services;
 
+use Minds\Core\Chat\Delegates\AnalyticsDelegate;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\ReceiptRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;
@@ -27,7 +28,8 @@ class ServicesProvider extends Provider
                 roomRepository: $di->get(RoomRepository::class),
                 subscriptionsRepository: $di->get(SubscriptionsRepository::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
-                blockManager: $di->get('Security\Block\Manager')
+                blockManager: $di->get('Security\Block\Manager'),
+                analyticsDelegate: $di->get(AnalyticsDelegate::class)
             )
         );
 
@@ -39,7 +41,10 @@ class ServicesProvider extends Provider
                 receiptService: $di->get(ReceiptService::class),
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 socketEvents: new SocketEvents(),
-                chatNotificationsTopic: $di->get(ChatNotificationsTopic::class)
+                chatNotificationsTopic: $di->get(ChatNotificationsTopic::class),
+                chatRichEmbedService: Di::_()->get(RichEmbedService::class),
+                analyticsDelegate: $di->get(AnalyticsDelegate::class),
+                logger: $di->get('Logger')
             )
         );
 
@@ -47,6 +52,14 @@ class ServicesProvider extends Provider
             ReceiptService::class,
             fn (Di $di): ReceiptService => new ReceiptService(
                 repository: $di->get(ReceiptRepository::class),
+            )
+        );
+
+        $this->di->bind(
+            RichEmbedService::class,
+            fn (Di $di): RichEmbedService => new RichEmbedService(
+                metascraperService: $di->get('Metascraper\Service'),
+                logger: $di->get('Logger')
             )
         );
     }

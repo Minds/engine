@@ -3,11 +3,14 @@ declare(strict_types=1);
 
 namespace Minds\Core\Chat\Services;
 
+use Minds\Core\Chat\Delegates\AnalyticsDelegate;
 use Minds\Core\Chat\Entities\ChatMessage;
+use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Events\Sockets\ChatEvent;
 use Minds\Core\Chat\Events\Sockets\Enums\ChatEventTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
+use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
 use Minds\Core\Chat\Notifications\Events\ChatNotificationEvent;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;
@@ -17,6 +20,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\Guid;
+use Minds\Core\Log\Logger;
 use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -31,7 +35,10 @@ class MessageService
         private readonly ReceiptService $receiptService,
         private readonly EntitiesBuilder $entitiesBuilder,
         private readonly SocketEvents $socketEvents,
-        private readonly ChatNotificationsTopic $chatNotificationsTopic
+        private readonly ChatNotificationsTopic $chatNotificationsTopic,
+        private readonly RichEmbedService $chatRichEmbedService,
+        private readonly AnalyticsDelegate $analyticsDelegate,
+        private readonly Logger $logger
     ) {
     }
 
@@ -48,14 +55,9 @@ class MessageService
         User $user,
         string $message
     ): ChatMessageEdge {
-        $chatMessage = new ChatMessage(
-            roomGuid: $roomGuid,
-            guid: (int) Guid::build(),
-            senderGuid: (int) $user->getGuid(),
-            plainText: trim($message), // TODO: strengthen message validation to avoid multiple new lines
-        );
+        $plainText = trim($message); // TODO: strengthen message validation to avoid multiple new lines
 
-        if (empty($chatMessage->plainText)) {
+        if (empty($plainText)) {
             throw new GraphQLException(message: "Message cannot be empty", code: 400);
         }
 
@@ -68,12 +70,36 @@ class MessageService
             throw new GraphQLException(message: "You are not a member of this room", code: 403);
         }
 
+        $messageType = ChatMessageTypeEnum::TEXT;
+
+        if ($richEmbed = $this->chatRichEmbedService->parseFromText($plainText) ?? null) {
+            $messageType = ChatMessageTypeEnum::RICH_EMBED;
+        }
+
+        $chatMessage = new ChatMessage(
+            roomGuid: $roomGuid,
+            guid: (int) Guid::build(),
+            senderGuid: (int) $user->getGuid(),
+            plainText: $plainText,
+            richEmbed: $richEmbed,
+            messageType: $messageType
+        );
+
         try {
             // Open transaction so we only send message along with a read receipt
             $this->messageRepository->beginTransaction();
 
             // Save the message
             $this->messageRepository->addMessage($chatMessage);
+
+            // Add a rich embed if required.
+            if ($chatMessage->richEmbed && $chatMessage->messageType === ChatMessageTypeEnum::RICH_EMBED) {
+                $this->messageRepository->addRichEmbed(
+                    roomGuid: $roomGuid,
+                    messageGuid: $chatMessage->guid,
+                    chatRichEmbed: $chatMessage->richEmbed
+                );
+            }
 
             // Add the receipt to ourself
             $this->receiptService->updateReceipt($chatMessage, $user);
@@ -103,6 +129,12 @@ class MessageService
         } catch (PDOException $e) {
             $this->messageRepository->rollbackTransaction();
         }
+
+        $this->handleSendMessageAnalyticsEvent(
+            user: $user,
+            chatMessage: $chatMessage,
+            roomGuid: $roomGuid
+        );
 
         return new ChatMessageEdge(
             node: new ChatMessageNode(
@@ -230,6 +262,14 @@ class MessageService
                 $this->messageRepository->rollbackTransaction();
                 throw new ServerErrorException(message: 'Failed to delete message', code: 500);
             }
+
+            if ($message->messageType === ChatMessageTypeEnum::RICH_EMBED) {
+                if (!$this->messageRepository->deleteRichEmbed($roomGuid, $messageGuid)) {
+                    $this->messageRepository->rollbackTransaction();
+                    throw new ServerErrorException(message: 'Failed to delete rich embed data for message', code: 500);
+                }
+            }
+
             if (!$this->messageRepository->deleteChatMessage(
                 roomGuid: $roomGuid,
                 messageGuid: $messageGuid
@@ -242,6 +282,41 @@ class MessageService
             return true;
         } catch (ServerErrorException $e) {
             throw new GraphQLException(message: 'Failed to delete message', code: 500);
+        }
+    }
+
+    /**
+     * Handle analytics event firing on message send.
+     * @param User $user - the message sender.
+     * @param ChatMessage $chatMessage - the message.
+     * @param int $roomGuid - the room guid.
+     * @return void
+     */
+    private function handleSendMessageAnalyticsEvent(
+        User $user,
+        ChatMessage $chatMessage,
+        int $roomGuid
+    ) {
+        try {
+            ['chatRooms' => $chatRooms] = $this->roomRepository->getRoomsByMember(
+                user: $user,
+                targetMemberStatuses: [
+                    ChatRoomMemberStatusEnum::ACTIVE->name,
+                    ChatRoomMemberStatusEnum::INVITE_PENDING->name
+                ],
+                limit: 1,
+                roomGuid: $roomGuid
+            );
+
+            $chatRoom = $chatRooms[0] ?? throw new ChatRoomNotFoundException();
+
+            $this->analyticsDelegate->onMessageSend(
+                actor: $user,
+                message: $chatMessage,
+                chatRoom: $chatRoom->chatRoom
+            );
+        } catch (\Exception $e) {
+            $this->logger->error($e);
         }
     }
 }

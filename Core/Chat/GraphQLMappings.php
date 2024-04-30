@@ -24,6 +24,8 @@ class GraphQLMappings extends AbstractGraphQLMappings
             // Room members
             Types\ChatRoomMemberEdge::class,
             Types\ChatRoomMembersConnection::class,
+            // Rich embed
+            Types\ChatRichEmbedNode::class
         ]));
     }
 }

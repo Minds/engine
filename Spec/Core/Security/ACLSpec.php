@@ -6,21 +6,36 @@ use Minds\Common\Access;
 use Minds\Core;
 use Minds\Core\Config;
 use Minds\Core\EntitiesBuilder;
+use Minds\Core\MultiTenant\Configs\Models\MultiTenantConfig;
+use Minds\Core\MultiTenant\Models\Tenant;
 use Minds\Entities\Activity;
 use Minds\Entities\Entity;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
+use ReflectionClass;
 
 class ACLSpec extends ObjectBehavior
 {
     /** @var EntitiesBuilder */
     private $entitiesBuilder;
 
+    private Collaborator $config;
+
+    private ReflectionClass $tenantMockFactory;
+    private ReflectionClass $tenantConfigMockFactory;
+
     public function let(EntitiesBuilder $entitiesBuilder, Config $config)
     {
+        $this->tenantMockFactory = new ReflectionClass(Tenant::class);
+        $this->tenantConfigMockFactory = new ReflectionClass(MultiTenantConfig::class);
+
         $this->entitiesBuilder = $entitiesBuilder;
+
         $config->get('normalize_entities')
             ->willReturn(true);
+
+        $this->config = $config;
 
         $this->beConstructedWith($entitiesBuilder, null, $config);
     }
@@ -66,7 +81,82 @@ class ACLSpec extends ObjectBehavior
         $entity->get('owner_guid')->willReturn(123);
         $entity->getOwnerGUID()->wilLReturn(123);
         $entity->get('type')->willReturn('activity');
+
+        $this->config->get('is_tenant')->shouldBeCalled()->willReturn(false);
+
         $this->read($entity)->shouldReturn(true);
+    }
+
+    public function it_should_allow_read_of_public_entities_for_tenants_when_wallet_garden_mode_is_disabled(Entity $entity, User $user)
+    {
+        $tenantMock = $this->tenantMockFactory->newInstanceWithoutConstructor();
+        $tenantConfigMock = $this->tenantConfigMockFactory->newInstanceWithoutConstructor();
+
+        $this->tenantConfigMockFactory->getProperty('walledGardenEnabled')->setValue($tenantConfigMock, false);
+        $this->tenantMockFactory->getProperty('config')->setValue($tenantMock, $tenantConfigMock);
+
+        $user->getType()->willReturn('user');
+        $user->get('type')->willReturn('user');
+        $user->get('guid')->willReturn(123);
+        $user->get('access_id')->willReturn(2);
+        $user->get('owner_guid')->willReturn(0);
+        $user->getOwnerGUID()->willReturn(0);
+        $user->get('container_guid')->willReturn(0);
+        $user->getSpam()->willReturn(false);
+        $user->getDeleted()->willReturn(false);
+        $user->isBanned()->willReturn(false);
+        $user->isEnabled()->willReturn(true);
+
+        $this->entitiesBuilder->single(123, [ 'cache' => true, 'cacheTtl' => 604800 ])
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $entity->getType()->willReturn('object');
+        $entity->get('access_id')->willReturn(2);
+        $entity->get('container_guid')->willReturn(123);
+        $entity->get('owner_guid')->willReturn(123);
+        $entity->getOwnerGUID()->wilLReturn(123);
+        $entity->get('type')->willReturn('activity');
+
+        $this->config->get('is_tenant')->shouldBeCalled()->willReturn(true);
+        $this->config->get('tenant')->shouldBeCalled()->willReturn($tenantMock);
+
+        $this->read($entity)->shouldReturn(true);
+    }
+
+    public function it_NOT_should_allow_read_of_public_entities_for_tenants_when_wallet_garden_mode_is_enabled(Entity $entity, User $user)
+    {
+        $tenantMock = $this->tenantMockFactory->newInstanceWithoutConstructor();
+        $tenantConfigMock = $this->tenantConfigMockFactory->newInstanceWithoutConstructor();
+
+        $this->tenantConfigMockFactory->getProperty('walledGardenEnabled')->setValue($tenantConfigMock, true);
+        $this->tenantMockFactory->getProperty('config')->setValue($tenantMock, $tenantConfigMock);
+
+        $user->getType()->willReturn('user');
+        $user->get('guid')->willReturn(123);
+        $user->getOwnerGUID()->willReturn(0);
+        $user->get('container_guid')->willReturn(0);
+        $user->getSpam()->willReturn(false);
+        $user->getDeleted()->willReturn(false);
+        $user->isBanned()->willReturn(false);
+        $user->isEnabled()->willReturn(true);
+
+        $this->entitiesBuilder->single(123, [ 'cache' => true, 'cacheTtl' => 604800 ])
+            ->shouldBeCalled()
+            ->willReturn($user);
+
+        $entity->getGuid()->willReturn(123);
+        $entity->getType()->willReturn('object');
+        $entity->get('access_id')->willReturn(2);
+        $entity->get('container_guid')->willReturn(123);
+        $entity->get('owner_guid')->willReturn(123);
+        $entity->getOwnerGUID()->wilLReturn(123);
+        $entity->get('type')->willReturn('activity');
+
+        $this->config->get('is_tenant')->shouldBeCalled()->willReturn(true);
+        $this->config->get('tenant')->shouldBeCalled()->willReturn($tenantMock);
+
+        $this->read($entity)->shouldReturn(false);
     }
 
     public function it_should_not_allow_posts_from_bad_users(Entity $entity, User $user)
@@ -123,6 +213,9 @@ class ACLSpec extends ObjectBehavior
         $entity->getContainerEntity()->willReturn($user);
         $entity->getOwnerGUID()->wilLReturn(123);
         $entity->get('type')->willReturn('activity');
+
+        $this->config->get('is_tenant')->shouldBeCalled()->willReturn(false);
+
         $this->read($entity)->shouldReturn(false);
     }
 

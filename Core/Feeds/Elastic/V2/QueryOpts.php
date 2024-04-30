@@ -1,6 +1,7 @@
 <?php
 namespace Minds\Core\Feeds\Elastic\V2;
 
+use DateTime;
 use Minds\Core\Feeds\Elastic\V2\Enums\MediaTypeEnum;
 use Minds\Core\Feeds\Elastic\V2\Enums\SeenEntitiesFilterStrategyEnum;
 use Minds\Entities\User;
@@ -20,6 +21,7 @@ class QueryOpts
         public readonly ?MediaTypeEnum $mediaTypeEnum = MediaTypeEnum::ALL,
         public readonly ?array $nsfw = [],
         public readonly SeenEntitiesFilterStrategyEnum $seenEntitiesFilterStrategy = SeenEntitiesFilterStrategyEnum::NOOP,
+        public readonly ?DateTime $olderThan = null,
     ) {
         $this->validateNsfwArray($nsfw);
     }

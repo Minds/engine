@@ -121,4 +121,27 @@ class MultiTenantConfigInputValidatorSpec extends ObjectBehavior
             )
         );
     }
+
+    public function it_should_validate_a_valid_max_length_custom_home_page_description()
+    {
+        $this->validate(new MultiTenantConfigInput(
+            customHomePageDescription: str_repeat('a', 160),
+        ))->shouldBe(null);
+    }
+
+    public function it_should_validate_a_valid_empty_custom_home_page_description()
+    {
+        $this->validate(new MultiTenantConfigInput(
+            customHomePageDescription: ''
+        ))->shouldBe(null);
+    }
+
+    public function it_should_NOT_validate_an_input_with_too_long_a_custom_home_page_description()
+    {
+        $this->shouldThrow(GraphQLException::class)->duringValidate(
+            new MultiTenantConfigInput(
+                customHomePageDescription: str_repeat('a', 161),
+            )
+        );
+    }
 }

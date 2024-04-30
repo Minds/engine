@@ -45,6 +45,9 @@ class TenantTemplateVariableInjectorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($themeOverride);
 
+        $template->set('site_name', $siteName)
+            ->shouldBeCalled();
+
         $template->set('copyright_text', $siteName . " &#169; " . date("Y"))
             ->shouldBeCalled();
 
@@ -77,6 +80,9 @@ class TenantTemplateVariableInjectorSpec extends ObjectBehavior
         $this->config->get('theme_override')
             ->shouldBeCalled()
             ->willReturn($themeOverride);
+
+        $template->set('site_name', $siteName)
+            ->shouldBeCalled();
 
         $template->set('copyright_text', $siteName . " &#169; " . date("Y"))
             ->shouldBeCalled();
@@ -111,6 +117,9 @@ class TenantTemplateVariableInjectorSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($themeOverride);
 
+        $template->set('site_name', $siteName)
+            ->shouldBeCalled();
+
         $template->set('copyright_text', $siteName . " &#169; " . date("Y"))
             ->shouldBeCalled();
 
@@ -142,6 +151,9 @@ class TenantTemplateVariableInjectorSpec extends ObjectBehavior
         $this->config->get('theme_override')
             ->shouldBeCalled()
             ->willReturn($themeOverride);
+
+        $template->set('site_name', $siteName)
+            ->shouldBeCalled();
 
         $template->set('copyright_text', $siteName . " &#169; " . date("Y"))
             ->shouldBeCalled();

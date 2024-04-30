@@ -339,7 +339,7 @@
                                    target="_blank">
                                    <!-- manually set logo image-->
                                     <?php if(isset($vars['logo_url'])) { ?>
-                                        <img class="<?php echo $vars['color_scheme'] === 'DARK' ? 'dark-img' : 'light-img' ?>" src="<?= $vars['logo_url'] ?>" height="50"
+                                        <img class="<?php echo ($vars['color_scheme'] ?? null) === 'DARK' ? 'dark-img' : 'light-img' ?>" src="<?= $vars['logo_url'] ?>" height="50"
                                                 alt="<?= $vars['site_name'] ?? 'Minds' ?>"
                                                 <?= $emailStylesV2->getStyles(['m-mainContent__imageAltText']) ?>
                                         >
@@ -347,7 +347,7 @@
                                     <?php } else { ?>
                                         <!--light mode logo image-->
                                         <img class="light-img" src="<?php echo $vars['cdn_assets_url']; ?>/assets/logos/logo-light-mode.png" width="130" height="50"
-                                                alt="Minds"
+                                                alt="<?= $vars['site_name'] ?? 'Minds' ?>"
                                                 <?= $emailStylesV2->getStyles(['m-mainContent__imageAltText']) ?>
                                         >
 
@@ -394,7 +394,7 @@
                         if (isset($vars['campaign']) && !(isset($vars['hide_unsubscribe_link']) && $vars['hide_unsubscribe_link'])) {
                             ?>
                             &nbsp;&nbsp;|&nbsp;&nbsp;
-                            <a href="<?php echo $vars['site_url']; ?>emails/unsubscribe/<?= $vars['guid']?>/<?= urlencode($vars['email'])?>/<?= $vars['campaign']?><?= '/' . $vars['topic']?>?__e_ct_guid=<?= $vars['guid']?>&campaign=<?= $vars['campaign'] ?>&topic=<?= $vars['topic'] ?>&state=<?= $vars['state']?>"
+                            <a href="<?php echo $vars['site_url']; ?>emails/unsubscribe/<?= $vars['guid']?>/<?= urlencode($vars['email'])?>/<?= $vars['campaign']?><?= '/' . $vars['topic']?>?__e_ct_guid=<?= $vars['guid']?>&campaign=<?= $vars['campaign'] ?>&topic=<?= $vars['topic'] ?>"
                                class="link"
                                target="_blank"
                                <?= $emailStylesV2->getStyles(['m-footer__link']) ?>>

@@ -130,9 +130,6 @@ class Manager
             throw new EntityTypeNotAllowedInLocationException();
         }
 
-        $goalFeatureEnabled = $this->experimentsManager
-            ->isOn('minds-3952-boost-goals');
-
         $targetPlatformFeatureEnabled = $this->experimentsManager
             ->isOn('minds-4030-boost-platform-targeting');
 
@@ -145,9 +142,9 @@ class Manager
                 paymentAmount: (float) ($data['daily_bid'] * $data['duration_days']),
                 dailyBid: (float) $data['daily_bid'],
                 durationDays: (int) $data['duration_days'],
-                goal: $goalFeatureEnabled && isset($data['goal']) ? (int) $data['goal'] : null,
-                goalButtonText: $goalFeatureEnabled && isset($data['goal_button_text']) ? (int) $data['goal_button_text'] : null,
-                goalButtonUrl: $goalFeatureEnabled && isset($data['goal_button_url']) ? (string) $data['goal_button_url'] : null,
+                goal: isset($data['goal']) ? (int) $data['goal'] : null,
+                goalButtonText: isset($data['goal_button_text']) ? (int) $data['goal_button_text'] : null,
+                goalButtonUrl: isset($data['goal_button_url']) ? (string) $data['goal_button_url'] : null,
                 targetPlatformWeb: !($targetPlatformFeatureEnabled && isset($data['target_platform_web'])) || $data['target_platform_web'],
                 targetPlatformAndroid: !($targetPlatformFeatureEnabled && isset($data['target_platform_android'])) || $data['target_platform_android'],
                 targetPlatformIos: !($targetPlatformFeatureEnabled && isset($data['target_platform_ios'])) || $data['target_platform_ios'],
