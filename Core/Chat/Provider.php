@@ -31,5 +31,6 @@ class Provider extends DiProvider
         (new Services\ServicesProvider())->register();
         (new Repositories\RepositoriesProvider())->register();
         (new Notifications\NotificationsProvider())->register();
+        (new Delegates\DelegatesProvider())->register();
     }
 }
