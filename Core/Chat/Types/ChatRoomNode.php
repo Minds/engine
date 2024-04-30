@@ -53,6 +53,16 @@ class ChatRoomNode implements NodeInterface
     }
 
     /**
+     * Gets group GUID for a chat room node.
+     * @return string|null The group GUID or null if the chat room is not a group chat.
+     */
+    #[Field]
+    public function getGroupGuid(): ?string
+    {
+        return (string) $this->chatRoom->groupGuid ?: null;
+    }
+
+    /**
      * The timestamp the room was created at
      */
     #[Field]
