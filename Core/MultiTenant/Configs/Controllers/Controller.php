@@ -57,6 +57,9 @@ class Controller
             federationDisabled: $multiTenantConfigInput->federationDisabled,
             replyEmail: $multiTenantConfigInput->replyEmail,
             nsfwEnabled: $multiTenantConfigInput->nsfwEnabled,
+            customHomePageEnabled: $multiTenantConfigInput->customHomePageEnabled,
+            customHomePageDescription: $multiTenantConfigInput->customHomePageDescription,
+            walledGardenEnabled: $multiTenantConfigInput->walledGardenEnabled
         );
     }
 }
