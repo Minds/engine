@@ -3,12 +3,14 @@ declare(strict_types=1);
 
 namespace Minds\Core\Chat\Services;
 
+use Minds\Core\Chat\Delegates\AnalyticsDelegate;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Events\Sockets\ChatEvent;
 use Minds\Core\Chat\Events\Sockets\Enums\ChatEventTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
+use Minds\Core\Chat\Exceptions\ChatRoomNotFoundException;
 use Minds\Core\Chat\Notifications\Events\ChatNotificationEvent;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;
@@ -18,6 +20,7 @@ use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
 use Minds\Core\Feeds\GraphQL\Types\UserEdge;
 use Minds\Core\Guid;
+use Minds\Core\Log\Logger;
 use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Entities\User;
 use Minds\Exceptions\ServerErrorException;
@@ -33,7 +36,9 @@ class MessageService
         private readonly EntitiesBuilder $entitiesBuilder,
         private readonly SocketEvents $socketEvents,
         private readonly ChatNotificationsTopic $chatNotificationsTopic,
-        private readonly RichEmbedService $chatRichEmbedService
+        private readonly RichEmbedService $chatRichEmbedService,
+        private readonly AnalyticsDelegate $analyticsDelegate,
+        private readonly Logger $logger
     ) {
     }
 
@@ -124,6 +129,12 @@ class MessageService
         } catch (PDOException $e) {
             $this->messageRepository->rollbackTransaction();
         }
+
+        $this->handleSendMessageAnalyticsEvent(
+            user: $user,
+            chatMessage: $chatMessage,
+            roomGuid: $roomGuid
+        );
 
         return new ChatMessageEdge(
             node: new ChatMessageNode(
@@ -271,6 +282,41 @@ class MessageService
             return true;
         } catch (ServerErrorException $e) {
             throw new GraphQLException(message: 'Failed to delete message', code: 500);
+        }
+    }
+
+    /**
+     * Handle analytics event firing on message send.
+     * @param User $user - the message sender.
+     * @param ChatMessage $chatMessage - the message.
+     * @param int $roomGuid - the room guid.
+     * @return void
+     */
+    private function handleSendMessageAnalyticsEvent(
+        User $user,
+        ChatMessage $chatMessage,
+        int $roomGuid
+    ) {
+        try {
+            ['chatRooms' => $chatRooms] = $this->roomRepository->getRoomsByMember(
+                user: $user,
+                targetMemberStatuses: [
+                    ChatRoomMemberStatusEnum::ACTIVE->name,
+                    ChatRoomMemberStatusEnum::INVITE_PENDING->name
+                ],
+                limit: 1,
+                roomGuid: $roomGuid
+            );
+
+            $chatRoom = $chatRooms[0] ?? throw new ChatRoomNotFoundException();
+
+            $this->analyticsDelegate->onMessageSend(
+                actor: $user,
+                message: $chatMessage,
+                chatRoom: $chatRoom->chatRoom
+            );
+        } catch (\Exception $e) {
+            $this->logger->error($e);
         }
     }
 }

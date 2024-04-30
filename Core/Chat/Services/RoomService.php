@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Minds\Core\Chat\Services;
 
 use DateTimeImmutable;
+use Minds\Core\Chat\Delegates\AnalyticsDelegate;
 use Minds\Core\Chat\Entities\ChatRoom;
 use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatRoomInviteRequestActionEnum;
@@ -43,6 +44,7 @@ class RoomService
         private readonly EntitiesBuilder         $entitiesBuilder,
         private readonly BlockManager            $blockManager,
         private readonly GroupMembershipManager  $groupMembershipManager,
+        private readonly AnalyticsDelegate       $analyticsDelegate
     ) {
     }
 
@@ -206,6 +208,45 @@ class RoomService
         $this->roomRepository->commitTransaction();
 
         $chatRoom->setName($this->getRoomName($chatRoom, $user, $otherMemberGuids));
+        $this->analyticsDelegate->onChatRoomCreate(
+            actor: $user,
+            chatRoom: $chatRoom
+        );
+
+        return new ChatRoomEdge(
+            node: new ChatRoomNode(chatRoom: $chatRoom)
+        );
+    }
+
+    /**
+     * @param User $user
+     * @param int $groupGuid
+     * @return ChatRoomEdge
+     * @throws ServerErrorException
+     */
+    public function createGroupOwnedRoom(User $user, int $groupGuid): ChatRoomEdge
+    {
+        $chatRoom = new ChatRoom(
+            guid: (int)Guid::build(),
+            roomType: ChatRoomTypeEnum::GROUP_OWNED,
+            groupGuid: $groupGuid,
+            createdByGuid: (int)$user->getGuid(),
+            createdAt: new DateTimeImmutable(),
+        );
+
+        $this->roomRepository->createRoom(
+            roomGuid: $chatRoom->guid,
+            roomType: $chatRoom->roomType,
+            createdByGuid: $chatRoom->createdByGuid,
+            createdAt: $chatRoom->createdAt,
+            groupGuid: $groupGuid,
+        );
+
+        $this->analyticsDelegate->onChatRoomCreate(
+            actor: $user,
+            chatRoom: $chatRoom
+        );
+ 
         return new ChatRoomEdge(
             node: new ChatRoomNode(chatRoom: $chatRoom)
         );
@@ -565,6 +606,22 @@ class RoomService
 
             $this->roomRepository->commitTransaction();
 
+            switch($chatRoomInviteRequestAction) {
+                case ChatRoomInviteRequestActionEnum::ACCEPT:
+                    $this->analyticsDelegate->onChatRequestAccept(
+                        actor: $user,
+                        chatRoom: $chatRoomEdge->getNode()->chatRoom
+                    );
+                    break;
+                case ChatRoomInviteRequestActionEnum::REJECT:
+                case ChatRoomInviteRequestActionEnum::REJECT_AND_BLOCK:
+                    $this->analyticsDelegate->onChatRequestDecline(
+                        actor: $user,
+                        chatRoom: $chatRoomEdge->getNode()->chatRoom
+                    );
+                    break;
+            }
+
             return true;
         } catch (ServerErrorException|BlockLimitException $e) {
             $this->roomRepository->rollbackTransaction();
@@ -603,6 +660,11 @@ class RoomService
         int $roomGuid,
         User $user
     ): bool {
+        $chatRoomEdge = $this->getRoom(
+            roomGuid: $roomGuid,
+            loggedInUser: $user
+        );
+
         if (!$this->roomRepository->isUserRoomOwner(
             roomGuid: $roomGuid,
             user: $user
@@ -614,6 +676,12 @@ class RoomService
         try {
             $results = $this->roomRepository->deleteRoom($roomGuid);
             $this->roomRepository->commitTransaction();
+
+            $this->analyticsDelegate->onChatRoomDelete(
+                actor: $user,
+                chatRoom: $chatRoomEdge->getNode()->chatRoom
+            );
+
             return $results;
         } catch (ServerErrorException $e) {
             $this->roomRepository->rollbackTransaction();
@@ -631,11 +699,23 @@ class RoomService
         int $roomGuid,
         User $user
     ): bool {
-        return $this->roomRepository->updateRoomMemberStatus(
+        $chatRoomEdge = $this->getRoom(
+            roomGuid: $roomGuid,
+            loggedInUser: $user
+        );
+
+        $success = $this->roomRepository->updateRoomMemberStatus(
             roomGuid: $roomGuid,
             user: $user,
             memberStatus: ChatRoomMemberStatusEnum::LEFT
         );
+
+        $this->analyticsDelegate->onChatRoomLeave(
+            actor: $user,
+            chatRoom: $chatRoomEdge?->getNode()?->chatRoom
+        );
+
+        return $success;
     }
 
     /**

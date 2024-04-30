@@ -5,8 +5,11 @@ namespace Spec\Minds\Core\Chat\Services;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeInterface;
+use Minds\Core\Chat\Delegates\AnalyticsDelegate;
 use Minds\Core\Chat\Entities\ChatMessage;
 use Minds\Core\Chat\Entities\ChatRichEmbed;
+use Minds\Core\Chat\Entities\ChatRoom;
+use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
 use Minds\Core\Chat\Events\Sockets\ChatEvent;
@@ -21,6 +24,7 @@ use Minds\Core\Chat\Types\ChatMessageEdge;
 use Minds\Core\EntitiesBuilder;
 use Minds\Core\EventStreams\Topics\ChatNotificationsTopic;
 use Minds\Core\Guid;
+use Minds\Core\Log\Logger;
 use Minds\Core\Sockets\Events as SocketEvents;
 use Minds\Entities\User;
 use PhpSpec\ObjectBehavior;
@@ -38,9 +42,13 @@ class MessageServiceSpec extends ObjectBehavior
     private Collaborator $socketEventsMock;
     private Collaborator $chatNotificationsTopicMock;
     private Collaborator $chatRichEmbedServiceMock;
+    private Collaborator $analyticsDelegateMock;
+    private Collaborator $loggerMock;
 
     private ReflectionClass $chatMessageFactoryMock;
     private ReflectionClass $chatRichEmbedFactoryMock;
+    private ReflectionClass $chatRoomFactoryMock;
+    private ReflectionClass $chatRoomListItemFactoryMock;
 
     public function let(
         MessageRepository $messageRepositoryMock,
@@ -49,9 +57,11 @@ class MessageServiceSpec extends ObjectBehavior
         EntitiesBuilder $entitiesBuilderMock,
         SocketEvents $socketEvents,
         ChatNotificationsTopic $chatNotificationsTopic,
-        RichEmbedService $chatRichEmbedService
+        RichEmbedService $chatRichEmbedService,
+        AnalyticsDelegate $analyticsDelegate,
+        Logger $logger
     ) {
-        $this->beConstructedWith($messageRepositoryMock, $roomRepositoryMock, $receiptServiceMock, $entitiesBuilderMock, $socketEvents, $chatNotificationsTopic, $chatRichEmbedService);
+        $this->beConstructedWith($messageRepositoryMock, $roomRepositoryMock, $receiptServiceMock, $entitiesBuilderMock, $socketEvents, $chatNotificationsTopic, $chatRichEmbedService, $analyticsDelegate, $logger);
         $this->messageRepositoryMock = $messageRepositoryMock;
         $this->roomRepositoryMock  = $roomRepositoryMock;
         $this->receiptServiceMock = $receiptServiceMock;
@@ -59,9 +69,13 @@ class MessageServiceSpec extends ObjectBehavior
         $this->socketEventsMock = $socketEvents;
         $this->chatNotificationsTopicMock = $chatNotificationsTopic;
         $this->chatRichEmbedServiceMock = $chatRichEmbedService;
+        $this->analyticsDelegateMock = $analyticsDelegate;
+        $this->loggerMock = $logger;
 
         $this->chatMessageFactoryMock = new ReflectionClass(ChatMessage::class);
         $this->chatRichEmbedFactoryMock = new ReflectionClass(ChatRichEmbed::class);
+        $this->chatRoomFactoryMock = new ReflectionClass(ChatRoom::class);
+        $this->chatRoomListItemFactoryMock = new ReflectionClass(ChatRoomListItem::class);
     }
 
     public function it_is_initializable()
@@ -119,6 +133,32 @@ class MessageServiceSpec extends ObjectBehavior
         $this->chatNotificationsTopicMock->send(Argument::type(ChatNotificationEvent::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
+
+        $chatRoom = $this->generateChatRoomMock();
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            123
+        )->shouldBeCalled()->willReturn([
+            'chatRooms' => [
+                $this->generateChatRoomListItemMock(
+                    $chatRoom
+                )
+            ]
+        ]);
+
+        $this->analyticsDelegateMock->onMessageSend(
+            actor: $userMock,
+            message: Argument::type(ChatMessage::class),
+            chatRoom: $chatRoom
+        )->shouldBeCalled();
 
         $this->addMessage(
             123,
@@ -186,6 +226,32 @@ class MessageServiceSpec extends ObjectBehavior
         $this->chatNotificationsTopicMock->send(Argument::type(ChatNotificationEvent::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
+
+        $chatRoom = $this->generateChatRoomMock();
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            123
+        )->shouldBeCalled()->willReturn([
+            'chatRooms' => [
+                $this->generateChatRoomListItemMock(
+                    $chatRoom
+                )
+            ]
+        ]);
+
+        $this->analyticsDelegateMock->onMessageSend(
+            actor: $userMock,
+            message: Argument::type(ChatMessage::class),
+            chatRoom: $chatRoom
+        )->shouldBeCalled();
 
         $this->addMessage(
             123,
@@ -280,6 +346,32 @@ class MessageServiceSpec extends ObjectBehavior
         $this->chatNotificationsTopicMock->send(Argument::type(ChatNotificationEvent::class))
             ->shouldBeCalledOnce()
             ->willReturn(true);
+
+        $chatRoom = $this->generateChatRoomMock();
+
+        $this->roomRepositoryMock->getRoomsByMember(
+            $userMock,
+            [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            1,
+            null,
+            null,
+            $roomGuid
+        )->shouldBeCalled()->willReturn([
+            'chatRooms' => [
+                $this->generateChatRoomListItemMock(
+                    $chatRoom
+                )
+            ]
+        ]);
+
+        $this->analyticsDelegateMock->onMessageSend(
+            actor: $userMock,
+            message: Argument::type(ChatMessage::class),
+            chatRoom: $chatRoom
+        )->shouldBeCalled();
 
         $result = $this->addMessage(roomGuid: $roomGuid, user: $userMock, message: 'just for testing');
         $result->shouldBeAnInstanceOf(ChatMessageEdge::class);
@@ -565,5 +657,23 @@ class MessageServiceSpec extends ObjectBehavior
         $this->chatRichEmbedFactoryMock->getProperty('updatedTimestamp')->setValue($chatRichEmbedMock, $updatedTimestamp);
 
         return $chatRichEmbedMock;
+    }
+
+    private function generateChatRoomListItemMock(ChatRoom $chatRoom): ChatRoomListItem
+    {
+        $chatRoomListItem = $this->chatRoomListItemFactoryMock->newInstanceWithoutConstructor();
+
+        $this->chatRoomListItemFactoryMock->getProperty('chatRoom')->setValue($chatRoomListItem, $chatRoom);
+
+        return $chatRoomListItem;
+    }
+
+    private function generateChatRoomMock(): ChatRoom
+    {
+        $chatRoom = $this->chatRoomFactoryMock->newInstanceWithoutConstructor();
+
+        $this->chatRoomFactoryMock->getProperty('guid')->setValue($chatRoom, Guid::build());
+
+        return $chatRoom;
     }
 }
