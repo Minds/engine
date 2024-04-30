@@ -432,12 +432,13 @@ class RoomRepository extends AbstractRepository
         ?int $offsetMemberGuid = null,
         bool $excludeSelf = true
     ): array {
+        $q = $this->buildRoomMembershipQuery()->build(false);
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'm.*',
                 'rms.notifications_status'
             ])
-            ->from(new RawExp(self::MEMBERS_TABLE_NAME . ' as m'))
+            ->from(new RawExp("($q) as m"))
             ->joinRaw(
                 new RawExp(self::ROOM_MEMBER_SETTINGS_TABLE_NAME . ' as rms'),
                 'rms.tenant_id = m.tenant_id AND rms.member_guid = m.member_guid AND rms.room_guid = m.room_guid',
@@ -517,12 +518,13 @@ class RoomRepository extends AbstractRepository
         User $user,
         bool $excludeSelf = true
     ): iterable {
+        $q = $this->buildRoomMembershipQuery()->build(false);
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'm.*',
                 'rms.notifications_status'
             ])
-            ->from(new RawExp(self::MEMBERS_TABLE_NAME . ' as m'))
+            ->from(new RawExp("($q) as m"))
             ->joinRaw(
                 new RawExp(self::ROOM_MEMBER_SETTINGS_TABLE_NAME . ' as rms'),
                 'rms.tenant_id = m.tenant_id AND rms.member_guid = m.member_guid AND rms.room_guid = m.room_guid',
@@ -907,8 +909,10 @@ class RoomRepository extends AbstractRepository
         int $roomGuid,
         User $user
     ): bool {
+        $q = $this->buildRoomMembershipQuery()->build(false);
+
         $stmt = $this->mysqlClientReaderHandler->select()
-            ->from(self::MEMBERS_TABLE_NAME)
+            ->from(new RawExp("($q) as m"))
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->where('member_guid', Operator::EQ, new RawExp(':member_guid'))
@@ -1070,6 +1074,8 @@ class RoomRepository extends AbstractRepository
                 'room_guid',
                 'member_guid',
                 'status',
+                'role_id',
+                'joined_timestamp',
             ])
             ->from(self::MEMBERS_TABLE_NAME);
 
@@ -1079,6 +1085,8 @@ class RoomRepository extends AbstractRepository
                 'room_guid',
                 'member_guid' => 'user_guid',
                 'status' => new RawExp('"' . ChatRoomMemberStatusEnum::ACTIVE->name . '"'),
+                'role_id' => new RawExp('CASE WHEN gm.membership_level >= 3 THEN "' . ChatRoomRoleEnum::OWNER->name . '" ELSE "' . ChatRoomRoleEnum::MEMBER->name . '" END'),
+                'joined_timestamp' => 'gm.created_timestamp',
             ])
             ->from(new RawExp(self::TABLE_NAME . ' as r'))
             ->joinRaw(new RawExp('minds_group_membership as gm'), 'r.group_guid = gm.group_guid');
