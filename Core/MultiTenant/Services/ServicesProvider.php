@@ -26,6 +26,7 @@ use Minds\Core\MultiTenant\Repositories\TenantUsersRepository;
 use Minds\Core\MultiTenant\Repository;
 use Minds\Core\Notifications\PostSubscriptions\Services\PostSubscriptionsService;
 use GuzzleHttp\Client;
+use Minds\Core\Authentication\Services\RegisterService;
 
 class ServicesProvider extends Provider
 {
@@ -84,6 +85,7 @@ class ServicesProvider extends Provider
                     $di->get(MultiTenantBootService::class),
                     $di->get('Security\ACL'),
                     $di->get(EntitiesBuilder::class),
+                    $di->get(RegisterService::class),
                 );
             }
         );
