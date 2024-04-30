@@ -759,7 +759,7 @@ class RoomService
                 return 'Unkown group';
             }
 
-            return $group->getName();
+            return (string) $group->getName();
         }
 
         $memberGuids = array_diff($memberGuids, [(int) $currentUser->getGuid()]);
