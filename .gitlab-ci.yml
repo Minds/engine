@@ -129,7 +129,7 @@ prepare:runners:
 
 prepare:all:sentry:
   stage: prepare
-  image: getsentry/sentry-cli
+  image: getsentry/sentry-cli:2.31.0
   script:
     - echo "Create a new release $CI_PIPELINE_ID"
     - sentry-cli releases new $CI_PIPELINE_ID
