@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Minds\Core\Chat\Services;
 
+use Minds\Core\Chat\Delegates\AnalyticsDelegate;
 use Minds\Core\Chat\Repositories\MessageRepository;
 use Minds\Core\Chat\Repositories\ReceiptRepository;
 use Minds\Core\Chat\Repositories\RoomRepository;
@@ -30,6 +31,7 @@ class ServicesProvider extends Provider
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 blockManager: $di->get('Security\Block\Manager'),
                 rolesService: $di->get(RolesService::class),
+                analyticsDelegate: $di->get(AnalyticsDelegate::class)
             )
         );
 
@@ -42,7 +44,9 @@ class ServicesProvider extends Provider
                 entitiesBuilder: $di->get('EntitiesBuilder'),
                 socketEvents: new SocketEvents(),
                 chatNotificationsTopic: $di->get(ChatNotificationsTopic::class),
-                chatRichEmbedService: Di::_()->get(RichEmbedService::class)
+                chatRichEmbedService: Di::_()->get(RichEmbedService::class),
+                analyticsDelegate: $di->get(AnalyticsDelegate::class),
+                logger: $di->get('Logger')
             )
         );
 

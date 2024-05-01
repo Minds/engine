@@ -115,7 +115,13 @@ class AutoLoginServiceSpec extends ObjectBehavior
         $this->jwtMock->setKey($encryptionKey)
             ->willReturn($this->jwtMock);
         
-        $this->jwtMock->encode(Argument::type('array'), Argument::type('int'), Argument::type('int'), )
+        $this->jwtMock->encode(
+            Argument::that(function ($arg) {
+                return $arg['user_guid'] === '456' && $arg['tenant_id'] === 1 && is_string($arg['sso_token']);
+            }),
+            Argument::type('int'),
+            Argument::type('int'),
+        )
             ->willReturn('jwt-token');
 
         //
@@ -157,7 +163,13 @@ class AutoLoginServiceSpec extends ObjectBehavior
         $this->jwtMock->setKey($encryptionKey)
             ->willReturn($this->jwtMock);
         
-        $this->jwtMock->encode(Argument::type('array'), Argument::type('int'), Argument::type('int'), )
+        $this->jwtMock->encode(
+            Argument::that(function ($arg) {
+                return $arg['user_guid'] === '567' && $arg['tenant_id'] === 1 && is_string($arg['sso_token']);
+            }),
+            Argument::type('int'),
+            Argument::type('int')
+        )
             ->willReturn('jwt-token');
 
         //
