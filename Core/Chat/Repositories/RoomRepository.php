@@ -311,12 +311,14 @@ class RoomRepository extends AbstractRepository
             ChatRoomMemberStatusEnum::ACTIVE->name,
             ChatRoomMemberStatusEnum::INVITE_PENDING->name,
         ];
+    
+        $q = $this->buildRoomMembershipQuery()->build(false);
 
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
                 new RawExp('COUNT(member_guid) as total_members')
             ])
-            ->from(self::MEMBERS_TABLE_NAME)
+            ->from(new RawExp("($q) as m"))
             ->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->whereWithNamedParameters('status', Operator::IN, 'status', count($targetStatuses))
@@ -436,10 +438,10 @@ class RoomRepository extends AbstractRepository
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'm.*',
-                'rms.notifications_status'
+                'notifications_status' => new RawExp('COALESCE(rms.notifications_status, "MUTED")'),
             ])
             ->from(new RawExp("($q) as m"))
-            ->joinRaw(
+            ->leftJoinRaw(
                 new RawExp(self::ROOM_MEMBER_SETTINGS_TABLE_NAME . ' as rms'),
                 'rms.tenant_id = m.tenant_id AND rms.member_guid = m.member_guid AND rms.room_guid = m.room_guid',
             )

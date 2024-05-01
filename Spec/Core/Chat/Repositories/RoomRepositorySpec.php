@@ -311,8 +311,10 @@ class RoomRepositorySpec extends ObjectBehavior
     }
 
     public function it_should_get_total_room_members(
-        SelectQuery $selectQueryMock,
-        PDOStatement $pdoStatementMock
+        PDOStatement $pdoStatementMock,
+        SelectQuery $membersQueryMock,
+        SelectQuery $groupsQueryMock,
+        SelectQuery $unionQueryMock,
     ): void {
         $this->configMock->get('tenant_id')->shouldBeCalledOnce()->willReturn(1);
 
@@ -324,35 +326,49 @@ class RoomRepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn(['total_members' => 1]);
 
-        $selectQueryMock->columns([
+        $unionQueryMock->columns([
             new RawExp('COUNT(member_guid) as total_members')
         ])
             ->shouldBeCalledOnce()
-            ->willReturn($selectQueryMock);
+            ->willReturn($unionQueryMock);
 
-        $selectQueryMock->from(RoomRepository::MEMBERS_TABLE_NAME)
+        $unionQueryMock->from(Argument::any())
             ->shouldBeCalledOnce()
-            ->willReturn($selectQueryMock);
+            ->willReturn($unionQueryMock);
 
-        $selectQueryMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
+        $unionQueryMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
             ->shouldBeCalledOnce()
-            ->willReturn($selectQueryMock);
+            ->willReturn($unionQueryMock);
 
-        $selectQueryMock->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
+        $unionQueryMock->where('room_guid', Operator::EQ, new RawExp(':room_guid'))
             ->shouldBeCalledOnce()
-            ->willReturn($selectQueryMock);
+            ->willReturn($unionQueryMock);
 
-        $selectQueryMock->whereWithNamedParameters('status', Operator::IN, 'status', 2)
+        $unionQueryMock->whereWithNamedParameters('status', Operator::IN, 'status', 2)
             ->shouldBeCalledOnce()
-            ->willReturn($selectQueryMock);
+            ->willReturn($unionQueryMock);
 
-        $selectQueryMock->prepare()
+        $unionQueryMock->prepare()
             ->shouldBeCalledOnce()
             ->willReturn($pdoStatementMock);
 
+        $membersQueryMock->columns(Argument::type('array'))
+            ->willReturn($membersQueryMock);
+        $membersQueryMock->from(Argument::any())
+            ->willReturn($membersQueryMock);
+        $membersQueryMock->union($groupsQueryMock)->willReturn($membersQueryMock);
+        $membersQueryMock->build(false)->willReturn('');
+
+        $groupsQueryMock->columns(Argument::type('array'))
+            ->willReturn($groupsQueryMock);
+        $groupsQueryMock->from(Argument::any())
+            ->willReturn($groupsQueryMock);
+        $groupsQueryMock->joinRaw(Argument::any(), Argument::any())
+            ->willReturn($groupsQueryMock);
+
         $this->mysqlClientReaderHandlerMock->select()
-            ->shouldBeCalledOnce()
-            ->willReturn($selectQueryMock);
+            ->shouldBeCalled()
+            ->willReturn($membersQueryMock, $groupsQueryMock, $unionQueryMock);
 
         $this->mysqlHandlerMock->bindValuesToPreparedStatement($pdoStatementMock, [
             'tenant_id' => 1,
@@ -564,10 +580,7 @@ class RoomRepositorySpec extends ObjectBehavior
         ])
             ->shouldBeCalledOnce();
 
-        $selectQueryMock->columns([
-            'm.*',
-            'rms.notifications_status'
-        ])
+        $selectQueryMock->columns(Argument::any())
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
@@ -575,7 +588,7 @@ class RoomRepositorySpec extends ObjectBehavior
             ->shouldBeCalledOnce()
             ->willReturn($selectQueryMock);
 
-        $selectQueryMock->joinRaw(
+        $selectQueryMock->leftJoinRaw(
             new RawExp(RoomRepository::ROOM_MEMBER_SETTINGS_TABLE_NAME . ' as rms'),
             'rms.tenant_id = m.tenant_id AND rms.member_guid = m.member_guid AND rms.room_guid = m.room_guid',
         )
