@@ -72,6 +72,7 @@ class ChatController
     }
 
     /**
+     * @deprecated
      * @param User $loggedInUser
      * @return string[]
      */
@@ -80,7 +81,7 @@ class ChatController
     public function getChatRoomGuids(
         #[InjectUser] User $loggedInUser,
     ): array {
-        return $this->roomService->getRoomGuidsByMember($loggedInUser);
+        return [];
     }
 
     /**
@@ -220,12 +221,14 @@ class ChatController
     public function createChatRoom(
         #[InjectUser] User $loggedInUser,
         array              $otherMemberGuids = [],
-        ?ChatRoomTypeEnum  $roomType = null
+        ?ChatRoomTypeEnum  $roomType = null,
+        string             $groupGuid = null,
     ): ChatRoomEdge {
         return $this->roomService->createRoom(
             user: $loggedInUser,
             otherMemberGuids: $otherMemberGuids,
-            roomType: $roomType
+            roomType: $roomType,
+            groupGuid: $groupGuid ? (int) $groupGuid : null,
         );
     }
 
