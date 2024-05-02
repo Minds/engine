@@ -399,7 +399,7 @@ class RoomService
         foreach ($this->roomRepository->getAllRoomMembers(roomGuid: $roomGuid, user: $user, excludeSelf: $excludeSelf) as $member) {
             $user = $this->entitiesBuilder->single($member['member_guid']);
             if (!$user) {
-                return null;
+                continue;
             }
 
             yield new ChatRoomMemberEdge(
