@@ -5,8 +5,10 @@ namespace Minds\Core\Chat\Services;
 
 use Minds\Core\Chat\Delegates\AnalyticsDelegate;
 use Minds\Core\Chat\Entities\ChatMessage;
+use Minds\Core\Chat\Entities\ChatRoomListItem;
 use Minds\Core\Chat\Enums\ChatMessageTypeEnum;
 use Minds\Core\Chat\Enums\ChatRoomMemberStatusEnum;
+use Minds\Core\Chat\Enums\ChatRoomTypeEnum;
 use Minds\Core\Chat\Events\Sockets\ChatEvent;
 use Minds\Core\Chat\Events\Sockets\Enums\ChatEventTypeEnum;
 use Minds\Core\Chat\Exceptions\ChatMessageNotFoundException;
@@ -253,9 +255,20 @@ class MessageService
         User $loggedInUser
     ): bool {
         $message = $this->getMessage($roomGuid, $messageGuid, $loggedInUser);
-        if (!$loggedInUser->isAdmin() && $message->senderGuid !== (int) $loggedInUser->getGuid()) {
+        $chatRoom = $this->getChatRoomListItem($loggedInUser, $roomGuid);
+        $isUserRoomOwner = $this->roomRepository->isUserRoomOwner(
+            roomGuid: $roomGuid,
+            user: $loggedInUser
+        );
+
+        if (
+            !$loggedInUser->isAdmin() &&
+            $message->senderGuid !== (int) $loggedInUser->getGuid() &&
+            !($chatRoom->chatRoom->roomType === ChatRoomTypeEnum::GROUP_OWNED && $isUserRoomOwner)
+        ) {
             throw new GraphQLException(message: 'You are not allowed to delete this message', code: 403);
         }
+
         $this->messageRepository->beginTransaction();
         try {
             if (!$this->receiptService->deleteAllMessageReadReceipts($roomGuid, $messageGuid)) {
@@ -298,17 +311,7 @@ class MessageService
         int $roomGuid
     ) {
         try {
-            ['chatRooms' => $chatRooms] = $this->roomRepository->getRoomsByMember(
-                user: $user,
-                targetMemberStatuses: [
-                    ChatRoomMemberStatusEnum::ACTIVE->name,
-                    ChatRoomMemberStatusEnum::INVITE_PENDING->name
-                ],
-                limit: 1,
-                roomGuid: $roomGuid
-            );
-
-            $chatRoom = $chatRooms[0] ?? throw new ChatRoomNotFoundException();
+            $chatRoom = $this->getChatRoomListItem($user, $roomGuid);
 
             $this->analyticsDelegate->onMessageSend(
                 actor: $user,
@@ -318,5 +321,29 @@ class MessageService
         } catch (\Exception $e) {
             $this->logger->error($e);
         }
+    }
+
+    /**
+     * Get the chat room list item.
+     * @param User $user - the user.
+     * @param integer $roomGuid - the room guid.
+     * @throws ChatRoomNotFoundException - if the chat room is not found.
+     * @return ChatRoomListItem - the chat room list item.
+     */
+    private function getChatRoomListItem(
+        User $user,
+        int $roomGuid
+    ): ChatRoomListItem {
+        ['chatRooms' => $chatRooms] = $this->roomRepository->getRoomsByMember(
+            user: $user,
+            targetMemberStatuses: [
+                ChatRoomMemberStatusEnum::ACTIVE->name,
+                ChatRoomMemberStatusEnum::INVITE_PENDING->name
+            ],
+            limit: 1,
+            roomGuid: $roomGuid
+        );
+
+        return $chatRooms[0] ?? throw new ChatRoomNotFoundException();
     }
 }
