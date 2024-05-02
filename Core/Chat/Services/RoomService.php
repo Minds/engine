@@ -471,7 +471,7 @@ class RoomService
                     user: $loggedInUser
                 ),
                 chatRoomNotificationStatus:
-                    $chatRoomMemberSettings['notifications_status'] ?
+                    isset($chatRoomMemberSettings['notifications_status']) ?
                         constant(ChatRoomNotificationStatusEnum::class . '::' . $chatRoomMemberSettings['notifications_status']) :
                         ChatRoomNotificationStatusEnum::MUTED,
             ),
