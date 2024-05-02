@@ -365,6 +365,8 @@ class RoomRepositorySpec extends ObjectBehavior
             ->willReturn($groupsQueryMock);
         $groupsQueryMock->joinRaw(Argument::any(), Argument::any())
             ->willReturn($groupsQueryMock);
+        $groupsQueryMock->where('gm.membership_level', Operator::GTE, 1)
+            ->willReturn($groupsQueryMock);
 
         $this->mysqlClientReaderHandlerMock->select()
             ->shouldBeCalled()
@@ -424,6 +426,9 @@ class RoomRepositorySpec extends ObjectBehavior
             ->willReturn($groupsQueryMock);
 
         $groupsQueryMock->joinRaw(new RawExp('minds_group_membership as gm'), 'r.group_guid = gm.group_guid')
+            ->willReturn($groupsQueryMock);
+
+        $groupsQueryMock->where('gm.membership_level', Operator::GTE, 1)
             ->willReturn($groupsQueryMock);
 
         $unionQueryMock->where('tenant_id', Operator::EQ, new RawExp(':tenant_id'))
@@ -629,6 +634,8 @@ class RoomRepositorySpec extends ObjectBehavior
             ->willReturn($roomMembershipQueryMock);
         $roomMembershipQueryMock->joinRaw(Argument::any(), Argument::any())
             ->willReturn($roomMembershipQueryMock);
+        $roomMembershipQueryMock->where('gm.membership_level', Operator::GTE, 1)
+            ->willReturn($roomMembershipQueryMock);
         $roomMembershipQueryMock->union(Argument::any())
             ->willReturn($roomMembershipQueryMock);
         $roomMembershipQueryMock->build(false)
@@ -742,6 +749,8 @@ class RoomRepositorySpec extends ObjectBehavior
         $roomMembershipQueryMock->joinRaw(Argument::any(), Argument::any())
             ->willReturn($roomMembershipQueryMock);
         $roomMembershipQueryMock->union(Argument::any())
+            ->willReturn($roomMembershipQueryMock);
+        $roomMembershipQueryMock->where('gm.membership_level', Operator::GTE, 1)
             ->willReturn($roomMembershipQueryMock);
         $roomMembershipQueryMock->build(false)
             ->willReturn('');
@@ -1455,6 +1464,8 @@ class RoomRepositorySpec extends ObjectBehavior
             ->willReturn($roomMembershipQueryMock);
         $roomMembershipQueryMock->joinRaw(Argument::any(), Argument::any())
             ->willReturn($roomMembershipQueryMock);
+        $roomMembershipQueryMock->where('gm.membership_level', Operator::GTE, 1)
+        ->willReturn($roomMembershipQueryMock);
         $roomMembershipQueryMock->union(Argument::any())
             ->willReturn($roomMembershipQueryMock);
         $roomMembershipQueryMock->build(false)
