@@ -359,7 +359,7 @@ class RoomService
         );
 
         return [
-            'edges' => array_filter(array_map(
+            'edges' => array_values(array_filter(array_map(
                 function (array $member): ?ChatRoomMemberEdge {
                     $user = $this->entitiesBuilder->single($member['member_guid']);
                     if (!$user) {
@@ -379,7 +379,7 @@ class RoomService
                     );
                 },
                 $members
-            )),
+            ))),
             'hasMore' => $hasMore
         ];
     }
