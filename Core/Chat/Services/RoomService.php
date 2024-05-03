@@ -473,7 +473,7 @@ class RoomService
                 chatRoomNotificationStatus:
                     isset($chatRoomMemberSettings['notifications_status']) ?
                         constant(ChatRoomNotificationStatusEnum::class . '::' . $chatRoomMemberSettings['notifications_status']) :
-                        ChatRoomNotificationStatusEnum::MUTED,
+                        ChatRoomNotificationStatusEnum::ALL,
             ),
             cursor: $chatRoomListItem->lastMessageCreatedTimestamp ?
                 base64_encode((string)$chatRoomListItem->lastMessageCreatedTimestamp) :

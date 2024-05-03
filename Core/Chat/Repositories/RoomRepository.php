@@ -438,7 +438,7 @@ class RoomRepository extends AbstractRepository
         $stmt = $this->mysqlClientReaderHandler->select()
             ->columns([
                 'm.*',
-                'notifications_status' => new RawExp('COALESCE(rms.notifications_status, "MUTED")'),
+                'notifications_status' => new RawExp('COALESCE(rms.notifications_status, "ALL")'),
             ])
             ->from(new RawExp("($q) as m"))
             ->leftJoinRaw(
